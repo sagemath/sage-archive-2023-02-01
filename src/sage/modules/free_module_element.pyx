@@ -1,22 +1,30 @@
 r"""
 Elements of free modules
 
-AUTHOR:
-    -- William Stein
-    -- Josh Kantor
+AUTHORS:
 
-TODO:
-    Change to use a get_unsafe / set_unsafe, etc., structure exactly
-    like with matrices, since we'll have to define a bunch of special
-    purpose implementations of vectors easily and systematically.
+- William Stein
 
-EXAMPLES:
-We create a vector space over $\QQ$ and a subspace of this space.
+- Josh Kantor
+
+TODO: Change to use a get_unsafe / set_unsafe, etc., structure
+exactly like with matrices, since we'll have to define a bunch of
+special purpose implementations of vectors easily and
+systematically.
+
+EXAMPLES: We create a vector space over `\mathbb{Q}` and a
+subspace of this space.
+
+::
+
     sage: V = QQ^5
     sage: W = V.span([V.1, V.2])
 
 Arithmetic operations always return something in the ambient space,
-since there is a canonical map from $W$ to $V$ but not from $V$ to $W$.
+since there is a canonical map from `W` to `V` but
+not from `V` to `W`.
+
+::
 
     sage: parent(W.0 + V.1)
     Vector space of dimension 5 over Rational Field
@@ -27,27 +35,40 @@ since there is a canonical map from $W$ to $V$ but not from $V$ to $W$.
     sage: W.0 - V.0
     (-1, 1, 0, 0, 0)
 
-Next we define modules over $\ZZ$ and a finite field.
+Next we define modules over `\mathbb{Z}` and a finite
+field.
+
+::
+
     sage: K = ZZ^5
     sage: M = GF(7)^5
 
-Arithmetic between the $\QQ$  and $\ZZ$ modules is defined, and
-the result is always over $\QQ$, since there is a canonical coercion
-map to $\QQ$.
+Arithmetic between the `\mathbb{Q}` and
+`\mathbb{Z}` modules is defined, and the result is always
+over `\mathbb{Q}`, since there is a canonical coercion map
+to `\mathbb{Q}`.
+
+::
+
     sage: K.0 + V.1
     (1, 1, 0, 0, 0)
     sage: parent(K.0 + V.1)
     Vector space of dimension 5 over Rational Field
 
-Since there is no canonical coercion map to the finite field from $\QQ$
-the following arithmetic is not defined:
+Since there is no canonical coercion map to the finite field from
+`\mathbb{Q}` the following arithmetic is not defined::
+
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
-However, there is a map from $\ZZ$ to the finite field, so the
-following is defined, and the result is in the finite field.
+However, there is a map from `\mathbb{Z}` to the finite
+field, so the following is defined, and the result is in the finite
+field.
+
+::
+
     sage: w = K.0 + M.0; w
     (2, 0, 0, 0, 0)
     sage: parent(w)
@@ -55,7 +76,8 @@ following is defined, and the result is in the finite field.
     sage: parent(M.0 + K.0)
     Vector space of dimension 5 over Finite Field of size 7
 
-Matrix vector multiply:
+Matrix vector multiply::
+
     sage: MS = MatrixSpace(QQ,3)
     sage: A = MS([0,1,0,1,0,0,0,0,1])
     sage: V = QQ^3
@@ -63,7 +85,8 @@ Matrix vector multiply:
     sage: v * A
     (2, 1, 3)
 
-TESTS:
+TESTS::
+
     sage: D = 46341
     sage: u = 7
     sage: R = Integers(D)
@@ -105,22 +128,33 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     Return a vector over R with given entries.
 
     CALL FORMATS:
-        1. vector(object)
-        2. vector(ring, object)
-        3. vector(object, ring)
-        4. vector(numpy_array)
 
-    In each case, give sparse=[True|False] as an option.
+    1. vector(object)
+
+    2. vector(ring, object)
+
+    3. vector(object, ring)
+
+    4. vector(numpy_array)
+
+    In each case, give ``sparse=True`` or ``sparse=False`` as an
+    option.
 
     INPUT:
-        elts -- entries of a vector (either a list or dict).
-        R -- ring
-        sparse -- optional
 
-    OUTPUT:
-        An element of the free module over R of rank len(elts).
 
-    EXAMPLES:
+    -  ``elts`` - entries of a vector (either a list or
+       dict).
+
+    -  ``R`` - ring
+
+    -  ``sparse`` - optional
+
+
+    OUTPUT: An element of the free module over R of rank len(elts).
+
+    EXAMPLES::
+
         sage: v = vector([1,2,3]); v
         (1, 2, 3)
         sage: v.parent()
@@ -130,11 +164,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: v.parent()
         Vector space of dimension 3 over Rational Field
 
-    All entries must \emph{canonically} coerce to some common ring:
+    All entries must *canonically* coerce to some common ring::
+
         sage: v = vector([17, GF(11)(5), 19/3]); v
         Traceback (most recent call last):
         ...
         TypeError: unable to find a common ring for all elements
+
+    ::
 
         sage: v = vector([17, GF(11)(5), 19]); v
         (6, 5, 8)
@@ -157,22 +194,32 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: v.parent()
         Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
-    You can also use \code{free_module_element}, which is the same as \code{vector}.
+    You can also use ``free_module_element``, which is
+    the same as ``vector``.
+
+    ::
+
         sage: free_module_element([1/3, -4/5])
         (1/3, -4/5)
 
-    Make a vector mod 3 out of a vector over ZZ:
+    Make a vector mod 3 out of a vector over `\mathbb{Z}`::
+
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
 
-    Here we illustrate the creation of sparse vectors by using a dictionary:
+    Here we illustrate the creation of sparse vectors by using a
+    dictionary::
+
         sage: vector({1:1.1, 3:3.14})
         (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
 
-    Any 1 dimensional numpy array of type float or complex may be passed to vector. The result
-    will vector in the appropriate dimensional vector space over the real double field or the
-    complex double field. The data in the array must be contiguous so columnwise slices of numpy matrices
-    will rase an exception.
+    Any 1 dimensional numpy array of type float or complex may be
+    passed to vector. The result will be a vector in the appropriate
+    dimensional vector space over the real double field or the complex
+    double field. The data in the array must be contiguous so
+    columnwise slices of numpy matrices will raise an exception.
+
+    ::
 
         sage: import numpy
         sage: x=numpy.random.randn(10)
@@ -180,9 +227,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: v=numpy.random.randn(10)*numpy.complex(0,1)
         sage: w=vector(v)
 
-    If any of the arguments to vector have Python type int, long,
-    real, or complex, they will first be coerced to the appropriate
-    Sage objects.  This fixes trac \#3847:
+    If any of the arguments to vector have Python type int, long, real,
+    or complex, they will first be coerced to the appropriate Sage
+    objects. This fixes trac #3847::
+
         sage: v = vector([int(0)]); v
         (0)
         sage: v[0].parent()
@@ -266,7 +314,8 @@ def prepare(v, R):
 
 def prepare_dict(w, R):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.modules.free_module_element import prepare_dict
         sage: prepare_dict({3:1 , 5:3}, QQ)
         ([0, 0, 0, 1, 0, 3], Rational Field)
@@ -294,7 +343,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         r"""
         Convert self to Magma.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeModule(ZZ, 2, inner_product_matrix=matrix(ZZ, 2, 2, [1, 0, 0, -1]))
             sage: v = F([1, 2])
             sage: M = magma(v); M # optional - magma
@@ -312,6 +362,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             True
             sage: M.sage().parent() is v.parent() # optional - magma
             True
+
+        ::
 
             sage: v = vector(QQ, [1, 2, 5/6])
             sage: M = magma(v); M # optional - magma
@@ -339,9 +391,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return hash(tuple(self))
 
     def _vector_(self, R=None):
-        r"""Return self as a vector.
+        r"""
+        Return self as a vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [2, 12, 22])
             sage: vector(v)
             (2, 12, 22)
@@ -360,9 +414,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.change_ring(R)
 
     def _matrix_(self, R=None):
-        r"""Return self as a row matrix.
+        r"""
+        Return self as a row matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [2, 12, 22])
             sage: vector(v)
             (2, 12, 22)
@@ -380,7 +436,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(vector(RR, [pi, e, 0.5]), verify=True)
             # Verified
             vector(RR, [3.1415926535897931, 2.7182818284590451, 0.5])
@@ -426,17 +483,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def transpose(self):
         r"""Return self as a column matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [2, 12, 22])
             sage: transpose(vector(v))
             [ 2]
             [12]
             [22]
 
+        ::
+
             sage: transpose(vector(GF(7), v))
             [2]
             [5]
             [1]
+
+        ::
 
             sage: transpose(vector(v, ZZ['x', 'y']))
             [ 2]
@@ -452,7 +514,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         Make a copy of this vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1..5]); v
             (1, 2, 3, 4, 5)
             sage: w = v.copy()
@@ -460,6 +523,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             True
             sage: v is w
             False
+
+        ::
 
             sage: v = vector([1..5], sparse=True); v
             (1, 2, 3, 4, 5)
@@ -476,9 +541,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def set_immutable(self):
         """
-        Make this vector immutable.  This operation can't be undone.
+        Make this vector immutable. This operation can't be undone.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1..5]); v
             (1, 2, 3, 4, 5)
             sage: v[1] = 10
@@ -492,9 +558,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def is_mutable(self):
         """
-        Return True if this vector is mutable, i.e., the entries can be changed.
+        Return True if this vector is mutable, i.e., the entries can be
+        changed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
             True
             sage: v.set_immutable()
@@ -505,9 +573,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def is_immutable(self):
         """
-        Return True if this vector is immutable, i.e., the entries cannot be changed.
+        Return True if this vector is immutable, i.e., the entries cannot
+        be changed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
             False
             sage: v.set_immutable()
@@ -518,10 +588,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def change_ring(self, R):
         """
-        Change the base ring of this vector, by coercing each element
-        of this vector into R.
+        Change the base ring of this vector, by coercing each element of
+        this vector into R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ['x,y'], [1..5]); v.change_ring(GF(3))
             (1, 2, 0, 1, 2)
         """
@@ -534,14 +605,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         Return the additive order of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(Integers(4), [1,2])
             sage: v.additive_order()
             4
 
+        ::
+
             sage: v = vector([1,2,3])
             sage: v.additive_order()
             +Infinity
+
+        ::
 
             sage: v = vector(Integers(30), [6, 15]); v
             (6, 15)
@@ -563,9 +639,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __abs__(self):
         """
-        Return the square root of the sum of the squares of the entries of this vector.
+        Return the square root of the sum of the squares of the entries of
+        this vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1..5]); abs(v)
             sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
@@ -575,28 +653,31 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def norm(self, p=sage.rings.integer.Integer(2)):
         """
-        Return the p-norm of this vector, where p can be a real
-        number >= 1, Infinity, or a symbolic expression.
-        If p=2 (default), this is the usual Euclidean norm;
-        if p=Infinity, this is the maximum norm; if p=1, this is
-        the taxicab (Manhattan) norm.
+        Return the p-norm of this vector, where p can be a real number
+        `\geq 1`, Infinity, or a symbolic expression. If `p=2` (default),
+        this is the usual Euclidean norm; if p=Infinity, this is the
+        maximum norm; if `p=1`, this is the taxicab (Manhattan) norm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,2,-3])
             sage: v.norm(5)
             276^(1/5)
 
-        The default is the usual Euclidean norm:
+        The default is the usual Euclidean norm::
+
             sage: v.norm()
             sqrt(14)
             sage: v.norm(2)
             sqrt(14)
 
-        The infinity norm is the maximum size of any entry:
+        The infinity norm is the maximum size of any entry::
+
             sage: v.norm(Infinity)
             3
 
-        Any real or symbolic value works:
+        Any real or symbolic value works::
+
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
             3.07738488539
@@ -623,7 +704,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ, [0,0,0,0])
             sage: v == 0
             True
@@ -655,7 +737,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __mod__(self, p):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V % 7
             (5, 2, 6, 1)
@@ -666,7 +749,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def Mod(self, p):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V.Mod(7)
             (5, 2, 6, 1)
@@ -693,7 +777,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def lift(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
             (5, 2, 6, 1)
             sage: V.lift()
@@ -713,13 +798,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         String representation of a vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: vector(QQ, [])._repr_()
             '()'
             sage: vector(QQ, range(5))._repr_()
             '(0, 1, 2, 3, 4)'
 
         Symbolic are not displayed using ASCII art.
+
+        ::
+
             sage: x = var('x')
             sage: v = vector([x/(2*x)+sqrt(2)+var('theta')^3,x/(2*x)]); v
             (theta^3 + sqrt(2) + 1/2, 1/2)
@@ -746,14 +835,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _maple_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, 4, range(4))               #optional
             sage: maple(v)                                  #optional
             Vector[row](4, [0,1,2,3])
 
+        ::
+
             sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
             sage: maple(v)                                  #optional
             Vector[row](3, [2/3,0,5/4])
+
+        ::
 
             sage: P.<x> = ZZ[]                                       #optional
             sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
@@ -767,7 +861,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ['x,y'], [1,2, 'x*y', 'x^2-y^2']); v
             (1, 2, x*y, x^2 - y^2)
             sage: v[1:]
@@ -787,11 +882,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __setslice__(self, i, j, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(CDF,[1,2,(3,4)]); v
             (1.0, 2.0, 3.0 + 4.0*I)
             sage: v[1:] = (1,3); v
             (1.0, 1.0, 3.0)
+
+        ::
 
             sage: v.set_immutable()
             sage: v[1:2] = [3,5]
@@ -861,15 +959,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         INPUT:
 
-            plot_type -- (default: 'arrow' if v has 3 or fewer components,
-            otherwise 'step') type of plot.  Options are 'arrow' to draw an
-            arrow; 'point' to draw a point at the coordinates
-            specified by the vector; 'step' to draw a step function
-            representing the coordinates of the vector.  Both 'arrow'
-            and 'point' raise exceptions if the vector has more than 3
-            dimensions.
+        - ``plot_type`` - (default: 'arrow' if v has 3 or fewer components,
+            otherwise 'step') type of plot. Options are:
 
-        EXAMPLES:
+            - 'arrow' to draw an arrow
+
+            - 'point' to draw a point at the coordinates specified by the
+              vector
+
+            - 'step' to draw a step function representing the coordinates
+              of the vector.
+
+          Both 'arrow' and 'point' raise exceptions if the vector has
+          more than 3 dimensions.
+
+        EXAMPLES::
+
             sage: v = vector(RDF, (1,2))
             sage: eps = 0.1
             sage: plot(v, plot_type='arrow')
@@ -885,8 +990,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v) # defaults to a step plot
-
-
         """
         # Give sensible defaults based on the vector length
         if plot_type is None:
@@ -933,17 +1036,27 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
              connect=True, **kwds):
         """
         INPUT:
-            xmin -- (default: 0) start x position to start plotting
-            xmax -- (default: 1) stop x position to stop plotting
-            eps -- (default: determined by xmax) we view this vector
-                   as defining a function at the points xmin, xmin +
-                   eps, xmin + 2*eps, ...,
-            res -- (default: all points) total number of points to include
-                   in the graph
-            connect -- (default: True) if True draws a line; otherwise draw
-                       a list of points.
 
-        EXAMPLES:
+
+        -  ``xmin`` - (default: 0) start x position to start
+           plotting
+
+        -  ``xmax`` - (default: 1) stop x position to stop
+           plotting
+
+        -  ``eps`` - (default: determined by xmax) we view this
+           vector as defining a function at the points xmin, xmin + eps, xmin
+           + 2\*eps, ...,
+
+        -  ``res`` - (default: all points) total number of
+           points to include in the graph
+
+        -  ``connect`` - (default: True) if True draws a line;
+           otherwise draw a list of points.
+
+
+        EXAMPLES::
+
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
             sage: v.plot_step(eps=eps, xmax=5, hue=0)
@@ -969,20 +1082,26 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def dot_product(self, right):
         """
-        Return the dot product of self and right, which is the sum
-        of the product of the corresponding entries.
+        Return the dot product of self and right, which is the sum of the
+        product of the corresponding entries.
 
         INPUT:
-            right -- vector of the same degree as self.  it need not
-                     be in the same vector space as self, as long as
-                     the coefficients can be multiplied.
 
-        EXAMPLES:
+
+        -  ``right`` - vector of the same degree as self. It
+           need not be in the same vector space as self, as long as the
+           coefficients can be multiplied.
+
+
+        EXAMPLES::
+
             sage: V = FreeModule(ZZ, 3)
             sage: v = V([1,2,3])
             sage: w = V([4,5,6])
             sage: v.dot_product(w)
             32
+
+        ::
 
             sage: W = VectorSpace(GF(3),3)
             sage: w = W([0,1,2])
@@ -991,8 +1110,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: w.dot_product(v).parent()
             Finite Field of size 3
 
-        Implicit coercion is well defined (irregardless of order), so
-        we get 2 even if we do the dot product in the other order.
+        Implicit coercion is well defined (regardless of order), so we
+        get 2 even if we do the dot product in the other order.
+
+        ::
 
             sage: v.dot_product(w)
             2
@@ -1013,13 +1134,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def cross_product(self, right):
         """
-        Return the cross product of self and right, which is only
-        defined for vectors of length 3.
+        Return the cross product of self and right, which is only defined
+        for vectors of length 3.
 
         This product is performed under the assumption that the basis
         vectors are orthonormal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,2,3]); w = vector([0,5,-9])
             sage: v.cross_product(v)
             (0, 0, 0)
@@ -1044,14 +1166,18 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def pairwise_product(self, right):
         """
         Return the dot product of self and right, which is a vector of
-        of the product of the corresponding entries.
+        the product of the corresponding entries.
 
         INPUT:
-            right -- vector of the same degree as self.  it need not
-                     be in the same vector space as self, as long as
-                     the coefficients can be multiplied.
 
-        EXAMPLES:
+
+        -  ``right`` - vector of the same degree as self. It
+           need not be in the same vector space as self, as long as the
+           coefficients can be multiplied.
+
+
+        EXAMPLES::
+
             sage: V = FreeModule(ZZ, 3)
             sage: v = V([1,2,3])
             sage: w = V([4,5,6])
@@ -1060,6 +1186,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: sum(v.pairwise_product(w)) == v.dot_product(w)
             True
 
+        ::
+
             sage: W = VectorSpace(GF(3),3)
             sage: w = W([0,1,2])
             sage: w.pairwise_product(v)
@@ -1067,14 +1195,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: w.pairwise_product(v).parent()
             Vector space of dimension 3 over Finite Field of size 3
 
-        Implicit coercion is well defined (irregardless of order), so
-        we get 2 even if we do the dot product in the other order.
+        Implicit coercion is well defined (regardless of order), so we
+        get 2 even if we do the dot product in the other order.
+
+        ::
 
             sage: v.pairwise_product(w).parent()
             Vector space of dimension 3 over Finite Field of size 3
 
-        TESTS:
+        TESTS::
+
             sage: x, y = var('x, y')
+
+        ::
 
             sage: parent(vector(ZZ,[1,2]).pairwise_product(vector(ZZ,[1,2])))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -1085,25 +1218,35 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: parent(vector(QQ,[1,2]).pairwise_product(vector(QQ,[1,2])))
             Vector space of dimension 2 over Rational Field
 
+        ::
+
             sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x],[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+
+        ::
 
             sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
+        ::
+
             sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[x],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
+        ::
+
             sage: parent(vector(QQ[y],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        ::
 
             sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
             Traceback (most recent call last):
@@ -1139,26 +1282,26 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def get(self, i):
         """
-        get is meant to be more efficient
-        than getitem, because it does not do
-        any error checking.
+        get is meant to be more efficient than getitem, because it does not
+        do any error checking.
         """
         return self[i]
 
     def set(self, i, x):
         """
-        set is meant to be more efficient
-        than setitem, because it does not do
-        any error checking or coercion.  Use with care.
+        set is meant to be more efficient than setitem, because it does not
+        do any error checking or coercion. Use with care.
         """
         self[i] = x
 
 
     def normalize(self):
         """
-        Return this vector divided through by the first nonzero entry of this vector.
+        Return this vector divided through by the first nonzero entry of
+        this vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ,[0,4/3,5,1,2])
             sage: v.normalize()
             (0, 1, 15/4, 3/4, 3/2)
@@ -1171,10 +1314,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def inner_product(self, right):
         """
-        Returns the inner product of self and other, with respect to
-        the inner product defined on the parent of self.
+        Returns the inner product of self and other, with respect to the
+        inner product defined on the parent of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: I = matrix(ZZ,3,[2,0,-1,0,2,0,-1,0,6])
             sage: M = FreeModule(ZZ, 3, inner_product_matrix = I)
@@ -1183,7 +1326,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: K = M.span_of_basis([[0/2,-1/2,-1/2], [0,1/2,-1/2],[2,0,0]])
             sage: (K.0).inner_product(K.0)
             2
-
         """
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
@@ -1216,9 +1358,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _mathematica_init_(self):
         """
-        Returns string representation of this vector as a Mathematica list.
+        Returns string representation of this vector as a Mathematica
+        list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: vector((1,2,3), QQ)._mathematica_init_()
             '{1/1, 2/1, 3/1}'
             sage: mathematica(vector((1,2,3), QQ))  #optional -- requires mathematica
@@ -1251,15 +1395,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def support(self):   # do not override.
         """
         Return the integers i such that self[i] != 0.
-        This is the same as the \code{nonzero_positions} function.
+        This is the same as the ``nonzero_positions`` function.
         """
         return self.nonzero_positions()
 
     def _latex_(self):
         """
-        Return a latex representation of self.  For example, if self is
-        the free module element (1,2,3,4), then following latex is
-        generated: "(1,2,3,4)"  (without the quotes).
+        Return a latex representation of self. For example, if self is the
+        free module element (1,2,3,4), then following latex is generated:
+        "(1,2,3,4)" (without the quotes).
         """
         s = '\\left('
         for a in self.list():
@@ -1283,27 +1427,33 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def apply_map(self, phi, R=None, sparse=None):
         """
-        Apply the given map phi (an arbitrary Python function or
-        callable object) to this free module element.  If R is not
-        given, automatically determine the base ring of the resulting
-        element.
+        Apply the given map phi (an arbitrary Python function or callable
+        object) to this free module element. If R is not given,
+        automatically determine the base ring of the resulting element.
 
         INPUT:
-            phi -- arbitrary Python function or callable object
-            R -- (optional) ring
             sparse -- True or False will control whether the result
               is sparse.  By default, the result is sparse iff self
               is sparse.
 
-        OUTPUT:
-            a free module element over R
 
-        EXAMPLES:
+        -  ``phi`` - arbitrary Python function or callable
+           object
+
+        -  ``R`` - (optional) ring
+
+
+        OUTPUT: a free module element over R
+
+        EXAMPLES::
+
             sage: m = vector([1,x,sin(x+1)])
             sage: m.apply_map(x^2)
             (1, x^2, sin(x + 1)^2)
             sage: m.apply_map(sin)
             (sin(1), sin(x), sin(sin(x + 1)))
+
+        ::
 
             sage: m = vector(ZZ, 9, range(9))
             sage: k.<a> = GF(9)
@@ -1311,6 +1461,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0, 1, 2, 0, 1, 2, 0, 1, 2)
 
         In this example, we explicitly specify the codomain.
+
+        ::
 
             sage: s = GF(3)
             sage: f = lambda x: s(x)
@@ -1320,20 +1472,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Vector space of dimension 9 over Finite Field in a of size 3^2
 
         If your map sends 0 to a non-zero value, then your resulting
-        vector is not mathematically sparse:
+        vector is not mathematically sparse::
 
             sage: v = vector([0] * 6 + [1], sparse=True); v
             (0, 0, 0, 0, 0, 0, 1)
             sage: v2 = v.apply_map(lambda x: x+1); v2
             (1, 1, 1, 1, 1, 1, 2)
 
-        but it's still represented with a sparse data type:
+        but it's still represented with a sparse data type::
 
             sage: parent(v2)
             Ambient sparse free module of rank 7 over the principal ideal domain Integer Ring
 
         This data type is inefficient for dense vectors, so you may
-        want to specify sparse=False:
+        want to specify sparse=False::
 
             sage: v2 = v.apply_map(lambda x: x+1, sparse=False); v2
             (1, 1, 1, 1, 1, 1, 2)
@@ -1341,7 +1493,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
 
         Or if you have a map that will result in mostly zeroes, you may
-        want to specify sparse=True:
+        want to specify sparse=True::
 
             sage: v = vector(srange(10))
             sage: v2 = v.apply_map(lambda x: 0 if x else 1, sparse=True); v2
@@ -1349,12 +1501,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: parent(v2)
             Ambient sparse free module of rank 10 over the principal ideal domain Integer Ring
 
-        TESTS:
+        TESTS::
+
             sage: m = vector(SR,[])
             sage: m.apply_map(lambda x: x*x) == m
             True
 
-        Check that we don't unnecessarily apply phi to 0 in the sparse case:
+        Check that we don't unnecessarily apply phi to 0 in the sparse case::
+
             sage: m = vector(ZZ, range(1, 4), sparse=True)
             sage: m.apply_map(lambda x: 1/x)
             (1, 1/2, 1/3)
@@ -1405,13 +1559,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _derivative(self, var=None):
         """
-        Differentiate with respect to var by differentiating each
-        element with respect to var.
+        Differentiate with respect to var by differentiating each element
+        with respect to var.
 
-        SEE ALSO:
-            self.derivative()
+        .. seealso:
 
-        EXAMPLES:
+           :meth:`derivative`
+
+        EXAMPLES::
+
             sage: v = vector([1,x,x^2])
             sage: v._derivative(x)
             (0, 1, 2*x)
@@ -1440,9 +1596,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Derivative with respect to variables supplied in args.
 
         Multiple variables and iteration counts may be supplied; see
-        documentation for the global derivative() function for more details.
+        documentation for the global derivative() function for more
+        details.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,x,x^2])
             sage: v.derivative(x)
             (0, 1, 2*x)
@@ -1563,7 +1721,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Subtract right from left.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^5
             sage: W = V.span([V.1, V.2])
             sage: W.0 - V.0
@@ -1581,7 +1740,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ['x']^5
             sage: 5 * V.0
             (5, 0, 0, 0, 0)
@@ -1603,7 +1763,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Return the dot product of left and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
             sage: v*w
@@ -1617,7 +1778,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     cpdef element_Vector _pairwise_product_(left, element_Vector right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
             sage: v.pairwise_product(w)
@@ -1640,7 +1802,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def __getitem__(self, Py_ssize_t i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([RR(1), RR(2)]); v
             (1.00000000000000, 2.00000000000000)
             sage: v[0]
@@ -1655,7 +1818,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             Traceback (most recent call last):
             ...
             IndexError: index must be between -2 and 1
-
         """
         if isinstance(i, slice):
             return list(self)[i]
@@ -1683,7 +1845,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def __setslice__(self, Py_ssize_t i, Py_ssize_t j, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
             sage: v
             (1, 2, x*y)
@@ -1719,17 +1882,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Compare two free module elements with identical parents.
 
-        Free module elements are compared in lexicographic order on
-        the underlying list of coefficients.  A dense a sparse free
-        module element are equal if their coefficients are the same.
+        Free module elements are compared in lexicographic order on the
+        underlying list of coefficients. A dense a sparse free module
+        element are equal if their coefficients are the same.
         """
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
     def __call__(self, *args, **kwargs):
         """
-        Calling a free module element returns the result of calling each component.
+        Calling a free module element returns the result of calling each
+        component.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x, y = var('x,y')
             sage: f = x^2 + y^2
             sage: g = f.gradient()
@@ -1750,10 +1915,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def n(self, *args, **kwargs):
         """
-        Returns a numerical approximation of self by calling the n()
-        method on all of its entries.
+        Returns a numerical approximation of self by calling the n() method
+        on all of its entries.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(RealField(212), [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
@@ -1795,18 +1961,21 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
-    A generic sparse free module element is a dictionary with keys
-    ints i and entries in the base ring.
+    A generic sparse free module element is a dictionary with keys ints
+    i and entries in the base ring.
 
     EXAMPLES:
 
-    Pickling works:
+    Pickling works::
+
         sage: v = FreeModule(ZZ, 3, sparse=True).0
         sage: loads(dumps(v)) == v
         True
         sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
         sage: loads(dumps(v)) - v
         (0, 0, 0, 0, 0)
+
+    ::
 
         sage: a = vector([-1,0,1/1],sparse=True); b = vector([-1/1,0,0],sparse=True)
         sage: a.parent()
@@ -1909,7 +2078,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Return the dot product of left and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,2,0], sparse=True); w = vector([0,5,-9], sparse=True)
             sage: v * w
             10
@@ -1940,9 +2110,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Compare two sparse free module elements.
 
-        Free module elements are compared in lexicographic order on
-        the underlying list of coefficients.  A dense a sparse free
-        module element are equal if their coefficients are the same.
+        Free module elements are compared in lexicographic order on the
+        underlying list of coefficients. A dense a sparse free module
+        element are equal if their coefficients are the same.
         """
         a = left._entries.items()
         a.sort()
@@ -1958,7 +2128,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def __getitem__(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([RR(1), RR(2)], sparse=True); v
             (1.00000000000000, 2.00000000000000)
             sage: v[0]
@@ -1987,8 +2158,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def get(self, i):
         """
-        Like __getitem__ but with no type or bounds checking.
-        Returns 0 if access is out of bounds.
+        Like __getitem__ but with no type or bounds checking. Returns 0
+        if access is out of bounds.
         """
         i = int(i)
         if self._entries.has_key(i):
@@ -2013,7 +2184,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Set the ith entry of self to value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(GF(17), 10000000, sparse=True)
             sage: w = V(0)
             sage: w[39893] = 20
@@ -2073,10 +2245,11 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def n(self, *args, **kwargs):
         """
-        Returns a numerical approximation of self by calling the n()
-        method on all of its entries.
+        Returns a numerical approximation of self by calling the n() method
+        on all of its entries.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(RealField(200), [1,2,3], sparse=True)
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)

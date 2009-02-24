@@ -1,10 +1,12 @@
 """
 Pickling for the old RDF vector class.
 
-AUTHOR:
-    -- Jason Grout
+AUTHORS:
 
-TESTS:
+- Jason Grout
+
+TESTS::
+
     sage: v = vector(RDF, [1,2,3,4])
     sage: loads(dumps(v)) == v
     True

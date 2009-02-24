@@ -21,8 +21,12 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
     def __init__(self, parent, A):
         """
         INPUT:
-            parent -- a homspace in a (sub) category of free modules
-            A -- matrix
+
+
+        -  ``parent`` - a homspace in a (sub) category of free
+           modules
+
+        -  ``A`` - matrix
         """
         if not free_module_homspace.is_FreeModuleHomspace(parent):
             raise TypeError, "parent (=%s) must be a free module hom space"%parent

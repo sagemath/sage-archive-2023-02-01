@@ -1,23 +1,25 @@
 r"""
 Free modules
 
-SAGE supports computation with free modules over an arbitrary
-commutative ring.  Nontrivial functionality is available over $\Z$ and
-fields.  All free modules over an integral domain are equipped with an
-embedding in an ambient vector space and an inner product, which you
-can specify and change.
+Sage supports computation with free modules over an arbitrary
+commutative ring. Nontrivial functionality is available over
+`\mathbb{Z}` and fields. All free modules over an integral
+domain are equipped with an embedding in an ambient vector space
+and an inner product, which you can specify and change.
 
-Create the free module of rank $n$ over an arbitrary commutative
-ring $R$ using the command \code{FreeModule(R,n)}.  Equivalently,
-\code{R\^n} also creates that free module.
+Create the free module of rank `n` over an arbitrary
+commutative ring `R` using the command
+``FreeModule(R,n)``. Equivalently, ``R^n``
+also creates that free module.
 
-The following example illustrates the creation of both a vector spaces
-and a free module over the integers and a submodule of it.  Use the functions
-\code{FreeModule}, \code{span} and member functions of free modules
-to create free modules.  \emph{Do not use the FreeModule\_xxx constructors
-directly.}
+The following example illustrates the creation of both a vector
+space and a free module over the integers and a submodule of it.
+Use the functions ``FreeModule``, ``span``
+and member functions of free modules to create free modules.
+*Do not use the FreeModulexxx constructors directly.*
 
-EXAMPLES:
+EXAMPLES::
+
     sage: V = VectorSpace(QQ,3)
     sage: W = V.subspace([[1,2,7], [1,1,0]])
     sage: W
@@ -34,6 +36,8 @@ EXAMPLES:
     [1 0 0]
     [0 1 0]
 
+::
+
     sage: M = ZZ^3
     sage: C = VectorSpaces(FiniteField(7))
     sage: C(M)
@@ -46,6 +50,9 @@ EXAMPLES:
     [0 1 0]
 
 We illustrate the exponent notation for creation of free modules.
+
+::
+
     sage: ZZ^4
     Ambient free module of rank 4 over the principal ideal domain Integer Ring
     sage: QQ^2
@@ -53,18 +60,23 @@ We illustrate the exponent notation for creation of free modules.
     sage: RR^3
     Vector space of dimension 3 over Real Field with 53 bits of precision
 
-Base ring:
+Base ring::
+
     sage: R.<x,y> = QQ[]
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
     Multivariate Polynomial Ring in x, y over Rational Field
 
+::
+
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
-TESTS:
-We intersect a zero-dimensional vector space with
-a 1-dimension submodule.
+TESTS: We intersect a zero-dimensional vector space with a
+1-dimension submodule.
+
+::
+
     sage: V = (QQ^1).span([])
     sage: W = ZZ^1
     sage: V.intersection(W)
@@ -72,8 +84,9 @@ a 1-dimension submodule.
     Echelon basis matrix:
     []
 
-We construct subspaces of real and complex double vector spaces
-and verify that the element types are correct:
+We construct subspaces of real and complex double vector spaces and
+verify that the element types are correct::
+
     sage: V = FreeModule(RDF, 3); V
     Vector space of dimension 3 over Real Double Field
     sage: V.0
@@ -97,7 +110,8 @@ and verify that the element types are correct:
     sage: type(W.0)
     <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
 
-Basis vectors are immutable:
+Basis vectors are immutable::
+
     sage: A = span([[1,2,3], [4,5,6]], ZZ)
     sage: A.0
     (1, 2, 3)
@@ -106,7 +120,8 @@ Basis vectors are immutable:
     ...
     ValueError: vector is immutable; please change a copy instead (use self.copy())
 
-We can save and load submodules and elements:
+We can save and load submodules and elements::
+
     sage: M = ZZ^3
     sage: M == loads(M.dumps())
     True
@@ -118,7 +133,10 @@ We can save and load submodules and elements:
     True
 
 AUTHORS:
-    --William Stein (2005, 2007) and David Kohel (2007, 2008)
+
+- William Stein (2005, 2007)
+
+- David Kohel (2007, 2008)
 """
 
 ####################################################################################
@@ -177,29 +195,39 @@ from sage.structure.factory import UniqueFactory
 
 class FreeModuleFactory(UniqueFactory):
     r"""
-    Create the free module over the given commutative ring of the given rank.
+    Create the free module over the given commutative ring of the given
+    rank.
 
     INPUT:
-        base_ring -- a commutative ring
-        rank -- a nonnegative integer
-        sparse -- bool; (default False)
-        inner_product_matrix -- the inner product matrix (default None)
 
-    OUTPUT:
-        a free module
 
-    \note{In \sage it is the case that there is only one dense and one
-    sparse free ambient module of rank $n$ over $R$.}
+    -  ``base_ring`` - a commutative ring
 
+    -  ``rank`` - a nonnegative integer
+
+    -  ``sparse`` - bool; (default False)
+
+    -  ``inner_product_matrix`` - the inner product
+       matrix (default None)
+
+
+    OUTPUT: a free module
+
+    .. note::
+
+       In Sage it is the case that there is only one dense and one
+       sparse free ambient module of rank `n` over `R`.
 
     EXAMPLES:
 
-    First we illustrate creating free modules over various base
-    fields.  The base field affects the free module that is created.
-    For example, free modules over a field are vector spaces, and free
+    First we illustrate creating free modules over various base fields.
+    The base field affects the free module that is created. For
+    example, free modules over a field are vector spaces, and free
     modules over a principal ideal domain are special in that more
     functionality is available for them than for completely general
     free modules.
+
+    ::
 
         sage: FreeModule(Integers(8),10)
         Ambient free module of rank 10 over Ring of integers modulo 8
@@ -216,15 +244,17 @@ class FreeModuleFactory(UniqueFactory):
         sage: FreeModule(PolynomialRing(ZZ,'x'),5)
         Ambient free module of rank 5 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
-    Of course we can make rank 0 free modules:
+    Of course we can make rank 0 free modules::
 
         sage: FreeModule(RealField(100),0)
         Vector space of dimension 0 over Real Field with 100 bits of precision
 
     Next we create a free module with sparse representation of
-    elements.  Functionality with sparse modules is \emph{identical} to
-    dense modules, but they may use less memory and arithmetic may
-    be faster (or slower!).
+    elements. Functionality with sparse modules is *identical* to dense
+    modules, but they may use less memory and arithmetic may be faster
+    (or slower!).
+
+    ::
 
         sage: M = FreeModule(ZZ,200,sparse=True)
         sage: M.is_sparse()
@@ -233,13 +263,16 @@ class FreeModuleFactory(UniqueFactory):
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
     The default is dense.
+
+    ::
+
         sage: M = ZZ^200
         sage: type(M.0)
         <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
-
     Note that matrices associated in some way to sparse free modules
-    are sparse by default:
+    are sparse by default::
+
         sage: M = FreeModule(Integers(8), 2)
         sage: A = M.basis_matrix()
         sage: A.is_sparse()
@@ -250,9 +283,11 @@ class FreeModuleFactory(UniqueFactory):
         sage: Ms.basis_matrix().is_sparse()
         True
 
-
     We can also specify an inner product matrix, which is used when
     computing inner products of elements.
+
+    ::
+
         sage: A = MatrixSpace(ZZ,2)([[1,0],[0,-1]])
         sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
         sage: v, w = M.gens()
@@ -265,9 +300,12 @@ class FreeModuleFactory(UniqueFactory):
         sage: (v+2*w).inner_product(w)
         -2
 
-    You can also specify the inner product matrix by giving anything that
-    coerces to an appropriate matrix.   This is only useful if the inner
-    product matrix takes values in the base ring.
+    You can also specify the inner product matrix by giving anything
+    that coerces to an appropriate matrix. This is only useful if the
+    inner product matrix takes values in the base ring.
+
+    ::
+
         sage: FreeModule(ZZ,2,inner_product_matrix=1).inner_product_matrix()
         [1 0]
         [0 1]
@@ -280,7 +318,8 @@ class FreeModuleFactory(UniqueFactory):
     """
     def create_key(self, base_ring, rank, sparse=False, inner_product_matrix=None):
         """
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(ZZ^6)) is ZZ^6
             True
             sage: loads(dumps(RDF^3)) is RDF^3
@@ -333,7 +372,11 @@ FreeModule = FreeModuleFactory("FreeModule")
 def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
     """
     EXAMPLES:
+
     The base can be complicated, as long as it is a field.
+
+    ::
+
         sage: V = VectorSpace(FractionField(PolynomialRing(ZZ,'x')),3)
         sage: V
         Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
@@ -344,7 +387,10 @@ def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
         (0, 0, 1)
         ]
 
-    The base must be a field or a \code{TypeError} is raised.
+    The base must be a field or a ``TypeError`` is raised.
+
+    ::
+
         sage: VectorSpace(ZZ,5)
         Traceback (most recent call last):
         ...
@@ -364,9 +410,11 @@ def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
 
 def span(gens, base_ring=None, check=True, already_echelonized=False):
     """
-    Return the $R$-span of gens (a list of vectors) where R = base_ring.
+    Return the `R`-span of gens (a list of vectors) where R =
+    base_ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: V = span([[1,2,5], [2,2,2]], QQ); V
         Vector space of degree 3 and dimension 2 over Rational Field
         Basis matrix:
@@ -381,7 +429,8 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         Basis matrix:
         [1 0 1]
 
-    TESTS:
+    TESTS::
+
         sage: span([[1,2,3], [2,2,2], [1,2/3,5]], ZZ)
         Free module of degree 3 and rank 3 over Integer Ring
         Echelon basis matrix:
@@ -393,7 +442,9 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         ...
         ValueError: The elements of gens (= [[1, 2, 3], [2, 2, 2], [1, 2, x]]) must be defined over base_ring (= Integer Ring) or its field of fractions.
 
-    For backwards compatibility one can also give the base ring as the first argument:
+    For backwards compatibility one can also give the base ring as the
+    first argument::
+
         sage: span(QQ,[[1,2],[3,4]])
         Vector space of degree 2 and dimension 2 over Rational Field
         Basis matrix:
@@ -438,7 +489,8 @@ def is_FreeModule(M):
     """
     Return True if M inherits from from FreeModule_generic.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.modules.free_module import is_FreeModule
         sage: V = ZZ^3
         sage: is_FreeModule(V)
@@ -458,12 +510,19 @@ class FreeModule_generic(module.Module):
         Create the free module of given rank over the given base_ring.
 
         INPUT:
-            base_ring -- a commutative ring
-            rank -- a non-negative integer
-            degree -- a non-negative integer
-            sparse -- bool (default: False)
 
-        EXAMPLES:
+
+        -  ``base_ring`` - a commutative ring
+
+        -  ``rank`` - a non-negative integer
+
+        -  ``degree`` - a non-negative integer
+
+        -  ``sparse`` - bool (default: False)
+
+
+        EXAMPLES::
+
             sage: PolynomialRing(QQ,3,'x')^3
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         """
@@ -488,7 +547,8 @@ class FreeModule_generic(module.Module):
         """
         The construction functor and base ring for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = PolynomialRing(QQ,3,'x')
             sage: V = R^5
             sage: V.construction()
@@ -502,7 +562,9 @@ class FreeModule_generic(module.Module):
         Return corresponding dense module.
 
         EXAMPLES:
-        We first illustrate conversion with ambient spaces:
+
+        We first illustrate conversion with ambient spaces::
+
             sage: M = FreeModule(QQ,3)
             sage: S = FreeModule(QQ,3, sparse=True)
             sage: M.sparse_module()
@@ -518,7 +580,8 @@ class FreeModule_generic(module.Module):
             sage: S.sparse_module() == S
             True
 
-        Next we create a subspace:
+        Next we create a subspace::
+
             sage: M = FreeModule(QQ,3, sparse=True)
             sage: V = M.span([ [1,2,3] ] ); V
             Sparse vector space of degree 3 and dimension 1 over Rational Field
@@ -537,9 +600,11 @@ class FreeModule_generic(module.Module):
         """
         Creates a dense module with the same defining data as self.
 
-        N.B. This function is for internal use only! See dense_module for use.
+        N.B. This function is for internal use only! See dense_module for
+        use.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(Integers(8),3)
             sage: S = FreeModule(Integers(8),3, sparse=True)
             sage: M is S._dense_module()
@@ -550,11 +615,13 @@ class FreeModule_generic(module.Module):
 
     def sparse_module(self):
         """
-        Return the corresponding sparse module with the same
-        defining data.
+        Return the corresponding sparse module with the same defining
+        data.
 
         EXAMPLES:
-        We first illustrate conversion with ambient spaces:
+
+        We first illustrate conversion with ambient spaces::
+
             sage: M = FreeModule(Integers(8),3)
             sage: S = FreeModule(Integers(8),3, sparse=True)
             sage: M.sparse_module()
@@ -570,7 +637,8 @@ class FreeModule_generic(module.Module):
             sage: S.sparse_module() is S
             True
 
-        Next we convert a subspace:
+        Next we convert a subspace::
+
             sage: M = FreeModule(QQ,3)
             sage: V = M.span([ [1,2,3] ] ); V
             Vector space of degree 3 and dimension 1 over Rational Field
@@ -589,9 +657,11 @@ class FreeModule_generic(module.Module):
         """
         Creates a sparse module with the same defining data as self.
 
-        N.B. This function is for internal use only! See sparse_module for use.
+        N.B. This function is for internal use only! See sparse_module for
+        use.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(Integers(8),3)
             sage: S = FreeModule(Integers(8),3, sparse=True)
             sage: M._sparse_module() is S
@@ -604,7 +674,8 @@ class FreeModule_generic(module.Module):
         """
         Returns an arbitrary element of a free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,2)
             sage: V._an_element_impl()
             (2, 3)
@@ -632,7 +703,8 @@ class FreeModule_generic(module.Module):
         """
         The class of elements for this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ,20,sparse=False)
             sage: x = M.random_element()
             sage: type(x)
@@ -658,20 +730,25 @@ class FreeModule_generic(module.Module):
         r"""
         Create an element of this free module from x.
 
-        The \code{coerce} and \code{copy} arguments are passed
-        on to the underlying element constructor. If \code{check}
-        is \code{True}, confirm that the element specified by x
-        does in fact lie in self.
+        The ``coerce`` and ``copy`` arguments are
+        passed on to the underlying element constructor. If
+        ``check`` is ``True``, confirm that the
+        element specified by x does in fact lie in self.
 
-        NOTE: In the case of an inexact base ring (i.e. RDF), we don't
-        verify that the element is in the subspace, even when
-        \code{check=True}, to account for numerical instability
-        issues.
+        .. note:::
 
-        EXAMPLE:
+           In the case of an inexact base ring (i.e. RDF), we don't
+           verify that the element is in the subspace, even when
+           ``check=True``, to account for numerical instability
+           issues.
+
+        EXAMPLE::
+
             sage: M = ZZ^4
             sage: M([1,-1,0,1])
             (1, -1, 0, 1)
+
+        ::
 
             sage: N = M.submodule([[1,0,0,0], [0,1,1,0]])
             sage: N([1,1,1,0])
@@ -683,7 +760,8 @@ class FreeModule_generic(module.Module):
             ...
             ValueError: element (= (0, 0, 0, 1)) is not in free module
 
-        Beware that using check=False can create invalid results:
+        Beware that using check=False can create invalid results::
+
             sage: N((0,0,0,1), check=False)
             (0, 0, 0, 1)
             sage: N((0,0,0,1), check=False) in N
@@ -692,6 +770,9 @@ class FreeModule_generic(module.Module):
         Here is an example showing how the numerical instability causes
         trouble. The equality test below returns either True or False,
         depending on the architecture.
+
+        ::
+
             sage: v = matrix(RDF, 3, range(9)).eigenspaces()[0][1].basis()[0]
             sage: v.complex_vector()
             (...0.440242867..., ...0.567868371..., ...0.695493875...)
@@ -724,7 +805,8 @@ class FreeModule_generic(module.Module):
         """
         Return True if self is a submodule of other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ,3)
             sage: V = M.ambient_vector_space()
             sage: X = V.span([[1/2,1/2,0],[1/2,0,1/2]], ZZ)
@@ -741,15 +823,16 @@ class FreeModule_generic(module.Module):
             sage: M.is_submodule(N)
             True
 
-        Since basis() is not implemented in general, submodule testing
-        does not work for all all PID's.  However, trivial cases are
-        already used (and useful) for coercion, e.g.
+        Since basis() is not implemented in general, submodule testing does
+        not work for all PID's. However, trivial cases are already used
+        (and useful) for coercion, e.g.
+
+        ::
 
             sage: QQ(1/2) * vector(ZZ['x']['y'],[1,2,3,4])
             (1/2, 1, 3/2, 2)
             sage: vector(ZZ['x']['y'],[1,2,3,4]) * QQ(1/2)
             (1/2, 1, 3/2, 2)
-
         """
         if not isinstance(other, FreeModule_generic):
             return False
@@ -775,7 +858,8 @@ class FreeModule_generic(module.Module):
         """
         Return True if V canonically coerces to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: V._has_coerce_map_from_space(V)
             True
@@ -805,7 +889,8 @@ class FreeModule_generic(module.Module):
         """
         Canonical coercion of x into this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^5
             sage: x = V([0,4/3,8/3,4,16/3])
             sage: V._coerce_impl(x)
@@ -828,9 +913,11 @@ class FreeModule_generic(module.Module):
         r"""
         EXAMPLES:
 
-        We create the module $\Z^3$, and the submodule generated by
-        one vector $(1,1,0)$, and check whether certain elements are
-        in the submodule.
+        We create the module `\mathbb{Z}^3`, and the submodule
+        generated by one vector `(1,1,0)`, and check whether
+        certain elements are in the submodule.
+
+        ::
 
             sage: R = FreeModule(ZZ, 3)
             sage: V = R.submodule([R.gen(0) + R.gen(1)])
@@ -838,6 +925,8 @@ class FreeModule_generic(module.Module):
             True
             sage: R.gen(0) + 2*R.gen(1) in V
             False
+
+        ::
 
             sage: w = (1/2)*(R.gen(0) + R.gen(1))
             sage: w
@@ -848,7 +937,6 @@ class FreeModule_generic(module.Module):
             False
             sage: V.coordinates(w)
             [1/2]
-
         """
         if not isinstance(v, free_module_element.FreeModuleElement):
             return False
@@ -875,10 +963,13 @@ class FreeModule_generic(module.Module):
         """
         Return iterator over the elements of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(GF(4,'a'),2)
             sage: [x for x in V]
             [(0, 0), (a, 0), (a + 1, 0), (1, 0), (0, a), (a, a), (a + 1, a), (1, a), (0, a + 1), (a, a + 1), (a + 1, a + 1), (1, a + 1), (0, 1), (a, 1), (a + 1, 1), (1, 1)]
+
+        ::
 
             sage: W = V.subspace([V([1,1])])
             sage: print [x for x in W]
@@ -912,9 +1003,10 @@ class FreeModule_generic(module.Module):
         r"""
         Return the cardinality of the free module.
 
-        N.B. Currently len(QQ) gives a TypeError, hence so does len(QQ\^{}3).
+        N.B. Currently len(QQ) gives a TypeError, hence so does len(QQ3).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = FiniteField(9)
             sage: V = VectorSpace(k,3)
             sage: len(V)
@@ -933,11 +1025,14 @@ class FreeModule_generic(module.Module):
         """
         Return the ambient module associated to this module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = QQ[]
             sage: M = FreeModule(R,2)
             sage: M.ambient_module()
             Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y over Rational Field
+
+        ::
 
             sage: V = FreeModule(QQ, 4).span([[1,2,3,4], [1,0,0,0]]); V
             Vector space of degree 4 and dimension 2 over Rational Field
@@ -951,15 +1046,19 @@ class FreeModule_generic(module.Module):
 
     def base_extend(self, R):
         r"""
-        Return the base extension of self to R.  This
-        is the same as \code{self.change_ring(R)} except
-        that a TypeError is raised if there is no canonical
-        coerce map from the base ring of self to R.
+        Return the base extension of self to R. This is the same as
+        ``self.change_ring(R)`` except that a TypeError is
+        raised if there is no canonical coerce map from the base ring of
+        self to R.
 
         INPUT:
-            R -- ring
 
-        EXAMPLES:
+
+        -  ``R`` - ring
+
+
+        EXAMPLES::
+
             sage: V = ZZ^7
             sage: V.base_extend(QQ)
             Vector space of dimension 7 over Rational Field
@@ -972,7 +1071,8 @@ class FreeModule_generic(module.Module):
         """
         Return the basis of this module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(Integers(12),3).basis()
             [
             (1, 0, 0),
@@ -986,11 +1086,14 @@ class FreeModule_generic(module.Module):
         """
         Return the matrix whose rows are the basis for this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(Integers(12),3).basis_matrix()
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        ::
 
             sage: M = FreeModule(GF(7),3).span([[2,3,4],[1,1,1]]); M
             Vector space of degree 3 and dimension 2 over Finite Field of size 7
@@ -1000,6 +1103,8 @@ class FreeModule_generic(module.Module):
             sage: M.basis_matrix()
             [1 0 6]
             [0 1 2]
+
+        ::
 
             sage: M = FreeModule(GF(7),3).span_of_basis([[2,3,4],[1,1,1]]);
             sage: M.basis_matrix()
@@ -1021,10 +1126,11 @@ class FreeModule_generic(module.Module):
         """
         The echelonized basis matrix (not implemented for this module).
 
-        This example works because M is an ambient module.  Submodule
+        This example works because M is an ambient module. Submodule
         creation should exist for generic modules.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = IntegerModRing(12)
             sage: S.<x,y> = R[]
             sage: M = FreeModule(S,3)
@@ -1033,7 +1139,8 @@ class FreeModule_generic(module.Module):
             [0 1 0]
             [0 0 1]
 
-        TESTS:
+        TESTS::
+
             sage: from sage.modules.free_module import FreeModule_generic
             sage: FreeModule_generic.echelonized_basis_matrix(M)
             Traceback (most recent call last):
@@ -1044,10 +1151,11 @@ class FreeModule_generic(module.Module):
 
     def category(self):
         """
-        Return the category to which this free module belongs.  This is the
+        Return the category to which this free module belongs. This is the
         category of all free modules over the base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(GF(7),3).category()
             Category of vector spaces over Finite Field of size 7
         """
@@ -1056,10 +1164,11 @@ class FreeModule_generic(module.Module):
 
     def matrix(self):
         """
-        Return the basis matrix of this module, which is the matrix
-        whose rows are a basis for this module.
+        Return the basis matrix of this module, which is the matrix whose
+        rows are a basis for this module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2)
             sage: M.matrix()
             [1 0]
@@ -1074,7 +1183,8 @@ class FreeModule_generic(module.Module):
         """
         Return the direct sum of self and other as a free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]]); V
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -1099,21 +1209,32 @@ class FreeModule_generic(module.Module):
 
     def coordinates(self, v, check=True):
         """
-        Write $v$ in terms of the basis for self.
+        Write `v` in terms of the basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a list $c$ such that if $B$ is the basis for self, then
-        $$
-                \sum c_i B_i = v.
-        $$
-        If $v$ is not in self, raises an \code{ArithmeticError} exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a list `c` such that if `B` is the basis
+        for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an
+        ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2); M0,M1=M.gens()
             sage: W = M.submodule([M0 + M1, M0 - 2*M1])
             sage: W.coordinates(2*M0-M1)
@@ -1123,16 +1244,22 @@ class FreeModule_generic(module.Module):
 
     def coordinate_vector(self, v, check=True):
         """
-        Return the a vector whose cofficients give $v$ as a linear combination
-        of the basis for self.
+        Return the vector whose coefficients give `v` as a linear
+        combination of the basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        EXAMPLES:
+
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2); M0,M1=M.gens()
             sage: W = M.submodule([M0 + M1, M0 - 2*M1])
             sage: W.coordinate_vector(2*M0 - M1)
@@ -1142,17 +1269,26 @@ class FreeModule_generic(module.Module):
 
     def coordinate_module(self, V):
         r"""
-        Suppose V is a submodule of self (or a module comeasurable
-        with self), and that self is a free module over $R$ of rank
-        $n$.  Let $\phi$ be the map from self to $R^n$ that sends the
-        basis vectors of self in order to the standard basis of $R^n$.
-        This function returns the image $\phi(V)$.
+        Suppose V is a submodule of self (or a module comeasurable with
+        self), and that self is a free module over `R` of rank
+        `n`. Let `\phi` be the map from self to
+        `R^n` that sends the basis vectors of self in order to the
+        standard basis of `R^n`. This function returns the image
+        `\phi(V)`.
 
-        WARNING: If there is no integer $d$ such that $dV$ is a submodule
-        of self, then this function will give total nonsense.
+        .. warning::
+
+           If there is no integer `d` such that `dV` is a
+           submodule of self, then this function will give total
+           nonsense.
 
         EXAMPLES:
-        We illustrate this function with some $\ZZ$-submodules of $\QQ^3$.
+
+        We illustrate this function with some
+        `\mathbb{Z}`-submodules of `\mathbb{Q}^3`.
+
+        ::
+
             sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]])
             sage: W = (ZZ^3).span([[1/2,4,2]])
             sage: V.coordinate_module(W)
@@ -1162,15 +1298,21 @@ class FreeModule_generic(module.Module):
             sage: V.0 + 4*V.1
             (1/2, 4, 2)
 
-        In this example, the coordinate module isn't even in $\ZZ^3$.
+        In this example, the coordinate module isn't even in
+        `\mathbb{Z}^3`.
+
+        ::
+
             sage: W = (ZZ^3).span([[1/4,2,1]])
             sage: V.coordinate_module(W)
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1/2   2]
 
-        The following more elaborate example illustrates using this function
-        to write a submodule in terms of integral cuspidal modular symbols:
+        The following more elaborate example illustrates using this
+        function to write a submodule in terms of integral cuspidal modular
+        symbols::
+
             sage: M = ModularSymbols(54)
             sage: S = M.cuspidal_subspace()
             sage: K = S.integral_structure(); K
@@ -1206,10 +1348,11 @@ class FreeModule_generic(module.Module):
 
     def degree(self):
         """
-        Return the degree of this free module.  This is the dimension of the
+        Return the degree of this free module. This is the dimension of the
         ambient vector space in which it is embedded.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 10)
             sage: W = M.submodule([M.gen(0), 2*M.gen(3) - M.gen(0), M.gen(0) + M.gen(3)])
             sage: W.degree()
@@ -1223,7 +1366,8 @@ class FreeModule_generic(module.Module):
         """
         Return the dimension of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(FiniteField(19), 100)
             sage: W = M.submodule([M.gen(50)])
             sage: W.dimension()
@@ -1235,7 +1379,8 @@ class FreeModule_generic(module.Module):
         """
         Return the discriminant of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3)
             sage: M.discriminant()
             1
@@ -1250,10 +1395,11 @@ class FreeModule_generic(module.Module):
 
     def free_module(self):
         """
-        Return this free module.  (This is used by the \code{FreeModule} functor,
-        and simply returns self.)
+        Return this free module. (This is used by the
+        ``FreeModule`` functor, and simply returns self.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3)
             sage: M.free_module()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
@@ -1262,15 +1408,19 @@ class FreeModule_generic(module.Module):
 
     def gen(self, i=0):
         """
-        Return ith generator for self, where i is between 0 and rank-1, inclusive.
+        Return ith generator for self, where i is between 0 and rank-1,
+        inclusive.
 
         INPUT:
-            i -- an integer
 
-        OUTPUT:
-            i-th basis vector for self.
 
-        EXAMPLES:
+        -  ``i`` - an integer
+
+
+        OUTPUT: i-th basis vector for self.
+
+        EXAMPLES::
+
             sage: n = 5
             sage: V = QQ^n
             sage: B = [ V.gen(i) for i in range(n) ]
@@ -1289,26 +1439,26 @@ class FreeModule_generic(module.Module):
 
     def gram_matrix(self):
         """
-        Return the gram matrix associated to this free module, defined to be
-        G = B*A*B.transpose(), where A is the inner product matrix (induced from
-        the ambient space), and B the basis matrix.
+        Return the gram matrix associated to this free module, defined to
+        be G = B\*A\*B.transpose(), where A is the inner product matrix
+        (induced from the ambient space), and B the basis matrix.
 
-        EXAMPLES:
-	    sage: V = VectorSpace(QQ,4)
-	    sage: u = V([1/2,1/2,1/2,1/2])
-	    sage: v = V([0,1,1,0])
-	    sage: w = V([0,0,1,1])
-	    sage: M = span([u,v,w], ZZ)
-	    sage: M.inner_product_matrix() == V.inner_product_matrix()
-	    True
-	    sage: L = M.submodule_with_basis([u,v,w])
-	    sage: L.inner_product_matrix() == M.inner_product_matrix()
-	    True
-	    sage: L.gram_matrix()
-	    [1 1 1]
-	    [1 2 1]
-	    [1 1 2]
+        EXAMPLES::
 
+            sage: V = VectorSpace(QQ,4)
+            sage: u = V([1/2,1/2,1/2,1/2])
+            sage: v = V([0,1,1,0])
+            sage: w = V([0,0,1,1])
+            sage: M = span([u,v,w], ZZ)
+            sage: M.inner_product_matrix() == V.inner_product_matrix()
+            True
+            sage: L = M.submodule_with_basis([u,v,w])
+            sage: L.inner_product_matrix() == M.inner_product_matrix()
+            True
+            sage: L.gram_matrix()
+            [1 1 1]
+            [1 2 1]
+            [1 1 2]
         """
         if self.is_ambient():
             return sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree(), sparse=True)(1)
@@ -1320,10 +1470,12 @@ class FreeModule_generic(module.Module):
 
     def has_user_basis(self):
         """
-        Return \code{True} if the basis of this free module is specified by the user,
-        as opposed to being the default echelon form.
+        Return ``True`` if the basis of this free module is
+        specified by the user, as opposed to being the default echelon
+        form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.subspace([[2,'1/2', 1]])
             sage: W.has_user_basis()
@@ -1336,16 +1488,19 @@ class FreeModule_generic(module.Module):
 
     def inner_product_matrix(self):
         """
-        Return the default identity inner product matrix associated to this module.
+        Return the default identity inner product matrix associated to this
+        module.
 
-        By definition this is the inner product matrix of the ambient space, hence
-        may be of degree greater than the rank of the module.
+        By definition this is the inner product matrix of the ambient
+        space, hence may be of degree greater than the rank of the module.
 
-        TODO: Differentiate the image ring of the inner product from the base ring of
-        the module and/or ambient space.  E.g. On an integral module over ZZ the inner
-        product pairing could naturally take values in ZZ, QQ, RR, or CC.
+        TODO: Differentiate the image ring of the inner product from the
+        base ring of the module and/or ambient space. E.g. On an integral
+        module over ZZ the inner product pairing could naturally take
+        values in ZZ, QQ, RR, or CC.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3)
             sage: M.inner_product_matrix()
             [1 0 0]
@@ -1356,17 +1511,20 @@ class FreeModule_generic(module.Module):
 
     def _inner_product_is_dot_product(self):
         """
-        Return whether or not the inner product on this module is induced by
-        the dot product on the ambient vector space.  This is used internally
-        by the inner_product function for optimization.
+        Return whether or not the inner product on this module is induced
+        by the dot product on the ambient vector space. This is used
+        internally by the inner_product function for optimization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 3)._inner_product_is_dot_product()
             True
             sage: FreeModule(ZZ, 3, inner_product_matrix=1)._inner_product_is_dot_product()
             True
             sage: FreeModule(ZZ, 2, inner_product_matrix=[1,0,-1,0])._inner_product_is_dot_product()
             False
+
+        ::
 
             sage: M = FreeModule(QQ, 3)
             sage: M2 = M.span([[1,2,3]])
@@ -1377,9 +1535,10 @@ class FreeModule_generic(module.Module):
 
     def is_ambient(self):
         """
-        Returns False sense this is not an ambient free module.
+        Returns False since this is not an ambient free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3).span([[1,2,3]]); M
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -1401,10 +1560,11 @@ class FreeModule_generic(module.Module):
 
     def is_dense(self):
         """
-        Return \code{True} if the underlying representation of this module uses dense vectors,
-        and False otherwise.
+        Return ``True`` if the underlying representation of
+        this module uses dense vectors, and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).is_dense()
             True
             sage: FreeModule(ZZ, 2, sparse=True).is_dense()
@@ -1414,9 +1574,11 @@ class FreeModule_generic(module.Module):
 
     def is_full(self):
         """
-        Return \code{True} if the rank of this module equals its degree.
+        Return ``True`` if the rank of this module equals its
+        degree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).is_full()
             True
             sage: M = FreeModule(ZZ, 2).span([[1,2]])
@@ -1429,7 +1591,8 @@ class FreeModule_generic(module.Module):
         """
         Returns True if the underlying set of this free module is finite.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).is_finite()
             False
             sage: FreeModule(Integers(8), 2).is_finite()
@@ -1441,10 +1604,11 @@ class FreeModule_generic(module.Module):
 
     def is_sparse(self):
         """
-        Return \code{True} if the underlying representation of this module uses sparse vectors,
-        and False otherwise.
+        Return ``True`` if the underlying representation of
+        this module uses sparse vectors, and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).is_sparse()
             False
             sage: FreeModule(ZZ, 2, sparse=True).is_sparse()
@@ -1456,7 +1620,8 @@ class FreeModule_generic(module.Module):
         """
         Returns the number of basis elements of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).ngens()
             2
             sage: FreeModule(ZZ, 0).ngens()
@@ -1472,12 +1637,15 @@ class FreeModule_generic(module.Module):
 
     def nonembedded_free_module(self):
         """
-        Returns an ambient free module that is isomorphic to this free module.
+        Returns an ambient free module that is isomorphic to this free
+        module.
 
-        Thus if this free module is of rank $n$ over a ring $R$, then this function
-        returns $R^n$, as an ambient free module.
+        Thus if this free module is of rank `n` over a ring
+        `R`, then this function returns `R^n`, as an
+        ambient free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2).span([[1,1]]).nonembedded_free_module()
             Ambient free module of rank 1 over the principal ideal domain Integer Ring
         """
@@ -1488,10 +1656,17 @@ class FreeModule_generic(module.Module):
         Returns a random element of self.
 
         INPUT:
-            prob -- float; probability that given coefficient is nonzero.
-            **kwds -- passed on to random_element function of base ring.
 
-        EXAMPLES:
+
+        -  ``prob`` - float; probability that given coefficient
+           is nonzero.
+
+        -  ``**kwds`` - passed on to random_element function
+           of base ring.
+
+
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
             sage: M.random_element()
             (-1, -1)
@@ -1513,7 +1688,8 @@ class FreeModule_generic(module.Module):
         """
         Return the rank of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(Integers(6), 10000000).rank()
             10000000
             sage: FreeModule(ZZ, 2).span([[1,1], [2,2], [3,4]]).rank()
@@ -1523,10 +1699,11 @@ class FreeModule_generic(module.Module):
 
     def uses_ambient_inner_product(self):
         r"""
-        Return \code{True} if the inner product on this module is the
-        one induced by the ambient inner product.
+        Return ``True`` if the inner product on this module is
+        the one induced by the ambient inner product.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2)
             sage: W = M.submodule([[1,2]])
             sage: W.uses_ambient_inner_product()
@@ -1534,6 +1711,8 @@ class FreeModule_generic(module.Module):
             sage: W.inner_product_matrix()
             [1 0]
             [0 1]
+
+        ::
 
             sage: W.gram_matrix()
             [5]
@@ -1544,7 +1723,8 @@ class FreeModule_generic(module.Module):
         """
         Returns the zero vector in this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 2)
             sage: M.zero_vector()
             (0, 0)
@@ -1562,16 +1742,21 @@ class FreeModule_generic(module.Module):
 
     def _magma_init_(self, magma):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: magma(QQ^9)                                   # optional - magma
             Full Vector space of degree 9 over Rational Field
             sage: (QQ^9)._magma_init_(magma)                    # optional - magma
             'RSpace(_sage_[...],9)'
 
+        ::
+
             sage: magma(Integers(8)^2)                          # optional - magma
             Full RSpace of degree 2 over IntegerRing(8)
             sage: magma(FreeModule(QQ['x'], 2))                 # optional - magma
             Full RSpace of degree 2 over Univariate Polynomial Ring in x over Rational Field
+
+        ::
 
             sage: A = matrix([[1,0],[0,-1]])
             sage: M = FreeModule(ZZ,2,inner_product_matrix=A); M
@@ -1596,7 +1781,7 @@ class FreeModule_generic(module.Module):
             sage: m.sage() is M                               # optional - magma
             True
 
-            Now over a field:
+        Now over a field::
 
             sage: N = FreeModule(QQ,2,inner_product_matrix=A); N
             Ambient quadratic space of dimension 2 over Rational Field
@@ -1618,7 +1803,8 @@ class FreeModule_generic(module.Module):
             sage: n.sage() is N                                      # optional - magma
             True
 
-            How about some inexact fields:
+        How about some inexact fields::
+
             sage: v = vector(RR, [1, pi, 5/6])
             sage: F = v.parent()
             sage: M = magma(F); M # optional - magma
@@ -1630,8 +1816,8 @@ class FreeModule_generic(module.Module):
             sage: m is F # optional - magma
             True
 
-            For interval fields, we can convert to Magma but there is no
-            interval field in Magma so we cannot convert back:
+        For interval fields, we can convert to Magma but there is no
+        interval field in Magma so we cannot convert back::
 
             sage: v = vector(RealIntervalField(100), [1, pi, 0.125])
             sage: F = v.parent()
@@ -1653,7 +1839,8 @@ class FreeModule_generic(module.Module):
 
     def _macaulay2_(self, macaulay2=None):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = QQ^2
             sage: macaulay2(R) # optional
               2
@@ -1674,7 +1861,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         Create a free module over a PID.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 2)
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: FreeModule(PolynomialRing(GF(7),'x'), 2)
@@ -1686,10 +1874,11 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def scale(self, other):
         """
-        Return the product of this module by the number other, which
-        is the module spanned by other times each basis vector.
+        Return the product of this module by the number other, which is the
+        module spanned by other times each basis vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3)
             sage: M.scale(2)
             Free module of degree 3 and rank 3 over Integer Ring
@@ -1697,6 +1886,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             [2 0 0]
             [0 2 0]
             [0 0 2]
+
+        ::
 
             sage: a = QQ('1/3')
             sage: M.scale(a)
@@ -1714,7 +1905,8 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def __radd__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: int(0) + QQ^3
             Vector space of dimension 3 over Rational Field
             sage: sum([QQ^3, QQ^3])
@@ -1731,11 +1923,12 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def __add__(self, other):
         r"""
-        Return the sum of self and other, where both self and other
-        must be submodules of the ambient vector space.
+        Return the sum of self and other, where both self and other must be
+        submodules of the ambient vector space.
 
         EXAMPLES:
-        We add two vector spaces:
+
+        We add two vector spaces::
 
             sage: V  = VectorSpace(QQ, 3)
             sage: W  = V.subspace([V([1,1,0])])
@@ -1746,7 +1939,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             [1 0 0]
             [0 1 0]
 
-        We add two free $\Z$-modules.
+        We add two free `\mathbb{Z}`-modules.
+
+        ::
+
             sage: M = FreeModule(ZZ, 3)
             sage: W = M.submodule([M([1,0,2])])
             sage: W2 = M.submodule([M([2,0,-4])])
@@ -1756,14 +1952,18 @@ class FreeModule_generic_pid(FreeModule_generic):
             [1 0 2]
             [0 0 8]
 
-        We can also add free $\Z$-modules embedded non-integrally
-        into an ambient space.
+        We can also add free `\mathbb{Z}`-modules embedded
+        non-integrally into an ambient space.
+
+        ::
 
             sage: V = VectorSpace(QQ, 3)
             sage: W = M.span([1/2*V.0 - 1/3*V.1])
 
-        Here the command \code{M.span(...)} creates the span of the
-        indicated vectors over the base ring of $M$.
+        Here the command ``M.span(...)`` creates the span of
+        the indicated vectors over the base ring of `M`.
+
+        ::
 
             sage: W2 = M.span([1/3*V.0 + V.1])
             sage: W + W2
@@ -1772,7 +1972,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             [ 1/6  7/3    0]
             [   0 11/3    0]
 
-        We add two modules over $\Z$:
+        We add two modules over `\mathbb{Z}`::
+
             sage: A = Matrix(ZZ, 3, 3, [3, 0, -1, 0, -2, 0, 0, 0, -2])
             sage: V = (A+2).kernel()
             sage: W = (A-3).kernel()
@@ -1783,7 +1984,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             [0 1 0]
             [0 0 1]
 
-        We add a module to 0:
+        We add a module to 0::
+
             sage: ZZ^3 + 0
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
@@ -1798,10 +2000,11 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def base_field(self):
         """
-        Return the base field, which is the fraction field of the base
-        ring of this module.
+        Return the base field, which is the fraction field of the base ring
+        of this module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(GF(3), 2).base_field()
             Finite Field of size 3
             sage: FreeModule(ZZ, 2).base_field()
@@ -1815,7 +2018,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         Return the matrix whose rows are the basis for this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(QQ,2).span_of_basis([[1,-1],[1,0]]); M
             Vector space of degree 2 and dimension 2 over Rational Field
             User basis matrix:
@@ -1839,17 +2043,21 @@ class FreeModule_generic_pid(FreeModule_generic):
     def index_in(self, other):
         """
         Return the lattice index [other:self] of self in other, as an
-        element of the base field.  When self is contained in other,
-        the lattice index is the usual index.  If the index is
-        infinite, then this function returns infinity.
+        element of the base field. When self is contained in other, the
+        lattice index is the usual index. If the index is infinite, then
+        this function returns infinity.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L1 = span([[1,2]], ZZ)
             sage: L2 = span([[3,6]], ZZ)
             sage: L2.index_in(L1)
             3
 
         Note that the free modules being compared need not be integral.
+
+        ::
+
             sage: L1 = span([['1/2','1/3'], [4,5]], ZZ)
             sage: L2 = span([[1,2], [3,4]], ZZ)
             sage: L2.index_in(L1)
@@ -1860,6 +2068,9 @@ class FreeModule_generic_pid(FreeModule_generic):
             49/144
 
         The index of a lattice of infinite index is infinite.
+
+        ::
+
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span([[1,2]], ZZ)
             sage: L2.index_in(L1)
@@ -1899,8 +2110,12 @@ class FreeModule_generic_pid(FreeModule_generic):
         Return the intersection of self and other.
 
         EXAMPLES:
-        We intersect two submodules one of which is clearly contained in
-        the other.
+
+        We intersect two submodules one of which is clearly
+        contained in the other.
+
+        ::
+
             sage: A = ZZ^2
             sage: M1 = A.span([[1,1]])
             sage: M2 = A.span([[3,3]])
@@ -1909,8 +2124,11 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [3 3]
 
-        We intersection two submodules of $\Z^3$ of rank $2$, whose intersection
-        has rank $1$.
+        We intersection two submodules of `\mathbb{Z}^3` of rank
+        `2`, whose intersection has rank `1`.
+
+        ::
+
             sage: A = ZZ^3
             sage: M1 = A.span([[1,1,1], [1,2,3]])
             sage: M2 = A.span([[2,2,2], [1,0,0]])
@@ -1919,8 +2137,11 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [2 2 2]
 
-        We compute an intersection of two $\Z$-modules that are not submodules
-        of $\Z^2$.
+        We compute an intersection of two `\mathbb{Z}`-modules that
+        are not submodules of `\mathbb{Z}^2`.
+
+        ::
+
             sage: A = ZZ^2
             sage: M1 = A.span([[1,2]]).scale(1/6)
             sage: M2 = A.span([[1,2]]).scale(1/15)
@@ -1929,7 +2150,11 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [1/3 2/3]
 
-        We intersect a $\Z$-module with a $\Q$-vector space.
+        We intersect a `\mathbb{Z}`-module with a
+        `\mathbb{Q}`-vector space.
+
+        ::
+
             sage: A = ZZ^3
             sage: L = ZZ^3
             sage: V = QQ^3
@@ -1983,7 +2208,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         True if this module is a submodule of other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ,2)
             sage: M.is_submodule(M)
             True
@@ -2021,7 +2247,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         Return the zero submodule of this module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = FreeModule(ZZ,2)
             sage: V.zero_submodule()
             Free module of degree 2 and rank 0 over Integer Ring
@@ -2032,10 +2259,12 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def denominator(self):
         """
-        The denominator of the basis matrix of self (i.e. the LCM of the coordinate
-        entries with respect to the basis of the ambient space).
+        The denominator of the basis matrix of self (i.e. the LCM of the
+        coordinate entries with respect to the basis of the ambient
+        space).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: L = V.span([[1,1/2,1/3], [-1/5,2/3,3]],ZZ)
             sage: L
@@ -2051,9 +2280,10 @@ class FreeModule_generic_pid(FreeModule_generic):
     def index_in_saturation(self):
         r"""
         Return the index of this module in its saturation, i.e., its
-        intersection with $R^n$.
+        intersection with `R^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W = span([[2,4,6]], ZZ)
             sage: W.index_in_saturation()
             2
@@ -2066,12 +2296,16 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def saturation(self):
         r"""
-        Return the saturated submodule of $R^n$ that spans the same
+        Return the saturated submodule of `R^n` that spans the same
         vector space as self.
 
         EXAMPLES:
+
         We create a 1-dimensional lattice that is obviously not
         saturated and saturate it.
+
+        ::
+
             sage: L = span([[9,9,6]], ZZ); L
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -2082,9 +2316,12 @@ class FreeModule_generic_pid(FreeModule_generic):
             [3 3 2]
 
         We create a lattice spanned by two vectors, and saturate.
-        Comptation of discriminants shows that the index of lattice
-        in its saturation is $3$, which is a prime of congruence between
+        Computation of discriminants shows that the index of lattice in its
+        saturation is `3`, which is a prime of congruence between
         the two generating vectors.
+
+        ::
+
             sage: L = span([[1,2,3], [4,5,6]], ZZ)
             sage: L.saturation()
             Free module of degree 3 and rank 2 over Integer Ring
@@ -2096,14 +2333,15 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: L.saturation().discriminant()
             6
 
-        Notice that the saturation of a non-integral lattice $L$ is defined,
-        but the result is integral hence does not contain $L$:
+        Notice that the saturation of a non-integral lattice `L` is
+        defined, but the result is integral hence does not contain
+        `L`::
+
             sage: L = span([['1/2',1,3]], ZZ)
             sage: L.saturation()
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 2 6]
-
         """
         R = self.base_ring()
         if R.is_field():
@@ -2121,12 +2359,13 @@ class FreeModule_generic_pid(FreeModule_generic):
     def span(self, gens, base_ring=None, check=True, already_echelonized=False):
         """
         Return the R-span of the given list of gens, where R = base_ring.
-        The default R is the base ring of self.  Note that this span need
-        not be a submodule of self, nor even of the ambient space.
-        It must, however, be contained in the ambient vector space, i.e.,
-        the ambient space tensored with the fraction field of R.
+        The default R is the base ring of self. Note that this span need
+        not be a submodule of self, nor even of the ambient space. It must,
+        however, be contained in the ambient vector space, i.e., the
+        ambient space tensored with the fraction field of R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = FreeModule(ZZ,3)
             sage: W = V.submodule([V.gen(0)])
             sage: W.span([V.gen(1)])
@@ -2137,7 +2376,6 @@ class FreeModule_generic_pid(FreeModule_generic):
             Traceback (most recent call last):
             ...
             ArithmeticError: Argument gens (= [(0, 1, 0)]) does not generate a submodule of self.
-
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -2164,16 +2402,27 @@ class FreeModule_generic_pid(FreeModule_generic):
         generators, where R is the base ring of self.
 
         INPUT:
-            gens  -- a list of free module elements or a free module
-            check -- (default: True) whether or not to verify
-                      that the gens are in self.
+
+
+        -  ``gens`` - a list of free module elements or a free
+           module
+
+        -  ``check`` - (default: True) whether or not to verify
+           that the gens are in self.
+
 
         OUTPUT:
-            FreeModule -- the submodule spanned by the vectors in the list gens.
-            The basis for the subspace is always put in reduced row echelon form.
+
+
+        -  ``FreeModule`` - the submodule spanned by the
+           vectors in the list gens. The basis for the subspace is always put
+           in reduced row echelon form.
+
 
         EXAMPLES:
-        We create a submodule of $\ZZ^3$:
+
+        We create a submodule of `\mathbb{Z}^3`::
+
             sage: M = FreeModule(ZZ, 3)
             sage: B = M.basis()
             sage: W = M.submodule([B[0]+B[1], 2*B[1]-B[2]])
@@ -2185,21 +2434,24 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         We create a submodule of a submodule.
 
+        ::
+
             sage: W.submodule([3*B[0] + 3*B[1]])
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [3 3 0]
 
-        We try to create a submodule that isn't really a submodule,
-        which results in an ArithmeticError exception:
+        We try to create a submodule that isn't really a submodule, which
+        results in an ArithmeticError exception::
 
             sage: W.submodule([B[0] - B[1]])
             Traceback (most recent call last):
             ...
             ArithmeticError: Argument gens (= [(1, -1, 0)]) does not generate a submodule of self.
 
-        Next we try to create a submodule of a free module over the principal
-        ideal domain $\Q[x]$ (general HNF needed):
+        Next we try to create a submodule of a free module over the
+        principal ideal domain `\mathbb{Q}[x]` (general HNF
+        needed)::
 
             sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
             sage: M = FreeModule(R, 3)
@@ -2208,7 +2460,6 @@ class FreeModule_generic_pid(FreeModule_generic):
             Traceback (most recent call last):
             ...
             NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
-
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -2222,27 +2473,31 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def span_of_basis(self, basis, base_ring=None, check=True, already_echelonized=False):
         r"""
-        Return the free R-module with the given basis, where R is the
-        base ring of self or user specified base_ring.
+        Return the free R-module with the given basis, where R is the base
+        ring of self or user specified base_ring.
 
-        Note that this R-module need not be a submodule of self, nor even of
-        the ambient space.  It must, however, be contained in the ambient vector
-        space, i.e., the ambient space tensored with the fraction field of R.
+        Note that this R-module need not be a submodule of self, nor even
+        of the ambient space. It must, however, be contained in the ambient
+        vector space, i.e., the ambient space tensored with the fraction
+        field of R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ,3)
             sage: W = M.span_of_basis([M([1,2,3])])
 
-        Next we create two free $\Z$-modules, neither of which is
-        a submodule of $W$.
+        Next we create two free `\mathbb{Z}`-modules, neither of
+        which is a submodule of `W`.
+
+        ::
 
             sage: W.span_of_basis([M([2,4,0])])
             Free module of degree 3 and rank 1 over Integer Ring
             User basis matrix:
             [2 4 0]
 
-        The following module isn't in the ambient module $ZZ^3$ but is
-        contained in the ambient vector space $QQ^3$:
+        The following module isn't in the ambient module `\mathbb{Z}^3`
+        but is contained in the ambient vector space `\mathbb{Q}^3`::
 
             sage: V = M.ambient_vector_space()
             sage: W.span_of_basis([ V([1/5,2/5,0]), V([1/7,1/7,0]) ])
@@ -2253,11 +2508,12 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         Of course the input basis vectors must be linearly independent.
 
+        ::
+
             sage: W.span_of_basis([ [1,2,0], [2,4,0] ])
             Traceback (most recent call last):
             ...
             ValueError: The given basis vectors must be linearly independent.
-
         """
         if is_FreeModule(basis):
             basis = basis.gens()
@@ -2281,20 +2537,27 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def submodule_with_basis(self, basis, check=True, already_echelonized=False):
         """
-        Create the R-submodule of the ambient vector space with given basis,
-        where R is the base ring of self.
+        Create the R-submodule of the ambient vector space with given
+        basis, where R is the base ring of self.
 
         INPUT:
-            basis -- a list of linearly independent vectors
-            check -- whether or not to verify that each gen is in
-                     the ambient vector space
+
+
+        -  ``basis`` - a list of linearly independent vectors
+
+        -  ``check`` - whether or not to verify that each gen
+           is in the ambient vector space
+
 
         OUTPUT:
-            FreeModule -- the R-submodule with given basis
+
+
+        -  ``FreeModule`` - the R-submodule with given basis
+
 
         EXAMPLES:
 
-        First we create a submodule of $\Z^3$:
+        First we create a submodule of `\mathbb{Z}^3`::
 
             sage: M = FreeModule(ZZ, 3)
             sage: B = M.basis()
@@ -2305,8 +2568,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             [ 1  1  0]
             [ 0  2 -1]
 
-        A list of vectors in the ambient vector space may fail to generate a
-        submodule.
+        A list of vectors in the ambient vector space may fail to generate
+        a submodule.
+
+        ::
 
             sage: V = M.ambient_vector_space()
             sage: X = M.submodule_with_basis([ V(B[0]+B[1])/2, V(B[1]-B[2])/2])
@@ -2314,8 +2579,11 @@ class FreeModule_generic_pid(FreeModule_generic):
             ...
             ArithmeticError: The given basis does not generate a submodule of self.
 
-        However, we can still determine the R-span of vectors in the ambient space,
-        or over-ride the submodule check by setting check to False.
+        However, we can still determine the R-span of vectors in the
+        ambient space, or over-ride the submodule check by setting check to
+        False.
+
+        ::
 
             sage: X = V.span([ V(B[0]+B[1])/2, V(B[1]-B[2])/2 ], ZZ)
             sage: X
@@ -2327,17 +2595,17 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: X == Y
             True
 
-        Next we try to create a submodule of a free module over the principal
-        ideal domain $\Q[x]$ (general HNF needed):
+        Next we try to create a submodule of a free module over the
+        principal ideal domain `\mathbb{Q}[x]` (general HNF
+        needed)::
 
-             sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
-             sage: M = FreeModule(R, 3)
-             sage: B = M.basis()
-             sage: W = M.submodule_with_basis([x*B[0], 2*B[1]- x*B[2]])
-             Traceback (most recent call last):
-             ...
-             NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
-
+            sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
+            sage: M = FreeModule(R, 3)
+            sage: B = M.basis()
+            sage: W = M.submodule_with_basis([x*B[0], 2*B[1]- x*B[2]])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
         """
         V = self.span_of_basis(basis=basis, check=check, already_echelonized=already_echelonized)
         if check:
@@ -2347,19 +2615,26 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def vector_space_span(self, gens, check=True):
         r"""
-        Create the vector subspace of the ambient vector space with
-        given generators.
+        Create the vector subspace of the ambient vector space with given
+        generators.
 
         INPUT:
-            gens  -- a list of vector in self
-            check -- whether or not to verify that each gen is in
-                     the ambient vector space
 
-        OUTPUT:
-            a vector subspace
+
+        -  ``gens`` - a list of vector in self
+
+        -  ``check`` - whether or not to verify that each gen
+           is in the ambient vector space
+
+
+        OUTPUT: a vector subspace
 
         EXAMPLES:
-        We create a $2$-dimensional subspace of a $\Q^3$.
+
+        We create a `2`-dimensional subspace of `\mathbb{Q}^3`.
+
+        ::
+
             sage: V = VectorSpace(QQ, 3)
             sage: B = V.basis()
             sage: W = V.vector_space_span([B[0]+B[1], 2*B[1]-B[2]])
@@ -2369,7 +2644,11 @@ class FreeModule_generic_pid(FreeModule_generic):
             [   1    0  1/2]
             [   0    1 -1/2]
 
-        We create a subspace of a vector space over $\Q(i)$.
+        We create a subspace of a vector space over
+        `\mathbb{Q}(i)`.
+
+        ::
+
             sage: R.<x> = QQ[]
             sage: K = NumberField(x^2 + 1, 'a'); a = K.gen()
             sage: V = VectorSpace(K, 3)
@@ -2378,8 +2657,12 @@ class FreeModule_generic_pid(FreeModule_generic):
             Basis matrix:
             [  1   0 3/2]
 
-        We use the \code{vector_space_span} command to create a vector subspace of the
-        ambient vector space of a submodule of $\Z^3$.
+        We use the ``vector_space_span`` command to create a
+        vector subspace of the ambient vector space of a submodule of
+        `\mathbb{Z}^3`.
+
+        ::
+
             sage: M = FreeModule(ZZ,3)
             sage: W = M.submodule([M([1,2,3])])
             sage: W.vector_space_span([M([2,3,4])])
@@ -2395,18 +2678,22 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def vector_space_span_of_basis(self, basis, check=True):
         """
-        Create the vector subspace of the ambient vector space with
-        given basis.
+        Create the vector subspace of the ambient vector space with given
+        basis.
 
         INPUT:
-            basis -- a list of linearly independent vectors
-            check -- whether or not to verify that each gen is in
-                     the ambient vector space
 
-        OUTPUT:
-            a vector subspace with user-specified basis
 
-        EXAMPLES:
+        -  ``basis`` - a list of linearly independent vectors
+
+        -  ``check`` - whether or not to verify that each gen
+           is in the ambient vector space
+
+
+        OUTPUT: a vector subspace with user-specified basis
+
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ, 3)
             sage: B = V.basis()
             sage: W = V.vector_space_span_of_basis([B[0]+B[1], 2*B[1]-B[2]])
@@ -2426,7 +2713,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Creates a vector space over a field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(QQ, 2)
             Vector space of dimension 2 over Rational Field
             sage: FreeModule(FiniteField(2), 7)
@@ -2439,11 +2727,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
     def scale(self, other):
         """
         Return the product of self by the number other, which is the module
-        spanned by other times each basis vector.  Since self is a vector
+        spanned by other times each basis vector. Since self is a vector
         space this product equals self if other is nonzero, and is the zero
         vector space if other is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^4
             sage: V.scale(5)
             Vector space of dimension 4 over Rational Field
@@ -2451,6 +2740,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Vector space of degree 4 and dimension 0 over Rational Field
             Basis matrix:
             []
+
+        ::
 
             sage: W = V.span([[1,1,1,1]])
             sage: W.scale(2)
@@ -2461,6 +2752,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Vector space of degree 4 and dimension 0 over Rational Field
             Basis matrix:
             []
+
+        ::
 
             sage: V = QQ^4; V
             Vector space of dimension 4 over Rational Field
@@ -2479,7 +2772,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the sum of self and other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,3)
             sage: V0 = V.span([V.gen(0)])
             sage: V2 = V.span([V.gen(2)])
@@ -2504,7 +2798,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the category to which this vector space belongs.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^4; V.category()
             Category of vector spaces over Rational Field
             sage: V = GF(5)**20; V.category()
@@ -2518,7 +2813,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return basis matrix for self in row echelon form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = FreeModule(QQ, 3).span_of_basis([[1,2,3],[4,5,6]])
             sage: V.basis_matrix()
             [1 2 3]
@@ -2539,7 +2835,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Return the intersection of self and other, which must be
         R-submodules of a common ambient vector space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V  = VectorSpace(QQ,3)
             sage: W1 = V.submodule([V.gen(0), V.gen(0) + V.gen(1)])
             sage: W2 = V.submodule([V.gen(1), V.gen(2)])
@@ -2634,7 +2931,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         True if this vector space is a subspace of other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,3)
             sage: W = V.subspace([V.gen(0), V.gen(0) + V.gen(1)])
             sage: W2 = V.subspace([V.gen(1)])
@@ -2657,13 +2955,19 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         not be a subspace of self.
 
         INPUT:
-            gens -- list of vectors
-            check -- bool (default: True): whether or not to coerce entries of gens
-                                           into base field
-            already_echelonized -- bool (default: False): set this if you know the gens
-                                   are already in echelon form
 
-        EXAMPLES:
+
+        -  ``gens`` - list of vectors
+
+        -  ``check`` - bool (default: True): whether or not to
+           coerce entries of gens into base field
+
+        -  ``already_echelonized`` - bool (default: False):
+           set this if you know the gens are already in echelon form
+
+
+        EXAMPLES::
+
             sage: V = VectorSpace(GF(7), 3)
             sage: W = V.subspace([[2,3,4]]); W
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
@@ -2674,7 +2978,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [1 1 1]
 
-        TESTS:
+        TESTS::
+
             sage: V = FreeModule(RDF,3)
             sage: W = V.submodule([V.gen(0)])
             sage: W.span([V.gen(1)], base_ring=GF(7))
@@ -2714,20 +3019,26 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def span_of_basis(self, basis, base_ring=None, check=True, already_echelonized=False):
         r"""
-        Return the free K-module with the given basis, where K is the base field
-        of self or user specified base_ring.
+        Return the free K-module with the given basis, where K is the base
+        field of self or user specified base_ring.
 
-        Note that this span is a subspace of the ambient vector space, but need
-        not be a suspace of self.
+        Note that this span is a subspace of the ambient vector space, but
+        need not be a suspace of self.
 
         INPUT:
-            basis -- list of vectors
-            check -- bool (default: True): whether or not to coerce entries of gens
-                                           into base field
-            already_echelonized -- bool (default: False): set this if you know the gens
-                                   are already in echelon form
 
-        EXAMPLES:
+
+        -  ``basis`` - list of vectors
+
+        -  ``check`` - bool (default: True): whether or not to
+           coerce entries of gens into base field
+
+        -  ``already_echelonized`` - bool (default: False):
+           set this if you know the gens are already in echelon form
+
+
+        EXAMPLES::
+
             sage: V = VectorSpace(GF(7), 3)
             sage: W = V.subspace([[2,3,4]]); W
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
@@ -2739,14 +3050,15 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [2 2 2]
             [3 3 0]
 
-        The basis vectors must be linearly independent or an ArithmeticError exception
-        is raised.
+        The basis vectors must be linearly independent or an
+        ArithmeticError exception is raised.
+
+        ::
 
             sage: W.span_of_basis([[2,2,2], [3,3,3]])
             Traceback (most recent call last):
             ...
             ValueError: The given basis vectors must be linearly independent.
-
         """
         if is_FreeModule(basis):
             basis = basis.gens()
@@ -2773,34 +3085,52 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Return the subspace of self spanned by the elements of gens.
 
         INPUT:
-            gens -- list of vectors
-            check -- bool (default: True) verify that gens are all in self.
-            already_echelonized -- bool (default: False) set to True if you know the
-                                   gens are in Echelon form.
+
+
+        -  ``gens`` - list of vectors
+
+        -  ``check`` - bool (default: True) verify that gens
+           are all in self.
+
+        -  ``already_echelonized`` - bool (default: False) set
+           to True if you know the gens are in Echelon form.
+
 
         EXAMPLES:
-        First we create a 1-dimensional vector subspace of an ambient $3$-dimensional
-        space over the finite field of order $7$.
+
+        First we create a 1-dimensional vector subspace of an
+        ambient `3`-dimensional space over the finite field of
+        order `7`.
+
+        ::
+
             sage: V = VectorSpace(GF(7), 3)
             sage: W = V.subspace([[2,3,4]]); W
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [1 5 2]
 
-        Next we create an invalid subspace, but it's allowed since \code{check=False}.
-        This is just equivalent to computing the span of the element.
+        Next we create an invalid subspace, but it's allowed since
+        ``check=False``. This is just equivalent to computing
+        the span of the element.
+
+        ::
+
             sage: W.subspace([[1,1,0]], check=False)
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [1 1 0]
 
-        With \code{check=True} (the default) the mistake is correctly detected
-        and reported with an \code{ArithmeticError} exception.
+        With ``check=True`` (the default) the mistake is
+        correctly detected and reported with an
+        ``ArithmeticError`` exception.
+
+        ::
+
             sage: W.subspace([[1,1,0]], check=True)
             Traceback (most recent call last):
             ...
             ArithmeticError: Argument gens (= [[1, 1, 0]]) does not generate a submodule of self.
-
         """
         return self.submodule(gens, check=check, already_echelonized=already_echelonized)
 
@@ -2809,9 +3139,14 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Iterate over all subspaces of dimension dim.
 
         INPUT:
-            dim -- int, dimension of subspaces to be generated
 
-        EXAMPLE:
+
+        -  ``dim`` - int, dimension of subspaces to be
+           generated
+
+
+        EXAMPLE::
+
             sage: V = VectorSpace(GF(3), 5)
             sage: len(list(V.subspaces(0)))
             1
@@ -2825,6 +3160,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             121
             sage: len(list(V.subspaces(5)))
             1
+
+        ::
 
             sage: V = VectorSpace(GF(3), 5)
             sage: V = V.subspace([V([1,1,0,0,0]),V([0,0,1,1,0])])
@@ -2841,7 +3178,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
              Vector space of degree 5 and dimension 1 over Finite Field of size 3
             Basis matrix:
             [0 0 1 1 0]]
-
         """
         if not self.base_ring().is_finite():
             raise RuntimeError("Base ring must be finite.")
@@ -2870,10 +3206,14 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def subspace_with_basis(self, gens, check=True, already_echelonized=False):
         """
-        Same as \code{self.submodule_with_basis(...)}.
+        Same as ``self.submodule_with_basis(...)``.
 
         EXAMPLES:
+
         We create a subspace with a user-defined basis.
+
+        ::
+
             sage: V = VectorSpace(GF(7), 3)
             sage: W = V.subspace_with_basis([[2,2,2], [1,2,3]]); W
             Vector space of degree 3 and dimension 2 over Finite Field of size 7
@@ -2882,19 +3222,26 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [1 2 3]
 
         We then create a subspace of the subspace with user-defined basis.
+
+        ::
+
             sage: W1 = W.subspace_with_basis([[3,4,5]]); W1
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             User basis matrix:
             [3 4 5]
 
-        Notice how the basis for the same subspace is different if we merely
-        use the \code{subspace} command.
+        Notice how the basis for the same subspace is different if we
+        merely use the ``subspace`` command.
+
+        ::
+
             sage: W2 = W.subspace([[3,4,5]]); W2
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [1 6 4]
 
-        Nonetheless the two subspaces are equal (as mathematical objects):
+        Nonetheless the two subspaces are equal (as mathematical objects)::
+
             sage: W1 == W2
             True
         """
@@ -2902,11 +3249,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def vector_space(self, base_field=None):
         """
-        Return the vector space associated to self.  Since self is a vector
-        space this function simply returns self, unless the base field
-        is different.
+        Return the vector space associated to self. Since self is a vector
+        space this function simply returns self, unless the base field is
+        different.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = span([[1,2,3]],QQ); V
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
@@ -2924,7 +3272,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the zero submodule of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: (QQ^4).zero_submodule()
             Vector space of degree 4 and dimension 0 over Rational Field
             Basis matrix:
@@ -2936,7 +3285,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         Return the zero subspace of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: (QQ^4).zero_subspace()
             Vector space of degree 4 and dimension 0 over Rational Field
             Basis matrix:
@@ -2951,7 +3301,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         This just calls self.quotient(sub, check)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = RDF^3; W = V.span([[1,0,-1], [1,-1,0]])
             sage: Q = V/W; Q
             Vector space quotient V/W of dimension 1 over Real Double Field where
@@ -2976,12 +3327,17 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         Return the quotient of self by the given subspace sub.
 
         INPUT:
-            sub -- a submodule of self, or something that can be turned into
-                   one via self.submodule(sub).
-            check -- (default: True) whether or not to check that sub is
-                   a submodule.
 
-        EXAMPLES:
+
+        -  ``sub`` - a submodule of self, or something that can
+           be turned into one via self.submodule(sub).
+
+        -  ``check`` - (default: True) whether or not to check
+           that sub is a submodule.
+
+
+        EXAMPLES::
+
             sage: A = QQ^3; V = A.span([[1,2,3], [4,5,6]])
             sage: Q = V.quotient( [V.0 + V.1] ); Q
             Vector space quotient V/W of dimension 1 over Rational Field where
@@ -3008,9 +3364,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def __quotient_matrices(self, sub):
         r"""
-        This internal function is used by \code{self.quotient(...)}.
+        This internal function is used by
+        ``self.quotient(...)``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3; W = V.span([[1,0,-1], [1,-1,0]])
             sage: A, L = V._FreeModule_generic_field__quotient_matrices(W)
             sage: A
@@ -3020,8 +3378,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: L
             [1 0 0]
 
-        The quotient and lift maps are used to compute in the quotient
-        and to lift:
+        The quotient and lift maps are used to compute in the quotient and
+        to lift::
+
             sage: Q = V/W
             sage: Q(W.0)
             (0)
@@ -3030,7 +3389,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(Q.lift_map()(Q.0))
             (1)
 
-        An example in characteristic 5:
+        An example in characteristic 5::
+
             sage: A = GF(5)^2; B = A.span([[1,3]]); A / B
             Vector space quotient V/W of dimension 1 over Finite Field of size 5 where
             V: Vector space of dimension 2 over Finite Field of size 5
@@ -3092,26 +3452,37 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def quotient_abstract(self, sub, check=True):
         r"""
-        Returns an ambient free module isomorphic to the quotient
-        space of self modulo sub, together with maps from self to the
-        quotient, and a lifting map in the other direction.
+        Returns an ambient free module isomorphic to the quotient space of
+        self modulo sub, together with maps from self to the quotient, and
+        a lifting map in the other direction.
 
-        Use \code{self.quotient(sub)} to obtain the quotient module
-        as an object equipped with natural maps in both directions,
+        Use ``self.quotient(sub)`` to obtain the quotient
+        module as an object equipped with natural maps in both directions,
         and a canonical coercion.
 
         INPUT:
-            sub -- a submodule of self, or something that can be turned into
-                   one via self.submodule(sub).
-            check -- (default: True) whether or not to check that sub is
-                   a submodule.
+
+
+        -  ``sub`` - a submodule of self, or something that can
+           be turned into one via self.submodule(sub).
+
+        -  ``check`` - (default: True) whether or not to check
+           that sub is a submodule.
+
 
         OUTPUT:
-            U -- the quotient as an abstract *ambient* free module
-            pi -- projection map to the quotient
-            lift -- lifting map back from quotient
 
-        EXAMPLES:
+
+        -  ``U`` - the quotient as an abstract *ambient* free
+           module
+
+        -  ``pi`` - projection map to the quotient
+
+        -  ``lift`` - lifting map back from quotient
+
+
+        EXAMPLES::
+
             sage: V = GF(19)^3
             sage: W = V.span_of_basis([ [1,2,3], [1,0,1] ])
             sage: U,pi,lift = V.quotient_abstract(W)
@@ -3123,6 +3494,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             (0)
 
         Another example involving a quotient of one subspace by another.
+
+        ::
+
             sage: A = matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
             sage: V = (A^3).kernel()
             sage: W = A.kernel()
@@ -3162,10 +3536,15 @@ class FreeModule_ambient(FreeModule_generic):
         The free module of given rank over the given base_ring.
 
         INPUT:
-            base_ring -- a commutative ring
-            rank -- a non-negative integer
 
-        EXAMPLES:
+
+        -  ``base_ring`` - a commutative ring
+
+        -  ``rank`` - a non-negative integer
+
+
+        EXAMPLES::
+
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
@@ -3175,7 +3554,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         The hash of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^7
             sage: V.__hash__()
             153079684 # 32-bit
@@ -3199,9 +3579,11 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Creates a dense module with the same defining data as self.
 
-        N.B. This function is for internal use only! See dense_module for use.
+        N.B. This function is for internal use only! See dense_module for
+        use.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(Integers(8),3)
             sage: S = FreeModule(Integers(8),3, sparse=True)
             sage: M is S._dense_module()
@@ -3213,9 +3595,11 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Creates a sparse module with the same defining data as self.
 
-        N.B. This function is for internal use only! See sparse_module for use.
+        N.B. This function is for internal use only! See sparse_module for
+        use.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(Integers(8),3)
             sage: S = FreeModule(Integers(8),3, sparse=True)
             sage: M._sparse_module() is S
@@ -3227,7 +3611,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         The echelonized basis matrix of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ^4
             sage: W = V.submodule([ V.gen(i)-V.gen(0) for i in range(1,4) ])
             sage: W.basis_matrix()
@@ -3247,7 +3632,6 @@ class FreeModule_ambient(FreeModule_generic):
             [ 1  0  0 -1]
             [ 0  1  0 -1]
             [ 0  0  1 -1]
-
         """
         return self.basis_matrix()
 
@@ -3259,13 +3643,18 @@ class FreeModule_ambient(FreeModule_generic):
         then in order by their echelon matrices.
 
         EXAMPLES:
-        We compare rank three free modules over the integers and rationals:
+
+        We compare rank three free modules over the integers and
+        rationals::
+
             sage: QQ^3 < CC^3
             True
             sage: CC^3 < QQ^3
             False
             sage: CC^3 > QQ^3
             True
+
+        ::
 
             sage: Q = QQ; Z = ZZ
             sage: Q^3 > Z^3
@@ -3280,6 +3669,8 @@ class FreeModule_ambient(FreeModule_generic):
             False
             sage: Q^3 == Q^3
             True
+
+        ::
 
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: V
@@ -3318,7 +3709,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = ZZ.quo(12)
             sage: M = R^12
             sage: print M
@@ -3326,7 +3718,10 @@ class FreeModule_ambient(FreeModule_generic):
             sage: print M._repr_()
             Ambient free module of rank 12 over Ring of integers modulo 12
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: M.rename('M')
             sage: print M
@@ -3335,6 +3730,8 @@ class FreeModule_ambient(FreeModule_generic):
             Ambient free module of rank 12 over Ring of integers modulo 12
 
         Sparse modules print this fact.
+
+        ::
 
             sage: N = FreeModule(R,12,sparse=True)
             sage: print N
@@ -3349,13 +3746,18 @@ class FreeModule_ambient(FreeModule_generic):
         r"""
         Return a latex representation of this ambient free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: latex(QQ^3) # indirect doctest
             \mathbf{Q}^{3}
+
+        ::
 
             sage: A = GF(5)^20
             sage: latex(A) # indiret doctest
             \mathbf{F}_{5}^{20}
+
+        ::
 
             sage: A = PolynomialRing(QQ,3,'x') ^ 20
             sage: latex(A) #indirect doctest
@@ -3368,9 +3770,11 @@ class FreeModule_ambient(FreeModule_generic):
 
     def is_ambient(self):
         """
-        Return \code{True} since this module is an ambient module.
+        Return ``True`` since this module is an ambient
+        module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = QQ^5; A.is_ambient()
             True
             sage: A = (QQ^5).span([[1,2,3,4,5]]); A.is_ambient()
@@ -3382,7 +3786,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Return self, since self is ambient.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = QQ^5; A.ambient_module()
             Vector space of dimension 5 over Rational Field
             sage: A = ZZ^5; A.ambient_module()
@@ -3395,9 +3800,14 @@ class FreeModule_ambient(FreeModule_generic):
         Return a basis for this ambient free module.
 
         OUTPUT:
-            Sequence -- an immutable sequence with universe this ambient free module
 
-        EXAMPLES:
+
+        -  ``Sequence`` - an immutable sequence with universe
+           this ambient free module
+
+
+        EXAMPLES::
+
             sage: A = ZZ^3; B = A.basis(); B
             [
             (1, 0, 0),
@@ -3424,7 +3834,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Return a basis for this ambient free module in echelon form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3; A.echelonized_basis()
             [
             (1, 0, 0),
@@ -3438,13 +3849,17 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Return the ambient free module over R of the same rank as self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3; A.change_ring(QQ)
             Vector space of dimension 3 over Rational Field
             sage: A = ZZ^3; A.change_ring(GF(5))
             Vector space of dimension 3 over Finite Field of size 5
 
         For ambient modules any change of rings is defined.
+
+        ::
+
             sage: A = GF(5)**3; A.change_ring(QQ)
             Vector space of dimension 3 over Rational Field
         """
@@ -3459,10 +3874,11 @@ class FreeModule_ambient(FreeModule_generic):
 
     def linear_combination_of_basis(self, v):
         """
-        Return the linear combination of the basis for self
-        obtained from the elements of the list v.
+        Return the linear combination of the basis for self obtained from
+        the elements of the list v.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = span([[1,2,3], [4,5,6]], ZZ)
             sage: V
             Free module of degree 3 and rank 2 over Integer Ring
@@ -3476,15 +3892,21 @@ class FreeModule_ambient(FreeModule_generic):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the standard basis for self and return the
-        resulting coeffcients in a vector over the fraction field of the
-        base ring.
+        Write `v` in terms of the standard basis for self and
+        return the resulting coefficients in a vector over the fraction
+        field of the base ring.
 
-        Returns a vector c such that if B is the basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
+        Returns a vector `c` such that if `B` is the basis for self, then
 
-        EXAMPLES:
+        .. math::
+
+                             \sum c_i B_i = v.
+
+        If `v` is not in self, raises an ArithmeticError
+        exception.
+
+        EXAMPLES::
+
             sage: V = Integers(16)^3
             sage: v = V.coordinate_vector([1,5,9]); v
             (1, 5, 9)
@@ -3495,15 +3917,22 @@ class FreeModule_ambient(FreeModule_generic):
 
     def echelon_coordinate_vector(self, v, check=True):
         r"""
-        Same as \code{self.coordinate_vector(v)}, since self is an ambient free module.
+        Same as ``self.coordinate_vector(v)``, since self is
+        an ambient free module.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        EXAMPLES:
+
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        EXAMPLES::
+
             sage: V = QQ^4
             sage: v = V([-1/2,1/2,-1/2,1/2])
             sage: v
@@ -3517,15 +3946,16 @@ class FreeModule_ambient(FreeModule_generic):
             (1, -1)
             sage: W.echelon_coordinate_vector(v)
             (-1/2, 1/2)
-
         """
         return self.coordinate_vector(v, check=check)
 
     def echelon_coordinates(self, v, check=True):
         """
-        Returns the coordinate vector of v in terms of the echelon basis for self.
+        Returns the coordinate vector of v in terms of the echelon basis
+        for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: U = VectorSpace(QQ,3)
             sage: [ U.coordinates(v) for v in U.basis() ]
             [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
@@ -3559,10 +3989,17 @@ class FreeModule_ambient(FreeModule_generic):
         Returns a random element of self.
 
         INPUT:
-            prob -- float; probability that given coefficient is nonzero.
-            **kwds -- passed on to random_element function of base ring.
 
-        EXAMPLES:
+
+        -  ``prob`` - float; probability that given coefficient
+           is nonzero.
+
+        -  ``**kwds`` - passed on to random_element function
+           of base ring.
+
+
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ, 3)
             sage: M.random_element()
             (-1, 2, 1)
@@ -3570,6 +4007,8 @@ class FreeModule_ambient(FreeModule_generic):
             (-95, -1, -2)
             sage: M.random_element()
             (-12, 0, 0)
+
+        ::
 
             sage: M = FreeModule(ZZ, 16)
             sage: M.random_element()
@@ -3602,7 +4041,8 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         Create the ambient free module of given rank over the given
         integral domain.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FreeModule(PolynomialRing(GF(5),'x'), 3)
             Ambient free module of rank 3 over the principal ideal domain
             Univariate Polynomial Ring in x over Finite Field of size 5
@@ -3613,7 +4053,8 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = PolynomialRing(ZZ,'x')
             sage: M = FreeModule(R,7)
             sage: print M
@@ -3621,7 +4062,10 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             sage: print M._repr_()
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: M.rename('M')
             sage: print M
@@ -3630,6 +4074,8 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
         Sparse modules print this fact.
+
+        ::
 
             sage: N = FreeModule(R,7,sparse=True)
             sage: print N
@@ -3646,7 +4092,8 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         """
         Return the fraction field of the base ring of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3;  M.base_field()
             Rational Field
             sage: M = PolynomialRing(GF(5),'x')^3;  M.base_field()
@@ -3656,16 +4103,19 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def ambient_vector_space(self):
         """
-        Returns the ambient vector space, which is this free module tensored
-        with its fraction field.
+        Returns the ambient vector space, which is this free module
+        tensored with its fraction field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3;
             sage: V = M.ambient_vector_space(); V
             Vector space of dimension 3 over Rational Field
 
-            If an inner product on a module, then this is specified then
-            this is preserved on the ambient vector space.
+        If an inner product on the module is specified, then this
+        is preserved on the ambient vector space.
+
+        ::
 
             sage: N = FreeModule(ZZ,4,inner_product_matrix=1)
             sage: U = N.ambient_vector_space()
@@ -3694,21 +4144,31 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the standard basis for self and return the
-        resulting coeffcients in a vector over the fraction field of the
-        base ring.
+        Write `v` in terms of the standard basis for self and
+        return the resulting coefficients in a vector over the fraction
+        field of the base ring.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a vector c such that if B is the basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a vector `c` such that if `B` is the basis for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+        If `v` is not in self, raises an ArithmeticError exception.
+
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: v = V.coordinate_vector([1,5,9]); v
             (1, 5, 9)
@@ -3719,10 +4179,11 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def vector_space(self, base_field=None):
         """
-        Returns the vector space obtained from self by tensoring with
-        the fraction field of the base ring and extending to the field.
+        Returns the vector space obtained from self by tensoring with the
+        fraction field of the base ring and extending to the field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3;  M.vector_space()
             Vector space of dimension 3 over Rational Field
         """
@@ -3748,11 +4209,17 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
         principal ideal domain.
 
         INPUT:
-            base_ring -- a principal ideal domain
-            rank -- a non-negative integer
-            sparse -- bool (default: False)
 
-        EXAMPLES:
+
+        -  ``base_ring`` - a principal ideal domain
+
+        -  ``rank`` - a non-negative integer
+
+        -  ``sparse`` - bool (default: False)
+
+
+        EXAMPLES::
+
             sage: ZZ^3
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
@@ -3762,14 +4229,18 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = FreeModule(ZZ,7)
             sage: print M
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
             sage: print M._repr_()
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: M.rename('M')
             sage: print M
@@ -3778,6 +4249,8 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
 
         Sparse modules print this fact.
+
+        ::
 
             sage: N = FreeModule(ZZ,7,sparse=True)
             sage: print N
@@ -3799,17 +4272,25 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
 
 class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid):
     """
+
     """
     def __init__(self, base_field, dimension, sparse=False):
         """
-        Create the ambient vector space of given dimension over the given field.
+        Create the ambient vector space of given dimension over the given
+        field.
 
         INPUT:
-            base_field -- a field
-            dimension -- a non-negative integer
-            sparse -- bool (default: False)
 
-        EXAMPLES:
+
+        -  ``base_field`` - a field
+
+        -  ``dimension`` - a non-negative integer
+
+        -  ``sparse`` - bool (default: False)
+
+
+        EXAMPLES::
+
             sage: QQ^3
             Vector space of dimension 3 over Rational Field
         """
@@ -3819,14 +4300,18 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = FreeModule(QQ,7)
             sage: print V
             Vector space of dimension 7 over Rational Field
             sage: print V._repr_()
             Vector space of dimension 7 over Rational Field
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: V.rename('V')
             sage: print V
@@ -3835,6 +4320,8 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
             Vector space of dimension 7 over Rational Field
 
         Sparse modules print this fact.
+
+        ::
 
             sage: U = FreeModule(QQ,7,sparse=True)
             sage: print U
@@ -3849,7 +4336,8 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Returns self as the ambient vector space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^3
             sage: M.ambient_vector_space()
             Vector space of dimension 3 over Rational Field
@@ -3860,7 +4348,8 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Returns the base field of this vector space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^3
             sage: M.base_field()
             Rational Field
@@ -3871,7 +4360,8 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Create an element of this vector space.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: k.<a> = GF(3^4)
             sage: VS = k.vector_space()
             sage: VS(a)
@@ -3893,21 +4383,25 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     """
-    An $R$-submodule of $K^n$ with distinguished basis, where $K$ is
-    the fraction field of a principal ideal domain $R$.
+    An `R`-submodule of `K^n` with distinguished basis,
+    where `K` is the fraction field of a principal ideal domain
+    `R`.
     """
     def __init__(self, ambient, basis, check=True,
         echelonize=False, echelonized_basis=None, already_echelonized=False):
         """
         Create a free module with basis over a PID.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
             Free module of degree 3 and rank 2 over Integer Ring
             User basis matrix:
             [1 2 3]
             [4 5 6]
+
+        ::
 
             sage: W = M.span_of_basis([[1,2,3/2],[4,5,6]]); W
             Free module of degree 3 and rank 2 over Integer Ring
@@ -3971,7 +4465,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         The hash of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^7
             sage: V.__hash__()
             153079684 # 32-bit
@@ -3987,10 +4482,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def construction(self):
         """
-        Returns the functorial construction of self, namely, the
-        subspace of the ambient module spanned by the given basis.
+        Returns the functorial construction of self, namely, the subspace
+        of the ambient module spanned by the given basis.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: M = ZZ^3
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
             Free module of degree 3 and rank 2 over Integer Ring
@@ -4008,7 +4504,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         Return basis matrix for self in row echelon form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = FreeModule(ZZ, 3).span_of_basis([[1,2,3],[4,5,6]])
             sage: V.basis_matrix()
             [1 2 3]
@@ -4026,12 +4523,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _echelonized_basis(self, ambient, basis):
         """
-        Given the ambient space and a basis, constructs and caches
-        the __echelonized_basis_matrix and returns its rows.
+        Given the ambient space and a basis, constructs and caches the
+        __echelonized_basis_matrix and returns its rows.
 
         N.B. This function is for internal use only!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[0,2,1]])
             sage: N._echelonized_basis(M,N.basis())
@@ -4044,7 +4542,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: W = V.submodule_with_basis([[1,0,1]])
             sage: W._echelonized_basis(V,W.basis())
             [(1, 0, 1)]
-
         """
         # Return the first rank rows (i.e., the nonzero rows).
         d = self._denominator(basis)
@@ -4066,21 +4563,30 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         r"""
         Compare the free module self with other.
 
-        Modules are ordered by their ambient spaces, then by
-        dimension, then in order by their echelon matrices.
+        Modules are ordered by their ambient spaces, then by dimension,
+        then in order by their echelon matrices.
 
-        NOTE: Use the \code{is_submodule} to determine if one module
-        is a submodule of another.
+        .. note::
+
+           Use :meth:`is_submodule` to determine if one
+           module is a submodule of another.
 
         EXAMPLES:
+
         First we compare two equal vector spaces.
+
+        ::
+
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: W = span([[5,6,7], [8,9,10]], QQ)
             sage: V == W
             True
 
-        Next we compare a one dimensional space to the two dimensional space
-        defined above.
+        Next we compare a one dimensional space to the two dimensional
+        space defined above.
+
+        ::
+
             sage: M = span([[5,6,7]], QQ)
             sage: V == M
             False
@@ -4089,7 +4595,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V < M
             False
 
-        We compare a $\Z$-module to the one-dimensional space above.
+        We compare a `\mathbb{Z}`-module to the one-dimensional
+        space above.
+
+        ::
+
             sage: V = span([[5,6,7]], ZZ).scale(1/11);  V
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -4128,7 +4638,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         N.B.: This function is for internal use only!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: L = V.span([[1,1/2,1/3], [-1/5,2/3,3]],ZZ)
             sage: L
@@ -4150,7 +4661,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = ZZ^8
             sage: E = L.submodule_with_basis([ L.gen(i) - L.gen(0) for i in range(1,8) ])
             sage: E # indirect doctest
@@ -4163,6 +4675,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [-1  0  0  0  0  1  0  0]
             [-1  0  0  0  0  0  1  0]
             [-1  0  0  0  0  0  0  1]
+
+        ::
 
             sage: M = FreeModule(ZZ,8,sparse=True)
             sage: N = M.submodule_with_basis([ M.gen(i) - M.gen(0) for i in range(1,8) ])
@@ -4191,7 +4705,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         r"""
         Return latex representation of this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M._latex_()
@@ -4201,12 +4716,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def ambient_module(self):
         """
-        Return the ambient module related to the $R$-module self, which
-        was used when creating this module, and is of the form $R^n$.   Note
-        that self need not be contained in the ambient module, though self
-        will be contained in the ambient vector space.
+        Return the ambient module related to the `R`-module self,
+        which was used when creating this module, and is of the form
+        `R^n`. Note that self need not be contained in the ambient
+        module, though self will be contained in the ambient vector space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,'3/7'],[4,5,6]])
             sage: M
@@ -4223,21 +4739,32 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinates(self, v, check=True):
         r"""
-        Write $v$ in terms of the echelonized basis for self.
+        Write `v` in terms of the echelonized basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a list $c$ such that if $B$ is the basis for self, then
-        $$
-                \sum c_i B_i = v.
-        $$
-        If $v$ is not in self, raises an \code{ArithmeticError} exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a list `c` such that if `B` is the basis
+        for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an
+        ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,'3/7'],[4,5,6]])
             sage: M.coordinates([8,10,12])
@@ -4252,7 +4779,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: 8*B[0] - 2*B[1]
             (8, 10, 12)
 
-        We do an example with a sparse vector space:
+        We do an example with a sparse vector space::
+
             sage: V = VectorSpace(QQ,5, sparse=True)
             sage: W = V.subspace_with_basis([[0,1,2,0,0], [0,-1,0,0,-1/2]])
             sage: W.echelonized_basis()
@@ -4286,11 +4814,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def user_to_echelon_matrix(self):
         """
-        Return matrix that transforms a vector written with respect to the user basis
-        of self to one written with respect to the echelon basis.  The matrix acts
-        from the right, as is usual in SAGE.
+        Return matrix that transforms a vector written with respect to the
+        user basis of self to one written with respect to the echelon
+        basis. The matrix acts from the right, as is usual in Sage.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M.echelonized_basis()
@@ -4302,9 +4831,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [ 1  0]
             [ 4 -1]
 
-        The vector $v=(5,7,9)$ in $M$ is $(1,1)$ with respect to the user basis.
-        Multiplying the above matrix on the right by this vector yields $(5,-1)$,
-        which has components the coordinates of $v$ with respect to the echelon basis.
+        The vector `v=(5,7,9)` in `M` is `(1,1)`
+        with respect to the user basis. Multiplying the above matrix on the
+        right by this vector yields `(5,-1)`, which has components
+        the coordinates of `v` with respect to the echelon basis.
+
+        ::
+
             sage: v0,v1 = M.basis(); v = v0+v1
             sage: e0,e1 = M.echelonized_basis()
             sage: v
@@ -4328,12 +4861,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_to_user_matrix(self):
         """
-        Return matrix that transforms the echelon basis to the user basis of self.
-        This is a matrix $A$ such that if $v$ is a vector written with respect to the echelon
-        basis for self then $vA$ is that vector written with respect to the user
-        basis of self.
+        Return matrix that transforms the echelon basis to the user basis
+        of self. This is a matrix `A` such that if `v` is a
+        vector written with respect to the echelon basis for self then
+        `vA` is that vector written with respect to the user basis
+        of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.span_of_basis([[1,2,3],[4,5,6]])
             sage: W.echelonized_basis()
@@ -4345,9 +4880,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [-5/3  2/3]
             [ 4/3 -1/3]
 
-        The vector $(1,1,1)$ has coordinates $v=(1,1)$ with respect to the echelonized
-        basis for self.  Multiplying $vA$ we find the coordinates of this vector with
-        respect to the user basis.
+        The vector `(1,1,1)` has coordinates `v=(1,1)` with
+        respect to the echelonized basis for self. Multiplying `vA`
+        we find the coordinates of this vector with respect to the user
+        basis.
+
+        ::
 
             sage: v = vector(QQ, [1,1]); v
             (1, 1)
@@ -4365,12 +4903,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _user_to_rref_matrix(self):
         """
-        Returns a transformation matrix from the user specifed basis to
-        row reduced echelon form, for this module over a PID.
+        Returns a transformation matrix from the user specifed basis to row
+        reduced echelon form, for this module over a PID.
 
         Note: For internal use only! See user_to_echelon_matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[0,1,1]])
             sage: T = N.user_to_echelon_matrix(); T # indirect doctest
@@ -4396,12 +4935,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _rref_to_user_matrix(self):
         """
-        Returns a transformation matrix from row reduced echelon form
-        to the user specifed basis, for this module over a PID.
+        Returns a transformation matrix from row reduced echelon form to
+        the user specifed basis, for this module over a PID.
 
         Note: For internal use only! See user_to_echelon_matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[0,1,1]])
             sage: U = N.echelon_to_user_matrix(); U # indirect doctest
@@ -4424,13 +4964,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _echelon_to_rref_matrix(self):
         """
-        Returns a transformation matrix from the <some matrix> to
-        the row reduced echelon form for this module over a PID.
-
+        Returns a transformation matrix from the some matrix to the row
+        reduced echelon form for this module over a PID.
 
         Note: For internal use only! and not used!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[1,1,2]])
             sage: N
@@ -4459,12 +4999,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _rref_to_echelon_matrix(self):
         """
-        Returns a transformation matrix from row reduced echelon
-        form to <some matrix> for this module over a PID.
+        Returns a transformation matrix from row reduced echelon form to
+        some matrix for this module over a PID.
 
         Note: For internal use only!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[1,1,2]])
             sage: N
@@ -4491,10 +5032,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def vector_space(self, base_field=None):
         """
-        Return the vector space associated to this free module via tensor product
-        with the fraction field of the base ring.
+        Return the vector space associated to this free module via tensor
+        product with the fraction field of the base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3; A
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: A.vector_space()
@@ -4518,12 +5060,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def ambient_vector_space(self):
         """
-        Return the ambient vector space in which this free module is embedded.
+        Return the ambient vector space in which this free module is
+        embedded.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ZZ^3;  M.ambient_vector_space()
             Vector space of dimension 3 over Rational Field
+
+        ::
 
             sage: N = M.span_of_basis([[1,2,'1/5']])
             sage: N
@@ -4535,8 +5080,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: M.ambient_vector_space() is N.ambient_vector_space()
             True
 
-            If an inner product on a module, then this is specified then
-            this is preserved on the ambient vector space.
+        If an inner product on the module is specified, then this
+        is preserved on the ambient vector space.
+
+        ::
 
             sage: M = FreeModule(ZZ,4,inner_product_matrix=1)
             sage: V = M.ambient_vector_space()
@@ -4561,7 +5108,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         Return the user basis for this free module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: V.basis()
             [
@@ -4579,15 +5127,19 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def change_ring(self, R):
         """
-        Return the free module over R obtained by coercing each
-        element of self into a vector over the fraction field of R,
-        then taking the resulting R-module.  Raises a TypeError
-        if coercion is not possible.
+        Return the free module over R obtained by coercing each element of
+        self into a vector over the fraction field of R, then taking the
+        resulting R-module. Raises a TypeError if coercion is not
+        possible.
 
         INPUT:
-            R -- a principal ideal domain
 
-        EXAMPLES:
+
+        -  ``R`` - a principal ideal domain
+
+
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.subspace([[2,'1/2', 1]])
             sage: W.change_ring(GF(7))
@@ -4608,19 +5160,28 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the user basis for self.
+        Write `v` in terms of the user basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a vector c such that if B is the basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a vector `c` such that if `B` is the basis for self, then
+
+        .. math::
+
+
+        If `v` is not in self, raises an ArithmeticError exception.
+
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: M = V.span_of_basis([['1/8',2,1]])
             sage: M.coordinate_vector([1,16,8])
@@ -4637,7 +5198,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         Return the basis for self in echelon form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: M = V.span_of_basis([['1/2',3,1], [0,'1/6',0]])
             sage: M.basis()
@@ -4657,17 +5219,28 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the user basis for self.
+        Write `v` in terms of the user basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
 
-        Returns a vector c such that if B is the echelonized basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+        Returns a list `c` such that if `B` is the echelonized basis
+        for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: M = V.span_of_basis([['1/2',3,1], [0,'1/6',0]])
             sage: B = M.echelonized_basis(); B
@@ -4682,10 +5255,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def has_user_basis(self):
         """
-        Return \code{True} if the basis of this free module is specified by the user,
-        as opposed to being the default echelon form.
+        Return ``True`` if the basis of this free module is
+        specified by the user, as opposed to being the default echelon
+        form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ^3; V.has_user_basis()
             False
             sage: M = V.span_of_basis([[1,3,1]]); M.has_user_basis()
@@ -4697,10 +5272,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def linear_combination_of_basis(self, v):
         """
-        Return the linear combination of the basis for self
-        obtained from the coordinates of v.
+        Return the linear combination of the basis for self obtained from
+        the coordinates of v.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = span([[1,2,3], [4,5,6]], ZZ); V
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -4714,10 +5290,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
 class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
     """
-    An $R$-submodule of $K^n$ where $K$ is the fraction field of a
-    principal ideal domain $R$.
+    An `R`-submodule of `K^n` where `K` is the
+    fraction field of a principal ideal domain `R`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = ZZ^3
         sage: W = M.span_of_basis([[1,2,3],[4,5,19]]); W
         Free module of degree 3 and rank 2 over Integer Ring
@@ -4726,6 +5303,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         [ 4  5 19]
 
     We can save and load submodules and elements.
+
+    ::
 
         sage: loads(W.dumps()) == W
         True
@@ -4737,7 +5316,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         """
         Create an embedded free module over a PID.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: W = V.span([[1,2,3],[4,5,6]])
             sage: W
@@ -4753,7 +5333,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^8
             sage: L = M.submodule([ M.gen(i) - M.gen(0) for i in range(1,8) ])
             sage: print L # indirect doctest
@@ -4779,19 +5360,30 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the user basis for self.
+        Write `v` in terms of the user basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a vector c such that if B is the basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a list `c` such that if `B` is the basis for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: V = ZZ^3
             sage: W = V.span_of_basis([[1,2,3],[4,5,6]])
             sage: W.coordinate_vector([1,5,9])
@@ -4801,10 +5393,12 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     def has_user_basis(self):
         r"""
-        Return \code{True} if the basis of this free module is specified by the user,
-        as opposed to being the default echelon form.
+        Return ``True`` if the basis of this free module is
+        specified by the user, as opposed to being the default echelon
+        form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = ZZ^3; A
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: A.has_user_basis()
@@ -4823,18 +5417,21 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
     """
     An embedded vector subspace with a distinguished user basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = QQ^3; W = M.submodule_with_basis([[1,2,3], [4,5,19]]); W
         Vector space of degree 3 and dimension 2 over Rational Field
         User basis matrix:
         [ 1  2  3]
         [ 4  5 19]
 
-        Since this is an embedded vector subspace with a distinguished user
-        basis possibly different than the echelonized basis, the
-        echelon_coordinates() and user coordinates() do not agree:
+    Since this is an embedded vector subspace with a distinguished user
+    basis possibly different than the echelonized basis, the
+    echelon_coordinates() and user coordinates() do not agree::
 
         sage: V = QQ^3
+
+    ::
 
         sage: W = V.submodule_with_basis([[1,2,3], [4,5,6]])
         sage: W
@@ -4843,11 +5440,15 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         [1 2 3]
         [4 5 6]
 
+    ::
+
         sage: v = V([1,5,9])
         sage: W.echelon_coordinates(v)
         [1, 5]
         sage: vector(QQ, W.echelon_coordinates(v)) * W.echelonized_basis_matrix()
         (1, 5, 9)
+
+    ::
 
         sage: v = V([1,5,9])
         sage: W.coordinates(v)
@@ -4855,10 +5456,12 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
         (1, 5, 9)
 
-    We can load and save submodules:
+    We can load and save submodules::
 
         sage: loads(W.dumps()) == W
         True
+
+    ::
 
         sage: K.<x> = FractionField(PolynomialRing(QQ,'x'))
         sage: M = K^3; W = M.span_of_basis([[1,1,x]])
@@ -4870,7 +5473,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         """
         Create a vector space with given basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.span_of_basis([[1,2,3],[4,5,6]])
             sage: W
@@ -4887,7 +5491,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         """
         The printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: print U # indirect doctest
@@ -4905,7 +5510,10 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: U.rename('U')
             sage: print U
@@ -4919,6 +5527,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
             [ 0  0  0  1 -1]
 
         Sparse vector spaces print this fact.
+
+        ::
 
             sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
@@ -4941,11 +5551,13 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
 
     def _denominator(self, B):
         """
-        Given a list (of field elements) returns 1 as the common denominator.
+        Given a list (of field elements) returns 1 as the common
+        denominator.
 
         N.B.: This function is for internal use only!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: U = QQ^3
             sage: U
             Vector space of dimension 3 over Rational Field
@@ -4970,12 +5582,13 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
 
     def _echelonized_basis(self, ambient, basis):
         """
-        Given the ambient space and a basis, constructs and caches
-        the __echelonized_basis_matrix and returns its rows.
+        Given the ambient space and a basis, constructs and caches the
+        __echelonized_basis_matrix and returns its rows.
 
         N.B. This function is for internal use only!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ZZ^3
             sage: N = M.submodule_with_basis([[1,1,0],[0,2,1]])
             sage: N._echelonized_basis(M,N.basis())
@@ -4998,7 +5611,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         """
         Return False since this is not an ambient module.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: V.is_ambient()
             True
@@ -5015,8 +5629,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
     EXAMPLES:
 
-        Since this is an embedded vector subspace with echelonized basis,
-        the echelon_coordinates() and user coordinates() agree:
+    Since this is an embedded vector subspace with echelonized basis,
+    the echelon_coordinates() and user coordinates() agree::
 
         sage: V = QQ^3
         sage: W = V.span([[1,2,3],[4,5,6]])
@@ -5025,6 +5639,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         Basis matrix:
         [ 1  0 -1]
         [ 0  1  2]
+
+    ::
 
         sage: v = V([1,5,9])
         sage: W.echelon_coordinates(v)
@@ -5041,7 +5657,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         """
         Create an embedded vector subspace with echelonized basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.span([[1,2,3],[4,5,6]])
             sage: W
@@ -5061,7 +5678,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         """
         The default printing representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
             sage: print U # indirect doctest
@@ -5079,7 +5697,10 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
 
-        The system representation can be overwritten, but leaves _repr_ unmodified.
+        The system representation can be overwritten, but leaves _repr_
+        unmodified.
+
+        ::
 
             sage: U.rename('U')
             sage: print U
@@ -5093,6 +5714,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             [ 0  0  0  1 -1]
 
         Sparse vector spaces print this fact.
+
+        ::
 
             sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
@@ -5115,21 +5738,30 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
     def echelon_coordinates(self, v, check=True):
         """
-        Write $v$ in terms of the echelonized basis of self.
+        Write `v` in terms of the echelonized basis of self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a list $c$ such that if $B$ is the basis for self, then
-        $$
-                \sum c_i B_i = v.
-        $$
-        If $v$ is not in self, raises an \code{ArithmeticError} exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a list `c` such that if `B` is the basis for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.span([[1,2,3],[4,5,6]])
             sage: W
@@ -5137,6 +5769,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
+
+        ::
 
             sage: v = V([1,5,9])
             sage: W.echelon_coordinates(v)
@@ -5170,19 +5804,30 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write $v$ in terms of the user basis for self.
+        Write `v` in terms of the user basis for self.
 
         INPUT:
-            v -- vector
-            check -- bool (default: True); if True, also verify that v is really in self.
-        OUTPUT:
-            list
 
-        Returns a vector c such that if B is the basis for self, then
-                sum c[i] B[i] = v
-        If v is not in self, raises an ArithmeticError exception.
 
-        EXAMPLES:
+        -  ``v`` - vector
+
+        -  ``check`` - bool (default: True); if True, also
+           verify that v is really in self.
+
+
+        OUTPUT: list
+
+        Returns a list `c` such that if `B` is the basis for self, then
+
+        .. math::
+
+                             \sum c_i B_i = v.
+
+
+        If `v` is not in self, raises an ``ArithmeticError`` exception.
+
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.span([[1,2,3],[4,5,6]]); W
             Vector space of degree 3 and dimension 2 over Rational Field
@@ -5197,20 +5842,23 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
             (1, 5, 9)
 
+        ::
+
             sage: V = VectorSpace(QQ,5, sparse=True)
             sage: W = V.subspace([[0,1,2,0,0], [0,-1,0,0,-1/2]])
             sage: W.coordinate_vector([0,0,2,0,-1/2])
             (0, 2)
-
         """
         return self.echelon_coordinate_vector(v, check=check)
 
     def has_user_basis(self):
         """
-        Return \code{True} if the basis of this free module is specified by the user,
-        as opposed to being the default echelon form.
+        Return ``True`` if the basis of this free module is
+        specified by the user, as opposed to being the default echelon
+        form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3
             sage: W = V.subspace([[2,'1/2', 1]])
             sage: W.has_user_basis()
@@ -5226,10 +5874,11 @@ def basis_seq(V, vecs):
     This converts a list vecs of vectors in V to an Sequence of
     immutable vectors.
 
-    Should it?  I.e. in most other parts of the system the return
-    type of basis or generators is a tuple.
+    Should it? I.e. in most other parts of the system the return type
+    of basis or generators is a tuple.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: V = VectorSpace(QQ,2)
         sage: B = V.gens()
         sage: B
@@ -5286,10 +5935,11 @@ class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
 
 def element_class(R, is_sparse):
     """
-    The class of the vectors (elements of a free module) with
-    base ring R and boolean is_sparse.
+    The class of the vectors (elements of a free module) with base ring
+    R and boolean is_sparse.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: FF = FiniteField(2)
         sage: P = PolynomialRing(FF,'x')
         sage: sage.modules.free_module.element_class(QQ, is_sparse=True)

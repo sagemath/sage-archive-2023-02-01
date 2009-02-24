@@ -1,12 +1,14 @@
 r"""
 Morphisms defined by a matrix.
 
-A matrix morphism is a morphism that is defined by multiplication by a
-matrix.  Elements of domain must either have a method \code{vector()}
-that returns a vector that the defining matrix can hit from the left,
-or be coercible into vector space of appropriate dimension.
+A matrix morphism is a morphism that is defined by multiplication
+by a matrix. Elements of domain must either have a method
+``vector()`` that returns a vector that the defining
+matrix can hit from the left, or be coercible into vector space of
+appropriate dimension.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: from sage.modules.matrix_morphism import MatrixMorphism, is_MatrixMorphism
     sage: V = QQ^3
     sage: T = End(V)
@@ -37,10 +39,14 @@ EXAMPLES:
     3
 
 AUTHOR:
-    - William Stein: initial versions
-    - David Joyner (2005-12-17): added examples
-    - William Stein (2005-01-07): added __reduce__
-    - Craig Citro (2008-03-18): refactored MatrixMorphism class
+
+- William Stein: initial versions
+
+- David Joyner (2005-12-17): added examples
+
+- William Stein (2005-01-07): added __reduce__
+
+- Craig Citro (2008-03-18): refactored MatrixMorphism class
 """
 
 
@@ -58,10 +64,15 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
     def __init__(self, parent):
         """
         INPUT:
-            parent -- a homspace
-            A -- matrix
 
-        EXAMPLES:
+
+        -  ``parent`` - a homspace
+
+        -  ``A`` - matrix
+
+
+        EXAMPLES::
+
             sage: from sage.modules.matrix_morphism import MatrixMorphism
             sage: T = End(QQ^3)
             sage: M = MatrixSpace(QQ,3)
@@ -79,10 +90,11 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def __call__(self, x):
         """
-        Evaluate this matrix morphism at an element that can be
-        coerced into the domain.
+        Evaluate this matrix morphism at an element that can be coerced
+        into the domain.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ^3; W = QQ^2
             sage: H = Hom(V, W); H
             Set of Morphisms from Vector space of dimension 3 over Rational Field to Vector space of dimension 2 over Rational Field in Category of vector spaces over Rational Field
@@ -136,9 +148,10 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def __mul__(self, right):
         """
-        Composition of morphisms, denoted by *.
+        Composition of morphisms, denoted by \*.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = QQ**3
             sage: E = V.endomorphism_ring()
             sage: phi = E(Matrix(QQ,3,range(9))) ; phi
@@ -159,6 +172,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             [ 15  18  21]
             [ 42  54  66]
             [ 69  90 111]
+
+        ::
 
             sage: W = QQ**4
             sage: E_VW = V.Hom(W)
@@ -184,7 +199,6 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
-
         """
         if not isinstance(right, MatrixMorphism):
             R = self.base_ring()
@@ -196,7 +210,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         """
         Sum of morphisms, denoted by +.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: phi = (ZZ**2).endomorphism_ring()(Matrix(ZZ,2,[2..5])) ; phi
             Free module morphism defined by the matrix
             [2 3]
@@ -242,10 +257,11 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def base_ring(self):
         """
-        Return the base ring of self, that is, the ring over which
-        self is given by a matrix.
+        Return the base ring of self, that is, the ring over which self is
+        given by a matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage.modules.matrix_morphism.MatrixMorphism((ZZ**2).endomorphism_ring(), Matrix(ZZ,2,[3..6])).base_ring()
             Integer Ring
         """
@@ -289,7 +305,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         """
         Compute the kernel of this morphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,3)
             sage: id = V.Hom(V)(identity_matrix(QQ,3))
             sage: null = V.Hom(V)(0*identity_matrix(QQ,3))
@@ -321,7 +338,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         """
         Compute the image of this morphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,3)
             sage: phi = V.Hom(V)(range(9))
             sage: phi.image()
@@ -355,12 +373,12 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def restrict_domain(self, sub):
         """
-        Restrict this matrix morphism to a subspace sub of the domain.
-        The subspace sub should have a basis() method and elements of the basis
+        Restrict this matrix morphism to a subspace sub of the domain. The
+        subspace sub should have a basis() method and elements of the basis
         should be coercible into domain.
 
-        The resulting morphism has the same codomain as before, but
-        a new domain.
+        The resulting morphism has the same codomain as before, but a new
+        domain.
         """
         D  = self.domain()
         B  = sub.basis()
@@ -378,10 +396,10 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
 
     def restrict_codomain(self, sub):
         """
-        Restrict this matrix morphism to a subspace sub of the codomain.
+	Restrict this matrix morphism to a subspace sub of the codomain.
 
-        The resulting morphism has the same domain as before, but
-        a new codomain.
+	The resulting morphism has the same domain as before, but a new
+	codomain.
 	"""
 	A = self.matrix().restrict_codomain(sub.free_module())
         H = sage.categories.homset.Hom(self.domain(), sub, self.domain().category())
@@ -407,10 +425,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
     def __init__(self, parent, A):
         """
         INPUT:
-            parent -- a homspace
-            A -- matrix
 
-        EXAMPLES:
+
+        -  ``parent`` - a homspace
+
+        -  ``A`` - matrix
+
+
+        EXAMPLES::
+
             sage: from sage.modules.matrix_morphism import MatrixMorphism
             sage: T = End(QQ^3)
             sage: M = MatrixSpace(QQ,3)

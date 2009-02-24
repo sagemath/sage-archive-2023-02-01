@@ -1,8 +1,10 @@
 r"""
 Homspaces between free modules
 
-EXAMPLES:
-    We create $\End(\Z^2)$ and compute a basis.
+EXAMPLES: We create `\mathrm{End}(\mathbb{Z}^2)` and compute a
+basis.
+
+::
 
     sage: M = FreeModule(IntegerRing(),2)
     sage: E = End(M)
@@ -16,7 +18,11 @@ EXAMPLES:
     Domain: Ambient free module of rank 2 over the principal ideal domain ...
     Codomain: Ambient free module of rank 2 over the principal ideal domain ...
 
-    We create $\Hom(\Q^3, \Q^2)$ and compute a basis.
+We create `\mathrm{Hom}(\mathbb{Q}^3, \mathbb{Q}^2)` and
+compute a basis.
+
+::
+
     sage: V3 = VectorSpace(RationalField(),3)
     sage: V2 = VectorSpace(RationalField(),2)
     sage: H = Hom(V3,V2)
@@ -34,8 +40,6 @@ EXAMPLES:
     [0 0]
     Domain: Vector space of dimension 3 over Rational Field
     Codomain: Vector space of dimension 2 over Rational Field
-
-
 """
 
 #*****************************************************************************
@@ -98,18 +102,19 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
        r"""
        Return identity morphism in an endomorphism ring.
 
-       EXAMPLE:
-	   sage: V=VectorSpace(QQ,5)
-	   sage: H=V.Hom(V)
-	   sage: H.identity()
-	   Free module morphism defined by the matrix
-	   [1 0 0 0 0]
-	   [0 1 0 0 0]
-	   [0 0 1 0 0]
-	   [0 0 0 1 0]
-	   [0 0 0 0 1]
-	   Domain: Vector space of dimension 5 over Rational Field
-	   Codomain: Vector space of dimension 5 over Rational Field
+       EXAMPLE::
+
+           sage: V=VectorSpace(QQ,5)
+           sage: H=V.Hom(V)
+           sage: H.identity()
+           Free module morphism defined by the matrix
+           [1 0 0 0 0]
+           [0 1 0 0 0]
+           [0 0 1 0 0]
+           [0 0 0 1 0]
+           [0 0 0 0 1]
+           Domain: Vector space of dimension 5 over Rational Field
+           Codomain: Vector space of dimension 5 over Rational Field
        """
        if self.is_endomorphism_set():
            return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))

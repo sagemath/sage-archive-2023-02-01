@@ -1,12 +1,12 @@
 r"""
 Pickling for the old CDF vector class.
 
-
-
 AUTHORS:
-    -- Jason Grout
 
-TESTS:
+- Jason Grout
+
+TESTS::
+
     sage: v = vector(CDF,[(1,-1), (2,pi), (3,5)])
     sage: v
     (1.0 - 1.0*I, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)

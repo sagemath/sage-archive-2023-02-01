@@ -1,15 +1,17 @@
 r"""
 Free Monoids
 
-AUTHOR:
-    -- David Kohel <kohel@maths.usyd.edu.au>, 2005/09
+AUTHORS:
 
-SAGE supports free monoids on any prescribed finite number $n\geq 0$
-of generators.  Use the \code{FreeMonoid} function to create a free
-monoid, and the \code{gen} and \code{gens} functions to obtain the
-corresponding generators.  You can print the generators as arbitrary
-strings using the optional \code{names} argument to the
-\code{FreeMonoid} function.
+- David Kohel (2005-09)
+
+Sage supports free monoids on any prescribed finite number
+`n\geq 0` of generators. Use the ``FreeMonoid``
+function to create a free monoid, and the ``gen`` and
+``gens`` functions to obtain the corresponding
+generators. You can print the generators as arbitrary strings using
+the optional ``names`` argument to the
+``FreeMonoid`` function.
 """
 
 #*****************************************************************************
@@ -39,16 +41,20 @@ from sage.structure.factory import UniqueFactory
 
 class FreeMonoidFactory(UniqueFactory):
     """
-    Returns a free monoid on $n$ generators.
+    Returns a free monoid on `n` generators.
 
     INPUT:
-        n -- integer
-        names -- names of generators
 
-    OUTPUT:
-        free abelian monoid
 
-    EXAMPLES:
+    -  ``n`` - integer
+
+    -  ``names`` - names of generators
+
+
+    OUTPUT: free abelian monoid
+
+    EXAMPLES::
+
         sage: FreeMonoid(0,'')
         Free monoid on 0 generators ()
         sage: F.<a,b,c,d,e> = FreeMonoid(5); F
@@ -71,9 +77,10 @@ FreeMonoid = FreeMonoidFactory("FreeMonoid")
 
 def is_FreeMonoid(x):
     """
-    Return True if $x$ is a free monoid.
+    Return True if `x` is a free monoid.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.monoids.free_monoid import is_FreeMonoid
         sage: is_FreeMonoid(5)
         False
@@ -88,17 +95,23 @@ def is_FreeMonoid(x):
 
 class FreeMonoid_class(Monoid_class):
     """
-    The free monoid on $n$ generators.
+    The free monoid on `n` generators.
     """
     def __init__(self, n, names=None):
         """
-        Create free monoid on $n$ generators.
+        Create free monoid on `n` generators.
 
         INPUT:
-            n -- integer
-            names -- (optional) variable name or list of variable names
 
-        EXAMPLES:
+
+        -  ``n`` - integer
+
+        -  ``names`` - (optional) variable name or list of
+           variable names
+
+
+        EXAMPLES::
+
             sage: F = FreeMonoid(3,'x'); F
             Free monoid on 3 generators (x0, x1, x2)
             sage: x = F.gens()
@@ -108,6 +121,7 @@ class FreeMonoid_class(Monoid_class):
             sage: F
             Free monoid on 3 generators (a0, a1, a2)
 
+        ::
 
             sage: M = FreeMonoid(3, names=['a','b','c'])
             sage: loads(M.dumps()) == M
@@ -134,13 +148,15 @@ class FreeMonoid_class(Monoid_class):
 
     def __call__(self, x, check=True):
         """
-        Return $x$ coerced into this free monoid.
+        Return `x` coerced into this free monoid.
 
-        One can create a free monoid from the integer 1 and from a
-        list of 2-tuples of integers $(i,j)$, where $(i,j)$
-        corresponds to $x_i^j$, where $x_i$ is the $i$th generator.
+        One can create a free monoid from the integer 1 and from a list of
+        2-tuples of integers `(i,j)`, where `(i,j)`
+        corresponds to `x_i^j`, where `x_i` is the
+        `i`th generator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeMonoid(3, 'a')
             sage: F(1)
             1
@@ -151,9 +167,10 @@ class FreeMonoid_class(Monoid_class):
             ...
             TypeError: Argument x (= 0) is of the wrong type.
 
+        ::
+
             sage: F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             a0^5*a1^2*a0^12*a1^2
-
         """
         ## There should really some careful type checking here...
         if isinstance(x, FreeMonoidElement) and x.parent() is self:
@@ -172,12 +189,16 @@ class FreeMonoid_class(Monoid_class):
 
     def gen(self,i=0):
         """
-        The $i$-th generator of the monoid.
+        The `i`-th generator of the monoid.
 
         INPUT:
-            i -- integer (default: 0)
 
-        EXAMPLES:
+
+        -  ``i`` - integer (default: 0)
+
+
+        EXAMPLES::
+
             sage: F = FreeMonoid(3, 'a')
             sage: F.gen(1)
             a1
@@ -197,7 +218,8 @@ class FreeMonoid_class(Monoid_class):
         """
         The number of free generators of the monoid.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeMonoid(2005, 'a')
             sage: F.ngens()
             2005

@@ -1,27 +1,33 @@
 """
 Abelian monoid elements
 
-AUTHOR:
-    - David Kohel (2005-09)
+AUTHORS:
 
-EXAMPLES:
-Recall the example from abelian monoids.
-   sage: F = FreeAbelianMonoid(5,names = list("abcde"))
-   sage: (a,b,c,d,e) = F.gens()
-   sage: a*b^2*e*d
-   a*b^2*d*e
-   sage: x = b^2*e*d*a^7
-   sage: x
-   a^7*b^2*d*e
-   sage: x.list()
-   [7, 2, 0, 1, 1]
+- David Kohel (2005-09)
 
-It is important to note that lists are mutable and the
-returned list is not a copy.  As a result, reassignment
-of an element of the list changes the object.
-   sage: x.list()[0] = 0
-   sage: x
-   b^2*d*e
+EXAMPLES: Recall the example from abelian monoids.
+
+::
+
+    sage: F = FreeAbelianMonoid(5,names = list("abcde"))
+    sage: (a,b,c,d,e) = F.gens()
+    sage: a*b^2*e*d
+    a*b^2*d*e
+    sage: x = b^2*e*d*a^7
+    sage: x
+    a^7*b^2*d*e
+    sage: x.list()
+    [7, 2, 0, 1, 1]
+
+It is important to note that lists are mutable and the returned
+list is not a copy. As a result, reassignment of an element of the
+list changes the object.
+
+::
+
+    sage: x.list()[0] = 0
+    sage: x
+    b^2*d*e
 """
 
 #*****************************************************************************
@@ -45,7 +51,8 @@ class FreeAbelianMonoidElement(MonoidElement):
         """
         Create the element x of the FreeAbelianMonoid F.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAbelianMonoid(5, 'abcde')
             sage: F
             Free abelian monoid on 5 generators (a, b, c, d, e)
@@ -106,11 +113,13 @@ class FreeAbelianMonoidElement(MonoidElement):
         """
         Raises self to the power of n.
 
-        AUTHOR:
-            - Tom Boothby (2007-08) Replaced O(log n) time, O(n) space
-              algorithm with O(1) time and space "algorithm".
+        AUTHORS:
 
-        EXAMPLES:
+        - Tom Boothby (2007-08): Replaced O(log n) time, O(n) space
+          algorithm with O(1) time and space"algorithm".
+
+        EXAMPLES::
+
             sage: F = FreeAbelianMonoid(5,names = list("abcde"))
             sage: (a,b,c,d,e) = F.gens()
             sage: x = a*b^2*e*d; x
@@ -137,12 +146,13 @@ class FreeAbelianMonoidElement(MonoidElement):
 
     def list(self):
         """
-        Return (a reference to) the underlying list used to represent
-        this element.  If this is a monoid in an abelian monoid on $n$
-        generators, then this is a list of nonnegative integers of
-        length $n$.
+        Return (a reference to) the underlying list used to represent this
+        element. If this is a monoid in an abelian monoid on `n`
+        generators, then this is a list of nonnegative integers of length
+        `n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAbelianMonoid(5, 'abcde')
             sage: (a, b, c, d, e) = F.gens()
             sage: a.list()

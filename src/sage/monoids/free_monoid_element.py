@@ -1,10 +1,12 @@
 """
 Monoid Elements
 
-AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2005/09/29
+AUTHORS:
 
-Elements of free monoids are represented internally as lists of pairs
-of integers.
+- David Kohel (2005-09-29)
+
+Elements of free monoids are represented internally as lists of
+pairs of integers.
 """
 
 #*****************************************************************************
@@ -34,21 +36,22 @@ class FreeMonoidElement(MonoidElement):
     """
     Element of a free monoid.
 
-    EXAMPLES:
-            sage: a = FreeMonoid(5, 'a').gens()
-            sage: x = a[0]*a[1]*a[4]**3
-            sage: x**3
-            a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
-            sage: x**0
-            1
-            sage: x**(-1)
-            Traceback (most recent call last):
-            ...
-            TypeError: bad operand type for unary ~: 'FreeMonoidElement'
+    EXAMPLES::
+
+        sage: a = FreeMonoid(5, 'a').gens()
+        sage: x = a[0]*a[1]*a[4]**3
+        sage: x**3
+        a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
+        sage: x**0
+        1
+        sage: x**(-1)
+        Traceback (most recent call last):
+        ...
+        TypeError: bad operand type for unary ~: 'FreeMonoidElement'
     """
     def __init__(self, F, x, check=True):
         """
-        Create the element $x$ of the FreeMonoid $F$.
+        Create the element `x` of the FreeMonoid `F`.
 
         This should typically be called by a FreeMonoid.
         """
@@ -116,7 +119,8 @@ class FreeMonoidElement(MonoidElement):
         r"""
         Return latex representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeMonoid(3, 'a')
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
@@ -140,7 +144,8 @@ class FreeMonoidElement(MonoidElement):
 
     def __call__(self, *x, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M.<x,y,z>=FreeMonoid(3)
             sage: (x*y).subs(x=1,y=2,z=14)
             2
@@ -151,8 +156,9 @@ class FreeMonoidElement(MonoidElement):
             sage: (x*y).subs({x:M1([1,2]),y:M2([3,4])})
             [11]
 
-        AUTHOR:
-            -- Joel B. Mohler (2007.10.27)
+        AUTHORS:
+
+        - Joel B. Mohler (2007-10-27)
         """
         if len(kwds)>0 and len(x)>0:
             raise ValueError, "must not specify both a keyword and positional argument"
@@ -193,7 +199,8 @@ class FreeMonoidElement(MonoidElement):
         """
         Multiply 2 free monoid elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = FreeMonoid(5, 'a').gens()
             sage: x = a[0] * a[1] * a[4]**3
             sage: y = a[4] * a[0] * a[1]
@@ -222,10 +229,11 @@ class FreeMonoidElement(MonoidElement):
     def __len__(self):
         """
         Return the number of products that occur in this monoid element.
-        For example, the length of the identity is 0, and the length
-        of the monoid $x_0^2x_1$ is three.
+        For example, the length of the identity is 0, and the length of the
+        monoid `x_0^2x_1` is three.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeMonoid(3, 'a')
             sage: z = F(1)
             sage: len(z)

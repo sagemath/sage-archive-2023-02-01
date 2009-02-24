@@ -5,19 +5,25 @@ This module provides access to polymake, which 'has been developed
 since 1997 in the Discrete Geometry group at the Institute of
 Mathematics of Technische Universitat Berlin. Since 2004 the
 development is shared with Fachbereich Mathematik, Technische
-Universitat Darmstadt.  The system offers access to a wide variety of
-algorithms and packages within a common framework. polymake is
+Universitat Darmstadt. The system offers access to a wide variety
+of algorithms and packages within a common framework. polymake is
 flexible and continuously expanding. The software supplies C++ and
-perl interfaces which make it highly adaptable to individual needs.'
+perl interfaces which make it highly adaptable to individual
+needs.'
 
-NOTE: If you have trouble with this module do
-        sage: !polymake --reconfigure   # not tested
-at the command line.
+.. note::
 
+   If you have trouble with this module do::
 
-AUTHOR:
-    -- Ewgenij Gawrilow, Michael Joswig: main authors of polymake
-    -- William Stein: SAGE interface
+       sage: !polymake --reconfigure   # not tested
+
+   at the command line.
+
+AUTHORS:
+
+- Ewgenij Gawrilow, Michael Joswig: main authors of polymake
+
+- William Stein: Sage interface
 """
 
 ########################################################################
@@ -50,13 +56,17 @@ class Polytope(SageObject):
     """
     Create a polytope.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional: needs polymake
 
-    NOTE: If you have trouble with this module do
-            sage: !polymake --reconfigure   # not tested
-    at the command line.
+    .. note::
 
+       If you have trouble with this module do::
+
+          sage: !polymake --reconfigure   # not tested
+
+       at the command line.
     """
     def __init__(self, datafile, desc):
         self.__data = datafile
@@ -140,7 +150,8 @@ class Polytope(SageObject):
 
     def facets(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional: needs polymake
             sage: P.facets()                            # optional
             [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
@@ -162,7 +173,8 @@ class Polytope(SageObject):
 
     def vertices(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])     # optional: needs polymake
             sage: P.vertices()                            # optional
             [(1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0), (1, 0, 1, 1), (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
@@ -200,16 +212,18 @@ class Polytope(SageObject):
         r"""
         Return True if this polytope is simple.
 
-        A polytope is \emph{simple} if the degree of each
-        vertex equals the dimension of the polytope.
+        A polytope is *simple* if the degree of each vertex equals the
+        dimension of the polytope.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])        # optional: needs polymake
             sage: P.is_simple()                              # optional
             True
 
         AUTHORS:
-            -- Edwin O'Shea (2006-05-02): Definition of simple.
+
+        - Edwin O'Shea (2006-05-02): Definition of simple.
         """
         try:
             return self.__is_simple
@@ -224,7 +238,8 @@ class Polytope(SageObject):
 
     def n_facets(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])     # optional: needs polymake
             sage: P.n_facets()                            # optional
             6
@@ -254,9 +269,8 @@ class Polymake:
         """
         Reconfigure polymake.
 
-        Remember to run polymake.reconfigure() as soon as you have
-        changed the customization file and/or installed missing
-        software!
+        Remember to run polymake.reconfigure() as soon as you have changed
+        the customization file and/or installed missing software!
         """
         os.system("polymake --reconfigure")
 
@@ -271,7 +285,8 @@ class Polymake:
 
     def cell24(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: polymake.cell24()            # optional: needs polymake
             The 24-cell
         """
@@ -279,9 +294,9 @@ class Polymake:
                            'The 24-cell')
 
     def convex_hull(self, points=[]):
-        """
+        r"""
+        EXAMPLES::
 
-        EXAMPLES:
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: f = x^3 + y^3 + z^3 + x*y*z
             sage: e = f.exponents()

@@ -896,13 +896,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def transpose(self):
         """
-        Return the transpose of this matrix.
+        Return the transpose of this matrix, without changing self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(RDF,2,3,range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
-            sage: m.transpose()
+            sage: m2 = m.transpose()
+            sage: m[0,0] = 2
+            sage: m2           #note that m2 hasn't changed
             [0.0 3.0]
             [1.0 4.0]
             [2.0 5.0]
@@ -918,7 +921,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         cdef Matrix_double_dense trans
         trans = self._new(self._ncols, self._nrows)
-        trans._matrix_numpy = self._matrix_numpy.transpose()
+        trans._matrix_numpy = self._matrix_numpy.transpose().copy()
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
             trans.subdivide(col_divs, row_divs)

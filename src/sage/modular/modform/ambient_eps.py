@@ -1,7 +1,8 @@
 r"""
 Modular Forms with Character
 
-EXAMPLES:
+EXAMPLES::
+
     sage: eps = DirichletGroup(13).0
     sage: M = ModularForms(eps^2, 2); M
     Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
@@ -11,7 +12,8 @@ EXAMPLES:
     sage: S.modular_symbols()
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
 
-We create a spaces associated to Dirichlet characters of modulus 225:
+We create a spaces associated to Dirichlet characters of modulus 225::
+
     sage: e = DirichletGroup(225).0
     sage: e.order()
     6
@@ -19,18 +21,20 @@ We create a spaces associated to Dirichlet characters of modulus 225:
     Cyclotomic Field of order 60 and degree 16
     sage: M = ModularForms(e,3)
 
+Notice that the base ring is "minimized"::
 
-Notice that the base ring is ``minimized'':
     sage: M
     Modular Forms space of dimension 66, character [zeta6, 1] and weight 3
     over Cyclotomic Field of order 6 and degree 2
 
-If we don't want the base ring to change, we can explicitly specify it:
+If we don't want the base ring to change, we can explicitly specify it::
+
     sage: ModularForms(e, 3, e.base_ring())
     Modular Forms space of dimension 66, character [zeta6, 1] and weight 3
     over Cyclotomic Field of order 60 and degree 16
 
-Next we create a space associated to a Dirichlet character of order 20:
+Next we create a space associated to a Dirichlet character of order 20::
+
     sage: e = DirichletGroup(225).1
     sage: e.order()
     20
@@ -42,7 +46,10 @@ Next we create a space associated to a Dirichlet character of order 20:
 
 We compute the Eisenstein subspace, which is fast even though
 the dimension of the space is large (since an explicit basis
-of $q$-expansions has not been computed yet).
+of `q`-expansions has not been computed yet).
+
+::
+
     sage: M.eisenstein_submodule()
     Eisenstein subspace of dimension 8 of Modular Forms space of
     dimension 484, character [1, zeta20] and weight 17 over Cyclotomic Field of order 20 and degree 8
@@ -50,7 +57,8 @@ of $q$-expansions has not been computed yet).
     sage: M.cuspidal_submodule()
     Cuspidal subspace of dimension 476 of Modular Forms space of dimension 484, character [1, zeta20] and weight 17 over Cyclotomic Field of order 20 and degree 8
 
-TESTS:
+TESTS::
+
     sage: m = ModularForms(DirichletGroup(20).1,5)
     sage: m == loads(dumps(m))
     True
@@ -87,17 +95,22 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         Create an ambient modular forms space with character.
 
-        NOTE that the base ring must be of characteristic 0.  The
-        ambient_R Python module is used for computing in
-        characteristic p, which we view as the reduction of
-        characteristic 0.
+        .. note::
+
+           The base ring must be of characteristic 0.  The ambient_R
+           Python module is used for computing in characteristic p,
+           which we view as the reduction of characteristic 0.
 
         INPUT:
-            weight -- int
-            character -- dirichlet.DirichletCharacter
-            base_ring -- base field
 
-        EXAMPLES:
+        - ``weight`` - int
+
+        - ``character`` - dirichlet.DirichletCharacter
+
+        - ``base_ring`` - base field
+
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(11).0,3); m
             Modular Forms space of dimension 3, character [zeta10] and weight 3 over Cyclotomic Field of order 10 and degree 4
             sage: type(m)
@@ -118,12 +131,16 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         String representation of this space with character.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(8).1,2)
             sage: m._repr_()
             'Modular Forms space of dimension 2, character [1, -1] and weight 2 over Rational Field'
 
         You can rename the space with the rename command.
+
+        ::
+
             sage: m.rename('Modforms of level 8')
             sage: m
             Modforms of level 8
@@ -135,7 +152,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         Return the cuspidal submodule of this ambient space of modular forms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eps = DirichletGroup(4).0
             sage: M = ModularForms(eps, 5); M
             Modular Forms space of dimension 3, character [-1] and weight 5 over Rational Field
@@ -154,13 +172,15 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         space of modular symbols, but defined over a different base
         ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(13).0^2,2); m
             Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
             sage: m.change_ring(CyclotomicField(12))
             Modular Forms space of dimension 3, character [zeta12^2] and weight 2 over Cyclotomic Field of order 12 and degree 4
 
-        It must be possible to change the ring of the underlying Dirichlet character:
+        It must be possible to change the ring of the underlying Dirichlet character::
+
             sage: m.change_ring(QQ)
             Traceback (most recent call last):
             ...
@@ -176,7 +196,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         Return corresponding space of modular symbols with given sign.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eps = DirichletGroup(13).0
             sage: M = ModularForms(eps^2, 2)
             sage: M.modular_symbols()
@@ -210,7 +231,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         spanned by Eisenstein series.  This is the Hecke stable complement
         of the cuspidal submodule.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(13).0^2,2); m
             Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
             sage: m.eisenstein_submodule()
@@ -229,7 +251,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         """
         Return the dimension of the cuspidal subspace, computed using a dimension formula.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(389,CyclotomicField(4)).0,3); m._dim_cuspidal()
             64
         """
@@ -245,7 +268,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         Return the dimension of the Eisenstein subspace of this space, computed
         using a dimension formula.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(13).0,7); m
             Modular Forms space of dimension 8, character [zeta12] and weight 7 over Cyclotomic Field of order 12 and degree 4
             sage: m._dim_eisenstein()
@@ -264,7 +288,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         Return the dimension of the new cuspidal subspace, computed
         using a dimension formula.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(33).0,7); m
             Modular Forms space of dimension 26, character [-1, 1] and weight 7 over Rational Field
             sage: m._dim_new_cuspidal()
@@ -284,7 +309,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         Return the dimension of the new Eisenstein subspace, computed
         by enumerating all Eisenstein series of the appropriate level.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ModularForms(DirichletGroup(36).0,5); m
             Modular Forms space of dimension 28, character [-1, 1] and weight 5 over Rational Field
             sage: m._dim_new_eisenstein()

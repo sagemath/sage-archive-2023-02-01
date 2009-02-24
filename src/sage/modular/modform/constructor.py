@@ -1,7 +1,8 @@
 """
 Creating Spaces of Modular Forms
 
-EXAMPLES:
+EXAMPLES::
+
     sage: m = ModularForms(Gamma1(4),11)
     sage: m
     Modular Forms space of dimension 6 for Congruence Subgroup Gamma1(4) of weight 11 over Rational Field
@@ -42,28 +43,40 @@ import element
 
 def canonical_parameters(group, level, weight, base_ring):
     """
-    Given a group, level, weight, and base_ring as input by
-    the user, return a canonicalized version of them, where
-    level is a Sage integer, group really is a group, weight
-    is a Sage integer, and base_ring a Sage ring. Note that
-    we can't just get the level from the group, because we
-    have the convention that the character for Gamma1(N) is
-    None (which makes good sense).
+    Given a group, level, weight, and base_ring as input by the user,
+    return a canonicalized version of them, where level is a Sage
+    integer, group really is a group, weight is a Sage integer, and
+    base_ring a Sage ring. Note that we can't just get the level from
+    the group, because we have the convention that the character for
+    Gamma1(N) is None (which makes good sense).
 
     INPUT:
-        group -- int, long, SAGE integer, group, dirichlet character,
-                 or
-        level -- int, long, SAGE integer, or group
-        weight -- coercible to SAGE integer
-        base_ring -- commutative SAGE ring
+
+
+    -  ``group`` - int, long, Sage integer, group,
+       dirichlet character, or
+
+    -  ``level`` - int, long, Sage integer, or group
+
+    -  ``weight`` - coercible to Sage integer
+
+    -  ``base_ring`` - commutative Sage ring
+
 
     OUTPUT:
-        level -- SAGE integer
-        group -- congruence subgroup
-        weight -- SAGE integer
-        ring -- commutative SAGE ring
 
-    EXAMPLES:
+
+    -  ``level`` - Sage integer
+
+    -  ``group`` - congruence subgroup
+
+    -  ``weight`` - Sage integer
+
+    -  ``ring`` - commutative Sage ring
+
+
+    EXAMPLES::
+
         sage: from sage.modular.modform.constructor import canonical_parameters
         sage: v = canonical_parameters(5, 5, int(7), ZZ); v
         (5, Congruence Subgroup Gamma0(5), 7, Integer Ring)
@@ -125,10 +138,13 @@ def ModularForms_clear_cache():
     """
     Clear the cache of modular forms.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = ModularForms(37,2)
         sage: sage.modular.modform.constructor._cache == {}
         False
+
+    ::
 
         sage: sage.modular.modform.constructor.ModularForms_clear_cache()
         sage: sage.modular.modform.constructor._cache
@@ -146,29 +162,41 @@ def ModularForms(group  = 1,
     Create an ambient space of modular forms.
 
     INPUT:
-        group -- A congruence subgroup or a Dirichlet character eps.
-        weight -- int, the weight, which must be an integer >= 1.
-        base_ring -- the base ring (ignored if group is a Dirichlet character)
 
-    Create using the command
-        ModularForms(group, weight, base_ring)
-    where group could be either a congruence subgroup or a Dirichlet character.
 
-    EXAMPLES:
-    First we create some spaces with trivial character:
+    -  ``group`` - A congruence subgroup or a Dirichlet
+       character eps.
+
+    -  ``weight`` - int, the weight, which must be an
+       integer = 1.
+
+    -  ``base_ring`` - the base ring (ignored if group is
+       a Dirichlet character)
+
+
+    Create using the command ModularForms(group, weight, base_ring)
+    where group could be either a congruence subgroup or a Dirichlet
+    character.
+
+    EXAMPLES: First we create some spaces with trivial character::
+
         sage: ModularForms(Gamma0(11),2).dimension()
         2
         sage: ModularForms(Gamma0(1),12).dimension()
         2
 
-    If we give an integer N for the congruence subgroup, it defaults
-    to $\Gamma_0(N)$:
+    If we give an integer N for the congruence subgroup, it defaults to
+    `\Gamma_0(N)`::
+
         sage: ModularForms(1,12).dimension()
         2
         sage: ModularForms(11,4)
         Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
 
-    We create some spaces for $\Gamma_1(N)$.
+    We create some spaces for `\Gamma_1(N)`.
+
+    ::
+
         sage: ModularForms(Gamma1(13),2)
         Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         sage: ModularForms(Gamma1(13),2).dimension()
@@ -178,7 +206,8 @@ def ModularForms(group  = 1,
         sage: ModularForms(Gamma1(5),11).dimension()
         12
 
-    We create a space with character:
+    We create a space with character::
+
         sage: e = (DirichletGroup(13).0)^2
         sage: e.order()
         6
@@ -189,7 +218,8 @@ def ModularForms(group  = 1,
         sage: f.factor()
         (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)
 
-    More examples of spaces with character:
+    More examples of spaces with character::
+
         sage: e = DirichletGroup(5, RationalField()).gen(); e
         [-1]
         sage: m = ModularForms(e, 2); m
@@ -276,7 +306,8 @@ def CuspForms(group  = 1,
     See the documentation for the ModularForms command for a
     description of the input parameters.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: CuspForms(11,2)
         Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
@@ -295,7 +326,8 @@ def EisensteinForms(group  = 1,
     See the documentation for the ModularForms command for a
     description of the input parameters.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: EisensteinForms(11,2)
         Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
@@ -307,13 +339,20 @@ def EisensteinForms(group  = 1,
 def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
     """
     INPUT:
-       group      -- the congruence subgroup of the newform
-       weight     -- the weight of the newform (default 2)
-       base_ring  -- the base ring
-       names      -- if the newform has coefficients in a number field, a
-                     generator name must be specified
 
-    EXAMPLES:
+
+    -  ``group`` - the congruence subgroup of the newform
+
+    -  ``weight`` - the weight of the newform (default 2)
+
+    -  ``base_ring`` - the base ring
+
+    -  ``names`` - if the newform has coefficients in a
+       number field, a generator name must be specified
+
+
+    EXAMPLES::
+
         sage: Newforms(11, 2)
         [q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)]
         sage: Newforms(65, names='a')
@@ -327,15 +366,23 @@ def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
 def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
     """
     INPUT:
-       identifier -- a canonical label, or the index of the specific
-                     newform desired
-       group      -- the congruence subgroup of the newform
-       weight     -- the weight of the newform (default 2)
-       base_ring  -- the base ring
-       names      -- if the newform has coefficients in a number field, a
-                     generator name must be specified
 
-    EXAMPLES:
+
+    -  ``identifier`` - a canonical label, or the index of
+       the specific newform desired
+
+    -  ``group`` - the congruence subgroup of the newform
+
+    -  ``weight`` - the weight of the newform (default 2)
+
+    -  ``base_ring`` - the base ring
+
+    -  ``names`` - if the newform has coefficients in a
+       number field, a generator name must be specified
+
+
+    EXAMPLES::
+
         sage: Newform('67a', names='a')
         q + 2*q^2 - 2*q^3 + 2*q^4 + 2*q^5 + O(q^6)
         sage: Newform('67b', names='a')
@@ -359,7 +406,8 @@ def parse_label(s):
     Given a string s corresponding to a newform label, return the
     corresponding group and index.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.constructor.parse_label('11a')
         (Congruence Subgroup Gamma0(11), 0)
         sage: sage.modular.modform.constructor.parse_label('11aG1')

@@ -40,11 +40,19 @@ def set_modsym_print_mode(mode="manin"):
     Set the mode for printing of elements of modular symbols spaces.
 
     INPUT:
-        mode -- a string.  The possibilities are as follows:
-                * 'manin'   -- (the default) formal sums of Manin symbols [P(X,Y),(u,v)]
-                * 'modular' -- formal sums of Modular symbols P(X,Y)*{alpha,beta},
-                               where alpha and beta are cusps
-                * 'vector'  -- as vectors on the basis for the ambient space
+
+
+    -  ``mode`` - a string. The possibilities are as
+       follows:
+
+    -  ``'manin'`` - (the default) formal sums of Manin
+       symbols [P(X,Y),(u,v)]
+
+    -  ``'modular'`` - formal sums of Modular symbols
+       P(X,Y)\*alpha,beta, where alpha and beta are cusps
+
+    -  ``'vector'`` - as vectors on the basis for the
+       ambient space
     """
     mode = str(mode).lower()
     if not (mode in ['manin', 'modular', 'vector']):
@@ -59,10 +67,13 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
     def __init__(self, parent, x, check=True):
         """
         INPUT:
-            parent -- a space of modular symbols
-            x -- a free module element that represents the modular
-                 symbol in terms of a basis for the ambient space (not
-                 in terms of a basis for parent!)
+
+
+        -  ``parent`` - a space of modular symbols
+
+        -  ``x`` - a free module element that represents the
+           modular symbol in terms of a basis for the ambient space (not in
+           terms of a basis for parent!)
         """
         if check:
             if not isinstance(parent, ambient.ModularSymbolsAmbient):
@@ -143,7 +154,8 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
 
     def modular_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of modular symbols.
+        Returns a representation of self as a formal sum of modular
+        symbols.
 
         (The result is cached for future use.)
         """

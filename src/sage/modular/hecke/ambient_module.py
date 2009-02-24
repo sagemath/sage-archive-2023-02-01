@@ -66,21 +66,22 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def _degeneracy_raising_matrix(self, N):
         """
-        Matrix of the degeneracy map (with t = 1) to level N, where N is a multiple
-        of the level.
+        Matrix of the degeneracy map (with t = 1) to level N, where N is a
+        multiple of the level.
         """
         raise NotImplementedError
 
     def _degeneracy_lowering_matrix(self, N, t):
         """
-        Matrix of the degeneracy map of index t to level N, where N is
-        a divisor of the level.
+        Matrix of the degeneracy map of index t to level N, where N is a
+        divisor of the level.
         """
         raise NotImplementedError
 
     def _hecke_image_of_ith_basis_element(self, n, i):
         """
-        Return the image under the Hecke operator T_n of the i-th basis element.
+        Return the image under the Hecke operator T_n of the i-th basis
+        element.
         """
         return self.hecke_operator(n)(self.gen(i))
 
@@ -95,7 +96,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     def complement(self):
         """
         Return the largest Hecke-stable complement of this space.
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M=ModularSymbols(11,2,1)
             sage: M
             Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
@@ -111,13 +113,13 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def decomposition_matrix(self):
         r"""
-        Returns the matrix whose columns form a basis for the
-        canonical sorted decomposition of self coming from the Hecke
-        operators.
+        Returns the matrix whose columns form a basis for the canonical
+        sorted decomposition of self coming from the Hecke operators.
 
-        If the simple factors are $D_0, \ldots, D_n$, then the first
-        few columns are an echelonized basis for $D_0$, the next an
-        echelonized basis for $D_1$, the next for $D_2$, etc.
+        If the simple factors are `D_0, \ldots, D_n`, then the
+        first few columns are an echelonized basis for `D_0`, the
+        next an echelonized basis for `D_1`, the next for
+        `D_2`, etc.
         """
         try:
             return self.__decomposition_matrix_cache
@@ -132,7 +134,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def decomposition_matrix_inverse(self):
         """
-        Returns the inverse of the matrix returned by decomposition_matrix().
+        Returns the inverse of the matrix returned by
+        decomposition_matrix().
         """
         try:
             return self.__decomposition_matrix_inverse_cache
@@ -142,22 +145,25 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def degeneracy_map(self, level, t=1):
         """
-        The t-th degeneracy map from self to the corresponding Hecke
-        module of the given level.  The level of self must be a
-        divisor or multiple of level, and t must be a divisor of the
-        quotient.
+        The t-th degeneracy map from self to the corresponding Hecke module
+        of the given level. The level of self must be a divisor or multiple
+        of level, and t must be a divisor of the quotient.
 
         INPUT:
-            level -- int, the level of the codomain of the map (positive int).
 
-            t  -- int, the parameter of the degeneracy map, i.e., the map is
-                  related to $f(q)$ |--> $f(q^t)$.
 
-        OUTPUT:
-            A morphism from self to corresponding the Hecke module of
-            given level.
+        -  ``level`` - int, the level of the codomain of the
+           map (positive int).
 
-        EXAMPLES:
+        -  ``t`` - int, the parameter of the degeneracy map,
+           i.e., the map is related to `f(q)` - `f(q^t)`.
+
+
+        OUTPUT: A morphism from self to corresponding the Hecke module of
+        given level.
+
+        EXAMPLES::
+
             sage: M = ModularSymbols(11,sign=1)
             sage: d1 = M.degeneracy_map(33); d1
             Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
@@ -179,6 +185,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             [4 0]
             [0 4]
 
+        ::
+
             sage: M = ModularSymbols(3,12,sign=1)
             sage: M.degeneracy_map(1)
             Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
@@ -190,6 +198,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             Domain: Modular Symbols space of dimension 5 for Gamma_0(3) of weight ...
             Codomain: Modular Symbols space of dimension 2 for Gamma_0(1) of weight ...
 
+        ::
+
             sage: S = M.cuspidal_submodule()
             sage: S.degeneracy_map(1)
             Hecke module morphism defined by the matrix
@@ -198,6 +208,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             [0 0]
             Domain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
             Codomain: Modular Symbols space of dimension 2 for Gamma_0(1) of weight ...
+
+        ::
 
             sage: D = ModularSymbols(10,4).cuspidal_submodule().decomposition()
             sage: D
@@ -278,21 +290,30 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def fcp(self, n, var='x'):
         """
-        Returns the factorization of the characteristic polynomial of
-        the Hecke operator $T_n$ of index $n$.
+        Returns the factorization of the characteristic polynomial of the
+        Hecke operator `T_n` of index `n`.
 
         INPUT:
-           ModularSymbols self -- space of modular symbols invariant
-                                   under the Hecke operator of index n.
-           int n -- a positive integer.
-           var -- variable of polynomiall
+
+
+        -  ``ModularSymbols self`` - space of modular symbols
+           invariant under the Hecke operator of index n.
+
+        -  ``int n`` - a positive integer.
+
+        -  ``var`` - variable of polynomiall
+
 
         OUTPUT:
-           list -- list of the pairs (g,e), where g is an irreducible
-                   factor of the characteristic polynomial of T_n, and
-                   e is its multiplicity.
 
-        EXAMPLES:
+
+        -  ``list`` - list of the pairs (g,e), where g is an
+           irreducible factor of the characteristic polynomial of T_n, and e
+           is its multiplicity.
+
+
+        EXAMPLES::
+
             sage: m = ModularSymbols(23, 2, sign=1)
             sage: m.fcp(2)
             (x - 3) * (x^2 + x - 1)
@@ -317,9 +338,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def hecke_bound(self):
         """
-        Return an integer B such that the Hecke operators $T_n$, for $n\leq B$,
-        generate the full Hecke algebra as a module over the base ring.  Note
-        that we include the $n$ with $n$ not coprime to the level.
+        Return an integer B such that the Hecke operators `T_n`,
+        for `n\leq B`, generate the full Hecke algebra as a module
+        over the base ring. Note that we include the `n` with
+        `n` not coprime to the level.
         """
         misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
         return dims.sturm_bound(self.level(), self.weight()) + 2*dims.dimension_eis(self.level(), self.weight()) + 5
@@ -330,17 +352,25 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def hecke_images(self, i, v):
         """
-        Return images of the $i$-th standard basis vector under the
-        Hecke operators $T_p$ for all integers in $v$.
+        Return images of the `i`-th standard basis vector under the
+        Hecke operators `T_p` for all integers in `v`.
 
         INPUT:
-            i -- nonnegative integer
-            v -- a list of positive integer
+
+
+        -  ``i`` - nonnegative integer
+
+        -  ``v`` - a list of positive integer
+
 
         OUTPUT:
-            matrix -- whose rows are the Hecke images
 
-        EXAMPLES:
+
+        -  ``matrix`` - whose rows are the Hecke images
+
+
+        EXAMPLES::
+
             sage: M = ModularSymbols(DirichletGroup(13).0, 3)
             sage: M.T(2)(M.0).element()
             (zeta12 + 4, 0, -1, 1)
@@ -359,10 +389,11 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def intersection(self, other):
         """
-        Returns the intersection of self and other, which must both
-        lie in a common ambient space of modular symbols.
+        Returns the intersection of self and other, which must both lie in
+        a common ambient space of modular symbols.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(43, sign=1)
             sage: A = M[0] + M[1]
             sage: B = M[1] + M[2]
@@ -381,17 +412,22 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         r"""
         Returns True if and only if self is an ambient Hecke module.
 
-        WARNING: self can only be ambient by being of type
-        AmbientHeckeModule.
+        .. warning::
 
-        For example, decomposing a simple ambient space yields a
-        single factor, and that factor is \emph{not} considered an
-        ambient space.
+           self can only be ambient by being of type
+           AmbientHeckeModule.
 
-        EXAMPLES:
+           For example, decomposing a simple ambient space yields a
+           single factor, and that factor is *not* considered an
+           ambient space.
+
+        EXAMPLES::
+
             sage: m = ModularSymbols(10)
             sage: m.is_ambient()
             True
+
+        ::
 
             sage: a = m[0]  # the unique simple factor
             sage: a == m
@@ -403,8 +439,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def is_full_hecke_module(self, compute=True):
         """
-        Returns True if this space is invariant under the action of
-        all Hecke operators, even those that divide the level.
+        Returns True if this space is invariant under the action of all
+        Hecke operators, even those that divide the level.
         """
         return True
 
@@ -444,12 +480,16 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         Returns the new or p-new submodule of self.
 
         INPUT:
-            p -- (default: None); if not None, return only the p-new submodule.
 
-        OUTPUT:
-            the new or p-new submodule of self
 
-        EXAMPLES:
+        -  ``p`` - (default: None); if not None, return only
+           the p-new submodule.
+
+
+        OUTPUT: the new or p-new submodule of self
+
+        EXAMPLES::
+
             sage: m = ModularSymbols(33); m.rank()
             9
             sage: m.new_submodule().rank()
@@ -521,12 +561,16 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         Returns the old or p-old submodule of self.
 
         INPUT:
-            p -- (default: None); if not None, return only the p-old submodule.
 
-        OUTPUT:
-            the old or p-old submodule of self
 
-        EXAMPLES:
+        -  ``p`` - (default: None); if not None, return only
+           the p-old submodule.
+
+
+        OUTPUT: the old or p-old submodule of self
+
+        EXAMPLES::
+
             sage: m = ModularSymbols(33); m.rank()
             9
             sage: m.old_submodule().rank()
@@ -535,6 +579,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             6
             sage: m.new_submodule(11).rank()
             8
+
+        ::
 
             sage: e = DirichletGroup(16)([-1, 1])
             sage: M = ModularSymbols(e, 3, sign=1); M
@@ -621,22 +667,27 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     def submodule_from_nonembedded_module(self, V, Vdual=None, check=True):
         """
         INPUT:
-            V -- submodule of ambient free module of the same rank as the
-                 rank of self.
-            Vdual -- used to pass in dual submodule
-            check -- whether to check that submodule is Hecke equivariant
 
-        OUTPUT:
-            Hecke submodule of self
+
+        -  ``V`` - submodule of ambient free module of the same
+           rank as the rank of self.
+
+        -  ``Vdual`` - used to pass in dual submodule
+
+        -  ``check`` - whether to check that submodule is Hecke
+           equivariant
+
+
+        OUTPUT: Hecke submodule of self
         """
         return self.submodule(V, Vdual, check=check)
 
     def submodule_generated_by_images(self, M):
         """
         Return the submodule of this ambient modular symbols space
-        generated by the images under all degeneracy maps of M.  The
-        space M must have the same weight, sign, and group or
-        character as this ambient space.
+        generated by the images under all degeneracy maps of M. The space M
+        must have the same weight, sign, and group or character as this
+        ambient space.
         """
         S = self.zero_submodule()
         if self.level() % M.level() == 0:

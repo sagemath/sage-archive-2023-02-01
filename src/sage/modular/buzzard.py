@@ -4,9 +4,11 @@ Conjectural Slopes of Hecke Polynomial
 Interface to Kevin Buzzard's PARI program for computing conjectural
 slopes of characteristic polynomials of Hecke operators.
 
-AUTHOR:
-    -- William Stein (2006-03-05): SAGE interface
-    -- Kevin Buzzard -- PARI program that implements underlying functionality
+AUTHORS:
+
+- William Stein (2006-03-05): Sage interface
+
+- Kevin Buzzard: PARI program that implements underlying functionality
 """
 
 #############################################################################
@@ -63,23 +65,26 @@ def gp():
 
 def buzzard_tpslopes(p, N, kmax):
     """
-    Returns a vector of length kmax, whose $k$'th entry ($0 \leq k
-    \leq k_{max}$) is the conjectural sequence of valuations of
-    eigenvalues of $T_p$ on forms of level $N$, weight $k$, and
-    trivial character.
+    Returns a vector of length kmax, whose `k`'th entry
+    (`0 \leq k \leq k_{max}`) is the conjectural sequence
+    of valuations of eigenvalues of `T_p` on forms of level
+    `N`, weight `k`, and trivial character.
 
     This conjecture is due to Kevin Buzzard, and is only made assuming
-    that $p$ does not divide $N$ and if $p$ is $\Gamma_0(N)$-regular.
+    that `p` does not divide `N` and if `p` is
+    `\Gamma_0(N)`-regular.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: c = buzzard_tpslopes(2,1,50)
         sage: c[50]
         [4, 8, 13]
 
-    Hence Buzzard would conjecture that the $2$-adic valuations of the
-    eigenvalues of $T_2$ on cusp forms of level 1 and weight $50$ are
-    $[4,8,13]$, which indeed they are, as one can verify by an
-    explicit computation using, e.g., modular symbols:
+    Hence Buzzard would conjecture that the `2`-adic valuations
+    of the eigenvalues of `T_2` on cusp forms of level 1 and
+    weight `50` are `[4,8,13]`, which indeed they are,
+    as one can verify by an explicit computation using, e.g., modular
+    symbols::
 
         sage: M = ModularSymbols(1,50, sign=1).cuspidal_submodule()
         sage: T = M.hecke_operator(2)
@@ -87,9 +92,12 @@ def buzzard_tpslopes(p, N, kmax):
         sage: f.newton_slopes(2)
         [13, 8, 4]
 
-    AUTHOR:
-        -- Kevin Buzzard: several GP/PARI scripts
-        -- William Stein (2006-03-17): small SAGE wrapper of Buzzard's scripts
+    AUTHORS:
+
+    - Kevin Buzzard: several GP/PARI scripts
+
+    - William Stein (2006-03-17): small Sage wrapper of Buzzard's
+      scripts
     """
     v = gp().eval('tpslopes(%s, %s, %s)'%(p,N,kmax))
     v = sage_eval(v)

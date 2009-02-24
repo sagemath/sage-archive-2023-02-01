@@ -60,30 +60,42 @@ def modS_relations(syms):
     """
     Compute quotient of Manin symbols by the S relations.
 
-    Here  S is the 2x2 matrix [0, -1; 1, 0].
+    Here S is the 2x2 matrix [0, -1; 1, 0].
 
     INPUT:
-        syms -- manin_symbols.ManinSymbols
+
+
+    -  ``syms`` - manin_symbols.ManinSymbols
+
 
     OUTPUT:
-        rels -- set of pairs of pairs (j, s), where if mod[i] = (j,s),
-               then x_i = s*x_j (mod S relations)
 
-    EXAMPLES:
+
+    -  ``rels`` - set of pairs of pairs (j, s), where if
+       mod[i] = (j,s), then x_i = s\*x_j (mod S relations)
+
+
+    EXAMPLES::
+
         sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma0
         sage: from sage.modular.modsym.relation_matrix import modS_relations
+
+    ::
 
         sage: syms = ManinSymbolList_gamma0(2, 4); syms
         Manin Symbol List of weight 4 for Gamma0(2)
         sage: modS_relations(syms)
         set([((3, -1), (4, 1)), ((5, -1), (5, 1)), ((1, 1), (6, 1)), ((0, 1), (7, 1)), ((3, 1), (4, -1)), ((2, 1), (8, 1))])
 
+    ::
+
         sage: syms = ManinSymbolList_gamma0(7, 2); syms
         Manin Symbol List of weight 2 for Gamma0(7)
         sage: modS_relations(syms)
         set([((3, 1), (4, 1)), ((2, 1), (7, 1)), ((5, 1), (6, 1)), ((0, 1), (1, 1))])
 
-    Next we do an example with Gamma1:
+    Next we do an example with Gamma1::
+
         sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma1
         sage: syms = ManinSymbolList_gamma1(3,2); syms
         Manin Symbol List of weight 2 for Gamma1(3)
@@ -111,16 +123,26 @@ def modI_relations(syms, sign):
     Compute quotient of Manin symbols by the I relations.
 
     INPUT:
-        syms -- ManinSymbols
-        sign -- int (either -1, 0, or 1)
-    OUTPUT:
-        rels -- set of pairs of pairs (j, s), where if mod[i] = (j,s),
-               then x_i = s*x_j (mod S relations)
 
-    WARNING: We quotient by the involution eta((u,v)) = (-u,v),
-    which has the opposite sign as the involution in Merel's
-    Springer LNM 1585 paper!  Thus our +1 eigenspace is his -1
-    eigenspace, etc.  We do this for consistency with MAGMA.
+
+    -  ``syms`` - ManinSymbols
+
+    -  ``sign`` - int (either -1, 0, or 1)
+
+
+    OUTPUT:
+
+
+    -  ``rels`` - set of pairs of pairs (j, s), where if
+       mod[i] = (j,s), then x_i = s\*x_j (mod S relations)
+
+
+    .. warning::
+
+       We quotient by the involution eta((u,v)) = (-u,v), which has
+       the opposite sign as the involution in Merel's Springer LNM
+       1585 paper! Thus our +1 eigenspace is his -1 eigenspace,
+       etc. We do this for consistency with MAGMA.
     """
     tm = misc.verbose()
     # We will fill in this set with the relations x_i - sign*s*x_j = 0,
@@ -135,20 +157,25 @@ def modI_relations(syms, sign):
 
 def T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse):
     """
-    Compute a matrix whose echelon form gives the quotient by
-    3-term T relations.
+    Compute a matrix whose echelon form gives the quotient by 3-term T
+    relations.
 
     INPUT:
-        syms -- ManinSymbols
-        mod -- list that gives quotient modulo some two-term relations,
-               i.e., the S relations, and if sign is nonzero,
-               the I relations.
-        field -- base_ring
-        weight -- int
 
-    OUTPUT:
-        A sparse matrix whose rows correspond to the reduction of
-        the T relations modulo the S and I relations.
+
+    -  ``syms`` - ManinSymbols
+
+    -  ``mod`` - list that gives quotient modulo some
+       two-term relations, i.e., the S relations, and if sign is nonzero,
+       the I relations.
+
+    -  ``field`` - base_ring
+
+    -  ``weight`` - int
+
+
+    OUTPUT: A sparse matrix whose rows correspond to the reduction of
+    the T relations modulo the S and I relations.
     """
     tm = misc.verbose()
     row = 0
@@ -186,19 +213,31 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     generator in terms of basis.
 
     INPUT:
-        syms  -- a ManinSymbols object
-        relation_matrix -- as output by __compute_T_relation_matrix(self, mod)
-        mod   -- quotient of modular symbols modulo the 2-term S (and possibly I) relations
-        field -- base field
-        sparse -- (bool): whether or not matrix should be sparse
+
+
+    -  ``syms`` - a ManinSymbols object
+
+    -  ``relation_matrix`` - as output by
+       __compute_T_relation_matrix(self, mod)
+
+    -  ``mod`` - quotient of modular symbols modulo the
+       2-term S (and possibly I) relations
+
+    -  ``field`` - base field
+
+    -  ``sparse`` - (bool): whether or not matrix should be
+       sparse
+
 
     OUTPUT:
-        matrix -- a matrix whose ith row expresses the Manin symbol
-                  generators in terms of a basis of Manin symbols
-                  (modulo the S, (possibly I,) and T rels) Note that
-                  the entries of the matrix need not be integers.
 
-        list --  integers i, such that the Manin symbols x_i are a basis.
+
+    -  ``matrix`` - a matrix whose ith row expresses the
+       Manin symbol generators in terms of a basis of Manin symbols
+       (modulo the S, (possibly I,) and T rels) Note that the entries of
+       the matrix need not be integers.
+
+    -  ``list`` - integers i, such that the Manin symbols `x_i` are a basis.
     """
     if not sage.matrix.all.is_Matrix(relation_matrix):
         raise TypeError, "relation_matrix must be a matrix"
@@ -273,52 +312,65 @@ def compute_presentation(syms, sign, field, weight, sparse=None):
     modulo relations.
 
     INPUT:
-        syms -- manin_symbols.ManinSymbols
-        sign -- integer (-1, 0, 1)
-        field -- a field
-        weight -- integer weight
+
+
+    -  ``syms`` - manin_symbols.ManinSymbols
+
+    -  ``sign`` - integer (-1, 0, 1)
+
+    -  ``field`` - a field
+
+    -  ``weight`` - integer weight
+
 
     OUTPUT:
-        -- sparse matrix whose rows give each generator in terms
-           of a basis for the quotient
-        -- list of integers that give the basis for the quotient
-        -- mod: list where mod[i]=(j,s) means that x_i = s*x_j modulo
-                the 2-term S (and possibly I) relations.
+
+
+    -  sparse matrix whose rows give each generator
+       in terms of a basis for the quotient
+
+    -  list of integers that give the basis for the
+       quotient
+
+    -  mod: list where mod[i]=(j,s) means that x_i
+       = s\*x_j modulo the 2-term S (and possibly I) relations.
+
 
     ALGORITHM:
-    \begin{enumerate}
-        \item Let $S = [0,-1; 1,0], T = [0,-1; 1,-1]$, and $I = [-1,0; 0,1]$.
 
-        \item Let $x_0,\ldots, x_{n-1}$ by a list of all non-equivalent
-               Manin symbols.
 
-        \item Form quotient by 2-term S and (possibly) I relations.
+    #. Let `S = [0,-1; 1,0], T = [0,-1; 1,-1]`, and
+       `I = [-1,0; 0,1]`.
 
-        \item Create a sparse matrix $A$ with $m$ columns, whose rows
-           encode the relations
-           $$
-                 [x_i] + [x_i T] + [x_i T^2] = 0.
-           $$
-           There are about n such rows.
-           The number of nonzero entries per row is at most 3*(k-1).
-           Note that we must include rows for *all* i, since
-           even if $[x_i] = [x_j]$, it need not be the case that
-           $[x_i T] = [x_j T]$, since $S$ and $T$ do not commute.
-           However, in many cases we have an a priori formula for the
-           dimension of the quotient by all these relations, so we can
-           omit many relations and just check that there are enough at
-           the end---if there aren't, we add in more.
+    #. Let `x_0,\ldots, x_{n-1}` by a list of all
+       non-equivalent Manin symbols.
 
-        \item Compute the reduced row echelon form of $A$ using sparse
-           Gaussian elimination.
+    #. Form quotient by 2-term S and (possibly) I relations.
 
-        \item Use what we've done above to read off a sparse matrix R
-           that uniquely expresses each of the n Manin symbols in
-           terms of a subset of Manin symbols, modulo the relations.
-           This subset of Manin symbols is a basis for the quotient by
-           the relations.
-    \end{enumerate}
+    #. Create a sparse matrix `A` with `m` columns,
+       whose rows encode the relations
 
+       .. math::
+
+                          [x_i] + [x_i T] + [x_i T^2] = 0.
+
+
+       There are about n such rows. The number of nonzero entries per row
+       is at most 3\*(k-1). Note that we must include rows for *all* i,
+       since even if `[x_i] = [x_j]`, it need not be the case
+       that `[x_i T] = [x_j T]`, since `S` and
+       `T` do not commute. However, in many cases we have an a
+       priori formula for the dimension of the quotient by all these
+       relations, so we can omit many relations and just check that there
+       are enough at the end--if there aren't, we add in more.
+
+    #. Compute the reduced row echelon form of `A` using sparse
+       Gaussian elimination.
+
+    #. Use what we've done above to read off a sparse matrix R that
+       uniquely expresses each of the n Manin symbols in terms of a subset
+       of Manin symbols, modulo the relations. This subset of Manin
+       symbols is a basis for the quotient by the relations.
     """
     if sparse is None:
         if weight >= 6:
@@ -341,31 +393,43 @@ def relation_matrix_wtk_g0(syms, sign, field, weight, sparse):
 def sparse_2term_quotient(rels, n, F):
     r"""
     Performs Sparse Gauss elimination on a matrix all of whose columns
-    have at most 2 nonzero entries.  We use an obvious algorithm,
-    whichs runs fast enough.  (Typically making the list of relations
-    takes more time than computing this quotient.)  This algorithm is
-    more subtle than just ``identify symbols in pairs'', since
-    complicated relations can cause generators to surprisingly equal 0.
+    have at most 2 nonzero entries. We use an obvious algorithm, whichs
+    runs fast enough. (Typically making the list of relations takes
+    more time than computing this quotient.) This algorithm is more
+    subtle than just "identify symbols in pairs", since complicated
+    relations can cause generators to surprisingly equal 0.
 
     INPUT:
-        rels -- set of pairs ((i,s), (j,t)).  The pair represents
-                the relation
-                      s*x_i + t*x_j = 0,
-                where the i, j must be Python int's.
-        n -- int, the x_i are x_0, ..., x_{n-1}.
-        F -- base field
+
+
+    -  ``rels`` - set of pairs ((i,s), (j,t)). The pair
+       represents the relation s\*x_i + t\*x_j = 0, where the i, j must
+       be Python int's.
+
+    -  ``n`` - int, the x_i are x_0, ..., x_n-1.
+
+    -  ``F`` - base field
+
 
     OUTPUT:
-        mod -- list such that mod[i] = (j,s), which means that
-                     x_i is equivalent to s*x_j,
-               where the x_j are a basis for the quotient.
 
-    EXAMPLE:
-    We quotient out by the relations
-    $$
-           3*x0 - x1 = 0,\qquad  x1 + x3 = 0,\qquad   x2 + x3 = 0,\qquad  x4 - x5 = 0
-    $$
+
+    -  ``mod`` - list such that mod[i] = (j,s), which means
+       that x_i is equivalent to s\*x_j, where the x_j are a basis for
+       the quotient.
+
+
+    EXAMPLE: We quotient out by the relations
+
+    .. math::
+
+                    3*x0 - x1 = 0,\qquad  x1 + x3 = 0,\qquad   x2 + x3 = 0,\qquad  x4 - x5 = 0
+
+
     to get
+
+    ::
+
         sage: v = [((int(0),3), (int(1),-1)), ((int(1),1), (int(3),1)), ((int(2),1),(int(3),1)), ((int(4),1),(int(5),-1))]
         sage: rels = set(v)
         sage: n = 6

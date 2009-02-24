@@ -1,8 +1,9 @@
 """
 Constructors for certain modular abelian varieties.
 
-AUTHOR:
-    -- William Stein (2007-03)
+AUTHORS:
+
+- William Stein (2007-03)
 """
 
 ###########################################################################
@@ -26,13 +27,17 @@ _cache = {}
 
 def _get(key):
     """
-    Returns the cached abelian variety with given key.  This is used
+    Returns the cached abelian variety with given key. This is used
     internally by the abelian varieties constructor.
 
     INPUT:
-        key -- hashable
 
-    EXAMPLE:
+
+    -  ``key`` - hashable
+
+
+    EXAMPLE::
+
         sage: sage.modular.abvar.constructor._saved('a', J0(37))
         Abelian variety J0(37) of dimension 2
         sage: sage.modular.abvar.constructor._get('a')
@@ -50,17 +55,26 @@ def _get(key):
 
 def _saved(key, J):
     """
-    Returns the cached abelian variety with given key.  This is used
+    Returns the cached abelian variety with given key. This is used
     internally by the abelian varieties constructor.
 
     INPUT:
-        key -- hashable
-        J -- modular abelian variety
+
+
+    -  ``key`` - hashable
+
+    -  ``J`` - modular abelian variety
+
 
     OUTPUT:
-        J -- returns the modabvar, to make code that uses this simpler
 
-    EXAMPLES:
+
+    -  ``J`` - returns the modabvar, to make code that uses
+       this simpler
+
+
+    EXAMPLES::
+
         sage: sage.modular.abvar.constructor._saved('37', J0(37))
         Abelian variety J0(37) of dimension 2
     """
@@ -70,13 +84,16 @@ def _saved(key, J):
 
 def J0(N):
     """
-    Return the Jacobian $J_0(N)$ of the modular curve $X_0(N)$.
+    Return the Jacobian `J_0(N)` of the modular curve
+    `X_0(N)`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: J0(389)
         Abelian variety J0(389) of dimension 32
 
-    The result is cached:
+    The result is cached::
+
         sage: J0(33) is J0(33)
         True
     """
@@ -90,9 +107,11 @@ def J0(N):
 
 def J1(N):
     """
-    Return the Jacobian $J_1(N)$ of the modular curve $X_1(N)$.
+    Return the Jacobian `J_1(N)` of the modular curve
+    `X_1(N)`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: J1(389)
         Abelian variety J1(389) of dimension 6112
     """
@@ -105,9 +124,11 @@ def J1(N):
 
 def JH(N, H):
     """
-    Return the Jacobian $J_H(N)$ of the modular curve $X_H(N)$.
+    Return the Jacobian `J_H(N)` of the modular curve
+    `X_H(N)`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: JH(389,[2])
         Abelian variety JH(389,[2]) of dimension 32
     """
@@ -120,16 +141,20 @@ def JH(N, H):
 
 def AbelianVariety(X):
     """
-    Create the abelian variety corresponding to the given definining data.
+    Create the abelian variety corresponding to the given definining
+    data.
 
     INPUT:
-        X -- an integer, string, newform, modsym space, congruence subgroup or
-             tuple of congruence subgroups
 
-    OUTPUT:
-        a modular abelian variety
 
-    EXAMPLES:
+    -  ``X`` - an integer, string, newform, modsym space,
+       congruence subgroup or tuple of congruence subgroups
+
+
+    OUTPUT: a modular abelian variety
+
+    EXAMPLES::
+
         sage: AbelianVariety(Gamma0(37))
         Abelian variety J0(37) of dimension 2
         sage: AbelianVariety('37a')

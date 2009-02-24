@@ -25,30 +25,40 @@ class NumericalEigenforms(SageObject):
                          delta=1e-2, tp=[2,3,5])
 
     INPUT:
-        group -- a congruence subgroup of a Dirichlet character of
-                 order 1 or 2
-        weight -- an integer >= 2
-        eps -- a small float; abs( ) < eps is what "equal to zero" is
-               interpreted as for floating point numbers.
-        delta -- a small-ish float; eigenvalues are considered distinct
-                 if their difference has absolute value at least delta
-        tp -- use the Hecke operators T_p for p in tp when searching
-              for a random Hecke operator with distinct Hecke eigenvalues.
+
+    - ``group`` - a congruence subgroup of a Dirichlet character of
+      order 1 or 2
+
+    - ``weight`` - an integer >= 2
+
+    - ``eps`` - a small float; abs( ) < eps is what "equal to zero" is
+      interpreted as for floating point numbers.
+
+    - ``delta`` - a small-ish float; eigenvalues are considered distinct
+      if their difference has absolute value at least delta
+
+    - ``tp`` - use the Hecke operators T_p for p in tp when searching
+      for a random Hecke operator with distinct Hecke eigenvalues.
 
     OUTPUT:
-        a numerical eigenforms object, with the following useful methods:
-            * ap(p) -- return all eigenvalues of $T_p$
-            * eigenvalues(primes) -- list of eigenvalues corresponding
-                    to the given list of primes, e.g.,:
-                        [[eigenvalues of T_2],
-                         [eigenvalues of T_3],
-                         [eigenvalues of T_5], ...]
-            * systems_of_eigenvalues -- a list of the systems of
-                 eigenvalues of eigenforms such that the chosen
-                 random linear combination of Hecke operators has
-                 multiplicity 1 eigenvalues.
 
-    EXAMPLES:
+    A numerical eigenforms object, with the following useful methods:
+
+    - :meth:`ap` - return all eigenvalues of $T_p$
+
+    - :meth:`eigenvalues` - list of eigenvalues corresponding
+      to the given list of primes, e.g.,::
+
+          [[eigenvalues of T_2],
+           [eigenvalues of T_3],
+           [eigenvalues of T_5], ...]
+
+    - :meth:`systems_of_eigenvalues` - a list of the systems of
+      eigenvalues of eigenforms such that the chosen random linear
+      combination of Hecke operators has multiplicity 1 eigenvalues.
+
+    EXAMPLES::
+
         sage: n = numerical_eigenforms(23)
         sage: n == loads(dumps(n))
         True
@@ -76,7 +86,8 @@ class NumericalEigenforms(SageObject):
         """
         Create a new space of numerical eigenforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: numerical_eigenforms(61) # indirect doctest
             Numerical Hecke eigenvalues for Congruence Subgroup Gamma0(61) of weight 2
         """
@@ -96,7 +107,8 @@ class NumericalEigenforms(SageObject):
         returns 0 if they come from the same space of modular
         symbols, and -1 otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(23)
             sage: n.__cmp__(loads(dumps(n)))
             0
@@ -112,7 +124,8 @@ class NumericalEigenforms(SageObject):
         """
         Return the level of this set of modular eigenforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(61) ; n.level()
             61
         """
@@ -122,7 +135,8 @@ class NumericalEigenforms(SageObject):
         """
         Return the weight of this set of modular eigenforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(61) ; n.weight()
             2
         """
@@ -132,7 +146,8 @@ class NumericalEigenforms(SageObject):
         """
         Print string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(61) ; n
             Numerical Hecke eigenvalues for Congruence Subgroup Gamma0(61) of weight 2
 
@@ -147,7 +162,8 @@ class NumericalEigenforms(SageObject):
         Return the space of modular symbols used for computing this
         set of modular eigenforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(61) ; n.modular_symbols()
             Modular Symbols space of dimension 5 for Gamma_0(61) of weight 2 with sign 1 over Rational Field
         """
@@ -166,7 +182,8 @@ class NumericalEigenforms(SageObject):
         Find numerical approximations to simultaneous eigenvectors in
         self.modular_symbols() for all T_p in self._tp.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(61)
             sage: n._eigenvectors() # random order
             [              1.0    0.289473640239    0.176788851952    0.336707726757  2.4182243084e-16]
@@ -215,13 +232,17 @@ class NumericalEigenforms(SageObject):
         has all entries nonzero.
 
         ALGORITHM:
-           1. Choose row with the most nonzero entries.   (put 1 there)
-           2. Consider submatrix of columns corresponding
-              to zero entries in row chosen in 1.
-           3. Find row of submatrix with most nonzero entries,
-              and add appropriate multiple.  Repeat.
 
-        EXAMPLES:
+        1. Choose row with the most nonzero entries.   (put 1 there)
+
+        2. Consider submatrix of columns corresponding to zero entries
+           in row chosen in 1.
+
+        3. Find row of submatrix with most nonzero entries, and add
+           appropriate multiple.  Repeat.
+
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(37)
             sage: n._easy_vector()                 # slightly random output
             (1.0, 1.0, 0)
@@ -249,7 +270,8 @@ class NumericalEigenforms(SageObject):
             Find the best row among rows of M, i.e. the row
             with the most entries supported outside [-delta, delta].
 
-            EXAMPLES:
+            EXAMPLES::
+
                 sage: numerical_eigenforms(61)._easy_vector() # indirect doctest
                 (1.0, 1.0, 0, 0, 0)
             """
@@ -281,7 +303,8 @@ class NumericalEigenforms(SageObject):
         """
         Return all eigendata for self._easy_vector().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: numerical_eigenforms(61)._eigendata() # random order
             ((1.0, 0.668205013164, 0.219198805797, 0.49263343893, 0.707106781187), (1.0, 1.49654668896, 4.5620686498, 2.02990686579, 1.41421356237), [0, 1], (1.0, 1.0))
         """
@@ -297,7 +320,8 @@ class NumericalEigenforms(SageObject):
             Take coefficients and a basis, and return that
             linear combination of basis vectors.
 
-            EXAMPLES:
+            EXAMPLES::
+
                 sage: n = numerical_eigenforms(61) # indirect doctest
                 sage: n._eigendata() # random order
                 ((1.0, 0.668205013164, 0.219198805797, 0.49263343893, 0.707106781187), (1.0, 1.49654668896, 4.5620686498, 2.02990686579, 1.41421356237), [0, 1], (1.0, 1.0))
@@ -315,17 +339,20 @@ class NumericalEigenforms(SageObject):
 
     def ap(self, p):
         """
-        Return a list of the eigenvalues of the Hecke operator $T_p$
+        Return a list of the eigenvalues of the Hecke operator `T_p`
         on all the computed eigenforms.  The eigenvalues match up
         between one prime and the next.
 
         INPUT:
-            p -- integer, a prime number
+
+        - ``p`` - integer, a prime number
 
         OUTPUT:
-            list -- a list of double precision complex numbers
 
-        EXAMPLES:
+        - ``list`` - a list of double precision complex numbers
+
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(11,4)
             sage: n.ap(2) # random order
             [9.0, 9.0, 2.73205080757, -0.732050807569]
@@ -358,12 +385,15 @@ class NumericalEigenforms(SageObject):
         match up between one prime and the next.
 
         INPUT:
-            primes -- a list of primes
+
+        - ``primes`` - a list of primes
 
         OUTPUT:
-            list of lists of eigenvalues.
 
-        EXAMPLES:
+        list of lists of eigenvalues.
+
+        EXAMPLES::
+
             sage: n = numerical_eigenforms(1,12)
             sage: n.eigenvalues([3,5,13])
             [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
@@ -379,7 +409,8 @@ class NumericalEigenforms(SageObject):
             Take coefficients and a basis, and return that
             linear combination of basis vectors.
 
-            EXAMPLES:
+            EXAMPLES::
+
                 sage: n = numerical_eigenforms(1,12)  # indirect doctest
                 sage: n.eigenvalues([3,5,13])
                 [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
@@ -399,7 +430,8 @@ class NumericalEigenforms(SageObject):
         Return all systems of eigenvalues for self for primes
         up to bound.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: numerical_eigenforms(61).systems_of_eigenvalues(10)
             [
             [-1.48119430409..., 0.806063433525..., 3.15632517466..., 0.675130870567...],
@@ -425,7 +457,8 @@ class NumericalEigenforms(SageObject):
         Return the absolute values of all systems of eigenvalues for
         self for primes up to bound.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: numerical_eigenforms(61).systems_of_abs(10)
             [
             [0.311107817466, 2.90321192591, 2.52542756084, 3.21431974338],
@@ -448,10 +481,11 @@ class NumericalEigenforms(SageObject):
 
 def support(v, eps):
     """
-    Given a vector v and a threshold eps, return all
-    indices where |v| is larger than eps.
+    Given a vector `v` and a threshold eps, return all
+    indices where `|v|` is larger than eps.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.numerical.support( numerical_eigenforms(61)._easy_vector(), 1.0 )
         []
 

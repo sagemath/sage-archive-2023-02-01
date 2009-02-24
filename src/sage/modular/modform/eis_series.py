@@ -24,23 +24,28 @@ from sage.rings.all import (bernoulli, CyclotomicField, prime_range,
 
 def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
     r"""
-    Return the $q$-expansion of the normalized weight $k$ Eisenstein
-    series to precision prec in the ring $K$.  (The normalization
-    chosen here is the one that forces the coefficient of $q$ to be
+    Return the `q`-expansion of the normalized weight `k` Eisenstein
+    series to precision prec in the ring `K`.  (The normalization
+    chosen here is the one that forces the coefficient of `q` to be
     1.)
 
     Here's a rough description of how the algorithm works: we know
-    $E_k = const + \sum_n sigma(n,k-1) q^n$. Now, we basically just
-    compute all the $\sigma(n,k-1)$ simultaneously, as $\sigma$ is
+    `E_k = const + \sum_n sigma(n,k-1) q^n`. Now, we basically just
+    compute all the `\sigma(n,k-1)` simultaneously, as `\sigma` is
     multiplicative.
 
     INPUT:
-        k -- an even positive integer
-        prec -- (default: 10) a nonnegative integer
-        K -- (default: QQ) a ring in which -(2*k)/B_k is invertible
-        var -- (default: 'q') variable name to use for q-expansion
 
-    EXAMPLES:
+    - ``k`` - an even positive integer
+
+    - ``prec`` - (default: 10) a nonnegative integer
+
+    - ``K`` - (default: QQ) a ring in which -(2*k)/B_k is invertible
+
+    - ``var`` - (default: 'q') variable name to use for q-expansion
+
+    EXAMPLES::
+
         sage: eisenstein_series_qexp(2,5)
         -1/24 + q + 3*q^2 + 4*q^3 + 7*q^4 + O(q^5)
         sage: eisenstein_series_qexp(2,0)
@@ -54,8 +59,10 @@ def eisenstein_series_qexp(k, prec=10, K=QQ, var='q'):
         15 + q + 3*q^2 + 15*q^3 + 7*q^4 + 13*q^5 + 11*q^6 + 11*q^7 + 15*q^8 + 7*q^9 + 5*q^10 + 7*q^11 + 3*q^12 + 14*q^13 + 16*q^14 + 8*q^15 + 14*q^16 + q^17 + 4*q^18 + 3*q^19 + 6*q^20 + 12*q^21 + 4*q^22 + 12*q^23 + 4*q^24 + 4*q^25 + 8*q^26 + 14*q^27 + 9*q^28 + 6*q^29 + O(q^30)
 
     AUTHORS:
-        -- William Stein: original implementation
-        -- Craig Citro (2007-06-01): rewrote for massive speedup
+
+    - William Stein: original implementation
+
+    - Craig Citro (2007-06-01): rewrote for massive speedup
     """
     k = Integer(k)
     if k%2 or k < 2:
@@ -112,7 +119,8 @@ def __common_minimal_basering(chi, psi):
     Find the smallest basering over which chi and psi are valued, and
     return new chi and psi valued in that ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1).0, DirichletGroup(1).0)
         ([1], [1])
 
@@ -143,7 +151,8 @@ def __find_eisen_chars(character, k):
     Find all characters chi such that (chi,k) gives rise to
     Eisenstein series for the group determined by character.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 4)
         []
 
@@ -233,7 +242,8 @@ def __find_eisen_chars_gamma1(N, k):
     Find all characters chi such that (chi,k) gives rise to
     Eisenstein series for Gamma1(N).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 4)
         [([1, 1], [1, 1], 1),
         ([1, 1], [1, 1], 2),
@@ -289,23 +299,30 @@ def eisenstein_series_lseries(weight, prec=53,
                max_imaginary_part=0,
                max_asymp_coeffs=40):
     r"""
-    Return the L-series of the weight $2k$ Eisenstein series
-    on $\SL_2(\Z)$.
+    Return the L-series of the weight `2k` Eisenstein series
+    on `\mathrm{SL}_2(\mathbb{Z})`.
 
     This actually returns an interface to Tim Dokchitser's program
     for computing with the L-series of the Eisenstein series
 
     INPUT:
-       weight -- even integer
-       prec -- integer (bits precision)
-       max_imaginary_part -- real number
-       max_asymp_coeffs -- integer
+
+    - ``weight`` - even integer
+
+    - ``prec`` - integer (bits precision)
+
+    - ``max_imaginary_part`` - real number
+
+    - ``max_asymp_coeffs`` - integer
 
     OUTPUT:
-       The L-series of the Eisenstein series.
+
+    The L-series of the Eisenstein series.
 
     EXAMPLES:
-    We compute with the L-series of $E_{16}$ and then $E_{20}$:
+
+    We compute with the L-series of `E_{16}` and then `E_{20}`::
+
        sage: L = eisenstein_series_lseries(16)
        sage: L(1)
        -0.291657724743873
@@ -335,16 +352,17 @@ def eisenstein_series_lseries(weight, prec=53,
 
 def compute_eisenstein_params(character, k):
     r"""
-    Compute and return a list of all parameters $(\chi,\psi,t)$ that
-    define the Eisenstein series with given character and weight $k$.
+    Compute and return a list of all parameters `(\chi,\psi,t)` that
+    define the Eisenstein series with given character and weight `k`.
 
-    Only the parity of $k$ is relevant.
+    Only the parity of `k` is relevant.
 
-    If character is an integer $N$, then the parameters for
-    $\Gamma_1(N)$ are computed instead.  Then the condition is that
-    $\chi(-1)*\psi(-1) =(-1)^k$.
+    If character is an integer `N`, then the parameters for
+    `\Gamma_1(N)` are computed instead.  Then the condition is that
+    `\chi(-1)*\psi(-1) =(-1)^k`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30).0, 3)
         []
 

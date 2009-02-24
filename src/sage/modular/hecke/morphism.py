@@ -1,7 +1,9 @@
 """
 Morphism of Hecke modules
 
-AUTHOR:  William Stein
+AUTHORS:
+
+- William Stein
 """
 
 #*****************************************************************************
@@ -47,9 +49,14 @@ class HeckeModuleMorphism_matrix(MatrixMorphism, HeckeModuleMorphism):
     def __init__(self, parent, A, name=''):
         """
         INPUT:
-            parent -- ModularSymbolsHomspace
-            A -- Matrix
-            name -- str (defaults to '') name of the morphism (used for printing)
+
+
+        -  ``parent`` - ModularSymbolsHomspace
+
+        -  ``A`` - Matrix
+
+        -  ``name`` - str (defaults to ") name of the morphism
+           (used for printing)
         """
         if not isinstance(name, str):
             raise TypeError, "name must be a string"

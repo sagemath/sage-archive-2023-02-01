@@ -1,5 +1,5 @@
 r"""
-List of Elements of $P^1(\Z/N\Z)$
+List of Elements of `P^1(\mathbb{Z}/N\mathbb{Z})`
 """
 
 # TODO:
@@ -100,22 +100,29 @@ def p1_normalize_int(N, u, v):
     r"""
     p1_normalize_int(N, u, v):
 
-    Computes the canonical representative of $\PP^1(\Z/N\Z)$ equivalent
-    to $(u,v)$ along with a transforming scalar.
+    Computes the canonical representative of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
+    `(u,v)` along with a transforming scalar.
 
     INPUT:
-        N -- an integer
-        u -- an integer
-        v -- an integer
 
-    OUTPUT:
-        If gcd(u,v,N) = 1, then returns
-             uu -- an integer
-             vv -- an integer
-             ss -- an integer
-             such that (ss*uu, ss*vv) is equivalent to (u,v) mod N
-        and if gcd(u,v,N) != 1, returns
-             0, 0, 0
+
+    -  ``N`` - an integer
+
+    -  ``u`` - an integer
+
+    -  ``v`` - an integer
+
+
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+
+
+    -  ``uu`` - an integer
+
+    -  ``vv`` - an integer
+
+    -  ``ss`` - an integer such that (ss\*uu, ss\*vv) is
+       equivalent to (u,v) mod N and if gcd(u,v,N) != 1, returns 0, 0, 0
     """
     cdef int uu, vv, ss
     c_p1_normalize_int(N, u%N, v%N, &uu, &vv, &ss, 1)
@@ -125,7 +132,8 @@ def p1list_int(int N):
     r"""
     p1list_int(int N):
 
-    Make a list of the normalized elements of $\PP^1(\Z/N\Z)$.
+    Make a list of the normalized elements of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
     """
     cdef int g, u, v, s, c, d
     cdef object lst
@@ -244,21 +252,29 @@ def p1_normalize_llong(N, u, v):
     r"""
     p1_normalize_llong(N, u, v):
 
-    Computes the canonical representative of $\PP^1(\Z/N\Z)$ equivalent
-    to $(u,v)$ along with a transforming scalar.
+    Computes the canonical representative of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
+    `(u,v)` along with a transforming scalar.
 
     INPUT:
-        N -- an integer
-        u -- an integer
-        v -- an integer
-    OUTPUT:
-        If gcd(u,v,N) = 1, then returns
-             uu -- an integer
-             vv -- an integer
-             ss -- an integer
-             such that (ss*uu, ss*vv) is equivalent to (u,v) mod N
-        and if gcd(u,v,N) != 1, returns
-             0, 0, 0
+
+
+    -  ``N`` - an integer
+
+    -  ``u`` - an integer
+
+    -  ``v`` - an integer
+
+
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+
+
+    -  ``uu`` - an integer
+
+    -  ``vv`` - an integer
+
+    -  ``ss`` - an integer such that (ss\*uu, ss\*vv) is
+       equivalent to (u,v) mod N and if gcd(u,v,N) != 1, returns 0, 0, 0
     """
     cdef int uu, vv, ss
     c_p1_normalize_llong(N, u%N, v%N, &uu, &vv, &ss, 1)
@@ -268,7 +284,8 @@ def p1list_llong(int N):
     r"""
     p1list_llong(int N):
 
-    Make a list of the normalized elements of $\PP^1(\Z/N\Z)$.
+    Make a list of the normalized elements of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
     """
     cdef int g, u, v, s, c, d
     if N==1: return [(0,0)]
@@ -314,12 +331,21 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
                                 int* uu, int* vv, int* ss) except -1:
     """
     INPUT:
-        N, u, v -- integers
-        compute_s -- do not compute s if compute_s == 0.
-        t_g, t_a, t_b -- int arrays of
+
+
+    -  ``N, u, v`` - integers
+
+    -  ``compute_s`` - do not compute s if compute_s ==
+       0.
+
+    -  ``t_g, t_a, t_b`` - int arrays of
+
 
     OUTPUT:
-        uu, vv, ss -- reduced rep and scalar that changes to it.
+
+
+    -  ``uu, vv, ss`` - reduced rep and scalar that changes
+       to it.
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     if N == 1:
@@ -390,13 +416,17 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
 
 cdef class P1List:
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P = P1List(12); P
         The projective line over the integers modulo 12
         sage: list(P)
         [(0, 1), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (2, 1), (2, 3), (2, 5), (3, 1), (3, 2), (3, 4), (3, 7), (4, 1), (4, 3), (4, 5), (6, 1)]
 
     Saving and loading works.
+
+    ::
+
         sage: loads(dumps(P)) == P
         True
     """
@@ -472,22 +502,29 @@ cdef class P1List:
         """
         Lift an element of P1 to an element of SL(2,Z)
 
-        If the ith P1 element is (c,d), this function
-        computes and returns a list [a,b, c',d'] that defines a 2x2
-        matrix with determinant 1 and integer entries, such that
-        c=c'(mod N) and d=d'(mod N).
+        If the ith P1 element is (c,d), this function computes and returns
+        a list [a,b, c',d'] that defines a 2x2 matrix with determinant 1
+        and integer entries, such that c=c'(mod N) and d=d'(mod N).
 
         EXAMPLES
-	    sage: p=P1List(11)
 
-	    sage: p.list()[3]
-	     (1, 2)
+        ::
 
-	    sage: p.lift_to_sl2z(3)
-	     [0, -1, 1, 2]
+            sage: p=P1List(11)
 
-        AUTHOR:
-            -- Justin Walker
+        ::
+
+            sage: p.list()[3]
+             (1, 2)
+
+        ::
+
+            sage: p.lift_to_sl2z(3)
+             [0, -1, 1, 2]
+
+        AUTHORS:
+
+        - Justin Walker
         """
         cdef int c, d, N
 
@@ -527,14 +564,21 @@ cdef class P1List:
 
     cpdef index(self, int u, int v):
         r"""
-        Returns the index of the class of $(u,v)$ in the fixed list of
-        representatives of $\PP^1(\Z/N\Z)$.
+        Returns the index of the class of `(u,v)` in the fixed list
+        of representatives of
+        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
 
         INPUT:
-            u, v -- integers, with GCD(u,v,N)=1.
+
+
+        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+
 
         OUTPUT:
-            i -- the index of $u$, $v$, in the $P^1$ list.
+
+
+        -  ``i`` - the index of `u`, `v`, in
+           the `P^1` list.
         """
         cdef int uu, vv, ss
         p1_normalize_xgcdtable(self.__N, u, v, 0, self.g, self.s, self.t, &uu, &vv, &ss)
@@ -551,15 +595,24 @@ cdef class P1List:
 
     cdef index_and_scalar(self, int u, int v, int* i, int* s):
         r"""
-        Returns the index of the class of $(u,v)$ in the fixed list of
-        representatives of $\PP^1(\Z/N\Z)$.
+        Returns the index of the class of `(u,v)` in the fixed list
+        of representatives of
+        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
 
         INPUT:
-            u, v -- integers, with GCD(u,v,N)=1.
+
+
+        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+
 
         OUTPUT:
-            i -- the index of $u$, $v$, in the $P^1$ list.
-            s -- scalar that we multiply by to get to normalized
+
+
+        -  ``i`` - the index of `u`, `v`, in
+           the `P^1` list.
+
+        -  ``s`` - scalar that we multiply by to get to
+           normalized
         """
         cdef int uu, vv, ss
         p1_normalize_xgcdtable(self.__N, u, v, 1, self.g, self.s, self.t, &uu, &vv, s)
@@ -581,13 +634,22 @@ cdef class P1List:
 
     def index_of_normalized_pair(self, int u, int v):
         r"""
-        Returns the index of the class of $(u,v)$ in the fixed list of
-        representatives of $\PP^1(\Z/N\Z)$.
+        Returns the index of the class of `(u,v)` in the fixed list
+        of representatives of
+        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
 
         INPUT:
-            u, v -- integers, with GCD(u,v,N)=1 normalized so they lie in the list.
+
+
+        -  ``u, v`` - integers, with GCD(u,v,N)=1 normalized so
+           they lie in the list.
+
+
         OUTPUT:
-            i -- the index of $u$, $v$, in the $P^1$ list.
+
+
+        -  ``i`` - the index of `u`, `v`, in
+           the `P^1` list.
         """
         t, i = search(self.__list, (u,v))
         if t: return i
@@ -595,15 +657,24 @@ cdef class P1List:
 
     def index_and_scalar(self, int u, int v):
         """
-        Returns the index of the class of $(u,v)$ in the fixed list of
-        representatives of $\PP^1(\Z/N\Z)$.
+        Returns the index of the class of `(u,v)` in the fixed list
+        of representatives of
+        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
 
         INPUT:
-            u, v -- integers, with GCD(u,v,N)=1.
+
+
+        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+
 
         OUTPUT:
-            i -- the index of $u$, $v$, in the $P^1$ list.
-            s -- scalar that transforms normalized form to u,v
+
+
+        -  ``i`` - the index of `u`, `v`, in
+           the `P^1` list.
+
+        -  ``s`` - scalar that transforms normalized form to
+           u,v
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
@@ -624,11 +695,18 @@ cdef class P1List:
         normalize_with_scalar(self, int u, int v)
 
         INPUT:
-            u, v -- integers, with GCD(u,v,N)=1.
+
+
+        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+
 
         OUTPUT:
-            uu, vv -- integers of *normalized* rep
-            ss -- scalar such that (ss*uu, ss*vv) = (u,v) mod N
+
+
+        -  ``uu, vv`` - integers of *normalized* rep
+
+        -  ``ss`` - scalar such that (ss\*uu, ss\*vv) = (u,v)
+           mod N
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
@@ -653,21 +731,25 @@ def lift_to_sl2z_int(int c, int d, int N):
         """
         Lift a pair (c, d) to an element of SL(2, Z)
 
-        (c,d) is assumed to be an element of P1(Z/NZ).  This function
+        (c,d) is assumed to be an element of P1(Z/NZ). This function
         computes and returns a list [a, b, c', d'] that defines a 2x2
-        matrix, with determinant 1 and integer entries, such that
-        c=c'(mod N) and d=d'(mod N).
+        matrix, with determinant 1 and integer entries, such that c=c'(mod
+        N) and d=d'(mod N).
 
         EXAMPLES
-	    sage: lift_to_sl2z_int(2,6,11)
-	    [1, 8, 2, 17]
-	    sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
-	    sage: m
-	    [ 1  8]
-	    [ 2 17]
+
+        ::
+
+            sage: lift_to_sl2z_int(2,6,11)
+            [1, 8, 2, 17]
+            sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
+            sage: m
+            [ 1  8]
+            [ 2 17]
 
         AUTHOR:
-            -- Justin Walker
+
+        - Justin Walker
         """
         cdef int z1, z2, g, m
 
@@ -708,21 +790,25 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         """
         Lift a pair (c, d) to an element of SL(2, Z)
 
-        (c,d) is assumed to be an element of P1(Z/NZ).  This function
+        (c,d) is assumed to be an element of P1(Z/NZ). This function
         computes and returns a list [a, b, c', d'] that defines a 2x2
-        matrix, with determinant 1 and integer entries, such that
-        c=c'(mod N) and d=d'(mod N).
+        matrix, with determinant 1 and integer entries, such that c=c'(mod
+        N) and d=d'(mod N).
 
         EXAMPLES
-	    sage: lift_to_sl2z_llong(2,6,11)
-	    [1L, 8L, 2L, 17L]
-	    sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
-	    sage: m
-	    [ 1  8]
-	    [ 2 17]
+
+        ::
+
+            sage: lift_to_sl2z_llong(2,6,11)
+            [1L, 8L, 2L, 17L]
+            sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
+            sage: m
+            [ 1  8]
+            [ 2 17]
 
         AUTHOR:
-            -- Justin Walker
+
+        - Justin Walker
         """
         cdef llong z1, z2, g, m
 
@@ -765,7 +851,8 @@ def lift_to_sl2z(c, d, N):
     2x2 matrix with determinant 1 and lower two entries congruent to
     c,d modulo N.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: lift_to_sl2z(2,3,6)
         [1, 1, 2, 3]
         sage: lift_to_sl2z(15,6,24)

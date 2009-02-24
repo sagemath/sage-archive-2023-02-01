@@ -18,11 +18,12 @@ from element import is_ModularFormElement
 def hecke_operator_on_qexp(f, n, k, eps = None,
                            prec=None, check=True, _return_list=False):
     r"""
-    Given the $q$-expansion $f$ of a modular form with character
-    $\varepsilon$, this function computes the image of $f$ under the
-    Hecke operator $T_{n,k}$ of weight $k$.
+    Given the `q`-expansion `f` of a modular form with character
+    `\varepsilon`, this function computes the image of `f` under the
+    Hecke operator `T_{n,k}` of weight `k`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = ModularForms(1,12)
         sage: hecke_operator_on_qexp(M.basis()[0], 3, 12)
         252*q - 6048*q^2 + 63504*q^3 - 370944*q^4 + O(q^5)
@@ -83,12 +84,15 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
     Does the work for hecke_operator_on_basis once the input
     is normalized.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: hecke_operator_on_basis(ModularForms(1,16).q_expansion_basis(30), 3, 16) # indirect doctest
         [   -3348        0]
         [       0 14348908]
 
-    The following used to cause a segfault due to acidentally transposed second and third argument (#2107):
+    The following used to cause a segfault due to acidentally
+    transposed second and third argument (#2107)::
+
         sage: B = victor_miller_basis(100,30)
         sage: t2 = hecke_operator_on_basis(B, 100, 2)
         Traceback (most recent call last):
@@ -104,23 +108,31 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
 def hecke_operator_on_basis(B, n, k, eps=None,
                             already_echelonized = False):
     r"""
-    Given a basis $B$ of $q$-expansions for a space of modular forms
-    with character $\varepsilon$ to precision at least $\#B\cdot n+1$,
-    this function computes the matrix of $T_n$ relative to $B$.
+    Given a basis `B` of `q`-expansions for a space of modular forms
+    with character `\varepsilon` to precision at least `\#B\cdot n+1`,
+    this function computes the matrix of `T_n` relative to `B`.
 
-    NOTE: If the elements of B are not known to sufficient precision,
-    this function will report that the vectors are linearly dependent
-    (since they are to the specified precision).
+    .. note::
+
+       If the elements of B are not known to sufficient precision,
+       this function will report that the vectors are linearly
+       dependent (since they are to the specified precision).
 
     INPUT:
-        B -- list of q-expansions
-        n -- an integer >= 1
-        k -- an integer
-        eps -- Dirichlet character
-        already_echelonized -- bool (default: False); if True, use that the
-                basis is already in Echelon form, which saves a lot of time.
 
-    EXAMPLES:
+    - ``B`` - list of q-expansions
+
+    - ``n`` - an integer >= 1
+
+    - ``k`` - an integer
+
+    - ``eps`` - Dirichlet character
+
+    - ``already_echelonized`` -- bool (default: False); if True, use that the
+      basis is already in Echelon form, which saves a lot of time.
+
+    EXAMPLES::
+
         sage: sage.modular.modform.constructor.ModularForms_clear_cache()
         sage: ModularForms(1,12).q_expansion_basis()
         [

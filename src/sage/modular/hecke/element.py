@@ -1,8 +1,9 @@
 """
 Elements of Hecke modules
 
-AUTHOR:
-    -- William Stein
+AUTHORS:
+
+- William Stein
 """
 
 #*****************************************************************************
@@ -34,8 +35,12 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
     def __init__(self, parent, x=None):
         """
         INPUT:
-            parent -- a Hecke module
-            x -- element of the free module associated to parent
+
+
+        -  ``parent`` - a Hecke module
+
+        -  ``x`` - element of the free module associated to
+           parent
         """
         sage.modules.module_element.ModuleElement.__init__(self, parent)
         if not x is None:

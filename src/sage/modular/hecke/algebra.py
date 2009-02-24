@@ -61,7 +61,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
     def __init__(self, M):
         """
         INPUT:
-            M -- a Hecke module
+
+
+        -  ``M`` - a Hecke module
         """
         if not module.is_HeckeModule(M):
             raise TypeError, "M (=%s) must be a HeckeModule"%M
@@ -85,9 +87,10 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def gen(self, n):
         """
-        Return the $n$-th Hecke operator.
+        Return the `n`-th Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(11).hecke_algebra()
             sage: T.gen(2)
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
@@ -105,7 +108,8 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(11).hecke_algebra()
             sage: T.gen(2) in T
             True
@@ -133,7 +137,8 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def module(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: T.module()
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
@@ -151,10 +156,11 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def gens(self):
         r"""
-        Return a generator over all Hecke operator $T_n$ for
-        $n = 1, 2, 3, \ldots$.  This is infinite.
+        Return a generator over all Hecke operator `T_n` for
+        `n = 1, 2, 3, \ldots`. This is infinite.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: g = T.gens()
             sage: g.next()
@@ -169,9 +175,10 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def hecke_operator(self, n):
         """
-        Return the $n$-th Hecke operator $T_n$.
+        Return the `n`-th Hecke operator `T_n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: T.hecke_operator(2)
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
@@ -189,9 +196,10 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
 
     def hecke_matrix(self, n):
         """
-        Return the matrix of the n-th Hecke operator $T_n$.
+        Return the matrix of the n-th Hecke operator `T_n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: T.hecke_matrix(2)
             [ -24    0    0]
@@ -215,7 +223,6 @@ class HeckeAlgebra_full(HeckeAlgebra_base):
         Return True if this is an anemic Hecke algebra.
 
         EXAMPLES:
-
         """
         return False
 
@@ -234,10 +241,11 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
     def hecke_operator(self, n):
         """
-        Return the $n$-th Hecke operator, for $n$ any positive integer
-        coprime to the level.
+        Return the `n`-th Hecke operator, for `n` any
+        positive integer coprime to the level.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(Gamma1(5),3).anemic_hecke_algebra()
             sage: T.hecke_operator(2)
             Hecke operator T_2 on Modular Symbols space of dimension 4 for Gamma_1(5) of weight 3 with sign 0 and over Rational Field
@@ -256,11 +264,12 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
     def gens(self):
         """
-        Return a generator over all Hecke operator $T_n$ for
-        $n = 1, 2, 3, \ldots$, with $n$ coprime to the level.
-        This is an infinite sequence.
+        Return a generator over all Hecke operator `T_n` for
+        `n = 1, 2, 3, \ldots`, with `n` coprime to the
+        level. This is an infinite sequence.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(12,2).anemic_hecke_algebra()
             sage: g = T.gens()
             sage: g.next()

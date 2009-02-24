@@ -55,10 +55,11 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def hecke_module_morphism(self):
         """
-        Return the endomorphism of Hecke modules defined
-        by the matrix attached to this Hecke operator.
+        Return the endomorphism of Hecke modules defined by the matrix
+        attached to this Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(Gamma1(13))
             sage: t = M.hecke_operator(2)
             sage: t
@@ -87,7 +88,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def _add_(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11)
             sage: t = M.hecke_operator(2)
             sage: t
@@ -98,7 +100,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             [ 0 -4  0]
             [ 0  0 -4]
 
-        We can also add Hecke operators with different indexes:
+        We can also add Hecke operators with different indexes::
 
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
@@ -112,12 +114,15 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def __call__(self, x):
         """
-        Apply this Hecke operator to $x$.
+        Apply this Hecke operator to `x`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11); t2 = M.hecke_operator(2)
             sage: t2(M.gen(0))
             3*(1,0) - (1,9)
+
+        ::
 
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t3(t2(M.gen(0)))
@@ -130,7 +135,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def __rmul__(self, left):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11); t2 = M.hecke_operator(2)
             sage: 2*t2
             Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
@@ -144,7 +150,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         Compute the difference of self and other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2 - t3
@@ -158,7 +165,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         Apply this Hecke operator to x, where we avoid computing the matrix
         of x if possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11)
             sage: T = M.hecke_operator(23)
             sage: T.apply_sparse(M.gen(0))
@@ -176,12 +184,15 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         Return the characteristic polynomial of this Hecke operator.
 
         INPUT:
-            var -- string (default: 'x')
 
-        OUTPUT:
-            a monic polynomial in the given variable.
 
-        EXAMPLES:
+        -  ``var`` - string (default: 'x')
+
+
+        OUTPUT: a monic polynomial in the given variable.
+
+        EXAMPLES::
+
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: M.hecke_operator(2).charpoly('x')
             x^6 - 14*x^5 + 29*x^4 + 172*x^3 - 124*x^2 - 320*x + 256
@@ -193,7 +204,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         Decompose the Hecke module under the action of this Hecke
         operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2)
             sage: t2.decomposition()
@@ -201,6 +213,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field,
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             ]
+
+        ::
 
             sage: M = ModularSymbols(33, sign=1).new_submodule()
             sage: T = M.hecke_operator(2)
@@ -229,7 +243,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         Return the determinant of this Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.det()
@@ -239,10 +254,11 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def fcp(self, var='x'):
         """
-        Return the factorization of the characteristic polynomial of
-        this Hecke operator.
+        Return the factorization of the characteristic polynomial of this
+        Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
@@ -254,7 +270,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         Return the image of this Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
@@ -272,7 +289,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         Return the kernel of this Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
@@ -289,6 +307,9 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
     def trace(self):
         """
         Return the trace of this Hecke operator.
+
+        ::
+
             sage: M = ModularSymbols(1,12)
             sage: T = M.hecke_operator(2)
             sage: T.trace()
@@ -298,7 +319,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def __getitem__(self, ij):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: M = ModularSymbols(1,12)
             sage: T = M.hecke_operator(2).matrix_form()
             sage: T[0,0]
@@ -337,7 +359,8 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         """
         Return the matrix that defines this Hecke algebra element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(1,12)
             sage: T = M.hecke_operator(2).matrix_form()
             sage: T.matrix()
@@ -355,12 +378,14 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
 class HeckeOperator(HeckeAlgebraElement):
     def __init__(self, parent, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(11)
             sage: M.hecke_operator(2005)
             Hecke operator T_2005 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
 
-        We create a Hecke operator of large index (greater than 32 bits):
+        We create a Hecke operator of large index (greater than 32 bits)::
+
             sage: M1 =  ModularSymbols(21,2)
             sage: M1.hecke_operator(13^9)
             Hecke operator T_10604499373 on Modular Symbols space of dimension 5 for Gamma_0(21) of weight 2 with sign 0 over Rational Field
@@ -389,9 +414,11 @@ class HeckeOperator(HeckeAlgebraElement):
 
     def __mul__(self, other):
         """
-        EXAMPLES:
-        We create the space of modular symbols of level $11$ and weight $2$, then compute
-        $T_2$ and $T_3$ on it, along with their composition.
+        EXAMPLES: We create the space of modular symbols of level
+        `11` and weight `2`, then compute `T_2`
+        and `T_3` on it, along with their composition.
+
+        ::
 
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
@@ -406,9 +433,9 @@ class HeckeOperator(HeckeAlgebraElement):
             [ 0  2  0]
             [ 0  0  2]
 
-        When we compute $T_2^2$ the result is not (easily seen to be)
-        a Hecke operator of the form $T_n$, so it is returned as a
-        Hecke module homomorphism defined as a matrix:
+        When we compute `T_2^2` the result is not (easily seen to
+        be) a Hecke operator of the form `T_n`, so it is returned
+        as a Hecke module homomorphism defined as a matrix::
 
             sage: t2**5
             Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
@@ -432,10 +459,11 @@ class HeckeOperator(HeckeAlgebraElement):
 
     def index(self):
         """
-        Return the index of this Hecke operator, i.e., if
-        this Hecke operator is $T_n$, return the int $n$.
+        Return the index of this Hecke operator, i.e., if this Hecke
+        operator is `T_n`, return the int `n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(11).hecke_operator(17)
             sage: T.index()
             17
@@ -446,7 +474,8 @@ class HeckeOperator(HeckeAlgebraElement):
         """
         Return the matrix underlying this Hecke operator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T = ModularSymbols(11).hecke_operator(17)
             sage: T.matrix()
             [18  0 -4]
@@ -462,6 +491,9 @@ class HeckeOperator(HeckeAlgebraElement):
     def matrix_form(self):
         """
         Return the matrix form of this element of a Hecke algebra.
+
+        ::
+
             sage: T = ModularSymbols(11).hecke_operator(17)
             sage: T.matrix_form()
             Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:

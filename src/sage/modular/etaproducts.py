@@ -1,17 +1,23 @@
 r"""
-Eta-products on modular curves $X_0(N)$.
+Eta-products on modular curves :math:`X_0(N)`.
 
-This package provides a class for representing eta-products, which are
-meromorphic functions on modular curves of the form
-\[\prod_{d | N} \eta(q^d)^{r_d}\]
-where $\eta(q)$ is Dirichlet's eta function $q^{1/24} \prod_{n =
-1}^\infty(1-q^n)$. These are useful for obtaining explicit models of modular
-curves.
+This package provides a class for representing eta-products, which
+are meromorphic functions on modular curves of the form
 
-See trac ticket \#3934 for background.
+.. math::
+
+    \prod_{d | N} \eta(q^d)^{r_d}
+
+where
+:math:`\eta(q)` is Dirichlet's eta function
+:math:`q^{1/24} \prod_{n = 1}^\infty(1-q^n)`. These are useful
+for obtaining explicit models of modular curves.
+
+See trac ticket #3934 for background.
 
 AUTHOR:
-    -- David Loeffler (2008-08-22): initial version
+
+- David Loeffler (2008-08-22): initial version
 """
 
 #*****************************************************************************
@@ -47,7 +53,8 @@ def EtaGroup(level):
     r"""
     Create the group of eta products of the given level.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: EtaGroup(12)
         Group of eta products on X_0(12)
         sage: EtaGroup(1/2)
@@ -68,7 +75,9 @@ def EtaGroup(level):
     return G
 
 class EtaGroup_class(AbelianGroup):
-    r""" The group of eta products of a given level under multiplication."""
+    r"""
+    The group of eta products of a given level under multiplication.
+    """
 
     def __init__(self, level):
         r"""
@@ -91,11 +100,12 @@ class EtaGroup_class(AbelianGroup):
 
     def __cmp__(self, other):
         r"""
-        Compare self to other. If other is not an EtaGroup, compare by type;
-        otherwise compare by level. EtaGroups of the same level compare as
-        identical.
+        Compare self to other. If other is not an EtaGroup, compare by
+        type; otherwise compare by level. EtaGroups of the same level
+        compare as identical.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: EtaGroup(12) == 12
             False
             sage: EtaGroup(12) < EtaGroup(13)
@@ -112,7 +122,8 @@ class EtaGroup_class(AbelianGroup):
         r"""
         String representation of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: EtaGroup(12)._repr_()
             'Group of eta products on X_0(12)'
         """
@@ -120,11 +131,12 @@ class EtaGroup_class(AbelianGroup):
 
     def __call__(self, dict):
         r"""
-        Create an element of this group (an eta product object) with exponents
-        from the given dictionary. See the docstring for the EtaProduct() factory
-        function for how dict is used.
+        Create an element of this group (an eta product object) with
+        exponents from the given dictionary. See the docstring for the
+        EtaProduct() factory function for how dict is used.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
         """
@@ -132,8 +144,8 @@ class EtaGroup_class(AbelianGroup):
 
     def level(self):
         r""" Return the level of self.
+        EXAMPLES::
 
-        EXAMPLES:
             sage: EtaGroup(10).level()
             10
         """
@@ -141,15 +153,19 @@ class EtaGroup_class(AbelianGroup):
 
     def basis(self, reduce=True):
         r"""
-        Produce a basis for the free abelian group of eta-products of level N
-        (under multiplication), attempting to find basis vectors of the
+        Produce a basis for the free abelian group of eta-products of level
+        N (under multiplication), attempting to find basis vectors of the
         smallest possible degree.
 
         INPUT:
-            -- a boolean (default True) indicating whether or not to apply
-            LLL-reduction to the calculated basis
 
-        EXAMPLE:
+
+        -  ``reduce`` - a boolean (default True) indicating
+           whether or not to apply LLL-reduction to the calculated basis
+
+
+        EXAMPLE::
+
             sage: EtaGroup(5).basis()
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
             sage: EtaGroup(12).basis()
@@ -165,20 +181,20 @@ class EtaGroup_class(AbelianGroup):
             Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
             Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5]
 
-        ALGORITHM:
-            An eta product of level $N$ is uniquely determined by the integers
-            $r_d$ for $d | N$ with $d < N$, since $\sum_{d | N} r_d = 0$. The
-            valid $r_d$ are those that satisfy two congruences modulo 24, and
-            one congruence modulo 2 for every prime divisor of N. We beef up
-            the congruences modulo 2 to congruences modulo 24 by multiplying by
-            12. To calculate the kernel of the ensuing map $\ZZ^m \to
-            (\ZZ/24\ZZ)^n$ we lift it arbitrarily to an integer
-            matrix and calculate its Smith normal form. This gives a basis for
-            the lattice.
+        ALGORITHM: An eta product of level `N` is uniquely
+        determined by the integers `r_d` for `d | N` with
+        `d < N`, since `\sum_{d | N} r_d = 0`. The valid
+        `r_d` are those that satisfy two congruences modulo 24,
+        and one congruence modulo 2 for every prime divisor of N. We beef
+        up the congruences modulo 2 to congruences modulo 24 by multiplying
+        by 12. To calculate the kernel of the ensuing map
+        `\mathbb{Z}^m \to (\mathbb{Z}/24\mathbb{Z})^n`
+        we lift it arbitrarily to an integer matrix and calculate its Smith
+        normal form. This gives a basis for the lattice.
 
-            This lattice typically contains ``large'' elements, so by default
-            we pass it to the reduce_basis() function which performs
-            LLL-reduction to give a more manageable basis.
+        This lattice typically contains "large" elements, so by default we
+        pass it to the reduce_basis() function which performs
+        LLL-reduction to give a more manageable basis.
         """
 
         N = self.level()
@@ -220,20 +236,30 @@ class EtaGroup_class(AbelianGroup):
         Produce a more manageable basis via LLL-reduction.
 
         INPUT:
-            -- a list of EtaGroupElement objects (which should all be of the same level)
+
+
+        - ``long_etas`` -  a list of EtaGroupElement objects (which
+          should all be of the same level)
+
 
         OUTPUT:
-            -- a new list of EtaGroupElement objects having hopefully smaller norm
 
-        ALGORITHM:
-            We define the norm of an eta-product to be the $L^2$ norm of its
-            divisor (as an element of the free $\ZZ$-module with the cusps
-            as basis and the standard inner product). Applying LLL-reduction to
-            this gives a basis of hopefully more tractable elements. Of course we'd
-            like to use the $L^1$ norm as this is just twice the degree, which is a
-            much more natural invariant, but $L^2$ norm is easier to work with!
 
-        EXAMPLES:
+        - a new list of EtaGroupElement objects having
+          hopefully smaller norm
+
+
+        ALGORITHM: We define the norm of an eta-product to be the
+        `L^2` norm of its divisor (as an element of the free
+        `\mathbb{Z}`-module with the cusps as basis and the
+        standard inner product). Applying LLL-reduction to this gives a
+        basis of hopefully more tractable elements. Of course we'd like to
+        use the `L^1` norm as this is just twice the degree, which
+        is a much more natural invariant, but `L^2` norm is easier
+        to work with!
+
+        EXAMPLES::
+
             sage: EtaGroup(4).reduce_basis([ EtaProduct(4, {1:8,2:24,4:-32}), EtaProduct(4, {1:8, 4:-8})])
             [Eta product of level 4 : (eta_1)^8 (eta_4)^-8,
             Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
@@ -256,28 +282,41 @@ class EtaGroup_class(AbelianGroup):
 
 def EtaProduct(level, dict):
     r"""
-    Create an EtaGroupElement object representing the function $\prod_{d | N}
-    \eta(q^d)^{r_d}$. Checks the critera of Ligozat to ensure that this
-    product really is the q-expansion of a meromorphic function on X_0(N).
+    Create an EtaGroupElement object representing the function
+    `\prod_{d | N} \eta(q^d)^{r_d}`. Checks the critera
+    of Ligozat to ensure that this product really is the q-expansion of
+    a meromorphic function on X_0(N).
 
     INPUT:
-        -- (integer) level: the N such that this eta product is a function on X_0(N).
-        -- (dictionary) dict: a dictionary indexed by divisors of N such that
-        the coefficient of $\eta(q^d)$ is r[d]. Only nonzero coefficients need
-        be specified. If Ligozat's criteria are not satisfied, a ValueError
-        will be raised.
+
+
+    -  ``level`` -  (integer): the N such that this eta
+       product is a function on X_0(N).
+
+    -  ``dict`` - (dictionary): a dictionary indexed by
+       divisors of N such that the coefficient of `\eta(q^d)` is
+       r[d]. Only nonzero coefficients need be specified. If Ligozat's
+       criteria are not satisfied, a ValueError will be raised.
+
 
     OUTPUT:
-        -- an EtaGroupElement object, whose parent is the EtaGroup of level N
-        and whose coefficients are the given dictionary.
 
-    NOTE:
-        -- The dictionary dict does not uniquely specify N. It is possible for
-        two EtaGroupElements with different $N$'s to be created with the same
-        dictionary, and these represent different objects (although they will
-        have the same $q$-expansion at the cusp $\infty$).
 
-     EXAMPLES:
+    -  an EtaGroupElement object, whose parent is
+       the EtaGroup of level N and whose coefficients are the given
+       dictionary.
+
+
+    .. note::
+
+       The dictionary dict does not uniquely specify N. It is
+       possible for two EtaGroupElements with different `N`'s to
+       be created with the same dictionary, and these represent different
+       objects (although they will have the same `q`-expansion at
+       the cusp `\infty`).
+
+    EXAMPLES::
+
         sage: EtaProduct(3, {3:12, 1:-12})
         Eta product of level 3 : (eta_1)^-12 (eta_3)^12
         sage: EtaProduct(3, {3:6, 1:-6})
@@ -298,7 +337,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Create an eta product object. Usually called implicitly via
         EtaGroup_class.__call__ or the EtaProduct factory function.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
         """
@@ -349,7 +389,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
         r"""
         Return the product of self and other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eta1, eta2 = EtaGroup(4).basis() # implicit doctest
             sage: eta1 * eta2
             Eta product of level 4 : (eta_2)^24 (eta_4)^-24
@@ -361,9 +402,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def _div_(self, other):
         r"""
-        Return $self * other^{-1}$.
+        Return `self * other^{-1}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eta1, eta2 = EtaGroup(4).basis()
             sage: eta1 / eta2
             Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
@@ -377,10 +419,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def __cmp__(self, other):
         r"""
-        Compare self to other. Eta products compare first according to their
-        levels, then according to their rdicts.
+        Compare self to other. Eta products compare first according to
+        their levels, then according to their rdicts.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EtaProduct(2, {2:24,1:-24}) == 1
             False
             sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:24, 1:-24})
@@ -396,9 +439,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def _short_repr(self):
         r"""
-        A short string representation of self, which doesn't specify the level.
+        A short string representation of self, which doesn't specify the
+        level.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EtaProduct(3, {3:12, 1:-12})._short_repr()
             '(eta_1)^-12 (eta_3)^12'
         """
@@ -411,21 +456,18 @@ class EtaGroupElement(MultiplicativeGroupElement):
         r"""
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EtaProduct(3, {3:12, 1:-12})._repr_()
             'Eta product of level 3 : (eta_1)^-12 (eta_3)^12'
         """
         return "Eta product of level %s : " % self.level() + self._short_repr()
 
     def level(self):
-        r""" Return the level of this eta product.
+        r"""
+        Return the level of this eta product.
 
-        INPUT:
-            -- (none)
-        OUTPUT:
-            -- (integer) the level of self
-
-        EXAMPLES:
+        EXAMPLES::
 
             sage: e = EtaProduct(3, {3:12, 1:-12})
             sage: e.level()
@@ -442,16 +484,25 @@ class EtaGroupElement(MultiplicativeGroupElement):
         The q-expansion of self at the cusp at infinity.
 
         INPUT:
-            -- (integer) n: number of terms to calculate
+
+
+        - ``n`` (integer): number of terms to calculate
+
 
         OUTPUT:
-            -- a power series over $\ZZ$ in the variable $q$, with a *relative* precision of $1 + O(q^n)$.
 
-        ALGORITHM:
-            Calculates eta to (n/m) terms, where m is the smallest integer
-            dividing self.level() such that self.r(m) != 0. Then multiplies.
 
-        EXAMPLES:
+        -  a power series over `\mathbb{Z}` in
+           the variable `q`, with a *relative* precision of
+           `1 + O(q^n)`.
+
+
+        ALGORITHM: Calculates eta to (n/m) terms, where m is the smallest
+        integer dividing self.level() such that self.r(m) != 0. Then
+        multiplies.
+
+        EXAMPLES::
+
             sage: EtaProduct(36, {6:6, 2:-6}).qexp(10)
             q + 6*q^3 + 27*q^5 + 92*q^7 + 279*q^9 + O(q^11)
             sage: R.<q> = ZZ[[]]
@@ -474,12 +525,19 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Return the order of vanishing of self at the given cusp.
 
         INPUT:
-            -- cusp: a CuspFamily object
+
+
+        -  ``cusp`` -  a CuspFamily object
+
 
         OUTPUT:
-            -- an integer
 
-        EXAMPLES:
+
+        - an integer
+
+
+        EXAMPLES::
+
             sage: e = EtaProduct(2, {2:24, 1:-24})
             sage: e.order_at_cusp(CuspFamily(2, 1)) # cusp at infinity
             1
@@ -496,7 +554,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
         r"""
         Return the divisor of self, as a formal sum of CuspFamily objects.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
             sage: e.divisor() # FormalSum seems to print things in a random order?
             -131*(Inf) - 50*(c_{2}) + 11*(0) + 50*(c_{6}) + 169*(c_{4}) - 49*(c_{3})
@@ -508,14 +567,15 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def degree(self):
         r"""
-        Return the degree of self as a map $X_0(N) \to \PP^1$, which is
-        equal to the sum of all the positive coefficients in the divisor of
-        self.
+        Return the degree of self as a map
+        `X_0(N) \to \mathbb{P}^1`, which is equal to the sum of
+        all the positive coefficients in the divisor of self.
 
-        EXAMPLES:
-             sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
-             sage: e.degree()
-             230
+        EXAMPLES::
+
+            sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
+            sage: e.degree()
+            230
         """
         return sum( [self.order_at_cusp(c) for c in AllCusps(self.level()) if self.order_at_cusp(c) > 0])
 
@@ -524,9 +584,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
 #         raise NotImplementedError
 
     def r(self, d):
-        r""" Return the exponent $r_d$ of $\eta(q^d)$ in self.
+        r"""
+        Return the exponent `r_d` of `\eta(q^d)` in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = EtaProduct(12, {2:24, 3:-24})
             sage: e.r(3)
             -24
@@ -549,12 +611,20 @@ class EtaGroupElement(MultiplicativeGroupElement):
 #            return s
 
 def num_cusps_of_width(N, d):
-    r""" Return the number of cusps on $X_0(N)$ of width d.
-    INPUT:
-        -- (integer) N: the level
-        -- (integer) d: an integer dividing N, the cusp width
+    r"""
+    Return the number of cusps on `X_0(N)` of width d.
 
-    EXAMPLES:
+    INPUT:
+
+
+    -  ``N`` - (integer): the level
+
+    -  ``d`` - (integer): an integer dividing N, the cusp
+       width
+
+
+    EXAMPLES::
+
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
     """
@@ -572,11 +642,17 @@ def num_cusps_of_width(N, d):
     return euler_phi(gcd(d, N/d))
 
 def AllCusps(N):
-    r""" Return a list of CuspFamily objects corresponding to the cusps of $X_0(N)$.
+    r"""
+    Return a list of CuspFamily objects corresponding to the cusps of
+    `X_0(N)`.
 
     INPUT:
-        -- (integer) N: the level
-    EXAMPLES:
+
+    -  ``N`` - (integer): the level
+
+
+    EXAMPLES::
+
         sage: AllCusps(18)
         [(Inf), (c_{2}), (c_{3,1}), (c_{3,2}), (c_{6,1}), (c_{6,2}), (c_{9}), (0)]
     """
@@ -598,17 +674,21 @@ def AllCusps(N):
     return c
 
 class CuspFamily(SageObject):
-    r""" A family of elliptic curves parametrising a region of
-    $X_0(N)$."""
-
+    r"""
+    A family of elliptic curves parametrising a region of
+    `X_0(N)`.
+    """
     def __init__(self, N, width, label = None):
-        r""" Create the cusp of width d on X_0(N) corresponding to the
-        family of Tate curves $(\CC_p/q^d, \langle \zeta q\rangle)$.
-        Here $\zeta$ is a primitive root of unity of order $r$ with
-        $\mathrm{lcm}(r,d) = N$. The cusp doesn't store zeta, so we store
-        an arbitrary label instead.
+        r"""
+        Create the cusp of width d on X_0(N) corresponding to the family
+        of Tate curves
+        `(\mathbb{C}_p/q^d, \langle \zeta q\rangle)`. Here
+        `\zeta` is a primitive root of unity of order `r`
+        with `\mathrm{lcm}(r,d) = N`. The cusp doesn't store zeta,
+        so we store an arbitrary label instead.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: CuspFamily(8, 4)
             (c_{4})
             sage: CuspFamily(16, 4, '1')
@@ -635,7 +715,8 @@ class CuspFamily(SageObject):
         r"""
         The width of this cusp.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = CuspFamily(10, 1)
             sage: e.width()
             1
@@ -646,7 +727,8 @@ class CuspFamily(SageObject):
         r"""
         The level of this cusp.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = CuspFamily(10, 1)
             sage: e.level()
             10
@@ -655,8 +737,11 @@ class CuspFamily(SageObject):
 
     def sage_cusp(self):
         """
-        Return the corresponding element of $\PP^1(\QQ)$.
-        EXAMPLE:
+        Return the corresponding element of
+        `\mathbb{P}^1(\mathbb{Q})`.
+
+        EXAMPLE::
+
             sage: CuspFamily(10, 1).sage_cusp() # not implemented
             Infinity
         """
@@ -665,7 +750,9 @@ class CuspFamily(SageObject):
     def _repr_(self):
         r"""
         Return a string representation of self.
-        EXAMPLE:
+
+        EXAMPLE::
+
             sage: CuspFamily(16, 4, "1")._repr_()
             '(c_{4,1})'
         """
@@ -678,24 +765,43 @@ class CuspFamily(SageObject):
 
 def qexp_eta(ps_ring, n):
     r"""
-    Return the q-expansion of $\eta(q) / q^{1/24}$, where $\eta(q)$ is
-    Dedekind's function $$\eta(q) = q^{1/24}\prod_{i=1}^\infty (1-q^i)$$, as an
-    element of ps_ring, to precision n. Completely naive algorithm.
+    Return the q-expansion of `\eta(q) / q^{1/24}`, where
+    `\eta(q)` is Dedekind's function
+
+    .. math::
+
+        \eta(q) = q^{1/24}\prod_{i=1}^\infty (1-q^i)
+
+
+    as an element of ps_ring, to precision n. Completely naive
+    algorithm.
 
     INPUT:
-        -- (PowerSeriesRing) ps_ring: a power series ring -- we pass this as an
-            argument as we frequently need to create multiple series in the same ring.
-        -- (integer) n: the number of terms to compute.
 
-    OUTPUT:
-        An element of ps_ring which is the q-expansion of $\eta(q)/q^{1/24}$ truncated to n terms.
 
-    ALGORITHM:
-        Multiply out the product $\prod_{i=1}^n (1 - q^i)$. Could perhaps be speeded up by using
-        the identity \[ \eta(q) = q^{1/24}( 1 + \sum_{i \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2}),\]
-        but I'm lazy.
+    -  ``ps_ring`` - (PowerSeriesRing): a power series
+       ring - we pass this as an argument as we frequently need to create
+       multiple series in the same ring.
 
-    EXAMPLES:
+    -  ``n`` - (integer): the number of terms to compute.
+
+
+    OUTPUT: An element of ps_ring which is the q-expansion of
+    `\eta(q)/q^{1/24}` truncated to n terms.
+
+    ALGORITHM: Multiply out the product
+    `\prod_{i=1}^n (1 - q^i)`. Could perhaps be speeded up by
+    using the identity
+
+    .. math::
+
+         \eta(q) = q^{1/24}( 1 + \sum_{i \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2}),
+
+
+    but I'm lazy.
+
+    EXAMPLES::
+
         sage: qexp_eta(ZZ[['q']], 100)
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
@@ -710,42 +816,48 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     Find polynomial relations between eta products.
 
     INPUTS:
-        -- eta_elements (list): a list of EtaGroupElement objects. Not
-        implemented unless this list has precisely two elements.
-        -- degree (integer): the maximal degree of polynomial to look for.
-        -- labels (list of strings): labels to use for the polynomial returned.
-        -- verbose (boolean, default False): if True, prints
-           information as it goes.
 
-    OUTPUTS:
-        -- a list of polynomials which is a Groebner basis for the part of the
-        ideal of relations between eta_elements which is generated by elements
-        up to the given degree; or None, if no relations were found.
+    - ``eta_elements`` - (list): a list of EtaGroupElement objects.
+      Not implemented unless this list has precisely two elements. degree
 
-    ALGORITHM:
-        -- An expression of the form $ \sum_{0 \le i,j \le d} a_{ij} x^i y^j $
-        is zero if and only if it vanishes at the cusp infinity to degree at
-        least $v = d(deg(x) + deg(y))$. For all terms up to $q^v$ in the
-	    $q$-expansion of this expression to be zero is a system of $v + k$
-        linear equations in $d**2$ coefficients, where $k$ is the number of
-        nonzero negative coefficients that can appear.
+    - ``degree`` - (integer): the maximal degree of polynomial to look for.
 
-        Solving these equations and calculating a basis for the solution space
-        gives us a set of polynomial relations, but this is generally far from
-        a minimal generating set for the ideal, so we calculate a Groebner
-        basis.
+    - ``labels`` - (list of strings): labels to use for the polynomial returned.
 
-        As a test, we calculate five extra terms of $q$-expansion and check
-        that this doesn't change the answer.
+    - ``verbose``` - (boolean, default False): if True, prints information as
+      it goes.
 
-    EXAMPLES:
+    OUTPUTS: a list of polynomials which is a Groebner basis for the
+    part of the ideal of relations between eta_elements which is
+    generated by elements up to the given degree; or None, if no
+    relations were found.
+
+    ALGORITHM: An expression of the form
+    `\sum_{0 \le i,j \le d} a_{ij} x^i y^j` is zero if and
+    only if it vanishes at the cusp infinity to degree at least
+    `v = d(deg(x) + deg(y))`. For all terms up to `q^v`
+    in the `q`-expansion of this expression to be zero is a
+    system of `v + k` linear equations in `d^2`
+    coefficients, where `k` is the number of nonzero negative
+    coefficients that can appear.
+
+    Solving these equations and calculating a basis for the solution
+    space gives us a set of polynomial relations, but this is generally
+    far from a minimal generating set for the ideal, so we calculate a
+    Groebner basis.
+
+    As a test, we calculate five extra terms of `q`-expansion
+    and check that this doesn't change the answer.
+
+    EXAMPLES::
+
         sage: t = EtaProduct(26, {2:2,13:2,26:-2,1:-2})
         sage: u = EtaProduct(26, {2:4,13:2,26:-4,1:-2})
         sage: eta_poly_relations([t, u], 3)
         sage: eta_poly_relations([t, u], 4)
         [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
 
-    Use verbose=True to see the details of the computation:
+    Use verbose=True to see the details of the computation::
 
         sage: eta_poly_relations([t, u], 3, verbose=True)
         Trying to find a relation of degree 3
@@ -755,6 +867,8 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
         No polynomial relation of order 3 valid for 28 terms
         Check: Trying all coefficients from q^-12 to q^20 inclusive
         No polynomial relation of order 3 valid for 33 terms
+
+    ::
 
         sage: eta_poly_relations([t, u], 4, verbose=True)
         Trying to find a relation of degree 4
@@ -789,16 +903,24 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
 
 def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     r"""
-    Helper function used by eta_poly_relations. Finds a basis for the space of
-    linear relations between the first qexp_terms of the $q$-expansions of the
-    monomials $\eta_1^i * \eta_2^j$ for $0 \le i,j < degree$, and calculates a
-    Grobner basis for the ideal generated by these relations.
+    Helper function used by eta_poly_relations. Finds a basis for the
+    space of linear relations between the first qexp_terms of the
+    `q`-expansions of the monomials
+    `\eta_1^i * \eta_2^j` for `0 \le i,j < degree`,
+    and calculates a Grobner basis for the ideal generated by these
+    relations.
 
-    Liable to return meaningless results if qexp_terms isn't at least $1 +
-    d*(m_1,m_2)$ where $m_i = min(0, {\text degree of the pole of $\eta_i$ at
-    $\infty$})$, as then 1 will be in the ideal.
+    Liable to return meaningless results if qexp_terms isn't at least
+    `1 + d*(m_1,m_2)` where
 
-    EXAMPLE:
+    .. math::
+
+       m_i = min(0, {\text degree of the pole of $\eta_i$ at $\infty$})
+
+    as then 1 will be in the ideal.
+
+    EXAMPLE::
+
         sage: from sage.modular.etaproducts import _eta_relations_helper
         sage: r,s = EtaGroup(4).basis()
         sage: _eta_relations_helper(r,s,4,100,['a','b'],False)

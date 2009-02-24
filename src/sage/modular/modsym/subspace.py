@@ -46,15 +46,23 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
                  dual_free_module=None, check=False):
         """
         INPUT:
-            ambient_hecke_module -- the ambient space of modular
-                      symbols in which we're constructing a submodule
-            submodule -- the underlying free module of the submodule
-            dual_free_module -- underlying free module of the dual of
-                      the submodule (optional)
-            check -- (default: False) whether to check that the
-                     submodule is invariant under all Hecke operators T_p.
 
-        EXAMPLES:
+
+        -  ``ambient_hecke_module`` - the ambient space of
+           modular symbols in which we're constructing a submodule
+
+        -  ``submodule`` - the underlying free module of the
+           submodule
+
+        -  ``dual_free_module`` - underlying free module of
+           the dual of the submodule (optional)
+
+        -  ``check`` - (default: False) whether to check that
+           the submodule is invariant under all Hecke operators T_p.
+
+
+        EXAMPLES::
+
             sage: M = ModularSymbols(15,4) ; S = M.cuspidal_submodule() # indirect doctest
             sage: S
             Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 12 for Gamma_0(15) of weight 4 with sign 0 over Rational Field
@@ -68,7 +76,6 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(1) of weight 24 with sign 0 over Rational Field
             sage: S == loads(dumps(S))
             True
-
         """
         self.__ambient_hecke_module = ambient_hecke_module
         A = ambient_hecke_module
@@ -80,7 +87,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularSymbols(24,4).cuspidal_subspace()._repr_()
             'Modular Symbols subspace of dimension 16 of Modular Symbols space of dimension 24 for Gamma_0(24) of weight 4 with sign 0 over Rational Field'
         """
@@ -92,11 +100,12 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
     ################################
     def boundary_map(self):
         """
-        The boundary map to the corresponding space of boundary
-        modular symbols.  (This is the restriction of the map on the
-        ambient space.)
+        The boundary map to the corresponding space of boundary modular
+        symbols. (This is the restriction of the map on the ambient
+        space.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(1, 24, sign=1) ; M
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 24 with sign 1 over Rational Field
             sage: M.basis()
@@ -136,7 +145,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Return the cuspidal subspace of this subspace of modular symbols.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = ModularSymbols(42,4).cuspidal_submodule() ; S
             Modular Symbols subspace of dimension 40 of Modular Symbols space of dimension 48 for Gamma_0(42) of weight 4 with sign 0 over Rational Field
             sage: S.is_cuspidal()
@@ -144,13 +154,15 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             sage: S.cuspidal_submodule()
             Modular Symbols subspace of dimension 40 of Modular Symbols space of dimension 48 for Gamma_0(42) of weight 4 with sign 0 over Rational Field
 
-        The cuspidal submodule of the cuspidal submodule is just itself:
+        The cuspidal submodule of the cuspidal submodule is just itself::
+
             sage: S.cuspidal_submodule() is S
             True
             sage: S.cuspidal_submodule() == S
             True
 
-        An example where we abuse the _set_is_cuspidal function:
+        An example where we abuse the _set_is_cuspidal function::
+
             sage: M = ModularSymbols(389)
             sage: S = M.eisenstein_submodule()
             sage: S._set_is_cuspidal(True)
@@ -172,11 +184,11 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
     def dual_star_involution_matrix(self):
         """
-        Return the matrix of the dual star involution, which is
-        induced by complex conjugation on the linear dual of modular
-        symbols.
+        Return the matrix of the dual star involution, which is induced by
+        complex conjugation on the linear dual of modular symbols.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = ModularSymbols(6,4) ; S.dual_star_involution_matrix()
             [ 1  0  0  0  0  0]
             [ 0  1  0  0  0  0]
@@ -200,7 +212,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Return the Eisenstein subspace of this space of modular symbols.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularSymbols(24,4).eisenstein_subspace()
             Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 24 for Gamma_0(24) of weight 4 with sign 0 over Rational Field
             sage: ModularSymbols(20,2).cuspidal_subspace().eisenstein_subspace()
@@ -215,20 +228,24 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
     def factorization(self):
         """
-        Returns a list of pairs $(S,e)$ where $S$ is simple spaces of
-        modular symbols and self is isomorphic to the direct sum of
-        the $S^e$ as a module over the \emph{anemic} Hecke algebra
+        Returns a list of pairs `(S,e)` where `S` is simple
+        spaces of modular symbols and self is isomorphic to the direct sum
+        of the `S^e` as a module over the *anemic* Hecke algebra
         adjoin the star involution.
 
-        The cuspidal $S$ are all simple, but the Eisenstein factors
+        The cuspidal `S` are all simple, but the Eisenstein factors
         need not be simple.
 
-        The factors are sorted by dimension -- don't depend on much more for now.
+        The factors are sorted by dimension - don't depend on much more for
+        now.
 
         ASSUMPTION: self is a module over the anemic Hecke algebra.
 
-        EXAMPLES:
-        Note that if the sign is 1 then the cuspidal factors occur twice, one with each star eigenvalue.
+        EXAMPLES: Note that if the sign is 1 then the cuspidal factors
+        occur twice, one with each star eigenvalue.
+
+        ::
+
             sage: M = ModularSymbols(11)
             sage: D = M.factorization(); D
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field) *
@@ -240,15 +257,20 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             [[-1], [1], [1]]
 
         In this example there is one old factor squared.
+
+        ::
+
             sage: M = ModularSymbols(22,sign=1)
             sage: S = M.cuspidal_submodule()
             sage: S.factorization()
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2
 
-         sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
-         sage: M1 = M.decomposition()[1]
-         sage: M1.factorization()
-         Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
+        ::
+
+            sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
+            sage: M1 = M.decomposition()[1]
+            sage: M1.factorization()
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
         """
         try:
             return self._factorization
@@ -299,10 +321,11 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
     def hecke_bound(self):
         """
-        Compute the Hecke bound for self; that is, a number n such
-        that the T_m for m <= n generate the Hecke algebra.
+        Compute the Hecke bound for self; that is, a number n such that the
+        T_m for m = n generate the Hecke algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(24,8)
             sage: M.hecke_bound()
             53
@@ -320,7 +343,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Return True if self is cuspidal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularSymbols(42,4).cuspidal_submodule().is_cuspidal()
             True
             sage: ModularSymbols(12,6).eisenstein_submodule().is_cuspidal()
@@ -337,8 +361,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Used internally to declare that a given submodule is cuspidal.
 
-        EXAMPLES:
-        We abuse this command:
+        EXAMPLES: We abuse this command::
+
             sage: M = ModularSymbols(389)
             sage: S = M.eisenstein_submodule()
             sage: S._set_is_cuspidal(True)
@@ -351,7 +375,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         """
         Return True if self is an Eisenstein subspace.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularSymbols(22,6).cuspidal_submodule().is_eisenstein()
             False
             sage: ModularSymbols(22,6).eisenstein_submodule().is_eisenstein()
@@ -367,16 +392,22 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
     def _compute_sign_subspace(self, sign, compute_dual=True):
         """
-        Return the subspace of self that is fixed under the star involution.
+        Return the subspace of self that is fixed under the star
+        involution.
 
         INPUT:
-            sign -- int (either -1 or +1)
-            compute_dual -- bool (default: True) also compute dual subspace.
-                            This are useful for many algorithms.
-        OUTPUT:
-            subspace of modular symbols
 
-        EXAMPLES:
+
+        -  ``sign`` - int (either -1 or +1)
+
+        -  ``compute_dual`` - bool (default: True) also
+           compute dual subspace. This are useful for many algorithms.
+
+
+        OUTPUT: subspace of modular symbols
+
+        EXAMPLES::
+
             sage: S = ModularSymbols(100,2).cuspidal_submodule() ; S
             Modular Symbols subspace of dimension 14 of Modular Symbols space of dimension 31 for Gamma_0(100) of weight 2 with sign 0 over Rational Field
             sage: S._compute_sign_subspace(1)
@@ -402,7 +433,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         Return the star involution on self, which is induced by complex
         conjugation on modular symbols.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularSymbols(1,24)
             sage: M.star_involution()
             Hecke module morphism Star involution on Modular Symbols space of dimension 5 for Gamma_0(1) of weight 24 with sign 0 over Rational Field defined by the matrix

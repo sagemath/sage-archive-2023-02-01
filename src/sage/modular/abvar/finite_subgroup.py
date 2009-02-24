@@ -1,21 +1,24 @@
 r"""
 Finite subgroups of modular abelian varieties
 
-\sage can compute with fairly general finite subgroups of modular
-abelian varieties.  Elements of finite order are represented by
-equivalence classes of elements in $H_1(A,\QQ)$ modulo $H_1(A,\ZZ)$.
-A finite subgroup can be defined by giving generators and via various
-other constructions.  Given a finite subgroup, one can compute
-generators, as well as the structure as an abstract group.  Arithmetic
-on subgroups is also supported, including adding two subgroups
-together, checking inclusion, etc.
+Sage can compute with fairly general finite subgroups of modular
+abelian varieties. Elements of finite order are represented by
+equivalence classes of elements in `H_1(A,\mathbb{Q})`
+modulo `H_1(A,\mathbb{Z})`. A finite subgroup can be
+defined by giving generators and via various other constructions.
+Given a finite subgroup, one can compute generators, as well as the
+structure as an abstract group. Arithmetic on subgroups is also
+supported, including adding two subgroups together, checking
+inclusion, etc.
 
 TODO: Intersection, action of Hecke operators.
 
-AUTHOR:
-    -- William Stein (2007-03)
+AUTHORS:
 
-EXAMPLES:
+- William Stein (2007-03)
+
+EXAMPLES::
+
     sage: J = J0(33)
     sage: C = J.cuspidal_subgroup()
     sage: C
@@ -39,9 +42,8 @@ EXAMPLES:
     sage: G >= C
     False
 
-
 We make a table of the order of the cuspidal subgroup for the first
-few levels:
+few levels::
 
     sage: for N in range(11,40): print N, J0(N).cuspidal_subgroup().order()
     ...
@@ -75,7 +77,8 @@ few levels:
     38 135
     39 56
 
-TESTS:
+TESTS::
+
     sage: G = J0(11).finite_subgroup([[1/3,0], [0,1/5]]); G
     Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
     sage: loads(dumps(G)) == G
@@ -105,12 +108,19 @@ class FiniteSubgroup(Module):
         A finite subgroup of a modular abelian variety.
 
         INPUT:
-            abvar -- a modular abelian variety
-            field_of_definition -- a field over which this group is defined.
 
-        EXAMPLES:
-        This is an abstract base class, so there are no instances
+
+        -  ``abvar`` - a modular abelian variety
+
+        -  ``field_of_definition`` - a field over which this
+           group is defined.
+
+
+        EXAMPLES: This is an abstract base class, so there are no instances
         of this class itself.
+
+        ::
+
             sage: A = J0(37)
             sage: G = A.torsion_subgroup(3); G
             Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
@@ -133,12 +143,12 @@ class FiniteSubgroup(Module):
     ################################################################
     def lattice(self):
         """
-        Return the lattice corresponding to this subgroup in the
-        rational homology of the modular Jacobian product.  The
-        elements of the subgroup are represented by vecotors in the
-        ambient vector space (the rational homology), and this returns
-        the lattice they span.
-        EXAMPLES:
+        Return the lattice corresponding to this subgroup in the rational
+        homology of the modular Jacobian product. The elements of the
+        subgroup are represented by vecotors in the ambient vector space
+        (the rational homology), and this returns the lattice they span.
+        EXAMPLES::
+
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: C.lattice()
@@ -151,10 +161,11 @@ class FiniteSubgroup(Module):
 
     def _relative_basis_matrix(self):
         """
-        Return matrix of this finite subgroup, but relative to the
-        homology of the parent abelian variety.
+        Return matrix of this finite subgroup, but relative to the homology
+        of the parent abelian variety.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = J0(43)[1]; A
             Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
             sage: C = A.cuspidal_subgroup(); C
@@ -177,18 +188,16 @@ class FiniteSubgroup(Module):
         """
         Compare this finite subgroup to other.
 
-        If other is not a modular abelian variety finite subgroup,
-        then the types of self and other are compared.  If other is a
-        finite subgroup, and the ambient abelian varieties are equal,
-        then the subgroups themselves are compared, by comparing their
-        full modules.  If the containing abelian varieties are not
-        equal and their ambient varieties are different they are
-        compared; if they are the same, then a NotImplemnetedError
-        is raised (this is temporary).
+        If other is not a modular abelian variety finite subgroup, then the
+        types of self and other are compared. If other is a finite
+        subgroup, and the ambient abelian varieties are equal, then the
+        subgroups themselves are compared, by comparing their full modules.
+        If the containing abelian varieties are not equal and their ambient
+        varieties are different they are compared; if they are the same,
+        then a NotImplemnetedError is raised (this is temporary).
 
+        EXAMPLES: We first compare to subgroups of `J_0(37)`::
 
-        EXAMPLES:
-        We first compare to subgroups of $J_0(37)$:
             sage: A = J0(37)
             sage: G = A.torsion_subgroup(3); G.order()
             81
@@ -203,11 +212,13 @@ class FiniteSubgroup(Module):
             sage: 5 < H #random (meaningless since it depends on memory layout)
             True
 
-        The ambient varieties are compared:
+        The ambient varieties are compared::
+
             sage: cmp(A[0].cuspidal_subgroup(), J0(11).cuspidal_subgroup())
             1
 
-        Comparing subgroups sitting in different abelian varieties:
+        Comparing subgroups sitting in different abelian varieties::
+
             sage: cmp(A[0].cuspidal_subgroup(), A[1].cuspidal_subgroup())
             -1
         """
@@ -223,10 +234,11 @@ class FiniteSubgroup(Module):
 
     def is_subgroup(self, other):
         """
-        Return True exactly if self is a subgroup of other, and both
-        are defined as subgroups of the same ambient abelian variety.
+        Return True exactly if self is a subgroup of other, and both are
+        defined as subgroups of the same ambient abelian variety.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = J0(22).cuspidal_subgroup()
             sage: H = C.subgroup([C.0])
             sage: K = C.subgroup([C.1])
@@ -251,7 +263,8 @@ class FiniteSubgroup(Module):
         """
         Return the sum of two subgroups.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = J0(22).cuspidal_subgroup()
             sage: C.gens()
             [[(1/5, 1/5, 4/5, 0)], [(0, 0, 0, 1/5)]]
@@ -276,10 +289,10 @@ class FiniteSubgroup(Module):
         """
         Return the exponent of this finite abelian group.
 
-        OUTPUT:
-            Integer
+        OUTPUT: Integer
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = J0(33).hecke_operator(7)
             sage: G = t.kernel()[0]; G
             Finite subgroup with invariants [2, 2, 2, 2, 4, 4] over QQ of Abelian variety J0(33) of dimension 3
@@ -298,11 +311,15 @@ class FiniteSubgroup(Module):
         Return the intersection of the finite subgroups self and other.
 
         INPUT:
-            other -- a finite group
-        OUTPUT:
-            a finite group
 
-        EXAMPLES:
+
+        -  ``other`` - a finite group
+
+
+        OUTPUT: a finite group
+
+        EXAMPLES::
+
             sage: E11a0, E11a1, B = J0(33)
             sage: G = E11a0.torsion_subgroup(6); H = E11a0.torsion_subgroup(9)
             sage: G.intersection(H)
@@ -314,6 +331,9 @@ class FiniteSubgroup(Module):
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
 
         We intersect subgroups of different abelian varieties.
+
+        ::
+
             sage: E11a0, E11a1, B = J0(33)
             sage: G = E11a0.torsion_subgroup(5); H = E11a1.torsion_subgroup(5)
             sage: G.intersection(H)
@@ -321,7 +341,8 @@ class FiniteSubgroup(Module):
             sage: E11a0.intersection(E11a1)[0]
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
 
-        We intersect abelian varieties with subgroups:
+        We intersect abelian varieties with subgroups::
+
             sage: t = J0(33).hecke_operator(7)
             sage: G = t.kernel()[0]; G
             Finite subgroup with invariants [2, 2, 2, 2, 4, 4] over QQ of Abelian variety J0(33) of dimension 3
@@ -368,17 +389,20 @@ class FiniteSubgroup(Module):
         """
         Multiply this subgroup by the rational number right.
 
-        If right is an integer the result is a subgroup of self.  If
-        right is a rational number $n/m$, then this group is first
-        divided by $m$ then multiplied by $n$.
+        If right is an integer the result is a subgroup of self. If right
+        is a rational number `n/m`, then this group is first
+        divided by `m` then multiplied by `n`.
 
         INPUT:
-            right -- a rational number
 
-        OUTPUT:
-            a subgroup
 
-        EXAMPLES:
+        -  ``right`` - a rational number
+
+
+        OUTPUT: a subgroup
+
+        EXAMPLES::
+
             sage: J = J0(37)
             sage: H = J.cuspidal_subgroup(); H.order()
             3
@@ -408,7 +432,8 @@ class FiniteSubgroup(Module):
         """
         Multiply this finite subgroup on the left by an integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(42)
             sage: G = J.cuspidal_subgroup(); factor(G.order())
             2^8 * 3^2
@@ -424,7 +449,8 @@ class FiniteSubgroup(Module):
         """
         Return the abelian variety that this is a finite subgroup of.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(42)
             sage: G = J.rational_torsion_subgroup(); G
             Torsion subgroup of Abelian variety J0(42) of dimension 5
@@ -435,11 +461,12 @@ class FiniteSubgroup(Module):
 
     def field_of_definition(self):
         """
-        Return the field over which this finite modular abelian
-        variety subgroup is defined.  This is a field over which
-        this subgroup is defined.
+        Return the field over which this finite modular abelian variety
+        subgroup is defined. This is a field over which this subgroup is
+        defined.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(42)
             sage: G = J.rational_torsion_subgroup(); G
             Torsion subgroup of Abelian variety J0(42) of dimension 5
@@ -452,7 +479,8 @@ class FiniteSubgroup(Module):
         """
         Return string representation of this finite subgroup.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(42)
             sage: G = J.torsion_subgroup(3); G._repr_()
             'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Abelian variety J0(42) of dimension 5'
@@ -470,11 +498,12 @@ class FiniteSubgroup(Module):
         """
         The string representation of the 'invariants' part of this group.
 
-        We make this a separate function so it is possible to create
-        finite subgroups that don't print their invariants, since
-        printing them could be expensive.
+        We make this a separate function so it is possible to create finite
+        subgroups that don't print their invariants, since printing them
+        could be expensive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J0(42).cuspidal_subgroup()._invariants_repr()
             'with invariants [2, 2, 12, 48] '
         """
@@ -484,7 +513,8 @@ class FiniteSubgroup(Module):
         """
         Return the order (number of elements) of this finite subgroup.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(42)
             sage: C = J.cuspidal_subgroup()
             sage: C.order()
@@ -504,8 +534,8 @@ class FiniteSubgroup(Module):
         """
         Return generators for this finite subgroup.
 
-        EXAMPLES:
-        We list generators for several cuspidal subgroups:
+        EXAMPLES: We list generators for several cuspidal subgroups::
+
             sage: J0(11).cuspidal_subgroup().gens()
             [[(0, 1/5)]]
             sage: J0(37).cuspidal_subgroup().gens()
@@ -528,9 +558,10 @@ class FiniteSubgroup(Module):
 
     def gen(self, n):
         r"""
-        Return $n$th generator of self.
+        Return `n^{th}` generator of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(23)
             sage: C = J.torsion_subgroup(3)
             sage: C.gens()
@@ -544,7 +575,8 @@ class FiniteSubgroup(Module):
             ...
             IndexError: list index out of range
 
-        Negative indices wrap around:
+        Negative indices wrap around::
+
             sage: C.gen(-1)
             [(0, 0, 0, 1/3)]
         """
@@ -552,43 +584,51 @@ class FiniteSubgroup(Module):
 
     def __call__(self, x):
         r"""
-        Coerce $x$ into this finite subgroup.
+        Coerce `x` into this finite subgroup.
 
-        This works when the abelian varieties that contains x and
-        self are the same, or if $x$ is coercible into the rational
-        homology (viewed as an abstract $\QQ$-vector space).
+        This works when the abelian varieties that contains x and self are
+        the same, or if `x` is coercible into the rational homology
+        (viewed as an abstract `\mathbb{Q}`-vector space).
 
-        EXAMPLES:
-        We first construct the $11$-torsion subgroup of $J_0(23)$:
+        EXAMPLES: We first construct the `11`-torsion subgroup of
+        `J_0(23)`::
+
             sage: J = J0(23)
             sage: G = J.torsion_subgroup(11)
             sage: G.invariants()
             [11, 11, 11, 11]
 
         We also construct the cuspidal subgroup.
+
+        ::
+
             sage: C = J.cuspidal_subgroup()
             sage: C.invariants()
             [11]
 
-        Coercing something into its parent returns it:
+        Coercing something into its parent returns it::
+
             sage: G(G.0) is G.0
             True
 
         We coerce an element from the cuspidal subgroup into the
-        $11$-torsion subgroup:
+        `11`-torsion subgroup::
+
             sage: z = G(C.0); z
             [(1/11, 10/11, 0, 8/11)]
             sage: z.parent() == G
             True
 
         We coerce a list, which defines an element of the underlying
-        \code{full_module} into $G$, and verify an equality:
+        ``full_module`` into `G`, and verify an
+        equality::
+
             sage: x = G([1/11, 1/11, 0, -1/11])
             sage: x == G([1/11, 1/11, 0, 10/11])
             True
 
-        Finally we attempt to coerce in an element that shouldn't
-        work, since is is not in $G$:
+        Finally we attempt to coerce in an element that shouldn't work,
+        since is is not in `G`::
 
             sage: G(J.torsion_subgroup(3).0)
             Traceback (most recent call last):
@@ -615,8 +655,9 @@ class FiniteSubgroup(Module):
         """
         Returns True if x is contained in this finite subgroup.
 
-        EXAMPLES:
-        We define two distinct finite subgroups of $J_0(27)$:
+        EXAMPLES: We define two distinct finite subgroups of
+        `J_0(27)`::
+
             sage: G1 = J0(27).rational_cusp_subgroup(); G1
             Finite subgroup with invariants [3] over QQ of Abelian variety J0(27) of dimension 1
             sage: G1.0
@@ -626,7 +667,9 @@ class FiniteSubgroup(Module):
             sage: G2.gens()
             [[(1/3, 0)], [(0, 1/3)]]
 
-        Now we check whether various elements are in $G_1$ and $G_2$:
+        Now we check whether various elements are in `G_1` and
+        `G_2`::
+
             sage: G2.0 in G1
             True
             sage: G2.1 in G1
@@ -636,12 +679,14 @@ class FiniteSubgroup(Module):
             sage: G1.0 in G2
             True
 
-        The integer $0$ is in, since it coerces in:
+        The integer `0` is in, since it coerces in::
+
             sage: 0 in G1
             True
 
         Elements that have a completely different ambient product Jacobian
-        are never in $G$:
+        are never in `G`::
+
             sage: J0(23).cuspidal_subgroup().0 in G1
             False
             sage: J0(23).cuspidal_subgroup()(0) in G1
@@ -655,23 +700,29 @@ class FiniteSubgroup(Module):
 
     def subgroup(self, gens):
         """
-        Return the subgroup of self spanned by the given generators,
-        which all must be elements of self.
+        Return the subgroup of self spanned by the given generators, which
+        all must be elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(23)
             sage: G = J.torsion_subgroup(11); G
             Finite subgroup with invariants [11, 11, 11, 11] over QQ of Abelian variety J0(23) of dimension 2
 
-        We create the subgroup of the 11-torsion subgroup of $J_0(23)$ generated
-        by the first $11$-torsion point:
+        We create the subgroup of the 11-torsion subgroup of
+        `J_0(23)` generated by the first `11`-torsion
+        point::
+
             sage: H = G.subgroup([G.0]); H
             Finite subgroup with invariants [11] over QQbar of Abelian variety J0(23) of dimension 2
             sage: H.invariants()
             [11]
 
-        We can also create a subgroup from a list of objects that
-        coerce into the ambient rational homology.
+        We can also create a subgroup from a list of objects that coerce
+        into the ambient rational homology.
+
+        ::
+
             sage: H == G.subgroup([[1/11,0,0,0]])
             True
         """
@@ -683,13 +734,15 @@ class FiniteSubgroup(Module):
 
     def invariants(self):
         r"""
-        Return elementary invariants of this abelian group, by which
-        we mean a nondecreasing (immutable) sequence of integers
-        $n_i$, $1 \leq i \leq k$, with $n_i$ dividing $n_{i+1}$, and
-        such that this group is abstractly isomorphic to
-        $\ZZ/n_1\ZZ \times\cdots\times \ZZ/n_k\ZZ.$
+        Return elementary invariants of this abelian group, by which we
+        mean a nondecreasing (immutable) sequence of integers
+        `n_i`, `1 \leq i \leq k`, with `n_i`
+        dividing `n_{i+1}`, and such that this group is abstractly
+        isomorphic to
+        `\mathbb{Z}/n_1\mathbb{Z} \times\cdots\times \mathbb{Z}/n_k\mathbb{Z}.`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(38)
             sage: C = J.cuspidal_subgroup(); C
             Finite subgroup with invariants [3, 45] over QQ of Abelian variety J0(38) of dimension 4
@@ -702,10 +755,13 @@ class FiniteSubgroup(Module):
             sage: type(v[0])
             <type 'sage.rings.integer.Integer'>
 
+        ::
+
             sage: C * 3
             Finite subgroup with invariants [15] over QQ of Abelian variety J0(38) of dimension 4
 
-        An example involving another cuspidal subgroup:
+        An example involving another cuspidal subgroup::
+
             sage: C = J0(22).cuspidal_subgroup(); C
             Finite subgroup with invariants [5, 5] over QQ of Abelian variety J0(22) of dimension 2
             sage: C.lattice()
@@ -734,18 +790,26 @@ class FiniteSubgroup(Module):
 class FiniteSubgroup_lattice(FiniteSubgroup):
     def __init__(self, abvar, lattice, field_of_definition=QQbar, check=True):
         """
-        A finite subgroup of a modular abelian variety that is defined
-        by a given lattice.
+        A finite subgroup of a modular abelian variety that is defined by a
+        given lattice.
 
         INPUT:
-            abvar -- a modular abelian variety
-            lattice -- a lattice that contains the lattice of abvar
-            field_of_definition -- the field of definition of
-                       this finite group scheme
-            check -- bool (default: True) whether or not to check that
-                     lattice contains the abvar lattice.
 
-        EXAMPLES:
+
+        -  ``abvar`` - a modular abelian variety
+
+        -  ``lattice`` - a lattice that contains the lattice of
+           abvar
+
+        -  ``field_of_definition`` - the field of definition
+           of this finite group scheme
+
+        -  ``check`` - bool (default: True) whether or not to
+           check that lattice contains the abvar lattice.
+
+
+        EXAMPLES::
+
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
@@ -766,7 +830,8 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
         r"""
         Return lattice that defines this finite subgroup.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
@@ -788,14 +853,21 @@ class TorsionPoint(ModuleElement):
         An element of a finite subgroup of a modular abelian variety.
 
         INPUT:
-            parent  -- a finite subgroup of a modular abelian variety
-            element -- a QQ vector space element that represents this
-                       element in terms of the ambient rational homology
-            check   -- bool (default: True) whether to check that element
-                       is in the appropriate vector space
 
-        EXAMPLES:
-        The following calls the TorsionPoint constructor implicitly:
+
+        -  ``parent`` - a finite subgroup of a modular abelian
+           variety
+
+        -  ``element`` - a QQ vector space element that
+           represents this element in terms of the ambient rational homology
+
+        -  ``check`` - bool (default: True) whether to check
+           that element is in the appropriate vector space
+
+
+        EXAMPLES: The following calls the TorsionPoint constructor
+        implicitly::
+
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
@@ -813,18 +885,19 @@ class TorsionPoint(ModuleElement):
     def element(self):
         """
         Return an underlying QQ-vector space element that defines this
-        element of a modular abelian variety.  This is a vector in the
+        element of a modular abelian variety. This is a vector in the
         ambient Jacobian variety's rational homology.
 
-        EXAMPLES:
-        We create some elements of $J_0(11)$:
+        EXAMPLES: We create some elements of `J_0(11)`::
+
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: G.0.element()
             (1/3, 0)
 
-        The underlying element is a vector over the rational numbers:
+        The underlying element is a vector over the rational numbers::
+
             sage: v = (G.0-G.1).element(); v
             (1/3, -1/5)
             sage: type(v)
@@ -834,12 +907,13 @@ class TorsionPoint(ModuleElement):
 
     def _repr_(self):
         r"""
-        Return string representation of this finite subgroup element.
-        Since they are represented as equivalences classes of rational
-        homology modulo integral homology, we represent an element
-        corresponding to $v$ in the rational homology by \code{[v]}.
+        Return string representation of this finite subgroup element. Since
+        they are represented as equivalences classes of rational homology
+        modulo integral homology, we represent an element corresponding to
+        `v` in the rational homology by ``[v]``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
@@ -850,16 +924,20 @@ class TorsionPoint(ModuleElement):
 
     def _add_(self, other):
         """
-        Add two finite subgroup elements with the same parent.  This
-        is called implicitly by +.
+        Add two finite subgroup elements with the same parent. This is
+        called implicitly by +.
 
         INPUT:
-            other -- a TorsionPoint with the same parent as self
 
-        OUTPUT:
-            a TorsionPoint
 
-        EXAMPLES:
+        -  ``other`` - a TorsionPoint with the same parent as
+           self
+
+
+        OUTPUT: a TorsionPoint
+
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0._add_(G.1)
             [(1/3, 1/5)]
@@ -870,16 +948,20 @@ class TorsionPoint(ModuleElement):
 
     def _sub_(self, other):
         """
-        Subtract two finite subgroup elements with the same parent.  This
-        is called implicitly by +.
+        Subtract two finite subgroup elements with the same parent. This is
+        called implicitly by +.
 
         INPUT:
-            other -- a TorsionPoint with the same parent as self
 
-        OUTPUT:
-            a TorsionPoint
 
-        EXAMPLES:
+        -  ``other`` - a TorsionPoint with the same parent as
+           self
+
+
+        OUTPUT: a TorsionPoint
+
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0._sub_(G.1)
             [(1/3, -1/5)]
@@ -892,7 +974,8 @@ class TorsionPoint(ModuleElement):
         """
         Negate a finite subgroup element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0._neg_()
             [(-1/3, 0)]
@@ -903,7 +986,8 @@ class TorsionPoint(ModuleElement):
         """
         Left multiply a finite subgroup element by an integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0._rmul_(2)
             [(2/3, 0)]
@@ -916,7 +1000,8 @@ class TorsionPoint(ModuleElement):
         """
         Right multiply a finite subgroup element by an integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0._lmul_(2)
             [(2/3, 0)]
@@ -930,13 +1015,16 @@ class TorsionPoint(ModuleElement):
         Compare self and right.
 
         INPUT:
-            self, right -- elements of the same finite abelian variety
-            subgroup.
 
-        OUTPUT:
-            -1, 0, or 1
 
-        EXAMPLES:
+        -  ``self, right`` - elements of the same finite
+           abelian variety subgroup.
+
+
+        OUTPUT: -1, 0, or 1
+
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: cmp(G.0, G.1)
             1
@@ -947,7 +1035,8 @@ class TorsionPoint(ModuleElement):
             sage: 3*G.0 == 5*G.1
             True
 
-        We make sure things that shouldn't be equal aren't:
+        We make sure things that shouldn't be equal aren't::
+
             sage: H = J0(14).finite_subgroup([[1/3,0]])
             sage: G.0 == H.0
             False
@@ -973,7 +1062,8 @@ class TorsionPoint(ModuleElement):
         """
         Return the additive order of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
             sage: G.0.additive_order()
             3
@@ -991,10 +1081,10 @@ class TorsionPoint(ModuleElement):
         Return coordinates of this element in terms of basis for the
         integral homology of the containing abelian variety.
 
-        OUTPUT:
-            vector
+        OUTPUT: vector
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = J0(43)[1]; A
             Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
             sage: C = A.cuspidal_subgroup(); C

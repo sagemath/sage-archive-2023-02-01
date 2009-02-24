@@ -3,9 +3,12 @@ Spaces of homomorphisms between modular abelian varieties.
 
 EXAMPLES:
 
-First, we consider J0(37). This jacobian has two simple
-factors, corresponding to distinct newforms. These two intersect
+First, we consider J0(37). This jacobian has two simple factors,
+corresponding to distinct newforms. These two intersect
 nontrivially in J0(37).
+
+::
+
     sage: J = J0(37)
     sage: D = J.decomposition() ; D
     [
@@ -17,11 +20,15 @@ nontrivially in J0(37).
      Simple abelian subvariety of dimension 0 of J0(37))
 
 As an abstract product, since these newforms are distinct, the
-corresponding simple abelian varieties are not isogenous, and so there
-are no maps between them. The endomorphism ring of the corresponding
-product is thus isomorphic to the direct sum of the endomorphism rings
-for each factor. Since the factors correspond to abelian varieties of
-dimension 1, these endomorphism rings are each isomorphic to ZZ.
+corresponding simple abelian varieties are not isogenous, and so
+there are no maps between them. The endomorphism ring of the
+corresponding product is thus isomorphic to the direct sum of the
+endomorphism rings for each factor. Since the factors correspond to
+abelian varieties of dimension 1, these endomorphism rings are each
+isomorphic to ZZ.
+
+::
+
     sage: Hom(D[0],D[1]).gens()
     ()
     sage: A = D[0] * D[1] ; A
@@ -39,8 +46,11 @@ dimension 1, these endomorphism rings are each isomorphic to ZZ.
     [0 0 1 0]
     [0 0 0 1]]
 
-However, these two newforms have a congruence between them modulo 2,
-which gives rise to interesting endomorphisms of J0(37).
+However, these two newforms have a congruence between them modulo
+2, which gives rise to interesting endomorphisms of J0(37).
+
+::
+
     sage: E = J.endomorphism_ring()
     sage: E.gens()
     (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
@@ -60,8 +70,10 @@ which gives rise to interesting endomorphisms of J0(37).
     [ 0  0 -2  1]
     [ 0  0  0  0]
 
-Of course, these endomorphisms will be reflected in the Hecke algebra,
-which is in fact the full endomorphism ring of J0(37) in this case:
+Of course, these endomorphisms will be reflected in the Hecke
+algebra, which is in fact the full endomorphism ring of J0(37) in
+this case::
+
     sage: J.hecke_operator(2).matrix()
     [-1  1  1 -1]
     [ 1 -1  1  0]
@@ -83,11 +95,13 @@ which is in fact the full endomorphism ring of J0(37) in this case:
     sage: T.index_in(E)
     1
 
-
 Next, we consider J0(33). In this case, we have both oldforms and
 newforms. There are two copies of J0(11), one for each degeneracy
 map from J0(11) to J0(33). There is also one newform at level 33.
 The images of the two degeneracy maps are, of course, isogenous.
+
+::
+
     sage: J = J0(33)
     sage: D = J.decomposition()
     sage: D
@@ -105,9 +119,12 @@ The images of the two degeneracy maps are, of course, isogenous.
     [-1  0]
 
 Then this gives that the component corresponding to the sum of the
-oldforms will have a rank 4 endomorphism ring. We also have a rank one
-endomorphism ring for the newform 33a (since it is again
+oldforms will have a rank 4 endomorphism ring. We also have a rank
+one endomorphism ring for the newform 33a (since it is again
 1-dimensional), which gives a rank 5 endomorphism ring for J0(33).
+
+::
+
     sage: DD = J.decomposition(simple=False) ; DD
     [
     Abelian subvariety of dimension 2 of J0(33),
@@ -130,10 +147,13 @@ endomorphism ring for the newform 33a (since it is again
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
 
-In this case, the image of the Hecke algebra will only have rank 3, so
-that it is of infinite index in the full endomorphism ring. However,
-if we call this image T, we can still ask about the index of T in its
-saturation, which is 1 in this case.
+In this case, the image of the Hecke algebra will only have rank 3,
+so that it is of infinite index in the full endomorphism ring.
+However, if we call this image T, we can still ask about the index
+of T in its saturation, which is 1 in this case.
+
+::
+
     sage: T = E.image_of_hecke_algebra()
     sage: T.gens()
     (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
@@ -144,10 +164,11 @@ saturation, which is 1 in this case.
     sage: T.index_in_saturation()
     1
 
-AUTHOR:
-    -- William Stein (2007-03)
-    -- Craig Citro, Robert Bradshaw (2008-03): Rewrote with modabvar
-         overhaul
+AUTHORS:
+
+- William Stein (2007-03)
+
+- Craig Citro, Robert Bradshaw (2008-03): Rewrote with modabvar overhaul
 """
 
 ###########################################################################
@@ -181,10 +202,15 @@ class Homspace(HomsetWithBase):
         Create a homspace.
 
         INPUT:
-            domain, codomain -- modular abelian varieties
-            cat -- category
 
-        EXAMPLES:
+
+        -  ``domain, codomain`` - modular abelian varieties
+
+        -  ``cat`` - category
+
+
+        EXAMPLES::
+
             sage: H = Hom(J0(11), J0(22)); H
             Space of homomorphisms from Abelian variety J0(11) of dimension 1 to Abelian variety J0(22) of dimension 2
             sage: Hom(J0(11), J0(11))
@@ -204,17 +230,20 @@ class Homspace(HomsetWithBase):
 
     def __call__(self, M):
         r"""
-        Create a homomorphism in this space from M. M can
-        be any of the following:
+        Create a homomorphism in this space from M. M can be any of the
+        following:
 
-          * a Morphism of abelian varieties
-          * a matrix of the appropriate size (i.e.
-            2*self.domain().dimension() x
-            2*self.codomain().dimension()) whose entries
-            are coercible into self.base_ring()
-          * anything that can be coerced into self.matrix_space()
+        - a Morphism of abelian varieties
 
-        EXAMPLES:
+        - a matrix of the appropriate size
+          (i.e. 2\*self.domain().dimension() x
+          2\*self.codomain().dimension()) whose entries are coercible
+          into self.base_ring()
+
+        - anything that can be coerced into self.matrix_space()
+
+        EXAMPLES::
+
             sage: H = Hom(J0(11), J0(22))
             sage: phi = H(matrix(ZZ,2,4,[5..12])) ; phi
             Abelian variety morphism:
@@ -225,6 +254,8 @@ class Homspace(HomsetWithBase):
             [ 9 10 11 12]
             sage: phi.matrix().parent()
             Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+
+        ::
 
             sage: H = J0(22).Hom(J0(11)*J0(11))
             sage: m1 = J0(22).degeneracy_map(11,1).matrix() ; m1
@@ -274,7 +305,8 @@ class Homspace(HomsetWithBase):
         """
         Coerce x into self, if possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(37) ; J.Hom(J)._coerce_impl(matrix(ZZ,4,[5..20]))
             Abelian variety endomorphism of Abelian variety J0(37) of dimension 2
             sage: K = J0(11) * J0(11) ; J.Hom(K)._coerce_impl(matrix(ZZ,4,[5..20]))
@@ -291,7 +323,8 @@ class Homspace(HomsetWithBase):
         """
         String representation of a modular abelian variety homspace.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = J0(11)
             sage: End(J)._repr_()
             'Endomorphism ring of Abelian variety J0(11) of dimension 1'
@@ -301,16 +334,20 @@ class Homspace(HomsetWithBase):
 
     def _get_matrix(self, g):
         """
-        Given an object g, try to return a matrix corresponding to g
-        with dimensions the same as those of self.matrix_space().
+        Given an object g, try to return a matrix corresponding to g with
+        dimensions the same as those of self.matrix_space().
 
         INPUT:
-            g -- a matrix or morphism or object with a list method
 
-        OUTPUT:
-            a matrix
 
-        EXAMPLES:
+        -  ``g`` - a matrix or morphism or object with a list
+           method
+
+
+        OUTPUT: a matrix
+
+        EXAMPLES::
+
             sage: E = End(J0(11))
             sage: E._get_matrix(matrix(QQ,2,[1,2,3,4]))
             [1 2]
@@ -318,6 +355,8 @@ class Homspace(HomsetWithBase):
             sage: E._get_matrix(J0(11).hecke_operator(2))
             [-2  0]
             [ 0 -2]
+
+        ::
 
             sage: H = Hom(J0(11) * J0(17), J0(22))
             sage: H._get_matrix(tuple([8..23]))
@@ -351,14 +390,15 @@ class Homspace(HomsetWithBase):
 
     def free_module(self):
         r"""
-        Return this endomorphism ring as a free submodule of a big $\ZZ^{4nm}$,
-        where $n$ is the dimension of the domain abelian variety and $m$ the
-        dimension of the codomain.
+        Return this endomorphism ring as a free submodule of a big
+        `\mathbb{Z}^{4nm}`, where `n` is the dimension of
+        the domain abelian variety and `m` the dimension of the
+        codomain.
 
-        OUTPUT:
-            free module
+        OUTPUT: free module
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = Hom(J0(11), J0(22))
             sage: E.free_module()
             Free module of degree 8 and rank 2 over Integer Ring
@@ -375,19 +415,21 @@ class Homspace(HomsetWithBase):
         Return i-th generator of self.
 
         INPUT:
-            i -- an integer
 
-        OUTPUT:
-            a morphism
 
-        EXAMPLES:
+        -  ``i`` - an integer
+
+
+        OUTPUT: a morphism
+
+        EXAMPLES::
+
             sage: E = End(J0(22))
             sage: E.gen(0).matrix()
             [1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
             [0 0 0 1]
-
         """
         self.calculate_generators()
         if i > self.ngens():
@@ -398,10 +440,10 @@ class Homspace(HomsetWithBase):
         """
         Return number of generators of self.
 
-        OUTPUT:
-            integer
+        OUTPUT: integer
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = End(J0(22))
             sage: E.ngens()
             4
@@ -413,7 +455,8 @@ class Homspace(HomsetWithBase):
         """
         Return tuple of generators for this endomorphism ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = End(J0(22))
             sage: E.gens()
             (Abelian variety endomorphism of Abelian variety J0(22) of dimension 2,
@@ -430,10 +473,11 @@ class Homspace(HomsetWithBase):
 
     def matrix_space(self):
         """
-        Return the underlying matrix space that we view this endomorphism ring as
-        being embedded into.
+        Return the underlying matrix space that we view this endomorphism
+        ring as being embedded into.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = End(J0(22))
             sage: E.matrix_space()
             Full MatrixSpace of 4 by 4 dense matrices over Integer Ring
@@ -445,7 +489,8 @@ class Homspace(HomsetWithBase):
         If generators haven't already been computed, calculate generators
         for this homspace. If they have been computed, do nothing.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = End(J0(11))
             sage: E.calculate_generators()
         """
@@ -475,10 +520,11 @@ class Homspace(HomsetWithBase):
         """
         For internal use.
 
-        Calculate generators for self, assuming that self is
-        a product of simple factors.
+        Calculate generators for self, assuming that self is a product of
+        simple factors.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = End(J0(37))
             sage: E.gens()
             (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
@@ -551,13 +597,13 @@ class Homspace(HomsetWithBase):
 
     def _calculate_simple_gens(self):
         """
-        Calculate generators for self, where both the domain and
-        codomain for self are assumed to be simple abelian varieties.
-        The saturation of the span of these generators in self will be
-        the full space of homomorphisms from the domain of self to its
-        codomain.
+        Calculate generators for self, where both the domain and codomain
+        for self are assumed to be simple abelian varieties. The saturation
+        of the span of these generators in self will be the full space of
+        homomorphisms from the domain of self to its codomain.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = Hom(J0(11), J0(22)[0])
             sage: H._calculate_simple_gens()
             [[1 0]
@@ -582,6 +628,8 @@ class Homspace(HomsetWithBase):
             [[ 0 -4]
             [ 4  0]]
 
+        ::
+
             sage: J = J0(23) ; J.decomposition()
             [
             Simple abelian variety J0(23) of dimension 2
@@ -600,6 +648,8 @@ class Homspace(HomsetWithBase):
             [ 0  1 -1  1]
             [-1  2 -2  1]
             [-1  1  0 -1]
+
+        ::
 
             sage: H = Hom(J0(11), J0(22)[0])
             sage: H._calculate_simple_gens()
@@ -633,11 +683,16 @@ class EndomorphismSubring(Homspace, Ring):
         A subring of the endomorphism ring.
 
         INPUT:
-            A -- an abelian variety
-            gens -- (default: None); optional; if given should be a
-                 tuple of the generators as matrices
 
-        EXAMPLES:
+
+        -  ``A`` - an abelian variety
+
+        -  ``gens`` - (default: None); optional; if given
+           should be a tuple of the generators as matrices
+
+
+        EXAMPLES::
+
             sage: J0(23).endomorphism_ring()
             Endomorphism ring of Abelian variety J0(23) of dimension 2
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J0(25))
@@ -660,7 +715,8 @@ class EndomorphismSubring(Homspace, Ring):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J0(31).endomorphism_ring()._repr_()
             'Endomorphism ring of Abelian variety J0(31) of dimension 2'
             sage: J0(31).endomorphism_ring().image_of_hecke_algebra()._repr_()
@@ -673,10 +729,11 @@ class EndomorphismSubring(Homspace, Ring):
 
     def abelian_variety(self):
         """
-        Return the abelian variety that this endomorphism ring
-        is attached to.
+        Return the abelian variety that this endomorphism ring is attached
+        to.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J0(11).endomorphism_ring().abelian_variety()
             Abelian variety J0(11) of dimension 1
         """
@@ -687,10 +744,17 @@ class EndomorphismSubring(Homspace, Ring):
         Return the index of self in other.
 
         INPUT:
-            other -- another endomorphism subgring of the same abelian variety
-            check -- bool (default: True); whether to do some type and other consistency checks
 
-        EXAMPLES:
+
+        -  ``other`` - another endomorphism subgring of the
+           same abelian variety
+
+        -  ``check`` - bool (default: True); whether to do some
+           type and other consistency checks
+
+
+        EXAMPLES::
+
             sage: R = J0(33).endomorphism_ring()
             sage: R.index_in(R)
             1
@@ -717,7 +781,8 @@ class EndomorphismSubring(Homspace, Ring):
         """
         Given a Hecke algebra T, compute its index in its saturation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: End(J0(23)).image_of_hecke_algebra().index_in_saturation()
             1
             sage: End(J0(44)).image_of_hecke_algebra().index_in_saturation()
@@ -732,25 +797,29 @@ class EndomorphismSubring(Homspace, Ring):
 
     def discriminant(self):
         """
-        Return the discriminant of this ring, which is the
-        discriminant of the trace pairing.
+        Return the discriminant of this ring, which is the discriminant of
+        the trace pairing.
 
-        NOTE: One knows that for modular abelian varieties, the
-        endomorphism ring should be isomorphic to an order in a number
-        field. However, the discriminant returned by this function
-        will be $2^n$ ($n = $self.dimension()) times the discriminant of that
-        order, since the elements are represented as 2d x 2d matrices.
-        Notice, for example, that the case of a one dimensional
-        abelian variety, whose endomorphism ring must be ZZ, has
-        discriminant 2, as in the example below.
+        .. note::
 
-        EXAMPLES:
-             sage: J0(33).endomorphism_ring().discriminant()
-             -64800
-             sage: J0(46).endomorphism_ring().discriminant()
-             24200000000
-             sage: J0(11).endomorphism_ring().discriminant()
-             2
+           One knows that for modular abelian varieties, the
+           endomorphism ring should be isomorphic to an order in a
+           number field. However, the discriminant returned by this
+           function will be `2^n` ( `n =`
+           self.dimension()) times the discriminant of that order,
+           since the elements are represented as 2d x 2d
+           matrices. Notice, for example, that the case of a one
+           dimensional abelian variety, whose endomorphism ring must
+           be ZZ, has discriminant 2, as in the example below.
+
+        EXAMPLES::
+
+            sage: J0(33).endomorphism_ring().discriminant()
+            -64800
+            sage: J0(46).endomorphism_ring().discriminant()
+            24200000000
+            sage: J0(11).endomorphism_ring().discriminant()
+            2
         """
         g = self.gens()
         M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
@@ -762,14 +831,15 @@ class EndomorphismSubring(Homspace, Ring):
         Compute the image of the Hecke algebra inside this endomorphism
         subring.
 
-        We simply calculate Hecke operators up to the Sturm bound, and
-        look at the submodule spanned by them. While computing, we can
-        check to see if the submodule spanned so far is saturated and
-        of maximal dimension, in which case we may be done. The optional
-        argument check_every determines how many Hecke operators we add in
-        before checking to see if this condition is met.
+        We simply calculate Hecke operators up to the Sturm bound, and look
+        at the submodule spanned by them. While computing, we can check to
+        see if the submodule spanned so far is saturated and of maximal
+        dimension, in which case we may be done. The optional argument
+        check_every determines how many Hecke operators we add in before
+        checking to see if this condition is met.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = J0(33).endomorphism_ring()
             sage: E.image_of_hecke_algebra()
             Subring of endomorphism ring of Abelian variety J0(33) of dimension 3

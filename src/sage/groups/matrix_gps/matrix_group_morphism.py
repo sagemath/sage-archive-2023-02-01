@@ -2,9 +2,10 @@
 Homomorphisms Between Matrix Groups
 
 AUTHORS:
-    David Joyner and William Stein (2006-03) -- initial version
-    David Joyner (2006-05) -- examples
 
+- David Joyner and William Stein (2006-03): initial version
+
+- David Joyner (2006-05): examples
 """
 
 #*****************************************************************************
@@ -38,13 +39,14 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
     """
     Some python code for wrapping GAP's GroupHomomorphismByImages
     function but only for matrix groups. Can be expensive if G is
-    large. Returns "fail" if gens does not generate self or if the
-    map does not extend to a group homomorphism, self --> other.
+    large. Returns "fail" if gens does not generate self or if the map
+    does not extend to a group homomorphism, self - other.
 
-    TODO: what does it mean to return fail?  It's a constructor
-    for a class.
+    TODO: what does it mean to return fail? It's a constructor for a
+    class.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: F = GF(5); MS = MatrixSpace(F,2,2)
         sage: G = MatrixGroup([MS([1,1,0,1])])
         sage: H = MatrixGroup([MS([1,0,1,1])])
@@ -84,7 +86,8 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def kernel(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(7); MS = MatrixSpace(F,2,2)
             sage: F.multiplicative_generator()
             3
@@ -103,10 +106,11 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def image(self, J):
         """
-        J must be a subgroup of G. Computes the subgroup of
-        H which is the image of J.
+        J must be a subgroup of G. Computes the subgroup of H which is the
+        image of J.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(7); MS = MatrixSpace(F,2,2)
             sage: F.multiplicative_generator()
             3
@@ -128,7 +132,8 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS([1,1,0,1])])
             sage: H = MatrixGroup([MS([1,0,1,1])])
@@ -145,7 +150,8 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def _latex_(self):
         r"""
-    	EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS([1,1,0,1])])
             sage: phi = G.hom(G.gens())
@@ -162,31 +168,34 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def __call__( self, g ):
         """
-    	Some python code for wrapping GAP's Images function for a
-        matrix group G.   Returns an error if g is not in G.
+    	Some python code for wrapping GAP's Images function for a matrix
+    	group G. Returns an error if g is not in G.
 
-    	EXAMPLES:
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: g = MS([1,1,0,1])
-            sage: G = MatrixGroup([g])
-            sage: phi = G.hom(G.gens())
-            sage: phi(G.0)
-            [1 1]
-            [0 1]
-            sage: phi(G(g^2))
-            [1 2]
-            [0 1]
+    	EXAMPLES::
 
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: gens = [MS([1,2,  -1,1]),MS([1,1,  0,1])]
-            sage: G = MatrixGroup(gens)
-            sage: phi = G.hom(G.gens())
-            sage: phi(G.0)
-            [1 2]
-            [4 1]
-            sage: phi(G.1)
-            [1 1]
-            [0 1]
+    	    sage: F = GF(5); MS = MatrixSpace(F,2,2)
+    	    sage: g = MS([1,1,0,1])
+    	    sage: G = MatrixGroup([g])
+    	    sage: phi = G.hom(G.gens())
+    	    sage: phi(G.0)
+    	    [1 1]
+    	    [0 1]
+    	    sage: phi(G(g^2))
+    	    [1 2]
+    	    [0 1]
+
+    	::
+
+    	    sage: F = GF(5); MS = MatrixSpace(F,2,2)
+    	    sage: gens = [MS([1,2,  -1,1]),MS([1,1,  0,1])]
+    	    sage: G = MatrixGroup(gens)
+    	    sage: phi = G.hom(G.gens())
+    	    sage: phi(G.0)
+    	    [1 2]
+    	    [4 1]
+    	    sage: phi(G.1)
+    	    [1 1]
+    	    [0 1]
     	"""
         cmd = self._gap_hom_string
         gap.eval(cmd)

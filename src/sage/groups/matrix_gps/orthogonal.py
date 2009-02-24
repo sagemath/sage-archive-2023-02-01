@@ -2,33 +2,40 @@ r"""
 Orthogonal Linear Groups
 
 Paraphrased from the GAP manual: The general orthogonal group
-$GO(e,d,q)$ consists of those $d\times d$ matrices over the field
-$GF(q)$ that respect a non-singular quadratic form specified by
-$e$. (Use the GAP command InvariantQuadraticForm to determine this
-form explicitly.) The value of $e$ must be $0$ for odd $d$ (and can
-optionally be omitted in this case), respectively one of $1$ or $-1$
-for even $d$.
+`GO(e,d,q)` consists of those `d\times d` matrices
+over the field `GF(q)` that respect a non-singular
+quadratic form specified by `e`. (Use the GAP command
+InvariantQuadraticForm to determine this form explicitly.) The
+value of `e` must be `0` for odd `d` (and
+can optionally be omitted in this case), respectively one of
+`1` or `-1` for even `d`.
 
 SpecialOrthogonalGroup returns a group isomorphic to the special
-orthogonal group $SO(e,d,q)$, which is the subgroup of all those
-matrices in the general orthogonal group that have determinant one.
-(The index of $SO(e,d,q)$ in $GO(e,d,q)$ is $2$ if $q$ is odd,
-but $SO(e,d,q) = GO(e,d,q)$ if $q$ is even.)
+orthogonal group `SO(e,d,q)`, which is the subgroup of all
+those matrices in the general orthogonal group that have
+determinant one. (The index of `SO(e,d,q)` in
+`GO(e,d,q)` is `2` if `q` is odd, but
+`SO(e,d,q) = GO(e,d,q)` if `q` is even.)
 
-WARNING:
-    GAP notation:  GO([e,] d, q), SO([e,] d, q)  ([...] denotes and optional value)
+.. warning::
 
-    SAGE notation: GO(d, GF(q), e=0), SO( d, GF(q), e=0)
+   GAP notation: GO([e,] d, q), SO([e,] d, q) ([...] denotes and
+   optional value)
 
-    There is no Python trick I know of to allow the first argument to
-    have the default value e=0 and leave the other two arguments as
-    non-default.  This forces us into non-standard notation.
+Sage notation: GO(d, GF(q), e=0), SO( d, GF(q), e=0)
 
-AUTHOR:
-    -- David Joyner: initial version (2006-3)
-    -- David Joyner (2006-05): added examples, _latex_, __str__,
-                                     gens, as_matrix_group
-    -- William Stein (2006-12-09): rewrite
+There is no Python trick I know of to allow the first argument to
+have the default value e=0 and leave the other two arguments as
+non-default. This forces us into non-standard notation.
+
+AUTHORS:
+
+- David Joyner (2006-03): initial version
+
+- David Joyner (2006-05): added examples, _latex_, __str__, gens,
+  as_matrix_group
+
+- William Stein (2006-12-09): rewrite
 """
 
 #*****************************************************************************
@@ -45,15 +52,22 @@ from sage.interfaces.gap import gap
 
 def SO(n, R, e=0, var='a'):
     """
-    Return the special orthogonal group of degree $n$ over the ring $R$.
+    Return the special orthogonal group of degree `n` over the
+    ring `R`.
 
     INPUT:
-        n -- the degree
-        R -- ring
-        e -- a parameter for orthogonal groups only depending
-                 on the invariant form
 
-    EXAMPLES:
+
+    -  ``n`` - the degree
+
+    -  ``R`` - ring
+
+    -  ``e`` - a parameter for orthogonal groups only
+       depending on the invariant form
+
+
+    EXAMPLES::
+
         sage: G = SO(3,GF(5))
         sage: G.gens()
         [
@@ -87,12 +101,17 @@ class OrthogonalGroup(MatrixGroup_gap):
     def __init__(self, n, R, e=0, var='a'):
         """
         INPUT:
-            n -- the degree
-            R -- the base ring
-            e -- a parameter for orthogonal groups only depending
-                 on the invariant form
-            var -- variable used to define field of definition of
-                   actual matrices in this group.
+
+
+        -  ``n`` - the degree
+
+        -  ``R`` - the base ring
+
+        -  ``e`` - a parameter for orthogonal groups only
+           depending on the invariant form
+
+        -  ``var`` - variable used to define field of
+           definition of actual matrices in this group.
         """
         MatrixGroup_gap.__init__(self, n, R, var)
         self.__form = e
@@ -101,9 +120,11 @@ class OrthogonalGroup(MatrixGroup_gap):
         """
         Return the invariant form of this orthogonal group.
 
-        TODO: What is the point of this?  What does it do?  How does it work?
+        TODO: What is the point of this? What does it do? How does it
+        work?
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SO( 4, GF(7), 1)
             sage: G.invariant_form()
             1
@@ -112,7 +133,8 @@ class OrthogonalGroup(MatrixGroup_gap):
 
 class SpecialOrthogonalGroup_generic(OrthogonalGroup):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: G = SO( 4, GF(7), 1); G
         Special Orthogonal Group of degree 4, form parameter 1, over the Finite Field of size 7
         sage: G._gap_init_()
@@ -125,7 +147,8 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
     """
     def _gap_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SO(3,GF(5))
             sage: G._gap_init_()
             'SO(0, 3, 5)'
@@ -134,17 +157,18 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SO(3,GF(5))
             sage: G
             Special Orthogonal Group of degree 3, form parameter 0, over the Finite Field of size 5
-
         """
         return "Special Orthogonal Group of degree %s, form parameter %s, over the %s"%( self.degree(), self.invariant_form(), self.base_ring())
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SO(3,GF(5))
             sage: latex(G)
             \text{SO}_{3}(\mathbf{F}_{5}, 0)
@@ -153,16 +177,24 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
 
     def invariant_quadratic_form(self):
         r"""
-        Return the quadratic form $q(v) = v Q v^t$ on the space on which this group $G$
-        that satisfies the equation $q(v) = q(v M)$ for all $v \in V$ and $M \in G$.
+        Return the quadratic form `q(v) = v Q v^t` on the space on
+        which this group `G` that satisfies the equation
+        `q(v) = q(v M)` for all `v \in V` and
+        `M \in G`.
 
-        NOTE:
-        Uses GAP's command InvariantQuadraticForm.
+        .. note::
+
+           Uses GAP's command InvariantQuadraticForm.
 
         OUTPUT:
-           Q -- matrix that defines the invariant quadratic form.
 
-        EXAMPLES:
+
+        -  ``Q`` - matrix that defines the invariant quadratic
+           form.
+
+
+        EXAMPLES::
+
             sage: G = SO( 4, GF(7), 1)
             sage: G.invariant_quadratic_form()
             [0 1 0 0]
@@ -203,7 +235,8 @@ def GO( n , R , e=0 ):
 
 class GeneralOrthogonalGroup_generic(OrthogonalGroup):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: GO( 3, GF(7), 0)
         General Orthogonal Group of degree 3, form parameter 0, over the Finite Field of size 7
         sage: GO( 3, GF(7), 0).order()
@@ -215,7 +248,8 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
     """
     def _gap_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GO( 3, GF(7), 0)._gap_init_()
             'GO(0, 3, 7)'
         """
@@ -225,7 +259,8 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
         """
         String representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GO(3,7)
             General Orthogonal Group of degree 3, form parameter 0, over the Finite Field of size 7
         """
@@ -233,7 +268,8 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GO(3,GF(5))
             sage: latex(G)
             \text{GO}_{3}(5, 0)
@@ -242,19 +278,27 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
 
     def invariant_quadratic_form(self):
         """
-        This wraps GAP's command "InvariantQuadraticForm". From the GAP documentation:
+        This wraps GAP's command "InvariantQuadraticForm". From the GAP
+        documentation:
 
         INPUT:
-            self -- a matrix group G
+
+
+        -  ``self`` - a matrix group G
+
 
         OUTPUT:
-            Q -- the matrix satisfying the property: The quadratic
-                 form q on the natural vector space V on which G acts
-                 is given by $q(v) = v Q v^t$, and the invariance
-                 under G is given by the equation $q(v) = q(v M)$ for
-                 all $v \in V$ and $M \in G$.
 
-        EXAMPLES:
+
+        -  ``Q`` - the matrix satisfying the property: The
+           quadratic form q on the natural vector space V on which G acts is
+           given by `q(v) = v Q v^t`, and the invariance under G is
+           given by the equation `q(v) = q(v M)` for all
+           `v \in V` and `M \in G`.
+
+
+        EXAMPLES::
+
             sage: G = GO( 4, GF(7), 1)
             sage: G.invariant_quadratic_form()
             [0 1 0 0]

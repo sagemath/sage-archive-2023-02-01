@@ -2,15 +2,19 @@
 Abelian group elements
 
 AUTHORS:
-    - David Joyner (2006-02); based on free_abelian_monoid_element.py, written by David Kohel.
-    - David Joyner (2006-05); bug fix in order
-    -              (2006-08); bug fix+new method in pow for negatives+fixed corresponding examples.
-    -              (2009-02): Fixed bug in order.
-    -              (2009-02): Fixed docstring bugs related to 4.4.10-4.4.12 upgrade.
 
+- David Joyner (2006-02); based on free_abelian_monoid_element.py, written by David Kohel.
 
-EXAMPLES:
-Recall an example from abelian groups.
+- David Joyner (2006-05); bug fix in order
+
+- David Joyner (2006-08); bug fix+new method in pow for negatives+fixed corresponding examples.
+
+- David Joyner (2009-02): Fixed bug in order.
+
+EXAMPLES: Recall an example from abelian groups.
+
+::
+
     sage: F = AbelianGroup(5,[4,5,5,7,8],names = list("abcde"))
     sage: (a,b,c,d,e) = F.gens()
     sage: x = a*b^2*e*d^20*e^12
@@ -27,15 +31,17 @@ Recall an example from abelian groups.
     sage: x.list()
     [2, 2, 3, 6, 4]
 
-It is important to note that lists are mutable and the
-returned list is not a copy.  As a result, reassignment
-of an element of the list changes the object.
+It is important to note that lists are mutable and the returned
+list is not a copy. As a result, reassignment of an element of the
+list changes the object.
+
+::
+
     sage: x.list()[0] = 3
     sage: x.list()
     [3, 2, 3, 6, 4]
     sage: x
     a^3*b^2*c^3*d^6*e^4
-
 """
 
 ###########################################################################
@@ -57,18 +63,18 @@ from sage.misc.randstate import current_randstate
 
 def is_AbelianGroupElement(x):
     """
-    Return true if x is an abelian group element, i.e., an element of type
-    AbelianGroupElement.
+    Return true if x is an abelian group element, i.e., an element of
+    type AbelianGroupElement.
 
-    EXAMPLES:
-    Though the integer 3 is in the integers, and the integers have an abelian
-    group structure, 3 is not an AbelianGroupElement:
-         sage: from sage.groups.abelian_gps.abelian_group_element import is_AbelianGroupElement
-         sage: is_AbelianGroupElement(3)
-         False
-         sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
-         sage: is_AbelianGroupElement(F.0)
-         True
+    EXAMPLES: Though the integer 3 is in the integers, and the integers
+    have an abelian group structure, 3 is not an AbelianGroupElement::
+
+        sage: from sage.groups.abelian_gps.abelian_group_element import is_AbelianGroupElement
+        sage: is_AbelianGroupElement(3)
+        False
+        sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
+        sage: is_AbelianGroupElement(F.0)
+        True
     """
     return isinstance(x, AbelianGroupElement)
 
@@ -77,7 +83,8 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         """
         Create the element x of the AbelianGroup F.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
             sage: a, b, c, d, e = F.gens()
             sage: a^2 * b^3 * a^2 * b^-4
@@ -88,7 +95,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             a
             sage: a*b in F
             True
-
         """
         MultiplicativeGroupElement.__init__(self, F)
         self.__repr = None
@@ -105,12 +111,12 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: AbelianGroupElement(AbelianGroup(1, [1], names='e'),[0])
             1
             sage: AbelianGroupElement(AbelianGroup(3, [2,3,4], names='e'),[1,2,3])
             e0*e1^2*e2^3
-
         """
         s = ""
         A = self.parent()
@@ -131,11 +137,11 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
     def _div_(self, y):
         """
-        TESTS:
+        TESTS::
+
             sage: G.<a,b> = AbelianGroup(2)
             sage: a/b
             a*b^-1
-
         """
         return self*y.inverse()
 
@@ -191,7 +197,8 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         """
         Returns the inverse element.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: G.<a,b> = AbelianGroup(2)
             sage: a^-1
             a^-1
@@ -201,7 +208,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             [-1, 0]
             sage: a.inverse()
             a^-1
-
         """
         new_list = [-1*n for n in self.list()]
         par_inv = self.parent().invariants()
@@ -216,7 +222,8 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         Return the element of the permutation group G (isomorphic to the
         abelian group A) associated to a in A.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
             Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             sage: a,b,c=G.gens()
@@ -250,12 +257,13 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
     def list(self):
         """
-        Return (a reference to) the underlying list used to represent
-        this element.  If this is a word in an abelian group on $n$
-        generators, then this is a list of nonnegative integers of
-        length $n$.
+        Return (a reference to) the underlying list used to represent this
+        element. If this is a word in an abelian group on `n`
+        generators, then this is a list of nonnegative integers of length
+        `n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
             sage: (a, b, c, d, e) = F.gens()
             sage: a.list()
@@ -270,10 +278,11 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
     def order(self):
         """
-        Returns the (finite) order of this element or Infinity if this element
-        does not have finite order.
+        Returns the (finite) order of this element or Infinity if this
+        element does not have finite order.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(3,[7,8,9]); F
             Multiplicative Abelian Group isomorphic to C7 x C8 x C9
             sage: F.gens()[2].order()
@@ -317,20 +326,24 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
     def word_problem(self, words):
         """
-        TODO -- this needs a rewrite -- see stuff in the matrix_grp directory.
+        TODO - this needs a rewrite - see stuff in the matrix_grp
+        directory.
 
-        G and H are abelian groups, g in G, H is a subgroup of G generated by a
-        list (words) of elements of G. If self is in H, return the expression
-        for self as a word in the elements of (words).
+        G and H are abelian groups, g in G, H is a subgroup of G generated
+        by a list (words) of elements of G. If self is in H, return the
+        expression for self as a word in the elements of (words).
 
-        This function does not solve the word problem in SAGE. Rather
+        This function does not solve the word problem in Sage. Rather
         it pushes it over to GAP, which has optimized (non-deterministic)
         algorithms for the word problem.
 
-        WANRING: Don't use E (or other GAP-reserved letters) as a generator
-        name.
+        .. warning::
 
-        EXAMPLE:
+           Don't use E (or other GAP-reserved letters) as a generator
+           name.
+
+        EXAMPLE::
+
             sage: G = AbelianGroup(2,[2,3], names="xy")
             sage: x,y = G.gens()
             sage: x.word_problem([x,y])
@@ -339,7 +352,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             [[y, 1]]
             sage: (y*x).word_problem([x,y])
             [[y, 1], [x, 1]]
-
         """
         current_randstate().set_seed_gap()
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem

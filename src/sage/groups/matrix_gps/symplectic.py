@@ -1,11 +1,13 @@
 """
 Symplectic Linear Groups
 
-AUTHOR:
-    -- David Joyner: initial version (2006-3), modified from
-                     special_linear (by W. Stein)
+AUTHORS:
 
-EXAMPLES:
+- David Joyner (2006-03): initial version, modified from
+  special_linear (by W. Stein)
+
+EXAMPLES::
+
     sage: G = Sp(4,GF(7))
     sage: G._gap_init_()
     'Sp(4, 7)'
@@ -18,7 +20,6 @@ EXAMPLES:
     [4 0 2 2]
     sage: G.order()
     276595200
-
 """
 
 #*****************************************************************************
@@ -35,7 +36,8 @@ def Sp(n, R, var='a'):
     """
     Return the symplectic group of degree n over R.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Sp(4,5)
         Symplectic Group of rank 2 over Finite Field of size 5
         sage: Sp(3,GF(7))
@@ -60,7 +62,8 @@ class SymplecticGroup_generic(MatrixGroup_gap):
         r"""
         Return LaTeX representation of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: latex(Sp(4,5))
             \text{Sp}_{4}(\mathbf{F}_{5})
         """
@@ -70,7 +73,8 @@ class SymplecticGroup_generic(MatrixGroup_gap):
         """
         Return print representation of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Sp(2,4)
             Symplectic Group of rank 1 over Finite Field in a of size 2^2
         """
@@ -81,7 +85,8 @@ class SymplecticGroup_finite_field(SymplecticGroup_generic, MatrixGroup_gap_fini
         """
         Return GAP string that evaluates to this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Sp(2,4)._gap_init_()
             'Sp(2, 4)'
         """

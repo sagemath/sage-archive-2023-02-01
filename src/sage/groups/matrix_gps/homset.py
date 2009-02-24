@@ -2,7 +2,8 @@
 Matrix Group Homsets
 
 AUTHORS:
-   William Stein (2006-05-07): initial version
+
+- William Stein (2006-05-07): initial version
 """
 
 ##############################################################################

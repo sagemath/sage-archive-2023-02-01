@@ -42,7 +42,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
 
     def __contains__(self, x):
         r"""
-        True if coercion of $x$ into self is defined.
+        True if coercion of `x` into self is defined.
         """
         try:
             self(x)
@@ -60,8 +60,8 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
     def is_atomic_repr(self):
         """
         True if the elements of this group have atomic string
-        representations.  For example, integers are atomic but
-        polynomials are not.
+        representations. For example, integers are atomic but polynomials
+        are not.
         """
         return False
 
@@ -73,8 +73,8 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
 
     def order(self):
         """
-        Returns the number of elements of this group, which is either
-        a positive integer or infinity.
+        Returns the number of elements of this group, which is either a
+        positive integer or infinity.
         """
         raise NotImplementedError
 
@@ -86,7 +86,8 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
 
     def is_multiplicative(self):
         """
-        Returns True if the group operation is given by * (rather than +).
+        Returns True if the group operation is given by \* (rather than
+        +).
 
         Override for additive groups.
         """
@@ -103,7 +104,8 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
 
     def quotient(self, H):
         """
-        Return the quotient of this group by the normal subgroup $H$.
+        Return the quotient of this group by the normal subgroup
+        `H`.
         """
         raise NotImplementedError
 
@@ -129,10 +131,11 @@ cdef class FiniteGroup(Group):
 
     def cayley_graph(self):
         """
-        Returns the cayley graph for this finite group, as a SAGE
-        DiGraph object. To plot the graph with with different colors
+        Returns the cayley graph for this finite group, as a Sage DiGraph
+        object. To plot the graph with with different colors
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: D4 = DihedralGroup(4); D4
             Dihedral group of order 8 as a permutation group
             sage: G = D4.cayley_graph()
@@ -143,13 +146,16 @@ cdef class FiniteGroup(Group):
             sage: G.show3d(color_by_label=True, edge_size=0.01, edge_size2=0.02, vertex_size=0.03)
             sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time (less than a minute)
 
+        ::
+
             sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
             [()]
 
+        AUTHORS:
 
-        AUTHOR:
-            -- (2007-08-10) Bobby Moretti
-            -- (2008-05-01) Robert Miller - editing
+        - Bobby Moretti (2007-08-10)
+
+        - Robert Miller (2008-05-01): editing
         """
         from sage.graphs.graph import DiGraph
         arrows = {}

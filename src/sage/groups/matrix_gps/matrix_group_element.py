@@ -2,12 +2,15 @@
 Matrix Group Elements
 
 AUTHORS:
-   David Joyner -- initial version
-   David Joyner -- (2006-05) various modifications to address William
-                   Stein's TODO's.
-   William Stein (2006-12-09): many revisions.
 
-EXAMPLES:
+- David Joyner (2006-05): initial version David Joyner
+
+- David Joyner (2006-05): various modifications to address William
+  Stein's TODO's.
+
+- William Stein (2006-12-09): many revisions.
+
+EXAMPLES::
 
     sage: F = GF(3); MS = MatrixSpace(F,2,2)
     sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
@@ -20,17 +23,22 @@ EXAMPLES:
     [1 0]
     [0 1]
 
-You cannot add two matrices, since this is not a group
-operation.  You can coerce matrices back to the
-matrix space and add them there:
+You cannot add two matrices, since this is not a group operation.
+You can coerce matrices back to the matrix space and add them
+there::
+
     sage: g + h
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand type(s) for +: 'MatrixGroupElement' and 'MatrixGroupElement'
 
+::
+
     sage: g.matrix() + h.matrix()
     [2 0]
     [0 2]
+
+::
 
     sage: 2*g
     Traceback (most recent call last):
@@ -64,24 +72,33 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
     """
     An element of a matrix group.
 
-    EXAMPLES:
-	sage: F = GF(3); MS = MatrixSpace(F,2,2)
-        sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
-	sage: G = MatrixGroup(gens)
-	sage: g = G.random_element()
-	sage: type(g)
-	<class 'sage.groups.matrix_gps.matrix_group_element.MatrixGroupElement'>
+    EXAMPLES::
+
+        sage: F = GF(3); MS = MatrixSpace(F,2,2)
+               sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
+        sage: G = MatrixGroup(gens)
+        sage: g = G.random_element()
+        sage: type(g)
+        <class 'sage.groups.matrix_gps.matrix_group_element.MatrixGroupElement'>
     """
     def __init__(self, g, parent, check = True):
         r"""
         Create element of a matrix group.
 
         INPUT:
-            g -- a Matrix
-            parent -- defines parent group (g must be in parent or a TypeError is raised).
-            check -- bool (default: True), if true does some type checking.
 
-        TESTS:
+
+        -  ``g`` - a Matrix
+
+        -  ``parent`` - defines parent group (g must be in
+           parent or a TypeError is raised).
+
+        -  ``check`` - bool (default: True), if true does some
+           type checking.
+
+
+        TESTS::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -105,7 +122,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         One reason to compute the associated matrix is that matrices
         support a huge range of functionality.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
             sage: g = G.0
             sage: g.matrix()
@@ -114,7 +132,11 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: parent(g.matrix())
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
 
-        Matrices have extra functionality that matrix group elements do not have.
+        Matrices have extra functionality that matrix group elements do not
+        have.
+
+        ::
+
             sage: g.matrix().charpoly('t')
             t^2 + 5*t + 1
         """
@@ -122,16 +144,22 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
 
     def _gap_init_(self):
         """
-        Return a string representation of a Gap object corresponding to this matrix group element.
+        Return a string representation of a Gap object corresponding to
+        this matrix group element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])]); g = G.1
             sage: g._gap_init_() # The variable $sage27 belongs to gap(k) and is somehow random
             '[[Z(7)^0,0*Z(7)],[0*Z(7),Z(7)^2]]*One($sage27)'
             sage: gap(g._gap_init_())
             [ [ Z(7)^0, 0*Z(7) ], [ 0*Z(7), Z(7)^2 ] ]
 
-        It may be better to use gap(the matrix), since the result is cached.
+        It may be better to use gap(the matrix), since the result is
+        cached.
+
+        ::
+
             sage: gap(G.1)
             [ [ Z(7)^0, 0*Z(7) ], [ 0*Z(7), Z(7)^2 ] ]
             sage: gap(G.1).IsMatrix()
@@ -143,9 +171,12 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         r"""
         Return the GAP latex version of this matrix.
 
-        AUTHOR: S. Kohl wrote the GAP function.
+        AUTHORS:
 
-        EXAMPLES:
+        - S. Kohl: Wrote the GAP function.
+
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -155,10 +186,9 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             Z(3)^{0}&Z(3)^{0}\\%
             0*Z(3)&Z(3)^{0}\\%
             \end{array}\right)%
-            <BLANKLINE>
 
-        Type view(g._latex_()) to see the object in an xdvi window (assuming you
-        have latex and xdvi installed).
+        Type view(g._latex_()) to see the object in an xdvi window
+        (assuming you have latex and xdvi installed).
         """
         s1 = self.__mat._gap_init_()
         s2 = gap.eval("LaTeX("+s1+")")
@@ -168,7 +198,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         """
         Return string representation of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -181,7 +212,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -192,17 +224,18 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             0 & 1
             \end{array}\right)
 
-        Type \code{view(g._latex_())} to see the object in an xdvi window (assuming you
-        have latex and xdvi installed).
+        Type ``view(g._latex_())`` to see the object in an
+        xdvi window (assuming you have latex and xdvi installed).
         """
         return self.__mat._latex_()
 
     def _mul_(self,other):
         """
-        Return the product of self and other, which must have
-        identical parents.
+        Return the product of self and other, which must have identical
+        parents.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2)
             sage: gens = [MS([1,0, 0,1]), MS([1,1, 0,1])]
             sage: G = MatrixGroup(gens)
@@ -219,7 +252,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2)
             sage: gens = [MS([1,0, 0,1]), MS([1,1, 0,1])]
             sage: G = MatrixGroup(gens)
@@ -233,10 +267,11 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
     def order(self):
         """
         Return the order of this group element, which is the smallest
-        positive integer $n$ such that $g^n = 1$, or +Infinity if no
-        such integer exists.
+        positive integer `n` such that `g^n = 1`, or
+        +Infinity if no such integer exists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
             sage: G
             Matrix group over Finite Field of size 7 with 2 generators:
@@ -244,7 +279,10 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: G.order()
             21
 
-            See trac \#1170
+        See trac #1170
+
+        ::
+
             sage: gl=GL(2,ZZ); gl
             General Linear Group of degree 2 over Integer Ring
             sage: g=gl.gens()[2]; g
@@ -265,22 +303,27 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
     def word_problem(self, words=None):
         r"""
         Right this group element in terms of the elements of the list
-        \code{words}.
+        ``words``.
 
-        If G and H are permutation groups (with G the parent of self),
-        H is a subgroup of G generated by a list \code{words} of
-        elements of G. If g is in H, return the expression for g as a
-        word in the elements of \code{words}.
+        If G and H are permutation groups (with G the parent of self), H is
+        a subgroup of G generated by a list ``words`` of
+        elements of G. If g is in H, return the expression for g as a word
+        in the elements of ``words``.
 
-        ALGORITHM: Use GAP, which has optimized algorithms for solving
-        the word problem (the GAP functions EpimorphismFromFreeGroup
-        and PreImagesRepresentative).
+        ALGORITHM: Use GAP, which has optimized algorithms for solving the
+        word problem (the GAP functions EpimorphismFromFreeGroup and
+        PreImagesRepresentative).
 
         INPUT:
-            words -- list (default: None) a list of elements
-                     of the parent group; if words is empty, uses
-                     the gens of the parent group.
-        EXAMPLE:
+
+
+        -  ``words`` - list (default: None) a list of elements
+           of the parent group; if words is empty, uses the gens of the parent
+           group.
+
+
+        EXAMPLE::
+
             sage: G = GL(2,5); G
             General Linear Group of degree 2 over Finite Field of size 5
             sage: G.gens()
@@ -293,14 +336,16 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: G(1).word_problem([G.1, G.0])
             1
 
-        Next we construct a more complicated element of the group from
-        the generators:
+        Next we construct a more complicated element of the group from the
+        generators::
+
             sage: (G.0).order(), (G.1).order()
             (4, 3)
             sage: g = G.0^3 * G.1^2
 
-        We then ask to solve the word problem, with the generators
-        reversed (just to make it trickier):
+        We then ask to solve the word problem, with the generators reversed
+        (just to make it trickier)::
+
             sage: s = g.word_problem([G.1, G.0]); s
             ([2 0]
             [0 1])^-1 *
@@ -308,10 +353,15 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             [4 0])^-1
 
         It worked!
+
+        ::
+
             sage: s.prod() == g
             True
 
-        AUTHORS: David Joyner and William Stein
+        AUTHORS:
+
+        - David Joyner and William Stein
         """
         G = self.parent()
         gg = gap(G)
@@ -336,7 +386,8 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         """
         Return list representation of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)

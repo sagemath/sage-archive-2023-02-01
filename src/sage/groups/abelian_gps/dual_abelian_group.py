@@ -1,29 +1,36 @@
 r"""
-Basic functionality for dual groups of finite multiplicative Abelian groups
+Basic functionality for dual groups of finite multiplicative
+Abelian groups
 
-AUTHOR:
-    -- David Joyner (2006-08) (based on abelian_groups)
-    -- David Joyner (2006-10) modifications suggested by William Stein
+AUTHORS:
+
+- David Joyner (2006-08) (based on abelian_groups)
+
+- David Joyner (2006-10) modifications suggested by William Stein
 
 TODO:
-   * additive abelian groups should also be supported.
+
+- additive abelian groups should also be supported.
 
 The basic idea is very simple. Let G be an abelian group and
-$G^*$ its dual (i.e., the group of homomorphisms from G to
-$\CC^\times$). Let $g_j$, $j=1,..,n$, denote generators of $G$ - say $g_j$
-is of order $m_j>1$. There are generators $X_j$, $j=1,..,n$, of $G^*$ for which
-$X_j(g_j)=\exp(2\pi i/m_j)$ and $X_i(g_j)=1$ if $i\not= j$. These
-are used to construct $G^*$ in the DualAbelianGroup class below.
+`G^*` its dual (i.e., the group of homomorphisms from G to
+`\mathbb{C}^\times`). Let `g_j`,
+`j=1,..,n`, denote generators of `G` - say
+`g_j` is of order `m_j>1`. There are generators
+`X_j`, `j=1,..,n`, of `G^*` for which
+`X_j(g_j)=\exp(2\pi i/m_j)` and `X_i(g_j)=1`
+if `i\not= j`. These are used to construct `G^*` in
+the DualAbelianGroup class below.
 
-SAGE supports multiplicative abelian groups on any prescribed finite
-number $n > 0$ of generators.  Use the \code{AbelianGroup} function
-to create an abelian group, the \code{DualAbelianGroup} function
-to create its dual, and then the \code{gen} and \code{gens}
-functions to obtain the corresponding generators.  You can print the
-generators as arbitrary strings using the optional \code{names}
-argument to the \code{DualAbelianGroup} function.
-
-
+Sage supports multiplicative abelian groups on any prescribed
+finite number `n > 0` of generators. Use the
+``AbelianGroup`` function to create an abelian group,
+the ``DualAbelianGroup`` function to create its dual,
+and then the ``gen`` and ``gens`` functions
+to obtain the corresponding generators. You can print the
+generators as arbitrary strings using the optional
+``names`` argument to the
+``DualAbelianGroup`` function.
 """
 
 ##########################################################################
@@ -55,16 +62,21 @@ from sage.rings.number_field.number_field import CyclotomicField
 
 def DualAbelianGroup(G, names="X", base_ring=CC):
     r"""
-    Create the dual group of the multiplicative abelian group $G$.
+    Create the dual group of the multiplicative abelian group
+    `G`.
 
     INPUT:
-        G     -- a finite abelian group
-        names -- (optional) names of generators
 
-    OUTPUT:
-        The dual group of G.
 
-    EXAMPLES:
+    -  ``G`` - a finite abelian group
+
+    -  ``names`` - (optional) names of generators
+
+
+    OUTPUT: The dual group of G.
+
+    EXAMPLES::
+
         sage: F = AbelianGroup(5, [2,5,7,8,9], names='abcde')
         sage: (a, b, c, d, e) = F.gens()
         sage: Fd = DualAbelianGroup(F,names='ABCDE')
@@ -87,9 +99,10 @@ def DualAbelianGroup(G, names="X", base_ring=CC):
 
 def is_DualAbelianGroup(x):
     """
-    Return True if $x$ is the dual group of an abelian group.
+    Return True if `x` is the dual group of an abelian group.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.groups.abelian_gps.dual_abelian_group import is_DualAbelianGroup
         sage: F = AbelianGroup(5,[3,5,7,8,9],names = list("abcde"))
         sage: Fd = DualAbelianGroup(F)
@@ -101,7 +114,6 @@ def is_DualAbelianGroup(x):
         (X0, X1)
         sage: F.gens()
         (a0, a1)
-
     """
     return isinstance(x, DualAbelianGroup_class)
 
@@ -110,20 +122,19 @@ class DualAbelianGroup_class(group.AbelianGroup):
     """
     Dual of abelian group.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: F = AbelianGroup(5,[3,5,7,8,9],names = list("abcde"))
         sage: DualAbelianGroup(F)
         Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
         sage: F = AbelianGroup(4,[15,7,8,9],names = list("abcd"))
         sage: DualAbelianGroup(F)
         Dual of Abelian Group isomorphic to Z/15Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
-
     """
     def __init__(self, G, names="X", bse_ring=None):
         """
-        If G has invariants invs = [n1,...,nk] then
-        the default base_ring is CyclotoomicField(N), where
-        N = LCM(n1,...,nk).
+        If G has invariants invs = [n1,...,nk] then the default base_ring
+        is CyclotoomicField(N), where N = LCM(n1,...,nk).
         """
         if bse_ring == None:
             base_ring = CyclotomicField(LCM(G.invariants()))
@@ -143,19 +154,20 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Print method.
 
-        EXAMPLES:
-            sage: F = AbelianGroup(3,[5,64,729],names = list("abc"))
-            sage: Fd = DualAbelianGroup(F)
-	    sage: print Fd
-            DualAbelianGroup( AbelianGroup ( 3, [5, 64, 729] ) )
+        EXAMPLES::
 
+                   sage: F = AbelianGroup(3,[5,64,729],names = list("abc"))
+                   sage: Fd = DualAbelianGroup(F)
+            sage: print Fd
+                   DualAbelianGroup( AbelianGroup ( 3, [5, 64, 729] ) )
         """
         s = "DualAbelianGroup( AbelianGroup ( %s, %s ) )"%(self.ngens(), self.invariants())
         return s
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(5, [2,5,7,8,9], names='abcde')
             sage: Fd = DualAbelianGroup(F,names='ABCDE',base_ring = CyclotomicField(2*5*7*8*9))
             sage: Fd
@@ -180,21 +192,22 @@ class DualAbelianGroup_class(group.AbelianGroup):
         r"""
         Return latex representation of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(3, [2]*3)
             sage: Fd = DualAbelianGroup(F)
             sage: Fd._latex_()
             '${\rm DualAbelianGroup}( AbelianGroup ( 3, [2, 2, 2] ) )$'
-
         """
         s = "${\rm DualAbelianGroup}( AbelianGroup ( %s, %s ) )$"%(self.ngens(), self.invariants())
         return s
 
     def __call__(self, x):
         """
-        Create an element of this abelian group from $x$.
+        Create an element of this abelian group from `x`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(10, [2]*10)
             sage: Fd = DualAbelianGroup(F)
             sage: Fd(Fd.2)
@@ -210,7 +223,8 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Return a random element of this dual group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = DualAbelianGroup(G)
             sage: Gd.random_element()
@@ -225,7 +239,6 @@ class DualAbelianGroup_class(group.AbelianGroup):
             A^615
             sage: len([a for a in [x,y,z] if abs(X(a)-1)>10^(-8)])
             2
-
         """
         from sage.misc.prandom import randint
         gens = self.gens()
@@ -236,16 +249,17 @@ class DualAbelianGroup_class(group.AbelianGroup):
 
     def random(self):
         """
-        Deprecated.  Use self.random_element() instead.
+        Deprecated. Use self.random_element() instead.
         """
         raise NotImplementedError, "Deprecated: use random_element() instead"
 
 
     def gen(self, i=0):
         """
-        The $i$-th generator of the abelian group.
+        The `i`-th generator of the abelian group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(3,[1,2,3],names='a')
             sage: Fd = DualAbelianGroup(F, names="A")
             sage: Fd.0
@@ -274,7 +288,8 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         The number of generators of the dual group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(1000)
             sage: Fd = DualAbelianGroup(F)
             sage: Fd.ngens()
@@ -288,7 +303,8 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         The invariants of the dual group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(1000)
             sage: Fd = DualAbelianGroup(F)
             sage: invs = Fd.invariants(); len(invs)
@@ -302,14 +318,14 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Implements "in".
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = AbelianGroup(5,[2, 3, 5, 7, 8], names="abcde")
             sage: a,b,c,d,e = F.gens()
             sage: Fd = DualAbelianGroup(F, names = "ABCDE")
             sage: A,B,C,D,E = Fd.gens()
             sage: A*B^2*D^7 in Fd
             True
-
         """
         return X.parent() == self and is_DualAbelianGroupElement(X)
 
@@ -317,12 +333,12 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Return the order of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = DualAbelianGroup(G)
             sage: Gd.order()
             54
-
         """
         G = self.group()
         return G.order()
@@ -331,14 +347,14 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Return True since this group is commutative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = DualAbelianGroup(G)
             sage: Gd.is_commutative()
             True
             sage: Gd.is_abelian()
             True
-
         """
         return True
 
@@ -346,12 +362,12 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Return list of all elements of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup([2,3], names = "ab")
             sage: Gd = DualAbelianGroup(G, names = "AB")
             sage: Gd.list()
             [1, B, B^2, A, A*B, A*B^2]
-
         """
         try:
             return list(self.__list)
@@ -370,7 +386,8 @@ class DualAbelianGroup_class(group.AbelianGroup):
         """
         Return an iterator over the elements of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = AbelianGroup([2,3], names = "ab")
             sage: Gd = DualAbelianGroup(G, names = "AB")
             sage: [X for X in Gd]
@@ -385,7 +402,6 @@ class DualAbelianGroup_class(group.AbelianGroup):
             sage: z = a^(N/14)
             sage: len([X for X in Gd if abs(X(x)-1)>0.01 and abs(X(y)-1)>0.01 and abs(X(z)-1)>0.01])
             880
-
         """
         for g in self.list():
             yield g

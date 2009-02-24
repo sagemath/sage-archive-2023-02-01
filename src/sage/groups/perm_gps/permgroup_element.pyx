@@ -2,12 +2,15 @@
 Permutation group elements
 
 AUTHORS:
-    - David Joyner (2006-02)
-    - David Joyner (2006-03), word problem method and reorganization
-    - Robert Bradshaw (2007-11), convert to Cython
 
-EXAMPLES:
-The Rubik's cube group:
+- David Joyner (2006-02)
+
+- David Joyner (2006-03): word problem method and reorganization
+
+- Robert Bradshaw (2007-11): convert to Cython
+
+EXAMPLES: The Rubik's cube group::
+
     sage: f= [(17,19,24,22),(18,21,23,20),(6,25,43,16),(7,28,42,13),(8,30,41,11)]
     sage: b=[(33,35,40,38),(34,37,39,36),( 3, 9,46,32),( 2,12,47,29),( 1,14,48,27)]
     sage: l=[( 9,11,16,14),(10,13,15,12),( 1,17,41,40),( 4,20,44,37),( 6,22,46,35)]
@@ -27,13 +30,16 @@ The Rubik's cube group:
     4
 
 The interested user may wish to explore the following commands:
-move = cube.random_element() and time word_problem([F,B,L,R,U,D], move, False).
-This typically takes about 5 minutes (on a 2 Ghz machine) and outputs
-a word ('solving' the cube in the position move) with about 60 terms
-or so.
+move = cube.random_element() and time word_problem([F,B,L,R,U,D],
+move, False). This typically takes about 5 minutes (on a 2 Ghz
+machine) and outputs a word ('solving' the cube in the position
+move) with about 60 terms or so.
 
-OTHER EXAMPLES:
-We create element of a permutation group of large degree.
+OTHER EXAMPLES: We create element of a permutation group of large
+degree.
+
+::
+
     sage: G = SymmetricGroup(30)
     sage: s = G(srange(30,0,-1)); s
     (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
@@ -92,7 +98,8 @@ def gap_format(x):
 
 def string_to_tuples(g):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.groups.perm_gps.permgroup_element import string_to_tuples
         sage: string_to_tuples('(1,2,3)')
         [(1, 2, 3)]
@@ -102,7 +109,6 @@ def string_to_tuples(g):
         [(1, 2, 3), (4, 5)]
         sage: string_to_tuples('(1,2)(3)')
         [(1, 2), (3,)]
-
     """
     from sage.misc.all import sage_eval
 
@@ -119,7 +125,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     """
     An element of a permutation group.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: G = PermutationGroup(['(1,2,3)(4,5)'])
         sage: G
         Permutation Group with generators [(1,2,3)(4,5)]
@@ -145,6 +152,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     This example illustrates how permutations act on multivariate
     polynomials.
 
+    ::
+
         sage: R = PolynomialRing(RationalField(), 5, ["x","y","z","u","v"])
         sage: x, y, z, u, v = R.gens()
         sage: f = x**2 - y**2 + 3*z**2
@@ -152,38 +161,47 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         sage: sigma = G.gen(0)
         sage: f * sigma
         3*x^2 + y^2 - z^2
-
     """
     def __init__(self, g, parent = None, check = True):
         r"""
         Create element of a permutation group.
 
         There are several ways to define a permutation group element:
-        \begin{itemize}
-        \item  Define a permutation group $G$, then use
-               \code{G.gens()} and multiplication * to construct
-               elements.
-        \item Define a permutation group $G$, then use e.g.,
-               \code{G([(1,2),(3,4,5)])} to construct an element of
-               the group.  You could also use \code{G('(1,2)(3,4,5)')}
-        \item Use e.g., \code{PermutationGroupElement([(1,2),(3,4,5)])}
-        or \code{PermutationGroupElement('(1,2)(3,4,5)')}
-              to make a permutation group element with parent $S_5$.
-        \end{itemize}
+
+
+        -  Define a permutation group `G`, then use
+           ``G.gens()`` and multiplication \* to construct
+           elements.
+
+        -  Define a permutation group `G`, then use e.g.,
+           ``G([(1,2),(3,4,5)])`` to construct an element of the
+           group. You could also use ``G('(1,2)(3,4,5)')``
+
+        -  Use e.g.,
+           ``PermutationGroupElement([(1,2),(3,4,5)])`` or
+           ``PermutationGroupElement('(1,2)(3,4,5)')`` to make a
+           permutation group element with parent `S_5`.
+
 
         INPUT:
-            g -- defines element
-            parent (optional) -- defines parent group (g must be in parent if
-                                 specified, or a TypeError is raised).
-            check -- bool (default: True), if False assumes g is a
-                     gap element in parent (if specified).
 
-        EXAMPLES:
-        We illustrate construction of permutation using several
+
+        -  ``g`` - defines element
+
+        -  ``parent (optional)`` - defines parent group (g must
+           be in parent if specified, or a TypeError is raised).
+
+        -  ``check`` - bool (default: True), if False assumes g
+           is a gap element in parent (if specified).
+
+
+        EXAMPLES: We illustrate construction of permutation using several
         different methods.
 
-        First we construct elements by multiplying together generators
-        for a group.
+        First we construct elements by multiplying together generators for
+        a group.
+
+        ::
 
             sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'], canonicalize=False)
             sage: s = G.gens()
@@ -196,8 +214,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: (s[0]*s[1]).parent()
             Permutation Group with generators [(1,2)(3,4), (3,4,5,6)]
 
-        Next we illustrate creation of a permutation using
-        coercion into an already-created group.
+        Next we illustrate creation of a permutation using coercion into an
+        already-created group.
+
+        ::
 
             sage: g = G([(1,2),(3,5,6)])
             sage: g
@@ -207,18 +227,22 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g == s[0]*s[1]
             True
 
-        We can also use a string instead of a list to specify
-        the permutation.
+        We can also use a string instead of a list to specify the
+        permutation.
+
+        ::
 
             sage: h = G('(1,2)(3,5,6)')
             sage: g == h
             True
 
-        We can also make a permutation group element directly
-        using the \code{PermutationGroupElement} command.  Note
-        that the parent is then the full symmetric group $S_n$,
-        where $n$ is the largest integer that is moved by the
+        We can also make a permutation group element directly using the
+        ``PermutationGroupElement`` command. Note that the
+        parent is then the full symmetric group `S_n`, where
+        `n` is the largest integer that is moved by the
         permutation.
+
+        ::
 
             sage: k = PermutationGroupElement('(1,2)(3,5,6)')
             sage: k
@@ -226,40 +250,47 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: k.parent()
             Symmetric group of order 6! as a permutation group
 
-        Note the comparison of permutations doesn't require that the
-        parent groups are the same.
+        Note the comparison of permutations doesn't require that the parent
+        groups are the same.
+
+        ::
 
             sage: k == g
             True
 
-        Arithmetic with permutations having different parents is also defined:
+        Arithmetic with permutations having different parents is also
+        defined::
 
             sage: k*g
             (3,6,5)
             sage: (k*g).parent()
             Symmetric group of order 6! as a permutation group
 
+        ::
+
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
             sage: loads(dumps(G.0)) == G.0
             True
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = PermutationGroupElement('(1,2)(3,5,6)')
             sage: k._gap_()
             (1,2)(3,5,6)
             sage: k._gap_().parent()
             Gap
 
-        List notation:
+        List notation::
+
             sage: PermutationGroupElement([1,2,4,3,5])
             (3,4)
 
-        TESTS:
+        TESTS::
+
             sage: PermutationGroupElement(())
             ()
             sage: PermutationGroupElement([()])
             ()
-
         """
         from sage.interfaces.gap import GapElement
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -353,15 +384,17 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return string representation of this permutation.
 
-        EXAMPLES:
-        We create the permutation $(1,2,3)(4,5)$ and print it.
+        EXAMPLES: We create the permutation `(1,2,3)(4,5)` and
+        print it.
+
+        ::
 
             sage: g = PermutationGroupElement([(1,2,3),(4,5)])
             sage: g._repr_()
             '(1,2,3)(4,5)'
 
-        Permutation group elements support renaming them so
-        they print however you want, as illustred below:
+        Permutation group elements support renaming them so they print
+        however you want, as illustred below::
 
             sage: g.rename('sigma')
             sage: g
@@ -384,12 +417,15 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         representation of self.
 
         INPUT:
-            i -- integer
 
-        OUTPUT:
-            a permutation group element
 
-        EXAMPLE:
+        -  ``i`` - integer
+
+
+        OUTPUT: a permutation group element
+
+        EXAMPLE::
+
             sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
             sage: g = G.gen(0)
             sage: g[0]
@@ -403,7 +439,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Compare group elements self and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = PermutationGroup([[(3,4)], [(1,2,3),(4,5)]])
             sage: G.gen(0) < G.gen(1)
             True
@@ -423,10 +460,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     def __call__(self, i):
         """
         Returns the image of the integer i under this permutation.
-        Alternately, if i is a list, tuple or string, returns the
-        result of self acting on i.
+        Alternately, if i is a list, tuple or string, returns the result of
+        self acting on i.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G
             Permutation Group with generators [(1,2,3)(4,5)]
@@ -440,6 +478,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g(('who','what','when','where','why'))
             ('what', 'when', 'who', 'why', 'where')
 
+        ::
+
             sage: g(x)
             Traceback (most recent call last):
             ...
@@ -448,7 +488,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             ValueError: Must be an integer, list, tuple or string.
-
         """
         cdef int j
         if isinstance(i,(list,tuple,str)):
@@ -472,15 +511,20 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return the right action of self on left.
 
-        For example, if f=left is a polynomial, then this function
-        returns f(sigma*x), which is image of f under the right action
-        of sigma on the indeterminates.  This is a right action since
-        the image of f(sigma*x) under tau is f(sigma*tau*x).
+        For example, if f=left is a polynomial, then this function returns
+        f(sigma\*x), which is image of f under the right action of sigma on
+        the indeterminates. This is a right action since the image of
+        f(sigma\*x) under tau is f(sigma\*tau\*x).
 
         INPUT:
-            left -- element of space on which permutations act from the right
 
-        EXAMPLES:
+
+        -  ``left`` - element of space on which permutations
+           act from the right
+
+
+        EXAMPLES::
+
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: R.<x,y,z,u,v> = PolynomialRing(QQ,5)
             sage: f = x^2 + y^2 - z^2 + 2*u^2
@@ -527,7 +571,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return the inverse of this permutation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = PermutationGroupElement('(1,2,3)(4,5)')
             sage: ~g
             (1,3,2)(4,5)
@@ -542,10 +587,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     cpdef list(self):
         """
-        Returns list of the images of the integers from 1 to n under
-        this permutation as a list of Python ints.
+        Returns list of the images of the integers from 1 to n under this
+        permutation as a list of Python ints.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SymmetricGroup(4)
             sage: x = G([2,1,4,3]); x
             (1,2)(3,4)
@@ -565,7 +611,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return hash of this permutation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SymmetricGroup(5)
             sage: s = G([2,1,5,3,4])
             sage: s.tuple()
@@ -583,7 +630,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return tuple of images of integers under self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SymmetricGroup(5)
             sage: s = G([2,1,5,3,4])
             sage: s.tuple()
@@ -595,15 +643,17 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def dict(self):
         """
-        Returns list of the images of the integers from 1 to n under
-        this permutation as a list of Python ints.
+        Returns list of the images of the integers from 1 to n under this
+        permutation as a list of Python ints.
 
-        NOTE:
-            self.list() returns a zero-indexed list.  self.dict() return
-            the actual mapping of the permutation, which will be indexed
-            starting with 1.
+        .. note::
 
-        EXAMPLES:
+           :meth:`.list` returns a zero-indexed list. :meth:`.dict`
+           return the actual mapping of the permutation, which will be
+           indexed starting with 1.
+
+        EXAMPLES::
+
             sage: G = SymmetricGroup(4)
             sage: g = G((1,2,3,4)); g
             (1,2,3,4)
@@ -625,14 +675,16 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     def order(self):
         """
         Return the order of this group element, which is the smallest
-        positive integer $n$ for which $g^n = 1$.
+        positive integer `n` for which `g^n = 1`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
             sage: s.order()
             6
 
-        TESTS:
+        TESTS::
+
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
@@ -665,18 +717,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def sign(self):
         """
-        Returns the sign of self, which is $(-1)^{s}$, where $s$ is
-        the number of swaps.
+        Returns the sign of self, which is `(-1)^{s}`, where
+        `s` is the number of swaps.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
             sage: s.sign()
             -1
 
-        ALGORITHM:
-            Only even cycles contribute to the sign, thus
-            $$sign(sigma) = (-1)^{\sum_c len(c)-1}$$
-            where the sum is over cycles in self.
+        ALGORITHM: Only even cycles contribute to the sign, thus
+
+        .. math::
+
+            sign(sigma) = (-1)^{\sum_c len(c)-1}
+
+
+        where the sum is over cycles in self.
         """
         cdef int cycle_len_sum = 0
         cdef int i, k
@@ -696,10 +753,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def orbit(self, n, bint sorted=True):
         """
-        Returns the orbit of the integer $n$ under this group element,
-        as a sorted list of integers.
+        Returns the orbit of the integer `n` under this group
+        element, as a sorted list of integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: g = G.gen(0)
             sage: g.orbit(4)
@@ -727,7 +785,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         Return self as a list of disjoint cycles.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = PermutationGroup(['(1,2,3)(4,5,6,7)'])
             sage: g = G.0
             sage: g.cycles()
@@ -757,8 +816,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def cycle_tuples(self):
         """
-        Return self as a list of disjoint cycles, represented
-        as tuples rather than permutation group elements.
+        Return self as a list of disjoint cycles, represented as tuples
+        rather than permutation group elements.
         """
         L = []
         cdef int i, k
@@ -779,10 +838,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def matrix(self):
         """
-        Returns deg x deg permutation matrix associated
-        to the permutation self
+        Returns deg x deg permutation matrix associated to the permutation
+        self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: g = G.gen(0)
             sage: g.matrix()
@@ -802,16 +862,17 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     def word_problem(g, words, display=True):
         """
         G and H are permutation groups, g in G, H is a subgroup of G
-        generated by a list (words) of elements of G. If g is in H,
-        return the expression for g as a word in the elements of
-        (words).
+        generated by a list (words) of elements of G. If g is in H, return
+        the expression for g as a word in the elements of (words).
 
-        This function does not solve the word problem in SAGE. Rather
-        it pushes it over to GAP, which has optimized algorithms for
-        the word problem. Essentially, this function is a wrapper for the GAP
-        functions "EpimorphismFromFreeGroup" and "PreImagesRepresentative".
+        This function does not solve the word problem in Sage. Rather it
+        pushes it over to GAP, which has optimized algorithms for the word
+        problem. Essentially, this function is a wrapper for the GAP
+        functions "EpimorphismFromFreeGroup" and
+        "PreImagesRepresentative".
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]], canonicalize=False)
             sage: g1 = G.gens()[0]
             sage: g2 = G.gens()[1]
@@ -860,10 +921,11 @@ cdef bint is_valid_permutation(int* perm, int n):
     """
     This is used in the __init__ method.
 
-    Returns True iff the first n elements of perm are literally
-    a permutation of [0, ..., n-1].
+    Returns True iff the first n elements of perm are literally a
+    permutation of [0, ..., n-1].
 
-    TESTS:
+    TESTS::
+
         sage: S = SymmetricGroup(10)
         sage: PermutationGroupElement([2,1],S,check=False)
         (1,2)

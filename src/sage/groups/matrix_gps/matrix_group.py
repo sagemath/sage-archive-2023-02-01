@@ -2,19 +2,26 @@
 Matrix Groups
 
 AUTHORS:
-   William Stein -- initial version
-   David Joyner  -- degree, base_ring, _contains_, list, random, order
-                    methods; examples (2006-03-15)
-   William Stein (2006-12) -- rewrite
-   DJ (2007-12) -- Added invariant_generators (with M Albrecht, S King)
-   DJ (2008-08) -- Added module_composition_factors (interface to
-                   GAP's meataxe implementation) and as_permutation_group
-                   (returns isomorphic PermutationGroup).
 
-This class is designed for computing with matrix groups defined by a
-(relatively small) finite set of generating matrices.
+- William Stein: initial version
 
-EXAMPLES:
+- David Joyner (2006-03-15): degree, base_ring, _contains_, list,
+  random, order methods; examples
+
+- William Stein (2006-12): rewrite
+
+- David Joyner (2007-12): Added invariant_generators (with Martin
+  Albrecht and Simon King)
+
+- David Joyner (2008-08): Added module_composition_factors (interface
+  to GAP's MeatAxe implementation) and as_permutation_group (returns
+  isomorphic PermutationGroup).
+
+This class is designed for computing with matrix groups defined by
+a (relatively small) finite set of generating matrices.
+
+EXAMPLES::
+
     sage: F = GF(3)
     sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
     sage: G = MatrixGroup(gens)
@@ -36,7 +43,8 @@ EXAMPLES:
     [0 2]
     ]
 
-Loading and saving work:
+Loading and saving work::
+
     sage: G = GL(2,5); G
     General Linear Group of degree 2 over Finite Field of size 5
     sage: loads(dumps(G)) == G
@@ -81,7 +89,8 @@ class MatrixGroup_generic(Group):
 
 def is_MatrixGroup(x):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.groups.matrix_gps.matrix_group import is_MatrixGroup
         sage: is_MatrixGroup(MatrixSpace(QQ,3))
         False
@@ -99,25 +108,35 @@ def MatrixGroup(gens):
     Return the matrix group with given generators.
 
     INPUT:
-         gens -- list of matrices in a matrix space or matrix group
 
-    EXAMPLES:
+
+    -  ``gens`` - list of matrices in a matrix space or
+       matrix group
+
+
+    EXAMPLES::
+
         sage: F = GF(5)
         sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
         sage: G = MatrixGroup(gens); G
         Matrix group over Finite Field of size 5 with 2 generators:
-         [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+        [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
 
-    In the second example, the generators are a matrix over $\ZZ$, a
-    matrix over a finite field, and the integer $2$.  SAGE determines
-    that they both canonically map to matrices over the finite field,
-    so creates that matrix group there.
+    In the second example, the generators are a matrix over
+    `\mathbb{Z}`, a matrix over a finite field, and the integer
+    `2`. Sage determines that they both canonically map to
+    matrices over the finite field, so creates that matrix group
+    there.
+
+    ::
+
         sage: gens = [matrix(2,[1,2, -1, 1]), matrix(GF(7), 2, [1,1, 0,1]), 2]
         sage: G = MatrixGroup(gens); G
         Matrix group over Finite Field of size 7 with 3 generators:
-         [[[1, 2], [6, 1]], [[1, 1], [0, 1]], [[2, 0], [0, 2]]]
+        [[[1, 2], [6, 1]], [[1, 1], [0, 1]], [[2, 0], [0, 2]]]
 
-    Each generator must be invertible:
+    Each generator must be invertible::
+
         sage: G = MatrixGroup([matrix(ZZ,2,[1,2,3,4])])
         Traceback (most recent call last):
         ...
@@ -125,7 +144,8 @@ def MatrixGroup(gens):
         [1 2]
         [3 4]
 
-    Some groups aren't supported:
+    Some groups aren't supported::
+
         sage: SL(2, CC).gens()
         Traceback (most recent call last):
         ...
@@ -156,10 +176,14 @@ class MatrixGroup_gap(MatrixGroup_generic):
     def __init__(self, n, R, var='a'):
         """
         INPUT:
-            n -- the degree
-            R -- the base ring
-            var -- variable used to define field of definition of
-                   actual matrices in this group.
+
+
+        -  ``n`` - the degree
+
+        -  ``R`` - the base ring
+
+        -  ``var`` - variable used to define field of
+           definition of actual matrices in this group.
         """
         if not is_Ring(R):
             raise TypeError, "R (=%s) must be a ring"%R
@@ -184,7 +208,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     def __call__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
             sage: G.matrix_space()
@@ -220,10 +245,11 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return the matrix space corresponding to this matrix group.
 
-        This is a matrix space over the field of definition of this
-        matrix group.
+        This is a matrix space over the field of definition of this matrix
+        group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
             sage: G.matrix_space()
@@ -240,7 +266,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return the degree of this matrix group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SU(5,5).degree()
             5
         """
@@ -248,13 +275,15 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     def field_of_definition(self, var='a'):
         """
-        Return a field that contains all the matrices in this matrix group.
+        Return a field that contains all the matrices in this matrix
+        group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SU(3,GF(5))
             sage: G.base_ring()
-	    Finite Field of size 5
-	    sage: G.field_of_definition()
+            Finite Field of size 5
+            sage: G.field_of_definition()
             Finite Field in a of size 5^2
             sage: G = GO(4,GF(7),1)
             sage: G.field_of_definition()
@@ -268,7 +297,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return the base ring of this matrix group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GL(2,GF(3)).base_ring()
             Finite Field of size 3
             sage: G = SU(3,GF(5))
@@ -285,7 +315,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return True if this matrix group is finite.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GL(2,GF(3))
             sage: G.is_finite()
             True
@@ -298,9 +329,10 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     def order(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = Sp(4,GF(3))
-	    sage: G.order()
+            sage: G.order()
             51840
             sage: G = SL(4,GF(3))
             sage: G.order()
@@ -323,7 +355,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return generators for this matrix group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GO(3,GF(5))
             sage: G.gens()
             [
@@ -350,7 +383,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return the number of generators of this linear group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GO(3,GF(5))
             sage: G.ngens()
             2
@@ -362,7 +396,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return the n-th generator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GU(4,GF(5), var='beta')
             sage: G.gen(0)
             [  beta      0      0      0]
@@ -374,14 +409,17 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
     def as_matrix_group(self):
         """
-        Return this group, but as a general matrix group, i.e., throw
-        away the extra structure of general unitary group.
+        Return this group, but as a general matrix group, i.e., throw away
+        the extra structure of general unitary group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SU(4,GF(5))
             sage: G.as_matrix_group()
             Matrix group over Finite Field in a of size 5^2 with 2 generators:
             [[[a, 0, 0, 0], [0, 2*a + 3, 0, 0], [0, 0, 4*a + 1, 0], [0, 0, 0, 3*a]], [[1, 0, 4*a + 3, 0], [1, 0, 0, 0], [0, 2*a + 4, 0, 1], [0, 3*a + 1, 0, 0]]]
+
+        ::
 
             sage: G = GO(3,GF(5))
             sage: G.as_matrix_group()
@@ -395,15 +433,17 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return list of all elements of this group.
 
-        Always returns a new list, so it is safe to change the returned list.
+        Always returns a new list, so it is safe to change the returned
+        list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3)
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
-	    sage: G = MatrixGroup(gens)
-	    sage: G.order()
-	    24
-	    sage: v = G.list()
+            sage: G = MatrixGroup(gens)
+            sage: G.order()
+            24
+            sage: v = G.list()
             sage: len(v)
             24
             sage: v[:2]
@@ -411,7 +451,9 @@ class MatrixGroup_gap(MatrixGroup_generic):
             [2 0], [0 1]
             [2 1]]
             sage: G.list()[0] in G
-	    True
+            True
+
+        ::
 
             sage: GL(2,ZZ).list()
             Traceback (most recent call last):
@@ -458,7 +500,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Returns the list of irreducible characters of the group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GL(2,2)
             sage: G.irreducible_characters()
             [Character of General Linear Group of degree 2 over Finite Field of size 2,
@@ -479,9 +522,10 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
     """
     def order(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = Sp(4,GF(3))
-	    sage: G.order()
+            sage: G.order()
             51840
             sage: G = SL(4,GF(3))
             sage: G.order()
@@ -501,13 +545,16 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
         """
         Return a random element of this group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = Sp(4,GF(3))
             sage: G.random_element()
             [2 1 1 1]
             [1 0 2 1]
             [0 1 1 0]
             [1 0 0 1]
+
+        ::
 
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
@@ -529,16 +576,17 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
 
     def random(self):
         """
-        Deprecated.  Use self.random_element() instead.
+        Deprecated. Use self.random_element() instead.
         """
         raise NotImplementedError, "Deprecated: use random_element() instead"
 
 
     def __contains__(self, x):
         """
-        Return True if $x$ is an element of this abelian group.
+        Return True if `x` is an element of this abelian group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
             sage: G
@@ -575,10 +623,11 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
 
     def conjugacy_class_representatives(self):
         """
-        Return a set of representatives for each of the conjugacy
-        classes of the group.
+        Return a set of representatives for each of the conjugacy classes
+        of the group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SU(3,GF(2))
             sage: len(G.conjugacy_class_representatives())
             16
@@ -603,7 +652,8 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
         """
         Return the center of this linear group as a matrix group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SU(3,GF(2))
             sage: G.center()
             Matrix group over Finite Field in a of size 2^2 with 1 generators:
@@ -635,6 +685,8 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     A ValueError is raised if one of the generators is not invertible.
 
+    ::
+
         sage: F = GF(5); MS = MatrixSpace(F,2,2)
         sage: G = MatrixGroup([MS.0])
         Traceback (most recent call last):
@@ -658,13 +710,16 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def as_permutation_group(self, method =None):
         r"""
-        This returns a permutation group representation for the group. In most cases
-        occurring in practice, this is a permutation group of minimal degree (the degree
-        begin determined from orbits under the group action). When these orbits are hard to
-        compute, the procedure can be time-consuming and the degree may not be minimal.
-        The "method=smaller" option tries return an isomorphic group of lower degree.
+        This returns a permutation group representation for the group. In
+        most cases occurring in practice, this is a permutation group of
+        minimal degree (the degree begin determined from orbits under the
+        group action). When these orbits are hard to compute, the procedure
+        can be time-consuming and the degree may not be minimal. The
+        "method=smaller" option tries return an isomorphic group of lower
+        degree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS = MatrixSpace( GF(2), 5, 5)
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
@@ -688,10 +743,11 @@ class MatrixGroup_gens(MatrixGroup_gap):
             Permutation Group with generators [(1,2)(3,7,13,25,45,5,10,19,35,60)(8,16,30,41,69,11,22,40,31,54)(14,28,49,80,91,20,38,64,93,78)(17,33,57,26,48,23,43,72,36,63)(46,61)(52,73,55,76,94,67,58,70,89,81), (1,3,8,17)(2,5,11,23)(7,14)(10,20)(13,26,49,81)(16,31,55,72)(19,36,64,94)(22,41,70,57)(25,46,76,93)(28,38)(30,52,63,91)(33,58)(35,61,89,80)(40,67,48,78)(43,73)(45,69)(54,60), (1,4)(2,6)(3,9)(5,12)(7,15)(8,18)(10,21)(11,24)(13,27)(14,29)(16,32)(17,34)(19,37)(20,39)(22,42)(23,44)(25,47)(26,50)(28,51)(30,53)(31,56)(33,59)(35,62)(36,65)(38,66)(40,68)(41,71)(43,74)(45,75)(46,77)(48,79)(49,82)(52,83)(54,84)(55,85)(57,86)(58,87)(60,88)(61,90)(63,92)(64,95)(67,96)(69,97)(70,98)(72,99)(73,100)(76,101)(78,102)(80,103)(81,104)(89,105)(91,106)(93,107)(94,108)]
 
         In this case, the "smaller" option returned an isomorphic group of
-        lower degree. The above example used GAP's library of irreducible maximal
-        finite ("imf") integer matrix groups to construct the MatrixGroup G
-        over GF(7). The section "Irreducible Maximal Finite Integral Matrix
-        Groups" in the GAP reference manual has more details.
+        lower degree. The above example used GAP's library of irreducible
+        maximal finite ("imf") integer matrix groups to construct the
+        MatrixGroup G over GF(7). The section "Irreducible Maximal Finite
+        Integral Matrix Groups" in the GAP reference manual has more
+        details.
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         F = self.base_ring()
@@ -718,11 +774,13 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def module_composition_factors(self, method=None):
         r"""
-        Returns a list of triples consisting of [base field, dimension, irreducibility],
-        for each of the Meataxe composition factors modules. The method="verbose" option
-        returns more information, but in Meataxe notation.
+        Returns a list of triples consisting of [base field, dimension,
+        irreducibility], for each of the Meataxe composition factors
+        modules. The method="verbose" option returns more information, but
+        in Meataxe notation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F=GF(3);MS=MatrixSpace(F,4,4)
             sage: M=MS(0)
             sage: M[0,1]=1;M[1,2]=1;M[2,3]=1;M[3,0]=1
@@ -737,10 +795,11 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: G.module_composition_factors()
             [[Finite Field of size 7, 2, True]]
 
-        Type "G.module_composition_factors(method='verbose')" to get
-        a more verbose version.
+        Type "G.module_composition_factors(method='verbose')" to get a
+        more verbose version.
 
-        For more on MeatAxe notation, see http://www.gap-system.org/Manuals/doc/htm/ref/CHAP067.htm
+        For more on MeatAxe notation, see
+        http://www.gap-system.org/Manuals/doc/htm/ref/CHAP067.htm
         """
         from sage.misc.sage_eval import sage_eval
         F = self.base_ring()
@@ -770,16 +829,19 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def gens(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
-	    sage: G = MatrixGroup(gens)
+            sage: G = MatrixGroup(gens)
             sage: gens[0] in G
             True
             sage: gens = G.gens()
             sage: gens[0] in G
             True
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
+
+        ::
 
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
@@ -803,7 +865,8 @@ class MatrixGroup_gens(MatrixGroup_gap):
         """
         Returns a string representation of the corresponding GAP object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -818,7 +881,8 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -831,7 +895,8 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
@@ -851,8 +916,9 @@ class MatrixGroup_gens(MatrixGroup_gap):
         """
         Wraps Singular's invariant_algebra_reynolds and invariant_ring
         in finvar.lib, with help from Simon King and Martin Albrecht.
-        Computes generators for the polynomial ring $F[x_1,\ldots,x_n]^G$, where
-        G in GL(n,F) is a finite matrix group.
+        Computes generators for the polynomial ring
+        `F[x_1,\ldots,x_n]^G`, where G in GL(n,F) is a finite
+        matrix group.
 
         In the "good characteristic" case the polynomials returned form a
         minimal generating set for the algebra of G-invariant polynomials.
@@ -860,7 +926,8 @@ class MatrixGroup_gens(MatrixGroup_gap):
         secondary invariants, forming a not necessarily minimal generating
         set for the algebra of G-invariant polynomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = GF(7); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)
@@ -893,15 +960,17 @@ class MatrixGroup_gens(MatrixGroup_gap):
              x1^24 + 10626/1025*x1^20*x2^4 + 735471/1025*x1^16*x2^8 + 2704156/1025*x1^12*x2^12 + 735471/1025*x1^8*x2^16 + 10626/1025*x1^4*x2^20 + x2^24]
 
         AUTHORS:
-           David Joyner, Simon King and Martin Albrecht.
+
+        - David Joyner, Simon King and Martin Albrecht.
 
         REFERENCES:
-          1. Singular reference manual
-          2. B. Sturmfels, "Algorithms in invariant theory", Springer-Verlag,
-             1993.
-          3. S. King, "Minimal Generating Sets of non-modular invariant
-             rings of finite groups", arXiv:math.AC/0703035
 
+        - Singular reference manual
+
+        - B. Sturmfels, "Algorithms in invariant theory", Springer-Verlag, 1993.
+
+        - S. King, "Minimal Generating Sets of non-modular invariant rings of
+          finite groups", arXiv:math.AC/0703035
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.interfaces.singular import singular

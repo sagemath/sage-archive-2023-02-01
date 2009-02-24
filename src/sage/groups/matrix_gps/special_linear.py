@@ -1,52 +1,56 @@
 """
 Special Linear Groups
 
-AUTHOR:
-    -- William Stein: initial version
-    -- David Joyner (2006-05) - added examples, _latex_, __str__, gens,
-                                      as_matrix_group
-    -- William Stein (2006-12-09): rewrite
+AUTHORS:
 
-EXAMPLES:
-        sage: SL(2, ZZ)
-        Special Linear Group of degree 2 over Integer Ring
-        sage: G = SL(2,GF(3)); G
-        Special Linear Group of degree 2 over Finite Field of size 3
-        sage: G.is_finite()
-        True
-        sage: G.conjugacy_class_representatives()
-        [
-        [1 0]
-        [0 1],
-        [0 2]
-        [1 1],
-        [0 1]
-        [2 1],
-        [2 0]
-        [0 2],
-        [0 2]
-        [1 2],
-        [0 1]
-        [2 2],
-        [0 2]
-        [1 0]
-        ]
-        sage: G = SL(6,GF(5))
-        sage: G.gens()
-        [
-        [2 0 0 0 0 0]
-        [0 3 0 0 0 0]
-        [0 0 1 0 0 0]
-        [0 0 0 1 0 0]
-        [0 0 0 0 1 0]
-        [0 0 0 0 0 1],
-        [4 0 0 0 0 1]
-        [4 0 0 0 0 0]
-        [0 4 0 0 0 0]
-        [0 0 4 0 0 0]
-        [0 0 0 4 0 0]
-        [0 0 0 0 4 0]
-        ]
+- William Stein: initial version
+
+- David Joyner (2006-05): added examples, _latex_, __str__, gens,
+  as_matrix_group
+
+- William Stein (2006-12-09): rewrite
+
+EXAMPLES::
+
+    sage: SL(2, ZZ)
+    Special Linear Group of degree 2 over Integer Ring
+    sage: G = SL(2,GF(3)); G
+    Special Linear Group of degree 2 over Finite Field of size 3
+    sage: G.is_finite()
+    True
+    sage: G.conjugacy_class_representatives()
+    [
+    [1 0]
+    [0 1],
+    [0 2]
+    [1 1],
+    [0 1]
+    [2 1],
+    [2 0]
+    [0 2],
+    [0 2]
+    [1 2],
+    [0 1]
+    [2 2],
+    [0 2]
+    [1 0]
+    ]
+    sage: G = SL(6,GF(5))
+    sage: G.gens()
+    [
+    [2 0 0 0 0 0]
+    [0 3 0 0 0 0]
+    [0 0 1 0 0 0]
+    [0 0 0 1 0 0]
+    [0 0 0 0 1 0]
+    [0 0 0 0 0 1],
+    [4 0 0 0 0 1]
+    [4 0 0 0 0 0]
+    [0 4 0 0 0 0]
+    [0 0 4 0 0 0]
+    [0 0 0 4 0 0]
+    [0 0 0 0 4 0]
+    ]
 """
 
 #*****************************************************************************
@@ -62,9 +66,11 @@ from matrix_group_element import MatrixGroupElement
 
 def SL(n, R, var='a'):
     r"""
-    Return the special linear group of degree $n$ over the ring $R$.
+    Return the special linear group of degree `n` over the ring
+    `R`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SL(3,GF(2))
         Special Linear Group of degree 3 over Finite Field of size 2
         sage: G = SL(15,GF(7)); G
@@ -83,7 +89,10 @@ def SL(n, R, var='a'):
         [0 1]
         ]
 
-    Next we compute generators for $\SL_3(\ZZ)$.
+    Next we compute generators for `\mathrm{SL}_3(\mathbb{Z})`.
+
+    ::
+
         sage: G = SL(3,ZZ); G
         Special Linear Group of degree 3 over Integer Ring
         sage: G.gens()
@@ -111,7 +120,8 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
         """
         String to create this grop in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SL(6,GF(5)); G
             Special Linear Group of degree 6 over Finite Field of size 5
             sage: G._gap_init_()
@@ -121,7 +131,8 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SL(6,GF(5))
             sage: latex(G)
             \text{SL}_{6}(\mathbf{F}_{5})
@@ -132,7 +143,8 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
         """
         Text representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SL(6,GF(5))
             Special Linear Group of degree 6 over Finite Field of size 5
         """
@@ -140,10 +152,11 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
 
     def __call__(self, x):
         """
-        Construct a new element in this group, i.e. try to coerce x
-        into self if at all possible.
+        Construct a new element in this group, i.e. try to coerce x into
+        self if at all possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SL(3, ZZ)
             sage: x = [[1,0,1], [0,1,0], [0,0,1]]
             sage: G(x)
@@ -166,11 +179,14 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
         """
         Return True if x is an element of self, False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = SL(2, GF(101))
             sage: x = [[1,1], [0,1]]
             sage: x in G
             True
+
+        ::
 
             sage: G = SL(3, ZZ)
             sage: x = [[1,0,1], [0,-1,0], [0,0,1]]

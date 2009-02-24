@@ -1,7 +1,8 @@
 r"""
 General Linear Groups
 
-EXAMPLES:
+EXAMPLES::
+
     sage: GL(4,QQ)
     General Linear Group of degree 4 over Rational Field
     sage: GL(1,ZZ)
@@ -12,10 +13,14 @@ EXAMPLES:
     General Linear Group of degree 3 over Finite Field in a of size 7^2
 
 AUTHORS:
-    -- David Joyner (2006-01)
-    -- William Stein (2006-01)
-    -- David Joyner (2006-05) - added _latex_, __str__, examples
-    -- William Stein (2006-12-09): rewrite
+
+- David Joyner (2006-01)
+
+- William Stein (2006-01)
+
+- David Joyner (2006-05): added _latex_, __str__, examples
+
+- William Stein (2006-12-09): rewrite
 """
 
 ##TODO: Rework this and \code{special_linear} into MatrixGroup class for any
@@ -44,14 +49,18 @@ from matrix_group_element import MatrixGroupElement
 
 def GL(n, R, var='a'):
     """
-    Return the general linear group of degree $n$ over the ring $R$.
+    Return the general linear group of degree `n` over the ring
+    `R`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: G = GL(6,GF(5))
         sage: G.order()
         11064475422000000000000000
         sage: G.base_ring()
         Finite Field of size 5
+
+    ::
 
         sage: F = GF(3); MS = MatrixSpace(F,2,2)
         sage: gens = [MS([[0,1],[1,0]]),MS([[1,1],[0,1]])]
@@ -82,7 +91,8 @@ def GL(n, R, var='a'):
 class GeneralLinearGroup_generic(MatrixGroup_gap):
     def _gap_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GL(6,GF(5))
             sage: G._gap_init_()
             'GL(6, GF(5))'
@@ -91,7 +101,8 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GL(6,GF(5))
             sage: latex(G)
             \text{GL}_{6}(\mathbf{F}_{5})
@@ -102,7 +113,8 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
         """
         String representation of this linear group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GL(6,GF(5))
             General Linear Group of degree 6 over Finite Field of size 5
         """
@@ -110,11 +122,12 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
 
     def __call__(self, x):
         """
-        Construct a new element in this group, i.e. try to coerce x
-        into self if at all possible.
+        Construct a new element in this group, i.e. try to coerce x into
+        self if at all possible.
 
-        EXAMPLES:
-        This indicates that the issue from trac \#1834 is resolved:
+        EXAMPLES: This indicates that the issue from trac #1834 is
+        resolved::
+
             sage: G = GL(3, ZZ)
             sage: x = [[1,0,1], [0,1,0], [0,0,1]]
             sage: G(x)
@@ -137,11 +150,14 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
         """
         Return True if x is an element of self, False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = GL(2, GF(101))
             sage: x = [[0,1], [1,0]]
             sage: x in G
             True
+
+        ::
 
             sage: G = GL(3, ZZ)
             sage: x = [[1,0,1], [0,2,0], [0,0,1]]

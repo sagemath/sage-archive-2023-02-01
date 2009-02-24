@@ -49,13 +49,13 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
         return self.map_mc(f)
 
     def scalar(self, x):
-        """
+        r"""
         Returns the standard scalar product of self and x.
 
         Note that the power-sum symmetric functions are orthogonal under
-        this scalar product. The value of p_lambda, p_lambda is given by
-        the size of the centralizer in S_n of a permutation of cycle type
-        lambda.
+        this scalar product. The value of `\langle p_\lambda, p_\lambda \rangle`
+        is given by the size of the centralizer in `S_n` of a
+        permutation of cycle type `\lambda`.
 
         EXAMPLES::
 

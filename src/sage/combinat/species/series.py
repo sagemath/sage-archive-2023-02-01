@@ -1275,7 +1275,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _power_gen(self):
         """
-        Returns a generator for all the powers selfk starting with k = 1.
+        Returns a generator for all the powers self^k starting with k = 1.
 
         EXAMPLES::
 

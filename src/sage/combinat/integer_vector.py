@@ -678,14 +678,17 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 class IntegerVectors_nnondescents(CombinatorialClass):
     r"""
     The combinatorial class of integer vectors v graded by two
-    parameters: - n: the sum of the parts of v - comp: the non descents
-    composition of v
+    parameters:
+
+    - n: the sum of the parts of v
+
+    - comp: the non descents composition of v
 
     In other words: the length of v equals c[1]+...+c[k], and v is
     descreasing in the consecutive blocs of length c[1], ..., c[k]
 
     Those are the integer vectors of sum n which are lexicographically
-    maximal (for the natural left-right reading) in their orbit by the
+    maximal (for the natural left->right reading) in their orbit by the
     young subgroup S_c_1 x x S_c_k. In particular, they form a set
     of orbit representative of integer vectors w.r.t. this young
     subgroup.

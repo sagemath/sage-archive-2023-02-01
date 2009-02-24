@@ -120,7 +120,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
     def _to_base(self, part):
         """
         Returns a function which takes in a partition part2 and returns the
-        coefficient of part2 in the expansion of self(part) in base.
+        coefficient of a partition in the expansion of self(part) in base.
 
         .. note::
 

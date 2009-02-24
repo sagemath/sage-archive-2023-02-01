@@ -55,7 +55,7 @@ def RibbonTableau(rt=None, expr=None):
 class RibbonTableau_class(skew_tableau.SkewTableau_class):
     def length(self):
         """
-        Return the length of the ribbons into a ribbon tableaux.
+        Returns the length of the ribbons into a ribbon tableau.
 
         EXAMPLES::
 
@@ -470,7 +470,7 @@ def spin_rec(t, nexts, current, part, weight, length):
 def spin_polynomial_square(part, weight, length):
     """
     Returns the spin polynomial associated with part, weight, and
-    length, with the substitution t - t2 made.
+    length, with the substitution t -> t^2 made.
 
     EXAMPLES::
 

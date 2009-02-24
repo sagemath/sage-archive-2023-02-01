@@ -202,7 +202,7 @@ def umbral_operation(poly):
     Returns the umbral operation `\downarrow` applied to poly.
 
     The umbral operation replaces each instance of
-    `x_i^(a_i)` with
+    `x_i^{a_i}` with
     `x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)`.
 
     EXAMPLES::
@@ -253,7 +253,8 @@ class IterableFunctionCall:
 
     If your function takes arguments, just put them after the function
     name. You needn't enclose them in a tuple or anything, just put them
-    there:
+    there::
+
         sage: def f(n, m): yield 'a' * n; yield 'b' * m; yield 'foo'
         sage: g = IterableFunctionCall(f, 2, 3)
         sage: for z in g: print z

@@ -45,10 +45,15 @@ class SuffixTrie(SageObject):
         corresponding to x); these are always 0, 1, .... The state 0 is the
         initial state, and it corresponds to the empty word. For the
         purposes of the algorithm, there is also an auxiliary state -1. The
-        transition function t is defined as t(-1,a) = 0 for all letters a;
-        and t(x',a) = y' for all x',y' Q such that y = xa, and the suffix
-        link function is defined as suffix_link(0) = -1; suffix_link(x')
-        = y', if x = ay for some letter a.
+        transition function t is defined as::
+
+            t(-1,a) = 0 for all letters a; and
+            t(x',a) = y' for all x',y' `\in Q` such that y = xa,
+
+        and the suffix link function is defined as::
+
+            suffix_link(0) = -1;
+            suffix_link(x') = y', if x = ay for some letter a.
 
         REFERENCES:
 

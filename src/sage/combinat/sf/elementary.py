@@ -63,7 +63,7 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n
+        Expands the symmetric function as a symmetric polynomial in `n`
         variables.
 
         EXAMPLES::

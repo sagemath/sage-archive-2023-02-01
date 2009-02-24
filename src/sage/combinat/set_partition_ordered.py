@@ -12,7 +12,7 @@ There is a natural integer composition associated with an ordered
 set partition, that is the sequence of sizes of all its parts in
 order.
 
-EXAMPLES: There are 13 ordered set partitions of 1,2,3.
+EXAMPLES: There are 13 ordered set partitions of {1,2,3}.
 
 ::
 
@@ -36,7 +36,7 @@ Here is the list of them::
      [{2, 3}, {1}],
      [{1, 2, 3}]]
 
-There are 12 ordered set partitions of 1,2,3,4 whose underlying
+There are 12 ordered set partitions of {1,2,3,4} whose underlying
 composition is [1,2,1].
 
 ::

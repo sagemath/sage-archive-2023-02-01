@@ -147,7 +147,7 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
     def multiply_variable(self, i):
         """
         Returns the Schubert polynomial obtained by multiplying self by the
-        variable x_i.
+        variable `x_i`.
 
         EXAMPLES::
 

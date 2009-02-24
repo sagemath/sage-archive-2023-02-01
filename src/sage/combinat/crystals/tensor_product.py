@@ -538,7 +538,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 class CrystalOfTableaux(TensorProductOfCrystalsWithGenerators, ClassicalCrystal):
     r"""
     Crystals of tableaux. Input: a Cartan Type type and "shape", a
-    partition of length = type[1]. Produces a classical crystal with
+    partition of length <= type[1]. Produces a classical crystal with
     the given Cartan Type and highest weight corresponding to the given
     shape.
 

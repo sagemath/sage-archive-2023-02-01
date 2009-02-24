@@ -952,11 +952,11 @@ class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase
         INPUT:
 
 
-        -   x : a element of self
+        - ``x`` : a element of self
 
-        -```` - f : a function that takes in a combinatorial
-           object indexing a basis element and returns an element of the
-           target domain
+        - ``f``f - a function that takes in a combinatorial
+          object indexing a basis element and returns an element of the
+          target domain
 
 
         EXAMPLES::

@@ -260,9 +260,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def column(self, j):
         """
-        Returns the `j`-th column `(a_{i,j})_i` of the
+        Returns the `j^{th}` column `(a_{i,j})_i` of the
         Cartan matrix corresponding to this Dynkin diagram, as a container
-        (or iterator) of tuples (i, a_i,j)
+        (or iterator) of tuples `(i, a_{i,j})`
 
         EXAMPLES::
 
@@ -274,9 +274,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def row(self, i):
         """
-        Returns the `i`-th row `(a_{i,j})_j` of the
+        Returns the `i^{th}` row `(a_{i,j})_j` of the
         Cartan matrix corresponding to this Dynkin diagram, as a container
-        (or iterator) of tuples (j, a_i,j)
+        (or iterator) of tuples `(j, a_{i,j})`
 
         EXAMPLES::
 

@@ -65,7 +65,7 @@ Set-theoretic constructions:
 
 -  Unordered tuples of a set, ``unordered_tuple`` and
    ``number_of_unordered_tuples``. An unordered tuple
-   of length k of set S is a unordered selection with repetitions of S
+   of length k of set S is an unordered selection with repetitions of S
    and is represented by a sorted list of length k containing elements
    from S.
 
@@ -2188,30 +2188,36 @@ def bell_polynomial(n, k):
     r"""
     This function returns the Bell Polynomial
 
-    $$
-    B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
-    =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
-    \ldots
-    $$
+    .. math::
+
+       B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
+       =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
+       \ldots
 
     INPUT:
-        n -- integer
-        k -- integer
+
+    - ``n`` - integer
+
+    - ``k`` - integer
 
     OUTPUT:
-        polynomial expression (SymbolicArithmetic)
 
-    EXAMPLES:
+    - polynomial expression (SymbolicArithmetic)
+
+    EXAMPLES::
+
         sage: bell_polynomial(6,2)
         10*x_3^2 + 15*x_2*x_4 + 6*x_1*x_5
         sage: bell_polynomial(6,3)
         15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
 
     REFERENCES:
-        E.T. Bell, "Partition Polynomials"
+
+    - E.T. Bell, "Partition Polynomials"
 
     AUTHORS:
-        - Blair Sutton (2009-01-26)
+
+    - Blair Sutton (2009-01-26)
     """
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial

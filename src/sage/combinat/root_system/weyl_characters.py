@@ -74,7 +74,7 @@ class WeylCharacter(AlgebraElement):
     irreducible characters that occur in its decomposition into
     irreducibles, with the multiplicities in this decomposition.
 
-    For type A (also G2, F4, E6 and E7) we will take as the weight
+    For type A (also `G_2`, `F_4`, `E_6` and `E_7`) we will take as the weight
     lattice not the weight lattice of the semisimple group, but for a
     larger one. For type A, this means we are concerned with the
     representation theory of K=U(n) or G=GL(n,CC) rather than SU(n) or
@@ -260,12 +260,12 @@ class WeylCharacter(AlgebraElement):
         return WeylCharacter(self._parent, hdict, mdict)
 
     def __pow__(self, n):
-        """
+        r"""
         Returns `self^n`.
 
         The coefficients in `chi^k` are the degrees of those
         irreducible representations of the symmetric group `S_k`
-        corresponding to partitions of length =3.
+        corresponding to partitions of length `\le 3`.
 
         EXAMPLES::
 
@@ -362,7 +362,7 @@ class WeylCharacter(AlgebraElement):
 
 
 def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
-    """
+    r"""
     A class for rings of Weyl characters. The Weyl character is a
     character of a semisimple (or reductive) Lie group or algebra. They
     form a ring, in which the addition and multiplication correspond to
@@ -374,7 +374,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring`` -  (default: ZZ)
+    - ``base_ring`` -  (default: `\mathbb{Z}`)
 
     - ``prefix`` (default an automatically generated prefix
       based on Cartan type)
@@ -397,7 +397,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
         sage: G2(4,-1,-3).degree()
         189
 
-    Note that since the ring was named G2 after its default prefix, it
+    Note that since the ring was named `G_2` after its default prefix, it
     was able to parse its own output. You do not have to use the
     default prefix. Thus:
 
@@ -692,8 +692,11 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     weight using the recursion, since the use of the Weyl group is
     expensive in its current implementation.
 
-    INPUT: hwv - a dominant weight in a weight lattice. L - the ambient
-    lattice
+    INPUT:
+
+    - ``hwv`` - a dominant weight in a weight lattice.
+
+    - ``L`` - the ambient lattice
     """
 
     rho = L.rho()
@@ -729,7 +732,7 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     return mdict
 
 def branch_weyl_character(chi, R, S, rule="default"):
-    """
+    r"""
     A Branching rule describes the restriction of representations from
     a Lie group or algebra G to a smaller one. See for example, R. C.
     King, Branching rules for classical Lie groups using tensor and
@@ -737,9 +740,16 @@ def branch_weyl_character(chi, R, S, rule="default"):
     Willenbring, Stable branching rules for classical symmetric pairs,
     Trans. Amer. Math. Soc. 357 (2005), no. 4, 1601-1626.
 
-    INPUT: chi - a character of G R - the Weyl Character Ring of G S -
-    the Weyl Character Ring of H rule - a set of r dominant weights in
-    H where r is the rank of G.
+    INPUT:
+
+    - ``chi`` - a character of G
+
+    - ``R`` - the Weyl Character Ring of G
+
+    - ``S`` - the Weyl Character Ring of H
+
+    - ``rule`` - a set of r dominant weights in H where r is the rank
+      of G.
 
     You may use a predefined rule by specifying rule = one of"levi",
     "automorphic", "symmetric", "extended", "triality" or
@@ -756,25 +766,31 @@ def branch_weyl_character(chi, R, S, rule="default"):
     (1952).
 
     We will list these for the cases where the Dynkin diagram of S is
-    connected. This excludes branching rules such as A3 - A1 x A1,
+    connected. This excludes branching rules such as A3 -> A1 x A1,
     which are not yet implemented.
 
     LEVI TYPE. These can be read off from the Dynkin diagram. If
     removing a node from the Dynkin diagram produces another Dynkin
     diagram, there is a branching rule. Currently we require that the
     smaller diagram be connected. For these rules use the option
-    rule="levi".
+    rule="levi"::
 
-    ['A',r] - ['A',r-1] ['B',r] - ['A',r-1] ['B',r] - ['B',r-1] ['C',r]
-    - ['A',r-1] ['C',r] - ['C',r-1] ['D',r] - ['A',r-1] ['D',r] -
-    ['D',r-1] ['E',r] - ['A',r-1] r = 6,7,8 (not implemented yet)
-    ['E',r] - ['D',r-1] r = 6,7,8 (not implemented yet) ['E',r] -
-    ['E',r-1] r = 6,7 (not implemented yet) ['F',4] - ['B',3] (not
-    implemented yet) ['F',4] - ['C',3] (not implemented yet) ['G',2] -
-    ['A',1] (short root) (not implemented yet)
+       ['A',r] -> ['A',r-1]
+       ['B',r] -> ['A',r-1]
+       ['B',r] -> ['B',r-1]
+       ['C',r] -> ['A',r-1]
+       ['C',r] -> ['C',r-1]
+       ['D',r] -> ['A',r-1]
+       ['D',r] -> ['D',r-1]
+       ['E',r] -> ['A',r-1] r = 6,7,8 (not implemented yet)
+       ['E',r] -> ['D',r-1] r = 6,7,8 (not implemented yet)
+       ['E',r] -> ['E',r-1] r = 6,7 (not implemented yet)
+       ['F',4] -> ['B',3] (not implemented yet)
+       ['F',4] -> ['C',3] (not implemented yet)
+       ['G',2] -> ['A',1] (short root) (not implemented yet)
 
-    The other Levi branching rule from G2 - A1 corresponding to the
-    long root is available by first branching G2 - A2 then branching to
+    The other Levi branching rule from `G_2` -> `A_1` corresponding to the
+    long root is available by first branching `G_2` -> `A_2` then branching to
     A1.
 
     AUTOMORPHIC TYPE. If the Dynkin diagram has a symmetry, then there
@@ -840,7 +856,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     and the double cover of SO(7) induces a cover of GL(3) that is
     trivial over SL(3) but not over the center of GL(3). The weight
     lattice for this GL(3) consists of triples (a,b,c) of half integers
-    such that a-b and b-c are in ZZ, and this is reflected in the last
+    such that a-b and b-c are in `\mathbb{Z}`, and this is reflected in the last
     decomposition.
 
     ::
@@ -927,10 +943,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
     A3(x+t,y+t,z+t,w+t) is the same as A3(x,y,z,w) tensored with
     `det^t`. So as a representation of SL(4),
     A3(1/4,1/4,1/4,-3/4) is the same as A3(1,1,1,0). The exterior
-    square representation SL(4) - GL(6) admits an invariant symmetric
-    bilinear form, so is a representation SL(4) - SO(6) that lifts to
-    an isomorphism SL(4) - Spin(6). Conversely, there are two
-    isomorphisms SO(6) - SL(4), of which we've selected one.
+    square representation SL(4) -> GL(6) admits an invariant symmetric
+    bilinear form, so is a representation SL(4) -> SO(6) that lifts to
+    an isomorphism SL(4) -> Spin(6). Conversely, there are two
+    isomorphisms SO(6) -> SL(4), of which we've selected one.
 
     You may also write your own rules. We may arrange a Cartan
     subalgebra U of H to be contained in a Cartan subalgebra T of G.

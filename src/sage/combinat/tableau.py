@@ -267,8 +267,8 @@ class Tableau_class(CombinatorialObject):
 
     def descents(self):
         """
-        Returns a list of the boxes (i,j) such that self[i][j]
-        self[i-1][j].
+        Returns a list of the boxes (i,j) such that
+        self[i][j] > self[i-1][j].
 
         EXAMPLES::
 

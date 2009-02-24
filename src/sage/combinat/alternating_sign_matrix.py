@@ -233,7 +233,7 @@ class ContreTableaux_n(CombinatorialClass):
 
 def _next_column_iterator(previous_column, height, i = None):
     """
-    Returns a generator for all columbs of height height properly
+    Returns a generator for all columns of height height properly
     filled from row 1 to i
 
     TESTS::

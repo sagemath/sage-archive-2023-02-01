@@ -30,7 +30,9 @@ def WeylGroup(x):
     """
     Returns the Weyl group of type type.
 
-    INPUT: ct - a Cartan Type.
+    INPUT:
+
+    - ``ct`` - a Cartan Type.
 
     EXAMPLES: The following constructions yield the same result, namely
     a weight lattice and its corresponding Weyl group::
@@ -274,7 +276,7 @@ class WeylGroup_gens(MatrixGroup_gens):
 
     def simple_reflection(self, i):
         """
-        Returns the `i^th` simple reflection.
+        Returns the `i^{th}` simple reflection.
 
         EXAMPLES::
 

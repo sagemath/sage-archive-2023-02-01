@@ -35,7 +35,7 @@ class FastCrystal(ClassicalCrystal):
     Input: CartanType and a shape. The CartanType is ['A',2], ['B',2]
     or ['C',2]. The shape is of the form [l1,l2] where l1 and l2 are
     either integers or (in type B) half integers such that l1-l2 is
-    integral. It is assumed that l1 = l2 = 0. If l1 and l2 are
+    integral. It is assumed that l1 >= l2 >= 0. If l1 and l2 are
     integers, this will produce the a crystal isomorphic to the one
     obtained by CrystalOfTableaux(type, shape=[l1,l2]). Furthermore
     FastCrystal(['B', 2], l1+1/2, l2+1/2) produces a crystal isomorphic

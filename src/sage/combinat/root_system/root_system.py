@@ -130,9 +130,9 @@ class RootSystem(SageObject):
         sage: [Lambda[i].scalar(alphacheck[3]) for i in space.index_set()]
         [0, 0, 1]
 
-    Let us us use the simple reflections. In the weight space, they
+    Let us use the simple reflections. In the weight space, they
     work as in the *number game*: firing the node `i` on an
-    element x adds `c` times the simple root
+    element `x` adds `c` times the simple root
     `\alpha_i`, where `c` is the coefficient of
     `i` in `x`::
 
@@ -399,9 +399,7 @@ class RootSystem(SageObject):
         """
         Returns the coroot space associated to self.
 
-        EXAMPLES
-
-        ::
+        EXAMPLES::
 
             sage: RootSystem(['A',3]).coroot_space()
             Coroot space over the Rational Field of the Root system of type ['A', 3]
@@ -457,10 +455,10 @@ class RootSystem(SageObject):
     def ambient_lattice(self):
         r"""
         Returns the usual ambient lattice for this root_system, if it
-        exists and is implemented, and None otherwise. This is a Z-module,
-        endowed with its canonical euclidean scalar product, which embeds
-        simultaneously the root lattice and the coroot lattice (what about
-        the weight lattice?)
+        exists and is implemented, and None otherwise. This is a
+        `\mathbb{Z}`-module, endowed with its canonical euclidean
+        scalar product, which embeds simultaneously the root lattice
+        and the coroot lattice (what about the weight lattice?)
 
         EXAMPLES::
 
@@ -480,14 +478,14 @@ class RootSystem(SageObject):
 
     @cached_method
     def ambient_space(self, base_ring=QQ):
-        """
+        r"""
         Returns the usual ambient space for this root_system, if it is
-        implemented, and None otherwise. This is a QQ-module, endowed with
+        implemented, and None otherwise. This is a `\mathbb{Q}`-module, endowed with
         its canonical euclidean scalar product, which embeds simultaneously
         the root lattice and the coroot lattice (what about the weight
         lattice?). An alternative base ring can be provided as an option;
         it must contain the smallest ring over which the ambient space can
-        be defined (ZZ or QQ, depending on the type).
+        be defined (`\mathbb{Z}` or `\mathbb{Q}`, depending on the type).
 
         EXAMPLES::
 
@@ -551,7 +549,9 @@ def WeylDim(ct, coeffs):
     representation of the semisimple complex Lie algebra with highest
     weight vector hwv is returned.
 
-    EXAMPLES: For SO(7), the Cartan type is B3, so::
+    EXAMPLES:
+
+    For `SO(7)`, the Cartan type is `B_3`, so::
 
         sage: WeylDim(['B',3],[1,0,0]) # standard representation of SO(7)
         7

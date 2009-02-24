@@ -61,20 +61,35 @@ class DLXMatrix:
 
         The dancing links algorithm works particularly well for sparse
         matrices, so the input is a list of lists of the form: (note the
-        1-index!) [ [1, [i_11,i_12,...,i_1r]] ... [m,
-        [i_m1,i_m2,...,i_ms]] ] where M[j][i_jk] = 1.
+        1-index!)::
 
-        The first example below corresponds to the matrix
+          [
+           [1, [i_11,i_12,...,i_1r]]
+           ...
+           [m,[i_m1,i_m2,...,i_ms]]
+          ]
 
-        1110 1010 0100 0001
+        where M[j][i_jk] = 1.
 
-        which is exactly covered by
+        The first example below corresponds to the matrix::
 
-        1110 0001
+           1110
+           1010
+           0100
+           0001
+
+        which is exactly covered by::
+
+           1110
+           0001
 
         and
 
-        1010 0100 0001
+        ::
+
+           1010
+           0100
+           0001
 
         EXAMPLES::
 
@@ -259,9 +274,18 @@ class DLXMatrix:
     def _covercolumn(self, c):
         """
         Performs the column covering operation, as described by Knuth's
-        pseudocode: cover(c): i - D[c] while i != c: j - R[i] while j != i
-        D[U[j]] - D[j] U[D[j]] - U[j] N[C[j]] - N[C[j]] - 1 j - R[j] i -
-        D[i]
+        pseudocode::
+
+           cover(c):
+                i <- D[c]
+                while i != c:
+                    j <- R[i]
+                    while j != i
+                        D[U[j]] <- D[j]
+                        U[D[j]] <- U[j]
+                        N[C[j]] <- N[C[j]] - 1
+                        j <- R[j]
+                    i <- D[i]
 
         This is undone by the uncover operation.
 
@@ -293,9 +317,18 @@ class DLXMatrix:
     def _uncovercolumn(self, c):
         """
         Performs the column uncovering operation, as described by Knuth's
-        pseudocode: uncover(c): i - U[c] while i != c: j - L[i] while j !=
-        i U[j] - U[D[j]] D[j] - D[U[j]] N[C[j]] - N[C[j]] + 1 j - L[j] i -
-        U[i]
+        pseudocode::
+
+            uncover(c):
+                i <- U[c]
+                while i != c:
+                    j <- L[i]
+                    while j != i
+                        U[j] <- U[D[j]]
+                        D[j] <- D[U[j]]
+                        N[C[j]] <- N[C[j]] + 1
+                        j <- L[j]
+                    i <- U[i]
 
         This undoes by the cover operation since everything is done in the
         reverse order.

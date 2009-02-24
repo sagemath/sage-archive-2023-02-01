@@ -327,8 +327,8 @@ class LLT_spin(LLT_generic):
 
     def _to_m(self, part):
         """
-        Returns a function which gives the coefficient of part2 in the
-        monomial expansion of self(part).
+        Returns a function which gives the coefficient of a partition
+        in the monomial expansion of self(part).
 
         EXAMPLES::
 

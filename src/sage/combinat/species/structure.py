@@ -8,7 +8,7 @@ as 'oooooo' where the 6 o's correspond to the balls and the 2 's
 correspond to the bars. If BB is our species for this model, the it
 satisfies the following recursive definition:
 
-BB = o + o\*BB + o\*\*BB
+BB = o + o\*BB + o\*|\*BB
 
 Here we define this species using the default structures::
 

@@ -397,23 +397,18 @@ class Composition_class(CombinatorialObject):
 
     def peaks(self):
         """
-        Returns a list of the peaks of the composition self.
-
-        The peaks are the positions i in the compositions such that
-        self[i-1] self[i] self[i+1]. Note that len(self)-1 is never a
-        peak.
+        Returns a list of the peaks of the composition self.  The
+        peaks of a composition are the descents which do not
+        immediately follow another descent.
 
         EXAMPLES::
 
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).peaks()
-            [2, 4]
+            [4, 7]
         """
-        p = []
-        for i in range(1,len(self)-1):
-            if self[i-1] < self[i] and self[i] > self[i+1]:
-                p += [i]
-
-        return p
+        descents = dict((d,True) for d in self.descents())
+        return [i+1 for i in range(len(self))
+                if i not in descents and i+1 in descents]
 
     def to_skew_partition(self, overlap=1):
         """

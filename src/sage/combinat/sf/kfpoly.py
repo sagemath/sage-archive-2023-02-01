@@ -236,7 +236,7 @@ def compat(n, mu, nu):
 
 def dom(mu, snu):
     """
-    Returns True if ``sum(mu[:i+1]) = snu[i]`` for all 0 <= i < len(snu);
+    Returns True if ``sum(mu[:i+1]) >= snu[i]`` for all 0 <= i < len(snu);
     otherwise, it returns False.
 
     EXAMPLES::

@@ -818,11 +818,11 @@ def _check_muqt(mu, q, t, pi=None):
 
 def E(mu, q=None, t=None, pi=None):
     """
-    Returns the non-symmetric Mcadonald polynomial in type A
+    Returns the non-symmetric Macdonald polynomial in type A
     corresponding to a shape mu, with basement permuted according to
     pi.
 
-    Note that if both q and t are specifed, then they must have the
+    Note that if both q and t are specified, then they must have the
     same parent.
 
     REFERENCE:
@@ -862,10 +862,10 @@ def E(mu, q=None, t=None, pi=None):
 
 def E_integral(mu, q=None, t=None, pi=None):
     """
-    Returns the integral form for the non-symmetric Mcadonald
+    Returns the integral form for the non-symmetric Macdonald
     polynomial in type A corresponding to a shape mu.
 
-    Note that if both q and t are specifed, then they must have the
+    Note that if both q and t are specified, then they must have the
     same parent.
 
     REFERENCE:
@@ -908,7 +908,7 @@ def Ht(mu, q=None, t=None, pi=None):
     Returns the symmetric Macdonald polynomial using the Haiman,
     Haglund, and Loehr formula.
 
-    Note that if both q and t are specifed, then they must have the
+    Note that if both q and t are specified, then they must have the
     same parent.
 
     REFERENCE:

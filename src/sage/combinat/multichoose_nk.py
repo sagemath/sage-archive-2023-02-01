@@ -46,7 +46,7 @@ class MultichooseNK(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for all multichoies of k thinkgs from range(n).
+        An iterator for all multichoices of k things from range(n).
 
         EXAMPLES::
 

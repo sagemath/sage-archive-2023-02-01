@@ -213,7 +213,7 @@ class IncidenceStructure(object):
         - ``k`` - the number of blocks incident to a point
 
         - ``lmbda`` - each t-tuple of points should be incident with
-          lmda blocks
+          lmbda blocks
 
         - ``type`` - can be 'simple' or 'binary' or 'connected'
           Depending on the option, this wraps IsBinaryBlockDesign,

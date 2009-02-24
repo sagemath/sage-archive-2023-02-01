@@ -1,14 +1,11 @@
 """
 Necklaces
 
-Algorithm from
+The algorithm used in this file comes from
 
-A fast algorithm to generate necklaces with fixed content Source
-Theoretical Computer Science archive Volume 301 , Issue 1-3 (May
-2003) table of contents Pages: 477 - 489 Year of Publication: 2003
-ISSN:0304-3975 Author Joe Sawada Department of Computer Science,
-University of Toronto, 10 King's College Road, Toronto, Ont. Canada
-M5S 1A4 Publisher Elsevier Science Publishers Ltd. Essex, UK
+- Sawada, Joe.  "A fast algorithm to generate necklaces with fixed content", Source
+  Theoretical Computer Science archive Volume 301 , Issue 1-3 (May
+  2003)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -152,7 +149,7 @@ class Necklaces_evaluation(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for the integer necklaces iwth evaluation e.
+        An iterator for the integer necklaces with evaluation e.
 
         EXAMPLES::
 

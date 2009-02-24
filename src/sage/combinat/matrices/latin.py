@@ -1,5 +1,118 @@
 r"""
 Latin Squares
+
+A *latin square* of order `n` is an `n \times n` array such that
+each symbol `s \in \{ 0, 1, \dots, n-1\}` appears precisely once in each
+row, and precisely once in each column. A *partial latin square* of
+order `n` is an `n \times n` array such that
+each symbol `s \in \{ 0, 1, \dots, n-1\}` appears at most once in each
+row, and at most once in each column. Empty cells are denoted by `-1`.
+A latin square `L` is a
+*completion* of a partial latin square `P` if `P \subseteq L`. If
+`P` completes to just `L` then `P` *has unique completion*.
+
+A *latin bitrade* `(T_1,\, T_2)` is a pair of partial
+latin squares such that:
+
+#. `\{ (i,\,j) \mid (i,\,j,\,k) \in T_1 \mbox{ for some symbol $k$} \} = \{ (i,\,j) \mid (i,\,j,\,k') \in T_2 \mbox{ for some symbol $k'$} \};`
+
+#. for each `(i,\,j,\,k) \in T_1` and `(i,\,j,\,k') \in T_2`,
+   `k \neq k'`;
+
+#. the symbols appearing in row `i` of `T_1` are the same as those of
+   row `i` of `T_2`; the symbols appearing in column `j` of `T_1` are
+   the same as those of column `j` of `T_2`.
+
+
+Intuitively speaking, a bitrade gives the difference between two latin
+squares, so if `(T_1,\, T_2)` is a bitrade
+for the pair of latin squares `(L_1,\, L_2)`, then
+`L1 = (L2 \setminus T_1) \cup T_2`
+and
+`L2 = (L1 \setminus T_2) \cup T_1`.
+
+This file contains
+
+
+#. LatinSquare class definition;
+
+#. some named latin squares (back circulant, forward circulant, abelian
+   `2`-group);
+
+#. functions is\_partial\_latin\_square and is\_latin\_square to test
+   if a LatinSquare object satisfies the definition of a latin square
+   or partial latin square, respectively;
+
+#. tests for completion and unique completion (these use the C++
+   implementation of Knuth's dancing links algorithm to solve the
+   problem as a instance of `0-1` matrix exact cover);
+
+#. functions for calculating the `\tau_i` representation of a bitrade
+   and the genus of the associated hypermap embedding;
+
+#. Markov chain of Jacobson and Matthews (1996) for generating latin
+   squares uniformly at random (provides a generator interface);
+
+#. a few examples of `\tau_i` representations of bitrades constructed
+   from the action of a group on itself by right multiplication,
+   functions for converting to a pair of LatinSquare objects.
+
+EXAMPLES::
+
+    sage: from sage.combinat.matrices.latin import *
+    sage: B = back_circulant(5)
+    sage: B
+    [0 1 2 3 4]
+    [1 2 3 4 0]
+    [2 3 4 0 1]
+    [3 4 0 1 2]
+    [4 0 1 2 3]
+    sage: B.is_latin_square()
+    True
+    sage: B[0, 1] = 0
+    sage: B.is_latin_square()
+    False
+
+    sage: (a, b, c, G) = alternating_group_bitrade_generators(1)
+    sage: (T1, T2) = bitrade_from_group(a, b, c, G)
+    sage: T1
+    [ 0  2 -1  1]
+    [-1  0  1  3]
+    [ 3 -1  0  2]
+    [ 1  3  2 -1]
+    sage: T2
+    [ 1  0 -1  2]
+    [-1  3  0  1]
+    [ 0 -1  2  3]
+    [ 3  2  1 -1]
+    sage: T1.nr_filled_cells()
+    12
+    sage: genus(T1, T2)
+    1
+
+To do:
+
+
+#. Latin squares with symbols from a ring instead of the integers
+   `\{ 0, 1, \dots, n-1 \}`.
+
+#. Isotopism testing of latin squares and bitrades via graph
+   isomorphism (nauty?).
+
+#. Combinatorial constructions for bitrades.
+
+
+AUTHORS:
+
+- Carlo Hamalainen (2008-03-23): initial version
+
+
+TESTS::
+
+    sage: L = elementary_abelian_2group(3)
+    sage: L == loads(dumps(L))
+    True
+
 """
 
 #*****************************************************************************
@@ -48,7 +161,7 @@ class LatinSquare:
         columns indexed by the set 0, 1, ..., n-1 and symbols from the same
         set. The underlying latin square is a matrix(ZZ, n, n). If L is a
         latin square, then the cell at row r, column c is empty if and only
-        if L[r, c] 0. In this way we allow partial latin squares and can
+        if L[r, c] < 0. In this way we allow partial latin squares and can
         speak of completions to latin squares, etc.
 
         There are two ways to declare a latin square:
@@ -328,7 +441,7 @@ class LatinSquare:
 
            We assume that the unused rows/columns occur in the lower
            right of self, and that the used symbols are in the range
-           0, 1, ..., m (no holes in that list).
+           {0, 1, ..., m} (no holes in that list).
 
         EXAMPLE::
 
@@ -455,7 +568,7 @@ class LatinSquare:
 
     def filled_cells_map(self):
         """
-        Number the filled cells of self with integers from 1, 2, 3, ....
+        Number the filled cells of self with integers from {1, 2, 3, ...}
 
         INPUT:
 
@@ -664,12 +777,12 @@ class LatinSquare:
 
         INPUT:
 
-
         -  ``self`` - LatinSquare
 
+        OUTPUT:
 
-        RETURNS: [r, c] - cell such that self[r, c] is empty, or returns
-        None if self is a (full) latin square.
+        - ``[r, c]`` - cell such that self[r, c] is empty, or returns
+          None if self is a (full) latin square.
 
         EXAMPLES::
 
@@ -1068,7 +1181,9 @@ def tau123(T1, T2):
     Compute the tau_i representation for a bitrade (T1, T2). See the
     functions tau1, tau2, and tau3 for the mathematical definitions.
 
-    RETURNS: (cells_map, t1, t2, t3)
+    OUTPUT:
+
+    - (cells_map, t1, t2, t3)
 
     where cells_map is a map to/from the filled cells of T1, and t1,
     t2, t3 are the tau1, tau2, tau3 permutations.
@@ -1144,7 +1259,7 @@ def isotopism(p):
     rows, columns or symbols of a partial latin square). Since matrices
     in Sage are indexed from 0, this function translates +1 to agree
     with the Permutation class. We also handle
-    PermutationGroupElements:
+    PermutationGroupElements.
 
     EXAMPLES::
 
@@ -1298,13 +1413,14 @@ def beta2(rce, T1, T2):
 
     INPUT:
 
-
     -  ``rce`` - tuple (or list) (r, c, e) in T1
 
     -  ``T1, T2`` - latin bitrade
 
 
-    OUTPUT: (r, x, e) in T2.
+    OUTPUT:
+
+    - (r, x, e) in T2.
 
     EXAMPLES::
 
@@ -1344,7 +1460,9 @@ def beta3(rce, T1, T2):
     -  ``T1, T2`` - latin bitrade
 
 
-    OUTPUT: (r, c, x) in T2.
+    OUTPUT:
+
+    - (r, c, x) in T2.
 
     EXAMPLES::
 
@@ -1376,16 +1494,15 @@ def beta3(rce, T1, T2):
 
 def tau1(T1, T2, cells_map):
     r"""
-    The definition of tau1 is:
+    The definition of `\tau_1` is
 
-    tau1 : T1 - T1 tau1 = beta(-1)_2 beta_3 (composing left to right
-    000)
+    .. math::
 
-    where
+       \tau_1 : T1 \rightarrow T1 \\
+       \tau_1 = \beta_2^{-1} \beta_3
 
-    beta_i : T2 - T1
-
-    changes just the i-th coordinate of a triple.
+    where the composition is left to right and `\beta_i : T2 \rightarrow T1`
+    changes just the `i^{th}` coordinate of a triple.
 
     EXAMPLES::
 
@@ -1427,17 +1544,16 @@ def tau1(T1, T2, cells_map):
     return Permutation(x)
 
 def tau2(T1, T2, cells_map):
-    """
-    The definition of tau2 is:
+    r"""
+    The definition of `\tau_2` is
 
-    tau2 : T1 - T1 tau2 = beta(-1)_3 beta_1 (composing left to
-    right)
+    .. math::
 
-    where
+       \tau_2 : T1 \rightarrow T1 \\
+       \tau_2 = \beta_3^{-1} \beta_1
 
-    beta_i : T2 - T1
-
-    changes just the i-th coordinate of a triple.
+    where the composition is left to right and `\beta_i : T2 \rightarrow T1`
+    changes just the `i^{th}` coordinate of a triple.
 
     EXAMPLES::
 
@@ -1479,17 +1595,16 @@ def tau2(T1, T2, cells_map):
     return Permutation(x)
 
 def tau3(T1, T2, cells_map):
-    """
-    The definition of tau3 is:
+    r"""
+    The definition of `\tau_3` is
 
-    tau3 : T1 - T1 tau3 = beta(-1)_1 beta_2 (composing left to
-    right)
+    .. math::
 
-    where
+       \tau_3 : T1 \rightarrow T1 \\
+       \tau_3 = \beta_1^{-1} \beta_2
 
-    beta_i : T2 - T1
-
-    changes just the i-th coordinate of a triple.
+    where the composition is left to right and `\beta_i : T2 \rightarrow T1`
+    changes just the `i^{th}` coordinate of a triple.
 
     EXAMPLES::
 
@@ -1597,7 +1712,9 @@ def forward_circulant(n):
 def direct_product(L1, L2, L3, L4):
     """
     The 'direct product' of four latin squares L1, L2, L3, L4 of order
-    n is the latin square of order 2n consisting of::
+    n is the latin square of order 2n consisting of
+
+    ::
 
         -----------
         | L1 | L2 |
@@ -1705,7 +1822,7 @@ def coin():
 
 def next_conjugate(L):
     """
-    Permute L[r, c] = e to the conjugate L[c, e] = r
+    Permutes L[r, c] = e to the conjugate L[c, e] = r.
 
     We assume that L is an n by n matrix and has values in the range 0,
     1, ..., n-1.
@@ -2226,7 +2343,7 @@ def is_primary_bitrade(a, b, c, G):
 
 def tau_to_bitrade(t1, t2, t3):
     """
-    Given permutation t1, t2, t3 that represent a latin bitrade,
+    Given permutations t1, t2, t3 that represent a latin bitrade,
     convert them to an explicit latin bitrade (T1, T2). The result is
     unique up to isotopism.
 

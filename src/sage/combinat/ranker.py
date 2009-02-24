@@ -26,11 +26,11 @@ def from_list(l):
 
     INPUT:
 
-
     -  ``l`` - a list
 
+    OUTPUT:
 
-    OUTPUT [rank, unrank] - functions
+    - ``[rank, unrank]`` - functions
 
     EXAMPLES::
 

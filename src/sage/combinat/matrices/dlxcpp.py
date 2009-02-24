@@ -30,21 +30,35 @@ def DLXCPP(rows):
     of the rows of this matrix which sum to the vector of all 1's.
 
     The dancing links algorithm works particularly well for sparse
-    matrices, so the input is a list of lists of the form: [
-    [i_11,i_12,...,i_1r] ... [i_m1,i_m2,...,i_ms] ] where
-    M[j][i_jk] = 1.
+    matrices, so the input is a list of lists of the form::
 
-    The first example below corresponds to the matrix
+       [
+        [i_11,i_12,...,i_1r]
+        ...
+        [i_m1,i_m2,...,i_ms]
+       ]
 
-    1110 1010 0100 0001
+    where M[j][i_jk] = 1.
 
-    which is exactly covered by
+    The first example below corresponds to the matrix::
 
-    1110 0001
+       1110
+       1010
+       0100
+       0001
+
+    which is exactly covered by::
+
+       1110
+       0001
 
     and
 
-    1010 0100 0001
+    ::
+
+       1010
+       0100
+       0001
 
     If soln is a solution given by DLXCPP(rows) then
 

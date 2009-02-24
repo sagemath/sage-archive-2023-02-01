@@ -58,7 +58,7 @@ class WordMorphism(SageObject):
             sage: print WordMorphism('a->ab,b->')
             WordMorphism: a->ab, b->
 
-        Use the arrows ('-') correctly::
+        Use the arrows ('->') correctly::
 
             sage: WordMorphism('a->ab,b-')
             Traceback (most recent call last):

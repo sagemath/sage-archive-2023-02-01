@@ -314,4 +314,13 @@ cdef inline int celement_gcd(GF2X_c* res, GF2X_c* a, GF2X_c *b, long parent) exc
     GF2X_GCD(res[0], a[0], b[0])
 
 cdef inline int celement_xgcd(GF2X_c* res, GF2X_c* s, GF2X_c *t, GF2X_c* a, GF2X_c *b, long parent) except -2:
-    raise NotImplementedError
+    """
+    EXAMPLE:
+        sage: P.<x> = GF(2)[]
+        sage: f = x*(x+1)
+        sage: f.xgcd(x+1)
+        (x + 1, 0, 1)
+        sage: f.xgcd(x^2)
+        (x, 1, 1)
+    """
+    GF2X_XGCD(res[0], s[0], t[0], a[0], b[0])

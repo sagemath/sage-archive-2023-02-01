@@ -187,20 +187,20 @@ cdef class Matrix_dense(matrix.Matrix):
             [---]
             [2 4]
         """
-        f = []
-        e = self.list()
         (nc, nr) = (self.ncols(), self.nrows())
-        for j in xrange(nc):
-            for i in xrange(nr):
-                f.append(e[i*nc + j])
+        cdef Matrix_dense trans
         trans = self.new_matrix(nrows = nc, ncols = nr,
-                                entries = f, copy=False,
-                                coerce=False)
+                                copy=False, coerce=False)
+
+        cdef Py_ssize_t i, j
+        for j from 0<= j < nc:
+            for i from 0<= i < nr:
+                trans.set_unsafe(j,i,self.get_unsafe(i,j))
+
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
             trans.subdivide(col_divs, row_divs)
         return trans
-
 
     def antitranspose(self):
         """
@@ -228,19 +228,25 @@ cdef class Matrix_dense(matrix.Matrix):
             [4|1]
             [3|0]
         """
-        f = []
-        e = self.list()
         (nc, nr) = (self.ncols(), self.nrows())
-        for j in reversed(xrange(nc)):
-            for i in reversed(xrange(nr)):
-                f.append(e[i*nc + j])
-        trans = self.new_matrix(nrows = nc, ncols = nr,
-                                entries = f, copy=False, coerce=False)
+        cdef Matrix_dense atrans
+        atrans = self.new_matrix(nrows = nc, ncols = nr,
+                                 copy=False, coerce=False)
+        cdef Py_ssize_t i,j
+        cdef Py_ssize_t ri,rj # reversed i and j
+        rj = nc
+        for j from 0 <= j < nc:
+            ri = nr
+            rj = rj-1
+            for i from 0 <= i < nr:
+                ri = ri-1
+                atrans.set_unsafe(j , i, self.get_unsafe(ri,rj))
+
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
-            trans.subdivide(list(reversed([nc - t for t in col_divs])),
-                            list(reversed([nr - t for t in row_divs])))
-        return trans
+            atrans.subdivide([nc - t for t in reversed(col_divs)],
+                             [nr - t for t in reversed(row_divs)])
+        return atrans
 
     def apply_morphism(self, phi):
         """

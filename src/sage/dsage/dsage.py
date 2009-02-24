@@ -1,9 +1,8 @@
 r"""
 Distributed Sage
 
-Distributed Sage \code{dsage} is a distributed computing framework suitable
-for coarse distributed compuatations.
-
+Distributed Sage ``dsage`` is a distributed computing
+framework suitable for coarse distributed compuatations.
 """
 ##############################################################################
 #
@@ -39,7 +38,7 @@ import sage.plot.plot
 
 def spawn(cmd, verbose=True, stdout=None, stdin=None):
     """
-    Spawns a process and registers it with the SAGE.
+    Spawns a process and registers it with the Sage.
     """
 
     null = open('/dev/null', 'a')
@@ -58,47 +57,51 @@ def spawn(cmd, verbose=True, stdout=None, stdin=None):
 
 class DistributedSage(object):
     r"""
-    Distributed SAGE allows you to do distributed computing in SAGE.
+    Distributed Sage allows you to do distributed computing in Sage.
 
     To get up and running quickly, run dsage.setup() to run the
     configuration utility.
 
-    Note that configuration files will be stored in the
-    directory \code{\$DOT\_SAGE/dsage}.
+    Note that configuration files will be stored in the directory
+    ``$DOT
+    Sage/dsage``.
 
     QUICK-START
 
-    1.  Launch sage
-    2.  Run
+    #. Launch sage
 
-        \code{sage: dsage.setup()}
+    #. Run::
 
-        For a really quick start, just hit ENTER on all questions.
-        This will create all the necessary supporting files to get **DSAGE**
-        running. It will create the databases, set up a private/public key for
-        authentication and create a SSL certificate for the server.
-    3.  Launch a server, monitor and get a connection to the server:
+          sage: dsage.setup() #not tested
 
-        \code{sage: D = dsage.start_all()}
+       For a really quick start, just hit ENTER on all questions. This
+       will create all the necessary supporting files to get **DSage**
+       running. It will create the databases, set up a private/public key
+       for authentication and create a SSL certificate for the server.
 
-        This will start 2 workers by default. You can change it by passing in
-        the ``workers=N`` argument where ``N`` is the number of workers you
-        want.
-    4.  To do a computation, use D just like any other SAGE interface. For
-        example:
+    #. Launch a server, monitor and get a connection to the server::
 
-        \code{sage: j = D('2+2')}
-        \code{sage: j.wait()}
-        \code{sage: j}
-        \code{4}
+          sage: D = dsage.start_all() #not tested
+
+       This will start 2 workers by default. You can change it by passing
+       in the "workers=N" argument where "N" is the number of workers you
+       want.
+
+    #. To do a computation, use D just like any other Sage
+       interface. For example::
+
+          sage: j = D('2+2')  #not tested
+          sage: j.wait()      #not tested
+          sage: j             #not tested
+          4
     """
 
     def start_all(self, port=None, workers=2, log_level=0, poll=1.0,
                   authenticate=False, failure_threshold=3,
                   verbose=True, testing=False):
         """
-        Start the server and worker and returns a connection to the server.
-
+        Start the server and worker and returns a connection to the
+        server.
         """
 
         from sage.dsage.interface.dsage_interface import BlockingDSage
@@ -176,7 +179,6 @@ class DistributedSage(object):
     def kill_all(self):
         """
         Kills the server and worker.
-
         """
 
         self.kill_worker()
@@ -206,10 +208,10 @@ class DistributedSage(object):
                authenticated_logins=False, failure_threshold=3,
                verbose=True, testing=False, profile=False):
         r"""
-        Run the Distributed SAGE server.
+        Run the Distributed Sage server.
 
-        Doing \code{dsage.server()} will spawn a server process which
-        listens by default on port 8081.
+        Doing ``dsage.server()`` will spawn a server process
+        which listens by default on port 8081.
         """
         open_ports = find_open_port()
         check_dsage_dir()
@@ -281,9 +283,9 @@ class DistributedSage(object):
                log_file=WORKER_LOG,
                verbose=True):
         r"""
-        Run the Distributed SAGE worker.
+        Run the Distributed Sage worker.
 
-        Typing \code{sage.worker()} will launch a worker which by
+        Typing ``sage.worker()`` will launch a worker which by
         default connects to localhost on port 8081 to fetch jobs.
         """
 
@@ -309,12 +311,11 @@ class DistributedSage(object):
         r"""
         This is the setup utility which helps you configure dsage.
 
-        Type \code{dsage.setup()} to run the configuration for the server,
-        worker and client.  Alternatively, if you want to run the
+        Type ``dsage.setup()`` to run the configuration for the
+        server, worker and client. Alternatively, if you want to run the
         configuration for just one parts, you can launch
-        \code{dsage.setup_server()}, \code{dsage.setup\_worker()}
-        or \code{dsage.setup()}.
-
+        ``dsage.setup_server()``, ``dsage.setup
+        worker()`` or ``dsage.setup()``.
         """
 
         from sage.dsage.scripts.dsage_setup import setup
@@ -324,7 +325,6 @@ class DistributedSage(object):
     def setup_server(self, *args):
         """
         This method runs the configuration utility for the server.
-
         """
 
         from sage.dsage.scripts.dsage_setup import setup_server
@@ -334,7 +334,6 @@ class DistributedSage(object):
     def setup_worker(self):
         """
         This method runs the configuration utility for the worker.
-
         """
 
         from sage.dsage.scripts.dsage_setup import setup_worker
@@ -344,7 +343,6 @@ class DistributedSage(object):
     def setup_client(self):
         """
         This method runs the configuration utility for the client.
-
         """
 
         from sage.dsage.scripts.dsage_setup import setup_client

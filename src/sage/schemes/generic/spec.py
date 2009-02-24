@@ -14,7 +14,8 @@ import point
 
 def is_Spec(X):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.schemes.generic.spec import is_Spec
         sage: is_Spec(QQ^3)
         False
@@ -29,11 +30,14 @@ class Spec(scheme.AffineScheme):
     r"""
     The spectrum of a commutative ring, as a scheme.
 
-    \note{Calling \code{Spec(R)} twice produces two distinct
-    (but equal) schemes, which is important for gluing to
-    construct more general schemes.}
+    .. note::
 
-    EXAMPLES:
+       Calling ``Spec(R)`` twice produces two distinct
+       (but equal) schemes, which is important for gluing to construct
+       more general schemes.
+
+    EXAMPLES::
+
         sage: Spec(QQ)
         Spectrum of Rational Field
         sage: Spec(PolynomialRing(QQ, 'x'))
@@ -51,6 +55,9 @@ class Spec(scheme.AffineScheme):
         True
 
     A TypeError is raised if the input is not a CommutativeRing.
+
+    ::
+
         sage: Spec(5)
         Traceback (most recent call last):
         ...
@@ -60,7 +67,8 @@ class Spec(scheme.AffineScheme):
         ...
         TypeError: R (=Free Algebra on 2 generators (x0, x1) over Rational Field) must be a commutative ring
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = Spec(ZZ)
         sage: X
         Spectrum of Integer Ring
@@ -86,11 +94,11 @@ class Spec(scheme.AffineScheme):
 
     def _cmp_(self, X):
         """
-        Anything that is not a Spec is less than X.
-        Spec's are compared with self using comparison
-        of the underlying rings.
+        Anything that is not a Spec is less than X. Spec's are compared
+        with self using comparison of the underlying rings.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Spec(QQ) == Spec(QQ)
             True
             sage: Spec(QQ) == Spec(ZZ)
@@ -117,7 +125,8 @@ class Spec(scheme.AffineScheme):
         """
         Return the underlying ring of this scheme.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Spec(QQ).coordinate_ring()
             Rational Field
             sage: Spec(PolynomialRing(QQ,3, 'x')).coordinate_ring()

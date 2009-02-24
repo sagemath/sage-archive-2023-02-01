@@ -14,14 +14,21 @@ import scheme
 class GluedScheme(scheme.Scheme):
     r"""
     INPUT:
-        f -- open immersion from a scheme U to a scheme X
-        g -- open immersion from U to a scheme Y
 
-    OUTPUT:
-        The scheme obtained by gluing X and Y along the open set U.
 
-    \note{Checking that $f$ and $g$ are open immersions is not
-    implemented.}
+    -  ``f`` - open immersion from a scheme U to a scheme
+       X
+
+    -  ``g`` - open immersion from U to a scheme Y
+
+
+    OUTPUT: The scheme obtained by gluing X and Y along the open set
+    U.
+
+    .. note::
+
+       Checking that `f` and `g` are open
+       immersions is not implemented.
     """
     def __init__(self, f, g, check=True):
         if check:

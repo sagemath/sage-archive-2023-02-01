@@ -2,9 +2,8 @@
 Schemes
 
 AUTHORS:
-   -- William Stein
-   -- David Kohel
-   -- Kiran Kedlaya: added zeta_series (2008)
+
+- William Stein, David Kohel, Kiran Kedlaya (2008): added zeta_series
 """
 
 #*******************************************************************************
@@ -35,9 +34,10 @@ import spec
 
 def is_Scheme(x):
     """
-    Return True if $x$ is a scheme.
+    Return True if `x` is a scheme.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.schemes.generic.scheme import is_Scheme
         sage: is_Scheme(5)
         False
@@ -56,7 +56,8 @@ class Scheme(ParentWithBase):
         """
         A scheme.
 
-        TESTS:
+        TESTS::
+
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: RmodI = R.quotient(I)
@@ -73,7 +74,8 @@ class Scheme(ParentWithBase):
 
     def __cmp__(self, X):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = Spec(QQ);  Y = Spec(QQ)
             sage: X == Y
             True
@@ -88,7 +90,8 @@ class Scheme(ParentWithBase):
         """
         Return the disjoint union of the schemes self and X.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = Spec(QQ)
             sage: X = AffineSpace(1, QQ)
             sage: S.union(X)
@@ -102,7 +105,8 @@ class Scheme(ParentWithBase):
 
     def _point_morphism_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = Spec(QQ)
             sage: X._point_morphism_class()
             Traceback (most recent call last):
@@ -114,7 +118,9 @@ class Scheme(ParentWithBase):
     def base_extend(self, Y):
         """
         Y is either a scheme in the same category as self or a ring.
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: X = Spec(QQ)
             sage: X.base_scheme()
             Spectrum of Integer Ring
@@ -127,20 +133,26 @@ class Scheme(ParentWithBase):
 
     def __call__(self, *args):
         """
-        If S is a ring or scheme, return the set $X(S)$ of $S$-valued
-        points on $X$.  If $S$ is a list or tuple or just the coordinates,
-        return a point in $X(T)$, where $T$ is the base scheme of self.
+        If S is a ring or scheme, return the set `X(S)` of
+        `S`-valued points on `X`. If `S` is a list
+        or tuple or just the coordinates, return a point in `X(T)`,
+        where `T` is the base scheme of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(2, QQ)
 
-        We create some point sets:
+        We create some point sets::
+
             sage: A(QQ)
             Set of Rational Points of Affine Space of dimension 2 over Rational Field
             sage: A(RR)
             Set of Rational Points of Affine Space of dimension 2 over Real Field with 53 bits of precision
 
-            Space of dimension 2 over Rational Field
+        Space of dimension 2 over Rational Field
+
+        ::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: A(NumberField(x^2+1, 'a'))
             Set of Rational Points of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 + 1
@@ -149,12 +161,16 @@ class Scheme(ParentWithBase):
             ...
             ValueError: No natural map from the base ring (=Rational Field) to S (=Finite Field of size 7)
 
+        We create some points::
 
-        We create some points:
             sage: A(QQ)([1,0])
             (1, 0)
 
-        We create the same point by giving the coordinates of the point directly.
+        We create the same point by giving the coordinates of the point
+        directly.
+
+        ::
+
             sage: A( 1,0 )
             (1, 0)
         """
@@ -185,7 +201,8 @@ class Scheme(ParentWithBase):
         """
         Return the set of S-valued points of this scheme.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = ProjectiveSpace(ZZ, 3)
             sage: P.point_homset(ZZ)
             Set of Rational Points of Projective Space of dimension 3 over Integer Ring
@@ -216,7 +233,8 @@ class Scheme(ParentWithBase):
 
     def _point_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = Spec(QQ)
             sage: X._point_class()
             Traceback (most recent call last):
@@ -227,7 +245,8 @@ class Scheme(ParentWithBase):
 
     def _homset_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = Spec(QQ)
             sage: X._homset_class()
             Traceback (most recent call last):
@@ -241,7 +260,8 @@ class Scheme(ParentWithBase):
         """
         Return the base extension of self to Y.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(3, ZZ)
             sage: A
             Affine Space of dimension 3 over Integer Ring
@@ -256,10 +276,13 @@ class Scheme(ParentWithBase):
         """
         Return the base ring of the scheme self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(4, QQ)
             sage: A.base_ring()
             Rational Field
+
+        ::
 
             sage: X = Spec(QQ)
             sage: X.base_ring()
@@ -280,10 +303,13 @@ class Scheme(ParentWithBase):
         """
         Return the base scheme of the scheme self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(4, QQ)
             sage: A.base_scheme()
             Spectrum of Rational Field
+
+        ::
 
             sage: X = Spec(QQ)
             sage: X.base_scheme()
@@ -307,13 +333,16 @@ class Scheme(ParentWithBase):
         Return the structure morphism from the scheme self to its base
         scheme.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(4, QQ)
             sage: A.base_morphism()
             Scheme morphism:
               From: Affine Space of dimension 4 over Rational Field
               To:   Spectrum of Rational Field
               Defn: Structure map
+
+        ::
 
             sage: X = Spec(QQ)
             sage: X.base_morphism()
@@ -337,10 +366,11 @@ class Scheme(ParentWithBase):
 
     def category(self):
         """
-        Return the category to which this scheme belongs.  This is the
+        Return the category to which this scheme belongs. This is the
         category of all schemes of the base scheme of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ProjectiveSpace(4, QQ).category()
             Category of schemes over Spectrum of Rational Field
         """
@@ -348,10 +378,11 @@ class Scheme(ParentWithBase):
 
     def coordinate_ring(self):
         """
-        Return the coordinate ring of this scheme, if defined.  Otherwise raise
-        a ValueError.
+        Return the coordinate ring of this scheme, if defined. Otherwise
+        raise a ValueError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: X = Spec(R.quotient(I))
@@ -367,7 +398,8 @@ class Scheme(ParentWithBase):
         """
         Return the relative dimension of this scheme over its base.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: X = Spec(R.quotient(I))
@@ -382,7 +414,8 @@ class Scheme(ParentWithBase):
         """
         Return the identity morphism of the scheme self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = Spec(QQ)
             sage: X.identity_morphism()
             Scheme endomorphism of Spectrum of Rational Field
@@ -392,12 +425,13 @@ class Scheme(ParentWithBase):
 
     def hom(self, x, Y=None):
         """
-        Return the scheme morphism from self to Y defined by x.  If x is a scheme,
-        try to determine a natural map to x.
+        Return the scheme morphism from self to Y defined by x. If x is a
+        scheme, try to determine a natural map to x.
 
         If Y is not given, try to determine Y from context.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = ProjectiveSpace(ZZ, 3)
             sage: P.hom(Spec(ZZ))
             Scheme morphism:
@@ -416,7 +450,8 @@ class Scheme(ParentWithBase):
         """
         Return the set of scheme morphisms from self to Y.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = ProjectiveSpace(ZZ, 3)
             sage: S = Spec(ZZ)
             sage: S._Hom_(P)
@@ -428,13 +463,17 @@ class Scheme(ParentWithBase):
 
     def count_points(self, n):
         r"""
-        Count points over $\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}$ on
-        a scheme over a finite field $\mathbf{F}_q$.
+        Count points over
+        `\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}` on a scheme over
+        a finite field `\mathbf{F}_q`.
 
-        NOTE: This is currently only implemented for schemes over prime
-        order finite fields.
+        .. note::
 
-        EXAMPLES:
+           This is currently only implemented for schemes over prime
+           order finite fields.
+
+        EXAMPLES::
+
             sage: P.<x> = PolynomialRing(GF(3))
             sage: C = HyperellipticCurve(x^3+x^2+1)
             sage: C.count_points(4)
@@ -464,13 +503,19 @@ class Scheme(ParentWithBase):
         scheme over a finite field.
 
         INPUT:
-            n -- the number of terms of the power series to compute
-            t -- the variable which the series should be returned
 
-        OUTPUT:
-            A power series approximating the zeta function of self
 
-        EXAMPLES:
+        -  ``n`` - the number of terms of the power series to
+           compute
+
+        -  ``t`` - the variable which the series should be
+           returned
+
+
+        OUTPUT: A power series approximating the zeta function of self
+
+        EXAMPLES::
+
             sage: P.<x> = PolynomialRing(GF(3))
             sage: C = HyperellipticCurve(x^3+x^2+1)
             sage: R.<t> = PowerSeriesRing(Integers())
@@ -480,7 +525,8 @@ class Scheme(ParentWithBase):
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
 
         Note that this function depends on count_points, which is only
-        defined for prime order fields:
+        defined for prime order fields::
+
             sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
             Traceback (most recent call last):
             ...
@@ -499,9 +545,10 @@ class Scheme(ParentWithBase):
 
 def is_AffineScheme(x):
     """
-    Return True if $x$ is an affine scheme.
+    Return True if `x` is an affine scheme.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.schemes.generic.scheme import is_AffineScheme
         sage: is_AffineScheme(5)
         False
@@ -521,9 +568,13 @@ class AffineScheme(Scheme):
 
         If Y is not given, try to determine from context.
 
-        EXAMPLES:
-        We construct the inclusion from $\Spec(\Q)$ into $\Spec(\Z)$
-        induced by the inclusion from $\Z$ into $\Q$.
+        EXAMPLES: We construct the inclusion from
+        `\mathrm{Spec}(\mathbb{Q})` into `\mathrm{Spec}(\mathbb{Z})`
+        induced by the inclusion from `\mathbb{Z}` into
+        `\mathbb{Q}`.
+
+        ::
+
             sage: X = Spec(QQ)
             sage: X.hom(ZZ.hom(QQ))
             Affine Scheme morphism:

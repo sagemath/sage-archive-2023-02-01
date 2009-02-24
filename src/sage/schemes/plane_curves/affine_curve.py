@@ -2,9 +2,12 @@
 Affine plane curves over a general ring
 
 AUTHORS:
-    -- 2005-11-13, William Stein <wstein@gmail.com>
-    -- 2005-11-13, David Joyner
-    -- 2006-01 David Kohel <kohel@maths.usyd.edu.au>
+
+- William Stein (2005-11-13)
+
+- David Joyner (2005-11-13)
+
+- David Kohel (2006-01)
 """
 
 #*****************************************************************************
@@ -57,14 +60,18 @@ class AffineCurve_generic(Curve_generic):
         """
         Return the divisor of a function on a curve.
 
-        INPUT:
-             r is a rational function on X
+        INPUT: r is a rational function on X
 
         OUTPUT:
-             list -- The divisor of r represented as a list of coefficients and points.
-                     (TODO: This will change to a more structural output in the future.)
 
-        EXAMPLES:
+
+        -  ``list`` - The divisor of r represented as a list of
+           coefficients and points. (TODO: This will change to a more
+           structural output in the future.)
+
+
+        EXAMPLES::
+
             sage: F = GF(5)
             sage: P2 = AffineSpace(2, F, names = 'xy')
             sage: R = P2.coordinate_ring()
@@ -103,20 +110,23 @@ class AffineCurve_generic(Curve_generic):
         r"""
         Return local coordinates to precision n at the given point.
 
-        \begin{note}
-        {\bf Behaviour is flakey} - some choices of $n$ are worst that others.
-        \end{note}
+            Behaviour is flakey - some choices of `n` are worst that
+            others.
+
 
         INPUT:
-            pt -- an F-rational point on X which is not a
-                  point of ramification for the projection (x,y) -> x.
-            n  -- the number of terms desired
 
-        OUTPUT:
-            x = x0 + t
-            y = y0 + power series in t
 
-        EXAMPLES:
+        -  ``pt`` - an F-rational point on X which is not a
+           point of ramification for the projection (x,y) - x.
+
+        -  ``n`` - the number of terms desired
+
+
+        OUTPUT: x = x0 + t y = y0 + power series in t
+
+        EXAMPLES::
+
             sage: F = GF(5)
             sage: pt = (2,3)
             sage: R = PolynomialRing(F,2, names = ['x','y'])
@@ -179,10 +189,11 @@ class AffineCurve_finite_field(AffineCurve_generic):
         r"""
         Return sorted list of all rational points on this curve.
 
-        Use \emph{very} naive point enumeration to find all rational points
-        on this curve over a finite field.
+        Use *very* naive point enumeration to find all rational points on
+        this curve over a finite field.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: A, (x,y) = AffineSpace(2,GF(9,'a')).objgens()
             sage: C = Curve(x^2 + y^2 - 1)
             sage: C
@@ -211,20 +222,24 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
         Interfaces with Singular's BrillNoether command.
 
         INPUT:
-            self -- a plane curve defined by a polynomial eqn f(x,y) = 0
-                    over a prime finite field F = GF(p)
-                    in 2 variables x,y representing a curve
-                    X: f(x,y) = 0 having n F-rational points (see
-                    the SAGE function places_on_curve)
-            D    -- an n-tuple of integers $(d1, ..., dn)$ representing the
-                    divisor $Div = d1*P1+...+dn*Pn$, where
-                    $X(F) = \{P1,...,Pn\}$.
-                    **The ordering is that dictated by places_on_curve.**
 
-        OUTPUT:
-            basis of L(Div)
 
-        EXAMPLE:
+        -  ``self`` - a plane curve defined by a polynomial eqn f(x,y)
+           = 0 over a prime finite field F = GF(p) in 2 variables x,y
+           representing a curve X: f(x,y) = 0 having n F-rational
+           points (see the Sage function places_on_curve)
+
+        -  ``D`` - an n-tuple of integers
+           `(d1, ..., dn)` representing the divisor
+           `Div = d1*P1+...+dn*Pn`, where
+           `X(F) = \{P1,...,Pn\}`.
+           *The ordering is that dictated by places_on_curve.*
+
+
+        OUTPUT: basis of L(Div)
+
+        EXAMPLE::
+
             sage: R = PolynomialRing(GF(5),2,names = ["x","y"])
             sage: x, y = R.gens()
             sage: f = y^2 - x^9 - x
@@ -267,17 +282,25 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
         Return sorted list of all rational points on this curve.
 
         INPUT:
-            algorithm -- string:
-                           'enum' -- straightforward enumeration
-                           'bn' -- via Singular's Brill-Noether package.
-                           'all' -- use all implemented algorithms
-                                    and verify that they give the same answer,
-                                    then return it
 
-        \note{The Brill-Noether package does not always work.  When it
-        fails a RuntimeError exception is raised.}
 
-        EXAMPLE:
+        -  ``algorithm`` - string:
+
+        -  ``'enum'`` - straightforward enumeration
+
+        -  ``'bn'`` - via Singular's Brill-Noether package.
+
+        -  ``'all'`` - use all implemented algorithms and
+           verify that they give the same answer, then return it
+
+
+        .. note::
+
+           The Brill-Noether package does not always work. When it
+           fails a RuntimeError exception is raised.
+
+        EXAMPLE::
+
             sage: x, y = (GF(5)['x,y']).gens()
             sage: f = y^2 - x^9 - x
             sage: C = Curve(f); C
@@ -288,7 +311,9 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: C.rational_points()
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
 
-        The following seems to run fine on Linux but *crashes* on OS X intel:
+        The following seems to run fine on Linux but *crashes* on OS X
+        intel::
+
             sage: x, y = (GF(17)['x,y']).gens()
             sage: C = Curve(x^2 + y^5 + x*y - 19)
             sage: v = C.rational_points(algorithm='bn')      # not tested

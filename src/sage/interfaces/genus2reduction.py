@@ -134,24 +134,24 @@ class ReductionData(SageObject):
        `J(C)` at `p`.
 
 
-    .. note::
+    .. warning::
 
-       Warning - Be careful regarding the formula:
+       Be careful regarding the formula:
 
        .. math::
 
-         \text{valuation of the naive minimal discriminant} = f + n - 1 + 11c(X).
+          \text{valuation of the naive minimal discriminant} = f + n - 1 + 11c(X).
 
-         (Q. Liu : "Conducteur et discriminant minimal de courbes de genre
-         2", Compositio Math. 94 (1994) 51-79, Theoreme 2) is valid only if
-         the residual field is algebraically closed as stated in the paper.
-         So this equality does not hold in general over
-         `\mathbb{Q}_p`. The fact is that the minimal discriminant
-         may change after unramified extension. One can show however that,
-         at worst, the change will stabilize after a quadratic unramified
-         extension (Q. Liu : "Modeles entiers de courbes hyperelliptiques
-         sur un corps de valuation discrete", Trans. AMS 348 (1996),
-         4577-4610, Section 7.2, Proposition 4).
+       (Q. Liu : "Conducteur et discriminant minimal de courbes de genre
+       2", Compositio Math. 94 (1994) 51-79, Theoreme 2) is valid only if
+       the residual field is algebraically closed as stated in the paper.
+       So this equality does not hold in general over
+       `\mathbb{Q}_p`. The fact is that the minimal discriminant
+       may change after unramified extension. One can show however that,
+       at worst, the change will stabilize after a quadratic unramified
+       extension (Q. Liu : "Modeles entiers de courbes hyperelliptiques
+       sur un corps de valuation discrete", Trans. AMS 348 (1996),
+       4577-4610, Section 7.2, Proposition 4).
     """
     def __init__(self, raw, P, Q, minimal_equation, minimal_disc,
                  local_data, conductor, prime_to_2_conductor_only):

@@ -37,12 +37,15 @@ import scheme
 
 def is_AlgebraicScheme(x):
     """
-    Return True if $x$ is an algebraic scheme, i.e., a subscheme of an
-    ambient space over a ring defined by polynomial equations.
+    Return True if `x` is an algebraic scheme, i.e., a
+    subscheme of an ambient space over a ring defined by polynomial
+    equations.
 
-    EXAMPLES:
-    Affine space is itself not an algebraic scheme, though the closed subscheme
-    defined by no equations is.
+    EXAMPLES: Affine space is itself not an algebraic scheme, though
+    the closed subscheme defined by no equations is.
+
+    ::
+
         sage: from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
         sage: is_AlgebraicScheme(AffineSpace(10, QQ))
         False
@@ -54,12 +57,17 @@ def is_AlgebraicScheme(x):
         True
 
     We create a more complicated closed subscheme.
+
+    ::
+
         sage: A, x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
         x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
         sage: is_AlgebraicScheme(X)
         True
+
+    ::
 
         sage: is_AlgebraicScheme(QQ)
         False
@@ -108,8 +116,8 @@ class AlgebraicScheme(scheme.Scheme):
 class AlgebraicScheme_quasi(AlgebraicScheme):
     """
     The quasi-affine or quasi-projective scheme X - Y, where X and Y
-    are both closed subschemes of a common ambient affine or
-    projective space.
+    are both closed subschemes of a common ambient affine or projective
+    space.
     """
     def __init__(self, X, Y):
         self.__X = X
@@ -145,8 +153,8 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
     def _check_satisfies_equations(self, v):
         """
-        Verify that the coordinates of v define a point on this scheme,
-        or raise a TypeError.
+        Verify that the coordinates of v define a point on this scheme, or
+        raise a TypeError.
         """
         for f in self.__X.defining_polynomials():
             if f(v) != 0:
@@ -186,13 +194,17 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 class AlgebraicScheme_subscheme(AlgebraicScheme):
     """
     An algebraic scheme presented as a closed subscheme is defined by
-    explicit polynomial equations.  This is as opposed to a general
+    explicit polynomial equations. This is as opposed to a general
     scheme, which could, e.g., by the Neron model of some object, and
     for which we do not want to give explicit equations.
 
     INPUT:
-        A -- ambient space (affine or projective n-space over a ring)
-        G -- ideal or tuple of defining polynomials
+
+
+    -  ``A`` - ambient space (affine or projective n-space
+       over a ring)
+
+    -  ``G`` - ideal or tuple of defining polynomials
     """
     def __init__(self, A, G):
         AlgebraicScheme.__init__(self, A)
@@ -220,8 +232,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     def _check_satisfies_equations(self, v):
         """
-        Verify that the coordinates of v define a point on this scheme,
-        or raise a TypeError.
+        Verify that the coordinates of v define a point on this scheme, or
+        raise a TypeError.
         """
         for f in self.defining_polynomials():
             if f(v) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
@@ -263,16 +275,18 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the irreducible components of this algebraic scheme, as
         subschemes of the same ambient space.
 
-        OUTPUT:
-            an immutable sequence of irreducible subschemes of the ambient
-            space of this scheme
+        OUTPUT: an immutable sequence of irreducible subschemes of the
+        ambient space of this scheme
 
         The components are cached.
 
         EXAMPLES:
 
         We define what is clearly a union of four hypersurfaces in
-        $\P^4_{\Q}$ then find the irreducible components.
+        `\P^4_{\mathbb{Q}}` then find the irreducible components.
+
+        ::
+
             sage: PP.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
             sage: V = PP.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
@@ -302,12 +316,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     def reduce(self):
         r"""
-        Return the corresponding reduced algebraic space associated to
-        this scheme.
+        Return the corresponding reduced algebraic space associated to this
+        scheme.
 
-        EXAMPLES:
-        First we construct the union of a doubled and triplled line
-        in the affine plane over $\Q$.
+        EXAMPLES: First we construct the union of a doubled and triplled
+        line in the affine plane over `\mathbb{Q}`.
+
+        ::
+
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: X = A.subscheme([(x-1)^2*(x-y)^3]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
@@ -316,11 +332,18 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             1
 
         Then we compute the corresponding reduced scheme.
+
+        ::
+
             sage: Y = X.reduce(); Y
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               x^2 - x*y - x + y
 
-        Finally, we verify that the reduced scheme $Y$ is the union of those two lines.
+        Finally, we verify that the reduced scheme `Y` is the union
+        of those two lines.
+
+        ::
+
             sage: L1 = A.subscheme([x-1]); L1
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               x - 1
@@ -348,8 +371,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the scheme-theoretic union of self and other in their common
         ambient space.
 
-        EXAMPLES:
-        We construct the union of a line and a tripled-point on the line.
+        EXAMPLES: We construct the union of a line and a tripled-point on
+        the line.
+
+        ::
+
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: I = ideal([x,y])^3
             sage: P = A.subscheme(I)
@@ -367,12 +393,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             y^2 - y
             x*y - x
 
-        We can also use the notation "+" for the union:
+        We can also use the notation "+" for the union::
+
             sage: A.subscheme([x]) + A.subscheme([y^2 - (x^3+1)])
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
             -x^4 + x*y^2 - x
 
-        Saving and loading:
+        Saving and loading::
+
             sage: loads(S.dumps()) == S
             True
         """
@@ -387,8 +415,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     def intersection(self, other):
         """
-        Return the scheme-theoretic intersection of self and other in their common
-        ambient space.
+        Return the scheme-theoretic intersection of self and other in their
+        common ambient space.
 
         EXAMPLES:
         """
@@ -403,8 +431,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         Return the scheme-theoretic complement self - other.
 
-        EXAMPLES:
-        HERE
+        EXAMPLES: HERE
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
             raise TypeError, \
@@ -419,8 +446,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         EXAMPLES:
 
-	One can enumerate points up to a given bound on a projective scheme
+        One can enumerate points up to a given bound on a projective scheme
         over the rationals.
+
+        ::
 
             sage: E = EllipticCurve('37a')
             sage: E.rational_points(bound=8)
@@ -436,30 +465,35 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
              (1/4 : -5/8 : 1),
              (0 : 1 : 0)]
 
-	For a small finite field, the complete set of points can be enumerated.
+        For a small finite field, the complete set of points can be
+        enumerated.
+
+        ::
 
             sage: Etilde = E.base_extend(GF(3))
             sage: Etilde.rational_points()
-	    [(0 : 0 : 1), (1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1), (1 : 2 : 1), (2 : 2 : 1), (0 : 1 : 0)]
+            [(0 : 0 : 1), (1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1), (1 : 2 : 1), (2 : 2 : 1), (0 : 1 : 0)]
 
-	The class of hyperelliptic curves does not (yet) support desingularization
-        of the places at infinity into two points.
+        The class of hyperelliptic curves does not (yet) support
+        desingularization of the places at infinity into two points.
 
-	     sage: FF = FiniteField(7)
-	     sage: P.<x> = PolynomialRing(FiniteField(7))
-	     sage: C = HyperellipticCurve(x^8+x+1)
-	     sage: C.rational_points()
-             [(2 : 0 : 1), (4 : 0 : 1), (0 : 1 : 1), (6 : 1 : 1), (0 : 6 : 1), (6 : 6 : 1), (0 : 1 : 0)]
+        ::
+
+            sage: FF = FiniteField(7)
+            sage: P.<x> = PolynomialRing(FiniteField(7))
+            sage: C = HyperellipticCurve(x^8+x+1)
+            sage: C.rational_points()
+            [(2 : 0 : 1), (4 : 0 : 1), (0 : 1 : 1), (6 : 1 : 1), (0 : 6 : 1), (6 : 6 : 1), (0 : 1 : 0)]
 
         TODO:
 
-	1. The above algorithms enumerate all projective points and
-        test whether they lie on the scheme; Implement a more naive
-        sieve at least for covers of the projective line.
+        1. The above algorithms enumerate all projective points and
+           test whether they lie on the scheme; Implement a more naive
+           sieve at least for covers of the projective line.
 
         2. Implement Stoll's model in weighted projective space to
-        resolve singularities and find two points (1 : 1 : 0) and
-        (-1 : 1 : 0) at infinity.
+           resolve singularities and find two points (1 : 1 : 0) and
+           (-1 : 1 : 0) at infinity.
         """
         if F == None:
             F = self.base_ring()
@@ -482,7 +516,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: A.subscheme([]).dimension()
             2
@@ -496,6 +531,9 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
+
+        ::
+
             sage: A.<x,y,z,w> = AffineSpace(4, QQ)
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
@@ -519,12 +557,16 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         projective space of the same dimension.
 
         INPUT:
-            i -- integer (default: dimension of self = last coordinate) determines
-                 which projective embedding to compute.  The embedding is that
-                 which has a 1 in the i-th coordinate, numbered from 0.
 
-            X -- (default: None) projective scheme, i.e., codomain of morphism;
-                 this is constructed if it is not given.
+
+        -  ``i`` - integer (default: dimension of self = last
+           coordinate) determines which projective embedding to compute. The
+           embedding is that which has a 1 in the i-th coordinate, numbered
+           from 0.
+
+
+        -  ``X`` - (default: None) projective scheme, i.e., codomain of
+           morphism; this is constructed if it is not given.
 
         EXAMPLES:
         """
@@ -575,7 +617,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def dimension(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: A.subscheme([]).dimension()
             2
@@ -589,6 +632,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
+
+        ::
+
             sage: A.<x,y,z,w> = AffineSpace(4, QQ)
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
@@ -608,17 +654,21 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def affine_patch(self, i):
         r"""
-        Return the $i$-th affine patch of this projective scheme.
-        This is the intersection with this $i$-th affine patch of
+        Return the `i^{th}` affine patch of this projective scheme.
+        This is the intersection with this `i^{th}` affine patch of
         its ambient space.
 
         INPUT:
-            i -- integer between 0 and dimension of self, inclusive.
 
-        OUTPUT:
-            an affine scheme with fixed projective_embedding map.
 
-        EXAMPLES:
+        -  ``i`` - integer between 0 and dimension of self,
+           inclusive.
+
+
+        OUTPUT: an affine scheme with fixed projective_embedding map.
+
+        EXAMPLES::
+
             sage: PP = ProjectiveSpace(2, QQ, names='X,Y,Z')
             sage: X,Y,Z = PP.gens()
             sage: C = PP.subscheme(X^3*Y + Y^3*Z + Z^3*X)

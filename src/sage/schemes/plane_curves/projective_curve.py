@@ -1,10 +1,13 @@
 """
-Plane curves over a general ring
+Projective plane curves over a general ring
 
 AUTHORS:
-    -- 2005-11-13, William Stein <wstein@gmail.com>
-    -- 2005-11-13, David Joyner
-    -- 2006-01 David Kohel <kohel@maths.usyd.edu.au>
+
+- William Stein (2005-11-13)
+
+- David Joyner (2005-11-13)
+
+- David Kohel (2006-01)
 """
 
 #*****************************************************************************
@@ -50,12 +53,13 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         r"""
         Return the arithmetic genus of this curve.
 
-        This is the arithmetic genus $g_a(C)$ as defined in Hartshorne.
-        If the curve has degree $d$ then this is simply $(d-1)(d-2)/2$.
-        It need \emph{not} equal the geometric genus (the genus of the
-        normalize of the curve).
+        This is the arithmetic genus `g_a(C)` as defined in
+        Hartshorne. If the curve has degree `d` then this is simply
+        `(d-1)(d-2)/2`. It need *not* equal the geometric genus
+        (the genus of the normalization of the curve).
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
             Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
@@ -71,14 +75,18 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         """
         Return the divisor of a function on a curve.
 
-        INPUT:
-             r is a rational function on X
+        INPUT: r is a rational function on X
 
         OUTPUT:
-             list -- The divisor of r represented as a list of coefficients and points.
-                     (TODO: This will change to a more structural output in the future.)
 
-        EXAMPLES:
+
+        -  ``list`` - The divisor of r represented as a list of
+           coefficients and points. (TODO: This will change to a more
+           structural output in the future.)
+
+
+        EXAMPLES::
+
             sage: FF = FiniteField(5)
             sage: P2 = ProjectiveSpace(2, FF, names = ['x','y','z'])
             sage: R = P2.coordinate_ring()
@@ -112,20 +120,23 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         r"""
         Return local coordinates to precision n at the given point.
 
-        \begin{note}
-        {\bf Behaviour is flakey} - some choices of $n$ are worst that others.
-        \end{note}
+            Behaviour is flakey - some choices of `n` are worst that
+            others.
+
 
         INPUT:
-            pt -- an F-rational point on X which is not a
-                  point of ramification for the projection (x,y) -> x.
-            n  -- the number of terms desired
 
-        OUTPUT:
-            x = x0 + t
-            y = y0 + power series in t
 
-        EXAMPLES:
+        -  ``pt`` - an F-rational point on X which is not a
+           point of ramification for the projection (x,y) - x.
+
+        -  ``n`` - the number of terms desired
+
+
+        OUTPUT: x = x0 + t y = y0 + power series in t
+
+        EXAMPLES::
+
             sage: FF = FiniteField(5)
             sage: P2 = ProjectiveSpace(2, FF, names = ['x','y','z'])
             sage: x, y, z = P2.coordinate_ring().gens()
@@ -187,10 +198,11 @@ class ProjectiveCurve_generic(Curve_generic_projective):
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
     def rational_points(self, algorithm="enum", sort=True):
         r"""
-        Return the rational points on this curve computed via
-        enumeration.
+        Return the rational points on this curve computed via enumeration.
 
-        \note{This is a slow Python-level implementation.}
+        .. note::
+
+           This is a slow Python-level implementation.
         """
         g = self.defining_polynomial()
         R = g.parent()
@@ -218,16 +230,19 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
 class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
     def _points_via_singular(self, sort=True):
         r"""
-        Return all rational points on this curve, computed using
-        Singular's Brill-Noether implementation.
-
+        Return all rational points on this curve, computed using Singular's
+        Brill-Noether implementation.
 
         INPUT:
-            sort -- bool (default: True), if True return the point
-                    list sorted.  If False, returns the pointes in the
-                    order computed by Singular.
 
-        EXAMPLE:
+
+        -  ``sort`` - bool (default: True), if True return the
+           point list sorted. If False, returns the pointes in the order
+           computed by Singular.
+
+
+        EXAMPLE::
+
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
@@ -238,8 +253,11 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: v
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
 
-        \note{The Brill-Noether package does not always work (i.e., the 'bn'
-        algorithm.  When it fails a RuntimeError exception is raised.}
+        .. note::
+
+           The Brill-Noether package does not always work (i.e., the
+           'bn' algorithm. When it fails a RuntimeError exception is
+           raised.
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()
@@ -269,19 +287,26 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
 
     def riemann_roch_basis(self, D):
         r"""
-        Return a basis for the Riemann-Roch space corresponding to $D$.
+        Return a basis for the Riemann-Roch space corresponding to
+        `D`.
 
-        \note{** WARNING: This function calls a Singular function that
-        appears to be very buggy and should not be trusted. **}
+        .. warning::
+
+          This function calls a Singular function that
+          appears to be very buggy and should not be trusted.
 
         This uses Singular's Brill-Noether implementation.
 
         INPUT:
-            sort -- bool (default: True), if True return the point
-                    list sorted.  If False, returns the pointes in the
-                    order computed by Singular.
 
-        EXAMPLE:
+
+        -  ``sort`` - bool (default: True), if True return the
+           point list sorted. If False, returns the pointes in the order
+           computed by Singular.
+
+
+        EXAMPLE::
+
             sage: R.<x,y,z> = GF(2)[]
             sage: f = x^3*y + y^3*z + x*z^3
             sage: C = Curve(f); pts = C.rational_points()
@@ -290,7 +315,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             [x/y, 1, z/y, z^2/y^2, z/x, z^2/(x*y)]
 
         The following example illustrates that the Riemann-Roch space
-        function in Singular doesn't \emph{not} work correctly.
+        function in Singular doesn't *not* work correctly.
+
+        ::
 
             sage: R.<x,y,z> = GF(5)[]
             sage: f = x^7 + y^7 + z^7
@@ -299,8 +326,8 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: C.riemann_roch_basis(D)    # output is random (!!!!)
             [x/(y + x), (z + y)/(y + x)]
 
-        The answer has dimension 2 (confirmed via Magma).  But it
-        varies between 1 and quite large with Singular.
+        The answer has dimension 2 (confirmed via Magma). But it varies
+        between 1 and quite large with Singular.
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()
@@ -340,11 +367,17 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
     def rational_points(self, algorithm="enum", sort=True):
         r"""
         INPUT:
-            algorithm -- string:
-                           'enum' -- straightforward enumeration
-                           'bn' -- via Singular's brnoeth package.
 
-        EXAMPLE:
+
+        -  ``algorithm`` - string:
+
+        -  ``'enum'`` - straightforward enumeration
+
+        -  ``'bn'`` - via Singular's brnoeth package.
+
+
+        EXAMPLE::
+
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
@@ -355,8 +388,11 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: C.rational_points()
             [(0 : 1 : 1), (1 : 1 : 0), (1 : 2 : 1), (2 : 3 : 1), (3 : 4 : 1), (4 : 0 : 1)]
 
-        \note{The Brill-Noether package does not always work (i.e., the 'bn'
-        algorithm.  When it fails a RuntimeError exception is raised.}
+        .. note::
+
+           The Brill-Noether package does not always work (i.e., the
+           'bn' algorithm. When it fails a RuntimeError exception is
+           raised.
         """
         if algorithm == "enum":
 

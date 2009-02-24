@@ -2,8 +2,10 @@
 Elliptic curve constructor
 
 AUTHORS:
-   * William Stein (2005) -- Initial version
-   * John Cremona (Jan 2008) -- EllipticCurve(j) fixed for all cases
+
+- William Stein (2005): Initial version
+
+- John Cremona (2008-01): EllipticCurve(j) fixed for all cases
 """
 
 #*****************************************************************************
@@ -32,37 +34,40 @@ from sage.calculus.calculus import SR, SymbolicEquation
 def EllipticCurve(x, y=None):
     r"""
     There are several ways to construct an elliptic curve:
-      $$
-          y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
-      $$
 
-        -- EllipticCurve([a1,a2,a3,a4,a6]): Elliptic curve with given
-           a-invariants.  The invariants are coerced into the parent
-           of the first element.  If all are integers, they are coerced
-           into the rational numbers.
+    .. math::
 
-        -- EllipticCurve([a4,a6]): Same as above, but a1=a2=a3=0.
+       y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
 
-        -- EllipticCurve(label): Returns the elliptic curve over Q
-           from the Cremona database with the given label.  The label
-           is a string, such as "11a" or "37b2".  The letters in the
-           label \emph{must} be lower case (Cremona's new labeling).
 
-        -- EllipticCurve(R, [a1,a2,a3,a4,a6]): Create the elliptic
-           curve over R with given a-invariants.  Here R can be an
-           arbitrary ring.  Note that addition need not be defined.
+    - EllipticCurve([a1,a2,a3,a4,a6]): Elliptic curve with given
+      a-invariants. The invariants are coerced into the parent of the
+      first element. If all are integers, they are coerced into the
+      rational numbers.
 
-        -- EllipticCurve(j): Return an elliptic curve with j-invariant
-           $j$.
+    - EllipticCurve([a4,a6]): Same as above, but a1=a2=a3=0.
 
-    EXAMPLES:
-    We illustrate creating elliptic curves.
+    - EllipticCurve(label): Returns the elliptic curve over Q from the
+      Cremona database with the given label. The label is a string, such
+      as "11a" or "37b2". The letters in the label *must* be lower case
+      (Cremona's new labeling).
+
+    - EllipticCurve(R, [a1,a2,a3,a4,a6]): Create the elliptic curve
+      over R with given a-invariants. Here R can be an arbitrary ring.
+      Note that addition need not be defined.
+
+    - EllipticCurve(j): Return an elliptic curve with j-invariant
+      `j`.
+
+    EXAMPLES: We illustrate creating elliptic curves.
+
+    ::
 
         sage: EllipticCurve([0,0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
+    We create a curve from a Cremona label::
 
-    We create a curve from a Cremona label:
         sage: EllipticCurve('37b2')
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field
         sage: EllipticCurve('5077a')
@@ -70,20 +75,23 @@ def EllipticCurve(x, y=None):
         sage: EllipticCurve('389a')
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
 
-    We create curves over a finite field as follows:
+    We create curves over a finite field as follows::
+
         sage: EllipticCurve([GF(5)(0),0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
         sage: EllipticCurve(GF(5), [0, 0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
 
-    The following is a curve over the complex numbers:
+    The following is a curve over the complex numbers::
+
         sage: E = EllipticCurve(CC, [0,0,1,-1,0])
         sage: E
         Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
         sage: E.j_invariant()
         2988.97297297297
 
-    We can also create elliptic curves by giving the Weierstrass equation:
+    We can also create elliptic curves by giving the Weierstrass equation::
+
         sage: x, y = var('x,y')
         sage: EllipticCurve(y^2 + y ==  x^3 + x - 9)
         Elliptic Curve defined by y^2 + y = x^3 + x - 9 over Rational Field
@@ -92,13 +100,15 @@ def EllipticCurve(x, y=None):
         sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
         Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
 
-    TESTS:
+    TESTS::
+
         sage: R = ZZ['u', 'v']
         sage: EllipticCurve(R, [1,1])
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
 
-    We create a curve and a point over QQbar:
+    We create a curve and a point over QQbar::
+
         sage: E = EllipticCurve(QQbar,[0,1])
         sage: E(0)
         (0 : 1 : 0)
@@ -228,9 +238,11 @@ def EllipticCurve(x, y=None):
 
 def EllipticCurve_from_c4c6(c4, c6):
     """
-    Return an elliptic curve with given $c_4$ and $c_6$ invariants.
+    Return an elliptic curve with given `c_4` and
+    `c_6` invariants.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: E = EllipticCurve_from_c4c6(17, -2005)
         sage: E
         Elliptic Curve defined by y^2  = x^3 - 17/48*x + 2005/864 over Rational Field
@@ -247,18 +259,20 @@ def EllipticCurve_from_c4c6(c4, c6):
 
 def EllipticCurve_from_cubic(F, P):
     r"""
-    Given a nonsingular homogenous cubic polynomial F over $\Q$ in
-    three variables x, y, z and a projective solution P=[a,b,c] to
-    F(P)=0, find the minimal Weierstrass equation of the elliptic
-    curve over $\Q$ that is isomorphic to the curve defined by $F=0$.
+    Given a nonsingular homogenous cubic polynomial F over
+    `\mathbb{Q}` in three variables x, y, z and a projective
+    solution P=[a,b,c] to F(P)=0, find the minimal Weierstrass equation
+    of the elliptic curve over `\mathbb{Q}` that is isomorphic
+    to the curve defined by `F=0`.
 
-    \note{USES MAGMA -- This function will not work on computers that
-    do not have magma installed.  (HELP WANTED -- somebody implement
-    this independent of MAGMA.)}
+    .. note::
 
-    EXAMPLES:
-    First we find that the Fermat cubic is isomorphic to the
-    curve with Cremona label 27a1:
+       USES MAGMA - This function will not work on computers that
+       do not have magma installed. (HELP WANTED - somebody implement this
+       independent of MAGMA.)
+
+    EXAMPLES: First we find that the Fermat cubic is isomorphic to the
+    curve with Cremona label 27a1::
 
         sage: E = EllipticCurve_from_cubic('x^3 + y^3 + z^3', [1,-1,0])  # optional - magma
         sage: E         # optional - magma
@@ -266,14 +280,16 @@ def EllipticCurve_from_cubic(F, P):
         sage: E.cremona_label()     # optional - magma
         '27a1'
 
-    Next we find the minimal model and conductor of the Jacobian
-    of the Selmer curve.
+    Next we find the minimal model and conductor of the Jacobian of the
+    Selmer curve.
+
+    ::
+
         sage: E = EllipticCurve_from_cubic('x^3 + y^3 + 60*z^3', [1,-1,0])   # optional - magma
         sage: E                # optional - magma
         Elliptic Curve defined by y^2  = x^3 - 24300 over Rational Field
         sage: E.conductor()    # optional - magma
         24300
-
     """
     from sage.interfaces.all import magma
     magma.eval("P<x,y,z> := ProjectivePlane(RationalField());")

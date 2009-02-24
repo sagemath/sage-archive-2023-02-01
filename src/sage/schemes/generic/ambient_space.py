@@ -25,8 +25,11 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
     Base class for ambient spaces over a ring.
 
     INPUT:
-        n -- dimension
-        R -- ring
+
+
+    -  ``n`` - dimension
+
+    -  ``R`` - ring
     """
     def __init__(self, n, R=ZZ):
         if not is_CommutativeRing(R):
@@ -60,8 +63,8 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
 
     def _check_satisfies_equations(self, v):
         """
-        Verify that the coordinates of v define a point on this scheme,
-        or raise a TypeError.
+        Verify that the coordinates of v define a point on this scheme, or
+        raise a TypeError.
         """
         return True
 

@@ -1,7 +1,8 @@
 """
 Hyperelliptic curves over a finite field
 
-EXAMPLES:
+EXAMPLES::
+
     sage: K.<a> = GF(9, 'a')
     sage: x = polygen(K)
     sage: C = HyperellipticCurve(x^7 - x^5 - 2, x^2 + a)
@@ -25,7 +26,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Count points by enumerating over x and solving the resulting
         quadratic for y.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = GF(9, 'a')
             sage: x = polygen(K)
             sage: C = HyperellipticCurve(x^7 - 1, x^2 + a)
@@ -37,7 +39,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: len(C._points_fast_sqrt())
             31
 
-        TESTS:
+        TESTS::
+
             sage: x = polygen(GF(16, 'a'))
             sage: C = HyperellipticCurve(x^5 - x + 1, x^2 + x)
             sage: set(C._points_fast_sqrt()) == set(C._points_cache_sqrt())
@@ -112,10 +115,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Count points by enumerating over x and solving the resulting
         quadratic for y.
 
-        Caches all square roots ahead of time by sqaring every element of the field.
-        Elements must have an __index__ method.
+        Caches all square roots ahead of time by sqaring every element of
+        the field. Elements must have an __index__ method.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = polygen(GF(7))
             sage: C = HyperellipticCurve(x^3 + x^2 - 1)
             sage: C._points_cache_sqrt()
@@ -167,11 +171,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         r"""
         All the points on this hyperelliptic curve.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = polygen(GF(7))
             sage: C = HyperellipticCurve(x^7 - x^2 - 1)
             sage: C.points()
             [(0 : 1 : 0), (2 : 5 : 1), (2 : 2 : 1), (3 : 0 : 1), (4 : 6 : 1), (4 : 1 : 1), (5 : 0 : 1), (6 : 5 : 1), (6 : 2 : 1)]
+
+        ::
 
             sage: x = polygen(GF(121, 'a'))
             sage: C = HyperellipticCurve(x^5 + x - 1, x^2 + 2)

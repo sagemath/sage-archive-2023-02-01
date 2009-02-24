@@ -186,14 +186,19 @@ class SchemeHomset_generic(parent_old.Parent, HomsetWithBase):
 
     def __call__(self, x, check=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ZZ.hom(QQ); f
             Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
 
+        ::
+
             sage: H = Hom(Spec(QQ,ZZ), Spec(ZZ)); H
             Set of points of Spectrum of Integer Ring defined over Rational Field
+
+        ::
 
             sage: phi = H(f); phi
             Affine Scheme morphism:
@@ -214,8 +219,8 @@ class SchemeHomset_spec(SchemeHomset_generic):
 
 class SchemeHomset_coordinates(SchemeHomset_generic):
     """
-    Set of points on X defined over the base ring of X, and given
-    by explicit tuples.
+    Set of points on X defined over the base ring of X, and given by
+    explicit tuples.
     """
     def __init__(self, X, S):
         R = X.base_ring()
@@ -243,8 +248,8 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
 
 class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
     """
-    Set of points on X defined over the base ring of X, and given
-    by explicit tuples.
+    Set of points on X defined over the base ring of X, and given by
+    explicit tuples.
     """
     def __call__(self, *v):
         if len(v) == 1:
@@ -267,8 +272,8 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
 
 class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     """
-    Set of points on X defined over the base ring of X, and given
-    by explicit tuples.
+    Set of points on X defined over the base ring of X, and given by
+    explicit tuples.
     """
     def __call__(self, *v):
         if len(v) == 1:
@@ -295,8 +300,8 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
 
 class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
     """
-    Set of points on X defined over the base ring of X, and given
-    by explicit tuples.
+    Set of points on X defined over the base ring of X, and given by
+    explicit tuples.
     """
     def __call__(self, *v):
         raise NotImplementedError
@@ -317,8 +322,8 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
     def __init__(self, X, S, cat=None, check=True):
         r"""
-        EXAMPLES:
-        The bug reported at trac \#1785 is fixed:
+        EXAMPLES: The bug reported at trac #1785 is fixed::
+
             sage: K.<a> = NumberField(x^2 + x - (3^3-3))
             sage: E = EllipticCurve('37a')
             sage: X = E(K)

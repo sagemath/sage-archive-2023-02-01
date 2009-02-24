@@ -2,10 +2,13 @@
 Elliptic curves over finite fields
 
 AUTHORS:
-   * William Stein (2005) -- Initial version
-   * Robert Bradshaw et al....
-   * John Cremona (Feb 2008) -- Point counting and group structure for
-     non-prime fields, Frobenius endomorphism and order, elliptic logs
+
+- William Stein (2005): Initial version
+
+- Robert Bradshaw et al....
+
+- John Cremona (2008-02): Point counting and group structure for
+  non-prime fields, Frobenius endomorphism and order, elliptic logs
 """
 
 #*****************************************************************************
@@ -55,9 +58,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Special constructor for elliptic curves over a finite field
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EllipticCurve(GF(101),[2,3])
             Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field of size 101
+
+        ::
 
             sage: F=GF(101^2, 'a')
             sage: EllipticCurve([F(2),F(3)])
@@ -80,7 +86,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Return a GP/PARI elliptic curve
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EllipticCurve(GF(41),[2,5])._pari_()
             [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
         """
@@ -95,12 +102,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def _gp(self):
         """
         Return an elliptic curve in a GP/PARI interpreter with all
-        Cremona's code for finite fields preloaded.  This includes
+        Cremona's code for finite fields preloaded. This includes
         generators, which will vary from run to run.
 
         The base field must have prime order.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EllipticCurve(GF(41),[2,5])._gp()
             [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 44, [2, 2; 11, 1], [22, 2], ...
         """
@@ -119,10 +127,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Draw a graph of this elliptic curve over a prime finite field.
 
         INPUT:
-            *args, **kwds -- all other options are passed to the circle
-                      graphing primitive.
 
-        EXAMPLES:
+
+        -  ``*args, **kwds`` - all other options are passed
+           to the circle graphing primitive.
+
+
+        EXAMPLES::
+
             sage: E = EllipticCurve(FiniteField(17), [0,1])
             sage: P = plot(E, rgbcolor=(0,0,1))
         """
@@ -137,27 +149,32 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def _points_via_group_structure(self):
         """
-        Return a list of all the points on the curve, for prime fields
-        only (see points() for the general case)
+        Return a list of all the points on the curve, for prime fields only
+        (see points() for the general case)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S=EllipticCurve(GF(97),[2,3])._points_via_group_structure()
             sage: len(S)
             100
 
-            See trac \#4687, where the following example did not work:
+        See trac #4687, where the following example did not work::
+
             sage: E=EllipticCurve(GF(2),[0, 0, 1, 1, 1])
             sage: E.points()
             [(0 : 1 : 0)]
+
+        ::
 
             sage: E=EllipticCurve(GF(2),[0, 0, 1, 0, 1])
             sage: E.points()
             [(0 : 1 : 0), (1 : 0 : 1), (1 : 1 : 1)]
 
+        ::
+
             sage: E=EllipticCurve(GF(4,'a'),[0, 0, 1, 0, 1])
             sage: E.points()
             [(0 : 1 : 0), (0 : a : 1), (0 : a + 1 : 1), (1 : 0 : 1), (1 : 1 : 1), (a : 0 : 1), (a : 1 : 1), (a + 1 : 0 : 1), (a + 1 : 1 : 1)]
-
         """
         # TODO, eliminate when polynomial calling is fast
         G, pts = self.abelian_group()
@@ -179,15 +196,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def points(self):
         r"""
-        All the points on this elliptic curve.  The list of points is
-        cached so subsequent calls are free.
+        All the points on this elliptic curve. The list of points is cached
+        so subsequent calls are free.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = 5
             sage: F = GF(p)
             sage: E = EllipticCurve(F, [1, 3])
             sage: a_sub_p = E.change_ring(QQ).ap(p); a_sub_p
             2
+
+        ::
 
             sage: len(E.points())
             4
@@ -196,6 +216,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.points()
             [(0 : 1 : 0), (1 : 0 : 1), (4 : 1 : 1), (4 : 4 : 1)]
 
+        ::
 
             sage: K = GF(p**2,'a')
             sage: E = E.change_ring(K)
@@ -206,7 +227,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: w = E.points(); w
             [(0 : 1 : 0), (0 : 2*a + 4 : 1), (0 : 3*a + 1 : 1), (1 : 0 : 1), (2 : 2*a + 4 : 1), (2 : 3*a + 1 : 1), (3 : 2*a + 4 : 1), (3 : 3*a + 1 : 1), (4 : 1 : 1), (4 : 4 : 1), (a : 1 : 1), (a : 4 : 1), (a + 2 : a + 1 : 1), (a + 2 : 4*a + 4 : 1), (a + 3 : a : 1), (a + 3 : 4*a : 1), (a + 4 : 0 : 1), (2*a : 2*a : 1), (2*a : 3*a : 1), (2*a + 4 : a + 1 : 1), (2*a + 4 : 4*a + 4 : 1), (3*a + 1 : a + 3 : 1), (3*a + 1 : 4*a + 2 : 1), (3*a + 2 : 2*a + 3 : 1), (3*a + 2 : 3*a + 2 : 1), (4*a : 0 : 1), (4*a + 1 : 1 : 1), (4*a + 1 : 4 : 1), (4*a + 3 : a + 3 : 1), (4*a + 3 : 4*a + 2 : 1), (4*a + 4 : a + 4 : 1), (4*a + 4 : 4*a + 1 : 1)]
 
-        Note that the returned list is an immutable sorted Sequence:
+        Note that the returned list is an immutable sorted Sequence::
+
             sage: w[0] = 9
             Traceback (most recent call last):
             ...
@@ -229,10 +251,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Returns a random point on this elliptic curve.
 
-        Returns the point at infinity with probability $1/(q+1)$
-        where the base field has cardinality $q$.
+        Returns the point at infinity with probability `1/(q+1)`
+        where the base field has cardinality `q`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = GF(next_prime(7^5))
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
@@ -242,6 +265,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: P in E
             True
 
+        ::
+
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
@@ -250,6 +275,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
             True
+
+        ::
 
             sage: k.<a> = GF(2^5)
             sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
@@ -279,10 +306,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         r"""
         Return the trace of Frobenius acting on this elliptic curve.
 
-        NOTE:
-            This computes the curve cardinality, which may be time-consuming.
+        .. note::
 
-        EXAMPLES:
+           This computes the curve cardinality, which may be
+           time-consuming.
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(101),[2,3])
             sage: E.trace_of_frobenius()
             6
@@ -290,7 +320,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.trace_of_frobenius()
             802
 
-        The following shows that the issue from trac \#2849 is fixed:
+        The following shows that the issue from trac #2849 is fixed::
+
             sage: E=EllipticCurve(GF(3^5,'a'),[-1,-1])
             sage: E.trace_of_frobenius()
             -27
@@ -301,23 +332,32 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         r"""
         Special function to compute cardinality when j=1728.
 
-        EXAMPLES:
-        An example with q=p=1 (mod 4)
+        EXAMPLES: An example with q=p=1 (mod 4)
+
+        ::
+
             sage: F=GF(10009)
             sage: [EllipticCurve(F,[0,0,0,11^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
             [10016, 10210, 10004, 9810]
 
         An example with q=p=3 (mod 4)
+
+        ::
+
             sage: F=GF(10007)
             sage: [EllipticCurve(F,[0,0,0,5^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
             [10008, 10008, 10008, 10008]
 
-        An example with $q=p^2$, p=3 (mod 4)
+        An example with `q=p^2`, p=3 (mod 4)
+
+        ::
+
             sage: F.<a>=GF(10007^2,'a')
             sage: [EllipticCurve(F,[0,0,0,a^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
             [100160064, 100140050, 100120036, 100140050]
 
-        Examples with $q=2^d$, d odd (3 isomorphism classes):
+        Examples with `q=2^d`, d odd (3 isomorphism classes)::
+
             sage: F.<a> = GF(2**15,'a')
             sage: ais = [[0,0,1,0,0],[0,0,1,1,0],[0,0,1,1,1]]
             sage: curves=[EllipticCurve(F,ai) for ai in ais]
@@ -326,7 +366,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [32769, 33025, 32513]
 
-        Examples with $q=2^d$, d even (7 isomorphism classes):
+        Examples with `q=2^d`, d even (7 isomorphism classes)::
+
             sage: F.<a> = GF(2**16,'a')
             sage: b = a^11 # trace 1
             sage: ais = [[0,0,1,0,0],[0,0,1,0,b],[0,0,1,b,0],[0,0,a,0,0],[0,0,a,0,a^2*b],[0,0,a^2,0,0],[0,0,a^2,0,a^4*b]]
@@ -336,7 +377,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [65025, 66049, 65537, 65793, 65281, 65793, 65281]
 
-        Examples with $q=3^d$, d odd (4 isomorphism classes):
+        Examples with `q=3^d`, d odd (4 isomorphism classes)::
+
             sage: F.<a> = GF(3**15,'a')
             sage: b=a^7  # has trace 1
             sage: ais=[[0,0,0,1,0],[0,0,0,-1,0],[0,0,0,-1,b],[0,0,0,-1,-b]]
@@ -346,7 +388,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [14348908, 14348908, 14342347, 14355469]
 
-        Examples with $q=3^d$, d even (6 isomorphism classes):
+        Examples with `q=3^d`, d even (6 isomorphism classes)::
+
             sage: F.<g>=GF(3^18,'g')
             sage: i=F(-1).sqrt()
             sage: a=g^8  # has trace 1
@@ -356,7 +399,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             True
             sage: [E._cardinality_with_j_invariant_1728() for E in curves]
             [387459856, 387400807, 387420490, 387420490, 387381124, 387440173]
-
         """
         try:
             return self._order
@@ -524,18 +566,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         r"""
         Special function to compute cardinality when j=0.
 
-        EXAMPLES:
-        An example with q=p=1 (mod 6)
+        EXAMPLES: An example with q=p=1 (mod 6)
+
+        ::
+
             sage: F=GF(1009)
             sage: [EllipticCurve(F,[0,0,0,0,11^i])._cardinality_with_j_invariant_0() for i in range(6)]
             [948, 967, 1029, 1072, 1053, 991]
 
         An example with q=p=5 (mod 6)
+
+        ::
+
             sage: F=GF(1013)
             sage: [EllipticCurve(F,[0,0,0,0,3^i])._cardinality_with_j_invariant_0() for i in range(6)]
             [1014, 1014, 1014, 1014, 1014, 1014]
 
-        An example with $q=p^2$, p=5 (mod 6)
+        An example with `q=p^2`, p=5 (mod 6)
+
+        ::
+
             sage: F.<a>=GF(1013^2,'a')
             sage: [EllipticCurve(F,[0,0,0,0,a^i])._cardinality_with_j_invariant_0() for i in range(6)]
             [1028196, 1027183, 1025157, 1024144, 1025157, 1027183]
@@ -616,40 +666,51 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         extension field (default: the base field).
 
         INPUT:
-            algorithm    -- string (default: 'heuristic')
-                         -- used only for point counting over prime fields
 
-                  'heuristic' -- use a heuristic to choose between
-                                 pari, sea and bsgs (over prime fields only).
-                  'pari' -- use the baby step giant step method as implemented
-                            in PARI via the C-library function ellap.
-                  'sea'  -- use sea.gp as implemented in PARI by Christophe
-                            Doche and Sylvain Duquesne.
-                  'bsgs' -- use the baby step giant step method as
-                             implemented in Sage, with the Cremona -
-                             Sutherland version of Mestre's trick.
-                  'all' -- (over prime fields only) compute
-                            cardinality with all of pari, sea and
-                            bsgs; return result if they agree or raise
-                            a RuntimeError if they do not.
 
-            extension_degree -- int (default: 1); if the base field is
-                            $k=GF(p^n)$ and extension_degree=d, returns
-                            the cardinality of $E(GF(p^{n d}))$.
+        -  ``algorithm`` - string (default: 'heuristic'), used
+           only for point counting over prime fields
+
+            -  ``'heuristic'`` - use a heuristic to choose between
+               pari, bsgs and sea.
+
+            -  ``'pari'`` - use the baby step giant step method as
+               implemented in PARI via the C-library function ellap.
+
+            -  ``'sea'`` - use sea.gp as implemented in PARI by
+               Christophe Doche and Sylvain Duquesne.
+
+            -  ``bsgs`` - use the baby step giant step method as
+               implemented in Sage, with the Cremona -
+               Sutherland version of Mestre's trick.
+
+            - ``all`` - (over prime fields only) compute
+              cardinality with all of pari, sea and
+              bsgs; return result if they agree or raise
+              a RuntimeError if they do not.
+
+        -  ``early_abort`` - bool (default: False); this is
+           used only by sea. if True, stop early if a small factor of the
+           order is found.
+
+        -  ``extension_degree`` - int (default: 1); if the
+           base field is `k=GF(p^n)` and extension_degree=d, returns
+           the cardinality of `E(GF(p^{n d}))`.
+
 
         OUTPUT: an integer
 
         The cardinality is cached.
 
-        Over prime fields, one of the above algorithms is used.  Over
-        non-prime fields, the serious point counting is done on a
-        standard curve with the same j-invariant over the field
-        GF(p)(j), then lifted to the base_field, and finally account
-        is taken of twists.
+        Over prime fields, one of the above algorithms is used. Over
+        non-prime fields, the serious point counting is done on a standard
+        curve with the same j-invariant over the field GF(p)(j), then
+        lifted to the base_field, and finally account is taken of twists.
 
         For j=0 and j=1728 special formulas are used instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
             8
             sage: k.<a> = GF(3^3)
@@ -657,17 +718,20 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: EllipticCurve(k,l).cardinality()
             29
 
+        ::
+
             sage: l = [1, 1, 0, 2, 0]
             sage: EllipticCurve(k,l).cardinality()
             38
 
-            An even bigger extension (which we check against Magma):
+        An even bigger extension (which we check against Magma)::
 
             sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
             515377520732011331036459693969645888996929981504
             sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional - magma
             '515377520732011331036459693969645888996929981504'
 
+        ::
 
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076
@@ -678,7 +742,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
             100000000011093199520
 
-            The cardinality is cached:
+        The cardinality is cached::
+
             sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
             sage: E.cardinality() is E.cardinality()
             True
@@ -780,21 +845,25 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the characteristic polynomial of Frobenius.
 
         The Frobenius endomorphism of the elliptic curve has quadratic
-        characteristic polynomial.  In most cases this is irreducible
-        and defines an imaginary quadratic order; for some
-        supersingular curves, Frobenius is an integer a and the
-        polynomial is $(x-a)^2$.
+        characteristic polynomial. In most cases this is irreducible and
+        defines an imaginary quadratic order; for some supersingular
+        curves, Frobenius is an integer a and the polynomial is
+        `(x-a)^2`.
 
-        NOTE:
-            This computes the curve cardinality, which may be time-consuming.
+        .. note::
 
-        EXAMPLES:
+           This computes the curve cardinality, which may be
+           time-consuming.
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(11),[3,3])
             sage: E.frobenius_polynomial()
             x^2 - 4*x + 11
 
-        For some supersingular curves, Frobenius is in Z and the
-        polynomial is a square:
+        For some supersingular curves, Frobenius is in Z and the polynomial
+        is a square::
+
             sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
             sage: E.frobenius_polynomial().factor()
             (x + 5)^2
@@ -807,24 +876,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the quadratic order Z[phi] where phi is the Frobenius
         endomorphism of the elliptic curve
 
-        NOTE:
-            This computes the curve cardinality, which may be time-consuming.
+        .. note::
 
-        EXAMPLES:
+           This computes the curve cardinality, which may be
+           time-consuming.
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(11),[3,3])
             sage: E.frobenius_order()
             Order in Number Field in phi with defining polynomial x^2 - 4*x + 11
 
+        For some supersingular curves, Frobenius is in Z and the Frobenius
+        order is Z::
 
-        For some supersingular curves, Frobenius is in Z and the
-        Frobenius order is Z:
             sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
             sage: R=E.frobenius_order()
             sage: R
             Order in Number Field in phi with defining polynomial x + 5
             sage: R.degree()
             1
-
         """
         f = self.frobenius_polynomial().factor()[0][0]
         return ZZ.extension(f,names='phi')
@@ -833,19 +904,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         r"""
         Return the frobenius of self as an element of a quadratic order
 
-        NOTES:
-            This computes the curve cardinality, which may be time-consuming.
+        .. note::
 
-            Frobenius is only determined up to conjugacy.
+           This computes the curve cardinality, which may be
+           time-consuming.
 
-        EXAMPLES:
+        Frobenius is only determined up to conjugacy.
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(11),[3,3])
             sage: E.frobenius()
             phi
             sage: E.frobenius().minpoly()
             x^2 - 4*x + 11
 
-        For some supersingular curves, Frobenius is in Z:
+        For some supersingular curves, Frobenius is in Z::
+
             sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
             sage: E.frobenius()
             -5
@@ -858,11 +933,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def cardinality_exhaustive(self):
         r"""
-        Return the cardinality of self over the base field.  Simply
-        adds up the number of points with each x-coordinate: only used
-        for small field sizes!
+        Return the cardinality of self over the base field. Simply adds up
+        the number of points with each x-coordinate: only used for small
+        field sizes!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p=next_prime(10^3)
             sage: E=EllipticCurve(GF(p),[3,4])
             sage: E.cardinality_exhaustive()
@@ -880,7 +956,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         The result is not cached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p=next_prime(10^3)
             sage: E=EllipticCurve(GF(p),[3,4])
             sage: E.cardinality_pari()
@@ -890,7 +967,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality_pari()
             999945
 
-        TESTS:
+        TESTS::
+
             sage: K.<a>=GF(3^20)
             sage: E=EllipticCurve(K,[1,0,0,1,a])
             sage: E.cardinality_pari()
@@ -913,16 +991,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the cardinality of self over the (prime) base field using sea.
 
         INPUT:
-            early_abort -- bool (default: False).  if True, an early abort
-                       technique is used and the computation is
-                       interrupted as soon as a small divisor of the
-                       order is detected.  The function then returns
-                       0.  This is useful for ruling out curves whose
-                       cardinality is divisible by a small prime.
+
+        - ``early_abort`` - bool (default: False).  if True, an early
+          abort technique is used and the computation is interrupted
+          as soon as a small divisor of the order is detected.  The
+          function then returns 0.  This is useful for ruling out
+          curves whose cardinality is divisible by a small prime.
 
         The result is not cached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p=next_prime(10^3)
             sage: E=EllipticCurve(GF(p),[3,4])
             sage: E.cardinality_sea()
@@ -932,7 +1011,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality_sea()
             999945
 
-        TESTS:
+        TESTS::
+
             sage: K.<a>=GF(3^20)
             sage: E=EllipticCurve(K,[1,0,0,1,a])
             sage: E.cardinality_sea()
@@ -952,21 +1032,24 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def cardinality_bsgs(self, verbose=False):
         r"""
-        Return the cardinality of self over the base field.  Will be
-        called by user function cardinality only when necessary,
-        i.e. when the j_invariant is not in the prime field.
+        Return the cardinality of self over the base field. Will be called
+        by user function cardinality only when necessary, i.e. when the
+        j_invariant is not in the prime field.
 
         ALGORITHM: A variant of "Mestre's trick" extended to all finite
         fields by Cremona and Sutherland, 2008.
 
-        NOTES:
-        1. The Mestre-Schoof-Cremona-Sutherland algorithm may fail for
-        a small finite number of curves over F_q for q at most 49, so
-        for q<50 we use an exhaustive count.
-        2. Quadratic twists are not implemented in characteristic 2
-        when j=0 (=1728); but this case is treated separately.
+        .. note::
 
-        EXAMPLES:
+           1. The Mestre-Schoof-Cremona-Sutherland algorithm may fail for
+              a small finite number of curves over `F_q` for `q` at most 49, so
+              for `q<50` we use an exhaustive count.
+
+           2. Quadratic twists are not implemented in characteristic 2
+              when `j=0 (=1728)`; but this case is treated separately.
+
+       EXAMPLES::
+
             sage: p=next_prime(10^3)
             sage: E=EllipticCurve(GF(p),[3,4])
             sage: E.cardinality_bsgs()
@@ -1086,16 +1169,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def gens(self):
         """
         Returns a tuple of length up to 2 of points which generate the
-        abelian group of points on this elliptic curve.  See
+        abelian group of points on this elliptic curve. See
         abelian_group() for limitations.
 
         The algorithm uses random points on the curve, and hence the
-        generators are likely to differ from one run to another; but
-        they are cached so will be consistent in any one run of Sage.
+        generators are likely to differ from one run to another; but they
+        are cached so will be consistent in any one run of Sage.
 
-        AUTHOR: John Cremona
+        AUTHORS:
 
-        EXAMPLES:
+        - John Cremona
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(11),[2,5]) # random output
             sage: E.gens()
             ((0 : 4 : 1),)
@@ -1117,10 +1203,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def __getitem__(self, n):
         """
-        Return the n'th point in self's __points list.  This enables
-        users to iterate over the curve's point set.
+        Return the n'th point in self's __points list. This enables users
+        to iterate over the curve's point set.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()
             sage: E[10]
@@ -1142,64 +1229,87 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def abelian_group(self, debug=False):
         r"""
-        Returns the abelian group structure of the group of points on
-        this elliptic curve.
+        Returns the abelian group structure of the group of points on this
+        elliptic curve.
 
-        WARNING: The algorithm is definitely *not* intended for use
-            with *large* finite fields!  The factorization of the
-            orders of elements must be feasible.  Also,
-            baby-step-giant-step methods are used which have space and
-            time requirements which are $O(\sqrt{q})$.
+        .. warning::
 
-        Also, the algorithm uses random points on the curve and hence
-        the generators are likely to differ from one run to another;
-        but the group is cached so the generators will not change in
-        any one run of Sage.
+           The algorithm is definitely *not* intended for use with
+           *large* finite fields! The factorization of the orders of
+           elements must be feasible. Also, baby-step-giant-step
+           methods are used which have space and time requirements
+           which are `O(\sqrt{q})`.
 
-        Note: This function applies to elliptic curves over arbitrary
-        finite fields.  The related function
-        abelian_group_prime_field() uses the pari script,  for prime
-        fields only; it is now obsolete
+        Also, the algorithm uses random points on the curve and hence the
+        generators are likely to differ from one run to another; but the
+        group is cached so the generators will not change in any one run of
+        Sage.
+
+        .. note::
+
+           This function applies to elliptic curves over arbitrary
+           finite fields. The related function
+           abelian_group_prime_field() uses the pari script, for prime
+           fields only; it is now obsolete
 
         INPUT:
-            -- debug (default: False): if True, print debugging messages
+
+
+        -  ``debug`` - (default: False): if True, print
+           debugging messages
+
 
         OUTPUT:
-            -- an abelian group
-            -- tuple of images of each of the generators of the
-               abelian group as points on this curve
 
-        AUTHOR: John Cremona
+        - an abelian group
 
-        EXAMPLES:
+        - tuple of images of each of the generators of the abelian
+          group as points on this curve
+
+        AUTHORS:
+
+        - John Cremona
+
+        EXAMPLES::
+
             sage: E=EllipticCurve(GF(11),[2,5])
             sage: E.abelian_group()
             (Multiplicative Abelian Group isomorphic to C10, ...
 
+        ::
+
             sage: E=EllipticCurve(GF(41),[2,5])
             sage: E.abelian_group()
             (Multiplicative Abelian Group isomorphic to C22 x C2, ...
+
+        ::
 
             sage: F.<a>=GF(3^6,'a')
             sage: E=EllipticCurve([a^4 + a^3 + 2*a^2 + 2*a, 2*a^5 + 2*a^3 + 2*a^2 + 1])
             sage: E.abelian_group()
             (Multiplicative Abelian Group isomorphic to C26 x C26, ...
 
+        ::
+
             sage: F.<a>=GF(101^3,'a')
             sage: E=EllipticCurve([2*a^2 + 48*a + 27, 89*a^2 + 76*a + 24])
             sage: E.abelian_group()
             (Multiplicative Abelian Group isomorphic to C1031352, ...
 
-        The group can be trivial:
+        The group can be trivial::
+
             sage: E=EllipticCurve(GF(2),[0,0,1,1,1])
             sage: E.abelian_group()
             (Trivial Abelian Group, ())
 
-        Of course, there are plenty of points if we extend the field:
+        Of course, there are plenty of points if we extend the field::
+
             sage: E.cardinality(extension_degree=100)
             1267650600228231653296516890625
 
-        This tests the patch for trac \#3111, using 10 primes randomly selected:
+        This tests the patch for trac #3111, using 10 primes randomly
+        selected::
+
             sage: E = EllipticCurve('389a')
             sage: for p in [5927, 2297, 1571, 1709, 3851, 127, 3253, 5783, 3499, 4817]:
             ...       G = E.change_ring(GF(p)).abelian_group()
@@ -1207,7 +1317,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...       if p != 389:
             ...           G=E.change_ring(GF(p)).abelian_group()
 
-        This tests that the bug reported in trac \#3926 has been fixed:
+        This tests that the bug reported in trac #3926 has been fixed::
+
             sage: K.<i> = QuadraticField(-1)
             sage: OK = K.ring_of_integers()
             sage: P=K.factor(10007)[0][0]

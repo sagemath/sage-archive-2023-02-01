@@ -1,5 +1,5 @@
 """
-Affine $n$ space over a ring.
+Affine `n` space over a ring.
 """
 
 #*****************************************************************************
@@ -38,9 +38,11 @@ from sage.structure.parent_gens import normalize_names
 def is_AffineSpace(x):
     r"""
     Returns True if x is an affine space, i.e., an ambient space
-    $\A^n_R$, where $R$ is a ring and $n\geq 0$ is an integer.
+    `\mathbb{A}^n_R`, where `R` is a ring and
+    `n\geq 0` is an integer.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.schemes.generic.affine_space import is_AffineSpace
         sage: is_AffineSpace(AffineSpace(5, names='x'))
         True
@@ -53,10 +55,13 @@ def is_AffineSpace(x):
 
 def AffineSpace(n, R=None, names='x'):
     r"""
-    Return affine space of dimension $n$ over the ring $R$.
+    Return affine space of dimension `n` over the ring
+    `R`.
 
-    EXAMPLES:
-    The dimension and ring can be given in either order.
+    EXAMPLES: The dimension and ring can be given in either order.
+
+    ::
+
         sage: AffineSpace(3, QQ, 'x')
         Affine Space of dimension 3 over Rational Field
         sage: AffineSpace(5, QQ, 'x')
@@ -67,14 +72,23 @@ def AffineSpace(n, R=None, names='x'):
         Multivariate Polynomial Ring in X, Y over Rational Field
 
     Use the divide operator for base extension.
+
+    ::
+
         sage: AffineSpace(5, names='x')/GF(17)
         Affine Space of dimension 5 over Finite Field of size 17
 
-    The default base ring is $\Z$.
+    The default base ring is `\mathbb{Z}`.
+
+    ::
+
         sage: AffineSpace(5, names='x')
         Affine Space of dimension 5 over Integer Ring
 
     There is also an affine space associated each polynomial ring.
+
+    ::
+
         sage: R = GF(7)['x,y,z']
         sage: A = AffineSpace(R); A
         Affine Space of dimension 3 over Finite Field of size 7
@@ -99,9 +113,10 @@ def AffineSpace(n, R=None, names='x'):
 
 class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     """
-    Affine space of dimension $n$ over the ring $R$.
+    Affine space of dimension `n` over the ring `R`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X.<x,y,z> = AffineSpace(3, QQ)
         sage: X.base_scheme()
         Spectrum of Rational Field
@@ -113,21 +128,32 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
           To:   Spectrum of Rational Field
           Defn: Structure map
 
-    Loading and saving:
+    Loading and saving::
+
         sage: loads(X.dumps()) == X
         True
 
     We create several other examples of affine spaces.
+
+    ::
+
         sage: AffineSpace(5, PolynomialRing(QQ, 'z'), 'Z')
         Affine Space of dimension 5 over Univariate Polynomial Ring in z over Rational Field
 
+    ::
+
         sage: AffineSpace(RealField(), 3, 'Z')
         Affine Space of dimension 3 over Real Field with 53 bits of precision
+
+    ::
 
         sage: AffineSpace(Qp(7), 2, 'x')
         Affine Space of dimension 2 over 7-adic Field with capped relative precision 20
 
     Even 0-dimensional affine spaces are supported.
+
+    ::
+
         sage: AffineSpace(0)
         Affine Space of dimension 0 over Integer Ring
     """
@@ -141,7 +167,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         Return iterator over the elements of this affine space when defined
         over a finite field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FF = FiniteField(3)
             sage: AA = AffineSpace(FF, 0)
             sage: [ x for x in AA ]
@@ -153,7 +180,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: [ x for x in AA ]
             [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
 
-        AUTHOR: David Kohel <kohel@maths.usyd.edu.au>
+        AUTHOR:
+
+        - David Kohel
         """
         n = self.dimension()
         R = self.base_ring()
@@ -191,7 +220,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def __cmp__(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: AffineSpace(QQ, 3, 'a') == AffineSpace(ZZ, 3, 'a')
             False
             sage: AffineSpace(ZZ,1, 'a') == AffineSpace(ZZ, 0, 'a')
@@ -206,7 +236,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print latex(AffineSpace(1, ZZ, 'x'))
             \mathbf{A}_{\mathbf{Z}}^1
         """
@@ -236,7 +267,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def __pow__(self, m):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = AffineSpace(1, QQ, 'x')
             sage: A^5
             Affine Space of dimension 5 over Rational Field
@@ -248,10 +280,11 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def coordinate_ring(self):
         """
-        Return the coordinate ring of this scheme, if defined.  Otherwise raise
-        a ValueError.
+        Return the coordinate ring of this scheme, if defined. Otherwise
+        raise a ValueError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = AffineSpace(2, GF(9,'alpha'), 'z').coordinate_ring(); R
             Multivariate Polynomial Ring in z0, z1 over Finite Field in alpha of size 3^2
             sage: AffineSpace(3, R, 'x').coordinate_ring()
@@ -265,18 +298,23 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def projective_embedding(self, i=None, PP=None):
         """
-        Returns a morphism from this space into an ambient projective space of
-        the same dimension.
+        Returns a morphism from this space into an ambient projective space
+        of the same dimension.
 
         INPUT:
-            i -- integer (default: dimension of self = last coordinate) determines
-                 which projective embedding to compute.  The embedding is that
-                 which has a 1 in the i-th coordinate, numbered from 0.
 
-            PP -- (default: None) ambient projective space, i.e., codomain of morphism;
-                 this is constructed if it is not given.
 
-        EXAMPLES:
+        -  ``i`` - integer (default: dimension of self = last
+           coordinate) determines which projective embedding to compute. The
+           embedding is that which has a 1 in the i-th coordinate, numbered
+           from 0.
+
+        -  ``PP`` - (default: None) ambient projective space, i.e.,
+           codomain of morphism; this is constructed if it is not
+           given.
+
+        EXAMPLES::
+
             sage: AA = AffineSpace(2, QQ, 'x')
             sage: pi = AA.projective_embedding(0); pi
             Scheme morphism:
@@ -332,15 +370,21 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         Return the closed subscheme defined by X.
 
         INPUT:
-            X -- a list or tuple of equations
 
-        EXAMPLES:
+
+        -  ``X`` - a list or tuple of equations
+
+
+        EXAMPLES::
+
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: X = A.subscheme([x, y^2, x*y^2]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               x
               y^2
               x*y^2
+
+        ::
 
             sage: X.defining_polynomials ()
             (x, y^2, x*y^2)

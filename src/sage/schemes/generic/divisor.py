@@ -2,11 +2,15 @@
 Divisors on schemes
 
 AUTHORS:
-   -- William Stein
-   -- David Kohel
-   -- David Joyner
 
-EXAMPLES:
+- William Stein
+
+- David Kohel
+
+- David Joyner
+
+EXAMPLES::
+
     sage: x,y,z = ProjectiveSpace(2, GF(5), names='x,y,z').gens()
     sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
     sage: pts = C.rational_points(); pts
@@ -92,7 +96,8 @@ class Divisor_generic(FormalSum):
         """
         Return the scheme that this divisor is on.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A.<x, y> = AffineSpace(2, GF(5))
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
@@ -106,23 +111,27 @@ class Divisor_generic(FormalSum):
 
 class Divisor_curve(Divisor_generic):
     r"""
-    For any curve $C$, use \code{C.divisor(v)} to construct a divisor
-    on $C$.  Here $v$ can be either
-    \begin{itemize}
-       \item a rational point on $C$
-       \item a list of rational points
-       \item a list of 2-tuples $(c,P)$, where $c$ is
-             an integer and $P$ is a rational point.
-    \end{itemize}
+    For any curve `C`, use ``C.divisor(v)`` to
+    construct a divisor on `C`. Here `v` can be either
 
-    TODO: Divisors shouldn't be restricted to rational points.  The
-    problem is that the divisor group is the formal sum of the group
-    of points on the curve, and there's no implemented notion of point
-    on $E/K$ that has coordinates in $L$.   This is what should
-    be implemented, by adding an appropriate class to
-    \code{schemes/generic/morphism.py}.
 
-    EXAMPLES:
+    -  a rational point on `C`
+
+    -  a list of rational points
+
+    -  a list of 2-tuples `(c,P)`, where `c` is an
+       integer and `P` is a rational point.
+
+
+    TODO: Divisors shouldn't be restricted to rational points. The
+    problem is that the divisor group is the formal sum of the group of
+    points on the curve, and there's no implemented notion of point on
+    `E/K` that has coordinates in `L`. This is what
+    should be implemented, by adding an appropriate class to
+    ``schemes/generic/morphism.py``.
+
+    EXAMPLES::
+
         sage: E = EllipticCurve([0, 0, 1, -1, 0])
         sage: P = E(0,0)
         sage: 10*P
@@ -140,15 +149,17 @@ class Divisor_curve(Divisor_generic):
     def __init__(self, v, check=True, reduce=True, parent=None):
         """
         INPUT:
-            v -- a list of pairs (c, P), where c is an integer
-                 and P is a point on a curve.  The P's must
-                 all lie on the same curve.
 
-        To create the 0 divisor use [(0, P)], so as to give
-        the curve.
 
-        TODO: Include an extension field in the definition of the
-        divisor group.
+        -  ``v`` - a list of pairs (c, P), where c is an
+           integer and P is a point on a curve. The P's must all lie on the
+           same curve.
+
+
+        To create the 0 divisor use [(0, P)], so as to give the curve.
+
+        TODO: Include an extension field in the definition of the divisor
+        group.
         """
         if not isinstance(v, (list, tuple)):
             v = [(1,v)]
@@ -212,10 +223,11 @@ class Divisor_curve(Divisor_generic):
 
     def support(self):
         """
-        Return the support of this divisor, which is the set of points
-        that occur in this divisor with nonzero coefficients.
+        Return the support of this divisor, which is the set of points that
+        occur in this divisor with nonzero coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
@@ -238,7 +250,8 @@ class Divisor_curve(Divisor_generic):
         """
         Return the coefficient of a given point P in this divisor.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts

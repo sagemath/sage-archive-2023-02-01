@@ -19,7 +19,9 @@ class SchemePoint(Element):
     def __init__(self, S):
         """
         INPUT:
-            S -- a scheme
+
+
+        -  ``S`` - a scheme
         """
         Element.__init__(self, S.point_set())
         self.__S = S
@@ -41,8 +43,11 @@ class SchemeTopologicalPoint_affine_open(SchemeTopologicalPoint):
     def __init__(self, u, x):
         """
         INPUT:
-            u -- morphism with domain U an affine scheme
-            x -- point on U
+
+
+        -  ``u`` - morphism with domain U an affine scheme
+
+        -  ``x`` - point on U
         """
         SchemePoint.__init__(self, u.codomain())
         self.__u = u
@@ -77,8 +82,11 @@ class SchemeTopologicalPoint_prime_ideal(SchemeTopologicalPoint):
     def __init__(self, S, P):
         """
         INPUT:
-            S -- an affine scheme
-            P -- a prime ideal of the coordinate ring of S
+
+
+        -  ``S`` - an affine scheme
+
+        -  ``P`` - a prime ideal of the coordinate ring of S
         """
         SchemeTopologicalPoint.__init__(self, S)
         self.__P = P
@@ -100,7 +108,9 @@ class SchemeRationalPoint(SchemePoint):
     def __init__(self, f):
         """
         INPUT:
-            f -- a morphism of schemes
+
+
+        -  ``f`` - a morphism of schemes
         """
         SchemePoint.__init__(self, f.codomain())
         self.__f = f

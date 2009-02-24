@@ -1,36 +1,48 @@
 r"""
-Projective $n$ space over a ring.
+Projective `n` space over a ring.
 
+EXAMPLES: We construct projective space over various rings of
+various dimensions.
 
-EXAMPLES:
-We construct projective space over various rings of various dimensions.
+The simplest projective space::
 
-The simplest projective space:
     sage: ProjectiveSpace(0)
     Projective Space of dimension 0 over Integer Ring
 
-A slightly bigger projective space over $\Q$:
+A slightly bigger projective space over `\mathbb{Q}`::
+
     sage: X = ProjectiveSpace(1000, QQ); X
     Projective Space of dimension 1000 over Rational Field
     sage: X.dimension()
     1000
 
-We can use ``over'' notation to create projective spaces over various base rings.
+We can use "over" notation to create projective spaces over various
+base rings.
+
+::
+
     sage: X = ProjectiveSpace(5)/QQ; X
     Projective Space of dimension 5 over Rational Field
     sage: X/CC
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
-The third argument specifies the printing names of the generators of the homogenous
-coordinate ring.  Using objgens() you can obtain both the space and the generators
-as ready to use variables.
+The third argument specifies the printing names of the generators
+of the homogenous coordinate ring. Using objgens() you can obtain
+both the space and the generators as ready to use variables.
+
+::
+
     sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
     sage: P2
     Projective Space of dimension 2 over Rational Field
     sage: x.parent()
     Multivariate Polynomial Ring in x, y, z over Rational Field
 
-For example, we use $x,y,z$ to define the intersection of two lines.
+For example, we use `x,y,z` to define the intersection of
+two lines.
+
+::
+
     sage: V = P2.subscheme([x+y+z, x+y-z]); V
     Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
      x + y + z
@@ -78,10 +90,13 @@ def is_ProjectiveSpace(x):
 
 def ProjectiveSpace(n, R=None, names='x'):
     r"""
-    Return projective space of dimension $n$ over the ring $R$.
+    Return projective space of dimension `n` over the ring
+    `R`.
 
-    EXAMPLES:
-    The dimension and ring can be given in either order.
+    EXAMPLES: The dimension and ring can be given in either order.
+
+    ::
+
         sage: ProjectiveSpace(3, QQ)
         Projective Space of dimension 3 over Rational Field
         sage: ProjectiveSpace(5, QQ)
@@ -92,14 +107,23 @@ def ProjectiveSpace(n, R=None, names='x'):
         Multivariate Polynomial Ring in X, Y, Z over Rational Field
 
     The divide operator does base extension.
+
+    ::
+
         sage: ProjectiveSpace(5)/GF(17)
         Projective Space of dimension 5 over Finite Field of size 17
 
-    The default base ring is $\Z$.
+    The default base ring is `\mathbb{Z}`.
+
+    ::
+
         sage: ProjectiveSpace(5)
         Projective Space of dimension 5 over Integer Ring
 
     There is also an projective space associated each polynomial ring.
+
+    ::
+
         sage: R = GF(7)['x,y,z']
         sage: P = ProjectiveSpace(R); P
         Projective Space of dimension 2 over Finite Field of size 7
@@ -108,8 +132,9 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: P.coordinate_ring() is R
         True
 
-    Projective spaces are not cached, i.e., there can be several with the
-    same base ring and dimension (to facilitate glueing constructions).
+    Projective spaces are not cached, i.e., there can be several with
+    the same base ring and dimension (to facilitate glueing
+    constructions).
     """
     if is_MPolynomialRing(n) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring())
@@ -133,9 +158,11 @@ def ProjectiveSpace(n, R=None, names='x'):
 
 class ProjectiveSpace_ring(ambient_space.AmbientSpace):
     """
-    Projective space of dimension $n$ over the ring $R$.
+    Projective space of dimension `n` over the ring
+    `R`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X.<x,y,z,w> = ProjectiveSpace(3, QQ)
         sage: X.base_scheme()
         Spectrum of Rational Field
@@ -149,7 +176,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         sage: X.coordinate_ring()
         Multivariate Polynomial Ring in x, y, z, w over Rational Field
 
-    Loading and saving:
+    Loading and saving::
+
         sage: loads(X.dumps()) == X
         True
     """
@@ -163,22 +191,27 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
 
     def _check_satisfies_equations(self, v):
         """
-        Verify that the coordinates of v define a point on this scheme,
-        or raise a TypeError.
+        Verify that the coordinates of v define a point on this scheme, or
+        raise a TypeError.
         """
         return True
 
     def coordinate_ring(self):
         """
-        Return the coordinate ring of this scheme, if defined.  Otherwise raise
-        a ValueError.
+        Return the coordinate ring of this scheme, if defined. Otherwise
+        raise a ValueError.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ProjectiveSpace(3, GF(19^2,'alpha'), 'abcd').coordinate_ring()
             Multivariate Polynomial Ring in a, b, c, d over Finite Field in alpha of size 19^2
 
+        ::
+
             sage: ProjectiveSpace(3).coordinate_ring()
             Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring
+
+        ::
 
             sage: ProjectiveSpace(2, QQ, ['alpha', 'beta', 'gamma']).coordinate_ring()
             Multivariate Polynomial Ring in alpha, beta, gamma over Rational Field
@@ -231,9 +264,13 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         Return the closed subscheme defined by X.
 
         INPUT:
-            X -- a list or tuple of equations
 
-        EXAMPLES:
+
+        -  ``X`` - a list or tuple of equations
+
+
+        EXAMPLES::
+
             sage: A.<x,y,z> = ProjectiveSpace(2, QQ)
             sage: X = A.subscheme([x*z^2, y^2*z, x*y^2]); X
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
@@ -268,18 +305,23 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
 
     def affine_patch(self, i):
         r"""
-        Return the $i$-th affine patch of this projective space.  This
-        is an ambient affine space $\A^n_R$, where $R$ is the base
-        ring of self, whose \code{projective\_embedding} map is $1$
-        in the $i$th factor.
+        Return the `i^{th}` affine patch of this projective space.
+        This is an ambient affine space `\mathbb{A}^n_R,` where
+        `R` is the base ring of self, whose "projective embedding"
+        map is `1` in the `i^{th}` factor.
 
         INPUT:
-            i -- integer between 0 and dimension of self, inclusive.
 
-        OUTPUT:
-            an ambient affine space with fixed projective_embedding map.
 
-        EXAMPLES:
+        -  ``i`` - integer between 0 and dimension of self,
+           inclusive.
+
+
+        OUTPUT: an ambient affine space with fixed projective_embedding
+        map.
+
+        EXAMPLES::
+
             sage: PP = ProjectiveSpace(5) / QQ
             sage: AA = PP.affine_patch(2)
             sage: AA
@@ -327,11 +369,14 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         r"""
         Return iterator over the elements of this projective space.
 
-        Note that iteration is over the decomposition $\PP^n = \AA^n \cup \PP^n-1$,
-        where $\AA^n$ is the $n$-th affine patch and $\PP^n-1$ is the hyperplane at
-        infinity $x_n = 0$.
+        Note that iteration is over the decomposition
+        `\PP^n = \mathbb{A}A^n \cup \PP^n-1`, where
+        `\mathbb{A}A^n` is the `n`-th affine patch and
+        `\PP^n-1` is the hyperplane at infinity
+        `x_n = 0`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FF = FiniteField(3)
             sage: PP = ProjectiveSpace(0,FF)
             sage: [ x for x in PP ]
@@ -355,11 +400,13 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
              (2 : 1 : 0),
              (1 : 0 : 0)]
 
-        AUTHOR: David Kohel <kohel@maths.usyd.edu.au>
+        AUTHORS:
 
-        TODO: Iteration for point sets over finite fields, and return
-        of iter of point set over base field.  Note that the point set
-        does not know whether this is a projective space or subscheme.
+        - David Kohel
+
+        TODO: Iteration for point sets over finite fields, and return of
+        iter of point set over base field. Note that the point set does not
+        know whether this is a projective space or subscheme.
         """
         n = self.dimension()
         R = self.base_ring()
@@ -397,13 +444,17 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self,bound=0):
         r"""
-        Returns the projective points $(x_0:\cdots:x_n)$ over $\Q$
-        with $|x_i| \leq$ bound.
+        Returns the projective points `(x_0:\cdots:x_n)` over
+        `\mathbb{Q}` with `|x_i| \leq` bound.
 
         INPUT:
-            bound -- integer
 
-        EXAMPLES:
+
+        -  ``bound`` - integer
+
+
+        EXAMPLES::
+
             sage: PP = ProjectiveSpace(0,QQ)
             sage: PP.rational_points(1)
             [(1)]
@@ -424,18 +475,20 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             0), (1 : 1 : 0), (2 : 1 : 0), (-1/2 : 1 : 0), (1/2 : 1 : 0), (1 : 0 :
             0)]
 
-        NOTES:
-            The very simple algorithm works as follows: every
-            point $(x_0:\cdots:x_n)$ in projective space has a unique
-            largest index $i$ for which $x_i$ is not zero. The
-            algorithm then iterates downward on this index. We normalize
-            by choosing $x_i$ positive. Then, the points $x_0,\ldots,x_{i-1}$
-            are the points of affine $i$-space that are relatively prime to $x_i$.
-            We access these by using the Tuples method.
+        .. note::
+
+           The very simple algorithm works as follows: every point
+           `(x_0:\cdots:x_n)` in projective space has a unique
+           largest index `i` for which `x_i` is not
+           zero. The algorithm then iterates downward on this
+           index. We normalize by choosing `x_i` positive. Then,
+           the points `x_0,\ldots,x_{i-1}` are the points of
+           affine `i`-space that are relatively prime to
+           `x_i`. We access these by using the Tuples method.
 
         AUTHORS:
-            - Benjamin Antieau (2008-01-12)
 
+        - Benjamin Antieau (2008-01-12)
         """
         if not bound > 0:
             raise ValueError, \

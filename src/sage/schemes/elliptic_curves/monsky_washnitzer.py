@@ -1,32 +1,40 @@
 r"""
 Computation of Frobenius matrix on Monsky-Washnitzer cohomology.
 
-The most interesting functions to be exported here are matrix_of_frobenius()
-and adjusted_prec().
+The most interesting functions to be exported here are
+matrix_of_frobenius() and adjusted_prec().
 
-Currently this code is limited to the case $p \geq 5$ (no $GF(p^n)$
-for $n > 1$), and only handles the elliptic curve case (not more
-general hyperelliptic curves).
+Currently this code is limited to the case `p \geq 5` (no
+`GF(p^n)` for `n > 1`), and only handles the
+elliptic curve case (not more general hyperelliptic curves).
 
 REFERENCES:
-    -- Kedlaya, K., ``Counting points on hyperelliptic curves using
-       Monsky-Washnitzer cohomology'', J. Ramanujan Math. Soc. 16 (2001)
-       no 4, 323--338
-    -- Edixhoven, B., ``Point counting after Kedlaya'', EIDMA-Stieltjes
-       graduate course, Lieden (lecture notes?).
+
+-  Kedlaya, K., "Counting points on hyperelliptic curves using
+   Monsky-Washnitzer cohomology", J. Ramanujan Math. Soc. 16 (2001) no
+   4, 323-338
+
+-  Edixhoven, B., "Point counting after Kedlaya", EIDMA-Stieltjes
+   graduate course, Lieden (lecture notes?).
+
 
 AUTHORS:
-    -- David Harvey and Robert Bradshaw (initial code developed at the 2006
-       MSRI graduate workshop, working with Jennifer Balakrishnan and Liang
-       Xiao)
-    -- David Harvey (Aug/Sep 2006): cleaned up, rewrote some chunks, lots
-       more documentation, added Newton iteration method, added more complete
-       ``trace trick'', integrated better into SAGE.
-    -- David Harvey (Feb 2007): added algorithm with sqrt(p) complexity
-                  (removed in May 2007 due to better C++ implementation)
-    -- Robert Bradshaw (Mar 2007): keep track of exact form in reduction algorithms
-    -- Robert Bradshaw (Apr 2007): generalization to hyperelliptic curves
 
+- David Harvey and Robert Bradshaw: initial code developed at the 2006
+  MSRI graduate workshop, working with Jennifer Balakrishnan and Liang
+  Xiao
+
+- David Harvey (2006-08): cleaned up, rewrote some chunks, lots more
+  documentation, added Newton iteration method, added more complete
+  'trace trick', integrated better into Sage.
+
+- David Harvey (2007-02): added algorithm with sqrt(p) complexity
+  (removed in May 2007 due to better C++ implementation)
+
+- Robert Bradshaw (2007-03): keep track of exact form in reduction
+  algorithms
+
+- Robert Bradshaw (2007-04): generalization to hyperelliptic curves
 """
 
 #*****************************************************************************
@@ -60,64 +68,73 @@ from constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
-    r""" Specialised class for representing the quotient ring
-    $R[x,T]/(T - x^3 - ax - b)$, where $R$ is an arbitrary commutative base ring
-    (in which 2 and 3 are invertible), $a$ and $b$ are elements of that ring.
+    r"""
+    Specialised class for representing the quotient ring
+    `R[x,T]/(T - x^3 - ax - b)`, where `R` is an
+    arbitrary commutative base ring (in which 2 and 3 are invertible),
+    `a` and `b` are elements of that ring.
 
-    Polynomials are represented internally in the form $p_0 + p_1 x + p_2 x^2$
-    where the $p_i$ are polynomials in $T$. Multiplication of polynomials
-    always reduces high powers of $x$ (i.e. beyond $x^2$) to powers of $T$.
+    Polynomials are represented internally in the form
+    `p_0 + p_1 x + p_2 x^2` where the `p_i` are
+    polynomials in `T`. Multiplication of polynomials always
+    reduces high powers of `x` (i.e. beyond `x^2`) to
+    powers of `T`.
 
-    Hopefully this ring is faster than a general quotient ring because it uses
-    the special structure of this ring to speed multiplication (which is the
-    dominant operation in the frobenius matrix calculation). I haven't actually
-    tested this theory though...
+    Hopefully this ring is faster than a general quotient ring because
+    it uses the special structure of this ring to speed multiplication
+    (which is the dominant operation in the frobenius matrix
+    calculation). I haven't actually tested this theory though...
 
-    TODO:
-        -- Eventually we will want to run this in characteristic 3, so we need to:
-           (a) Allow Q(x) to contain an $x^2$ term, and
-           (b) Remove the requirement that 3 be invertible. Currently this is used
-               in the Toom-Cook algorithm to speed multiplication.
+    TODO: - Eventually we will want to run this in characteristic 3, so
+    we need to: (a) Allow Q(x) to contain an `x^2` term, and
+    (b) Remove the requirement that 3 be invertible. Currently this is
+    used in the Toom-Cook algorithm to speed multiplication.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: B.<t> = PolynomialRing(Integers(125))
         sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
         sage: R
         SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
 
-        Get generators:
+    Get generators::
+
         sage: x, T = R.gens()
         sage: x
         (0) + (1)*x + (0)*x^2
         sage: T
         (T) + (0)*x + (0)*x^2
 
-        Coercions:
+    Coercions::
+
         sage: R(7)
         (7) + (0)*x + (0)*x^2
 
-        Create elements directly from polynomials:
+    Create elements directly from polynomials::
+
         sage: A, z = R.poly_ring().objgen()
         sage: A
         Univariate Polynomial Ring in T over Ring of integers modulo 125
         sage: R.create_element(z^2, z+1, 3)
         (T^2) + (T + 1)*x + (3)*x^2
 
-        Some arithmetic:
+    Some arithmetic::
+
         sage: x^3
         (T + 31) + (1)*x + (0)*x^2
         sage: 3 * x**15 * T**2 + x - T
         (3*T^7 + 90*T^6 + 110*T^5 + 20*T^4 + 58*T^3 + 26*T^2 + 124*T) + (15*T^6 + 110*T^5 + 35*T^4 + 63*T^2 + 1)*x + (30*T^5 + 40*T^4 + 8*T^3 + 38*T^2)*x^2
 
-        Retrieve coefficients (output is zero-padded):
+    Retrieve coefficients (output is zero-padded)::
+
         sage: x^10
         (3*T^2 + 61*T + 8) + (T^3 + 93*T^2 + 12*T + 40)*x + (3*T^2 + 61*T + 9)*x^2
         sage: (x^10).coeffs()
         [[8, 61, 3, 0], [40, 12, 93, 1], [9, 61, 3, 0]]
 
-        TODO: write an example checking multiplication of these polynomials
-        against SAGE's ordinary quotient ring arithmetic. I can't seem to get
-        the quotient ring stuff happening right now...
+    TODO: write an example checking multiplication of these polynomials
+    against Sage's ordinary quotient ring arithmetic. I can't seem to
+    get the quotient ring stuff happening right now...
     """
 
     def __init__(self, Q, laurent_series = False):
@@ -125,27 +142,37 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         Constructor.
 
         INPUT:
-            Q -- a polynomial of the form $Q(x) = x^3 + ax + b$, where a, b
-                 belong to a ring in which 2, 3 are invertible.
-            laurent_series -- whether or not to allow negative powers of T (default=False)
 
-        EXAMPLES:
+
+        -  ``Q`` - a polynomial of the form
+           `Q(x) = x^3 + ax + b`, where a, b belong to a ring in which
+           2, 3 are invertible.
+
+        -  ``laurent_series`` - whether or not to allow
+           negative powers of T (default=False)
+
+
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: R
             SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+
+        ::
 
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 + 2*t^2 - t + B(1/4))
             Traceback (most recent call last):
             ...
             ValueError: Q (=t^3 + 2*t^2 + 124*t + 94) must be of the form x^3 + ax + b
 
+        ::
+
             sage: B.<t> = PolynomialRing(Integers(10))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + 1)
             Traceback (most recent call last):
             ...
             ArithmeticError: 2 and 3 must be invertible in the coefficient ring (=Ring of integers modulo 10) of Q
-
         """
         if not is_Polynomial(Q):
             raise TypeError, "Q (=%s) must be a polynomial" % Q
@@ -184,7 +211,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: print R
@@ -198,7 +226,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         """
         Return the underlying polynomial ring in T.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: R.poly_ring()
@@ -211,11 +240,13 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         Return a list [x, T] where x and T are the generators of the ring
         (as element *of this ring*).
 
-        NOTE:
-            I have no idea if this is compatible with the usual SAGE
-            ``gens'' interface.
+        .. note::
 
-        EXAMPLES:
+           I have no idea if this is compatible with the usual Sage
+           'gens' interface.
+
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
@@ -223,7 +254,6 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             (0) + (1)*x + (0)*x^2
             sage: T
             (T) + (0)*x + (0)*x^2
-
         """
         return [SpecialCubicQuotientRingElement(self,
                    self._poly_ring(0), self._poly_ring(1), self._poly_ring(0),
@@ -234,27 +264,34 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     def create_element(self, p0, p1, p2, check=True):
         """
-        Creates the element $p_0 + p_1*x + p_2*x^2$, where pi's are
-        polynomials in T.
+        Creates the element `p_0 + p_1*x + p_2*x^2`, where pi's
+        are polynomials in T.
 
         INPUT:
-            p0, p1, p2 -- coefficients; must be coercable into poly_ring()
-            check -- bool (default True): whether to carry out coercion
 
-        EXAMPLES:
+
+        -  ``p0, p1, p2`` - coefficients; must be coercable
+           into poly_ring()
+
+        -  ``check`` - bool (default True): whether to carry
+           out coercion
+
+
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: A, z = R.poly_ring().objgen()
             sage: R.create_element(z^2, z+1, 3)
             (T^2) + (T + 1)*x + (3)*x^2
-
         """
         return SpecialCubicQuotientRingElement(self, p0, p1, p2, check)
 
 
     def __call__(self, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: R(3)
@@ -265,7 +302,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     def _coerce_impl(self, value):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: R._coerce_impl(3)
@@ -281,24 +319,34 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
 
 class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
-    """ An element of a SpecialCubicQuotientRing. """
+    """
+    An element of a SpecialCubicQuotientRing.
+    """
 
     def __init__(self, parent, p0, p1, p2, check=True):
-        """ Constructs the element $p_0 + p_1*x + p_2*x^2$, where pi's are
-        polynomials in T.
+        """
+        Constructs the element `p_0 + p_1*x + p_2*x^2`, where
+        pi's are polynomials in T.
 
         INPUT:
-            parent -- a SpecialCubicQuotientRing
-            p0, p1, p2 -- coefficients; must be coercable into parent.poly_ring()
-            check -- bool (default True): whether to carry out coercion
 
-        EXAMPLES:
+
+        -  ``parent`` - a SpecialCubicQuotientRing
+
+        -  ``p0, p1, p2`` - coefficients; must be coercable
+           into parent.poly_ring()
+
+        -  ``check`` - bool (default True): whether to carry
+           out coercion
+
+
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
             sage: SpecialCubicQuotientRingElement(R, 2, 3, 4)
             (2) + (3)*x + (4)*x^2
-
         """
         if not isinstance(parent, SpecialCubicQuotientRing):
             raise TypeError, \
@@ -315,11 +363,14 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         self._triple = (p0, p1, p2)
 
     def coeffs(self):
-        """ Returns list of three lists of coefficients, corresponding to the
-        $x^0$, $x^1$, $x^2$ coefficients. The lists are zero padded to the same
-        length. The list entries belong to the base ring.
+        """
+        Returns list of three lists of coefficients, corresponding to the
+        `x^0`, `x^1`, `x^2` coefficients. The lists
+        are zero padded to the same length. The list entries belong to the
+        base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: p = R.create_element(t, t^2 - 2, 3)
@@ -335,7 +386,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def __nonzero__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
@@ -350,7 +402,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: x, t = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4)).gens()
             sage: x == t
@@ -364,7 +417,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
@@ -376,7 +430,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
@@ -390,7 +445,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def _add_(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: f = R.create_element(2, t, t^2 - 3)
@@ -407,7 +463,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def _sub_(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: f = R.create_element(2, t, t^2 - 3)
@@ -424,9 +481,10 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def shift(self, n):
         """
-        Returns this element multiplied by $T^n$.
+        Returns this element multiplied by `T^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: f = R.create_element(2, t, t^2 - 3)
@@ -436,7 +494,6 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             (2*T) + (T^2)*x + (T^3 + 122*T)*x^2
             sage: f.shift(2)
             (2*T^2) + (T^3)*x + (T^4 + 122*T^2)*x^2
-
         """
         return SpecialCubicQuotientRingElement(self.parent(),
                                                self._triple[0].shift(n),
@@ -447,13 +504,18 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def scalar_multiply(self, scalar):
         """
-        Multiplies this element by a scalar, i.e. just multiply each coefficient
-        of $x^j$ by the scalar.
+        Multiplies this element by a scalar, i.e. just multiply each
+        coefficient of `x^j` by the scalar.
 
         INPUT:
-            scalar -- either an element of base_ring, or an element of poly_ring.
 
-        EXAMPLES:
+
+        -  ``scalar`` - either an element of base_ring, or an
+           element of poly_ring.
+
+
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
@@ -474,31 +536,35 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     def square(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
 
+        ::
+
             sage: f = R.create_element(1 + 2*t + 3*t^2, 4 + 7*t + 9*t^2, 3 + 5*t + 11*t^2)
             sage: f.square()
             (73*T^5 + 16*T^4 + 38*T^3 + 39*T^2 + 70*T + 120) + (121*T^5 + 113*T^4 + 73*T^3 + 8*T^2 + 51*T + 61)*x + (18*T^4 + 60*T^3 + 22*T^2 + 108*T + 31)*x^2
-
         """
         return self * self
 
 
     def _mul_(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: x, T = R.gens()
+
+        ::
 
             sage: f = R.create_element(1 + 2*t + 3*t^2, 4 + 7*t + 9*t^2, 3 + 5*t + 11*t^2)
             sage: g = R.create_element(4 + 3*t + 7*t^2, 2 + 3*t + t^2, 8 + 4*t + 6*t^2)
             sage: f * g
             (65*T^5 + 27*T^4 + 33*T^3 + 75*T^2 + 120*T + 57) + (66*T^5 + T^4 + 123*T^3 + 95*T^2 + 24*T + 50)*x + (45*T^4 + 75*T^3 + 37*T^2 + 2*T + 52)*x^2
-
         """
         if not isinstance(other, SpecialCubicQuotientRingElement):
             return self.scalar_multiply(other)
@@ -562,17 +628,25 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 def transpose_list(input):
     """
     INPUT:
-        input -- a list of lists, each list of the same length
+
+
+    -  ``input`` - a list of lists, each list of the same
+       length
+
 
     OUTPUT:
-        output -- a list of lists such that output[i][j] = input[j][i]
 
-    EXAMPLES:
+
+    -  ``output`` - a list of lists such that output[i][j]
+       = input[j][i]
+
+
+    EXAMPLES::
+
         sage: from sage.schemes.elliptic_curves.monsky_washnitzer import transpose_list
         sage: L = [[1, 2], [3, 4], [5, 6]]
         sage: transpose_list(L)
         [[1, 3, 5], [2, 4, 6]]
-
     """
 
     h = len(input)
@@ -590,12 +664,15 @@ def transpose_list(input):
 
 def helper_matrix(Q):
     """
-    Computes the (constant) matrix used to calculate the linear combinations
-    of the $d(x^i y^j)$ needed to eliminate the negative powers of $y$
-    in the cohomology (i.e. in reduce_negative()).
+    Computes the (constant) matrix used to calculate the linear
+    combinations of the `d(x^i y^j)` needed to eliminate the
+    negative powers of `y` in the cohomology (i.e. in
+    reduce_negative()).
 
     INPUT:
-        Q -- cubic polynomial
+
+
+    -  ``Q`` - cubic polynomial
     """
 
     a = Q[1]
@@ -622,8 +699,9 @@ def lift(x):
     If this fails, it assumes the input is a power series, and tries to
     lift it to a power series over QQ.
 
-    This function is just a very kludgy solution to the problem of trying
-    to make the reduction code (below) work over both Zp and Zp[[t]].
+    This function is just a very kludgy solution to the problem of
+    trying to make the reduction code (below) work over both Zp and
+    Zp[[t]].
     """
     try:
         return x.lift()
@@ -634,22 +712,29 @@ def lift(x):
 
 def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     """
-    Applies cohomology relations to incorporate negative powers of $y$
-    into the $y^0$ term.
+    Applies cohomology relations to incorporate negative powers of
+    `y` into the `y^0` term.
 
     INPUT:
-        p -- prime
-        Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
-                  represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
-        offset -- nonnegative integer
 
-    OUTPUT:
-        The reduction is performed in-place. The output is placed in
-        coeffs[offset]. Note that coeffs[i] will be meaningless for
-        i < offset after this function is finished.
 
-    EXAMPLE:
+    -  ``p`` - prime
+
+    -  ``Q`` - cubic polynomial
+
+    -  ``coeffs`` - list of length 3 lists. The
+       `i^{th}` list [a, b, c] represents
+       `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
+
+    -  ``offset`` - nonnegative integer
+
+
+    OUTPUT: The reduction is performed in-place. The output is placed
+    in coeffs[offset]. Note that coeffs[i] will be meaningless for i
+    offset after this function is finished.
+
+    EXAMPLE::
+
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[10, 15, 20], [1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -658,6 +743,8 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs[3]
          [28, 52, 9]
 
+    ::
+
         sage: R.<x> = Integers(7^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[7, 14, 21], [1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -665,7 +752,6 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
         sage: monsky_washnitzer.reduce_negative(Q, 7, coeffs, 3)
         sage: coeffs[3]
          [245, 332, 9]
-
     """
 
     m = helper_matrix(Q).list()
@@ -733,23 +819,31 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
 
 def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     """
-    Applies cohomology relations to incorporate positive powers of $y$
-    into the $y^0$ term.
+    Applies cohomology relations to incorporate positive powers of
+    `y` into the `y^0` term.
 
     INPUT:
-        Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
-                  represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
-        offset -- nonnegative integer
 
-    OUTPUT:
-        The reduction is performed in-place. The output is placed in
-        coeffs[offset]. Note that coeffs[i] will be meaningless for
-        i > offset after this function is finished.
 
-    EXAMPLE:
+    -  ``Q`` - cubic polynomial
+
+    -  ``coeffs`` - list of length 3 lists. The
+       `i^{th}` list [a, b, c] represents
+       `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
+
+    -  ``offset`` - nonnegative integer
+
+
+    OUTPUT: The reduction is performed in-place. The output is placed
+    in coeffs[offset]. Note that coeffs[i] will be meaningless for i
+    offset after this function is finished.
+
+    EXAMPLE::
+
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
+
+    ::
 
         sage: coeffs = [[1, 2, 3], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
@@ -757,12 +851,13 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
         sage: coeffs[0]
          [16, 102, 88]
 
+    ::
+
         sage: coeffs = [[9, 8, 7], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
          [24, 108, 92]
-
     """
 
     base_ring = Q.base_ring()
@@ -820,21 +915,27 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
 
 def reduce_zero(Q, coeffs, offset, exact_form=None):
     """
-    Applies cohomology relation to incorporate $x^2 y^0$ term into $x^0 y^0$
-    and $x^1 y^0$ terms.
+    Applies cohomology relation to incorporate `x^2 y^0` term
+    into `x^0 y^0` and `x^1 y^0` terms.
 
     INPUT:
-        Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
-                  represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
-        offset -- nonnegative integer
 
-    OUTPUT:
-        The reduction is performed in-place. The output is placed in
-        coeffs[offset]. This method completely ignores coeffs[i] for
-        i != offset.
 
-    EXAMPLE:
+    -  ``Q`` - cubic polynomial
+
+    -  ``coeffs`` - list of length 3 lists. The
+       `i^{th}` list [a, b, c] represents
+       `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
+
+    -  ``offset`` - nonnegative integer
+
+
+    OUTPUT: The reduction is performed in-place. The output is placed
+    in coeffs[offset]. This method completely ignores coeffs[i] for i
+    != offset.
+
+    EXAMPLE::
+
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -842,7 +943,6 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
         sage: monsky_washnitzer.reduce_zero(Q, coeffs, 1)
         sage: coeffs[1]
          [6, 5, 0]
-
     """
 
     a = coeffs[int(offset)]
@@ -869,30 +969,41 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
 
 def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
     """
-    Applies cohomology relations to reduce all terms to a linear combination
-    of $dx/y$ and $x dx/y$.
+    Applies cohomology relations to reduce all terms to a linear
+    combination of `dx/y` and `x dx/y`.
 
     INPUT:
-        Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
-                  represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
-        offset -- nonnegative integer
+
+
+    -  ``Q`` - cubic polynomial
+
+    -  ``coeffs`` - list of length 3 lists. The
+       `i^{th}` list [a, b, c] represents
+       `y^{2(i - offset)} (a + bx + cx^2) dx/y`.
+
+    -  ``offset`` - nonnegative integer
+
 
     OUTPUT:
-        A, B -- pair such that the input differential is cohomologous to
-                (A + Bx) dx/y.
 
-    NOTE:
-        The algorithm operates in-place, so the data in coeffs is destroyed.
 
-    EXAMPLE:
+    -  ``A, B`` - pair such that the input differential is
+       cohomologous to (A + Bx) dx/y.
+
+
+    .. note::
+
+       The algorithm operates in-place, so the data in coeffs is
+       destroyed.
+
+    EXAMPLE::
+
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_all(Q, 5, coeffs, 1)
          (21, 106)
-
     """
 
     R = Q.base_ring()
@@ -922,39 +1033,55 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
 
 def frobenius_expansion_by_newton(Q, p, M):
     r"""
-    Computes the action of Frobenius on $dx/y$ and on $x dx/y$, using
-    Newton's method (as suggested in Kedlaya's paper).
+    Computes the action of Frobenius on `dx/y` and on
+    `x dx/y`, using Newton's method (as suggested in Kedlaya's
+    paper).
 
-    (This function does *not* yet use the cohomology relations
-    -- that happens afterwards in the "reduction" step.)
+    (This function does *not* yet use the cohomology relations - that
+    happens afterwards in the "reduction" step.)
 
-    More specifically, it finds $F_0$ and $F_1$ in the quotient ring
-    $R[x, T]/(T - Q(x))$, such that
-    $$
-        F(  dx/y) = T^{-r} F0 dx/y,   \text{ and }
-        F(x dx/y) = T^{-r} F1 dx/y
-    $$
+    More specifically, it finds `F_0` and `F_1` in
+    the quotient ring `R[x, T]/(T - Q(x))`, such that
+
+    .. math::
+
+       F(  dx/y) = T^{-r} F0 dx/y, \text{\ and\ } F(x dx/y) = T^{-r} F1 dx/y
+
     where
-    $$
-        r = ( (2M-3)p - 1 )/2.
-    $$
-    (Here $T$ is $y^2 = z^{-2}$, and $R$ is the coefficient ring of $Q$.)
 
-    $F_0$ and $F_1$ are computed in the SpecialCubicQuotientRing
-    associated to $Q$, so all powers of $x^j$ for $j \geq 3$ are reduced
-    to powers of $T$.
+    .. math::
+
+       r = ( (2M-3)p - 1 )/2.
+
+
+    (Here `T` is `y^2 = z^{-2}`, and `R` is the
+    coefficient ring of `Q`.)
+
+    `F_0` and `F_1` are computed in the
+    SpecialCubicQuotientRing associated to `Q`, so all powers
+    of `x^j` for `j \geq 3` are reduced to powers of
+    `T`.
 
     INPUT:
-        Q -- cubic polynomial of the form $Q(x) = x^3 + ax + b$,
-             whose coefficient ring is a $Z/(p^M)Z$-algebra
-        p -- residue characteristic of the p-adic field
-        M -- p-adic precision of the coefficient ring (this will be used
-             to determine the number of Newton iterations)
+
+
+    -  ``Q`` - cubic polynomial of the form
+       `Q(x) = x^3 + ax + b`, whose coefficient ring is a
+       `Z/(p^M)Z`-algebra
+
+    -  ``p`` - residue characteristic of the p-adic field
+
+    -  ``M`` - p-adic precision of the coefficient ring
+       (this will be used to determine the number of Newton iterations)
+
 
     OUTPUT:
-        F0, F1 -- elements of SpecialCubicQuotientRing(Q), as described above
-        r -- non-negative integer, as described above
 
+
+    -  ``F0, F1`` - elements of
+       SpecialCubicQuotientRing(Q), as described above
+
+    -  ``r`` - non-negative integer, as described above
     """
 
     S = SpecialCubicQuotientRing(Q)
@@ -1079,46 +1206,64 @@ def frobenius_expansion_by_newton(Q, p, M):
 
 def frobenius_expansion_by_series(Q, p, M):
     r"""
-    Computes the action of Frobenius on dx/y and on x dx/y, using
-    a series expansion.
+    Computes the action of Frobenius on dx/y and on x dx/y, using a
+    series expansion.
 
-    (This function computes the same thing as frobenius_expansion_by_newton(),
-    using a different method. Theoretically the Newton method should be
-    asymptotically faster, when the precision gets large. However, in practice,
-    this functions seems to be marginally faster for moderate precision, so I'm
+    (This function computes the same thing as
+    frobenius_expansion_by_newton(), using a different method.
+    Theoretically the Newton method should be asymptotically faster,
+    when the precision gets large. However, in practice, this functions
+    seems to be marginally faster for moderate precision, so I'm
     keeping it here until I figure out exactly why it's faster.)
 
-    (This function does *not* yet use the cohomology relations
-    -- that happens afterwards in the "reduction" step.)
+    (This function does *not* yet use the cohomology relations - that
+    happens afterwards in the "reduction" step.)
 
     More specifically, it finds F0 and F1 in the quotient ring
-    $R[x, T]/(T - Q(x))$, such that
-        $F(  dx/y) = T^{-r} F0 dx/y$,   and
-        $F(x dx/y) = T^{-r} F1 dx/y$
-    where
-        $r = ( (2M-3)p - 1 )/2$.
-    (Here T is $y^2 = z^{-2}$, and R is the coefficient ring of Q.)
+    `R[x, T]/(T - Q(x))`, such that
+    `F(  dx/y) = T^{-r} F0 dx/y`, and
+    `F(x dx/y) = T^{-r} F1 dx/y` where
+    `r = ( (2M-3)p - 1 )/2`. (Here T is `y^2 = z^{-2}`,
+    and R is the coefficient ring of Q.)
 
-    $F_0$ and $F_1$ are computed in the SpecialCubicQuotientRing associated
-    to $Q$, so all powers of $x^j$ for $j \geq 3$ are reduced to powers of $T$.
+    `F_0` and `F_1` are computed in the
+    SpecialCubicQuotientRing associated to `Q`, so all powers
+    of `x^j` for `j \geq 3` are reduced to powers of
+    `T`.
 
     It uses the sum
-        $$ F0 = \sum_{k=0}^{M-2} {-1/2 \choose k} p x^{p-1} E^k T^{(M-2-k)p}$$
+
+    .. math::
+
+         F0 = \sum_{k=0}^{M-2} {-1/2 \choose k} p x^{p-1} E^k T^{(M-2-k)p}
+
     and
-        $$ F1 = x^p F0,$$
-    where $E = Q(x^p) - Q(x)^p$.
+
+    .. math::
+
+         F1 = x^p F0,
+
+     where `E = Q(x^p) - Q(x)^p`.
 
     INPUT:
-        Q -- cubic polynomial of the form $Q(x) = x^3 + ax + b$,
-             whose coefficient ring is a $\Z/(p^M)\Z$-algebra
-        p -- residue characteristic of the p-adic field
-        M -- p-adic precision of the coefficient ring (this will be used
-             to determine the number of terms in the series)
+
+
+    -  ``Q`` - cubic polynomial of the form
+       `Q(x) = x^3 + ax + b`, whose coefficient ring is a
+       `\mathbb{Z}/(p^M)\mathbb{Z}` -algebra
+
+    -  ``p`` - residue characteristic of the p-adic field
+
+    -  ``M`` - p-adic precision of the coefficient ring
+       (this will be used to determine the number of terms in the
+       series)
 
     OUTPUT:
-        F0, F1 -- elements of SpecialCubicQuotientRing(Q), as described above
-        r -- non-negative integer, as described above
 
+    -  ``F0, F1`` - elements of
+       SpecialCubicQuotientRing(Q), as described above
+
+    -  ``r`` - non-negative integer, as described above
     """
 
     S = SpecialCubicQuotientRing(Q)
@@ -1165,27 +1310,31 @@ def frobenius_expansion_by_series(Q, p, M):
 
 def adjusted_prec(p, prec):
     r"""
-    Computes how much precision is required in matrix_of_frobenius to get
-    an answer correct to prec $p$-adic digits.
+    Computes how much precision is required in matrix_of_frobenius to
+    get an answer correct to prec `p`-adic digits.
 
-    The issue is that the algorithm used in matrix_of_frobenius sometimes
-    performs divisions by $p$, so precision is lost during the algorithm.
+    The issue is that the algorithm used in matrix_of_frobenius
+    sometimes performs divisions by `p`, so precision is lost
+    during the algorithm.
 
     The estimate returned by this function is based on Kedlaya's result
-    (Lemmas 2 and 3 of ``Counting Points on Hyperelliptic Curves...''), which
-    implies that if we start with $M$ $p$-adic digits, the total precision
-    loss is at most
-       $1 + \lfloor \log_p(2M-3) \rfloor$
-    $p$-adic digits. (This estimate is somewhat less than the amount you
-    would expect by naively counting the number of divisions by $p$.)
+    (Lemmas 2 and 3 of "Counting Points on Hyperelliptic Curves..."),
+    which implies that if we start with `M` `p`-adic
+    digits, the total precision loss is at most
+    `1 + \lfloor \log_p(2M-3) \rfloor` `p`-adic
+    digits. (This estimate is somewhat less than the amount you would
+    expect by naively counting the number of divisions by
+    `p`.)
 
     INPUT:
-        p -- a prime >= 5
-        prec -- integer, desired output precision, >= 1
 
-    OUTPUT:
-        adjusted precision (usually slightly more than prec)
 
+    -  ``p`` - a prime = 5
+
+    -  ``prec`` - integer, desired output precision, = 1
+
+
+    OUTPUT: adjusted precision (usually slightly more than prec)
     """
 
     # initial estimate:
@@ -1204,199 +1353,220 @@ def adjusted_prec(p, prec):
 
 def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     """
-    Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
-    with respect to the basis $(dx/y, x dx/y)$.
+  Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
+  with respect to the basis `(dx/y, x dx/y)`.
 
-    INPUT:
-        Q -- cubic polynomial $Q(x) = x^3 + ax + b$ defining an elliptic
-             curve E by $y^2 = Q(x)$. The coefficient ring of Q should be
-             a $\Z/(p^M)\Z$-algebra in which the matrix of frobenius will
-             be constructed.
-        p -- prime >= 5 for which E has good reduction
-        M -- integer >= 2; $p$-adic precision of the coefficient ring
-        trace -- (optional) the trace of the matrix, if known in advance.
-             This is easy to compute because it's just the $a_p$ of the
-             curve. If the trace is supplied, matrix_of_frobenius will
-             use it to speed the computation (i.e. we know the determinant
-             is $p$, so we have two conditions, so really only column of
-             the matrix needs to be computed. It's actually a little more
-             complicated than that, but that's the basic idea.)
-             If trace=None, then both columns will be computed
-             independently, and you can get a strong indication of
-             correctness by verifying the trace afterwards.
-
-    WARNING:
-        -- THE RESULT WILL NOT NECESSARILY BE CORRECT TO M p-ADIC DIGITS.
-           If you want prec digits of precision, you need to use the function
-           adjusted_prec(), and then you need to reduce the answer mod $p^{prec}$
-           at the end.
-
-    OUTPUT:
-        2x2 matrix of frobenius on Monsky-Washnitzer cohomology, with entries
-        in the coefficient ring of Q.
-
-    EXAMPLES:
-    A simple example:
-        sage: p = 5
-        sage: prec = 3
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: M
-        5
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)
-        sage: A
-        [3090  187]
-        [2945  408]
-
-    But the result is only accurate to prec digits:
-        sage: B = A.change_ring(Integers(p**prec))
-        sage: B
-        [90 62]
-        [70 33]
-
-    Check trace (123 = -2 mod 125) and determinant:
-        sage: B.det()
-        5
-        sage: B.trace()
-        123
-        sage: EllipticCurve([-1, 1/4]).ap(5)
-        -2
-
-    Try using the trace to speed up the calculation:
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4),
-        ...                                             p, M, -2)
-        sage: A
-        [2715  187]
-        [1445  408]
-
-    Hmmm... it looks different, but that's because the trace of our
-    first answer was only -2 modulo $5^3$, not -2 modulo $5^5$. So the
-    right answer is:
-    sage: A.change_ring(Integers(p**prec))
-         [90 62]
-         [70 33]
-
-    Check it works with only one digit of precision:
-        sage: p = 5
-        sage: prec = 1
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)
-        sage: A.change_ring(Integers(p))
-        [0 2]
-        [0 3]
-
-    Here's an example that's particularly badly conditioned for using the
-    trace trick:
-        sage: p = 11
-        sage: prec = 3
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 + 7*x + 8, p, M)
-        sage: A.change_ring(Integers(p**prec))
-        [1144  176]
-        [ 847  185]
-
-    The problem here is that the top-right entry is divisible by 11,
-    and the bottom-left entry is divisible by $11^2$. So when you
-    apply the trace trick, neither $F(dx/y)$ nor $F(x dx/y)$ is enough
-    to compute the whole matrix to the desired precision, even if you
-    try increasing the target precision by one. Nevertheless,
-    \code{matrix_of_frobenius} knows how to get the right answer by
-    evaluating $F((x+1) dx/y)$ instead:
-
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 + 7*x + 8, p, M, -2)
-        sage: A.change_ring(Integers(p**prec))
-        [1144  176]
-        [ 847  185]
-
-    The running time is about \code{O(p * prec**2)} (times some
-    logarithmic factors), so it's feasible to run on fairly large
-    primes, or precision (or both?!?!):
-
-        sage: p = 10007
-        sage: prec = 2
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-        ...                             x^3 - x + R(1/4), p, M)     # long time
-        sage: B = A.change_ring(Integers(p**prec)); B               # long time
-        [74311982 57996908]
-        [95877067 25828133]
-        sage: B.det()                                               # long time
-        10007
-        sage: B.trace()                                             # long time
-        66
-        sage: EllipticCurve([-1, 1/4]).ap(10007)                    # long time
-        66
-
-        sage: p = 5
-        sage: prec = 300
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-        ...                             x^3 - x + R(1/4), p, M)     # long time
-        sage: B = A.change_ring(Integers(p**prec))                  # long time
-        sage: B.det()                                               # long time
-        5
-        sage: -B.trace()                                            # long time
-        2
-        sage: EllipticCurve([-1, 1/4]).ap(5)                        # long time
-        -2
-
-    Let's check consistency of the results for a range of precisions:
-        sage: p = 5
-        sage: max_prec = 60
-        sage: M = monsky_washnitzer.adjusted_prec(p, max_prec)
-        sage: R.<x> = PolynomialRing(Integers(p**M))
-        sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)         # long time
-        sage: A = A.change_ring(Integers(p**max_prec))              # long time
-        sage: result = []                                           # long time
-        sage: for prec in range(1, max_prec):                       # long time
-        ...       M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
-        ...       R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
-        ...       B = monsky_washnitzer.matrix_of_frobenius(        # long time
-        ...                         x^3 - x + R(1/4), p, M)         # long time
-        ...       B = B.change_ring(Integers(p**prec))              # long time
-        ...       result.append(B == A.change_ring(                 # long time
-        ...                                Integers(p**prec)))      # long time
-        sage: result == [True] * (max_prec - 1)                     # long time
-        True
+  INPUT:
 
 
-    The remaining examples discuss what happens when you take the coefficient
-    ring to be a power series ring; i.e. in effect you're looking at a family
-    of curves.
+  -  ``Q`` - cubic polynomial
+     `Q(x) = x^3 + ax + b` defining an elliptic curve E by
+     `y^2 = Q(x)`. The coefficient ring of Q should be a
+     `\mathbb{Z}/(p^M)\mathbb{Z}`-algebra in which the matrix of
+     frobenius will be constructed.
 
-    The code does in fact work...
-        sage: p = 11
-        sage: prec = 3
-        sage: M = monsky_washnitzer.adjusted_prec(p, prec)
-        sage: S.<t> = PowerSeriesRing(Integers(p**M), default_prec=4)
-        sage: a = 7 + t + 3*t^2
-        sage: b = 8 - 6*t + 17*t^2
-        sage: R.<x> = PolynomialRing(S)
-        sage: Q = x**3 + a*x + b
-        sage: A = monsky_washnitzer.matrix_of_frobenius(Q, p, M)    # long time
-        sage: B = A.change_ring(PowerSeriesRing(Integers(p**prec), 't', default_prec=4))        # long time
-        sage: B                                                     # long time
-        [1144 + 264*t + 841*t^2 + 1025*t^3 + O(t^4)  176 + 1052*t + 216*t^2 + 523*t^3 + O(t^4)]
-        [   847 + 668*t + 81*t^2 + 424*t^3 + O(t^4)   185 + 341*t + 171*t^2 + 642*t^3 + O(t^4)]
+  -  ``p`` - prime = 5 for which E has good reduction
 
-    The trace trick should work for power series rings too, even in the badly-
-    conditioned case. Unfortunately I don't know how to compute the trace in
-    advance, so I'm not sure exactly how this would help. Also, I suspect
-    the running time will be dominated by the expansion, so the trace trick
-    won't really speed things up anyway. Another problem is that the
-    determinant is not always p:
-        sage: B.det()                                               # long time
-        11 + 484*t^2 + 451*t^3 + O(t^4)
+  -  ``M`` - integer = 2; `p` -adic precision of
+     the coefficient ring
 
-    However, it appears that the determinant always has the property that if
-    you substitute t -> 11t, you do get the constant series p (mod p**prec).
-    Similarly for the trace. And since the parameter only really makes sense
-    when it's divisible by p anyway, perhaps this isn't a problem after all.
+  -  ``trace`` - (optional) the trace of the matrix, if
+     known in advance. This is easy to compute because it's just the
+     `a_p` of the curve. If the trace is supplied,
+     matrix_of_frobenius will use it to speed the computation (i.e. we
+     know the determinant is `p`, so we have two conditions, so
+     really only column of the matrix needs to be computed. It's
+     actually a little more complicated than that, but that's the basic
+     idea.) If trace=None, then both columns will be computed
+     independently, and you can get a strong indication of correctness
+     by verifying the trace afterwards.
 
+     .. warning::
+
+        THE RESULT WILL NOT NECESSARILY BE CORRECT TO M p-ADIC
+        DIGITS. If you want prec digits of precision, you need to use
+        the function adjusted_prec(), and then you need to reduce the
+        answer mod `p^{\mathrm{prec}}` at the end.
+
+
+  OUTPUT: 2x2 matrix of frobenius on Monsky-Washnitzer cohomology,
+  with entries in the coefficient ring of Q.
+
+  EXAMPLES: A simple example::
+
+      sage: p = 5
+      sage: prec = 3
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: M
+      5
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)
+      sage: A
+      [3090  187]
+      [2945  408]
+
+  But the result is only accurate to prec digits::
+
+      sage: B = A.change_ring(Integers(p**prec))
+      sage: B
+      [90 62]
+      [70 33]
+
+  Check trace (123 = -2 mod 125) and determinant::
+
+      sage: B.det()
+      5
+      sage: B.trace()
+      123
+      sage: EllipticCurve([-1, 1/4]).ap(5)
+      -2
+
+  Try using the trace to speed up the calculation::
+
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4),
+      ...                                             p, M, -2)
+      sage: A
+      [2715  187]
+      [1445  408]
+
+  Hmmm... it looks different, but that's because the trace of our
+  first answer was only -2 modulo `5^3`, not -2 modulo
+  `5^5`. So the right answer is::
+
+      sage: A.change_ring(Integers(p**prec))
+           [90 62]
+           [70 33]
+
+  Check it works with only one digit of precision::
+
+      sage: p = 5
+      sage: prec = 1
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)
+      sage: A.change_ring(Integers(p))
+      [0 2]
+      [0 3]
+
+  Here's an example that's particularly badly conditioned for using
+  the trace trick::
+
+      sage: p = 11
+      sage: prec = 3
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 + 7*x + 8, p, M)
+      sage: A.change_ring(Integers(p**prec))
+      [1144  176]
+      [ 847  185]
+
+  The problem here is that the top-right entry is divisible by 11,
+  and the bottom-left entry is divisible by `11^2`. So when
+  you apply the trace trick, neither `F(dx/y)` nor
+  `F(x dx/y)` is enough to compute the whole matrix to the
+  desired precision, even if you try increasing the target precision
+  by one. Nevertheless, ``matrix_of_frobenius`` knows
+  how to get the right answer by evaluating `F((x+1) dx/y)`
+  instead::
+
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 + 7*x + 8, p, M, -2)
+      sage: A.change_ring(Integers(p**prec))
+      [1144  176]
+      [ 847  185]
+
+  The running time is about ``O(p*prec**2)`` (times
+  some logarithmic factors), so it's feasible to run on fairly large
+  primes, or precision (or both?!?!)::
+
+      sage: p = 10007
+      sage: prec = 2
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
+      ...                             x^3 - x + R(1/4), p, M)     # long time
+      sage: B = A.change_ring(Integers(p**prec)); B               # long time
+      [74311982 57996908]
+      [95877067 25828133]
+      sage: B.det()                                               # long time
+      10007
+      sage: B.trace()                                             # long time
+      66
+      sage: EllipticCurve([-1, 1/4]).ap(10007)                    # long time
+      66
+
+  ::
+
+      sage: p = 5
+      sage: prec = 300
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
+      ...                             x^3 - x + R(1/4), p, M)     # long time
+      sage: B = A.change_ring(Integers(p**prec))                  # long time
+      sage: B.det()                                               # long time
+      5
+      sage: -B.trace()                                            # long time
+      2
+      sage: EllipticCurve([-1, 1/4]).ap(5)                        # long time
+      -2
+
+  Let's check consistency of the results for a range of precisions::
+
+      sage: p = 5
+      sage: max_prec = 60
+      sage: M = monsky_washnitzer.adjusted_prec(p, max_prec)
+      sage: R.<x> = PolynomialRing(Integers(p**M))
+      sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)         # long time
+      sage: A = A.change_ring(Integers(p**max_prec))              # long time
+      sage: result = []                                           # long time
+      sage: for prec in range(1, max_prec):                       # long time
+      ...       M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
+      ...       R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
+      ...       B = monsky_washnitzer.matrix_of_frobenius(        # long time
+      ...                         x^3 - x + R(1/4), p, M)         # long time
+      ...       B = B.change_ring(Integers(p**prec))              # long time
+      ...       result.append(B == A.change_ring(                 # long time
+      ...                                Integers(p**prec)))      # long time
+      sage: result == [True] * (max_prec - 1)                     # long time
+      True
+
+  The remaining examples discuss what happens when you take the
+  coefficient ring to be a power series ring; i.e. in effect you're
+  looking at a family of curves.
+
+  The code does in fact work...
+
+  ::
+
+      sage: p = 11
+      sage: prec = 3
+      sage: M = monsky_washnitzer.adjusted_prec(p, prec)
+      sage: S.<t> = PowerSeriesRing(Integers(p**M), default_prec=4)
+      sage: a = 7 + t + 3*t^2
+      sage: b = 8 - 6*t + 17*t^2
+      sage: R.<x> = PolynomialRing(S)
+      sage: Q = x**3 + a*x + b
+      sage: A = monsky_washnitzer.matrix_of_frobenius(Q, p, M)    # long time
+      sage: B = A.change_ring(PowerSeriesRing(Integers(p**prec), 't', default_prec=4))        # long time
+      sage: B                                                     # long time
+      [1144 + 264*t + 841*t^2 + 1025*t^3 + O(t^4)  176 + 1052*t + 216*t^2 + 523*t^3 + O(t^4)]
+      [   847 + 668*t + 81*t^2 + 424*t^3 + O(t^4)   185 + 341*t + 171*t^2 + 642*t^3 + O(t^4)]
+
+  The trace trick should work for power series rings too, even in the
+  badly- conditioned case. Unfortunately I don't know how to compute
+  the trace in advance, so I'm not sure exactly how this would help.
+  Also, I suspect the running time will be dominated by the
+  expansion, so the trace trick won't really speed things up anyway.
+  Another problem is that the determinant is not always p::
+
+      sage: B.det()                                               # long time
+      11 + 484*t^2 + 451*t^3 + O(t^4)
+
+  However, it appears that the determinant always has the property
+  that if you substitute t - 11t, you do get the constant series p
+  (mod p\*\*prec). Similarly for the trace. And since the parameter
+  only really makes sense when it's divisible by p anyway, perhaps
+  this isn't a problem after all.
   """
 
     M = int(M)
@@ -1731,7 +1901,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
     def monomial(self, i, j, b=None):
         """
-        Returns $b y^j x^i$, computed quickly.
+        Returns `b y^j x^i`, computed quickly.
         """
         i = int(i)
         j = int(j)
@@ -1749,14 +1919,17 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
     def monomial_diff_coeffs(self, i, j):
         r"""
-        The key here is that the formula for $d(x^iy^j)$ is messy
+        The key here is that the formula for `d(x^iy^j)` is messy
         in terms of i, but varies nicely with j.
-        $$
-        d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}
-        $$
-        Where $A,B$ have degree at most $n-1$ for each $i$.
-        Pre-compute $A_i, B_i$ for each $i$ the "hard" way, and
-        the rest are easy.
+
+        .. math::
+
+                     d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}
+
+
+        Where `A,B` have degree at most `n-1` for each
+        `i`. Pre-compute `A_i, B_i` for each `i`
+        the "hard" way, and the rest are easy.
         """
         try:
             return self._monomial_diff_coeffs[i,j]
@@ -1854,8 +2027,8 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __invert__(self):
         """
-        The general element in our ring is not invertible, but y may be.
-        We do not want to pass to the fraction field.
+        The general element in our ring is not invertible, but y may be. We
+        do not want to pass to the fraction field.
         """
         if self._f.degree() == 0 and self._f[0].is_unit():
             return SpecialHyperellipticQuotientElement(self.parent(), ~self._f[0])
@@ -2024,9 +2197,11 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
     def frob_invariant_differential(self, prec, p):
         """
-        $F_p(dx/y) = px^{p-1} y(F_py)^{-1} dx/y
-                   = px^{p-1} y^{1-p} (1+pEy^{-2p})^{-1/2} dx/y
-                   = px^{p-1} y^{1-p} (F_pQ y^{-p})^{-1/2} dx/y$
+        .. math::
+
+           F_p(dx/y) = px^{p-1} y(F_py)^{-1} dx/y
+                     = px^{p-1} y^{1-p} (1+pEy^{-2p})^{-1/2} dx/y
+                     = px^{p-1} y^{1-p} (F_pQ y^{-p})^{-1/2} dx/y
 
         Use Newton's method to calculate the square root.
         """
@@ -2091,8 +2266,9 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
     def helper_matrix(self):
         """
-        We use this to solve for the linear combination of $x^i y^j$ needed
-        to clear all terms with $y^{j-1}$.
+        We use this to solve for the linear combination of
+        `x^i y^j` needed to clear all terms with
+        `y^{j-1}`.
         """
         try:
             return self._helper_matrix
@@ -2142,8 +2318,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def coeff(self):
         """
-        This is a one-dimensional module over the base ring, generated by dx/2y.
-        Return $A$ where $A dx/2y = self$.
+        This is a one-dimensional module over the base ring, generated by
+        dx/2y. Return `A` where `A dx/2y = self`.
         """
         return self._coeff
 
@@ -2394,8 +2570,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def reduce(self):
         """
-        Use homology relations to find $a$ and $f$ such that
-        $self = a + df$ where $a$ is given in terms of the $x^i dx/2y$.
+        Use homology relations to find `a` and `f` such
+        that `self = a + df` where `a` is given in terms of
+        the `x^i dx/2y`.
         """
 #        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
         n = self.parent().base_ring().Q().degree()
@@ -2417,8 +2594,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def reduce_fast(self, even_degree_only=False):
         """
-        Use homology relations to find $a$ and $f$ such that
-        $self = a + df$ where $a$ is given in terms of the $x^i dx/2y$.
+        Use homology relations to find `a` and `f` such
+        that `self = a + df` where `a` is given in terms of
+        the `x^i dx/2y`.
         """
 #        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
         f1, reduced = self.reduce_neg_y_fast(even_degree_only)

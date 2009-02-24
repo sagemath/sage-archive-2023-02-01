@@ -1,9 +1,11 @@
 """
 Plane curve constructors
 
-AUTHOR:
-    -- 2005-11-13, William Stein <wstein@gmail.com>
-    -- 2006-01 David Kohel <kohel@maths.usyd.edu.au>
+AUTHORS:
+
+- William Stein (2005-11-13)
+
+- David Kohel (2006-01)
 """
 
 #*****************************************************************************
@@ -42,14 +44,17 @@ from affine_curve import (AffineCurve_generic,
 
 def Curve(F):
     """
-    Return the plane or space curve defined by $F$, where $F$ can be
-    either a multivariate polynomial, a list or tuple of polynomials,
-    or an algebraic scheme.
+    Return the plane or space curve defined by `F`, where
+    `F` can be either a multivariate polynomial, a list or
+    tuple of polynomials, or an algebraic scheme.
 
-    If $F$ is in two variables the curve is affine, and if it is
-    homogenous in $3$ variables, then the curve is projective.
+    If `F` is in two variables the curve is affine, and if it
+    is homogenous in `3` variables, then the curve is
+    projective.
 
     EXAMPLE: A projective plane curve
+
+    ::
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve(x^3 + y^3 + z^3); C
@@ -58,6 +63,8 @@ def Curve(F):
         1
 
     EXAMPLE: Affine plane curves
+
+    ::
 
         sage: x,y = GF(7)['x,y'].gens()
         sage: C = Curve(y^2 + x^3 + x^10); C
@@ -70,6 +77,8 @@ def Curve(F):
 
     EXAMPLE: A projective space curve
 
+    ::
+
         sage: x,y,z,w = QQ['x,y,z,w'].gens()
         sage: C = Curve([x^3 + y^3 - z^3 - w^3, x^5 - y*z^4]); C
         Projective Space Curve over Rational Field defined by x^3 + y^3 - z^3 - w^3
@@ -78,6 +87,8 @@ def Curve(F):
 
     EXAMPLE: An affine space curve
 
+    ::
+
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve([y^2 + x^3 + x^10 + z^7,  x^2 + y^2]); C
         Affine Space Curve over Rational Field defined by x^10 + z^7 + x^3 + y^2
@@ -85,6 +96,9 @@ def Curve(F):
         47
 
     EXAMPLE: We can also make non-reduced non-irreducible curves.
+
+    ::
+
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve((x-y)*(x+y))
         Projective Curve over Rational Field defined by x^2 - y^2
@@ -92,6 +106,9 @@ def Curve(F):
         Projective Curve over Rational Field defined by x^4 - 2*x^2*y^2 + y^4
 
     EXAMPLE: A union of curves is a curve.
+
+    ::
+
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve(x^3 + y^3 + z^3)
         sage: D = Curve(x^4 + y^4 + z^4)
@@ -100,21 +117,30 @@ def Curve(F):
         x^7 + x^4*y^3 + x^3*y^4 + y^7 + x^4*z^3 + y^4*z^3 + x^3*z^4 + y^3*z^4 + z^7
 
     The intersection is not a curve, though it is a scheme.
+
+    ::
+
         sage: X = C.intersection(D); X
         Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
          x^3 + y^3 + z^3
          x^4 + y^4 + z^4
 
-    Note that the intersection has dimension $0$.
+    Note that the intersection has dimension `0`.
+
+    ::
+
         sage: X.dimension()
         0
         sage: I = X.defining_ideal(); I
         Ideal (x^3 + y^3 + z^3, x^4 + y^4 + z^4) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
-    EXAMPLE: In three variables, the defining equation must be homogeneous.
+    EXAMPLE: In three variables, the defining equation must be
+    homogeneous.
 
     If the parent polynomial ring is in three variables, then the
     defining ideal must be homogeneous.
+
+    ::
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve(x^2+y^2)
@@ -124,7 +150,8 @@ def Curve(F):
         ...
         TypeError: defining polynomials (= x^2 + y^2 + z) must be homogeneous
 
-    The defining polynomial must always be nonzero:
+    The defining polynomial must always be nonzero::
+
         sage: P1.<x,y> = ProjectiveSpace(1,GF(5))
         sage: Curve(0*x)
         Traceback (most recent call last):

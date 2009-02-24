@@ -1,13 +1,15 @@
 """
 Hyperelliptic curves over a general ring
 
-EXAMPLE:
+EXAMPLE::
+
     sage: P, x = PolynomialRing(GF(5),"x").objgen()
     sage: f = x^5 - 3*x^4 - 2*x^3 + 6*x^2 + 3*x - 1
     sage: C = HyperellipticCurve(f); C
     Hyperelliptic Curve over Finite Field of size 5 defined by y^2 = x^5 + 2*x^4 + 3*x^3 + x^2 + 3*x + 4
 
-EXAMPLE:
+EXAMPLE::
+
     sage: P, x = PolynomialRing(QQ,"x").objgen()
     sage: f = 4*x^5 - 30*x^3 + 45*x - 22
     sage: C = HyperellipticCurve(f); C
@@ -34,7 +36,8 @@ from sage.schemes.generic.all import ProjectiveSpace
 
 def is_HyperellipticCurve(C):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1); C
         Hyperelliptic Curve over Rational Field defined by y^2 = x^3 + x - 1
         sage: sage.schemes.hyperelliptic_curves.hyperelliptic_generic.is_HyperellipticCurve(C)
@@ -77,7 +80,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         String representation hyperelliptic curves.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P, x = PolynomialRing(QQ,"x").objgen()
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f); C
@@ -102,7 +106,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1, x^3/5); C
             Hyperelliptic Curve over Rational Field defined by y^2 + 1/5*x^3*y = x^3 + x - 1
             sage: C.hyperelliptic_polynomials()
@@ -149,10 +154,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def _magma_init_(self, magma):
         """
-        Internal function.  Returns a string to initialize this
-        elliptic curve in the Magma subsystem.
+        Internal function. Returns a string to initialize this elliptic
+        curve in the Magma subsystem.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]; C = HyperellipticCurve(x^3 + x - 1, x); C
             Hyperelliptic Curve over Rational Field defined by y^2 + x*y = x^3 + x - 1
             sage: magma(C)             # optional - magma

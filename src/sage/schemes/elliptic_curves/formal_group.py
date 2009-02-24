@@ -2,9 +2,13 @@ r"""
 Formal groups of elliptic curves.
 
 AUTHORS:
-    -- William Stein: original implementations
-    -- David Harvey: improved asymptotics of some methods
-    -- Nick Alexander: separation from ell_generic.py, bugfixes and docstrings
+
+- William Stein: original implementations
+
+- David Harvey: improved asymptotics of some methods
+
+- Nick Alexander: separation from ell_generic.py, bugfixes and
+  docstrings
 """
 
 from sage.structure.sage_object import SageObject
@@ -21,12 +25,13 @@ class EllipticCurveFormalGroup(SageObject):
     """
     def __init__(self, E):
         """
-        EXAMPLE:
-        sage: E = EllipticCurve('11a')
-        sage: F = E.formal_group(); F
-        Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-        sage: F == loads(dumps(F))
-        True
+        EXAMPLE::
+
+            sage: E = EllipticCurve('11a')
+            sage: F = E.formal_group(); F
+            Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: F == loads(dumps(F))
+            True
         """
         self.__E = E
 
@@ -34,7 +39,8 @@ class EllipticCurveFormalGroup(SageObject):
         """
         Compare self and other.
 
-        TESTS:
+        TESTS::
+
             sage: E = EllipticCurve('35a')
             sage: F1 = E.formal_group()
             sage: F2 = E.formal_group()
@@ -47,11 +53,12 @@ class EllipticCurveFormalGroup(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE:
-        sage: E = EllipticCurve('43a')
-        sage: F = E.formal_group()
-        sage: F._repr_()
-        'Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 over Rational Field'
+        EXAMPLE::
+
+            sage: E = EllipticCurve('43a')
+            sage: F = E.formal_group()
+            sage: F._repr_()
+            'Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 over Rational Field'
         """
         return "Formal Group associated to the %s"%self.__E
 
@@ -59,7 +66,8 @@ class EllipticCurveFormalGroup(SageObject):
         r"""
         The elliptic curve this formal group is associated to.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve("37a")
             sage: F = E.formal_group()
             sage: F.curve()
@@ -72,44 +80,53 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group power series w.
 
         INPUT:
-            prec -- integer (default 20)
 
-        OUTPUT:
-            a power series with given precision
 
-        DETAILS:
-            Return the formal power series
-            $$
-                   w(t) = t^3 + a_1 t^4 + (a_2 + a_1^2) t^5 + \cdots
-            $$
-            to precision $O(t^prec)$ of Proposition IV.1.1 of [Silverman
-            AEC1].  This is the formal expansion of $w = -1/y$ about the
-            formal parameter $t = -x/y$ at $\\infty$.
+        -  ``prec`` - integer (default 20)
 
-            The result is cached, and a cached version is returned if
-            possible.
 
-        WARNING:
-            The resulting power series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
+        OUTPUT: a power series with given precision
 
-        ALGORITHM:
-            Uses Newton's method to solve the elliptic curve equation
-            at the origin. Complexity is roughly $O(M(n))$ where
-            $n$ is the precision and $M(n)$ is the time required to multiply
-            polynomials of length $n$ over the coefficient ring of $E$.
+        DETAILS: Return the formal power series
+
+        .. math::
+
+                                w(t) = t^3 + a_1 t^4 + (a_2 + a_1^2) t^5 + \cdots
+
+
+        to precision `O(t^{prec})` of Proposition IV.1.1 of
+        [Silverman AEC1]. This is the formal expansion of
+        `w = -1/y` about the formal parameter `t = -x/y` at
+        `\\infty`.
+
+        The result is cached, and a cached version is returned if
+        possible.
+
+        .. warning::
+
+           The resulting power series will have precision prec, but
+           its parent PowerSeriesRing will have default precision 20
+           (or whatever the default default is).
+
+        ALGORITHM: Uses Newton's method to solve the elliptic curve
+        equation at the origin. Complexity is roughly `O(M(n))`
+        where `n` is the precision and `M(n)` is the time
+        required to multiply polynomials of length `n` over the
+        coefficient ring of `E`.
 
         AUTHOR:
-            -- David Harvey (2006-09-09): modified to use Newton's method
-            instead of a recurrence formula.
 
-        EXAMPLES:
+        - David Harvey (2006-09-09): modified to use Newton's
+          method instead of a recurrence formula.
+
+        EXAMPLES::
+
             sage: e = EllipticCurve([0, 0, 1, -1, 0])
             sage: e.formal_group().w(10)
              t^3 + t^6 - t^7 + 2*t^9 + O(t^10)
 
-          Check that caching works:
+        Check that caching works::
+
             sage: e = EllipticCurve([3, 2, -4, -2, 5])
             sage: e.formal_group().w(20)
              t^3 + 3*t^4 + 11*t^5 + 35*t^6 + 101*t^7 + 237*t^8 + 312*t^9 - 949*t^10 - 10389*t^11 - 57087*t^12 - 244092*t^13 - 865333*t^14 - 2455206*t^15 - 4366196*t^16 + 6136610*t^17 + 109938783*t^18 + 688672497*t^19 + O(t^20)
@@ -201,28 +218,34 @@ class EllipticCurveFormalGroup(SageObject):
 
     def x(self, prec=20):
         r"""
-        Return the formal series $x(t) = t/w(t)$ in terms of the local
-        parameter $t = -x/y$ at infinity.
+        Return the formal series `x(t) = t/w(t)` in terms of the
+        local parameter `t = -x/y` at infinity.
 
         INPUT:
-            prec -- integer (default 20)
 
-        OUTPUT:
-            a Laurent series with given precision
 
-        DETAILS:
-            Return the formal series
-            $$
-                   x(t) = t^{-2} - a_1 t^{-1} - a_2 - a_3 t - \cdots
-            $$
-            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
+        -  ``prec`` - integer (default 20)
 
-        WARNING:
-            The resulting series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
 
-        EXAMPLES:
+        OUTPUT: a Laurent series with given precision
+
+        DETAILS: Return the formal series
+
+        .. math::
+
+                                x(t) = t^{-2} - a_1 t^{-1} - a_2 - a_3 t - \cdots
+
+
+        to precision `O(t^{prec})` of page 113 of [Silverman AEC1].
+
+        .. warning::
+
+           The resulting series will have precision prec, but its
+           parent PowerSeriesRing will have default precision 20 (or
+           whatever the default default is).
+
+        EXAMPLES::
+
             sage: EllipticCurve([0, 0, 1, -1, 0]).formal_group().x(10)
              t^-2 - t + t^2 - t^4 + 2*t^5 - t^6 - 2*t^7 + 6*t^8 - 6*t^9 + O(t^10)
         """
@@ -233,31 +256,37 @@ class EllipticCurveFormalGroup(SageObject):
 
     def y(self, prec=20):
         r"""
-        Return the formal series $y(t) = -1/w(t)$ in terms of the local
-        parameter $t = -x/y$ at infinity.
+        Return the formal series `y(t) = -1/w(t)` in terms of the
+        local parameter `t = -x/y` at infinity.
 
         INPUT:
-            prec -- integer (default 20)
 
-        OUTPUT:
-            a Laurent series with given precision
 
-        DETAILS:
-            Return the formal series
-            $$
-                   y(t) = - t^{-3} + a_1 t^{-2} + a_2 t + a_3 + \cdots
-            $$
-            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
+        -  ``prec`` - integer (default 20)
 
-            The result is cached, and a cached version is returned if
-            possible.
 
-        WARNING:
-            The resulting series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
+        OUTPUT: a Laurent series with given precision
 
-        EXAMPLES:
+        DETAILS: Return the formal series
+
+        .. math::
+
+                                y(t) = - t^{-3} + a_1 t^{-2} + a_2 t + a_3 + \cdots
+
+
+        to precision `O(t^{prec})` of page 113 of [Silverman AEC1].
+
+        The result is cached, and a cached version is returned if
+        possible.
+
+        .. warning::
+
+           The resulting series will have precision prec, but its
+           parent PowerSeriesRing will have default precision 20 (or
+           whatever the default default is).
+
+        EXAMPLES::
+
             sage: EllipticCurve([0, 0, 1, -1, 0]).formal_group().y(10)
              -t^-3 + 1 - t + t^3 - 2*t^4 + t^5 + 2*t^6 - 6*t^7 + 6*t^8 + 3*t^9 + O(t^10)
         """
@@ -277,38 +306,47 @@ class EllipticCurveFormalGroup(SageObject):
 
     def differential(self, prec=20):
         r"""
-        Returns the power series $f(t) = 1 + \cdots$ such that $f(t) dt$ is
-        the usual invariant differential $dx/(2y + a_1 x + a_3)$.
+        Returns the power series `f(t) = 1 + \cdots` such that
+        `f(t) dt` is the usual invariant differential
+        `dx/(2y + a_1 x + a_3)`.
 
         INPUT:
-           prec -- nonnegative integer (default 20), answer will be returned $O(t^{\var{prec}})$
 
-        OUTPUT:
-            a power series with given precision
 
-        DETAILS:
-            Return the formal series
-            $$
-                   f(t) = 1 + a_1 t + ({a_1}^2 + a_2) t^2 + \cdots
-            $$
-            to precision $O(t^prec)$ of page 113 of [Silverman AEC1].
+        -  ``prec`` - nonnegative integer (default 20), answer
+           will be returned `O(t^{\mathrm{prec}})`
 
-            The result is cached, and a cached version is returned if
-            possible.
 
-        WARNING:
-            The resulting series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
+        OUTPUT: a power series with given precision
 
-        EXAMPLES:
-           sage: EllipticCurve([-1, 1/4]).formal_group().differential(15)
-            1 - 2*t^4 + 3/4*t^6 + 6*t^8 - 5*t^10 - 305/16*t^12 + 105/4*t^14 + O(t^15)
-           sage: EllipticCurve(Integers(53), [-1, 1/4]).formal_group().differential(15)
-            1 + 51*t^4 + 14*t^6 + 6*t^8 + 48*t^10 + 24*t^12 + 13*t^14 + O(t^15)
+        DETAILS: Return the formal series
+
+        .. math::
+
+                                f(t) = 1 + a_1 t + ({a_1}^2 + a_2) t^2 + \cdots
+
+
+        to precision `O(t^{prec})` of page 113 of [Silverman AEC1].
+
+        The result is cached, and a cached version is returned if
+        possible.
+
+        .. warning::
+
+           The resulting series will have precision prec, but its
+           parent PowerSeriesRing will have default precision 20 (or
+           whatever the default default is).
+
+        EXAMPLES::
+
+            sage: EllipticCurve([-1, 1/4]).formal_group().differential(15)
+             1 - 2*t^4 + 3/4*t^6 + 6*t^8 - 5*t^10 - 305/16*t^12 + 105/4*t^14 + O(t^15)
+            sage: EllipticCurve(Integers(53), [-1, 1/4]).formal_group().differential(15)
+             1 + 51*t^4 + 14*t^6 + 6*t^8 + 48*t^10 + 24*t^12 + 13*t^14 + O(t^15)
 
         AUTHOR:
-           -- David Harvey (2006-09-10): factored out of log
+
+        - David Harvey (2006-09-10): factored out of log
         """
         prec = max(prec,0)
         try:
@@ -328,24 +366,29 @@ class EllipticCurveFormalGroup(SageObject):
 
     def log(self, prec=20):
         r"""
-        Returns the power series $f(t) = t + \cdots$ which is an isomorphism
-        to the additive formal group.
+        Returns the power series `f(t) = t + \cdots` which is an
+        isomorphism to the additive formal group.
 
-        Generally this only makes sense in characteristic zero, although the
-        terms before $t^p$ may work in characteristic $p$.
+        Generally this only makes sense in characteristic zero, although
+        the terms before `t^p` may work in characteristic
+        `p`.
 
         INPUT:
-           prec -- nonnegative integer (default 20)
 
-        OUTPUT:
-            a power series with given precision
 
-        EXAMPLES:
-           sage: EllipticCurve([-1, 1/4]).formal_group().log(15)
-            t - 2/5*t^5 + 3/28*t^7 + 2/3*t^9 - 5/11*t^11 - 305/208*t^13 + O(t^15)
+        -  ``prec`` - nonnegative integer (default 20)
 
-        AUTHOR:
-           -- David Harvey (2006-09-10): rewrote to use differential
+
+        OUTPUT: a power series with given precision
+
+        EXAMPLES::
+
+            sage: EllipticCurve([-1, 1/4]).formal_group().log(15)
+             t - 2/5*t^5 + 3/28*t^7 + 2/3*t^9 - 5/11*t^11 - 305/208*t^13 + O(t^15)
+
+        AUTHORS:
+
+        - David Harvey (2006-09-10): rewrote to use differential
         """
         return self.differential(prec-1).integral().add_bigoh(prec)
 
@@ -354,27 +397,33 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group inverse law i(t), which satisfies F(t, i(t)) = 0.
 
         INPUT:
-            prec -- integer (default 20)
 
-        OUTPUT:
-            a power series with given precision
 
-        DETAILS:
-            Return the formal power series
-            $$
-                   i(t) = - t + a_1 t^2 + \cdots
-            $$
-            to precision $O(t^prec)$ of page 114 of [Silverman AEC1].
+        -  ``prec`` - integer (default 20)
 
-            The result is cached, and a cached version is returned if
-            possible.
 
-        WARNING:
-            The resulting power series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
+        OUTPUT: a power series with given precision
 
-        EXAMPLES:
+        DETAILS: Return the formal power series
+
+        .. math::
+
+                                i(t) = - t + a_1 t^2 + \cdots
+
+
+        to precision `O(t^{prec})` of page 114 of [Silverman AEC1].
+
+        The result is cached, and a cached version is returned if
+        possible.
+
+        .. warning::
+
+           The resulting power series will have precision prec, but
+           its parent PowerSeriesRing will have default precision 20
+           (or whatever the default default is).
+
+        EXAMPLES::
+
             sage: e = EllipticCurve([1, 2])
             sage: F = e.formal_group().group_law(5)
             sage: i = e.formal_group().inverse(5)
@@ -403,30 +452,38 @@ class EllipticCurveFormalGroup(SageObject):
         The formal group law.
 
         INPUT:
-            prec -- integer (default 10)
 
-        OUTPUT:
-            a power series with given precision in ZZ[[ ZZ[['t1']], 't2']]
 
-        DETAILS:
-            Return the formal power series
-            $$
-                   F(t1, t2) = t1 + t2 - a1 t1 t2 - \cdots
-            $$
-            to precision $O(t^prec)$ of page 115 of [Silverman AEC1].
+        -  ``prec`` - integer (default 10)
 
-            The result is cached, and a cached version is returned if
-            possible.
 
-        WARNING:
-            The resulting power series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
+        OUTPUT: a power series with given precision in
+        ZZ[[ ZZ[['t1']],'t2']]
 
-        AUTHOR:
-            -- Nick Alexander: minor fixes, docstring
+        DETAILS: Return the formal power series
 
-        EXAMPLES:
+        .. math::
+
+           F(t_1, t_2) = t_1 + t_2 - a_1 t_1 t_2 - \cdots
+
+
+        to precision `O(t^{prec})` of page 115 of [Silverman AEC1].
+
+        The result is cached, and a cached version is returned if
+        possible.
+
+        .. warning::
+
+           The resulting power series will have precision prec, but
+           its parent PowerSeriesRing will have default precision 20
+           (or whatever the default default is).
+
+        AUTHORS:
+
+        - Nick Alexander: minor fixes, docstring
+
+        EXAMPLES::
+
             sage: e = EllipticCurve([1, 2])
             sage: F = e.formal_group().group_law(5); F
              t1 + O(t1^5) + (1 - 2*t1^4 + O(t1^5))*t2 + (-4*t1^3 + O(t1^5))*t2^2 + (-4*t1^2 - 30*t1^4 + O(t1^5))*t2^3 + (-2*t1 - 30*t1^3 + O(t1^5))*t2^4 + O(t2^5)
@@ -435,7 +492,8 @@ class EllipticCurveFormalGroup(SageObject):
             sage: Fx (i.parent().gen()) (i)
              O(t^5)
 
-            Let's ensure caching with changed precision is working:
+        Let's ensure caching with changed precision is working::
+
             sage: e.formal_group().group_law(4)
              t1 + O(t1^4) + (1 + O(t1^4))*t2 + (-4*t1^3 + O(t1^4))*t2^2 + (-4*t1^2 + O(t1^4))*t2^3 + O(t2^4)
         """
@@ -475,38 +533,48 @@ class EllipticCurveFormalGroup(SageObject):
 
     def mult_by_n(self, n, prec=10):
         """
-        The formal 'multiplication by n' endomorphism $[n]$.
+        The formal 'multiplication by n' endomorphism `[n]`.
 
         INPUT:
-            prec -- integer (default 10)
 
-        OUTPUT:
-            a power series with given precision
 
-        DETAILS:
-            Return the formal power series
-            $$
-                   [n](t) = n t + \cdots
-            $$
-            to precision $O(t^prec)$ of Proposition 2.3 of [Silverman AEC1].
+        -  ``prec`` - integer (default 10)
 
-        WARNING:
-            The resulting power series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
 
-        AUTHOR:
-            -- Nick Alexander: minor fixes, docstring
-            -- David Harvey (2007-03): faster algorithm for char 0 field case
+        OUTPUT: a power series with given precision
 
-        EXAMPLES:
+        DETAILS: Return the formal power series
+
+        .. math::
+
+                                [n](t) = n t + \cdots
+
+
+        to precision `O(t^{prec})` of Proposition 2.3 of [Silverman
+        AEC1].
+
+        .. warning::
+
+           The resulting power series will have precision prec, but
+           its parent PowerSeriesRing will have default precision 20
+           (or whatever the default default is).
+
+        AUTHORS:
+
+        - Nick Alexander: minor fixes, docstring
+
+        - David Harvey (2007-03): faster algorithm for char 0 field
+          case
+
+        EXAMPLES::
+
             sage: e = EllipticCurve([1, 2, 3, 4, 6])
             sage: e.formal_group().mult_by_n(0, 5)
              O(t^5)
             sage: e.formal_group().mult_by_n(1, 5)
              t + O(t^5)
 
-        We verify an identity of low degree:
+        We verify an identity of low degree::
 
             sage: none = e.formal_group().mult_by_n(-1, 5)
             sage: two = e.formal_group().mult_by_n(2, 5)
@@ -516,7 +584,8 @@ class EllipticCurveFormalGroup(SageObject):
             sage: ntwo - two(none)
              O(t^5)
 
-        It's quite fast:
+        It's quite fast::
+
             sage: E = EllipticCurve("37a"); F = E.formal_group()
             sage: F.mult_by_n(100, 20)
             100*t - 49999950*t^4 + 3999999960*t^5 + 14285614285800*t^7 - 2999989920000150*t^8 + 133333325333333400*t^9 - 3571378571674999800*t^10 + 1402585362624965454000*t^11 - 146666057066712847999500*t^12 + 5336978000014213190385000*t^13 - 519472790950932256570002000*t^14 + 93851927683683567270392002800*t^15 - 6673787211563812368630730325175*t^16 + 320129060335050875009191524993000*t^17 - 45670288869783478472872833214986000*t^18 + 5302464956134111125466184947310391600*t^19 + O(t^20)
@@ -571,11 +640,12 @@ class EllipticCurveFormalGroup(SageObject):
 
     def sigma(self, prec=10):
         """
-        EXAMPLE:
-        sage: E = EllipticCurve('14a')
-        sage: F = E.formal_group()
-        sage: F.sigma(5)
-        t + 1/2*t^2 + (1/2*c + 1/3)*t^3 + (3/4*c + 3/4)*t^4 + O(t^5)
+        EXAMPLE::
+
+            sage: E = EllipticCurve('14a')
+            sage: F = E.formal_group()
+            sage: F.sigma(5)
+            t + 1/2*t^2 + (1/2*c + 1/3)*t^3 + (3/4*c + 3/4)*t^4 + O(t^5)
         """
         a1,a2,a3,a4,a6 = self.curve().ainvs()
 

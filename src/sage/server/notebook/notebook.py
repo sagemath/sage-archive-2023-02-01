@@ -133,12 +133,12 @@ class Notebook(SageObject):
         """
         Delete all files related to this notebook.
 
-        This is used for doctesting mainly.  This command
-        is obviously *VERY* dangerous to use on a notebook
-        you actually care about.  You could easily lose
-        all data.
+        This is used for doctesting mainly. This command is obviously
+        *VERY* dangerous to use on a notebook you actually care about.
+        You could easily lose all data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: tmp = tmp_dir()
             sage: nb = sage.server.notebook.notebook.Notebook(tmp)
             sage: sorted(os.listdir(tmp))
@@ -146,6 +146,9 @@ class Notebook(SageObject):
             sage: nb.delete()
 
         Now the directory is gone.
+
+        ::
+
             sage: os.listdir(tmp)
             Traceback (most recent call last):
             ...
@@ -169,9 +172,13 @@ class Notebook(SageObject):
         Create the default users for a notebook.
 
         INPUT:
-            passwd -- a string
 
-        EXAMPLES:
+
+        -  ``passwd`` - a string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -198,7 +205,8 @@ class Notebook(SageObject):
         """
         Return whether or not a user exists given a username.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -217,7 +225,8 @@ class Notebook(SageObject):
         """
         Return dictionary of users in a notebook.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -232,10 +241,11 @@ class Notebook(SageObject):
 
     def user(self, username):
         """
-        Return an instance of the User class given the username of a user in
-        a notebook.
+        Return an instance of the User class given the username of a user
+        in a notebook.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -265,12 +275,18 @@ class Notebook(SageObject):
     def create_user_with_same_password(self, user, other_user):
         r"""
         INPUT:
-            user -- a string
-            other_user -- a string
-        OUTPUT:
-            Changes password of \var{user} to that of \var{other_user}.
 
-        EXAMPLES:
+
+        -  ``user`` - a string
+
+        -  ``other_user`` - a string
+
+
+        OUTPUT: Changes password of ``user`` to that of
+        ``other_user``.
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('bob', 'an**d', 'bob@gmail.com', force=True)
             sage: nb.user('bob').password()
@@ -289,10 +305,11 @@ class Notebook(SageObject):
 
     def user_is_admin(self, user):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('Administrator', 'password', '', 'admin', True)
-            sage: nb.add_user('RegularUser', 'password', '', 'user', True)
+            sage: nb.add_user('Administrator', 'password', ", 'admin', True)
+            sage: nb.add_user('RegularUser', 'password', ", 'user', True)
             sage: nb.user_is_admin('Administrator')
             True
             sage: nb.user_is_admin('RegularUser')
@@ -302,7 +319,8 @@ class Notebook(SageObject):
 
     def user_is_guest(self, username):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -320,7 +338,8 @@ class Notebook(SageObject):
         """
         Return list of user objects.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -333,7 +352,8 @@ class Notebook(SageObject):
         """
         Return list of usernames.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -347,15 +367,16 @@ class Notebook(SageObject):
         """
         Return list of users that can be signed in.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
             sage: nb.valid_login_names()
             ['admin']
-            sage: nb.add_user('Mark', 'password', '', force=True)
-            sage: nb.add_user('Sarah', 'password', '', force=True)
-            sage: nb.add_user('David', 'password', '', force=True)
+            sage: nb.add_user('Mark', 'password', ", force=True)
+            sage: nb.add_user('Sarah', 'password', ", force=True)
+            sage: nb.add_user('David', 'password', ", force=True)
             sage: sorted(nb.valid_login_names())
             ['David', 'Mark', 'Sarah', 'admin']
         """
@@ -363,22 +384,22 @@ class Notebook(SageObject):
 
     def default_user(self):
         """
-        Return a default login name that the user will see when confronted with the
-        Sage notebook login page.
+        Return a default login name that the user will see when confronted
+        with the Sage notebook login page.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        Currently this returns 'admin' if that is the *only* user.  Otherwise it
-        returns the string ''.
+        Currently this returns 'admin' if that is the *only* user.
+        Otherwise it returns the string ".
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
             sage: nb.default_user()
             'admin'
-            sage: nb.add_user('AnotherUser', 'password', '', force=True)
+            sage: nb.add_user('AnotherUser', 'password', ", force=True)
             sage: nb.default_user()
             ''
         """
@@ -389,9 +410,10 @@ class Notebook(SageObject):
 
     def set_accounts(self, value):
         r"""
-        Changes \var{__accounts} to \var{value}
+        Changes ``__accounts`` to ``value``
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.get_accounts()
             False
@@ -406,9 +428,10 @@ class Notebook(SageObject):
 
     def get_accounts(self):
         r"""
-        Return \var{__accounts}
+        Return ``__accounts``
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.get_accounts()
             False
@@ -425,24 +448,34 @@ class Notebook(SageObject):
     def add_user(self, username, password, email, account_type="user", force=False):
         """
         INPUT:
-            username -- the username
-            password -- the password
-            email -- the email address
-            account_type -- one of 'user', 'admin', or 'guest'
-            force -- bool
 
-        If the method get_accounts return False then user can only be added if force=True
 
-        EXAMPLES:
+        -  ``username`` - the username
+
+        -  ``password`` - the password
+
+        -  ``email`` - the email address
+
+        -  ``account_type`` - one of 'user', 'admin', or
+           'guest'
+
+        -  ``force`` - bool
+
+
+        If the method get_accounts return False then user can only be
+        added if force=True
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.add_user('Mark', 'password', ", force=True)
             sage: nb.user('Mark')
             Mark
-            sage: nb.add_user('Sarah', 'password', '')
+            sage: nb.add_user('Sarah', 'password', ")
             Traceback (most recent call last):
             ValueError: creating new accounts disabled.
             sage: nb.set_accounts(True)
-            sage: nb.add_user('Sarah', 'password', '')
+            sage: nb.add_user('Sarah', 'password', ")
             sage: nb.user('Sarah')
             Sarah
         """
@@ -458,12 +491,18 @@ class Notebook(SageObject):
     def change_password(self, username, password):
         """
         INPUT:
-            username -- the username
-            password -- the password to change the user's password to
 
-        EXAMPLES:
+
+        -  ``username`` - the username
+
+        -  ``password`` - the password to change the user's
+           password to
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.add_user('Mark', 'password', ", force=True)
             sage: nb.user('Mark').password()
             'aajfMKNH1hTm2'
             sage: nb.change_password('Mark', 'different_password')
@@ -476,9 +515,10 @@ class Notebook(SageObject):
         """
         Deletes the given user
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.add_user('Mark', 'password', ", force=True)
             sage: nb.user('Mark')
             Mark
             sage: nb.del_user('Mark')
@@ -494,11 +534,12 @@ class Notebook(SageObject):
         """
         Return the username:password dictionary.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
-            sage: nb.add_user('Mark', 'password', '', force=True)
+            sage: nb.add_user('Mark', 'password', ", force=True)
             sage: list(sorted(nb.passwords().iteritems()))
             [('Mark', 'aajfMKNH1hTm2'), ('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajfMKNH1hTm2'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
         """
@@ -508,7 +549,8 @@ class Notebook(SageObject):
         """
         Return a user's configuration.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.create_default_users('password')
             Creating default users.
@@ -529,7 +571,8 @@ class Notebook(SageObject):
     ##########################################################
     def _initialize_worksheet(self, src, W):
         r"""
-        \var{src} and \var{W} are worksheets and \var{W} is brand new.
+        ``src`` and ``W`` are worksheets and
+        ``W`` is brand new.
         """
         # Copy over images and other files
         data = src.data_directory()
@@ -544,12 +587,13 @@ class Notebook(SageObject):
         r"""
         Publish the given worksheet.
 
-        This creates a new worksheet in the \file{pub} directory with the
-        same contents as \var{worksheet}.
+        This creates a new worksheet in the ``pub`` directory
+        with the same contents as ``worksheet``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
-            sage: nb.add_user('Mark','password','',force=True)
+            sage: nb.add_user('Mark','password',",force=True)
             sage: W = nb.new_worksheet_with_title_from_text('First steps', owner='Mark')
             sage: nb.worksheet_names()
             ['Mark/0']
@@ -636,8 +680,8 @@ class Notebook(SageObject):
 
     def delete_worksheet(self, filename):
         """
-        Delete the given worksheet and remove its name from the
-        worksheet list.
+        Delete the given worksheet and remove its name from the worksheet
+        list.
         """
         if not (filename in self.__worksheets.keys()):
             print self.__worksheets.keys()
@@ -660,12 +704,16 @@ class Notebook(SageObject):
         Empty the trash for the given user.
 
         INPUT:
-            username -- a string
 
-        This empties the trash for the given user and cleans up all
-        files associated with the worksheets that are in the trash.
 
-        EXAMPLES:
+        -  ``username`` - a string
+
+
+        This empties the trash for the given user and cleans up all files
+        associated with the worksheets that are in the trash.
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
@@ -687,11 +735,11 @@ class Notebook(SageObject):
         """
         Return a list of all the names of worksheets in this notebook.
 
-        OUTPUT:
-            list of strings.
+        OUTPUT: list of strings.
 
-        EXAMPLES:
-        We make a new notebook with two users and two worksheets, then list their names:
+        EXAMPLES: We make a new notebook with two users and two worksheets,
+        then list their names::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
@@ -706,8 +754,8 @@ class Notebook(SageObject):
 
     def migrate_old(self):
         """
-        Migrate all old worksheets, i.e., ones with no owner,
-        to \file{/pub}.
+        Migrate all old worksheets, i.e., ones with no owner, to
+        ``/pub``.
         """
         raise NotImplementedError
         for w in self.__worksheets.itervalues():
@@ -879,16 +927,21 @@ class Notebook(SageObject):
     ##########################################################
     def export_worksheet(self, worksheet_filename, output_filename, verbose=True):
         """
-        Export a worksheet with given directory filenmae to output_filename.
+        Export a worksheet with given directory filenmae to
+        output_filename.
 
         INPUT:
-            worksheet_filename -- string
-            output_filename -- string
-            verbose -- bool (default: True) if True print some the tar
-                       command used to extract the sws file.
 
-        OUTPUT:
-            creates a file on the filesystem
+
+        -  ``worksheet_filename`` - string
+
+        -  ``output_filename`` - string
+
+        -  ``verbose`` - bool (default: True) if True print
+           some the tar command used to extract the sws file.
+
+
+        OUTPUT: creates a file on the filesystem
         """
         W = self.get_worksheet_with_filename(worksheet_filename)
         W.save()
@@ -915,24 +968,35 @@ class Notebook(SageObject):
 
     def import_worksheet(self, filename, owner):
         r"""
-        Upload the worksheet with name \var{filename} and make it have the
-        given owner.
+        Upload the worksheet with name ``filename`` and make it
+        have the given owner.
 
         INPUT:
-            filename -- a string
-            owner -- a string
+
+
+        -  ``filename`` - a string
+
+        -  ``owner`` - a string
+
 
         OUTPUT:
-            worksheet -- a newly created worksheet
 
-        EXAMPLES:
-        We create a notebook and import a plain text worksheet into it.
+
+        -  ``worksheet`` - a newly created worksheet
+
+
+        EXAMPLES: We create a notebook and import a plain text worksheet
+        into it.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
             sage: W = nb.import_worksheet(name, 'admin')
 
-        W is our newly-created worksheet, with the 2+3 cell in it:
+        W is our newly-created worksheet, with the 2+3 cell in it::
+
             sage: W.name()
             'foo'
             sage: W.cell_list()
@@ -955,18 +1019,24 @@ class Notebook(SageObject):
             raise ValueError, "unknown extension '%s'"%ext
 
     def _import_worksheet_txt(self, filename, owner):
-        """
+        r"""
         Import a plain text file as a new worksheet.
 
         INPUT:
-            filename -- string; a filename that ends in .txt
-            owner -- string; who will own this worksheet when imported
 
-        OUTPUT:
-            a new worksheet
 
-        EXAMPLES:
-            We write a plain text worksheet to a file and import it using this function.
+        -  ``filename`` - string; a filename that ends in .txt
+
+        -  ``owner`` - string; who will own this worksheet when
+           imported
+
+
+        OUTPUT: a new worksheet
+
+        EXAMPLES: We write a plain text worksheet to a file and import it
+        using this function.
+
+        ::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
@@ -983,21 +1053,29 @@ class Notebook(SageObject):
         return worksheet
 
     def _import_worksheet_sws(self, filename, owner, verbose=True):
-        """
-        Import an sws format worksheet into this notebook as a new worksheet.
+        r"""
+        Import an sws format worksheet into this notebook as a new
+        worksheet.
 
         INPUT:
-            filename -- string; a filename that ends in .sws; internally
-                        it must be a tar'd bz2'd file.
-            owner -- string
-            verbose -- bool (default: True) if True print some the tar
-                       command used to extract the sws file.
 
-        OUTPUT:
-            a new worksheet
 
-        EXAMPLES:
-        We create a notebook, then make a worksheet from a plain text file first.
+        -  ``filename`` - string; a filename that ends in .sws;
+           internally it must be a tar'd bz2'd file.
+
+        -  ``owner`` - string
+
+        -  ``verbose`` - bool (default: True) if True print
+           some the tar command used to extract the sws file.
+
+
+        OUTPUT: a new worksheet
+
+        EXAMPLES: We create a notebook, then make a worksheet from a plain
+        text file first.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
@@ -1005,15 +1083,21 @@ class Notebook(SageObject):
             sage: W.filename()
             'admin/0'
 
-
         We then export the worksheet to an sws file.
+
+        ::
+
             sage: nb.export_worksheet(W.filename(),  'tmp.sws', verbose=False)
 
         Now we import the sws.
+
+        ::
+
             sage: nb._import_worksheet_sws('tmp.sws', 'admin', verbose=False)
             [Cell 0; in=2+3, out=]
 
-        Yep, it's there now (as admin/2):
+        Yep, it's there now (as admin/2)::
+
             sage: nb.worksheet_names()
             ['admin/0', 'admin/2']
         """
@@ -1105,8 +1189,8 @@ class Notebook(SageObject):
 
     def DIR(self):
         """
-        Return the absolute path to the directory that contains
-        the Sage Notebook directory.
+        Return the absolute path to the directory that contains the Sage
+        Notebook directory.
         """
         P = os.path.abspath('%s/..'%self.__dir)
         if not os.path.exists(P):
@@ -1537,13 +1621,10 @@ class Notebook(SageObject):
 
     def get_worksheet_with_filename(self, filename):
         """
-        Get the worksheet with given filename.  If there is no such
-        worksheet, raise a \exception{KeyError}.
+        Get the worksheet with given filename. If there is no such
+        worksheet, raise a ``KeyError``.
 
-        INPUT:
-            string
-        OUTPUT:
-            a worksheet or KeyError
+        INPUT: string OUTPUT: a worksheet or KeyError
         """
         if self.__worksheets.has_key(filename):
             return self.__worksheets[filename]
@@ -1907,11 +1988,15 @@ $.editable.addInputType('mce', {
 
     def html_plain_text_window(self, worksheet, username):
         """
-        Return a window that displays a plain text version of the worksheet
+        Return a window that displays a plain text version of the
+        worksheet
 
         INPUT:
-            worksheet -- a worksheet
-            username -- name of the user
+
+
+        -  ``worksheet`` - a worksheet
+
+        -  ``username`` - name of the user
         """
         head, body = self.html_worksheet_page_template(worksheet, username, 'View plain text', select="text")
 
@@ -1931,10 +2016,12 @@ $.editable.addInputType('mce', {
 
     def html_edit_window(self, worksheet, username):
         r"""
-        Return a window for editing \var{worksheet}.
+        Return a window for editing ``worksheet``.
 
         INPUT:
-            worksheet -- a worksheet
+
+
+        -  ``worksheet`` - a worksheet
         """
         head, body = self.html_worksheet_page_template(worksheet, username, 'Edit plain text &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Changes" name="button_save" id="button_save"> <input type="submit" value="Cancel" name="button_cancel">', select="edit")
 
@@ -1963,12 +2050,10 @@ function save_worksheet_and_close() {
 
     def html_beforepublish_window(self, worksheet, username):
         """
-        Return the html code for a page dedicated to worksheet publishing prior to the
-        publication of the given worksheet.
+        Return the html code for a page dedicated to worksheet publishing
+        prior to the publication of the given worksheet.
 
-        INPUT:
-            worksheet - instance of Worksheet
-            username - string
+        INPUT: worksheet - instance of Worksheet username - string
         """
         msg = """You can publish your worksheet to the Internet, where anyone will be able to access and view it online.
         Your worksheet will be assigned a unique address (URL) that you can send to your friends and colleagues.<br/><br/>
@@ -1991,14 +2076,11 @@ function save_worksheet_and_close() {
 
     def html_afterpublish_window(self, worksheet, username, addr, dtime):
         """
-        Return the html code for a page dedicated to worksheet publishing after the
-        publication of the given worksheet.
+        Return the html code for a page dedicated to worksheet publishing
+        after the publication of the given worksheet.
 
-        INPUT:
-            worksheet - instance of Worksheet
-            username - string
-            addr - string
-            dtime - instance of time.struct_time
+        INPUT: worksheet - instance of Worksheet username - string addr -
+        string dtime - instance of time.struct_time
         """
         from time import strftime
         time = strftime("%B %d, %Y %I:%M %p", dtime)
@@ -2183,14 +2265,20 @@ function save_worksheet_and_close() {
 
 def load_notebook(dir, address=None, port=None, secure=None):
     """
-    Load the notebook from the given directory, or create one in that directory
-    if one isn't already there.
+    Load the notebook from the given directory, or create one in that
+    directory if one isn't already there.
 
     INPUT:
-        dir -- a string that defines a directory name
-        address -- the address that the notebook server will listen on
-        port -- the port the server listens on
-        secure -- whether or not the notebook is secure
+
+
+    -  ``dir`` - a string that defines a directory name
+
+    -  ``address`` - the address that the notebook server
+       will listen on
+
+    -  ``port`` - the port the server listens on
+
+    -  ``secure`` - whether or not the notebook is secure
     """
     sobj = '%s/nb.sobj'%dir
     nb = None
@@ -2231,7 +2319,8 @@ def load_notebook(dir, address=None, port=None, secure=None):
 
 def make_path_relative(dir):
     r"""
-    If easy, replace the absolute path \var{dir} by a relative one.
+    If easy, replace the absolute path ``dir`` by a
+    relative one.
     """
     base, file = os.path.split(dir)
     if os.path.exists(file):
@@ -2248,8 +2337,13 @@ def clean_name(name):
 def sort_worksheet_list(v, sort, reverse):
     """
     INPUT:
-        sort -- 'last_edited', 'owner', 'rating', or 'name'
-        reverse -- if True, reverse the order of the sort.
+
+
+    -  ``sort`` - 'last_edited', 'owner', 'rating', or
+       'name'
+
+    -  ``reverse`` - if True, reverse the order of the
+       sort.
     """
     f = None
     if sort == 'last_edited':

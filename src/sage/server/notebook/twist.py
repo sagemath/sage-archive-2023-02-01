@@ -626,7 +626,7 @@ class Worksheet_pretty_print(WorksheetResource, resource.Resource):
 ########################################################
 class Worksheet_introspect(WorksheetResource, resource.PostableResource):
     """
-    Cell introspection.  This is called when the user presses the tab
+    Cell introspection. This is called when the user presses the tab
     key in the browser in order to introspect.
     """
     def render(self, ctx):
@@ -700,7 +700,8 @@ class Worksheet_edit_published_page(WorksheetResource, resource.Resource):
 ########################################################
 class Worksheet_save(WorksheetResource, resource.PostableResource):
     """
-    Save the contents of a worksheet after editing it in plain-text edit mode.
+    Save the contents of a worksheet after editing it in plain-text
+    edit mode.
     """
     def render(self, ctx):
         if ctx.args.has_key('button_save'):
@@ -1040,11 +1041,11 @@ class Worksheet_delete_cell(WorksheetResource, resource.PostableResource):
     """
     Deletes a notebook cell.
 
-    If there is only one cell left in a given worksheet, the request
-    to delete that cell is ignored because there must be a least one
-    cell at all times in a worksheet.  (This requirement exists so
-    other functions that evaluate relative to existing cells will
-    still work, and so one can add new cells.)
+    If there is only one cell left in a given worksheet, the request to
+    delete that cell is ignored because there must be a least one cell
+    at all times in a worksheet. (This requirement exists so other
+    functions that evaluate relative to existing cells will still work,
+    and so one can add new cells.)
     """
     def render(self, ctx):
         id = self.id(ctx)
@@ -1169,10 +1170,11 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 
 class Worksheet_publish(WorksheetResource, resource.Resource):
     """
-    This is a child resource of the Worksheet resource. It provides a frontend to
-    the mangement of worksheet publication. This mangement functionality includes
-    initializational of publication, re-publication, automated publication when
-    a worksheet saved, and ending of publication.
+    This is a child resource of the Worksheet resource. It provides a
+    frontend to the mangement of worksheet publication. This mangement
+    functionality includes initializational of publication,
+    re-publication, automated publication when a worksheet saved, and
+    ending of publication.
     """
     addSlash = True
 
@@ -1368,14 +1370,19 @@ def render_worksheet_list(args, pub, username):
     Returns a rendered worksheet listing.
 
     INPUT:
-       args -- ctx.args where ctx is the dict passed into a
-               resource's render method
-       pub -- boolean, True if this is a listing of public
-              worksheets
-       username -- the user whose worksheets we are listing
 
-    OUTPUT:
-       a string
+
+    -  ``args`` - ctx.args where ctx is the dict passed
+       into a resource's render method
+
+    -  ``pub`` - boolean, True if this is a listing of
+       public worksheets
+
+    -  ``username`` - the user whose worksheets we are
+       listing
+
+
+    OUTPUT: a string
     """
     from sage.server.notebook.notebook import sort_worksheet_list
     typ = args['typ'][0] if 'typ' in args else 'active'
@@ -1447,8 +1454,10 @@ class EmptyTrash(resource.Resource):
         This twisted resource empties the trash of the current user when it
         is rendered.
 
-        EXAMPLES:
-        We create an instance of this resource.
+        EXAMPLES: We create an instance of this resource.
+
+        ::
+
             sage: import sage.server.notebook.twist
             sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
             <sage.server.notebook.twist.EmptyTrash object at ...>
@@ -1457,12 +1466,15 @@ class EmptyTrash(resource.Resource):
 
     def render(self, ctx):
         """
-        Rendering this resource (1) empties the trash, and (2) returns
-        a message.
+        Rendering this resource (1) empties the trash, and (2) returns a
+        message.
 
-        EXAMPLES:
-        We create a notebook with a worksheet, put it in the trash,
-        then empty the trash by creating and rendering this worksheet.
+        EXAMPLES: We create a notebook with a worksheet, put it in the
+        trash, then empty the trash by creating and rendering this
+        worksheet.
+
+        ::
+
             sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
             sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
@@ -1475,7 +1487,8 @@ class EmptyTrash(resource.Resource):
             sage: E.render(None)
             <twisted.web2.http.Response code=200, streamlen=...>
 
-        Finally we verify that the trashed worksheet is gone:
+        Finally we verify that the trashed worksheet is gone::
+
             sage: n.worksheet_names()
             []
             sage: n.delete()
@@ -1793,26 +1806,37 @@ import re
 re_valid_username = re.compile('[a-z|A-Z|0-9|_|.]*')
 def is_valid_username(username):
     r"""
-    Returns True if and only if \var{username} is valid, i.e., starts with a letter,
-    is between 4 and 32 characters long, and contains only letters, numbers,
-    underscores, and and one dot (.).
+    Returns True if and only if ``username`` is valid,
+    i.e., starts with a letter, is between 4 and 32 characters long,
+    and contains only letters, numbers, underscores, and and one dot
+    (.).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.twist import is_valid_username
 
-    \var{username} must start with a letter
+    ``username`` must start with a letter
+
+    ::
+
         sage: is_valid_username('mark10')
         True
         sage: is_valid_username('10mark')
         False
 
-    \var{username} must be between 4 and 32 characters long
+    ``username`` must be between 4 and 32 characters long
+
+    ::
+
         sage: is_valid_username('bob')
         False
         sage: is_valid_username('I_love_computer_science_and_maths') #33 characters long
         False
 
-    \var{username} must not have more than one dot (.)
+    ``username`` must not have more than one dot (.)
+
+    ::
+
         sage: is_valid_username('david.andrews')
         True
         sage: is_valid_username('david.m.andrews')
@@ -1820,19 +1844,28 @@ def is_valid_username(username):
         sage: is_valid_username('math125.TA.5')
         False
 
-    \var{username} must not have any spaces
+    ``username`` must not have any spaces
+
+    ::
+
         sage: is_valid_username('David Andrews')
         False
         sage: is_valid_username('David M. Andrews')
         False
 
+    ::
+
         sage: is_valid_username('sarah_andrews')
         True
+
+    ::
 
         sage: is_valid_username('TA-1')
         False
         sage: is_valid_username('math125-TA')
         False
+
+    ::
 
         sage: is_valid_username('dandrews@sagemath.org')
         False
@@ -1852,10 +1885,12 @@ def is_valid_username(username):
 
 def is_valid_password(password, username):
     r"""
-    Return True if and only if \var{password} is valid, i.e., is between 6 and
-    32 characters long, doesn't contain space(s), and doesn't contain \var{username}.
+    Return True if and only if ``password`` is valid, i.e.,
+    is between 6 and 32 characters long, doesn't contain space(s), and
+    doesn't contain ``username``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.twist import is_valid_password
         sage: is_valid_password('uip@un7!', None)
         True
@@ -1880,7 +1915,8 @@ def is_valid_password(password, username):
 
 def do_passwords_match(pass1, pass2):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.twist import do_passwords_match
         sage: do_passwords_match('momcat', 'mothercat')
         False
@@ -1893,7 +1929,8 @@ def is_valid_email(email):
     """
     from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65215
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.twist import is_valid_email
         sage: is_valid_email('joe@washinton.gov')
         True

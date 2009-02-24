@@ -16,15 +16,17 @@ from sage.misc.misc import DOT_SAGE
 
 def css(color='default'):
     r"""
-    Return the CSS header used by the \sage Notebook.
+    Return the CSS header used by the Sage Notebook.
 
     INPUT:
-        color -- string or pair of html colors, e.g.,
-                    'gmail'
-                    'grey'
-                    \code{('\#ff0000', '\#0000ff')}
 
-    EXAMPLES:
+
+    -  ``color`` - string or pair of html colors, e.g.,
+       'gmail' 'grey' ``('#ff0000', '#0000ff')``
+
+
+    EXAMPLES::
+
         sage: import sage.server.notebook.css as c
         sage: type(c.css())
         <type 'str'>

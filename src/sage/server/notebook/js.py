@@ -2,9 +2,12 @@ r"""nodoctest
 Javascript (AJAX) Component of \sage Notebook
 
 AUTHORS:
-    -- William Stein
-    -- Tom Boothby
-    -- Alex Clemesha
+
+- William Stein
+
+- Tom Boothby
+
+- Alex Clemesha
 
 This file is one big raw triple-quoted string that contains a bunch of
 javascript.  This javascript is inserted into the head of the notebook

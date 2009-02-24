@@ -1,10 +1,9 @@
 """
 Sage Notebook: Introspection
 
-TODO:
-    -- add support for grabbing source code from pyrex functions (even if not
-       perfect is better than nothing).
-    -- png or mathml output format for docstring
+TODO: - add support for grabbing source code from pyrex functions
+(even if not perfect is better than nothing). - png or mathml
+output format for docstring
 """
 
 ###########################################################################
@@ -20,14 +19,17 @@ def introspect(S, query, format='html'):
     Return introspection from a given query string.
 
     INPUT:
-        S      -- a Sage0 object, i.e., an interface to a running instance
-             of Python with the SAGE libraries loaded
-        query  -- a string: - if has no '?' then return completion list
-                            - if begins or ends in one '?' return docstring
-                            - if begins or ends in '??' return source code
-        format -- (string) 'html', 'png', 'none'
-                  (only html is implemented right now!)
 
+
+    -  ``S`` - a Sage0 object, i.e., an interface to a
+       running instance of Python with the Sage libraries loaded
+
+    -  ``query`` - a string: - if has no '?' then return
+       completion list - if begins or ends in one '?' return docstring -
+       if begins or ends in '??' return source code
+
+    -  ``format`` - (string) 'html', 'png', 'none' (only
+       html is implemented right now!)
     """
     if format != 'html':
         raise NotImplementedError

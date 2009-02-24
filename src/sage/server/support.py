@@ -1,8 +1,9 @@
 """
 Support for the Notebook (introspection and setup)
 
-AUTHOR:
-   * William Stein (much of this code is from IPython).
+AUTHORS:
+
+- William Stein (much of this code is from IPython).
 """
 
 import inspect
@@ -31,7 +32,7 @@ global_names_at_init = None
 
 def init(object_directory=None, globs={}):
     r"""
-    Initialize \sage for use with the web notebook interface.
+    Initialize Sage for use with the web notebook interface.
     """
     global sage_globals, globals_at_init, global_names_at_init
     global EMBEDDED_MODE
@@ -70,23 +71,27 @@ def help(obj):
     """
     Display help on s.
 
-    NOTE: This a wrapper around the builtin help.  If formats the
-    output as HTML without word wrap, which looks better in the
-    notebook.
+    .. note::
+
+       This a wrapper around the builtin help. If formats the output
+       as HTML without word wrap, which looks better in the notebook.
 
     INPUT:
-        s -- Python object, module, etc.
 
-    OUTPUT:
-        prints out help about s; it's often more more extensive than foo?
 
-    TESTS:
+    -  ``s`` - Python object, module, etc.
+
+
+    OUTPUT: prints out help about s; it's often more more extensive
+    than foo?
+
+    TESTS::
+
         sage: import numpy.linalg
         sage: sage.server.support.help(numpy.linalg.norm)
         <html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
         &nbsp;&nbsp;&nbsp;<a target='_new' href='cell://docs-....html'>Click to open help window</a>&nbsp;&nbsp;&nbsp;
         <br></font></tr></td></table></html>
-
     """
     from pydoc import resolve, html, describe
     import sage.server.notebook.interact as interact
@@ -167,11 +172,14 @@ def completions(s, globs, format=False, width=90, system="None"):
 
 def docstring(obj_name, globs, system='sage'):
     r"""
-    Format \var{obj_name}'s docstring for printing in \sage notebook.
+    Format ``obj_name``'s docstring for printing in Sage
+    notebook.
 
-    AUTHOR:
-        -- William Stein (but partly taken from IPython for use in \sage).
-        -- Extensions by Nick Alexander
+    AUTHORS:
+
+    - William Stein: partly taken from IPython for use in Sage
+
+    - Nick Alexander: extensioins
     """
     if system not in ['sage', 'python']:
         obj_name = system + '.' + obj_name
@@ -197,11 +205,13 @@ def docstring(obj_name, globs, system='sage'):
 
 def source_code(s, globs, system='sage'):
     r"""
-    Format obj's source code for printing in \sage notebook.
+    Format obj's source code for printing in Sage notebook.
 
-    AUTHOR:
-        -- William Stein (but partly taken from IPython for use in \sage).
-        -- Extensions by Nick Alexander
+    AUTHORS:
+
+    - William Stein: partly taken from IPython for use in Sage
+
+    - Nick Alexander: extensions
     """
     if system not in ['sage', 'python']:
         s = system + '.' + s
@@ -353,12 +363,21 @@ def cython_import(filename, verbose=False, compile_message=False,
                  use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains cython code
+
+
+    -  ``filename`` - name of a file that contains cython
+       code
+
 
     OUTPUT:
-        module -- the module that contains the compiled cython code.
 
-    Raises an \exception{ImportError} exception if anything goes wrong.
+
+    -  ``module`` - the module that contains the compiled
+       cython code.
+
+
+    Raises an ``ImportError`` exception if anything goes
+    wrong.
     """
     name, build_dir = sage.misc.cython.cython(filename, verbose=verbose,
                                             compile_message=compile_message,
@@ -372,13 +391,17 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
                      use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains cython code
 
-    OUTPUT:
-        changes globals using the attributes of the Cython module
-        that do not begin with an underscore.
 
-    Raises an \exception{ImportError} exception if anything goes wrong.
+    -  ``filename`` - name of a file that contains cython
+       code
+
+
+    OUTPUT: changes globals using the attributes of the Cython module
+    that do not begin with an underscore.
+
+    Raises an ``ImportError`` exception if anything goes
+    wrong.
     """
     m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,

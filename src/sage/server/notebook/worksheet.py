@@ -2,17 +2,18 @@ r"""
 A Worksheet.
 
 A worksheet is embedded in a webpage that is served by the Sage
-server.  It is a linearly-ordered collections of numbered cells, where
-a cell is a single input/output block.
+server. It is a linearly-ordered collections of numbered cells,
+where a cell is a single input/output block.
 
 The worksheet module is responsible for running calculations in a
-worksheet, spawning Sage processes that do all of the actual work and
-are controlled via pexpect, and reporting on results of calculations.
-The state of the cells in a worksheet is stored on the filesystem (not
-in the notebook pickle sobj).
+worksheet, spawning Sage processes that do all of the actual work
+and are controlled via pexpect, and reporting on results of
+calculations. The state of the cells in a worksheet is stored on
+the filesystem (not in the notebook pickle sobj).
 
-AUTHOR:
-    -- William Stein
+AUTHORS:
+
+- William Stein
 """
 
 ###########################################################################
@@ -92,16 +93,20 @@ def initialized_sage(server, ulimit):
     code run.
 
     INPUT:
-       server -- if sessions will be run via ssh on a remote account then
-                 this string specifies that account (passed on to the Sage
-                 pexpect interface).
-       ulimit -- string; passed to the ulimit command before running
-                 the subprocess
 
-    OUTPUT:
-        a pexpect interface to a local or remote copy of Sage
 
-    EXAMPLES:
+    -  ``server`` - if sessions will be run via ssh on a
+       remote account then this string specifies that account (passed on
+       to the Sage pexpect interface).
+
+    -  ``ulimit`` - string; passed to the ulimit command
+       before running the subprocess
+
+
+    OUTPUT: a pexpect interface to a local or remote copy of Sage
+
+    EXAMPLES::
+
         sage: S = sage.server.notebook.worksheet.initialized_sage(None,None)
         sage: S
         Sage
@@ -127,18 +132,22 @@ def initialized_sage(server, ulimit):
 _a_sage = None
 def init_sage_prestart(server, ulimit):
     """
-    Set the module-scope variable _a_sage to
-    an initialized sage server.
+    Set the module-scope variable _a_sage to an initialized sage
+    server.
 
     INPUT:
-        server, ulimit -- strings that are passed
-        to the Sage pexpect interface constructor
 
-    EXAMPLES:
-    The _a_sage variable is initially set to None:
+
+    -  ``server, ulimit`` - strings that are passed to the
+       Sage pexpect interface constructor
+
+
+    EXAMPLES: The _a_sage variable is initially set to None::
+
         sage: sage.server.notebook.worksheet._a_sage
 
-    We call init_sage_prestart and now _a_sage is a Sage instance:
+    We call init_sage_prestart and now _a_sage is a Sage instance::
+
         sage: sage.server.notebook.worksheet.init_sage_prestart(None,None)
         sage: sage.server.notebook.worksheet._a_sage
         Sage
@@ -151,16 +160,20 @@ def one_prestarted_sage(server, ulimit):
     Return a Sage interface that has been initialized.
 
     INPUT:
-        server, ulimit -- strings that are passed
-        to the Sage pexpect interface constructor
-    OUTPUT:
-        -- an interface to a running copy of Sage
+
+
+    -  ``server, ulimit`` - strings that are passed to the
+       Sage pexpect interface constructor
+
+
+    OUTPUT: an interface to a running copy of Sage
 
     If the global variable multisession is true, each call to
     one_prestarted_sage returns a new Sage compute instance.
     Otherwise it always returns the same instance.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.server.notebook.worksheet.one_prestarted_sage(None,None)
         Sage
         sage: sage.server.notebook.worksheet.multisession=False
@@ -177,18 +190,23 @@ def one_prestarted_sage(server, ulimit):
 import notebook as _notebook
 def worksheet_filename(name, owner):
     """
-    Return the relative directory name of this worksheet
-    with given name and owner.
+    Return the relative directory name of this worksheet with given
+    name and owner.
 
     INPUT:
-        name -- string, which may have spaces and funny characters, which
-                are replaced by underscores.
-        owner -- string, with no spaces or funny characters
 
-    OUTPUT:
-        string
 
-    EXAMPLES:
+    -  ``name`` - string, which may have spaces and funny
+       characters, which are replaced by underscores.
+
+    -  ``owner`` - string, with no spaces or funny
+       characters
+
+
+    OUTPUT: string
+
+    EXAMPLES::
+
         sage: sage.server.notebook.worksheet.worksheet_filename('Example worksheet 3', 'sage10')
         'sage10/Example_worksheet_3'
         sage: sage.server.notebook.worksheet.worksheet_filename('Example#%&! work\\sheet 3', 'sage10')
@@ -203,21 +221,33 @@ class Worksheet:
         Create and initialize a new worksheet.
 
         INPUT:
-            name    -- string; the name of this worksheet
-            dirname -- string; name of the directory in which the worksheet's
-                       data is stored
-            notebook_worksheet_directory -- string; the directory in which the
-                       notebook object that contains this worksheet
-                       stores worksheets, i.e., nb.worksheet_directory().
-            system -- string; 'sage', 'gp', 'singular', etc. -- the math software
-                      system in which all code is evaluated by default
-            owner  -- string; username of the owner of this worksheet
-            docbrowser -- bool (default: False); whether this is a docbrowser worksheet
-            pretty_print -- bool (default: False); whether all output is pretty printed
-                            by default.
 
-        EXAMPLES:
-        We test the constructor via an indirect doctest:
+
+        -  ``name`` - string; the name of this worksheet
+
+        -  ``dirname`` - string; name of the directory in which
+           the worksheet's data is stored
+
+        -  ``notebook_worksheet_directory`` - string; the
+           directory in which the notebook object that contains this worksheet
+           stores worksheets, i.e., nb.worksheet_directory().
+
+        -  ``system`` - string; 'sage', 'gp', 'singular', etc.
+           - the math software system in which all code is evaluated by
+           default
+
+        -  ``owner`` - string; username of the owner of this
+           worksheet
+
+        -  ``docbrowser`` - bool (default: False); whether this
+           is a docbrowser worksheet
+
+        -  ``pretty_print`` - bool (default: False); whether
+           all output is pretty printed by default.
+
+
+        EXAMPLES: We test the constructor via an indirect doctest::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test', 'admin')
             sage: W
@@ -252,11 +282,20 @@ class Worksheet:
         We compare two worksheets.
 
         INPUT:
-            self, other -- worksheets
-        OUTPUT:
-            -1,0,1 -- comparison is on the underlying filenames.
 
-        EXAMPLES:
+
+        -  ``self, other`` - worksheets
+
+
+        OUTPUT:
+
+
+        -  ``-1,0,1`` - comparison is on the underlying
+           filenames.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W2 = nb.create_new_worksheet('test2', 'admin')
             sage: W1 = nb.create_new_worksheet('test1', 'admin')
@@ -271,15 +310,14 @@ class Worksheet:
             return cmp(type(self), type(other))
 
     def __repr__(self):
-        """
-        Return string representation of this worksheet, which is
-        simply the string representation of the underlying list of
-        cells.
+        r"""
+        Return string representation of this worksheet, which is simply the
+        string representation of the underlying list of cells.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.__repr__()
@@ -291,13 +329,13 @@ class Worksheet:
         return str(self.cell_list())
 
     def __len__(self):
-        """
+        r"""
         Return the number of cells in this worksheet.
 
-        OUTPUT:
-            int
+        OUTPUT: int
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: len(W)
@@ -312,17 +350,18 @@ class Worksheet:
         """
         Return True if this is a docbrowser worksheet.
 
-        OUTPUT:
-            bool
+        OUTPUT: bool
 
-        EXAMPLES:
-        We first create a standard worksheet for which docbrowser is of course False:
+        EXAMPLES: We first create a standard worksheet for which docbrowser
+        is of course False::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.docbrowser()
             False
 
-        We create a worksheet for which docbrowser is True:
+        We create a worksheet for which docbrowser is True::
+
             sage: W = nb.create_new_worksheet('docs', 'admin', docbrowser=True)
             sage: W.docbrowser()
             True
@@ -337,13 +376,13 @@ class Worksheet:
     ##########################################################
     def conf(self):
         """
-        Return the configuration object for this worksheet, which is
-        stored in an sobj in the worksheet directory.
+        Return the configuration object for this worksheet, which is stored
+        in an sobj in the worksheet directory.
 
-        OUTPUT:
-            worksheet configuration object.
+        OUTPUT: worksheet configuration object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.conf()
@@ -368,13 +407,13 @@ class Worksheet:
     ##########################################################
     def collaborators(self):
         """
-        Return a (reference to the) list of the collaborators who can
-        also view and modify this worksheet.
+        Return a (reference to the) list of the collaborators who can also
+        view and modify this worksheet.
 
-        OUTPUT:
-            list
+        OUTPUT: list
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
@@ -394,10 +433,14 @@ class Worksheet:
         Returns a string of the non-owner collaborators on this worksheet.
 
         INPUT:
-            max -- an integer. If this is specified, then only max number of
-                   collaborators are shown.
 
-        EXAMPLES:
+
+        -  ``max`` - an integer. If this is specified, then
+           only max number of collaborators are shown.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
@@ -408,7 +451,6 @@ class Worksheet:
             'sage, wstein'
             sage: W.collaborator_names(max=1)
             'sage, ...'
-
         """
         collaborators = [x for x in self.collaborators() if x != self.owner()]
         if max is not None and len(collaborators) > max:
@@ -417,21 +459,26 @@ class Worksheet:
 
     def set_collaborators(self, v):
         """
-        Set the list of collaborators to those listed in the
-        list v of strings.
+        Set the list of collaborators to those listed in the list v of
+        strings.
 
         INPUT:
-            v -- a list of strings
 
-        EXAMPLES:
+
+        -  ``v`` - a list of strings
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: nb.add_user('hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.set_collaborators(['sage', 'admin', 'hilbert', 'sage'])
 
-        Note that repeats are not added multiple times and admin --
-        the owner -- isn't added:
+        Note that repeats are not added multiple times and admin - the
+        owner - isn't added::
+
             sage: W.collaborators()
             ['hilbert', 'sage']
         """
@@ -456,9 +503,13 @@ class Worksheet:
         Return list of viewers of this worksheet.
 
         OUTPUT:
-           list -- of string
 
-        EXAMPLES:
+
+        -  ``list`` - of string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: nb.add_user('hilbert','sage','sage@sagemath.org',force=True)
@@ -481,10 +532,14 @@ class Worksheet:
         Returns a string of the non-owner viewers on this worksheet.
 
         INPUT:
-            max -- an integer. If this is specified, then only max number of
-                   viewers are shown.
 
-        EXAMPLES:
+
+        -  ``max`` - an integer. If this is specified, then
+           only max number of viewers are shown.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.viewers(); C
@@ -495,7 +550,6 @@ class Worksheet:
             'sage, wstein'
             sage: W.viewer_names(max=1)
             'sage, ...'
-
         """
         viewers = [x for x in self.viewers() if x != self.owner()]
         if max is not None and len(viewers) > max:
@@ -505,10 +559,11 @@ class Worksheet:
     def delete_notebook_specific_data(self):
         """
         Delete data from this worksheet this is specific to a certain
-        notebook.  This means deleting the attached files,
-        collaborators, and viewers.
+        notebook. This means deleting the attached files, collaborators,
+        and viewers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
@@ -531,10 +586,10 @@ class Worksheet:
         """
         Return the name of this worksheet.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.name()
@@ -547,10 +602,13 @@ class Worksheet:
         Set the name of this worksheet.
 
         INPUT:
-            name -- string
 
-        EXAMPLES:
-        We create a worksheet and change the name:
+
+        -  ``name`` - string
+
+
+        EXAMPLES: We create a worksheet and change the name::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_name('A renamed worksheet')
@@ -563,13 +621,17 @@ class Worksheet:
 
     def set_filename_without_owner(self, nm):
         r"""
-        Set this worksheet filename (actually directory) by getting
-        the owner from the pre-stored owner via \code{self.owner()}.
+        Set this worksheet filename (actually directory) by getting the
+        owner from the pre-stored owner via ``self.owner()``.
 
         INPUT:
-            nm -- string
 
-        EXAMPLES:
+
+        -  ``nm`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -583,12 +645,16 @@ class Worksheet:
 
     def set_filename(self, filename):
         """
-        Set the worksheet filename  (actually directory).
+        Set the worksheet filename (actually directory).
 
         INPUT:
-           filename -- string
 
-        EXAMPLES:
+
+        -  ``filename`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -607,7 +673,8 @@ class Worksheet:
         Return the filename (really directory) where the files associated
         to this worksheet are stored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -619,11 +686,11 @@ class Worksheet:
 
     def filename_without_owner(self):
         """
-        Return the part of the worksheet filename after the last /,
-        i.e., without any information about the owner of this
-        worksheet.
+        Return the part of the worksheet filename after the last /, i.e.,
+        without any information about the owner of this worksheet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename_without_owner()
@@ -635,13 +702,13 @@ class Worksheet:
 
     def directory(self):
         """
-        Return the full path to the directory where this
-        worksheet is stored.
+        Return the full path to the directory where this worksheet is
+        stored.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.directory()
@@ -653,10 +720,10 @@ class Worksheet:
         """
         Return path to directory where worksheet data is stored.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.data_directory()
@@ -669,12 +736,13 @@ class Worksheet:
 
     def attached_data_files(self):
         """
-        Return a list of the filenames of files in the worksheet data directory.
+        Return a list of the filenames of files in the worksheet data
+        directory.
 
-        OUTPUT:
-            list of strings
+        OUTPUT: list of strings
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.attached_data_files()
@@ -690,13 +758,13 @@ class Worksheet:
 
     def cells_directory(self):
         """
-        Return the directory in which the cells of this worksheet
-        are evaluated.
+        Return the directory in which the cells of this worksheet are
+        evaluated.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.cells_directory()
@@ -708,12 +776,12 @@ class Worksheet:
         """
         Return the notebook that contains this worksheet.
 
-        OUTPUT:
-            a Notebook object.
+        OUTPUT: a Notebook object.
 
-        EXAMPLES:
-        This really returns the Notebook object that is set as a global
-        variable of the twist module.
+        EXAMPLES: This really returns the Notebook object that is set as a
+        global variable of the twist module.
+
+        ::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
@@ -727,14 +795,13 @@ class Worksheet:
 
     def DIR(self):
         """
-        Return the absolute path to the directory that contains
-        the Sage Notebook directory for the notebook that contains
-        this worksheet.
+        Return the absolute path to the directory that contains the Sage
+        Notebook directory for the notebook that contains this worksheet.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.DIR()   # random output
@@ -744,13 +811,13 @@ class Worksheet:
 
     def system(self):
         """
-        Return the math software system in which by default all input
-        to the notebook is evaluated.
+        Return the math software system in which by default all input to
+        the notebook is evaluated.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.system()
@@ -771,9 +838,13 @@ class Worksheet:
         default.
 
         INPUT:
-            sysem -- string (default: 'sage')
 
-        EXAMPLES:
+
+        -  ``sysem`` - string (default: 'sage')
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_system('magma')
@@ -787,9 +858,13 @@ class Worksheet:
         Return True if output shold be pretty printed by default.
 
         OUTPUT:
-            bool -- True of False
 
-        EXAMPLES:
+
+        -  ``bool`` - True of False
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.pretty_print()
@@ -809,15 +884,22 @@ class Worksheet:
         Set whether or not output should be pretty printed by default.
 
         INPUT:
-            check -- string (default: 'false'); either 'true' or 'false'.
 
-        NOTE: The reason the input is a string and lower case instead
-        of a Python bool is because this gets called indirectory from
-        javascript.  (And, Jason Grout wrote this and didn't realize
-        how unpythonic this design is -- it should be redone to use
-        True/False.)
 
-        EXAMPLES:
+        -  ``check`` - string (default: 'false'); either 'true'
+           or 'false'.
+
+
+        .. note::
+
+           The reason the input is a string and lower case instead of
+           a Python bool is because this gets called indirectory from
+           javascript. (And, Jason Grout wrote this and didn't realize
+           how unpythonic this design is - it should be redone to use
+           True/False.)
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_pretty_print('false')
@@ -839,9 +921,9 @@ class Worksheet:
     ##########################################################
     def is_auto_publish(self):
         """
-        Returns boolean of "Is this worksheet set to be published automatically when saved?"
-        if private variable "autopublish" is set otherwise False is returned and the variable
-        is set to False.
+        Returns boolean of "Is this worksheet set to be published
+        automatically when saved?" if private variable "autopublish" is set
+        otherwise False is returned and the variable is set to False.
         """
         try:
             return self.__autopublish
@@ -851,8 +933,9 @@ class Worksheet:
 
     def set_auto_publish(self):
         """
-        Sets the worksheet to be published automatically when the worksheet is saved if the worksheet
-        isn't already set to this otherwise it is set not to.
+        Sets the worksheet to be published automatically when the worksheet
+        is saved if the worksheet isn't already set to this otherwise it is
+        set not to.
         """
         try:
             self.__autopublish = False if self.__autopublish else True
@@ -864,9 +947,13 @@ class Worksheet:
         Return True if this worksheet is a published worksheet.
 
         OUTPUT:
-            bool -- whether or not owner is 'pub'
 
-        EXAMPLES:
+
+        -  ``bool`` - whether or not owner is 'pub'
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.is_published()
@@ -879,18 +966,20 @@ class Worksheet:
 
     def worksheet_that_was_published(self):
         """
-        Return the worksheet that was published to get this worksheet,
-        if this worksheet was published.  Otherwise just return this
+        Return the worksheet that was published to get this worksheet, if
+        this worksheet was published. Otherwise just return this
         worksheet.
 
-        OUTPUT:
-            Worksheet
+        OUTPUT: Worksheet
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.worksheet_that_was_published() is W
             True
+
+        ::
 
             sage: S = nb.publish_worksheet(W, 'admin')
             sage: S.worksheet_that_was_published() is S
@@ -907,10 +996,10 @@ class Worksheet:
         """
         Return username of user that published this worksheet.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: S = nb.publish_worksheet(W, 'admin')
@@ -921,13 +1010,17 @@ class Worksheet:
 
     def is_publisher(self, username):
         """
-        Return True if username is the username of the publisher
-        of this worksheet, assuming this worksheet was published.
+        Return True if username is the username of the publisher of this
+        worksheet, assuming this worksheet was published.
 
         INPUT:
-            username -- string
 
-        EXAMPLES:
+
+        -  ``username`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -942,10 +1035,10 @@ class Worksheet:
         """
         Return True if there is a published version of this worksheet.
 
-        OUTPUT:
-            bool
+        OUTPUT: bool
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -962,13 +1055,17 @@ class Worksheet:
 
     def set_published_version(self, filename):
         """
-        Set the published version of this worksheet to be the
-        worksheet with given filename.
+        Set the published version of this worksheet to be the worksheet
+        with given filename.
 
         INPUT:
-            filename -- string
 
-        EXAMPLES:
+
+        -  ``filename`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')  # indirect test
@@ -980,13 +1077,13 @@ class Worksheet:
 
     def published_version(self):
         """
-        If this worksheet was published, return the published version
-        of this worksheet.  Otherwise, raise a ValueError.
+        If this worksheet was published, return the published version of
+        this worksheet. Otherwise, raise a ValueError.
 
-        OUTPUT:
-            a worksheet (or raise a ValueError)
+        OUTPUT: a worksheet (or raise a ValueError)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -1009,16 +1106,21 @@ class Worksheet:
         Set the worksheet that was published to get self to W.
 
         INPUT:
-            W -- a Worksheet
 
-        EXAMPLES:
+
+        -  ``W`` - a Worksheet
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
             sage: P.worksheet_that_was_published() is W
             True
 
-        We fake things and make it look like P published itself:
+        We fake things and make it look like P published itself::
+
             sage: P.set_worksheet_that_was_published(P)
             sage: P.worksheet_that_was_published() is P
             True
@@ -1029,23 +1131,32 @@ class Worksheet:
 
     def rate(self, x, comment, username):
         """
-        Set the rating on this worksheet by the given user to x and
-        also set the given comment.
+        Set the rating on this worksheet by the given user to x and also
+        set the given comment.
 
         INPUT:
-            x -- integer
-            comment -- string
-            usename -- string
 
-        EXAMPLES:
-        We create a worksheet and rate it, then look at the ratings.
+
+        -  ``x`` - integer
+
+        -  ``comment`` - string
+
+        -  ``usename`` - string
+
+
+        EXAMPLES: We create a worksheet and rate it, then look at the
+        ratings.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(3, 'this is great', 'hilbert')
             sage: W.ratings()
             [('hilbert', 3, 'this is great')]
 
-        Note that only the last rating by a user counts:
+        Note that only the last rating by a user counts::
+
             sage: W.rate(1, 'this lacks content', 'riemann')
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.ratings()
@@ -1061,15 +1172,19 @@ class Worksheet:
 
     def is_rater(self, username):
         """
-        Return True is the user with given username has rated this worksheet.
+        Return True is the user with given username has rated this
+        worksheet.
 
         INPUT:
-            username -- string
 
-        OUTPUT:
-            bool
 
-        EXAMPLES:
+        -  ``username`` - string
+
+
+        OUTPUT: bool
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(0, 'this lacks content', 'riemann')
@@ -1088,9 +1203,13 @@ class Worksheet:
         Return all the ratings of this worksheet.
 
         OUTPUT:
-            list -- a reference to the list of ratings.
 
-        EXAMPLES:
+
+        -  ``list`` - a reference to the list of ratings.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.ratings()
@@ -1108,14 +1227,19 @@ class Worksheet:
             return v
 
     def html_ratings_info(self):
-        """
-        Return html that renders to give a summary of how this
-        worksheet has been rated.
+        r"""
+        Return html that renders to give a summary of how this worksheet
+        has been rated.
 
         OUTPUT:
-           string -- a string of HTML as a bunch of table rows.
 
-        EXAMPLES:
+
+        -  ``string`` - a string of HTML as a bunch of table
+           rows.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(0, 'this lacks content', 'riemann')
@@ -1139,10 +1263,10 @@ class Worksheet:
         """
         Return overall aerage rating of self.
 
-        OUTPUT:
-            float or the int -1 to mean "not rated"
+        OUTPUT: float or the int -1 to mean "not rated"
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rating()
@@ -1164,13 +1288,13 @@ class Worksheet:
     ##########################################################
     def everyone_has_deleted_this_worksheet(self):
         """
-        Return True if all users have deleted this worksheet,
-        so we know we can safely purge it from disk.
+        Return True if all users have deleted this worksheet, so we know we
+        can safely purge it from disk.
 
-        OUTPUT:
-           bool
+        OUTPUT: bool
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.everyone_has_deleted_this_worksheet()
@@ -1189,19 +1313,26 @@ class Worksheet:
 
     def user_view(self, user):
         """
-        Return the view that the given user has of this worksheet.  If
-        the user currently doesn't have a view set it to ACTIVE and
-        return ACTIVE.
+        Return the view that the given user has of this worksheet. If the
+        user currently doesn't have a view set it to ACTIVE and return
+        ACTIVE.
 
         INPUT:
-            user -- a string
+
+
+        -  ``user`` - a string
+
 
         OUTPUT:
-            Python int -- one of ACTIVE, ARCHIVED, TRASH, which are
-            defined in worksheet.py
 
-        EXAMPLES:
-        We create a new worksheet and get the view, which is ACTIVE:
+
+        -  ``Python int`` - one of ACTIVE, ARCHIVED, TRASH,
+           which are defined in worksheet.py
+
+
+        EXAMPLES: We create a new worksheet and get the view, which is
+        ACTIVE::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view('admin')
@@ -1209,17 +1340,23 @@ class Worksheet:
             sage: sage.server.notebook.worksheet.ACTIVE
             1
 
-        Now for the admin user we move W to the archive:
+        Now for the admin user we move W to the archive::
+
             sage: W.move_to_archive('admin')
 
         The view is now archive.
+
+        ::
+
             sage: W.user_view('admin')
             0
             sage: sage.server.notebook.worksheet.ARCHIVED
             0
 
-        For any other random viewer the view is set by default
-        to ACTIVE.
+        For any other random viewer the view is set by default to ACTIVE.
+
+        ::
+
             sage: W.user_view('foo')
             1
         """
@@ -1237,10 +1374,16 @@ class Worksheet:
         Set the view on this worksheet for the given user.
 
         INPUT:
-            user -- a string
-            x -- int, one of the variables ACTIVE, ARCHIVED, TRASH in worksheet.py
 
-        EXAMPLES:
+
+        -  ``user`` - a string
+
+        -  ``x`` - int, one of the variables ACTIVE, ARCHIVED,
+           TRASH in worksheet.py
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.set_user_view('admin', sage.server.notebook.worksheet.ARCHIVED)
@@ -1258,10 +1401,16 @@ class Worksheet:
         Return True if the user view of user is x.
 
         INPUT:
-            user -- a string
-            x -- int, one of the variables ACTIVE, ARCHIVED, TRASH in worksheet.py
 
-        EXAMPLES:
+
+        -  ``user`` - a string
+
+        -  ``x`` - int, one of the variables ACTIVE, ARCHIVED,
+           TRASH in worksheet.py
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view_is('admin', sage.server.notebook.worksheet.ARCHIVED)
@@ -1276,11 +1425,15 @@ class Worksheet:
         Return True if this worksheet is archived for the given user.
 
         INPUT:
-            user -- string
-        OUTPUT:
-            bool
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        OUTPUT: bool
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Archived Test', 'admin')
             sage: W.is_archived('admin')
@@ -1296,11 +1449,15 @@ class Worksheet:
         Return True if this worksheet is active for the given user.
 
         INPUT:
-            user -- string
-        OUTPUT:
-            bool
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        OUTPUT: bool
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.is_active('admin')
@@ -1316,11 +1473,15 @@ class Worksheet:
         Return True if this worksheet is in the trash for the given user.
 
         INPUT:
-            user -- string
-        OUTPUT:
-            bool
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        OUTPUT: bool
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.is_trashed('admin')
@@ -1336,9 +1497,13 @@ class Worksheet:
         Move this worksheet to be archived for the given user.
 
         INPUT:
-            user -- string
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Archive Test', 'admin')
             sage: W.move_to_archive('admin')
@@ -1352,9 +1517,13 @@ class Worksheet:
         Set his worksheet to be active for the given user.
 
         INPUT:
-            user -- string
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_archive('admin')
@@ -1371,9 +1540,13 @@ class Worksheet:
         Move this worksheet to the trash for the given user.
 
         INPUT:
-            user -- string
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.move_to_trash('admin')
@@ -1387,9 +1560,13 @@ class Worksheet:
         Exactly the same as set_active(user).
 
         INPUT:
-           user -- string
 
-        EXAMPLES:
+
+        -  ``user`` - string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_trash('admin')
@@ -1404,10 +1581,11 @@ class Worksheet:
     #############
 
     def delete_cells_directory(self):
-        """
+        r"""
         Delete the directory in which all the cell computations occur.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
@@ -1465,15 +1643,21 @@ class Worksheet:
 
     def user_can_edit(self, user):
         """
-        Return True if the user with given name is allowed to edit this worksheet.
+        Return True if the user with given name is allowed to edit this
+        worksheet.
 
         INPUT:
-            user -- string
-        OUTPUT:
-            bool
 
-        EXAMPLES:
-        We create a notebook with one worksheet and two users.
+
+        -  ``user`` - string
+
+
+        OUTPUT: bool
+
+        EXAMPLES: We create a notebook with one worksheet and two users.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: nb.add_user('william', 'william', 'wstein@sagemath.org', force=True)
@@ -1481,16 +1665,22 @@ class Worksheet:
             sage: W.user_can_edit('sage')
             True
 
-        At first the user 'william' can't edit this worksheet:
+        At first the user 'william' can't edit this worksheet::
+
             sage: W.user_can_edit('william')
             False
 
-        After adding 'william' as a collaborator he can edit the worksheet.
+        After adding 'william' as a collaborator he can edit the
+        worksheet.
+
+        ::
+
             sage: W.add_collaborator('william')
             sage: W.user_can_edit('william')
             True
 
-        Clean up:
+        Clean up::
+
             sage: nb.delete()
         """
         return self.user_is_collaborator(user) or self.is_owner(user)
@@ -1500,10 +1690,16 @@ class Worksheet:
         Delete a user from having any view or ownership of this worksheet.
 
         INPUT:
-            user -- string; the name of a user
 
-        EXAMPLES:
-        We create a notebook with 2 users and 1 worksheet that both view.
+
+        -  ``user`` - string; the name of a user
+
+
+        EXAMPLES: We create a notebook with 2 users and 1 worksheet that
+        both view.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('wstein','sage','wstein@sagemath.org',force=True)
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
@@ -1514,15 +1710,19 @@ class Worksheet:
             sage: W.viewers()
             ['wstein']
 
-        We delete the sage user from the worksheet W.   This makes wstein the
+        We delete the sage user from the worksheet W. This makes wstein the
         new owner.
+
+        ::
+
             sage: W.delete_user('sage')
             sage: W.viewers()
             ['wstein']
             sage: W.owner()
             'wstein'
 
-        Then we delete wstein from W, which makes the owner None:
+        Then we delete wstein from W, which makes the owner None::
+
             sage: W.delete_user('wstein')
             sage: W.owner() is None
             True
@@ -1530,6 +1730,9 @@ class Worksheet:
             []
 
         Finally, we clean up.
+
+        ::
+
             sage: nb.delete()
         """
         if user in self.__collaborators:
@@ -1553,9 +1756,13 @@ class Worksheet:
         Add the given user as an allowed viewer of this worksheet.
 
         INPUT:
-            user -- string (username)
 
-        EXAMPLES:
+
+        -  ``user`` - string (username)
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Viewer test', 'admin')
@@ -1574,9 +1781,13 @@ class Worksheet:
         Add the given user as a collaborator on this worksheet.
 
         INPUT:
-            user -- a string
 
-        EXAMPLES:
+
+        -  ``user`` - a string
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Collaborator test', 'admin')
@@ -1598,16 +1809,14 @@ class Worksheet:
     ##########################################################
     def satisfies_search(self, search):
         """
-        Return True if all words in search are in the saved text of
-        the worksheet.
+        Return True if all words in search are in the saved text of the
+        worksheet.
 
-        INPUT:
-            search is a string that describes a search query, i.e.,
-            a space-separated collections of words.
+        INPUT: search is a string that describes a search query, i.e., a
+        space-separated collections of words.
 
-        OUTPUT:
-            True if the search is satisfied by self, i.e., all
-            the words appear in the text version of self.
+        OUTPUT: True if the search is satisfied by self, i.e., all the
+        words appear in the text version of self.
         """
         # Load the worksheet data file from disk.
         r = open('%s/worksheet.txt'%self.__dir).read().lower()
@@ -1721,13 +1930,14 @@ class Worksheet:
 
     def __getstate__(self):
         """
-        The getstate method makes sure that the self.__cells
-        dictionary is not saved in the pickle since it could be huge.
+        The getstate method makes sure that the self.__cells dictionary
+        is not saved in the pickle since it could be huge.
 
-        OUTPUT:
-            a dictionary; same as self.__dict__ but with some fields deleted.
+        OUTPUT: a dictionary; same as self.__dict__ but with some
+        fields deleted.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: v = W.__getstate__().keys(); v.sort(); v
@@ -1792,7 +2002,10 @@ class Worksheet:
         Return a plain-text version of the worksheet.
 
         INPUT:
-            prompts -- if True format for inclusion in docstrings.
+
+
+        -  ``prompts`` - if True format for inclusion in
+           docstrings.
         """
         s = ''
         if banner:
@@ -1817,8 +2030,8 @@ class Worksheet:
     ##########################################################
     def edit_text(self):
         """
-        Returns a plain-text version of the worksheet with \{\{\{\}\}\} wiki-formatting,
-        suitable for hand editing.
+        Returns a plain-text version of the worksheet with {{{}}}
+        wiki-formatting, suitable for hand editing.
         """
         s = self.name() + '\n'
         s += 'system:%s'%self.system()
@@ -1845,23 +2058,32 @@ class Worksheet:
             return
 
     def edit_save(self, text, ignore_ids=False):
-        """
-        Set the contents of this worksheet to the worksheet defined by
-        the plain text string text, which should be a sequence of html
-        and {{{}}}'s code blocks.
+        r"""
+        Set the contents of this worksheet to the worksheet defined by the
+        plain text string text, which should be a sequence of html and 's
+        code blocks.
 
         INPUT:
-            text -- a string
-            ignore_ids -- bool (default: False); if True ignore all the
-                          id's in the {{{}}} code block.
 
-        EXAMPLES:
-        We create a new test notebook and a worksheet.
+
+        -  ``text`` - a string
+
+        -  ``ignore_ids`` - bool (default: False); if True
+           ignore all the id's in the code block.
+
+
+        EXAMPLES: We create a new test notebook and a worksheet.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test Edit Save', 'sage')
 
         We set the contents of the worksheet using the edit_save command.
+
+        ::
+
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: W
             [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
@@ -2175,8 +2397,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def date_edited(self):
         """
-        Returns the date the worksheet was last edited if already recorded otherwise
-        the current local time is recorded and returned.
+        Returns the date the worksheet was last edited if already recorded
+        otherwise the current local time is recorded and returned.
         """
         try:
             return self.__date_edited[0]
@@ -2201,15 +2423,19 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def warn_about_other_person_editing(self,username, threshold):
         r"""
-        Check to see if another user besides username was the last to
-        edit this worksheet during the last \var{threshold} seconds.  If
-        so, return True and that user name.  If not, return False.
+        Check to see if another user besides username was the last to edit
+        this worksheet during the last ``threshold`` seconds.
+        If so, return True and that user name. If not, return False.
 
         INPUT:
-           username -- user who would like to edit this file.
-           threshold -- number of seconds, so if there was no activity on
-                   this worksheet for this many seconds, then editing is
-                   considered safe.
+
+
+        -  ``username`` - user who would like to edit this
+           file.
+
+        -  ``threshold`` - number of seconds, so if there was
+           no activity on this worksheet for this many seconds, then editing
+           is considered safe.
         """
         if self.time_since_last_edited() < threshold:
             user = self.last_to_edit()
@@ -2235,18 +2461,21 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     ##########################################################
 
     def cell_id_list(self):
-        """
+        r"""
         Return a new list of the id's of cells in this worksheet.
 
-        OUTPUT:
-            a new list
+        OUTPUT: a new list
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
 
-        Now we set the worksheet to have two cells with the default id
-        of 0 and another with id 10.
+        Now we set the worksheet to have two cells with the default id of 0
+        and another with id 10.
+
+        ::
+
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: W.cell_id_list()
             [0, 10]
@@ -2257,16 +2486,23 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         return [C.id() for C in self.cell_list() if isinstance(C, Cell)]
 
     def cell_list(self):
-        """
-        Return a reference to the list of the all the cells in this worksheet.
+        r"""
+        Return a reference to the list of the all the cells in this
+        worksheet.
 
         OUTPUT:
-            list -- a list of cells
 
-        NOTE: This function loads the cell list from disk (the file
-        worksheet.txt) if it isn't available in memory.
 
-        EXAMPLES:
+        -  ``list`` - a list of cells
+
+
+        .. note::
+
+           This function loads the cell list from disk (the file
+           worksheet.txt) if it isn't available in memory.
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
@@ -2292,10 +2528,10 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         """
         Create and append a new cell to the list of cells.
 
-        OUTPUT:
-            a new empty cell
+        OUTPUT: a new empty cell
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W
@@ -2317,11 +2553,14 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         cell list.
 
         INPUT:
-            id -- integer
-            input -- string
+
+        - ``id`` - integer
+
+        - ``input`` - string
 
         OUTPUT:
-            new cell with the given input text (empty by default).
+
+        A new cell with the given input text (empty by default).
 
         """
         cells = self.cell_list()
@@ -2342,11 +2581,14 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         cell list.
 
         INPUT:
-            id -- integer
-            input -- string
+
+        - ``id`` - integer
+
+        - ``input`` - string
 
         OUTPUT:
-            new cell with the given input text (empty by default).
+
+        A new cell with the given input text (empty by default).
 
         """
         cells = self.cell_list()
@@ -2362,15 +2604,18 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def new_cell_after(self, id, input=""):
         """
-        Insert a new cell into the cell list after the cell
-        with the given integer id.
+        Insert a new cell into the cell list after the cell with the given
+        integer id.
 
         INPUT:
-            id -- integer
-            input -- string
+
+         - ``id`` - integer
+
+         - ``input`` - string
 
         OUTPUT:
-            new cell with the given input text (empty by default).
+
+        A new cell with the given input text (empty by default).
 
         """
         cells = self.cell_list()
@@ -2391,11 +2636,14 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         cell list.
 
         INPUT:
-            id -- integer
-            input -- string
+
+        - ``id`` - integer
+
+        - ``input`` - string
 
         OUTPUT:
-            new cell with the given input text (empty by default).
+
+        A new cell with the given input text (empty by default).
 
         """
         cells = self.cell_list()
@@ -2497,8 +2745,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     def compute_process_has_been_started(self):
         """
         Return True precisely if the compute process has been started,
-        irregardless of whether or not it is currently churning away
-        on a computation.
+        irregardless of whether or not it is currently churning away on a
+        computation.
         """
         try:
             S = self.__sage
@@ -2534,8 +2782,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         If this is a published worksheet, just return None, since published
         worksheets must not have any compute functionality.
 
-        OUTPUT:
-            a Sage interface
+        OUTPUT: a Sage interface
         """
         if self.is_published():
             return None
@@ -2693,13 +2940,18 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             C.set_output_text('The Sage compute process quit (possibly Sage crashed?).\nPlease retry your calculation.','')
 
     def check_comp(self, wait=0.2):
-        """
+        r"""
         Check on currently computing cells in the queue.
 
         INPUT:
-            wait -- float (default: 0.2); how long to wait for output.
 
-        EXAMPLES:
+
+        -  ``wait`` - float (default: 0.2); how long to wait
+           for output.
+
+
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
@@ -2774,15 +3026,20 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         return 'd', C
 
     def interrupt(self):
-        """
+        r"""
         Interrupt all currently queued up calculations.
 
         OUTPUT:
-            bool -- return True if no problems interrupting calculation
-                    return False if the Sage interpreter had to be restarted.
 
-        EXAMPLES:
-        We create a worksheet and start a large factorization going:
+
+        -  ``bool`` - return True if no problems interrupting
+           calculation return False if the Sage interpreter had to be
+           restarted.
+
+
+        EXAMPLES: We create a worksheet and start a large factorization
+        going::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
@@ -2790,18 +3047,30 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             sage: W.cell_list()[0].evaluate()
 
         It's running still
+
+        ::
+
             sage: W.check_comp()
             ('w', Cell 0; in=factor(2^997-1), out=...)
 
         We interrupt it successfully.
+
+        ::
+
             sage: W.interrupt()         # random -- could fail on heavily loaded machine
             True
 
         Now we check and nothing is computing.
+
+        ::
+
             sage: W.check_comp()        # random -- could fail on heavily loaded machine
             ('e', None)
 
         Clean up.
+
+        ::
+
             sage: nb.delete()
         """
         if len(self.__queue) == 0:
@@ -2831,7 +3100,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def restart_sage(self):
         """
-        Restart \sage kernel.
+        Restart Sage kernel.
         """
         self.quit()
 
@@ -2849,10 +3118,11 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     ##########################################################
     def quit_if_idle(self, timeout):
         r"""
-        Quit the worksheet process if it has been ``idle'' for more than \var{timeout} seconds,
-        where idle is by definition that the worksheet has not reported back that it
-        is actually computing.  I.e., an ignored worksheet process (since the user closed
-        their browser) is also considered idle, even if code is running.
+        Quit the worksheet process if it has been "idle" for more than
+        ``timeout`` seconds, where idle is by definition that
+        the worksheet has not reported back that it is actually computing.
+        I.e., an ignored worksheet process (since the user closed their
+        browser) is also considered idle, even if code is running.
         """
         if self.time_idle() > timeout:
             print "Quitting ignored worksheet process for '%s'."%self.name()
@@ -2894,13 +3164,19 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         Queue up the cell C for evaluation in this worksheet.
 
         INPUT:
-            C -- a Cell
-            username -- the name of the user that is evaluating this
-                        cell (mainly used for loging)
 
-        NOTE: If \code{C.is_asap()} is True, then we put C as close to
-        the beginning of the queue as possible, but after all asap cells.
-        Otherwise, C goes at the end of the queue.
+
+        -  ``C`` - a Cell
+
+        -  ``username`` - the name of the user that is
+           evaluating this cell (mainly used for loging)
+
+
+        .. note::
+
+           If ``C.is_asap()`` is True, then we put C as close to the
+           beginning of the queue as possible, but after all asap
+           cells. Otherwise, C goes at the end of the queue.
         """
         if self.is_published():
             return
@@ -2994,9 +3270,10 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def delete_cell_input_files(self):
         r"""
-        Delete all the files \file{code_\%s.py} and \file{code_\%s.spyx} that are created
-        when evaluating cells.  We do this when we first start the notebook
-        to get rid of clutter.
+        Delete all the files ``code_%s.py`` and
+        ``code_%s.spyx`` that are created when evaluating
+        cells. We do this when we first start the notebook to get rid of
+        clutter.
         """
         D = self.directory() + '/code/'
         if os.path.exists(D):
@@ -3010,11 +3287,18 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         Check the status on computation of the cell with given id.
 
         INPUT:
-            id -- an integer
+
+
+        -  ``id`` - an integer
+
 
         OUTPUT:
-            status -- a string, either 'd' (done) or 'w' (working)
-            cell -- the cell with given id
+
+
+        -  ``status`` - a string, either 'd' (done) or 'w'
+           (working)
+
+        -  ``cell`` - the cell with given id
         """
         cell = self.get_cell_with_id(id)
 
@@ -3219,7 +3503,7 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     ##########################################################
     def load_any_changed_attached_files(self, s):
         r"""
-        Modify \var{s} by prepending any necessary load commands
+        Modify ``s`` by prepending any necessary load commands
         corresponding to attached files that have changed.
         """
         A = self.attached_files()
@@ -3395,12 +3679,13 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
     ##########################################################
 
     def get_cell_system(self, cell):
-        """
+        r"""
         Returns the system that will run the input in cell.  This
         defaults to worksheet's system if there is not one
         specifically given in the cell.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
@@ -3440,30 +3725,39 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
 
     def check_for_system_switching(self, input, cell):
         r"""
-        Check for input cells that start with \code{\%foo},
-        where \var{foo} is an object with an eval method.
+        Check for input cells that start with ``%foo``, where
+        ``foo`` is an object with an eval method.
 
         INPUT:
-            s -- a string of the code from the cell to be executed
-            C -- the cell object
 
-        EXAMPLES:
-        First, we set up a new notebook and worksheet.
+
+        -  ``s`` - a string of the code from the cell to be
+           executed
+
+        -  ``C`` - the cell object
+
+
+        EXAMPLES: First, we set up a new notebook and worksheet.
+
+        ::
 
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
 
-        We first test running a native command in 'sage' mode and then a GAP cell
-        within Sage mode.
+        We first test running a native command in 'sage' mode and then a
+        GAP cell within Sage mode.
+
+        ::
 
             sage: W.edit_save('Sage\nsystem:sage\n{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, '2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
-            (True,
-             "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
+            (True, "print _support_.syseval(gap, ur'''SymmetricGroup(5)''', '...')")
+
+        ::
 
             sage: c0.evaluate()
             sage: W.check_comp()  #random output -- depends on the computer's speed
@@ -3478,6 +3772,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             )
 
         Next, we run the same commands but from 'gap' mode.
+
+        ::
 
             sage: W.edit_save('Sage\nsystem:gap\n{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
@@ -3497,7 +3793,6 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             ('d', Cell 1; in=SymmetricGroup(5), out=
             Sym( [ 1 .. 5 ] )
             )
-
         """
         system = self.get_cell_system(cell)
         if system == 'sage':
@@ -3541,35 +3836,54 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
                 pass
 
     def delete_all_output(self, username):
-        """
+        r"""
         Delete all the output in all the worksheet cells.
 
         INPUT:
-            username -- name of the user requesting the deletion.
 
-        EXAMPLES:
-        We create a new notebook, user, and a worksheet with one cell.
+
+        -  ``username`` - name of the user requesting the
+           deletion.
+
+
+        EXAMPLES: We create a new notebook, user, and a worksheet with one
+        cell.
+
+        ::
+
             sage: nb = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: nb.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('Sage\nsystem:sage\n{{{\n2+3\n///\n5\n}}}')
 
         Notice that there is 1 cell with 5 in its output.
+
+        ::
+
             sage: W.cell_list()
             [Cell 0; in=2+3, out=5]
 
         We now delete the output, observe that it is gone.
+
+        ::
+
             sage: W.delete_all_output('sage')
             sage: W.cell_list()
             [Cell 0; in=2+3, out=]
 
         If an invalid user tries to delete all, a ValueError is raised.
+
+        ::
+
             sage: W.delete_all_output('hacker')
             Traceback (most recent call last):
             ...
             ValueError: user 'hacker' not allowed to edit this worksheet
 
         Clean up.
+
+        ::
+
             sage: nb.delete()
         """
         if not self.user_can_edit(username):
@@ -3596,17 +3910,19 @@ sage: 2 + 2
 
 def ignore_prompts_and_output(aString):
     r"""
-    Given a string s that defines an input block of code,
-    if the first line begins in \samp{sage:} (or \samp{>>>}),
-    strip out all lines
-    that don't begin in either \samp{sage:} (or \samp{>>>}) or \samp{...}, and
-    remove all \samp{sage:} (or \samp{>>>}) and \samp{...} from the beginning
+    Given a string s that defines an input block of code, if the first
+    line begins in ``sage:`` (or ``>>>``), strip out all lines that
+    don't begin in either ``sage:`` (or ``>>>``) or ``...``, and
+    remove all ``sage:`` (or ``>>>``) and ``...`` from the beginning
     of the remaining lines.
 
-    TESTS:
+    TESTS::
+
         sage: test1 = sage.server.notebook.worksheet.__internal_test1
         sage: test1 == sage.server.notebook.worksheet.ignore_prompts_and_output(test1)
         True
+
+    ::
 
         sage: test2 = sage.server.notebook.worksheet.__internal_test2
         sage: sage.server.notebook.worksheet.ignore_prompts_and_output(test2)
@@ -3630,8 +3946,7 @@ def ignore_prompts_and_output(aString):
 
 def extract_text_before_first_compute_cell(text):
     """
-    OUTPUT:
-        Everything in text up to the first \{\{\{.
+    OUTPUT: Everything in text up to the first {{{.
     """
     i = text.find('{{{')
     if i == -1:
@@ -3640,13 +3955,18 @@ def extract_text_before_first_compute_cell(text):
 
 def extract_first_compute_cell(text):
     """
-    INPUT:
-        a block of wiki-like marked up text
-    OUTPUT:
-        meta -- meta information about the cell (as a dictionary)
-        input -- string, the input text
-        output -- string, the output text
-        end -- integer, first position after \samp{\}\}\}} in text.
+    INPUT: a block of wiki-like marked up text OUTPUT:
+
+
+    -  ``meta`` - meta information about the cell (as a
+       dictionary)
+
+    -  ``input`` - string, the input text
+
+    -  ``output`` - string, the output text
+
+    -  ``end`` - integer, first position after }}} in
+       text.
     """
     # Find the input block
     i = text.find('{{{')
@@ -3682,17 +4002,21 @@ def extract_first_compute_cell(text):
     return meta, input.strip(), output, j+4
 
 def after_first_word(s):
-    """
+    r"""
     Return everything after the first whitespace in the string s.
-    Returns the empty string if there is nothing after the
-    first whitespace.
+    Returns the empty string if there is nothing after the first
+    whitespace.
 
     INPUT:
-        s -- string
-    OUTPUT:
-        a string
 
-    EXAMPLES:
+
+    -  ``s`` - string
+
+
+    OUTPUT: a string
+
+    EXAMPLES::
+
         sage: from sage.server.notebook.worksheet import after_first_word
         sage: after_first_word("\%gap\n2+2\n")
         '2+2\n'
@@ -3705,11 +4029,12 @@ def after_first_word(s):
     return s[i.start()+1:]
 
 def first_word(s):
-    """
-    Returns everything before the first whitespace in the string s.
-    If there is no whitespace, then the entire string s is returned.
+    r"""
+    Returns everything before the first whitespace in the string s. If
+    there is no whitespace, then the entire string s is returned.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.notebook.worksheet import first_word
         sage: first_word("\%gap\n2+2\n")
         '\\%gap'
@@ -3796,9 +4121,15 @@ def extract_system(text):
 def dictify(s):
     """
     INPUT:
-        s -- a string like 'in=5, out=7'
+
+
+    -  ``s`` - a string like 'in=5, out=7'
+
+
     OUTPUT:
-        dict -- such as {'in':5, 'out':7}
+
+
+    -  ``dict`` - such as 'in':5, 'out':7
     """
     w = []
     try:
@@ -3852,20 +4183,24 @@ def convert_time_to_string(t):
 
 def split_search_string_into_keywords(s):
     r"""
-    The point of this function is to allow for searches like this:
+    The point of this function is to allow for searches like this::
 
-    \begin{verbatim}
-          "ws 7" foo bar  Modular  '"the" end'
-    \end{verbatim}
+                  "ws 7" foo bar  Modular  '"the" end'
+
 
     i.e., where search terms can be in quotes and the different quote
     types can be mixed.
 
     INPUT:
-        s -- a string
+
+
+    -  ``s`` - a string
+
 
     OUTPUT:
-        list -- a list of strings
+
+
+    -  ``list`` - a list of strings
     """
     ans = []
     while len(s) > 0:

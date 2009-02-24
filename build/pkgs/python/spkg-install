@@ -37,6 +37,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+cp patches/posixmodule.c src/Modules/posixmodule.c
+if [ $? -ne 0 ]; then
+    echo "Error copying patched posixmodule.c"
+    exit 1
+fi
+
 # We are setting LDFLAGS and CPPFLAGS so that we pick up Sage's readline
 LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS

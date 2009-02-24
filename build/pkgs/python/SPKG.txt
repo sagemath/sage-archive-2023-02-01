@@ -37,6 +37,7 @@ There are a large number of cimmunity resources. For more details see http://www
 
 === python-2.5.4.p0 (Mike Hansen, May 28th, 2009) ===
  * Fixed issue with distutils's sdist command not copying over our .hg repository.  This change that caused this was http://bugs.python.org/issue1725737.
+ * Included a fix by Michael Abshoff: patch posixmodule.c to avoid an incorrectly detected out of memory error - see http://bugs.python.org/issue1608818
 
 === python-2.5.4 (Michael Abshoff, February 15th, 2008) ===
  * rebase to latest upstream 2.5.4 release

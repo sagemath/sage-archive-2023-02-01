@@ -1,8 +1,8 @@
 """
 Latex printing support
 
-In order to support latex formating, an object should define a special
-method _latex_(self) that returns a string.
+In order to support latex formating, an object should define a
+special method _latex_(self) that returns a string.
 """
 
 #*****************************************************************************
@@ -52,15 +52,17 @@ def have_dvipng():
     return _have_dvipng
 
 def list_function(x):
-    """
+    r"""
     Returns the latex for a list x.
 
-    EXAMPLES:
+    EXAMPLES
+
+    ::
+
         sage: latex([1,2,3])
         \left[1,
         2,
         3\right]
-
         sage: latex([Matrix(ZZ,3,range(9)), Matrix(ZZ,3,range(9))])
         \left[\left(\begin{array}{rrr}
         0 & 1 & 2 \\
@@ -155,20 +157,26 @@ def latex(x):
 class Latex:
     r"""nodetex
     Enter, e.g.,
-    \begin{verbatim}
-        %latex
-        The equation $y^2 = x^3 + x$ defines an elliptic curve.
-        We have $2006 = \sage{factor(2006)}$.
-    \end{verbatim}
-    in an input cell to get a typeset version (care of slitex).
-    Use \code{\%latex_debug} to get debugging output.
 
-    Use \code{latex(...)} to typeset a SAGE object.
+    ::
 
-    Use \code{\%slide} instead to typeset slides.
+                %latex
+                The equation $y^2 = x^3 + x$ defines an elliptic curve.
+                We have $2006 = Sage{factor(2006)}$.
 
-    WARNING: You must have the dvipng (or dvips and convert) installed
-    on your operating system, or this command won't work.
+
+    in an input cell to get a typeset version (care of slitex). Use
+    ``%latex_debug`` to get debugging output.
+
+    Use ``latex(...)`` to typeset a Sage object.
+
+    Use ``%slide`` instead to typeset slides.
+
+    .. warning::
+
+       You must have the dvipng (or dvips and convert) installed
+       on your operating system, or this command won't work.
+
     """
     def __init__(self, debug=False, slide=False, density=150):
         self.__debug = debug
@@ -211,25 +219,29 @@ class Latex:
              density=None, locals={}):
         """
         INPUT:
-            x -- string to evaluate.
             globals -- a globals dictionary
-            strip -- ignored
-            filename -- output filename (string with no spaces)
-            debug -- whether to print verbose debugging output
-            density -- how big output image is.
-            locals -- extra local variables used when evaluating \sage{..}
-                      code in x.
 
-        WARNING: You must have the dvipng (or dvips and convert)
-        installed on your operating system, or this command won't
-        work.
 
-        EXAMPLES:
-            sage: tmp = tmp_filename()
-            sage: sage.misc.latex.Latex().eval('1', filename=tmp)   # optional -- dvipng
-            ''
-            sage: os.path.exists(tmp+'.png')                        # optional -- dvipng
-            True
+        -  ``x`` - string to evaluate.
+
+        -  ``strip`` - ignored
+
+        -  ``filename`` - output filename
+
+        -  ``debug`` - whether to print verbose debugging
+           output
+
+        -  ``density`` - how big output image is.
+
+        -  ``locals`` - extra local variables used when
+           evaluating Sage.. code in x.
+
+        .. warning::
+
+           You must have the dvipng (or dvips and convert)
+           installed on your operating system, or this command won't
+           work.
+
         """
         if density is None:
             density = self.__density
@@ -298,12 +310,16 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
                  math_right='$$',
                  extra_preamble='', brk=0):
     """
-    Compute a latex file that defines a representation of each object in
-    objects.
+    Compute a latex file that defines a representation of each object
+    in objects.
 
     INPUT:
-        objects -- list (or object)
-        size -- latex size of document ('small', 'tiny')
+
+
+    -  ``objects`` - list (or object)
+
+    -  ``size`` - latex size of document ('small',
+       'tiny')
     """
     process = True
     if hasattr(objects, '_latex_'):
@@ -435,7 +451,8 @@ def jsmath(x, mode='display'):
         A string of html that contains the LaTeX represntation of x. In the
         notebook this gets embedded into the cell.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f = maxima('1/(x^2+1)')
         sage: g = f.integrate()
         sage: jsmath(f)
@@ -445,51 +462,66 @@ def jsmath(x, mode='display'):
         sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
          <html><div class="math">\int\frac{1}{x^2+1}\ dx=\tan^{-1} x</div></html>
 
-    AUTHOR:
-        -- William Stein -- general layout (2006-10)
-        -- Bobby Moretti -- improvements, comments, documentation (2006-10)
+    AUTHORS:
+
+    - William Stein (2006-10): general layout (2006-10)
+
+    - Bobby Moretti (2006-10): improvements, comments, documentation
     '''
     return jsmath.eval(x, mode)
 
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
          sep='', tiny=False,  **kwds):
     r"""
-    Compute a latex representation of each object in objects, compile, and
-    display typeset. If used from the command line, this requires
+    Compute a latex representation of each object in objects, compile,
+    and display typeset. If used from the command line, this requires
     that latex be installed.
 
     INPUT:
-        objects -- list (or object)
-        title -- string (default: 'SAGE'): title for the document
-        zoom -- zoom factor, passed on to xdvi if used
-        expert -- bool (default: True): mode passed on to xdvi
-        debug -- bool (default: False): print verbose output
-        sep -- string (default: ''): separator between math objects
-        tiny -- bool (default: False): use tiny font.
 
-    OUTPUT:
-        Display typeset objects.
+
+    -  ``objects`` - list (or object)
+
+    -  ``title`` - string (default: 'Sage'): title for the
+       document
+
+    -  ``zoom`` - zoom factor, passed on to xdvi if used
+
+    -  ``expert`` - bool (default: True): mode passed on to
+       xdvi
+
+    -  ``debug`` - bool (default: False): print verbose
+       output
+
+    -  ``sep`` - string (default: ''): separator between
+       math objects
+
+    -  ``tiny`` - bool (default: False): use tiny font.
+
+
+    OUTPUT: Display typeset objects.
 
     This function behaves differently depending on whether in notebook
     mode or not.
 
     If not in notebook mode, this opens up a window displaying a dvi
     (or pdf) file, displaying the following: the title string is
-    printed, centered, at the top. Beneath that, each object in
-    objects is typeset on its own line, with the string sep typeset
-    between these lines.
+    printed, centered, at the top. Beneath that, each object in objects
+    is typeset on its own line, with the string sep typeset between
+    these lines.
 
     If the program xdvi is used to display the dvi file, then the
-    values of expert and zoom are passed on to it.  On OS X displays
-    a pdf.
+    values of expert and zoom are passed on to it. On OS X displays a
+    pdf.
 
     If in notebook mode, this uses jmath to display the output in the
-    notebook. Only the first argument, objects, is relevant; the
-    others are ignored. If objects is a list, the result is typeset
-    as a Python list, e.g. [12, -3.431] -- each object in the list is
-    not printed on its own line.
+    notebook. Only the first argument, objects, is relevant; the others
+    are ignored. If objects is a list, the result is typeset as a
+    Python list, e.g. [12, -3.431] - each object in the list is not
+    printed on its own line.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.misc.latex.EMBEDDED_MODE=True
         sage: view(3)
         <html><span class="math">3</span></html>
@@ -578,13 +610,21 @@ def repr_lincomb(symbols, coeffs):
     formal symbols.
 
     INPUT:
-        symbols -- list of symbols
-        coeffs -- list of coefficients of the symbols
+
+
+    -  ``symbols`` - list of symbols
+
+    -  ``coeffs`` - list of coefficients of the symbols
+
 
     OUTPUT:
-        str -- a string
 
-    EXAMPLES:
+
+    -  ``str`` - a string
+
+
+    EXAMPLES::
+
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
@@ -620,12 +660,12 @@ def print_or_typeset(object):
     'view' or 'print' the object depending on the situation.
 
     In particular, if in notebook mode with the typeset box checked,
-    view the object.  Otherwise, print the object.
+    view the object. Otherwise, print the object.
 
-    INPUT:
-        object: anything
+    INPUT: object: anything
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.misc.latex.print_or_typeset(3)
         3
         sage: sage.misc.latex.EMBEDDED_MODE=True
@@ -645,7 +685,7 @@ def print_or_typeset(object):
 
 def pretty_print (object):
     """
-    Try to pretty print the object in an intelligent way.  For many
+    Try to pretty print the object in an intelligent way. For many
     things, this will convert the object to latex inside of html and
     rely on a latex-aware front end (like jsMath) to render the text
     """
@@ -669,9 +709,9 @@ def pretty_print (object):
 
 def pretty_print_default(enable=True):
     """
-    Enable or disable default pretty printing.  Pretty printing means
-    rendering things so that jsMath or some other latex-aware front
-    end can render real math.
+    Enable or disable default pretty printing. Pretty printing means
+    rendering things so that jsMath or some other latex-aware front end
+    can render real math.
     """
     import sys
     if enable:
@@ -727,16 +767,25 @@ def latex_variable_name(x):
     Return latex version of a variable name.
 
     Here are some guiding principles for usage of this function:
-    1)  If the variable is a single letter, that is the latex version.
-    2)  If the variable name is suffixed by a number, we put the number in the subscript.
-    3)  If the variable name contains an '_' we start the subscript at the underscore.
-        Note that \#3 trumps rule \#2.
-    4)  If a component of the variable is a greek letter, escape it properly.
-    5)  Recurse nicely with subscripts.
 
-    Refer to the examples section for how these rules might play out in practice.
+    1. If the variable is a single letter, that is the latex version.
 
-    EXAMPLES:
+    2. If the variable name is suffixed by a number, we put the number
+       in the subscript.
+
+    3. If the variable name contains an '_' we start the subscript at
+       the underscore. Note that #3 trumps rule #2.
+
+    4. If a component of the variable is a greek letter, escape it
+       properly.
+
+    5. Recurse nicely with subscripts.
+
+    Refer to the examples section for how these rules might play out in
+    practice.
+
+    EXAMPLES::
+
         sage: import sage.misc.latex as latex_module
         sage: latex_variable_name = latex_module.latex_variable_name
         sage: latex_variable_name('a')
@@ -763,7 +812,8 @@ def latex_variable_name(x):
         '\\alpha_{\\beta_{\\gamma_{12}}}'
 
     AUTHORS:
-        -- Joel B. Mohler -- drastic rewrite and many doc-tests
+
+    - Joel B. Mohler: drastic rewrite and many doc-tests
     """
     underscore = x.find("_")
     if underscore == -1:

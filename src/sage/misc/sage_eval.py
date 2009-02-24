@@ -1,5 +1,5 @@
 r"""
-Evaluating a String in SAGE
+Evaluating a String in Sage
 """
 
 #*****************************************************************************
@@ -15,23 +15,31 @@ import preparser
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""
-    Obtain a \SAGE object from the input string by evaluating it using
-    Sage.  This means calling eval after preparsing and with
-    globals equal to everything included in the scope of
-    \code{from sage.all import *}.).
+    Obtain a Sage object from the input string by evaluating it using
+    Sage. This means calling eval after preparsing and with globals
+    equal to everything included in the scope of ``from sage.all
+    import *``.).
 
     INPUT:
-        source -- a string or object with a _sage_ method
-        locals -- evaluate in namespace of sage.all plus the
-                  locals dictionary
-        cmds   -- string; sequence of commands to be run before
-                  source is evaluated.
-        preparse -- (default: True) if True, preparse the
-                  string expression.
 
 
-    EXAMPLES:
-    This example illustrates that preparsing is applied.
+    -  ``source`` - a string or object with a _sage_
+       method
+
+    -  ``locals`` - evaluate in namespace of sage.all plus
+       the locals dictionary
+
+    -  ``cmds`` - string; sequence of commands to be run
+       before source is evaluated.
+
+    -  ``preparse`` - (default: True) if True, preparse the
+       string expression.
+
+
+    EXAMPLES: This example illustrates that preparsing is applied.
+
+    ::
+
         sage: eval('2^3')
         1
         sage: sage_eval('2^3')
@@ -39,21 +47,25 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
 
     However, preparsing can be turned off.
 
+    ::
+
         sage: sage_eval('2^3', preparse=False)
         1
 
-    Note that you can explicitly define variables and pass
-    them as the second option:
+    Note that you can explicitly define variables and pass them as the
+    second option::
 
         sage: x = PolynomialRing(RationalField(),"x").gen()
         sage: sage_eval('x^2+1', locals={'x':x})
         x^2 + 1
 
     This example illustrates that evaluation occurs in the context of
-    \code{from sage.all import *}.  Even though bernoulli has been
-    redefined in the local scope, when calling \code{sage_eval} the
-    default value meaning of bernoulli is used.  Likewise for QQ
-    below.
+    ``from sage.all import *``. Even though bernoulli has
+    been redefined in the local scope, when calling
+    ``sage_eval`` the default value meaning of bernoulli
+    is used. Likewise for QQ below.
+
+    ::
 
         sage: bernoulli = lambda x : x^2
         sage: bernoulli(6)
@@ -62,6 +74,8 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         36
         sage: sage_eval('bernoulli(6)')
         1/42
+
+    ::
 
         sage: QQ = lambda x : x^2
         sage: QQ(2)
@@ -72,6 +86,9 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         Rational Field
 
     This example illustrates setting a variable for use in evaluation.
+
+    ::
+
         sage: x = 5
         sage: eval('4/3 + x', {'x':25})
         26
@@ -79,22 +96,28 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         79/3
 
     You can also specify a sequence of commands to be run before the
-    expression is evaluated:
+    expression is evaluated::
+
         sage: sage_eval('p', cmds='K.<x> = QQ[]\np = x^2 + 1')
         x^2 + 1
 
     If you give commands to execute and a dictionary of variables, then
-    the dictionary will be modified by assignments in the commands:
+    the dictionary will be modified by assignments in the commands::
+
         sage: vars = {}
         sage: sage_eval('None', cmds='y = 3', locals=vars)
         sage: vars['y'], parent(vars['y'])
         (3, Integer Ring)
 
-    You can also specify the object to evaluate as a tuple.  A 2-tuple
-    is assumed to be a pair of a command sequence and an expression;
-    a 3-tuple is assumed to be a triple of a command sequence, an expression,
-    and a dictionary holding local variables.  (In this case, the given
-    dictionary will not be modified by assignments in the commands.)
+    You can also specify the object to evaluate as a tuple. A 2-tuple
+    is assumed to be a pair of a command sequence and an expression; a
+    3-tuple is assumed to be a triple of a command sequence, an
+    expression, and a dictionary holding local variables. (In this
+    case, the given dictionary will not be modified by assignments in
+    the commands.)
+
+    ::
+
         sage: sage_eval(('f(x) = x^2', 'f(3)'))
         9
         sage: vars = {'rt2': sqrt(2.0)}
@@ -103,8 +126,11 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         sage: vars['rt2']
         1.41421356237310
 
-    This example illustrates how \code{sage_eval} can be useful
-    when evaluating the output of other computer algebra systems.
+    This example illustrates how ``sage_eval`` can be
+    useful when evaluating the output of other computer algebra
+    systems.
+
+    ::
 
         sage: R.<x> = PolynomialRing(RationalField())
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
@@ -119,12 +145,13 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         RuntimeError: Use ** for exponentiation, not '^', which means xor
         in Python, and has the wrong precedence.
 
-    Here you can see eval simply will not work but \code{sage_eval} will.
+    Here you can see eval simply will not work but
+    ``sage_eval`` will.
 
     TESTS:
 
     We get a nice minimal error message for syntax errors, that still
-    points to the location of the error (in the input string):
+    points to the location of the error (in the input string)::
 
         sage: sage_eval('RR(22/7]')
         Traceback (most recent call last):
@@ -133,6 +160,8 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
             RR(Integer(22)/Integer(7)]
                                      ^
         SyntaxError: unexpected EOF while parsing
+
+    ::
 
         sage: sage_eval('None', cmds='$x = $y[3] # Does Perl syntax work?')
         Traceback (most recent call last):
@@ -173,17 +202,18 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
 
 def sageobj(x, vars=None):
     """
-    Return a native SAGE object associated to x, if possible
-    and implemented.
+    Return a native Sage object associated to x, if possible and
+    implemented.
 
     If the object has an _sage_ method it is called and the value is
-    returned.  Otherwise str is called on the object, and all
-    preparsing is applied and the resulting expression is evaluated in the
-    context of \code{from sage.all import *}.  To evaluate the
-    expression with certain variables set, use the vars argument,
-    which should be a dictionary.
+    returned. Otherwise str is called on the object, and all preparsing
+    is applied and the resulting expression is evaluated in the context
+    of ``from sage.all import *``. To evaluate the
+    expression with certain variables set, use the vars argument, which
+    should be a dictionary.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: type(sageobj(gp('34/56')))
         <type 'sage.rings.rational.Rational'>
         sage: n = 5/2
@@ -194,7 +224,8 @@ def sageobj(x, vars=None):
         sage: type(k)
         <type 'sage.rings.integer.Integer'>
 
-    This illustrates interfaces:
+    This illustrates interfaces::
+
         sage: f = gp('2/3')
         sage: type(f)
         <class 'sage.interfaces.gp.GpElement'>

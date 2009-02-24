@@ -1,43 +1,50 @@
 r"""
-Logging of SAGE sessions.
+Logging of Sage sessions.
 
 TODO: Pressing "control-D" can mess up the I/O sequence because of
 a known bug.
 
-You can create a log of your SAGE session as a web page and/or as a
-latex document.  Just type \code{log_html()} to create an HTML log, or
-\code{log_dvi()} to create a dvi (LaTeX) log.  Your complete session
-so far up until when you type the above command will be logged, along
-with any future input.  Thus you can view the log system as a way to
+You can create a log of your Sage session as a web page and/or as a
+latex document. Just type ``log_html()`` to create an HTML log, or
+``log_dvi()`` to create a dvi (LaTeX) log. Your complete session so
+far up until when you type the above command will be logged, along
+with any future input. Thus you can view the log system as a way to
 print or view your entire session so far, along with a way to see
 nicely typeset incremental updates as you work.
 
-If \code{L=log_dvi()} or \code{L=log_html()} is a logger, you can type
-\code{L.stop()} and \code{L.start()} to stop and start logging.
+If ``L=log_dvi()`` or ``L=log_html()`` is a logger, you can type
+``L.stop()`` and ``L.start()`` to stop and start logging.
 
-The environment variables \code{BROWSER} and \code{DVI\_VIEWER}
-determine which web browser or dvi viewer is used to display your
-running log.
+The environment variables ``BROWSER`` and ``DVI_VIEWER`` determine
+which web browser or dvi viewer is used to display your running log.
 
 For both log systems you must have a TeX system installed on your
-computer.  For HTML logging, you must have the convert command, which
+computer. For HTML logging, you must have the convert command, which
 comes with the free ImageMagick tools.
 
-\note{The HTML output is done via LaTeX and png images right now,
-sort of like how latex2html works.  Obviously it would be interesting
-to do something using MathML in the long run.}
+.. note::
 
-AUTHOR:
-    -- William Stein (2006-02): initial version
-    -- William Stein (2006-02-27): changed html generation so log directory
-                                   is relocatable (no hardcoded paths).
-    -- William Stein (2006-03-04): changed environment variable to BROWSER.
-    -- Didier Deshommes (dfdeshom@gmail.com) (2006-05-06): added MathML support; refactored code.
-    -- Dan Drake (ddrake@member.ams.org) (2008-03-27): fix bit rotting
- so that optional directories work, dvi logging works, viewer() command
- works, remove no-longer-working MathML logger; fix off-by-one
- problems with IPython history; add text logger; improve documentation
- about viewers.
+   The HTML output is done via LaTeX and png images right now,
+   sort of like how latex2html works. Obviously it would be
+   interesting to do something using MathML in the long run.
+
+AUTHORS:
+
+- William Stein (2006-02): initial version
+
+- William Stein (2006-02-27): changed html generation so log directory
+  is relocatable (no hardcoded paths).
+
+- William Stein (2006-03-04): changed environment variable to BROWSER.
+
+- Didier Deshommes (2006-05-06): added MathML support; refactored
+  code.
+
+- Dan Drake (2008-03-27): fix bit rotting so
+  that optional directories work, dvi logging works, viewer() command
+  works, remove no-longer-working MathML logger; fix off-by-one
+  problems with IPython history; add text logger; improve
+  documentation about viewers.
 """
 
 # Note: there is a webbrowser module standard with Python.
@@ -73,8 +80,8 @@ REFRESH = '<meta http-equiv="REFRESH" content="4">'
 
 class Log:
     """
-    This is the base logger class.  The two classes that you
-    actually instantiate are derived from this one.
+    This is the base logger class. The two classes that you actually
+    instantiate are derived from this one.
     """
     def __init__(self, dir=None, debug=False, viewer=None):
         if dir is None:
@@ -114,17 +121,37 @@ class Log:
 
     def stop(self):
         """
-        Stop the logger.  To restart use the start function.
+        Stop the logger. To restart use the start function.
         """
         self._stopped = True
 
     def start(self):
         """
-        Start the logger.  To stop use the stop function.
+        Start the logger. To stop use the stop function.
         """
         self._stopped = False
 
     def _update(self):
+        """
+        There is an off-by-one issue with IPython's input and output
+        history; ``__IPYTHON__.input_hist_raw`` is a *list* containing
+        the un-preparsed Sage commands. However,
+        ``__IPYTHON__.output_hist`` is a dictionary whose keys are
+        integers and whose values are outputs.  This is good because
+        not every input has an output.
+
+        **BUT**, the output from::
+
+            __IPYTHON__.input_hist_raw[n]
+
+        is stored in::
+
+            __IPYTHON__.output_hist[n+1] !
+
+        This is annoying and it may be a bug. Right now the loggers
+        correct for this, but if modifying or extending this code,
+        consider yourself warned.
+        """
         if self._stopped:
             return
         # see note at end of this function for info about output and
@@ -158,23 +185,6 @@ class Log:
         self._update_plain()
         self._build()
 
-    """
-    There is an off-by-one issue with IPython's input and output
-    history; __IPYTHON__.input_hist_raw is a *list* containing the
-    un-preparsed Sage commands. However, __IPYTHON__.output_hist is a
-    dictionary whose keys are integers and whose values are outputs.
-    This is good because not every input has an output.
-
-    **BUT** the output from
-                     __IPYTHON__.input_hist_raw[n]
-    is stored in
-                     __IPYTHON__.output_hist[n+1] !
-
-    This is annoying and it may be a bug. Right now the loggers correct
-    for this, but if modifying or extending this code, consider yourself
-    warned.
-    """
-
     def _write(self, lines):
         self._text += lines
 
@@ -190,27 +200,27 @@ class Log:
 
 class log_html(Log):
     r"""
-    Create a running log of your SAGE session as a web page.
+    Create a running log of your Sage session as a web page.
 
-    Easy usage: \code{log_html()}
+    Easy usage: ``log_html()``
 
     TODO: Pressing "control-D" can mess up the I/O sequence because of
     a known bug.
 
-    Use \code{L=log_html([optional directory])} to create an HTML log.
-    Your complete session so far up until when you type the above
-    command will be logged, along with any future input.  Thus you can
+    Use ``L=log_html([optional directory])`` to create an HTML
+    log. Your complete session so far up until when you type the above
+    command will be logged, along with any future input. Thus you can
     view the log system as a way to print or view your entire session
     so far, along with a way to see nicely typeset incremental updates
     as you work.
 
-    If L is a logger, you can type \code{L.stop()} and \code{L.start()} to
-    stop and start logging.
+    If L is a logger, you can type ``L.stop()`` and
+    ``L.start()`` to stop and start logging.
 
-    The environment variable \code{WEB\_BROWSER} determines which web
+    The environment variable ``WEB_BROWSER`` determines which web
     browser or dvi viewer is used to display your running log. You can
-    also specify a viewer when you start the logger with something like
-    \code{log_html([opt. dir], viewer='firefox')}.
+    also specify a viewer when you start the logger with something
+    like ``log_html([opt. dir], viewer='firefox')``.
 
     You must have a TeX system installed on your computer, and you
     must have the convert command, which comes with the free
@@ -287,28 +297,28 @@ class log_html(Log):
 
 class log_dvi(Log):
     """
-    Create a running log of your SAGE session as a nicely typeset dvi
+    Create a running log of your Sage session as a nicely typeset dvi
     file.
 
-    Easy usage: \code{log_dvi()}
+    Easy usage: ``log_dvi()``
 
     TODO: Pressing "control-D" can mess up the I/O sequence because of
     a known bug.
 
-    Use \code{L=log\_dvi([optional directory])} to create a dvi log.
-    Your complete session so far up until when you type the above
-    command will be logged, along with any future input.  Thus you can
-    view the log system as a way to print or view your entire session
-    so far, along with a way to see nicely typeset incremental updates
-    as you work.
+    Use ``L=log_dvi([optional directory])`` to create a dvi log. Your
+    complete session so far up until when you type the above command
+    will be logged, along with any future input. Thus you can view the
+    log system as a way to print or view your entire session so far,
+    along with a way to see nicely typeset incremental updates as you
+    work.
 
-    If L is a logger, you can type \code{L.stop()} and
-    \code{L.start()} to stop and start logging.
+    If L is a logger, you can type ``L.stop()`` and ``L.start()`` to
+    stop and start logging.
 
-    The environment variable \code{DVI\_VIEWER} determines which web
+    The environment variable ``DVI_VIEWER`` determines which web
     browser or dvi viewer is used to display your running log. You can
-    also specify a viewer when you start the logger with something like
-    \code{log_dvi([opt. dir], viewer='xdvi')}.
+    also specify a viewer when you start the logger with something
+    like ``log_dvi([opt. dir], viewer='xdvi')``.
 
     You must have a LaTeX system installed on your computer and a dvi
     viewer.
@@ -403,26 +413,26 @@ class log_dvi(Log):
 
 class log_text(Log):
     """
-    Create a running log of your SAGE session as a plain text file.
+    Create a running log of your Sage session as a plain text file.
 
-    Easy usage: \code{log_text()}
+    Easy usage: ``log_text()``
 
     TODO: Pressing "control-D" can mess up the I/O sequence because of
     a known bug.
 
-    Use \code{L=log\_text([optional directory])} to create a text log.
-    Your complete session so far up until when you type the above
-    command will be logged, along with any future input.  Thus you can
-    view the log system as a way to print or view your entire session so
-    far, along with a way to see incremental updates as you work.
+    Use ``L=log_text([optional directory])`` to create a text
+    log. Your complete session so far up until when you type the above
+    command will be logged, along with any future input. Thus you can
+    view the log system as a way to print or view your entire session
+    so far, along with a way to see incremental updates as you work.
 
     Unlike the html and dvi loggers, this one does not automatically
     start a viewer unless you specify one; you can do that when you
-    start the logger with something like \code{log_text([opt. dir],
-    viewer='xterm -e tail -f')}.
+    start the logger with something like
+    ``log_text([opt. dir], viewer='xterm -e tail -f')``.
 
-    If L is a logger, you can type \code{L.stop()} and \code{L.start()}
-    to stop and start logging.
+    If L is a logger, you can type ``L.stop()`` and
+    ``L.start()`` to stop and start logging.
     """
     def _init(self):
         return

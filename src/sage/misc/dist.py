@@ -6,37 +6,42 @@ import os
 
 def install_scripts(bin_directory=None):
     r"""
-    Run this command as \code{install_scripts(bin_directory)}
-    to create scripts in the given bin directory
-    that, independently of SAGE, run various software components
-    included with SAGE:
-      ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash',
-              'mwrank', 'ipython', 'hg', 'hgmerge', 'R']
+    Run this command as
+    ``install_scripts(bin_directory)`` to create scripts
+    in the given bin directory that, independently of Sage, run various
+    software components included with Sage: ['gap', 'gp', 'singular',
+    'maxima', 'M2', 'kash', 'mwrank', 'ipython', 'hg', 'hgmerge', 'R']
 
     This command:
-    \begin{itemize}
-       \item verbosely tell you which scripts it adds, and
-       \item will \emph{not} overwrite any scripts you already
-             have in the given bin directory.
-    \end{itemize}
+
+
+    -  verbosely tell you which scripts it adds, and
+
+    -  will *not* overwrite any scripts you already have in the given
+       bin directory.
+
 
     INPUT:
-        bin_directory -- string; the directory into which to
-                         put the scripts
 
-    OUTPUT:
-        Verbosely prints what it is doing and creates files
-        in bin_directory that are world executable and readable.
 
-    NOTE:
-    You may need to run \sage as root in order to run
-    \code{install_scripts} successfully, since the user
-    running \sage will need write permissions on
-    \code{bin_directory}.
+    -  ``bin_directory`` - string; the directory into
+       which to put the scripts
+
+
+    OUTPUT: Verbosely prints what it is doing and creates files in
+    bin_directory that are world executable and readable.
+
+    .. note::
+
+       You may need to run Sage as root in order to run
+       ``install_scripts`` successfully, since the user running Sage
+       will need write permissions on ``bin_directory``.
 
     AUTHORS:
-        -- William Stein (code / design)
-        -- Arthur Gaer (design)
+
+    - William Stein: code / design
+
+    - Arthur Gaer: design
     """
     if bin_directory is None:
         # We do this since the intended user of install_scripts

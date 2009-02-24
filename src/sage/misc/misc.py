@@ -1,11 +1,14 @@
 """
 Miscellaneous functions
 
-AUTHOR:
-    -- William Stein
-    -- William Stein (2006-04-26): added workaround for Windows where
-            most users's home directory has a space in it.
-    -- Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
+AUTHORS:
+
+- William Stein
+
+- William Stein (2006-04-26): added workaround for Windows where most
+  users's home directory has a space in it.
+
+- Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
 """
 
 ########################################################################
@@ -142,23 +145,33 @@ def to_gmp_hex(n):
 def cputime(t=0):
     """
     Return the time in CPU second since Sage started, or with optional
-    argument t, return the time since time t.  This is how much
-    time Sage has spent using the CPU.  It does not count time
-    spent by subprocesses spawned by Sage (e.g., Gap, Singular, etc.).
+    argument t, return the time since time t. This is how much time
+    Sage has spent using the CPU. It does not count time spent by
+    subprocesses spawned by Sage (e.g., Gap, Singular, etc.).
 
     This is done via a call to resource.getrusage, so it avoids the
     wraparound problems in time.clock() on Cygwin.
 
     INPUT:
-        t -- (optional) float, time in CPU seconds
-    OUTPUT:
-        float -- time in CPU seconds
 
-    EXAMPLES:
+
+    -  ``t`` - (optional) float, time in CPU seconds
+
+
+    OUTPUT:
+
+
+    -  ``float`` - time in CPU seconds
+
+
+    EXAMPLES::
+
         sage: t = cputime()
         sage: F = factor(2^199-1)
         sage: cputime(t)          # somewhat random
         0.29000000000000004
+
+    ::
 
         sage: w = walltime()
         sage: F = factor(2^199-1)
@@ -174,16 +187,24 @@ def cputime(t=0):
 
 def walltime(t=0):
     """
-    Return the wall time in second, or with optional argument t,
-    return the wall time since time t.  "Wall time" means the time
-    on a wall clock, i.e., the actual time.
+    Return the wall time in second, or with optional argument t, return
+    the wall time since time t. "Wall time" means the time on a wall
+    clock, i.e., the actual time.
 
     INPUT:
-        t -- (optional) float, time in CPU seconds
-    OUTPUT:
-        float -- time in seconds
 
-    EXAMPLES:
+
+    -  ``t`` - (optional) float, time in CPU seconds
+
+
+    OUTPUT:
+
+
+    -  ``float`` - time in seconds
+
+
+    EXAMPLES::
+
         sage: w = walltime()
         sage: F = factor(2^199-1)
         sage: walltime(w)   # somewhat random
@@ -208,19 +229,27 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     Print a message if the current verbosity is at least level.
 
     INPUT:
-        mesg -- str, a message to print
-        t -- int, optional, if included, will also print cputime(t),
--            which is the time since time t.  Thus t should have been
-             obtained with t=cputime()
-        level -- int, (default: 1) the verbosity level of what we are printing
-        caller_name -- string (default: None), the name of the calling function;
-                       in most cases Python can deduce this, so it need not
-                       be provided.
-    OUTPUT:
-        possibly prints a message to stdout;
-        also returns cputime()
 
-    EXAMPLE:
+
+    -  ``mesg`` - str, a message to print
+
+    -  ``t`` - int, optional, if included, will also print
+       cputime(t), - which is the time since time t. Thus t should have
+       been obtained with t=cputime()
+
+    -  ``level`` - int, (default: 1) the verbosity level of
+       what we are printing
+
+    -  ``caller_name`` - string (default: None), the name
+       of the calling function; in most cases Python can deduce this, so
+       it need not be provided.
+
+
+    OUTPUT: possibly prints a message to stdout; also returns
+    cputime()
+
+    EXAMPLE::
+
         sage: set_verbose(1)
         sage: t = cputime()
         sage: t = verbose("This is Sage.", t, level=1, caller_name="william")       # not tested
@@ -273,14 +302,17 @@ def set_verbose(level, files='all'):
     Set the global Sage verbosity level.
 
     INPUT:
-        int level: an integer between 0 and 2, inclusive.
-        files (default: 'all'): list of files to make verbose,
-               or 'all' to make ALL files verbose (the default).
-    OUTPUT:
-        changes the state of the verbosity flag and
-        possibly appends to the list of files that are verbose.
 
-    EXAMPLES:
+    - ``level`` - an integer between 0 and 2, inclusive.
+
+    - ``files`` (default: 'all'): list of files to make verbose, or
+       'all' to make ALL files verbose (the default).
+
+    OUTPUT: changes the state of the verbosity flag and possibly
+    appends to the list of files that are verbose.
+
+    EXAMPLES::
+
         sage: set_verbose(2)
         sage: verbose("This is Sage.", level=1)  # not tested
         VERBOSE1 (?): This is Sage.
@@ -300,6 +332,7 @@ def set_verbose(level, files='all'):
 
 def set_verbose_files(file_name):
     """
+
     """
     if not isinstance(file_name, list):
         file_name = [file_name]
@@ -308,11 +341,13 @@ def set_verbose_files(file_name):
 
 def get_verbose_files():
     """
+
     """
     return verbose_files
 
 def unset_verbose_files(file_name):
     """
+
     """
     if not isinstance(file_name, list):
         file_name = [file_name]
@@ -324,13 +359,12 @@ def get_verbose():
     """
     Return the global Sage verbosity level.
 
-    INPUT:
-        int level: an integer between 0 and 2, inclusive.
+    INPUT: int level: an integer between 0 and 2, inclusive.
 
-    OUTPUT:
-        changes the state of the verbosity flag.
+    OUTPUT: changes the state of the verbosity flag.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: get_verbose()
         0
         sage: set_verbose(2)
@@ -411,16 +445,21 @@ add = sum
 
 def union(x, y=None):
     """
-    Return the union of x and y, as a list.  The resulting list need
-    not be sorted and can change from call to call.
+    Return the union of x and y, as a list. The resulting list need not
+    be sorted and can change from call to call.
 
     INPUT:
-        x -- iterable
-        y -- iterable (may optionally omitted)
-    OUTPUT:
-        list
 
-    EXAMPLES:
+
+    -  ``x`` - iterable
+
+    -  ``y`` - iterable (may optionally omitted)
+
+
+    OUTPUT: list
+
+    EXAMPLES::
+
         sage: answer = union([1,2,3,4], [5,6]); answer
         [1, 2, 3, 4, 5, 6]
         sage: union([1,2,3,4,5,6], [5,6]) == answer
@@ -436,10 +475,11 @@ def union(x, y=None):
 
 def uniq(x):
     """
-    Return the sublist of all elements in the list x that is sorted
-    and is such that the entries in the sublist are unique.
+    Return the sublist of all elements in the list x that is sorted and
+    is such that the entries in the sublist are unique.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
         sage: v            # potentially random ordering of output
         ['a', 'x', -5, 1, 3, 8]
@@ -476,13 +516,21 @@ def repr_lincomb(symbols, coeffs, is_latex=False):
     formal symbols.
 
     INPUT:
-        symbols -- list of symbols
-        coeffs -- list of coefficients of the symbols
+
+
+    -  ``symbols`` - list of symbols
+
+    -  ``coeffs`` - list of coefficients of the symbols
+
 
     OUTPUT:
-        str -- a string
 
-    EXAMPLES:
+
+    -  ``str`` - a string
+
+
+    EXAMPLES::
+
         sage: repr_lincomb(['a','b','c'], [1,2,3])
         'a + 2*b + 3*c'
         sage: repr_lincomb(['a','b','c'], [1,'2+3*x',3])
@@ -538,7 +586,8 @@ def repr_lincomb(symbols, coeffs, is_latex=False):
 
 def strunc(s, n = 60):
     """
-    Truncate at first space after position n, adding '...' if nontrivial truncation.
+    Truncate at first space after position n, adding '...' if
+    nontrivial truncation.
     """
     n = int(n)
     s = str(s)
@@ -553,28 +602,35 @@ def strunc(s, n = 60):
 
 
 def newton_method_sizes(N):
-    """
-    Returns a sequence of integers $1 = a_1 \leq a_2 \leq \cdots \leq a_n = N$
-    such that $a_j = \lceil a_{j+1} / 2 \rceil$ for all $j$.
+    r"""
+    Returns a sequence of integers
+    `1 = a_1 \leq a_2 \leq \cdots \leq a_n = N` such that
+    `a_j = \lceil a_{j+1} / 2 \rceil` for all `j`.
 
-    This is useful for Newton-style algorithms that double the precision at
-    each stage. For example if you start at precision 1 and want an answer to
-    precision 17, then it's better to use the intermediate stages 1, 2, 3, 5,
-    9, 17 than to use 1, 2, 4, 8, 16, 17.
+    This is useful for Newton-style algorithms that double the
+    precision at each stage. For example if you start at precision 1
+    and want an answer to precision 17, then it's better to use the
+    intermediate stages 1, 2, 3, 5, 9, 17 than to use 1, 2, 4, 8, 16,
+    17.
 
     INPUT:
-        N -- positive integer
 
-    EXAMPLES:
-     sage: newton_method_sizes(17)
-      [1, 2, 3, 5, 9, 17]
-     sage: newton_method_sizes(16)
-      [1, 2, 4, 8, 16]
-     sage: newton_method_sizes(1)
-      [1]
 
-    AUTHOR:
-        -- David Harvey (2006-09-09)
+    -  ``N`` - positive integer
+
+
+    EXAMPLES::
+
+        sage: newton_method_sizes(17)
+        [1, 2, 3, 5, 9, 17]
+        sage: newton_method_sizes(16)
+        [1, 2, 4, 8, 16]
+        sage: newton_method_sizes(1)
+        [1]
+
+    AUTHORS:
+
+    - David Harvey (2006-09-09)
     """
 
     N = int(N)
@@ -598,8 +654,8 @@ def newton_method_sizes(N):
 
 def assert_attribute(x, attr, init=None):
     """
-    If the object x has the attribute attr, do nothing.
-    If not, set x.attr to init.
+    If the object x has the attribute attr, do nothing. If not, set
+    x.attr to init.
     """
     if x.__dict__.has_key(attr): return
     if attr[:2] == "__":
@@ -617,8 +673,8 @@ def assert_attribute(x, attr, init=None):
 
 def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
     r"""
-    Return list of numbers \code{a, a+step, ..., a+k*step},
-    where \code{a+k*step < b} and \code{a+(k+1)*step >= b} over
+    Return list of numbers ``a, a+step, ..., a+k*step``,
+    where ``a+k*step < b`` and ``a+(k+1)*step >= b`` over
     exact rings, and makes a best attempt for inexact rings
     (see note below).
 
@@ -631,16 +687,18 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
     which would usually be more efficient than using srange().
 
     INPUT:
-        a -- number
-        b -- number (default: None)
-        step -- number (default: 1)
-        universe -- Parent or type where all the elements should live (default: deduce from inputs)
-        check -- make sure a, b, and step all lie in the same universe
-        include_endpoint -- whether or not to include the endpoint (default: False)
-        endpoint_tolerance -- used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
+
+    - ``a`` - number
+    - ``b`` - number (default: None)
+    - ``step`` - number (default: 1)
+    - ``universe`` - Parent or type where all the elements should live (default: deduce from inputs)
+    - ``check`` - make sure a, b, and step all lie in the same universe
+    - ``include_endpoint`` - whether or not to include the endpoint (default: False)
+    - ``endpoint_tolerance`` - used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
 
     OUTPUT:
-        list
+
+    - list
 
     If b is None, then b is set equal to a and a is
     set equal to the 0 in the parent of b.
@@ -648,69 +706,68 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
     Unlike range, a and b can be any type of numbers, and the
     resulting list involves numbers of that type.
 
-    NOTE: The list elements are computed via repeated addition
-    rather than multiplication, which may produce slightly
-    different results with inexact rings. For example:
+    .. note::
 
-        sage: sum([1.1] * 10) == 1.1 * 10
-        False
+       The list elements are computed via repeated addition
+       rather than multiplication, which may produce slightly
+       different results with inexact rings. For example::
 
-    Also, the question of whether the endpoint is hit exactly for
-    a given \code{a + k*step} is fuzzy for an inexact ring. If
-    \code{a + k*step = b} for some k within \code{endpoint_tolerance} of
-    being integral, it is considered an exact hit, thus avoiding spurious
-    values falling just below the endpoint.
+           sage: sum([1.1] * 10) == 1.1 * 10
+           False
 
-    NOTE: This function is called \code{srange} to distinguish
-    it from the builtin Python \code{range} command.  The s
-    at the beginning of the name stands for ``Sage''.
+       Also, the question of whether the endpoint is hit exactly for
+       a given ``a + k*step`` is fuzzy for an inexact ring. If
+       ``a + k*step = b`` for some k within ``endpoint_tolerance`` of
+       being integral, it is considered an exact hit, thus avoiding spurious
+       values falling just below the endpoint.
 
-    SEE ALSO: xsrange -- iterator version
+    .. note::
 
-    EXAMPLES:
+       This function is called ``srange`` to distinguish
+       it from the builtin Python ``range`` command.  The s
+       at the beginning of the name stands for "Sage".
+
+    .. seealso: :func:`xsrange` -- iterator version
+
+    EXAMPLES::
+
         sage: v = srange(5); v
         [0, 1, 2, 3, 4]
         sage: type(v[2])
         <type 'sage.rings.integer.Integer'>
-
         sage: srange(1, 10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
         sage: srange(10, 1, -1)
         [10, 9, 8, 7, 6, 5, 4, 3, 2]
-
         sage: srange(10,1,-1, include_endpoint=True)
         [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-
         sage: srange(1, 10, universe=RDF)
         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 
         sage: srange(1, 10, 1/2)
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-
         sage: srange(1, 5, 0.5)
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: srange(0, 1, 0.4)
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
         sage: srange(1.0, 5.0, include_endpoint=True)
         [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000]
-
         sage: srange(1.0, 1.1)
         [1.00000000000000]
         sage: srange(1.0, 1.0)
         []
-
         sage: V = VectorSpace(QQ, 2)
         sage: srange(V([0,0]), V([5,5]), step=V([2,2]))
         [(0, 0), (2, 2), (4, 4)]
 
-    Including the endpoint:
+    Including the endpoint::
         sage: srange(0, 10, step=2, include_endpoint=True)
         [0, 2, 4, 6, 8, 10]
         sage: srange(0, 10, step=3, include_endpoint=True)
         [0, 3, 6, 9]
 
-    Try some inexact rings:
+    Try some inexact rings::
+
         sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
         [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
@@ -765,42 +822,52 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
 
 def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
     """
-    Return an iterator over numbers \code{a, a+step, ..., a+k*step},
-    where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
+    Return an iterator over numbers
+    ``a, a+step, ...,  a+k*step``, where ``a+k*step < b`` and
+    ``a+(k+1)*step > b``.
 
     INPUT:
-        a -- number
-        b -- number
-        step -- number (default: 1)
         universe -- Parent or type where all the elements should live (default: deduce from inputs)
         check -- make sure a, b, and step all lie in the same universe
         include_endpoint -- whether or not to include the endpoint (default: False)
         endpoint_tolerance -- used to determine whether or not the endpoint is hit for inexact rings (default 1e-5)
-    OUTPUT:
-        iterator
 
-    Unlike range, a and b can be any type of numbers, and the
-    resulting iterator involves numbers of that type.
 
-    SEE ALSO: srange.
+    -  ``a`` - number
 
-    NOTE: This function is called \code{xsrange} to distinguish
-    it from the builtin Python \code{xrange} command.
+    -  ``b`` - number
 
-    EXAMPLES:
+    -  ``step`` - number (default: 1)
+
+
+    OUTPUT: iterator
+
+    Unlike range, a and b can be any type of numbers, and the resulting
+    iterator involves numbers of that type.
+
+    .. seealso::
+
+       :func:`srange`
+
+    .. note::
+
+       This function is called ``xsrange`` to distinguish it from the
+       builtin Python ``xrange`` command.
+
+    EXAMPLES::
+
         sage: list(xsrange(1,10))
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
         sage: Q = RationalField()
         sage: list(xsrange(1, 10, Q('1/2')))
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
-
         sage: list(xsrange(1, 5, 0.5))
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: list(xsrange(0, 1, 0.4))
         [0.000000000000000, 0.400000000000000, 0.800000000000000]
 
-    Negative ranges are also allowed:
+    Negative ranges are also allowed::
+
         sage: list(xrange(4,1,-1))
         [4, 3, 2]
         sage: list(sxrange(4,1,-1))
@@ -859,7 +926,8 @@ def ellipsis_range(*args, **kwds):
 
     Use [1,2,..,n] notation.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ellipsis_range(1,Ellipsis,11,100)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100]
         sage: ellipsis_range(0,2,Ellipsis,10,Ellipsis,20)
@@ -871,16 +939,22 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(10,Ellipsis,0)
         []
 
-    TESTS:
-      These were carefully chosen tests, only to be changed if the semantics of
-      ellipsis ranges change. In otherwords, if they don't pass it's probably a
-      bug in the implementation, not in the doctest.
+    TESTS: These were carefully chosen tests, only to be changed if the
+    semantics of ellipsis ranges change. In otherwords, if they don't
+    pass it's probably a bug in the implementation, not in the
+    doctest.
 
-      Note 10 only appears once (though it is in both ranges).
+    Note 10 only appears once (though it is in both ranges).
+
+    ::
+
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 
-      Sometimes one or more ranges is empty.
+    Sometimes one or more ranges is empty.
+
+    ::
+
         sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
         [10, 12, 14, 16, 18, 20]
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
@@ -888,7 +962,10 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(100,Ellipsis,10,Ellipsis,-20,step=2)
         []
 
-      We always start on the leftmost point of the range.
+    We always start on the leftmost point of the range.
+
+    ::
+
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=3)
         [0, 3, 6, 9, 10, 13, 16, 19]
         sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=3)
@@ -904,11 +981,15 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(100,0,1,Ellipsis,-10)
         [100]
 
-      Note the duplicate 5 in the output.
+    Note the duplicate 5 in the output.
+
+    ::
+
         sage: ellipsis_range(0,Ellipsis,5,5,Ellipsis,10)
         [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10]
 
-    Examples in which the step determines the parent of the elements:
+    Examples in which the step determines the parent of the elements::
+
         sage: [1..3, step=0.5]
         [1.00000000000000, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000]
         sage: v = [1..5, step=1/1]; v
@@ -968,13 +1049,15 @@ def ellipsis_range(*args, **kwds):
 
 def ellipsis_iter(*args, **kwds):
     """
-    Same as ellipsis_range, but as an iterator (and may end with an Ellipsis).
+    Same as ellipsis_range, but as an iterator (and may end with an
+    Ellipsis).
 
     See also ellipsis_range.
 
     Use (1,2,...) notation.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: A = ellipsis_iter(1,2,Ellipsis)
         sage: [A.next() for _ in range(10)]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -989,9 +1072,12 @@ def ellipsis_iter(*args, **kwds):
 
     TESTS:
 
-      These were carefully chosen tests, only to be changed if the semantics of
-      ellipsis ranges change. In otherwords, if they don't pass it's probably a
-      bug in the implementation, not in the doctest.
+    These were carefully chosen tests, only to be changed if the
+    semantics of ellipsis ranges change. In otherwords, if they don't
+    pass it's probably a bug in the implementation, not in the
+    doctest.
+
+    ::
 
         sage: list(1,..,10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -1126,12 +1212,17 @@ def random_sublist(X, s):
     of including a particular element is s.
 
     INPUT:
-        X -- list
-        s -- floating point number between 0 and 1
-    OUTPUT:
-        list
 
-    EXAMPLES:
+
+    -  ``X`` - list
+
+    -  ``s`` - floating point number between 0 and 1
+
+
+    OUTPUT: list
+
+    EXAMPLES::
+
         sage: S = [1,7,3,4,18]
         sage: random_sublist(S, 0.5)
         [1, 3, 4]
@@ -1145,22 +1236,26 @@ def random_sublist(X, s):
 
 def powerset(X):
     r"""
-    Iterator over the \emph{list} of all subsets of the iterable X,
-    in no particular order.  Each list appears exactly once,
-    up to order.
+    Iterator over the *list* of all subsets of the iterable X, in no
+    particular order. Each list appears exactly once, up to order.
 
     INPUT:
-        X -- an iterable
-    OUTPUT:
-        iterator of lists
 
-    EXAMPLES:
+
+    -  ``X`` - an iterable
+
+
+    OUTPUT: iterator of lists
+
+    EXAMPLES::
+
         sage: list(powerset([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
         sage: [z for z in powerset([0,[1,2]])]
         [[], [0], [[1, 2]], [0, [1, 2]]]
 
-    Iterating over the power set of an infinite set is also allowed:
+    Iterating over the power set of an infinite set is also allowed::
+
         sage: i = 0
         sage: for x in powerset(ZZ):
         ...    if i > 10:
@@ -1170,21 +1265,24 @@ def powerset(X):
         ...    print x,
         [] [0] [1] [0, 1] [-1] [0, -1] [1, -1] [0, 1, -1] [2] [0, 2] [1, 2]
 
-    You may also use subsets as an alias for powerset:
+    You may also use subsets as an alias for powerset::
+
         sage: subsets([1,2,3])   # random object location in output
         <generator object at 0xaeae418c>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 
-    \begin{notice} The reason we return lists instead of sets is that
-    the elements of sets must be hashable and many structures on which
-    one wants the powerset consist of non-hashable objects.
-    \end{notice}
+        The reason we return lists instead of sets is that the elements of
+        sets must be hashable and many structures on which one wants the
+        powerset consist of non-hashable objects.
+
 
     AUTHORS:
-        -- William Stein
-        -- Nils Bruin (2006-12-19): rewrite to work for not-necessarily
-                                    finite objects X.
+
+    - William Stein
+
+    - Nils Bruin (2006-12-19): rewrite to work for not-necessarily
+      finite objects X.
     """
     yield []
     pairs = []
@@ -1200,8 +1298,8 @@ subsets = powerset
 #################################################################
 def typecheck(x, C, var="x"):
     """
-    Check that x is of instance C.  If not raise a TypeError
-    with an error message.
+    Check that x is of instance C. If not raise a TypeError with an
+    error message.
     """
     if not isinstance(x, C):
         raise TypeError, "%s (=%s) must be of type %s."%(var,x,C)
@@ -1258,34 +1356,43 @@ def prop(f):
 
 def exists(S, P):
     """
-    If S contains an element x such that P(x) is True, this
-    function returns True and the element x.  Otherwise it
-    returns False and None.
+    If S contains an element x such that P(x) is True, this function
+    returns True and the element x. Otherwise it returns False and
+    None.
 
     Note that this function is NOT suitable to be used in an
-    if-statement or in any place where a boolean expression
-    is expected. For those situations, use the Python built-in
+    if-statement or in any place where a boolean expression is
+    expected. For those situations, use the Python built-in
 
     any(P(x) for x in S)
 
     INPUT:
-        S -- object (that supports enumeration)
-        P -- function that returns True or False
+
+
+    -  ``S`` - object (that supports enumeration)
+
+    -  ``P`` - function that returns True or False
+
 
     OUTPUT:
-        bool -- whether or not P is True for some element x of S
-        object -- x
 
-    EXAMPLES:
-    lambda functions are very useful when using the exists function:
+
+    -  ``bool`` - whether or not P is True for some element
+       x of S
+
+    -  ``object`` - x
+
+
+    EXAMPLES: lambda functions are very useful when using the exists
+    function::
 
         sage: exists([1,2,5], lambda x : x > 7)
         (False, None)
         sage: exists([1,2,5], lambda x : x > 3)
         (True, 5)
 
-    The following example is similar to one in the MAGMA handbook.  We
-    check whether certain integers are a sum of two (small) cubes:
+    The following example is similar to one in the MAGMA handbook. We
+    check whether certain integers are a sum of two (small) cubes::
 
         sage: cubes = [t**3 for t in range(-10,11)]
         sage: exists([(x,y) for x in cubes for y in cubes], lambda v : v[0]+v[1] == 218)
@@ -1299,42 +1406,53 @@ def exists(S, P):
 
 def forall(S, P):
     """
-    If P(x) is true every x in S, return True and None.
-    If there is some element x in S such that P is not True,
-    return False and x.
+    If P(x) is true every x in S, return True and None. If there is
+    some element x in S such that P is not True, return False and x.
 
     Note that this function is NOT suitable to be used in an
-    if-statement or in any place where a boolean expression
-    is expected. For those situations, use the Python built-in
+    if-statement or in any place where a boolean expression is
+    expected. For those situations, use the Python built-in
 
     all(P(x) for x in S)
 
-
     INPUT:
-        S -- object (that supports enumeration)
-        P -- function that returns True or False
+
+
+    -  ``S`` - object (that supports enumeration)
+
+    -  ``P`` - function that returns True or False
+
 
     OUTPUT:
-        bool -- whether or not P is True for all elements of S
-        object -- x
 
-    EXAMPLES:
-    lambda functions are very useful when using the forall function.
-    As a toy example we test whether certain integers are >3.
+
+    -  ``bool`` - whether or not P is True for all elements
+       of S
+
+    -  ``object`` - x
+
+
+    EXAMPLES: lambda functions are very useful when using the forall
+    function. As a toy example we test whether certain integers are
+    greater than 3.
+
+    ::
 
         sage: forall([1,2,5], lambda x : x > 3)
         (False, 1)
         sage: forall([1,2,5], lambda x : x > 0)
         (True, None)
 
-    Next we ask whether every positive integer <100 is a product of
-    at most 2 prime factors:
+    Next we ask whether every positive integer less than 100 is a
+    product of at most 2 prime factors::
 
         sage: forall(range(1,100),  lambda n : len(factor(n)) <= 2)
         (False, 30)
 
-    The answer is no, and 30 is a counterexample.  However, every
-    positive integer < 100 is a product of at most 3 primes.
+    The answer is no, and 30 is a counterexample. However, every
+    positive integer 100 is a product of at most 3 primes.
+
+    ::
 
         sage: forall(range(1,100),  lambda n : len(factor(n)) <= 3)
         (True, None)
@@ -1348,7 +1466,9 @@ def forall(S, P):
 #################################################################
 import inspect
 def sourcefile(object):
-    """Work out which source or compiled file an object was defined in."""
+    """
+    Work out which source or compiled file an object was defined in.
+    """
     return inspect.getfile(object)
 
 
@@ -1362,14 +1482,18 @@ def __mysig(a,b):
 def alarm(seconds):
     """
     Raise a KeyboardInterrupt exception in a given number of seconds.
-    This is useful for automatically interrupting long computations
-    and can be trapped using exception handling (just catch
+    This is useful for automatically interrupting long computations and
+    can be trapped using exception handling (just catch
     KeyboardInterrupt).
 
     INPUT:
-        seconds -- integer
 
-    TESTS:
+
+    -  ``seconds`` - integer
+
+
+    TESTS::
+
         sage: try: alarm(1); sleep(2)
         ... except KeyboardInterrupt: print "Alarm went off"
         Alarm went off
@@ -1398,7 +1522,8 @@ set_trace = pdb.set_trace
 
 def tmp_dir(name='dir'):
     r"""
-    Create and return a temporary directory in \code{\$HOME/.sage/temp/hostname/pid/}
+    Create and return a temporary directory in
+    ``$HOME/.sage/temp/hostname/pid/``
     """
     name = str(name)
     n = 0
@@ -1488,21 +1613,28 @@ def word_wrap(s, ncols=85):
 
 def getitem(v, n):
     r"""
-    Variant of getitem that coerces to an int if a TypeError is raised.
+    Variant of getitem that coerces to an int if a TypeError is
+    raised.
 
-    (This is not needed anymore -- classes should define an __index__ method.)
+    (This is not needed anymore - classes should define an
+    __index__ method.)
 
-    Thus, e.g., \code{getitem(v,n)} will work even if $v$ is a Python
-    list and $n$ is a Sage integer.
+    Thus, e.g., ``getitem(v,n)`` will work even if
+    `v` is a Python list and `n` is a Sage integer.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: v = [1,2,3]
 
-    The following used to fail in Sage <= 1.3.7.  Now it works fine:
+    The following used to fail in Sage <= 1.3.7. Now it works fine::
+
         sage: v[ZZ(1)]
         2
 
     This always worked.
+
+    ::
+
         sage: getitem(v, ZZ(1))
         2
     """
@@ -1514,8 +1646,8 @@ def getitem(v, n):
 
 def branch_current_hg():
     """
-    Return the current hg Mercurial branch name.  If the branch
-    is 'main', which is the default branch, then just '' is returned.
+    Return the current hg Mercurial branch name. If the branch is
+    'main', which is the default branch, then just " is returned.
     """
     try:
         s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
@@ -1537,17 +1669,22 @@ def branch_current_hg():
 
 def branch_current_hg_notice(branch):
     r"""
-    Return a string describing the current branch and that the library is
-    being loaded.  This is called by the \code{<SAGE_ROOT>/local/bin/sage-sage}
-    script.
+    Return a string describing the current branch and that the library
+    is being loaded. This is called by the
+    ``SAGE_ROOT/local/bin/sage-sage`` script.
 
     INPUT:
-        string -- a representation of the name of the Sage library branch.
 
-    OUTPUT:
-        string
 
-    NOTE: If the branch is main, then return an empty string.
+    -  ``string`` - a representation of the name of the
+       Sage library branch.
+
+
+    OUTPUT: string
+
+    .. note::
+
+       If the branch is main, then return an empty string.
     """
     if branch[-1] == '/':
         branch = branch[:-1]
@@ -1560,7 +1697,8 @@ def branch_current_hg_notice(branch):
 
 def pad_zeros(s, size=3):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: pad_zeros(100)
         '100'
         sage: pad_zeros(10)
@@ -1581,7 +1719,8 @@ def embedded():
     Return True if this copy of Sage is running embedded in the Sage
     notebook.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.misc.misc.embedded()    # output True if in the notebook
         False
     """
@@ -1596,7 +1735,8 @@ def deprecation(message):
     r"""
     Issue a deprecation warning.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: def foo():
         ...    sage.misc.misc.deprecation("The function foo is replaced by bar.")
         ...
@@ -1617,7 +1757,8 @@ def deprecation(message):
 class AttrCallObject(object):
     def __init__(self, name, args, kwds):
         """
-        TESTS:
+        TESTS::
+
             sage: f = attrcall('r_core', 3)
             sage: loads(dumps(f))
             *.r_core(3)
@@ -1631,7 +1772,8 @@ class AttrCallObject(object):
         Gets the self.name method from x, calls it with self.args and
         self.kwds, and returns the result.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = attrcall('r_core', 3)
             sage: f(Partition([4,2]))
             [4, 2]
@@ -1640,17 +1782,17 @@ class AttrCallObject(object):
 
     def __repr__(self):
         """
-        Returns a string representation of this object.
-        The star in the output represents the object passed into self.
+        Returns a string representation of this object. The star in the
+        output represents the object passed into self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: attrcall('r_core', 3)
             *.r_core(3)
             sage: attrcall('hooks', flatten=True)
             *.hooks(flatten=True)
             sage: attrcall('hooks', 3, flatten=True)
             *.hooks(3, flatten=True)
-
         """
         s =  "*.%s(%s"%(self.name, ", ".join(map(repr, self.args)))
         if self.kwds:
@@ -1663,16 +1805,22 @@ class AttrCallObject(object):
 
 def attrcall(name, *args, **kwds):
     """
-    Returns a callable which takes in an object, gets the method
-    named name from that object, and calls it with the specified
-    arguments and keywords.
+    Returns a callable which takes in an object, gets the method named
+    name from that object, and calls it with the specified arguments
+    and keywords.
 
     INPUT:
-        name -- a string of the name of the method you want to call
-        args, kwds -- arguments and keywords to be passed to the
-                      methdod
 
-    EXAMPLES:
+
+    -  ``name`` - a string of the name of the method you
+       want to call
+
+    -  ``args, kwds`` - arguments and keywords to be passed
+       to the methdod
+
+
+    EXAMPLES::
+
         sage: f = attrcall('r_core', 3); f
         *.r_core(3)
         sage: [f(p) for p in Partitions(5)]

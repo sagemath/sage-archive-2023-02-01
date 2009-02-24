@@ -1,22 +1,28 @@
 r"""
-SAGE package management commands
+Sage package management commands
 
-A SAGE package has the extension .spkg.  It is a tarball that is
+A Sage package has the extension .spkg. It is a tarball that is
 (usually) bzip2 compressed that contains arbitrary data and an
-spkg-install file.  An SAGE package typically has the following
+spkg-install file. An Sage package typically has the following
 components:
-\begin{itemize}
-  \item spkg-install -- shell script that is run to install the package
-  \item SAGE.txt -- file that describes how the package was made, who maintains it, etc.
-  \item sage -- directory with extra patched version of files that needed during the install
-\end{itemize}
 
-Use the \code{install_package} command to install a new package, and use
-\code{optional_packages} to list all optional packages available on the
-central SAGE server.   The \code{upgrade} command upgrades all \emph{standard}
-packages -- there is no auto-upgrade command for optional packages.
 
-All package management can also be done via the SAGE command line.
+-  spkg-install - shell script that is run to install the package
+
+-  Sage.txt - file that describes how the package was made, who
+   maintains it, etc.
+
+-  sage - directory with extra patched version of files that needed
+   during the install
+
+
+Use the ``install_package`` command to install a new
+package, and use ``optional_packages`` to list all
+optional packages available on the central Sage server. The
+``upgrade`` command upgrades all *standard* packages -
+there is no auto-upgrade command for optional packages.
+
+All package management can also be done via the Sage command line.
 """
 
 import os
@@ -80,25 +86,24 @@ def install_all_optional_packages(force=True, dry_run=False):
 
 def install_package(package=None, force=False):
     """
-    Install a package or return a list of all packages
-    that have been installed into this SAGE install.
+    Install a package or return a list of all packages that have been
+    installed into this Sage install.
 
-    You must have an internet connection.  Also, you will have to
-    restart SAGE for the changes to take affect.
+    You must have an internet connection. Also, you will have to
+    restart Sage for the changes to take affect.
 
     It is not needed to provide the version number.
 
     INPUT:
-        package -- optional; if specified, install the
-                   given package.  If not, list all
-                   installed packages.
+
+
+    -  ``package`` - optional; if specified, install the
+       given package. If not, list all installed packages.
+
 
     IMPLEMENTATION: calls 'sage -f'.
 
-    RELATED COMMANDS:
-        optional_packages -- list of all optional packages
-        upgrade -- upgrade to latest version of core packages
-                   (optional packages are not automatically upgraded).
+    .. seealso:: :func:`optional_packages`, :func:`upgrade`
     """
     global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN':
@@ -145,9 +150,11 @@ def install_package(package=None, force=False):
 
 def is_package_installed(package):
     """
-    Return true if a package starting with the given string is installed.
+    Return true if a package starting with the given string is
+    installed.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: is_package_installed('sage')
         True
     """
@@ -155,21 +162,22 @@ def is_package_installed(package):
 
 def standard_packages():
     """
-    Return two lists.  The first contains the installed and the second
+    Return two lists. The first contains the installed and the second
     contains the not-installed standard packages that are available
-    from the SAGE repository.      You must have an internet connection.
+    from the Sage repository. You must have an internet connection.
 
     OUTPUT:
-        -- installed standard packages (as a list)
-        -- NOT installed standard packages (as a list)
 
-    Use \code{install_package(package_name)} to install or re-install
-    a given package.
+    -  installed standard packages (as a list)
 
-    RELATED COMMANDS:
-        install_package -- list of all standard packages
-        upgrade -- upgrade to latest version of core packages
-                   (standard packages are not automatically upgraded).
+    -  NOT installed standard packages (as a list)
+
+
+    Use ``install_package(package_name)`` to install or
+    re-install a given package.
+
+    .. seealso:: :func:`install_package`, :func:`upgrade`
+
     """
     R = os.popen('sage -standard').read()
     X = R.split('\n')
@@ -196,21 +204,21 @@ def standard_packages():
 
 def optional_packages():
     """
-    Return two lists.  The first contains the installed and the second
+    Return two lists. The first contains the installed and the second
     contains the not-installed optional packages that are available
-    from the SAGE repository.      You must have an internet connection.
+    from the Sage repository. You must have an internet connection.
 
     OUTPUT:
-        -- installed optional packages (as a list)
-        -- NOT installed optional packages (as a list)
 
-    Use \code{install_package(package_name)} to install or re-install
-    a given package.
+    -  installed optional packages (as a list)
 
-    RELATED COMMANDS:
-        install_package -- list of all optional packages
-        upgrade -- upgrade to latest version of core packages
-                   (optional packages are not automatically upgraded).
+    -  NOT installed optional packages (as a list)
+
+
+    Use ``install_package(package_name)`` to install or
+    re-install a given package.
+
+    .. seealso:: :func:`install_package`, :func:`upgrade`
     """
     R = os.popen('sage -optional').read()
     X = R.split('\n')
@@ -237,21 +245,21 @@ def optional_packages():
 
 def experimental_packages():
     """
-    Return two lists.  The first contains the installed and the second
+    Return two lists. The first contains the installed and the second
     contains the not-installed experimental packages that are available
-    from the SAGE repository.      You must have an internet connection.
+    from the Sage repository. You must have an internet connection.
 
     OUTPUT:
-        -- installed experimental packages (as a list)
-        -- NOT installed experimental packages (as a list)
 
-    Use \code{install_package(package_name)} to install or re-install
-    a given package.
+    -  installed experimental packages (as a list)
 
-    RELATED COMMANDS:
-        install_package -- list of all experimental packages
-        upgrade -- upgrade to latest version of core packages
-                   (experimental packages are not automatically upgraded).
+    -  NOT installed experimental packages (as a list)
+
+
+    Use ``install_package(package_name)`` to install or
+    re-install a given package.
+
+    .. seealso:: :func:`install_package`, :func:`upgrade`
     """
     R = os.popen('sage -experimental').read()
     X = R.split('\n')
@@ -283,19 +291,17 @@ def experimental_packages():
 
 def upgrade():
     """
-    Download and build the latest version of SAGE.
+    Download and build the latest version of Sage.
 
-    You must have an internet connection.  Also, you will have to
-    restart SAGE for the changes to take affect.
+    You must have an internet connection. Also, you will have to
+    restart Sage for the changes to take affect.
 
     This upgrades to the latest version of core packages (optional
     packages are not automatically upgraded).
 
     This will not work on systems that don't have a C compiler.
 
-    RELATED COMMANDS:
-        install_package -- list of all optional packages
-        optional_packages -- list of all optional packages
+    .. seealso:: :func:`install_package`, :func:`optional_packages`
     """
     global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN':

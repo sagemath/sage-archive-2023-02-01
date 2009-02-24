@@ -1,34 +1,36 @@
 r"""
 Support for persistent functions in .sage files.
 
-Persistent functions are functions whose values are stored on disk so
-they do not have to be recomputed.
+Persistent functions are functions whose values are stored on disk
+so they do not have to be recomputed.
 
 The inputs to the function must be hashable (so lists are not
-allowed).  Though a hash is used, in the incredibly unlikely event
+allowed). Though a hash is used, in the incredibly unlikely event
 that a hash collision occurs, your function will not return an
-incorrect result because of this (though the cache might not be used
-either).
+incorrect result because of this (though the cache might not be
+used either).
 
-This is meant to be used from \code{.sage} files, not from
-library \code{.py} files.
+This is meant to be used from ``.sage`` files, not from
+library ``.py`` files.
 
 To use this disk caching mechanism, just put
-\code{@func_persist} right before your function definition.  For
-example,
-\begin{verbatim}
-@func_persist
-def bern(n):
-    "Return the n-th Bernoulli number, caching the result to disk."
-    return bernoulli(n)
-\end{verbatim}
-You can then use the function \code{bern} as usual, except it will
-almost instantly return values that have already been computed, even
-if you quit and restart.
+``@func_persist`` right before your function
+definition. For example,
+
+::
+
+    @func_persist
+    def bern(n):
+        "Return the n-th Bernoulli number, caching the result to disk."
+        return bernoulli(n)
+
+You can then use the function ``bern`` as usual, except
+it will almost instantly return values that have already been
+computed, even if you quit and restart.
 
 The disk cache files are stored by default in the subdirectory
-\code{func_persist} of the current working directory, with one file
-for each evaluation of the function.
+``func_persist`` of the current working directory,
+with one file for each evaluation of the function.
 """
 
 ########################################################################
@@ -45,7 +47,7 @@ import persist
 
 class func_persist:
     r"""
-    Put \code{@func_persist} right before your function
+    Put ``@func_persist`` right before your function
     definition to cache values it computes to disk.
     """
     def __init__(self, f, dir='func_persist'):

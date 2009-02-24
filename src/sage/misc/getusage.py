@@ -2,7 +2,8 @@
 Get resource usage of process
 
 AUTHORS:
-    -- William Stein (2006-03-04): initial versoin
+
+- William Stein (2006-03-04): initial versoin
 """
 
 #############################################################################
@@ -17,7 +18,7 @@ import os
 
 def top():
     """
-    Return the top output line that contains this running SAGE
+    Return the top output line that contains this running Sage
     process.
 
     EXAMPLES:
@@ -48,18 +49,26 @@ def get_memory_usage(t=None):
     Return memory usage.
 
     INPUT:
-        t -- None or output of previous call; (only used on Linux)
+
+    -  ``t`` - None or output of previous call; (only used
+       on Linux)
 
     OUTPUT:
-        * Linux -- Returns float number (in megabytes)
-        * OS X -- returns string (VSIZE column of top)
-        * other -- not implemented for any other operating systems
+
+    - ``Linux`` - Returns float number (in megabytes)
+
+    - ``OS X`` - returns string (VSIZE column of top)
+
+    - ``other`` - not implemented for any other operating systems
 
     EXAMPLES:
-    We test that memory usage doesn't change instantly:
+
+    We test that memory usage doesn't change instantly::
+
         sage: t = get_memory_usage()
         sage: get_memory_usage(t)          # amount of memory more than when we defined t.
         0.0
+
     """
     U = os.uname()[0].lower()
     if U == 'linux':

@@ -24,32 +24,49 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     r"""
     Draw a 3d line joining a sequence of points.
 
-    One may specify either a thickness or radius. If a thickness
-    is specified, this line will have a constant diameter regardless
-    of scaling and zooming. If a radius is specified, it will
-    behave as a series of cylinders.
+    One may specify either a thickness or radius. If a thickness is
+    specified, this line will have a constant diameter regardless of
+    scaling and zooming. If a radius is specified, it will behave as a
+    series of cylinders.
 
     INPUT:
-        points -- a list of at least 2 points
-        thickness -- (default: 1)
-        radius -- (default: None)
-        arrow_head -- (default: False)
-        color -- a word that describes a color
-        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
-        opacity -- (default: 1) if less than 1 then is transparent
+
+
+    -  ``points`` - a list of at least 2 points
+
+    -  ``thickness`` - (default: 1)
+
+    -  ``radius`` - (default: None)
+
+    -  ``arrow_head`` - (default: False)
+
+    -  ``color`` - a word that describes a color
+
+    -  ``rgbcolor`` - (r,g,b) with r, g, b between 0 and 1
+       that describes a color
+
+    -  ``opacity`` - (default: 1) if less than 1 then is
+       transparent
+
 
     EXAMPLES:
-    A line in 3-space:
+
+    A line in 3-space::
+
         sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)])
 
-    The same line but red:
+    The same line but red::
+
         sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)], color='red')
 
-    A transparent thick green line and a little blue line:
+    A transparent thick green line and a little blue line::
+
         sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, \
                      color='green') + line3d([(0,1,0), (1,0,2)])
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate examples from Peter Jipsen):
+    A Dodecahedral complex of 5 tetrahedrons (a more elaborate examples
+    from Peter Jipsen)::
+
         sage: def tetra(col):
         ...       return line3d([(0,0,1), (2*sqrt(2.)/3,0,-1./3), (-sqrt(2.)/3, sqrt(6.)/3,-1./3),\
         ...              (-sqrt(2.)/3,-sqrt(6.)/3,-1./3), (0,0,1), (-sqrt(2.)/3, sqrt(6.)/3,-1./3),\
@@ -64,8 +81,6 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         sage: t4 = tetra('yellow').rotateZ(t).rotate(v,6*pi/5)
         sage: t5 = tetra('orange').rotateZ(t).rotate(v,8*pi/5)
         sage: show(t1+t2+t3+t4+t5, frame=False)
-
-
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
@@ -96,22 +111,27 @@ def polygon3d(points, **options):
     Draw a polygon in 3d.
 
     INPUT:
-        points -- the vertices of the polygon
 
-    Type \code{polygon3d.options} for a dictionary of the default
+    - ``points`` - the vertices of the polygon
+
+    Type ``polygon3d.options`` for a dictionary of the default
     options for polygons.  You can change this to change
-    the defaults for all future polygons.  Use \code{polygon3d.reset()}
+    the defaults for all future polygons.  Use ``polygon3d.reset()``
     to reset to the default options.
 
     EXAMPLES:
-    A simple trangle:
+
+    A simple trangle::
+
         sage: polygon3d([[0,0,0], [1,2,3], [3,0,0]])
 
-    Some modern art -- a random polygon:
+    Some modern art -- a random polygon::
+
         sage: v = [(randrange(-5,5), randrange(-5,5), randrange(-5, 5)) for _ in range(10)]
         sage: polygon3d(v)
 
-    A bent transparent green triangle:
+    A bent transparent green triangle::
+
         sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), alpha=0.7)
     """
     from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -258,27 +278,37 @@ def avg(a,b):
 
 def sphere(center=(0,0,0), size=1, **kwds):
     r"""
-    Return a plot of a sphere of radius size centered at $(x,y,z)$.
+    Return a plot of a sphere of radius size centered at
+    `(x,y,z)`.
 
     INPUT:
-       (x,y,z) -- center (default: (0,0,0)
-       size -- the radius (default: 1)
 
-    EXAMPLES:
-    A simple sphere:
-       sage: sphere()
 
-    Two spheres touching:
-       sage: sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
+    -  ``(x,y,z)`` - center (default: (0,0,0)
 
-    Spheres of radii 1 and 2 one stuck into the other:
-       sage: sphere(color='orange') + sphere(color=(0,0,0.3), \
-                    center=(0,0,-2),size=2,opacity=0.9)
+    -  ``size`` - the radius (default: 1)
+
+
+    EXAMPLES: A simple sphere::
+
+        sage: sphere()
+
+    Two spheres touching::
+
+        sage: sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
+
+    Spheres of radii 1 and 2 one stuck into the other::
+
+        sage: sphere(color='orange') + sphere(color=(0,0,0.3), \
+                     center=(0,0,-2),size=2,opacity=0.9)
 
     We draw a transparent sphere on a saddle.
-       sage: u,v = var('u v')
-       sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
-       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
+
+    ::
+
+        sage: u,v = var('u v')
+        sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+        sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
     """
     G = Sphere(size, texture=Texture(kwds), **kwds)
     H = G.translate(center)
@@ -290,27 +320,37 @@ def text3d(txt, (x,y,z), **kwds):
     Display 3d text.
 
     INPUT:
-        txt -- some text
-        (x,y,z) -- position
-        **kwds -- standard 3d graphics options
 
-    NOTE: There is no way to change the font size or opacity yet.
 
-    EXAMPLES:
-    We write the word SAGE in red at position (1,2,3):
-        sage: text3d("SAGE", (1,2,3), color=(0.5,0,0))
+    -  ``txt`` - some text
 
-    We draw a multicolor spiral of numbers:
+    -  ``(x,y,z)`` - position
+
+    -  ``**kwds`` - standard 3d graphics options
+
+
+    .. note::
+
+       There is no way to change the font size or opacity yet.
+
+    EXAMPLES: We write the word Sage in red at position (1,2,3)::
+
+        sage: text3d("Sage", (1,2,3), color=(0.5,0,0))
+
+    We draw a multicolor spiral of numbers::
+
         sage: sum([text3d('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
                     for n in [0,0.2,..,8]])
 
     Another example
+
+    ::
+
         sage: text3d("Sage is really neat!!",(2,12,1))
 
-    And in 3d in two places:
+    And in 3d in two places::
+
         sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
-
-
     """
     if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
         kwds['color'] = (0,0,0)
@@ -321,11 +361,15 @@ def text3d(txt, (x,y,z), **kwds):
 
 class Point(PrimitiveObject):
     """
-    Create a position in 3-space, represented by a sphere of fixed size.
+    Create a position in 3-space, represented by a sphere of fixed
+    size.
 
     INPUT:
-        center -- point (3-tuple)
-        size -- (default: 1)
+
+
+    -  ``center`` - point (3-tuple)
+
+    -  ``size`` - (default: 1)
     """
     def __init__(self, center, size=1, **kwds):
         PrimitiveObject.__init__(self, **kwds)
@@ -365,23 +409,30 @@ class Line(PrimitiveObject):
     r"""
     Draw a 3d line joining a sequence of points.
 
-    This line has a fixed diameter unaffected by transformations and zooming.
-    It may be smoothed if \code{corner_cutoff < 1}.
+    This line has a fixed diameter unaffected by transformations and
+    zooming. It may be smoothed if ``corner_cutoff < 1``.
 
     INPUT:
-        points        -- list of points to pass through
-        thickness     -- diameter of the line
-        corner_cutoff -- threshold for smoothing (see the corners()
-                         method) this is the minimum cosine between
-                         adjacent segments to smooth
-        arrow_head    -- if True make this curve into an arrow
 
-    EXAMPLES:
+    -  ``points`` - list of points to pass through
+
+    -  ``thickness`` - diameter of the line
+
+    -  ``corner_cutoff`` - threshold for smoothing (see
+       the corners() method) this is the minimum cosine between adjacent
+       segments to smooth
+
+    -  ``arrow_head`` - if True make this curve into an
+       arrow
+
+
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.shapes2 import Line
-        sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], \
-                   arrow_head=True)
+        sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], arrow_head=True)
 
-    Smooth angles less than 90 degrees:
+    Smooth angles less than 90 degrees::
+
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
     """
     def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
@@ -456,34 +507,37 @@ class Line(PrimitiveObject):
 
     def corners(self, corner_cutoff=None, max_len=None):
         """
-        Figures out where the curve turns too sharply to pretend it's smooth.
+        Figures out where the curve turns too sharply to pretend it's
+        smooth.
 
-        INPUT:
-            Maximum cosine of angle between adjacent line segments
-            before adding a corner
+        INPUT: Maximum cosine of angle between adjacent line segments
+        before adding a corner
 
-        OUTPUT:
-            List of points at which to start a new line.
-            This always includes the first point, and never the last.
+        OUTPUT: List of points at which to start a new line. This always
+        includes the first point, and never the last.
 
         EXAMPLES:
 
-              Every point:
-              sage: from sage.plot.plot3d.shapes2 import Line
-              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
-              [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
+        Every point::
 
-              Greater than 90 degrees:
-              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0).corners()
-              [(0, 0, 0), (2, 1, 0)]
+            sage: from sage.plot.plot3d.shapes2 import Line
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
+            [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
 
-              No corners:
-              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
-              (0, 0, 0)
+        Greater than 90 degrees::
 
-              An intermediate value:
-              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=.5).corners()
-              [(0, 0, 0), (2, 1, 0)]
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0).corners()
+            [(0, 0, 0), (2, 1, 0)]
+
+        No corners::
+
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
+            (0, 0, 0)
+
+        An intermediate value::
+
+            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=.5).corners()
+            [(0, 0, 0), (2, 1, 0)]
         """
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
@@ -526,13 +580,24 @@ def point3d(v, size=5, **kwds):
     Plot a point or list of points in 3d space.
 
     INPUT:
-        v -- a point or list of points
-        size -- (default: 5) size of the point (or points)
-        color -- a word that describes a color
-        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
-        opacity -- (default: 1) if less than 1 then is transparent
 
-    EXAMPLES:
+
+    -  ``v`` - a point or list of points
+
+    -  ``size`` - (default: 5) size of the point (or
+       points)
+
+    -  ``color`` - a word that describes a color
+
+    -  ``rgbcolor`` - (r,g,b) with r, g, b between 0 and 1
+       that describes a color
+
+    -  ``opacity`` - (default: 1) if less than 1 then is
+       transparent
+
+
+    EXAMPLES::
+
         sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
 
     We check to make sure this works with vectors.

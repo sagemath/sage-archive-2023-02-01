@@ -7,82 +7,117 @@ from sage.rings.all  import RDF
 
 def list_plot3d(v, interpolation_type='default', texture="automatic", point_list=None,**kwds):
     """
-    A 3-dimensional plot of a surface defined by the list $v$ of
-    points in 3-dimensional space.
+    A 3-dimensional plot of a surface defined by the list `v`
+    of points in 3-dimensional space.
 
     INPUT:
-        v -- something that defines a set of points in 3 space, for
-             example:
-                 * a matrix
-                 * a list of 3-tuples
-                 * a list of lists (all of the same length) -- this
-                   is treated the same as a matrix.
-        texture -- (default: "automatic"), solid light blue
+
+
+    -  ``v`` - something that defines a set of points in 3
+       space, for example:
+
+       - a matrix
+
+       - a list of 3-tuples
+
+       - a list of lists (all of the same length) -
+         this is treated the same as a matrix.
+
+    -  ``texture`` - (default: "automatic"), solid light
+       blue
 
     OPTIONAL KEYWORDS:
 
-        interpolation_type - 'linear', 'nn' (nearest neighbor), 'spline'
+    -  ``interpolation_type`` - 'linear', 'nn' (nearest neighbor), 'spline'
 
-             'linear'  will perform linear interpolation
+       'linear' will perform linear interpolation
 
-             The option 'nn' will interpolate by averaging the value
-             of the nearest neighbors, this produces an interpolating function that is smoother than a linear interpolation, it
-             has one derivative everywhere except at the sample points.
+       The option 'nn' will interpolate by averaging the value of the
+       nearest neighbors, this produces an interpolating function that is
+       smoother than a linear interpolation, it has one derivative
+       everywhere except at the sample points.
 
-             The option 'spline' interpolates using a bivariate B-spline.
+       The option 'spline' interpolates using a bivariate B-spline.
 
-             When v is a matrix the default is to use linear interpolation,
-             when v is a list of points the default is nearest neighbor.
+       When v is a matrix the default is to use linear interpolation, when
+       v is a list of points the default is nearest neighbor.
 
-        degree - an integer between 1 and 5, controls the degree of spline
-             used for spline interpolation. For data that is highly oscillatory
-             use higher values
+    -  ``degree`` - an integer between 1 and 5, controls the degree of spline
+       used for spline interpolation. For data that is highly oscillatory
+       use higher values
 
-        point_list - If point_list=True is passed, then if the array is a
-             list of lists of length three, it will be treated  as an array of
-             points rather than a 3xn array.
+    -  ``point_list`` - If point_list=True is passed, then if the array
+       is a list of lists of length three, it will be treated as an
+       array of points rather than a 3xn array.
 
-        num_points - Number of points to sample interpolating function in each direction. By default
-                     for an nxn array this is n.
+    -  ``num_points`` - Number of points to sample interpolating
+       function in each direction. By default for an nxn array this is
+       n.
+
+    -  ``**kwds`` - all other arguments are passed to the
+       surface function
 
 
-        **kwds -- all other arguments are passed to the surface function
-
-    OUTPUT:
-        a 3d plot
+    OUTPUT: a 3d plot
 
     EXAMPLES:
-    We plot a matrix that illustrates summation modulo $n$.
+
+    We plot a matrix that illustrates summation modulo `n`.
+
+    ::
+
         sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]]))
 
     We plot a matrix of values of sin.
+
+    ::
+
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3])
 
    Though it doesn't change the shape of the graph, increasing
    num_points can increase the clarity of the graph.
+
+    ::
+
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3],num_points=40)
 
     We can change the interpolation type.
+
+    ::
+
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3])
 
     We can make this look better by increasing the number of samples.
+
+    ::
+
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3],num_points=40)
 
     Let's try a spline.
+
+    ::
+
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline',frame_aspect_ratio=[1,1,1/3])
 
     That spline doesn't capture the oscillation very well; let's try a
     higher degree spline.
+
+    ::
+
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline', degree=5, frame_aspect_ratio=[1,1,1/3])
 
-    We plot a list of lists:
+    We plot a list of lists::
+
         sage: show(list_plot3d([[1, 1, 1, 1], [1, 2, 1, 2], [1, 1, 3, 1], [1, 2, 1, 4]]))
 
     We plot a list of points.  As a first example we can extract the
     (x,y,z) coordinates from the above example and make a list plot
     out of it. By default we do linear interpolation.
+
+    ::
+
         sage: l=[]
         sage: for i in range(6):
         ...      for j in range(6):
@@ -90,6 +125,9 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: list_plot3d(l,texture='yellow')
 
     Note that the points do not have to be regularly sampled. For example:
+
+    ::
+
         sage: l=[]
         sage: for i in range(-5,5):
         ...    for j in range(-5,5):
@@ -97,20 +135,23 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: list_plot3d(l,interpolation_type='nn',texture='yellow',num_points=100)
 
     TESTS:
-    We plot 0, 1, and 2 points:
+    We plot 0, 1, and 2 points::
+
         sage: list_plot3d([])
         sage: list_plot3d([(2,3,4)])
         sage: list_plot3d([(0,0,1), (2,3,4)])
 
     However, if two points are given with the same x,y coordinates but
-    different z coordinates, an exception will be raised:
+    different z coordinates, an exception will be raised::
+
         sage: pts =[(-4/5, -2/5, -2/5), (-4/5, -2/5, 2/5), (-4/5, 2/5, -2/5), (-4/5, 2/5, 2/5), (-2/5, -4/5, -2/5), (-2/5, -4/5, 2/5), (-2/5, -2/5, -4/5), (-2/5, -2/5, 4/5), (-2/5, 2/5, -4/5), (-2/5, 2/5, 4/5), (-2/5, 4/5, -2/5), (-2/5, 4/5, 2/5), (2/5, -4/5, -2/5), (2/5, -4/5, 2/5), (2/5, -2/5, -4/5), (2/5, -2/5, 4/5), (2/5, 2/5, -4/5), (2/5, 2/5, 4/5), (2/5, 4/5, -2/5), (2/5, 4/5, 2/5), (4/5, -2/5, -2/5), (4/5, -2/5, 2/5), (4/5, 2/5, -2/5), (4/5, 2/5, 2/5)]
         sage: show(list_plot3d(pts, interpolation_type='nn'))
         Traceback (most recent call last):
         ...
         ValueError: Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.
 
-    Additionally we need at least 3 points to do the interpolation:
+    Additionally we need at least 3 points to do the interpolation::
+
         sage: mat = matrix(RDF, 1, 2, [3.2, 1.550])
         sage: show(list_plot3d(mat,interpolation_type='nn'))
         Traceback (most recent call last):

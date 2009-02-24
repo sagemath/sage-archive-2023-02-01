@@ -1,14 +1,15 @@
 r"""
 Base classes for 3D Graphics objects and plotting.
 
-AUTHOR:
-    -- Robert Bradshaw 2007-02: inital version
-    -- Robert Bradshaw 2007-08: cythonization, much optimization
-    -- William Stein 2008
+AUTHORS:
 
-TODO:
-    -- finish integrating tachyon
-    -- good default lights, camera
+- Robert Bradshaw (2007-02): inital version
+
+- Robert Bradshaw (2007-08): Cythonization, much optimization
+
+- William Stein (2008)
+
+TODO: - finish integrating tachyon - good default lights, camera
 """
 
 #*****************************************************************************
@@ -414,55 +415,74 @@ end_scene""" % (
     def show(self, **kwds):
         """
         INPUT:
-            viewer    -- string (default: 'jmol'), how to view the plot
-                         'jmol': interactive 3d (java)
-                         'tachyon': a static png image (ray traced)
-                         'java3d': interactive opengl based 3d
-            filename  -- string (default: a temp file); file to save the image to
-            verbosity -- display information about rendering the figure
-            figsize   -- (default: 5); x or pair [x,y] for numbers, e.g., [5,5]; controls
-                         the size of the output figure.  E.g., with Tachyon the number of
-                         pixels in each direction is 100 times figsize[0].
-                         This is ignored for the jmol embedded renderer.
-            aspect_ratio -- (default: "automatic") -- aspect ratio of the coordinate system
-                         itself.  Give [1,1,1] to make spheres look round.
-            frame_aspect_ratio -- (default: "automatic") aspect ratio of frame that
-                         contains the 3d scene.
-            zoom      -- (default: 1) how zoomed in
-            frame     -- (default: True) if True, draw a bounding frame with labels
-            axes      -- (deault: False) if True, draw coordinate axes
 
-            **kwds    -- other options, which make sense for particular rendering engines
 
-        CHANGING DEFAULTS:
-        Defaults can be uniformly changed by importing a dictionary and changing it.
-        For example, here we change the default so images display without a frame
-        instead of with one:
+        -  ``viewer`` - string (default: 'jmol'), how to view
+           the plot 'jmol': interactive 3d (java) 'tachyon': a static png
+           image (ray traced) 'java3d': interactive opengl based 3d
+
+        -  ``filename`` - string (default: a temp file); file
+           to save the image to
+
+        -  ``verbosity`` - display information about rendering
+           the figure
+
+        -  ``figsize`` - (default: 5); x or pair [x,y] for
+           numbers, e.g., [5,5]; controls the size of the output figure. E.g.,
+           with Tachyon the number of pixels in each direction is 100 times
+           figsize[0]. This is ignored for the jmol embedded renderer.
+
+        -  ``aspect_ratio`` - (default: "automatic") - aspect
+           ratio of the coordinate system itself. Give [1,1,1] to make spheres
+           look round.
+
+        -  ``frame_aspect_ratio`` - (default: "automatic")
+           aspect ratio of frame that contains the 3d scene.
+
+        -  ``zoom`` - (default: 1) how zoomed in
+
+        -  ``frame`` - (default: True) if True, draw a
+           bounding frame with labels
+
+        -  ``axes`` - (deault: False) if True, draw coordinate
+           axes
+
+
+        -  ``**kwds`` - other options, which make sense for particular
+           rendering engines
+
+        CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
+        dictionary and changing it. For example, here we change the default
+        so images display without a frame instead of with one::
+
             sage: from sage.plot.plot3d.base import SHOW_DEFAULTS
             sage: SHOW_DEFAULTS['frame'] = False
 
-        This sphere will not have a frame around it:
+        This sphere will not have a frame around it::
+
             sage: sphere((0,0,0))
 
-        We change the default back:
+        We change the default back::
+
             sage: SHOW_DEFAULTS['frame'] = True
 
-        Now this sphere is enclosed in a frame:
+        Now this sphere is enclosed in a frame::
+
             sage: sphere((0,0,0))
 
+        EXAMPLES: We illustrate use of the aspect_ratio option::
 
-        EXAMPLES:
-        We illustrate use of the aspect_ratio option:
-           sage: x, y = var('x,y')
-           sage: p = plot3d(2*sin(x*y), (x, -pi, pi), (y, -pi, pi))
-           sage: p.show(aspect_ratio=[1,1,1])
+            sage: x, y = var('x,y')
+            sage: p = plot3d(2*sin(x*y), (x, -pi, pi), (y, -pi, pi))
+            sage: p.show(aspect_ratio=[1,1,1])
 
-        This looks flattened, but filled with the plot:
-           sage: p.show(frame_aspect_ratio=[1,1,1/16])
+        This looks flattened, but filled with the plot::
 
-        This looks flattened, but the plot is square and smaller:
-           sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
+            sage: p.show(frame_aspect_ratio=[1,1,1/16])
 
+        This looks flattened, but the plot is square and smaller::
+
+            sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
         """
         ek = self._extra_kwds
         if ek is not None:
@@ -779,9 +799,9 @@ class BoundingSphere(SageObject):
 
 class RenderParams(SageObject):
     """
-    This class is a container for all parameters that may be
-    needed to render triangulate/render an object to a certain
-    format. It can contain both cumulative and global parameters.
+    This class is a container for all parameters that may be needed to
+    render triangulate/render an object to a certain format. It can
+    contain both cumulative and global parameters.
     """
     def __init__(self, **kwds):
         self._uniq_counter = 0
@@ -813,13 +833,13 @@ class RenderParams(SageObject):
 
 def flatten_list(L):
     """
-    This is an optimized routine to turn a list of lists (of lists ...) into a single
-    list. We generate data in a non-flat format to avoid multiple data copying, and
-    then concatenate it all at the end.
+    This is an optimized routine to turn a list of lists (of lists ...)
+    into a single list. We generate data in a non-flat format to avoid
+    multiple data copying, and then concatenate it all at the end.
 
-    This is NOT recursive, otherwise there would be a lot of redundant copying (which
-    we are trying to avoid in the first place, though at least it would be just the
-    pointers).
+    This is NOT recursive, otherwise there would be a lot of redundant
+    copying (which we are trying to avoid in the first place, though at
+    least it would be just the pointers).
     """
     if not PyList_CheckExact(L):
         return [L]
@@ -849,7 +869,8 @@ def min3(v):
     """
     Return the componentwise minimum of a list of 3-tuples.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.base import min3, max3
         sage: min3([(-1,2,5), (-3, 4, 2)])
         (-3, 2, 2)
@@ -860,7 +881,8 @@ def max3(v):
     """
     Return the componentwise maximum of a list of 3-tuples.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.base import min3, max3
         sage: max3([(-1,2,5), (-3, 4, 2)])
         (-1, 4, 5)
@@ -869,7 +891,8 @@ def max3(v):
 
 def point_list_bounding_box(v):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.base import point_list_bounding_box
         sage: point_list_bounding_box([(1,2,3),(4,5,6),(-10,0,10)])
         ((-10.0, 0.0, 3.0), (4.0, 5.0, 10.0))
@@ -893,8 +916,8 @@ def optimal_aspect_ratios(ratios):
 
 def optimal_extra_kwds(v):
     """
-    Given a list v of dictionaries, this function merges
-    them such that later dictionaries have precedence.
+    Given a list v of dictionaries, this function merges them such that
+    later dictionaries have precedence.
     """
     if len(v) == 0:
         return {}

@@ -1,76 +1,103 @@
 r"""
 2D Plotting
 
-\sage provides extensive 2D plotting functionality.  The underlying
+Sage provides extensive 2D plotting functionality. The underlying
 rendering is done using the matplotlib Python library.
 
 The following graphics primitives are supported:
-\begin{itemize}
-    \item arrow  -- an arrow from a min point to a max point.
-    \item circle -- a circle with given radius
-    \item disk   -- a filled disk
-    \item line   -- a line determined by a sequence of points (this need not be straight!)
-    \item point  -- a point
-    \item text   -- some text
-    \item polygon -- a filled polygon
-\end{itemize}
+
+
+-  arrow - an arrow from a min point to a max point.
+
+-  circle - a circle with given radius
+
+-  disk - a filled disk
+
+-  line - a line determined by a sequence of points (this need not
+   be straight!)
+
+-  point - a point
+
+-  text - some text
+
+-  polygon - a filled polygon
+
 
 The following plotting functions are supported:
-\begin{itemize}
-    \item plot   -- plot of a function or other \sage object (e.g., elliptic curve).
-    \item parametric_plot
-    \item polar_plot
-    \item list_plot
-    \item bar_chart
-    \item contour_plot
-    \item plot_vector_field
-    \item matrix_plot
-    \item graphics_array
-\end{itemize}
+
+
+-  plot - plot of a function or other Sage object (e.g., elliptic
+   curve).
+
+-  parametric_plot
+
+-  polar_plot
+
+-  list_plot
+
+-  bar_chart
+
+-  contour_plot
+
+-  plot_vector_field
+
+-  matrix_plot
+
+-  graphics_array
+
 
 The following miscellaneous Graphics functions are included:
-\begin{itemize}
-    \item Graphics
-    \item is_Graphics
-    \item rgbcolor
-    \item hue
-\end{itemize}
 
-Type \kbd{?} after each primitive in \sage for help and examples.
 
-EXAMPLES:
-We construct a plot involving several graphics objects:
+-  Graphics
+
+-  is_Graphics
+
+-  rgbcolor
+
+-  hue
+
+
+Type ``?`` after each primitive in Sage for help and examples.
+
+EXAMPLES: We construct a plot involving several graphics objects::
 
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
     sage: P   # show it
 
-We draw a circle and a curve:
+We draw a circle and a curve::
+
     sage: circle((1,1), 1) + plot(x^2, (0,5))
 
-Notice that the above circle is not round, because the aspect ratio of the
-coordinate system is not 1:1.    The \code{aspect_ratio} option to show
-allows us to fix this:
+Notice that the above circle is not round, because the aspect ratio
+of the coordinate system is not 1:1. The
+``aspect_ratio`` option to show allows us to fix
+this::
+
     sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=1)
 
-With an aspect ratio of 2 the circle is squashed half way down (it looks twice
-as wide as it does tall):
+With an aspect ratio of 2 the circle is squashed half way down (it
+looks twice as wide as it does tall)::
+
     sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=2)
 
 Use figsize to set the actual aspect ratio of the rendered image
-(i.e., of the frame).  For example, this image is twice as many pixels
-wide as it is tall:
+(i.e., of the frame). For example, this image is twice as many
+pixels wide as it is tall::
+
     sage: show(circle((1,1), 1) + plot(x^2, (0,5)), figsize=[8,4])
 
 Next we construct the reflection of the above polygon about the
-$y$-axis by iterating over the list of first-coordinates of the first
-graphic element of $P$ (which is the actual Polygon; note that $P$ is
-a Graphics object, which consists of a single polygon):
+`y`-axis by iterating over the list of first-coordinates of
+the first graphic element of `P` (which is the actual
+Polygon; note that `P` is a Graphics object, which consists
+of a single polygon)::
 
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
     sage: Q   # show it
 
-We combine together different graphics objects using ``+'':
+We combine together different graphics objects using "+"::
 
     sage: H = G + P + Q
     sage: print H
@@ -83,7 +110,7 @@ We combine together different graphics objects using ``+'':
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
     sage: H       # show it
 
-We can put text in a graph:
+We can put text in a graph::
 
     sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)] for i in range(200)]
     sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
@@ -93,8 +120,8 @@ We can put text in a graph:
     sage: g = p+t+x+y
     sage: g.show(xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
-We plot the Riemann zeta function along the critical line and
-see the first few zeros:
+We plot the Riemann zeta function along the critical line and see
+the first few zeros::
 
     sage: i = CDF.0      # define i this way for maximum speed.
     sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
@@ -103,10 +130,12 @@ see the first few zeros:
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
 
-Many concentric circles shrinking toward the origin:
+Many concentric circles shrinking toward the origin::
+
     sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]), aspect_ratio=1)
 
-Here is a pretty graph:
+Here is a pretty graph::
+
     sage: g = Graphics()
     sage: for i in range(60):
     ...    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
@@ -115,7 +144,8 @@ Here is a pretty graph:
     ...
     sage: g.show(dpi=200, axes=False)
 
-Another graph:
+Another graph::
+
     sage: x = var('x')
     sage: P = plot(sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
     ...       plot(x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
@@ -123,32 +153,33 @@ Another graph:
     ...
     sage: P.show(ymin=-pi,ymax=pi)
 
-PYX EXAMPLES:
-These are some examples of plots similar to some of the plots in the
-PyX (\url{http://pyx.sourceforge.net}) documentation:
+PYX EXAMPLES: These are some examples of plots similar to some of
+the plots in the PyX (http://pyx.sourceforge.net) documentation:
 
-Symbolline:
+Symbolline::
+
     sage: y(x) = x*sin(x^2)
     sage: v = [(x, y(x)) for x in [-3,-2.95,..,3]]
     sage: show(points(v, rgbcolor=(0.2,0.6, 0.1), pointsize=30) + plot(spline(v), -3.1, 3))
 
-Cycliclink:
+Cycliclink::
+
     sage: x = var('x')
     sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
     sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
     sage: show(graphics_array([g1, g2], 2, 1), xmin=0)
 
-Pi Axis:
-In the PyX manual, the point of this example is to show labeling the
-X-axis using rational multiples of Pi.  Sage currently has no support
-for controlling how the ticks on the x and y axes are labeled, so
-this is really a bad example:
+Pi Axis: In the PyX manual, the point of this example is to show
+labeling the X-axis using rational multiples of Pi. Sage currently
+has no support for controlling how the ticks on the x and y axes
+are labeled, so this is really a bad example::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
     sage: g1 + g2    # show their sum
 
-An illustration of integration:
+An illustration of integration::
+
     sage: f = (x-3)*(x-5)*(x-7)+40
     sage: P = line([(2,0),(2,f(2))], rgbcolor=(0,0,0))
     sage: P += line([(8,0),(8,f(8))], rgbcolor=(0,0,0))
@@ -159,8 +190,10 @@ An illustration of integration:
 
 NUMERICAL PLOTTING:
 
-\sage also provides 2D plotting with an interface that is a likely very
-familiar to people doing numerical computation.  For example,
+Sage also provides 2D plotting with an interface that is a likely
+very familiar to people doing numerical computation. For example,
+
+::
 
     sage: from pylab import *
     sage: t = arange(0.0, 2.0, 0.01)
@@ -172,36 +205,50 @@ familiar to people doing numerical computation.  For example,
     sage: grid(True)
     sage: savefig('sage.png')
 
-Since the above overwrites many Sage plotting functions, we
-reset the state of Sage, so that the examples below work!
+Since the above overwrites many Sage plotting functions, we reset
+the state of Sage, so that the examples below work!
+
+::
+
     sage: reset()
 
-See \url{http://matplotlib.sourceforge.net} for complete documentation
+See http://matplotlib.sourceforge.net for complete documentation
 about how to use Matplotlib.
 
-TESTS:
-We test dumping and loading a plot.
+TESTS: We test dumping and loading a plot.
+
+::
+
     sage: p = plot(sin(x), (x, 0,2*pi))
     sage: Q = loads(dumps(p))
 
-
-
 AUTHORS:
-    -- Alex Clemesha and William Stein (2006-04-10): initial version
-    -- David Joyner: examples
-    -- Alex Clemesha (2006-05-04) major update
-    -- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server integration
-    -- William Stein (2006-07-01): misc polish
-    -- Alex Clemesha (2006-09-29): added contour_plot, frame axes, misc polishing
-    -- Robert Miller (2006-10-30): tuning, NetworkX primitive
-    -- Alex Clemesha (2006-11-25): added plot_vector_field, matrix_plot, arrow,
-                                   bar_chart, Axes class usage (see axes.py)
-    -- Bobby Moretti and William Stein (2008-01): Change plot to specify ranges
-                                   using the (varname, min, max) notation.
-    -- William Stein (2008-01-19): raised the documentation coverage
-                                   from a miserable 12 percent to a
-                                   'wopping' 35 percent, and fixed and
-                                   clarified numerous small issues.
+
+- Alex Clemesha and William Stein (2006-04-10): initial version
+
+- David Joyner: examples
+
+- Alex Clemesha (2006-05-04) major update
+
+- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server
+  integration
+
+- William Stein (2006-07-01): misc polish
+
+- Alex Clemesha (2006-09-29): added contour_plot, frame axes, misc
+  polishing
+
+- Robert Miller (2006-10-30): tuning, NetworkX primitive
+
+- Alex Clemesha (2006-11-25): added plot_vector_field, matrix_plot,
+  arrow, bar_chart, Axes class usage (see axes.py)
+
+- Bobby Moretti and William Stein (2008-01): Change plot to specify
+  ranges using the (varname, min, max) notation.
+
+- William Stein (2008-01-19): raised the documentation coverage from a
+  miserable 12 percent to a 'wopping' 35 percent, and fixed and
+  clarified numerous small issues.
 """
 
 ############################################################################
@@ -229,28 +276,37 @@ SHOW_DEFAULT = True
 
 def show_default(default=None):
     r"""
-    Set the default for showing plots using any plot commands.
-    If called with no arguments, returns the current default.
+    Set the default for showing plots using any plot commands. If
+    called with no arguments, returns the current default.
 
-    If this is \code{True} (the default) then any plot object when displayed
-    will be displayed as an actual plot instead of text, i.e., the
-    show command is not needed.
+    If this is ``True`` (the default) then any plot object
+    when displayed will be displayed as an actual plot instead of text,
+    i.e., the show command is not needed.
 
-    EXAMPLES:
-    The default starts out as \code{True}:
+    EXAMPLES: The default starts out as ``True``::
+
         sage: show_default()
         True
 
-    We set it to \code{False}.
+    We set it to ``False``.
+
+    ::
+
         sage: show_default(False)
 
-    We see that it is \code{False}.
+    We see that it is ``False``.
+
+    ::
+
         sage: show_default()
         False
 
     Now plot commands will not display their plots by default.
 
     Turn back on default display.
+
+    ::
+
         sage: show_default(True)
     """
     global SHOW_DEFAULT
@@ -287,9 +343,10 @@ from axes import GridLines
 
 def is_Graphics(x):
     """
-    Return True if $x$ is a Graphics object.
+    Return True if `x` is a Graphics object.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot import is_Graphics
         sage: is_Graphics(1)
         False
@@ -300,20 +357,20 @@ def is_Graphics(x):
 
 class Graphics(SageObject):
     """
-    The Graphics object is an empty list of graphics objects
-    It is useful to use this object when intializing a
-    for loop where different graphics object will be added
-    to the empty object.
+    The Graphics object is an empty list of graphics objects It is
+    useful to use this object when intializing a for loop where
+    different graphics object will be added to the empty object.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: G = Graphics(); print G
         Graphics object consisting of 0 graphics primitives
         sage: c = circle((1,1), 1)
         sage: G+=c; print G
         Graphics object consisting of 1 graphics primitive
 
-    Here we make a graphic of embedded isosceles triangles,
-    coloring each one with a different color as we go:
+    Here we make a graphic of embedded isosceles triangles, coloring
+    each one with a different color as we go::
 
         sage: h=10; c=0.4; p=0.1;
         sage: G = Graphics()
@@ -321,14 +378,14 @@ class Graphics(SageObject):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
         sage: G.show(figsize=[5,5])
-
     """
 
     def __init__(self):
         """
         Create a new empty Graphics objects with all the defaults.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = Graphics()
         """
         self.__aspect_ratio = None
@@ -345,22 +402,30 @@ class Graphics(SageObject):
         Set the aspect ratio.
 
         INPUT:
-            ratio  -- a positive real number
 
-        EXAMPLES:
-        We create a plot of a circle, and it doesn't look quite round:
+
+        -  ``ratio`` - a positive real number
+
+
+        EXAMPLES: We create a plot of a circle, and it doesn't look quite
+        round::
+
             sage: P = circle((1,1), 1); P
 
-        So we set the aspect ratio and now it is round:
+        So we set the aspect ratio and now it is round::
+
             sage: P.set_aspect_ratio(1)
             sage: P
 
-        Note that the aspect ratio is inherited upon addition (which takes the
-        max of aspect ratios of objects whose aspect ratio has been set):
+        Note that the aspect ratio is inherited upon addition (which takes
+        the max of aspect ratios of objects whose aspect ratio has been
+        set)::
+
             sage: P + circle((0,0), 0.5)           # still square
 
-        In the following example, both plots produce a circle that looks twice
-        as wide as tall:
+        In the following example, both plots produce a circle that looks
+        twice as wide as tall::
+
             sage: Q = circle((0,0), 0.5); Q.set_aspect_ratio(2)
             sage: P + Q
             sage: Q + P
@@ -374,10 +439,11 @@ class Graphics(SageObject):
         """
         Get the current aspect ratio.
 
-        OUTPUT:
-            either None if the aspect ratio hasn't been set or a positive float
+        OUTPUT: either None if the aspect ratio hasn't been set or a
+        positive float
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = circle((1,1), 1)
             sage: P.aspect_ratio() is None
             True
@@ -393,11 +459,14 @@ class Graphics(SageObject):
         object.  This is fall back to the ranges in get_minmax_data() for
         any value which the user has not explicitly set.
 
-        WARNING: Changing the dictionary returned by this function does not
-        change the axes range for this object.  To do that, use the set_axes_range
-        function.
+        .. warning::
 
-        EXAMPLES:
+           Changing the dictionary returned by this function does not
+           change the axes range for this object.  To do that, use the
+           :meth:`set_axes_range` method.
+
+        EXAMPLES::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
             sage: list(sorted(L.get_axes_range().items()))
             [('xmax', 3.0), ('xmin', 1.0), ('ymax', 5.0), ('ymin', -4.0)]
@@ -411,12 +480,16 @@ class Graphics(SageObject):
 
     def set_axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """
-        Set the ranges of the $x$ and $y$ axes.
+        Set the ranges of the `x` and `y` axes.
 
         INPUT:
-            xmin, xmax, ymin, ymax -- floats
 
-        EXAMPLES:
+
+        -  ``xmin, xmax, ymin, ymax`` - floats
+
+
+        EXAMPLES::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
             sage: L.set_axes_range(-1, 20, 0, 2)
             sage: d = L.get_axes_range()
@@ -436,7 +509,8 @@ class Graphics(SageObject):
         Returns the underlying dictionary used to store the user's
         custom ranges for the axes on this object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
             sage: L._get_axes_range_dict()
             {}
@@ -455,11 +529,15 @@ class Graphics(SageObject):
         Set the font size of axes labels and tick marks.
 
         INPUT:
-            s -- integer, a font size in points.
+
+
+        -  ``s`` - integer, a font size in points.
+
 
         If called with no input, return the current fontsize.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
             sage: L.fontsize()
             10
@@ -467,7 +545,8 @@ class Graphics(SageObject):
             sage: L.fontsize()
             20
 
-        All the numbers on the axes will be very large in this plot:
+        All the numbers on the axes will be very large in this plot::
+
             sage: L
         """
         if s is None:
@@ -480,26 +559,40 @@ class Graphics(SageObject):
 
     def axes(self, show=None):
         """
-        Set whether or not the $x$ and $y$ axes are shown by default.
+        Set whether or not the `x` and `y` axes are shown
+        by default.
 
         INPUT:
-            show -- bool
+
+
+        -  ``show`` - bool
+
 
         If called with no input, return the current axes setting.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
 
         By default the axes are displayed.
+
+        ::
+
             sage: L.axes()
             True
 
         But we turn them off, and verify that they are off
+
+        ::
+
             sage: L.axes(False)
             sage: L.axes()
             False
 
         Displaying L now shows a triangle but no axes.
+
+        ::
+
             sage: L
         """
         if show is None:
@@ -517,21 +610,34 @@ class Graphics(SageObject):
         If called with no input, return the current axes_color setting.
 
         INPUT:
-            c -- an rgb color 3-tuple, where each tuple entry is a
-                 float between 0 and 1
 
-        EXAMPLES:
-        We create a line, which has like everything a default axes color of black.
+
+        -  ``c`` - an rgb color 3-tuple, where each tuple entry
+           is a float between 0 and 1
+
+
+        EXAMPLES: We create a line, which has like everything a default
+        axes color of black.
+
+        ::
+
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
             sage: L.axes_color()
             (0, 0, 0)
 
         We change the axes color to red and verify the change.
+
+        ::
+
             sage: L.axes_color((1,0,0))
             sage: L.axes_color()
             (1.0, 0.0, 0.0)
 
-        When we display the plot, we'll see a blue triangle and bright red axes.
+        When we display the plot, we'll see a blue triangle and bright red
+        axes.
+
+        ::
+
             sage: L
         """
         if c is None:
@@ -548,23 +654,29 @@ class Graphics(SageObject):
         Set the axes labels.
 
         INPUT:
-            l -- (default: None) a list of two strings or None
 
-        OUTPUT:
-            a 2-tuple of strings
 
-        If l is None, returns the current \code{axes_labels}, which is
-        itself by default None.  The default
-        labels are both empty.
+        -  ``l`` - (default: None) a list of two strings or
+           None
 
-        EXAMPLES:
-        We create a plot and put x and y axes labels on it.
+
+        OUTPUT: a 2-tuple of strings
+
+        If l is None, returns the current ``axes_labels``,
+        which is itself by default None. The default labels are both
+        empty.
+
+        EXAMPLES: We create a plot and put x and y axes labels on it.
+
+        ::
+
             sage: p = plot(sin(x), (x, 0, 10))
             sage: p.axes_labels(['x','y'])
             sage: p.axes_labels()
             ('x', 'y')
 
-        Now when you plot p, you see x and y axes labels:
+        Now when you plot p, you see x and y axes labels::
+
             sage: p
         """
         if l is None:
@@ -583,31 +695,43 @@ class Graphics(SageObject):
         r"""
         Set the color of the axes labels.
 
-        The axes labels are placed at the edge of the x and y axes,
-        and are not on by default (use the \code{axes_labels} command
-        to set them; see the example below).  This function just changes
-        their color.
+        The axes labels are placed at the edge of the x and y axes, and are
+        not on by default (use the ``axes_labels`` command to
+        set them; see the example below). This function just changes their
+        color.
 
         INPUT:
-            c -- an rgb 3-tuple of numbers between 0 and 1
 
-        If called with no input, return the current axes_label_color setting.
 
-        EXAMPLES:
-        We create a plot, which by default has axes label color black.
+        -  ``c`` - an rgb 3-tuple of numbers between 0 and 1
+
+
+        If called with no input, return the current axes_label_color
+        setting.
+
+        EXAMPLES: We create a plot, which by default has axes label color
+        black.
+
+        ::
+
             sage: p = plot(sin, (-1,1))
             sage: p.axes_label_color()
             (0, 0, 0)
 
-        We change the labels to be red, and confirm this:
+        We change the labels to be red, and confirm this::
+
             sage: p.axes_label_color((1,0,0))
             sage: p.axes_label_color()
             (1.0, 0.0, 0.0)
 
         We set labels, since otherwise we won't see anything.
+
+        ::
+
             sage: p.axes_labels(['$x$ axis', '$y$ axis'])
 
-        In the plot below, notice that the labels are red:
+        In the plot below, notice that the labels are red::
+
             sage: p
         """
         if c is None:
@@ -621,17 +745,23 @@ class Graphics(SageObject):
 
     def axes_width(self, w=None):
         r"""
-        Set the axes width.  Use this to draw a plot with really fat
-        or really thin axes.
+        Set the axes width. Use this to draw a plot with really fat or
+        really thin axes.
 
         INPUT:
-            w -- a float
 
-        If called with no input, return the current \code{axes_width} setting.
 
-        EXAMPLE:
-        We create a plot, see the default axes width (with funny Python float rounding),
-        then reset the width to 10 (very fat).
+        -  ``w`` - a float
+
+
+        If called with no input, return the current
+        ``axes_width`` setting.
+
+        EXAMPLE: We create a plot, see the default axes width (with funny
+        Python float rounding), then reset the width to 10 (very fat).
+
+        ::
+
             sage: p = plot(cos, (-3,3))
             sage: p.axes_width()
             0.80000000000000004
@@ -640,6 +770,9 @@ class Graphics(SageObject):
             10.0
 
         Finally we plot the result, which is a graph with very fat axes.
+
+        ::
+
             sage: p
         """
         if w is None:
@@ -655,11 +788,16 @@ class Graphics(SageObject):
         Set the color of the axes tick labels.
 
         INPUT:
-            c -- an rgb 3-tuple of numbers between 0 and 1
 
-        If called with no input, return the current tick_label_color setting.
 
-        EXAMPLES:
+        -  ``c`` - an rgb 3-tuple of numbers between 0 and 1
+
+
+        If called with no input, return the current tick_label_color
+        setting.
+
+        EXAMPLES::
+
             sage: p = plot(cos, (-3,3))
             sage: p.tick_label_color()
             (0, 0, 0)
@@ -680,34 +818,43 @@ class Graphics(SageObject):
         r"""
         Show this graphics objects.
 
-        If the \code{show_default} function has been called with True
-        (the default), then you'll see this graphics object displayed.
+        If the ``show_default`` function has been called with
+        True (the default), then you'll see this graphics object displayed.
         Otherwise you'll see a text representation of it.
 
-        EXAMPLES:
-        We create a plot and call \code{_repr_} on it, which causes it
-        to be displayed as a plot:
+        EXAMPLES: We create a plot and call ``_repr_`` on it,
+        which causes it to be displayed as a plot::
+
             sage: P = plot(cos, (-1,1))
             sage: P._repr_()
             ''
 
-        Just doing this also displays the plot:
+        Just doing this also displays the plot::
+
             sage: P
 
-        Note that printing P with the \code{print} statement does not display the plot:
+        Note that printing P with the ``print`` statement does
+        not display the plot::
+
             sage: print P
             Graphics object consisting of 1 graphics primitive
 
-        Now we turn off showing plots by default:
+        Now we turn off showing plots by default::
+
             sage: show_default(False)
 
-        Now we just get a string.  To show P you would have to do \code{show(P)}.
+        Now we just get a string. To show P you would have to do
+        ``show(P)``.
+
+        ::
+
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
             sage: P
             Graphics object consisting of 1 graphics primitive
 
-        Finally, we turn \code{show_default} back on:
+        Finally, we turn ``show_default`` back on::
+
             sage: show_default(True)
         """
         if SHOW_DEFAULT:
@@ -720,29 +867,37 @@ class Graphics(SageObject):
         r"""
         Return string representation of this plot.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = circle((0,0), 2); S.__str__()
             'Graphics object consisting of 1 graphics primitive'
             sage: print S
             Graphics object consisting of 1 graphics primitive
 
-        WARNING: \code{__str__} is not called when printing lists of graphics
-        objects, which can be confusing, since they will all pop up.  One
-        workaround is to call \code{show_default}:
+        .. warning::
 
-        For example, below when we do \code{print v} two plots are displayed:
+           ``__str__`` is not called when printing lists of graphics
+           objects, which can be confusing, since they will all pop
+           up. One workaround is to call ``show_default``:
+
+        For example, below when we do ``print v`` two plots are
+        displayed::
+
             sage: v = [circle((0,0), 2), circle((2,3), 1)]
             sage: print v
             [, ]
 
-        However, if we call \code{show_default} then we see the text representations
-        of the graphics:
+        However, if we call ``show_default`` then we see the
+        text representations of the graphics::
+
             sage: show_default(False)
             sage: print v
             [Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive]
             sage: v
             [Graphics object consisting of 1 graphics primitive,
              Graphics object consisting of 1 graphics primitive]
+
+        ::
 
             sage: show_default(True)
         """
@@ -759,7 +914,8 @@ class Graphics(SageObject):
         """
         Returns the ith graphics primitive object:
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: G = circle((1,1),2) + circle((2,2),5); print G
             Graphics object consisting of 2 graphics primitives
             sage: G[1]
@@ -769,11 +925,11 @@ class Graphics(SageObject):
 
     def __len__(self):
         """
-        If G is of type Graphics, then len(G)
-        gives the number of distinct graphics
-        primitives making up that object.
+        If G is of type Graphics, then len(G) gives the number of distinct
+        graphics primitives making up that object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
@@ -783,11 +939,11 @@ class Graphics(SageObject):
 
     def __delitem__(self, i):
         """
-        If G is of type Graphics, then del(G[i])
-        removes the ith distinct graphic
-        primitive making up that object.
+        If G is of type Graphics, then del(G[i]) removes the ith distinct
+        graphic primitive making up that object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
@@ -802,15 +958,20 @@ class Graphics(SageObject):
 
     def __setitem__(self, i, x):
         """
-        You can replace a GraphicPrimitive (point, line, circle, etc...)
-        in a Graphics object G with any other GraphicPrimitive
+        You can replace a GraphicPrimitive (point, line, circle, etc...) in
+        a Graphics object G with any other GraphicPrimitive
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
             Graphics object consisting of 3 graphics primitives
 
+        ::
+
             sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print p
             Graphics object consisting of 1 graphics primitive
+
+        ::
 
             sage: G[1] = p[0]
             sage: G    # show the plot
@@ -824,18 +985,20 @@ class Graphics(SageObject):
         """
         Compute and return other + this graphics object.
 
-        This only works when other is a Python int equal to 0. In all
-        other cases a TypeError is raised.  The main reason for this
-        function is to make suming a list of graphics objects easier.
+        This only works when other is a Python int equal to 0. In all other
+        cases a TypeError is raised. The main reason for this function is
+        to make suming a list of graphics objects easier.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = circle((0,0), 2)
             sage: print int(0) + S
             Graphics object consisting of 1 graphics primitive
             sage: print S + int(0)
             Graphics object consisting of 1 graphics primitive
 
-        The following would fail were it not for this function:
+        The following would fail were it not for this function::
+
             sage: v = [circle((0,0), 2), circle((2,3), 1)]
             sage: print sum(v)
             Graphics object consisting of 2 graphics primitives
@@ -846,16 +1009,17 @@ class Graphics(SageObject):
 
     def __add__(self, other):
         """
-        If you have any Graphics object G1, you can always add any
-        other amount of Graphics objects G2,G3,...  to form a new
-        Graphics object: G4 = G1 + G2 + G3.
+        If you have any Graphics object G1, you can always add any other
+        amount of Graphics objects G2,G3,... to form a new Graphics object:
+        G4 = G1 + G2 + G3.
 
         The xmin, xmax, ymin, and ymax properties of the graphics objects
-        are expanded to include all objects in both scenes.  If the aspect
+        are expanded to include all objects in both scenes. If the aspect
         ratio property of either or both objects are set, then the larger
         aspect ratio is chosen.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5))
             sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), rgbcolor=(1,0,0))
             sage: g1 + g2  # displays the plot
@@ -880,10 +1044,11 @@ class Graphics(SageObject):
 
     def plot(self, *args, **kwds):
         """
-        Draw a 2d plot this graphics object, which just returns this
-        object since this is already a 2d graphics object.
+        Draw a 2d plot this graphics object, which just returns this object
+        since this is already a 2d graphics object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = circle((0,0), 2)
             sage: S.plot() is S
             True
@@ -892,11 +1057,12 @@ class Graphics(SageObject):
 
     def plot3d(self, z=0, **kwds):
         """
-        Returns an embedding of this 2D plot into the xy-plane of 3D space, as
-        a 3D plot object. An optional parameter z can be given to specify the
-        z-coordinate.
+        Returns an embedding of this 2D plot into the xy-plane of 3D space,
+        as a 3D plot object. An optional parameter z can be given to
+        specify the z-coordinate.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)]) #long
         """
         from sage.plot.plot3d.base import Graphics3dGroup
@@ -914,125 +1080,163 @@ class Graphics(SageObject):
         """
         Show this graphics image with the default image viewer.
 
-        OPTIONAL INPUT:
-            filename     -- (default: None) string
-            dpi          -- dots per inch
-            figsize      -- [width, height]
-            aspect_ratio -- the perceived width divided by the
-                            perceived height.  If the aspect ratio is
-                            set to 1, circles will look round.  If it
-                            is set to 2 they will look twice as wide
-                            as they are tall.  This is the
-                            aspect_ratio of the image, not of the
-                            frame that contains it.  If you want to
-                            set the aspect ratio of the frame, use
-                            figsize.
-            axes         -- (default: True)
-            axes_labels  -- (default: None) list (or tuple) of two strings;
-                            the first is used as the label for the horizontal
-                            axis, and the second for the vertical axis.
-            fontsize     -- (default: current setting -- 10) positive
-                            integer; used for axes labels; if you make
-                            this very large, you may have to increase
-                            figsize to see all labels.
-            frame        -- (default: False) draw a frame around the image
-            gridlines    -- (default: None) can be any of the following:
-                            1. None, False: do not add grid lines.
-                            2. True, "automatic", "major": add grid lines
-                               at major ticks of the axes.
-                            3. "minor": add grid at major and minor ticks.
-                            4. [xlist,ylist]: a tuple or list containing
-                               two elements, where xlist (or ylist) can be
-                               any of the following.
-                               4a. None, False: don't add horizontal (or
-                                   vertical) lines.
-                               4b. True, "automatic", "major": add
-                                   horizontal (or vertical) grid lines at
-                                   the major ticks of the axes.
-                               4c. "minor": add horizontal (or vertical)
-                                   grid lines at major and minor ticks of
-                                   axes.
-                               4d. an iterable yielding numbers n or pairs
-                                   (n,opts), where n is the coordinate of
-                                   the line and opt is a dictionary of
-                                   MATPLOTLIB options for rendering the
-                                   line.
-            gridlinesstyle,
-            hgridlinesstyle,
-            vgridlinesstyle
-                         -- (default: None) a dictionary of MATPLOTLIB
-                            options for the rendering of the grid lines,
-                            the horizontal grid lines or the vertical grid
-                            lines, respectively.
+       OPTIONAL INPUT:
 
-        EXAMPLES:
+       - ``filename`` - (default: None) string
+
+       - ``dpi`` - dots per inch
+
+       - ``figsize`` - [width, height]
+
+       - ``aspect_ratio`` - the perceived width divided by the
+         perceived height.  If the aspect ratio is set to 1, circles
+         will look round.  If it is set to 2 they will look twice as
+         wide as they are tall.  This is the aspect_ratio of the
+         image, not of the frame that contains it.  If you want to set
+         the aspect ratio of the frame, use figsize.
+
+       - ``axes`` - (default: True)
+
+       - ``axes_labels`` - (default: None) list (or tuple) of two
+         strings; the first is used as the label for the horizontal
+         axis, and the second for the vertical axis.
+
+       - ``fontsize`` - (default: current setting -- 10) positive
+         integer; used for axes labels; if you make this very large,
+         you may have to increase figsize to see all labels.
+
+       - ``frame`` - (default: False) draw a frame around the image
+
+       - ``gridlines`` - (default: None) can be any of the following:
+
+         -  None, False: do not add grid lines.
+
+         - True, "automatic", "major": add grid lines at major ticks of the axes.
+
+         - "minor": add grid at major and minor ticks.
+
+         - [xlist,ylist]: a tuple or list containing
+           two elements, where xlist (or ylist) can be
+           any of the following.
+
+
+           - None, False: don't add horizontal (or vertical) lines.
+
+           - True, "automatic", "major": add horizontal (or vertical) grid lines at
+             the major ticks of the axes.
+
+           - "minor": add horizontal (or vertical) grid lines at major and minor ticks of
+             axes.
+
+           - an iterable yielding numbers n or pairs (n,opts), where n
+             is the coordinate of the line and opt is a dictionary of
+             MATPLOTLIB options for rendering the line.
+
+
+       - ``gridlinesstyle, hgridlinesstyle, vgridlinesstyle`` -
+         (default: None) a dictionary of MATPLOTLIB options for the
+         rendering of the grid lines, the horizontal grid lines or the
+         vertical grid lines, respectively.
+
+        EXAMPLES::
+
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        To correct the apect ratio of certain graphics, it is necessary
-        to show with a `\code{figsize}' of square dimensions.
+        To correct the apect ratio of certain graphics, it is necessary to
+        show with a '``figsize``' of square dimensions.
+
+        ::
 
             sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        You can turn off the drawing of the axes:
+        You can turn off the drawing of the axes::
 
             sage: show(plot(sin,-4,4), axes=False)
 
-        You can also label the axes:
+        You can also label the axes::
 
             sage: show(plot(sin,-4,4), axes_labels=('x','y'))
 
-        You can turn on the drawing of a frame around the plots:
+        You can turn on the drawing of a frame around the plots::
 
             sage: show(plot(sin,-4,4), frame=True)
 
         Add grid lines at the major ticks of the axes.
+
+        ::
+
             sage: c = circle((0,0), 1)
             sage: c.show(gridlines=True)
             sage: c.show(gridlines="automatic")
             sage: c.show(gridlines="major")
 
         Add grid lines at the major and minor ticks of the axes.
+
+        ::
+
             sage: u,v = var('u v')
             sage: f = exp(-(u^2+v^2))
             sage: p = plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
             sage: p.show(gridlines="minor")
 
         Add only horizontal or vertical grid lines.
+
+        ::
+
             sage: p = plot(sin,-10,20)
             sage: p.show(gridlines=[None, "automatic"])
             sage: p.show(gridlines=["minor", False])
 
         Add grid lines at specific positions (using lists/tuples).
+
+        ::
+
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
             ...             (-2,2), (-2,2), plot_points=1000)
             sage: p.show(gridlines=[[1,0],[-1,0,1]])
 
         Add grid lines at specific positions (using iterators).
+
+        ::
+
             sage: def maple_leaf(t):
             ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
             sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, rgbcolor="red",plot_points=1000) #long
             sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) #long
 
         Add grid lines at specific positions (using functions).
+
+        ::
+
             sage: y = x^5 + 4*x^4 - 10*x^3 - 40*x^2 + 9*x + 36
             sage: p = plot(y, -4.1, 1.1)
             sage: xlines = lambda a,b: [z for z,m in y.roots()]
             sage: p.show(gridlines=[xlines, [0]], frame=True, axes=False)
 
         Change the style of all the grid lines.
+
+        ::
+
             sage: b = bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
             sage: b.show(gridlines=([-1,-0.5,..,4],True), \
             ...     gridlinesstyle=dict(color="blue", linestyle=":"))
 
-        Change the style of the horizontal or vertical grid lines separately.
+        Change the style of the horizontal or vertical grid lines
+        separately.
+
+        ::
+
             sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
             sage: p.show(gridlines=True, \
             ...     hgridlinesstyle=dict(color="orange", linewidth=1.0), \
             ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of each grid line individually.
+
+        ::
+
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
             ...             (-2,2), (-2,2), plot_points=1000)
@@ -1050,11 +1254,17 @@ class Graphics(SageObject):
             ...    gridlinesstyle=dict(marker='x',rgbcolor="black"))
 
         Grid lines can be added to contour plots.
+
+        ::
+
             sage: f = sin(x^2 + y^2)*cos(x)*sin(y)
             sage: c = contour_plot(f, (-4, 4), (-4, 4), plot_points=100)
             sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'rgbcolor':'red'})
 
         Grid lines can be added to matrix plots.
+
+        ::
+
             sage: M = MatrixSpace(QQ,10).random_element()
             sage: matrix_plot(M).show(gridlines=True)
         """
@@ -1089,7 +1299,8 @@ class Graphics(SageObject):
 
     def xmin(self, xmin=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = line([(-1,1), (3,2)])
             sage: g.xmin()
             -1.0
@@ -1104,7 +1315,8 @@ class Graphics(SageObject):
 
     def xmax(self, xmax=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = line([(-1,1), (3,2)])
             sage: g.xmax()
             3.0
@@ -1119,7 +1331,8 @@ class Graphics(SageObject):
 
     def ymin(self, ymin=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = line([(-1,1), (3,2)])
             sage: g.ymin()
             1.0
@@ -1134,7 +1347,8 @@ class Graphics(SageObject):
 
     def ymax(self, ymax=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = line([(-1,1), (3,2)])
             sage: g.ymax()
             2.0
@@ -1153,17 +1367,22 @@ class Graphics(SageObject):
         Return a dictionary whose keys give the xmin, xmax, ymin, and ymax
         data for this graphic.
 
-        WARNING: The returned dictionary is mutable, but changing it does
-        not change the xmin/xmax/ymin/ymax data.  The minmax data is a function
-        of the primitives which make up this Graphics object.  To change the
-        range of the axes, call methods xmin, xmax, ymin, ymax, or set_axes_range.
+        .. warning::
 
-        EXAMPLES:
+           The returned dictionary is mutable, but changing it does
+           not change the xmin/xmax/ymin/ymax data.  The minmax data is a function
+           of the primitives which make up this Graphics object.  To change the
+           range of the axes, call methods :meth:`xmin`, :meth:`xmax`,
+           :meth:`ymin`, :meth:`ymax`, or :meth:`set_axes_range`.
+
+        EXAMPLES::
+
             sage: g = line([(-1,1), (3,2)])
             sage: list(sorted(g.get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
 
-        Note that changing ymax doesn't change the output of get_minmax_data:
+        Note that changing ymax doesn't change the output of get_minmax_data::
+
             sage: g.ymax(10)
             sage: list(sorted(g.get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
@@ -1194,22 +1413,27 @@ class Graphics(SageObject):
              gridlines=None, gridlinesstyle=None,
              vgridlinesstyle=None, hgridlinesstyle=None):
         r"""
-        Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
-        depending on the file extension you give the filename.
-            Extension types can be: \file{.png}, \file{.ps}, \file{.eps}, \file{.svg},
-            and \file{.sobj} (for a \sage object you can load later).
+        Save the graphics to an image file of type: PNG, PS, EPS, SVG,
+        SOBJ, depending on the file extension you give the filename.
+        Extension types can be: ``.png``, ``.ps``,
+        ``.eps``, ``.svg``, and
+        ``.sobj`` (for a Sage object you can load later).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = circle((1,1),1,rgbcolor=(1,0,0))
             sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
-            To correct the apect ratio of certain graphics, it is necessary
-            to show with a '\code{figsize}' of square dimensions.
+        To correct the apect ratio of certain graphics, it is necessary to
+        show with a '``figsize``' of square dimensions.
+
+        ::
 
             sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
-            sage: point((-1,1),pointsize=30, rgbcolor=(1,0,0))
+        ::
 
+            sage: point((-1,1),pointsize=30, rgbcolor=(1,0,0))
         """
         self.set_axes_range(xmin, xmax, ymin, ymax)
         d = self.get_axes_range()
@@ -1374,15 +1598,14 @@ class Graphics(SageObject):
 
 def xydata_from_point_list(points):
     r"""
-    Returns two lists (xdata, ydata), each coerced to a list of
-    floats, which correspond to the x-coordinates and the
-    y-coordinates of the points.
+    Returns two lists (xdata, ydata), each coerced to a list of floats,
+    which correspond to the x-coordinates and the y-coordinates of the
+    points.
 
     The points parameter can be a list of 2-tuples or some object that
     yields a list of one or two numbers.
 
     This function can potentially be very slow for large point sets.
-
     """
     if not isinstance(points, (list,tuple)):
         try:
@@ -1411,89 +1634,110 @@ def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
 
-        \code{plot(X, ...)}
+    ``plot(X, ...)``
 
-    where $X$ is a \sage object (or list of \sage objects) that either is
-    callable and returns numbers that can be coerced to floats, or has
-    a plot method that returns a \class{GraphicPrimitive} object.
+    where `X` is a Sage object (or list of Sage objects) that
+    either is callable and returns numbers that can be coerced to
+    floats, or has a plot method that returns a
+    ``GraphicPrimitive`` object.
 
-    Type \code{plot.options} for a dictionary of the default
-    options for plots.  You can change this to change
-    the defaults for all future plots.  Use \code{plot.reset()}
-    to reset to the default options.
+    Type ``plot.options`` for a dictionary of the default
+    options for plots. You can change this to change the defaults for
+    all future plots. Use ``plot.reset()`` to reset to the
+    default options.
 
     PLOT OPTIONS:
-    The plot options are
-        plot_points -- (default: 200) the number of points to initially plot
-                       before the adaptive refinement.
-        adaptive_recursion -- (default: 5) how many levels of recursion to go
-                              before giving up when doing adaptive refinement.
-                              Setting this to 0 disables adaptive refinement.
-        adaptive_tolerance -- (default: 0.01) how large a difference should be
-                              before the adaptive refinement code considers it
-                              significant.  Use a smaller value for smoother
-                              plots and a larger value for coarser plots.  In
-                              general, adjust adaptive_recursion before
-                              adaptive_tolerance, and consult the code of
-                              adaptive_refinement for the details.
 
-        xmin -- starting x value
-        xmax -- ending x value
-        color -- an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1, or
-                 a color name as a string (e.g., 'purple'), or an HTML
-                 color such as '\#aaff0b'.
+    - ``plot_points`` - (default: 5) the minimal number of plot points.
+
+    - ``adaptive_recursion`` - (default: 5) how many levels of recursion to go
+      before giving up when doing adaptive refinement.  Setting this to 0
+      disables adaptive refinement.
+
+    - ``adaptive_tolerance`` - (default: 0.01) how large a difference should be
+      before the adaptive refinement code considers
+      it significant.  See the documentation for
+      plot() for more information.
+
+    - ``xmin`` - starting x value
+
+    - ``xmax`` - ending x value
+
+    - ``color`` - an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1,
+      or a color name as a string (e.g., 'purple'), or an HTML color
+      such as '#aaff0b'.
 
     APPEARANCE OPTIONS:
-    The following options affect the appearance of the line through the points
-    on the graph of $X$ (these are the same as for the line function):
+
+    The following options affect the appearance of
+    the line through the points on the graph of `X` (these are
+    the same as for the line function):
 
     INPUT:
-        alpha -- How transparent the line is
-        thickness -- How thick the line is
-        rgbcolor -- The color as an rgb tuple
-        hue -- The color given as a hue
-        Any MATPLOTLIB line option may also be passed in.  E.g.,
-        linestyle -- The style of the line, which is one of
-                  '--' (dashed), '-.' (dash dot), '-' (solid),
-                  'steps', ':' (dotted)
-        marker  -- "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
-                   '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
-                   '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
-                   '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
-                   'D' (diamond), 'H' (hexagon2), '_' (hline), '\^' (triangle_up),
-                   'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
-                   's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
-       markersize -- the size of the marker in points
-       markeredgecolor -- the markerfacecolor can be any color arg
-       markeredgewidth -- the size of the marker edge in points
+
+    - ``alpha`` - How transparent the line is
+
+    - ``thickness`` - How thick the line is
+
+    - ``rgbcolor`` - The color as an rgb tuple
+
+    - ``hue`` - The color given as a hue
+
+    Any MATPLOTLIB line option may also be passed in.  E.g.,
+
+    - ``linestyle`` - The style of the line, which is one of
+      '--' (dashed), '-.' (dash dot), '-' (solid),
+      'steps', ':' (dotted)
+
+    - ``marker``  - "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
+      '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
+      '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
+      '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
+      'D' (diamond), 'H' (hexagon2), '_' (hline), '\^' (triangle_up),
+      'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
+      's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+
+    - ``markersize`` - the size of the marker in points
+
+    - ``markeredgecolor`` - the markerfacecolor can be any color arg
+
+    - ``markeredgewidth`` - the size of the marker edge in points
 
     FILLING OPTIONS:
     INPUT:
-        fill -- (Default: None)
-                one of:
-                - "axis" or True: Fill the area between the function and the x-axis.
-                - "min": Fill the area between the function and its minimal value.
-                - "max": Fill the area between the function and its maximal value.
-                - a number c: Fill the area between the function and the horizontal line y = c.
-                - a function g: Fill the area between the function that is plotted and g.
-                - a dictonary d (only if a list of functions are plotted):
-                    The keys of the dictionary should be integers.
-                    The value of d[i] specifies the fill options for the i-th function in the list.
-                    If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
 
-        fillcolor -- (default: 'automatic') The color of the fill.
-                     Either 'automatic' or a color.
-        fillalpha -- (default: 0.5) How transparent the fill is.
-                     A number between 0 and 1.
+
+    - ``fill`` - (Default: None) One of:
+
+      - "axis" or True: Fill the area between the function and the x-axis.
+
+      - "min": Fill the area between the function and its minimal value.
+
+      - "max": Fill the area between the function and its maximal value.
+
+      - a number c: Fill the area between the function and the horizontal line y = c.
+
+      - a function g: Fill the area between the function that is plotted and g.
+
+      - a dictonary d (only if a list of functions are plotted):
+        The keys of the dictionary should be integers.
+        The value of d[i] specifies the fill options for the i-th function in the list.
+        If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
+
+    - ``fillcolor`` - (default: 'automatic') The color of the fill.
+      Either 'automatic' or a color.
+
+    - ``fillalpha`` - (default: 0.5) How transparent the fill is.
+      A number between 0 and 1.
 
     Note that this function does NOT simply sample equally spaced
-    points between xmin and xmax.  Instead it computes equally spaced
-    points and add small perturbations to them.  This reduces the
-    possibility of, e.g., sampling sin only at multiples of $2\pi$,
-    which would yield a very misleading graph.
+    points between xmin and xmax. Instead it computes equally spaced
+    points and add small perturbations to them. This reduces the
+    possibility of, e.g., sampling sin only at multiples of
+    `2\pi`, which would yield a very misleading graph.
 
-    EXAMPLES:
-    We plot the sin function:
+    EXAMPLES: We plot the sin function::
+
         sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
@@ -1502,39 +1746,49 @@ def plot(funcs, *args, **kwds):
         225
         sage: P          # render
 
+    ::
+
         sage: P = plot(sin, (0,10), plot_points=10); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
         32
         sage: P          # render
 
-    We plot with randomize=False, which makes the initial sample
-    points evenly spaced (hence always the same).  Adaptive plotting
-    might insert other points, however, unless adaptive_recursion=0.
+    We plot with randomize=False, which makes the initial sample points
+    evenly spaced (hence always the same). Adaptive plotting might
+    insert other points, however, unless adaptive_recursion=0.
+
+    ::
+
         sage: p=plot(1, (x,0,3), plot_points=4, randomize=False, adaptive_recursion=0)
         sage: list(p[0])
         [(0.0, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 1.0)]
 
-    Some colored functions:
+    Some colored functions::
 
         sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
         sage: plot(sin, 0, 10, rgbcolor='purple')
 
-    We plot several functions together by passing a list
-    of functions as input:
+    We plot several functions together by passing a list of functions
+    as input::
+
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
+    The function `\sin(1/x)` wiggles wildly near `0`.
+    Sage adapts to this and plots extra points near the origin.
 
-    The function $\sin(1/x)$ wiggles wildly near $0$.  Sage adapts
-    to this and plots extra points near the origin.
+    ::
+
         sage: plot(sin(1/x), (x, -1, 1))
 
     Note that the independent variable may be omitted if there is no
-    ambiguity:
+    ambiguity::
+
         sage: plot(sin(1/x), (-1, 1))
 
-    The algorithm used to insert extra points is actually pretty simple. On
-    the picture drawn by the lines below:
+    The algorithm used to insert extra points is actually pretty
+    simple. On the picture drawn by the lines below::
+
         sage: p = plot(x^2, (-0.5, 1.4)) + line([(0,0), (1,1)], rgbcolor='green')
         sage: p += line([(0.5, 0.5), (0.5, 0.5^2)], rgbcolor='purple')
         sage: p += point(((0, 0), (0.5, 0.5), (0.5, 0.5^2), (1, 1)), rgbcolor='red', pointsize=20)
@@ -1544,44 +1798,58 @@ def plot(funcs, *args, **kwds):
         sage: p += text('D', (0.53, 0.18), rgbcolor='red')
         sage: p.show(axes=False, xmin=-0.5, xmax=1.4, ymin=0, ymax=2)
 
-    You have the function (in blue) and its approximation (in green) passing
-    through the points A and B. The algorithm finds the midpoint C of AB and
-    computes the distance between C and D. The point D is added to the curve if
-    it exceeds the (nonzero) adaptive_tolerance threshold. If D is added to
-    the curve, then the algorithm is applied recursively to the points A and D,
-    and D and B. It is repeated adaptive_recursion times (10, by default).
+    You have the function (in blue) and its approximation (in green)
+    passing through the points A and B. The algorithm finds the
+    midpoint C of AB and computes the distance between C and D. The
+    point D is added to the curve if it exceeds the (nonzero)
+    adaptive_tolerance threshold. If D is added to the curve, then the
+    algorithm is applied recursively to the points A and D, and D and
+    B. It is repeated adaptive_recursion times (10, by default).
 
     The actual sample points are slightly randomized, so the above
     plots may look slightly different each time you draw them.
 
-    We draw the graph of an elliptic curve as the union
-    of graphs of 2 functions.
+    We draw the graph of an elliptic curve as the union of graphs of 2
+    functions.
+
+    ::
+
         sage: def h1(x): return abs(sqrt(x^3  - 1))
         sage: def h2(x): return -abs(sqrt(x^3  - 1))
         sage: P = plot([h1, h2], 1,4)
         sage: P          # show the result
 
-    We can also directly plot the elliptic curve:
+    We can also directly plot the elliptic curve::
+
         sage: E = EllipticCurve([0,-1])
         sage: plot(E, (1, 4), rgbcolor=hue(0.6))
 
-    We can change the line style to one of '--' (dashed), '-.' (dash dot),
-    '-' (solid), 'steps', ':' (dotted):
+    We can change the line style to one of '-' (dashed), '-.' (dash
+    dot), '-' (solid), 'steps', ':' (dotted)::
+
         sage: plot(sin(x), 0, 10, linestyle='-.')
 
     Sage currently ignores points that cannot be evaluated
+
+    ::
+
         sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
 
-    This prints out a warning and plots where it can (we turn off the warning by setting
-    the verbose mode temporarily to -1.)
+    This prints out a warning and plots where it can (we turn off the
+    warning by setting the verbose mode temporarily to -1.)
+
+    ::
+
         sage: set_verbose(-1)
         sage: plot(x^(1/3), (x,-1,1))
         sage: set_verbose(0)
 
-    To plot the negative real cube root, use something like the following.
+    To plot the negative real cube root, use something like the following::
+
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
 
-    The basic options for filling a plot:
+    The basic options for filling a plot::
+
         sage: p1 = plot(sin(x), -pi, pi, fill = 'axis')
         sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
         sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
@@ -1590,10 +1858,12 @@ def plot(funcs, *args, **kwds):
 
         sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
 
-    A example about the growth of prime numbers:
+    A example about the growth of prime numbers::
+
         sage: plot(1.13*log(x), 1, 100, fill = lambda x: nth_prime(x)/floor(x), fillcolor = 'red')
 
-    Fill the area between a function and its asymptote:
+    Fill the area between a function and its asymptote::
+
         sage: f = (2*x^3+2*x-1)/((x-2)*(x+1))
         sage: plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
 
@@ -1604,7 +1874,9 @@ def plot(funcs, *args, **kwds):
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
 
     TESTS:
-    We do not randomize the endpoints:
+
+    We do not randomize the endpoints::
+
         sage: p = plot(x, (x,-1,1))
         sage: p[0].xdata[0] == -1
         True
@@ -1614,15 +1886,20 @@ def plot(funcs, *args, **kwds):
     We check to make sure that the x/y min/max data get set correctly
     when there are multiple functions.
 
+    ::
+
         sage: d = plot([sin(x), cos(x)], 100, 120).get_minmax_data()
         sage: d['xmin']
         100.0
         sage: d['xmax']
         120.0
 
-    We check various combinations of tuples and functions, ending
-    with tests that lambda functions work properly with
-    explicit variable declaration, without a tuple.
+    We check various combinations of tuples and functions, ending with
+    tests that lambda functions work properly with explicit variable
+    declaration, without a tuple.
+
+    ::
+
         sage: p = plot(lambda x: x,(x,-1,1))
         sage: p = plot(lambda x: x,-1,1)
         sage: p = plot(x,x,-1,1)
@@ -1635,12 +1912,16 @@ def plot(funcs, *args, **kwds):
         sage: f(x) = sin(x+3)-.1*x^3
         sage: p = plot(lambda x: f(x),x,-1,1)
 
-    We check to handle cases where the function gets evaluated at a point
-    which causes an 'inf' or '-inf' result to be produced.
+    We check to handle cases where the function gets evaluated at a
+    point which causes an 'inf' or '-inf' result to be produced.
+
+    ::
+
         sage: p = plot(1/x, 0, 1)
         sage: p = plot(-1/x, 0, 1)
 
-    Bad options now give better errors:
+    Bad options now give better errors::
+
         sage: P = plot(sin(1/x), (x,-1,3), foo=10)
         Traceback (most recent call last):
         ...
@@ -1829,10 +2110,11 @@ def _plot(funcs, xrange, parametric=False,
 
 def parametric_plot(funcs, *args, **kwargs):
     r"""
-    \code{parametric_plot} takes two or three functions as a list or a
-    tuple and makes a plot with the first function giving the $x$
-    coordinates, the second function giving the $y$ coordinates, and the
-    third function (if present) giving the $z$ coordinates.
+    ``parametric_plot`` takes two or three functions as a
+    list or a tuple and makes a plot with the first function giving the
+    `x` coordinates, the second function giving the `y`
+    coordinates, and the third function (if present) giving the
+    `z` coordinates.
 
     In the 2d case, parametric_plot is equivalent to the plot command
     with the option parametric=True.  In the 3d case, parametric_plot
@@ -1840,28 +2122,36 @@ def parametric_plot(funcs, *args, **kwargs):
     for more help and examples.
 
     INPUT:
-        funcs -- 2 or 3-tuple of functions
-        other options -- passed to plot or parametric_plot3d.
 
-    EXAMPLES:
-    We draw some 2d parametric plots:
+
+    -  ``funcs`` - 2 or 3-tuple of functions
+
+    -  ``other options`` - passed to plot or parametric_plot3d
+
+
+    EXAMPLES: We draw some 2d parametric plots::
+
         sage: t = var('t')
         sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), rgbcolor=hue(0.6) )
         sage: parametric_plot((1, t), (t, 0, 4))
 
     Note that in parametric_plot, there is only fill or no fill.
+
+    ::
+
         sage: parametric_plot((t, t^2), (t, -4, 4), fill = True)
 
-    A filled Hypotrochoid:
+    A filled Hypotrochoid::
+
         sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], 0, 8*pi, fill = True)
 
-    We draw some 3d parametric plots:
         sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
 
         sage: y=var('y')
         sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
 
-    TESTS:
+    TESTS::
+
         sage: parametric_plot((x, t^2), (x, -4, 4))
         Traceback (most recent call last):
         ...
@@ -1897,37 +2187,47 @@ def parametric_plot(funcs, *args, **kwargs):
 
 def polar_plot(funcs, *args, **kwds):
     r"""
-    \code{polar_plot} takes a single function or a list or tuple of functions
-    and plots them with polar coordinates in the given domain.
+    ``polar_plot`` takes a single function or a list or
+    tuple of functions and plots them with polar coordinates in the given
+    domain.
 
     This function is equivalent to the plot command with the option
     polar=True.  For more help on options, see the documentation for
     plot.
 
     INPUT:
-        funcs -- a function
-        other options -- passed to plot
+
+    - ``funcs`` - a function
+    - other options are passed to plot
 
     EXAMPLES:
-    Here is a blue 8-leaved petal:
+
+    Here is a blue 8-leaved petal::
+
         sage: polar_plot(sin(5*x)^2, (x, 0, 2*pi), color='blue')
 
-    A red figure-8:
+    A red figure-8::
+
         sage: polar_plot(abs(sqrt(1 - sin(x)^2)), (x, 0, 2*pi), color='red')
 
-    A green limacon of Pascal:
+    A green limacon of Pascal::
+
         sage: polar_plot(2 + 2*cos(x), (x, 0, 2*pi), rgbcolor=hue(0.3))
 
-    Several polar plots:
+    Several polar plots::
+
         sage: polar_plot([2*sin(x), 2*cos(x)], (x, 0, 2*pi))
 
-    A filled spiral:
+    A filled spiral::
+
         sage: polar_plot(sqrt, 0, 2 * pi, fill = True)
 
-    Fill the area between two functions:
+    Fill the area between two functions::
+
         sage: polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange').show(aspect_ratio=1)
 
-    Fill the area between several spirals:
+    Fill the area between several spirals::
+
         sage: polar_plot([(1.2+k*0.2)*log(x) for k in range(6)], 1, 3 * pi, fill = {0: [1], 2: [3], 4: [5]})
     """
     kwds['polar']=True
@@ -1935,33 +2235,39 @@ def polar_plot(funcs, *args, **kwds):
 
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    \code{list_plot} takes a single list of data, in which case it forms a
-    list of tuples $(i,di)$ where $i$ goes from 0 to ${\rm len}(data)-1$ and $di$ is
-    the $i$th data value, and puts points at those tuple values.
+    ``list_plot`` takes a single list of data, in which case it forms
+    a list of tuples `(i,di)` where `i` goes from 0 to
+    `{\rm len}(data)-1` and `di` is the `i^{th}` data value, and puts points
+    at those tuple values.
 
-    \code{list_plot} also takes a list of tuples $(dxi, dyi)$ where $dxi$ is the
-    $i$th data representing the $x$-value, and $dyi$ is the $i$th $y$-value.  If
-    \code{plotjoined=True}, then a line spanning all the data is drawn
-    instead.
+    ``list_plot`` also takes a list of tuples `(dxi, dyi)` where `dxi`
+    is the `i^{th}` data representing the `x`-value, and `dyi` is the
+    `i^{th}` `y`-value. If ``plotjoined=True`` , then a line spanning
+    all the data is drawn instead.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: list_plot([i^2 for i in range(5)])
 
-    Here are a bunch of random red points:
+    Here are a bunch of random red points::
+
         sage: r = [(random(),random()) for _ in range(20)]
         sage: list_plot(r,rgbcolor=(1,0,0))
 
-    This gives all the random points joined in a purple line:
+    This gives all the random points joined in a purple line::
+
         sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
 
     TESTS:
     We check to see that the x/y min/max data are set correctly.
+
+    ::
+
         sage: d = list_plot([(100,100), (120, 120)]).get_minmax_data()
         sage: d['xmin']
         100.0
         sage: d['ymin']
         100.0
-
     """
     from sage.plot.all import line, point
     if not isinstance(data[0], (list, tuple)):
@@ -1978,7 +2284,8 @@ def to_float_list(v):
     Given a list or tuple or iterable v, coerce each element of v to a
     float and make a list out of the result.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot import to_float_list
         sage: to_float_list([1,1/2,3])
         [1.0, 0.5, 3.0]
@@ -1988,28 +2295,31 @@ def to_float_list(v):
 
 def hue(h, s=1, v=1):
     """
-      hue(h,s=1,v=1) where 'h' stands for hue,
-      's' stands for saturation, 'v' stands for value.
-      hue returns a tuple of rgb intensities (r, g, b)
-      All values are in the range 0 to 1.
+    hue(h,s=1,v=1) where 'h' stands for hue, 's' stands for saturation,
+    'v' stands for value. hue returns a tuple of rgb intensities (r, g,
+    b) All values are in the range 0 to 1.
 
-      INPUT:
-         h, s, v -- real numbers between 0 and 1.  Note that
-                    if any are not in this range they are automatically
-                    normalized to be in this range by reducing them
-                    modulo 1.
-      OUTPUT:
-         A valid RGB tuple.
+    INPUT:
 
-      EXAMPLES:
+
+    -  ``h, s, v`` - real numbers between 0 and 1. Note
+       that if any are not in this range they are automatically normalized
+       to be in this range by reducing them modulo 1.
+
+
+    OUTPUT: A valid RGB tuple.
+
+    EXAMPLES::
+
         sage: hue(0.6)
         (0.0, 0.40000000000000036, 1.0)
 
-      hue is an easy way of getting a broader
-      range of colors for graphics
+    hue is an easy way of getting a broader range of colors for
+    graphics
+
+    ::
 
         sage: plot(sin, -2, 2, rgbcolor=hue(0.6))
-
     """
     h = float(h); s = float(s); v = float(v)
     if h != 1:
@@ -2029,8 +2339,8 @@ def hue(h, s=1, v=1):
 
 class GraphicsArray(SageObject):
     """
-    GraphicsArray takes a ($m$ x $n$) list of lists of graphics
-    objects and plots them all on one canvas.
+    GraphicsArray takes a (`m` x `n`) list of lists of
+    graphics objects and plots them all on one canvas.
     """
     def __init__(self, array):
         if not isinstance(array, (list, tuple)):
@@ -2092,8 +2402,8 @@ class GraphicsArray(SageObject):
 
     def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, axes=None, **args):
         r"""
-        \code{render} loops over all graphics objects
-        in the array and adds them to the subplot.
+        ``render`` loops over all graphics objects in the array
+        and adds them to the subplot.
         """
         #glist is a list of Graphics objects:
         glist = self._glist
@@ -2115,8 +2425,8 @@ class GraphicsArray(SageObject):
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
              axes = None, **args):
         """
-        save the \code{graphics_array} to
-            (for now) a png called 'filename'.
+        save the ``graphics_array`` to (for now) a png called
+        'filename'.
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
@@ -2127,16 +2437,28 @@ class GraphicsArray(SageObject):
         Show this graphics array using the default viewer.
 
         OPTIONAL INPUT:
-            filename -- (default: None) string
-            dpi -- dots per inch
-            figsize -- [width, height] (same for square aspect)
-            axes -- (default: True)
-            fontsize -- positive integer
-            frame -- (default: False) draw a frame around the image
 
-        EXAMPLES:
-        This draws a graphics array with four trig plots and no axes
-        in any of the plots.
+
+        -  ``filename`` - (default: None) string
+
+        -  ``dpi`` - dots per inch
+
+        -  ``figsize`` - [width, height] (same for square
+           aspect)
+
+        -  ``axes`` - (default: True)
+
+        -  ``fontsize`` - positive integer
+
+        -  ``frame`` - (default: False) draw a frame around the
+           image
+
+
+        EXAMPLES: This draws a graphics array with four trig plots and no
+        axes in any of the plots.
+
+        ::
+
             sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
             sage: G.show(axes=False)
         """
@@ -2184,18 +2506,21 @@ def reshape(v, n, m):
 
 def graphics_array(array, n=None, m=None):
     r"""
-    \code{graphics_array} take a list of lists (or tuples)
-    of graphics objects and plots them all on one canvas (single plot).
+    ``graphics_array`` take a list of lists (or tuples) of
+    graphics objects and plots them all on one canvas (single plot).
 
     INPUT:
-         array -- a list of lists or tuples
-         n, m -- (optional) integers -- if n and m are given then
-                 the input array is flattened and turned into an
-                 n x m array, with blank graphics objects padded
-                 at the end, if necessary.
 
-    EXAMPLE:
-    Make some plots of $\sin$ functions:
+
+    -  ``array`` - a list of lists or tuples
+
+    -  ``n, m`` - (optional) integers - if n and m are
+       given then the input array is flattened and turned into an n x m
+       array, with blank graphics objects padded at the end, if
+       necessary.
+
+
+    EXAMPLE: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
@@ -2205,12 +2530,15 @@ def graphics_array(array, n=None, m=None):
         sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
         sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
 
-    Now make a graphics array out of the plots;
-    then you can type either: \code{ga.show()} or \code{ga.save()}.
+    Now make a graphics array out of the plots; then you can type
+    either: ``ga.show()`` or ``ga.save()``.
+
+    ::
 
         sage: graphics_array(((p1,p2),(p3,p4)))
 
-    Here we give only one row:
+    Here we give only one row::
+
         sage: p1 = plot(sin,-4,4)
         sage: p2 = plot(cos,-4,4)
         sage: g = graphics_array([p1, p2]); print g
@@ -2226,11 +2554,13 @@ def graphics_array(array, n=None, m=None):
 
 def float_to_html(r,g,b):
     """
-    This is a function to present tuples of RGB floats as HTML-happy hex
-    for matplotlib. This may not seem necessary, but there are some odd
-    cases where matplotlib is just plain schizophrenic--for an example, do
+    This is a function to present tuples of RGB floats as HTML-happy
+    hex for matplotlib. This may not seem necessary, but there are some
+    odd cases where matplotlib is just plain schizophrenic-for an
+    example, do
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
         sage: graphs.DodecahedralGraph().show(vertex_colors=vertex_colors)
 
@@ -2250,19 +2580,22 @@ def float_to_html(r,g,b):
 
 def rainbow(n, format='hex'):
     """
-    Given an integer $n$, returns a list of colors, represented in HTML hex,
-    that changes smoothly in hue from one end of the spectrum to the other.
-    Written in order to easily represent vertex partitions on graphs.
+    Given an integer `n`, returns a list of colors, represented
+    in HTML hex, that changes smoothly in hue from one end of the
+    spectrum to the other. Written in order to easily represent vertex
+    partitions on graphs.
 
-    AUTHOR: Robert L. Miller
+    AUTHORS:
 
-    EXAMPLE:
+    - Robert L. Miller
+
+    EXAMPLE::
+
         sage: from sage.plot.plot import rainbow
         sage: rainbow(7)
         ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
         sage: rainbow(7, 'rgbtuple')
         [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.28571428571428581, 1.0, 0.0), (0.0, 1.0, 0.57142857142857162), (0.0, 0.57142857142857162, 1.0), (0.28571428571428559, 0.0, 1.0), (1.0, 0.0, 0.85714285714285676)]
-
     """
     from math import floor
     R = []
@@ -2305,16 +2638,25 @@ def rainbow(n, format='hex'):
 def var_and_list_of_values(v, plot_points):
     """
     INPUT:
-        v -- (v0, v1) or (var, v0, v1); if the former return
-             the range of values between v0 and v1 taking
-             plot_points steps; if var is given, also return var.
-        plot_points -- integer >= 2 (the endpoints)
+
+
+    -  ``v`` - (v0, v1) or (var, v0, v1); if the former
+       return the range of values between v0 and v1 taking plot_points
+       steps; if var is given, also return var.
+
+    -  ``plot_points`` - integer = 2 (the endpoints)
+
 
     OUTPUT:
-        var -- a variable or None
-        list -- a list of floats
 
-    EXAMPLES:
+
+    -  ``var`` - a variable or None
+
+    -  ``list`` - a list of floats
+
+
+    EXAMPLES::
+
         sage: from sage.plot.plot import var_and_list_of_values
         sage: var_and_list_of_values((var('theta'), 2, 5),  5)
         (theta, [2.0, 2.75, 3.5, 4.25, 5.0])
@@ -2351,43 +2693,56 @@ def var_and_list_of_values(v, plot_points):
 
 def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, ymax):
     """
-    Adjust the figsize in case the user also specifies an aspect ratio.
+    Adjust the figsize in case the user also specifies an aspect
+    ratio.
 
-    INPUTS:
-        figsize -- a sequence of two positive real numbers
-        aspect_ratio -- a positive real number
-        xmin, xmax, ymin, ymax -- real numbers
+    INPUTS: figsize - a sequence of two positive real numbers
+    aspect_ratio - a positive real number xmin, xmax, ymin, ymax -
+    real numbers
 
-    EXAMPLES:
-    This function is used mainly internally by plotting code so we explicitly import it:
+    EXAMPLES: This function is used mainly internally by plotting code
+    so we explicitly import it::
+
         sage: from sage.plot.plot import adjust_figsize_for_aspect_ratio
 
-    This returns (5,5), since the requested aspect ratio is 1 and the
-    x and y ranges are the same, so that's the right size rendered
-    image to produce a 1:1 ratio internally.  5 is used instead of 3
-    since the image size is always adjusted to the larger of the
-    figsize dimensions.
+    This returns (5,5), since the requested aspect ratio is 1 and the x
+    and y ranges are the same, so that's the right size rendered image
+    to produce a 1:1 ratio internally. 5 is used instead of 3 since the
+    image size is always adjusted to the larger of the figsize
+    dimensions.
+
+    ::
 
         sage: adjust_figsize_for_aspect_ratio([3,5], 1, 0, 2, 0, 2)
         (5, 5)
 
     Here we give a scalar figsize, which is automatically converted to
-    the figsize \code{(figsize, figsize/golden_ratio)}.
+    the figsize ``(figsize, figsize/golden_ratio)``.
+
+    ::
+
         sage: adjust_figsize_for_aspect_ratio(3, 1, 0, 2, 0, 2)
         (3, 3)
 
     Here we omit the aspect ratio so the figsize is just returned.
+
+    ::
+
         sage: adjust_figsize_for_aspect_ratio([5,6], None, 0, 2, 0, 2)
         [5, 6]
 
     Here we have an aspect ratio of 2, and since the x and y ranges are
-    the same the returned figsize is twice as wide as tall:
+    the same the returned figsize is twice as wide as tall::
+
         sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 2, 0, 2)
         (5, 5/2)
 
-    Here the x range is rather large, so to get an aspect ratio where circles
-    look twice as wide as they are tall, we have to shrink the y size
-    of the image.
+    Here the x range is rather large, so to get an aspect ratio where
+    circles look twice as wide as they are tall, we have to shrink the
+    y size of the image.
+
+    ::
+
         sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
         (5, 1/2)
     """
@@ -2407,19 +2762,34 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
 def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     """
     INPUT:
-        v -- a list of functions
-        xrange -- 2 or 3 tuple (if 3, first is a variable)
-        yrange -- 2 or 3 tuple
-        plot_points -- a positive integer
+
+
+    -  ``v`` - a list of functions
+
+    -  ``xrange`` - 2 or 3 tuple (if 3, first is a
+       variable)
+
+    -  ``yrange`` - 2 or 3 tuple
+
+    -  ``plot_points`` - a positive integer
+
 
     OUTPUT:
-        g -- tuple of fast callable functions
-        xstep -- step size in xdirection
-        ystep -- step size in ydirection
-        xrange -- tuple of 2 floats
-        yrange -- tuple of 2 floats
 
-    EXAMPLES:
+
+    -  ``g`` - tuple of fast callable functions
+
+    -  ``xstep`` - step size in xdirection
+
+    -  ``ystep`` - step size in ydirection
+
+    -  ``xrange`` - tuple of 2 floats
+
+    -  ``yrange`` - tuple of 2 floats
+
+
+    EXAMPLES::
+
         sage: x,y = var('x,y')
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
         ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
@@ -2429,6 +2799,9 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
          (0.0, 3.1415926535897931))
 
     We always plot at least two points; one at the beginning and one at the end of the ranges.
+
+    ::
+
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2+y^2], (x,0,1), (y,-1,1), 1)
         ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
         1.0,
@@ -2473,21 +2846,21 @@ def minmax_data(xdata, ydata, dict=False):
     """
     Returns the minimums and maximums of xdata and ydata.
 
-    If dict is False, then minmax_data returns the tuple
-    (xmin, xmax, ymin, ymax); otherwise, it returns a dictionary
-    whose keys are 'xmin', 'xmax', 'ymin', and 'ymax' and whose
-    values are the corresponding values.
+    If dict is False, then minmax_data returns the tuple (xmin, xmax,
+    ymin, ymax); otherwise, it returns a dictionary whose keys are
+    'xmin', 'xmax', 'ymin', and 'ymax' and whose values are the
+    corresponding values.
 
-    EXAMPLES:
-         sage: from sage.plot.plot import minmax_data
-         sage: minmax_data([], [])
-         (-1, 1, -1, 1)
-         sage: minmax_data([-1, 2], [4, -3])
-         (-1, 2, -3, 4)
-         sage: d = minmax_data([-1, 2], [4, -3], dict=True)
-         sage: list(sorted(d.items()))
-         [('xmax', 2), ('xmin', -1), ('ymax', 4), ('ymin', -3)]
+    EXAMPLES::
 
+        sage: from sage.plot.plot import minmax_data
+        sage: minmax_data([], [])
+        (-1, 1, -1, 1)
+        sage: minmax_data([-1, 2], [4, -3])
+        (-1, 2, -3, 4)
+        sage: d = minmax_data([-1, 2], [4, -3], dict=True)
+        sage: list(sorted(d.items()))
+        [('xmax', 2), ('xmin', -1), ('ymax', 4), ('ymin', -3)]
     """
     xmin = min(xdata) if len(xdata) > 0 else -1
     xmax = max(xdata) if len(xdata) > 0 else 1
@@ -2501,25 +2874,35 @@ def minmax_data(xdata, ydata, dict=False):
 
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
     r"""
-    The adaptive refinement algorithm for plotting a function f. See the
-    docstring for plot for a description of the algorithm.
+    The adaptive refinement algorithm for plotting a function f. See
+    the docstring for plot for a description of the algorithm.
 
     INPUT:
-        f -- a function of one variable
-        p1, p2 -- two points to refine between
-        adaptive_recursion -- (default: 5) how many levels of recursion to go
-                              before giving up when doing adaptive refinement.
-                              Setting this to 0 disables adaptive refinement.
-        adaptive_tolerance -- (default: 0.01) how large a difference should be
-                              before the adaptive refinement code considers
-                              it significant.  See the documentation for
-                              plot() for more information.
+
+
+    -  ``f`` - a function of one variable
+
+    -  ``p1, p2`` - two points to refine between
+
+    -  ``adaptive_recursion`` - (default: 5) how many
+       levels of recursion to go before giving up when doing adaptive
+       refinement. Setting this to 0 disables adaptive refinement.
+
+    -  ``adaptive_tolerance`` - (default: 0.01) how large
+       a difference should be before the adaptive refinement code
+       considers it significant. See the documentation for plot() for more
+       information.
+
 
     OUTPUT:
-        list -- a list of points to insert between p1 and p2 to get
-                a better linear approximation between them
 
-    TESTS:
+
+    -  ``list`` - a list of points to insert between p1 and
+       p2 to get a better linear approximation between them
+
+
+    TESTS::
+
         sage: from sage.plot.plot import adaptive_refinement
         sage: adaptive_refinement(sin, (0,0), (pi,0), adaptive_tolerance=0.01, adaptive_recursion=0)
         []
@@ -2527,7 +2910,8 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         [(0.125*pi, 0.38268343236508978), (0.1875*pi, 0.55557023301960218), (0.25*pi, 0.707106781186547...), (0.3125*pi, 0.831469612302545...), (0.375*pi, 0.92387953251128674), (0.4375*pi, 0.98078528040323043), (0.5*pi, 1.0), (0.5625*pi, 0.98078528040323043), (0.625*pi, 0.92387953251128674), (0.6875*pi, 0.831469612302545...), (0.75*pi, 0.70710678118654757), (0.8125*pi, 0.55557023301960218), (0.875*pi, 0.3826834323650898...)]
 
     This shows that lowering adaptive_tolerance and raising
-    adaptive_recursion both increase the number of subdivision points:
+    adaptive_recursion both increase the number of subdivision
+    points::
 
         sage: x = var('x')
         sage: f = sin(1/x)
@@ -2569,22 +2953,29 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     docstring for plot for a description of the algorithm.
 
     INPUT:
-        f -- a function of one variable
-        p1, p2 -- two points to refine between
-        plot_points        -- (default: 5) the minimal number of plot points.
-        adaptive_recursion -- (default: 5) how many levels of recursion to go
-                              before giving up when doing adaptive refinement.
-                              Setting this to 0 disables adaptive refinement.
-        adaptive_tolerance -- (default: 0.01) how large a difference should be
-                              before the adaptive refinement code considers
-                              it significant.  See the documentation for
-                              plot() for more information.
+
+    - ``f`` - a function of one variable
+
+    - ``p1, p2`` - two points to refine between
+
+    - ``plot_points`` - (default: 5) the minimal number of plot points.
+
+    - ``adaptive_recursion`` - (default: 5) how many levels of recursion to go
+      before giving up when doing adaptive refinement.  Setting this to 0
+      disables adaptive refinement.
+
+    - ``adaptive_tolerance`` - (default: 0.01) how large a difference should be
+      before the adaptive refinement code considers
+      it significant.  See the documentation for
+      plot() for more information.
 
     OUTPUT:
-        list -- a list of points (x, f(x)) in the interval xrange, which aproximate
-                the function f.
 
-    TESTS:
+    - a list of points (x, f(x)) in the interval xrange, which aproximate
+      the function f.
+
+    TESTS::
+
         sage: from sage.plot.plot import generate_plot_points
         sage: generate_plot_points(sin, (0, pi), plot_points=2, adaptive_recursion=0)
         [(0.0, 0.0), (3.1415926535897931, 1.2246...e-16)]
@@ -2608,7 +2999,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         0.3826834323650898...), (3.1415926535897931, 1.2246...e-16)]
 
     This shows that lowering adaptive_tolerance and raising
-    adaptive_recursion both increase the number of subdivision points:
+    adaptive_recursion both increase the number of subdivision points::
 
         sage: x = var('x')
         sage: f = sin(1/x)

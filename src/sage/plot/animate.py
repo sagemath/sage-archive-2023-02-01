@@ -8,7 +8,7 @@
 Animated plots
 
 EXAMPLES:
-We plot a circle shooting up to the right:
+We plot a circle shooting up to the right::
 
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
     ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
@@ -30,14 +30,22 @@ class Animation(SageObject):
     Return an animation of a sequence of plots of objects.
 
     INPUT:
-        v -- list of SAGE objects. These should preferably be graphics
-             objects, but if they aren't then plot is called on them.
-        xmin, xmax, ymin, ymax -- the ranges of the x and y axes.
-        **kwds -- all additional inputs are passed onto the rendering
-              command.  E.g., use figsize to adjust the resolution and
-              aspect ratio.
 
-    EXAMPLES:
+
+    -  ``v`` - list of Sage objects. These should
+       preferably be graphics objects, but if they aren't then plot is
+       called on them.
+
+    -  ``xmin, xmax, ymin, ymax`` - the ranges of the x and
+       y axes.
+
+    -  ``**kwds`` - all additional inputs are passed onto
+       the rendering command. E.g., use figsize to adjust the resolution
+       and aspect ratio.
+
+
+    EXAMPLES::
+
         sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
         ...                xmin=0, xmax=2*pi, figsize=[2,1])
         sage: a
@@ -47,13 +55,16 @@ class Animation(SageObject):
         sage: a.show()          # optional -- requires convert command
         sage: a[:5].show()      # optional
 
-    The \code{show} function takes arguments to specify the delay between
-    frames (measured in hundredths of a second, default value 20) and
-    the number of iterations (default value 0, which means to iterate
-    forever).  To iterate 4 times with half a second between each frame:
+    The ``show`` function takes arguments to specify the
+    delay between frames (measured in hundredths of a second, default
+    value 20) and the number of iterations (default value 0, which
+    means to iterate forever). To iterate 4 times with half a second
+    between each frame::
+
         sage: a.show(delay=50, iterations=4) # optional
 
-    An animation of drawing a parabola:
+    An animation of drawing a parabola::
+
         sage: step = 0.1
         sage: L = Graphics()
         sage: v = []
@@ -64,9 +75,9 @@ class Animation(SageObject):
         sage: a.show() # optional -- requires convert command
         sage: show(L)
 
-    TESTS:
-    This illustrates that ticket \#2066 is fixed (setting axes ranges
-    when an endpoint is 0):
+    TESTS: This illustrates that ticket #2066 is fixed (setting axes
+    ranges when an endpoint is 0)::
+
         sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._Animation__kwds['xmin']
         0
     """
@@ -83,18 +94,18 @@ class Animation(SageObject):
 
     def _combine_kwds(self, *kwds_tuple):
         """
-        Returns a dictionary which is a combination of the all the dictionaries
-        in kwds_tuple.  This also does the appropriate thing for taking the
-        mins and maxes of all of the x/y mins/maxes.
+        Returns a dictionary which is a combination of the all the
+        dictionaries in kwds_tuple. This also does the appropriate thing
+        for taking the mins and maxes of all of the x/y mins/maxes.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([plot(sin, -1,1)], xmin=0, ymin=0)
             sage: kwds1 = {'a':1, 'b':2, 'xmin':2, 'xmax':5}
             sage: kwds2 = {'b':3, 'xmin':0, 'xmax':4}
             sage: kwds = a._combine_kwds(kwds1, kwds2)
             sage: list(sorted(kwds.items()))
             [('a', 1), ('b', 3), ('xmax', 5), ('xmin', 0)]
-
         """
         new_kwds = {}
 
@@ -113,7 +124,8 @@ class Animation(SageObject):
         """
         Get a frame from an animation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([x, x^2, x^3, x^4])
             sage: a[2].show()       # optional -- requires convert command
         """
@@ -123,7 +135,8 @@ class Animation(SageObject):
         """
         Slice this animation returning a subanimation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
             sage: a
@@ -139,7 +152,8 @@ class Animation(SageObject):
         """
         Print representation for an animation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
             sage: a
@@ -151,11 +165,12 @@ class Animation(SageObject):
 
     def __add__(self, other):
         """
-        Add two animations.  This has the effect of
-        superimposing the two animations frame-by-frame.
+        Add two animations. This has the effect of superimposing the two
+        animations frame-by-frame.
 
-        EXAMPLES:
-        We add and multiply two animations.
+        EXAMPLES: We add and multiply two animations.
+
+        ::
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1])
@@ -180,12 +195,13 @@ class Animation(SageObject):
 
     def __mul__(self, other):
         """
-        Multiply two animations.  This has the effect of
-        appending the two animations (the second comes
-        after the first).
+        Multiply two animations. This has the effect of appending the two
+        animations (the second comes after the first).
 
-        EXAMPLES:
-        We add and multiply two animations.
+        EXAMPLES: We add and multiply two animations.
+
+        ::
+
             sage: a = animate([circle((i,0),1,thickness=20*i) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1], axes=False)
             sage: a.show()     # optional -- requires convert command
@@ -204,10 +220,11 @@ class Animation(SageObject):
 
     def png(self, dir=None):
         """
-        Return the absolute path to a temp directory that contains the rendered
-        png's of all the images in this animation.
+        Return the absolute path to a temp directory that contains the
+        rendered png's of all the images in this animation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([plot(x^2 + n) for n in range(4)])
             sage: d = a.png()
             sage: v = os.listdir(d); v.sort(); v
@@ -227,10 +244,11 @@ class Animation(SageObject):
 
     def graphics_array(self, ncols=3):
         """
-        Return a graphics array with the given number of columns
-        with plots of the frames of this animation.
+        Return a graphics array with the given number of columns with plots
+        of the frames of this animation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: v = [E.change_ring(GF(p)).plot(pointsize=30) for p in [97, 101, 103, 107]]
             sage: a = animate(v, xmin=0, ymin=0)
@@ -238,10 +256,14 @@ class Animation(SageObject):
             Animation with 4 frames
             sage: a.show()        # optional -- requires convert command
 
+        ::
+
             sage: g = a.graphics_array()
             sage: print g
             Graphics Array of size 1 x 3
             sage: g.show(figsize=[4,1]) # optional
+
+        ::
 
             sage: g = a.graphics_array(ncols=2)
             sage: print g
@@ -254,25 +276,34 @@ class Animation(SageObject):
 
     def gif(self, delay=20, savefile=None, iterations=0, show_path=False):
         r"""
-        Returns an animated gif composed from rendering the
-        graphics objects in self.
+        Returns an animated gif composed from rendering the graphics
+        objects in self.
 
-        This function will only work if the ImageMagick command line
-        tools package is installed, i.e., you have the ``\code{convert}''
+        This function will only work if the ImageMagick command line tools
+        package is installed, i.e., you have the "``convert``"
         command.
 
         INPUT:
-            delay -- (default: 20) delay in hundredths of a second between frames
-            savefile -- file that the animated gif gets saved to
-            iterations -- integer (default: 0); number of iterations of
-                          animation.  If 0, loop forever.
-            show_path -- boolean (default: False); if True, print the
-                          path to the saved file
 
-        If savefile is not specified: in notebook mode, display the animation;
-        otherwise, save it to a default file name.
 
-        EXAMPLES:
+        -  ``delay`` - (default: 20) delay in hundredths of a
+           second between frames
+
+        -  ``savefile`` - file that the animated gif gets saved
+           to
+
+        -  ``iterations`` - integer (default: 0); number of
+           iterations of animation. If 0, loop forever.
+
+        -  ``show_path`` - boolean (default: False); if True,
+           print the path to the saved file
+
+
+        If savefile is not specified: in notebook mode, display the
+        animation; otherwise, save it to a default file name.
+
+        EXAMPLES::
+
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: a.gif()              # optional -- requires convert command
@@ -281,20 +312,23 @@ class Animation(SageObject):
             sage: a.gif(savefile='my_animation.gif', show_path=True) # optional
             Animation saved to .../my_animation.gif.
 
-        NOTE: If ImageMagick is not installed, you will get an error message
-        like this:
+        .. note::
 
-            /usr/local/share/sage/local/bin/sage-native-execute: 8: convert: not
-            found
+           If ImageMagick is not installed, you will get an error
+           message like this::
 
-            Error: ImageMagick does not appear to be installed. Saving an
-            animation to a GIF file or displaying an animation requires
-            ImageMagick, so please install it and try again.
+              /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
+              not found
 
-            See www.imagemagick.org, for example.
+              Error: ImageMagick does not appear to be installed. Saving an
+              animation to a GIF file or displaying an animation requires
+              ImageMagick, so please install it and try again.
 
-        AUTHOR:
-            -- William Stein
+           See www.imagemagick.org, for example.
+
+        AUTHORS:
+
+        - William Stein
         """
         if not savefile:
             savefile = sage.misc.misc.graphics_filename(ext='gif')
@@ -321,37 +355,48 @@ class Animation(SageObject):
         Show this animation.
 
         INPUT:
-            delay -- (default: 20) delay in hundredths of a second between frames
-            iterations -- integer (default: 0); number of iterations of
-                          animation.  If 0, loop forever.
 
-        NOTES:
-            Currently this is done using an animated gif, though this could
-            change in the future. This requires that the ImageMagick command
-            line tools package be installed, i.e., that you have the
-            ``\code{convert}'' command.
 
-        EXAMPLES:
+        -  ``delay`` - (default: 20) delay in hundredths of a
+           second between frames
+
+        -  ``iterations`` - integer (default: 0); number of
+           iterations of animation. If 0, loop forever.
+
+
+        .. note::
+
+           Currently this is done using an animated gif, though this
+           could change in the future. This requires that the ImageMagick
+           command line tools package be installed, i.e., that you have the
+           ``convert`` command.
+
+        EXAMPLES::
+
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: a.show()       # optional -- requires convert command
 
-        The preceding will loop the animation forever.  If you want to show only
-        three iterations instead:
+        The preceding will loop the animation forever. If you want to show
+        only three iterations instead::
+
             sage: a.show(iterations=3)    # optional
 
-        To put a half-second delay between frames:
+        To put a half-second delay between frames::
+
             sage: a.show(delay=50)        # optional
 
-        NOTE: If ImageMagick is not installed, you will get an error message
-        like this:
+        .. note::
 
-            /usr/local/share/sage/local/bin/sage-native-execute: 8: convert: not
-            found
+           If ImageMagick is not installed, you will get an error
+           message like this::
 
-            Error: ImageMagick does not appear to be installed. Saving an
-            animation to a GIF file or displaying an animation requires
-            ImageMagick, so please install it and try again.
+              /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
+              not found
+
+              Error: ImageMagick does not appear to be installed. Saving an
+              animation to a GIF file or displaying an animation requires
+              ImageMagick, so please install it and try again.
 
             See www.imagemagick.org, for example.
         """
@@ -372,18 +417,23 @@ class Animation(SageObject):
         Save this animation into a gif or sobj file.
 
         INPUT:
-            filename -- (default: None) name of save file
-            show_path -- boolean (default: False); if True, print the
-                          path to the saved file
+
+
+        -  ``filename`` - (default: None) name of save file
+
+        -  ``show_path`` - boolean (default: False); if True,
+           print the path to the saved file
+
 
         If filename is None, then in notebook mode, display the animation;
         othewise, save the animation to a gif file. If filename ends in
-        '.gif', save to a gif file. If filename ends in '.sobj', save to
-        an sobj file.
+        '.gif', save to a gif file. If filename ends in '.sobj', save to an
+        sobj file.
 
         In all other cases, print an error.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: a.save()         # optional -- requires convert command

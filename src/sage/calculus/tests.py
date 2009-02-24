@@ -3,6 +3,8 @@ Calculus Tests and Examples.
 
 Compute the Christoffel symbol.
 
+::
+
     sage: var('r t theta phi')
     (r, t, theta, phi)
     sage: m = matrix(SR, [[(1-1/r),0,0,0],[0,-(1-1/r)^(-1),0,0],[0,0,-r^2,0],[0,0,0,-r^2*(sin(theta))^2]])
@@ -12,12 +14,16 @@ Compute the Christoffel symbol.
     [                0                 0              -r^2                 0]
     [                0                 0                 0 -r^2*sin(theta)^2]
 
+::
+
     sage: def christoffel(i,j,k,vars,g):
     ...   s = 0
     ...   ginv = g^(-1)
     ...   for l in range(g.nrows()):
     ...      s = s + (1/2)*ginv[k,l]*(g[j,l].diff(vars[i])+g[i,l].diff(vars[j])-g[i,j].diff(vars[l]))
     ...   return s
+
+::
 
     sage: christoffel(3,3,2, [t,r,theta,phi], m)
     -cos(theta)*sin(theta)
@@ -36,7 +42,7 @@ Compute the Christoffel symbol.
                                       2
                                    2 r  - 2 r
 
-Some basic things:
+Some basic things::
 
     sage: f(x,y) = x^3 + sinh(1/y)
     sage: f
@@ -46,7 +52,8 @@ Some basic things:
     sage: (f^3).expand()
     (x, y) |--> sinh(1/y)^3 + 3*x^3*sinh(1/y)^2 + 3*x^6*sinh(1/y) + x^9
 
-A polynomial over a symbolic base ring:
+A polynomial over a symbolic base ring::
+
     sage: R = SR[x]
     sage: f = R([1/sqrt(2), 1/(4*sqrt(2))])
     sage: f
@@ -56,14 +63,16 @@ A polynomial over a symbolic base ring:
     sage: (-f).degree()
     1
 
-Something that was a printing bug.  This tests that we print
-the simplified version using ASCII art:
+Something that was a printing bug. This tests that we print the
+simplified version using ASCII art::
+
     sage: A = exp(I*pi/5)
     sage: print A*A*A*A*A*A*A*A*A*A
                                            1
 
-We check a statement made at the beginning of Friedlander and Joshi's book
-on Distributions:
+We check a statement made at the beginning of Friedlander and
+Joshi's book on Distributions::
+
     sage: f = sin(x^2)
     sage: g = cos(x) + x^3
     sage: u = f(x+t) + g(x-t)
@@ -72,7 +81,8 @@ on Distributions:
     sage: u.diff(t,2) - u.diff(x,2)
     0
 
-Restoring variables after they have been turned into functions:
+Restoring variables after they have been turned into functions::
+
     sage: x = function('x')
     sage: sin(x).variables()
     ()
@@ -80,9 +90,9 @@ Restoring variables after they have been turned into functions:
     sage: sin(x).variables()
     (x,)
 
-MATHEMATICA:
-Some examples of integration and differentiation taken from some
-Mathematica docs:
+MATHEMATICA: Some examples of integration and differentiation taken
+from some Mathematica docs::
+
     sage: var('x n a')
     (x, n, a)
     sage: diff(x^n, x)
@@ -100,10 +110,10 @@ Mathematica docs:
     sage: print integrate( 1/(x^4 - a^4), x)
                                                            x
                                                     arctan(-)
-                            log(x + a)   log(x - a)	   a
+                            log(x + a)   log(x - a)    a
                           - ---------- + ---------- - -------
-                                  3		   3	      3
-                               4 a	        4 a	   2 a
+                                  3        3          3
+                               4 a          4 a    2 a
     sage: expand(integrate(log(1-x^2), x))
     x*log(1 - x^2) + log(x + 1) - log(x - 1) - 2*x
     sage: integrate(log(1-x^2)/x, x)
@@ -125,6 +135,8 @@ Mathematica docs:
     sage: integrate(1/(x^3+1), x, 0, 1)
     (6*log(2) + sqrt(3)*pi)/18 + sqrt(3)*pi/18
 
+::
+
     sage: forget()
     sage: c = var('c')
     sage: assume(c > 0)
@@ -133,24 +145,28 @@ Mathematica docs:
     sage: forget()
 
 The following are a bunch of examples of integrals that Mathematica
-can do, but \sage currently can't do:
+can do, but Sage currently can't do::
+
     sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- mathematica can do this
     integrate(sqrt(x + sqrt(x)), x)
     sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this
     integrate(e^(-x^2)*log(x), x)
 
-Todo -- Mathematica can do this and gets $\pi^2/15$.
+Todo - Mathematica can do this and gets `\pi^2/15`.
+
+::
+
     sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)  # not tested
     [boom!]
     Integral is divergent
 
+::
+
     sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: mathematica can do this
     integrate(ceil(x^2) + floor(x), x, 0, 5)
 
-
-MAPLE:
-The basic differentiation and integration examples in the
-Maple documentation:
+MAPLE: The basic differentiation and integration examples in the
+Maple documentation::
 
     sage: diff(sin(x), x)
     cos(x)
@@ -180,6 +196,8 @@ Maple documentation:
     sage: integrate(sin(x), x, 0, pi)
     2
 
+::
+
     sage: var('a b')
     (a, b)
     sage: assume(b-a>0)      # annoying -- maple doesn't require this...
@@ -187,6 +205,7 @@ Maple documentation:
                                     cos(a) - cos(b)
     sage: forget()
 
+::
 
     sage: integrate( x/(x^3-1), x)
     -log(x^2 + x + 1)/6 + arctan((2*x + 1)/sqrt(3))/sqrt(3) + log(x - 1)/3
@@ -202,7 +221,8 @@ Maple documentation:
     sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)
     32/5
 
-We verify several standard differentiation rules:
+We verify several standard differentiation rules::
+
     sage: function('f, g')
     (f, g)
     sage: diff(f(t)*g(t),t)

@@ -1,47 +1,53 @@
 r"""
 The Stein-Watkins table of elliptic curves.
 
-SAGE gives access to the Stein-Watkins table of elliptic curves, via
-an optional package that you must install.  This is a huge database of
-elliptic curves.  You can download the database as a 2.6GB SAGE
-package from \url{http://modular.ucsd.edu/sagedb/}, which you install
-with the command
-\begin{verbatim}
-sage -i stein-watkins-ecdb.spkg
-\end{verbatim}
+Sage gives access to the Stein-Watkins table of elliptic curves,
+via an optional package that you must install. This is a huge
+database of elliptic curves. You can download the database as a
+2.6GB Sage package from http://modular.ucsd.edu/sagedb/, which you
+install with the command
+
+::
+
+    sage -i stein-watkins-ecdb.spkg
+
 You can also download a small version, without having to explicitly
 download anything from a website, using the command
-\begin{verbatim}
-sage -i stein-watkins-ecdb-mini
-\end{verbatim}
+
+::
+
+    sage -i stein-watkins-ecdb-mini
 
 This database covers a wide range of conductors, but unlike
-CremonaDatabase(), this database need not list all curves of a given
-conductor.  It lists the curves whose coefficients aren't ``too
-large'' (see [Stein-Watkins, Ants 5]).
-
-\begin{itemize}
-\item The command \code{SteinWatkinsAllData(n)} returns an iterator over
-the curves in the $n$th Stein-Watkins table, which contains elliptic
-curves of conductor between $n10^5$ and $(n+1)10^5$.  Here $n$ can be
-between $0$ and $999$, inclusive.
-
-\item The command \code{SteinWatkinsPrimeData(n)} returns an iterator over
-the curves in the $n$th Stein-Watkins table, which contains prime conductor
-elliptic curves of conductor between $n10^6$ and $(n+1)10^6$.  Here $n$
-varies between $0$ and $99$, inclusive.
-\end{itemize}
+CremonaDatabase(), this database need not list all curves of a
+given conductor. It lists the curves whose coefficients aren't "too
+large" (see [Stein-Watkins, Ants 5]).
 
 
-EXAMPLES:
-We obtain the first table of elliptic curves.
+-  The command ``SteinWatkinsAllData(n)`` returns an
+   iterator over the curves in the `n^{th}` Stein-Watkins table,
+   which contains elliptic curves of conductor between `n10^5`
+   and `(n+1)10^5`. Here `n` can be between
+   `0` and `999`, inclusive.
+
+-  The command ``SteinWatkinsPrimeData(n)`` returns an
+   iterator over the curves in the `n^{th}` Stein-Watkins table,
+   which contains prime conductor elliptic curves of conductor between
+   `n10^6` and `(n+1)10^6`. Here `n` varies
+   between `0` and `99`, inclusive.
+
+
+EXAMPLES: We obtain the first table of elliptic curves.
+
+::
 
     sage: d = SteinWatkinsAllData(0)
     sage: d
     Stein-Watkins Database a.0 Iterator
 
-We type \code{d.next()} to get each isogeny
-class of curves from \code{d}:
+We type ``d.next()`` to get each isogeny class of
+curves from ``d``::
+
     sage: C = d.next()                                   # optional - stein_watkins_database
     sage: C                                              # optional - stein_watkins_database
     Stein-Watkins isogeny class of conductor 11
@@ -50,9 +56,12 @@ class of curves from \code{d}:
     sage: d.next()                                       # optional - stein_watkins_database
     Stein-Watkins isogeny class of conductor 15
 
-An isogeny class has a number of attributes that give data about the
-isogeny class, such as the rank, equations of curves, conductor, leading
-coefficient of $L$-function, etc.
+An isogeny class has a number of attributes that give data about
+the isogeny class, such as the rank, equations of curves,
+conductor, leading coefficient of `L`-function, etc.
+
+::
+
     sage: C.data                                         # optional - stein_watkins_database
     ['11', '[11]', '0', '0.253842', '25', '+*1']
     sage: C.curves                                       # optional - stein_watkins_database
@@ -70,11 +79,13 @@ coefficient of $L$-function, etc.
     sage: C.isogeny_number                               # optional - stein_watkins_database
     '25'
 
-If we were to continue typing \code{d.next()} we would iterate over
-all curves in the Stein-Watkins database up to conductor $10^5$.
-We could also type \code{for C in d: ...}
+If we were to continue typing ``d.next()`` we would
+iterate over all curves in the Stein-Watkins database up to
+conductor `10^5`. We could also type ``for C in d:
+...``
 
-To access the data file starting at $10^5$ do the following:
+To access the data file starting at `10^5` do the
+following::
 
     sage: d = SteinWatkinsAllData(1)                    # optional - stein_watkins_database
     sage: C = d.next()                                  # optional - stein_watkins_database
@@ -84,14 +95,16 @@ To access the data file starting at $10^5$ do the following:
     [[[1, 1, 0, 112, 0], '(8,1,2,1)', 'X', '2'],
      [[1, 1, 0, -448, -560], '[4,2,1,2]', 'X', '2']]
 
-Next we access the prime-conductor data:
+Next we access the prime-conductor data::
 
     sage: d = SteinWatkinsPrimeData(0)                 # optional - stein_watkins_database
     sage: C = d.next()                                 # optional - stein_watkins_database
     sage: C                                            # optional - stein_watkins_database
     Stein-Watkins isogeny class of conductor 11
 
-Each call \code{d.next()} gives another elliptic curve of prime conductor:
+Each call ``d.next()`` gives another elliptic curve of
+prime conductor::
+
     sage: C = d.next()                                 # optional - stein_watkins_database
     sage: C                                            # optional - stein_watkins_database
     Stein-Watkins isogeny class of conductor 17
@@ -207,7 +220,7 @@ class SteinWatkinsAllData:
 
     def __getitem__(self, N):
         """
-        Return the curves of conductor N in this table.  (Very slow!)
+        Return the curves of conductor N in this table. (Very slow!)
         """
         X = []
         for C in self:
@@ -220,7 +233,8 @@ class SteinWatkinsAllData:
 
     def iter_levels(self):
         """
-        Iterate through the curve classes, but grouped into lists by level.
+        Iterate through the curve classes, but grouped into lists by
+        level.
         """
         iter = self.__iter__()
         C = []
@@ -238,7 +252,8 @@ class SteinWatkinsAllData:
 
     def __getslice__(self, min_level, max_level):
         """
-        Return all data about curves between the given levels in this database file.
+        Return all data about curves between the given levels in this
+        database file.
         """
         X = []
         for C in self:

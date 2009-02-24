@@ -1,31 +1,38 @@
 r"""
 John Jones's tables of number fields
 
-In order to use the Jones database, the optional database package must
-be installed using the SAGE command
-    !sage -i database_jones_numfield
+In order to use the Jones database, the optional database package
+must be installed using the Sage command !sage -i
+database_jones_numfield
 
-This is a table of number fields with bounded ramification and degree $\leq 6$.
-You can query the database for all number fields in Jones's tables
-with bounded ramification and degree.
+This is a table of number fields with bounded ramification and
+degree `\leq 6`. You can query the database for all number
+fields in Jones's tables with bounded ramification and degree.
 
-EXAMPLES:
-First load the database:
+EXAMPLES: First load the database::
+
     sage: J = JonesDatabase()
     sage: J
     John Jones's table of number fields with bounded ramification and degree <= 6
 
 List the degree and discriminant of all fields in the database that
-have ramification at most at 2:
+have ramification at most at 2::
+
     sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]    # optional - jones_database
     [(1, 1), (2, 8), (2, -4), (2, -8), (4, 2048), (4, -1024), (4, 512), (4, -2048), (4, 256), (4, 2048), (4, 2048)]
 
-List the discriminants of the fields of degree exactly 2 unramified outside 2:
+List the discriminants of the fields of degree exactly 2 unramified
+outside 2::
+
     sage: [k.disc() for k in J.unramified_outside([2],2)]                # optional - jones_database
+
     [8, -4, -8]
 
-List the discriminants of cubic field in the database ramified exactly at 3 and 5:
+List the discriminants of cubic field in the database ramified
+exactly at 3 and 5::
+
     sage: [k.disc() for k in J.ramified_at([3,5],3)]                     # optional - jones_database
+
     [-6075, -6075, -675, -135]
     sage: factor(6075)
     3^5 * 5^2
@@ -34,7 +41,8 @@ List the discriminants of cubic field in the database ramified exactly at 3 and 
     sage: factor(135)
     3^3 * 5
 
-List all fields in the database ramified at 101
+List all fields in the database ramified at 101::
+
     sage: J.ramified_at(101)                                             # optional - jones_database
     [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
 """
@@ -98,20 +106,22 @@ class JonesDatabase:
 
     def _init(self, path):
         """
-        Create the database from scratch from the PARI files on John
-        Jone's web page, downloaded (e.g., via wget) to a local directory,
-        which is specified as path above.
+        Create the database from scratch from the PARI files on John Jone's
+        web page, downloaded (e.g., via wget) to a local directory, which
+        is specified as path above.
 
         INPUT:
-            -- (default works on William Stein install.)
-                path must be the path to Jone's Number_Fields directory
-                  http://hobbes.la.asu.edu/Number_Fields
-               These files should have been downloaded using wget.
 
-        EXAMPLE:
-            This is how to create the database from scratch, assuming
-            that the number fields are in the default directory above:
-            From a cold start of SAGE:
+
+        -  ``path`` - (default works on William Stein install.)
+           path must be the path to Jone's Number_Fields directory
+           http://hobbes.la.asu.edu/Number_Fields These files should have
+           been downloaded using wget.
+
+
+        EXAMPLE: This is how to create the database from scratch, assuming
+        that the number fields are in the default directory above: From a
+        cold start of Sage::
 
                 sage: J = JonesDatabase()
                 sage: J._init()   # not tested
@@ -137,13 +147,18 @@ class JonesDatabase:
 
     def unramified_outside(self, S, d=None):
         """
-        Return iterator over fields in the database of degree d
-        unramified outside S.  If d is omitted, return fields of any
-        degree up to 6.
+        Return iterator over fields in the database of degree d unramified
+        outside S. If d is omitted, return fields of any degree up to 6.
         INPUT:
-            S -- list or set of primes
-            d -- None (default) or an integer
-        EXAMPLES:
+
+
+        -  ``S`` - list or set of primes
+
+        -  ``d`` - None (default) or an integer
+
+
+        EXAMPLES::
+
             sage: J = JonesDatabase()             # requires optional package
             sage: J.unramified_outside([101,119]) # requires optional package
             [Number Field in a with defining polynomial x - 1, Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
@@ -179,12 +194,17 @@ class JonesDatabase:
 
     def ramified_at(self, S, d=None, var='a'):
         """
-        Return all fields in the database of degree d ramified
-        exactly at the primes in S.
-        INPUT:
-            S -- list or set of primes
-            d -- None (default) or an integer
-        EXAMPLES:
+        Return all fields in the database of degree d ramified exactly at
+        the primes in S. INPUT:
+
+
+        -  ``S`` - list or set of primes
+
+        -  ``d`` - None (default) or an integer
+
+
+        EXAMPLES::
+
             sage: J = JonesDatabase()              # requires optional package
             sage: J.ramified_at([101,119])         # requires optional package
             []

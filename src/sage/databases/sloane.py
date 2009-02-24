@@ -1,40 +1,28 @@
 """
 Interface to Sloane On-Line Encyclopedia of Integer Sequences
 
-TODO:
-
-    -- When this program gets a sloane sequence from the database
-       it actually downloads a huge amount of information about
-       it, then throws most of it away.  Also, it returns the
-       data to the user as a very simple tuple.  It would be
-       much better to return an instance of a class
-
-         class SloaneSequence:
-             ...
-
-       and the class should have methods for each of the things
-       that Sloane records about a sequence.  Also, when possible,
-       it should be able to compute more terms.
-
-
-To look up sequence A060843, type one of the following:
+To look up sequence A060843, type one of the following::
 
     sage: sloane_sequence(60843)       # optional -- requires internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
+::
+
     sage: sloane_sequence("60843")     # optional -- requires internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
+
+::
 
     sage: sloane_sequence("060843")    # optional -- requires internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
-
-Do not prefix an integer with a 0 or it will be interpreted in octal.
-Results are of the form [number, description, list], and invalid
-numbers will cause \code{sloane_sequence} to raise an ValueError exception:
+Do not prefix an integer with a 0 or it will be interpreted in
+octal. Results are of the form [number, description, list], and
+invalid numbers will cause ``sloane_sequence`` to
+raise an ValueError exception::
 
     sage: sloane_sequence('sage')     # optional -- requires internet
     Traceback (most recent call last):
@@ -42,52 +30,84 @@ numbers will cause \code{sloane_sequence} to raise an ValueError exception:
     ValueError: sequence 'sage' not found
 
 To look up the sequence
+
+::
+
     sage: sloane_find([2,3,5,7], 2)       # optional -- requires internet
     Searching Sloane's online database...
     [[40, 'The prime numbers.', [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271]], [41, 'a(n) = number of partitions of n (the partition numbers).', [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134]]]
 
 To return no more than 2 results (default is 30), type
+
+::
+
     sage: sloane_find([1,2,3,4,5], 2)      # optional -- requires internet
     Searching Sloane's online database...
     [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers.', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
 
-Note that the OEIS (http://www.research.att.com/~njas/sequences/) claims to
-limit the number of results to 100.  Results are lists of the form
-[ [number, description, list]], and invalid input will cause sloane_find to
-return [].
+Note that the OEIS (http://www.research.att.com/ njas/sequences/)
+claims to limit the number of results to 100. Results are lists of
+the form [ [number, description, list]], and invalid input will
+cause sloane_find to return [].
 
-In some cases, these functions may return [] even though the inputs are legal.
-These cases correspond to errors from the OEIS server, and calling the
-functions again may fix the problem.
+In some cases, these functions may return [] even though the inputs
+are legal. These cases correspond to errors from the OEIS server,
+and calling the functions again may fix the problem.
 
-
-Alternatively, the SloaneEncyclopedia object provides access to a local copy
-of the database containing only the sequences.   To use this you must install
-the optional database_sloane_oeis-2005-12 package using
-\code{sage -i database_sloane_oeis-2005-12}.
+Alternatively, the SloaneEncyclopedia object provides access to a
+local copy of the database containing only the sequences. To use
+this you must install the optional database_sloane_oeis-2005-12
+package using ``sage -i
+database_sloane_oeis-2005-12``.
 
 To look up a sequence, type
+
+::
+
     sage: SloaneEncyclopedia[60843]               # optional - sloane_database
     [1, 6, 21, 107]
 
 To search locally for a particular subsequence, type
+
+::
+
     sage: SloaneEncyclopedia.find([1,2,3,4,5], 1)    # optional - sloane_database
     [(15, [1, 2, 3, 4, 5, 7, 7, 8, 9, 11, 11, 13, 13, 16, 16, 16, 17, 19, 19, 23, 23, 23, 23, 25, 25, 27, 27, 29, 29, 31, 31, 32, 37, 37, 37, 37, 37, 41, 41, 41, 41, 43, 43, 47, 47, 47, 47, 49, 49, 53, 53, 53, 53, 59, 59, 59, 59, 59, 59, 61, 61, 64, 64, 64, 67, 67, 67, 71, 71, 71, 71, 73])]
 
-The default maximum number of results is 30, but to return up to 100, type
+The default maximum number of results is 30, but to return up to
+100, type
+
+::
+
     sage: SloaneEncyclopedia.find([1,2,3,4,5], 100)    # optional - sloane_database
     [(15, [1, 2, 3, 4, 5, 7, 7, 8, 9, 11, 11, ...
 
 Results in either case are of the form [ (number, list) ].
 
-AUTHOR:
-    -- Steven Sivek (ssivek@mit.edu, 2005-12-22): first version
-    -- Steven Sivek (2006-02-07): updated to correctly handle the new
-       search form on the Sloane website, and it's now also smarter
-       about loading the local database in that it doesn't convert a
-       sequence from string form to a list of integers until
-       absolutely necessary.  This seems to cut the loading time
-       roughly in half.
+TODO:
+
+- When this program gets a sloane sequence from the database it
+  actually downloads a huge amount of information about it, then
+  throws most of it away. Also, it returns the data to the user as a
+  very simple tuple. It would be much better to return an instance of
+  a class::
+
+      class SloaneSequence: ...
+
+  and the class should have methods for each of the things that
+  Sloane records about a sequence. Also, when possible, it should be
+  able to compute more terms.
+
+AUTHORS:
+
+- Steven Sivek (2005-12-22): first version
+
+- Steven Sivek (2006-02-07): updated to correctly handle the new
+  search form on the Sloane website, and it's now also smarter about
+  loading the local database in that it doesn't convert a sequence
+  from string form to a list of integers until absolutely necessary.
+  This seems to cut the loading time roughly in half.
+
 """
 
 #*****************************************************************************
@@ -109,7 +129,8 @@ ZZ = sage.rings.integer_ring.IntegerRing()
 class SloaneEncyclopediaClass:
     """
     A local copy of the Sloane Online Encyclopedia of Integer Sequences
-    that contains only the sequence numbers and the sequences themselves.
+    that contains only the sequence numbers and the sequences
+    themselves.
     """
     def __init__(self):
         """
@@ -121,15 +142,13 @@ class SloaneEncyclopediaClass:
 
     def __repr__(self):
         """
-        String representation of this database.
-        OUTPUT:
-           str
+        String representation of this database. OUTPUT: str
         """
         return "Sloane Online Encyclopedia of Integer Sequences"
 
     def __iter__(self):
         """
-        Returns an iterator through the encyclopedia.  Elements are of the
+        Returns an iterator through the encyclopedia. Elements are of the
         form [number, sequence].
         """
         for i in range(1, self.__arraysize__):
@@ -138,13 +157,16 @@ class SloaneEncyclopediaClass:
 
     def __getitem__(self, N):
         """
-        Return sequence N in the encyclopedia.  If sequence N does not
+        Return sequence N in the encyclopedia. If sequence N does not
         exist, return [].
 
         INPUT:
-            N -- int
-        OUTPUT:
-            list
+
+
+        -  ``N`` - int
+
+
+        OUTPUT: list
         """
         self.load()
         if self.__data__[N] == None: # sequence N does not exist
@@ -164,15 +186,20 @@ class SloaneEncyclopediaClass:
 
     def find(self, seq, maxresults=30):
         """
-        Return a list of all sequences which have seq as a subsequence,
-        up to maxresults results.  Sequences are returned in the form
-        (number, list).
+        Return a list of all sequences which have seq as a subsequence, up
+        to maxresults results. Sequences are returned in the form (number,
+        list).
 
         INPUT:
-            seq -- list
-            maxresults -- int
-        OUTPUT:
-            list of 2-tuples (i, v), where v is a sequence with seq as a subsequence.
+
+
+        -  ``seq`` - list
+
+        -  ``maxresults`` - int
+
+
+        OUTPUT: list of 2-tuples (i, v), where v is a sequence with seq as
+        a subsequence.
         """
         self.load()
 
@@ -190,7 +217,7 @@ class SloaneEncyclopediaClass:
 
     def load(self):
         """
-        Load the entire encyclopedia into memory from a file.  This is done
+        Load the entire encyclopedia into memory from a file. This is done
         automatically if the user tries to perform a lookup or a search.
         """
         if self.__loaded__ == True:
@@ -256,9 +283,11 @@ def parse_sequence(text):
 def sloane_sequence(number):
     """
     Returns a list with the number, name, and values for the sequence
-    \code{number} in Sloane's online database of integer sequences.
+    ``number`` in Sloane's online database of integer
+    sequences.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sloane_sequence(22) #optional -- requires internet
         Searching Sloane's online database...
         [22,
@@ -269,7 +298,6 @@ def sloane_sequence(number):
           1,
           ...
           36201693122]]
-
     """
     results = sloane_find('id:A%s'%number)
     if len(results) == 0:
@@ -278,23 +306,28 @@ def sloane_sequence(number):
 
 def sloane_find(list, nresults = 30, verbose=True):
     """
-    Searches Sloane's Online Encyclopedia of Integer Sequences for
-    a sequence containing the number provided in \code{list}.
+    Searches Sloane's Online Encyclopedia of Integer Sequences for a
+    sequence containing the number provided in ``list``.
 
     INPUT:
-        list     -- (list) a list of integers to search Sloane's for
-        nresults -- (integer) the maximum number of results to return
-                    default: 30
-        verbose  -- (boolean) print a string to let the user know that
-                    it is working and not hanging.
-                    default: True
 
-    OUTPUT:
-        A list of matches in Sloane's database.  Each match consists of
-        a list of the sequence number, the name of the sequence, and
-        some initial terms of the sequence.
 
-    EXAMPLES:
+    -  ``list`` - (list) a list of integers to search
+       Sloane's for
+
+    -  ``nresults`` - (integer) the maximum number of
+       results to return default: 30
+
+    -  ``verbose`` - (boolean) print a string to let the
+       user know that it is working and not hanging. default: True
+
+
+    OUTPUT: A list of matches in Sloane's database. Each match consists
+    of a list of the sequence number, the name of the sequence, and
+    some initial terms of the sequence.
+
+    EXAMPLES::
+
         sage: sloane_find([1,1,2,3,5,8,13,21], nresults=1) #optional -- requires internet
         Searching Sloane's online database...
         [[45,
@@ -310,7 +343,6 @@ def sloane_find(list, nresults = 30, verbose=True):
            21,
            ...
            39088169]]]
-
     """
     liststr = re.sub(r'[\[\] ]', '', str(list))
     urlparams = urllib.urlencode({'q': liststr,

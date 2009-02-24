@@ -1,119 +1,136 @@
 r"""
 Linear feedback shift register (LFSR) sequence commands.
 
-Stream ciphers have been used for
-a long time as a source of pseudo-random number generators.
+Stream ciphers have been used for a long time as a source of
+pseudo-random number generators.
 
-S. Golomb [G] gives a list of three
-statistical properties a
-sequence of numbers ${\bf a}=\{a_n\}_{n=1}^\infty$,
-$a_n\in \{0,1\}$, should display to be considered
-``random''. Define the {\bf autocorrelation} of
-${\bf a}$ to be
-\[
-C(k)=C(k,{\bf a})=\lim_{N\rightarrow \infty}
-{1\over N}\sum_{n=1}^N (-1)^{a_n+a_{n+k}}.
-\]
-In the case where ${\bf a}$ is periodic with
-period $P$ then this reduces to
-\[
-C(k)={1\over P}\sum_{n=1}^P (-1)^{a_n+a_{n+k}}.
-\]
-Assume ${\bf a}$ is periodic with period $P$.
-\begin{itemize}
-\item[] {\bf balance}: $|\sum_{n=1}^P(-1)^{a_n}|\leq 1$.
-\item[] {\bf low autocorrelation}:
-\[
-C(k)=
-\left\{
-\begin{array}{cc}
-1,& k=0,\\
-\epsilon, & k\not= 0.
-\end{array}
-\right.
-\]
-(For sequences satisfying these first two properties,
-it is known that $\epsilon=-1/P$ must hold.)
-\item[] {\bf proportional runs property}:
-In each period, half the runs have length $1$,
-one-fourth have length $2$, etc. Moveover, there
-are as many runs of $1$'s as there are of
-$0$'s.
-\end{itemize}
+S. Golomb [G] gives a list of three statistical properties a
+sequence of numbers `{\bf a}=\{a_n\}_{n=1}^\infty`,
+`a_n\in \{0,1\}`, should display to be considered
+"random". Define the autocorrelation of `{\bf a}` to be
 
-A {\bf general feedback shift register} is a map
-$f:{\bf F}_q^d\rightarrow {\bf F}_q^d$
-of the form
-\[
-\begin{array}{c}
-f(x_0,...,x_{n-1})=(x_1,x_2,...,x_n),\\
-x_n=C(x_0,...,x_{n-1}),
-\end{array}
-\]
-where $C:{\bf F}_q^d\rightarrow {\bf F}_q$ is a given
-function. When $C$ is of the form
-\[
-C(x_0,...,x_{n-1})=a_0x_0+...+a_{n-1}x_{n-1},
-\]
-for some given constants $a_i\in {\bf F}_q$, the
-map is called a {\bf linear feedback shift register
-(LFSR)}.
+.. math::
 
-{\bf Example of a LFSR} Let
-\[
-f(x)=a_{{0}}+a_{{1}}x+...+a_{{n}}{x}^n+...,
-\]
-\[
-g(x)=b_{{0}}+b_{{1}}x+...+b_{{n}}{x}^n+...,
-\]
-be given polynomials in ${\bf F}_2[x]$ and let
-\[
-h(x)={f(x)\over g(x)}=c_0+c_1x+...+c_nx^n+... \ .
-\]
-We can compute a recursion formula which allows us to rapidly compute
-the coefficients of $h(x)$ (take $f(x)=1$):
-\[
-c_{n}=\sum_{i=1}^n {{-b_i\over b_0}c_{n-i}}.
-\]
+     C(k)=C(k,{\bf a})=\lim_{N\rightarrow \infty} {1\over N}\sum_{n=1}^N (-1)^{a_n+a_{n+k}}.
 
-The coefficients of $h(x)$ can, under certain conditions on
-$f(x)$ and $g(x)$, be considered ``random'' from certain statistical
-points of view.
 
-{\bf Example}:
-For instance, if
-\[
-f(x)=1,\ \ \ \ g(x)=x^4+x+1,
-\]
+In the case where `{\bf a}` is periodic with period
+`P` then this reduces to
+
+.. math::
+
+     C(k)={1\over P}\sum_{n=1}^P (-1)^{a_n+a_{n+k}}.
+
+
+Assume `{\bf a}` is periodic with period `P`.
+
+
+-  balance: `|\sum_{n=1}^P(-1)^{a_n}|\leq 1`.
+
+-  low autocorrelation:
+
+   .. math::
+
+      C(k)= \left\{ \begin{array}{cc} 1,& k=0,\\ \epsilon, & k\not= 0. \end{array} \right.
+
+
+   (For sequences satisfying these first two properties, it is known
+   that `\epsilon=-1/P` must hold.)
+
+-  proportional runs property: In each period, half the runs have
+   length `1`, one-fourth have length `2`, etc.
+   Moveover, there are as many runs of `1`'s as there are of
+   `0`'s.
+
+
+A general feedback shift register is a map
+`f:{\bf F}_q^d\rightarrow {\bf F}_q^d` of the form
+
+.. math::
+
+     \begin{array}{c} f(x_0,...,x_{n-1})=(x_1,x_2,...,x_n),\\ x_n=C(x_0,...,x_{n-1}), \end{array}
+
+
+where `C:{\bf F}_q^d\rightarrow {\bf F}_q` is a given
+function. When `C` is of the form
+
+.. math::
+
+     C(x_0,...,x_{n-1})=a_0x_0+...+a_{n-1}x_{n-1},
+
+
+for some given constants `a_i\in {\bf F}_q`, the map is
+called a linear feedback shift register (LFSR).
+
+Example of a LFSR Let
+
+.. math::
+
+     f(x)=a_{{0}}+a_{{1}}x+...+a_{{n}}{x}^n+...,
+
+
+
+.. math::
+
+     g(x)=b_{{0}}+b_{{1}}x+...+b_{{n}}{x}^n+...,
+
+
+be given polynomials in `{\bf F}_2[x]` and let
+
+.. math::
+
+     h(x)={f(x)\over g(x)}=c_0+c_1x+...+c_nx^n+... \ .
+
+
+We can compute a recursion formula which allows us to rapidly
+compute the coefficients of `h(x)` (take `f(x)=1`):
+
+.. math::
+
+     c_{n}=\sum_{i=1}^n {{-b_i\over b_0}c_{n-i}}.
+
+
+
+The coefficients of `h(x)` can, under certain conditions on
+`f(x)` and `g(x)`, be considered "random" from
+certain statistical points of view.
+
+Example: For instance, if
+
+.. math::
+
+     f(x)=1,\ \ \ \ g(x)=x^4+x+1,
+
 then
-\[
-h(x)=1+x+x^2+x^3+x^5+x^7+x^8+...\ .
-\]
-The coefficients of $h$ are
-\[
-\begin{array}{c}
-1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, \\
-1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, ...\ .
-\end{array}
-\]
-The sequence of $0,1$'s is periodic with period
-$P=2^4-1=15$ and satisfies Golomb's three
-randomness conditions.
-However, this sequence of period 15 can be ``cracked''
-(i.e., a procedure to reproduce $g(x)$)
-by knowing only 8 terms! This is the function of the
-Berlekamp-Massey algorithm [M], implemented as
-\code{berlekamp_massey.py}.
 
-[G] Solomon Golomb, {\bf Shift register sequences},
-Aegean Park Press, Laguna Hills, Ca,
-1967
+.. math::
 
-[M] James L. Massey, ``Shift-Register Synthesis and BCH Decoding.''
-IEEE Trans. on Information Theory, vol. 15(1), pp. 122-127, Jan 1969.
+     h(x)=1+x+x^2+x^3+x^5+x^7+x^8+...\ .
 
-AUTHOR:
-    -- Timothy Brock
+The coefficients of `h` are
+
+.. math::
+
+     \begin{array}{c} 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, \\ 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, ...\ . \end{array}
+
+
+The sequence of `0,1`'s is periodic with period
+`P=2^4-1=15` and satisfies Golomb's three randomness
+conditions. However, this sequence of period 15 can be "cracked"
+(i.e., a procedure to reproduce `g(x)`) by knowing only 8
+terms! This is the function of the Berlekamp-Massey algorithm [M],
+implemented as ``berlekamp_massey.py``.
+
+[G] Solomon Golomb, Shift register sequences, Aegean Park Press,
+Laguna Hills, Ca, 1967
+
+[M] James L. Massey, "Shift-Register Synthesis and BCH Decoding."
+IEEE Trans. on Information Theory, vol. 15(1), pp. 122-127, Jan
+1969.
+
+AUTHORS:
+
+- Timothy Brock
 
 Created 11-24-2005 by wdj. Last updated 12-02-2005.
 """
@@ -137,17 +154,24 @@ def lfsr_sequence(key, fill, n):
     This function creates an lfsr sequence.
 
     INPUT:
-        key -- a list of finite field elements, [c_0,c_1,...,c_k].
-        fill -- the list of the initial terms of the lfsr sequence,
-                [x_0,x_1,...,x_k].
-        n -- number of terms of the sequence that the
-             function returns.
 
-    OUTPUT:
-        The lfsr sequence defined by $x_{n+1} = c_kx_n+...+c_0x_{n-k}$,
-        for $n \leq k$.
 
-    EXAMPLES:
+    -  ``key`` - a list of finite field elements,
+       [c_0,c_1,...,c_k].
+
+    -  ``fill`` - the list of the initial terms of the lfsr
+       sequence, [x_0,x_1,...,x_k].
+
+    -  ``n`` - number of terms of the sequence that the
+       function returns.
+
+
+    OUTPUT: The lfsr sequence defined by
+    `x_{n+1} = c_kx_n+...+c_0x_{n-k}`, for
+    `n \leq k`.
+
+    EXAMPLES::
+
         sage: F = GF(2); l = F(1); o = F(0)
         sage: F = GF(2); S = LaurentSeriesRing(F,'x'); x = S.gen()
         sage: fill = [l,l,o,l]; key = [1,o,o,l]; n = 20
@@ -171,9 +195,10 @@ def lfsr_sequence(key, fill, n):
         sage: (1+x+x^3)/(g.reverse()+O(x^20))
         1 + x + x^3 + x^4 + x^5 + x^7 + x^8 + x^9 + x^11 + x^12 + x^13 + x^15 + x^16 + x^17 + x^19 + O(x^20)
 
-    AUTHOR:
-        -- Timothy Brock (11-2005, with code modified from Python Cookbook,
-            \url{http://aspn.activestate.com/ASPN/Python/Cookbook/}
+    AUTHORS:
+
+    - Timothy Brock (2005-11): with code modified from Python
+      Cookbook, http://aspn.activestate.com/ASPN/Python/Cookbook/
     """
     if not isinstance(key, list):
         raise TypeError, "key must be a list"
@@ -197,15 +222,20 @@ def lfsr_sequence(key, fill, n):
 def lfsr_autocorrelation(L, p, k):
     """
     INPUT:
-        L -- is a periodic sequence of elements of ZZ or GF(2).
-             L must have length >= p
-        p -- the period of L
-        k -- k is an integer (0 < k < p)
 
-    OUTPUT:
-        autocorrelation sequence of L
 
-    EXAMPLES:
+    -  ``L`` - is a periodic sequence of elements of ZZ or
+       GF(2). L must have length = p
+
+    -  ``p`` - the period of L
+
+    -  ``k`` - k is an integer (0 k p)
+
+
+    OUTPUT: autocorrelation sequence of L
+
+    EXAMPLES::
+
         sage: F = GF(2)
         sage: o = F(0)
         sage: l = F(1)
@@ -216,8 +246,9 @@ def lfsr_autocorrelation(L, p, k):
         sage: lfsr_autocorrelation(s,int(15),7)
         4/15
 
-    AUTHOR:
-        -- 2006-04-17: Timothy Brock (m060774@usna.edu)
+    AUTHORS:
+
+    - Timothy Brock (2006-04-17)
     """
     if not isinstance(L, list):
         raise TypeError, "L (=%s) must be a list"%L
@@ -232,35 +263,48 @@ def lfsr_autocorrelation(L, p, k):
 def lfsr_connection_polynomial(s):
     """
     INPUT:
-        s -- a sequence of elements of a finite field (F) of even length
+
+
+    -  ``s`` - a sequence of elements of a finite field (F)
+       of even length
+
+
     OUTPUT:
-        C(x) -- the connection polynomial of the minimal LFSR.
 
-    This implements the algorithm in section 3 of J. L. Massey's article [M].
 
-    EXAMPLE:
-       	sage: F = GF(2)
-	sage: F
-	Finite Field of size 2
-	sage: o = F(0); l = F(1)
-        sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
-        sage: s = lfsr_sequence(key,fill,n); s
-        [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0]
-        sage: lfsr_connection_polynomial(s)
-        x^4 + x + 1
-        sage: berlekamp_massey(s)
-        x^4 + x^3 + 1
+    -  ``C(x)`` - the connection polynomial of the minimal
+       LFSR.
 
-    Notice that \code{berlekamp_massey} returns the reverse of the
-    connection polynomial (and is potentially must faster than this
-    implementation).
 
-    AUTHOR:
-        -- 2006-04-17: Timothy Brock (m060774@usna.edu)
+    This implements the algorithm in section 3 of J. L. Massey's
+    article [M].
+
+    EXAMPLE::
+
+                sage: F = GF(2)
+        sage: F
+        Finite Field of size 2
+        sage: o = F(0); l = F(1)
+               sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
+               sage: s = lfsr_sequence(key,fill,n); s
+               [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0]
+               sage: lfsr_connection_polynomial(s)
+               x^4 + x + 1
+               sage: berlekamp_massey(s)
+               x^4 + x^3 + 1
+
+    Notice that ``berlekamp_massey`` returns the reverse
+    of the connection polynomial (and is potentially must faster than
+    this implementation).
+
+    AUTHORS:
+
+    - Timothy Brock (2006-04-17)
 
     REFERENCES:
-        [M] J. L. Massey, "Shift-register synthesis and BCH decoding,"
-            IEEE Trans. Inform. Theory, vol. IT-15, pp. 122--127, Jan. 19    69.
+
+    - [M] J. L. Massey, 'Shift-register synthesis and BCH decoding,'
+      IEEE Trans. Inform. Theory, vol. IT-15, pp. 122-127, Jan. 19 69.
     """
     # Initialization:
     FF = s[0].base_ring()

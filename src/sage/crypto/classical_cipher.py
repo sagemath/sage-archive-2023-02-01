@@ -24,26 +24,28 @@ class HillCipher(SymmetricKeyCipher):
 
         INPUT: Parent and key
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: E = HillCryptosystem(S,3)
-	    sage: E
+            sage: E
             Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
-	    sage: M = E.key_space()
+            sage: M = E.key_space()
             sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
-	    sage: A
-	    [1 0 1]
-	    [0 1 1]
-	    [2 2 3]
-	    sage: e = E(A)
+            sage: A
+            [1 0 1]
+            [0 1 1]
+            [2 2 3]
+            sage: e = E(A)
             sage: e
-	    [1 0 1]
-	    [0 1 1]
-	    [2 2 3]
+            [1 0 1]
+            [0 1 1]
+            [2 2 3]
             sage: e(S("LAMAISONBLANCHE"))
-	    JYVKSKQPELAYKPV
+            JYVKSKQPELAYKPV
 
-        TESTS:
+        TESTS::
+
             sage: S = AlphabeticStrings()
             sage: E = HillCryptosystem(S,3)
             sage: E == loads(dumps(E))
@@ -91,20 +93,22 @@ class SubstitutionCipher(SymmetricKeyCipher):
 
         INPUT: Parent and key
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: E = SubstitutionCryptosystem(S)
-	    sage: E
+            sage: E
             Substitution cryptosystem on Free alphabetic string monoid on A-Z
             sage: K = S([ 25-i for i in range(26) ])
-	    sage: K
-	    ZYXWVUTSRQPONMLKJIHGFEDCBA
+            sage: K
+            ZYXWVUTSRQPONMLKJIHGFEDCBA
             sage: e = E(K)
-	    sage: m = S("THECATINTHEHAT")
-	    sage: e(m)
-	    GSVXZGRMGSVSZG
+            sage: m = S("THECATINTHEHAT")
+            sage: e(m)
+            GSVXZGRMGSVSZG
 
-        TESTS:
+        TESTS::
+
             sage: S = AlphabeticStrings()
             sage: E = SubstitutionCryptosystem(S)
             sage: E == loads(dumps(E))
@@ -140,38 +144,39 @@ class TranspositionCipher(SymmetricKeyCipher):
 
         INPUT: Parent and key
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: E = TranspositionCryptosystem(S,14)
-	    sage: E
+            sage: E
             Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
             sage: K = [ 14-i for i in range(14) ]
-	    sage: K
-	    [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+            sage: K
+            [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
             sage: e = E(K)
-	    sage: m = S("THECATINTHEHAT")
-	    sage: e(m)
-	    TAHEHTNITACEHT
+            sage: m = S("THECATINTHEHAT")
+            sage: e(m)
+            TAHEHTNITACEHT
 
-	EXAMPLES:
-	    sage: S = AlphabeticStrings()
+        EXAMPLES::
+
+            sage: S = AlphabeticStrings()
             sage: E = TranspositionCryptosystem(S,15);
-	    sage: m = S("THECATANDTHEHAT")
-	    sage: G = E.key_space()
-	    sage: G
-	    Symmetric group of order 15! as a permutation group
-	    sage: g = G([ 3, 2, 1, 6, 5, 4, 9, 8, 7, 12, 11, 10, 15, 14, 13 ])
-	    sage: e = E(g)
-	    sage: e(m)
-	    EHTTACDNAEHTTAH
+            sage: m = S("THECATANDTHEHAT")
+            sage: G = E.key_space()
+            sage: G
+            Symmetric group of order 15! as a permutation group
+            sage: g = G([ 3, 2, 1, 6, 5, 4, 9, 8, 7, 12, 11, 10, 15, 14, 13 ])
+            sage: e = E(g)
+            sage: e(m)
+            EHTTACDNAEHTTAH
 
+        TESTS::
 
-        TESTS:
             sage: S = AlphabeticStrings()
             sage: E = TranspositionCryptosystem(S,14)
             sage: E == loads(dumps(E))
             True
-
         """
 	n = parent.block_length()
 	if isinstance(key, list) and not len(key) == n:
@@ -211,7 +216,8 @@ class VigenereCipher(SymmetricKeyCipher):
 
         INPUT: Parent and key
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,11)
             sage: K = S("SHAKESPEARE")
@@ -220,12 +226,12 @@ class VigenereCipher(SymmetricKeyCipher):
             sage: e(m)
             LOEMELXRTYIZHT
 
-        TESTS:
+        TESTS::
+
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,11)
             sage: E == loads(dumps(E))
             True
-
         """
 	SymmetricKeyCipher.__init__(self, parent, key)
 

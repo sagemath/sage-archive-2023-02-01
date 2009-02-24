@@ -1,29 +1,34 @@
 r"""
 Small Scale Variants of the AES (SR) Polynomial System Generator.
 
-\Sage support polynomial system generation for small scale (and full
-scale) AES variants over $GF(2)$ and $GF(2^e)$. Also, \Sage supports
+Sage support polynomial system generation for small scale (and full
+scale) AES variants over `GF(2)` and `GF(2^e)`. Also, Sage supports
 both the specification of SR as given in the papers [CMR05] and
 [CMR06] and a variant of SR* which is equivalent to AES.
 
 AUTHORS:
-    -- Martin Albrecht <malb@informatik.uni-bremen.de> (2007-09) initial version
-    -- Martin Albrecht <M.R.Albrecht@rhul.ac.uk> (2008,2009-01) usability improvements
+
+- Martin Albrecht (2008,2009-01): usability improvements
+
+- Martin Albrecht (2007-09): initial version
 
 EXAMPLES:
 
 We construct SR(1,1,1,4) and study its properties.
+::
 
     sage: sr = mq.SR(1, 1, 1, 4)
 
-\var{n} is the number of rounds, \var{r} the number of rows in the
-state array, \var{c} the number of columns in the state array. \var{e} the
+``n`` is the number of rounds, ``r`` the number of rows in the
+state array, ``c`` the number of columns in the state array. ``e`` the
 degree of the underlying field.
+
+::
 
     sage: sr.n, sr.r, sr.c, sr.e
     (1, 1, 1, 4)
 
-By default variables are ordered reverse to as they appear., e.g.:
+By default variables are ordered reverse to as they appear., e.g.::
 
     sage: print sr.R.repr_long()
     Polynomial Ring
@@ -32,10 +37,10 @@ By default variables are ordered reverse to as they appear., e.g.:
        Block  0 : Ordering : degrevlex
                   Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
 
+For SR(1, 1, 1, 4) the ShiftRows matrix isn't that interesting::
+However, this can be prevented by passing in
+``reverse_variables=False`` to the constructor.
 
-However, this can be prevented by passing in \code{reverse_variables=False} to the constructor.
-
-For SR(1, 1, 1, 4) the ShiftRows matrix isn't that interesting:
 
     sage: sr.ShiftRows
     [1 0 0 0]
@@ -43,7 +48,7 @@ For SR(1, 1, 1, 4) the ShiftRows matrix isn't that interesting:
     [0 0 1 0]
     [0 0 0 1]
 
-Also, the MixColumns matrix is the identity matrix:
+Also, the MixColumns matrix is the identity matrix::
 
     sage: sr.MixColumns
     [1 0 0 0]
@@ -53,14 +58,17 @@ Also, the MixColumns matrix is the identity matrix:
 
 Lin, however is not the identity matrix.
 
+::
+
     sage: sr.Lin
     [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
     [                a                 a                 1 a^3 + a^2 + a + 1]
     [          a^3 + a               a^2               a^2                 1]
     [                1               a^3             a + 1             a + 1]
 
-
 M and Mstar are identical for SR(1, 1, 1, 4)
+
+::
 
     sage: sr.M
     [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
@@ -68,15 +76,18 @@ M and Mstar are identical for SR(1, 1, 1, 4)
     [          a^3 + a               a^2               a^2                 1]
     [                1               a^3             a + 1             a + 1]
 
+::
+
     sage: sr.Mstar
     [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
     [                a                 a                 1 a^3 + a^2 + a + 1]
     [          a^3 + a               a^2               a^2                 1]
     [                1               a^3             a + 1             a + 1]
 
+We can compute a Groebner basis for the ideals spanned by SR
+instances to recover all solutions to the system.
 
-We can compute a Groebner basis for the ideals spanned by SR instances
-to recover all solutions to the system.
+::
 
     sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
     sage: K = sr.base_ring()
@@ -92,10 +103,10 @@ to recover all solutions to the system.
      x101 + k003 + 1, x100 + 1, k103 + k003, k102,
      k101 + 1, k100]
 
-Note that the order of \var{k000},\var{k001},\var{k002} and \var{k003}
-is little endian. Thus the result \code{k002 + 1, k001, k000}
-indicates that the key is either $a$ or $a+1$. We can verify that both
-keys encrypt P to the same ciphertext:
+Note that the order of ``k000``, ``k001``,``k002`` and ``k003}``
+is little endian. Thus the result ``k002 + 1, k001, k000``
+indicates that the key is either `a` or `a+1`. We can verify that both
+keys encrypt P to the same ciphertext::
 
     sage: sr(P,[a])
     [0]
@@ -103,6 +114,8 @@ keys encrypt P to the same ciphertext:
     [0]
 
 All solutions can easily be recovered using the variety function for ideals.
+
+::
 
    sage: I = F.ideal()
    sage: for V in I.variety():
@@ -152,12 +165,12 @@ All solutions can easily be recovered using the variety function for ideals.
    k100 0
 
 Note that the SBox object for SR can be constructed with a call to
-\code{sr.sbox()}.
+``sr.sbox()``::
 
    sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
    sage: S = sr.sbox()
 
-For example, we can now study the difference distribution matrix of \var{S}.
+For example, we can now study the difference distribution matrix of ``S``::
 
    sage: S.difference_distribution_matrix()
    [16  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
@@ -177,7 +190,9 @@ For example, we can now study the difference distribution matrix of \var{S}.
    [ 0  0  2  2  0  2  4  2  0  0  0  0  0  2  2  0]
    [ 0  2  0  2  2  0  0  2  0  0  2  2  0  0  4  0]
 
-or use \var{S} to find alternative polynomial representations for the S-Box.
+or use ``S`` to find alternative polynomial representations for the S-Box.
+
+::
 
    sage: S.polynomials(degree=3)
    [x0*x1 + x1*x2 + x0*x3 + x0*y2 + x1 + y0 + y1 + 1,
@@ -261,21 +276,23 @@ or use \var{S} to find alternative polynomial representations for the S-Box.
    sage: S.interpolation_polynomial()
    (a^2 + 1)*x^14 + x^13 + (a^3 + a^2)*x^11 + (a^2 + 1)*x^7 + a^2 + a
 
-The \class{SR_gf2_2} gives an example how use alternative polynomial
+The :class:`SR_gf2_2` gives an example how use alternative polynomial
 representations of the S-Box for construction of polynomial systems.
 
-TESTS:
+TESTS::
+
     sage: sr == loads(dumps(sr))
     True
 
 REFERENCES:
-   [CMR05] C. Cid , S. Murphy, and M.J.B. Robshaw; Small Scale
-   Variants of the AES; in Proceedings of Fast Software Encryption
-   2005, LNCS 3557; Springer 2005; available at
-   http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
 
-   [CMR06] C. Cid , S. Murphy, and M.J.B. Robshaw; Algebraic Aspects
-   of the Advanced Encryption Standard; Springer 2006;
+- [CMR05] C. Cid , S. Murphy, and M.J.B. Robshaw; Small Scale Variants
+  of the AES; in Proceedings of Fast Software Encryption 2005, LNCS
+  3557; Springer 2005; available at
+  http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
+
+- [CMR06] C. Cid , S. Murphy, and M.J.B. Robshaw; Algebraic Aspects of
+  the Advanced Encryption Standard; Springer 2006;
 """
 from __future__ import with_statement
 
@@ -303,32 +320,48 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     constructor subject to the following conditions:
 
     INPUT:
-        n -- the number of rounds (default: 1)
-        r -- the number of rows in the state array (default: 1)
-        c -- the number of columns in the state array (default: 1)
-        e -- the exponent of the finite extension field (default: 4)
-        star -- determines if SR* or SR should be constructed
-                (default: False)
-        aes_mode -- as the SR key schedule specification differs
-                    slightly from the AES key schedule, this parameter
-                    controls which schedule to use (default: True)
-        gf2 -- generate polynomial systems over $\GF(2)$ rather than
-               over $\GF(2^n)$ (default: False)
-        polybori - use the \code{BooleanPolynomialRing} as polynomial
-                   representation
-        order -- a string to specify the term ordering of the
-                 variables
-        postfix -- a string which is appended after the variable name
-                   (default: '')
-        allow_zero_inversions -- a boolean to control whether zero
-                                 inversions raise an exception
-                                 (default: False)
-        correct_only -- only include correct inversion polynomials
-                        (default: False, GF2 only)
-        biaffine_only -- only include bilinear and biaffine inversion
-                         polynomials (default: True, GF2 only)
 
-    EXAMPLES:
+    -  ``n`` - the number of rounds (default: 1)
+
+    -  ``r`` - the number of rows in the state array
+       (default: 1)
+
+    -  ``c`` - the number of columns in the state array
+       (default: 1)
+
+    -  ``e`` - the exponent of the finite extension field
+       (default: 4)
+
+    -  ``star`` - determines if SR\* or SR should be
+       constructed (default: False)
+
+    -  ``aes_mode`` - as the SR key schedule specification
+       differs slightly from the AES key schedule, this parameter controls
+       which schedule to use (default: True)
+
+    -  ``gf2`` - generate polynomial systems over
+       `\mathrm{GF}(2)` rather than over `\mathrm{GF}(2^n)` (default:
+       False) polybori - use the ``BooleanPolynomialRing`` as
+       polynomial representation
+
+    -  ``order`` - a string to specify the term ordering of
+       the variables
+
+    -  ``postfix`` - a string which is appended after the
+       variable name (default: '')
+
+    -  ``allow_zero_inversions`` - a boolean to control
+       whether zero inversions raise an exception (default: False)
+
+    -  ``correct_only`` - only include correct inversion
+       polynomials (default: False, GF2 only)
+
+    -  ``biaffine_only`` - only include bilinear and
+       biaffine inversion polynomials (default: True, GF2 only)
+
+
+    EXAMPLES::
+
         sage: sr = mq.SR(1, 1, 1, 4)
         sage: ShiftRows = sr.shift_rows_matrix()
         sage: MixColumns = sr.mix_columns_matrix()
@@ -339,6 +372,8 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
          2 2 1 F
          A 4 4 1
          1 8 3 3
+
+    ::
 
         sage: sr = mq.SR(1, 2, 1, 4)
         sage: ShiftRows = sr.shift_rows_matrix()
@@ -354,6 +389,8 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
          8 8 4 9 A A 5 6
          D C C 3 7 8 8 2
          5 E F F 4 6 C C
+
+    ::
 
         sage: sr = mq.SR(1, 2, 2, 4)
         sage: ShiftRows = sr.shift_rows_matrix()
@@ -377,7 +414,6 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
          0 0 0 0 A A 5 6 8 8 4 9 0 0 0 0
          0 0 0 0 7 8 8 2 D C C 3 0 0 0 0
          0 0 0 0 4 6 C C 5 E F F 0 0 0 0
-
     """
     if not kwargs.get("gf2", False):
         return SR_gf2n(n, r, c, e, star, **kwargs)
@@ -389,7 +425,8 @@ class SR_generic(MPolynomialSystemGenerator):
         """
         Small Scale Variants of the AES.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 4)
             sage: ShiftRows = sr.shift_rows_matrix()
             sage: MixColumns = sr.mix_columns_matrix()
@@ -437,17 +474,23 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def new_generator(self, **kwds):
         r"""
-        Return a new \code{SR} instance equal to this instance except
-        for the parameters passed explicitly to this function.
+        Return a new ``SR`` instance equal to this instance
+        except for the parameters passed explicitly to this function.
 
         INPUT:
-            **kwds -- see the \code{SR} constructor for accepted parameters
 
-        EXAMPLE:
+        - ``**kwds`` - see the ``SR`` constructor for accepted
+           parameters
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2,1,1,4); sr
             SR(2,1,1,4)
             sage: sr.ring().base_ring()
             Finite Field in a of size 2^4
+
+        ::
 
             sage: sr2 = sr.new_generator(gf2=True); sr2
             SR(2,1,1,4)
@@ -496,7 +539,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def __getattr__(self, attr):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 1, 4, gf2=True)
             sage: sr.Mstar
             [0 1 1 0 1 1 0 1]
@@ -548,7 +592,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sr = mq.SR(1, 2, 2, 4); sr #indirect doctest
             SR(1,2,2,4)
             sage: sr = mq.SR(1, 2, 2, 4, star=True); sr
@@ -562,14 +607,15 @@ class SR_generic(MPolynomialSystemGenerator):
     def base_ring(self):
         r"""
         Return the base field of self as determined by
-        \code{self.e}.
+        ``self.e``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 2, 2, 4)
             sage: sr.base_ring().polynomial()
             a^4 + a + 1
 
-            The Rijndael polynomial:
+        The Rijndael polynomial::
 
             sage: sr = mq.SR(10, 4, 4, 8)
             sage: sr.base_ring().polynomial()
@@ -587,14 +633,17 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def __cmp__(self, other):
         """
-        Two generators are considered equal if they agree on all
-        parameters passed to them during construction.
+        Two generators are considered equal if they agree on all parameters
+        passed to them during construction.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr1 = mq.SR(2, 2, 2, 4)
             sage: sr2 = mq.SR(2, 2, 2, 4)
             sage: sr1 == sr2
             True
+
+        ::
 
             sage: sr1 = mq.SR(2, 2, 2, 4)
             sage: sr2 = mq.SR(2, 2, 2, 4, gf2=True)
@@ -606,57 +655,65 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def sub_bytes(self, d):
         r"""
-        Perform the non-linear transform on \var{d}.
+        Perform the non-linear transform on ``d``.
 
-        sage: sr = mq.SR(2, 1, 2, 8, gf2=True)
-        sage: k = sr.base_ring()
-        sage: A = Matrix(k, 1, 2 , [k(1), k.gen()])
-        sage: sr.sub_bytes(A)
-        [  a^6 + a^5 + a^4 + a^3 + a^2 a^6 + a^5 + a^4 + a^2 + a + 1]
+        ::
+
+            sage: sr = mq.SR(2, 1, 2, 8, gf2=True)
+            sage: k = sr.base_ring()
+            sage: A = Matrix(k, 1, 2 , [k(1), k.gen()])
+            sage: sr.sub_bytes(A)
+            [  a^6 + a^5 + a^4 + a^3 + a^2 a^6 + a^5 + a^4 + a^2 + a + 1]
 
         INPUT:
-            d -- state array or something coercable to a state array
+
+
+        -  ``d`` - state array or something coercable to a
+           state array
         """
         d = self.state_array(d)
         return Matrix(self.base_ring(), d.nrows(), d.ncols(), [self.sub_byte(b) for b in d.list()])
 
     def sub_byte(self, b):
         r"""
-        Perform \code{SubByte} on a single byte/halfbyte \var{b}.
+        Perform ``SubByte`` on a single byte/halfbyte
+        ``b``.
 
-        A \code{ZeroDivision} exception is raised if an attempt is
+        A ``ZeroDivision`` exception is raised if an attempt is
         made to perform an inversion on the zero element. This can be
-        disabled by passing \code{allow_zero_inversion=True} to the
-        constructor. A zero inversion will result in an inconsistent
+        disabled by passing ``allow_zero_inversion=True`` to
+        the constructor. A zero inversion will result in an inconsistent
         equation system.
 
         INPUT:
-            b -- an element in self.base_ring()
+
+
+        -  ``b`` - an element in self.base_ring()
+
 
         EXAMPLE:
 
-           The S-Box table for $GF(2^4)$:
+        The S-Box table for `GF(2^4)`::
 
-           sage: sr = mq.SR(1, 1, 1, 4, allow_zero_inversions=True)
-           sage: for e in sr.base_ring():
-           ...    print '% 20s % 20s'%(e, sr.sub_byte(e))
-                           0              a^2 + a
-                           a              a^2 + 1
-                         a^2                    a
-                         a^3              a^3 + 1
-                       a + 1                  a^2
-                     a^2 + a          a^2 + a + 1
-                   a^3 + a^2                a + 1
-                 a^3 + a + 1            a^3 + a^2
-                     a^2 + 1        a^3 + a^2 + a
-                     a^3 + a    a^3 + a^2 + a + 1
-                 a^2 + a + 1              a^3 + a
-               a^3 + a^2 + a                    0
-           a^3 + a^2 + a + 1                  a^3
-               a^3 + a^2 + 1                    1
-                     a^3 + 1        a^3 + a^2 + 1
-                           1          a^3 + a + 1
-
+            sage: sr = mq.SR(1, 1, 1, 4, allow_zero_inversions=True)
+            sage: for e in sr.base_ring():
+            ...    print '% 20s % 20s'%(e, sr.sub_byte(e))
+                            0              a^2 + a
+                            a              a^2 + 1
+                          a^2                    a
+                          a^3              a^3 + 1
+                        a + 1                  a^2
+                      a^2 + a          a^2 + a + 1
+                    a^3 + a^2                a + 1
+                  a^3 + a + 1            a^3 + a^2
+                      a^2 + 1        a^3 + a^2 + a
+                      a^3 + a    a^3 + a^2 + a + 1
+                  a^2 + a + 1              a^3 + a
+                a^3 + a^2 + a                    0
+            a^3 + a^2 + a + 1                  a^3
+                a^3 + a^2 + 1                    1
+                      a^3 + 1        a^3 + a^2 + 1
+                            1          a^3 + a + 1
         """
         if not b:
             if not self._allow_zero_inversions:
@@ -703,10 +760,11 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def sbox_constant(self):
         """
-        Return the sbox constant which is added after $L(x^{-1})$ was
-        performed. That is 0x63 if e == 8 or 0x6 if e == 4.
+        Return the sbox constant which is added after `L(x^{-1})`
+        was performed. That is 0x63 if e == 8 or 0x6 if e == 4.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 1, 1, 8)
             sage: sr.sbox_constant()
             a^6 + a^5 + a + 1
@@ -724,10 +782,12 @@ class SR_generic(MPolynomialSystemGenerator):
         Return an SBox object for this SR instance.
 
         INPUT:
-            inversion_only -- do not include the GF(2) affine map when
-                              computing the S-Box (default: False)
 
-        EXAMPLE:
+        - ``inversion_only`` - do not include the GF(2) affine map when
+          computing the S-Box (default: False)
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1,2,2,4, allow_zero_inversions=True)
             sage: S = sr.sbox(); S
             (6, 11, 5, 4, 2, 14, 7, 10, 9, 13, 15, 12, 3, 1, 0, 8)
@@ -813,18 +873,22 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def shift_rows(self, d):
         r"""
-        Perform the \code{ShiftRows} operation on \var{d}.
+        Perform the ``ShiftRows`` operation on ``d``.
 
         INPUT:
-            d -- state array or something coercable to a state array
 
-        EXAMPLES:
+        - ``d`` - state array or something coercable to a state array
+
+        EXAMPLES::
+
             sage: sr = mq.SR(10, 4, 4, 4)
             sage: E = sr.state_array() + 1; E
             [1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
             [0 0 0 1]
+
+        ::
 
             sage: sr.shift_rows(E)
             [1 0 0 0]
@@ -840,18 +904,26 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def mix_columns(self, d):
         r"""
-        Perform the \code{MixColumns} operation on \var{d}.
+        Perform the ``MixColumns`` operation on
+        ``d``.
 
         INPUT:
-            d -- state array or something coercable to a state array
 
-        EXAMPLES:
+
+        -  ``d`` - state array or something coercable to a
+           state array
+
+
+        EXAMPLES::
+
             sage: sr = mq.SR(10, 4, 4, 4)
             sage: E = sr.state_array() + 1; E
             [1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
             [0 0 0 1]
+
+        ::
 
             sage: sr.mix_columns(E)
             [    a a + 1     1     1]
@@ -883,15 +955,21 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def add_round_key(self, d, key):
         r"""
-        Perform the \code{AddRoundKey} operation on \var{d} using
-        \var{key}.
+        Perform the ``AddRoundKey`` operation on
+        ``d`` using ``key``.
 
         INPUT:
-            d -- state array or something coercable to a state array
-            key -- state array or something coercable to a state
-                   array
 
-        EXAMPLE:
+
+        -  ``d`` - state array or something coercable to a
+           state array
+
+        -  ``key`` - state array or something coercable to a
+           state array
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 4, 4, 4)
             sage: D = sr.random_state_array()
             sage: K = sr.random_state_array()
@@ -908,9 +986,13 @@ class SR_generic(MPolynomialSystemGenerator):
         Convert the parameter to a state array.
 
         INPUT:
-            d -- None, a matrix, a list, or a tuple
 
-        EXAMPLES:
+
+        -  ``d`` - None, a matrix, a list, or a tuple
+
+
+        EXAMPLES::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: k = sr.base_ring()
             sage: e1 = [k.fetch_int(e) for e in range(2*2)]; e1
@@ -923,10 +1005,11 @@ class SR_generic(MPolynomialSystemGenerator):
             [    0     a]
             [    1 a + 1]
 
+        ::
+
             sage: sr.state_array()
             [0 0]
             [0 0]
-
         """
         r = self.r
         c = self.c
@@ -947,14 +1030,17 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def is_state_array(self, d):
         """
-        Return True if d is a state array, i.e. has the correct
-        dimensions and base field.
+        Return True if d is a state array, i.e. has the correct dimensions
+        and base field.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 4, 8)
             sage: k = sr.base_ring()
             sage: sr.is_state_array( matrix(k, 2, 4) )
             True
+
+        ::
 
             sage: sr = mq.SR(2, 2, 4, 8)
             sage: k = sr.base_ring()
@@ -968,10 +1054,11 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def random_state_array(self):
         r"""
-        Return a random element in
-        \code{MatrixSpace(self.base_ring(), self.r, self.c)}.
+        Return a random element in ``MatrixSpace(self.base_ring(),
+        self.r, self.c)``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: sr.random_state_array()
             [a^3 + a + 1       a + 1]
@@ -984,7 +1071,8 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a random vector as it might appear in the algebraic
         expression of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: sr.random_vector()
             [  a^3 + a + 1]
@@ -1004,7 +1092,9 @@ class SR_generic(MPolynomialSystemGenerator):
             [      a^2 + 1]
             [            a]
 
-        NOTE: Phi was already applied to the result.
+        .. note::
+
+           Phi was already applied to the result.
         """
         return self.vector( self.random_state_array() )
 
@@ -1013,9 +1103,14 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a random element for self.
 
         INPUT:
-            elem_type -- either 'vector' or 'state array' (default: 'vector')
 
-        EXAMPLE:
+
+        -  ``elem_type`` - either 'vector' or 'state array'
+           (default: 'vector')
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR()
             sage: sr.random_element()
             [  a^3 + a + 1]
@@ -1034,9 +1129,11 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def key_schedule(self, kj, i):
         """
-        Return $k_i$ for a given $i$ and $k_j$ with $j = i-1$.
+        Return `k_i` for a given `i` and `k_j`
+        with `j = i-1`.
 
-        TESTS:
+        TESTS::
+
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True)
             sage: ki = sr.state_array()
             sage: for i in range(10):
@@ -1114,16 +1211,19 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def __call__(self, P, K):
         r"""
-        Encrypts the plaintext $P$ using the key $K$.
+        Encrypts the plaintext `P` using the key `K`.
 
         Both must be given as state arrays or coercable to state arrays.
 
         INPUTS:
-            P -- plaintext as state array or something coercable to a state array
-            K -- key as state array or something coercable to a state array
 
-        TESTS:
-            The official AES test vectors:
+        - ``P`` - plaintext as state array or something coercable to a
+          qstate array
+
+        - ``K`` - key as state array or something coercable to a state
+          array
+
+        TESTS: The official AES test vectors::
 
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True)
             sage: k = sr.base_ring()
@@ -1135,7 +1235,7 @@ class SR_generic(MPolynomialSystemGenerator):
             0B F0 94 EA
             B5 45 58 5A
 
-            Brian Gladman's development vectors (dev_vec.txt):
+        Brian Gladman's development vectors (dev_vec.txt)::
 
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True, aes_mode=True)
             sage: k = sr.base_ring()
@@ -1279,16 +1379,23 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a hex string for the provided AES state array/matrix.
 
         INPUT:
-            M -- state array
-            typ -- controls what to return, either 'matrix' or 'vector'
-                   (default: 'matrix')
 
-        EXAMPLE:
+
+        -  ``M`` - state array
+
+        -  ``typ`` - controls what to return, either 'matrix'
+           or 'vector' (default: 'matrix')
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: k = sr.base_ring()
             sage: A = matrix(k, 2, 2, [1, k.gen(), 0, k.gen()^2])
             sage: sr.hex_str(A)
             ' 1 2 \n 0 4 \n'
+
+        ::
 
             sage: sr.hex_str(A, typ='vector')
             '1024'
@@ -1301,15 +1408,19 @@ class SR_generic(MPolynomialSystemGenerator):
             raise TypeError, "parameter type must either be 'matrix' or 'vector'"
 
     def hex_str_matrix(self, M):
-        """
+        r"""
         Return a two-dimensional AES like representation of the matrix M.
 
         That is, show the finite field elements as hex strings.
 
         INPUT:
-            M -- an AES state array
 
-        EXAMPLE:
+
+        -  ``M`` - an AES state array
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: k = sr.base_ring()
             sage: A = matrix(k, 2, 2, [1, k.gen(), 0, k.gen()^2])
@@ -1334,9 +1445,13 @@ class SR_generic(MPolynomialSystemGenerator):
         That is, show the finite field elements as hex strings.
 
         INPUT:
-            M -- an AES state array
 
-        EXAMPLE:
+
+        -  ``M`` - an AES state array
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 2, 2, 4)
             sage: k = sr.base_ring()
             sage: A = matrix(k, 2, 2, [1, k.gen(), 0, k.gen()^2])
@@ -1359,12 +1474,19 @@ class SR_generic(MPolynomialSystemGenerator):
         Insert matrix src into matrix dst starting at row and col.
 
         INPUT:
-            dst -- a matrix
-            src -- a matrix
-            row -- offset row
-            col -- offset columns
 
-        EXAMPLE:
+
+        -  ``dst`` - a matrix
+
+        -  ``src`` - a matrix
+
+        -  ``row`` - offset row
+
+        -  ``col`` - offset columns
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 4, 4, 4)
             sage: a = sr.k.gen()
             sage: A = sr.state_array() + 1; A
@@ -1391,17 +1513,25 @@ class SR_generic(MPolynomialSystemGenerator):
         """
         Return a format string which is understood by print et al.
 
-        If a numerical value is omitted, the default value of self is
-        used. The numerical values (n, rc, e) are used to determine the
-        width of the respective fields in the format string.
+        If a numerical value is omitted, the default value of self is used.
+        The numerical values (n, rc, e) are used to determine the width of
+        the respective fields in the format string.
 
         INPUT:
-            name -- name of the variable
-            n -- number of rounds (default: None)
-            rc -- number of rows * number of cols (default: None)
-            e -- exponent of base field (default: None)
 
-        EXAMPLE:
+
+        -  ``name`` - name of the variable
+
+        -  ``n`` - number of rounds (default: None)
+
+        -  ``rc`` - number of rows \* number of cols (default:
+           None)
+
+        -  ``e`` - exponent of base field (default: None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 2, 4)
             sage: sr.varformatstr('x')
             'x%01d%01d%01d'
@@ -1429,12 +1559,14 @@ class SR_generic(MPolynomialSystemGenerator):
         AES subject to the given constraints.
 
         INPUT:
-            name -- variable name
-            nr -- number of round to create variable strings for
-            rc -- row*column index in state array
-            e -- exponent of base field
 
-        EXAMPLE:
+        - ``name`` - variable name
+        - ``nr`` - number of round to create variable strings for
+        - ``rc`` - row*column index in state array
+        - ``e`` - exponent of base field
+
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 1, 2, 4)
             sage: sr.varstr('x', 2, 1, 1)
             'x211'
@@ -1447,12 +1579,14 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a list of strings representing variables in self.
 
         INPUT:
-            name -- variable name
-            nr -- number of round to create variable strings for
-            rc -- number of rows * number of columns in the state array
-            e -- exponent of base field
 
-        EXAMPLE:
+        - ``name`` - variable name
+        - ``nr`` - number of round to create variable strings for
+        - ``rc`` - number of rows * number of columns in the state array
+        - ``e`` - exponent of base field
+
+        EXAMPLE::
+
             sage: sr = mq.SR(10, 1, 2, 4)
             sage: sr.varstrs('x', 2)
             ['x200', 'x201', 'x202', 'x203', 'x210', 'x211', 'x212', 'x213']
@@ -1494,7 +1628,8 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a dictionary to access variables in \code{self.R} by
         their names.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1,1,1,4)
             sage: sr.variable_dict()
             {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
@@ -1529,10 +1664,13 @@ class SR_generic(MPolynomialSystemGenerator):
         """
         Return a block order for self where each round is a block.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 1, 1, 4)
             sage: sr.block_order()
             degrevlex(16),degrevlex(16),degrevlex(4) term order
+
+        ::
 
             sage: P = sr.ring(order='block')
             sage: print P.repr_long()
@@ -1564,27 +1702,25 @@ class SR_generic(MPolynomialSystemGenerator):
         Construct a ring as a base ring for the polynomial system.
 
         By default, variables are ordered in the reverse of their natural
-        ordering, i.e. the reverse of as they appear.
+        i.e. the reverse of as they appear.
 
         INPUT:
-            order -- a monomial ordering (default: None)
-            reverse_variables -- reverse rounds of variables (default: True)
+
+        - ``order`` - a monomial ordering (default: None)
+        - ``reverse_variables`` - reverse rounds of variables (default: True)
 
         The variable assignment is as follows:
-         * k_ijl subkey round i word j conjugate/bit l
-         * s_ijl subkey inverse round i word j conjugate/bit l
-         * w_ijl inversion input  round i word j conjugate/bit l
-         * x_ijl inversion output round i word j conjugate/bit l
 
         Note that the variables are ordered in column major ordering
         in the state array and that the bits are ordered in little
         endian ordering.
 
-        For example, if $x010$ is a variable over GF(2) for $r=2$ and
-        $c=2$ then refers to the MOST significant bit of the entry
+        For example, if `x010` is a variable over GF(2) for `r=2` and
+        `c=2` then refers to the MOST significant bit of the entry
         in the position (1,0) in the state array matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 1, 1, 4)
             sage: P = sr.ring(order='block')
             sage: print P.repr_long()
@@ -1644,20 +1780,27 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def round_polynomials(self, i, plaintext=None, ciphertext=None):
         r"""
-        Return list of polynomials for a given round $i$.
+        Return list of polynomials for a given round `i`.
 
-        If $i == 0$ a plaintext must be provided, if $i == n$ a
-        ciphertext must be provided.
+        If `i == 0` a plaintext must be provided, if
+        `i == n` a ciphertext must be provided.
 
         INPUT:
-           i -- round number
-           plaintext -- optional plaintext (mandatory in first round)
-           ciphertext -- optional ciphertext (mandatory in last round)
 
-        OUTPUT:
-            MPolynomialRoundSystem
 
-        EXAMPLE:
+        -  ``i`` - round number
+
+        -  ``plaintext`` - optional plaintext (mandatory in
+           first round)
+
+        -  ``ciphertext`` - optional ciphertext (mandatory in
+           last round)
+
+
+        OUTPUT: MPolynomialRoundSystem
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 4)
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
@@ -1706,22 +1849,31 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def key_schedule_polynomials(self, i):
         """
-        Return polynomials for the $i$-th round of the key schedule.
+        Return polynomials for the `i`-th round of the key
+        schedule.
 
         INPUT:
-            i -- round (0 <= i <= n)
 
-        EXAMPLE:
+
+        -  ``i`` - round (0 = i = n)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True)
 
-            The 0-th subkey is the user provided key, so only
-            conjugacy relations are added.
+        The 0-th subkey is the user provided key, so only conjugacy
+        relations are added.
+
+        ::
 
             sage: sr.key_schedule_polynomials(0)
             [k000^2 + k000, k001^2 + k001, k002^2 + k002, k003^2 + k003]
 
-            The 1-th subkey is derived from the user provided key
-            according to the key schedule which is non-linear.
+        The 1-th subkey is derived from the user provided key according to
+        the key schedule which is non-linear.
+
+        ::
 
             sage: sr.key_schedule_polynomials(1)
             [k100 + s000 + s002 + s003,
@@ -1801,16 +1953,20 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def polynomial_system(self, P=None, K=None):
         """
-        Return a polynomial system for this small scale AES variant
-        for a given plaintext-key pair.
+        Return a polynomial system for this small scale AES variant for a
+        given plaintext-key pair.
 
         If none are provided a random pair will be generated.
 
         INPUT:
-            P -- vector, list, or tuple (default: None)
-            K -- vector, list, or tuple (default: None)
 
-        EXAMPLE:
+
+        -  ``P`` - vector, list, or tuple (default: None)
+
+        -  ``K`` - vector, list, or tuple (default: None)
+
+
+        EXAMPLE::
 
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: P = sr.vector([0, 0, 1, 0])
@@ -1819,21 +1975,27 @@ class SR_generic(MPolynomialSystemGenerator):
 
         This returns a polynomial system
 
+        ::
+
             sage: F
             Polynomial System with 36 Polynomials in 20 Variables
 
-        and a solution:
+        and a solution::
 
             sage: s # random -- maybe we need a better doctest here?
             {k000: 1, k001: 0, k003: 1, k002: 0}
 
-        This solution is not the only solution what we can learn from
-        the Groebner basis of the system.
+        This solution is not the only solution what we can learn from the
+        Groebner basis of the system.
+
+        ::
 
             sage: F.groebner_basis()[:4]
             [k003 + 1, k001, k000 + 1, s003 + k002]
 
-            In particular we have two solutions
+        In particular we have two solutions
+
+        ::
 
             sage: len(F.ideal().variety())
             2
@@ -1874,17 +2036,23 @@ class SR_generic(MPolynomialSystemGenerator):
 
 class SR_gf2n(SR_generic):
     r"""
-    Small Scale Variants of the AES polynomial system constructor over $GF(2^n)$.
+    Small Scale Variants of the AES polynomial system constructor over
+    `GF(2^n)`.
     """
     def vector(self, d=None):
         """
-        Constructs a vector suitable for the algebraic representation
-        of SR, i.e. BES.
+        Constructs a vector suitable for the algebraic representation of
+        SR, i.e. BES.
 
         INPUT:
-            d -- values for vector, must be understood by self.phi (default:None)
 
-        EXAMPLE:
+
+        -  ``d`` - values for vector, must be understood by
+           self.phi (default:None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR()
             sage: sr
             SR(1,1,1,4)
@@ -1910,7 +2078,8 @@ class SR_gf2n(SR_generic):
         """
         Return True if d can be used as a vector for self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR()
             sage: sr
             SR(1,1,1,4)
@@ -1932,9 +2101,13 @@ class SR_gf2n(SR_generic):
         Projects state arrays to their algebraic representation.
 
         INPUT:
-            l -- element to perform phi on.
 
-        EXAMPLE:
+
+        -  ``l`` - element to perform phi on.
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 1, 2, 4)
             sage: k = sr.base_ring()
             sage: A = matrix(k, 1, 2, [k.gen(), 0] )
@@ -1965,9 +2138,14 @@ class SR_gf2n(SR_generic):
         Inverse of self.phi.
 
         INPUT:
-            l -- a vector in the sense of \code{self.is_vector}
 
-        EXAMPLE:
+
+        -  ``l`` - a vector in the sense of
+           ``self.is_vector``
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR()
             sage: A = sr.random_state_array()
             sage: A
@@ -1993,7 +2171,8 @@ class SR_gf2n(SR_generic):
         """
         Return the ShiftRows matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 2, 4)
             sage: s = sr.random_state_array()
             sage: r1 = sr.shift_rows(s)
@@ -2020,15 +2199,20 @@ class SR_gf2n(SR_generic):
         """
         Return the Lin matrix.
 
-        If no length is provided the standard state space size is
-        used. The key schedule calls this method with an explicit
-        length argument because only self.r S-Box applications are
-        performed in the key schedule.
+        If no length is provided the standard state space size is used. The
+        key schedule calls this method with an explicit length argument
+        because only self.r S-Box applications are performed in the key
+        schedule.
 
         INPUT:
-            length -- length of state space. (default: None)
 
-        EXAMPLE:
+
+        -  ``length`` - length of state space. (default:
+           None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 4)
             sage: sr.lin_matrix()
             [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
@@ -2064,7 +2248,8 @@ class SR_gf2n(SR_generic):
         """
         Return the MixColumns matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 2, 4)
             sage: s = sr.random_state_array()
             sage: r1 = sr.mix_columns(s)
@@ -2075,9 +2260,11 @@ class SR_gf2n(SR_generic):
 
         def D(b):
             """
-            Return the e x e matrix $D$ with $b^i$ along the diagonal.
+            Return the e x e matrix `D` with `b^i` along the
+            diagonal.
 
-            EXAMPLE:
+            EXAMPLE::
+
                 sage: sr = mq.SR(1, 2, 1, 4)
                 sage: sr.mix_columns_matrix() # indirect doctest
                 [  a + 1       0       0       0       a       0       0       0]
@@ -2088,7 +2275,6 @@ class SR_gf2n(SR_generic):
                 [      0     a^2       0       0       0 a^2 + 1       0       0]
                 [      0       0   a + 1       0       0       0       a       0]
                 [      0       0       0 a^2 + 1       0       0       0     a^2]
-
             """
             D = Matrix(self.base_ring(), self._e, self._e)
             for i in range(self._e):
@@ -2145,11 +2331,17 @@ class SR_gf2n(SR_generic):
         Return polynomials to represent the inversion in the AES S-Box.
 
         INPUT:
-            xi -- output variables
-            wi -- input variables
-            length -- length of both lists
 
-        EXAMPLE:
+
+        -  ``xi`` - output variables
+
+        -  ``wi`` - input variables
+
+        -  ``length`` - length of both lists
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 8)
             sage: R = sr.ring()
             sage: xi = Matrix(R, 8, 1, sr.vars('x', 1))
@@ -2171,11 +2363,17 @@ class SR_gf2n(SR_generic):
         Return list of conjugacy polynomials for a given round and name.
 
         INPUT:
-            name -- variable name
-            i -- round number
-            l -- r*c (default:None)
 
-        EXAMPLE:
+
+        -  ``name`` - variable name
+
+        -  ``i`` - round number
+
+        -  ``l`` - r\*c (default:None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(3, 1, 1, 8)
             sage: sr.field_polynomials('x', 2)
             [x200^2 + x201,
@@ -2202,10 +2400,11 @@ class SR_gf2n(SR_generic):
 class SR_gf2(SR_generic):
     def __init__(self, n=1, r=1, c=1, e=4, star=False, **kwargs):
         r"""
-        Small Scale Variants of the AES polynomial system constructor
-        over $GF(2)$. See help for SR.
+        Small Scale Variants of the AES polynomial system constructor over
+        `GF(2)`. See help for SR.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: sr
             SR(1,1,1,4)
@@ -2216,12 +2415,17 @@ class SR_gf2(SR_generic):
 
     def vector(self, d=None):
         """
-        Constructs a vector suitable for the algebraic representation of SR.
+        Constructs a vector suitable for the algebraic representation of
+        SR.
 
         INPUT:
-            d -- values for vector(default:None)
 
-        EXAMPLE:
+
+        -  ``d`` - values for vector(default:None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: sr
             SR(1,1,1,4)
@@ -2256,14 +2460,17 @@ class SR_gf2(SR_generic):
 
     def is_vector(self, d):
         """
-        Return True if the given matrix satisfies the conditions for a vector
-        as it appears in the algebraic expression of self.
+        Return True if the given matrix satisfies the conditions for a
+        vector as it appears in the algebraic expression of self.
 
         INPUT:
-            d -- matrix
 
 
-        EXAMPLE:
+        -  ``d`` - matrix
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: sr
             SR(1,1,1,4)
@@ -2282,16 +2489,22 @@ class SR_gf2(SR_generic):
 
     def phi(self, l, diffusion_matrix=False):
         r"""
-        Given a list/matrix of elements in $GF(2^n)$, return a matching
-        list/matrix of elements in $GF(2)$.
+        Given a list/matrix of elements in `GF(2^n)`, return a
+        matching list/matrix of elements in `GF(2)`.
 
         INPUT:
-            l -- element to perform phi on.
-            diffusion_matrix -- if True the given matrix $l$ is transformed
-                                to a matrix which performs the same operation
-                                over GF(2) as $l$ over $GF(2^n)$ (default: False).
 
-        EXAMPLE:
+
+        -  ``l`` - element to perform phi on.
+
+        -  ``diffusion_matrix`` - if True the given matrix
+           `l` is transformed to a matrix which performs the same
+           operation over GF(2) as `l` over `GF(2^n)`
+           (default: False).
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(2, 1, 2, 4, gf2=True)
             sage: k = sr.base_ring()
             sage: A = matrix(k, 1, 2, [k.gen(), 0] )
@@ -2341,9 +2554,14 @@ class SR_gf2(SR_generic):
         Inverse of self.phi.
 
         INPUT:
-            l -- a vector in the sense of \code{self.is_vector}
 
-        EXAMPLE:
+
+        -  ``l`` - a vector in the sense of
+           ``self.is_vector``
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: A = sr.random_state_array()
             sage: A
@@ -2376,7 +2594,8 @@ class SR_gf2(SR_generic):
         """
         Return the ShiftRows matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 2, 4, gf2=True)
             sage: s = sr.random_state_array()
             sage: r1 = sr.shift_rows(s)
@@ -2400,7 +2619,8 @@ class SR_gf2(SR_generic):
         """
         Return the MixColumns matrix.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 2, 2, 4, gf2=True)
             sage: s = sr.random_state_array()
             sage: r1 = sr.mix_columns(s)
@@ -2438,15 +2658,20 @@ class SR_gf2(SR_generic):
         """
         Return the Lin matrix.
 
-        If no length is provided the standard state space size is
-        used. The key schedule calls this method with an explicit
-        length argument because only self.r S-Box applications are
-        performed in the key schedule.
+        If no length is provided the standard state space size is used. The
+        key schedule calls this method with an explicit length argument
+        because only self.r S-Box applications are performed in the key
+        schedule.
 
         INPUT:
-            length -- length of state space. (default: None)
 
-        EXAMPLE:
+
+        -  ``length`` - length of state space. (default:
+           None)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True)
             sage: sr.lin_matrix()
             [1 0 1 1]
@@ -2485,19 +2710,25 @@ class SR_gf2(SR_generic):
 
     def _mul_matrix(self, x):
         """
-        Given an element $x$ in self.base_ring(), return a matrix which
-        performs the same operation on a when interpreted over
-        $GF(2)^e$ as $x$ over $GF(2^e)$.
+        Given an element `x` in self.base_ring(), return a matrix
+        which performs the same operation on a when interpreted over
+        `GF(2)^e` as `x` over `GF(2^e)`.
 
         INPUT:
-            x -- an element in self.base_ring()
 
-        EXAMPLE:
+
+        -  ``x`` - an element in self.base_ring()
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: a = sr.k.gen()
             sage: A = sr._mul_matrix(a^2+1)
             sage: sr.antiphi( A *  sr.vector([a+1]) )
             [a^3 + a^2 + a + 1]
+
+        ::
 
             sage: (a^2 + 1)*(a+1)
             a^3 + a^2 + a + 1
@@ -2514,19 +2745,21 @@ class SR_gf2(SR_generic):
 
     def _square_matrix(self):
         """
-        Return a matrix of dimension self.e x self.e which performs
-        the squaring operation over $GF(2^n)$ on vectors of length e.
+        Return a matrix of dimension self.e x self.e which performs the
+        squaring operation over `GF(2^n)` on vectors of length e.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(gf2=True)
             sage: a = sr.k.gen()
             sage: S = sr._square_matrix()
             sage: sr.antiphi( S *  sr.vector([a^3+1]) )
             [a^3 + a^2 + 1]
 
+        ::
+
             sage: (a^3 + 1)^2
             a^3 + a^2 + 1
-
         """
         a = self.k.gen()
         e = self.e
@@ -2541,12 +2774,13 @@ class SR_gf2(SR_generic):
         Return inversion polynomials of a single S-Box.
 
         INPUT:
-            x -- output variables (default: None)
-            w -- input variables  (default: None)
-            biaffine_only -- only include biaffine polynomials (default: object default)
-            correct_only -- only include correct polynomials (default: object default)
 
-        EXAMPLES:
+        - ``xi`` - output variables
+        - ``wi`` - input variables
+        - ``length`` - length of both lists
+
+        EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 8, gf2=True)
             sage: len(sr.inversion_polynomials_single_sbox())
             24
@@ -2753,12 +2987,14 @@ class SR_gf2(SR_generic):
         Generate inversion polynomials of a single S-box.
 
         INPUT:
-            x -- output variables (default: None)
-            w -- input variables  (default: None)
-            biaffine_only -- only include biaffine polynomials (default: object default)
-            correct_only -- only include correct polynomials (default: object default)
 
-        EXAMPLES:
+        - ``x`` - output variables (default: None)
+        - ``w`` - input variables  (default: None)
+        - ``biaffine_only`` - only include biaffine polynomials (default: object default)
+        - ``correct_only`` - only include correct polynomials (default: object default)
+
+        EXAMPLES::
+
             sage: sr = mq.SR(1, 1, 1, 8, gf2=True)
             sage: len(sr._inversion_polynomials_single_sbox())
             24
@@ -2828,11 +3064,17 @@ class SR_gf2(SR_generic):
         Return polynomials to represent the inversion in the AES S-Box.
 
         INPUT:
-            xi -- output variables
-            wi -- input variables
-            length -- length of both lists
 
-        EXAMPLE:
+
+        -  ``xi`` - output variables
+
+        -  ``wi`` - input variables
+
+        -  ``length`` - length of both lists
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(1, 1, 1, 8, gf2=True)
             sage: xi = sr.vars('x', 1)
             sage: wi = sr.vars('w', 1)
@@ -2863,21 +3105,30 @@ class SR_gf2(SR_generic):
 
     def field_polynomials(self, name, i, l=None):
         """
-        Return list of field polynomials for a given round -- given by
-        its number $i$ -- and name.
+        Return list of field polynomials for a given round - given by its
+        number `i` - and name.
 
         INPUT:
-            name -- variable name
-            i -- round number
-            l -- length of variable list (default:None => r*c)
 
-        EXAMPLE:
+
+        -  ``name`` - variable name
+
+        -  ``i`` - round number
+
+        -  ``l`` - length of variable list (default:None =
+           r\*c)
+
+
+        EXAMPLE::
+
             sage: sr = mq.SR(3, 1, 1, 8, gf2=True)
             sage: sr.field_polynomials('x', 2)
             [x200^2 + x200, x201^2 + x201,
              x202^2 + x202, x203^2 + x203,
              x204^2 + x204, x205^2 + x205,
              x206^2 + x206, x207^2 + x207]
+
+        ::
 
             sage: sr = mq.SR(3, 1, 1, 8, gf2=True, polybori=True)
             sage: sr.field_polynomials('x', 2)
@@ -2909,13 +3160,15 @@ class SR_gf2_2(SR_gf2):
         Return inversion polynomials of a single S-Box.
 
         INPUT:
-            x -- output variables (default: None)
-            w -- input variables  (default: None)
-            biaffine_only -- ignored (always False)
-            correct_only -- ignored (always True)
-            groebner -- precompute the Groebner basis for this S-Box (default: False).
 
-        EXAMPLES:
+        - ``x`` - output variables (default: None)
+        - ``w`` - input variables  (default: None)
+        - ``biaffine_only`` - ignored (always False)
+        - ``correct_only`` - ignored (always True)
+        - ``groebner`` - precompute the Groebner basis for this S-Box (default: False).
+
+        EXAMPLES::
+
             sage: from sage.crypto.mq.sr import SR_gf2_2
             sage: e = 4
             sage: sr = SR_gf2_2(1, 1, 1, e)
@@ -2971,7 +3224,8 @@ class AllowZeroInversionsContext:
     """
     def __init__(self, sr):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
@@ -2981,7 +3235,8 @@ class AllowZeroInversionsContext:
         self.sr = sr
     def __enter__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: sr.sub_byte(0)
@@ -2997,7 +3252,8 @@ class AllowZeroInversionsContext:
         self.sr._allow_zero_inversions = True
     def __exit__(self, typ, value, tb):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
@@ -3008,7 +3264,6 @@ class AllowZeroInversionsContext:
         """
         self.sr._allow_zero_inversions = self.allow_zero_inversions
 
-
 def test_consistency(max_n=2, **kwargs):
     r"""
     Test all combinations of r, c, e and n in (1, 2) for consistency of
@@ -3016,10 +3271,13 @@ def test_consistency(max_n=2, **kwargs):
     systems are tested. This test takes a while.
 
     INPUT:
-        max_n -- maximal number of rounds to consider.
-        kwargs -- are passed to the SR constructor
 
-    TESTS:
+    - ``max_n`` - maximal number of rounds to consider.
+    - ``kwargs`` - are passed to the SR constructor
+
+
+    TESTS::
+
         sage: from sage.crypto.mq.sr import test_consistency
         sage: test_consistency(1) # long time -- calling w/ max_n = 2 requires a LOT of RAM (>> 2GB, evidently).  Calling w/ max_n = 1 is far more managable.
         True

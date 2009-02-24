@@ -2,108 +2,130 @@ r"""
 Linear code constructions.
 
 AUTHOR:
-    -- David Joyner (2007-05): initial version
-    --    "         (2008-02): added cyclic codes, Hamming codes
-    --    "         (2008-03): added BCH code, LinearCodeFromCheckmatrix,
-                               ReedSolomonCode, WalshCode, DuadicCodeEvenPair,
-                               DuadicCodeOddPair, QR codes (even and odd)
-    --    "         (2008-09)  fix for bug in BCHCode reported by F. Voloch
-    --    "         (2008-10)  small docstring changes to WalshCode
-                               and walsh_matrix
+
+- David Joyner (2007-05): initial version
+
+- " (2008-02): added cyclic codes, Hamming codes
+
+- " (2008-03): added BCH code, LinearCodeFromCheckmatrix, ReedSolomonCode, WalshCode,
+  DuadicCodeEvenPair, DuadicCodeOddPair, QR codes (even and odd)
+
+- " (2008-09) fix for bug in BCHCode reported by F. Voloch
+
+- " (2008-10) small docstring changes to WalshCode and walsh_matrix
 
 This file contains contructions of error-correcting codes which are
-pure Python/SAGE and not obtained from wrapping GUAVA functions.
+pure Python/Sage and not obtained from wrapping GUAVA functions.
 The GUAVA wrappers are in guava.py.
 
-Let $ F$ be a finite field with $ q$ elements. Here's a constructive
-definition of a cyclic code of length $ n$.
-
-\begin{enumerate}
-\item
-      Pick a monic polynomial $ g(x)\in F[x]$ dividing $ x^n-1$.
-      This is called the {\it generating polynomial} of the code.
-\item
-      For each polynomial $ p(x)\in F[x]$, compute
-      $p(x)g(x)\ ({\rm mod}\ x^n-1). $
-      Denote the answer by $ c_0+c_1x+...+c_{n-1}x^{n-1}$.
-\item
-      $ {\bf c} =(c_0,c_1,...,c_{n-1})$ is a codeword in $ C$. Every
-      codeword in $ C$ arises in this way (from some $ p(x)$).
-\end{enumerate}
-The {\it polynomial notation} for the code is to call
-$ c_0+c_1x+...+c_{n-1}x^{n-1}$ the codeword (instead of
-$ (c_0,c_1,...,c_{n-1})$). The polynomial $h(x)=(x^n-1)/g(x)$
-is called the {\it check polynomial} of $C$.
-
-Let $ n$ be a positive integer relatively prime to $ q$ and
-let $ \alpha$ be a primitive $n$-th root of unity. Each generator
-polynomial $g$ of a cyclic code $C$ of length $n$ has a factorization
-of the form
-
-\[
-g(x) = (x - \alpha^{k_1})...(x - \alpha^{k_r}),
-\]
-where $ \{k_1,...,k_r\} \subset \{0,...,n-1\}$. The numbers
-$ \alpha^{k_i}$, $ 1 \leq i \leq r$, are called the {\it zeros}
-of the code $ C$. Many families of cyclic codes (such as BCH codes and
-the quadratic residue codes) are defined using properties of the
-zeros of $C$.
+Let `F` be a finite field with `q` elements.
+Here's a constructive definition of a cyclic code of length
+`n`.
 
 
- * BCHCode - A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short) is the
-    largest possible cyclic code of length n over field F=GF(q), whose generator
-    polynomial has zeros (which contain the set)
-            $Z = \{a^i\ |\ i \in C_b\cup ... C_{b+delta-2}\}$,
-    where $a$ is a primitive $n^{th}$ root of unity in the splitting field $GF(q^m)$,
-    $b$ is an integer $0\leq b\leq n-delta+1$ and $m$ is the multiplicative order of
-    $q$ modulo $n$. The default here is $b=0$ (unlike Guava, which has default $b=1$).
-    Here $C_k$ are the cyclotomic codes (see \code{cyclotomic_cosets}).
+#. Pick a monic polynomial `g(x)\in F[x]` dividing
+   `x^n-1`. This is called the generating polynomial of the
+   code.
 
- * BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode, ExtendedTernaryGolayCode
-   the well-known "extremal" Golay codes, http://en.wikipedia.org/wiki/Golay_code
+#. For each polynomial `p(x)\in F[x]`, compute
+   `p(x)g(x)\ ({\rm mod}\ x^n-1). ` Denote the answer by
+   `c_0+c_1x+...+c_{n-1}x^{n-1}`.
 
- * cyclic codes - CyclicCodeFromGeneratingPolynomial (= CyclicCode),
-                  CyclicCodeFromCheckPolynomial, http://en.wikipedia.org/wiki/Cyclic_code
+#. `{\bf c} =(c_0,c_1,...,c_{n-1})` is a codeword in
+   `C`. Every codeword in `C` arises in this way
+   (from some `p(x)`).
 
- * DuadicCodeEvenPair, DuadicCodeOddPair: Constructs the "even (resp. odd) pair"
-         of duadic codes associated to the "splitting" S1, S2 of n. This is a
-         special type of cyclic code whose generator is determined by S1, S2.
-         See chapter 6 in [HP].
 
- * HammingCode - the well-known Hamming code, http://en.wikipedia.org/wiki/Hamming_code
+The polynomial notation for the code is to call
+`c_0+c_1x+...+c_{n-1}x^{n-1}` the codeword (instead of
+`(c_0,c_1,...,c_{n-1})`). The polynomial
+`h(x)=(x^n-1)/g(x)` is called the check polynomial of
+`C`.
 
- * LinearCodeFromCheckMatrix - for specifing the code using the check matrix
-                               instead of the generator matrix.
+Let `n` be a positive integer relatively prime to
+`q` and let `\alpha` be a primitive
+`n`-th root of unity. Each generator polynomial `g`
+of a cyclic code `C` of length `n` has a
+factorization of the form
 
- * QuadraticResidueCodeEvenPair, QuadraticResidueCodeOddPair: Quadratic residue
-   codes of a given odd prime length and base ring either don't exist at all or
-   occur as 4-tuples - a pair of ``odd-like'' codes and a pair of ``even-like''
-   codes. If n > 2 is prime then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff
-   q is a quadratic residue mod n. Here they are constructed as "even-like" duadic
-   codes associated the splitting (Q,N) mod n, where Q is the set of non-zero
-   quadratic residues and N is the non-residues.
-   QuadraticResidueCode (a special case) and ExtendedQuadraticResidueCode are included
-   as well.
 
- * RandomLinearCode - Repeatedly applies SAGE's random_element applied to the
-                      ambient MatrixSpace of the generator matrix until a
-                      full rank matrix is found.
+.. math::
 
- * ReedSolomonCode - Given a finite field $F$ of order $q$, let $n$ and $k$
-                     be chosen such that $1 \leq k \leq n \leq q$. Pick $n$
-                     distinct elements of $F$, denoted $\{ x_1, x_2, ... , x_n \}$.
-                     Then, the codewords are obtained by evaluating every polynomial
-                     in $F[x]$ of degree less than $k$ at each $x_i$.
+     g(x) = (x - \alpha^{k_1})...(x - \alpha^{k_r}),
 
- * ToricCode - Let $P$ denote a list of lattice points in $\Z^d$ and let
-               $T$ denote a listing of all points in $(F^x )^d$. Put $n=|T|$
-               and let $k$ denote the dimension of the vector space of functions
-               $V = Span \{x^e \ |\ e \\in P\}$. The associated toric code $C$ is the
-               evaluation code which is the image of the evaluation map
-               $eval_T : V \\rightarrow F^n$, where $x^e$ is the multi-index notation.
 
- * WalshCode - a binary linear $[2^m,m,2^{m-1}]$ code related to Hadamard matrices.
-               http://en.wikipedia.org/wiki/Walsh_code
+where `\{k_1,...,k_r\} \subset \{0,...,n-1\}`. The
+numbers `\alpha^{k_i}`, `1 \leq i \leq r`, are
+called the zeros of the code `C`. Many families of cyclic
+codes (such as BCH codes and the quadratic residue codes) are
+defined using properties of the zeros of `C`.
+
+- BCHCode - A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short)
+  is the largest possible cyclic code of length n over field F=GF(q),
+  whose generator polynomial has zeros (which contain the set)
+  `Z = \{a^i\ |\ i \in C_b\cup ... C_{b+delta-2}\}`, where
+  `a` is a primitive `n^{th}` root of unity in the
+  splitting field `GF(q^m)`, `b` is an integer
+  `0\leq b\leq n-delta+1` and `m` is the multiplicative
+  order of `q` modulo `n`. The default here is `b=0`
+  (unlike Guava, which has default `b=1`). Here `C_k` are
+  the cyclotomic codes (see ``cyclotomic_cosets``).
+
+- BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode,
+  ExtendedTernaryGolayCode the well-known"extremal" Golay codes,
+  http://en.wikipedia.org/wiki/Golay_code
+
+- cyclic codes - CyclicCodeFromGeneratingPolynomial (= CyclicCode),
+  CyclicCodeFromCheckPolynomial,
+  http://en.wikipedia.org/wiki/Cyclic_code
+
+- DuadicCodeEvenPair, DuadicCodeOddPair: Constructs the "even
+  (resp. odd) pair" of duadic codes associated to the "splitting" S1,
+  S2 of n. This is a special type of cyclic code whose generator is
+  determined by S1, S2. See chapter 6 in [HP].
+
+- HammingCode - the well-known Hamming code,
+  http://en.wikipedia.org/wiki/Hamming_code
+
+- LinearCodeFromCheckMatrix - for specifing the code using the
+  check matrix instead of the generator matrix.
+
+- QuadraticResidueCodeEvenPair, QuadraticResidueCodeOddPair: Quadratic
+  residue codes of a given odd prime length and base ring either don't
+  exist at all or occur as 4-tuples - a pair of
+  "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
+  then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+  quadratic residue mod n. Here they are constructed as"even-like"
+  duadic codes associated the splitting (Q,N) mod n, where Q is the
+  set of non-zero quadratic residues and N is the non-residues.
+  QuadraticResidueCode (a special case) and
+  ExtendedQuadraticResidueCode are included as well.
+
+- RandomLinearCode - Repeatedly applies Sage's random_element applied
+  to the ambient MatrixSpace of the generator matrix until a full rank
+  matrix is found.
+
+- ReedSolomonCode - Given a finite field `F` of order `q`,
+  let `n` and `k` be chosen such that
+  `1 \leq k \leq n \leq q`.
+  Pick `n` distinct elements of `F`, denoted
+  `\{ x_1, x_2, ... , x_n \}`. Then, the codewords are obtained
+  by evaluating every polynomial in `F[x]` of degree less than
+  `k` at each `x_i`.
+
+- ToricCode - Let `P` denote a list of lattice points in
+  `\mathbb{Z}^d` and let `T` denote a listing of all
+  points in `(F^x )^d`. Put `n=|T|` and let `k`
+  denote the dimension of the vector space of functions
+  `V = \mathrm{Span} \{x^e \ |\ e \in P\}`.
+  The associated toric code `C` is
+  the evaluation code which is the image of the evaluation map
+  `eval_T : V \rightarrow F^n`, where `x^e` is the
+  multi-index notation.
+
+- WalshCode - a binary linear `[2^m,m,2^{m-1}]` code
+  related to Hadamard matrices.
+  http://en.wikipedia.org/wiki/Walsh_code
 
 Please see the docstrings below for further details.
 """
@@ -144,33 +166,35 @@ from sage.rings.integer_mod import Mod
 
 def cyclotomic_cosets(q, n, t = None):
     r"""
+    INPUT: q,n,t positive integers (or t=None) Some type-checking of
+    inputs is performed.
 
-    INPUT: q,n,t positive integers (or t=None)
-    Some type-checking of inputs is performed.
-
-    OUTPUT: q-cyclotomic cosets mod n (or, if t<>None,
-    the q-cyclotomic coset mod n containing t)
+    OUTPUT: q-cyclotomic cosets mod n (or, if t is not None, the q-cyclotomic
+    coset mod n containing t)
 
     Let q, n be relatively print positive integers and let
-    $A = q^{ZZ}$. The group A acts on ZZ/nZZ by multiplication.
-    The orbits of this action are "cyclotomic cosets",
-    or more precisely "q-cyclotomic cosets mod n". Sometimes the
-    smallest element of the coset is called the "coset leader".
-    The algorithm will always return the cosets as sorted lists of
-    lists, so the coset leader will always be the first element
-    in the list.
+    `A = q^{ZZ}`. The group A acts on ZZ/nZZ by multiplication.
+    The orbits of this action are "cyclotomic cosets", or more
+    precisely "q-cyclotomic cosets mod n". Sometimes the smallest
+    element of the coset is called the "coset leader". The algorithm
+    will always return the cosets as sorted lists of lists, so the
+    coset leader will always be the first element in the list.
 
-    These cosets arise in the theory of duadic codes and
-    minimal polynomials of finite fields. Fix a primitive
-    element $z$ of $GF(q^k)$. The minimal polynomial of
-    $z^s$ over $GF(q)$ is given by
-    \[
-    M_s(x) = \prod_{i \in C_s} (x-z^i),
-    \]
-    where $C_s$ is the q-cyclotomic coset mod n containing s,
-    $n = q^k - 1$.
+    These cosets arise in the theory of duadic codes and minimal
+    polynomials of finite fields. Fix a primitive element `z`
+    of `GF(q^k)`. The minimal polynomial of `z^s` over
+    `GF(q)` is given by
 
-    EXAMPLES:
+    .. math::
+
+             M_s(x) = \prod_{i \in C_s} (x-z^i),
+
+
+    where `C_s` is the q-cyclotomic coset mod n containing s,
+    `n = q^k - 1`.
+
+    EXAMPLES::
+
         sage: cyclotomic_cosets(2,11)
         [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
         sage: cyclotomic_cosets(2,15)
@@ -193,10 +217,8 @@ def cyclotomic_cosets(q, n, t = None):
         sage: cyclotomic_cosets(3,2,2)
         [0]
 
-    This last output loks strange but is correct, since the
-    elements of the cosets are in ZZ/nZZ and 2 = 0 in
-    ZZ/2ZZ.
-
+    This last output loks strange but is correct, since the elements of
+    the cosets are in ZZ/nZZ and 2 = 0 in ZZ/2ZZ.
     """
     from sage.misc.misc import srange
     if not(t==None) and type(t)<>Integer:
@@ -224,18 +246,18 @@ def cyclotomic_cosets(q, n, t = None):
 def is_a_splitting(S1,S2,n):
     """
     INPUT: S1, S2 are disjoint sublists partitioning [1, 2, ..., n-1]
-           n>1 is an integer
+    n1 is an integer
 
-    OUTPUT: a, b
-    where a is True or False, depending on whether S1, S2 form a
-    "splitting" of n (ie, if there is a b>1 such that b*S1=S2
-    (point-wise multiplication mod n), and b is a splitting
-    (if a = True) or 0 (if a = False)
+    OUTPUT: a, b where a is True or False, depending on whether S1, S2
+    form a "splitting" of n (ie, if there is a b1 such that b\*S1=S2
+    (point-wise multiplication mod n), and b is a splitting (if a =
+    True) or 0 (if a = False)
 
-    Splittings are useful for computing idempotents in the
-    quotient ring $Q = GF(q)[x]/(x^n-1)$. For
+    Splittings are useful for computing idempotents in the quotient
+    ring `Q = GF(q)[x]/(x^n-1)`. For
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.coding.code_constructions import is_a_splitting
         sage: n = 11; q = 3
         sage: C = cyclotomic_cosets(q,n); C
@@ -261,9 +283,8 @@ def is_a_splitting(S1,S2,n):
         sage: (1-i2)^2 == 1-i2
         True
 
-    We return to dealing with polynomials (rather than
-    elements of quotient rings), so we can construct
-    cyclic codes:
+    We return to dealing with polynomials (rather than elements of
+    quotient rings), so we can construct cyclic codes::
 
         sage: P.<x> = PolynomialRing(F,"x")
         sage: i1 = -sum([x^i for i in S1])
@@ -280,7 +301,6 @@ def is_a_splitting(S1,S2,n):
         True
 
     This is a special case of Theorem 6.4.3 in [HP].
-
     """
     if Set(S1).union(Set(S2)) <> Set(range(1,n)):
         raise TypeError, "Lists must partition [1,2,...,n-1]."
@@ -298,10 +318,11 @@ def lift2smallest_field(a):
     """
     INPUT: a is an element of a finite field GF(q)
 
-    OUTPUT: the element b of the smallest subfield F of GF(q)
-    for which F(b)=a.
+    OUTPUT: the element b of the smallest subfield F of GF(q) for
+    which F(b)=a.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.coding.code_constructions import lift2smallest_field
         sage: FF.<z> = GF(3^4,"z")
         sage: a = z^10
@@ -311,7 +332,9 @@ def lift2smallest_field(a):
         sage: lift2smallest_field(a)
         (2, Finite Field of size 3)
 
-    AUTHOR: John Cremona
+    AUTHORS:
+
+    - John Cremona
     """
     FF = a.parent()
     k = FF.degree()
@@ -328,12 +351,11 @@ def lift2smallest_field(a):
 
 def lift2smallest_field2(a):
     """
-    INPUT: a is an element of a finite field GF(q)
+    INPUT: a is an element of a finite field GF(q) OUTPUT: the element
+    b of the smallest subfield F of GF(q) for which F(b)=a.
 
-    OUTPUT: the element b of the smallest subfield F of GF(q)
-    for which F(b)=a.
+    EXAMPLES::
 
-    EXAMPLES:
         sage: from sage.coding.code_constructions import lift2smallest_field2
         sage: FF.<z> = GF(3^4,"z")
         sage: a = z^40
@@ -344,10 +366,14 @@ def lift2smallest_field2(a):
         sage: lift2smallest_field2(a)
         (1, Finite Field of size 2)
 
-    WARNING: Since coercion (the FF(b) step) has a bug in it, this
-    *only works* in the case when you *know* F is a prime field.
+    .. warning::
 
-    AUTHOR: David Joyner
+       Since coercion (the FF(b) step) has a bug in it, this
+       *only works* in the case when you *know* F is a prime field.
+
+    AUTHORS:
+
+    - David Joyner
     """
     FF = a.parent()
     q = FF.order()
@@ -364,13 +390,14 @@ def lift2smallest_field2(a):
 
 def permutation_action(g,v):
     """
-    Returns permutation of rows g*v. Works on lists, matrices,
+    Returns permutation of rows g\*v. Works on lists, matrices,
     sequences and vectors (by permuting coordinates). The code requires
-    switching from i to i+1 (and back again) since the SymmetricGroup is,
-    by convention, the symmetric group on the "letters"
-    {1, 2, ..., n} (not {0, 1, ..., n-1}).
+    switching from i to i+1 (and back again) since the SymmetricGroup
+    is, by convention, the symmetric group on the "letters" 1, 2, ...,
+    n (not 0, 1, ..., n-1).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: V = VectorSpace(GF(3),5)
         sage: v = V([0,1,2,0,1])
         sage: G = SymmetricGroup(5)
@@ -399,7 +426,7 @@ def permutation_action(g,v):
         [0 0 0 0 0 0 1]
         [1 0 0 0 1 1 0]
 
-    It also works on lists and is a "left action":
+    It also works on lists and is a "left action"::
 
         sage: v = [0,1,2,0,1]
         sage: G = SymmetricGroup(5)
@@ -414,7 +441,9 @@ def permutation_action(g,v):
         sage: hgv == permutation_action(h*g,v)
         True
 
-    AUTHOR: David Joyner, licensed under the GPL v2 or greater.
+    AUTHORS:
+
+    - David Joyner, licensed under the GPL v2 or greater.
     """
     v_type_list = False
     if type(v) == list:
@@ -431,27 +460,28 @@ def permutation_action(g,v):
 
 def walsh_matrix(m0):
     """
-    This is the generator matrix of a Walsh code. The matrix of codewords correspond to
-    a Hadamard matrix.
+    This is the generator matrix of a Walsh code. The matrix of
+    codewords correspond to a Hadamard matrix.
 
-    EXAMPLES:
-         sage: walsh_matrix(2)
-         [0 0 1 1]
-         [0 1 0 1]
-         sage: walsh_matrix(3)
-         [0 0 0 0 1 1 1 1]
-         [0 0 1 1 0 0 1 1]
-         [0 1 0 1 0 1 0 1]
-         sage: C = LinearCode(walsh_matrix(4)); C
-         Linear code of length 16, dimension 4 over Finite Field of size 2
-         sage: C.spectrum()
-         [1, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0]
+    EXAMPLES::
+
+        sage: walsh_matrix(2)
+        [0 0 1 1]
+        [0 1 0 1]
+        sage: walsh_matrix(3)
+        [0 0 0 0 1 1 1 1]
+        [0 0 1 1 0 0 1 1]
+        [0 1 0 1 0 1 0 1]
+        sage: C = LinearCode(walsh_matrix(4)); C
+        Linear code of length 16, dimension 4 over Finite Field of size 2
+        sage: C.spectrum()
+        [1, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0]
 
     This last code has minimum distance 8.
 
     REFERENCES:
-         http://en.wikipedia.org/wiki/Hadamard_matrix
 
+    - http://en.wikipedia.org/wiki/Hadamard_matrix
     """
     m = int(m0)
     if m == 1:
@@ -469,23 +499,30 @@ def walsh_matrix(m0):
 def BCHCode(n,delta,F,b=0):
     r"""
     A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short) is the
-    largest possible cyclic code of length n over field F=GF(q), whose generator
-    polynomial has zeros (which contain the set) $Z = \{a^{b},a^{b+1}, ..., a^{b+delta-2}\}$,
-    where a is a primitive $n^{th}$ root of unity in the splitting field $GF(q^m)$,
-    b is an integer $0\leq b\leq n-delta+1$ and m is the multiplicative order of q modulo n.
-    (The integers $b,...,b+delta-2$ typically lie in the range $1,...,n-1$.) The integer
-    $delta \geq 1$ is called the "designed distance". The length n of the code and the
-    size q of the base field must be relatively prime. The generator polynomial is equal
-    to the least common multiple of the minimal polynomials of the elements of the set $Z$ above.
+    largest possible cyclic code of length n over field F=GF(q), whose
+    generator polynomial has zeros (which contain the set)
+    `Z = \{a^{b},a^{b+1}, ..., a^{b+delta-2}\}`, where a is a
+    primitive `n^{th}` root of unity in the splitting field
+    `GF(q^m)`, b is an integer `0\leq b\leq n-delta+1`
+    and m is the multiplicative order of q modulo n. (The integers
+    `b,...,b+delta-2` typically lie in the range
+    `1,...,n-1`.) The integer `delta \geq 1` is called
+    the "designed distance". The length n of the code and the size q of
+    the base field must be relatively prime. The generator polynomial
+    is equal to the least common multiple of the minimal polynomials of
+    the elements of the set `Z` above.
 
-    Special cases are b=1 (resulting codes are called 'narrow-sense' BCH codes), and
-    $n=q^m-1$ (known as 'primitive' BCH codes).
+    Special cases are b=1 (resulting codes are called 'narrow-sense'
+    BCH codes), and `n=q^m-1` (known as 'primitive' BCH
+    codes).
 
-    It may happen that several values of delta give rise to the same BCH code.
-    Thlargest one is called the Bose distance of the code. The true minimum distance, d, of
-    the code is greater than or equal to the Bose distance, so $d\geq delta$.
+    It may happen that several values of delta give rise to the same
+    BCH code. Thlargest one is called the Bose distance of the code.
+    The true minimum distance, d, of the code is greater than or equal
+    to the Bose distance, so `d\geq delta`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: FF.<a> = GF(3^2,"a")
         sage: x = PolynomialRing(FF,"x").gen()
         sage: L = [b.minpoly() for b in [a,a^2,a^3]]; g = LCM(L)
@@ -508,9 +545,9 @@ def BCHCode(n,delta,F,b=0):
         Linear code of length 26, dimension 10 over Finite Field of size 5
 
     REFERENCES:
-        [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting Codes,
-        Cambridge Univ. Press, 2003.
 
+    - [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+      Codes, Cambridge Univ. Press, 2003.
     """
     from sage.misc.misc import srange
     q = F.order()
@@ -536,19 +573,23 @@ def BCHCode(n,delta,F,b=0):
 
 def BinaryGolayCode():
     r"""
-    BinaryGolayCode() returns a binary Golay code. This is a perfect [23,12,7] code.
-    It is also (equivalent to) a cyclic code, with generator polynomial
-    $g(x)=1+x^2+x^4+x^5+x^6+x^{10}+x^{11}$.
-    Extending it yields the extended Golay code (see ExtendedBinaryGolayCode).
+    BinaryGolayCode() returns a binary Golay code. This is a perfect
+    [23,12,7] code. It is also (equivalent to) a cyclic code, with
+    generator polynomial
+    `g(x)=1+x^2+x^4+x^5+x^6+x^{10}+x^{11}`. Extending it yields
+    the extended Golay code (see ExtendedBinaryGolayCode).
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: C = BinaryGolayCode()
         sage: C
         Linear code of length 23, dimension 12 over Finite Field of size 2
         sage: C.minimum_distance()               # long time
         7
 
-    AUTHOR: David Joyner (2007-05)
+    AUTHORS:
+
+    - David Joyner (2007-05)
     """
     F = GF(2)
     B = [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
@@ -571,17 +612,19 @@ def BinaryGolayCode():
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""
-    If g is a polynomial over GF(q) which divides $x^n-1$ then this
-    constructs the code "generated by g" (ie, the code associated with
-    the principle ideal $gR$ in the ring $R = GF(q)[x]/(x^n-1)$ in the usual way).
+    If g is a polynomial over GF(q) which divides `x^n-1` then
+    this constructs the code "generated by g" (ie, the code associated
+    with the principle ideal `gR` in the ring
+    `R = GF(q)[x]/(x^n-1)` in the usual way).
 
-    The option "ignore" says to ignore the condition that
-    (a) the characteristic of the base field does not divide the length
-    (the usual assumtion in the theory of cyclic codes), and
-    (b) $g$ must divide $x^n-1$. If ignore=True, instead of returning an error, a
-    code generated by $gcd(x^n-1,g)$ is created.
+    The option "ignore" says to ignore the condition that (a) the
+    characteristic of the base field does not divide the length (the
+    usual assumtion in the theory of cyclic codes), and (b) `g`
+    must divide `x^n-1`. If ignore=True, instead of returning
+    an error, a code generated by `gcd(x^n-1,g)` is created.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: g = x-1
         sage: C = CyclicCodeFromGeneratingPolynomial(4,g); C
@@ -607,22 +650,29 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         [0 1 1 0]
         [0 0 1 1]
 
-    On the other hand, CyclicCodeFromPolynomial(4,x) will produce
-    a ValueError including a traceback error message: "$x$ must divide $x^4 - 1$".
-    You will also get a ValueError if you type
+    On the other hand, CyclicCodeFromPolynomial(4,x) will produce a
+    ValueError including a traceback error message: "`x` must
+    divide `x^4 - 1`". You will also get a ValueError if you
+    type
+
+    ::
+
         sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
         sage: g = x^2+1
 
     followed by CyclicCodeFromGeneratingPolynomial(6,g). You will also
     get a ValueError if you type
+
+    ::
+
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: g = x^2-1
         sage: C = CyclicCodeFromGeneratingPolynomial(5,g); C
         Linear code of length 5, dimension 4 over Finite Field of size 3
 
     followed by C = CyclicCodeFromGeneratingPolynomial(5,g,False), with
-    a traceback message including "$x^2 + 2$ must divide $x^5 - 1$".
-
+    a traceback message including "`x^2 + 2` must divide
+    `x^5 - 1`".
     """
     P = g.parent()
     x = P.gen()
@@ -646,14 +696,16 @@ CyclicCode = CyclicCodeFromGeneratingPolynomial
 
 def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
     r"""
-    If h is a polynomial over GF(q) which divides $x^n-1$ then this
-    constructs the code "generated by $g = (x^n-1)/h$" (ie, the code associated with
-    the principle ideal $gR$ in the ring $R = GF(q)[x]/(x^n-1)$ in the usual way).
-    The option "ignore" says to ignore the condition that the
-    characteristic of the base field does nto divide the length
-    (the usual assumtion in the theory of cyclic codes).
+    If h is a polynomial over GF(q) which divides `x^n-1` then
+    this constructs the code "generated by `g = (x^n-1)/h`"
+    (ie, the code associated with the principle ideal `gR` in
+    the ring `R = GF(q)[x]/(x^n-1)` in the usual way). The
+    option "ignore" says to ignore the condition that the
+    characteristic of the base field does nto divide the length (the
+    usual assumtion in the theory of cyclic codes).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: C = CyclicCodeFromCheckPolynomial(4,x + 1); C
         Linear code of length 4, dimension 1 over Finite Field of size 3
@@ -663,7 +715,6 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
         [2 1 0 0]
         [0 2 1 0]
         [0 0 2 1]
-
     """
     P = h.parent()
     x = P.gen()
@@ -679,14 +730,17 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
 
 def DuadicCodeEvenPair(F,S1,S2):
     r"""
-    Constructs the "even pair" of duadic codes associated to
-    the "splitting" (see the docstring for \code{is_a_splitting} for the
-    definition) S1, S2 of n.
+    Constructs the "even pair" of duadic codes associated to the
+    "splitting" (see the docstring for ``is_a_splitting``
+    for the definition) S1, S2 of n.
 
-    WARNING?: Maybe the splitting should be associated to a
-    sum of q-cyclotomic cosets mod n, where q is a *prime*.
+    .. warning::
 
-    EXAMPLES:
+       Maybe the splitting should be associated to a sum of
+       q-cyclotomic cosets mod n, where q is a *prime*.
+
+    EXAMPLES::
+
         sage: from sage.coding.code_constructions import is_a_splitting
         sage: n = 11; q = 3
         sage: C = cyclotomic_cosets(q,n); C
@@ -698,8 +752,6 @@ def DuadicCodeEvenPair(F,S1,S2):
         sage: DuadicCodeEvenPair(GF(q),S1,S2)
         (Linear code of length 11, dimension 5 over Finite Field of size 3,
          Linear code of length 11, dimension 5 over Finite Field of size 3)
-
-
     """
     n = max(S1+S2)+1
     if not(is_a_splitting(S1,S2,n)):
@@ -726,10 +778,13 @@ def DuadicCodeOddPair(F,S1,S2):
     Constructs the "odd pair" of duadic codes associated to the
     "splitting" S1, S2 of n.
 
-    WARNING?: Maybe the splitting should be associated to a
-    sum of q-cyclotomic cosets mod n, where q is a *prime*.
+    .. warning::
 
-    EXAMPLES:
+       Maybe the splitting should be associated to a sum of
+       q-cyclotomic cosets mod n, where q is a *prime*.
+
+    EXAMPLES::
+
         sage: from sage.coding.code_constructions import is_a_splitting
         sage: n = 11; q = 3
         sage: C = cyclotomic_cosets(q,n); C
@@ -743,7 +798,6 @@ def DuadicCodeOddPair(F,S1,S2):
          Linear code of length 11, dimension 6 over Finite Field of size 3)
 
     This is consistent with Theorem 6.1.3 in [HP].
-
     """
     n = max(S1+S2)+1
     if not(is_a_splitting(S1,S2,n)):
@@ -771,17 +825,20 @@ def DuadicCodeOddPair(F,S1,S2):
 
 def ExtendedBinaryGolayCode():
     """
-    ExtendedBinaryGolayCode() returns the extended binary Golay code. This is a
-    perfect [24,12,8] code. This code is self-dual.
+    ExtendedBinaryGolayCode() returns the extended binary Golay code.
+    This is a perfect [24,12,8] code. This code is self-dual.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = ExtendedBinaryGolayCode()
         sage: C
         Linear code of length 24, dimension 12 over Finite Field of size 2
         sage: C.minimum_distance()
         8
 
-    AUTHOR: David Joyner (2007-05)
+    AUTHORS:
+
+    - David Joyner (2007-05)
     """
     B = [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1],\
          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],\
@@ -804,19 +861,23 @@ def ExtendedBinaryGolayCode():
 def ExtendedQuadraticResidueCode(n,F):
     r"""
     The extended quadratic residue code (or XQR code) is obtained from
-    a QR code by adding a check bit to the last coordinate. (These codes
-    have very remarkable properties such as large automorphism groups and
-    duality properties - see [HP], \S 6.6.3-6.6.4.)
+    a QR code by adding a check bit to the last coordinate. (These
+    codes have very remarkable properties such as large automorphism
+    groups and duality properties - see [HP], Section 6.6.3-6.6.4.)
 
     INPUT:
-        n -- an odd prime
-        F -- a finite prime field F whose order must be a quadratic
-             residue modulo n.
 
-    OUTPUT:
-        Returns an extended quadratic residue code.
 
-    EXAMPLES:
+    -  ``n`` - an odd prime
+
+    -  ``F`` - a finite prime field F whose order must be a
+       quadratic residue modulo n.
+
+
+    OUTPUT: Returns an extended quadratic residue code.
+
+    EXAMPLES::
+
         sage: C1 = QuadraticResidueCode(7,GF(2))
         sage: C2 = C1.extended_code()
         sage: C3 = ExtendedQuadraticResidueCode(7,GF(2)); C3
@@ -832,23 +893,29 @@ def ExtendedQuadraticResidueCode(n,F):
         sage: C3x == C4
         True
 
-    AUTHOR: David Joyner (07-2006)
+    AUTHORS:
+
+    - David Joyner (07-2006)
     """
     C = QuadraticResidueCodeOddPair(n,F)[0]
     return C.extended_code()
 
 def ExtendedTernaryGolayCode():
     """
-    ExtendedTernaryGolayCode returns a ternary Golay code. This is a self-dual perfect [12,6,6] code.
+    ExtendedTernaryGolayCode returns a ternary Golay code. This is a
+    self-dual perfect [12,6,6] code.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = ExtendedTernaryGolayCode()
         sage: C
         Linear code of length 12, dimension 6 over Finite Field of size 3
         sage: C.minimum_distance()
         6
 
-    AUTHOR: David Joyner (11-2005)
+    AUTHORS:
+
+    - David Joyner (11-2005)
     """
     B = [[1, 0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 2],\
          [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0],\
@@ -865,22 +932,26 @@ def HammingCode(r,F):
     r"""
     Implements the Hamming codes.
 
-    The $r^{th}$ Hamming code over $F=GF(q)$ is an $[n,k,d]$ code
-    with length $n=(q^r-1)/(q-1)$, dimension $k=(q^r-1)/(q-1) - r$ and
-    minimum distance $d=3$.
-    The parity check matrix of a Hamming code has rows consisting of
-    all nonzero vectors of length r in its columns, modulo a scalar factor
-    so no parallel columns arise. A Hamming code is a single error-correcting
-    code.
+    The `r^{th}` Hamming code over `F=GF(q)` is an
+    `[n,k,d]` code with length `n=(q^r-1)/(q-1)`,
+    dimension `k=(q^r-1)/(q-1) - r` and minimum distance
+    `d=3`. The parity check matrix of a Hamming code has rows
+    consisting of all nonzero vectors of length r in its columns,
+    modulo a scalar factor so no parallel columns arise. A Hamming code
+    is a single error-correcting code.
 
     INPUT:
-        r -- an integer > 2
-        F -- a finite field.
 
-    OUTPUT:
-        Returns the r-th q-ary Hamming code.
 
-    EXAMPLES:
+    -  ``r`` - an integer 2
+
+    -  ``F`` - a finite field.
+
+
+    OUTPUT: Returns the r-th q-ary Hamming code.
+
+    EXAMPLES::
+
         sage: HammingCode(3,GF(2))
         Linear code of length 7, dimension 4 over Finite Field of size 2
         sage: C = HammingCode(3,GF(3)); C
@@ -889,7 +960,6 @@ def HammingCode(r,F):
         3
         sage: C = HammingCode(3,GF(4,'a')); C
         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
-
     """
     q = F.order()
     n =  (q**r-1)/(q-1)
@@ -905,21 +975,24 @@ def HammingCode(r,F):
 def LinearCodeFromCheckMatrix(H):
     r"""
     A linear [n,k]-code C is uniquely determined by its generator
-    matrix G and check matrix H. We have the following short
-    exact sequence
+    matrix G and check matrix H. We have the following short exact
+    sequence
 
-    \begin{equation}
-    0 \rightarrow
-    {\mathbf{F}}^k \stackrel{G}{\rightarrow}
-    {\mathbf{F}}^n \stackrel{H}{\rightarrow}
-    {\mathbf{F}}^{n-k} \rightarrow
-    0.
-    \end{equation}
-    (``Short exact'' means (a) the arrow $G$ is injective,
-    i.e., $G$ is a full-rank $k\times n$ matrix, (b) the arrow $H$ is
-    surjective, and (c) ${\rm image}(G)={\rm kernel}(H)$.)
+    .. math::
 
-    EXAMPLES:
+        0 \rightarrow
+        {\mathbf{F}}^k \stackrel{G}{\rightarrow}
+        {\mathbf{F}}^n \stackrel{H}{\rightarrow}
+        {\mathbf{F}}^{n-k} \rightarrow
+        0.
+
+    ("Short exact" means (a) the arrow `G` is injective, i.e.,
+    `G` is a full-rank `k\times n` matrix, (b) the
+    arrow `H` is surjective, and (c)
+    `{\rm image}(G)={\rm kernel}(H)`.)
+
+    EXAMPLES::
+
         sage: C = HammingCode(3,GF(2))
         sage: H = C.check_mat(); H
         [1 0 0 1 1 0 1]
@@ -937,7 +1010,6 @@ def LinearCodeFromCheckMatrix(H):
         sage: H = C.check_mat()
         sage: LinearCodeFromCheckMatrix(H) == C
         True
-
     """
     Cd = LinearCode(H)
     return Cd.dual_code()
@@ -945,22 +1017,27 @@ def LinearCodeFromCheckMatrix(H):
 def QuadraticResidueCode(n,F):
     r"""
     A quadratic residue code (or QR code) is a cyclic code whose
-    generator polynomial is the product of the polynomials $x-\alpha^i$
-    ($\alpha$ is a primitive $n^{th}$ root of unity; $i$ ranges over
-    the set of quadratic residues modulo $n$).
+    generator polynomial is the product of the polynomials
+    `x-\alpha^i` (`\alpha` is a primitive
+    `n^{th}` root of unity; `i` ranges over the set of
+    quadratic residues modulo `n`).
 
     See QuadraticResidueCodeEvenPair and QuadraticResidueCodeOddPair
     for a more general construction.
 
     INPUT:
-        n -- an odd prime
-        F -- a finite prime field F whose order must be a quadratic
-             residue modulo n.
 
-    OUTPUT:
-        Returns a quadratic residue code.
 
-    EXAMPLES:
+    -  ``n`` - an odd prime
+
+    -  ``F`` - a finite prime field F whose order must be a
+       quadratic residue modulo n.
+
+
+    OUTPUT: Returns a quadratic residue code.
+
+    EXAMPLES::
+
         sage: C = QuadraticResidueCode(7,GF(2))
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 2
@@ -976,23 +1053,26 @@ def QuadraticResidueCode(n,F):
         sage: C1 == C2
         True
 
-    AUTHOR: David Joyner (11-2005)
+    AUTHORS:
+
+    - David Joyner (11-2005)
     """
     return QuadraticResidueCodeOddPair(n,F)[0]
 
 def QuadraticResidueCodeEvenPair(n,F):
     """
-    Quadratic residue codes of a given odd prime length and base ring either
-    don't exist at all or occur as 4-tuples - a pair of ``odd-like''
-    codes and a pair of ``even-like'' codes. If n > 2 is prime
-    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff
-    q is a quadratic residue mod n.
+    Quadratic residue codes of a given odd prime length and base ring
+    either don't exist at all or occur as 4-tuples - a pair of
+    "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
+    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+    quadratic residue mod n.
 
-    They are constructed as "even-like" duadic codes associated the splitting
-    (Q,N) mod n, where Q is the set of non-zero quadratic residues
-    and N is the non-residues.
+    They are constructed as "even-like" duadic codes associated the
+    splitting (Q,N) mod n, where Q is the set of non-zero quadratic
+    residues and N is the non-residues.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: QuadraticResidueCodeEvenPair(17,GF(13))
         (Linear code of length 17, dimension 8 over Finite Field of size 13,
          Linear code of length 17, dimension 8 over Finite Field of size 13)
@@ -1014,7 +1094,6 @@ def QuadraticResidueCodeEvenPair(n,F):
         True
 
     This is consistent with Theorem 6.6.9 and Exercise 365 in [HP].
-
     """
     q = F.order()
     Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
@@ -1028,17 +1107,18 @@ def QuadraticResidueCodeEvenPair(n,F):
 
 def QuadraticResidueCodeOddPair(n,F):
     """
-    Quadratic residue codes of a given odd prime length and base ring either
-    don't exist at all or occur as 4-tuples - a pair of ``odd-like''
-    codes and a pair of ``even-like'' codes. If n > 2 is prime
-    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff
-    q is a quadratic residue mod n.
+    Quadratic residue codes of a given odd prime length and base ring
+    either don't exist at all or occur as 4-tuples - a pair of
+    "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
+    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+    quadratic residue mod n.
 
-    They are constructed as "odd-like" duadic codes associated the splitting
-    (Q,N) mod n, where Q is the set of non-zero quadratic residues
-    and N is the non-residues.
+    They are constructed as "odd-like" duadic codes associated the
+    splitting (Q,N) mod n, where Q is the set of non-zero quadratic
+    residues and N is the non-residues.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: QuadraticResidueCodeOddPair(17,GF(13))
         (Linear code of length 17, dimension 9 over Finite Field of size 13,
          Linear code of length 17, dimension 9 over Finite Field of size 13)
@@ -1065,7 +1145,6 @@ def QuadraticResidueCodeOddPair(n,F):
         True
 
     This is consistent with Theorem 6.6.14 in [HP].
-
     """
     from sage.coding.code_constructions import is_a_splitting
     q = F.order()
@@ -1080,17 +1159,18 @@ def QuadraticResidueCodeOddPair(n,F):
 
 def RandomLinearCode(n,k,F):
     r"""
-    The method used is to first construct a $k \\times n$ matrix using SAGE's
-    random_element method for the MatrixSpace class. The construction is
-    probabilistic but should only fail extremely rarely.
+    The method used is to first construct a `k \times n`
+    matrix using Sage's random_element method for the MatrixSpace
+    class. The construction is probabilistic but should only fail
+    extremely rarely.
 
-    INPUT:
-        Integers n,k, with n>k>1, and a finite field F
+    INPUT: Integers n,k, with nk1, and a finite field F
 
-    OUTPUT:
-        Returns a "random" linear code with length n, dimension k over field F.
+    OUTPUT: Returns a "random" linear code with length n, dimension k
+    over field F.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = RandomLinearCode(30,15,GF(2))
         sage: C
         Linear code of length 30, dimension 15 over Finite Field of size 2
@@ -1098,7 +1178,9 @@ def RandomLinearCode(n,k,F):
         sage: C
         Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
 
-    AUTHOR: David Joyner (2007-05)
+    AUTHORS:
+
+    - David Joyner (2007-05)
     """
     MS = MatrixSpace(F,k,n)
     for i in range(50):
@@ -1116,24 +1198,29 @@ def RandomLinearCode(n,k,F):
 
 def ReedSolomonCode(n,k,F,pts = None):
     r"""
-    Given a finite field $F$ of order $q$, let $n$ and $k$ be chosen such that
-    $1 \leq k \leq n \leq q$. Pick $n$ distinct elements of $F$, denoted
-    $\{ x_1, x_2, ... , x_n \}$. Then, the codewords are obtained by evaluating
-    every polynomial in $F[x]$ of degree less than $k$ at each $x_i$:
-    \[
-    C = \left\{ \left( f(x_1), f(x_2), ..., f(x_n) \right), f \in F[x],
-                 {\rm deg}(f)<k \right\}.
-    \]
-    $C$ is a $[n, k, n-k+1]$ code. (In particular, $C$ is MDS.)
+    Given a finite field `F` of order `q`, let
+    `n` and `k` be chosen such that
+    `1 \leq k \leq n \leq q`. Pick `n` distinct
+    elements of `F`, denoted
+    `\{ x_1, x_2, ... , x_n \}`. Then, the codewords are
+    obtained by evaluating every polynomial in `F[x]` of degree
+    less than `k` at each `x_i`:
 
-    INPUT:
-      n : the length
-      k : the dimension
-      F : the base ring
-      pts : (optional) list of n points in F (if None then SAGE picks n of them
-             in the order given to the elements of F)
+    .. math::
 
-    EXAMPLES:
+       C = \left\{ \left( f(x_1), f(x_2), ..., f(x_n) \right), f \in F[x],
+       {\rm deg}(f)<k \right\}.
+
+
+    `C` is a `[n, k, n-k+1]` code. (In particular,
+    `C` is MDS.)
+
+    INPUT: n : the length k : the dimension F : the base ring pts :
+    (optional) list of n points in F (if None then Sage picks n of them
+    in the order given to the elements of F)
+
+    EXAMPLES::
+
         sage: C = ReedSolomonCode(6,4,GF(7)); C
         Linear code of length 6, dimension 4 over Finite Field of size 7
         sage: C.minimum_distance()
@@ -1152,10 +1239,11 @@ def ReedSolomonCode(n,k,F,pts = None):
         3
 
     REFERENCES:
-        [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting Codes,
-        Cambridge Univ. Press, 2003.
-        [W] http://en.wikipedia.org/wiki/Reed-Solomon
 
+    - [HP] W. C. Huffman, V. Pless, Fundamentals of
+      Error-Correcting Codes, Cambridge Univ. Press, 2003.
+
+    - [W] http://en.wikipedia.org/wiki/Reed-Solomon
     """
     q = F.order()
     power = lambda x,n,F: (x==0 and n==0) and F(1) or F(x**n) # since 0^0 is undefined
@@ -1180,17 +1268,20 @@ def ReedSolomonCode(n,k,F,pts = None):
 def TernaryGolayCode():
     r"""
     TernaryGolayCode returns a ternary Golay code. This is a perfect
-    [11,6,5] code.  It is also equivalenet to a cyclic code, with
-    generator polynomial $g(x)=2+x^2+2x^3+x^4+x^5$.
+    [11,6,5] code. It is also equivalenet to a cyclic code, with
+    generator polynomial `g(x)=2+x^2+2x^3+x^4+x^5`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = TernaryGolayCode()
         sage: C
         Linear code of length 11, dimension 6 over Finite Field of size 3
         sage: C.minimum_distance()
         5
 
-    AUTHOR: David Joyner (2007--5)
+    AUTHORS:
+
+    - David Joyner (2007-5)
     """
     F = GF(3)
     B = [[2, 0, 1, 2, 1, 1, 0, 0, 0, 0, 0],\
@@ -1204,49 +1295,67 @@ def TernaryGolayCode():
 
 def ToricCode(P,F):
     r"""
-    Let $P$ denote a list of lattice points in $\Z^d$ and let $T$ denote the
-    set of all points in $(F^x )^d$ (ordered in some fixed way). Put $n=|T|$
-    and let $k$ denote the dimension of the vector space of functions
-    $V = Span \{x^e \ |\ e \\in P\}$. The associated {\it toric code} $C$ is the
-    evaluation code which is the image of the evaluation map
-    $$
-                        eval_T : V \\rightarrow F^n,
-    $$
-    where $x^e$ is the multi-index notation ($x=(x_1,...,x_d)$, $e=(e_1,...,e_d)$, and
-    $x^e = x_1^{e_1}...x_d^{e_d}$), where $eval_T (f(x)) = (f(t_1),...,f(t_n))$, and
-    where $T=\{t_1,...,t_n\}$. This function returns the toric codes discussed in [J].
+    Let `P` denote a list of lattice points in
+    `\mathbb{Z}^d` and let `T` denote the set of all
+    points in `(F^x)^d` (ordered in some fixed way). Put
+    `n=|T|` and let `k` denote the dimension of the
+    vector space of functions `V = \mathrm{Span}\{x^e \ |\ e \in P\}`.
+    The associated toric code `C` is the evaluation code which
+    is the image of the evaluation map
+
+    .. math::
+
+        \mathrm{eval_T} : V \rightarrow F^n,
+
+
+    where `x^e` is the multi-index notation
+    (`x=(x_1,...,x_d)`, `e=(e_1,...,e_d)`, and
+    `x^e = x_1^{e_1}...x_d^{e_d}`), where
+    `eval_T (f(x)) = (f(t_1),...,f(t_n))`, and where
+    `T=\{t_1,...,t_n\}`. This function returns the toric
+    codes discussed in [J].
 
     INPUT:
-        P -- all the integer lattice points in a polytope defining the toric variety.
-        F -- a finite field.
 
-    OUTPUT:
-        Returns toric code with length n = , dimension k over field F.
 
-    EXAMPLES:
-        sage: C = ToricCode([[0,0],[1,0],[2,0],[0,1],[1,1]],GF(7))
-        sage: C
-        Linear code of length 36, dimension 5 over Finite Field of size 7
-        sage: C.minimum_distance()
-        24
-        sage: C = ToricCode([[-2,-2],[-1,-2],[-1,-1],[-1,0],[0,-1],[0,0],[0,1],[1,-1],[1,0]],GF(5))
-        sage: C
-        Linear code of length 16, dimension 9 over Finite Field of size 5
-        sage: C.minimum_distance()
-        6
-       sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
-        sage: C
-        Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
+    -  ``P`` - all the integer lattice points in a polytope
+       defining the toric variety.
+
+    -  ``F`` - a finite field.
+
+
+    OUTPUT: Returns toric code with length n = , dimension k over field
+    F.
+
+    EXAMPLES::
+
+         sage: C = ToricCode([[0,0],[1,0],[2,0],[0,1],[1,1]],GF(7))
+         sage: C
+         Linear code of length 36, dimension 5 over Finite Field of size 7
+         sage: C.minimum_distance()
+         24
+         sage: C = ToricCode([[-2,-2],[-1,-2],[-1,-1],[-1,0],[0,-1],[0,0],[0,1],[1,-1],[1,0]],GF(5))
+         sage: C
+         Linear code of length 16, dimension 9 over Finite Field of size 5
+         sage: C.minimum_distance()
+         6
+        sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
+         sage: C
+         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
 
     This is in fact a [49,11,28] code over GF(8). If you type next
-    \code{C.minimum_distance()} and wait overnight (!), you should get 28.
+    ``C.minimum_distance()`` and wait overnight (!), you
+    should get 28.
 
+    AUTHOR:
 
-    AUTHOR: David Joyner (07-2006)
+    - David Joyner (07-2006)
 
     REFERENCES:
-        [J] D. Joyner, {\it Toric codes over finite fields}, Applicable Algebra in Engineering,
-            Communication and Computing, 15, (2004), p. 63--79
+
+    - [J] D. Joyner, Toric codes over finite fields, Applicable
+      Algebra in Engineering, Communication and Computing, 15, (2004),
+      p. 63-79
     """
     from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]
@@ -1271,21 +1380,23 @@ def TrivialCode(F,n):
 
 def WalshCode(m):
     r"""
-    Returns the binary Walsh code of length $2^m$. The matrix of codewords correspond to
-    a Hadamard matrix. This is a (constant rate) binary linear $[2^m,m,2^{m-1}]$ code.
+    Returns the binary Walsh code of length `2^m`. The matrix
+    of codewords correspond to a Hadamard matrix. This is a (constant
+    rate) binary linear `[2^m,m,2^{m-1}]` code.
 
-    EXAMPLES:
-         sage: C = WalshCode(4); C
-         Linear code of length 16, dimension 4 over Finite Field of size 2
-         sage: C = WalshCode(3); C
-         Linear code of length 8, dimension 3 over Finite Field of size 2
-         sage: C.spectrum()
-         [1, 0, 0, 0, 7, 0, 0, 0, 0]
+    EXAMPLES::
 
+        sage: C = WalshCode(4); C
+        Linear code of length 16, dimension 4 over Finite Field of size 2
+        sage: C = WalshCode(3); C
+        Linear code of length 8, dimension 3 over Finite Field of size 2
+        sage: C.spectrum()
+        [1, 0, 0, 0, 7, 0, 0, 0, 0]
 
     REFERENCES:
-        http://en.wikipedia.org/wiki/Hadamard_matrix
-        http://en.wikipedia.org/wiki/Walsh_code
 
+    - http://en.wikipedia.org/wiki/Hadamard_matrix
+
+    - http://en.wikipedia.org/wiki/Walsh_code
     """
     return LinearCode(walsh_matrix(m))

@@ -2,57 +2,79 @@ r"""
 Interface to Axiom
 
 TODO:
-   * Evaluation using a file is not done.   Any input
-     line with more than a few thousand characters would
-     hang the system, so currently it automatically raises
-     an exception.
-   * All completions of a given command.
-   * Interactive help.
 
-Axiom is a free GPL-compatible (modified BSD license)  general purpose
-computer algebra system whose development started in 1973 at IBM.  It
-contains symbolic manipulation algorithms, as well as implementations
-of special functions, including elliptic functions and generalized
-hypergeometric functions. Moreover, Axiom has implementations of many
-functions relating to the invariant theory of the symmetric group $S_n$.
-For many links to Axiom documentation see
-         \url{http://wiki.axiom-developer.org}.
+- Evaluation using a file is not done. Any input line with more than a
+  few thousand characters would hang the system, so currently it
+  automatically raises an exception.
 
-AUTHORS OF THIS MODULE:
-    -- Bill Page (2006-10): Created this (based on maxima interfac)
-       NOTE: Bill Page put a huge amount of effort into the SAGE Axiom interface
-             over several days during the SAGE Days 2 coding sprint.  This is
-             contribution is greatly appreciated.
-    -- William Stein (2006-10): misc touchup.
-    -- Bill Page (2007-08): Minor modifications to support axiom4sage-0.3
-       NOTE: The axiom4sage-0.3.spkg is based on an experimental version of
-             the FriCAS fork of the Axiom project by Waldek Hebisch that
-	     uses pre-compiled cached Lisp code to build Axiom very quickly
-	     with clisp.
+- All completions of a given command.
+
+- Interactive help.
+
+Axiom is a free GPL-compatible (modified BSD license) general
+purpose computer algebra system whose development started in 1973
+at IBM. It contains symbolic manipulation algorithms, as well as
+implementations of special functions, including elliptic functions
+and generalized hypergeometric functions. Moreover, Axiom has
+implementations of many functions relating to the invariant theory
+of the symmetric group `S_n`. For many links to Axiom
+documentation see http://wiki.axiom-developer.org.
+
+AUTHORS:
+
+- Bill Page (2006-10): Created this (based on maxima interface)
+
+
+  .. note::
+
+     Bill Page put a huge amount of effort into the Sage Axiom
+     interface over several days during the Sage Days 2 coding
+     sprint. This is contribution is greatly appreciated.
+
+- William Stein (2006-10): misc touchup.
+
+- Bill Page (2007-08): Minor modifications to support axiom4sage-0.3
+
+.. note::
+
+   The axiom4sage-0.3.spkg is based on an experimental version of the
+   FriCAS fork of the Axiom project by Waldek Hebisch that uses
+   pre-compiled cached Lisp code to build Axiom very quickly with
+   clisp.
 
 If the string "error" (case insensitive) occurs in the output of
 anything from axiom, a RuntimeError exception is raised.
 
-EXAMPLES:
-We evaluate a very simple expression in axiom.
+EXAMPLES: We evaluate a very simple expression in axiom.
+
+::
+
     sage: axiom('3 * 5')                     # optional
     15
     sage: a = axiom(3) * axiom(5); a         # optional
     15
 
-The type of a is AxiomElement, i.e., an element of the axiom interpreter.
+The type of a is AxiomElement, i.e., an element of the axiom
+interpreter.
+
+::
+
     sage: type(a)                            # optional
     <class 'sage.interfaces.axiom.AxiomElement'>
     sage: parent(a)                          # optional
     Axiom
 
-The underlying Axiom type of a is also available, via the type method:
+The underlying Axiom type of a is also available, via the type
+method::
+
     sage: a.type()                           # optional
     PositiveInteger
 
-
-We factor $x^5 - y^5$ in Axiom in several different ways.
+We factor `x^5 - y^5` in Axiom in several different ways.
 The first way yields a Axiom object.
+
+::
+
     sage: F = axiom.factor('x^5 - y^5'); F      # optional
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
@@ -61,8 +83,10 @@ The first way yields a Axiom object.
     sage: F.type()                              # optional
     Factored Polynomial Integer
 
+Note that Axiom objects are normally displayed using "ASCII art".
 
-Note that Axiom objects are normally displayed using ``ASCII art''.
+::
+
     sage: a = axiom(2/3); a          # optional
       2
       -
@@ -72,20 +96,26 @@ Note that Axiom objects are normally displayed using ``ASCII art''.
       x  + -
            7
 
-The \code{axiom.eval} command evaluates an expression in axiom and
-returns the result as a string.  This is exact as if we typed in the
-given line of code to axiom; the return value is what Axiom would
-print out.
+The ``axiom.eval`` command evaluates an expression in
+axiom and returns the result as a string. This is exact as if we
+typed in the given line of code to axiom; the return value is what
+Axiom would print out.
+
+::
 
     sage: print axiom.eval('factor(x^5 - y^5)')   # optional
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
-    <BLANKLINE>
+
     Type: Factored Polynomial Integer
 
-We can create the polynomial $f$ as a Axiom polynomial, then call
-the factor method on it.  Notice that the notation \code{f.factor()}
-is consistent with how the rest of \sage works.
+We can create the polynomial `f` as a Axiom polynomial,
+then call the factor method on it. Notice that the notation
+``f.factor()`` is consistent with how the rest of Sage
+works.
+
+::
+
     sage: f = axiom('x^5 - y^5')                  # optional
     sage: f^2                                     # optional
        10     5 5    10
@@ -94,14 +124,18 @@ is consistent with how the rest of \sage works.
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
 
-Control-C interruption works well with the axiom interface,
-because of the excellent implementation of axiom.  For example,
-try the following sum but with a much bigger range, and hit
-control-C.
+Control-C interruption works well with the axiom interface, because
+of the excellent implementation of axiom. For example, try the
+following sum but with a much bigger range, and hit control-C.
+
+::
+
     sage:  f = axiom('(x^5 - y^5)^10000')       # not tested
     Interrupting Axiom...
     ...
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
+
+::
 
     sage: axiom('1/100 + 1/101')                  # optional
        201
@@ -111,19 +145,23 @@ control-C.
          +-+
       29\|2  + 41
 
-TESTS:
-We check to make sure the subst method works with keyword
+TESTS: We check to make sure the subst method works with keyword
 arguments.
+
+::
+
     sage: a = axiom(x+2); a  #optional
     x + 2
     sage: a.subst(x=3)       #optional
     5
 
-We verify that Axiom floating point numbers can be converted
-to Python floats.
-   sage: float(axiom(2))     #optional
-   2.0
+We verify that Axiom floating point numbers can be converted to
+Python floats.
 
+::
+
+    sage: float(axiom(2))     #optional
+    2.0
 """
 
 ###########################################################################
@@ -165,7 +203,8 @@ class Axiom(Expect):
         """
         Create an instance of the Axiom interpreter.
 
-        TESTS:
+        TESTS::
+
             sage: axiom == loads(dumps(axiom))
             True
         """
@@ -189,23 +228,23 @@ class Axiom(Expect):
         """
         Return the AxiomExpectFunction class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom._function_class()
             <class 'sage.interfaces.axiom.AxiomExpectFunction'>
             sage: type(axiom.gcd)
             <class 'sage.interfaces.axiom.AxiomExpectFunction'>
-
         """
         return AxiomExpectFunction
 
     def _object_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom._object_class()
             <class 'sage.interfaces.axiom.AxiomElement'>
             sage: type(axiom(2)) #optional -- requires Axiom
             <class 'sage.interfaces.axiom.AxiomElement'>
-
         """
         return AxiomElement
 
@@ -213,12 +252,12 @@ class Axiom(Expect):
         """
         Returns the Axiom function element class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom._function_element_class()
             <class 'sage.interfaces.axiom.AxiomFunctionElement'>
             sage: type(axiom(2).gcd) #optional -- requires Axiom
             <class 'sage.interfaces.axiom.AxiomFunctionElement'>
-
         """
         return AxiomFunctionElement
 
@@ -226,7 +265,8 @@ class Axiom(Expect):
         """
         Start the Axiom interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = Axiom()
             sage: a.is_running()
             False
@@ -241,14 +281,17 @@ class Axiom(Expect):
         out = self._eval_line(')set message autoload off', reformat=False)
 
     def _read_in_file_command(self, filename):
-        """
-        EXAMPLES:
+        r"""
+        EXAMPLES::
+
             sage: axiom._read_in_file_command('test.input')
             ')read test.input \n'
             sage: axiom._read_in_file_command('test')
             Traceback (most recent call last):
             ...
             ValueError: the filename must end with .input
+
+        ::
 
             sage: filename = tmp_filename()+'.input'
             sage: f = open(filename, 'w')
@@ -268,7 +311,8 @@ class Axiom(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom.__reduce__()
             (<function reduce_load_Axiom at 0x...>, ())
             sage: f, args = _
@@ -281,9 +325,12 @@ class Axiom(Expect):
         """
         Returns the string used to quit Axiom.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom._quit_string()
             ')lisp (quit)'
+
+        ::
 
             sage: a = Axiom()
             sage: a.is_running()
@@ -300,11 +347,11 @@ class Axiom(Expect):
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print axiom._eval_line('2+2')  #optional -- requires Axiom
               4
                                                        Type: PositiveInteger
-
         """
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
@@ -364,10 +411,11 @@ class Axiom(Expect):
 
     def _commands(self):
         """
-        Returns a list of commands available.  This is done by parsing the
+        Returns a list of commands available. This is done by parsing the
         result of the first section of the output of ')what things'.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cmds = axiom._commands() #optional -- requires Axiom
             sage: len(cmds) > 100  #optional
             True
@@ -390,7 +438,8 @@ class Axiom(Expect):
         Returns a list of all the commands defined in Axiom and optionally
         (per default) store them to disk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = axiom.trait_names(use_disk_cache=False, verbose=False) #optional
             sage: len(c) > 100  #optional
             True
@@ -442,7 +491,8 @@ class Axiom(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom.set('xx', '2')    #optional -- requires Axiom
             sage: axiom.get('xx')         #optional
             '2'
@@ -455,10 +505,11 @@ class Axiom(Expect):
 
 
     def get(self, var):
-        """
+        r"""
         Get the string value of the Axiom variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom.set('xx', '2')    #optional -- requires Axiom
             sage: axiom.get('xx')         #optional
             '2'
@@ -477,7 +528,8 @@ class Axiom(Expect):
         """
         Spawn a new Axiom (FriCAS) command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom.console() #not tested
                              FriCAS (AXIOM fork) Computer Algebra System
                                      Version: FriCAS 2007-07-19
@@ -487,7 +539,6 @@ class Axiom(Expect):
                Issue )summary for a summary of useful system commands.
                Issue )quit to leave AXIOM and return to shell.
             -----------------------------------------------------------------------------
-
         """
         axiom_console()
 
@@ -495,7 +546,8 @@ class Axiom(Expect):
 class AxiomElement(ExpectElement):
     def __call__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = axiom(x+2) #optional -- requires Axiom
             sage: f(2)           #optional
             4
@@ -506,7 +558,8 @@ class AxiomElement(ExpectElement):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = axiom(1); b = axiom(2)                  # optional
             sage: a == b                                      # optional
             False
@@ -519,7 +572,8 @@ class AxiomElement(ExpectElement):
             sage: b > a                                       # optional
             True
 
-        We can also compare more complicated object such as functions:
+        We can also compare more complicated object such as functions::
+
             sage: f = axiom('sin(x)'); g = axiom('cos(x)')    # optional
             sage: f == g                                      # optional
             False
@@ -527,7 +581,8 @@ class AxiomElement(ExpectElement):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: two = axiom(2)  #optional -- requires Axiom
             sage: two == 2        #optional
             True
@@ -557,10 +612,10 @@ class AxiomElement(ExpectElement):
         """
         Returns the type of an AxiomElement.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: axiom(x+2).type()  #optional -- requires Axiom
             Polynomial Integer
-
         """
         P = self._check_valid()
         s = P._eval_line(self.name())
@@ -571,7 +626,8 @@ class AxiomElement(ExpectElement):
         """
         Return the length of a list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = axiom('[x^i for i in 0..5]')            # optional
             sage: len(v)                                      # optional
             6
@@ -585,9 +641,12 @@ class AxiomElement(ExpectElement):
         r"""
         Return the n-th element of this list.
 
-        \note{Lists are 1-based.}
+        .. note::
 
-        EXAMPLES:
+           Lists are 1-based.
+
+        EXAMPLES::
+
             sage: v = axiom('[i*x^i for i in 0..5]'); v          # optional
                      2   3   4   5
               [0,x,2x ,3x ,4x ,5x ]
@@ -614,7 +673,8 @@ class AxiomElement(ExpectElement):
         """
         Returns a Axiom tuple from self and args.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: two = axiom(2)  #optional -- requires Axiom
             sage: two.comma(3)    #optional
             [2,3]
@@ -633,7 +693,8 @@ class AxiomElement(ExpectElement):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = axiom(1/2) #optional -- requires Axiom
             sage: latex(a)       #optional
             1 \over 2
@@ -658,7 +719,8 @@ class AxiomElement(ExpectElement):
 class AxiomFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """
-        TESTS:
+        TESTS::
+
             sage: a = axiom('"Hello"') #optional -- requires Axiom
             sage: a.upperCase_q        #optional
             upperCase?
@@ -677,7 +739,8 @@ class AxiomFunctionElement(FunctionElement):
 class AxiomExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
         """
-        TESTS:
+        TESTS::
+
             sage: axiom.upperCase_q
             upperCase?
             sage: axiom.upperCase_e
@@ -694,7 +757,8 @@ def is_AxiomElement(x):
     """
     Returns True of x is of type AxiomElement.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.axiom import is_AxiomElement
         sage: is_AxiomElement(axiom(2)) #optional -- requires Axiom
         True
@@ -708,9 +772,11 @@ axiom = Axiom(script_subdirectory=None)
 
 def reduce_load_Axiom():
     """
-    Returns the Axiom interface object defined in sage.interfaces.axiom.
+    Returns the Axiom interface object defined in
+    sage.interfaces.axiom.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.axiom import reduce_load_Axiom
         sage: reduce_load_Axiom()
         Axiom
@@ -722,7 +788,8 @@ def axiom_console():
     """
     Spawn a new Axiom (FriCAS) command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: axiom_console() #not tested
                          FriCAS (AXIOM fork) Computer Algebra System
                                  Version: FriCAS 2007-07-19
@@ -732,13 +799,13 @@ def axiom_console():
            Issue )summary for a summary of useful system commands.
            Issue )quit to leave AXIOM and return to shell.
         -----------------------------------------------------------------------------
-
     """
     os.system('axiom -nox')
 
 def __doctest_cleanup():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.axiom import __doctest_cleanup
         sage: a = Axiom()
         sage: two = a(2)     #optional -- requires Axiom

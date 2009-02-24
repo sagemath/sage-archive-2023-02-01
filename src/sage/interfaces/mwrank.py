@@ -26,8 +26,11 @@ def Mwrank(options="", server=None, server_tmpdir=None):
     Create and return an mwrank interpreter, with given options.
 
     INPUT:
-       options -- string; passed when starting mwrank.  The format is
-       q p<precision> v<verbosity> b<hlim_q> x<naux>  c<hlim_c> l t o s d>]
+
+
+    -  ``options`` - string; passed when starting mwrank.
+       The format is q pprecision vverbosity bhlim_q xnaux chlim_c l t o
+       s d]
     """
     global instances
     try:
@@ -48,8 +51,11 @@ class Mwrank_class(Expect):
     def __init__(self, options="", server=None,server_tmpdir=None):
         """
         INPUT:
-           options -- string; passed when starting mwrank.  The format is
-           q p<precision> v<verbosity> b<hlim_q> x<naux>  c<hlim_c> l t o s d>]
+
+
+        -  ``options`` - string; passed when starting mwrank.
+           The format is q pprecision vverbosity bhlim_q xnaux chlim_c l t o
+           s d]
         """
         Expect.__init__(self,
                         name = 'mwrank',

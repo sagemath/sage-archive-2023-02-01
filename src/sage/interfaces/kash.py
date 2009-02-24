@@ -1,85 +1,98 @@
 r"""
 Interface to KASH
 
-\sage provides an interface to the KASH computer algebra system, which
-is a \emph{free} (as in beer!) but \emph{closed source} program for
-algebraic number theory that shares much common code with Magma.
-To use KASH, you must install the appropriate optional \sage
-package by typing something like
-"sage -i kash3-linux-2005.11.22" or
-"sage -i kash3_osx-2005.11.22".  For a list of optional
-packages type "sage -optional".  If you type one of the
-above commands, the (about 16MB) package will be downloaded
-automatically (you don't have to do that).
+Sage provides an interface to the KASH computer algebra system,
+which is a *free* (as in beer!) but *closed source* program for
+algebraic number theory that shares much common code with Magma. To
+use KASH, you must install the appropriate optional Sage package by
+typing something like "sage -i kash3-linux-2005.11.22" or "sage -i
+kash3_osx-2005.11.22". For a list of optional packages type "sage
+-optional". If you type one of the above commands, the (about 16MB)
+package will be downloaded automatically (you don't have to do
+that).
 
-It is not enough to just have KASH installed on your computer.
-Note that the KASH \sage package is currently only
-available for Linux and OSX.  If you need Windows, support
-contact me (wstein@gmail.com).
+It is not enough to just have KASH installed on your computer. Note
+that the KASH Sage package is currently only available for Linux
+and OSX. If you need Windows, support contact me
+(wstein@gmail.com).
 
 The KASH interface offers three pieces of functionality:
-\begin{enumerate}
 
-\item \code{kash_console()} -- A function that dumps you
-into an interactive command-line KASH session.    Alternatively,
 
-type \code{!kash} from the \sage prompt.
+#. ``kash_console()`` - A function that dumps you into
+   an interactive command-line KASH session. Alternatively,
 
-\item \code{kash(expr)} -- Creation of a SAGE object that wraps a
-KASH object.  This provides a Pythonic interface to KASH.  For example,
-if \code{f=kash.new(10)}, then \code{f.Factors()} returns the prime
-factorization of $10$ computed using KASH.
+   type ``!kash`` from the Sage prompt.
 
-\item \code{kash.function_name(args ...)} -- Call the indicated
-KASH function with the given arguments are return the result
-as a KASH object.
+#. ``kash(expr)`` - Creation of a Sage object that
+   wraps a KASH object. This provides a Pythonic interface to KASH.
+   For example, if ``f=kash.new(10)``, then
+   ``f.Factors()`` returns the prime factorization of
+   `10` computed using KASH.
 
-\item \code{kash.eval(expr)} -- Evaluation of arbitrary KASH
-expressions, with the result returned as a string.
+#. ``kash.function_name(args ...)`` - Call the
+   indicated KASH function with the given arguments are return the
+   result as a KASH object.
 
-\end{enumerate}
+#. ``kash.eval(expr)`` - Evaluation of arbitrary KASH
+   expressions, with the result returned as a string.
 
-\subsection{Issues}
+
+Issues
+------
+
 For some reason hitting Control-C to interrupt a calculation
-doesn't work correctly.  (TODO)
+doesn't work correctly. (TODO)
 
-\subsection{Tutorial}
+Tutorial
+--------
 
-The examples in this tutorial require that the optional kash package
-be installed.
+The examples in this tutorial require that the optional kash
+package be installed.
 
-\subsubsection{Basics}
+Basics
+~~~~~~
 
-Basic arithmetic is straightforward.  First, we obtain
-the result as a string.
+Basic arithmetic is straightforward. First, we obtain the result as
+a string.
+
+::
 
     sage: kash.eval('(9 - 7) * (5 + 6)')                # optional -- kash
     '22'
 
 Next we obtain the result as a new KASH object.
 
+::
+
     sage: a = kash('(9 - 7) * (5 + 6)'); a              # optional -- kash
+
     22
     sage: a.parent()                                    # optional -- kash
     Kash
 
-We can do arithmetic and call functions on KASH objects:
+We can do arithmetic and call functions on KASH objects::
+
     sage: a*a                                           # optional -- kash
     484
     sage: a.Factorial()                                 # optional -- kash
     1124000727777607680000
 
-\subsubsection{Integrated Help}
+Integrated Help
+~~~~~~~~~~~~~~~
 
-Use the \code{kash.help(name)} command to get help
-about a given command.   This returns a list of
-help for each of the definitions of \code{name}.
-Use \code{print kash.help(name)} to nicely print
-out all signatures.
+Use the ``kash.help(name)`` command to get help about a
+given command. This returns a list of help for each of the
+definitions of ``name``. Use ``print
+kash.help(name)`` to nicely print out all signatures.
 
-\subsubsection{Arithmetic}
-Using the \code{kash.new} command we create Kash objects
+Arithmetic
+~~~~~~~~~~
+
+Using the ``kash.new`` command we create Kash objects
 on which one can do arithmetic.
+
+::
 
     sage: a = kash(12345)                          # optional -- kash
     sage: b = kash(25)                             # optional -- kash
@@ -88,30 +101,39 @@ on which one can do arithmetic.
     sage: a**b                                     # optional -- kash
     1937659030411463935651167391656422626577614411586152317674869233464019922771432158872187137603759765625
 
-\subsubsection{Variable assignment}
-Variable assignment using \code{kash} is takes place
-in \sage.
+Variable assignment
+~~~~~~~~~~~~~~~~~~~
+
+Variable assignment using ``kash`` is takes place in
+Sage.
+
+::
 
     sage: a = kash('32233')                        # optional -- kash
     sage: a                                        # optional -- kash
     32233
 
-In particular, \code{a} is not defined as part of the KASH
+In particular, ``a`` is not defined as part of the KASH
 session itself.
+
+::
 
     sage: kash.eval('a')                           # optional -- kash
     "Error, the variable 'a' must have a value"
 
-Use \code{a.name()} to get the name of the KASH variable:
+Use ``a.name()`` to get the name of the KASH variable::
+
     sage: a.name()                                 # somewhat random and optional - kash
     'sage0'
     sage: kash(a.name())                           # optional -- kash
     32233
 
+Integers and Rationals
+~~~~~~~~~~~~~~~~~~~~~~
 
-\subsubsection{Integers and Rationals}
-We illustrate arithmetic with integers and rationals
-in KASH.
+We illustrate arithmetic with integers and rationals in KASH.
+
+::
 
     sage: F = kash.Factorization(4352)             # optional -- kash
     sage: F[1]                                     # optional -- kash
@@ -123,8 +145,12 @@ in KASH.
       ext1 := 1,
       ext2 := Unassign
 
-\note{For some very large numbers KASH's integer factorization
-seems much faster than PARI's (which is the default in SAGE).}
+.. note::
+
+   For some very large numbers KASH's integer factorization seems much
+   faster than PARI's (which is the default in Sage).
+
+::
 
     sage: kash.GCD(15,25)                          # optional -- kash
     5
@@ -142,7 +168,10 @@ seems much faster than PARI's (which is the default in SAGE).}
     sage: kash.NextPrime(10007)                    # optional -- kash
     10009
 
-\subsubsection{Real and Complex Numbers}
+Real and Complex Numbers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
 
     sage: kash.Precision()                         # optional -- kash
     30
@@ -189,10 +218,15 @@ seems much faster than PARI's (which is the default in SAGE).}
     sage: x_c.Imaginary()                          # optional -- kash
     1.00000000000000000000000000000
 
-\subsubsection{Lists}
+Lists
+~~~~~
+
 Note that list appends are completely different in KASH than in
-Python.  Use underscore after the function name for the mutation
+Python. Use underscore after the function name for the mutation
 version.
+
+::
+
     sage: v = kash([1,2,3]); v                    # optional -- kash
     [ 1, 2, 3 ]
     sage: v[1]                                    # optional -- kash
@@ -216,7 +250,10 @@ version.
     sage: v                                       # optional -- kash
     [ 1, 2, 3, 5, 6, 5 ]
 
-The \code{Apply} command applies a function to each element of a list.
+The ``Apply`` command applies a function to each
+element of a list.
+
+::
     sage: L = kash([1,2,3,4])                    # optional -- kash
     sage: L.Apply('i -> 3*i')                    # optional -- kash
     [ 3, 6, 9, 12 ]
@@ -227,8 +264,13 @@ The \code{Apply} command applies a function to each element of a list.
     sage: L                                      # optional -- kash
     [ 1, 2, 3, 4 ]
 
-\subsubsection{Ranges}
+Ranges
+~~~~~~
+
 the following are examples of ranges.
+
+::
+
     sage: L = kash('[1..10]')                    # optional -- kash
     sage: L                                      # optional -- kash
     [ 1 .. 10 ]
@@ -236,11 +278,17 @@ the following are examples of ranges.
     sage: L                                      # optional -- kash
     [ 2, 4 .. 100 ]
 
-\subsubsection{Sequences}
+Sequences
+~~~~~~~~~
 
-\subsubsection{Tuples}
+Tuples
+~~~~~~
 
-\subsubsection{Polynomials}
+Polynomials
+~~~~~~~~~~~
+
+::
+
     sage: f = kash('X^3 + X + 1')                # optional -- kash
     sage: f + f                                  # optional -- kash
     2*X^3 + 2*X + 2
@@ -252,12 +300,19 @@ the following are examples of ranges.
     sage: Qx.gen(1)**5 + kash('7/3')   # sage1 below somewhat random; optional -- kash
     sage1.1^5 + 7/3
 
-\subsubsection{Number Fields}
+Number Fields
+~~~~~~~~~~~~~
+
 We create an equation order.
+
+::
+
     sage: f = kash('X^5 + 4*X^4 - 56*X^2 -16*X + 192')    # optional -- kash
     sage: OK = f.EquationOrder()                          # optional -- kash
     sage: OK                                              # optional -- kash
     Equation Order with defining polynomial X^5 + 4*X^4 - 56*X^2 - 16*X + 192 over Z
+
+::
 
     sage: f = kash('X^5 + 4*X^4 - 56*X^2 -16*X + 192')    # optional -- kash
     sage: O = f.EquationOrder()                           # optional -- kash
@@ -296,11 +351,14 @@ We create an equation order.
 
 Determining whether an ideal is principal.
 
+::
+
     sage: I.IsPrincipal()                      # optional -- kash
     FALSE, extended by:
     ext1 := Unassign
 
-Computation of class groups and unit groups:
+Computation of class groups and unit groups::
+
     sage: f = kash('X^5 + 4*X^4 - 56*X^2 -16*X + 192')         # optional -- kash
     sage: O = kash.EquationOrder(f)                            # optional -- kash
     sage: OK = O.MaximalOrder()                                # optional -- kash
@@ -310,6 +368,8 @@ Computation of class groups and unit groups:
       Relations:
       6*sage32.1 = 0, extended by:
       ext1 := Mapping from: grp^abl: sage32 to ids/ord^num: _AA
+
+::
 
     sage: U = OK.UnitGroup()                                  # optional -- kash
     sage: U        # name sage34 below random; optional -- kash
@@ -322,7 +382,11 @@ Computation of class groups and unit groups:
     sage: kash.Apply('x->%s.ext1(x)'%U.name(), U.Generators().List())     # optional -- kash
     [ [1, -1, 0, 0, 0], [1, 1, 0, 0, 0], [-1, 0, 0, 0, 0] ]
 
-\subsubsection{Function Fields}
+Function Fields
+~~~~~~~~~~~~~~~
+
+::
+
     sage: k = kash.FiniteField(25)                                 # optional -- kash
     sage: kT = k.RationalFunctionField()                           # optional -- kash
     sage: kTy = kT.PolynomialAlgebra()                             # optional -- kash
@@ -330,18 +394,24 @@ Computation of class groups and unit groups:
     sage: y = kTy.gen(1)                                           # optional -- kash
     sage: f = y**3 + T**4 + 1                                      # optional -- kash
 
-\subsection{Long Input}
+Long Input
+----------
+
 The KASH interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.
-\note{Using \code{kash.eval} for long input
-is much less robust, and is not recommended.}
+
+.. note::
+
+   Using ``kash.eval`` for long input is much less robust, and is not
+   recommended.
+
+::
 
     sage: a = kash(range(10000))                                  # optional -- kash
 
 Note that KASH seems to not support string or integer literals with
 more than 1024 digits, which is why the above example uses a list
 unlike for the other interfaces.
-
 """
 
 
@@ -370,7 +440,9 @@ class Kash(Expect):
     r"""
     Interface to the Kash interpreter.
 
-    AUTHORS: William Stein and David Joyner
+    AUTHORS:
+
+    - William Stein and David Joyner
     """
     def __init__(self,
                  max_workspace_size=None,
@@ -461,10 +533,15 @@ class Kash(Expect):
         the output as a string.
 
         INPUT:
-            s -- string containing Kash code.
-            newlines -- bool (default: True); if False, remove all
-                      backslash-newlines inserted by the Kash output formatter.
-            strip -- ignored
+
+
+        -  ``s`` - string containing Kash code.
+
+        -  ``newlines`` - bool (default: True); if False,
+           remove all backslash-newlines inserted by the Kash output
+           formatter.
+
+        -  ``strip`` - ignored
         """
         x = str(x)
         x = x.rstrip()
@@ -500,20 +577,20 @@ class Kash(Expect):
         """
         Return help on KASH commands.
 
-        Returns help on all commands with a given name.  If name is
-        None, return the location of the installed Kash html
-        documentation.
+        Returns help on all commands with a given name. If name is None,
+        return the location of the installed Kash html documentation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = kash.help('IntegerRing')   # optional -- kash
 
-        There is one entry in X for each item found in the
-        documentation for this function: If you type \code{print X[0]}
-        you will get help on about the first one, printed nicely to
-        the screen.
+        There is one entry in X for each item found in the documentation
+        for this function: If you type ``print X[0]`` you will
+        get help on about the first one, printed nicely to the screen.
 
-        AUTHOR:
-            -- Sebastion Pauli (2006-02-04) -- during SAGE coding sprint
+        AUTHORS:
+
+        - Sebastion Pauli (2006-02-04): during Sage coding sprint
         """
         if name is None:
             print '\nTo use KASH help enter kash.help(s). '

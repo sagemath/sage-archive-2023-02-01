@@ -1,160 +1,198 @@
 r"""
 Interface to Maple
 
-AUTHOR:
-    -- William Stein (2005): maple interface
-    -- Gregg Musiker (2006-02-02): tutorial
-    -- William Stein (2006-03-05): added tab completion, e.g., maple.[tab],
-       and help, e.g, maple.sin?.
+AUTHORS:
 
-You must have the optional commercial Maple interpreter installed and
-available as the command \code{maple} in your PATH in order to use
-this interface.  You do not have to install any optional \sage packages.
+- William Stein (2005): maple interface
 
+- Gregg Musiker (2006-02-02): tutorial
 
-    Type \code{maple.[tab]} for a list of all the functions available
-    from your Maple install.  Type \code{maple.[tab]?} for Maple's
-    help about a given function.  Type \code{maple(...)} to create
-    a new Maple object, and \code{maple.eval(...)} to run a string
-    using Maple (and get the result back as a string).
+- William Stein (2006-03-05): added tab completion, e.g., maple.[tab],
+  and help, e.g, maple.sin?.
 
-EXAMPLES:
+You must have the optional commercial Maple interpreter installed
+and available as the command ``maple`` in your PATH in
+order to use this interface. You do not have to install any
+optional Sage packages.
+
+Type ``maple.[tab]`` for a list of all the functions
+available from your Maple install. Type
+``maple.[tab]?`` for Maple's help about a given
+function. Type ``maple(...)`` to create a new Maple
+object, and ``maple.eval(...)`` to run a string using
+Maple (and get the result back as a string).
+
+EXAMPLES::
+
     sage: maple('3 * 5')                                 # optional - maple
     15
     sage: maple.eval('ifactor(2005)')                    # optional - maple
-    '``(5)*``(401)'
+    '"(5)*"(401)'
     sage: maple.ifactor(2005)                            # optional - maple
-    ``(5)*``(401)
+    "(5)*"(401)
     sage: maple.fsolve('x^2=cos(x)+4', 'x=0..5')         # optional - maple
     1.914020619
     sage: maple.factor('x^5 - y^5')                      # optional - maple
     (x-y)*(x^4+x^3*y+x^2*y^2+x*y^3+y^4)
 
-If the string "error" (case insensitive) occurs in the
-output of anything from Maple, a RuntimeError exception is raised.
+If the string "error" (case insensitive) occurs in the output of
+anything from Maple, a RuntimeError exception is raised.
 
-\subsection{Tutorial}
+Tutorial
+--------
 
-AUTHOR:
-    -- Gregg Musiker (2006-02-02): initial version.
+AUTHORS:
 
+- Gregg Musiker (2006-02-02): initial version.
 
-This tutorial is based on the Maple Tutorial for number theory
-from  \url{http://www.math.mun.ca/~drideout/m3370/numtheory.html}.
+This tutorial is based on the Maple Tutorial for number theory from
+http://www.math.mun.ca/~drideout/m3370/numtheory.html.
 
-There are several ways to use the Maple Interface in \SAGE.  We will
+There are several ways to use the Maple Interface in Sage. We will
 discuss two of those ways in this tutorial.
 
-\begin{enumerate}
-\item If you have a maple expression such as
-\begin{verbatim}
-factor( (x^5-1));
-\end{verbatim}
-We can write that in sage as
 
-    sage: maple('factor(x^5-1)')                 # optional - maple
-    (x-1)*(x^4+x^3+x^2+x+1)
+#. If you have a maple expression such as
 
-Notice, there is no need to use a semicolon.
+   ::
 
-\item Since \SAGE is written in Python, we can also import maple
-commands and write our scripts in a pythonic way.
-For example, \code{factor()} is a maple command, so we can also factor
-in \sage using
+       factor( (x^5-1));
 
-    sage: maple('(x^5-1)').factor()              # optional - maple
-    (x-1)*(x^4+x^3+x^2+x+1)
+   We can write that in sage as
 
-where \code{expression.command()} means the same thing as
-\code{command(expression)} in Maple.  We will use this second type of
-syntax whenever possible, resorting to the first when needed.
+   ::
 
-    sage: maple('(x^12-1)/(x-1)').simplify()     # optional - maple
-    x^11+x^10+x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
+       sage: maple('factor(x^5-1)')                 # optional - maple
+       (x-1)*(x^4+x^3+x^2+x+1)
 
-\end{enumerate}
+   Notice, there is no need to use a semicolon.
+
+#. Since Sage is written in Python, we can also import maple
+   commands and write our scripts in a pythonic way. For example,
+   ``factor()`` is a maple command, so we can also factor
+   in Sage using
+
+   ::
+
+       sage: maple('(x^5-1)').factor()              # optional - maple
+       (x-1)*(x^4+x^3+x^2+x+1)
+
+   where ``expression.command()`` means the same thing as
+   ``command(expression)`` in Maple. We will use this
+   second type of syntax whenever possible, resorting to the first
+   when needed.
+
+   ::
+
+       sage: maple('(x^12-1)/(x-1)').simplify()     # optional - maple
+       x^11+x^10+x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
+
 
 The normal command will always reduce a rational function to the
 lowest terms. The factor command will factor a polynomial with
 rational coefficients into irreducible factors over the ring of
 integers. So for example,
 
+::
+
     sage: maple('(x^12-1)').factor( )           # optional - maple
     (x-1)*(x+1)*(x^2+x+1)*(x^2-x+1)*(x^2+1)*(x^4-x^2+1)
+
+::
 
     sage: maple('(x^28-1)').factor( )           # optional - maple
     (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
 
+Another important feature of maple is its online help. We can
+access this through sage as well. After reading the description of
+the command, you can press q to immediately get back to your
+original prompt.
 
-Another important feature of maple is its online help.  We can access
-this through sage as well.  After reading the description of the
-command, you can press q to immediately get back to your original
-prompt.
+Incidentally you can always get into a maple console by the
+command
 
-% NOTE: DOESN'T BRING UP NEW SCREEN IN SSH
-
-Incidentally you can always get into a maple console by the command
+::
 
     sage: maple.console()          # not tested
     sage: !maple                   # not tested
 
-Note that the above two commands are slightly different, and the first
-is preferred.
+Note that the above two commands are slightly different, and the
+first is preferred.
 
 For example, for help on the maple command fibonacci, we type
 
+::
+
     sage: maple.help('fibonacci')  # not tested, since it uses a pager
 
-We see there are two choices.  Type
+We see there are two choices. Type
+
+::
 
     sage: maple.help('combinat, fibonacci')   # not tested, since it uses a pager
 
 We now see how the Maple command fibonacci works under the
-combinatorics package.  Try typing in
+combinatorics package. Try typing in
+
+::
 
     sage: maple.fibonacci(10)                # optional - maple
     fibonacci(10)
 
 You will get fibonacci(10) as output since Maple has not loaded the
-combinatorics package yet.  To rectify this type
+combinatorics package yet. To rectify this type
+
+::
 
     sage: maple('combinat[fibonacci]')(10)     # optional - maple
     55
 
 instead.
 
-If you want to load the combinatorics package for future calculations,
-in \sage this can be done as
+If you want to load the combinatorics package for future
+calculations, in Sage this can be done as
+
+::
 
     sage: maple.with_package('combinat')       # optional - maple
 
 or
 
+::
+
     sage: maple.load('combinat')               # optional - maple
 
-Now if we type \code{maple.fibonacci(10)}, we get the correct output:
+Now if we type ``maple.fibonacci(10)``, we get the
+correct output::
 
     sage: maple.fibonacci(10)                  # optional - maple
     55
 
-Some common maple packages include \code{combinat}, \code{linalg}, and
-\code{numtheory}.  To produce the first 19 Fibonacci
-numbers, use the sequence command.
+Some common maple packages include ``combinat``,
+``linalg``, and ``numtheory``. To produce
+the first 19 Fibonacci numbers, use the sequence command.
+
+::
 
     sage: maple('seq(fibonacci(i),i=1..19)')     # optional - maple
     1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584,
     4181
 
-Two other useful Maple commands are ifactor and isprime. For example
+Two other useful Maple commands are ifactor and isprime. For
+example
+
+::
 
     sage: maple.isprime(maple.fibonacci(27))     # optional - maple
     false
     sage: maple.ifactor(maple.fibonacci(27))     # optional - maple
-    ``(2)*``(17)*``(53)*``(109)
+    "(2)*"(17)*"(53)*"(109)
 
-Note that the isprime function that is included with \sage (which uses
-PARI) is better than the Maple one (it is faster and gives a provably
-correct answer, whereas Maple is sometimes wrong).
+Note that the isprime function that is included with Sage (which
+uses PARI) is better than the Maple one (it is faster and gives a
+provably correct answer, whereas Maple is sometimes wrong).
+
+::
 
     sage: alpha = maple('(1+sqrt(5))/2')         # optional - maple
     sage: beta = maple('(1-sqrt(5))/2')          # optional - maple
@@ -164,24 +202,26 @@ correct answer, whereas Maple is sometimes wrong).
     sage: f19.simplify()                # somewhat randomly ordered output; optional - maple
     6765+5778/5*5^(1/2)
 
+Let's say we want to write a maple program now that squares a
+number if it is positive and cubes it if it is negative. In maple,
+that would look like
 
-Let's say we want to write a maple program now that squares a number
-if it is positive and cubes it if it is negative.  In maple, that
-would look like
+::
 
-\begin{verbatim}
-mysqcu := proc(x)
-if x > 0 then x^2;
-else x^3; fi;
-end;
-\end{verbatim}
-In SAGE, we write
+    mysqcu := proc(x)
+    if x > 0 then x^2;
+    else x^3; fi;
+    end;
 
-   sage: mysqcu = maple('proc(x) if x > 0 then x^2 else x^3 fi end')    # optional - maple
-   sage: mysqcu(5)                                                      # optional - maple
-   25
-   sage: mysqcu(-5)                                                     # optional - maple
-   -125
+In Sage, we write
+
+::
+
+    sage: mysqcu = maple('proc(x) if x > 0 then x^2 else x^3 fi end')    # optional - maple
+    sage: mysqcu(5)                                                      # optional - maple
+    25
+    sage: mysqcu(-5)                                                     # optional - maple
+    -125
 
 More complicated programs should be put in a separate file and
 loaded.
@@ -212,17 +252,19 @@ class Maple(Expect):
     """
     Interface to the Maple interpreter.
 
-    Type \code{maple.[tab]} for a list of all the functions available
-    from your Maple install.  Type \code{maple.[tab]?} for Maple's
-    help about a given function.  Type \code{maple(...)} to create
-    a new Maple object, and \code{maple.eval(...)} to run a string
-    using Maple (and get the result back as a string).
+    Type ``maple.[tab]`` for a list of all the functions
+    available from your Maple install. Type
+    ``maple.[tab]?`` for Maple's help about a given
+    function. Type ``maple(...)`` to create a new Maple
+    object, and ``maple.eval(...)`` to run a string using
+    Maple (and get the result back as a string).
     """
     def __init__(self, maxread=100, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Maple interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple == loads(dumps(maple))
             True
         """
@@ -245,9 +287,12 @@ class Maple(Expect):
 
     def _function_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._function_class()
             <class 'sage.interfaces.maple.MapleFunction'>
+
+        ::
 
             sage: type(maple.diff)
             <class 'sage.interfaces.maple.MapleFunction'>
@@ -263,7 +308,8 @@ class Maple(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.__reduce__()
             (<function reduce_load_Maple at 0x...>, ())
             sage: f, args = _
@@ -273,12 +319,15 @@ class Maple(Expect):
         return reduce_load_Maple, tuple([])
 
     def _read_in_file_command(self, filename):
-        """
+        r"""
         Returns the string used to read filename into Maple.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._read_in_file_command('test')
             'read "test"'
+
+        ::
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -287,15 +336,17 @@ class Maple(Expect):
             sage: maple.read(filename)    # optional - maple
             sage: maple.get('xx').strip() # optional - maple
             '22'
-
         """
         return 'read "%s"'%filename
 
     def _quit_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._quit_string()
             'quit'
+
+        ::
 
             sage: m = Maple()
             sage: a = m(2)           # optional - maple
@@ -311,10 +362,12 @@ class Maple(Expect):
         """
         Hints for installing Maple on your computer.
 
-        AUTHOR:
-            -- William Stein and Justin Walker (2006-02-12).
+        AUTHORS:
 
-        EXAMPLES:
+        - William Stein and Justin Walker (2006-02-12).
+
+        EXAMPLES::
+
             sage: print maple._install_hints()
             In order...
         """
@@ -347,7 +400,8 @@ connection to a server running Maple; for hints, type
         """
         Returns the pexpect object for this Maple session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = Maple()
             sage: m.expect() is None
             True
@@ -355,7 +409,6 @@ connection to a server running Maple; for hints, type
             sage: m.expect()           # optional - maple
             <pexpect.spawn instance at 0x...>
             sage: m.quit()             # optional - maple
-
         """
         return self._expect
 
@@ -363,9 +416,10 @@ connection to a server running Maple; for hints, type
         """
         Spawn a new Maple command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.console() # not tested
-                |\^/|     Maple 11 (IBM INTEL LINUX)
+                |^/|     Maple 11 (IBM INTEL LINUX)
             ._|\|   |/|_. Copyright (c) Maplesoft, a division of Waterloo Maple Inc. 2007
              \  MAPLE  /  All rights reserved. Maple is a trademark of
              <____ ____>  Waterloo Maple Inc.
@@ -396,9 +450,10 @@ connection to a server running Maple; for hints, type
     def completions(self, s):
         """
         Return all commands that complete the command starting with the
-        string s.   This is like typing s[Ctrl-T] in the maple interpreter.
+        string s. This is like typing s[Ctrl-T] in the maple interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = maple.completions('di')  # optional - maple
             sage: 'divide' in c                # optional - maple
             True
@@ -425,7 +480,8 @@ connection to a server running Maple; for hints, type
         """
         Return list of all commands defined in Maple.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = maple._commands() # optional - maple
             sage: len(c) > 100          # optional - maple
             True
@@ -449,7 +505,8 @@ connection to a server running Maple; for hints, type
         Returns a list of all the commands defined in Maple and optionally
         (per default) store them to disk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = maple.trait_names(use_disk_cache=False, verbose=False) # optional - maple
             sage: len(c) > 100  # optional - maple
             True
@@ -479,7 +536,8 @@ connection to a server running Maple; for hints, type
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._eval_line('2+2')  # optional - maple
             '4'
         """
@@ -505,11 +563,12 @@ connection to a server running Maple; for hints, type
 
     def cputime(self, t=None):
         r"""
-        Returns the amount of CPU time that the Maple session has used.
-        If \var{t} is not None, then it returns the difference between
-        the current CPU time and \var{t}.
+        Returns the amount of CPU time that the Maple session has used. If
+        ``t`` is not None, then it returns the difference
+        between the current CPU time and ``t``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = maple.cputime() # optional - maple
             sage: t                   # random; optional - maple
             0.02
@@ -528,7 +587,8 @@ connection to a server running Maple; for hints, type
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.set('xx', '2') # optional - maple
             sage: maple.get('xx')      # optional - maple
             '2'
@@ -542,7 +602,8 @@ connection to a server running Maple; for hints, type
         """
         Get the value of the variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.set('xx', '2') # optional - maple
             sage: maple.get('xx')      # optional - maple
             '2'
@@ -554,14 +615,16 @@ connection to a server running Maple; for hints, type
         """
         Returns the class of MapleElements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._object_class()
             <class 'sage.interfaces.maple.MapleElement'>
+
+        ::
 
             sage: m = maple(2)  # optional - maple
             sage: type(m)       # optional - maple
             <class 'sage.interfaces.maple.MapleElement'>
-
         """
         return MapleElement
 
@@ -569,14 +632,16 @@ connection to a server running Maple; for hints, type
         """
         Returns the MapleFunctionElement class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._function_element_class()
             <class 'sage.interfaces.maple.MapleFunctionElement'>
+
+        ::
 
             sage: two = maple(2)  # optional - maple
             sage: type(two.gcd)   # optional - maple
             <class 'sage.interfaces.maple.MapleFunctionElement'>
-
         """
         return MapleFunctionElement
 
@@ -584,7 +649,8 @@ connection to a server running Maple; for hints, type
         """
         Returns the symbol used for equality testing in Maple.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._equality_symbol()
             '='
 
@@ -597,11 +663,14 @@ connection to a server running Maple; for hints, type
         """
         Returns the symbol used for truth in Maple.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._true_symbol()
             'true'
 
-            sage: maple(2) == maple(2) # optional -- requires maple
+        ::
+
+            sage: maple(2) == maple(2) # optional - maple
             True
         """
         return 'true'
@@ -610,19 +679,20 @@ connection to a server running Maple; for hints, type
         """
         Returns the symbol used for assignment in Maple.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._assign_symbol()
             ':='
-
         """
         return ":="
 
     def _source(self, s):
         """
-        Tries to return the source code of a Maple function str
-        as a string.
+        Tries to return the source code of a Maple function str as a
+        string.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print maple._source('curry').strip()  # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple._source('ZZZ')                  # optional - maple
@@ -639,19 +709,22 @@ connection to a server running Maple; for hints, type
 
     def source(self, s):
         """
-        Display the Maple source (if possible) about s.  This is the same as
+        Display the Maple source (if possible) about s. This is the same as
         returning the output produced by the following Maple commands:
 
         interface(verboseproc=2): print(s)
 
         INPUT:
-            s -- a string representing the function whose source code you
-                 want
 
-        EXAMPLES:
+
+        -  ``s`` - a string representing the function whose
+           source code you want
+
+
+        EXAMPLES::
+
             sage: maple.source('curry')  #not tested
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
-
         """
         try:
             pager()(self._source(s))
@@ -660,9 +733,10 @@ connection to a server running Maple; for hints, type
 
     def _help(self, str):
         r"""
-        Returns the Maple help on \var{str}.
+        Returns the Maple help on ``str``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple._help('gcd')  # optional - maple
             "gcd - greatest common divisor of polynomials...
         """
@@ -670,13 +744,18 @@ connection to a server running Maple; for hints, type
 
     def help(self, str):
         """
-        Display Maple help about str.  This is the same as typing "?str" in
+        Display Maple help about str. This is the same as typing "?str" in
         the Maple console.
 
         INPUT:
-            str -- a string to search for in the maple help system
 
-        EXAMPLES:
+
+        -  ``str`` - a string to search for in the maple help
+           system
+
+
+        EXAMPLES::
+
             sage: maple.help('digamma') #not tested
             Psi - the Digamma and Polygamma functions
             ...
@@ -685,15 +764,18 @@ connection to a server running Maple; for hints, type
 
     def with_package(self, package):
         """
-        Make a package of Maple procedures available in the
-        interpreter.
+        Make a package of Maple procedures available in the interpreter.
 
         INPUT:
-            package -- string
 
-        EXAMPLES:
-        Some functions are unknown to Maple until you use with to include
-        the appropriate package.
+
+        -  ``package`` - string
+
+
+        EXAMPLES: Some functions are unknown to Maple until you use with to
+        include the appropriate package.
+
+        ::
 
             sage: maple.quit()   # optional -- to reset maple.
             sage: maple('partition(10)')              # optional -- requires maple
@@ -716,28 +798,29 @@ connection to a server running Maple; for hints, type
         """
         Clear the variable named var.
 
-        Unfortunately, Maple does not have a clear command.
-        The next best thing is to set equal to the constant
-        0, so that memory will be freed.
+        Unfortunately, Maple does not have a clear command. The next best
+        thing is to set equal to the constant 0, so that memory will be
+        freed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.set('xx', '2')  # optional - maple
             sage: maple.get('xx')       # optional - maple
             '2'
             sage: maple.clear('xx')     # optional - maple
             sage: maple.get('xx')       # optional - maple
             '0'
-
         """
         self.set(var, '0')
 
 class MapleFunction(ExpectFunction):
     def _sage_doc_(self):
         """
-        Returns the Maple help for this function.  This gets called
-        when doing "?" on self.
+        Returns the Maple help for this function. This gets called when
+        doing "?" on self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple.gcd._sage_doc_()  # optional - maple
             "gcd - greatest common divisor of polynomials...
         """
@@ -746,17 +829,17 @@ class MapleFunction(ExpectFunction):
 
     def _sage_src_(self):
         """
-        Returns the source code of self.  This is the function that eventually
-        gets called when doing maple.gcd?? for example.
+        Returns the source code of self. This is the function that
+        eventually gets called when doing maple.gcd?? for example.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print maple.curry._sage_src_().strip() # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple.ZZZ._sage_src_()                 # optional - maple
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
-
         """
         M = self._parent
         return M._source(self._name)
@@ -764,14 +847,14 @@ class MapleFunction(ExpectFunction):
 class MapleFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
-        Returns the Maple help for this function.  This gets called
-        when doing "?" on self.
+        Returns the Maple help for this function. This gets called when
+        doing "?" on self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: two = maple(2)  # optional - maple
             sage: two.gcd._sage_doc_() # optional - maple
             "gcd - greatest common divisor of polynomials...
-
         """
         return self._obj.parent()._help(self._name)
 
@@ -779,7 +862,8 @@ class MapleFunctionElement(FunctionElement):
         """
         Returns the source code of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = maple('gcd')                   # optional - maple
             sage: print g.curry._sage_src_().strip() # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
@@ -788,7 +872,6 @@ class MapleFunctionElement(FunctionElement):
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
-
         """
         return self._obj.parent()._source(self._name)
 
@@ -797,26 +880,27 @@ class MapleElement(ExpectElement):
         """
         Returns a floating point version of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: float(maple(1/2))  # optional - maple
             0.5
             sage: type(_)            # optional - maple
             <type 'float'>
-
         """
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
 
     def __hash__(self):
         """
-        Returns a 64-bit integer representing the hash of self.  Since Python uses
-        32-bit hashes, it will automatically convert the result of this to
-        a 32-bit hash.
+        Returns a 64-bit integer representing the hash of self. Since
+        Python uses 32-bit hashes, it will automatically convert the result
+        of this to a 32-bit hash.
 
         These examples are optional, and require Maple to be installed. You
         don't need to install any Sage packages for this.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maple('x^2+y^2')                      # optional - maple
             sage: m.__hash__()                              # optional - maple
             188724254834261060184983038723355865733L
@@ -837,13 +921,16 @@ class MapleElement(ExpectElement):
         These examples are optional, and require Maple to be installed. You
         don't need to install any Sage packages for this.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = maple(5)                             # optional - maple
             sage: b = maple(5)                             # optional - maple
             sage: a == b                                   # optional - maple
             True
             sage: a == 5                                   # optional - maple
             True
+
+        ::
 
             sage: c = maple(3)                             # optional - maple
             sage: a == c                                   # optional - maple
@@ -854,6 +941,8 @@ class MapleElement(ExpectElement):
             True
             sage: c <= a                                   # optional - maple
             True
+
+        ::
 
             sage: M = matrix(ZZ, 2, range(1,5))            # optional - maple
             sage: Mm = maple(M)                            # optional - maple
@@ -866,7 +955,8 @@ class MapleElement(ExpectElement):
             sage: 5 < Mm                                   # optional - maple
             False
 
-        TESTS:
+        TESTS::
+
             sage: x = var('x')
             sage: t = maple((x+1)^2)                       # optional -- requires maple
             sage: u = maple(x^2+2*x+1)                     # optional -- requires maple
@@ -908,7 +998,8 @@ class MapleElement(ExpectElement):
         These examples are optional, and require Maple to be installed. You
         don't need to install any Sage packages for this.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = maple(5); u = maple(3)                # optional - maple
             sage: t*u                                       # optional - maple
             15
@@ -917,10 +1008,14 @@ class MapleElement(ExpectElement):
             sage: Mm*Mm                                     # optional - maple
             Matrix(2, 2, [[2,3],[6,11]])
 
+        ::
+
             sage: v = vector(ZZ,2,[2,3])
             sage: vm = maple(v)                             # optional - maple
             sage: vm*Mm                                     # optional - maple
             Vector[row](2, [6,11])
+
+        ::
 
             sage: t*Mm                                      # optional - maple
             Matrix(2, 2, [[0,5],[10,15]])
@@ -933,7 +1028,8 @@ class MapleElement(ExpectElement):
 
     def trait_names(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = maple(2) # optional - maple
             sage: 'sin' in a.trait_names() # optional - maple
             True
@@ -947,7 +1043,8 @@ class MapleElement(ExpectElement):
         These examples are optional, and require Maple to be installed. You
         don't need to install any Sage packages for this.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x')
             sage: maple(x)                      # optional - maple
             x
@@ -964,14 +1061,17 @@ class MapleElement(ExpectElement):
         r"""
         You can output Maple expressions in latex.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional -- requires maple
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
             sage: print latex(maple(pi - e^3))                   # optional -- requires maple
             \pi - \left( {e^{1}} \right) ^{3}
 
-        \note{Some expressions might require the Maple style file
-        \code{maple2e.sty} in order to latex correctly.}
+        .. note::
+
+           Some expressions might require the Maple style file
+           ``maple2e.sty`` in order to latex correctly.
         """
         return self.parent().eval('latex(%s)'%self.name())
 
@@ -982,7 +1082,8 @@ def reduce_load_Maple():
     """
     Returns the maple object created in sage.interfaces.maple.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.maple import reduce_load_Maple
         sage: reduce_load_Maple()
         Maple
@@ -995,9 +1096,10 @@ def maple_console():
     """
     Spawn a new Maple command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: maple_console() #not tested
-            |\^/|     Maple 11 (IBM INTEL LINUX)
+            |^/|     Maple 11 (IBM INTEL LINUX)
         ._|\|   |/|_. Copyright (c) Maplesoft, a division of Waterloo Maple Inc. 2007
          \  MAPLE  /  All rights reserved. Maple is a trademark of
          <____ ____>  Waterloo Maple Inc.
@@ -1009,7 +1111,8 @@ def maple_console():
 
 def __doctest_cleanup():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.maple import __doctest_cleanup
         sage: m = maple(2)         # optional - maple
         sage: maple.is_running()   # optional - maple

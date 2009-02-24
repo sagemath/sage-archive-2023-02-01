@@ -2,13 +2,15 @@
 Common Interface Functionality
 
 See the examples in the other sections for how to use specific
-interfaces.  The interface classes all derive from the generic
+interfaces. The interface classes all derive from the generic
 interface that is described in this section.
 
 AUTHORS:
-    -- William Stein (2005): initial version
-    -- William Stein (2006-03-01): got rid of infinite loop on startup
-                                   if client system missing
+
+- William Stein (2005): initial version
+
+- William Stein (2006-03-01): got rid of infinite loop on startup if
+  client system missing
 """
 
 #*****************************************************************************
@@ -100,10 +102,11 @@ def tmp_expect_interface_local():
 
 class gc_disabled(object):
     """
-    This is a "with" statement context manager.  Garbage collection is
-    disabled within its scope.  Nested usage is properly handled.
+    This is a "with" statement context manager. Garbage collection is
+    disabled within its scope. Nested usage is properly handled.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import gc
         sage: from sage.interfaces.expect import gc_disabled
         sage: gc.isenabled()
@@ -247,7 +250,8 @@ class Expect(ParentWithBase):
 
     def _so_far(self, wait=0.1, alternate_prompt=None):
         """
-        Return whether done and output so far and new output since last time called.
+        Return whether done and output so far and new output since last
+        time called.
         """
         done, new = self._get(wait=wait, alternate_prompt=alternate_prompt)
         try:
@@ -301,15 +305,17 @@ class Expect(ParentWithBase):
     def interact(self):
         r"""
         This allows you to interactively interact with the child
-        interpreter.  Press Ctrl-D or type 'quit' or 'exit'
-        to exit and return to SAGE.
+        interpreter. Press Ctrl-D or type 'quit' or 'exit' to exit and
+        return to Sage.
 
-        \note{This is completely different than the console() member
-        function.  The console function opens a new copy of the child
-        interepreter, whereas the interact function gives you
-        interactive access to the interpreter that is being used by
-        SAGE.   Use sage(xxx) or interpretername(xxx) to pull objects
-        in from sage to the interpreter.}
+        .. note::
+
+           This is completely different than the console() member
+           function. The console function opens a new copy of the
+           child interepreter, whereas the interact function gives you
+           interactive access to the interpreter that is being used by
+           Sage. Use sage(xxx) or interpretername(xxx) to pull objects
+           in from sage to the interpreter.
         """
         if self._expect is None:
             self._start()
@@ -337,7 +343,8 @@ class Expect(ParentWithBase):
 
     def _install_hints_ssh(self):
         r"""
-        Hints for installing passwordless authentication on your computer...
+        Hints for installing passwordless authentication on your
+        computer...
         """
         # Written by Paul-Olivier Dehaye 2007/08/23
         return """
@@ -505,7 +512,8 @@ If this all works, you can then make calls like:
 
     def quit(self, verbose=False, timeout=0.25):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = maxima('y')
             sage: maxima.quit()
             sage: a._check_valid()
@@ -582,8 +590,9 @@ If this all works, you can then make calls like:
             raise NotImplementedError
 
     def read(self, filename):
-        """
-        EXAMPLES:
+        r"""
+        EXAMPLES::
+
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
             sage: f.write('x = 2\n')
@@ -710,10 +719,11 @@ If this all works, you can then make calls like:
     ###########################################################################
 
     def _before(self):
-        """
+        r"""
         Return the previous string that was send through the interface.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular(2+3)
             5
             sage: singular._before()
@@ -737,40 +747,58 @@ If this all works, you can then make calls like:
     def _expect_expr(self, expr=None, timeout=None):
         r"""
         Wait for a given expression expr (which could be a regular
-        expression or list of regular expressions) to appear in the
-        output for at most timeout seconds.
+        expression or list of regular expressions) to appear in the output
+        for at most timeout seconds.
 
-        Use \code{r._expect.before} to see what was put in the output
-        stream before the expression.
+        Use ``r._expect.before`` to see what was put in the
+        output stream before the expression.
 
         INPUT:
-            expr -- None or a string or list of strings (default: None)
-            timeout -- None or a number (default: None)
 
-        EXAMPLES:
-        We test all of this using the R interface.  First we put 10 + 15 in
-        the input stream:
+
+        -  ``expr`` - None or a string or list of strings
+           (default: None)
+
+        -  ``timeout`` - None or a number (default: None)
+
+
+        EXAMPLES: We test all of this using the R interface. First we put
+        10 + 15 in the input stream::
+
             sage: r._sendstr('abc <- 10 +15;\n')
 
         Here an exception is raised because 25 hasn't appeared yet in the
-        output stream.  The key thing is that this doesn't lock, but instead
+        output stream. The key thing is that this doesn't lock, but instead
         quickly raises an exception.
+
+        ::
+
             sage: t = walltime()
             sage: try: r._expect_expr('25', timeout=0.5)
             ... except: print 'Did not get expression'
             Did not get expression
 
-        A quick consistency check on the time that the above took:
+        A quick consistency check on the time that the above took::
+
             sage: w = walltime(t); w > 0.4 and w < 10
             True
 
         We tell R to print abc, which equals 25.
+
+        ::
+
             sage: r._sendstr('abc;\n')
 
         Now 25 is in the output stream, so we can wait for it.
+
+        ::
+
             sage: r._expect_expr('25')
 
         This gives us everything before the 25.
+
+        ::
+
             sage: r._expect.before
             'abc;\r\n[1] '
         """
@@ -806,20 +834,24 @@ If this all works, you can then make calls like:
             raise KeyboardInterrupt, msg
 
     def _sendstr(self, str):
-        """
-        Send a string to the pexpect interface, autorestarting the
-        expect interface if anything goes wrong.
+        r"""
+        Send a string to the pexpect interface, autorestarting the expect
+        interface if anything goes wrong.
 
         INPUT:
-           str -- a string
 
-        EXAMPLES:
-        We illustrate this function using the R interface:
+
+        -  ``str`` - a string
+
+
+        EXAMPLES: We illustrate this function using the R interface::
+
             sage: r._sendstr('a <- 10;\n')
             sage: r.eval('a')
             '[1] 10'
 
-        We illustrate using the singular interface:
+        We illustrate using the singular interface::
+
             sage: singular._sendstr('int i = 5;')
             sage: singular('i')
             5
@@ -834,12 +866,15 @@ If this all works, you can then make calls like:
             self._sendstr(str)
 
     def _crash_msg(self):
-        """
+        r"""
         Show a message if the interface crashed.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: singular._crash_msg()
             Singular crashed -- automatically restarting.
+
+        ::
 
             sage: singular('2+3')
             5
@@ -855,21 +890,21 @@ If this all works, you can then make calls like:
         """
         Synchronize pexpect interface.
 
-        This put a random integer (plus one!) into the output stream,
-        then waits for it, thus resynchronizing the stream.  If the
-        random integer doesn't appear within 1 second, the interface
-        is sent interrupt signals.
+        This put a random integer (plus one!) into the output stream, then
+        waits for it, thus resynchronizing the stream. If the random
+        integer doesn't appear within 1 second, the interface is sent
+        interrupt signals.
 
         This way, even if you somehow left the interface in a busy state
         computing, calling _synchronize gets everything fixed.
 
-        EXAMPLES:
-        We observe nothing, just as it should be:
+        EXAMPLES: We observe nothing, just as it should be::
+
             sage: r._synchronize()
 
-        TESTS:
-        This illustrates a synchronization bug being fixed (thanks to Simon King and David Joyner
-        for tracking this down):
+        TESTS: This illustrates a synchronization bug being fixed (thanks
+        to Simon King and David Joyner for tracking this down)::
+
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
             Integers
             //   characteristic : 0
@@ -902,13 +937,19 @@ If this all works, you can then make calls like:
     def eval(self, code, strip=True, synchronize=False, locals=None, **kwds):
         """
         INPUT:
-            code -- text to evaluate
-            strip -- bool; whether to strip output prompts, etc.
-                     (ignored in the base class).
-            locals -- None (ignored); this is used for compatibility with the
-                      Sage notebook's generic system interface.
-            **kwds -- All other arguments are passed onto the _eval_line method.
-                     An often useful example is reformat=False.
+
+
+        -  ``code`` - text to evaluate
+
+        -  ``strip`` - bool; whether to strip output prompts,
+           etc. (ignored in the base class).
+
+        - ``locals`` - None (ignored); this is used for compatibility with the
+          Sage notebook's generic system interface.
+
+        -  ``**kwds`` - All other arguments are passed onto
+           the _eval_line method. An often useful example is
+           reformat=False.
         """
         if synchronize:
             try:
@@ -977,8 +1018,8 @@ If this all works, you can then make calls like:
         """
         Tries to coerce to self by calling a special underscore method.
 
-        If no such method is defined, raises an AttributeError
-        instead of a TypeError.
+        If no such method is defined, raises an AttributeError instead of a
+        TypeError.
         """
         s = '_%s_'%self.name()
         if s == '_pari_':
@@ -1085,13 +1126,14 @@ If this all works, you can then make calls like:
     def get_using_file(self, var):
         r"""
         Return the string representation of the variable var in self,
-        possibly using a file.  Use this if var has a huge string
+        possibly using a file. Use this if var has a huge string
         representation, since it may be way faster.
 
-        WARNING: In fact unless a special derived class implements
-        this, it will \emph{not} be any faster.  This is the case for
-        this class if you're reading it through introspection and
-        seeing this.
+        .. warning::
+
+           In fact unless a special derived class implements this, it
+           will *not* be any faster. This is the case for this class
+           if you're reading it through introspection and seeing this.
         """
         return self.get(var)
 
@@ -1116,17 +1158,18 @@ If this all works, you can then make calls like:
 
     def _object_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.expect import Expect
             sage: Expect._object_class(maxima)
             <class 'sage.interfaces.expect.ExpectElement'>
-
         """
         return ExpectElement
 
     def _function_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.expect import Expect
             sage: Expect._function_class(maxima)
             <class 'sage.interfaces.expect.ExpectFunction'>
@@ -1135,7 +1178,8 @@ If this all works, you can then make calls like:
 
     def _function_element_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.expect import Expect
             sage: Expect._function_element_class(maxima)
             <class 'sage.interfaces.expect.FunctionElement'>
@@ -1147,7 +1191,8 @@ If this all works, you can then make calls like:
         Converts all of the args and kwds to be elements of this
         interface.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: args = [5]
             sage: kwds = {'x': 6}
             sage: args, kwds = gap._convert_args_kwds(args, kwds)
@@ -1173,11 +1218,12 @@ If this all works, you can then make calls like:
 
     def _check_valid_function_name(self, function):
         """
-        Checks to see if function is a valid function
-        name in this interface.  If it is not, an exception is raised.
-        Otherwise, nothing is done.
+        Checks to see if function is a valid function name in this
+        interface. If it is not, an exception is raised. Otherwise, nothing
+        is done.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._check_valid_function_name('SymmetricGroup')
             sage: gap._check_valid_function_name('')
             Traceback (most recent call last):
@@ -1187,7 +1233,6 @@ If this all works, you can then make calls like:
             Traceback (most recent call last):
             ...
             AttributeError
-
         """
         if function == '':
             raise ValueError, "function name must be nonempty"
@@ -1196,7 +1241,8 @@ If this all works, you can then make calls like:
 
     def function_call(self, function, args=None, kwds=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
             [0.5,5.5511151231257...E-15,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
@@ -1220,13 +1266,13 @@ If this all works, you can then make calls like:
 
     def __cmp__(self, other):
         """
-        Compare to pseudo-tty interfaces.  To interfaces compare equal
-        if and only if they are identical objects (this is a critical
+        Compare to pseudo-tty interfaces. To interfaces compare equal if
+        and only if they are identical objects (this is a critical
         constrait so that caching of representations of objects in
-        interfaces works correctly).  Otherwise they are never equal.
+        interfaces works correctly). Otherwise they are never equal.
 
+        EXAMPLES::
 
-        EXAMPLES:
             sage: sage.calculus.calculus.maxima == maxima
             False
             sage: maxima == maxima
@@ -1262,10 +1308,10 @@ class ExpectFunction(SageObject):
 
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gp.gcd._sage_doc_()
             'gcd(x,{y}): greatest common divisor of x and y.'
-
         """
         M = self._parent
         return M.help(self._name)
@@ -1292,10 +1338,10 @@ class FunctionElement(SageObject):
 
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gp(2).gcd._sage_doc_()
             'gcd(x,{y}): greatest common divisor of x and y.'
-
         """
         M = self._obj.parent()
         return M.help(self._name)
@@ -1374,7 +1420,8 @@ class ExpectElement(RingElement):
 
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gp(2)._sage_doc_()
             '2'
         """
@@ -1382,8 +1429,8 @@ class ExpectElement(RingElement):
 
     def __hash__(self):
         """
-        Returns the hash of self.  This is a defualt implementation
-        of hash which just takes the hash of the string of self.
+        Returns the hash of self. This is a defualt implementation of hash
+        which just takes the hash of the string of self.
         """
         return hash('%s%s'%(self, self._session_number))
 
@@ -1412,8 +1459,8 @@ class ExpectElement(RingElement):
 
     def _check_valid(self):
         """
-        Check that this object is valid, i.e., the session in which
-        this object is defined is still running.  This is relevant for
+        Check that this object is valid, i.e., the session in which this
+        object is defined is still running. This is relevant for
         interpreters that can't be interrupted via ctrl-C, hence get
         restarted.
         """
@@ -1448,7 +1495,7 @@ class ExpectElement(RingElement):
 
     def sage(self):
         """
-        Attempt to return a SAGE version of this object.
+        Attempt to return a Sage version of this object.
         """
         return self._sage_()
 
@@ -1475,11 +1522,11 @@ class ExpectElement(RingElement):
 
     def get_using_file(self):
         """
-        Return this element's string representation using a file.  Use
-        this if self has a huge string representation.  It'll be way
-        faster.
+        Return this element's string representation using a file. Use this
+        if self has a huge string representation. It'll be way faster.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = maxima(str(2^1000))
             sage: a.get_using_file()
             '10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376'
@@ -1492,10 +1539,11 @@ class ExpectElement(RingElement):
 
     def hasattr(self, attrname):
         """
-        Returns whether the given attribute is already defined by this object,
-        and in particular is not dynamically generated.
+        Returns whether the given attribute is already defined by this
+        object, and in particular is not dynamically generated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maxima('2')
             sage: m.hasattr('integral')
             True
@@ -1507,15 +1555,18 @@ class ExpectElement(RingElement):
     def attribute(self, attrname):
         """
         If this wraps the object x in the system, this returns the object
-        x.attrname.  This is useful for some systems that have object
+        x.attrname. This is useful for some systems that have object
         oriented attribute access notation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = gap('SO(1,4,7)')
             sage: k = g.InvariantQuadraticForm()
             sage: k.attribute('matrix')
             [ [ 0*Z(7), Z(7)^0, 0*Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), 0*Z(7) ],
               [ 0*Z(7), 0*Z(7), Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), Z(7)^0 ] ]
+
+        ::
 
             sage: e = gp('ellinit([0,-1,1,-10,-20])')
             sage: e.attribute('j')
@@ -1533,12 +1584,12 @@ class ExpectElement(RingElement):
 
     def __int__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: int(maxima('1'))
             1
             sage: type(_)
             <type 'int'>
-
         """
         return int(repr(self))
 
@@ -1550,7 +1601,8 @@ class ExpectElement(RingElement):
 
     def __nonzero__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: bool(maxima(0))
             False
             sage: bool(maxima(1))
@@ -1560,7 +1612,8 @@ class ExpectElement(RingElement):
 
     def __long__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maxima('1')
             sage: long(m)
             1L
@@ -1569,7 +1622,8 @@ class ExpectElement(RingElement):
 
     def __float__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maxima('1/2')
             sage: m.__float__()
             0.5
@@ -1580,7 +1634,8 @@ class ExpectElement(RingElement):
 
     def _integer_(self, ZZ=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maxima('1')
             sage: m._integer_()
             1
@@ -1594,7 +1649,8 @@ class ExpectElement(RingElement):
 
     def _rational_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = maxima('1/2')
             sage: m._rational_()
             1/2
@@ -1608,14 +1664,14 @@ class ExpectElement(RingElement):
 
     def name(self, new_name=None):
         """
-        Returns the name of self.  If new_name is passed in,
-        then this function returns a new object identitical
-        to self whose name is new_name.
+        Returns the name of self. If new_name is passed in, then this
+        function returns a new object identitical to self whose name is
+        new_name.
 
-        Note that this can overwrite existing variables in
-        the system.
+        Note that this can overwrite existing variables in the system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = r([1,2,3]); x
             [1] 1 2 3
             sage: x.name()
@@ -1625,12 +1681,13 @@ class ExpectElement(RingElement):
             sage: x.name()
             'x'
 
+        ::
+
             sage: s5 = gap.SymmetricGroup(5).name('s5')
             sage: s5
             SymmetricGroup( [ 1 .. 5 ] )
             sage: s5.name()
             's5'
-
         """
         if new_name is not None:
             if not isinstance(new_name, str):
@@ -1654,7 +1711,8 @@ class ExpectElement(RingElement):
 
     def _add_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f + g
@@ -1663,13 +1721,13 @@ class ExpectElement(RingElement):
             cos(x)+2
             sage: 2 + f
             cos(x)+2
-
         """
         return self._operation("+", right)
 
     def _sub_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f - g
@@ -1678,13 +1736,13 @@ class ExpectElement(RingElement):
             cos(x)-2
             sage: 2 - f
             2-cos(x)
-
         """
         return self._operation('-', right)
 
     def _mul_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f*g
@@ -1696,7 +1754,8 @@ class ExpectElement(RingElement):
 
     def _div_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f/g
@@ -1708,7 +1767,8 @@ class ExpectElement(RingElement):
 
     def __pow__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = maxima('2')
             sage: a^(3/4)
             2^(3/4)

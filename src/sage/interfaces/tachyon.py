@@ -2,7 +2,8 @@ r"""
 The Tachyon Ray Tracer
 
 AUTHOR:
-    * John E. Stone (johns@megapixel.com)
+
+- John E. Stone
 """
 
 
@@ -18,40 +19,53 @@ class TachyonRT:
     tachyon_rt(model, outfile='sage.png', verbose=1, block=True, extra_opts='')
 
     INPUT:
-        model -- a string that describes a 3d model in the
-                 Tachyon modeling format.  Type
-                 tachyon_rt.help() for a description of
-                 this format.
-        outfile -- (default: 'sage.png')
-                   output filename; the extension of
-                   the filename determines the type.
-                   Supported types include:
-                     tga -- 24-bit (uncompressed)
-                     bmp -- 24-bit Windows BMP (uncompressed)
-                     ppm -- 24-bit PPM (uncompressed)
-                     rgb -- 24-bit SGI RGB (uncompressed)
-                     png -- 24-bit PNG (compressed, lossless)
-        verbose -- integer; (default: 1)
-                   0 -- silent
-                   1 -- some output
-                   2 -- very verbose output
 
-        block -- bool (default: True); if False, run the rendering
-                 command in the background.
+    -  ``model`` - a string that describes a 3d model in
+       the Tachyon modeling format. Type tachyon_rt.help() for a
+       description of this format.
 
-        extra_opts -- passed directly to tachyon command line.
-                 Use tachyon_rt.usage() to see some of the possibilities.
+    -  ``outfile`` - (default: 'sage.png') output filename;
+       the extension of the filename determines the type. Supported types
+       include:
+
+       -  ``tga`` - 24-bit (uncompressed)
+
+       -  ``bmp`` - 24-bit Windows BMP (uncompressed)
+
+       -  ``ppm`` - 24-bit PPM (uncompressed)
+
+       -  ``rgb`` - 24-bit SGI RGB (uncompressed)
+
+       -  ``png`` - 24-bit PNG (compressed, lossless)
+
+    -  ``verbose`` - integer; (default: 1)
+
+       -  ``0`` - silent
+
+       -  ``1`` - some output
+
+       -  ``2`` - very verbose output
+
+    -  ``block`` - bool (default: True); if False, run the
+       rendering command in the background.
+
+    -  ``extra_opts`` - passed directly to tachyon command
+       line. Use tachyon_rt.usage() to see some of the possibilities.
+
 
     OUTPUT:
-        -- Some text may be displayed onscreen.
-        -- The file outfile is created.
+
+
+    - Some text may be displayed onscreen.
+
+    - The file outfile is created.
+
 
     EXAMPLES:
 
+    AUTHORS:
 
-
-    AUTHOR:
-        * John E. Stone (johns@megapixel.com)
+    - John E. Stone
     """
     def __repr__(self):
         return "John Stone's Tachyon Ray Tracer"

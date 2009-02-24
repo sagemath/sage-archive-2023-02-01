@@ -56,19 +56,29 @@ class Gnuplot(SageObject):
 
     def plot(self, cmd, file=None, verbose=True, reset=True):
         r"""
-        Draw the plot described by cmd, and possibly also save to an eps or png file.
+        Draw the plot described by cmd, and possibly also save to an eps or
+        png file.
 
         INPUT:
-            cmd -- string
-            file -- string (default: None), if specified save plot to given file,
-                    which may be either an eps (default) or png file.
-            verbose -- print some info
-            reset -- True: reset gnuplot before making graph
 
-        OUTPUT:
-            displays graph
 
-        \note{\code{\^}'s are replaced by **'s before being passed to gnuplot.}
+        -  ``cmd`` - string
+
+        -  ``file`` - string (default: None), if specified save
+           plot to given file, which may be either an eps (default) or png
+           file.
+
+        -  ``verbose`` - print some info
+
+        -  ``reset`` - True: reset gnuplot before making
+           graph
+
+
+        OUTPUT: displays graph
+
+        .. note::
+
+           Note that ``^`` s  are replaced by ``**`` s before being passed to gnuplot.
         """
         if reset:
             self('reset')
@@ -131,16 +141,25 @@ class Gnuplot(SageObject):
         Draw a parametric 3d surface and rotate it interactively.
 
         INPUT:
-             f -- (string) a function of two variables, e.g.,
-              'cos(u)*(3 + v*cos(u/2)), sin(u)*(3 + v*cos(u/2)), v*sin(u/2)'
-             range1 -- (string) range of values for one variable, e.g.,
-                        '[u=-pi:pi]'
-             range2 -- (string) range of values for another variable, e.g.,
-                        '[v=-0.2:0.2]'
-             samples -- (int) number of sample points to use
-             title   -- (string) title of the graph.
 
-        EXAMPLES:
+
+        -  ``f`` - (string) a function of two variables, e.g.,
+           'cos(u)\*(3 + v\*cos(u/2)), sin(u)\*(3 + v\*cos(u/2)),
+           v\*sin(u/2)'
+
+        -  ``range1`` - (string) range of values for one
+           variable, e.g., '[u=-pi:pi]'
+
+        -  ``range2`` - (string) range of values for another
+           variable, e.g., '[v=-0.2:0.2]'
+
+        -  ``samples`` - (int) number of sample points to use
+
+        -  ``title`` - (string) title of the graph.
+
+
+        EXAMPLES::
+
             sage: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')   # optional -- requires gnuplot  (not tested, since something pops up).
         """
         if title is None:

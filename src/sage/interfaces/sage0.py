@@ -1,7 +1,7 @@
 r"""
-Interface to SAGE
+Interface to Sage
 
-This is an expect interface to \emph{another} copy of the \sage
+This is an expect interface to *another* copy of the Sage
 interpreter.
 """
 
@@ -25,36 +25,49 @@ from sage.structure.sage_object import dumps, loads, load
 
 class Sage(Expect):
     r"""
-    Expect interface to the \sage interpreter itself.
+    Expect interface to the Sage interpreter itself.
 
     INPUT:
-        server -- (optional); if specified runs SAGE on a remote machine with
-                  address.  You must have ssh keys setup so you can login to
-                  the remote machine by typing "ssh remote_machine" and no password, call _install_hints_ssh() for hints on how to do that.
 
-                  The version of SAGE should be the same as on the
-                  local machine, since pickling is used to move data
-                  between the two SAGE process.
 
-    EXAMPLES:
-    We create an interface to a copy of \sage.  This copy of \sage runs
-    as an external process with its own memory space, etc.
+    -  ``server`` - (optional); if specified runs Sage on a
+       remote machine with address. You must have ssh keys setup so you
+       can login to the remote machine by typing "ssh remote_machine" and
+       no password, call _install_hints_ssh() for hints on how to do
+       that.
+
+
+    The version of Sage should be the same as on the local machine,
+    since pickling is used to move data between the two Sage process.
+
+    EXAMPLES: We create an interface to a copy of Sage. This copy of
+    Sage runs as an external process with its own memory space, etc.
+
+    ::
 
         sage: s = Sage()
 
-    Create the element 2 in our new copy of \sage, and cubeit.
+    Create the element 2 in our new copy of Sage, and cubeit.
+
+    ::
+
         sage: a = s(2)
         sage: a^3
         8
 
-    Create a vector space of dimension $4$, and compute its generators:
+    Create a vector space of dimension `4`, and compute its
+    generators::
+
         sage: V = s('QQ^4')
         sage: V.gens()
         ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 
-    Note that V is a not a vector space, it's a wrapper around an object
-    (which happens to be a vector space), in another running instance
-    of \sage.
+    Note that V is a not a vector space, it's a wrapper around an
+    object (which happens to be a vector space), in another running
+    instance of Sage.
+
+    ::
+
         sage: type(V)
         <class 'sage.interfaces.sage0.SageElement'>
         sage: V.parent()
@@ -64,12 +77,18 @@ class Sage(Expect):
         sage: g.parent()
         Sage
 
-    We can still get the actual parent by using the name attribute of g,
-    which is the variable name of the object in the child process.
+    We can still get the actual parent by using the name attribute of
+    g, which is the variable name of the object in the child process.
+
+    ::
+
         sage: s('%s.parent()'%g.name())
         Vector space of dimension 4 over Rational Field
 
     Note that the memory space is completely different.
+
+    ::
+
         sage: x = 10
         sage: s('x = 5')
         5
@@ -78,14 +97,18 @@ class Sage(Expect):
         sage: s('x')
         5
 
-    We can have the child interpreter itself make another child
-    \sage process, so now three copies of \sage are running:
+    We can have the child interpreter itself make another child Sage
+    process, so now three copies of Sage are running::
+
         sage: s3 = s('Sage()')
         sage: a = s3(10)
         sage: a
         10
 
-    This $a=10$ is in a subprocess of a subprocesses of your original \sage.
+    This `a=10` is in a subprocess of a subprocesses of your
+    original Sage.
+
+    ::
 
         sage: _ = s.eval('%s.eval("x=8")'%s3.name())
         sage: s3('"x"')
@@ -97,7 +120,8 @@ class Sage(Expect):
 
     The double quotes are needed because the call to s3 first evaluates
     its arguments using the s interpeter, so the call to s3 is passed
-    \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
+    ``s('"x"')``, which is the string ``"x"``
+    in the s interpreter.
     """
     def __init__(self, logfile   = None,
                        preparse  = True,
@@ -108,7 +132,8 @@ class Sage(Expect):
                        remote_cleaner = True,
                        **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0 == loads(dumps(sage0))
             True
         """
@@ -144,7 +169,8 @@ class Sage(Expect):
         """
         Return cputime since this Sage subprocess was started.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.cputime()     # random output
             1.3530439999999999
             sage: sage0('factor(2^157-1)')
@@ -160,19 +186,20 @@ class Sage(Expect):
 
     def trait_names(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = sage0.trait_names()
             sage: len(t) > 100
             True
             sage: 'gcd' in t
             True
-
         """
         return eval(self.eval('print repr(globals().keys())'))
 
     def quit(self, verbose=False):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = Sage()
             sage: s.eval('2+2')
             '4'
@@ -212,7 +239,8 @@ class Sage(Expect):
 
     def __call__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = sage0(4)
             sage: a.parent()
             Sage
@@ -234,16 +262,17 @@ class Sage(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.__reduce__()
             (<function reduce_load_Sage at 0x...>, ())
-
         """
         return reduce_load_Sage, tuple([])
 
     def _quit_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0._quit_string()
             'from sage.misc.misc import delete_tmpfiles; delete_tmpfiles()'
         """
@@ -253,26 +282,31 @@ class Sage(Expect):
         """
         Returns the preparsed version of the string s.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.preparse('2+2')
             'Integer(2)+Integer(2)'
-
         """
         return sage.misc.preparser.preparse(x)
 
     def eval(self, line, strip=True, **kwds):
         """
-        Send the code x to a second instance of the \sage interpreter and
+        Send the code x to a second instance of the Sage interpreter and
         return the output as a string.
 
-        This allows you to run two completely independent copies of \sage
-        at the same time in a unified way.
+        This allows you to run two completely independent copies of Sage at
+        the same time in a unified way.
 
         INPUT:
-            line -- input line of code
-            strip -- ignored
 
-        EXAMPLES:
+
+        -  ``line`` - input line of code
+
+        -  ``strip`` - ignored
+
+
+        EXAMPLES::
+
             sage: sage0.eval('2+2')
             '4'
         """
@@ -284,7 +318,8 @@ class Sage(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.set('x', '2')
             sage: sage0.get('x')
             '2'
@@ -298,7 +333,8 @@ class Sage(Expect):
         """
         Get the value of the variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.set('x', '2')
             sage: sage0.get('x')
             '2'
@@ -309,20 +345,21 @@ class Sage(Expect):
         """
         Clear the variable named var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.set('x', '2')
             sage: sage0.get('x')
             '2'
             sage: sage0.clear('x')
             sage: sage0.get('x')
             "...NameError: name 'x' is not defined"
-
         """
         self.eval('del %s'%var)
 
     def _contains(self, v1, v2):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0._contains('2', 'QQ')
             True
         """
@@ -332,7 +369,8 @@ class Sage(Expect):
         """
         Spawn a new Sage command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
             | Sage Version ..., Release Date: ...                                |
@@ -344,7 +382,8 @@ class Sage(Expect):
 
     def version(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0.version()
             'Sage Version ..., Release Date: ...'
             sage: sage0.version() == version()
@@ -354,7 +393,8 @@ class Sage(Expect):
 
     def _object_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0._object_class()
             <class 'sage.interfaces.sage0.SageElement'>
         """
@@ -362,19 +402,20 @@ class Sage(Expect):
 
     def new(self, x):
         """
-        EXAMPLES:
-           sage: sage0.new(2)
-           2
-           sage: _.parent()
-           Sage
+        EXAMPLES::
 
+            sage: sage0.new(2)
+            2
+            sage: _.parent()
+            Sage
         """
         return SageElement(self, x)
 
 class SageElement(ExpectElement):
     def __getattr__(self, attrname):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = sage0(4)
             sage: four_gcd = m.gcd
             sage: type(four_gcd)
@@ -387,7 +428,8 @@ class SageElement(ExpectElement):
         """
         Return local copy of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: F == sage0(F)._sage_()
@@ -405,7 +447,8 @@ class SageElement(ExpectElement):
 class SageFunction(FunctionElement):
     def __call__(self, *args, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: four_gcd = sage0(4).gcd
             sage: four_gcd(6)
             2
@@ -428,10 +471,10 @@ class SageFunction(FunctionElement):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage0(4).gcd
             <built-in method gcd of sage.rings.integer.Integer object at 0x...>
-
         """
 
         return str(self._obj.parent().eval('%s.%s'%(self._obj._name, self._name)))
@@ -442,7 +485,8 @@ sage0 = Sage()
 
 def reduce_load_Sage():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.sage0 import reduce_load_Sage
         sage: reduce_load_Sage()
         Sage
@@ -451,7 +495,8 @@ def reduce_load_Sage():
 
 def reduce_load_element(s):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.sage0 import reduce_load_element
         sage: s = dumps(1/2)
         sage: half = reduce_load_element(s); half
@@ -470,7 +515,8 @@ def sage0_console():
     """
     Spawn a new Sage command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
         | Sage Version ..., Release Date: ...                                |
@@ -482,7 +528,8 @@ def sage0_console():
 
 def sage0_version():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.sage0 import sage0_version
         sage: sage0_version() == version()
         True

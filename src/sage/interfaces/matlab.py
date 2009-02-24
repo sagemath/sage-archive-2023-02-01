@@ -6,24 +6,30 @@ interactive environment that enables you to perform computationally
 intensive tasks faster than with traditional programming languages
 such as C, C++, and Fortran."
 
-The commands in this section only work if you have the
-"matlab" interpreter installed and available in
-your PATH.  It's not necessary to install any special
-\sage packages.
+The commands in this section only work if you have the "matlab"
+interpreter installed and available in your PATH. It's not
+necessary to install any special Sage packages.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: matlab.eval('2+2')                 # optional
     '\nans =\n\n     4\n'
+
+::
 
     sage: a = matlab(10)                     # optional
     sage: a**10                              # optional
        1.0000e+10
 
 AUTHORS:
-   -- William Stein (2006-10-11)
 
-\subsection{Tutorial}
-EXAMPLES:
+- William Stein (2006-10-11)
+
+Tutorial
+--------
+
+EXAMPLES::
+
     sage: matlab('4+10')                     # optional
     14
     sage: matlab('date')                    # optional; random output
@@ -41,6 +47,8 @@ EXAMPLES:
     sage: parent(avg)                        # optional
     Matlab
 
+::
+
     sage: my_scalar = matlab('3.1415')       # optional
     sage: my_scalar                          # optional
     3.1415
@@ -55,12 +63,16 @@ EXAMPLES:
     sage: my_vector1 * my_vector2            # optional
     75
 
+::
+
     sage: row_vector1 = matlab('[1 2 3]')             # optional
     sage: row_vector2 = matlab('[3 2 1]')             # optional
     sage: matrix_from_row_vec = matlab('[%s; %s]'%(row_vector1.name(), row_vector2.name()))     # optional
     sage: matrix_from_row_vec                            # optional
     1     2     3
     3     2     1
+
+::
 
     sage: column_vector1 = matlab('[1;3]')               # optional
     sage: column_vector2 = matlab('[2;8]')               # optional
@@ -69,12 +81,16 @@ EXAMPLES:
     1     2
     3     8
 
+::
+
     sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
     sage: my_matrix                                      # optional
          8    12    19
          7     3     2
         12     4    23
          8     1     1
+
+::
 
     sage: combined_matrix = matlab('[%s, %s]'%(my_matrix.name(), my_matrix.name()))                                        # optional
     sage: combined_matrix                               # optional
@@ -83,9 +99,13 @@ EXAMPLES:
     12     4    23    12     4    23
      8     1     1     8     1     1
 
+::
+
     sage: tm = matlab('0.5:2:10')                       # optional
     sage: tm                                            # optional
     0.5000    2.5000    4.5000    6.5000    8.5000
+
+::
 
     sage: my_vector1 = matlab('[1,5,7]')                # optional
     sage: my_vector1(1)                                 # optional
@@ -95,24 +115,22 @@ EXAMPLES:
     sage: my_vector1(3)                                 # optional
     7
 
-Matrix indexing works as follows:
+Matrix indexing works as follows::
+
     sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')     # optional
     sage: my_matrix(3,2)                                # optional
     4
 
+Setting using paranthesis cannot work (because of how the Python
+language works). Use square brackets or the set function::
 
-Setting using paranthesis cannot work (because of how the Python language
-works).  Use square brackets or the set function:
-
-sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
-sage: my_matrix.set(2,3, 1999)                          # optional
-sage: my_matrix                                         # optional
-           8          12          19
-           7           3        1999
-          12           4          23
-           8           1           1
-
-
+    sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
+    sage: my_matrix.set(2,3, 1999)                          # optional
+    sage: my_matrix                                         # optional
+               8          12          19
+               7           3        1999
+              12           4          23
+               8           1           1
 """
 
 ##############################################################################
@@ -142,7 +160,8 @@ class Matlab(Expect):
     """
     Interface to the Matlab interpreter.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = matlab('[ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]')    # optional
         sage: b = matlab('[ 1; 3; 13]')                         # optional
         sage: c = a * b                                         # optional
@@ -233,21 +252,22 @@ for hints on how to do that).
 
     def sage2matlab_matrix_string(self, A):
         """
-        Return an matlab matrix from a SAGE matrix.
+        Return an matlab matrix from a Sage matrix.
 
-        INPUT:
-            A SAGE matrix with entries in the rationals or reals.
+        INPUT: A Sage matrix with entries in the rationals or reals.
 
-        OUTPUT:
-            A string that evaluates to an Matlab matrix.
+        OUTPUT: A string that evaluates to an Matlab matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M33 = MatrixSpace(QQ,3,3)
             sage: A = M33([1,2,3,4,5,6,7,8,0])
             sage: matlab.sage2matlab_matrix_string(A)   # requires optional matlab
             '[1, 2, 3; 4, 5, 6; 7, 8, 0]'
 
-        AUTHOR: David Joyner and William Stein
+        AUTHOR:
+
+        - David Joyner and William Stein
         """
         return str(A.rows()).replace('), (', '; ').replace('(', '').replace(')','')
 
@@ -261,9 +281,10 @@ class MatlabElement(ExpectElement):
 
     def _matrix_(self, R):
         r"""
-        Return \sage matrix from this matlab element.
+        Return Sage matrix from this matlab element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matlab('[1,2;3,4]')       # optional matlab package
             sage: matrix(ZZ, A)                 # optional
             [1 2]
@@ -300,23 +321,24 @@ import os
 def matlab_console():
     """
     This requires that the optional matlab program be installed and in
-    your PATH, but no optional \sage packages need be installed.
+    your PATH, but no optional Sage packages need be installed.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: matlab_console()                               # optional and not tested
                                        < M A T L A B >
                            Copyright 1984-2006 The MathWorks, Inc.
         ...
         >> 2+3
 
-        ans =
+    ans =
 
-             5
+    5
 
-        >> quit
+    quit
 
-    Typing quit exits the matlab console and returns you to SAGE.
-    matlab, like SAGE, remembers its history from one session to
+    Typing quit exits the matlab console and returns you to Sage.
+    matlab, like Sage, remembers its history from one session to
     another.
     """
     os.system('matlab -nodisplay')
@@ -326,7 +348,8 @@ def matlab_version():
     """
     Return the version of Matlab installed.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: matlab_version()    # optional matlab package
         '7.2.0.283 (R2006a)'
     """

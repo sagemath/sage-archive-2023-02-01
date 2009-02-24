@@ -1,17 +1,17 @@
 r"""
 Interface to Octave
 
-Octave is an open source MATLAB-like program with numerical routines
-for integrating, solving systems of equations, special functions, and
-solving (numerically) differential equations. Please see
-\url{http://octave.sourceforge.net} for more details.
+Octave is an open source MATLAB-like program with numerical
+routines for integrating, solving systems of equations, special
+functions, and solving (numerically) differential equations. Please
+see http://octave.sourceforge.net for more details.
 
-The commands in this section only work if you have the
-optional "octave" interpreter installed and available in
-your PATH.  It's not necessary to install any special
-\sage packages.
+The commands in this section only work if you have the optional
+"octave" interpreter installed and available in your PATH. It's not
+necessary to install any special Sage packages.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: octave.eval('2+2')    # optional -- requires Octave
     'ans = 4'
 
@@ -19,45 +19,47 @@ EXAMPLES:
     sage: a**10                 # optional -- requires Octave
     1e+10
 
-LOG: - creation  (William Stein)
-     - ?         (David Joyner, 2005-12-18)
-     - Examples  (David Joyner, 2005-01-03)
+LOG: - creation (William Stein) - ? (David Joyner, 2005-12-18) -
+Examples (David Joyner, 2005-01-03)
 
-\subsection{Computation of Special Functions}
-Octave implements computation of the following
-special functions (see the maxima and gp interfaces
-for even more special functions):
+Computation of Special Functions
+--------------------------------
 
-\begin{verbatim}
-airy
-    Airy functions of the first and second kind, and their derivatives.
-    airy(0,x) = Ai(x), airy(1,x) = Ai'(x), airy(2,x) = Bi(x), airy(3,x) = Bi'(x)
-besselj
-    Bessel functions of the first kind.
-bessely
-    Bessel functions of the second kind.
-besseli
-    Modified Bessel functions of the first kind.
-besselk
-    Modified Bessel functions of the second kind.
-besselh
-    Compute Hankel functions of the first (k = 1) or second (k = 2) kind.
-beta
-    The Beta function,
-          beta (a, b) = gamma (a) * gamma (b) / gamma (a + b).
-betainc
-    The incomplete Beta function,
-erf
-    The error function,
-erfinv
-    The inverse of the error function.
-gamma
-    The Gamma function,
-gammainc
-    The incomplete gamma function,
-\end{verbatim}
+Octave implements computation of the following special functions
+(see the maxima and gp interfaces for even more special
+functions)::
+
+    airy
+        Airy functions of the first and second kind, and their derivatives.
+        airy(0,x) = Ai(x), airy(1,x) = Ai'(x), airy(2,x) = Bi(x), airy(3,x) = Bi'(x)
+    besselj
+        Bessel functions of the first kind.
+    bessely
+        Bessel functions of the second kind.
+    besseli
+        Modified Bessel functions of the first kind.
+    besselk
+        Modified Bessel functions of the second kind.
+    besselh
+        Compute Hankel functions of the first (k = 1) or second (k = 2) kind.
+    beta
+        The Beta function,
+              beta (a, b) = gamma (a) * gamma (b) / gamma (a + b).
+    betainc
+        The incomplete Beta function,
+    erf
+        The error function,
+    erfinv
+        The inverse of the error function.
+    gamma
+        The Gamma function,
+    gammainc
+        The incomplete gamma function,
 
 For example,
+
+::
+
     sage: octave("airy(3,2)")         # optional -- requires Octave
     4.10068
     sage: octave("beta(2,2)")         # optional -- requires Octave
@@ -85,17 +87,22 @@ For example,
     sage: octave("gammainc(1.5,1)")   # optional -- requires Octave
     0.77687
 
-The Octave interface reads in even very long input (using files)
-in a robust manner:
+The Octave interface reads in even very long input (using files) in
+a robust manner::
+
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = octave.eval(t + ';')    # optional -- requires Octave, < 1/100th of a second
     sage: a = octave(t)               # optional -- requires Octave
 
-Note that actually reading a back out takes forever.  This *must* be
-fixed ASAP -- see http://trac.sagemath.org/sage_trac/ticket/940/.
+Note that actually reading a back out takes forever. This *must*
+be fixed ASAP - see
+http://trac.sagemath.org/sage_trac/ticket/940/.
 
-\subsection{Tutorial}
-EXAMPLES:
+Tutorial
+--------
+
+EXAMPLES::
+
     sage: octave('4+10')              # optional -- requires Octave
     14
     sage: octave('date')              # optional -- requires Octave; random output
@@ -113,6 +120,8 @@ EXAMPLES:
     sage: parent(avg)                 # optional -- requires Octave
     Octave
 
+::
+
     sage: my_scalar = octave('3.1415')       # optional -- requires Octave
     sage: my_scalar                          # optional -- requires Octave
     3.1415
@@ -126,7 +135,6 @@ EXAMPLES:
     7
     sage: my_vector1 * my_vector2            # optional -- requires Octave
     75
-
 """
 
 #*****************************************************************************
@@ -150,10 +158,11 @@ from sage.misc.misc import verbose
 
 
 class Octave(Expect):
-    """
+    r"""
     Interface to the Octave interpreter.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: octave.eval("a = [ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]")    # optional -- requires Octave
         'a =\n\n 1 1 2\n 3 5 8\n 13 21 33\n\n'
         sage: octave.eval("b = [ 1; 3; 13]")                         # optional -- requires Octave
@@ -162,11 +171,11 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional -- requires Octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
-
     """
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave == loads(dumps(octave))
             True
         """
@@ -185,7 +194,8 @@ class Octave(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave.__reduce__()
             (<function reduce_load_Octave at 0x...>, ())
         """
@@ -193,7 +203,8 @@ class Octave(Expect):
 
     def _read_in_file_command(self, filename):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: filename = tmp_filename()
             sage: octave._read_in_file_command(filename)
             'source("...");'
@@ -202,7 +213,8 @@ class Octave(Expect):
 
     def _quit_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave._quit_string()
             'quit;'
         """
@@ -212,7 +224,8 @@ class Octave(Expect):
         """
         Returns hints on how to install Octave.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print octave._install_hints()
             You must get ...
         """
@@ -240,12 +253,12 @@ class Octave(Expect):
 
     def quit(self, verbose=False):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: o = Octave()
             sage: o._start()    #optional -- requires Octave
             sage: o.quit(True)  #optional -- requires Octave
             Exiting spawned Octave process.
-
         """
         # Don't bother, since it just hangs in some cases, and it
         # isn't necessary, since octave behaves well with respect
@@ -259,7 +272,8 @@ class Octave(Expect):
         """
         Starts the Octave process.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: o = Octave()    #optional -- requires Octave
             sage: o.is_running()  #optional -- requires Octave
             False
@@ -275,7 +289,8 @@ class Octave(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave.set('x', '2') #optional -- requires Octave
             sage: octave.get('x') #optional -- requires Octave
             ' 2'
@@ -289,7 +304,8 @@ class Octave(Expect):
         """
         Get the value of the variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave.set('x', '2') #optional -- requires Octave
             sage: octave.get('x') #optional -- requires Octave
             ' 2'
@@ -302,12 +318,12 @@ class Octave(Expect):
         """
         Clear the variable named var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave.set('x', '2') #optional -- requires Octave
             sage: octave.clear('x') #optional -- requires Octave
             sage: octave.get('x') #optional -- requires Octave
             "error: `x' undefined near line ... column 1"
-
         """
         self.eval('clear %s'%var)
 
@@ -316,9 +332,10 @@ class Octave(Expect):
         Spawn a new Octave command-line session.
 
         This requires that the optional octave program be installed and in
-        your PATH, but no optional \sage packages need be installed.
+        your PATH, but no optional Sage packages need be installed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave_console()         # not tested
             GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
             Copyright (C) 2006 John W. Eaton.
@@ -327,8 +344,8 @@ class Octave(Expect):
             ans = 5
             octave:2> [ctl-d]
 
-        Pressing ctrl-d exits the octave console and returns you to SAGE.
-        octave, like SAGE, remembers its history from one session to
+        Pressing ctrl-d exits the octave console and returns you to Sage.
+        octave, like Sage, remembers its history from one session to
         another.
         """
         octave_console()
@@ -337,10 +354,10 @@ class Octave(Expect):
         """
         Return the version of Octave.
 
-        OUTPUT:
-            string
+        OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave.version()   # optional -- requires Octave; random output depending on version
             '2.1.73'
         """
@@ -348,16 +365,20 @@ class Octave(Expect):
 
     def solve_linear_system(self, A, b):
         """
-        Use octave to compute a solution x to A*x = b, as a list.
+        Use octave to compute a solution x to A\*x = b, as a list.
 
         INPUT:
-            A -- mxn matrix A with entries in QQ or RR
-            b -- m-vector b entries in QQ or RR (resp)
 
-        OUTPUT:
-            An list x (if it exists) which solves M*x = b
 
-        EXAMPLES:
+        -  ``A`` - mxn matrix A with entries in QQ or RR
+
+        -  ``b`` - m-vector b entries in QQ or RR (resp)
+
+
+        OUTPUT: An list x (if it exists) which solves M\*x = b
+
+        EXAMPLES::
+
             sage: M33 = MatrixSpace(QQ,3,3)
             sage: A   = M33([1,2,3,4,5,6,7,8,0])
             sage: V3  = VectorSpace(QQ,3)
@@ -365,7 +386,9 @@ class Octave(Expect):
             sage: octave.solve_linear_system(A,b)    # optional -- requires Octave (and output is slightly random in low order bits)
             [-0.33333299999999999, 0.66666700000000001, -3.5236600000000002e-18]
 
-        AUTHOR: David Joyner and William Stein
+        AUTHORS:
+
+        - David Joyner and William Stein
         """
         m = A.nrows()
         n = A.ncols()
@@ -389,48 +412,56 @@ class Octave(Expect):
 
     def sage2octave_matrix_string(self, A):
         """
-        Return an octave matrix from a SAGE matrix.
+        Return an octave matrix from a Sage matrix.
 
-        INPUT:
-            A SAGE matrix with entries in the rationals or reals.
+        INPUT: A Sage matrix with entries in the rationals or reals.
 
-        OUTPUT:
-            A string that evaluates to an Octave matrix.
+        OUTPUT: A string that evaluates to an Octave matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M33 = MatrixSpace(QQ,3,3)
             sage: A = M33([1,2,3,4,5,6,7,8,0])
             sage: octave.sage2octave_matrix_string(A)   # optional -- requires Octave
             '[1, 2, 3; 4, 5, 6; 7, 8, 0]'
 
-        AUTHOR: David Joyner and William Stein
+        AUTHORS:
+
+        - David Joyner and William Stein
         """
         return str(A.rows()).replace('), (', '; ').replace('(', '').replace(')','')
 
     def de_system_plot(self, f, ics, trange):
         r"""
-        Plots (using octave's interface to gnuplot) the solution
-        to a $2\times 2$ system of differential equations.
+        Plots (using octave's interface to gnuplot) the solution to a
+        `2\times 2` system of differential equations.
 
         INPUT:
-            f -- a pair of strings representing the differential equations;
-                 The independent variable must be called x and the dependent
-                 variable must be called y.
-            ics -- a pair [x0,y0] such that x(t0) = x0, y(t0) = y0
-            trange -- a pair [t0,t1]
 
-        OUTPUT:
-            a gnuplot window appears
 
-        EXAMPLES:
-           sage: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])  # not tested -- does this actually work (on OS X it fails for me -- William Stein, 2007-10)
+        -  ``f`` - a pair of strings representing the
+           differential equations; The independent variable must be called x
+           and the dependent variable must be called y.
 
-        This should yield the two plots $(t,x(t)), (t,y(t))$ on the same graph
-        (the $t$-axis is the horizonal axis) of the system of ODEs
-        $$
-          x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,
-                    \quad\text{for}\quad 0 < t < 2.
-        $$
+        -  ``ics`` - a pair [x0,y0] such that x(t0) = x0, y(t0)
+           = y0
+
+        -  ``trange`` - a pair [t0,t1]
+
+
+        OUTPUT: a gnuplot window appears
+
+        EXAMPLES::
+
+            sage: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2])  # not tested -- does this actually work (on OS X it fails for me -- William Stein, 2007-10)
+
+        This should yield the two plots `(t,x(t)), (t,y(t))` on the
+        same graph (the `t`-axis is the horizonal axis) of the
+        system of ODEs
+
+        .. math::
+
+                       x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,                     \quad\text{for}\quad 0 < t < 2.
         """
         eqn1 = f[0].replace('x','x(1)').replace('y','x(2)')
         eqn2 = f[1].replace('x','x(1)').replace('y','x(2)')
@@ -446,10 +477,10 @@ class Octave(Expect):
 
     def _object_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave._object_class()
             <class 'sage.interfaces.octave.OctaveElement'>
-
         """
         return OctaveElement
 
@@ -457,9 +488,10 @@ class Octave(Expect):
 class OctaveElement(ExpectElement):
     def _matrix_(self, R):
         r"""
-        Return \sage matrix from this octave element.
+        Return Sage matrix from this octave element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = octave('[1,2;3,4]')       # optional -- requires Octave
             sage: matrix(ZZ, A)                 # optional -- requires Octave
             [1 2]
@@ -486,11 +518,11 @@ octave = Octave(script_subdirectory='user')
 
 def reduce_load_Octave():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.octave import reduce_load_Octave
         sage: reduce_load_Octave()
         Octave
-
     """
     return octave
 
@@ -501,9 +533,10 @@ def octave_console():
     Spawn a new Octave command-line session.
 
     This requires that the optional octave program be installed and in
-    your PATH, but no optional \sage packages need be installed.
+    your PATH, but no optional Sage packages need be installed.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: octave_console()         # not tested
         GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
         Copyright (C) 2006 John W. Eaton.
@@ -512,8 +545,8 @@ def octave_console():
         ans = 5
         octave:2> [ctl-d]
 
-    Pressing ctrl-d exits the octave console and returns you to SAGE.
-    octave, like SAGE, remembers its history from one session to
+    Pressing ctrl-d exits the octave console and returns you to Sage.
+    octave, like Sage, remembers its history from one session to
     another.
     """
     os.system('octave')
@@ -523,7 +556,8 @@ def octave_version():
     """
     Return the version of Octave installed.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: octave_version()    # optional -- requires Octave; and output is random
         '2.9.12'
     """

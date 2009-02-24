@@ -2,52 +2,53 @@ r"""
 Interface to Singular
 
 AUTHORS:
-   -- David Joyner and William Stein (2005): first version
-   -- Martin Albrecht (2006-03-05): code so singular.[tab]
-      and x = singular(...), x.[tab] includes all singular commands.
-   -- Martin Albrecht (2006-03-06): This patch adds the equality
-        symbol to singular. Also fix problem in which "> " as prompt
-        means comparison will break all further communication with Singular.
-   -- Martin Albrecht (2006-03-13): added current_ring()
-        and current_ring_name()
-   -- Stein (2006-04-10): Fixed problems with ideal constructor
-   -- Martin Albrecht (2006-05-18): added sage_poly.
+
+- David Joyner and William Stein (2005): first version
+
+- Martin Albrecht (2006-03-05): code so singular.[tab] and x =
+  singular(...), x.[tab] includes all singular commands.
+
+- Martin Albrecht (2006-03-06): This patch adds the equality symbol to
+  singular. Also fix problem in which" " as prompt means comparison
+  will break all further communication with Singular.
+
+- Martin Albrecht (2006-03-13): added current_ring() and
+  current_ring_name()
+
+- William Stein (2006-04-10): Fixed problems with ideal constructor
+
+- Martin Albrecht (2006-05-18): added sage_poly.
+
+Introduction
+------------
+
+This interface is extremely flexible, since it's exactly like
+typing into the Singular interpreter, and anything that works there
+should work here.
+
+The Singular interface will only work if Singular is installed on
+your computer; this should be the case, since Singular is included
+with Sage. The interface offers three pieces of functionality:
 
 
-\subsection{Introduction}
+#. ``singular_console()`` - A function that dumps you
+   into an interactive command-line Singular session.
 
-This interface is extremely flexible, since it's exactly like typing
-into the Singular interpreter, and anything that works there should
-work here.
+#. ``singular(expr, type='def')`` - Creation of a
+   Singular object. This provides a Pythonic interface to Singular.
+   For example, if ``f=singular(10)``, then
+   ``f.factorize()`` returns the factorization of
+   `10` computed using Singular.
 
-The Singular interface will only work if Singular is installed on your
-computer; this should be the case, since Singular is included with
-SAGE.  The interface offers three pieces of functionality:
-\begin{enumerate}
+#. ``singular.eval(expr)`` - Evaluation of arbitrary
+   Singular expressions, with the result returned as a string.
 
-\item \code{singular_console()} -- A function that dumps you
-into an interactive command-line Singular session.
 
-\item \code{singular(expr, type='def')} -- Creation of a Singular
-object.  This provides a Pythonic interface to Singular.  For example,
-if \code{f=singular(10)}, then \code{f.factorize()} returns the
-factorization of $10$ computed using Singular.
+Tutorial
+--------
 
-\item \code{singular.eval(expr)} -- Evaluation of arbitrary Singular
-expressions, with the result returned as a string.
-
-\end{enumerate}
-
-%\begin{notice} The \code{pexpect} module must be installed and the
-%\code{Singular} command must be in your path.
-%Both pexpect and \code{Singular} are built and installed
-%when you install SAGE.
-%\end{notice}
-
-\subsection{Tutorial}
-
-EXAMPLES:
-First we illustrate multivariate polynomial factorization:
+EXAMPLES: First we illustrate multivariate polynomial
+factorization::
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
@@ -62,6 +63,8 @@ First we illustrate multivariate polynomial factorization:
     sage: f.parent()
     Singular
 
+::
+
     sage: F = f.factorize(); F
     [1]:
        _[1]=9
@@ -70,6 +73,8 @@ First we illustrate multivariate polynomial factorization:
     [2]:
        1,1,2
 
+::
+
     sage: F[1]
     9,
     x^6-2*x^3*y^2-x^2*y^3+y^4,
@@ -77,7 +82,10 @@ First we illustrate multivariate polynomial factorization:
     sage: F[1][2]
     x^6-2*x^3*y^2-x^2*y^3+y^4
 
-We can convert $f$ and each exponent back to SAGE objects as well.
+We can convert `f` and each exponent back to Sage objects
+as well.
+
+::
 
     sage: R.<x, y> = PolynomialRing(QQ,2)
     sage: g = eval(f.sage_polystring()); g
@@ -85,7 +93,8 @@ We can convert $f$ and each exponent back to SAGE objects as well.
     sage: eval(F[1][2].sage_polystring())
     x^6 - 2*x^3*y^2 - x^2*y^3 + y^4
 
-This example illustrates polynomial GCD's:
+This example illustrates polynomial GCD's::
+
     sage: R2 = singular.ring(0, '(x,y,z)', 'lp')
     sage: a = singular.new('3x2*(x+y)')
     sage: b = singular.new('9x*(y2-x2)')
@@ -93,8 +102,7 @@ This example illustrates polynomial GCD's:
     sage: g
     x^2+x*y
 
-
-This example illustrates computation of a Groebner basis:
+This example illustrates computation of a Groebner basis::
 
     sage: R3 = singular.ring(0, '(a,b,c,d)', 'lp')
     sage: I = singular.ideal(['a + b + c + d', 'a*b + a*d + b*c + c*d', 'a*b*c + a*b*d + a*c*d + b*c*d', 'a*b*c*d - 1'])
@@ -108,7 +116,7 @@ This example illustrates computation of a Groebner basis:
     a+b+c+d
 
 The following example is the same as the one in the Singular - Gap
-interface documentation:
+interface documentation::
 
     sage: R  = singular.ring(0, '(x0,x1,x2)', 'lp')
     sage: I1 = singular.ideal(['x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
@@ -119,8 +127,11 @@ interface documentation:
     x0*x1-x0*x2-x1*x2,
     x0^2*x2-x0*x1*x2
 
-This example illustrates moving a polynomial from one ring to another.
-It also illustrates calling a method of an object with an argument.
+This example illustrates moving a polynomial from one ring to
+another. It also illustrates calling a method of an object with an
+argument.
+
+::
 
     sage: R = singular.ring(0, '(x,y,z)', 'dp')
     sage: f = singular('x3+y3+(x-y)*x2y2+z2')
@@ -131,13 +142,17 @@ It also illustrates calling a method of an object with an argument.
     sage: f
     z^2+x^3+y^3+x^3*y^2-x^2*y^3
 
-We can calculate the Milnor number of $f$:
+We can calculate the Milnor number of `f`::
+
     sage: _=singular.LIB('sing.lib')     # assign to _ to suppress printing
     sage: f.milnor()
     4
 
-The Jacobian applied twice yields the Hessian matrix of $f$,
-with which we can compute.
+The Jacobian applied twice yields the Hessian matrix of
+`f`, with which we can compute.
+
+::
+
     sage: H = f.jacob().jacob()
     sage: H
     6*x+6*x*y^2-2*y^3,6*x^2*y-6*x*y^2,  0,
@@ -146,7 +161,8 @@ with which we can compute.
     sage: H.det()
     72*x*y+24*x^4-72*x^3*y+72*x*y^3-24*y^4-48*x^4*y^2+64*x^3*y^3-48*x^2*y^4
 
-The 1x1 and 2x2 minors:
+The 1x1 and 2x2 minors::
+
     sage: H.minor(1)
     2,
     6*y+2*x^3-6*x^2*y,
@@ -160,35 +176,46 @@ The 1x1 and 2x2 minors:
     12*x+12*x*y^2-4*y^3,
     -36*x*y-12*x^4+36*x^3*y-36*x*y^3+12*y^4+24*x^4*y^2-32*x^3*y^3+24*x^2*y^4
 
+::
+
     sage: _=singular.eval('option(redSB)')
     sage: H.minor(1).groebner()
     1
 
-\subsection{Computing the Genus}
-We compute the projective genus of ideals that define curves over
-$\Q$.  It is \emph{very important} to load the \code{normal.lib}
-library before calling the \code{genus} command, or you'll get an
-error message.
+Computing the Genus
+-------------------
 
-EXAMPLE:
+We compute the projective genus of ideals that define curves over
+`\mathbb{Q}`. It is *very important* to load the
+``normal.lib`` library before calling the
+``genus`` command, or you'll get an error message.
+
+EXAMPLE::
+
     sage: singular.lib('normal.lib')
     sage: R = singular.ring(0,'(x,y)','dp')
     sage: i2 = singular.ideal('y9 - x2*(x-1)^9 + x')
     sage: i2.genus()
     40
 
-Note that the genus can be much smaller than the degree:
+Note that the genus can be much smaller than the degree::
 
     sage: i = singular.ideal('y9 - x2*(x-1)^9')
     sage: i.genus()
     0
 
-\subsection{An Important Concept}
-AUTHOR: Neal Harris
+An Important Concept
+--------------------
 
-The following illustrates an important concept: how \sage interacts
-with the data being used and returned by Singular.  Let's compute a
-Gr\"obner basis for some ideal, using Singular through \sage.
+AUTHORS:
+
+- Neal Harris
+
+The following illustrates an important concept: how Sage interacts
+with the data being used and returned by Singular. Let's compute a
+Gröbner basis for some ideal, using Singular through Sage.
+
+::
 
     sage: singular.lib('poly.lib')
     sage: singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
@@ -205,6 +232,9 @@ Gr\"obner basis for some ideal, using Singular through \sage.
     ...
 
 We restart everything and try again, but correctly.
+
+::
+
     sage: singular.quit()
     sage: singular.lib('poly.lib'); R = singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
     sage: I = singular.ideal('cyclic(6)')
@@ -213,24 +243,29 @@ We restart everything and try again, but correctly.
     ...
 
 It's important to understand why the first attempt at computing a
-basis failed.  The line where we gave singular the input 'groebner(I)'
-was useless because Singular has no idea what 'I' is!  Although 'I' is
-an object that we computed with calls to Singular functions, it
-actually lives in \sage.  As a consequence, the name 'I' means nothing
-to Singular.  When we called \code{I.groebner()}, \sage was able to
-call the groebner function on'I' in Singular, since 'I' actually means
-something to \sage.
+basis failed. The line where we gave singular the input
+'groebner(I)' was useless because Singular has no idea what 'I' is!
+Although 'I' is an object that we computed with calls to Singular
+functions, it actually lives in Sage. As a consequence, the name
+'I' means nothing to Singular. When we called
+``I.groebner()``, Sage was able to call the groebner
+function on'I' in Singular, since 'I' actually means something to
+Sage.
 
-\subsection{Long Input}
-The Singular interface reads in even very long input (using files) in a
-robust manner, as long as you are creating a new object.
+Long Input
+----------
+
+The Singular interface reads in even very long input (using files)
+in a robust manner, as long as you are creating a new object.
+
+::
 
     sage: t = '"%s"'%10^15000   # 15 thousand character string (note that normal Singular input must be at most 10000)
     sage: a = singular.eval(t)
     sage: a = singular(t)
 
-TESTS:
-We test an automatic coercion:
+TESTS: We test an automatic coercion::
+
     sage: a = 3*singular('2'); a
     6
     sage: type(a)
@@ -239,7 +274,6 @@ We test an automatic coercion:
     6
     sage: type(a)
     <class 'sage.interfaces.singular.SingularElement'>
-
 """
 
 #We could also do these calculations without using the singular
@@ -284,8 +318,9 @@ class Singular(Expect):
     r"""
     Interface to the Singular interpreter.
 
-    EXAMPLES:
-    A Groebner basis example.
+    EXAMPLES: A Groebner basis example.
+
+    ::
 
         sage: R = singular.ring(0, '(x0,x1,x2)', 'lp')
         sage: I = singular.ideal([ 'x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
@@ -295,12 +330,15 @@ class Singular(Expect):
         x0*x1-x0*x2-x1*x2,
         x0^2*x2-x0*x1*x2
 
-    AUTHORS: David Joyner and William Stein
+    AUTHORS:
+
+    - David Joyner and William Stein
     """
     def __init__(self, maxread=1000, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular == loads(dumps(singular))
             True
         """
@@ -323,7 +361,8 @@ class Singular(Expect):
 
     def _start(self, alt_message=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = Singular()
             sage: s.is_running()
             False
@@ -339,16 +378,17 @@ class Singular(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.__reduce__()
             (<function reduce_load_Singular at 0x...>, ())
-
         """
         return reduce_load_Singular, ()
 
     def _equality_symbol(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._equality_symbol()
             '=='
         """
@@ -356,7 +396,8 @@ class Singular(Expect):
 
     def _true_symbol(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._true_symbol()
             '1'
         """
@@ -364,7 +405,8 @@ class Singular(Expect):
 
     def _false_symbol(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._false_symbol()
             '0'
         """
@@ -372,17 +414,21 @@ class Singular(Expect):
 
     def _quit_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._quit_string()
             'quit'
         """
         return 'quit'
 
     def _read_in_file_command(self, filename):
-        """
-        EXAMPLES:
+        r"""
+        EXAMPLES::
+
             sage: singular._read_in_file_command('test')
             '< "test";'
+
+        ::
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -391,7 +437,6 @@ class Singular(Expect):
             sage: singular.read(filename)
             sage: singular.get('x')
             '2'
-
         """
         return '< "%s";'%filename
 
@@ -402,19 +447,27 @@ class Singular(Expect):
         as a string.
 
         INPUT:
-            x -- string (of code)
-            allow_semicolon -- default: False;  if False then raise a TypeError
-                               if the input line contains a semicolon.
-            strip -- ignored
 
-        EXAMPLES:
+
+        -  ``x`` - string (of code)
+
+        -  ``allow_semicolon`` - default: False; if False then
+           raise a TypeError if the input line contains a semicolon.
+
+        -  ``strip`` - ignored
+
+
+        EXAMPLES::
+
             sage: singular.eval('2 > 1')
             '1'
             sage: singular.eval('2 + 2')
             '4'
 
-            if the verbosity level is $> 1$ comments are also printed
-            and not only returned.
+        if the verbosity level is `> 1` comments are also printed
+        and not only returned.
+
+        ::
 
             sage: r = singular.ring(0,'(x,y,z)','dp')
             sage: i = singular.ideal(['x^2','y^2','z^2'])
@@ -423,6 +476,8 @@ class Singular(Expect):
             '// 1 t^0\n// -3 t^2\n// 3 t^4\n// -1 t^6\n\n// 1 t^0\n//
             3 t^1\n// 3 t^2\n// 1 t^3\n// dimension (affine) = 0\n//
             degree (affine) = 8'
+
+        ::
 
             sage: set_verbose(1)
             sage: o = singular.eval('hilb(%s)'%(s.name()))
@@ -437,9 +492,11 @@ class Singular(Expect):
             // dimension (affine) = 0
             // degree (affine)  = 8
 
-            This is mainly useful if this method is called
-            implicitly. Because then intermediate results, debugging
-            outputs and printed statements are printed
+        This is mainly useful if this method is called implicitly. Because
+        then intermediate results, debugging outputs and printed statements
+        are printed
+
+        ::
 
             sage: o = s.hilb()
             //         1 t^0
@@ -454,11 +511,12 @@ class Singular(Expect):
             // degree (affine)  = 8
             // ** right side is not a datum, assignment ignored
 
-            rather than ignored
+        rather than ignored
+
+        ::
 
             sage: set_verbose(0)
             sage: o = s.hilb()
-
         """
         # Syncrhonize the interface and clear any variables that are queued up to
         # be cleared.
@@ -497,7 +555,8 @@ class Singular(Expect):
         """
         Set the variable with given name to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.set('int', 'x', '2')
             sage: singular.get('x')
             '2'
@@ -512,7 +571,8 @@ class Singular(Expect):
         """
         Get string representation of variable named var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.set('int', 'x', '2')
             sage: singular.get('x')
             '2'
@@ -523,7 +583,8 @@ class Singular(Expect):
         """
         Clear the variable named var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.set('int', 'x', '2')
             sage: singular.get('x')
             '2'
@@ -540,10 +601,11 @@ class Singular(Expect):
 
     def _create(self, value, type='def'):
         """
-        Creates a new variable in the Singular session and returns
-        the name of that variable.
+        Creates a new variable in the Singular session and returns the name
+        of that variable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._create('2', type='int')
             'sage...'
             sage: singular.get(_)
@@ -555,19 +617,18 @@ class Singular(Expect):
 
     def __call__(self, x, type='def'):
         """
-        Create a singular object X with given type determined by the string x.
-        This returns var, where var is built using the Singular statement
-                  type var = ... x ...
-        Note that the actual name of var could be anything, and can
-        be recovered using X.name().
+        Create a singular object X with given type determined by the string
+        x. This returns var, where var is built using the Singular
+        statement type var = ... x ... Note that the actual name of var
+        could be anything, and can be recovered using X.name().
 
-        The object X returned can be used like any \sage object, and
-        wraps an object in self.  The standard arithmetic operators
-        work.  Morever if foo is a function then
-                      X.foo(y,z,...)
-        calls foo(X, y, z, ...) and returns the corresponding object.
+        The object X returned can be used like any Sage object, and wraps
+        an object in self. The standard arithmetic operators work. Morever
+        if foo is a function then X.foo(y,z,...) calls foo(X, y, z, ...)
+        and returns the corresponding object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x0,x1,x2)', 'lp')
             sage: I = singular.ideal([ 'x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
             sage: I
@@ -596,10 +657,11 @@ class Singular(Expect):
     def cputime(self, t=None):
         r"""
         Returns the amount of CPU time that the Singular session has used.
-        If \var{t} is not None, then it returns the difference between
-        the current CPU time and \var{t}.
+        If ``t`` is not None, then it returns the difference
+        between the current CPU time and ``t``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = singular.cputime()
             sage: R = singular.ring(0, '(x0,x1,x2)', 'lp')
             sage: I = singular.ideal([ 'x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
@@ -619,11 +681,12 @@ class Singular(Expect):
         """
         Load the Singular library named lib.
 
-        Note that if the library was already loaded during this
-        session it is not reloaded unless the optional reload
-        argument is True (the default is False).
+        Note that if the library was already loaded during this session it
+        is not reloaded unless the optional reload argument is True (the
+        default is False).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.lib('sing.lib')
             sage: singular.lib('sing.lib', reload=True)
         """
@@ -645,14 +708,17 @@ class Singular(Expect):
         Return the ideal generated by gens.
 
         INPUT:
-            gens -- list or tuple of Singular objects (or objects that can be
-                    made into Singular objects via evaluation)
 
-        OUTPUT:
-            the Singular ideal generated by the given list of gens
 
-        EXAMPLES:
-        A Groebner basis example done in a different way.
+        -  ``gens`` - list or tuple of Singular objects (or
+           objects that can be made into Singular objects via evaluation)
+
+
+        OUTPUT: the Singular ideal generated by the given list of gens
+
+        EXAMPLES: A Groebner basis example done in a different way.
+
+        ::
 
             sage: _ = singular.eval("ring R=0,(x0,x1,x2),lp")
             sage: i1 = singular.ideal([ 'x0*x1*x2 -x0^2*x2', 'x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2', 'x0*x1-x0*x2-x1*x2'])
@@ -660,6 +726,8 @@ class Singular(Expect):
             -x0^2*x2+x0*x1*x2,
             x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2,
             x0*x1-x0*x2-x1*x2
+
+        ::
 
             sage: i2 = singular.ideal('groebner(%s);'%i1.name())
             sage: i2
@@ -689,21 +757,22 @@ class Singular(Expect):
 
     def list(self, x):
         r"""
-        Creates a list in Singular from a Sage list \var{x}.
+        Creates a list in Singular from a Sage list ``x``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.list([1,2])
             [1]:
                1
             [2]:
                2
-
         """
         return self(x, 'list')
 
     def matrix(self, nrows, ncols, entries=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.lib("matrix")
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(3,2,'1,2,3,4,5,6')
@@ -717,7 +786,8 @@ class Singular(Expect):
             0,1
 
         AUTHORS:
-            - Martin Albrecht (malb@informatik.uni-bremen.de), 2006-01-14
+
+        - Martin Albrecht (2006-01-14)
         """
         name = self._next_var_name()
         if entries is None:
@@ -731,25 +801,36 @@ class Singular(Expect):
         Create a Singular ring and makes it the current ring.
 
         INPUT:
-            char -- characteristic of the base ring (see examples below),
-                    which must be either 0, prime (!), or one of
-                    several special codes (see examples below).
-            vars -- a tuple or string that defines the variable names
-            order -- string -- the monomial order (default: 'lp')
-            check -- if True, check primality of the characteristic
-                     if it is an integer.
 
-        OUTPUT:
-            a Singular ring
 
-        \note{This function is \emph{not} identical to calling the
-        Singular \code{ring} function.  In particular, it also
-        attempts to ``kill'' the variable names, so they can actually
-        be used without getting errors, and it sets printing of
-        elements for this range to short (i.e., with *'s and carets).}
+        -  ``char`` - characteristic of the base ring (see
+           examples below), which must be either 0, prime (!), or one of
+           several special codes (see examples below).
 
-        EXAMPLES:
-        We first declare $\Q[x,y,z]$ with degree reverse lexicographic ordering.
+        -  ``vars`` - a tuple or string that defines the
+           variable names
+
+        -  ``order`` - string - the monomial order (default:
+           'lp')
+
+        -  ``check`` - if True, check primality of the
+           characteristic if it is an integer.
+
+
+        OUTPUT: a Singular ring
+
+        .. note::
+
+           This function is *not* identical to calling the Singular
+           ``ring`` function. In particular, it also attempts to
+           "kill" the variable names, so they can actually be used
+           without getting errors, and it sets printing of elements
+           for this range to short (i.e., with \*'s and carets).
+
+        EXAMPLES: We first declare `\mathbb{Q}[x,y,z]` with degree reverse
+        lexicographic ordering.
+
+        ::
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: R
@@ -759,26 +840,36 @@ class Singular(Expect):
             //                  : names    x y z
             //        block   2 : ordering C
 
+        ::
+
             sage: R1 = singular.ring(32003, '(x,y,z)', 'dp')
             sage: R2 = singular.ring(32003, '(a,b,c,d)', 'lp')
 
-        This is a ring in variables named x(1) through x(10) over the finite
-        field of order $7$:
+        This is a ring in variables named x(1) through x(10) over the
+        finite field of order `7`::
+
             sage: R3 = singular.ring(7, '(x(1..10))', 'ds')
 
-        This is a polynomial ring over the transcendental extension $\Q(a)$ of $\Q$:
+        This is a polynomial ring over the transcendental extension
+        `\mathbb{Q}(a)` of `\mathbb{Q}`::
+
             sage: R4 = singular.ring('(0,a)', '(mu,nu)', 'lp')
 
-        This is a ring over the field of single-precision floats:
+        This is a ring over the field of single-precision floats::
+
             sage: R5 = singular.ring('real', '(a,b)', 'lp')
 
-        This is over 50-digit floats:
+        This is over 50-digit floats::
+
             sage: R6 = singular.ring('(real,50)', '(a,b)', 'lp')
             sage: R7 = singular.ring('(complex,50,i)', '(a,b)', 'lp')
 
         To use a ring that you've defined, use the set_ring() method on
-        the ring.  This sets the ring to be the ``current ring''.  For
+        the ring. This sets the ring to be the "current ring". For
         example,
+
+        ::
+
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.new('10*a')
@@ -803,13 +894,13 @@ class Singular(Expect):
 
     def string(self, x):
         """
-        Creates a Singular string from a Sage string.  Note that
-        the Sage string has to be "double-quoted".
+        Creates a Singular string from a Sage string. Note that the Sage
+        string has to be "double-quoted".
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.string('"Sage"')
             Sage
-
         """
         return self(x, 'string')
 
@@ -817,7 +908,8 @@ class Singular(Expect):
         """
         Sets the current Singular ring to R.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
@@ -842,13 +934,13 @@ class Singular(Expect):
 
     def current_ring_name(self):
         """
-        Returns the Singular name of the currently active
-        ring in Singular.
+        Returns the Singular name of the currently active ring in
+        Singular.
 
-        OUTPUT:
-            currently active ring's name
+        OUTPUT: currently active ring's name
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = PolynomialRing(GF(127),3,'xyz')
             sage: r._singular_().name() == singular.current_ring_name()
             True
@@ -863,10 +955,10 @@ class Singular(Expect):
 
     def current_ring(self):
         """
-        Returns the current ring of the runnging Singular
-        session.
+        Returns the current ring of the runnging Singular session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r = PolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
@@ -889,13 +981,14 @@ class Singular(Expect):
 
     def trait_names(self):
         """
-        Return a list of all Singular commands.
+         Return a list of all Singular commands.
 
-        EXAMPLES:
-            sage: singular.trait_names()
-            ['headStand',
-             ...
-             'stdfglm']
+         EXAMPLES::
+
+             sage: singular.trait_names()
+             ['headStand',
+              ...
+              'stdfglm']
          """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
         proclist = self.eval("listvar(proc)").splitlines()
@@ -903,14 +996,14 @@ class Singular(Expect):
 
     def console(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular_console() #not tested
                                  SINGULAR                             /  Development
              A Computer Algebra System for Polynomial Computations   /   version 3-0-4
                                                                    0<
                  by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
             FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
-
         """
         singular_console()
 
@@ -922,7 +1015,8 @@ class Singular(Expect):
 
     def _function_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._function_class()
             <class 'sage.interfaces.singular.SingularFunction'>
         """
@@ -930,7 +1024,8 @@ class Singular(Expect):
 
     def _function_element_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular._function_element_class()
             <class 'sage.interfaces.singular.SingularFunctionElement'>
         """
@@ -940,20 +1035,19 @@ class Singular(Expect):
         """
         Access to Singular's options as follows:
 
-        Syntax: option()
-                Returns a string of all defined options.
+        Syntax: option() Returns a string of all defined options.
 
-        Syntax: option( 'option_name' )
-                Sets an option. Note to disable an option, use the prefix no.
+        Syntax: option( 'option_name' ) Sets an option. Note to disable an
+        option, use the prefix no.
 
-        Syntax: option( 'get' )
-                Returns an intvec of the state of all options.
+        Syntax: option( 'get' ) Returns an intvec of the state of all
+        options.
 
-        Syntax: option( 'set', intvec_expression )
-                Restores the state of all options from an intvec
-                (produced by option('get')).
+        Syntax: option( 'set', intvec_expression ) Restores the state of
+        all options from an intvec (produced by option('get')).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.option()
             //options: redefine loadLib usage prompt
             sage: singular.option('get')
@@ -967,7 +1061,6 @@ class Singular(Expect):
             sage: singular.option('get')
             0,
             10321
-
         """
         if cmd is None:
             return SingularFunction(self,"option")()
@@ -994,7 +1087,8 @@ class Singular(Expect):
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = singular(2)
             sage: loads(dumps(a))
             (invalid object -- defined in terms of closed session)
@@ -1013,9 +1107,10 @@ class SingularElement(ExpectElement):
 
     def __repr__(self):
         r"""
-        Return string representation of \code{self}.
+        Return string representation of ``self``.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: r = singular.ring(0,'(x,y)','dp')
             sage: singular(0)
             0
@@ -1028,7 +1123,9 @@ class SingularElement(ExpectElement):
             15625/103823*x^6*y.., y,
             0,                    1
 
-            Note that the output is truncated
+        Note that the output is truncated
+
+        ::
 
             sage: M= singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
             sage: M.rename('T')
@@ -1036,8 +1133,8 @@ class SingularElement(ExpectElement):
             T[1,1],y,
             0,         1
 
-            if \code{self} has a custom name, it is used to print
-            the matrix, rather than abbreviating its contents
+        if ``self`` has a custom name, it is used to print the
+        matrix, rather than abbreviating its contents
         """
         try:
             self._check_valid()
@@ -1057,9 +1154,10 @@ class SingularElement(ExpectElement):
 
     def __copy__(self):
         r"""
-        Returns a copy of \code{self}.
+        Returns a copy of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R=singular.ring(0,'(x,y)','dp')
             sage: M=singular.matrix(3,3,'0,0,-x, 0,y,0, x*y,0,0')
             sage: N=copy(M)
@@ -1109,7 +1207,8 @@ class SingularElement(ExpectElement):
         """
         Returns the size of this Singular element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: len(A)
@@ -1122,10 +1221,10 @@ class SingularElement(ExpectElement):
         Note that the result of the returned reduce_load is an invalid
         Singular object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular(2).__reduce__()
             (<function reduce_load at 0x...>, ())
-
         """
         return reduce_load, ()  # default is an invalid object
 
@@ -1134,14 +1233,19 @@ class SingularElement(ExpectElement):
         Set the n-th element of self to x.
 
         INPUT:
-            n -- an integer *or* a 2-tuple (for setting matrix elements)
-            value -- anything (is coerced to a Singular object if it is not
-                 one already)
 
-        OUTPUT:
-            Changes elements of self.
 
-        EXAMPLES:
+        -  ``n`` - an integer *or* a 2-tuple (for setting
+           matrix elements)
+
+        -  ``value`` - anything (is coerced to a Singular
+           object if it is not one already)
+
+
+        OUTPUT: Changes elements of self.
+
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A
@@ -1171,7 +1275,8 @@ class SingularElement(ExpectElement):
         """
         Returns True if this Singular element is not zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular(0).__nonzero__()
             False
             sage: singular(1).__nonzero__()
@@ -1183,44 +1288,48 @@ class SingularElement(ExpectElement):
     def sage_polystring(self):
 	r"""
 	If this Singular element is a polynomial, return a string
-	representation of this polynomial that is suitable for
-	evaluation in Python.  Thus * is used for multiplication
-	and ** for exponentiation.   This function is primarily
-	used internally.
+	representation of this polynomial that is suitable for evaluation
+	in Python. Thus \* is used for multiplication and \*\* for
+	exponentiation. This function is primarily used internally.
 
-        The short=0 option \emph{must} be set for the parent ring or
-        this function will not work as expected.  This option is set
-        by default for rings created using \code{singular.ring} or set
-        using \code{ring_name.set_ring()}.
+	The short=0 option *must* be set for the parent ring or this
+	function will not work as expected. This option is set by default
+	for rings created using ``singular.ring`` or set using
+	``ring_name.set_ring()``.
 
-	EXAMPLES:
-            sage: R = singular.ring(0,'(x,y)')
-            sage: f = singular('x^3 + 3*y^11 + 5')
-            sage: f
-            x^3+3*y^11+5
-            sage: f.sage_polystring()
-            'x**3+3*y**11+5'
+	EXAMPLES::
+
+	    sage: R = singular.ring(0,'(x,y)')
+	    sage: f = singular('x^3 + 3*y^11 + 5')
+	    sage: f
+	    x^3+3*y^11+5
+	    sage: f.sage_polystring()
+	    'x**3+3*y**11+5'
 	"""
         return str(self).replace('^','**')
 
 
     def sage_poly(self, R, kcache=None):
         """
-        Returns a SAGE polynomial in the ring r matching the provided
-        poly which is a singular polynomial.
+        Returns a Sage polynomial in the ring r matching the provided poly
+        which is a singular polynomial.
 
         INPUT:
-            R      -- PolynomialRing: you *must* take care it matches
-                      the current singular ring as, e.g., returned by
-                      singular.current_ring()
-            kcache -- (default: None); an optional dictionary for faster
-                      finite field lookups, this is mainly useful for
-                      finite extension fields
 
-        OUTPUT:
-           MPolynomial
 
-        EXAMPLES:
+        -  ``R`` - PolynomialRing: you *must* take care it
+           matches the current singular ring as, e.g., returned by
+           singular.current_ring()
+
+        -  ``kcache`` - (default: None); an optional dictionary
+           for faster finite field lookups, this is mainly useful for finite
+           extension fields
+
+
+        OUTPUT: MPolynomial
+
+        EXAMPLES::
+
             sage: R = PolynomialRing(GF(2^8,'a'),2,'xy')
             sage: f=R('a^20*x^2*y+a^10+x')
             sage: f._singular_().sage_poly(R)==f
@@ -1230,6 +1339,8 @@ class SingularElement(ExpectElement):
             sage: f._singular_().sage_poly(R)==f
             True
 
+        ::
+
             sage: P.<x,y> = PolynomialRing(QQ, 2)
             sage: f = x*y**3 - 1/9 * x + 1; f
             x*y^3 - 1/9*x + 1
@@ -1238,13 +1349,17 @@ class SingularElement(ExpectElement):
             sage: P(singular(f))
             x*y^3 - 1/9*x + 1
 
-        AUTHOR: Martin Albrecht (2006-05-18)
+        AUTHOR:
 
-        \note{For very simple polynomials
-        eval(SingularElement.sage_polystring()) is faster than
-        SingularElement.sage_poly(R), maybe we should detect the
-        crossover point (in dependence of the string length) and
-        choose an appropriate conversion strategy}
+        - Martin Albrecht (2006-05-18)
+
+        .. note::
+
+           For very simple polynomials
+           ``eval(SingularElement.sage_polystring())`` is faster than
+           SingularElement.sage_poly(R), maybe we should detect the
+           crossover point (in dependence of the string length) and
+           choose an appropriate conversion strategy
         """
         # TODO: Refactor imports to move this to the top
         from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
@@ -1352,7 +1467,8 @@ class SingularElement(ExpectElement):
         """
         Returns Sage matrix for self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A.sage_matrix(ZZ)
@@ -1377,7 +1493,8 @@ class SingularElement(ExpectElement):
         """
         Coerces self to Sage.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A._sage_(ZZ)
@@ -1423,7 +1540,8 @@ class SingularElement(ExpectElement):
         """
         Sets the current ring in Singular to be self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
@@ -1439,14 +1557,14 @@ class SingularElement(ExpectElement):
             //        block   1 : ordering ds
             //                  : names    a b
             //        block   2 : ordering C
-
         """
         self.parent().set_ring(self)
 
 
     def sage_flattened_str_list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R=singular.ring(0,'(x,y)','dp')
             sage: RL = R.ringlist()
             sage: RL.sage_flattened_str_list()
@@ -1459,11 +1577,12 @@ class SingularElement(ExpectElement):
         return s.split()
 
     def sage_structured_str_list(self):
-        """
-        If self is a Singular list of lists of Singular elements,
-        returns corresponding SAGE list of lists of strings.
+        r"""
+        If self is a Singular list of lists of Singular elements, returns
+        corresponding Sage list of lists of strings.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R=singular.ring(0,'(x,y)','dp')
             sage: RL=R.ringlist()
             sage: RL
@@ -1496,10 +1615,11 @@ class SingularElement(ExpectElement):
 
     def trait_names(self):
         """
-        Returns the possible tab-completions for self.  In this case,
-        we just return all the tab completions for the Singular object.
+        Returns the possible tab-completions for self. In this case, we
+        just return all the tab completions for the Singular object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0,'(x,y)','dp')
             sage: R.trait_names()
             ['headStand',
@@ -1512,7 +1632,8 @@ class SingularElement(ExpectElement):
         """
         Returns the internal type of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = PolynomialRing(GF(2^8,'a'),2,'x')
             sage: R._singular_().type()
             'ring'
@@ -1527,7 +1648,8 @@ class SingularElement(ExpectElement):
 
     def __iter__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: list(iter(A))
@@ -1546,7 +1668,8 @@ class SingularElement(ExpectElement):
 
     def _singular_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A._singular_() is A
@@ -1559,25 +1682,27 @@ class SingularElement(ExpectElement):
         Get and set attributs for self.
 
         INPUT:
-            name -- string to choose the attribute
-            value -- boolean value or None for reading, (default:None)
 
-        VALUES:
-            isSB -- the standard basis property is set by all commands
-                    computing a standard basis like groebner, std, stdhilb
-                    etc.; used by lift, dim, degree, mult, hilb, vdim, kbase
-            isHomog -- the weight vector for homogeneous or quasihomogeneous
-                       ideals/modules
-            isCI -- complete intersection property
-            isCM -- Cohen-Macaulay property
-            rank -- set the rank of a module (see nrows)
-            withSB  -- value of type ideal, resp. module, is std
-            withHilb -- value of type intvec is hilb(_,1) (see hilb)
-            withRes  -- value of type list is a free resolution
-            withDim  -- value of type int is the dimension (see dim)
-            withMult -- value of type int is the multiplicity (see mult)
 
-        EXAMPLE:
+        -  ``name`` - string to choose the attribute
+
+        -  ``value`` - boolean value or None for reading,
+           (default:None)
+
+
+        VALUES: isSB - the standard basis property is set by all commands
+        computing a standard basis like groebner, std, stdhilb etc.; used
+        by lift, dim, degree, mult, hilb, vdim, kbase isHomog - the weight
+        vector for homogeneous or quasihomogeneous ideals/modules isCI -
+        complete intersection property isCM - Cohen-Macaulay property rank
+        - set the rank of a module (see nrows) withSB - value of type
+        ideal, resp. module, is std withHilb - value of type intvec is
+        hilb(_,1) (see hilb) withRes - value of type list is a free
+        resolution withDim - value of type int is the dimension (see dim)
+        withMult - value of type int is the multiplicity (see mult)
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([z^2, y*z, y^2, x*z, x*y, x^2])
             sage: Ibar = I._singular_()
@@ -1598,28 +1723,31 @@ class SingularElement(ExpectElement):
 class SingularFunction(ExpectFunction):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular.groebner._sage_doc_()
-            'The SAGE interface to the Singular help system is not implemented.'
+            'The Sage interface to the Singular help system is not implemented.'
         """
-        return "The SAGE interface to the Singular help system is not implemented."
+        return "The Sage interface to the Singular help system is not implemented."
 
 class SingularFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A.nrows._sage_doc_()
-            'The SAGE interface to the Singular help system is not implemented.'
+            'The Sage interface to the Singular help system is not implemented.'
         """
-        return "The SAGE interface to the Singular help system is not implemented."
+        return "The Sage interface to the Singular help system is not implemented."
 
 def is_SingularElement(x):
     r"""
-    Returns True is x is of type \code{SingularElement}.
+    Returns True is x is of type ``SingularElement``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.singular import is_SingularElement
         sage: is_SingularElement(singular(2))
         True
@@ -1632,11 +1760,11 @@ def reduce_load():
     """
     Note that this returns an invalid Singular object!
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.singular import reduce_load
         sage: reduce_load()
         (invalid object -- defined in terms of closed session)
-
     """
     return SingularElement(None, None, None)
 
@@ -1647,7 +1775,8 @@ singular = Singular()
 
 def reduce_load_Singular():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.singular import reduce_load_Singular
         sage: reduce_load_Singular()
         Singular
@@ -1659,14 +1788,14 @@ def singular_console():
     """
     Spawn a new Singular command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: singular_console() #not tested
                              SINGULAR                             /  Development
          A Computer Algebra System for Polynomial Computations   /   version 3-0-4
                                                                0<
              by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
         FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
-
     """
     os.system('Singular')
 
@@ -1676,7 +1805,6 @@ def singular_version():
     Returns the version of Singular being used.
 
     EXAMPLES:
-
     """
     return singular.eval('system("--version");')
 

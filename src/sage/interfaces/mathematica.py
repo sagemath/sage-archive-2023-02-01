@@ -3,39 +3,44 @@ Interface to Mathematica
 
 The Mathematica interface will only work if Mathematica is
 installed on your computer with a command line interface that runs
-when you give the \code{math} command.  The interface offers
-three pieces of functionality:
-\begin{enumerate}
-
-\item \code{mathematica_console()} -- A function that dumps you
-into an interactive command-line Mathematica session.   This is
-an enhanced version of the usual Mathematica command-line, in
-that it provides readline editing and history (the usual one
-doesn't!)
-
-\item \code{mathematica(expr)} -- Creation of a SAGE object that
-wraps a Mathematica object.  This provides a Pythonic
-interface to Mathematica.    For example, if
-\code{f=mathematica('x\^2-1')}, then \code{f.Factor()}
-returns the factorization of $x^2-1$ computed using Mathematica.
-
-\item \code{mathematica.eval(expr)} -- Evaluation of arbitrary Mathematica
-expressions, with the result returned as a string.
+when you give the ``math`` command. The interface
+offers three pieces of functionality:
 
 
-\end{enumerate}
+#. ``mathematica_console()`` - A function that dumps
+   you into an interactive command-line Mathematica session. This is
+   an enhanced version of the usual Mathematica command-line, in that
+   it provides readline editing and history (the usual one doesn't!)
+
+#. ``mathematica(expr)`` - Creation of a Sage object
+   that wraps a Mathematica object. This provides a Pythonic interface
+   to Mathematica. For example, if
+   ``f=mathematica('x2-1')``, then
+   ``f.Factor()`` returns the factorization of
+   `x^2-1` computed using Mathematica.
+
+#. ``mathematica.eval(expr)`` - Evaluation of arbitrary
+   Mathematica expressions, with the result returned as a string.
 
 
-\subsection{Tutorial}
+Tutorial
+--------
+
 We follow some of the tutorial from
-   \url{http://library.wolfram.com/conferences/devconf99/withoff/Basic1.html/}.
+http://library.wolfram.com/conferences/devconf99/withoff/Basic1.html/.
 
 For any of this to work you must buy and install the Mathematica
-program, and it must be available as the command \code{math} in your
-PATH.
+program, and it must be available as the command
+``math`` in your PATH.
 
-\subsubsection{Syntax}
-Now make 1 and add it to itself.  The result is a Mathematica object.
+Syntax
+~~~~~~
+
+Now make 1 and add it to itself. The result is a Mathematica
+object.
+
+::
+
     sage: m = mathematica
     sage: a = m(1) + m(1); a                # optional - mathematica
     2
@@ -46,19 +51,26 @@ Now make 1 and add it to itself.  The result is a Mathematica object.
     sage: m(3)**m(50)                       # optional - mathematica
     717897987691852588770249
 
-The following is equivalent to \code{Plus[2, 3]} in Mathematica:
+The following is equivalent to ``Plus[2, 3]`` in
+Mathematica::
+
     sage: m = mathematica
     sage: m(2).Plus(m(3))                   # optional - mathematica
     5
 
-We can also compute $7(2+3)$.
+We can also compute `7(2+3)`.
+
+::
+
     sage: m(7).Times(m(2).Plus(m(3)))       # optional - mathematica
     35
     sage: m('7(2+3)')                       # optional - mathematica
     35
 
-\subsubsection{Some typical input}
-We solve an equation and a system of two equations:
+Some typical input
+~~~~~~~~~~~~~~~~~~
+
+We solve an equation and a system of two equations::
 
     sage: eqn = mathematica('3x + 5 == 14') # optional - mathematica
     sage: eqn                               # optional - mathematica
@@ -72,11 +84,13 @@ We solve an equation and a system of two equations:
     sage: sys.Solve('{x, y}')               # optional - mathematica
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
+Assignments and definitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\subsubsection{Assignments and definitions}
+If you assign the mathematica `5` to a variable `c`
+in Sage, this does not affect the `c` in Mathematica.
 
-If you assign the mathematica $5$ to a variable $c$ in SAGE,
-this does not affect the $c$ in Mathematica.
+::
 
     sage: c = m(5)                          # optional - mathematica
     sage: print m('b + c x')                # optional - mathematica
@@ -84,7 +98,8 @@ this does not affect the $c$ in Mathematica.
     sage: print m('b') + c*m('x')           # optional - mathematica
              b + 5 x
 
-The SAGE interfaces changes SAGE lists into Mathematica lists:
+The Sage interfaces changes Sage lists into Mathematica lists::
+
     sage: m = mathematica
     sage: eq1 = m('x^2 - 3y == 3')          # optional - mathematica
     sage: eq2 = m('2x - y == 1')            # optional - mathematica
@@ -93,30 +108,38 @@ The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: v.Solve(['x', 'y'])               # optional - mathematica
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
-\subsubsection{Function definitions}
+Function definitions
+~~~~~~~~~~~~~~~~~~~~
 
-Define mathematica functions by simply sending the definition to the
-interpreter.
+Define mathematica functions by simply sending the definition to
+the interpreter.
+
+::
 
     sage: m = mathematica
     sage: _ = mathematica('f[p_] = p^2');   # optional - mathematica
     sage: m('f[9]')                         # optional - mathematica
     81
 
-\subsubsection{Numerical Calculations}
+Numerical Calculations
+~~~~~~~~~~~~~~~~~~~~~~
 
-We find the $x$ such that $e^x - 3x = 0$.
+We find the `x` such that `e^x - 3x = 0`.
+
+::
+
     sage: e = mathematica('Exp[x] - 3x == 0') # optional - mathematica
     sage: e.FindRoot(['x', 2])                # optional - mathematica
     {x -> 1.512134551657842}
 
-Note that this agrees with what the PARI interpreter gp produces:
+Note that this agrees with what the PARI interpreter gp produces::
+
     sage: gp('solve(x=1,2,exp(x)-3*x)')
     1.512134551657842473896739678              # 32-bit
     1.5121345516578424738967396780720387046    # 64-bit
 
-Next we find the minimimum of a polynomial using the two
-different ways of accessing Mathematica:
+Next we find the minimimum of a polynomial using the two different
+ways of accessing Mathematica::
 
     sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')  # optional - mathematica
     {0.6150998205402516, {x -> 2.5773502699629733}}
@@ -124,10 +147,12 @@ different ways of accessing Mathematica:
     sage: f.FindMinimum(['x', 3])                  # optional - mathematica
     {0.6150998205402516, {x -> 2.5773502699629733}}
 
-
-\subsubsection{Polynomial and Integer Factorization}
+Polynomial and Integer Factorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We factor a polynomial of degree 200 over the integers.
+
+::
 
     sage: R.<x> = PolynomialRing(ZZ)
     sage: f = (x**100+17*x+5)*(x**100-5*x+20)
@@ -143,13 +168,15 @@ We factor a polynomial of degree 200 over the integers.
                           100               100
              (20 - 5 x + x   ) (5 + 17 x + x   )
 
-We can also factor a multivariate polynomial:
+We can also factor a multivariate polynomial::
+
     sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')  # optional - mathematica
     sage: print f.Factor()                   # optional - mathematica
               3                  2    3
              x  (x - y) (-2 x + x  + y )
 
-We factor an integer:
+We factor an integer::
+
     sage: n = mathematica(2434500)           # optional - mathematica
     sage: n.FactorInteger()                  # optional - mathematica
     {{2, 2}, {3, 2}, {5, 3}, {541, 1}}       # optional - mathematica
@@ -161,25 +188,32 @@ We factor an integer:
     sage: F[4]                               # optional - mathematica
     {541, 1}
 
-We can also load the ECM package and factoring using it:
+We can also load the ECM package and factoring using it::
+
     sage: _ = mathematica.eval("<<NumberTheory`FactorIntegerECM`");  # optional - mathematica
     sage: mathematica.FactorIntegerECM('932901*939321')              # optional - mathematica
     8396109
 
-%\subsection{Module Documentation}
+Long Input
+----------
 
-\subsection{Long Input}
-The Mathematica interface reads in even very long input (using files)
-in a robust manner.
+The Mathematica interface reads in even very long input (using
+files) in a robust manner.
+
+::
 
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = mathematica(t)        # optional - mathematica
     sage: a = mathematica.eval(t)   # optional - mathematica
 
-\subsection{Loading and saving}
-Mathematica has an excellent \code{InputForm} function, which makes
-saving and loading Mathematica objects possible.  The first
-examples test saving and loading to strings.
+Loading and saving
+------------------
+
+Mathematica has an excellent ``InputForm`` function,
+which makes saving and loading Mathematica objects possible. The
+first examples test saving and loading to strings.
+
+::
 
     sage: x = mathematica(pi/2)     # optional - mathematica
     sage: print x                   # optional - mathematica
@@ -194,16 +228,19 @@ examples test saving and loading to strings.
     sage: loads(dumps(n)) == n      # optional - mathematica
     True
 
-OTHER Examples:
+OTHER Examples::
+
     sage: def math_bessel_K(nu,x):
     ...       return mathematica(nu).BesselK(x).N(20).sage()
     ...
     sage: math_bessel_K(2,I)                      # optional - mathematica
     0.180489972066962*I - 2.592886175491197
 
-AUTHOR:
-    -- William Stein (2005): first version
-    -- Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
+AUTHORS:
+
+- William Stein (2005): first version
+
+- Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
 """
 
 #*****************************************************************************
@@ -270,8 +307,9 @@ class Mathematica(Expect):
         """
         Hints for installing mathematica on your computer.
 
-        AUTHOR:
-            -- William Stein and Justin Walker (2006-02-12).
+        AUTHORS:
+
+        - William Stein and Justin Walker (2006-02-12)
         """
         return """
 In order to use the Mathematica interface you need to have Mathematica
@@ -356,9 +394,11 @@ remote connection to a server running Mathematica -- for hints, type
         """
         Get the value of the variable var.
 
-        AUTHOR:
-           -- William Stein
-           -- Kiran Kedlaya (2006-02-04): suggested using InputForm
+        AUTHORS:
+
+        - William Stein
+
+        - Kiran Kedlaya (2006-02-04): suggested using InputForm
         """
         if ascii_art:
             return self.eval(var, strip=True)
@@ -393,7 +433,8 @@ remote connection to a server running Mathematica -- for hints, type
         """
         Change Mathematica's current working directory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: mathematica.chdir('/')          # optional
             sage: mathematica('Directory[]')      # optional
             "/"
@@ -469,7 +510,8 @@ class MathematicaElement(ExpectElement):
         """
         Show a mathematica plot in the Sage notebook.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
             sage: show(P)                                        # optional - mathematica
             sage: P.show(ImageSize=800)                          # optional - mathematica

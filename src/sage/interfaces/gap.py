@@ -1,30 +1,31 @@
 r"""
 Interface to GAP
 
-\sage provides an interface to the GAP system.  This system provides
+Sage provides an interface to the GAP system. This system provides
 extensive group theory, combinatorics, etc.
 
 The GAP interface will only work if GAP is installed on your
-computer; this should be the case, since GAP is included with
-\sage.  The interface offers three pieces of functionality:
+computer; this should be the case, since GAP is included with Sage.
+The interface offers three pieces of functionality:
 
-\begin{enumerate}
-\item \code{gap_console()} -- A function that dumps you
-into an interactive command-line GAP session.
 
-\item \code{gap(expr)} -- Evaluation of arbitrary GAP
-expressions, with the result returned as a string.
+#. ``gap_console()`` - A function that dumps you into
+   an interactive command-line GAP session.
 
-\item \code{gap.new(expr)} -- Creation of a \sage object that wraps a
-AP object.  This provides a Pythonic interface to GAP.  For example,
-if \code{f=gap.new(10)}, then \code{f.Factors()} returns the prime
-factorization of $10$ computed using GAP.
+#. ``gap(expr)`` - Evaluation of arbitrary GAP
+   expressions, with the result returned as a string.
 
-\end{enumerate}
+#. ``gap.new(expr)`` - Creation of a Sage object that
+   wraps a AP object. This provides a Pythonic interface to GAP. For
+   example, if ``f=gap.new(10)``, then
+   ``f.Factors()`` returns the prime factorization of
+   `10` computed using GAP.
 
-\subsection{First Examples}
 
-We factor an integer using GAP:
+First Examples
+--------------
+
+We factor an integer using GAP::
 
     sage: n = gap(20062006); n
     20062006
@@ -37,9 +38,14 @@ We factor an integer using GAP:
     sage: fac[1]
     2
 
-\subsection{GAP and Singular}
-This example illustrates conversion between Singular and GAP via \sage
-as an intermediate step.  First we create and factor a Singular polynomial.
+GAP and Singular
+----------------
+
+This example illustrates conversion between Singular and GAP via
+Sage as an intermediate step. First we create and factor a Singular
+polynomial.
+
+::
 
     sage: singular(389)
     389
@@ -54,9 +60,12 @@ as an intermediate step.  First we create and factor a Singular polynomial.
     [2]:
        1,1,2
 
-Next we convert the factor $-x^5+y^2$ to a \sage multivariate
-polynomial.  Note that it is important to let $x$ and $y$ be the
-generators of a polynomial ring, so the eval command works.
+Next we convert the factor `-x^5+y^2` to a Sage
+multivariate polynomial. Note that it is important to let
+`x` and `y` be the generators of a polynomial ring,
+so the eval command works.
+
+::
 
     sage: R.<x,y> = PolynomialRing(QQ,2)
     sage: s = F[1][3].sage_polystring(); s
@@ -64,70 +73,91 @@ generators of a polynomial ring, so the eval command works.
     sage: g = eval(s); g
     -x^5 + y^2
 
-Next we create a polynomial ring in GAP and obtain its indeterminates:
+Next we create a polynomial ring in GAP and obtain its
+indeterminates::
 
     sage: R = gap.PolynomialRing('Rationals', 2); R
     PolynomialRing( Rationals, ["x_1", "x_2"] )
     sage: I = R.IndeterminatesOfPolynomialRing(); I
     [ x_1, x_2 ]
 
-In order to eval $g$ in GAP, we need to tell GAP to view the variables
-\code{x0} and \code{x1} as the two generators of $R$.  This is the
-one tricky part.  In the GAP interpreter the object \code{I} has its
-    own name (which isn't \code{I}).  We can access its name using
-    \code{I.name()}.
+In order to eval `g` in GAP, we need to tell GAP to view
+the variables ``x0`` and ``x1`` as the two
+generators of `R`. This is the one tricky part. In the GAP
+interpreter the object ``I`` has its own name (which
+isn't ``I``). We can access its name using
+``I.name()``.
 
-        sage: _ = gap.eval("x := %s[1];; y := %s[2];;"%(I.name(), I.name()))
+::
 
-    Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
-    corresponding to $g$:
+    sage: _ = gap.eval("x := %s[1];; y := %s[2];;"%(I.name(), I.name()))
 
-        sage: R.<x,y> = PolynomialRing(QQ,2)
-        sage: f = gap(str(g)); f
-        -x_1^5+x_2^2
+Now `x_0` and `x_1` are defined, so we can
+construct the GAP polynomial `f` corresponding to
+`g`::
 
-    We can call GAP functions on $f$.  For example, we evaluate
-    the GAP \code{Value} function, which evaluates $f$ at the point $(1,2)$.
+    sage: R.<x,y> = PolynomialRing(QQ,2)
+    sage: f = gap(str(g)); f
+    -x_1^5+x_2^2
 
-        sage: f.Value(I, [1,2])
-        3
-        sage: g(1,2)        # agrees
-        3
+We can call GAP functions on `f`. For example, we evaluate
+the GAP ``Value`` function, which evaluates `f`
+at the point `(1,2)`.
 
-\subsection{Saving and loading objects} Saving and loading GAP objects
-(using the dumps method, etc.)  is \emph{not} supported, since the
-output string representation of Gap objects is sometimes not valid
-input to GAP.  Creating classes that wrap GAP objects \emph{is}
-supported, via simply defining the a _gap_init_ member function that
-returns a string that when evaluated in GAP constructs the object.
-See \code{groups/permutation_group.py} for a nontrivial example of
-this.
+::
 
-\subsection{Long Input}
+    sage: f.Value(I, [1,2])
+    3
+    sage: g(1,2)        # agrees
+    3
+
+Saving and loading objects
+--------------------------
+
+Saving and loading GAP objects (using the dumps method, etc.) is
+*not* supported, since the output string representation of Gap
+objects is sometimes not valid input to GAP. Creating classes that
+wrap GAP objects *is* supported, via simply defining the a
+_gap_init_ member function that returns a string that when
+evaluated in GAP constructs the object. See
+``groups/permutation_group.py`` for a nontrivial
+example of this.
+
+Long Input
+----------
+
 The GAP interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.
-\note{Using \code{gap.eval} for long input
-is much less robust, and is not recommended.}
+
+.. note::
+
+   Using ``gap.eval`` for long input is much less robust, and is not
+   recommended.
+
+::
 
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = gap(t)
 
+Changing which GAP is used
+--------------------------
 
-\subsection{Changing which GAP is used}
-Use this code to change which GAP interpreter is
-run.   E.g.,
-\begin{verbatim}
-   import sage.interfaces.gap
-   sage.interfaces.gap.gap_cmd = "/usr/local/bin/gap"
-\end{verbatim}
+Use this code to change which GAP interpreter is run. E.g.,
+
+::
+
+       import sage.interfaces.gap
+       sage.interfaces.gap.gap_cmd = "/usr/local/bin/gap"
 
 AUTHORS:
-    -- David Joyner and William Stein; initial version(s)
-    -- William Stein (2006-02-01): modified gap_console command
-       so it uses exactly the same startup command as Gap.__init__.
-    -- William Stein (2006-03-02): added tab completions:
-             gap.[tab], x = gap(...), x.[tab], and docs, e.g.,
-                  gap.function?  and x.function?
+
+- David Joyner and William Stein: initial version(s)
+
+- William Stein (2006-02-01): modified gap_console command so it uses
+  exactly the same startup command as Gap.__init__.
+
+- William Stein (2006-03-02): added tab completions: gap.[tab], x =
+  gap(...), x.[tab], and docs, e.g., gap.function? and x.function?
 """
 
 #*****************************************************************************
@@ -186,7 +216,9 @@ class Gap(Expect):
     r"""
     Interface to the GAP interpreter.
 
-    AUTHORS: William Stein and David Joyner
+    AUTHORS:
+
+    - William Stein and David Joyner
     """
     def __init__(self, max_workspace_size=None,
                  maxread=100000, script_subdirectory=None,
@@ -195,7 +227,8 @@ class Gap(Expect):
                  server_tmpdir=None,
                  logfile = None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap == loads(dumps(gap))
             True
         """
@@ -226,7 +259,8 @@ class Gap(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.__reduce__()
             (<function reduce_load_GAP at 0x...>, ())
             sage: f, args = _
@@ -239,9 +273,12 @@ class Gap(Expect):
         """
         Returns the string used to quit GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._quit_string()
             'quit'
+
+        ::
 
             sage: g = Gap()
             sage: a = g(2); g.is_running()
@@ -249,7 +286,6 @@ class Gap(Expect):
             sage: g.quit()
             sage: g.is_running()
             False
-
         """
         return 'quit'
 
@@ -257,7 +293,8 @@ class Gap(Expect):
         """
         Returns the next unused variable name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = Gap()
             sage: g._next_var_name()
             '$sage1'
@@ -265,7 +302,6 @@ class Gap(Expect):
             4
             sage: g._next_var_name()
             '$sage...'
-
         """
         if len(self._available_vars) != 0:
             v = self._available_vars[0]
@@ -275,12 +311,15 @@ class Gap(Expect):
         return '$sage%s'%self.__seq
 
     def _read_in_file_command(self, filename):
-        """
+        r"""
         Returns the command use to read in a file in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._read_in_file_command('test')
             'Read("test");'
+
+        ::
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -289,13 +328,13 @@ class Gap(Expect):
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
             '22'
-
         """
         return 'Read("%s");'%filename
 
     def _start(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = Gap()
             sage: g.is_running()
             False
@@ -329,7 +368,8 @@ class Gap(Expect):
         """
         Returns the continuation prompt in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._continuation_prompt()
             '> '
         """
@@ -339,9 +379,12 @@ class Gap(Expect):
         """
         Returns the GapFunction class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._function_class()
             <class 'sage.interfaces.gap.GapFunction'>
+
+        ::
 
             sage: type(gap.Order)
             <class 'sage.interfaces.gap.GapFunction'>
@@ -363,11 +406,12 @@ class Gap(Expect):
 
     def cputime(self, t=None):
         r"""
-        Returns the amount of CPU time that the GAP session has used.
-        If \var{t} is not None, then it returns the difference between
-        the current CPU time and \var{t}.
+        Returns the amount of CPU time that the GAP session has used. If
+        ``t`` is not None, then it returns the difference
+        between the current CPU time and ``t``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = gap.cputime()
             sage: t  #random
             0.13600000000000001
@@ -388,16 +432,23 @@ class Gap(Expect):
 
     def eval(self, x, newlines=False, strip=True, **kwds):
         r"""
-        Send the code in the string s to the GAP interpreter and return
-        the output as a string.
+        Send the code in the string s to the GAP interpreter and return the
+        output as a string.
 
         INPUT:
-            s -- string containing GAP code.
-            newlines -- bool (default: True); if False, remove all
-                      backslash-newlines inserted by the GAP output formatter.
-            strip -- ignored
 
-        EXAMPLES:
+
+        -  ``s`` - string containing GAP code.
+
+        -  ``newlines`` - bool (default: True); if False,
+           remove all backslash-newlines inserted by the GAP output
+           formatter.
+
+        -  ``strip`` - ignored
+
+
+        EXAMPLES::
+
             sage: gap.eval('2+2')
             '4'
             sage: gap.eval('Print(4); #test\n Print(6);')
@@ -436,7 +487,8 @@ class Gap(Expect):
         """
         Print help on a given topic.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print gap.help('SymmetricGroup', pager=False)
             Basic Groups _____________________________________________ Group Libraries
             ...
@@ -465,7 +517,8 @@ class Gap(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.set('x', '2')
             sage: gap.get('x')
             '2'
@@ -477,7 +530,8 @@ class Gap(Expect):
         """
         Get the string representation of the variable var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.set('x', '2')
             sage: gap.get('x')
             '2'
@@ -496,16 +550,17 @@ class Gap(Expect):
 
     def _pre_interact(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._pre_interact()
             sage: gap._post_interact()
-
         """
         self._eval_line("$SAGE.StartInteract();")
 
     def _post_interact(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._pre_interact()
             sage: gap._post_interact()
         """
@@ -616,7 +671,8 @@ class Gap(Expect):
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._eval_line('2+2;')
             '4'
         """
@@ -671,7 +727,8 @@ class Gap(Expect):
         """
         Clear the variable named var.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.set('x', '2')
             sage: gap.get('x')
             '2'
@@ -682,22 +739,23 @@ class Gap(Expect):
             RuntimeError: Gap produced error output
             Variable: 'x' must have a value
             ...
-
         """
         self.eval('Unbind(%s)'%var)
         self._available_vars.append(var)
 
     def _contains(self, v1, v2):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Integers = gap('Integers')
             sage: two = gap(2)
             sage: gap._contains(two.name(), Integers.name())
             True
 
+        ::
+
             sage: 2 in gap('Integers')
             True
-
         """
         return self.eval('%s in %s'%(v1,v2)) == "true"
 
@@ -705,7 +763,8 @@ class Gap(Expect):
         """
         Returns the symbol for truth in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._true_symbol()
             'true'
             sage: gap(2) == gap(2)
@@ -717,7 +776,8 @@ class Gap(Expect):
         """
         Returns the symbol for falsity in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._false_symbol()
             'false'
             sage: gap(2) == gap(3)
@@ -729,7 +789,8 @@ class Gap(Expect):
         """
         Returns the symbol for equality in GAP.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._equality_symbol()
             '='
             sage: gap(2) == gap(2)
@@ -741,11 +802,11 @@ class Gap(Expect):
         """
         Spawn a new GAP command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.console() #not tested
             GAP4, Version: 4.4.12 of 17-Dec-2008, x86_64-unknown-linux-gnu-gcc
             gap>
-
         """
         gap_console()
 
@@ -753,7 +814,8 @@ class Gap(Expect):
         """
         Returns the version of GAP being used.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.version()
             '4.4.12'
         """
@@ -763,12 +825,12 @@ class Gap(Expect):
         """
         Returns the GapElement class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._object_class()
             <class 'sage.interfaces.gap.GapElement'>
             sage: type(gap(2))
             <class 'sage.interfaces.gap.GapElement'>
-
         """
         return GapElement
 
@@ -776,12 +838,12 @@ class Gap(Expect):
         """
         Returns the GapFunctionElement class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap._function_element_class()
             <class 'sage.interfaces.gap.GapFunctionElement'>
             sage: type(gap.SymmetricGroup(4).Order)
             <class 'sage.interfaces.gap.GapFunctionElement'>
-
         """
         return GapFunctionElement
 
@@ -789,18 +851,21 @@ class Gap(Expect):
         """
         Calls the GAP function with args and kwds.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap.function_call('SymmetricGroup', [5])
             SymmetricGroup( [ 1 .. 5 ] )
 
         If the GAP function does not return a value, but prints something
         to the screen, then a string of the printed output is returned.
+
+        ::
+
             sage: s = gap.function_call('Display', [gap.SymmetricGroup(5).CharacterTable()])
             sage: type(s)
             <class 'sage.interfaces.expect.AsciiArtString'>
             sage: s.startswith('CT')
             True
-
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -826,7 +891,8 @@ class Gap(Expect):
 
     def trait_names(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = gap.trait_names()
             sage: len(c) > 100
             True
@@ -846,19 +912,21 @@ class Gap(Expect):
 
 def gap_reset_workspace(max_workspace_size=None, verbose=False):
     r"""
-    Call this to completely reset the GAP workspace, which
-    is used by default when SAGE first starts GAP.
+    Call this to completely reset the GAP workspace, which is used by
+    default when Sage first starts GAP.
 
-    The first time you start GAP from SAGE, it saves the
-    startup state of GAP in the file
-    \begin{verbatim}
-        $HOME/.sage/gap-workspace
-    \end{verbatim}
-    This is useful, since then subsequent startup of GAP
-    is at least 10 times as fast.  Unfortunately, if you
-    install any new code for GAP, it won't be noticed unless
-    you explicitly load it, e.g., with
-           gap.load_package("my_package")
+    The first time you start GAP from Sage, it saves the startup state
+    of GAP in the file
+
+    ::
+
+                $HOME/.sage/gap-workspace
+
+
+    This is useful, since then subsequent startup of GAP is at least 10
+    times as fast. Unfortunately, if you install any new code for GAP,
+    it won't be noticed unless you explicitly load it, e.g., with
+    gap.load_package("my_package")
 
     The packages sonata, guava, factint, gapdoc, grape, design, toric,
     and laguna are loaded in all cases before the workspace is saved,
@@ -907,7 +975,8 @@ if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmti
 class GapElement(ExpectElement):
     def __getitem__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = gap([1,2,3])
             sage: a[1]
             1
@@ -922,7 +991,8 @@ class GapElement(ExpectElement):
         """
         Note that GAP elements cannot be pickled.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap(2).__reduce__()
             (<function reduce_load at 0x...>, ())
             sage: f, args = _
@@ -933,7 +1003,8 @@ class GapElement(ExpectElement):
 
     def str(self, use_file=False):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print gap(2)
             2
         """
@@ -945,7 +1016,8 @@ class GapElement(ExpectElement):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap(2)
             2
         """
@@ -956,7 +1028,8 @@ class GapElement(ExpectElement):
 
     def bool(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: bool(gap(2))
             True
             sage: gap(0).bool()
@@ -969,16 +1042,20 @@ class GapElement(ExpectElement):
 
     def __len__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = gap('[1,2,3]'); v
             [ 1, 2, 3 ]
             sage: len(v)
             3
 
-        len is also called implicitly by if:
+        len is also called implicitly by if::
+
             sage: if gap('1+1 = 2'):
             ...    print "1 plus 1 does equal 2"
             1 plus 1 does equal 2
+
+        ::
 
             sage: if gap('1+1 = 3'):
             ...    print "it is true"
@@ -996,7 +1073,8 @@ class GapElement(ExpectElement):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = gap("[[1,2], [3/4, 5/6]]")
             sage: latex(s)
             \left(\begin{array}{rr} 1&2\\ 3/4&\frac{5}{6}\\ \end{array}\right)
@@ -1012,15 +1090,18 @@ class GapElement(ExpectElement):
 
     def _matrix_(self, R):
         r"""
-        Return matrix over the (\sage) ring R determined by self, where self
+        Return matrix over the (Sage) ring R determined by self, where self
         should be a Gap matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = gap("(Z(7)^0)*[[1,2,3],[4,5,6]]"); s
             [ [ Z(7)^0, Z(7)^2, Z(7) ], [ Z(7)^4, Z(7)^5, Z(7)^3 ] ]
             sage: s._matrix_(GF(7))
             [1 2 3]
             [4 5 6]
+
+        ::
 
             sage: s = gap("[[1,2], [3/4, 5/6]]"); s
             [ [ 1, 2 ], [ 3/4, 5/6 ] ]
@@ -1029,6 +1110,8 @@ class GapElement(ExpectElement):
             [3/4 5/6]
             sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+        ::
 
             sage: s = gap('[[Z(16),Z(16)^2],[Z(16)^3,Z(16)]]')
             sage: s._matrix_(GF(16,'a'))
@@ -1047,7 +1130,8 @@ class GapElement(ExpectElement):
 
     def trait_names(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s5 = gap.SymmetricGroup(5)
             sage: 'Centralizer' in s5.trait_names()
             True
@@ -1067,7 +1151,8 @@ class GapElement(ExpectElement):
 class GapFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print gap(4).SymmetricGroup._sage_doc_()
             Basic Groups _____________________________________________ Group Libraries
             ...
@@ -1079,7 +1164,8 @@ class GapFunctionElement(FunctionElement):
 class GapFunction(ExpectFunction):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print gap.SymmetricGroup._sage_doc_()
             Basic Groups _____________________________________________ Group Libraries
             ...
@@ -1092,7 +1178,8 @@ def is_GapElement(x):
     """
     Returns True if x is a GapElement.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.gap import is_GapElement
         sage: is_GapElement(gap(2))
         True
@@ -1104,12 +1191,17 @@ def is_GapElement(x):
 def gfq_gap_to_sage(x, F):
     """
     INPUT:
-        x -- gap finite field element
-        F -- SAGE finite field
-    OUTPUT:
-        element of F
 
-    EXAMPLES:
+
+    -  ``x`` - gap finite field element
+
+    -  ``F`` - Sage finite field
+
+
+    OUTPUT: element of F
+
+    EXAMPLES::
+
         sage: x = gap('Z(13)')
         sage: F = GF(13, 'a')
         sage: F(x)
@@ -1127,7 +1219,8 @@ def gfq_gap_to_sage(x, F):
         12*a + 11
 
     AUTHOR:
-        -- David Joyner and William Stein
+
+    - David Joyner and William Stein
     """
     from sage.rings.finite_field import FiniteField
 
@@ -1159,7 +1252,8 @@ def reduce_load_GAP():
     """
     Returns the GAP interface object definedin sage.interfaces.gap.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.gap import reduce_load_GAP
         sage: reduce_load_GAP()
         Gap
@@ -1168,16 +1262,16 @@ def reduce_load_GAP():
 
 def reduce_load():
     """
-    Returns an invalid GAP element.  Note that this is the object
+    Returns an invalid GAP element. Note that this is the object
     returned when a GAP element is unpickled.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
         (invalid object -- defined in terms of closed session)
         sage: loads(dumps(gap(2)))
         (invalid object -- defined in terms of closed session)
-
     """
     return GapElement(None, None)
 
@@ -1186,11 +1280,11 @@ def gap_console(use_workspace_cache=True):
     """
     Spawn a new GAP command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: gap.console() #not tested
         GAP4, Version: 4.4.12 of 17-Dec-2008, x86_64-unknown-linux-gnu-gcc
         gap>
-
     """
     cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
     os.system(cmd)
@@ -1199,7 +1293,8 @@ def gap_version():
     """
     Returns the version of GAP being used.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: gap_version()
         '4.4.12'
     """

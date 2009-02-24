@@ -1,18 +1,22 @@
 """
 Categories
 
-AUTHORS:  David Kohel and William Stein
+AUTHORS:
 
-Every Sage object lies in a category.  Categories in Sage are modeled on
-the mathematical idea of category, and are distinct from Python
-classes, which are a programming construct.
+- David Kohel and William Stein
 
-In most cases, typing \code{x.category()} returns the category to
-which $x$ belongs.  If $C$ is a category and $x$ is any object, $C(x)$
-tries to make an object in $C$ from $x$.
+Every Sage object lies in a category. Categories in Sage are
+modeled on the mathematical idea of category, and are distinct from
+Python classes, which are a programming construct.
 
-EXAMPLES:
-    We create a couple of categories.
+In most cases, typing ``x.category()`` returns the
+category to which `x` belongs. If `C` is a category
+and `x` is any object, `C(x)` tries to make an
+object in `C` from `x`.
+
+EXAMPLES: We create a couple of categories.
+
+::
 
     sage: Sets()
     Category of sets
@@ -25,8 +29,11 @@ EXAMPLES:
     sage: Ideals(IntegerRing())
     Category of ring ideals in Integer Ring
 
-The default category for elements $x$ of an objects $O$ is the
-category of all objects of $O$.  For example,
+The default category for elements `x` of an objects
+`O` is the category of all objects of `O`. For
+example,
+
+::
 
     sage: V = VectorSpace(RationalField(), 3)
     sage: x = V.gen(1)
@@ -117,7 +124,8 @@ class Category(SageObject):
         """
         Returns True if self is naturally embedded as a subcategory of c.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Rings  = Rings()
             sage: AbGrps = AbelianGroups()
             sage: Rings.is_subcategory(AbGrps)
@@ -125,12 +133,15 @@ class Category(SageObject):
             sage: AbGrps.is_subcategory(Rings)
             False
 
-        The \code{is_subcategory} function takes into account the base.
+        The ``is_subcategory`` function takes into account the
+        base.
+
+        ::
+
             sage: M3 = VectorSpaces(FiniteField(3))
             sage: M9 = VectorSpaces(FiniteField(9, 'a'))
             sage: M3.is_subcategory(M9)
             False
-
         """
         if not isinstance(c, Category):
             raise TypeError, "Argument c (= %s, type = %s) must be a category"%(c, type(c))

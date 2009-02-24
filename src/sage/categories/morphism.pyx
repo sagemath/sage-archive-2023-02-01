@@ -2,9 +2,12 @@
 Morphisms
 
 AUTHORS:
-    -- William Stein: initial version
-    -- David Joyner (12-17-2005): added examples
-    -- Robert Bradshaw (2007-06-25) Pyrexification
+
+- William Stein: initial version
+
+- David Joyner (12-17-2005): added examples
+
+- Robert Bradshaw (2007-06-25) Pyrexification
 """
 
 #*****************************************************************************
@@ -130,9 +133,12 @@ cdef class SetMorphism(Morphism):
     def __init__(self, parent, function):
         """
         INPUT:
-        parent -- a Homset
-        function -- a Python function that takes elements of the domain as input
-                    and returns elements of the domain.
+
+
+        -  ``parent`` - a Homset
+
+        -  ``function`` - a Python function that takes elements
+           of the domain as input and returns elements of the domain.
         """
         self._function = function
 

@@ -2,9 +2,12 @@
 Functors
 
 AUTHORS:
-    - David Kohel and William Stein
-    - David Joyner (2005-12-17): examples
-    - Robert Bradshaw (2007-06-23): Pyrexify
+
+- David Kohel and William Stein
+
+- David Joyner (2005-12-17): examples
+
+- Robert Bradshaw (2007-06-23): Pyrexify
 """
 
 #*****************************************************************************
@@ -27,7 +30,8 @@ import category
 
 cdef class Functor(SageObject):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: rings  = Rings()
         sage: abgrps = AbelianGroups()
         sage: F = ForgetfulFunctor(rings, abgrps)
@@ -85,7 +89,8 @@ def is_Functor(x):
 class ForgetfulFunctor_generic(Functor):
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = ForgetfulFunctor(Groups(), Sets())
             sage: loads(F.dumps()) == F
             True
@@ -112,7 +117,8 @@ class IdentityFunctor_generic(ForgetfulFunctor_generic):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = IdentityFunctor(Groups())
             sage: loads(F.dumps()) == F
             True
@@ -137,7 +143,8 @@ def ForgetfulFunctor(domain, codomain):
     """
     Construct the forgetful function from one category to another.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: rings = Rings()
         sage: abgrps = AbelianGroups()
         sage: F = ForgetfulFunctor(rings, abgrps)

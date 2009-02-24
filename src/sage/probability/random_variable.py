@@ -70,12 +70,10 @@ class DiscreteRandomVariable(RandomVariable_generic):
     """
     def __init__(self, X, f, codomain = None, check = False):
         r"""
-        Create free binary string monoid on $n$ generators.
+        Create free binary string monoid on `n` generators.
 
-        INPUT:
-            x: A probability space
-            f: A dictionary such that X[x] = value for  x in X
-               is the discrete function on X
+        INPUT: x: A probability space f: A dictionary such that X[x] =
+        value for x in X is the discrete function on X
         """
         if not is_DiscreteProbabilitySpace(X):
             raise TypeError, "Argument X (= %s) must be a discrete probability space" % X
@@ -111,8 +109,9 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def expectation(self):
         r"""
-        The expectation of the discrete random variable, namely $\sum_{x \in S} p(x) X[x]$,
-        where $X$ = self and $S$ is the probability space of $X$.
+        The expectation of the discrete random variable, namely
+        `\sum_{x \in S} p(x) X[x]`, where `X` = self and
+        `S` is the probability space of `X`.
         """
         E = 0
         Omega = self.probability_space()
@@ -122,8 +121,10 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_expectation(self, map):
         r"""
-        The expectation of the discrete random variable, namely $\sum_{x \in S} p(x) X[e(x)]$,
-        where $X$ = self, $S$ is the probability space of $X$, and $e$ = map.
+        The expectation of the discrete random variable, namely
+        `\sum_{x \in S} p(x) X[e(x)]`, where `X` = self,
+        `S` is the probability space of `X`, and
+        `e` = map.
         """
         E = 0
         Omega = self.probability_space()
@@ -135,12 +136,13 @@ class DiscreteRandomVariable(RandomVariable_generic):
         r"""
         The variance of the discrete random variable.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
-        $$
-        \var(X) = E((X-E(x))^2) = \sum_{x \in S} p(x) (X(x) - E(x))^2
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the variance of `X` is:
 
+        .. math::
+
+           \mathrm{var}(X) = E((X-E(x))^2) = \sum_{x \in S} p(x) (X(x) - E(x))^2
         """
         Omega = self.probability_space()
         mu = self.expectation()
@@ -151,15 +153,16 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_variance(self, map):
         r"""
-        The variance of the discrete random variable $X \circ e$, where $X$ = self,
-        and $e$ = map.
+        The variance of the discrete random variable `X \circ e`,
+        where `X` = self, and `e` = map.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
-        $$
-        \var(X) = E((X-E(x))^2) = \sum_{x \in S} p(x) (X(x) - E(x))^2
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the variance of `X` is:
 
+        .. math::
+
+           \mathrm{var}(X) = E((X-E(x))^2) = \sum_{x \in S} p(x) (X(x) - E(x))^2
         """
         Omega = self.probability_space()
         mu = self.translation_expectation(map)
@@ -170,14 +173,16 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def covariance(self, other):
         r"""
-        The covariance of the discrete random variable X = self with Y = other.
+        The covariance of the discrete random variable X = self with Y =
+        other.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
-        $$
-        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the variance of `X` is:
 
+        .. math::
+
+                     \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
 	if Omega != other.probability_space():
@@ -192,15 +197,16 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_covariance(self, other, map):
         r"""
-        The covariance of the probability space X = self with image of Y = other
-	under the given map of the probability space.
+        The covariance of the probability space X = self with image of Y =
+        other under the given map of the probability space.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
-        $$
-        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the variance of `X` is:
 
+        .. math::
+
+                     \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
 	if Omega != other.probability_space():
@@ -217,27 +223,31 @@ class DiscreteRandomVariable(RandomVariable_generic):
         r"""
         The standard deviation of the discrete random variable.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the standard deviation of $X$
-        is defined to be
-        $$
-        \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the standard deviation of
+        `X` is defined to be
 
+        .. math::
+
+                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
         """
         return sqrt(self.variance())
 
     def translation_standard_deviation(self, map):
         r"""
-        The standard deviation of the translated discrete random variable $X \circ e$,
-	where $X$ = self and $e$ = map.
+        The standard deviation of the translated discrete random variable
+        `X \circ e`, where `X` = self and `e` =
+        map.
 
-        Let $S$ be the probability space of $X$ = self, with probability function $p$,
-        and $E(X)$ be the {\it expectation} of $X$. Then the standard deviation of $X$
-        is defined to be
-        $$
-        \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
-        $$
+        Let `S` be the probability space of `X` = self,
+        with probability function `p`, and `E(X)` be the
+        expectation of `X`. Then the standard deviation of
+        `X` is defined to be
+
+        .. math::
+
+                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
         """
         return sqrt(self.translation_variance(map))
 
@@ -255,7 +265,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
     def translation_correlation(self, other, map):
         """
-        The correlation of the probability space X = self with image of Y = other under map.
+        The correlation of the probability space X = self with image of Y =
+        other under map.
         """
 	cov = self.translation_covariance(other, map)
 	sigX = self.standard_deviation()
@@ -274,7 +285,8 @@ class ProbabilitySpace_generic(RandomVariable_generic):
     """
     def __init__(self, domain, RR):
 	"""
-	A generic probability space on given domain space and codomain ring.
+	A generic probability space on given domain space and codomain
+	ring.
 	"""
 	if isinstance(domain, list):
 	    domain = tuple(domain)
@@ -293,14 +305,15 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
     """
     def __init__(self, X, P, codomain = None, check = False):
         r"""
-        Create the discrete probability space with probabilities
-	on the space X given by the dictionary P with values in the
-	field real_field.
+	Create the discrete probability space with probabilities on the
+	space X given by the dictionary P with values in the field
+	real_field.
 
-        EXAMPLES:
+	EXAMPLES::
+
 	    sage: S = [ i for i in range(16) ]
 	    sage: P = {}
-            sage: for i in range(15): P[i] = 2^(-i-1)
+	           sage: for i in range(15): P[i] = 2^(-i-1)
 	    sage: P[15] = 2^-16
 	    sage: X = DiscreteProbabilitySpace(S,P)
 	    sage: X.domain()
@@ -308,11 +321,12 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	    sage: X.set()
 	    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	    sage: X.entropy()
-            1.9997253418
+	           1.9997253418
 
 	A probability space can be defined on any list of elements.
 
-        EXAMPLES:
+	EXAMPLES::
+
 	    sage: AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	    sage: S = [ AZ[i] for i in range(26) ]
 	    sage: P = { 'A':1/2, 'B':1/4, 'C':1/4 }
@@ -320,7 +334,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	    sage: X
 	    Discrete probability space defined by {'A': 1/2, 'C': 1/4, 'B': 1/4}
 	    sage: X.entropy()
-            1.5
+	           1.5
 	"""
         if codomain is None:
 	    codomain = RealField()
@@ -342,14 +356,14 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 
     def set(self):
         r"""
-	The set of values of the probability space taking possibly nonzero probability
-	(a subset of the domain).
+        The set of values of the probability space taking possibly nonzero
+        probability (a subset of the domain).
         """
 	return Set(self.function().keys())
 
     def entropy(self):
         """
-	The entropy of the probability space.
+        The entropy of the probability space.
         """
 	def neg_xlog2x(p):
 	    if p == 0:

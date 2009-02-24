@@ -2,15 +2,21 @@
 PARI C-library interface
 
 AUTHORS:
-    -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
-             (this involved changing almost every doc string, among other
-             things; the precision behavior of PARI seems to change
-             from any version to the next...).
-    -- William Stein (2006-03-06): added newtonpoly
-    -- Justin Walker: contributed some of the function definitions
-    -- Gonzalo Tornaria: improvements to conversions; much better error handling.
 
-EXAMPLES:
+- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
+  (this involved changing almost every doc string, among other things;
+  the precision behavior of PARI seems to change from any version to
+  the next...).
+
+- William Stein (2006-03-06): added newtonpoly
+
+- Justin Walker: contributed some of the function definitions
+
+- Gonzalo Tornaria: improvements to conversions; much better error
+  handling.
+
+EXAMPLES::
+
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
@@ -24,6 +30,9 @@ EXAMPLES:
     [1, 1]~
 
 Arithmetic obeys the usual coercion rules.
+
+::
+
     sage: type(pari(1) + 1)
     <type 'sage.libs.pari.gen.gen'>
     sage: type(1 + pari(1))
@@ -31,18 +40,21 @@ Arithmetic obeys the usual coercion rules.
 
 GUIDE TO REAL PRECISION AND THE PARI LIBRARY
 
-The default real precision in communicating with the Pari library is
-the same as the default Sage real precision, which is 53 bits.
+The default real precision in communicating with the Pari library
+is the same as the default Sage real precision, which is 53 bits.
 Inexact Pari objects are therefore printed by default to 15 decimal
 digits (even if they are actually more precise).
 
-Default precision example (53 bits, 15 significant decimals):
+Default precision example (53 bits, 15 significant decimals)::
+
     sage: a = pari(1.23); a
     1.23000000000000
     sage: a.sin()
     0.942488801931698
 
-Example with custom precision of 200 bits (60 significant decimals):
+Example with custom precision of 200 bits (60 significant
+decimals)::
+
     sage: R = RealField(200)
     sage: a = pari(R(1.23)); a   # only 15 significant digits printed
     1.23000000000000
@@ -53,7 +65,8 @@ Example with custom precision of 200 bits (60 significant decimals):
     sage: R(a.sin())   # but the number is known to precision of 200 bits
     0.94248880193169751002382356538924454146128740562765030213504
 
-It is possible to change the number of printed decimals:
+It is possible to change the number of printed decimals::
+
     sage: R = RealField(200)    # 200 bits of precision in computations
     sage: old_prec = pari.set_real_precision(60)  # 60 decimals printed
     sage: a = pari(R(1.23)); a
@@ -63,37 +76,42 @@ It is possible to change the number of printed decimals:
     sage: pari.set_real_precision(old_prec)  # restore the default printing behavior
     60
 
-Unless otherwise indicated in the docstring, most Pari functions that
-return inexact objects use the precision of their arguments to decide
-the precision of the computation.  However, if some of these arguments
-happen to be exact numbers (integers, rationals, etc.), an optional
-parameter indicates the precision (in bits) to which these arguments
-should be converted before the computation.  If this precision
-parameter is missing, the default precision of 53 bits is used.
-The following first converts 2 into a real with 53-bit precision:
+Unless otherwise indicated in the docstring, most Pari functions
+that return inexact objects use the precision of their arguments to
+decide the precision of the computation. However, if some of these
+arguments happen to be exact numbers (integers, rationals, etc.),
+an optional parameter indicates the precision (in bits) to which
+these arguments should be converted before the computation. If this
+precision parameter is missing, the default precision of 53 bits is
+used. The following first converts 2 into a real with 53-bit
+precision::
+
     sage: R = RealField()
     sage: R(pari(2).sin())
     0.909297426825682
 
-We can ask for a better precision using the optional parameter:
+We can ask for a better precision using the optional parameter::
+
     sage: R = RealField(150)
     sage: R(pari(2).sin(precision=150))
     0.90929742682568169539601986591174484270225497
 
-Warning regarding conversions Sage -> Pari -> Sage:
-Some care must be taken when juggling inexact types back and forth
-between Sage and Pari.  In theory, calling p=pari(s) creates a Pari
-object p with the same precision as s; in practice, the Pari library's
-precision is word-based, so it will go up to the next word.  For
-example, a default 53-bit Sage real s will be bumped up to 64 bits by
-adding bogus 11 bits.  The function p.python() returns a Sage object
-with exactly the same precision as the Pari object p.  So
-pari(s).python() is definitely not equal to s, since it has 64 bits of
-precision, including the bogus 11 bits.  The correct way of avoiding
-this is to coerce pari(s).python() back into a domain with the right
-precision.  This has to be done by the user (or by Sage functions that
-use Pari library functions in gen.pyx).  For instance, if we want to
-use the Pari library to compute sqrt(pi) with a precision of 100 bits:
+Warning regarding conversions Sage - Pari - Sage: Some care must be
+taken when juggling inexact types back and forth between Sage and
+Pari. In theory, calling p=pari(s) creates a Pari object p with the
+same precision as s; in practice, the Pari library's precision is
+word-based, so it will go up to the next word. For example, a
+default 53-bit Sage real s will be bumped up to 64 bits by adding
+bogus 11 bits. The function p.python() returns a Sage object with
+exactly the same precision as the Pari object p. So
+pari(s).python() is definitely not equal to s, since it has 64 bits
+of precision, including the bogus 11 bits. The correct way of
+avoiding this is to coerce pari(s).python() back into a domain with
+the right precision. This has to be done by the user (or by Sage
+functions that use Pari library functions in gen.pyx). For
+instance, if we want to use the Pari library to compute sqrt(pi)
+with a precision of 100 bits::
+
     sage: R = RealField(100)
     sage: s = R(pi); s
     3.1415926535897932384626433833
@@ -109,10 +127,10 @@ use the Pari library to compute sqrt(pi) with a precision of 100 bits:
     sage: R(x) == s.sqrt()
     True
 
-Elliptic curves and precision:
-If you are working with elliptic curves and want to compute with a
-precision other than the default 53 bits, you should use the precision
-parameter of ellinit():
+Elliptic curves and precision: If you are working with elliptic
+curves and want to compute with a precision other than the default
+53 bits, you should use the precision parameter of ellinit()::
+
     sage: R = RealField(150)
     sage: e = pari([0,0,0,-82,0]).ellinit(precision=150)
     sage: eta1 = e.elleta()[0]
@@ -193,7 +211,8 @@ def prec_bits_to_dec(int prec_in_bits):
     Convert from precision expressed in bits to precision expressed in
     decimal.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_bits_to_dec(53)
         15
@@ -215,7 +234,8 @@ def prec_dec_to_bits(int prec_in_dec):
     Convert from precision expressed in decimal to precision expressed
     in bits.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_dec_to_bits(15)
         49
@@ -236,15 +256,18 @@ def prec_dec_to_bits(int prec_in_dec):
 def prec_bits_to_words(int prec_in_bits=0):
     r"""
     Convert from precision expressed in bits to pari real precision
-    expressed in words.  Note: this rounds up to the nearest word,
+    expressed in words. Note: this rounds up to the nearest word,
     adjusts for the two codewords of a pari real, and is
     architecture-dependent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_bits_to_words(70)
         5   # 32-bit
         4   # 64-bit
+
+    ::
 
         sage: [(32*n,gen.prec_bits_to_words(32*n)) for n in range(1,9)]
         [(32, 3), (64, 4), (96, 5), (128, 6), (160, 7), (192, 8), (224, 9), (256, 10)] # 32-bit
@@ -267,10 +290,11 @@ pbw = prec_bits_to_words
 def prec_words_to_bits(int prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
-    expressed in bits.  Note: this adjusts for the two codewords of a
+    expressed in bits. Note: this adjusts for the two codewords of a
     pari real, and is architecture-dependent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_words_to_bits(10)
         256   # 32-bit
@@ -289,11 +313,12 @@ def prec_words_to_bits(int prec_in_words):
 
 def prec_dec_to_words(int prec_in_dec):
     r"""
-    Convert from precision expressed in decimal to precision expressed in
-    words.  Note: this rounds up to the nearest word, adjusts for the
+    Convert from precision expressed in decimal to precision expressed
+    in words. Note: this rounds up to the nearest word, adjusts for the
     two codewords of a pari real, and is architecture-dependent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_dec_to_words(38)
         6   # 32-bit
@@ -307,10 +332,11 @@ def prec_dec_to_words(int prec_in_dec):
 def prec_words_to_dec(int prec_in_words):
     r"""
     Convert from precision expressed in words to precision expressed in
-    decimal.  Note: this adjusts for the two codewords of a pari real,
+    decimal. Note: this adjusts for the two codewords of a pari real,
     and is architecture-dependent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.libs.pari.gen as gen
         sage: gen.prec_words_to_dec(5)
         28   # 32-bit
@@ -376,10 +402,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     cdef void init(self, GEN g, pari_sp b):
         """
-            g -- PARI GEN
-            b -- pointer to memory chunk where PARI gen lives
-                 (if nonzero then this memory is freed when the object
-                  goes out of scope)
+        g - PARI GEN b - pointer to memory chunk where PARI gen lives (if
+        nonzero then this memory is freed when the object goes out of
+        scope)
         """
         self.g = g
         self.b = b
@@ -417,7 +442,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = pari('x^3 - 3')
             sage: loads(dumps(f)) == f
             True
@@ -432,16 +458,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def _add_unsafe(gen self, gen right):
         """
-        VERY FAST addition of self and right on stack (and leave on
-        stack) without any type checking.
+        VERY FAST addition of self and right on stack (and leave on stack)
+        without any type checking.
 
         Basically, this is often about 10 times faster than just typing
-        "self + right".  The drawback is that (1) if self + right would
-        give an error in PARI, it will totally crash SAGE, and (2) the
-        memory used by self + right is *never* returned -- it gets allocated
-        on the PARI stack and will never be freed.
+        "self + right". The drawback is that (1) if self + right would give
+        an error in PARI, it will totally crash Sage, and (2) the memory
+        used by self + right is *never* returned - it gets allocated on
+        the PARI stack and will never be freed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2)._add_unsafe(pari(3))
             5
         """
@@ -464,12 +491,13 @@ cdef class gen(sage.structure.element.RingElement):
         stack) without any type checking.
 
         Basically, this is often about 10 times faster than just typing
-        "self - right".  The drawback is that (1) if self - right would
-        give an error in PARI, it will totally crash SAGE, and (2) the memory
-        used by self - right is *never* returned -- it gets allocated on
+        "self - right". The drawback is that (1) if self - right would give
+        an error in PARI, it will totally crash Sage, and (2) the memory
+        used by self - right is *never* returned - it gets allocated on
         the PARI stack and will never be freed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2)._sub_unsafe(pari(3))
             -1
         """
@@ -492,12 +520,13 @@ cdef class gen(sage.structure.element.RingElement):
         stack) without any type checking.
 
         Basically, this is often about 10 times faster than just typing
-        "self * right".  The drawback is that (1) if self * right would
-        give an error in PARI, it will totally crash SAGE, and (2) the memory
-        used by self * right is *never* returned -- it gets allocated on
-        the PARI stack and will never be freed.
+        "self \* right". The drawback is that (1) if self \* right would
+        give an error in PARI, it will totally crash Sage, and (2) the
+        memory used by self \* right is *never* returned - it gets
+        allocated on the PARI stack and will never be freed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2)._mul_unsafe(pari(3))
             6
         """
@@ -516,16 +545,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def _div_unsafe(gen self, gen right):
         """
-        VERY FAST division of self and right on stack (and leave on
-        stack) without any type checking.
+        VERY FAST division of self and right on stack (and leave on stack)
+        without any type checking.
 
         Basically, this is often about 10 times faster than just typing
-        "self / right".  The drawback is that (1) if self / right would
-        give an error in PARI, it will totally crash SAGE, and (2) the memory
-        used by self / right is *never* returned -- it gets allocated on
+        "self / right". The drawback is that (1) if self / right would give
+        an error in PARI, it will totally crash Sage, and (2) the memory
+        used by self / right is *never* returned - it gets allocated on
         the PARI stack and will never be freed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2)._div_unsafe(pari(3))
             2/3
         """
@@ -544,10 +574,10 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return self + 1.
 
-        OUTPUT:
-            pari gen
+        OUTPUT: pari gen
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = pari(5)
             sage: n._add_one()
             6
@@ -608,11 +638,12 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __getitem__(gen self, n):
         """
-        Return the nth entry of self. The indexing is 0-based, like
-        in Python. Note that this is *different* than the default
-        behavior of the Pari/GP interpreter.
+        Return the nth entry of self. The indexing is 0-based, like in
+        Python. Note that this is *different* than the default behavior
+        of the Pari/GP interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = pari('1 + 2*x + 3*x^2')
             sage: p[0]
             1
@@ -804,7 +835,8 @@ cdef class gen(sage.structure.element.RingElement):
         Return the length of self as a Pari object, *including*
         codewords.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = pari(30)
             sage: n.length()
             1
@@ -817,25 +849,24 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         Set the nth entry to a reference to y.
 
-        \begin{notice}
-        \begin{itemize}
-            \item The indexing is 0-based, like everywhere else in Python, but
-               \emph{unlike} in Pari/GP.
 
-            \item Assignment sets the nth entry to a reference to y,
-               assuming y is an object of type gen.  This is the same
-               as in Python, but \emph{different} than what happens in the
-               gp interpreter, where assignment makes a copy of y.
+            -  The indexing is 0-based, like everywhere else in Python, but
+               *unlike* in Pari/GP.
 
-            \item Because setting creates references it is \emph{possible} to
-               make circular references, unlike in GP. Do \emph{not} do
-               this (see the example below). If you need circular
-               references, work at the Python level (where they work
-               well), not the PARI object level.
-        \end{itemize}
-        \end{notice}
+            -  Assignment sets the nth entry to a reference to y, assuming y is
+               an object of type gen. This is the same as in Python, but
+               *different* than what happens in the gp interpreter, where
+               assignment makes a copy of y.
 
-        EXAMPLES:
+            -  Because setting creates references it is *possible* to make
+               circular references, unlike in GP. Do *not* do this (see the
+               example below). If you need circular references, work at the Python
+               level (where they work well), not the PARI object level.
+
+
+
+        EXAMPLES::
+
             sage: v = pari(range(10))
             sage: v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -862,7 +893,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: m = pari("[[1,2;3,4],5,6]") ; m[0][1,1] = 11 ; m
             [[1, 2; 3, 11], 5, 6]
 
-        Finally, we create a circular reference:
+        Finally, we create a circular reference::
+
             sage: v = pari([0])
             sage: w = pari([v])
             sage: v
@@ -872,6 +904,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v[0] = w
 
         Now there is a circular reference. Accessing v[0] will crash Sage.
+
+        ::
 
             sage: s=pari.vector(2,[0,0])
             sage: s[:1]
@@ -888,7 +922,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: s[10:20:3] = range(100,150) ; s
             [50, 1, 51, 3, 52, 5, 53, 7, 54, 9, 100, 11, 12, 101, 14, 15, 102, 17, 18, 103]
 
-        TESTS:
+        TESTS::
+
             sage: v = pari(xrange(10)) ; v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: v[:] = [20..29]
@@ -896,7 +931,6 @@ cdef class gen(sage.structure.element.RingElement):
             [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
             sage: type(v[0])
             <type 'sage.libs.pari.gen.gen'>
-
         """
         cdef int i, j
         cdef gen x
@@ -978,11 +1012,12 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Comparisons
 
-        First uses PARI's cmp routine; if it decides the objects are
-        not comparable, it then compares the underlying strings (since
-        in Python all objects are supposed to be comparable).
+        First uses PARI's cmp routine; if it decides the objects are not
+        comparable, it then compares the underlying strings (since in
+        Python all objects are supposed to be comparable).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = pari(5)
             sage: b = 10
             sage: a < b
@@ -1001,6 +1036,8 @@ cdef class gen(sage.structure.element.RingElement):
             True
             sage: a is 5
             False
+
+        ::
 
             sage: pari(2.5) > None
             True
@@ -1042,7 +1079,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the hexadecimal digits of self in lower case.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: print hex(pari(0))
             0
             sage: print hex(pari(15))
@@ -1094,10 +1132,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __int__(gen self):
         """
-        Return Python int.  Very fast, and if the number is too large to
-        fit into a C int, a Python long is returned instead.
+        Return Python int. Very fast, and if the number is too large to fit
+        into a C int, a Python long is returned instead.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: int(pari(0))
             0
@@ -1150,8 +1188,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def int_unsafe(gen self):
         """
-        Returns int form of self, but raises an exception if int does
-        not fit into a long integer.
+        Returns int form of self, but raises an exception if int does not
+        fit into a long integer.
 
         This is about 5 times faster than the usual int conversion.
         """
@@ -1160,10 +1198,11 @@ cdef class gen(sage.structure.element.RingElement):
     def intvec_unsafe(self):
         """
         Returns Python int list form of entries of self, but raises an
-        exception if int does not fit into a long integer.  Here self
-        must be a vector.
+        exception if int does not fit into a long integer. Here self must
+        be a vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('[3,4,5]').type()
             't_VEC'
             sage: pari('[3,4,5]').intvec_unsafe()
@@ -1171,7 +1210,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: type(pari('[3,4,5]').intvec_unsafe()[0])
             <type 'int'>
 
-        TESTS:
+        TESTS::
+
             sage: pari(3).intvec_unsafe()
             Traceback (most recent call last):
             ...
@@ -1198,10 +1238,11 @@ cdef class gen(sage.structure.element.RingElement):
 
     def python_list_small(gen self):
         """
-        Return a Python list of the PARI gens.  This object must be of
-        type t_VECSMALL, and the resulting list contains python 'int's
+        Return a Python list of the PARI gens. This object must be of type
+        t_VECSMALL, and the resulting list contains python 'int's
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v=pari([1,2,3,10,102,10]).Vecsmall()
             sage: w = v.python_list_small()
             sage: w
@@ -1220,14 +1261,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def python_list(gen self):
         """
-        Return a Python list of the PARI gens.  This object must be of
-        type t_VEC
+        Return a Python list of the PARI gens. This object must be of type
+        t_VEC
 
-        INPUT: None
-        OUTPUT:
-           list -- Python list whose elements are the
-                   elements of the input gen.
-        EXAMPLES:
+        INPUT: NoneOUTPUT:
+
+
+        -  ``list`` - Python list whose elements are the
+           elements of the input gen.
+
+
+        EXAMPLES::
+
             sage: v=pari([1,2,3,10,102,10])
             sage: w = v.python_list()
             sage: w
@@ -1255,10 +1300,9 @@ cdef class gen(sage.structure.element.RingElement):
         Return Python eval of self.
 
         Note: is self is a real (type t_REAL) the result will be a
-        RealField element of the equivalent precision; if self is a
-        complex (type t_COMPLEX) the result will be a ComplexField
-        element of precision the minimum precision of the real and
-        imaginary parts.
+        RealField element of the equivalent precision; if self is a complex
+        (type t_COMPLEX) the result will be a ComplexField element of
+        precision the minimum precision of the real and imaginary parts.
         """
         import sage.libs.pari.gen_py
         return sage.libs.pari.gen_py.python(self)
@@ -1310,15 +1354,19 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __complex__(self):
         r"""
-        Return \code{self} as a Python \class{complex} value.
+        Return ``self`` as a Python ``complex``
+        value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = pari(-1.0)^(1/5); g
             0.809016994374947 + 0.587785252292473*I
             sage: g.__complex__()
             (0.80901699437494745+0.58778525229247314j)
             sage: complex(g)
             (0.80901699437494745+0.58778525229247314j)
+
+        ::
 
             sage: g = pari(Integers(5)(3)); g
             Mod(3, 5)
@@ -1336,7 +1384,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __nonzero__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('1').__nonzero__()
             True
             sage: pari('x').__nonzero__()
@@ -1355,18 +1404,25 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     def isprime(gen self, flag=0):
         """
-        isprime(x, flag=0): Returns True if x is a PROVEN prime
-        number, and False otherwise.
+        isprime(x, flag=0): Returns True if x is a PROVEN prime number, and
+        False otherwise.
 
         INPUT:
-            flag -- int
-                    0 (default): use a combination of algorithms.
-                    1: certify primality using the Pocklington-Lehmer Test.
-                    2: certify primality using the APRCL test.
-        OUTPUT:
-            bool -- True or False
 
-        EXAMPLES:
+
+        -  ``flag`` - int 0 (default): use a combination of
+           algorithms. 1: certify primality using the Pocklington-Lehmer Test.
+           2: certify primality using the APRCL test.
+
+
+        OUTPUT:
+
+
+        -  ``bool`` - True or False
+
+
+        EXAMPLES::
+
             sage: pari(9).isprime()
             False
             sage: pari(17).isprime()
@@ -1388,10 +1444,11 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         Computes the Hurwitz-Kronecker class number of n.
 
-        If n is large (more than $5*10^5$), the result is conditional upon
-        GRH.
+        If n is large (more than `5*10^5`), the result is
+        conditional upon GRH.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(-10007).qfbhclassno()
             77
             sage: pari(-3).qfbhclassno()
@@ -1406,21 +1463,25 @@ cdef class gen(sage.structure.element.RingElement):
         number, and False otherwise.
 
         INPUT:
-            flag -- int
-                    0 (default): checks whether x is a
-                    Baillie-Pomerance-Selfridge-Wagstaff pseudo prime
-                    (strong Rabin-Miller pseudo prime for base 2, followed
-                    by strong Lucas test for the sequence (P,-1), P smallest
-                    positive integer such that $P^2 - 4$ is not a square mod
-                    x).
-                    > 0: checks whether x is a strong Miller-Rabin pseudo
-                    prime for flag randomly chosen bases (with end-matching
-                    to catch square roots of -1).
+
+
+        -  ``flag`` - int 0 (default): checks whether x is a
+           Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong
+           Rabin-Miller pseudo prime for base 2, followed by strong Lucas test
+           for the sequence (P,-1), P smallest positive integer such that
+           `P^2 - 4` is not a square mod x). 0: checks whether x is a
+           strong Miller-Rabin pseudo prime for flag randomly chosen bases
+           (with end-matching to catch square roots of -1).
+
 
         OUTPUT:
-            bool -- True or False
 
-        EXAMPLES:
+
+        -  ``bool`` - True or False
+
+
+        EXAMPLES::
+
             sage: pari(9).ispseudoprime()
             False
             sage: pari(17).ispseudoprime()
@@ -1439,25 +1500,34 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ispower(gen self, k=None):
         r"""
-        Determine whether or not self is a perfect k-th power.
-        If k is not specified, find the largest k so that self
-        is a k-th power.
+        Determine whether or not self is a perfect k-th power. If k is not
+        specified, find the largest k so that self is a k-th power.
 
-        NOTE: There is a BUG in the PARI C-library function (at least
-        in PARI 2.2.12-beta) that is used to implement this function!
-        This is in GP:
-        \begin{verbatim}
-           ? p=nextprime(10^100); n=p^100; m=p^2; m^50==n; ispower(n,50)
-        \end{verbatim}
+        .. note:::
+
+           There is a BUG in the PARI C-library function (at least in
+           PARI 2.2.12-beta) that is used to implement this function! This is
+           in GP::
+
+              ? p=nextprime(10^100); n=p^100; m=p^2; m^50==n; ispower(n,50)
+
 
         INPUT:
-            k -- int (optional)
+
+
+        -  ``k`` - int (optional)
+
 
         OUTPUT:
-            power -- int, what power it is
-            g -- what it is a power of
 
-        EXAMPLES:
+
+        -  ``power`` - int, what power it is
+
+        -  ``g`` - what it is a power of
+
+
+        EXAMPLES::
+
             sage: pari(9).ispower()
             (2, 3)
             sage: pari(17).ispower()
@@ -1496,10 +1566,9 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     def divrem(gen x, y, var=-1):
         """
-        divrem(x, y, {v}): Euclidean division of x by y giving as a
-            2-dimensional column vector the quotient and the
-            remainder, with respect to v (to main variable if v is
-            omitted).
+        divrem(x, y, v): Euclidean division of x by y giving as a
+        2-dimensional column vector the quotient and the remainder, with
+        respect to v (to main variable if v is omitted).
         """
         t0GEN(y)
         _sig_on
@@ -1507,8 +1576,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def lex(gen x, y):
         """
-        lex(x,y): Compare x and y lexicographically (1 if x>y, 0 if
-            x==y, -1 if x<y)
+        lex(x,y): Compare x and y lexicographically (1 if xy, 0 if x==y, -1
+        if xy)
         """
         t0GEN(y)
         _sig_on
@@ -1532,14 +1601,14 @@ cdef class gen(sage.structure.element.RingElement):
 
     def shift(gen x, long n):
         """
-        shift(x,n): shift x left n bits if n>=0, right -n bits if n<0.
+        shift(x,n): shift x left n bits if n=0, right -n bits if n0.
         """
         _sig_on
         return P.new_gen(gshift(x.g, n))
 
     def shiftmul(gen x, long n):
         """
-        shiftmul(x,n): Return the product of x by $2^n$.
+        shiftmul(x,n): Return the product of x by `2^n`.
         """
         _sig_on
         return P.new_gen(gmul2n(x.g, n))
@@ -1553,8 +1622,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sign(gen x):
         """
-        sign(x): Return the sign of x, where x is of type integer, real
-            or fraction.
+        sign(x): Return the sign of x, where x is of type integer, real or
+        fraction.
         """
         # Pari throws an error if you attempt to take the sign of
         # a complex number.
@@ -1563,7 +1632,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def vecmax(gen x):
         """
-        vecmax(x): Return the maximum of the elements of the vector/matrix x.
+        vecmax(x): Return the maximum of the elements of the vector/matrix
+        x.
         """
         _sig_on
         return P.new_gen(vecmax(x.g))
@@ -1571,7 +1641,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def vecmin(gen x):
         """
-        vecmin(x): Return the maximum of the elements of the vector/matrix x.
+        vecmin(x): Return the maximum of the elements of the vector/matrix
+        x.
         """
         _sig_on
         return P.new_gen(vecmin(x.g))
@@ -1587,39 +1658,43 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Col(x): Transforms the object x into a column vector.
 
-        The vector will have only one component, except in the
-        following cases:
+        The vector will have only one component, except in the following
+        cases:
 
-           * When x is a vector or a quadratic form, the resulting
-             vector is the initial object considered as a column
-             vector.
+        - When x is a vector or a quadratic form, the resulting vector
+          is the initial object considered as a column vector.
 
-           * When x is a matrix, the resulting vector is the column of
-             row vectors comprising the matrix.
+        - When x is a matrix, the resulting vector is the column of
+          row vectors comprising the matrix.
 
-           * When x is a character string, the result is a column of
-             individual characters.
+        - When x is a character string, the result is a column of
+          individual characters.
 
-           * When x is a polynomial, the coefficients of the vector
-             start with the leading coefficient of the polynomial.
+        - When x is a polynomial, the coefficients of the vector start
+          with the leading coefficient of the polynomial.
 
-           * When x is a power series, only the significant
-             coefficients are taken into account, but this time by
-             increasing order of degree.
+        - When x is a power series, only the significant coefficients
+          are taken into account, but this time by increasing order of
+          degree.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari(1.5).Col()
             [1.50000000000000]~
             sage: pari([1,2,3,4]).Col()
             [1, 2, 3, 4]~
             sage: pari('[1,2; 3,4]').Col()
             [[1, 2], [3, 4]]~
-            sage: pari('"SAGE"').Col()
-            ["S", "A", "G", "E"]~
+            sage: pari('"Sage"').Col()
+            ["S", "a", "g", "e"]~
             sage: pari('3*x^3 + x').Col()
             [3, 0, 1, 0]~
             sage: pari('x + 3*x^3 + O(x^5)').Col()
@@ -1632,7 +1707,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         List(x): transforms the PARI vector or list x into a list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = pari([1,2,3])
             sage: v
             [1, 2, 3]
@@ -1651,24 +1727,31 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Mat(x): Returns the matrix defined by x.
 
-           * If x is already a matrix, a copy of x is created and
-             returned.
+        - If x is already a matrix, a copy of x is created and returned.
 
-           * If x is not a vector or a matrix, this function returns a
-             1x1 matrix.
+        - If x is not a vector or a matrix, this function returns a 1x1
+          matrix.
 
-           * If x is a row (resp. column) vector, this functions
-             returns a 1-row (resp. 1-column) matrix, *unless* all
-             elements are column (resp. row) vectors of the same
-             length, in which case the vectors are concatenated
-             sideways and the associated big matrix is returned.
+        - If x is a row (resp. column) vector, this functions returns
+          a 1-row (resp. 1-column) matrix, *unless* all elements are
+          column (resp. row) vectors of the same length, in which case
+          the vectors are concatenated sideways and the associated big
+          matrix is returned.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen -- a PARI matrix
 
-        EXAMPLES:
+
+        -  ``x`` - gen
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - a PARI matrix
+
+
+        EXAMPLES::
+
             sage: x = pari(5)
             sage: x.type()
             't_INT'
@@ -1689,6 +1772,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: y.type()
             't_MAT'
 
+        ::
+
             sage: v = pari('[1,2;3,4]').Vec(); v
             [[1, 3]~, [2, 4]~]
             sage: v.Mat()
@@ -1707,23 +1792,34 @@ cdef class gen(sage.structure.element.RingElement):
 
         The input y must be a an integer or a polynomial:
 
-           * If y is an INTEGER, x must also be an integer, a rational
-             number, or a p-adic number compatible with the modulus y.
+        - If y is an INTEGER, x must also be an integer, a rational
+          number, or a p-adic number compatible with the modulus y.
 
-           * If y is a POLYNOMIAL, x must be a scalar (which is not a polmod),
-             a polynomial, a rational function, or a power series.
+        - If y is a POLYNOMIAL, x must be a scalar (which is not a
+          polmod), a polynomial, a rational function, or a power
+          series.
 
-        WARNING: This function is not the same as x % y, the result of
-        which is an integer or a polynomial.
+        .. warning::
+
+           This function is not the same as ``x % y`` which is an
+           integer or a polynomial.
 
         INPUT:
-            x -- gen
-            y -- integer or polynomial
+
+
+        -  ``x`` - gen
+
+        -  ``y`` - integer or polynomial
+
 
         OUTPUT:
-            gen -- intmod or polmod
 
-        EXAMPLES:
+
+        -  ``gen`` - intmod or polmod
+
+
+        EXAMPLES::
+
             sage: z = pari(3)
             sage: x = z.Mod(pari(7))
             sage: x
@@ -1734,6 +1830,8 @@ cdef class gen(sage.structure.element.RingElement):
             Mod(4, 7)
             sage: x.type()
             't_INTMOD'
+
+        ::
 
             sage: f = pari("x^2 + x + 1")
             sage: g = pari("x")
@@ -1751,38 +1849,53 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Pol(self, v=-1):
         """
-        Pol(x, {v}): convert x into a polynomial with main variable v
-        and return the result.
+        Pol(x, v): convert x into a polynomial with main variable v and
+        return the result.
 
-           * If x is a scalar, returns a constant polynomial.
+        - If x is a scalar, returns a constant polynomial.
 
-           * If x is a power series, the effect is identical
-              to \kbd{truncate}, i.e.~it chops off the $O(X^k)$.
+        - If x is a power series, the effect is identical to
+          ``truncate``, i.e. it chops off the `O(X^k)`.
 
-           * If x is a vector, this function creates the polynomial
-             whose coefficients are given in x, with x[0]
-             being the leading coefficient (which can be zero).
+        - If x is a vector, this function creates the polynomial whose
+          coefficients are given in x, with x[0] being the leading
+          coefficient (which can be zero).
 
-        WARNING: This is *not* a substitution function. It will not
-        transform an object containing variables of higher priority
-        than v:
-            sage: pari('x+y').Pol('y')
-            Traceback (most recent call last):
-            ...
-            PariError:  (8)
+        .. warning::
+
+           This is *not* a substitution function. It will not
+           transform an object containing variables of higher priority
+           than v::
+
+               sage: pari('x+y').Pol('y')
+               Traceback (most recent call last):
+               ...
+               PariError:  (8)
 
         INPUT:
-            x -- gen
-            v -- (optional) which variable, defaults to 'x'
+
+
+        -  ``x`` - gen
+
+        -  ``v`` - (optional) which variable, defaults to 'x'
+
+
         OUTPUT:
-            gen -- a polynomial
-        EXAMPLES:
+
+
+        -  ``gen`` - a polynomial
+
+
+        EXAMPLES::
+
             sage: v = pari("[1,2,3,4]")
             sage: f = v.Pol()
             sage: f
             x^3 + 2*x^2 + 3*x + 4
             sage: f*f
             x^6 + 4*x^5 + 10*x^4 + 20*x^3 + 25*x^2 + 24*x + 16
+
+        ::
 
             sage: v = pari("[1,2;3,4]")
             sage: v.Pol()
@@ -1793,16 +1906,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Polrev(self, v=-1):
         """
-        Polrev(x, {v}): Convert x into a polynomial with main variable
-        v and return the result.  This is the reverse of Pol if x is a
-        vector, otherwise it is identical to Pol.   By "reverse" we mean
-        that the coefficients are reversed.
+        Polrev(x, v): Convert x into a polynomial with main variable v and
+        return the result. This is the reverse of Pol if x is a vector,
+        otherwise it is identical to Pol. By "reverse" we mean that the
+        coefficients are reversed.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- a polynomial
-        EXAMPLES:
+
+
+        -  ``gen`` - a polynomial
+
+
+        EXAMPLES::
+
             sage: v = pari("[1,2,3,4]")
             sage: f = v.Polrev()
             sage: f
@@ -1812,7 +1934,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v.Polrev('y')
             4*y^3 + 3*y^2 + 2*y + 1
 
-        Note that Polrev does *not* reverse the coefficients of a polynomial!
+        Note that Polrev does *not* reverse the coefficients of a
+        polynomial!
+
+        ::
+
             sage: f
             4*x^3 + 3*x^2 + 2*x + 1
             sage: f.Polrev()
@@ -1826,26 +1952,43 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Qfb(gen a, b, c, D=0):
         """
-        Qfb(a,b,c,{D=0.}): Returns the binary quadratic form
-        $$
-                   ax^2 + bxy + cy^2.
-        $$
-        The optional D is 0 by default and initializes Shanks's
-        distance if $b^2 - 4ac > 0$.
+        Qfb(a,b,c,D=0.): Returns the binary quadratic form
 
-        NOTE: Negative definite forms are not implemented, so use their
-        positive definite counterparts instead.  (I.e., if f is a
-        negative definite quadratic form, then -f is positive
-        definite.)
+        .. math::
+
+                                ax^2 + bxy + cy^2.
+
+
+        The optional D is 0 by default and initializes Shanks's distance if
+        `b^2 - 4ac > 0`.
+
+        .. note::
+
+           Negative definite forms are not implemented, so use their
+           positive definite counterparts instead. (I.e., if f is a
+           negative definite quadratic form, then -f is positive
+           definite.)
 
         INPUT:
-            a -- gen
-            b -- gen
-            c -- gen
-            D -- gen (optional, defaults to 0)
+
+
+        -  ``a`` - gen
+
+        -  ``b`` - gen
+
+        -  ``c`` - gen
+
+        -  ``D`` - gen (optional, defaults to 0)
+
+
         OUTPUT:
-            gen -- binary quadratic form
-        EXAMPLES:
+
+
+        -  ``gen`` - binary quadratic form
+
+
+        EXAMPLES::
+
             sage: pari(3).Qfb(7, 2)
             Qfb(3, 7, 2, 0.E-19)
         """
@@ -1856,30 +1999,43 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Ser(gen x, v=-1):
         """
-        Ser(x,{v=x}): Create a power series from x with main variable v
-        and return the result.
+        Ser(x,v=x): Create a power series from x with main variable v and
+        return the result.
 
-           * If x is a scalar, this gives a constant power series with
-             precision given by the default series precision, as returned
-             by get_series_precision().
+        - If x is a scalar, this gives a constant power series with
+          precision given by the default series precision, as returned
+          by get_series_precision().
 
-           * If x is a polynomial, the precision is the greatest of
-             get_series_precision() and the degree of the polynomial.
+        - If x is a polynomial, the precision is the greatest of
+          get_series_precision() and the degree of the polynomial.
 
-           * If x is a vector, the precision is similarly given, and
-             the coefficients of the vector are understood to be the
-             coefficients of the power series starting from the
-             constant term (i.e.~the reverse of the function Pol).
+        - If x is a vector, the precision is similarly given, and the
+          coefficients of the vector are understood to be the
+          coefficients of the power series starting from the constant
+          term (i.e. the reverse of the function Pol).
 
-        WARNING: This is *not* a substitution function. It will not
-        transform an object containing variables of higher priority than v.
+        .. warning::
+
+           This is *not* a substitution function. It will not
+           transform an object containing variables of higher priority
+           than v.
 
         INPUT:
-            x -- gen
-            v -- PARI variable (default: x)
+
+
+        -  ``x`` - gen
+
+        -  ``v`` - PARI variable (default: x)
+
+
         OUTPUT:
-            gen -- PARI object of PARI type t_SER
-        EXAMPLES:
+
+
+        -  ``gen`` - PARI object of PARI type t_SER
+
+
+        EXAMPLES::
+
             sage: pari(2).Ser()
             2 + O(x^16)
             sage: x = pari([1,2,3,4,5])
@@ -1902,10 +2058,20 @@ cdef class gen(sage.structure.element.RingElement):
         increasing lexicographic order.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- a vector of strings in increasing lexicographic order.
-        EXAMPLES:
+
+
+        -  ``gen`` - a vector of strings in increasing
+           lexicographic order.
+
+
+        EXAMPLES::
+
             sage: pari([1,5,2]).Set()
             ["1", "2", "5"]
             sage: pari([]).Set()     # the empty set
@@ -1929,10 +2095,20 @@ cdef class gen(sage.structure.element.RingElement):
         object.
 
         INPUT:
-            self -- gen
+
+
+        -  ``self`` - gen
+
+
         OUTPUT:
-            gen -- a PARI gen of type t_STR, i.e., a PARI string
-        EXAMPLES:
+
+
+        -  ``gen`` - a PARI gen of type t_STR, i.e., a PARI
+           string
+
+
+        EXAMPLES::
+
             sage: pari([1,2,['abc',1]]).Str()
             [1, 2, [abc, 1]]
             sage: pari([1,1, 1.54]).Str()
@@ -1955,34 +2131,47 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Strchr(gen x):
         """
-        Strchr(x): converts x to a string, translating each integer
-        into a character (in ASCII).
+        Strchr(x): converts x to a string, translating each integer into a
+        character (in ASCII).
 
-        NOTE: Vecsmall is (essentially) the inverse to Strchr().
+        .. note::
+
+           :meth:`.Vecsmall` is (essentially) the inverse to :meth:`.Strchr`.
 
         INPUT:
-            x -- PARI vector of integers
+
+
+        -  ``x`` - PARI vector of integers
+
+
         OUTPUT:
-            gen -- a PARI string
-        EXAMPLES:
+
+
+        -  ``gen`` - a PARI string
+
+
+        EXAMPLES::
+
             sage: pari([65,66,123]).Strchr()
             AB{
-            sage: pari('"SAGE"').Vecsmall()   # pari('"SAGE"') --> PARI t_STR
-            Vecsmall([83, 65, 71, 69])
+            sage: pari('"Sage"').Vecsmall()   # pari('"Sage"') --> PARI t_STR
+            Vecsmall([83, 97, 103, 101])
             sage: _.Strchr()
-            SAGE
-            sage: pari([83, 65, 71, 69]).Strchr()
-            SAGE
+            Sage
+            sage: pari([83, 97, 103, 101]).Strchr()
+            Sage
         """
         _sig_on
         return P.new_gen(Strchr(x.g))
 
     def Strexpand(gen x):
         """
-        Strexpand(x): Concatenate the entries of the vector x into a
-        single string, performing tilde expansion.
+        Strexpand(x): Concatenate the entries of the vector x into a single
+        string, performing tilde expansion.
 
-        NOTE: I have no clue what the point of this function is. -- William
+        .. note::
+
+           I have no clue what the point of this function is. - William
         """
         if typ(x.g) != t_VEC:
             raise TypeError, "x must be of type t_VEC."
@@ -1992,14 +2181,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Strtex(gen x):
         r"""
-        Strtex(x): Translates the vector x of PARI gens to TeX format
-        and returns the resulting concatenated strings as a PARI t_STR.
+        Strtex(x): Translates the vector x of PARI gens to TeX format and
+        returns the resulting concatenated strings as a PARI t_STR.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- PARI t_STR (string)
-        EXAMPLES:
+
+
+        -  ``gen`` - PARI t_STR (string)
+
+
+        EXAMPLES::
+
             sage: v=pari('x^2')
             sage: v.Strtex()
             x^2
@@ -2028,10 +2226,19 @@ cdef class gen(sage.structure.element.RingElement):
         Vec(x): Transforms the object x into a vector.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- of PARI type t_VEC
-        EXAMPLES:
+
+
+        -  ``gen`` - of PARI type t_VEC
+
+
+        EXAMPLES::
+
             sage: pari(1).Vec()
             [1]
             sage: pari('x^3').Vec()
@@ -2048,17 +2255,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Vecrev(gen x):
         """
-        Vecrev(x): Transforms the object x into a vector.
-        Identical to Vec(x) except when x is
-        -- a polynomial, this is the reverse of Vec.
-        -- a power series, this includes low-order zero coefficients.
-        -- a Laurent series, raises an exception
+        Vecrev(x): Transforms the object x into a vector. Identical to
+        Vec(x) except when x is - a polynomial, this is the reverse of Vec.
+        - a power series, this includes low-order zero coefficients. - a
+        Laurent series, raises an exception
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- of PARI type t_VEC
-        EXAMPLES:
+
+
+        -  ``gen`` - of PARI type t_VEC
+
+
+        EXAMPLES::
+
             sage: pari(1).Vecrev()
             [1]
             sage: pari('x^3').Vecrev()
@@ -2111,14 +2326,23 @@ cdef class gen(sage.structure.element.RingElement):
         Vecsmall(x): transforms the object x into a t_VECSMALL.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            gen -- PARI t_VECSMALL
-        EXAMPLES:
+
+
+        -  ``gen`` - PARI t_VECSMALL
+
+
+        EXAMPLES::
+
             sage: pari([1,2,3]).Vecsmall()
             Vecsmall([1, 2, 3])
-            sage: pari('"SAGE"').Vecsmall()
-            Vecsmall([83, 65, 71, 69])
+            sage: pari('"Sage"').Vecsmall()
+            Vecsmall([83, 97, 103, 101])
             sage: pari(1234).Vecsmall()
             Vecsmall([1234])
         """
@@ -2127,14 +2351,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def binary(gen x):
         """
-        binary(x): gives the vector formed by the binary digits of
-        abs(x), where x is of type t_INT.
+        binary(x): gives the vector formed by the binary digits of abs(x),
+        where x is of type t_INT.
 
         INPUT:
-            x -- gen of type t_INT
+
+
+        -  ``x`` - gen of type t_INT
+
+
         OUTPUT:
-            gen -- of type t_VEC
-        EXAMPLES:
+
+
+        -  ``gen`` - of type t_VEC
+
+
+        EXAMPLES::
+
             sage: pari(0).binary()
             [0]
             sage: pari(-5).binary()
@@ -2143,6 +2376,8 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 0, 1]
             sage: pari(2005).binary()
             [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1]
+
+        ::
 
             sage: pari('"2"').binary()
             Traceback (most recent call last):
@@ -2156,15 +2391,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bitand(gen x, y):
         """
-        bitand(x,y): Bitwise and of two integers x and y. Negative
-        numbers behave as if modulo some large power of 2.
+        bitand(x,y): Bitwise and of two integers x and y. Negative numbers
+        behave as if modulo some large power of 2.
 
         INPUT:
-            x -- gen  (of type t_INT)
-            y -- coercible to gen  (of type t_INT)
+
+
+        -  ``x`` - gen (of type t_INT)
+
+        -  ``y`` - coercible to gen (of type t_INT)
+
+
         OUTPUT:
-            gen -- of type type t_INT
-        EXAMPLES:
+
+
+        -  ``gen`` - of type type t_INT
+
+
+        EXAMPLES::
+
             sage: pari(8).bitand(4)
             0
             sage: pari(8).bitand(8)
@@ -2187,20 +2432,29 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bitneg(gen x, long n=-1):
         r"""
-        bitneg(x,{n=-1}): Bitwise negation of the integer x truncated
-        to n bits.  n=-1 (the default) represents an infinite sequence
-        of the bit 1.  Negative numbers behave as if modulo some large
-        power of 2.
+        bitneg(x,n=-1): Bitwise negation of the integer x truncated to n
+        bits. n=-1 (the default) represents an infinite sequence of the bit
+        1. Negative numbers behave as if modulo some large power of 2.
 
-        With n=-1, this function returns -n-1.  With n >= 0, it returns
-        a number a such that  $a\cong -n-1 \pmod{2^n}$.
+        With n=-1, this function returns -n-1. With n = 0, it returns a
+        number a such that `a\cong -n-1 \pmod{2^n}`.
 
         INPUT:
-            x -- gen (t_INT)
-            n -- long, default = -1
+
+
+        -  ``x`` - gen (t_INT)
+
+        -  ``n`` - long, default = -1
+
+
         OUTPUT:
-            gen -- t_INT
-        EXAMPLES:
+
+
+        -  ``gen`` - t_INT
+
+
+        EXAMPLES::
+
             sage: pari(10).bitneg()
             -11
             sage: pari(1).bitneg()
@@ -2224,16 +2478,26 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bitnegimply(gen x, y):
         """
-        bitnegimply(x,y): Bitwise negated imply of two integers x and
-        y, in other words, x BITAND BITNEG(y). Negative numbers behave
-        as if modulo big power of 2.
+        bitnegimply(x,y): Bitwise negated imply of two integers x and y, in
+        other words, x BITAND BITNEG(y). Negative numbers behave as if
+        modulo big power of 2.
 
         INPUT:
-            x -- gen  (of type t_INT)
-            y -- coercible to gen  (of type t_INT)
+
+
+        -  ``x`` - gen (of type t_INT)
+
+        -  ``y`` - coercible to gen (of type t_INT)
+
+
         OUTPUT:
-            gen -- of type type t_INT
-        EXAMPLES:
+
+
+        -  ``gen`` - of type type t_INT
+
+
+        EXAMPLES::
+
             sage: pari(14).bitnegimply(0)
             14
             sage: pari(8).bitnegimply(8)
@@ -2248,15 +2512,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bitor(gen x, y):
         """
-        bitor(x,y): Bitwise or of two integers x and y. Negative
-        numbers behave as if modulo big power of 2.
+        bitor(x,y): Bitwise or of two integers x and y. Negative numbers
+        behave as if modulo big power of 2.
 
         INPUT:
-            x -- gen  (of type t_INT)
-            y -- coercible to gen  (of type t_INT)
+
+
+        -  ``x`` - gen (of type t_INT)
+
+        -  ``y`` - coercible to gen (of type t_INT)
+
+
         OUTPUT:
-            gen -- of type type t_INT
-        EXAMPLES:
+
+
+        -  ``gen`` - of type type t_INT
+
+
+        EXAMPLES::
+
             sage: pari(14).bitor(0)
             14
             sage: pari(8).bitor(4)
@@ -2273,15 +2547,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bittest(gen x, long n):
         """
-        bittest(x, long n): Returns bit number n (coefficient of $2^n$
-        in binary) of the integer x. Negative numbers behave as if modulo a
-        big power of 2.
+        bittest(x, long n): Returns bit number n (coefficient of
+        `2^n` in binary) of the integer x. Negative numbers behave
+        as if modulo a big power of 2.
 
         INPUT:
-           x -- gen (pari integer)
+
+
+        -  ``x`` - gen (pari integer)
+
+
         OUTPUT:
-           bool -- a Python bool
-        EXAMPLES:
+
+
+        -  ``bool`` - a Python bool
+
+
+        EXAMPLES::
+
             sage: x = pari(6)
             sage: x.bittest(0)
             False
@@ -2305,15 +2588,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bitxor(gen x, y):
         """
-        bitxor(x,y): Bitwise exclusive or of two integers x and y.
-        Negative numbers behave as if modulo big power of 2.
+        bitxor(x,y): Bitwise exclusive or of two integers x and y. Negative
+        numbers behave as if modulo big power of 2.
 
         INPUT:
-            x -- gen  (of type t_INT)
-            y -- coercible to gen  (of type t_INT)
+
+
+        -  ``x`` - gen (of type t_INT)
+
+        -  ``y`` - coercible to gen (of type t_INT)
+
+
         OUTPUT:
-            gen -- of type type t_INT
-        EXAMPLES:
+
+
+        -  ``gen`` - of type type t_INT
+
+
+        EXAMPLES::
+
             sage: pari(6).bitxor(4)
             2
             sage: pari(0).bitxor(4)
@@ -2328,15 +2621,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ceil(gen x):
         """
-        For real x: return the smallest integer >= x.
-        For rational functions: the quotient of numerator by denominator.
-        For lists: apply componentwise.
+        For real x: return the smallest integer = x. For rational
+        functions: the quotient of numerator by denominator. For lists:
+        apply componentwise.
 
         INPUT:
-           x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-           gen -- depends on type of x
-        EXAMPLES:
+
+
+        -  ``gen`` - depends on type of x
+
+
+        EXAMPLES::
+
             sage: pari(1.4).ceil()
             2
             sage: pari(-1.4).ceil()
@@ -2348,8 +2650,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari((x^2+x+1)/x).ceil()
             x + 1
 
-        This may be unexpected: but it is correct, treating the
-        argument as a rational function in RR(x).
+        This may be unexpected: but it is correct, treating the argument as
+        a rational function in RR(x).
+
+        ::
+
             sage: pari(x^2+5*x+2.5).ceil()
             x^2 + 5*x + 2.50000000000000
         """
@@ -2358,15 +2663,21 @@ cdef class gen(sage.structure.element.RingElement):
 
     def centerlift(gen x, v=-1):
         """
-        centerlift(x,{v}): Centered lift of x.  This function returns
-        exactly the same thing as lift, except if x is an integer mod.
+        centerlift(x,v): Centered lift of x. This function returns exactly
+        the same thing as lift, except if x is an integer mod.
 
         INPUT:
-            x -- gen
-            v -- var (default: x)
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+        -  ``v`` - var (default: x)
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: x = pari(-2).Mod(5)
             sage: x.centerlift()
             -2
@@ -2391,17 +2702,26 @@ cdef class gen(sage.structure.element.RingElement):
 
     def changevar(gen x, y):
         """
-        changevar(gen x, y): change variables of x according to the vector y.
+        changevar(gen x, y): change variables of x according to the vector
+        y.
 
-        WARNING: This doesn't seem to work right at all in SAGE (!).
-        Use with caution.   *STRANGE*
+        .. warning::
+
+           This doesn't seem to work right at all in Sage (!). Use
+           with caution. *STRANGE*
 
         INPUT:
-            x -- gen
-            y -- gen (or coercible to gen)
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+        -  ``y`` - gen (or coercible to gen)
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('x^3+1').changevar(pari(['y']))
             y^3 + 1
         """
@@ -2412,19 +2732,26 @@ cdef class gen(sage.structure.element.RingElement):
     def component(gen x, long n):
         """
         component(x, long n): Return n'th component of the internal
-        representation of x.  This function is 1-based
-        instead of 0-based.
+        representation of x. This function is 1-based instead of 0-based.
 
-        NOTE: For vectors or matrices, it is simpler to use x[n-1]. For
-        list objects such as is output by nfinit, it is easier to use
-        member functions.
+        .. note::
+
+           For vectors or matrices, it is simpler to use x[n-1]. For
+           list objects such as is output by nfinit, it is easier to
+           use member functions.
 
         INPUT:
-            x -- gen
-            n -- C long (coercible to)
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+        -  ``n`` - C long (coercible to)
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari([0,1,2,3,4]).component(1)
             0
             sage: pari([0,1,2,3,4]).component(2)
@@ -2437,6 +2764,8 @@ cdef class gen(sage.structure.element.RingElement):
             0
             sage: pari('x^3 + 2').component(4)
             1
+
+        ::
 
             sage: pari('x').component(0)
             Traceback (most recent call last):
@@ -2451,10 +2780,15 @@ cdef class gen(sage.structure.element.RingElement):
         conj(x): Return the algebraic conjugate of x.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('x+1').conj()
             x + 1
             sage: pari('x+I').conj()
@@ -2475,15 +2809,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def conjvec(gen x):
         """
-        conjvec(x): Returns the vector of all conjugates of the
-        algebraic number x.  An algebraic number is a polynomial over
-        Q modulo an irreducible polynomial.
+        conjvec(x): Returns the vector of all conjugates of the algebraic
+        number x. An algebraic number is a polynomial over Q modulo an
+        irreducible polynomial.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('Mod(1+x,x^2-2)').conjvec()
             [-0.414213562373095, 2.41421356237310]~
             sage: pari('Mod(x,x^3-3)').conjvec()
@@ -2494,16 +2833,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def denominator(gen x):
         """
-        denominator(x): Return the denominator of x.  When x is a
-        vector, this is the least common multiple of the denominators
-        of the components of x.
+        denominator(x): Return the denominator of x. When x is a vector,
+        this is the least common multiple of the denominators of the
+        components of x.
 
-        what about poly?
-        INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+        what about poly? INPUT:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('5/9').denominator()
             9
             sage: pari('(x+1)/(x-2)').denominator()
@@ -2520,15 +2863,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def floor(gen x):
         """
-        For real x: return the largest integer >= x.
-        For rational functions: the quotient of numerator by denominator.
-        For lists: apply componentwise.
+        For real x: return the largest integer = x. For rational functions:
+        the quotient of numerator by denominator. For lists: apply
+        componentwise.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari(5/9).floor()
             0
             sage: pari(11/9).floor()
@@ -2546,6 +2894,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(x^2+5*x+2.5).floor()
             x^2 + 5*x + 2.50000000000000
 
+        ::
+
             sage: pari('"hello world"').floor()
             Traceback (most recent call last):
             ...
@@ -2559,10 +2909,15 @@ cdef class gen(sage.structure.element.RingElement):
         frac(x): Return the fractional part of x, which is x - floor(x).
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari(1.75).frac()
             0.750000000000000
             sage: pari(sqrt(2)).frac()
@@ -2577,14 +2932,19 @@ cdef class gen(sage.structure.element.RingElement):
 
     def imag(gen x):
         """
-        imag(x): Return the imaginary part of x.  This function also
-        works component-wise.
+        imag(x): Return the imaginary part of x. This function also works
+        component-wise.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('1+2*I').imag()
             2
             sage: pari(sqrt(-2)).imag()
@@ -2603,42 +2963,29 @@ cdef class gen(sage.structure.element.RingElement):
 
     def length(self):
         """
-        Return the length of self, which is the number of
-        non-codewords in self.
 
-        NOTE: For strings, this count does not include the null
-        terminator ('\0'), but does include newlines.
-
-        NOTE: This may be architecture dependent.
-
-        EXAMPLES:
-            sage: pari(5).length()
-            1
-            sage: pari(2**50).length()
-            2             # 32-bit
-            1             # 64-bit
-            sage: pari(range(5)).length()
-            5
-            sage: pari([2**50..2**50+10]).length()
-            11
-            sage: pari('\"hello world\"').length()
-            11
         """
         return glength(self.g)
 
     def lift(gen x, v=-1):
         """
-        lift(x,{v}): Returns the lift of an element of Z/nZ to Z or
-        R[x]/(P) to R[x] for a type R if v is omitted.  If v is given,
-        lift only polymods with main variable v.  If v does not occur
-        in x, lift only intmods.
+        lift(x,v): Returns the lift of an element of Z/nZ to Z or R[x]/(P)
+        to R[x] for a type R if v is omitted. If v is given, lift only
+        polymods with main variable v. If v does not occur in x, lift only
+        intmods.
 
         INPUT:
-            x -- gen
-            v -- (optional) variable
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+        -  ``v`` - (optional) variable
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: x = pari("x")
             sage: a = x.Mod('x^3 + 17*x + 3')
             sage: a
@@ -2659,7 +3006,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         numbpart(x): returns the number of partitions of x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(20).numbpart()
             627
             sage: pari(100).numbpart()
@@ -2673,11 +3021,14 @@ cdef class gen(sage.structure.element.RingElement):
         numerator(x): Returns the numerator of x.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
 
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES:
         """
         _sig_on
         return P.new_gen(numer(x.g))
@@ -2689,10 +3040,19 @@ cdef class gen(sage.structure.element.RingElement):
         letters, where n is an integer.
 
         INPUT:
-            k -- gen, integer
-            n -- int
+
+
+        -  ``k`` - gen, integer
+
+        -  ``n`` - int
+
+
         OUTPUT:
-            gen -- vector (permutation of {1,...,n})
+
+
+        -  ``gen`` - vector (permutation of 1,...,n)
+
+
         EXAMPLES:
         """
         _sig_on
@@ -2701,12 +3061,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def padicprec(gen x, p):
         """
-        padicprec(x,p): Return the absolute p-adic precision of the object x.
+        padicprec(x,p): Return the absolute p-adic precision of the object
+        x.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            int
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: int
+
         EXAMPLES:
         """
         cdef gen _p
@@ -2718,13 +3083,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def permtonum(gen x):
         """
-        permtonum(x): Return the ordinal (between 1 and n!) of permutation vector x.
-        ??? Huh ???  say more.  what is a perm vector.  0 to n-1 or 1-n.
+        permtonum(x): Return the ordinal (between 1 and n!) of permutation
+        vector x. ??? Huh ??? say more. what is a perm vector. 0 to n-1 or
+        1-n.
 
         INPUT:
-            x -- gen (vector of integers)
+
+
+        -  ``x`` - gen (vector of integers)
+
+
         OUTPUT:
-            gen -- integer
+
+
+        -  ``gen`` - integer
+
+
         EXAMPLES:
         """
         if typ(x.g) != t_VEC:
@@ -2734,16 +3108,19 @@ cdef class gen(sage.structure.element.RingElement):
 
     def precision(gen x, long n=-1):
         """
-        precision(x,{n}): Change the precision of x to be n, where n
-        is a C-integer). If n is omitted, output the real precision of x.
+        precision(x,n): Change the precision of x to be n, where n is a
+        C-integer). If n is omitted, output the real precision of x.
 
         INPUT:
-            x -- gen
-            n -- (optional) int
-        OUTPUT:
-            nothing
-          or
-            gen if n is omitted
+
+
+        -  ``x`` - gen
+
+        -  ``n`` - (optional) int
+
+
+        OUTPUT: nothing or gen if n is omitted
+
         EXAMPLES:
         """
         if n <= -1:
@@ -2753,12 +3130,21 @@ cdef class gen(sage.structure.element.RingElement):
 
     def random(gen N):
         r"""
-        \code{random(\{N=$2^31$\})}: Return a pseudo-random integer between 0 and $N-1$.
+        ``random(N=2^31)``: Return a pseudo-random integer
+        between 0 and `N-1`.
 
         INPUT:
-            N -- gen, integer
+
+
+        -``N`` - gen, integer
+
+
         OUTPUT:
-            gen -- integer
+
+
+        -  ``gen`` - integer
+
+
         EXAMPLES:
         """
         if typ(N.g) != t_INT:
@@ -2771,9 +3157,13 @@ cdef class gen(sage.structure.element.RingElement):
         real(x): Return the real part of x.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
         EXAMPLES:
         """
         _sig_on
@@ -2781,29 +3171,38 @@ cdef class gen(sage.structure.element.RingElement):
 
     def round(gen x, estimate=False):
         """
-        round(x,estimate=False):  If x is a real number, returns x rounded
-        to the nearest integer (rounding up).  If the optional argument
-        estimate is True, also returns the binary exponent e of the difference
-        between the original and the rounded value (the "fractional part")
-        (this is the integer ceiling of log_2(error)).
+        round(x,estimate=False): If x is a real number, returns x rounded
+        to the nearest integer (rounding up). If the optional argument
+        estimate is True, also returns the binary exponent e of the
+        difference between the original and the rounded value (the
+        "fractional part") (this is the integer ceiling of log_2(error)).
 
         When x is a general PARI object, this function returns the result
-        of rounding every coefficient at every level of PARI object.
-        Note that this is different than what the truncate function
-        does (see the example below).
+        of rounding every coefficient at every level of PARI object. Note
+        that this is different than what the truncate function does (see
+        the example below).
 
-        One use of round is to get exact results after a long
-        approximate computation, when theory tells you that the
-        coefficients must be integers.
+        One use of round is to get exact results after a long approximate
+        computation, when theory tells you that the coefficients must be
+        integers.
 
         INPUT:
-            x -- gen
-            estimate -- (optional) bool, False by default
+
+
+        -  ``x`` - gen
+
+        -  ``estimate`` - (optional) bool, False by default
+
+
         OUTPUT:
-            * if estimate == False, return a single gen.
-            * if estimate == True, return rounded verison of x and
-              error estimate in bits, both as gens.
-        EXAMPLES:
+
+        - if estimate is False, return a single gen.
+
+        - if estimate is True, return rounded verison of x and error
+          estimate in bits, both as gens.
+
+        EXAMPLES::
+
             sage: pari('1.5').round()
             2
             sage: pari('1.5').round(True)
@@ -2834,12 +3233,13 @@ cdef class gen(sage.structure.element.RingElement):
         A complex or quadratic number whose imaginary part is an exact 0
         (i.e., not an approximate one such as O(3) or 0.E-28) is converted
         to its real part, and a a polynomial of degree 0 is converted to
-        its constant term.  Simplification occurs recursively.
+        its constant term. Simplification occurs recursively.
 
         This function is useful before using arithmetic functions, which
         expect integer arguments:
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: y = pari('y')
             sage: x = pari('9') + y - y
             sage: x
@@ -2869,14 +3269,19 @@ cdef class gen(sage.structure.element.RingElement):
     def sizebyte(gen x):
         """
         sizebyte(x): Return the total number of bytes occupied by the
-        complete tree of the object x.  Note that this number depends
-        on whether the computer is 32-bit or 64-bit (see examples).
+        complete tree of the object x. Note that this number depends on
+        whether the computer is 32-bit or 64-bit (see examples).
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            int (a Python int)
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: int (a Python int)
+
+        EXAMPLES::
+
             sage: pari('1').sizebyte()
             12           # 32-bit
             24           # 64-bit
@@ -2907,10 +3312,19 @@ cdef class gen(sage.structure.element.RingElement):
         decimal digits before the decimal point of any component of x.
 
         INPUT:
-            x -- gen
+
+
+        -  ``x`` - gen
+
+
         OUTPUT:
-            int -- Python integer
-        EXAMPLES:
+
+
+        -  ``int`` - Python integer
+
+
+        EXAMPLES::
+
             sage: x = pari('10^100')
             sage: x.Str().length()
             101
@@ -2918,13 +3332,17 @@ cdef class gen(sage.structure.element.RingElement):
             101
 
         Note that digits after the decimal point are ignored.
+
+        ::
+
             sage: x = pari('1.234')
             sage: x
             1.23400000000000
             sage: x.sizedigit()
             1
 
-        The estimate can be one too big:
+        The estimate can be one too big::
+
             sage: pari('7234.1').sizedigit()
             4
             sage: pari('9234.1').sizedigit()
@@ -2934,33 +3352,40 @@ cdef class gen(sage.structure.element.RingElement):
 
     def truncate(gen x, estimate=False):
         """
-        truncate(x,estimate=False):  Return the truncation of x.
-        If estimate is True, also return the number of error bits.
+        truncate(x,estimate=False): Return the truncation of x. If estimate
+        is True, also return the number of error bits.
 
-        When x is in the real numbers, this means that the part
-        after the decimal point is chopped away, e is the binary
-        exponent of the difference between the original and truncated
-        value (the "fractional part").    If x is a rational
-        function, the result is the integer part (Euclidean
-        quotient of numerator by denominator) and if requested
-        the error estimate is 0.
+        When x is in the real numbers, this means that the part after the
+        decimal point is chopped away, e is the binary exponent of the
+        difference between the original and truncated value (the
+        "fractional part"). If x is a rational function, the result is the
+        integer part (Euclidean quotient of numerator by denominator) and
+        if requested the error estimate is 0.
 
-        When truncate is applied to a power series (in X), it
-        transforms it into a polynomial or a rational function with
-        denominator a power of X, by chopping away the $O(X^k)$.
-        Similarly, when applied to a p-adic number, it transforms it
-        into an integer or a rational number by chopping away the
-        $O(p^k)$.
+        When truncate is applied to a power series (in X), it transforms it
+        into a polynomial or a rational function with denominator a power
+        of X, by chopping away the `O(X^k)`. Similarly, when
+        applied to a p-adic number, it transforms it into an integer or a
+        rational number by chopping away the `O(p^k)`.
 
         INPUT:
-            x -- gen
-            estimate -- (optional) bool, which is False by default
+
+
+        -  ``x`` - gen
+
+        -  ``estimate`` - (optional) bool, which is False by
+           default
+
+
         OUTPUT:
-            * if estimate == False, return a single gen.
-            * if estimate == True, return rounded version of x and
-              error estimate in bits, both as gens.
-        OUTPUT:
-        EXAMPLES:
+
+        - if estimate is False, return a single gen.
+
+        - if estimate is True, return rounded version of x and error
+          estimate in bits, both as gens.
+
+        EXAMPLES::
+
             sage: pari('(x^2+1)/x').round()
             (x^2 + 1)/x
             sage: pari('(x^2+1)/x').truncate()
@@ -2994,30 +3419,40 @@ cdef class gen(sage.structure.element.RingElement):
 
         The valuation is the highest exponent of p dividing x.
 
-           * If p is an integer, x must be an integer, an intmod whose
-             modulus is divisible by p, a rational number, a p-adic
-             number, or a polynomial or power series in which case the
-             valuation is the minimum of the valuations of the
-             coefficients.
+        - If p is an integer, x must be an integer, an intmod whose
+          modulus is divisible by p, a rational number, a p-adic
+          number, or a polynomial or power series in which case the
+          valuation is the minimum of the valuations of the
+          coefficients.
 
-           * If p is a polynomial, x must be a polynomial or a
-             rational function.  If p is a monomial then x may also be
-             a power series.
+        - If p is a polynomial, x must be a polynomial or a rational
+          function. If p is a monomial then x may also be a power
+          series.
 
-           * If x is a vector, complex or quadratic number, then the
-             valuation is the minimum of the component valuations.
+        - If x is a vector, complex or quadratic number, then the
+          valuation is the minimum of the component valuations.
 
-           * If x = 0, the result is $2^31-1$ on 32-bit machines or
-             $2^63-1$ on 64-bit machines if x is an exact object.
-             If x is a p-adic number or power series, the result
-             is the exponent of the zero.
+        - If x = 0, the result is `2^31-1` on 32-bit machines or
+          `2^63-1` on 64-bit machines if x is an exact
+          object. If x is a p-adic number or power series, the result
+          is the exponent of the zero.
 
         INPUT:
-            x -- gen
-            p -- coercible to gen
+
+
+        -  ``x`` - gen
+
+        -  ``p`` - coercible to gen
+
+
         OUTPUT:
-            gen -- integer
-        EXAMPLES:
+
+
+        -  ``gen`` - integer
+
+
+        EXAMPLES::
+
             sage: pari(9).valuation(3)
             2
             sage: pari(9).valuation(9)
@@ -3033,12 +3468,16 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('9 + 3*x + 15*x^2 + O(x^5)').valuation(3)
             1
 
+        ::
+
             sage: pari('x^2*(x+1)^3').valuation(pari('x+1'))
             3
             sage: pari('x + O(x^5)').valuation('x')
             1
             sage: pari('2*x^2 + O(x^5)').valuation('x')
             2
+
+        ::
 
             sage: pari(0).valuation(3)
             2147483647            # 32-bit
@@ -3052,17 +3491,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def variable(gen x):
         """
-        variable(x): Return the main variable of the object x, or p
-        if x is a p-adic number.
+        variable(x): Return the main variable of the object x, or p if x is
+        a p-adic number.
 
-        This function raises a TypeError exception on scalars, i.e.,
-        on objects with no variable associated to them.
+        This function raises a TypeError exception on scalars, i.e., on
+        objects with no variable associated to them.
 
         INPUT:
-            x -- gen
-        OUTPUT:
-            gen
-        EXAMPLES:
+
+
+        -  ``x`` - gen
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari('x^2 + x -2').variable()
             x
             sage: pari('1+2^3 + O(2^5)').variable()
@@ -3085,20 +3529,22 @@ cdef class gen(sage.structure.element.RingElement):
     def abs(gen x):
         """
         Returns the absolute value of x (its modulus, if x is complex).
-        Rational functions are not allowed.  Contrary to most transcendental
-        functions, an exact argument is not converted to a real number before
-        applying abs and an exact result is returned if possible.
+        Rational functions are not allowed. Contrary to most transcendental
+        functions, an exact argument is not converted to a real number
+        before applying abs and an exact result is returned if possible.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = pari("-27.1")
             sage: x.abs()
             27.1000000000000
 
         If x is a polynomial, returns -x if the leading coefficient is real
-        and negative else returns x.  For a power series, the constant
+        and negative else returns x. For a power series, the constant
         coefficient is considered instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('x-1.2*x^2').abs()
             1.20000000000000*x^2 - x
         """
@@ -3108,16 +3554,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def acos(gen x, long precision=0):
         r"""
-        The principal branch of $\cos^{-1}(x)$, so that $\Re(\acos(x))$
-        belongs to $[0,Pi]$. If $x$ is real and $|x| > 1$,
-        then $\acos(x)$ is complex.
+        The principal branch of `\cos^{-1}(x)`, so that
+        `\mathbb{R}e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
+        is real and `|x| > 1`, then `\mathrm{acos}(x)` is complex.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0.5).acos()
             1.04719755119660
             sage: pari(1/2).acos()
@@ -3133,16 +3580,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def acosh(gen x, precision=0):
         r"""
-        The principal branch of $\cosh^{-1}(x)$, so that
-        $\Im(\acosh(x))$ belongs to $[0,Pi]$. If $x$ is real and $x <
-        1$, then $\acosh(x)$ is complex.
+        The principal branch of `\cosh^{-1}(x)`, so that
+        `\Im(\mathrm{acosh}(x))` belongs to `[0,Pi]`. If
+        `x` is real and `x < 1`, then
+        `\mathrm{acosh}(x)` is complex.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).acosh()
             1.31695789692482
             sage: pari(0).acosh()
@@ -3156,19 +3605,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def agm(gen x, y, precision=0):
         r"""
-        The arithmetic-geometric mean of x and y.  In the case of complex
-        or negative numbers, the principal square root is always chosen.
-        p-adic or power series arguments are also allowed.  Note that a p-adic
-        AGM exists only if x/y is congruent to 1 modulo p (modulo 16 for p=2).
-        x and y cannot both be vectors or matrices.
+        The arithmetic-geometric mean of x and y. In the case of complex or
+        negative numbers, the principal square root is always chosen.
+        p-adic or power series arguments are also allowed. Note that a
+        p-adic AGM exists only if x/y is congruent to 1 modulo p (modulo 16
+        for p=2). x and y cannot both be vectors or matrices.
 
-        If any of $x$ or $y$ is an exact argument, it is first
-        converted to a real or complex number using the optional
-        parameter precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their two precisions is used in
-        the computation, and the parameter precision is ignored.
+        If any of `x` or `y` is an exact argument, it is
+        first converted to a real or complex number using the optional
+        parameter precision (in bits). If the arguments are inexact (e.g.
+        real), the smallest of their two precisions is used in the
+        computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).agm(2)
             2.00000000000000
             sage: pari(0).agm(1)
@@ -3185,14 +3635,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def arg(gen x, precision=0):
         r"""
-        arg(x): argument of x,such that $-\pi < \arg(x) \leq \pi$.
+        arg(x): argument of x,such that `-\pi < \arg(x) \leq \pi`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(2+i).arg()
             0.463647609000806
@@ -3202,16 +3653,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def asin(gen x, precision=0):
         r"""
-        The principal branch of $\sin^{-1}(x)$, so that
-        $\Re(\asin(x))$ belongs to $[-\pi/2,\pi/2]$. If $x$ is real
-        and $|x| > 1$ then $\asin(x)$ is complex.
+        The principal branch of `\sin^{-1}(x)`, so that
+        `\mathbb{R}e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
+        `x` is real and `|x| > 1` then `\mathrm{asin}(x)`
+        is complex.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(pari(0.5).sin()).asin()
             0.500000000000000
             sage: pari(2).asin()
@@ -3222,15 +3675,16 @@ cdef class gen(sage.structure.element.RingElement):
 
     def asinh(gen x, precision=0):
         r"""
-        The principal branch of $\sinh^{-1}(x)$, so that $\Im(\asinh(x))$
-        belongs to $[-\pi/2,\pi/2]$.
+        The principal branch of `\sinh^{-1}(x)`, so that
+        `\Im(\mathrm{asinh}(x))` belongs to `[-\pi/2,\pi/2]`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).asinh()
             1.44363547517881
             sage: C.<i> = ComplexField()
@@ -3242,15 +3696,16 @@ cdef class gen(sage.structure.element.RingElement):
 
     def atan(gen x, precision=0):
         r"""
-        The principal branch of $\tan^{-1}(x)$, so that $\Re(\atan(x))$
-        belongs to $]-\pi/2, \pi/2[$.
+        The principal branch of `\tan^{-1}(x)`, so that
+        `\mathbb{R}e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).atan()
             0.785398163397448
             sage: C.<i> = ComplexField()
@@ -3262,16 +3717,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def atanh(gen x, precision=0):
         r"""
-        The principal branch of $\tanh^{-1}(x)$, so that
-        $\Im(\atanh(x))$ belongs to $]-\pi/2,\pi/2]$.  If $x$ is real
-        and $|x| > 1$ then $\atanh(x)$ is complex.
+        The principal branch of `\tanh^{-1}(x)`, so that
+        `\Im(\mathrm{atanh}(x))` belongs to `]-\pi/2,\pi/2]`. If
+        `x` is real and `|x| > 1` then `\mathrm{atanh}(x)`
+        is complex.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0).atanh()
             0.E-19
             sage: pari(2).atanh()
@@ -3282,11 +3739,13 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bernfrac(gen x):
         r"""
-        The Bernoulli number $B_x$, where $B_0 = 1$, $B_1 = -1/2$,
-        $B_2 = 1/6,\ldots,$ expressed as a rational number. The
-        argument $x$ should be of type integer.
+        The Bernoulli number `B_x`, where `B_0 = 1`,
+        `B_1 = -1/2`, `B_2 = 1/6,\ldots,` expressed as a
+        rational number. The argument `x` should be of type
+        integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(18).bernfrac()
             43867/798
             sage: [pari(n).bernfrac() for n in range(10)]
@@ -3297,11 +3756,12 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bernreal(gen x):
         r"""
-        The Bernoulli number $B_x$, as for the function bernfrac, but
-        $B_x$ is returned as a real number (with the current
+        The Bernoulli number `B_x`, as for the function bernfrac,
+        but `B_x` is returned as a real number (with the current
         precision).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(18).bernreal()
             54.9711779448622
         """
@@ -3311,16 +3771,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bernvec(gen x):
         r"""
-        Creates a vector containing, as rational numbers, the
-        Bernoulli numbers $B_0, B_2,\ldots, B_{2x}$.  This routine is
-        obsolete.  Use bernfrac instead each time you need a Bernoulli
+        Creates a vector containing, as rational numbers, the Bernoulli
+        numbers `B_0, B_2,\ldots, B_{2x}`. This routine is
+        obsolete. Use bernfrac instead each time you need a Bernoulli
         number in exact form.
 
-        Note:  this  routine  is  implemented  using  repeated  independent
-        calls to bernfrac, which is faster than the standard recursion in
-        exact arithmetic.
+        Note: this routine is implemented using repeated independent calls
+        to bernfrac, which is faster than the standard recursion in exact
+        arithmetic.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(8).bernvec()
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
             sage: [pari(2*n).bernfrac() for n in range(9)]
@@ -3331,15 +3792,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besselh1(gen nu, x, precision=0):
         r"""
-        The $H^1$-Bessel function of index $\nu$ and argument $x$.
+        The `H^1`-Bessel function of index `\nu` and
+        argument `x`.
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).besselh1(3)
             0.486091260585891 - 0.160400393484924*I
         """
@@ -3349,15 +3812,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besselh2(gen nu, x, precision=0):
         r"""
-        The $H^2$-Bessel function of index $\nu$ and argument $x$.
+        The `H^2`-Bessel function of index `\nu` and
+        argument `x`.
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).besselh2(3)
             0.486091260585891 + 0.160400393484924*I
         """
@@ -3367,19 +3832,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besselj(gen nu, x, precision=0):
         r"""
-        Bessel J function (Bessel function of the first kind), with
-        index $\nu$ and argument $x$.  If $x$ converts to a power
-        series, the initial factor $(x/2)^{\nu}/\Gamma(\nu+1)$ is
-        omitted (since it cannot be represented in PARI when $\nu$ is not
-        integral).
+        Bessel J function (Bessel function of the first kind), with index
+        `\nu` and argument `x`. If `x` converts to
+        a power series, the initial factor
+        `(x/2)^{\nu}/\Gamma(\nu+1)` is omitted (since it cannot be
+        represented in PARI when `\nu` is not integral).
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).besselj(3)
             0.486091260585891
         """
@@ -3390,18 +3856,20 @@ cdef class gen(sage.structure.element.RingElement):
     def besseljh(gen nu, x, precision=0):
         """
         J-Bessel function of half integral index (Speherical Bessel
-        function of the first kind).  More precisely, besseljh(n,x)
-        computes $J_{n+1/2}(x)$ where n must an integer, and x is any
-        complex value.  In the current implementation (PARI, version
-        2.2.11), this function is not very accurate when $x$ is small.
+        function of the first kind). More precisely, besseljh(n,x) computes
+        `J_{n+1/2}(x)` where n must an integer, and x is any
+        complex value. In the current implementation (PARI, version
+        2.2.11), this function is not very accurate when `x` is
+        small.
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).besseljh(3)
             0.4127100324          # 32-bit
             0.412710032209716     # 64-bit
@@ -3411,20 +3879,21 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(jbesselh(nu.g, t0, pbw(precision)))
 
     def besseli(gen nu, x, precision=0):
-        """
-        Bessel I function (Bessel function of the second kind), with
-        index $\nu$ and argument $x$.  If $x$ converts to a power
-        series, the initial factor $(x/2)^{\nu}/\Gamma(\nu+1)$ is
-        omitted (since it cannot be represented in PARI when $\nu$ is not
-        integral).
+        r"""
+        Bessel I function (Bessel function of the second kind), with index
+        `\nu` and argument `x`. If `x` converts to
+        a power series, the initial factor
+        `(x/2)^{\nu}/\Gamma(\nu+1)` is omitted (since it cannot be
+        represented in PARI when `\nu` is not integral).
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).besseli(3)
             2.24521244092995
             sage: C.<i> = ComplexField()
@@ -3437,29 +3906,39 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besselk(gen nu, x, long flag=0, precision=0):
         """
-        nu.besselk(x, flag=0): K-Bessel function (modified Bessel
-        function of the second kind) of index nu, which can be
-        complex, and argument x.
+        nu.besselk(x, flag=0): K-Bessel function (modified Bessel function
+        of the second kind) of index nu, which can be complex, and argument
+        x.
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
         INPUT:
-            nu -- a complex number
-            x -- real number (positive or negative)
-            flag -- default: 0 or 1: use hyperu  (hyperu is much slower for
-                    small x, and doesn't work for negative x).
 
-        EXAMPLES:
+
+        -  ``nu`` - a complex number
+
+        -  ``x`` - real number (positive or negative)
+
+        -  ``flag`` - default: 0 or 1: use hyperu (hyperu is
+           much slower for small x, and doesn't work for negative x).
+
+
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(2+i).besselk(3)
             0.0455907718407551 + 0.0289192946582081*I
 
+        ::
+
             sage: pari(2+i).besselk(-3)
             -4.34870874986752 - 5.38744882697109*I
+
+        ::
 
             sage: pari(2+i).besselk(300, flag=1)
             3.74224603319728 E-132 + 2.49071062641525 E-134*I
@@ -3470,16 +3949,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def besseln(gen nu, x, precision=0):
         """
-        nu.besseln(x): Bessel N function (Spherical Bessel function of
-        the second kind) of index nu and argument x.
+        nu.besseln(x): Bessel N function (Spherical Bessel function of the
+        second kind) of index nu and argument x.
 
-        If $nu$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `nu` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(2+i).besseln(3)
             -0.280775566958244 - 0.486708533223726*I
@@ -3492,12 +3972,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         The cosine function.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1.5).cos()
             0.0707372016677029
             sage: C.<i> = ComplexField()
@@ -3513,12 +3994,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         The hyperbolic cosine function.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1.5).cosh()
             2.35240961524325
             sage: C.<i> = ComplexField()
@@ -3534,18 +4016,21 @@ cdef class gen(sage.structure.element.RingElement):
         """
         The cotangent of x.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(5).cotan()
             -0.295812915532746
 
-        Computing the cotangent of $\pi$ doesn't raise an error, but
-        instead just returns a very large (positive or negative)
+        Computing the cotangent of `\pi` doesn't raise an error,
+        but instead just returns a very large (positive or negative)
         number.
+
+        ::
 
             sage: x = RR(pi)
             sage: pari(x).cotan()         # random
@@ -3556,15 +4041,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def dilog(gen x, precision=0):
         r"""
-        The principal branch of the dilogarithm of $x$, i.e. the analytic
-        continuation of the power series $\log_2(x) = \sum_{n>=1} x^n/n^2$.
+        The principal branch of the dilogarithm of `x`, i.e. the
+        analytic continuation of the power series
+        `\log_2(x) = \sum_{n>=1} x^n/n^2`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).dilog()
             1.64493406684823
             sage: C.<i> = ComplexField()
@@ -3576,24 +4063,27 @@ cdef class gen(sage.structure.element.RingElement):
 
     def eint1(gen x, long n=0, precision=0):
         r"""
-        x.eint1({n}): exponential integral E1(x):
-        $$
-            \int_{x}^{\infty} \frac{e^{-t}}{t} dt
-        $$
-        If n is present, output the vector
-            [eint1(x), eint1(2*x), ..., eint1(n*x)].
-        This is faster than repeatedly calling eint1(i*x).
+        x.eint1(n): exponential integral E1(x):
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        .. math::
+
+                         \int_{x}^{\infty} \frac{e^{-t}}{t} dt
+
+
+        If n is present, output the vector [eint1(x), eint1(2\*x), ...,
+        eint1(n\*x)]. This is faster than repeatedly calling eint1(i\*x).
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        REFERENCE: See page 262, Prop 5.6.12, of Cohen's book
-        "A Course in Computational Algebraic Number Theory".
+        REFERENCE:
+
+        - See page 262, Prop 5.6.12, of Cohen's book "A Course in
+          Computational Algebraic Number Theory".
 
         EXAMPLES:
-
         """
         _sig_on
         if n <= 0:
@@ -3604,14 +4094,20 @@ cdef class gen(sage.structure.element.RingElement):
     def erfc(gen x, precision=0):
         r"""
         Return the complementary error function:
-             $$(2/\sqrt{\pi}) \int_{x}^{\infty} e^{-t^2} dt.$$
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        .. math::
+
+            (2/\sqrt{\pi}) \int_{x}^{\infty} e^{-t^2} dt.
+
+
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).erfc()
             0.157299207050285
         """
@@ -3620,23 +4116,25 @@ cdef class gen(sage.structure.element.RingElement):
 
     def eta(gen x, flag=0, precision=0):
         r"""
-        x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$;
-        otherwise $\eta$ of the complex number $x$ in the upper half plane
-        intelligently computed using $\SL(2,\Z)$ transformations.
+        x.eta(flag=0): if flag=0, `\eta` function without the
+        `q^{1/24}`; otherwise `\eta` of the complex number
+        `x` in the upper half plane intelligently computed using
+        `\mathrm{SL}(2,\mathbb{Z})` transformations.
 
-        DETAILS: This functions computes the following.  If the input
-        $x$ is a complex number with positive imaginary part, the
-        result is $\prod_{n=1}^{\infty} (q-1^n)$, where $q=e^{2 i \pi
-        x}$.  If $x$ is a power series (or can be converted to a power
-        series) with positive valuation, the result is
-        $\prod_{n=1}^{\infty} (1-x^n)$.
+        DETAILS: This functions computes the following. If the input
+        `x` is a complex number with positive imaginary part, the
+        result is `\prod_{n=1}^{\infty} (q-1^n)`, where
+        `q=e^{2 i \pi x}`. If `x` is a power series
+        (or can be converted to a power series) with positive valuation,
+        the result is `\prod_{n=1}^{\infty} (1-x^n)`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(i).eta()
             0.998129069925959 + 0.E-21*I
@@ -3650,12 +4148,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         x.exp(): exponential of x.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0).exp()
             1.00000000000000
             sage: pari(1).exp()
@@ -3668,14 +4167,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def gamma(gen s, precision=0):
         """
-        s.gamma({precision}): Gamma function at s.
+        s.gamma(precision): Gamma function at s.
 
-        If $s$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $s$ is inexact (e.g. real), its own precision is
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).gamma()
             1.00000000000000
             sage: pari(5).gamma()
@@ -3691,12 +4191,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         s.gammah(): Gamma function evaluated at the argument x+1/2.
 
-        If $s$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $s$ is inexact (e.g. real), its own precision is
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).gammah()
             1.32934038817914
             sage: pari(5).gammah()
@@ -3712,13 +4213,14 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         a.hyperu(b,x): U-confluent hypergeometric function.
 
-        If $a$, $b$, or $x$ is an exact argument, it is first
-        converted to a real or complex number using the optional
-        parameter precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `a`, `b`, or `x` is an exact argument,
+        it is first converted to a real or complex number using the
+        optional parameter precision (in bits). If the arguments are
+        inexact (e.g. real), the smallest of their precisions is used in
+        the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).hyperu(2,3)
             0.333333333333333
         """
@@ -3729,15 +4231,16 @@ cdef class gen(sage.structure.element.RingElement):
 
     def incgam(gen s, x, y=None, precision=0):
         r"""
-        s.incgam(x, {y}, {precision}): incomplete gamma function. y
-        is optional and is the precomputed value of gamma(s).
+        s.incgam(x, y, precision): incomplete gamma function. y is optional
+        and is the precomputed value of gamma(s).
 
-        If $s$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $s$ is inexact (e.g. real), its own precision is
+        If `s` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `s` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(1+i).incgam(3-i)
             -0.0458297859919946 + 0.0433696818726677*I
@@ -3754,19 +4257,21 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         s.incgamc(x): complementary incomplete gamma function.
 
-        The arguments $x$ and $s$ are complex numbers such that $s$ is
-        not a pole of $\Gamma$ and $|x|/(|s|+1)$ is not much larger
-        than $1$ (otherwise, the convergence is very slow).  The
-        function returns the value of the integral $\int_{0}^{x}
-        e^{-t} t^{s-1} dt.$
+        The arguments `x` and `s` are complex numbers such
+        that `s` is not a pole of `\Gamma` and
+        `|x|/(|s|+1)` is not much larger than `1`
+        (otherwise, the convergence is very slow). The function returns the
+        value of the integral
+        `\int_{0}^{x} e^{-t} t^{s-1} dt.`
 
-        If $s$ or $x$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `s` or `x` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).incgamc(2)
             0.864664716763387
         """
@@ -3778,30 +4283,36 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         x.log(): natural logarithm of x.
 
-        This function returns the principal branch of the natural
-        logarithm of $x$, i.e., the branch such that $\Im(\log(x)) \in
-        ]-\pi, \pi].$ The result is complex (with imaginary part equal
-        to $\pi$) if $x\in \R$ and $x<0$.  In general, the algorithm
-        uses the formula
-        $$
-            \log(x) \simeq \frac{\pi}{2{\rm agm}(1,4/s)} - m\log(2),
-        $$
-        if $s=x 2^m$ is large enough.  (The result is exact to $B$
-        bits provided that $s>2^{B/2}$.)  At low accuracies, this
-        function computes $\log$ using the series expansion near $1$.
+        This function returns the principal branch of the natural logarithm
+        of `x`, i.e., the branch such that
+        `\Im(\log(x)) \in ]-\pi, \pi].` The result is
+        complex (with imaginary part equal to `\pi`) if
+        `x\in \mathbb{R}` and `x<0`. In general, the algorithm uses
+        the formula
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        .. math::
+
+                         \log(x) \simeq \frac{\pi}{2{\rm agm}(1,4/s)} - m\log(2),
+
+
+        if `s=x 2^m` is large enough. (The result is exact to
+        `B` bits provided that `s>2^{B/2}`.) At low
+        accuracies, this function computes `\log` using the series
+        expansion near `1`.
+
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        Note that $p$-adic arguments can also be given as input,
-        with the convention that $\log(p)=0$.  Hence, in
-        particular, $\exp(\log(x))/x$ is not in general
-        equal to $1$ but instead to a $(p-1)$-st root of
-        unity (or $\pm 1$ if $p=2$) times a power of $p$.
+        Note that `p`-adic arguments can also be given as input,
+        with the convention that `\log(p)=0`. Hence, in particular,
+        `\exp(\log(x))/x` is not in general equal to `1`
+        but instead to a `(p-1)`-st root of unity (or
+        `\pm 1` if `p=2`) times a power of `p`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(5).log()
             1.60943791243410
             sage: C.<i> = ComplexField()
@@ -3815,21 +4326,22 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         x.lngamma(): logarithm of the gamma function of x.
 
-        This function returns the principal branch of the logarithm of
-        the gamma function of $x$.  The function $\log(\Gamma(x))$ is
-        analytic on the complex plane with non-positive integers
-        removed.  This function can have much larger inputs than
-        $\Gamma$ itself.
+        This function returns the principal branch of the logarithm of the
+        gamma function of `x`. The function
+        `\log(\Gamma(x))` is analytic on the complex plane with
+        non-positive integers removed. This function can have much larger
+        inputs than `\Gamma` itself.
 
-        The $p$-adic analogue of this function is unfortunately not
+        The `p`-adic analogue of this function is unfortunately not
         implemented.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(100).lngamma()
             359.134205369575
         """
@@ -3838,19 +4350,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def polylog(gen x, long m, flag=0, precision=0):
         """
-        x.polylog(m,{flag=0}): m-th polylogarithm of x. flag is
-        optional, and can be 0: default, 1: D_m~-modified m-th polylog
-        of x, 2: D_m-modified m-th polylog of x, 3: P_m-modified m-th
-        polylog of x.
+        x.polylog(m,flag=0): m-th polylogarithm of x. flag is optional, and
+        can be 0: default, 1: D_m -modified m-th polylog of x, 2:
+        D_m-modified m-th polylog of x, 3: P_m-modified m-th polylog of
+        x.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
         TODO: Add more explanation, copied from the PARI manual.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).polylog(3)
             5.64181141475134 - 8.32820207698027*I
             sage: pari(10).polylog(3,0)
@@ -3867,15 +4380,16 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         x.psi(): psi-function at x.
 
-        Return the $\psi$-function of $x$, i.e., the logarithmic
-        derivative $\Gamma'(x)/\Gamma(x)$.
+        Return the `\psi`-function of `x`, i.e., the
+        logarithmic derivative `\Gamma'(x)/\Gamma(x)`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).psi()
             -0.577215664901533
         """
@@ -3886,12 +4400,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         x.sin(): The sine of x.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).sin()
             0.841470984807897
             sage: C.<i> = ComplexField()
@@ -3905,12 +4420,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         The hyperbolic sine function.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0).sinh()
             0.E-19
             sage: C.<i> = ComplexField()
@@ -3922,21 +4438,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sqr(gen x):
         """
-        x.sqr(): square of x.  Faster than, and most of the time (but not
-        always -- see the examples) identical to x*x.
+        x.sqr(): square of x. Faster than, and most of the time (but not
+        always - see the examples) identical to x\*x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).sqr()
             4
 
-            For $2$-adic numbers, x.sqr() may not be identical to x*x
-            (squaring a $2$-adic number increases its precision):
+        For `2`-adic numbers, x.sqr() may not be identical to x\*x
+        (squaring a `2`-adic number increases its precision)::
+
             sage: pari("1+O(2^5)").sqr()
             1 + O(2^6)
             sage: pari("1+O(2^5)")*pari("1+O(2^5)")
             1 + O(2^5)
 
-            However:
+        However::
+
             sage: x = pari("1+O(2^5)"); x*x
             1 + O(2^6)
         """
@@ -3946,14 +4465,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sqrt(gen x, precision=0):
         """
-        x.sqrt({precision}): The square root of x.
+        x.sqrt(precision): The square root of x.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(2).sqrt()
             1.41421356237310
         """
@@ -3962,31 +4482,43 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sqrtn(gen x, n, precision=0):
         r"""
-        x.sqrtn(n): return the principal branch of the n-th root
-        of x, i.e., the one such that
-              $\arg(\sqrt(x)) \in ]-\pi/n, \pi/n]$.
-        Also returns a second argument which is a suitable root
-        of unity allowing one to recover all the other roots.
-        If it was not possible to find such a number, then this
-        second return value is 0.  If the argument is present and
+        x.sqrtn(n): return the principal branch of the n-th root of x,
+        i.e., the one such that
+        `\arg(\sqrt(x)) \in ]-\pi/n, \pi/n]`. Also returns a second
+        argument which is a suitable root of unity allowing one to recover
+        all the other roots. If it was not possible to find such a number,
+        then this second return value is 0. If the argument is present and
         no square root exists, return 0 instead of raising an error.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        NOTE: intmods (modulo a prime) and $p$-adic numbers are
-        allowed as arguments.
+        .. note::
+
+           intmods (modulo a prime) and `p`-adic numbers are
+           allowed as arguments.
 
         INPUT:
-            x -- gen
-            n -- integer
-        OUTPUT:
-            gen -- principal n-th root of x
-            gen -- root of unity z that gives the other roots
 
-        EXAMPLES:
+
+        -  ``x`` - gen
+
+        -  ``n`` - integer
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - principal n-th root of x
+
+        -  ``gen`` - root of unity z that gives the other
+           roots
+
+
+        EXAMPLES::
+
             sage: s, z = pari(2).sqrtn(5)
             sage: z
             0.309016994374947 + 0.951056516295154*I
@@ -4010,15 +4542,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def tan(gen x, precision=0):
         """
-        x.tan() -- tangent of x
+        x.tan() - tangent of x
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
+        EXAMPLES::
 
-        EXAMPLES:
             sage: pari(2).tan()
             -2.18503986326152
             sage: C.<i> = ComplexField()
@@ -4030,14 +4562,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def tanh(gen x, precision=0):
         """
-        x.tanh() -- hyperbolic tangent of x
+        x.tanh() - hyperbolic tangent of x
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).tanh()
             0.761594155955765
             sage: C.<i> = ComplexField()
@@ -4051,10 +4584,11 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         teichmuller(x): teichmuller character of p-adic number x.
 
-        This is the unique $(p-1)$-st root of unity congruent to
-        $x/p^{v_p(x)}$ modulo $p$.
+        This is the unique `(p-1)`-st root of unity congruent to
+        `x/p^{v_p(x)}` modulo `p`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('2+O(7^5)').teichmuller()
             2 + 4*7 + 6*7^2 + 3*7^3 + O(7^5)
         """
@@ -4065,13 +4599,14 @@ cdef class gen(sage.structure.element.RingElement):
         """
         q.theta(z): Jacobi sine theta-function.
 
-        If $q$ or $z$ is an exact argument, it is first converted to
-        a real or complex number using the optional parameter
-        precision (in bits).  If the arguments are inexact
-        (e.g. real), the smallest of their precisions is used in the
-        computation, and the parameter precision is ignored.
+        If `q` or `z` is an exact argument, it is first
+        converted to a real or complex number using the optional parameter
+        precision (in bits). If the arguments are inexact (e.g. real), the
+        smallest of their precisions is used in the computation, and the
+        parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0.5).theta(2)
             1.63202590295260
         """
@@ -4083,12 +4618,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z).
 
-        If $q$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $q$ is inexact (e.g. real), its own precision is
+        If `q` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `q` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(0.5).thetanullk(1)
             0.548978532560341
         """
@@ -4097,23 +4633,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def weber(gen x, flag=0, precision=0):
         r"""
-        x.weber({flag=0}): One of Weber's f functions of x.
-        flag is optional, and can be
-           0: default, function f(x)=exp(-i*Pi/24)*eta((x+1)/2)/eta(x)
-              such that $j=(f^{24}-16)^3/f^{24}$,
-           1: function f1(x)=eta(x/2)/eta(x) such that
-              $j=(f1^24+16)^3/f2^{24}$,
-           2: function f2(x)=sqrt(2)*eta(2*x)/eta(x) such that
-              $j=(f2^{24}+16)^3/f2^{24}$.
+        x.weber(flag=0): One of Weber's f functions of x. flag is optional,
+        and can be 0: default, function
+        f(x)=exp(-i\*Pi/24)\*eta((x+1)/2)/eta(x) such that
+        `j=(f^{24}-16)^3/f^{24}`, 1: function f1(x)=eta(x/2)/eta(x)
+        such that `j=(f1^24+16)^3/f2^{24}`, 2: function
+        f2(x)=sqrt(2)\*eta(2\*x)/eta(x) such that
+        `j=(f2^{24}+16)^3/f2^{24}`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
         TODO: Add further explanation from PARI manual.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C.<i> = ComplexField()
             sage: pari(i).weber()
             1.18920711500272 + 0.E-19*I
@@ -4129,31 +4665,39 @@ cdef class gen(sage.structure.element.RingElement):
         """
         zeta(s): zeta function at s with s a complex or a p-adic number.
 
-        If $s$ is a complex number, this is the Riemann zeta function
-        $\zeta(s)=\sum_{n\geq 1} n^{-s}$, computed either using the
-        Euler-Maclaurin summation formula (if $s$ is not an integer),
-        or using Bernoulli numbers (if $s$ is a negative integer or an
-        even nonnegative integer), or using modular forms (if $s$ is
-        an odd nonnegative integer).
+        If `s` is a complex number, this is the Riemann zeta
+        function `\zeta(s)=\sum_{n\geq 1} n^{-s}`, computed either
+        using the Euler-Maclaurin summation formula (if `s` is not
+        an integer), or using Bernoulli numbers (if `s` is a
+        negative integer or an even nonnegative integer), or using modular
+        forms (if `s` is an odd nonnegative integer).
 
-        If $s$ is a $p$-adic number, this is the Kubota-Leopoldt zeta
-        function, i.e. the unique continuous $p$-adic function on the
-        $p$-adic integers that interpolates the values of
-        $(1-p^{-k})\zeta(k)$ at negative integers $k$ such that
-        $k\equiv 1\pmod{p-1}$ if $p$ is odd, and at odd $k$ if $p=2$.
+        If `s` is a `p`-adic number, this is the
+        Kubota-Leopoldt zeta function, i.e. the unique continuous
+        `p`-adic function on the `p`-adic integers that
+        interpolates the values of `(1-p^{-k})\zeta(k)` at negative
+        integers `k` such that `k\equiv 1\pmod{p-1}` if
+        `p` is odd, and at odd `k` if `p=2`.
 
-        If $x$ is an exact argument, it is first converted to a real
-        or complex number using the optional parameter precision (in
-        bits).  If $x$ is inexact (e.g. real), its own precision is
+        If `x` is an exact argument, it is first converted to a
+        real or complex number using the optional parameter precision (in
+        bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
         INPUT:
-            s -- gen (real, complex, or p-adic number)
+
+
+        -  ``s`` - gen (real, complex, or p-adic number)
+
 
         OUTPUT:
-            gen -- value of zeta at s.
 
-        EXAMPLES:
+
+        -  ``gen`` - value of zeta at s.
+
+
+        EXAMPLES::
+
             sage: pari(2).zeta()
             1.64493406684823
             sage: x = RR(pi)^2/6
@@ -4187,10 +4731,15 @@ cdef class gen(sage.structure.element.RingElement):
         binomial(x, k): return the binomial coefficient "x choose k".
 
         INPUT:
-            x -- any PARI object (gen)
-            k -- integer
 
-        EXAMPLES:
+
+        -  ``x`` - any PARI object (gen)
+
+        -  ``k`` - integer
+
+
+        EXAMPLES::
+
             sage: pari(6).binomial(2)
             15
             sage: pari('x+1').binomial(3)
@@ -4203,11 +4752,11 @@ cdef class gen(sage.structure.element.RingElement):
 
     def contfrac(gen x, b=0, long lmax=0):
         """
-        contfrac(x,{b},{lmax}): continued fraction expansion of x (x
-        rational, real or rational function). b and lmax are both
-        optional, where b is the vector of numerators of the continued
-        fraction, and lmax is a bound for the number of terms in the
-        continued fraction expansion.
+        contfrac(x,b,lmax): continued fraction expansion of x (x rational,
+        real or rational function). b and lmax are both optional, where b
+        is the vector of numerators of the continued fraction, and lmax is
+        a bound for the number of terms in the continued fraction
+        expansion.
         """
         t0GEN(b)
         _sig_on
@@ -4215,7 +4764,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def contfracpnqn(gen x, b=0, long lmax=0):
         """
-        contfracpnqn(x): [p_n,p_{n-1}; q_n,q_{n-1}] corresponding to the
+        contfracpnqn(x): [p_n,p_n-1; q_n,q_n-1] corresponding to the
         continued fraction x.
         """
         _sig_on
@@ -4225,7 +4774,8 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         Return the Fibonacci number of index x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(18).fibonacci()
             2584
             sage: [pari(n).fibonacci() for n in range(10)]
@@ -4237,10 +4787,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def gcd(gen x, y, long flag=0):
         """
-        gcd(x,{y},{flag=0}): greatest common divisor of x and y. flag
-        is optional, and can be 0: default, 1: use the modular gcd
-        algorithm (x and y must be polynomials), 2 use the
-        subresultant algorithm (x and y must be polynomials)
+        gcd(x,y,flag=0): greatest common divisor of x and y. flag is
+        optional, and can be 0: default, 1: use the modular gcd algorithm
+        (x and y must be polynomials), 2 use the subresultant algorithm (x
+        and y must be polynomials)
         """
         t0GEN(y)
         _sig_on
@@ -4248,9 +4798,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def issquare(gen x, find_root=False):
         """
-        issquare(x,{&n}): true(1) if x is a square, false(0) if not.
-        If find_root is given, also returns the exact square root if
-        it was computed.
+        issquare(x,n): true(1) if x is a square, false(0) if not. If
+        find_root is given, also returns the exact square root if it was
+        computed.
         """
         cdef GEN G, t
         cdef gen g
@@ -4269,7 +4819,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def issquarefree(gen self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).issquarefree()
             True
             sage: pari(20).issquarefree()
@@ -4282,8 +4833,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def lcm(gen x, y):
         """
-        Return the least common multiple of x and y.
-        EXAMPLES:
+        Return the least common multiple of x and y. EXAMPLES::
+
             sage: pari(10).lcm(15)
             30
         """
@@ -4295,7 +4846,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the number of divisors of the integer n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).numdiv()
             4
         """
@@ -4304,8 +4856,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def phi(gen n):
         """
-        Return the Euler phi function of n.
-        EXAMPLES:
+        Return the Euler phi function of n. EXAMPLES::
+
             sage: pari(10).phi()
             4
         """
@@ -4316,7 +4868,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the number of primes less than or equal to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(7).primepi()
             4
             sage: pari(100).primepi()
@@ -4342,9 +4895,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sumdiv(gen n):
         """
-        Return the sum of the divisors of $n$.
+        Return the sum of the divisors of `n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).sumdiv()
             18
         """
@@ -4355,7 +4909,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the sum of the k-th powers of the divisors of n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).sumdivk(2)
             130
         """
@@ -4364,9 +4919,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def xgcd(gen x, y):
         """
-        Returns u,v,d such that d=gcd(x,y) and u*x+v*y=d.
+        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(10).xgcd(15)
             (5, -1, 1)
         """
@@ -4379,52 +4935,64 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellinit(self, int flag=0, precision=0):
         """
-        Return the Pari elliptic curve object with Weierstrass
-        coefficients given by self, a list with 5 elements.
+        Return the Pari elliptic curve object with Weierstrass coefficients
+        given by self, a list with 5 elements.
 
         INPUT:
-            self -- a list of 5 coefficients
-            flag (optional, default: 0) -- if 0, ask for a Pari ell
-                   structure with 19 components; if 1, ask for a Pari
-                   sell structure with only the first 13 components
-            precision (optional, default: 0) -- the real precision to
-                   be used in the computation of the components of the
-                   Pari (s)ell structure; if 0, use the default 53
-                   bits.
 
-        NOTE: the parameter precision in ellinit() controls not only
-        the real precision of the resulting (s)ell structure, but also
-        the precision of most subsequent computations with this
-        elliptic curve.  You should therefore set it from the start to
-        the value you require.
+
+        -  ``self`` - a list of 5 coefficients
+
+        -  ``flag (optional, default: 0)`` - if 0, ask for a
+           Pari ell structure with 19 components; if 1, ask for a Pari sell
+           structure with only the first 13 components
+
+        -  ``precision (optional, default: 0)`` - the real
+           precision to be used in the computation of the components of the
+           Pari (s)ell structure; if 0, use the default 53 bits.
+
+           .. note::
+
+              the parameter precision in :meth:`.ellinit` controls not only
+              the real precision of the resulting (s)ell structure,
+              but also the precision of most subsequent computations
+              with this elliptic curve.  You should therefore set it
+              from the start to the value you require.
+
 
         OUTPUT:
-            gen -- either a Pari ell structure with 19 components (if
-                   flag=0), or a Pari sell structure with 13
-                   components (if flag=1)
 
-        EXAMPLES:
-        An elliptic curve with integer coefficients:
+
+        -  ``gen`` - either a Pari ell structure with 19
+           components (if flag=0), or a Pari sell structure with 13 components
+           (if flag=1)
+
+
+        EXAMPLES: An elliptic curve with integer coefficients::
+
             sage: e = pari([0,1,0,1,0]).ellinit(); e
             [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, [0.E-28, -0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I]~, 3.37150070962519, 1.68575035481260 + 2.15651564749964*I, -0.687257278928726 + 7.57138254 E-30*I, -0.343628639464363 - 1.37139930484298*I, 7.27069403586288] # 32-bit
             [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, [0.E-38, -0.500000000000000 - 0.866025403784439*I, -0.500000000000000 + 0.866025403784439*I]~, 3.37150070962519, 1.68575035481260 + 2.15651564749964*I, -0.687257278928726 + 1.76284987179941 E-39*I, -0.343628639464363 - 1.37139930484298*I, 7.27069403586288] # 64-bit
 
-        Its inexact components have the default precision of 53 bits:
+        Its inexact components have the default precision of 53 bits::
+
             sage: RR(e[14])
             3.37150070962519
 
-        We can compute this to higher precision:
+        We can compute this to higher precision::
+
             sage: R = RealField(150)
             sage: e = pari([0,1,0,1,0]).ellinit(precision=150)
             sage: R(e[14])
             3.3715007096251920857424073155981539790016018
 
-        Using flag=1 returns a short elliptic curve Pari object:
+        Using flag=1 returns a short elliptic curve Pari object::
+
             sage: pari([0,1,0,1,0]).ellinit(flag=1)
             [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3]
 
-        The coefficients can be any ring elements that convert to
-        Pari:
+        The coefficients can be any ring elements that convert to Pari::
+
             sage: pari([0,1/2,0,-3/4,0]).ellinit(flag=1)
             [0, 1/2, 0, -3/4, 0, 2, -3/2, 0, -9/16, 40, -116, 117/4, 256000/117]
             sage: pari([0,0.5,0,-0.75,0]).ellinit(flag=1)
@@ -4439,19 +5007,29 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellglobalred(self):
         """
-        e.ellglobalred(): return information related to the global
-        minimal model of the elliptic curve e.
+        e.ellglobalred(): return information related to the global minimal
+        model of the elliptic curve e.
 
         INPUT:
-            e -- elliptic curve (returned by ellinit)
+
+
+        -  ``e`` - elliptic curve (returned by ellinit)
+
 
         OUTPUT:
-            gen -- the (arithmetic) conductor of e
-            gen -- a vector giving the coordinate change over Q from e to
-                   its minimal integral model (see also ellminimalmodel)
-            gen -- the product of the local Tamagawa numbers of e
 
-        EXAMPLES:
+
+        -  ``gen`` - the (arithmetic) conductor of e
+
+        -  ``gen`` - a vector giving the coordinate change over
+           Q from e to its minimal integral model (see also ellminimalmodel)
+
+        -  ``gen`` - the product of the local Tamagawa numbers
+           of e
+
+
+        EXAMPLES::
+
             sage: e = pari([0, 5, 2, -1, 1]).ellinit()
             sage: e.ellglobalred()
             [20144, [1, -2, 0, -1], 1]
@@ -4468,23 +5046,28 @@ cdef class gen(sage.structure.element.RingElement):
         elliptic curve.
 
         INPUT:
-            e -- elliptic curve E
-            z0 -- point on E
-            z1 -- point on E
 
-        OUTPUT:
-            point on E
 
-        EXAMPLES:
-        First we create an elliptic curve:
+        -  ``e`` - elliptic curve E
+
+        -  ``z0`` - point on E
+
+        -  ``z1`` - point on E
+
+
+        OUTPUT: point on E
+
+        EXAMPLES: First we create an elliptic curve::
 
             sage: e = pari([0, 1, 1, -2, 0]).ellinit()
             sage: str(e)[:65]   # first part of output
             '[0, 1, 1, -2, 0, 4, -4, 1, -3, 112, -856, 389, 1404928/389, [0.90'
 
-        Next we add two points on the elliptic curve.  Notice that
-        the Python lists are automatically converted to PARI objects so
-        you don't have to do that explicitly in your code.
+        Next we add two points on the elliptic curve. Notice that the
+        Python lists are automatically converted to PARI objects so you
+        don't have to do that explicitly in your code.
+
+        ::
 
             sage: e.elladd([1,0], [-1,1])
             [-3/4, -15/8]
@@ -4495,24 +5078,28 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellak(self, n):
         r"""
-        e.ellak(n): Returns the coefficient $a_n$ of the $L$-function of
-        the elliptic curve e, i.e. the $n$-th Fourier coefficient of the
-        weight 2 newform associated to e (according to Shimura-Taniyama).
+        e.ellak(n): Returns the coefficient `a_n` of the
+        `L`-function of the elliptic curve e, i.e. the
+        `n`-th Fourier coefficient of the weight 2 newform
+        associated to e (according to Shimura-Taniyama).
 
-        \begin{notice}
-        The curve $e$ \emph{must} be a medium or long vector of the type given
-        by ellinit. For this function to work for every n and not just
-        those prime to the conductor, e must be a minimal Weierstrass
-        equation. If this is not the case, use the function
-        ellminimalmodel first before using ellak (or you will get
-        INCORRECT RESULTS!)
-        \end{notice}
+            The curve `e` *must* be a medium or long vector of the type
+            given by ellinit. For this function to work for every n and not
+            just those prime to the conductor, e must be a minimal Weierstrass
+            equation. If this is not the case, use the function ellminimalmodel
+            first before using ellak (or you will get INCORRECT RESULTS!)
+
 
         INPUT:
-            e -- a PARI elliptic curve.
-            n -- integer.
 
-        EXAMPLES:
+
+        -  ``e`` - a PARI elliptic curve.
+
+        -  ``n`` - integer.
+
+
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.ellak(6)
             2
@@ -4530,16 +5117,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellan(self, long n, python_ints=False):
         """
-        Return the first $n$ Fourier coefficients of the modular form
-        attached to this elliptic curve.  See ellak for more details.
+        Return the first `n` Fourier coefficients of the modular
+        form attached to this elliptic curve. See ellak for more details.
 
         INPUT:
-            n -- a long integer
-            python_ints -- bool (default is False); if True, return a
-                           list of Python ints instead of a PARI gen
-                           wrapper.
 
-        EXAMPLES:
+
+        -  ``n`` - a long integer
+
+        -  ``python_ints`` - bool (default is False); if True,
+           return a list of Python ints instead of a PARI gen wrapper.
+
+
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.ellan(3)
             [1, -2, -1]
@@ -4566,31 +5157,34 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellap(self, p):
         r"""
-        e.ellap(p): Returns the prime-indexed coefficient $a_p$ of the
-        $L$-function of the elliptic curve $e$, i.e. the $p$-th Fourier
-        coefficient of the newform attached to e.
+        e.ellap(p): Returns the prime-indexed coefficient `a_p` of
+        the `L`-function of the elliptic curve `e`, i.e.
+        the `p`-th Fourier coefficient of the newform attached to
+        e.
 
         The computation uses the baby-step giant-step method and a trick
-        due to Mestre, and requires $O(p^{1/4})$ time and $O(p^{1/4})$
-        storage.
+        due to Mestre, and requires `O(p^{1/4})` time and
+        `O(p^{1/4})` storage.
 
-        \begin{notice}
-        If p is not prime, this function will return an {\bf incorrect}
-        answer.
+            If p is not prime, this function will return an incorrect answer.
 
-        The curve e must be a medium or long vector of the type given
-        by ellinit. For this function to work for every n and not just
-        those prime to the conductor, e must be a minimal Weierstrass
-        equation. If this is not the case, use the function
-        ellminimalmodel first before using ellap (or you will get
-        INCORRECT RESULTS!)
-        \end{notice}
+            The curve e must be a medium or long vector of the type given by
+            ellinit. For this function to work for every n and not just those
+            prime to the conductor, e must be a minimal Weierstrass equation.
+            If this is not the case, use the function ellminimalmodel first
+            before using ellap (or you will get INCORRECT RESULTS!)
+
 
         INPUT:
-            e -- a PARI elliptic curve.
-            p -- prime integer
 
-        EXAMPLES:
+
+        -  ``e`` - a PARI elliptic curve.
+
+        -  ``p`` - prime integer
+
+
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.ellap(2)
             -2
@@ -4607,30 +5201,36 @@ cdef class gen(sage.structure.element.RingElement):
     def ellaplist(self, long n, python_ints=False):
         r"""
         e.ellaplist(n): Returns a PARI list of all the prime-indexed
-        coefficients $a_p$ (up to n) of the $L$-function of the elliptic
-        curve $e$, i.e. the Fourier coefficients of the newform attached
-        to $e$.
+        coefficients `a_p` (up to n) of the `L`-function
+        of the elliptic curve `e`, i.e. the Fourier coefficients of
+        the newform attached to `e`.
 
         INPUT:
-            n -- a long integer
-            python_ints -- bool (default is False); if True, return a
-                           list of Python ints instead of a PARI gen
-                           wrapper.
 
-        \begin{notice}
-        The curve e must be a medium or long vector of the type given
-        by ellinit. For this function to work for every n and not just
-        those prime to the conductor, e must be a minimal Weierstrass
-        equation. If this is not the case, use the function
-        ellminimalmodel first before using ellaplist (or you will get
-        INCORRECT RESULTS!)
-        \end{notice}
+
+        -  ``n`` - a long integer
+
+        -  ``python_ints`` - bool (default is False); if True,
+           return a list of Python ints instead of a PARI gen wrapper.
+
+
+            The curve e must be a medium or long vector of the type given by
+            ellinit. For this function to work for every n and not just those
+            prime to the conductor, e must be a minimal Weierstrass equation.
+            If this is not the case, use the function ellminimalmodel first
+            before using ellaplist (or you will get INCORRECT RESULTS!)
+
 
         INPUT:
-            e -- a PARI elliptic curve.
-            n -- an integer
 
-        EXAMPLES:
+
+        -  ``e`` - a PARI elliptic curve.
+
+        -  ``n`` - an integer
+
+
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: v = e.ellaplist(10); v
             [-2, -1, 1, -2]
@@ -4673,15 +5273,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellbil(self, z0, z1):
         """
-        e.ellbil(z0, z1): return the value of the canonical bilinear
-        form on z0 and z1.
+        e.ellbil(z0, z1): return the value of the canonical bilinear form
+        on z0 and z1.
 
         INPUT:
-            e -- elliptic curve (assumed integral given by a minimal
-                 model, as returned by ellminimalmodel)
-            z0, z1 -- rational points on e
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve (assumed integral given by a
+           minimal model, as returned by ellminimalmodel)
+
+        -  ``z0, z1`` - rational points on e
+
+
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellbil([1, 0], [-1, 1])
             0.418188984498861
@@ -4696,15 +5301,21 @@ cdef class gen(sage.structure.element.RingElement):
         e.ellchangecurve(ch): return the new model (equation) for the
         elliptic curve e given by the change of coordinates ch.
 
-        The change of coordinates is specified by a vector
-        ch=[u,r,s,t]; if $x'$ and $y'$ are the new coordinates, then
-        $x = u^2 x' + r$ and $y = u^3 y' + su^2 x' + t$.
+        The change of coordinates is specified by a vector ch=[u,r,s,t]; if
+        `x'` and `y'` are the new coordinates, then
+        `x = u^2 x' + r` and `y = u^3 y' + su^2 x' + t`.
 
         INPUT:
-            e -- elliptic curve
-            ch -- change of coordinates vector with 4 entries
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve
+
+        -  ``ch`` - change of coordinates vector with 4
+           entries
+
+
+        EXAMPLES::
+
             sage: e = pari([1,2,3,4,5]).ellinit()
             sage: e.ellglobalred()
             [10351, [1, -1, 0, -1], 1]
@@ -4719,10 +5330,11 @@ cdef class gen(sage.structure.element.RingElement):
     def elleta(self):
         """
         e.elleta(): return the vector [eta1,eta2] of quasi-periods
-        associated with the period lattice e.omega() of the elliptic
-        curve e.
+        associated with the period lattice e.omega() of the elliptic curve
+        e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.elleta()
             [3.60546360143265, 10.8163908042980*I]
@@ -4733,27 +5345,39 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellheight(self, a, flag=2, precision=0):
         """
-        e.ellheight(a, {flag=2}): return the global N\'eron-Tate height
-        of the point a on the elliptic curve e.
+        e.ellheight(a, flag=2): return the global Neron-Tate height of the
+        point a on the elliptic curve e.
 
         INPUT:
-            e -- elliptic curve over $\Q$, assumed to be in a standard
-                 minimal integral model (as given by ellminimalmodel)
-            a -- rational point on e
-            flag (optional) -- specifies which algorithm to be used for
-                 computing the archimedean local height:
-                 0 -- uses sigma- and theta-functions and a trick due to
-                      J. Silverman
-                 1 -- uses Tate's $4^n$ algorithm
-                 2 -- uses Mestre's AGM algorithm (this is the default,
-                      being faster than the other two)
-            precision (optional) -- the precision of the result, in bits.
+
+
+        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+           assumed to be in a standard minimal integral model (as given by
+           ellminimalmodel)
+
+        -  ``a`` - rational point on e
+
+        -  ``flag (optional)`` - specifies which algorithm to
+           be used for computing the archimedean local height:
+
+           -  ``0`` - uses sigma- and theta-functions and a trick
+               due to J. Silverman
+
+           -  ``1`` - uses Tate's `4^n` algorithm
+
+           -  ``2`` - uses Mestre's AGM algorithm (this is the
+              default, being faster than the other two)
+
+        -  ``precision (optional)`` - the precision of the
+           result, in bits.
+
 
         Note that in order to achieve the desired precision, the
         elliptic curve must have been created using ellinit with the
         desired precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellheight([1,0])
             0.476711659343740
@@ -4775,11 +5399,17 @@ cdef class gen(sage.structure.element.RingElement):
         height bilinear form on e (see ellbil).
 
         INPUT:
-            e -- elliptic curve over $\Q$, assumed to be in a standard
-                 minimal integral model (as given by ellminimalmodel)
-            x -- vector of rational points on e
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+           assumed to be in a standard minimal integral model (as given by
+           ellminimalmodel)
+
+        -  ``x`` - vector of rational points on e
+
+
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
             sage: e.ellheightmatrix([[1,0], [-1,1]])
             [0.476711659343740, 0.418188984498861; 0.418188984498861, 0.686667083305587]
@@ -4797,7 +5427,8 @@ cdef class gen(sage.structure.element.RingElement):
         If the point or the curve have inexact coefficients, an attempt is
         made to take this into account.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.ellisoncurve([1,0])
             True
@@ -4826,107 +5457,147 @@ cdef class gen(sage.structure.element.RingElement):
         elliptic curves".
 
         INPUT:
-            e -- elliptic curve with coefficients in $\Z$
-            p -- prime number
+
+
+        -  ``e`` - elliptic curve with coefficients in
+           `\mathbb{Z}`
+
+        -  ``p`` - prime number
+
 
         OUTPUT:
-            gen -- the exponent of p in the arithmetic conductor of e
-            gen -- the Kodaira type of e at p, encoded as an integer:
-                 1 -- type $I_0$: good reduction, nonsingular curve of
-                      genus 1
-                 2 -- type $II$: rational curve with a cusp
-                 3 -- type $III$: two nonsingular rational cuves intersecting
-                      tangentially at one point
-                 4 -- type $IV$: three nonsingular rational curves
-                      intersecting at one point
-                 5 -- type $I_1$: rational curve with a node
-                 6 or larger -- think of it as $4+v$, then it is type $I_v$:
-                      $v$ nonsingular rational curves arranged as a $v$-gon
-                -1 -- type $I_0^*$: nonsingular rational curve of multiplicity
-                      two with four nonsingular rational curves of
-                      multiplicity one attached
-                -2 -- type $II^*$: nine nonsingular rational curves in a
-                      special configuration
-                -3 -- type $III^*$: eight nonsingular rational curves in a
-                      special configuration
-                -4 -- type $IV^*$: seven nonsingular rational curves in a
-                      special configuration
-                -5 or smaller -- think of it as $-4-v$, then it is type
-                      $I_v^*$: chain of $v+1$ nonsingular rational curves of
-                      multiplicity two, with two nonsingular rational curves
-                      of multiplicity one attached at either end
-            gen -- a vector with 4 components, giving the coordinate
-                changes done during the local reduction; if the first
-                component is 1, then the equation for e was already minimal
-                at p
-            gen -- the local Tamagawa number $c_p$
+
+
+        -  ``gen`` - the exponent of p in the arithmetic
+           conductor of e
+
+        -  ``gen`` - the Kodaira type of e at p, encoded as an
+           integer:
+
+        -  ``1`` - type `I_0`: good reduction,
+           nonsingular curve of genus 1
+
+        -  ``2`` - type `II`: rational curve with a
+           cusp
+
+        -  ``3`` - type `III`: two nonsingular rational
+           cuves intersecting tangentially at one point
+
+        -  ``4`` - type `IV`: three nonsingular
+           rational curves intersecting at one point
+
+        -  ``5`` - type `I_1`: rational curve with a
+           node
+
+        -  ``6 or larger`` - think of it as `4+v`, then
+           it is type `I_v`: `v` nonsingular rational curves
+           arranged as a `v`-gon
+
+        -  ``-1`` - type `I_0^*`: nonsingular rational
+           curve of multiplicity two with four nonsingular rational curves of
+           multiplicity one attached
+
+        -  ``-2`` - type `II^*`: nine nonsingular
+           rational curves in a special configuration
+
+        -  ``-3`` - type `III^*`: eight nonsingular
+           rational curves in a special configuration
+
+        -  ``-4`` - type `IV^*`: seven nonsingular
+           rational curves in a special configuration
+
+        -  ``-5 or smaller`` - think of it as `-4-v`,
+           then it is type `I_v^*`: chain of `v+1`
+           nonsingular rational curves of multiplicity two, with two
+           nonsingular rational curves of multiplicity one attached at either
+           end
+
+        -  ``gen`` - a vector with 4 components, giving the
+           coordinate changes done during the local reduction; if the first
+           component is 1, then the equation for e was already minimal at p
+
+        -  ``gen`` - the local Tamagawa number `c_p`
+
 
         EXAMPLES:
 
-            Type $I_0$:
-                sage: e = pari([0,0,0,0,1]).ellinit()
-                sage: e.elllocalred(7)
-                [0, 1, [1, 0, 0, 0], 1]
+        Type `I_0`::
 
-            Type $II$:
-                sage: e = pari(EllipticCurve('27a3').a_invariants()).ellinit()
-                sage: e.elllocalred(3)
-                [3, 2, [1, -1, 0, 1], 1]
+            sage: e = pari([0,0,0,0,1]).ellinit()
+            sage: e.elllocalred(7)
+            [0, 1, [1, 0, 0, 0], 1]
 
-            Type $III$:
-                sage: e = pari(EllipticCurve('24a4').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [3, 3, [1, 1, 0, 1], 2]
+        Type `II`::
 
-            Type $IV$:
-                sage: e = pari(EllipticCurve('20a2').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [2, 4, [1, 1, 0, 1], 3]
+            sage: e = pari(EllipticCurve('27a3').a_invariants()).ellinit()
+            sage: e.elllocalred(3)
+            [3, 2, [1, -1, 0, 1], 1]
 
-            Type $I_1$:
-                sage: e = pari(EllipticCurve('11a2').a_invariants()).ellinit()
-                sage: e.elllocalred(11)
-                [1, 5, [1, 0, 0, 0], 1]
+        Type `III`::
 
-            Type $I_2$:
-                sage: e = pari(EllipticCurve('14a4').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [1, 6, [1, 0, 0, 0], 2]
+            sage: e = pari(EllipticCurve('24a4').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, 3, [1, 1, 0, 1], 2]
 
-            Type $I_6$:
-                sage: e = pari(EllipticCurve('14a1').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [1, 10, [1, 0, 0, 0], 2]
+        Type `IV`::
 
-            Type $I_0^*$:
-                sage: e = pari(EllipticCurve('32a3').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [5, -1, [1, 1, 1, 0], 1]
+            sage: e = pari(EllipticCurve('20a2').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [2, 4, [1, 1, 0, 1], 3]
 
-            Type $II^*$:
-                sage: e = pari(EllipticCurve('24a5').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [3, -2, [1, 2, 1, 4], 1]
+        Type `I_1`::
 
-            Type $III^*$:
-                sage: e = pari(EllipticCurve('24a2').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [3, -3, [1, 2, 1, 4], 2]
+            sage: e = pari(EllipticCurve('11a2').a_invariants()).ellinit()
+            sage: e.elllocalred(11)
+            [1, 5, [1, 0, 0, 0], 1]
 
-            Type $IV^*$:
-                sage: e = pari(EllipticCurve('20a1').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [2, -4, [1, 0, 1, 2], 3]
+        Type `I_2`::
 
-            Type $I_1^*$:
-                sage: e = pari(EllipticCurve('24a1').a_invariants()).ellinit()
-                sage: e.elllocalred(2)
-                [3, -5, [1, 0, 1, 2], 4]
+            sage: e = pari(EllipticCurve('14a4').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [1, 6, [1, 0, 0, 0], 2]
 
-            Type $I_6^*$:
-                sage: e = pari(EllipticCurve('90c2').a_invariants()).ellinit()
-                sage: e.elllocalred(3)
-                [2, -10, [1, 96, 1, 316], 4]
+        Type `I_6`::
+
+            sage: e = pari(EllipticCurve('14a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [1, 10, [1, 0, 0, 0], 2]
+
+        Type `I_0^*`::
+
+            sage: e = pari(EllipticCurve('32a3').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [5, -1, [1, 1, 1, 0], 1]
+
+        Type `II^*`::
+
+            sage: e = pari(EllipticCurve('24a5').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -2, [1, 2, 1, 4], 1]
+
+        Type `III^*`::
+
+            sage: e = pari(EllipticCurve('24a2').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -3, [1, 2, 1, 4], 2]
+
+        Type `IV^*`::
+
+            sage: e = pari(EllipticCurve('20a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [2, -4, [1, 0, 1, 2], 3]
+
+        Type `I_1^*`::
+
+            sage: e = pari(EllipticCurve('24a1').a_invariants()).ellinit()
+            sage: e.elllocalred(2)
+            [3, -5, [1, 0, 1, 2], 4]
+
+        Type `I_6^*`::
+
+            sage: e = pari(EllipticCurve('90c2').a_invariants()).ellinit()
+            sage: e.elllocalred(3)
+            [2, -10, [1, 96, 1, 316], 4]
         """
         t0GEN(p)
         _sig_on
@@ -4934,19 +5605,27 @@ cdef class gen(sage.structure.element.RingElement):
 
     def elllseries(self, s, A=1):
         """
-        e.elllseries(s, {A=1}): return the value of the $L$-series of the
-        elliptic curve e at the complex number s.
+        e.elllseries(s, A=1): return the value of the `L`-series of
+        the elliptic curve e at the complex number s.
 
-        This uses an $O(N^{1/2})$ algorithm in the conductor N of e, so
-        it is impractical for large conductors (say greater than $10^{12}$).
+        This uses an `O(N^{1/2})` algorithm in the conductor N of
+        e, so it is impractical for large conductors (say greater than
+        `10^{12}`).
 
         INPUT:
-            e -- elliptic curve defined over $\Q$
-            s -- complex number
-            A (optional) -- cutoff point for the integral, which must be
-                 chosen close to 1 for best speed.
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve defined over
+           `\mathbb{Q}`
+
+        -  ``s`` - complex number
+
+        -  ``A (optional)`` - cutoff point for the integral,
+           which must be chosen close to 1 for best speed.
+
+
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.elllseries(2.1)
             0.402838047956645
@@ -4955,7 +5634,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e.elllseries(-2)
             0
 
-        The following example differs for the last digit on 32 vs. 64 bit systems
+        The following example differs for the last digit on 32 vs. 64 bit
+        systems
+
+        ::
+
             sage: e.elllseries(2.1, A=1.1)
             0.402838047956645
         """
@@ -4966,15 +5649,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellminimalmodel(self):
         """
-        ellminimalmodel(e): return the standard minimal integral model
-        of the rational elliptic curve e and the corresponding change
-        of variables.
-        INPUT:
-            e -- gen (that defines an elliptic curve)
+        ellminimalmodel(e): return the standard minimal integral model of
+        the rational elliptic curve e and the corresponding change of
+        variables. INPUT:
+
+
+        -  ``e`` - gen (that defines an elliptic curve)
+
+
         OUTPUT:
-            gen -- minimal model
-            gen -- change of coordinates
-        EXAMPLES:
+
+
+        -  ``gen`` - minimal model
+
+        -  ``gen`` - change of coordinates
+
+
+        EXAMPLES::
+
             sage: e = pari([1,2,3,4,5]).ellinit()
             sage: F, ch = e.ellminimalmodel()
             sage: F[:5]
@@ -4999,17 +5691,25 @@ cdef class gen(sage.structure.element.RingElement):
         curve e (return 0 if x is not a torsion point)
 
         INPUT:
-            e -- elliptic curve defined over $\Q$
-            x -- point on e
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve defined over
+           `\mathbb{Q}`
+
+        -  ``x`` - point on e
+
+
+        EXAMPLES::
+
             sage: e = pari(EllipticCurve('65a1').a_invariants()).ellinit()
 
-            A point of order two:
+        A point of order two::
+
             sage: e.ellorder([0,0])
             2
 
-            And a point of infinite order:
+        And a point of infinite order::
+
             sage: e.ellorder([1,0])
             0
         """
@@ -5019,15 +5719,20 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellordinate(self, x):
         """
-        e.ellordinate(x): return the $y$-coordinates of the points on the
-        elliptic curve e having x as $x$-coordinate.
+        e.ellordinate(x): return the `y`-coordinates of the points
+        on the elliptic curve e having x as `x`-coordinate.
 
         INPUT:
-            e -- elliptic curve
-            x -- x-coordinate (can be a complex or p-adic number, or a
-            more complicated object like a power series)
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve
+
+        -  ``x`` - x-coordinate (can be a complex or p-adic
+           number, or a more complicated object like a power series)
+
+
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.ellordinate(0)
             [0, -1]
@@ -5047,20 +5752,22 @@ cdef class gen(sage.structure.element.RingElement):
     def ellpointtoz(self, P, long precision=0):
         """
         e.ellpointtoz(P): return the complex number (in the fundamental
-        parallelogram) corresponding to the point P on the elliptic curve e,
-        under the complex uniformization of e given by the Weierstrass
+        parallelogram) corresponding to the point P on the elliptic curve
+        e, under the complex uniformization of e given by the Weierstrass
         p-function.
 
         The complex number z returned by this function lies in the
-        parallelogram formed by the real and complex periods of e, as
-        given by e.omega().
+        parallelogram formed by the real and complex periods of e, as given
+        by e.omega().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: e.ellpointtoz([0,0])
             1.85407467730137
 
-            The point at infinity is sent to the complex number 0:
+        The point at infinity is sent to the complex number 0::
+
             sage: e.ellpointtoz([0])
             0
         """
@@ -5070,23 +5777,32 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellpow(self, z, n):
         """
-        e.ellpow(z, n): return n times the point z on the elliptic curve e.
+        e.ellpow(z, n): return n times the point z on the elliptic curve
+        e.
 
         INPUT:
-            e -- elliptic curve
-            z -- point on e
-            n -- integer, or a complex quadratic integer of complex
-                 multiplication for e (CM case is currently broken in pari)
 
-        EXAMPLES:
-            We consider a CM curve:
+
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - point on e
+
+        -  ``n`` - integer, or a complex quadratic integer of
+           complex multiplication for e (CM case is currently broken in
+           pari)
+
+
+        EXAMPLES: We consider a CM curve::
+
             sage: e = pari([0,0,0,1,0]).ellinit()
 
-            Multiplication by two:
+        Multiplication by two::
+
             sage: e.ellpow([0,0], 2)
             [0]
 
-            Complex multiplication (this is broken at the moment):
+        Complex multiplication (this is broken at the moment)::
+
             sage: e.ellpow([0,0], I+1) # optional
         """
         t0GEN(z); t1GEN(n)
@@ -5096,23 +5812,26 @@ cdef class gen(sage.structure.element.RingElement):
     def ellrootno(self, p=1):
         """
         e.ellrootno(p): return the (local or global) root number of the
-        $L$-series of the elliptic curve e
+        `L`-series of the elliptic curve e
 
-        If p is a prime number, the local root number at p is returned.
-        If p is 1, the global root number is returned.  Note that the
-        global root number is the sign of the functional equation of the
-        $L$-series, and therefore conjecturally equal to the parity of the
-        rank of e.
+        If p is a prime number, the local root number at p is returned. If
+        p is 1, the global root number is returned. Note that the global
+        root number is the sign of the functional equation of the
+        `L`-series, and therefore conjecturally equal to the parity
+        of the rank of e.
 
         INPUT:
-            e -- elliptic curve over $\Q$
-            p (default = 1) -- 1 or a prime number
 
-        OUTPUT:
-            1 or -1
 
-        EXAMPLES:
-            Here is a curve of rank 3:
+        -  ``e`` - elliptic curve over `\mathbb{Q}`
+
+        -  ``p (default = 1)`` - 1 or a prime number
+
+
+        OUTPUT: 1 or -1
+
+        EXAMPLES: Here is a curve of rank 3::
+
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.ellrootno()
             -1
@@ -5127,11 +5846,12 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellsigma(self, z, flag=0):
         """
-        e.ellsigma(z, {flag=0}): return the value at the complex point z
-        of the Weierstrass $\sigma$ function associated to the elliptic
-        curve e.
+        e.ellsigma(z, flag=0): return the value at the complex point z of
+        the Weierstrass `\sigma` function associated to the
+        elliptic curve e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: C.<i> = ComplexField()
             sage: e.ellsigma(2+i)
@@ -5147,14 +5867,19 @@ cdef class gen(sage.structure.element.RingElement):
         e.ellsub(z0, z1): return z0-z1 on this elliptic curve.
 
         INPUT:
-            e -- elliptic curve E
-            z0 -- point on E
-            z1 -- point on E
 
-        OUTPUT:
-            point on E
 
-        EXAMPLES:
+        -  ``e`` - elliptic curve E
+
+        -  ``z0`` - point on E
+
+        -  ``z1`` - point on E
+
+
+        OUTPUT: point on E
+
+        EXAMPLES::
+
             sage: e = pari([0, 1, 1, -2, 0]).ellinit()
             sage: e.ellsub([1,0], [-1,1])
             [0, 0]
@@ -5169,27 +5894,42 @@ cdef class gen(sage.structure.element.RingElement):
 
     def elltors(self, flag=0):
         """
-        e.elltors({flag = 0}): return information about the torsion subgroup
+        e.elltors(flag = 0): return information about the torsion subgroup
         of the elliptic curve e
 
         INPUT:
-            e -- elliptic curve over $\Q$
-            flag (optional) -- specify which algorithm to use:
-                0 (default) -- use Doud's algorithm: bound torsion by
-                    computing the cardinality of e(GF(p)) for small primes
-                    of good reduction, then look for torsion points using
-                    Weierstrass parametrization and Mazur's classification
-                1 -- use algorithm given by the Nagell-Lutz theorem (this
-                    is much slower)
+
+
+        -  ``e`` - elliptic curve over `\mathbb{Q}`
+
+        -  ``flag (optional)`` - specify which algorithm to
+           use:
+
+        -  ``0 (default)`` - use Doud's algorithm: bound
+           torsion by computing the cardinality of e(GF(p)) for small primes
+           of good reduction, then look for torsion points using Weierstrass
+           parametrization and Mazur's classification
+
+        -  ``1`` - use algorithm given by the Nagell-Lutz
+           theorem (this is much slower)
+
 
         OUTPUT:
-            gen -- the order of the torsion subgroup, a.k.a. the number of
-                points of finite order
-            gen -- vector giving the structure of the torsion subgroup as
-                a product of cyclic groups, sorted in non-increasing order
-            gen -- vector giving points on e generating these cyclic groups
 
-        EXAMPLES:
+
+        -  ``gen`` - the order of the torsion subgroup, a.k.a.
+           the number of points of finite order
+
+        -  ``gen`` - vector giving the structure of the torsion
+           subgroup as a product of cyclic groups, sorted in non-increasing
+           order
+
+        -  ``gen`` - vector giving points on e generating these
+           cyclic groups
+
+
+        EXAMPLES::
+
             sage: e = pari([1,0,1,-19,26]).ellinit()
             sage: e.elltors()
             [12, [6, 2], [[-2, 8], [3, -2]]]
@@ -5200,17 +5940,25 @@ cdef class gen(sage.structure.element.RingElement):
     def ellzeta(self, z):
         """
         e.ellzeta(z): return the value at the complex point z of the
-        Weierstrass $\zeta$ function associated with the elliptic curve e.
+        Weierstrass `\zeta` function associated with the elliptic
+        curve e.
 
-        NOTE: this function has infinitely many poles (one of which is
-        at z=0); attempting to evaluate it too close to one of the poles
-        will result in a PariError.
+        .. note::
+
+           This function has infinitely many poles (one of which is at
+           z=0); attempting to evaluate it too close to one of the
+           poles will result in a PariError.
 
         INPUT:
-            e -- elliptic curve
-            z -- complex number
 
-        EXAMPLES:
+
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - complex number
+
+
+        EXAMPLES::
+
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: e.ellzeta(1)
             1.06479841295883 + 0.E-19*I                # 32-bit
@@ -5231,21 +5979,26 @@ cdef class gen(sage.structure.element.RingElement):
         uniformization of e by the Weierstrass p-function.
 
         INPUT:
-            e -- elliptic curve
-            z -- complex number
 
-        OUTPUT
-            point on e
 
-        EXAMPLES:
+        -  ``e`` - elliptic curve
+
+        -  ``z`` - complex number
+
+
+        OUTPUT point on e
+
+        EXAMPLES::
+
             sage: e = pari([0,0,0,1,0]).ellinit()
             sage: C.<i> = ComplexField()
             sage: e.ellztopoint(1+i)
             [0.E-19 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I] # 32-bit
             [8.67655312026478 E-20 - 1.02152286795670*I, -0.149072813701096 - 0.149072813701096*I] # 64-bit
 
-            Complex numbers belonging to the period lattice of e are of
-            course sent to the point at infinity on e:
+        Complex numbers belonging to the period lattice of e are of course
+        sent to the point at infinity on e::
+
             sage: e.ellztopoint(0)
             [0]
         """
@@ -5256,9 +6009,11 @@ cdef class gen(sage.structure.element.RingElement):
 
     def omega(self):
         """
-        e.omega(): return basis for the period lattice of the elliptic curve e.
+        e.omega(): return basis for the period lattice of the elliptic
+        curve e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.omega()
             [1.26920930427955, 0.634604652139777 + 1.45881661693850*I]
@@ -5269,7 +6024,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         e.disc(): return the discriminant of the elliptic curve e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.disc()
             -161051
@@ -5282,7 +6038,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         e.j(): return the j-invariant of the elliptic curve e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.j()
             -122023936/161051
@@ -5304,22 +6061,23 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     def bnfcertify(self):
         r"""
-        \code{bnf} being as output by \code{bnfinit}, checks whether
-        the result is correct, i.e. whether the calculation of the
-        contents of self are correct without assuming the Generalized
-        Riemann Hypothesis. If it is correct, the answer is 1. If not,
-        the program may output some error message, but more probably
-        will loop indefinitely. In \emph{no} occasion can the program
+        ``bnf`` being as output by ``bnfinit``,
+        checks whether the result is correct, i.e. whether the calculation
+        of the contents of self are correct without assuming the
+        Generalized Riemann Hypothesis. If it is correct, the answer is 1.
+        If not, the program may output some error message, but more
+        probably will loop indefinitely. In *no* occasion can the program
         give a wrong answer (barring bugs of course): if the program
         answers 1, the answer is certified.
 
-        \note{WARNING! By default, most of the bnf routines depend on
-        the correctness of a heuristic assumption which is stronger
-        than GRH.  In order to obtain a provably-correct result you
-        \emph{must} specify $c=c_2=12$ for the technical optional
-        parameters to the function. There are known counterexamples
-        for smaller $c$ (which is the default).}
+        .. warning::
 
+           By default, most of the bnf routines depend on the
+           correctness of a heuristic assumption which is stronger
+           than GRH.  In order to obtain a provably-correct result you
+           *must* specify `c=c_2=12` for the technical optional
+           parameters to the function. There are known counterexamples
+           for smaller `c` (which is the default).
         """
         cdef long n
         _sig_on
@@ -5381,7 +6139,8 @@ cdef class gen(sage.structure.element.RingElement):
         basis of self) such that a*x is an integral ideal coprime to
         y.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = NumberField(x^3-2, 'alpha')
             sage: nf = F._pari_()
             sage: x = pari('[1, -1, 2]~')
@@ -5421,16 +6180,21 @@ cdef class gen(sage.structure.element.RingElement):
         Return the discrete logarithm of the unit x in (ring of integers)/bid.
 
         INPUT:
-            self -- a pari number field
-            bid  -- a big ideal structure (corresponding to an ideal I
-                    of self) output by idealstar
-            x    -- an element of self with valuation zero at all
-                    primes dividing I
+
+        - ``self`` - a pari number field
+
+        - ``bid``  - a big ideal structure (corresponding to an ideal I
+          of self) output by idealstar
+
+        - ``x``  - an element of self with valuation zero at all
+          primes dividing I
 
         OUTPUT:
-            the discrete logarithm of x on the generators given in bid[2]
 
-        EXAMPLE:
+        - the discrete logarithm of x on the generators given in bid[2]
+
+        EXAMPLE::
+
             sage: F = NumberField(x^3-2, 'alpha')
             sage: nf = F._pari_()
             sage: I = pari('[1, -1, 2]~')
@@ -5461,24 +6225,31 @@ cdef class gen(sage.structure.element.RingElement):
         Return the big ideal (bid) structure of modulus I.
 
         INPUT:
-            self -- a pari number field
-            I -- an ideal of self, or a row vector whose first
-                 component is an ideal and whose second component
-                 is a row vector of r_1 0 or 1.
-            flag -- determines the amount of computation and the shape
-                    of the output:
-                    1 (default): return a bid structure without
-                       generators
-                    2: return a bid structure with generators (slower)
-                    0 (deprecated): only outputs units of (ring of integers/I)
-                       as an abelian group, i.e as a 3-component
-                       vector [h,d,g]: h is the order, d is the vector
-                       of SNF cyclic components and g the corresponding
-                       generators. This flag is deprecated: it is in
-                       fact slightly faster to compute a true bid
-                       structure, which contains much more information.
 
-        EXAMPLE:
+        - ``self`` - a pari number field
+
+        - ``I`` -- an ideal of self, or a row vector whose first
+          component is an ideal and whose second component
+          is a row vector of r_1 0 or 1.
+
+        - ``flag`` - determines the amount of computation and the shape
+          of the output:
+
+          - ``1`` (default): return a bid structure without
+            generators
+
+          - ``2``: return a bid structure with generators (slower)
+
+          - ``0`` (deprecated): only outputs units of (ring of integers/I)
+            as an abelian group, i.e as a 3-component
+            vector [h,d,g]: h is the order, d is the vector
+            of SNF cyclic components and g the corresponding
+            generators. This flag is deprecated: it is in
+            fact slightly faster to compute a true bid
+            structure, which contains much more information.
+
+        EXAMPLE::
+
             sage: F = NumberField(x^3-2, 'alpha')
             sage: nf = F._pari_()
             sage: I = pari('[1, -1, 2]~')
@@ -5531,17 +6302,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nfbasis_d(self, long flag=0, p=0):
         """
-        nfbasis_d(x): Return a basis of the number field defined over
-        QQ by x and its discriminant.
+        nfbasis_d(x): Return a basis of the number field defined over QQ
+        by x and its discriminant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = NumberField(x^3-2,'alpha')
             sage: F._pari_()[0].nfbasis_d()
             ([1, x, x^2], -108)
 
+        ::
+
             sage: G = NumberField(x^5-11,'beta')
             sage: G._pari_()[0].nfbasis_d()
             ([1, x, x^2, x^3, x^4], 45753125)
+
+        ::
 
             sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
             ([1, x, x^2], -108)
@@ -5561,17 +6337,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nfdisc(self, long flag=0, p=0):
         """
-        nfdisc(x): Return the discriminant of the number field
-        defined over QQ by x.
+        nfdisc(x): Return the discriminant of the number field defined over
+        QQ by x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = NumberField(x^3-2,'alpha')
             sage: F._pari_()[0].nfdisc()
             -108
 
+        ::
+
             sage: G = NumberField(x^5-11,'beta')
             sage: G._pari_()[0].nfdisc()
             45753125
+
+        ::
 
             sage: f = x^3-2
             sage: f._pari_()
@@ -5605,27 +6386,36 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nfisisom(self, gen other):
         """
-        nfisisom(x, y): Determine if the number fields defined by
-        x and y are isomorphic. According to the PARI documentation,
-        this is much faster if at least one of x or y is a
-        number field. If they are isomorphic, it returns an
-        embedding for the generators. If not, returns 0.
+        nfisisom(x, y): Determine if the number fields defined by x and y
+        are isomorphic. According to the PARI documentation, this is much
+        faster if at least one of x or y is a number field. If they are
+        isomorphic, it returns an embedding for the generators. If not,
+        returns 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = NumberField(x^3-2,'alpha')
             sage: G = NumberField(x^3-2,'beta')
             sage: F._pari_().nfisisom(G._pari_())
             [x]
 
+        ::
+
             sage: GG = NumberField(x^3-4,'gamma')
             sage: F._pari_().nfisisom(GG._pari_())
             [1/2*x^2]
 
+        ::
+
             sage: F._pari_().nfisisom(GG.pari_nf())
             [1/2*x^2]
 
+        ::
+
             sage: F.pari_nf().nfisisom(GG._pari_()[0])
             [x^2]
+
+        ::
 
             sage: H = NumberField(x^2-2,'alpha')
             sage: F._pari_().nfisisom(H._pari_())
@@ -5638,10 +6428,11 @@ cdef class gen(sage.structure.element.RingElement):
         """
         nf.nfrootsof1()
 
-        number of roots of unity and primitive root of unity in the
-        number field nf.
+        number of roots of unity and primitive root of unity in the number
+        field nf.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: nf = pari('x^2 + 1').nfinit()
             sage: nf.nfrootsof1()
             [4, [0, 1]~]
@@ -5651,15 +6442,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nfsubfields(self, d=0):
         """
-        Find all subfields of degree d of number field nf (all
-        subfields if d is null or omitted). Result is a vector of
-        subfields, each being given by [g,h], where g is an absolute
-        equation and h expresses one of the roots of g in terms of the
-        root x of the polynomial defining nf.
+        Find all subfields of degree d of number field nf (all subfields if
+        d is null or omitted). Result is a vector of subfields, each being
+        given by [g,h], where g is an absolute equation and h expresses one
+        of the roots of g in terms of the root x of the polynomial defining
+        nf.
 
         INPUT:
-            self -- nf number field
-            d -- integer
+
+
+        -  ``self`` - nf number field
+
+        -  ``d`` - integer
         """
         if d == 0:
             _sig_on
@@ -5746,8 +6540,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def rnfinit(self, poly):
         """
-        EXAMPLES:
-        We construct a relative number field.
+        EXAMPLES: We construct a relative number field.
+
+        ::
+
             sage: f = pari('y^3+y+1')
             sage: K = f.nfinit()
             sage: x = pari('x'); y = pari('y')
@@ -5772,8 +6568,8 @@ cdef class gen(sage.structure.element.RingElement):
     ##################################################
     def reverse(self):
         """
-        Return the polynomial obtained by reversing the coefficients
-        of this polynomial.
+        Return the polynomial obtained by reversing the coefficients of
+        this polynomial.
         """
         return self.Vec().Polrev()
 
@@ -5791,9 +6587,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def factorpadic(self, p, long r=20, long flag=0):
         """
-        self.factorpadic(p,{r=20},{flag=0}): p-adic factorization of the
-        polynomial x to precision r. flag is optional and may be set
-        to 0 (use round 4) or 1 (use Buchmann-Lenstra)
+        self.factorpadic(p,r=20,flag=0): p-adic factorization of the
+        polynomial x to precision r. flag is optional and may be set to 0
+        (use round 4) or 1 (use Buchmann-Lenstra)
         """
         t0GEN(p)
         _sig_on
@@ -5801,9 +6597,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def factormod(self, p, long flag=0):
         """
-        x.factormod(p,{flag=0}): factorization mod p of the polynomial
-        x using Berlekamp. flag is optional, and can be 0: default or
-        1: simple factormod, same except that only the degrees of the
+        x.factormod(p,flag=0): factorization mod p of the polynomial x
+        using Berlekamp. flag is optional, and can be 0: default or 1:
+        simple factormod, same except that only the degrees of the
         irreducible factors are given.
         """
         t0GEN(p)
@@ -5812,7 +6608,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def intformal(self, y=-1):
         """
-        x.intformal({y}): formal integration of x with respect to the main
+        x.intformal(y): formal integration of x with respect to the main
         variable of y, or to the main variable of x if y is omitted
         """
         _sig_on
@@ -5820,7 +6616,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def padicappr(self, a):
         """
-        x.padicappr(a): p-adic roots of the polynomial x congruent to a mod p
+        x.padicappr(a): p-adic roots of the polynomial x congruent to a mod
+        p
         """
         t0GEN(a)
         _sig_on
@@ -5828,10 +6625,11 @@ cdef class gen(sage.structure.element.RingElement):
 
     def newtonpoly(self, p):
         """
-        x.newtonpoly(p): Newton polygon of polynomial x with respect
-        to the prime p.
+        x.newtonpoly(p): Newton polygon of polynomial x with respect to the
+        prime p.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = pari('y^8+6*y^6-27*y^5+1/9*y^2-y+1')
             sage: x.newtonpoly(3)
             [1, 1, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
@@ -5842,7 +6640,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def polcoeff(self, long n, var=-1):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = pari("x^2 + y^3 + x*y")
             sage: f
             x^2 + y*x + y^3
@@ -5865,7 +6664,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def poldegree(self, var=-1):
         """
-        f.poldegree(var={x}): Return the degree of this polynomial.
+        f.poldegree(var=x): Return the degree of this polynomial.
         """
         _sig_on
         n = poldegree(self.g, self.get_var(var))
@@ -5874,7 +6673,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def poldisc(self, var=-1):
         """
-        f.poldist(var={x}):  Return the discriminant of this polynomial.
+        f.poldist(var=x): Return the discriminant of this polynomial.
         """
         _sig_on
         return self.new_gen(poldisc0(self.g, self.get_var(var)))
@@ -5892,10 +6691,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def polhensellift(self, y, p, long e):
         """
-        self.polhensellift(y, p, e): lift the factorization y of
-        self modulo p to a factorization modulo $p^e$ using Hensel
-        lift. The factors in y must be pairwise relatively prime
-        modulo p.
+        self.polhensellift(y, p, e): lift the factorization y of self
+        modulo p to a factorization modulo `p^e` using Hensel lift.
+        The factors in y must be pairwise relatively prime modulo p.
         """
         t0GEN(y)
         t1GEN(p)
@@ -5905,8 +6703,7 @@ cdef class gen(sage.structure.element.RingElement):
     def polisirreducible(self):
         """
         f.polisirreducible(): Returns True if f is an irreducible
-        non-constant polynomial, or False if f is reducible or
-        constant.
+        non-constant polynomial, or False if f is reducible or constant.
         """
         _sig_on
         return bool(self.new_gen(gisirreducible(self.g)))
@@ -5914,10 +6711,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def pollead(self, v=-1):
         """
-        self.pollead({v}): leading coefficient of polynomial or series
-        self, or self itself if self is a scalar. Error
-        otherwise. With respect to the main variable of self if v is
-        omitted, with respect to the variable v otherwise
+        self.pollead(v): leading coefficient of polynomial or series self,
+        or self itself if self is a scalar. Error otherwise. With respect
+        to the main variable of self if v is omitted, with respect to the
+        variable v otherwise
         """
         _sig_on
         return self.new_gen(pollead(self.g, self.get_var(v)))
@@ -5946,8 +6743,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def polroots(self, flag=0, precision=0):
         """
-        polroots(x,{flag=0}): complex roots of the polynomial x. flag
-        is optional, and can be 0: default, uses Schonhage's method modified
+        polroots(x,flag=0): complex roots of the polynomial x. flag is
+        optional, and can be 0: default, uses Schonhage's method modified
         by Gourdon, or 1: uses a modified Newton method.
         """
         _sig_on
@@ -6004,10 +6801,11 @@ cdef class gen(sage.structure.element.RingElement):
         """
         serreverse(f): reversion of the power series f.
 
-        If f(t) is a series in t with valuation 1, find the
-        series g(t) such that g(f(t)) = t.
+        If f(t) is a series in t with valuation 1, find the series g(t)
+        such that g(f(t)) = t.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = pari('x+x^2+x^3+O(x^4)'); f
             x + x^2 + x^3 + O(x^4)
             sage: g = f.serreverse(); g
@@ -6034,16 +6832,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def vecextract(self, y, z=None):
         r"""
-        self.vecextract(y,{z}): extraction of the components of the
-        matrix or vector x according to y and z. If z is omitted, y
-        designates columns, otherwise y corresponds to rows and z to
-        columns. y and z can be vectors (of indices), strings
-        (indicating ranges as in"1..10") or masks
-        (integers whose binary representation indicates the indices
-        to extract, from left to right 1, 2, 4, 8, etc.)
+        self.vecextract(y,z): extraction of the components of the matrix or
+        vector x according to y and z. If z is omitted, y designates
+        columns, otherwise y corresponds to rows and z to columns. y and z
+        can be vectors (of indices), strings (indicating ranges as
+        in"1..10") or masks (integers whose binary representation indicates
+        the indices to extract, from left to right 1, 2, 4, 8, etc.)
 
-        \note{This function uses the PARI row and column indexing,
-        so the first row or column is indexed by 1 instead of 0.}
+        .. note::
+
+           This function uses the PARI row and column indexing, so the
+           first row or column is indexed by 1 instead of 0.
         """
         t0GEN(y)
         if z is None:
@@ -6058,7 +6857,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the number of columns of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('matrix(19,8)').ncols()
             8
         """
@@ -6072,7 +6872,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the number of rows of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('matrix(19,8)').nrows()
             19
         """
@@ -6091,7 +6892,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Transpose of the matrix self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').mattranspose()
             [1, 4, 7; 2, 5, 8; 3, 6, 9]
         """
@@ -6102,7 +6904,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         matadjoint(x): adjoint matrix of x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').matadjoint()
             [-3, 6, -3; 6, -12, 6; -3, 6, -3]
             sage: pari('[a,b,c; d,e,f; g,h,i]').matadjoint()
@@ -6113,15 +6916,14 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qflll(self, long flag=0, precision=0):
         """
-        qflll(x,{flag=0}): LLL reduction of the vectors forming the
-        matrix x (gives the unimodular transformation matrix). The
-        columns of x must be linearly independent, unless specified
-        otherwise below. flag is optional, and can be 0: default, 1:
-        assumes x is integral, columns may be dependent, 2: assumes x
-        is integral, returns a partially reduced basis, 4: assumes x
-        is integral, returns [K,I] where K is the integer kernel of x
-        and I the LLL reduced image, 5: same as 4 but x may have
-        polynomial coefficients, 8: same as 0 but x may have
+        qflll(x,flag=0): LLL reduction of the vectors forming the matrix x
+        (gives the unimodular transformation matrix). The columns of x must
+        be linearly independent, unless specified otherwise below. flag is
+        optional, and can be 0: default, 1: assumes x is integral, columns
+        may be dependent, 2: assumes x is integral, returns a partially
+        reduced basis, 4: assumes x is integral, returns [K,I] where K is
+        the integer kernel of x and I the LLL reduced image, 5: same as 4
+        but x may have polynomial coefficients, 8: same as 0 but x may have
         polynomial coefficients.
         """
         _sig_on
@@ -6129,13 +6931,13 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qflllgram(self, long flag=0, precision=0):
         """
-        qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
-        matrix is x (gives the unimodular transformation matrix). flag
-        is optional and can be 0: default,1: lllgramint algorithm for
-        integer matrices, 4: lllgramkerim giving the kernel and the
-        LLL reduced image, 5: lllgramkerimgen same when the matrix has
-        polynomial coefficients, 8: lllgramgen, same as qflllgram when
-        the coefficients are polynomials.
+        qflllgram(x,flag=0): LLL reduction of the lattice whose gram matrix
+        is x (gives the unimodular transformation matrix). flag is optional
+        and can be 0: default,1: lllgramint algorithm for integer matrices,
+        4: lllgramkerim giving the kernel and the LLL reduced image, 5:
+        lllgramkerimgen same when the matrix has polynomial coefficients,
+        8: lllgramgen, same as qflllgram when the coefficients are
+        polynomials.
         """
         _sig_on
         return self.new_gen(qflllgram0(self.g,flag,pbw(precision))).Mat()
@@ -6148,13 +6950,13 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qfminim(self, B, max, long flag=0):
         """
-        qfminim(x,{bound},{maxnum},{flag=0}): number of vectors of
-        square norm <= bound, maximum norm and list of vectors for the
-        integral and definite quadratic form x; minimal non-zero
-        vectors if bound=0. flag is optional, and can be 0: default;
-        1: returns the first minimal vector found (ignore maxnum); 2:
-        as 0 but uses a more robust, slower implementation, valid for
-        non integral quadratic forms.
+        qfminim(x,bound,maxnum,flag=0): number of vectors of square norm =
+        bound, maximum norm and list of vectors for the integral and
+        definite quadratic form x; minimal non-zero vectors if bound=0.
+        flag is optional, and can be 0: default; 1: returns the first
+        minimal vector found (ignore maxnum); 2: as 0 but uses a more
+        robust, slower implementation, valid for non integral quadratic
+        forms.
         """
         t0GEN(B)
         t1GEN(max)
@@ -6163,10 +6965,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def qfrep(self, B, long flag=0):
         """
-        qfrep(x,B,{flag=0}): vector of (half) the number of vectors of
-        norms from 1 to B for the integral and definite quadratic form
-        x. Binary digits of flag mean 1: count vectors of even norm
-        from 1 to 2B, 2: return a t_VECSMALL instead of a t_VEC.
+        qfrep(x,B,flag=0): vector of (half) the number of vectors of norms
+        from 1 to B for the integral and definite quadratic form x. Binary
+        digits of flag mean 1: count vectors of even norm from 1 to 2B, 2:
+        return a t_VECSMALL instead of a t_VEC.
         """
         t0GEN(B)
         _sig_on
@@ -6174,7 +6976,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def matsolve(self, B):
         """
-        matsolve(B): Solve the linear system Mx=B for an invertible matrix M
+        matsolve(B): Solve the linear system Mx=B for an invertible matrix
+        M
 
         matsolve(B) uses gaussian elimination to solve Mx=B, where M is
         invertible and B is a column vector.
@@ -6183,9 +6986,14 @@ cdef class gen(sage.structure.element.RingElement):
         name matsolve has been given preference here.
 
         INPUT:
-            B -- a column vector of the same dimension as the square matrix self
 
-        EXAMPLES:
+
+        -  ``B`` - a column vector of the same dimension as the
+           square matrix self
+
+
+        EXAMPLES::
+
             sage: pari('[1,1;1,-1]').matsolve(pari('[1;0]'))
             [1/2; 1/2]
         """
@@ -6198,16 +7006,20 @@ cdef class gen(sage.structure.element.RingElement):
         Return a basis of the kernel of this matrix.
 
         INPUT:
-            flag -- optional; may be set to
-                0: default;
-                non-zero: x is known to have integral entries.
 
-        EXAMPLES:
+
+        -  ``flag`` - optional; may be set to 0: default;
+           non-zero: x is known to have integral entries.
+
+
+        EXAMPLES::
+
             sage: pari('[1,2,3;4,5,6;7,8,9]').matker()
             [1; -2; 1]
 
-        With algorithm 1, even if the matrix has integer entries the
-        kernel need nto be saturated (which is weird):
+        With algorithm 1, even if the matrix has integer entries the kernel
+        need nto be saturated (which is weird)::
+
             sage: pari('[1,2,3;4,5,6;7,8,9]').matker(1)
             [3; -6; 3]
             sage: pari('matrix(3,3,i,j,i)').matker()
@@ -6222,21 +7034,25 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the integer kernel of a matrix.
 
-        This is the LLL-reduced Z-basis of the kernel of the matrix x
-        with integral entries.
+        This is the LLL-reduced Z-basis of the kernel of the matrix x with
+        integral entries.
 
         INPUT:
-            flag -- optional, and may be set to
-                   0: default, uses a modified LLL,
-                   1: uses matrixqz.
 
-        EXAMPLES:
+
+        -  ``flag`` - optional, and may be set to 0: default,
+           uses a modified LLL, 1: uses matrixqz.
+
+
+        EXAMPLES::
+
             sage: pari('[2,1;2,1]').matker()
             [-1/2; 1]
             sage: pari('[2,1;2,1]').matkerint()
             [-1; 2]
 
-        This is worrisome (so be careful!):
+        This is worrisome (so be careful!)::
+
             sage: pari('[2,1;2,1]').matkerint(1)
             Mat(1)
         """
@@ -6248,11 +7064,15 @@ cdef class gen(sage.structure.element.RingElement):
         Return the determinant of this matrix.
 
         INPUT:
-            flag  -- (optional) flag
-                     0: using Gauss-Bareiss.
-                     1: use classical gaussian elimination (slightly better for integer entries)
 
-        EXAMPLES:
+
+        -  ``flag`` - (optional) flag 0: using Gauss-Bareiss.
+           1: use classical gaussian elimination (slightly better for integer
+           entries)
+
+
+        EXAMPLES::
+
             sage: pari('[1,2; 3,4]').matdet(0)
             -2
             sage: pari('[1,2; 3,4]').matdet(1)
@@ -6265,7 +7085,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the trace of this PARI object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('[1,2; 3,4]').trace()
             5
         """
@@ -6274,22 +7095,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def mathnf(self, flag=0):
         """
-        A.mathnf({flag=0}): (upper triangular) Hermite normal form of
-        A, basis for the lattice formed by the columns of A.
+        A.mathnf(flag=0): (upper triangular) Hermite normal form of A,
+        basis for the lattice formed by the columns of A.
 
         INPUT:
-            flag -- optional, value range from 0 to 4 (0 if
-            omitted), meaning :
-                0: naive algorithm
-                1: Use Batut's algorithm -- output 2-component vector
-                   [H,U] such that H is the  HNF of A, and U is a
-                   unimodular matrix such that xU=H.
-                3: Use Batut's algorithm. Output [H,U,P] where P is
-                   a permutation matrix such that P A U = H.
-                4: As 1, using a heuristic variant of LLL reduction
-                   along the way.
 
-        EXAMPLES:
+
+        -  ``flag`` - optional, value range from 0 to 4 (0 if
+           omitted), meaning : 0: naive algorithm
+
+        -  ``1: Use Batut's algorithm`` - output 2-component
+           vector [H,U] such that H is the HNF of A, and U is a unimodular
+           matrix such that xU=H. 3: Use Batut's algorithm. Output [H,U,P]
+           where P is a permutation matrix such that P A U = H. 4: As 1, using
+           a heuristic variant of LLL reduction along the way.
+
+
+        EXAMPLES::
+
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').mathnf()
             [6, 1; 3, 1; 0, 1]
         """
@@ -6298,29 +7121,33 @@ cdef class gen(sage.structure.element.RingElement):
 
     def mathnfmod(self, d):
         """
-        Returns the Hermite normal form if d is a multiple of the determinant
+        Returns the Hermite normal form if d is a multiple of the
+        determinant
 
         Beware that PARI's concept of a hermite normal form is an upper
         triangular matrix with the same column space as the input matrix.
 
         INPUT:
-            d -- multiple of the determinant of self
 
-        EXAMPLES:
-            sage: M=matrix([[1,2,3],[4,5,6],[7,8,11]])
-	    sage: d=M.det()
-	    sage: pari(M).mathnfmod(d)
-            [6, 4, 3; 0, 1, 0; 0, 0, 1]
 
-	Note that d really needs to be a multiple of the discriminant, not
-	just of the exponent of the cokernel:
+        -  ``d`` - multiple of the determinant of self
 
-            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
-	    sage: pari(M).mathnfmod(6)
-	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
-	    sage: pari(M).mathnfmod(12)
-	    [1, 0, 0; 0, 2, 0; 0, 0, 6]
 
+        EXAMPLES::
+
+                   sage: M=matrix([[1,2,3],[4,5,6],[7,8,11]])
+            sage: d=M.det()
+            sage: pari(M).mathnfmod(d)
+                   [6, 4, 3; 0, 1, 0; 0, 0, 1]
+
+        Note that d really needs to be a multiple of the discriminant, not
+        just of the exponent of the cokernel::
+
+                   sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+            sage: pari(M).mathnfmod(6)
+            [1, 0, 0; 0, 1, 0; 0, 0, 6]
+            sage: pari(M).mathnfmod(12)
+            [1, 0, 0; 0, 2, 0; 0, 0, 6]
         """
         t0GEN(d)
         _sig_on
@@ -6328,23 +7155,28 @@ cdef class gen(sage.structure.element.RingElement):
 
     def mathnfmodid(self, d):
         """
-        Returns the Hermite Normal Form of M concatenated with d*Identity
+        Returns the Hermite Normal Form of M concatenated with d\*Identity
 
-        Beware that PARI's concept of a Hermite normal form is a maximal rank
-        upper triangular matrix with the same column space as the input matrix.
+        Beware that PARI's concept of a Hermite normal form is a maximal
+        rank upper triangular matrix with the same column space as the
+        input matrix.
 
         INPUT:
-            d -- Determines
 
-        EXAMPLES:
-            sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
-	    sage: pari(M).mathnfmodid(6)
-            [1, 0, 0; 0, 2, 0; 0, 0, 6]
 
-	This routine is not completely equivalent to mathnfmod:
+        -  ``d`` - Determines
 
-	    sage: pari(M).mathnfmod(6)
-	    [1, 0, 0; 0, 1, 0; 0, 0, 6]
+
+        EXAMPLES::
+
+                   sage: M=matrix([[1,0,0],[0,2,0],[0,0,6]])
+            sage: pari(M).mathnfmodid(6)
+                   [1, 0, 0; 0, 2, 0; 0, 0, 6]
+
+        This routine is not completely equivalent to mathnfmod::
+
+            sage: pari(M).mathnfmod(6)
+            [1, 0, 0; 0, 1, 0; 0, 0, 6]
         """
         t0GEN(d)
         _sig_on
@@ -6352,14 +7184,15 @@ cdef class gen(sage.structure.element.RingElement):
 
     def matsnf(self, flag=0):
         """
-        x.matsnf({flag=0}): Smith normal form (i.e. elementary
-        divisors) of the matrix x, expressed as a vector d. Binary
-        digits of flag mean 1: returns [u,v,d] where d=u*x*v,
-        otherwise only the diagonal d is returned, 2: allow polynomial
-        entries, otherwise assume x is integral, 4: removes all
-        information corresponding to entries equal to 1 in d.
+        x.matsnf(flag=0): Smith normal form (i.e. elementary divisors) of
+        the matrix x, expressed as a vector d. Binary digits of flag mean
+        1: returns [u,v,d] where d=u\*x\*v, otherwise only the diagonal d
+        is returned, 2: allow polynomial entries, otherwise assume x is
+        integral, 4: removes all information corresponding to entries equal
+        to 1 in d.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').matsnf()
             [0, 3, 1]
         """
@@ -6368,13 +7201,14 @@ cdef class gen(sage.structure.element.RingElement):
 
     def matfrobenius(self, flag=0):
         r"""
-        M.matfrobenius({flag=0}): Return the Frobenius form of the
-        square matrix M. If flag is 1, return only the elementary
-        divisors (a list of polynomials). If flag is 2, return a
-        two-components vector [F,B] where F is the Frobenius form and
-        B is the basis change so that $M=B^{-1} F B$.
+        M.matfrobenius(flag=0): Return the Frobenius form of the square
+        matrix M. If flag is 1, return only the elementary divisors (a list
+        of polynomials). If flag is 2, return a two-components vector [F,B]
+        where F is the Frobenius form and B is the basis change so that
+        `M=B^{-1} F B`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = pari('[1,2;3,4]')
             sage: a.matfrobenius()
             [0, 2; 1, 5]
@@ -6388,8 +7222,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v[1]^(-1)*v[0]*v[1]
             [1, 2; 3, 4]
 
-        We let t be the matrix of $T_2$ acting on modular symbols of level 43,
-        which was computed using \code{ModularSymbols(43,sign=1).T(2).matrix()}:
+        We let t be the matrix of `T_2` acting on modular symbols
+        of level 43, which was computed using
+        ``ModularSymbols(43,sign=1).T(2).matrix()``::
 
             sage: t = pari('[3, -2, 0, 0; 0, -2, 0, 1; 0, -1, -2, 2; 0, -2, 0, 2]')
             sage: t.matfrobenius()
@@ -6399,8 +7234,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: t.matfrobenius(1)
             [x^4 - x^3 - 8*x^2 + 2*x + 12]
 
-        AUTHOR:
-           -- 2006-04-02: Martin Albrecht
+        AUTHORS:
+
+        - Martin Albrect (2006-04-02)
         """
         _sig_on
         return self.new_gen(matfrobenius(self.g, flag, 0))
@@ -6419,18 +7255,24 @@ cdef class gen(sage.structure.element.RingElement):
         Return the factorization of x.
 
         INPUT:
-            limit -- (default: -1) is optional and can be set whenever
-                     x is of (possibly recursive) rational type. If limit
-                     is set return partial factorization, using primes
-                     up to limit (up to primelimit if limit=0).
 
-            proof -- (default: True) optional.  If False (not the default),
-                     returned factors $<10^{15}$ may only be pseudoprimes.
 
-        NOTE: In the standard PARI/GP interpreter and C-library the
-        factor command *always* has proof=False, so beware!
+        -  ``limit`` - (default: -1) is optional and can be set
+           whenever x is of (possibly recursive) rational type. If limit is
+           set return partial factorization, using primes up to limit (up to
+           primelimit if limit=0).
 
-        EXAMPLES:
+
+        proof - (default: True) optional. If False (not the default),
+        returned factors `<10^{15}` may only be pseudoprimes.
+
+        .. note::
+
+           In the standard PARI/GP interpreter and C-library the
+           factor command *always* has proof=False, so beware!
+
+        EXAMPLES::
+
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
             sage: pari(2^100-1).factor()
@@ -6438,12 +7280,13 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2^100-1).factor(proof=False)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
 
-        We illustrate setting a limit:
+        We illustrate setting a limit::
+
             sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
             [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
 
-
-        PARI doesn't have an algorithm for factoring multivariate polynomials:
+        PARI doesn't have an algorithm for factoring multivariate
+        polynomials::
 
             sage: pari('x^3 - y^3').factor()
             Traceback (most recent call last):
@@ -6486,18 +7329,22 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return a primitive root modulo self, whenever it exists.
 
-        This is a generator of the group $(\Z/n\Z)^*$, whenever this
-        group is cyclic, i.e. if $n=4$ or $n=p^k$ or $n=2p^k$, where
-        $p$ is an odd prime and $k$ is a natural number.
+        This is a generator of the group `(\mathbb{Z}/n\mathbb{Z})^*`, whenever
+        this group is cyclic, i.e. if `n=4` or `n=p^k` or
+        `n=2p^k`, where `p` is an odd prime and `k`
+        is a natural number.
 
         INPUT:
-            self -- positive integer equal to 4, or a power of an odd
-                prime, or twice a power of an odd prime
 
-        OUTPUT:
-            gen
 
-        EXAMPLES:
+        -  ``self`` - positive integer equal to 4, or a power
+           of an odd prime, or twice a power of an odd prime
+
+
+        OUTPUT: gen
+
+        EXAMPLES::
+
             sage: pari(4).znprimroot()
             Mod(3, 4)
             sage: pari(10007^3).znprimroot()
@@ -6517,9 +7364,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nextprime(gen self, bint add_one=0):
         """
-        nextprime(x): smallest pseudoprime >= x
+        nextprime(x): smallest pseudoprime = x
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(1).nextprime()
             2
             sage: pari(2^100).nextprime()
@@ -6534,21 +7382,22 @@ cdef class gen(sage.structure.element.RingElement):
 
     def subst(self, var, y):
         """
-        EXAMPLES:
-           sage: x = pari("x"); y = pari("y")
-           sage: f = pari('x^3 + 17*x + 3')
-           sage: f.subst(x, y)
-           y^3 + 17*y + 3
-           sage: f.subst(x, "z")
-           z^3 + 17*z + 3
-           sage: f.subst(x, "z")^2
-           z^6 + 34*z^4 + 6*z^3 + 289*z^2 + 102*z + 9
-           sage: f.subst(x, "x+1")
-           x^3 + 3*x^2 + 20*x + 21
-           sage: f.subst(x, "xyz")
-           xyz^3 + 17*xyz + 3
-           sage: f.subst(x, "xyz")^2
-           xyz^6 + 34*xyz^4 + 6*xyz^3 + 289*xyz^2 + 102*xyz + 9
+        EXAMPLES::
+
+            sage: x = pari("x"); y = pari("y")
+            sage: f = pari('x^3 + 17*x + 3')
+            sage: f.subst(x, y)
+            y^3 + 17*y + 3
+            sage: f.subst(x, "z")
+            z^3 + 17*z + 3
+            sage: f.subst(x, "z")^2
+            z^6 + 34*z^4 + 6*z^3 + 289*z^2 + 102*z + 9
+            sage: f.subst(x, "x+1")
+            x^3 + 3*x^2 + 20*x + 21
+            sage: f.subst(x, "xyz")
+            xyz^3 + 17*xyz + 3
+            sage: f.subst(x, "xyz")^2
+            xyz^6 + 34*xyz^4 + 6*xyz^3 + 289*xyz^2 + 102*xyz + 9
         """
         cdef long n
         n = P.get_var(var)
@@ -6574,10 +7423,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def charpoly(self, var=-1, flag=0):
         """
-        charpoly(A,{v=x},{flag=0}): det(v*Id-A) = characteristic
-        polynomial of A using the comatrix. flag is optional and may
-        be set to 1 (use Lagrange interpolation) or 2 (use Hessenberg
-        form), 0 being the default.
+        charpoly(A,v=x,flag=0): det(v\*Id-A) = characteristic polynomial of
+        A using the comatrix. flag is optional and may be set to 1 (use
+        Lagrange interpolation) or 2 (use Hessenberg form), 0 being the
+        default.
         """
         _sig_on
         return P.new_gen(charpoly0(self.g, P.get_var(var), flag))
@@ -6593,10 +7442,13 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return the Pari type of self as a string.
 
-        NOTE: In Cython, it is much faster to simply
-        use typ(self.g) for checking Pari types.
+        .. note::
 
-        EXAMPLES:
+           In Cython, it is much faster to simply use typ(self.g) for
+           checking Pari types.
+
+        EXAMPLES::
+
             sage: pari(7).type()
             't_INT'
             sage: pari('x').type()
@@ -6644,10 +7496,10 @@ cdef class gen(sage.structure.element.RingElement):
 
     def polinterpolate(self, ya, x):
         """
-        self.polinterpolate({ya},{x},{&e}): polynomial interpolation
-        at x according to data vectors self, ya (i.e. return P such
-        that P(self[i]) = ya[i] for all i).  Also return an error
-        estimate on the returned value.
+        self.polinterpolate(ya,x,e): polynomial interpolation at x
+        according to data vectors self, ya (i.e. return P such that
+        P(self[i]) = ya[i] for all i). Also return an error estimate on the
+        returned value.
         """
         t0GEN(ya)
         t1GEN(x)
@@ -6659,7 +7511,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def algdep(self, long n, bit=0):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = pari.set_real_precision (200)
             sage: w1 = pari('z1=2-sqrt(26); (z1+I)/(z1-I)')
             sage: f = w1.algdep(12); f
@@ -6700,22 +7553,31 @@ cdef class gen(sage.structure.element.RingElement):
 
     def elleisnum(self, long k, int flag=0):
         """
-        om.elleisnum(k, {flag=0}): om=[om1,om2] being a
-            2-component vector giving a basis of a lattice L and k an
-            even positive integer, computes the numerical value of the
-            Eisenstein series of weight k. When flag is non-zero and
-            k=4 or 6, this gives g2 or g3 with the correct
-            normalization.
+        om.elleisnum(k, flag=0): om=[om1,om2] being a 2-component vector
+        giving a basis of a lattice L and k an even positive integer,
+        computes the numerical value of the Eisenstein series of weight k.
+        When flag is non-zero and k=4 or 6, this gives g2 or g3 with the
+        correct normalization.
 
         INPUT:
-            om -- gen, 2-component vector giving a basis of a lattice L
-            k  -- int (even positive)
-            flag -- int (default 0)
+
+
+        -  ``om`` - gen, 2-component vector giving a basis of a
+           lattice L
+
+        -  ``k`` - int (even positive)
+
+        -  ``flag`` - int (default 0)
+
 
         OUTPUT:
-            gen -- numerical value of E_k
 
-        EXAMPLES:
+
+        -  ``gen`` - numerical value of E_k
+
+
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: om = e.omega()
             sage: om
@@ -6733,64 +7595,92 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellwp(self, z='z', long n=20, long flag=0):
         """
-        ellwp(E, z,{flag=0}): Return the complex value of the Weierstrass
+        ellwp(E, z,flag=0): Return the complex value of the Weierstrass
         P-function at z on the lattice defined by e.
 
         INPUT:
-            E -- list OR elliptic curve
-                  list -- [om1, om2], which are Z-generators for a lattice
-                  elliptic curve -- created using ellinit
 
-            z -- (optional) complex number  OR string (default = "z")
-                   complex number -- any number in the complex plane
-                   string (or PARI variable) -- name of a variable.
 
-            n -- int (optional: default 20) if z is a variable, compute up to at least $o(z^n)$.
+        -  ``E`` - list OR elliptic curve
 
-            flag -- int: 0 (default): compute only P(z)
-                         1 compute [P(z),P'(z)]
-                         2 consider om or E as an elliptic curve and use P-function to
-                           compute the point on E (with the Weierstrass equation for E)
-                           P(z)
-                           for that curve (identical to ellztopoint in this case).
+        -  ``list`` - [om1, om2], which are Z-generators for a
+           lattice
+
+        -  ``elliptic curve`` - created using ellinit
+
+        -  ``z`` - (optional) complex number OR string (default
+           = "z")
+
+        -  ``complex number`` - any number in the complex
+           plane
+
+        -  ``string (or PARI variable)`` - name of a variable.
+
+        -  ``n`` - int (optional: default 20) if z is a
+           variable, compute up to at least `o(z^n)`.
+
+        -  ``flag`` - int: 0 (default): compute only P(z) 1
+           compute [P(z),P'(z)] 2 consider om or E as an elliptic curve and
+           use P-function to compute the point on E (with the Weierstrass
+           equation for E) P(z) for that curve (identical to ellztopoint in
+           this case).
+
 
         OUTPUT:
-            gen -- complex number or list of two complex numbers
+
+
+        -  ``gen`` - complex number or list of two complex
+           numbers
+
 
         EXAMPLES:
 
-        We first define the elliptic curve X_0(11):
+        We first define the elliptic curve X_0(11)::
+
             sage: E = pari([0,-1,1,-10,-20]).ellinit()
 
         Compute P(1).
+
+        ::
+
             sage: E.ellwp(1)
             13.9658695257485 + 1.140149682... E-18*I
 
         Compute P(1+i), where i = sqrt(-1).
+
+        ::
+
             sage: C.<i> = ComplexField()
             sage: E.ellwp(pari(1+i))
             -1.11510682565555 + 2.33419052307470*I
             sage: E.ellwp(1+i)
             -1.11510682565555 + 2.33419052307470*I
 
-        The series expansion, to the default 20 precision:
+        The series expansion, to the default 20 precision::
+
             sage: E.ellwp()
             z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
 
-        Compute the series for wp to lower precision:
+        Compute the series for wp to lower precision::
+
             sage: E.ellwp(n=4)
             z^-2 + 31/15*z^2 + O(z^4)
 
-        Next we use the version where the input is generators for a lattice:
+        Next we use the version where the input is generators for a
+        lattice::
+
             sage: pari([1.2692, 0.63 + 1.45*i]).ellwp(1)
             13.9656146936689 + 0.000644829272810537*I
 
-        With flag 1 compute the pair P(z) and P'(z):
+        With flag 1 compute the pair P(z) and P'(z)::
+
             sage: E.ellwp(1, flag=1)
             [13.9658695257485 + 1.140149682 E-18*I, 50.5619300880073 + 1.040834085 E-17*I] # 32-bit
             [13.9658695257485 + 1.14014968292839 E-18*I, 50.5619300880073 + 6.93889390390723 E-18*I] # 64-bit
 
-        With flag=2, the computed pair is (x,y) on the curve instead of [P(z),P'(z)]:
+        With flag=2, the computed pair is (x,y) on the curve instead of
+        [P(z),P'(z)]::
+
             sage: E.ellwp(1, flag=2)
             [14.2992028590818 + 1.140149682 E-18*I, 50.0619300880073 + 1.040834085 E-17*I] # 32-bit
             [14.2992028590818 + 1.14014968292839 E-18*I, 50.0619300880073 + 6.93889390390723 E-18*I] # 64-bit
@@ -6805,10 +7695,11 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellchangepoint(self, y):
         """
-        self.ellchangepoint(y): change data on point or vector of points self
-                             on an elliptic curve according to y=[u,r,s,t]
+        self.ellchangepoint(y): change data on point or vector of points
+        self on an elliptic curve according to y=[u,r,s,t]
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: x = pari([1,0])
             sage: e.ellisoncurve([1,4])
@@ -6856,33 +7747,37 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Initialize the PARI system.
 
         INPUT:
-            size -- long, the number of bytes for the initial PARI stack
-                    (see note below)
-            maxprime -- unsigned long, upper limit on a precomputed prime
-                        number table  (default: 500000)
 
-        NOTES:
 
-            * In py_pari, the PARI stack is different than in gp or the
-              PARI C library.  In Python, instead of the PARI stack
-              holding the results of all computations, it *only* holds the
-              results of an individual computation.  Each time a new
-              Python/PARI object is computed, it it copied to its own
-              space in the Python heap, and the memory it occupied on the
-              PARI stack is freed.  Thus it is not necessary to make the
-              stack very large.  Also, unlike in PARI, if the stack does
-              overflow, in most cases the PARI stack is automatically
-              increased and the relevant step of the computation rerun.
+        -  ``size`` - long, the number of bytes for the initial
+           PARI stack (see note below)
 
-              This design obviously involves some performance penalties
-              over the way PARI works, but it scales much better and is
-              far more robust for large projects.
+        -  ``maxprime`` - unsigned long, upper limit on a
+           precomputed prime number table (default: 500000)
 
-            * If you do not want prime numbers, put maxprime=2, but be
-              careful because many PARI functions require this table.  If
-              you get the error message "not enough precomputed primes",
-              increase this parameter.
 
+        .. note::
+
+           - In py_pari, the PARI stack is different than in gp or the
+             PARI C library. In Python, instead of the PARI stack
+             holding the results of all computations, it *only*
+             holds the results of an individual computation. Each time
+             a new Python/PARI object is computed, it it copied to its
+             own space in the Python heap, and the memory it occupied
+             on the PARI stack is freed. Thus it is not necessary to
+             make the stack very large. Also, unlike in PARI, if the
+             stack does overflow, in most cases the PARI stack is
+             automatically increased and the relevant step of the
+             computation rerun.
+
+             This design obviously involves some performance penalties
+             over the way PARI works, but it scales much better and is
+             far more robust for large projects.
+
+           - If you do not want prime numbers, put ``maxprime=2``, but be
+             careful because many PARI functions require this
+             table. If you get the error message "not enough
+             precomputed primes", increase this parameter.
         """
         if bot:
             return  # pari already initialized.
@@ -6947,7 +7842,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def __richcmp__(left, right, int op):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari == pari
             True
             sage: pari == gp
@@ -6998,13 +7894,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Sets the PARI default real precision.
 
-        This is used both for creation of new objects from strings and
-        for printing.  It is the number of digits *IN DECIMAL* in
-        which real numbers are printed.  It also determines the
-        precision of objects created by parsing strings
-        (e.g. pari('1.2')), which is *not* the normal way of creating
-        new pari objects in Sage.  It has *no* effect on the precision
-        of computations within the pari library.
+        This is used both for creation of new objects from strings and for
+        printing. It is the number of digits *IN DECIMAL* in which real
+        numbers are printed. It also determines the precision of objects
+        created by parsing strings (e.g. pari('1.2')), which is *not* the
+        normal way of creating new pari objects in Sage. It has *no*
+        effect on the precision of computations within the pari library.
 
         Returns the previous PARI real precision.
         """
@@ -7021,13 +7916,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Returns the current PARI default real precision.
 
-        This is used both for creation of new objects from strings and
-        for printing.  It is the number of digits *IN DECIMAL* in
-        which real numbers are printed.  It also determines the
-        precision of objects created by parsing strings
-        (e.g. pari('1.2')), which is *not* the normal way of creating
-        new pari objects in Sage.  It has *no* effect on the precision
-        of computations within the pari library.
+        This is used both for creation of new objects from strings and for
+        printing. It is the number of digits *IN DECIMAL* in which real
+        numbers are printed. It also determines the precision of objects
+        created by parsing strings (e.g. pari('1.2')), which is *not* the
+        normal way of creating new pari objects in Sage. It has *no*
+        effect on the precision of computations within the pari library.
         """
         return GP_DATA.fmt.sigd
 
@@ -7047,7 +7941,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_gen(self, GEN x):
         """
-        Create a new gen, then free the *entire* stack and call _sig_off.
+        Create a new gen, then free the \*entire\* stack and call
+        _sig_off.
         """
         cdef gen g
         g = _new_gen(x)
@@ -7067,8 +7962,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_gen_noclear(self, GEN x):
         """
-        Create a new gen, but don't free any memory on the stack and
-        don't call _sig_off.
+        Create a new gen, but don't free any memory on the stack and don't
+        call _sig_off.
         """
         z = _new_gen(x)
         return z
@@ -7108,8 +8003,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum):
         """
-        Note that degree + 1 = length, so that recognizing 0 is
-        easier.
+        Note that degree + 1 = length, so that recognizing 0 is easier.
 
         varnum = 0 is the general choice (creates a variable in x).
         """
@@ -7151,7 +8045,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Create a new gen with the value of the double x, using Pari's
         dbltor.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.double_to_gen(1)
             1.00000000000000
             sage: pari.double_to_gen(1e30)
@@ -7205,23 +8100,25 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_ref(self, GEN g, gen parent):
         """
-        Create a new gen pointing to the given GEN, which is
-        allocated as a part of parent.g.
+        Create a new gen pointing to the given GEN, which is allocated as a
+        part of parent.g.
 
-        NOTE:
-        As a rule, there should never be more than one sage gen
-        pointing to a given Pari GEN. So that means there is
-        only one case where this function should be used: when
-        a complicated Pari GEN is allocated with a single gen
-        pointing to it, and one needs a gen pointing to one of
-        its components.
+        .. note::
 
-        For example, doing x = pari("[1,2]") allocates a gen pointing
-        to the list [1,2], but x[0] has no gen wrapping it, so new_ref
-        should be used there. Then parent would be x in this case.
-        See __getitem__ for an example of usage.
+           As a rule, there should never be more than one sage gen
+           pointing to a given Pari GEN. So that means there is only
+           one case where this function should be used: when a
+           complicated Pari GEN is allocated with a single gen
+           pointing to it, and one needs a gen pointing to one of its
+           components.
 
-        EXAMPLES:
+           For example, doing x = pari("[1,2]") allocates a gen pointing to
+           the list [1,2], but x[0] has no gen wrapping it, so new_ref
+           should be used there. Then parent would be x in this
+           case. See __getitem__ for an example of usage.
+
+        EXAMPLES::
+
             sage: pari("[[1,2],3]")[0][1] ## indirect doctest
             2
         """
@@ -7238,7 +8135,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create the PARI object obtained by evaluating s using PARI.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari([2,3,5])
             [2, 3, 5]
             sage: pari(Matrix(2,2,range(4)))
@@ -7246,29 +8144,35 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari(x^2-3)
             x^2 - 3
 
-	    sage: a = pari(1); a, a.type()
-            (1, 't_INT')
-            sage: a = pari(1/2); a, a.type()
-            (1/2, 't_FRAC')
-            sage: a = pari(1/2); a, a.type()
-            (1/2, 't_FRAC')
+        ::
 
-        Conversion from reals uses the real's own precision, here 53 bits (the default):
+            sage: a = pari(1); a, a.type()
+                   (1, 't_INT')
+                   sage: a = pari(1/2); a, a.type()
+                   (1/2, 't_FRAC')
+                   sage: a = pari(1/2); a, a.type()
+                   (1/2, 't_FRAC')
+
+        Conversion from reals uses the real's own precision, here 53 bits
+        (the default)::
+
             sage: a = pari(1.2); a, a.type(), a.precision()
             (1.20000000000000, 't_REAL', 4) # 32-bit
             (1.20000000000000, 't_REAL', 3) # 64-bit
 
-        We get the same answer if we use strings instead of reals:
+        We get the same answer if we use strings instead of reals::
 
             sage: a = pari('1.2'); a, a.type(), a.precision()
             (1.20000000000000, 't_REAL', 4) # 32-bit
             (1.20000000000000, 't_REAL', 3) # 64-bit
 
         Conversion from matrices is supported , but not from vectors; use
-        lists instead:
+        lists instead::
 
             sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
             ([1, 2, 3; 4, 5, 6], 't_MAT')
+
+        ::
 
             sage: v = vector([1.2,3.4,5.6])
             sage: v.pari()
@@ -7278,10 +8182,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: b = pari(list(v)); b,b.type()
             ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
 
-        Some more exotic examples:
+        Some more exotic examples::
+
             sage: K.<a>=NumberField(x^3-2)
             sage: pari(K)
             [x^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 - 1.09112363597172*I, -0.793700525984100 + 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, -1.72108416091916, 0.581029111014503; 1, 0.461163111024285, -2.16843016298270], 0, [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]]], [1.25992104989487, -0.629960524947437 - 1.09112363597172*I], [1, x, x^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
+
+        ::
 
             sage: E = EllipticCurve('37a1')
             sage: pari(E)
@@ -7351,8 +8258,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def new_with_bits_prec(self, s, long precision):
         r"""
-        pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with (at most) precision \emph{bits} of precision.
+        pari.new_with_bits_prec(self, s, precision) creates s as a PARI
+        gen with (at most) precision *bits* of precision.
         """
         cdef unsigned long old_prec
         old_prec = GP_DATA.fmt.sigd
@@ -7368,8 +8275,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef int get_var(self, v):
         """
-        Converts a Python string into a PARI variable reference number.
-        Or if v = -1, returns -1.
+        Converts a Python string into a PARI variable reference number. Or
+        if v = -1, returns -1.
         """
         if v != -1:
             s = str(v)
@@ -7400,7 +8307,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def allocatemem(self, s=0, silent=False):
         r"""
-        Double the \emph{PARI} stack.
+        Double the *PARI* stack.
         """
         if s == 0 and not silent:
             print "Doubling the PARI stack."
@@ -7415,10 +8322,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def init_primes(self, _M):
         """
-        Recompute the primes table including at least all primes up to
-        M (but possibly more).
+        Recompute the primes table including at least all primes up to M
+        (but possibly more).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.init_primes(200000)
         """
         cdef unsigned long M
@@ -7440,26 +8348,29 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def read(self, filename):
         r"""
-        Read a script from the named filename into the interpreter, where
-        s is a string.  The functions defined in the script are then
-        available for use from SAGE/PARI.
+        Read a script from the named filename into the interpreter, where s
+        is a string. The functions defined in the script are then available
+        for use from Sage/PARI.
 
         EXAMPLE:
 
-            If foo.gp is a script that contains
-            \begin{verbatim}
-                {foo(n) =
-                    n^2
-                }
-            \end{verbatim}
-            and you type \code{read("foo.gp")}, then the command
-            \code{pari("foo(12)")} will create the Python/PARI gen which
-            is the integer 144.
+        If foo.gp is a script that contains
 
-        CONSTRAINTS:
-            The PARI script must *not* contain the following function calls:
+        ::
 
-                 print, default, ???    (please report any others that cause trouble)
+                            {foo(n) =
+                                n^2
+                            }
+
+
+        and you type ``read("foo.gp")``, then the command
+        ``pari("foo(12)")`` will create the Python/PARI gen
+        which is the integer 144.
+
+        CONSTRAINTS: The PARI script must *not* contain the following
+        function calls:
+
+        print, default, ??? (please report any others that cause trouble)
         """
         F = open(filename).read()
         while True:
@@ -7497,11 +8408,19 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         To extend the table of primes use pari.init_primes(M).
 
         INPUT:
-            n -- C long
-        OUTPUT:
-            gen -- PARI list of first n primes
 
-        EXAMPLES:
+
+        -  ``n`` - C long
+
+
+        OUTPUT:
+
+
+        -  ``gen`` - PARI list of first n primes
+
+
+        EXAMPLES::
+
             sage: pari.prime_list(0)
             []
             sage: pari.prime_list(-1)
@@ -7522,9 +8441,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def primes_up_to_n(self, long n):
         """
-        Return the primes <= n as a pari list.
+        Return the primes = n as a pari list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.primes_up_to_n(1)
             []
             sage: pari.primes_up_to_n(20)
@@ -7569,7 +8489,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Return Euler's constant to the requested real precision (in bits).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.euler()
             0.577215664901533
             sage: pari.euler(precision=100).python()
@@ -7580,10 +8501,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def pi(self, precision=0):
         """
-        Return the value of the constant pi to the requested real
-        precision (in bits).
+        Return the value of the constant pi to the requested real precision
+        (in bits).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.pi()
             3.14159265358979
             sage: pari.pi(precision=100).python()
@@ -7594,10 +8516,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def pollegendre(self, long n, v=-1):
         """
-        pollegendre(n, {v=x}): Legendre polynomial of degree n (n
-        C-integer), in variable v.
+        pollegendre(n, v=x): Legendre polynomial of degree n (n C-integer),
+        in variable v.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.pollegendre(7)
             429/16*x^7 - 693/16*x^5 + 315/16*x^3 - 35/16*x
             sage: pari.pollegendre(7, 'z')
@@ -7610,10 +8533,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def poltchebi(self, long n, v=-1):
         """
-        poltchebi(n, {v=x}): Chebyshev polynomial of the first kind
-        of degree n, in variable v.
+        poltchebi(n, v=x): Chebyshev polynomial of the first kind of degree
+        n, in variable v.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.poltchebi(7)
             64*x^7 - 112*x^5 + 56*x^3 - 7*x
             sage: pari.poltchebi(7, 'z')
@@ -7628,7 +8552,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Return the factorial of the integer n as a PARI gen.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.factorial(0)
             1
             sage: pari.factorial(1)
@@ -7643,9 +8568,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def polcyclo(self, long n, v=-1):
         """
-        polcyclo(n, {v=x}): cyclotomic polynomial of degree n, in variable v.
+        polcyclo(n, v=x): cyclotomic polynomial of degree n, in variable
+        v.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.polcyclo(8)
             x^4 + 1
             sage: pari.polcyclo(7, 'z')
@@ -7658,11 +8585,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def polsubcyclo(self, long n, long d, v=-1):
         """
-        polsubcyclo(n, d, {v=x}): return the pari list of polynomial(s)
-        defining the sub-abelian extensions of degree $d$ of the cyclotomic
-        field $\Q(\zeta_n)$, where $d$ divides $\phi(n)$.
+        polsubcyclo(n, d, v=x): return the pari list of polynomial(s)
+        defining the sub-abelian extensions of degree `d` of the
+        cyclotomic field `\mathbb{Q}(\zeta_n)`, where `d`
+        divides `\phi(n)`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.polsubcyclo(8, 4)
             [x^4 + 1]
             sage: pari.polsubcyclo(8, 2, 'z')
@@ -7689,7 +8618,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         listcreate(n): return an empty pari list of maximal length n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.listcreate(20)
             List([])
         """
@@ -7700,7 +8630,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Returns Pari's current random number seed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.setrand(50)
             sage: pari.getrand()
             50
@@ -7715,11 +8646,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Sets Pari's current random number seed.
 
-        This should not be called directly; instead, use \sage's global
-        random number seed handling in \class{sage.misc.randstate}
-        and call \code{current_randstate().set_seed_pari()}.
+        This should not be called directly; instead, use Sage's global
+        random number seed handling in ``sage.misc.randstate``
+        and call ``current_randstate().set_seed_pari()``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.setrand(12345)
             sage: pari.getrand()
             12345
@@ -7730,18 +8662,21 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Returns a random number from Pari's random number generator.
 
-        WARNING: You probably don't want to use this; it's a very
-        poor random number generator.  \sage exposes it only as a way
-        to test \function{getrand} and \function{setrand}.
+        .. warning::
+
+           You probably don't want to use this; it's a very poor
+           random number generator. Sage exposes it only as a way to
+           test :meth:`getrand` and :meth:`setrand`.
         """
         return pari_rand31()
 
     def vector(self, long n, entries=None):
         """
-        vector(long n, entries=None):
-        Create and return the length n PARI vector with given list of entries.
+        vector(long n, entries=None): Create and return the length n PARI
+        vector with given list of entries.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari.vector(5, [1, 2, 5, 4, 3])
             [1, 2, 5, 4, 3]
             sage: pari.vector(2, [x, 1])
@@ -7768,8 +8703,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def matrix(self, long m, long n, entries=None):
         """
-        matrix(long m, long n, entries=None):
-        Create and return the m x n PARI matrix with given list of entries.
+        matrix(long m, long n, entries=None): Create and return the m x n
+        PARI matrix with given list of entries.
         """
         cdef int i, j, k
         cdef gen A
@@ -7788,26 +8723,45 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def finitefield_init(self, p, long n, var=-1):
         """
         finitefield_init(p, long n, var="x"): Return a polynomial f(x) so
-        that the extension of F_p of degree n is k = F_p[x]/(f).  Moreover,
-        the element x (mod f) of k is a generator for the multiplicative
-        group of k.
+        that the extension of F_p of degree n is k = F_p[x]/(f).
+        Moreover, the element x (mod f) of k is a generator for the
+        multiplicative group of k.
 
         INPUT:
-            p -- int, a prime number
-            n -- int, positive integer
-            var -- str, default to "x", but could be any pari variable.
+
+
+        -  ``p`` - int, a prime number
+
+        -  ``n`` - int, positive integer
+
+        -  ``var`` - str, default to "x", but could be any pari
+           variable.
+
+
         OUTPUT:
-            pari polynomial mod p -- defines field
-        EXAMPLES:
+
+
+        -  ``pari polynomial mod p`` - defines field
+
+
+        EXAMPLES::
+
             sage: pari.finitefield_init(97,1)
             Mod(1, 97)*x + Mod(92, 97)
 
-        These computations use pseudo-random numbers, so we set the
-        seed for reproducible testing.
+        These computations use pseudo-random numbers, so we set the seed
+        for reproducible testing.
+
+        ::
+
             sage: set_random_seed(0)
+
+        ::
 
             sage: pari.finitefield_init(7,2)
             Mod(1, 7)*x^2 + Mod(5, 7)*x + Mod(3, 7)
+
+        ::
 
             sage: pari.finitefield_init(2,3)
             Mod(1, 2)*x^3 + Mod(1, 2)*x^2 + Mod(1, 2)   # 32-bit
@@ -7851,20 +8805,25 @@ def init_pari_stack(size=8000000):
     Change the PARI scratch stack space to the given size.
 
     The main application of this command is that you've done some
-    individual PARI computation that used a lot of stack space.  As a
+    individual PARI computation that used a lot of stack space. As a
     result the PARI stack may have doubled several times and is now
-    quite large.  That object you computed is copied off to the heap,
-    but the PARI stack is never automatically shrunk back down.  If
-    you call this function you can shrink it back down.
+    quite large. That object you computed is copied off to the heap,
+    but the PARI stack is never automatically shrunk back down. If you
+    call this function you can shrink it back down.
 
     If you set this too small then it will automatically be increased
     if it is exceeded, which could make some calculations initially
-    slower (since they have to be redone until the stack is big enough).
+    slower (since they have to be redone until the stack is big
+    enough).
 
     INPUT:
-        size -- an integer (default: 8000000)
 
-    EXAMPLES:
+
+    -  ``size`` - an integer (default: 8000000)
+
+
+    EXAMPLES::
+
         sage: get_memory_usage()                       # random output
         '122M+'
         sage: a = pari('2^100000000')
@@ -7875,6 +8834,8 @@ def init_pari_stack(size=8000000):
         '145M+'
 
     Hey, I want my memory back!
+
+    ::
 
         sage: sage.libs.pari.gen.init_pari_stack()
         sage: get_memory_usage()                       # random output
@@ -8057,7 +9018,8 @@ class PariError (RuntimeError):
 
 cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     """
-    TESTS:
+    TESTS::
+
         sage: v = pari.listcreate(2^62 if is_64_bit else 2^30)
         Traceback (most recent call last):
         ...
@@ -8086,9 +9048,12 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
 def vecsmall_to_intlist(gen v):
     """
     INPUT:
-        v -- a gen of type Vecsmall
-    OUTPUT:
-        a Python list of Python ints
+
+
+    -  ``v`` - a gen of type Vecsmall
+
+
+    OUTPUT: a Python list of Python ints
     """
     if typ(v.g) != t_VECSMALL:
         raise TypeError, "input v must be of type vecsmall (use v.Vecsmall())"
@@ -8100,10 +9065,10 @@ cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
     """
     This is called by factor when PARI's factor tried to factor, got
     the failed_factorization, and it turns out that one of the factors
-    in there is not proved prime.  At this point, we don't care too
-    much about speed (so don't write everything below using the PARI C
+    in there is not proved prime. At this point, we don't care too much
+    about speed (so don't write everything below using the PARI C
     library), since the probability this function ever gets called is
-    infinitesimal.  (That said, we of course did test this function by
+    infinitesimal. (That said, we of course did test this function by
     forcing a fake failure in the code in misc.h.)
     """
     P = failed_factorization[0]  # 'primes'

@@ -1,8 +1,8 @@
 r"""
 Victor Shoup's NTL C++ Library
 
-SAGE provides an interface to Victor Shoup's C++ library NTL.
-Features of this library include \emph{incredibly fast} arithmetic with
+Sage provides an interface to Victor Shoup's C++ library NTL.
+Features of this library include *incredibly fast* arithmetic with
 polynomials and assymptotically fast factorization of polynomials.
 """
 

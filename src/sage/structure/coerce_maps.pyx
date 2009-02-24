@@ -1,3 +1,6 @@
+"""
+Coerce maps
+"""
 include "../ext/stdsage.pxi"
 
 import re
@@ -58,13 +61,15 @@ cdef class DefaultConvertMap(Map):
 
 cdef class DefaultConvertMap_unique(DefaultConvertMap):
     """
-    This morphism simply defers action to the codomain's element_constructor method,
-    WITHOUT passing in the codomain as the first argument.
+    This morphism simply defers action to the codomain's
+    element_constructor method, WITHOUT passing in the codomain as the
+    first argument.
 
-    This is used for creating elements that don't take a parent as the first argument
-    to their __init__ method, for example, Integers, Rationals, Algebraic Reals... all
-    have a unique parent. It is also used when the element_constructor is a bound method
-    (whose self argument is assumed to be bound to the codomain).
+    This is used for creating elements that don't take a parent as the
+    first argument to their __init__ method, for example, Integers,
+    Rationals, Algebraic Reals... all have a unique parent. It is also
+    used when the element_constructor is a bound method (whose self
+    argument is assumed to be bound to the codomain).
     """
     cpdef Element _call_(self, x):
         try:
@@ -104,7 +109,8 @@ cdef class NamedConvertMap(Map):
 
     def __init__(self, domain, codomain, method_name, force_use=False):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_maps import NamedConvertMap
             sage: var('t')
             t
@@ -125,7 +131,8 @@ cdef class NamedConvertMap(Map):
 
     cpdef Element _call_(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_maps import NamedConvertMap
             sage: f = NamedConvertMap(GF(5), QQ, '_integer_'); f
             Conversion via _integer_ method map:
@@ -157,7 +164,8 @@ cdef class NamedConvertMap(Map):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_maps import NamedConvertMap
             sage: f = NamedConvertMap(SR, ZZ['x'], '_polynomial_')
             sage: f(x^2+1, check=True)
@@ -179,7 +187,8 @@ cdef class CallableConvertMap(Map):
 
         This is especially useful to create maps from bound methods.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_maps import CallableConvertMap
             sage: def foo(P, x): return x/2
             sage: f = CallableConvertMap(ZZ, QQ, foo)
@@ -191,6 +200,9 @@ cdef class CallableConvertMap(Map):
               To:   Rational Field
 
         Create a homomorphism from $\R$ to $\R^+$ viewed as additave groups.
+
+        ::
+
             sage: f = CallableConvertMap(RR, RR, exp, parent_as_first_arg=False)
             sage: f(0)
             1.00000000000000
@@ -223,7 +235,8 @@ cdef class CallableConvertMap(Map):
         Because self._func may be anything we do a little bit of sanity
         checking (the return value must be an element with the correct parent).
 
-        TESTS:
+        TESTS::
+
             sage: from sage.structure.coerce_maps import CallableConvertMap
             sage: def foo(P, x): return x
             sage: f = CallableConvertMap(ZZ, ZZ, foo)
@@ -258,7 +271,8 @@ cdef class CallableConvertMap(Map):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.structure.coerce_maps import CallableConvertMap
             sage: def foo(P, x, y): return x or y
             sage: f = CallableConvertMap(ZZ, ZZ, foo)
@@ -305,7 +319,8 @@ cdef class CCallableConvertMap_class(Map):
 
     cpdef Element _call_(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.structure.coerce_maps import test_CCallableConvertMap
             sage: f = test_CCallableConvertMap(QQ, 'test')
             sage: f(1/3)
@@ -315,7 +330,8 @@ cdef class CCallableConvertMap_class(Map):
 
     def _repr_type(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_maps import test_CCallableConvertMap
             sage: test_CCallableConvertMap(ZZ, 'any name')
             Conversion via c call 'any name' map:
@@ -350,7 +366,8 @@ cpdef Element _ccall_test_function(codomain, x):
     """
     For testing CCallableConvertMap_class. Returns x*x*x-x in the codomain.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.structure.coerce_maps import _ccall_test_function
         sage: _ccall_test_function(ZZ, 1)
         0
@@ -365,7 +382,8 @@ def test_CCallableConvertMap(domain, name=None):
     """
     For testing CCallableConvertMap_class.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.structure.coerce_maps import test_CCallableConvertMap
         sage: f = test_CCallableConvertMap(ZZ, 'test'); f
         Conversion via c call 'test' map:
@@ -409,7 +427,8 @@ cdef class ListMorphism(Map):
 cdef class TryMap(Map):
     def __init__(self, Map morphism_preferred, Map morphism_backup, error_types=None):
         """
-        TESTS:
+        TESTS::
+
             sage: sage.structure.coerce_maps.TryMap(RDF.coerce_map_from(QQ), RDF.coerce_map_from(ZZ))
             Traceback (most recent call last):
             ...
@@ -428,7 +447,8 @@ cdef class TryMap(Map):
 
     cpdef Element _call_(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x: 1/x)
             sage: map2 = QQ.coerce_map_from(ZZ)
             sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))
@@ -446,7 +466,8 @@ cdef class TryMap(Map):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x, y:  y/x)
             sage: map2 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x, y: 23/1)
             sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))

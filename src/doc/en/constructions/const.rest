@@ -1,0 +1,35 @@
+
+
+--------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{\\indexname} {Index}
+
+{const.ind}
+
+.. [1]
+   Not to be confused with OpenMath, an extensible standard for
+   representing the semantics of mathematical objects,
+   http://www.openmath.org/.
+
+

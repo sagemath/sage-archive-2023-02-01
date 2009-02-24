@@ -1,50 +1,61 @@
 r"""
 Factorizations
 
-The \code{Factorization} class provides a structure for holding quite
+The :class:`Factorization` class provides a structure for holding quite
 general lists of objects with integer multiplicities.  These may hold
 the results of an arithmetic or algebraic factorization, where the
 objects may be primes or irreducible polynomials and the
 multiplicities are the (non-zero) exponents in the factorization.  For
 other types of example, see below.
 
-\code{Factorization} class objects contain a \code{list}, so can be
+:class:`Factorization` class objects contain a ``list``, so can be
 printed nicely and be manipulated like a list of prime-exponent pairs,
 or easily turned into a plain list.  For example, we factor the
-integer $-45$:
+integer `-45`::
 
     sage: F = factor(-45)
 
-This returns an object of type \code{Factorization}:
+This returns an object of type :class:`Factorization`::
+
     sage: type(F)
     <class 'sage.structure.factorization.Factorization'>
 
-It prints in a nice factored form:
+It prints in a nice factored form::
+
     sage: F
     -1 * 3^2 * 5
 
 There is an underlying list representation, \emph{which ignores the
 unit part} (!).
+
+::
+
     sage: list(F)
     [(3, 2), (5, 1)]
 
-A \code{Factorization} is not actually a list:
+A :class:`Factorization` is not actually a list::
+
     sage: isinstance(F, list)
     False
 
-However, we can access the \code{Factorization} F itself as if it were a list:
+However, we can access the :class:`Factorization` F itself as if it were a list::
+
     sage: F[0]
     (3, 2)
     sage: F[1]
     (5, 1)
 
-To get at the unit part, use the \code{unit} function:
+To get at the unit part, use the :meth:`Factorization.unit` function::
+
     sage: F.unit()
     -1
 
 All factorizations are immutable.  Thus if you write a function that
 returns a cached version of a factorization, you do not have to return
 a copy.
+
+::
+
     sage: F = factor(-12); F
     -1 * 2^2 * 3
     sage: F[0] = (5,4)
@@ -58,6 +69,8 @@ EXAMPLES:
 This more complicated example involving polynomials also illustrates
 +that the unit part is not discarded from factorizations.
 
+::
+
     sage: x = QQ['x'].0
     sage: f = -5*(x-2)*(x-3)
     sage: f
@@ -69,9 +82,11 @@ This more complicated example involving polynomials also illustrates
     sage: expand(F)
     -5*x^2 + 25*x - 30
 
-The underlying list is the list of pairs $(p_i, e_i)$, where each
-$p_i$ is a 'prime' and each $e_i$ is an integer. The unit part
+The underlying list is the list of pairs `(p_i, e_i)`, where each
+`p_i` is a 'prime' and each `e_i` is an integer. The unit part
 is discarded by the list.
+
+::
 
     sage: list(F)
     [(x - 3, 1), (x - 2, 1)]
@@ -80,8 +95,8 @@ is discarded by the list.
     sage: F[1]
     (x - 2, 1)
 
-In the ring $\ZZ[x]$, the integer $-5$ is not a unit, so the
-factorization has three factors:
+In the ring `\mathbb{Z}[x]`, the integer `-5` is not a unit, so the
+factorization has three factors::
 
     sage: x = ZZ['x'].0
     sage: f = -5*(x-2)*(x-3)
@@ -100,7 +115,10 @@ factorization has three factors:
     sage: len(F)
     3
 
-On the other hand, -1 is a unit in $\ZZ$, so it is included in the unit.
+On the other hand, -1 is a unit in `\mathbb{Z}`, so it is included in the unit.
+
+::
+
     sage: x = ZZ['x'].0
     sage: f = -1*(x-2)*(x-3)
     sage: F = f.factor(); F
@@ -110,7 +128,8 @@ On the other hand, -1 is a unit in $\ZZ$, so it is included in the unit.
     sage: list(F)
     [(x - 3, 1), (x - 2, 1)]
 
-Factorizations can involve fairly abstract mathematical objects:
+Factorizations can involve fairly abstract mathematical objects::
+
     sage: F = ModularSymbols(11,4).factorization()
     sage: F
     (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(11) of weight 4 with sign 0 over Rational Field) *
@@ -138,7 +157,8 @@ Factorizations can involve fairly abstract mathematical objects:
     True
 
 
-TESTS:
+TESTS::
+
     sage: F = factor(-20); F
     -1 * 2^2 * 5
     sage: G = loads(dumps(F)); G
@@ -149,12 +169,16 @@ TESTS:
     False
 
 AUTHORS:
-    -- William Stein (2006-01-22): added unit part as suggested by David Kohel.
-    -- William Stein (2008-01-17): wrote much of the documentation and fixed
-                                   a couple of bugs.
-    -- Nick Alexander (2008-01-19): added support for non-commuting factors.
-    -- John Cremona (2008-08-22): added division, lcm, gcd,
-                                  is_integral and universe functions
+
+- William Stein (2006-01-22): added unit part as suggested by David Kohel.
+
+- William Stein (2008-01-17): wrote much of the documentation and
+  fixed a couple of bugs.
+
+- Nick Alexander (2008-01-19): added support for non-commuting factors.
+
+- John Cremona (2008-08-22): added division, lcm, gcd, is_integral and
+  universe functions
 """
 
 #*****************************************************************************
@@ -175,9 +199,8 @@ class Factorization(SageObject):
     """
     A formal factorization of an object.
 
-    NOTES:
+    EXAMPLES::
 
-    EXAMPLES:
         sage: N = 2006
         sage: F = N.factor(); F
         2 * 17 * 59
@@ -196,32 +219,40 @@ class Factorization(SageObject):
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
-        Create a \code{Factorization} object.
+        Create a :class:`Factorization` object.
 
         INPUT:
-            x    -- a list of (p, e) pairs with e an integer (or a TypeError
-                    is raised).
-            unit -- (default: 1) the unit part of the factorization
-            cr   -- (default: False) if True, print the factorization with
-                    carriage returns between factors
-            sort -- (default: True) if True, sort the factors by calling
-                    the sort function after creating the factorization.
-                    See the documentation for self.sort for how this works.
+
+        - ``x`` - a list of (p, e) pairs with e an integer (or a TypeError
+          is raised).
+
+        - ``unit`` - (default: 1) the unit part of the factorization
+
+        - ``cr`` - (default: False) if True, print the factorization with
+          carriage returns between factors
+
+        - ``sort`` - (default: True) if True, sort the factors by
+          calling the sort function after creating the factorization.
+          See the documentation for self.sort for how this works.
 
         OUTPUT:
-            a Factorization object
+
+        - a Factorization object
 
         EXAMPLES:
-        We create a factorization with all the default options:
+        We create a factorization with all the default options::
+
             sage: Factorization([(2,3), (5, 1)])
             2^3 * 5
 
-        We create a factorization with a specified unit part:
+        We create a factorization with a specified unit part::
+
             sage: Factorization([(2,3), (5, 1)], unit=-1)
             -1 * 2^3 * 5
 
         We try to create a factorization but with a string an exponent, which
-        results in a TypeError:
+        results in a TypeError::
+
             sage: Factorization([(2,3), (5, 'x')])
             Traceback (most recent call last):
             ...
@@ -229,29 +260,36 @@ class Factorization(SageObject):
 
         We create a factorization that puts newlines after each multiply sign when
         printing.  This is mainly useful when the primes are large.
+
+        ::
+
             sage: Factorization([(2,3), (5, 2)], cr=True)
             2^3 *
             5^2
 
         Another factorization with newlines and nontrivial unit part (which appears
-        on a line by itself):
+        on a line by itself)::
+
             sage: Factorization([(2,3), (5, 2)], cr=True, unit=-2)
             -2 *
             2^3 *
             5^2
 
-        A factorization, but where we do not sort the factors:
+        A factorization, but where we do not sort the factors::
+
             sage: Factorization([(5,3), (2, 3)], sort=False)
             5^3 * 2^3
 
-        By default factorizations are sorted by the prime base (for commutative bases):
+        By default factorizations are sorted by the prime base (for commutative bases)::
+
             sage: Factorization([(2, 7), (5,2), (2, 5)])
             2^12 * 5^2
             sage: R.<a,b> = FreeAlgebra(QQ,2)
             sage: Factorization([(a,1),(b,1),(a,2)])
             a * b * a^2
 
-        Autosorting (the default) swaps around the factors below:
+        Autosorting (the default) swaps around the factors below::
+
             sage: F = Factorization([(ZZ^3, 2), (ZZ^2, 5)], cr=True); F
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
@@ -297,9 +335,10 @@ class Factorization(SageObject):
 
     def __getitem__(self, i):
         """
-        Return i-th factor of self.
+        Return `i^{th}` factor of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = factor(-75); a
             -1 * 3 * 5^2
             sage: a[0]
@@ -317,11 +356,14 @@ class Factorization(SageObject):
 
     def __setitem__(self, i, v):
         """
-        Set the i-th factor of self.
+        Set the `i^{th}` factor of self.
 
-        NOT ALLOWED -- Factorizations are immutable.
+        .. warning::
 
-        EXAMPLES:
+           NOT ALLOWED -- Factorizations are immutable.
+
+        EXAMPLES::
+
             sage: a = factor(-75); a
             -1 * 3 * 5^2
             sage: a[0] = (2,3)
@@ -340,11 +382,15 @@ class Factorization(SageObject):
         Return the number of prime factors of self, not counting
         the unit part.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: len(factor(15))
             2
 
         Note that the unit part is not included in the count.
+
+        ::
+
             sage: a = factor(-75); a
             -1 * 3 * 5^2
             sage: len(a)
@@ -362,7 +408,8 @@ class Factorization(SageObject):
         lists of self and other (ignoring the unit!)
 
         EXAMPLES:
-        We compare two contrived formal factorizations:
+        We compare two contrived formal factorizations::
+
             sage: a = Factorization([(2, 7), (5,2), (2, 5)])
             sage: b = Factorization([(2, 7), (5,10), (7, 3)])
             sage: a
@@ -378,7 +425,8 @@ class Factorization(SageObject):
             sage: b.expand()
             428750000000
 
-        We compare factorizations of some polynomials:
+        We compare factorizations of some polynomials::
+
             sage: x = polygen(QQ)
             sage: x^2 - 1 > x^2 - 4
             True
@@ -400,14 +448,16 @@ class Factorization(SageObject):
 
         This is of course not a deepcopy -- only references to the
         factors are returned, not copies of them.  Use
-        \code{deepcopy(self)} if you need a deep copy of self.
+        ``deepcopy(self)`` if you need a deep copy of self.
 
         EXAMPLES:
-        We create a factorization that has mutable primes:
+        We create a factorization that has mutable primes::
+
             sage: F = Factorization([([1,2], 5), ([5,6], 10)]); F
             ([1, 2])^5 * ([5, 6])^10
 
-        We make a copy of it:
+        We make a copy of it::
+
             sage: G = copy(F); G
             ([1, 2])^5 * ([5, 6])^10
             sage: G is F
@@ -415,6 +465,9 @@ class Factorization(SageObject):
 
         Note that if we change one of the mutable "primes" of F, this does
         change G.
+
+        ::
+
             sage: F[1][0][0] = 'hello'
             sage: G
             ([1, 2])^5 * (['hello', 6])^10
@@ -431,27 +484,33 @@ class Factorization(SageObject):
         are returned, not copies of them.
 
         EXAMPLES:
-        We make a factorization that has mutable entries:
+        We make a factorization that has mutable entries::
+
             sage: F = Factorization([([1,2], 5), ([5,6], 10)]); F
             ([1, 2])^5 * ([5, 6])^10
 
-        Now we make a copy of it and a deep copy.
+        Now we make a copy of it and a deep copy::
+
             sage: K = copy(F)
             sage: G = deepcopy(F); G
             ([1, 2])^5 * ([5, 6])^10
 
-        We change one of the mutable entries of F:
+        We change one of the mutable entries of F::
+
             sage: F[0][0][0] = 10
 
-        This of course changes F:
+        This of course changes F::
+
             sage: F
             ([10, 2])^5 * ([5, 6])^10
 
-        It also changes the copy K of F:
+        It also changes the copy K of F::
+
             sage: K
             ([10, 2])^5 * ([5, 6])^10
 
-        It does \emph{not} change the deep copy G:
+        It does *not* change the deep copy G::
+
             sage: G
             ([1, 2])^5 * ([5, 6])^10
         """
@@ -462,10 +521,13 @@ class Factorization(SageObject):
         r"""
         Return the parent structure of my factors.
 
-        NOTE: This used to be called \code{base_ring}, but the
-        universe of a factorization need not be a ring.
+        .. note::
 
-        EXAMPLES:
+           This used to be called ``base_ring``, but the universe
+           of a factorization need not be a ring.
+
+        EXAMPLES::
+
             sage: F = factor(2006)
             sage: F.universe()
             Integer Ring
@@ -487,7 +549,8 @@ class Factorization(SageObject):
         """
         Return True if my factors commute.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = factor(2006)
             sage: F.is_commutative()
             True
@@ -514,7 +577,8 @@ class Factorization(SageObject):
         Change whether or not the factorization is printed with
         carriage returns after each factor.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = polygen(QQ,'x')
             sage: F = factor(x^6 - 1); F
             (x - 1) * (x + 1) * (x^2 - x + 1) * (x^2 + x + 1)
@@ -532,7 +596,8 @@ class Factorization(SageObject):
         """
         Combine adjacent products that commute as much as possible.
 
-        TESTS:
+        TESTS::
+
             sage: R.<x,y> = FreeAlgebra(ZZ, 2)
             sage: F = Factorization([(x,3), (y, 2), (y,2)], simplify=False); F
             x^3 * y^2 * y^2
@@ -560,29 +625,33 @@ class Factorization(SageObject):
         Sort the factors in this factorization.
 
         INPUT:
-            _cmp -- (default: None) comparison function
+
+        - ``_cmp`` - (default: None) comparison function
 
         OUTPUT:
-            changes this factorization to be sorted
+
+        - changes this factorization to be sorted
 
         If _cmp is None, we determine the comparison function as
         follows: If the prime in the first factor has a dimension
-        method, then we sort based first on \emph{dimension} then on
+        method, then we sort based first on *dimension* then on
         the exponent.  If there is no dimension method, we next
         attempt to sort based on a degree method, in which case, we
-        sort based first on \emph{degree}, then exponent to break ties
+        sort based first on *degree*, then exponent to break ties
         when two factors have the same degree, and if those match
         break ties based on the actual prime itself.  If there is no
         degree method, we sort based on dimension.
 
         EXAMPLES:
-        We create a factored polynomial:
+        We create a factored polynomial::
+
             sage: x = polygen(QQ,'x')
             sage: F = factor(x^3 + 1); F
             (x + 1) * (x^2 - x + 1)
 
         Then we sort it but using the negated version of the standard
-        Python cmp function:
+        Python cmp function::
+
             sage: F.sort(_cmp = lambda x,y: -cmp(x,y))
             sage: F
             (x^2 - x + 1) * (x + 1)
@@ -596,7 +665,8 @@ class Factorization(SageObject):
                     """
                     This is used internally for comparing.  (indirect doctest)
 
-                    EXAMPLES:
+                    EXAMPLES::
+
                         sage: factor(6)
                         2 * 3
                     """
@@ -611,7 +681,8 @@ class Factorization(SageObject):
                         """
                         This is used internally for comparing.  (indirect doctest)
 
-                        EXAMPLES:
+                        EXAMPLES::
+
                             sage: factor(6)
                             2 * 3
                         """
@@ -630,12 +701,16 @@ class Factorization(SageObject):
         Return the unit part of this factorization.
 
         EXAMPLES:
-        We create a polynomial over the real double field and factor it:
+        We create a polynomial over the real double field and factor it::
+
             sage: x = polygen(RDF, 'x')
             sage: F = factor(-2*x^2 - 1); F
             (-2.0) * (1.0*x^2 + 0.5)
 
-        Note that the unit part of the factorization is $-2.0$.
+        Note that the unit part of the factorization is `-2.0`.
+
+        ::
+
             sage: F.unit()
             -2.0
 
@@ -649,11 +724,12 @@ class Factorization(SageObject):
 
     def _cr(self):
         """
-        Return whether or not factorizations are printed with carriage returns
-        between factors.
+        Return whether or not factorizations are printed with carriage
+        returns between factors.
 
         EXAMPLES:
-        Our first example involves factoring an integer:
+        Our first example involves factoring an integer::
+
             sage: F = factor(-93930); F
             -1 * 2 * 3 * 5 * 31 * 101
             sage: F._cr()
@@ -662,7 +738,8 @@ class Factorization(SageObject):
             sage: F._cr()
             True
 
-        This of course looks funny:
+        This of course looks funny::
+
             sage: F
             -1 *
             2 *
@@ -671,7 +748,8 @@ class Factorization(SageObject):
             31 *
             101
 
-        Next we factor a modular symbols space:
+        Next we factor a modular symbols space::
+
             sage: F = ModularSymbols(11).factor(); F
             (Modular Symbols subspace of dimension 1 of ...) *
             (Modular Symbols subspace of dimension 1 of ...) *
@@ -687,7 +765,8 @@ class Factorization(SageObject):
         """
         Return the string representation of this factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = factor(-100); f
             -1 * 2^2 * 5^2
             sage: f._repr_()
@@ -695,15 +774,22 @@ class Factorization(SageObject):
 
         Note that the default printing of a factorization can be overloaded
         using the rename method.
+
+        ::
+
             sage: f.rename('factorization of -100')
             sage: f
             factorization of -100
 
         However _repr_ always prints normally.
+
+        ::
+
             sage: f._repr_()
             '-1 * 2^2 * 5^2'
 
-        EXAMPLES:
+        EXAMPLES::
+
            sage: x = polygen(QQ)
            sage: Factorization([(x-1,1), (x-2,2)])
             (x - 1) * (x - 2)^2
@@ -745,9 +831,10 @@ class Factorization(SageObject):
 
     def _latex_(self):
         r"""
-        Return the \LaTeX{} representation of this factorization.
+        Return the LaTeX representation of this factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = factor(-100); f
             -1 * 2^2 * 5^2
             sage: latex(f)
@@ -785,7 +872,8 @@ class Factorization(SageObject):
         """
         Return the (unfactored) sum of self and other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-10) + 16
             6
             sage: factor(10) - 16
@@ -802,7 +890,8 @@ class Factorization(SageObject):
         """
         Return the (unfactored) difference of self and other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-10) + 16
             6
             sage: factor(10) - 16
@@ -816,7 +905,8 @@ class Factorization(SageObject):
         """
         Return negative of this factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = factor(-75); a
             -1 * 3 * 5^2
             sage: -a
@@ -831,7 +921,8 @@ class Factorization(SageObject):
         """
         Return the product left * self, where left is not a Factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = factor(15); a
             3 * 5
             sage: -2 * a
@@ -853,7 +944,8 @@ class Factorization(SageObject):
         Return the product of two factorizations, which is obtained by
         combining together like factors.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-10) * factor(-16)
             2^5 * 5
             sage: factor(-10) * factor(16)
@@ -881,10 +973,11 @@ class Factorization(SageObject):
 
     def __pow__(self, n):
         """
-        Return the $n$-th power of a factorization, which is got by
+        Return the `n^{th}` power of a factorization, which is got by
         combining together like factors.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = factor(-100); f
             -1 * 2^2 * 5^2
             sage: f^3
@@ -910,7 +1003,8 @@ class Factorization(SageObject):
         r"""
         Return the formal inverse of the factors in the factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = factor(2006); F
             2 * 17 * 59
             sage: F^-1
@@ -930,7 +1024,8 @@ class Factorization(SageObject):
         Return the quotient of two factorizations, which is obtained by
         multiplying the first by the inverse of the second.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-10) / factor(-16)
             2^-3 * 5
             sage: factor(-10) / factor(16)
@@ -952,7 +1047,8 @@ class Factorization(SageObject):
         """
         Return the product of the factors in the factorization, multiplied out.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = factor(2006); F
             2 * 17 * 59
             sage: F.value()
@@ -971,8 +1067,10 @@ class Factorization(SageObject):
 
     def expand(self):
         r"""
-        Same as \code{self.value()}, so this returns the product of
+        Same as :meth:`value`, so this returns the product of
         the factors, multiplied out.
+
+        EXAMPLES::
 
             sage: x = polygen(QQ, 'x')
             sage: F = factor(-x^5 + 1); F
@@ -984,9 +1082,10 @@ class Factorization(SageObject):
 
     def prod(self):
         r"""
-        Same as \code{self.value()}.
+        Same as :meth:`value`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = factor(100)
             sage: F.prod()
             100
@@ -997,7 +1096,8 @@ class Factorization(SageObject):
         r"""
         Return the gcd of two factorizations.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-30).gcd(factor(-160))
             2 * 5
             sage: factor(gcd(-30,160))
@@ -1020,7 +1120,8 @@ class Factorization(SageObject):
         r"""
         Return the lcm of two factorizations.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: factor(-10).lcm(factor(-16))
             2^4 * 5
             sage: factor(lcm(-10,16))
@@ -1044,7 +1145,8 @@ class Factorization(SageObject):
         r"""
         Return True iff all exponents of this Factorization are non-negative
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = factor(-10); F
             -1 * 2 * 5
             sage: F.is_integral()

@@ -1,7 +1,11 @@
 r"""
+The Coercion Model
+
 The coercion model manages how elements of one parent get related to elements
 of another. For example, the integer 2 can canonically be viewed as an element
 of the rational numbers. (The Parent of a non-element is its Python type.)
+
+::
 
     sage: ZZ(2).parent()
     Integer Ring
@@ -11,7 +15,7 @@ of the rational numbers. (The Parent of a non-element is its Python type.)
 The most prominent role of the coercion model is to make sense of binary
 operations between elements that have distinct parents. It does this by
 finding a parent where both elements make sense, and doing the operation
-there. For example
+there. For example::
 
     sage: a = 1/2; a.parent()
     Rational Field
@@ -29,24 +33,25 @@ original parents is made. The results of these discoveries are cached.
 On failure, a TypeError is always raised.
 
 Some arithmetic operations (such as multiplication) can indicate an action
-rather than arithmetic in a common parent. For example
+rather than arithmetic in a common parent. For example::
 
     sage: E = EllipticCurve('37a')
     sage: P = E(0,0)
     sage: 5*P
     (1/4 : -5/8 : 1)
 
-where there is action of $\Z$ on the points of $E$ given by the additive
+where there is action of `\mathbb{Z}` on the points of `E` given by the additive
 group law. Parents can specify how they act on or are acted upon by other
 parents.
 
 There are two kinds of ways to get from one parent to another, coercions and
 conversions.
 
-Coercions are canonical (possibly modulo a finite number of deterministic
-choices) morphisms, and the set of all coercions between all parents forms a
-commuting diagram (modulo possibly rounding issues). $\Z \rightarrow \Q$ is an
-example of a coercion. These are invoked implicitly by the coercion model.
+Coercions are canonical (possibly modulo a finite number of
+deterministic choices) morphisms, and the set of all coercions between
+all parents forms a commuting diagram (modulo possibly rounding
+issues). `\mathbb{Z} \rightarrow \mathbb{Q}` is an example of a
+coercion. These are invoked implicitly by the coercion model.
 
 Conversions try to construct an element out of their input if at all possible.
 Examples include sections of coercions, creating an element from a string or
@@ -91,7 +96,8 @@ cpdef py_scalar_parent(py_type):
     Returns the Sage equivalent of the given python type, if one exists.
     If there is no equivalent, return None.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
@@ -130,7 +136,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     """
     See also sage.categories.pushout
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f = ZZ['t','x'].0 + QQ['x'].0 + CyclotomicField(13).gen(); f
         t + x + (zeta13)
         sage: f.parent()
@@ -148,16 +155,21 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         2*x
 
     AUTHOR:
-        -- Robert Bradshaw
+
+    - Robert Bradshaw
     """
 
     def __init__(self, lookup_dict_size=127, lookup_dict_threshold=.75):
         """
         INPUT:
-            lookup_dict_size -- initial size of the coercion hashtables
-            lookup_dict_threshold -- maximal density of the coercion hashtables before forcing a re-hash
 
-        EXAMPLES:
+        - ``lookup_dict_size`` - initial size of the coercion hashtables
+
+        - ``lookup_dict_threshold`` - maximal density of the coercion
+          hashtables before forcing a re-hash
+
+        EXAMPLES::
+
             sage: from sage.structure.coerce import CoercionModel_cache_maps
             sage: cm = CoercionModel_cache_maps(4, .95)
             sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
@@ -166,8 +178,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_stats()
             ((0, 1.0, 4), (0, 0.25, 1))
 
-        NOTE: In practice 4 would be a really bad number to choose, but it makes the
-              hashing deterministic.
+        .. note::
+
+            In practice 4 would be a really bad number to choose, but
+            it makes the hashing deterministic.
         """
         self.reset_cache(lookup_dict_size, lookup_dict_threshold)
 
@@ -180,7 +194,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         It may be useful for debugging, and may also free some memory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.get_stats()                # random
             ((0, 0.3307086614173229, 3), (0, 0.1496062992125984, 2))
@@ -202,14 +217,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         This returns the current cache of coercion maps and actions, primarily
         useful for debugging and introspection.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: 1 + 1/2
             3/2
             sage: cm = sage.structure.element.get_coercion_model()
             sage: maps, actions = cm.get_cache()
 
         Now lets see what happens when we do a binary operations with
-        an integer and a rational:
+        an integer and a rational::
+
             sage: left_morphism, right_morphism = maps[ZZ, QQ]
             sage: print left_morphism
             Natural morphism:
@@ -221,7 +238,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         We can see that it coerces the left operand from an integer to a
         rational, and doesn't do anything to the right.
 
-        Now for some actions:
+        Now for some actions::
 
             sage: R.<x> = ZZ['x']
             sage: 1/2 * x
@@ -245,14 +262,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         This returns the state of the cache of coercion maps and actions,
         primarily useful for debugging and introspection.
-    If a class is not part of the coercion system, we should call the
-    __rmul__ method when it makes sense.
+        If a class is not part of the coercion system, we should call the
+        __rmul__ method when it makes sense.
 
         The coercion maps are stored in a specialized TripleDict hashtable,
         and the stats returned are (min, avg, max) of the number of items
         per bucket. The lower the better.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.get_stats()                # random
             ((0, 0.16058394160583941, 2), (0, 0.13138686131386862, 3))
@@ -267,7 +285,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If the stack has not yet been flagged as cleared, we clear it now (rather
         than wasting time to do so for successful operations).
 
-        TEST:
+        TEST::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: 1+1/2+2 # make sure there aren't any errors hanging around
             7/2
@@ -292,7 +311,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         A function to test the exception stack.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: 1 + 1/11 # make sure there aren't any errors hanging around
             12/11
@@ -316,9 +336,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         If all went well, this should be the empty list. If things aren't
         happening as you expect, this is a good place to check. See also
-        \code{coercion_traceback}.
+        :func:`coercion_traceback`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: 1/2 + 2
             5/2
@@ -329,7 +350,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 3'
 
-        Now see what the actual problem was:
+        Now see what the actual problem was::
+
             sage: import traceback
             sage: cm.exception_stack()
             [(<type 'exceptions.TypeError'>, TypeError("BUG: the base_extend method must be defined for 'Monoid of ideals of Integer Ring' (class '<class 'sage.rings.ideal_monoid.IdealMonoid_c'>')",), <traceback object at ...>), (<type 'exceptions.TypeError'>,  TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",),  <traceback object at ...>)]
@@ -338,7 +360,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'
 
-        This is typically accessed via the \code{coercion_traceback} function.
+        This is typically accessed via the :func:`coercion_traceback` function.
+
+        ::
+
             sage: coercion_traceback()
             Traceback (most recent call last):
             ...
@@ -357,7 +382,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         elements or parents). If the parent of the result can be determined
         then it will be returned.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
 
             sage: cm.explain(ZZ, ZZ)
@@ -394,7 +420,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Univariate Polynomial Ring in x over Rational Field
 
         Sometimes with non-sage types there is not enough information to deduce
-        what will actually happen:
+        what will actually happen::
 
             sage: cm.explain(RealField(100), float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
@@ -408,7 +434,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <type 'float'>
 
 
-        Special care is taken to deal with division:
+        Special care is taken to deal with division::
 
             sage: cm.explain(ZZ, ZZ, operator.div)
             Identical parents, arithmetic performed immediately.
@@ -442,9 +468,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Univariate Polynomial Ring in x over Rational Field
             Univariate Polynomial Ring in x over Rational Field
 
-        NOTE: This function is accurate only in so far as analyse is kept in
-              sync with the \code{bin_op} and \code{canonical_coercion} which
-              are kept seperate for maximal efficiency.
+        .. note::
+
+           This function is accurate only in so far as analyse is kept
+           in sync with the :meth:`bin_op` and
+           :meth:`canonical_coercion` which are kept seperate for
+           maximal efficiency.
         """
         all, res = self.analyse(xp, yp, op)
         indent = " "*4
@@ -463,11 +492,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Emulate the process of doing arithmetic between xp and yp, returning
         a list of steps and the parent that the result will live in. The
-        \code{explain} function is easier to use, but if one wants access to
+        ``explain`` function is easier to use, but if one wants access to
         the acutal morphism and action objects (rather than their string
         representations) then this is the function to use.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: steps, res = cm.analyse(GF(7), ZZ)
             sage: print steps
@@ -553,11 +583,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef Parent division_parent(self, Parent parent):
         r"""
         Deduces where the result of division in parent lies by calculating
-        the inverse of \code{parent.one_element()} or \code{parent.an_element()}.
+        the inverse of ``parent.one_element()`` or ``parent.an_element()``.
 
         The result is cached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.division_parent(ZZ)
             Rational Field
@@ -594,31 +625,40 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If it cannot make sense of the operation, a TypeError is raised.
 
         INPUT:
-            x  -- the left operand
-            y  -- the right operand
-            op -- a python function taking 2 arguments
-                  Note: op is often an arithmitic operation, but need
-                  not be so.
 
-        EXAMPLES:
+        - ``x``  - the left operand
+
+        - ``y``  - the right operand
+
+        - ``op`` - a python function taking 2 arguments
+
+          .. note::
+
+             op is often an arithmitic operation, but need not be so.
+
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.bin_op(1/2, 5, operator.mul)
             5/2
 
-        The operator can be any callable:
+        The operator can be any callable::
+
             set Rational Field Integer Ring <function <lambda> at 0xc0b2270> None None
             (Rational Field, Rational Field)
             sage: R.<x> = ZZ['x']
             sage: cm.bin_op(x^2-1, x+1, gcd)
             x + 1
 
-        Actions are detected and performed:
+        Actions are detected and performed::
+
             sage: M = matrix(ZZ, 2, 2, range(4))
             sage: V = vector(ZZ, [5,7])
             sage: cm.bin_op(M, V, operator.mul)
             (7, 31)
 
-        TESTS:
+        TESTS::
+
             sage: class Foo:
             ...      def __rmul__(self, left):
             ...          return 'hello'
@@ -700,15 +740,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         raise TypeError, arith_error_message(x,y,op)
 
     cpdef canonical_coercion(self, x, y):
-        """
+        r"""
         Given two elements x and y, with parents S and R respectively,
         find a common parent Z such that there are coercions
-        $f: S \mapsto Z$ and $g: R \mapsto Z$ and return $f(x), g(y)$
+        `f: S \mapsto Z` and `g: R \mapsto Z` and return `f(x), g(y)`
         which will have the same parent.
 
         Raises a type error if no such Z can be found.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.canonical_coercion(mod(2, 10), 17)
             (2, 7)
@@ -722,7 +763,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: parent(x) is parent(y)
             True
 
-        There is some support for non-Sage datatypes as well:
+        There is some support for non-Sage datatypes as well::
+
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
             (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
@@ -741,7 +783,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: type(a)
             <type 'sage.rings.rational.Rational'>
 
-        We also make an exception for 0, even if $\ZZ$ does not map in:
+        We also make an exception for 0, even if $\mathbb{Z}$ does not map in::
+
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
         """
@@ -839,19 +882,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
 
     cpdef coercion_maps(self, R, S):
-        """
+        r"""
         Give two parents R and S, return a pair of coercion maps
-        $f: R \rightarrow Z$ and $g: S \rightarrow Z$, if such a $Z$
+        `f: R \rightarrow Z` and `g: S \rightarrow Z` , if such a `Z`
         can be found.
 
-        In the (common) case that $R=Z$ or $S=Z$ then \code{None} is returned
-        for $f$ or $g$ respectively rather than constructing (and subsequently
+        In the (common) case that `R=Z` or `S=Z` then ``None`` is returned
+        for `f` or `g` respectively rather than constructing (and subsequently
         calling) the identity morphism.
 
-        If no suitable $f, g$ can be found, a single None is returned.
+        If no suitable `f, g` can be found, a single None is returned.
         This result is cached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: f, g = cm.coercion_maps(ZZ, QQ)
             sage: print f
@@ -875,7 +919,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
 
         Note that to break symmetry, if there is a coercion map in both
-        directions, the parent on the left is used:
+        directions, the parent on the left is used::
+
             sage: V = QQ^3
             sage: W = V.__class__(QQ, 3)
             sage: V == W
@@ -933,7 +978,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Make sure this is a valid pair of homomorphisms from R and S to a common parent.
         This function is used to protect the user against buggy parents.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: homs = QQ.coerce_map_from(ZZ), None
             sage: cm.verify_coercion_maps(ZZ, QQ, homs) == homs
@@ -997,16 +1043,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef discover_coercion(self, R, S):
         """
         This actually implements the finding of coercion maps as described in
-        the \code{coercion_maps} method.
+        the ``coercion_maps`` method.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
 
-        If R is S, then two identity morphisms suffice:
+        If R is S, then two identity morphisms suffice::
+
             sage: cm.discover_coercion(SR, SR)
             (None, None)
 
-        If there is a coercion map either direction, use that:
+        If there is a coercion map either direction, use that::
+
             sage: cm.discover_coercion(ZZ, QQ)
             (Natural morphism:
               From: Integer Ring
@@ -1017,7 +1066,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Rational Field
               To:   Real Field with 53 bits of precision)
 
-        Otherwise, try and compute an appropriate cover:
+        Otherwise, try and compute an appropriate cover::
+
             sage: cm.discover_coercion(ZZ['x,y'], RDF)
             (Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
@@ -1026,7 +1076,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Real Double Field
               To:   Multivariate Polynomial Ring in x, y over Real Double Field)
 
-        Sometimes there is a reasonable "cover," but no canonical coercion:
+        Sometimes there is a reasonable "cover," but no canonical coercion::
+
             sage: sage.categories.pushout.pushout(QQ, QQ^3)
             Vector space of dimension 3 over Rational Field
             sage: print cm.discover_coercion(QQ, QQ^3)
@@ -1070,7 +1121,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         Get the action of R on S or S on R associated to the operation op.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.get_action(ZZ['x'], ZZ, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
@@ -1104,12 +1156,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef verify_action(self, action, R, S, op, bint fix=True):
         r"""
-        Verify that \code{action} takes an element of R on the left and S
+        Verify that ``action`` takes an element of R on the left and S
         on the right, raising an error if not.
 
         This is used for consistency checking in the coercion model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = ZZ['x']
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.verify_action(R.get_action(QQ), R, QQ, operator.mul)
@@ -1162,16 +1215,21 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef discover_action(self, R, S, op):
         """
         INPUT
-            R -- the left Parent (or type)
-            S -- the right Parent (or type)
-            op -- the operand, typically an element of the operator module.
+
+        - ``R`` - the left Parent (or type)
+
+        - ``S`` - the right Parent (or type)
+
+        - ``op`` - the operand, typically an element of the operator module.
 
         OUTPUT:
-            An action A such that s op r is given by A(s,r).
+
+        - An action A such that s op r is given by A(s,r).
 
         The steps taken are illistrated below.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x> = ZZ['x']
             sage: P.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
@@ -1179,22 +1237,26 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: cm = sage.structure.element.get_coercion_model()
 
-        If R or S is a Parent, ask it for an action by/on R:
+        If R or S is a Parent, ask it for an action by/on R::
+
             sage: cm.discover_action(ZZ, P, operator.mul)
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
 
-        If R or S a type, recursively call get_action with the Sage versions of R and/or S:
+        If R or S a type, recursively call get_action with the Sage versions of R and/or S::
+
             sage: cm.discover_action(P, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring
 
-        If op in an inplace operation, look for the non-inplace action:
+        If op in an inplace operation, look for the non-inplace action::
+
             sage: cm.discover_action(P, ZZ, operator.imul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
 
-        If op is division, look for action on right by inverse:
+        If op is division, look for action on right by inverse::
+
             sage: cm.discover_action(P, ZZ, operator.div)
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Natural morphism:
@@ -1282,7 +1344,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         This function is only called when someone has incorrectly implemented
         a user-defined part of the coercion system (usually, a morphism).
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm._coercion_error('a', 'f', 'f(a)', 'b', 'g', 'g(b)')
             Traceback (most recent call last):

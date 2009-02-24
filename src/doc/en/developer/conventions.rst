@@ -1,0 +1,608 @@
+.. _chapter-conventions:
+
+==============================
+Conventions for Coding in Sage
+==============================
+
+To meet the goal of making Sage easy to read, maintain, and
+improve, all Python/Cython code that is included with Sage should
+adhere to the style conventions discussed in this chapter.
+
+Python Coding Conventions
+=========================
+
+Follow the standard Python formatting rules when writing code for
+Sage, as explained at http://www.python.org/dev/peps/pep-0008/ and
+http://www.python.org/dev/peps/pep-0257/. In particular,
+
+
+-  Use 4 spaces for indentation levels. Do not use tabs as they can
+   result in indentation confusion. Most editors have a feature that
+   will insert 4 spaces when the tab key is hit. Also, many editors
+   will automatically search/replace leading tabs with 4 spaces.
+
+-  Use all lowercase function names with words separated by
+   underscores:
+
+   ::
+
+               def set_some_value()
+
+   instead of CamelCase:
+
+   ::
+
+               def SetSomeValue()
+
+-  Use CamelCase for class names and major functions that create
+   objects, e.g., ``PolynomialRing``.
+
+
+Note however that some functions do have uppercase letters where it
+makes sense. For instance, the function for lattice reduction by
+the LLL algorithm is called ``Matrix_integer_dense.LLL``.
+
+File and Directory Names
+========================
+
+Python Sage library code uses the following conventions. Directory
+names may be plural (e.g., ``rings``) and file names are
+almost always singular (e.g., ``polynomial_ring.py``).
+Note that the file ``polynomial_ring.py`` might still
+contain definitions of several different types of polynomial
+rings.
+
+.. You are encouraged
+   to include miscellaneous notes, emails, design
+   discussions, etc., in your package.  Make these
+   plain text files (with extension ``.txt``)
+   in a subdirectory called ``notes``.  (For example, see
+   ``SAGE_ROOT/devel/sage/sage/ext/notes/``.)
+
+Headings of Sage Library Code Files
+===================================
+
+The top of each Sage code file should follows this format:
+
+::
+
+    r"""
+    <Very short 1-line summary>
+
+    <Paragraph description>
+    ...
+
+    AUTHORS:
+
+    - YOUR NAME (2005-01-03): initial version
+
+    - person (date in ISO year-month-day format): short desc
+
+    ...
+
+    - person (date in ISO year-month-day format): short desc
+
+    ...
+
+    Lots and lots of examples.
+    """
+
+    #*****************************************************************************
+    #       Copyright (C) 2008 YOUR NAME <your email>
+    #
+    #  Distributed under the terms of the GNU General Public License (GPL)
+    #                  http://www.gnu.org/licenses/
+    #*****************************************************************************
+
+The following is the top of the file
+``SAGE_ROOT/devel/sage/sage/rings/integer.pyx``, which
+contains the implementation for :math:`$\mathbb{Z}$`.
+
+
+
+::
+
+    """
+    Elements of the ring m`\mathbb{Z}` of integers
+
+    AUTHORS:
+
+    - William Stein (2005): initial version
+
+    - Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+      conversion; hashing
+
+    - Didier Deshommes (2006-03-06): numerous examples
+      and docstrings
+
+    - William Stein (2006-03-31): changes to reflect GMP bug fixes
+
+    - William Stein (2006-04-14): added GMP factorial method (since it's
+      now very fast).
+
+    - David Harvey (2006-09-15): added nth_root, exact_log
+
+    - David Harvey (2006-09-16): attempt to optimise Integer constructor
+
+    - Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+
+    - David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+      optimized Integer constructor and pool
+
+    - Pablo De Napoli (2007-04-01): multiplicative_order should return
+      +infinity for non zero numbers
+
+    - Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
+      Kronecker extension).  Convert some methods to use GMP directly
+      rather than pari, Integer(), PY_NEW(Integer)
+
+    - David Roe (2007-03-21): sped up valuation and is_square, added
+      val_unit, is_power, is_power_of and divide_knowing_divisible_by
+
+    - Robert Bradshaw (2008-03-26): gamma function, multifactorials
+
+    - Robert Bradshaw (2008-10-02): bounded squarefree part
+
+    EXAMPLES:
+
+    Add 2 integers::
+
+        sage: a = Integer(3) ; b = Integer(4)
+        sage: a + b == 7
+        True
+
+    Add an integer and a real number::
+
+        sage: a + 4.0
+        7.00000000000000
+
+    Add an integer and a rational number::
+
+        sage: a + Rational(2)/5
+        17/5
+
+    Add an integer and a complex number::
+
+        sage: b = ComplexField().0 + 1.5
+        sage: loads((a+b).dumps()) == a+b
+        True
+
+    ::
+
+        sage: z = 32
+        sage: -z
+        -32
+        sage: z = 0; -z
+        0
+        sage: z = -0; -z
+        0
+        sage: z = -1; -z
+        1
+
+    Multiplication::
+
+        sage: a = Integer(3) ; b = Integer(4)
+        sage: a * b == 12
+        True
+        sage: loads((a * 4.0).dumps()) == a*b
+        True
+        sage: a * Rational(2)/5
+        6/5
+
+    ::
+
+        sage: list([2,3]) * 4
+        [2, 3, 2, 3, 2, 3, 2, 3]
+
+    ::
+
+        sage: 'sage'*Integer(3)
+        'sagesagesage'
+
+    COERCIONS: Returns version of this integer in the multi-precision
+    floating real field R.
+
+    ::
+
+        sage: n = 9390823
+        sage: RR = RealField(200)
+        sage: RR(n)
+        9.3908230000000000000000000000000000000000000000000000000000e6
+    """
+    #*****************************************************************************
+    #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
+    #       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
+    #       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
+    #       Copyright (C) 2007 David Harvey <dmharvey@math.harvard.edu>
+    #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
+    #       Copyright (C) 2007,2008 Robert Bradshaw <robertwb@math.washington.edu>
+    #       Copyright (C) 2007 David Roe <roed314@gmail.com>
+    #
+    #  Distributed under the terms of the GNU General Public License (GPL)
+    #                  http://www.gnu.org/licenses/
+    #*****************************************************************************
+
+All code included with Sage must be licensed under the GPLv2+ or a
+less restrictive license (e.g., the BSD license). It is very
+important that you include your name in the AUTHOR log so
+that everybody who submits code to Sage to receive proper credit [2]_.
+(If ever you feel you are not receiving proper credit for anything
+you submit to Sage, please let the development team know!)
+
+
+.. _section-docstrings:
+
+Documentation Strings
+=====================
+
+Docstring Markup: ReST and Sphinx
+---------------------------------
+
+Docstring Content
+-----------------
+
+**Every** function must have a docstring that includes the
+following information:
+
+
+-  A one-sentence description of the function, followed by a blank
+   line.
+
+-  An INPUT and an OUTPUT block for input and output arguments (see
+   below for format). The type names should be descriptive, but do not
+   have to represent the exact Sage/Python types. For example, use
+   "integer" for anything that behaves like an integer; you do not
+   have to put a precise type name such as ``int``.
+
+-  An EXAMPLES block for examples. This is not optional. These
+   examples are used for automatic testing before each release and new
+   functions without these doctests will not be accepted for inclusion
+   with Sage.
+
+-  An ALGORITHM block (optional) which indicates what software
+   and/or what algorithm is used. For example
+   ``ALGORITHM: Uses Pari``.
+
+-  A NOTES block for special notes (optional). Include information
+   such as references, purpose etc.
+
+-  An AUTHORS block (optional, but encouraged for important
+   functions, so users can see from the docstring who wrote it and
+   therefore whom to contact if they have questions).
+
+
+Use the following template when documenting functions. Note the
+indentation:
+
+::
+
+    def point(self, x=1, y=2):
+        r"""
+        This function returns the point `(x^5,y)`.
+
+        INPUT:
+
+         - ``x`` - integer (default: 1) the ...
+
+         - ``y`` - integer (default: 2) the ...
+
+        OUTPUT:
+
+        integer -- the ...
+
+        EXAMPLES:
+
+        This example illustrates ...
+
+        ::
+
+            sage: A = ModuliSpace()
+            sage: A.point(2,3)
+            xxx
+
+        We now ...
+
+        ::
+
+            sage: B = A.point(5,6)
+            sage: xxx
+
+        It is an error to ...::
+
+            sage: C = A.point('x',7)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=r) to an integer
+
+        NOTES:
+
+        This function uses the algorithm of [BCDT] to determine
+        whether an elliptic curve E over Q is modular.
+
+        ...
+
+        REFERENCES:
+
+        - [BCDT] Breuil, Conrad, Diamond, Taylor, "Modularity ...."
+
+        AUTHORS:
+
+        - William Stein (2005-01-03)
+
+        - First_name Last_name (yyyy-mm-dd)
+        """
+        <body of the function>
+
+You are strongly encouraged to:
+
+
+-  Use nice LaTeX formating everywhere. If you use backslashes,
+   either use double backslashes or place an r right before the first
+   triple opening quote. For example,
+
+   ::
+
+       def cos(x):
+           """
+           Returns `\\cos(x)`.
+           """
+
+       def sin(x):
+           r"""
+           Returns `\sin(x)`.
+           """
+
+   .. note::
+
+      Note that in ReST documentation, you use backticks `` \` `` to
+      mark LaTeX code to be typeset.
+
+   .. warning::
+
+      Currently, non-standard LaTeX macros are note supported.
+
+-  Liberally describe what the examples do. Note that there must be
+   a blank line after the example code and before the explanatory text
+   for the next example (indentation isn't enough).
+
+-  Illustrate any exceptions raised by the function with examples,
+   as given above (It is an error to ...; In particular, use ...).
+
+-  Include many examples. These are automatically tested on a
+   regular basis, and are crucial for the quality and adaptability of
+   Sage. Without such examples, small changes to one part of Sage that
+   break something else might not go seen until much later when
+   someone uses the system, which is unacceptable. Note that new
+   functions without doctests will not be accepted for inclusion in Sage.
+
+Automatic Testing
+-----------------
+
+The code in the examples should pass automatic testing. This means
+that if the above code is in the file ``f.py`` (or
+``f.sage``), then ``sage -t f.py`` should not give any
+error messages. Testing occurs with full Sage preparsing of input
+within the standard Sage shell environment, as described in
+:ref:`section-preparsing`. **Important:** The file ``f.py`` is not imported
+when running tests unless you have arranged that it be imported
+into your Sage environment, i.e., unless its functions are
+available when you start Sage using the ``sage`` command. For
+example, the function ``cdd_convert`` in the file
+``SAGE_ROOT/devel/sage/sage/geometry/polyhedra.py`` includes
+an EXAMPLES block containing the following:
+
+::
+
+        sage: from sage.geometry.polyhedra import cdd_convert
+        sage: cdd_convert(' 1 1 0 0')
+        [1, 1, 0, 0]
+
+Sage doesn't know about the function ``cdd_convert`` by
+default, so it needs to be imported before it is tested; hence the
+first line in the example.
+
+.. _section-further_conventions:
+
+Further Conventions for Automated Testing of Examples
+-----------------------------------------------------
+
+The Python script
+``local/bin/sage-doctest`` implements documentation testing
+in Sage (see :ref:`chapter-testing` for more details). When writing
+documentation, keep the following points in mind:
+
+
+-  All input is preparsed before being passed to Python, e.g.,
+   ``2/3`` is replaced by ``Integer(2)/Integer(3)``, which evaluates
+   to ``2/3`` as a rational instead of the Python int
+   ``0``. For more information on preparsing, see
+   :ref:`section-preparsing`.
+
+-  If a test line contains the text ``random``, it is
+   executed by ``sage-doctest`` but ``sage-doctest`` does
+   not check that the output agrees with the output in the
+   documentation string. For example, the docstring for the
+   ``__hash__`` method for ``CombinatorialObject`` in
+   ``SAGE_ROOT/devel/sage/sage/combinat/combinat.py`` includes
+   the lines
+
+   ::
+
+           sage: hash(c) #random
+           1335416675971793195
+           sage: c._hash #random
+           1335416675971793195
+
+   However, most functions generating pseudo-random output do not need
+   this tag since the doctesting framework guarantees the state of the
+   pseudo random number generators (PRNGs) used in Sage for a given
+   doctest. See :ref:`chapter-randomtesting` for details on this framework.
+
+-  If a line contains the text ``long time`` then that line
+   is not tested unless the ``-long`` option is given, e.g.,
+   ``sage -t -long f.py``. Use this to include examples that
+   take more than about a second to run; these will not be run
+   regularly during Sage development, but will get run before major
+   releases. No example should take more than about 30 seconds.
+
+   For example, here is part of the docstring from the
+   ``regulator`` method for rational elliptic curves, from the
+   file
+   ``SAGE_ROOT/devel/sage/sage/schemes/elliptic_curves/ell_rational.py``:
+
+   ::
+
+       sage: E = EllipticCurve([0, 0, 1, -1, 0])
+       sage: E.regulator()              # long time (1 second)
+       0.0511114082399688
+
+-  If a line contains ``todo: not implemented``, it is never
+   tested. It is good to include lines like this to make clear what we
+   want Sage to eventually implement:
+
+   ::
+
+           sage: factor(x*y - x*z)    # todo: not implemented
+
+   It is also immediately clear to the user that the indicated example
+   doesn't currently work.
+
+-  If a line contains the text ``optional`` it is not tested
+   unless the ``-optional`` flag is passed, e.g.,
+   ``sage -t -optional f.py``. (Note that ``-optional``
+   must not be the first argument to ``sage``.) Use this to
+   include doctests that require optional packages. For example, the
+   docstring for ``_magma_init_`` in the class
+   ``EllipticCurve_finite_field`` from the
+   ``SAGE_ROOT/devel/sage/sage/schemes/elliptic_curves/ell_finite_field.py``
+   contains
+
+   ::
+
+           sage: E = EllipticCurve(GF(41),[2,5])
+           sage: E._magma_init_() # optional - requires Magma
+           'EllipticCurve([...|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
+
+
+-  If the entire documentation string contains all three words
+   ``optional``, ``package``, and ``installed``,
+   then the entire documentation string is not executed unless the
+   ``-optional`` flag is passed to ``sage -t``. This is
+   useful for a long sequence of examples that all require that an
+   optional package be installed.
+
+
+Using ``search_src`` from the Sage prompt (or
+``grep``), one can easily find the aforementioned keywords.
+In the case of ``todo: not implemented``, one can use the
+results of such a search to direct further development on Sage.
+
+.. _chapter-testing:
+
+Automated Testing
+=================
+
+This section describes Sage's automated testing of test files of
+the following types: ``.py .pyx .sage .rst``. Briefly, use
+``sage -t <file>`` to test that the examples in
+``<file>`` behave exactly as claimed. See the following
+subsections for more details. See also :ref:`section-docstrings` for a
+discussion of how to include examples in documentation strings and
+what conventions to follow.
+
+.. _section-testpython:
+
+Testing .py, .pyx and .sage Files
+---------------------------------
+
+Run ``sage -t <filename.py>`` to test all code examples
+in ``filename.py``. Similar remarks apply to ``.sage``
+and ``.pyx`` files.
+
+::
+
+      sage -t [--verbose] [--optional]  [files and directories ... ]
+
+When you run ``sage -t <filename.py>``, Sage makes a copy of
+``<filename.py>`` with all the ``sage`` prompts
+replaced by ``>>>``, then uses the standard Python
+doctest framework to test the documentation. More precisely, the
+Python script ``local/bin/sage-doctest`` implements
+documentation testing. It does the following when asked to test a
+file ``foo.py`` or ``foo.sage``.
+
+
+#. Creates the directory ``.doctest`` if it doesn't exist and
+   the file ``.doctest/foo.py``.
+
+#. The file ``.doctest_foo.py`` contains functions for each
+   docstring in ``foo.py``, but with all Sage preparsing applied
+   and with ``from sage.all import *`` at the top. The function
+   documentation is thus standard Python with ``>>>``
+   prompts.
+
+#. ``sage-doctest`` then runs Sage's Python interpreter on
+   ``.doctest_foo.py``.
+
+
+Your file passes these tests if the code in it will run when
+entered at the ``sage:`` prompt with no special imports. Thus
+users are guaranteed to be able to exactly copy code out of the
+examples you write for the documentation and have them work.
+
+Testing ReST Documentation
+---------------------------
+
+Run ``sage -t <filename.rst>`` to test the examples in verbatim
+environments in ReST documentation.  Sage creates a file
+``.doctest_filename.py`` and tests it just as for ``.py``, ``.pyx``
+and ``.sage`` files.
+
+Of course in ReST files, one often inserts explanatory texts between
+different verbatim environments. To link together verbatim
+environments use the ``.. link::`` comment. For example::
+
+    ::
+
+            sage: a = 1
+
+
+    Next we add 1 to ``a``.
+
+    .. link::
+
+    ::
+
+            sage: 1 + a
+            2
+
+You can also put ``.. skip::`` right before a verbatim
+environment to have that example skipped when testing the file.  This
+goes right in the same place as the ``.. link::`` in the previous
+example.
+
+See the files in ``SAGE_ROOT/devel/sage/doc/en/tutorial/`` for many
+examples of how to include automated testing in ReST documentation
+for Sage.
+
+
+.. _chapter-randomtesting:
+
+Randomized Testing
+==================
+
+In addition to all the examples in your docstrings, which serve as
+both demonstrations and tests of your code, you should consider
+creating a test suite. Think of this as a program that will run for
+a while and "tries" to crash your code using randomly generated
+input. Your test code should define a class ``Test`` with a ``random()``
+method that runs random tests. These are all assembled together
+later, and each test is run for a certain amount of time on a
+regular basis.
+
+For example, see the file
+``SAGE_ROOT/devel/sage/sage/modular/modsym/tests.py``.
+
+
+.. [2]  See http://www.sagemath.org/development-map.html
+

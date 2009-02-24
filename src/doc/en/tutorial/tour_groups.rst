@@ -1,0 +1,89 @@
+Finite Groups, Abelian Groups
+=============================
+
+Sage has some support for computing with permutation groups, finite
+classical groups (such as :math:`SU(n,q)`), finite matrix groups
+(with your own generators), and abelian groups (even infinite
+ones). Much of this is implemented using the interface to GAP.
+
+For example, to create a permutation group, give a list of
+generators, as in the following example.
+
+::
+
+    sage: G = PermutationGroup(['(1,2,3)(4,5)', '(3,4)'])
+    sage: G
+    Permutation Group with generators [(3,4), (1,2,3)(4,5)]
+    sage: G.order()
+    120
+    sage: G.is_abelian()
+    False
+    sage: G.derived_series()           # random-ish output
+    [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
+     Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
+    sage: G.center()
+    Permutation Group with generators [()]
+    sage: G.random_element()           # random output
+    (1,5,3)(2,4)
+    sage: print latex(G)
+    \langle (3,4), (1,2,3)(4,5) \rangle
+
+You can also obtain the character table (in LaTeX format) in Sage:
+
+::
+
+    sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
+    sage: latex(G.character_table())
+    \left(\begin{array}{rrrr}
+    1 & 1 & 1 & 1 \\
+    1 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
+    1 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
+    3 & -1 & 0 & 0
+    \end{array}\right)
+
+Sage also includes classical and matrix groups over finite fields:
+
+::
+
+    sage: MS = MatrixSpace(GF(7), 2)
+    sage: gens = [MS([[1,0],[-1,1]]),MS([[1,1],[0,1]])]
+    sage: G = MatrixGroup(gens)
+    sage: G.conjugacy_class_representatives()
+        [
+        [1 0]
+        [0 1],
+        [0 1]
+        [6 1],
+        ...
+        [6 0]
+        [0 6]
+        ]
+    sage: G = Sp(4,GF(7))
+    sage: G._gap_init_()
+    'Sp(4, 7)'
+    sage: G
+    Symplectic Group of rank 2 over Finite Field of size 7
+    sage: G.random_element()             # random output
+    [5 5 5 1]
+    [0 2 6 3]
+    [5 0 1 0]
+    [4 6 3 4]
+    sage: G.order()
+    276595200
+
+You can also compute using abelian groups (infinite and finite):
+
+::
+
+    sage: F = AbelianGroup(5, [5,5,7,8,9], names='abcde')
+    sage: (a, b, c, d, e) = F.gens()
+    sage: d * b**2 * c**3
+    b^2*c^3*d
+    sage: F = AbelianGroup(3,[2]*3); F
+    Multiplicative Abelian Group isomorphic to C2 x C2 x C2
+    sage: H = AbelianGroup([2,3], names="xy"); H
+    Multiplicative Abelian Group isomorphic to C2 x C3
+    sage: AbelianGroup(5)
+    Multiplicative Abelian Group isomorphic to Z x Z x Z x Z x Z
+    sage: AbelianGroup(5).order()
+    +Infinity

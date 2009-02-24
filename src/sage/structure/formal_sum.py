@@ -2,11 +2,14 @@
 Formal sums
 
 AUTHORS:
-   -- David Harvey (2006-09-20): changed FormalSum not to derive from
-      "list" anymore, because that breaks new Element interface
-   -- Nick Alexander (2006-12-06): added test cases.
 
-EXAMPLES:
+- David Harvey (2006-09-20): changed FormalSum not to derive from
+  "list" anymore, because that breaks new Element interface
+
+- Nick Alexander (2006-12-06): added test cases.
+
+EXAMPLES::
+
     sage: A = FormalSum([(1, 2/3)]); A
     2/3
     sage: B = FormalSum([(3, 1/5)]); B
@@ -96,7 +99,8 @@ class FormalSums_generic(Module):
 
     def get_action_impl(self, other, op, self_is_left):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = FormalSums(RR).get_action(RR); A
             Right scalar multiplication by Real Field with 53 bits of precision on Abelian Group of all Formal Finite Sums over Real Field with 53 bits of precision
 

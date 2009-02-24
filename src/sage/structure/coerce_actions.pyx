@@ -1,3 +1,6 @@
+"""
+Coerce actions
+"""
 #*****************************************************************************
 #     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -54,7 +57,8 @@ cdef class ModuleAction(Action):
         an abstract class, one must actually instantiate a LeftModuleAction
         or a RightModuleAction
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import LeftModuleAction
             sage: LeftModuleAction(ZZ, ZZ['x'])
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
@@ -116,7 +120,8 @@ cdef class ModuleAction(Action):
         """
         The default name of this action type, which is has a sane default.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
             sage: A = LeftModuleAction(ZZ, ZZ['x']); A
             Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
@@ -131,7 +136,8 @@ cdef class ModuleAction(Action):
         """
         The codomain of self, which may or may not be equal to the domain.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import LeftModuleAction
             sage: A = LeftModuleAction(QQ, ZZ['x,y,z'])
             sage: A.codomain()
@@ -145,7 +151,8 @@ cdef class ModuleAction(Action):
         """
         The domain of self, which is the module that is being acted on.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import LeftModuleAction
             sage: A = LeftModuleAction(QQ, ZZ['x,y,z'])
             sage: A.domain()
@@ -163,7 +170,8 @@ cdef class LeftModuleAction(ModuleAction):
         first argument (the left side) and the module element as the second
         argument (the right side).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import LeftModuleAction
             sage: R.<x> = QQ['x']
             sage: A = LeftModuleAction(ZZ, R)
@@ -194,7 +202,8 @@ cdef class RightModuleAction(ModuleAction):
         first argument (the left side) and the ring element as the second
         argument (the right side).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import RightModuleAction
             sage: R.<x> = QQ['x']
             sage: A = RightModuleAction(ZZ, R)
@@ -230,12 +239,13 @@ cdef class IntegerMulAction(Action):
 
     def __init__(self, ZZ, M, is_left=True):
         r"""
-        This class implements the action $n \cdot a = a + a + \cdots + a$ via
+        This class implements the action `n \cdot a = a + a + \cdots + a` via
         repeated doubling.
 
-        Both addition and negation must be defined on the set $A$.
+        Both addition and negation must be defined on the set `A`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import IntegerMulAction
             sage: R.<x> = QQ['x']
             sage: act = IntegerMulAction(ZZ, R)
@@ -254,7 +264,8 @@ cdef class IntegerMulAction(Action):
 
     cpdef Element _call_(self, nn, a):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import IntegerMulAction
             sage: act = IntegerMulAction(ZZ, GF(101))
             sage: act(3, 9)
@@ -265,7 +276,8 @@ cdef class IntegerMulAction(Action):
             42
 
         Use round off error to verify this is doing actual repeated addition
-        instead of just multiplying:
+        instead of just multiplying::
+
             sage: act = IntegerMulAction(ZZ, RR)
             sage: act(49, 1/49) == 49*RR(1/49)
             False
@@ -281,7 +293,8 @@ cdef class IntegerMulAction(Action):
 
     def __invert__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import IntegerMulAction
             sage: act = IntegerMulAction(ZZ, CDF)
             sage: ~act
@@ -293,7 +306,8 @@ cdef class IntegerMulAction(Action):
 
     def _repr_name_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.structure.coerce_actions import IntegerMulAction
             sage: IntegerMulAction(ZZ, GF(5))
             Left Integer Multiplication by Integer Ring on Finite Field of size 5

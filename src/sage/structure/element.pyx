@@ -2,77 +2,89 @@ r"""
 Elements
 
 AUTHORS:
-   -- David Harvey (2006-10-16): changed CommutativeAlgebraElement to derive
-   from CommutativeRingElement instead of AlgebraElement
-   -- David Harvey (2006-10-29): implementation and documentation of new
-   arithmetic architecture
-   -- William Stein (2006-11): arithmetic architecture -- pushing it through to completion.
-   -- Gonzalo Tornaria (2007-06): recursive base extend for coercion -- lots of tests
+
+- David Harvey (2006-10-16): changed CommutativeAlgebraElement to
+  derive from CommutativeRingElement instead of AlgebraElement
+
+- David Harvey (2006-10-29): implementation and documentation of new
+  arithmetic architecture
+
+- William Stein (2006-11): arithmetic architecture -- pushing it
+  through to completion.
+
+- Gonzalo Tornaria (2007-06): recursive base extend for coercion --
+  lots of tests
 
 
-\subsection{The Abstract Element Class Hierarchy}
+The Abstract Element Class Hierarchy
+------------------------------------
+
 This is the abstract class hierarchy, i.e., these are all
 abstract base classes.
-\begin{verbatim}
-SageObject
-    Element
-        ModuleElement
-            RingElement
-                CommutativeRingElement
-                    IntegralDomainElement
-                        DedekindDomainElement
-                            PrincipalIdealDomainElement
-                                EuclideanDomainElement
-                    FieldElement
-                        FiniteFieldElement
-                    CommutativeAlgebraElement
-                AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
-                    CommutativeAlgebra ??? (should be removed from element.pxd)
-                    Matrix
-                InfinityElement
-                    PlusInfinityElement
-                    MinusInfinityElement
-            AdditiveGroupElement
-            Vector
 
-        MonoidElement
-            MultiplicativeGroupElement
+::
 
-\end{verbatim}
+    SageObject
+        Element
+            ModuleElement
+                RingElement
+                    CommutativeRingElement
+                        IntegralDomainElement
+                            DedekindDomainElement
+                                PrincipalIdealDomainElement
+                                    EuclideanDomainElement
+                        FieldElement
+                            FiniteFieldElement
+                        CommutativeAlgebraElement
+                    AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
+                        CommutativeAlgebra ??? (should be removed from element.pxd)
+                        Matrix
+                    InfinityElement
+                        PlusInfinityElement
+                        MinusInfinityElement
+                AdditiveGroupElement
+                Vector
 
-\subsection{How to Define a New Element Class}
-Elements typically define a method \code{_new_c}, e.g.,
-\begin{verbatim}
+            MonoidElement
+                MultiplicativeGroupElement
+
+
+How to Define a New Element Class
+---------------------------------
+
+Elements typically define a method ``_new_c``, e.g.,
+
+::
+
     cdef _new_c(self, defining data):
         cdef FreeModuleElement_generic_dense x
         x = PY_NEW(FreeModuleElement_generic_dense)
         x._parent = self._parent
         x._entries = v
-\end{verbatim}
+
 that creates a new sibling very quickly from defining data
 with assumed properties.
 
-SAGE has a special system in place for handling arithmetic operations
+Sage has a special system in place for handling arithmetic operations
 for all Element subclasses. There are various rules that must be
 followed by both arithmetic implementors and callers.
 
 A quick summary for the impatient:
-\begin{itemize}
- \item To implement addition for any Element class, override def _add_().
- \item If you want to add x and y, whose parents you know are IDENTICAL,
-   you may call _add_(x, y). This will be the fastest way to guarantee
-   that the correct implementation gets called. Of course you can still
-   always use "x + y".
-\end{itemize}
+
+- To implement addition for any Element class, override def _add_().
+- If you want to add x and y, whose parents you know are IDENTICAL,
+  you may call _add_(x, y). This will be the fastest way to guarantee
+  that the correct implementation gets called. Of course you can still
+  always use "x + y".
 
 Now in more detail. The aims of this system are to provide (1) an efficient
 calling protocol from both python and cython, (2) uniform coercion semantics
-across SAGE, (3) ease of use, (4) readability of code.
+across Sage, (3) ease of use, (4) readability of code.
 
 We will take addition of RingElements as an example; all other operators
 and classes are similar. There are four relevant functions.
 
-{\bf def RingElement.__add__}
+- **def RingElement.__add__**
 
    This function is called by python or pyrex when the binary "+" operator
    is encountered. It ASSUMES that at least one of its arguments is a
@@ -88,14 +100,17 @@ and classes are similar. There are four relevant functions.
    or for __add__ itself). This is because python has optimised calling
    protocols for such special functions.
 
-{\bf def RingElement._add_}
+-  **def RingElement._add_**
 
    This is the function you should override to implement addition in a
    python subclass of RingElement.
 
-   WARNING: if you override this in a *pyrex* class, it won't get called.
-   You should override _add_ instead. It is especially important to
-   keep this in mind whenever you move a class down from python to pyrex.
+   .. warning::
+
+      if you override this in a *Cython* class, it won't get called.
+      You should override _add_ instead. It is especially important to
+      keep this in mind whenever you move a class down from Python to
+      Cython.
 
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
@@ -109,7 +124,7 @@ and classes are similar. There are four relevant functions.
    so if no-one has defined a python implementation, the correct pyrex
    implementation will get called.
 
-{\bf cpdef RingElement._add_}
+-  **cpdef RingElement._add_**
 
    This is the function you should override to implement addition in a
    pyrex subclass of RingElement.
@@ -123,22 +138,22 @@ and classes are similar. There are four relevant functions.
    implementations of either _add_.
 
 
-For speed, there are also {\bf inplace} version of the arithmetic commands.
+For speed, there are also **inplace** version of the arithmetic commands.
 DD NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
 
-{\bf def RingElement._iadd_}
+-  **def RingElement._iadd_**
 
    This is the function you should override to inplace implement addition
-   in a python subclass of RingElement.
+   in a Python subclass of RingElement.
 
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
    arguments.
 
    The default implementation of this function is to call _add_,
-   so if no-one has defined a python implementation, the correct pyrex
+   so if no-one has defined a Python implementation, the correct Cython
    implementation will get called.
 """
 
@@ -198,7 +213,8 @@ def is_Element(x):
     """
     Return True if x is of type Element.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.element import is_Element
         sage: is_Element(2/3)
         True
@@ -219,7 +235,8 @@ cdef class Element(sage_object.SageObject):
     def __init__(self, parent):
         r"""
         INPUT:
-            parent -- a SageObject
+
+        - ``parent`` - a SageObject
         """
         #if parent is None:
         #    raise RuntimeError, "bug -- can't set parent to None"
@@ -228,7 +245,8 @@ cdef class Element(sage_object.SageObject):
     def _set_parent(self, parent):
         r"""
         INPUT:
-            parent -- a SageObject
+
+        - ``parent`` - a SageObject
         """
         self._parent = parent
 
@@ -250,7 +268,8 @@ cdef class Element(sage_object.SageObject):
         the object. The functionality for unpickling is implemented in
         __setstate__().
 
-        TESTS:
+        TESTS::
+
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x^2 - y^2 + 1)
             sage: i.__getstate__()
@@ -265,7 +284,8 @@ cdef class Element(sage_object.SageObject):
         During unpickling __init__ methods of classes are not called, the saved
         data is passed to the class via this function instead.
 
-        TESTS:
+        TESTS::
+
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x); i
             Ideal (x) of Multivariate Polynomial Ring in x, y over Rational Field
@@ -331,13 +351,17 @@ cdef class Element(sage_object.SageObject):
         for symbolic expressions.
 
         INPUT:
-            in_dict -- (optional) dictionary of inputs
-            **kwds  -- named parameters
+
+        - ``in_dict`` - (optional) dictionary of inputs
+
+        - ``**kwds`` - named parameters
 
         OUTPUT:
-            new object if substitution is possible, otherwise self.
 
-        EXAMPLES:
+        - new object if substitution is possible, otherwise self.
+
+        EXAMPLES::
+
             sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
@@ -375,7 +399,8 @@ cdef class Element(sage_object.SageObject):
         Return a numerical approximation of x with at least prec bits of
         precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: (2/3).n()
             0.666666666666667
             sage: a = 2/3
@@ -392,13 +417,17 @@ cdef class Element(sage_object.SageObject):
         This is an alias for self.subs().
 
         INPUT:
-            in_dict -- (optional) dictionary of inputs
-            **kwds  -- named parameters
+
+        - ``in_dict`` - (optional) dictionary of inputs
+
+        - ``**kwds``  - named parameters
 
         OUTPUT:
-            new object if substitution is possible, otherwise self.
 
-        EXAMPLES:
+        - new object if substitution is possible, otherwise self.
+
+        EXAMPLES::
+
             sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
@@ -446,9 +475,10 @@ cdef class Element(sage_object.SageObject):
     def _is_atomic(self):
         """
         Return True if and only if parenthesis are not required when
-        *printing* out any of $x - s$, $x + s$, $x^s$ and $x/s$.
+        *printing* out any of `x - s`, `x + s`, `x^s` and `x/s`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = 5; n._is_atomic()
             True
             sage: n = x+1; n._is_atomic()
@@ -467,7 +497,9 @@ cdef class Element(sage_object.SageObject):
         boolean, as in the conditional of an if or while statement.
 
         TESTS:
-        Verify that \#5185 is fixed.
+        Verify that #5185 is fixed.
+
+        ::
 
             sage: v = vector({1: 1, 3: -1})
             sage: w = vector({1: -1, 3: 1})
@@ -487,8 +519,10 @@ cdef class Element(sage_object.SageObject):
         Return True if self equals self.parent()(0). The default
         implementation is to fall back to 'not self.__nonzero__'.
 
-        NOTE: Do not re-implement this method in your subclass but
-        implement __nonzero__ instead.
+        .. warning::
+
+           Do not re-implement this method in your subclass but
+           implement __nonzero__ instead.
         """
         return not self
 
@@ -624,7 +658,7 @@ cdef class Element(sage_object.SageObject):
         return left._rich_to_bool(op, left._cmp_c_impl(right))
 
     cdef int _cmp_c_impl(left, Element right) except -2:
-        ### For derived SAGEX code, you *MUST* ALSO COPY the __richcmp__ above
+        ### For derived SageX code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
         raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
 
@@ -649,7 +683,8 @@ def is_ModuleElement(x):
 
     This is even faster than using isinstance inline.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.element import is_ModuleElement
         sage: is_ModuleElement(2/3)
         True
@@ -870,7 +905,7 @@ cdef class MonoidElement(Element):
 
     cpdef MonoidElement _mul_(left, MonoidElement right):
         """
-        Pyrex classes should override this function to implement multiplication.
+        Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
         """
         raise TypeError
@@ -962,7 +997,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
 
     cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right):
         """
-        Pyrex classes should override this function to implement division.
+        Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
         """
         return self * ~right
@@ -1003,11 +1038,11 @@ cdef class RingElement(ModuleElement):
 
         AUTHOR:
 
-            Gonzalo Tornaria (2007-06-25) - write base-extending test cases and fix them
+        - Gonzalo Tornaria (2007-06-25) - write base-extending test cases and fix them
 
-        TEST CASES:
+        TESTS:
 
-            (scalar * vector)
+        Here we test (scalar * vector) multiplication::
 
             sage: x, y = var('x, y')
 
@@ -1057,7 +1092,7 @@ cdef class RingElement(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
-            (scalar * matrix)
+        Here we test (scalar * matrix) multiplication::
 
             sage: parent(ZZ(1)*matrix(ZZ,2,2,[1,2,3,4]))
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
@@ -1120,7 +1155,7 @@ cdef class RingElement(ModuleElement):
 
     cpdef RingElement _mul_(self, RingElement right):
         """
-        Pyrex classes should override this function to implement multiplication.
+        Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
         """
         raise TypeError, arith_error_message(self, right, mul)
@@ -1142,7 +1177,8 @@ cdef class RingElement(ModuleElement):
         """
         Retern the (integral) power of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: a = Integers(389)['x']['y'](37)
             sage: a^2
             202
@@ -1165,7 +1201,8 @@ cdef class RingElement(ModuleElement):
             sage: a^200 * a^(-64) == a^136
             True
 
-        TESTS:
+        TESTS::
+
             sage: 2r**(SR(2)-1-1r)
             1
             sage: 2r**(SR(1/2))
@@ -1202,7 +1239,7 @@ cdef class RingElement(ModuleElement):
 
     cpdef RingElement _div_(self, RingElement right):
         """
-        Pyrex classes should override this function to implement division.
+        Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
         """
         try:
@@ -1251,7 +1288,7 @@ cdef class RingElement(ModuleElement):
     def multiplicative_order(self):
         r"""
         Return the multiplicative order of self, if self is a unit, or raise
-        \code{ArithmeticError} otherwise.
+        ``ArithmeticError`` otherwise.
         """
         if not self.is_unit():
             raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
@@ -1278,7 +1315,8 @@ cdef class RingElement(ModuleElement):
         Return the absolute value of self.  (This just calls the __abs__
         method, so it is equivalent to the abs() built-in function.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RR(-1).abs()
             1.00000000000000
             sage: ZZ(-1).abs()
@@ -1309,7 +1347,7 @@ cdef class CommutativeRingElement(RingElement):
     def inverse_mod(self, I):
         r"""
         Return an inverse of self modulo the ideal $I$, if defined,
-        i.e., if $I$ and self together generate the unit ideal.
+        i.e., if `I` and self together generate the unit ideal.
         """
         raise NotImplementedError
 
@@ -1317,7 +1355,8 @@ cdef class CommutativeRingElement(RingElement):
         """
         Return True if self divides x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x> = PolynomialRing(QQ)
             sage: x.divides(x^2)
             True
@@ -1341,29 +1380,37 @@ cdef class CommutativeRingElement(RingElement):
         generated by the elements of I if I is not an ideal.)
 
         EXAMPLE:  Integers
-        Reduction of 5 modulo an ideal:
+        Reduction of 5 modulo an ideal::
+
             sage: n = 5
             sage: n.mod(3*ZZ)
             2
 
-        Reduction of 5 modulo the ideal generated by 3.
+        Reduction of 5 modulo the ideal generated by 3::
+
             sage: n.mod(3)
             2
 
-        Reduction of 5 modulo the ideal generated by 15 and 6, which is $(3)$.
+        Reduction of 5 modulo the ideal generated by 15 and 6, which is `(3)`.
+
+        ::
+
             sage: n.mod([15,6])
             2
 
 
         EXAMPLE: Univiate polynomials
+
+        ::
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
             -1
 
         When little is implemented about a given ring, then mod may
-        return simply return $f$.  For example, reduction is not
-        implemented for $\Z[x]$ yet. (TODO!)
+        return simply return `f`.  For example, reduction is not
+        implemented for `\mathbb{Z}[x]` yet. (TODO!)
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
@@ -1371,16 +1418,16 @@ cdef class CommutativeRingElement(RingElement):
             x^3 + x + 1
 
 
-
         EXAMPLE: Multivariate polynomials
         We reduce a polynomial in two variables modulo a polynomial
-        and an ideal:
+        and an ideal::
+
             sage: R.<x,y,z> = PolynomialRing(QQ, 3)
             sage: (x^2 + y^2 + z^2).mod(x+y+z)
             2*y^2 + 2*y*z + 2*z^2
 
-        Notice above that $x$ is eliminated.  In the next example,
-        both $y$ and $z$ are eliminated.
+        Notice above that `x` is eliminated.  In the next example,
+        both `y` and `z` are eliminated::
 
             sage: (x^2 + y^2 + z^2).mod( (x - y, y - z) )
             3*z^2
@@ -1389,7 +1436,8 @@ cdef class CommutativeRingElement(RingElement):
             sage: f.mod( (x - y, y - z) )
             9*z^4
 
-        In this example $y$ is eliminated.
+        In this example `y` is eliminated::
+
             sage: (x^2 + y^2 + z^2).mod( (x^3, y - z) )
             x^2 + 2*z^2
         """
@@ -1420,16 +1468,16 @@ cdef class Vector(ModuleElement):
 
         AUTHOR:
 
-            Gonzalo Tornaria (2007-06-21) - write test cases and fix them
+        - Gonzalo Tornaria (2007-06-21) - write test cases and fix them
 
-        NOTE:
+        .. note::
 
-            scalar * vector is implemented (and tested) in class RingElement
-            matrix * vector is implemented (and tested) in class Matrix
+           scalar * vector is implemented (and tested) in class RingElement
+           matrix * vector is implemented (and tested) in class Matrix
 
-        TEST CASES:
+        TESTS:
 
-            (vector * vector)
+        Here we test (vector * vector) multiplication::
 
             sage: x, y = var('x, y')
 
@@ -1479,7 +1527,7 @@ cdef class Vector(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
-            (vector * matrix)
+        Here we test (vector * matrix) multiplication::
 
             sage: parent(vector(ZZ,[1,2])*matrix(ZZ,2,2,[1,2,3,4]))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -1527,7 +1575,7 @@ cdef class Vector(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
-            (vector * scalar)
+        Here we test (vector * scalar) multiplication::
 
             sage: parent(vector(ZZ,[1,2])*ZZ(1))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -1610,7 +1658,8 @@ cdef class Vector(ModuleElement):
         Return string that evaluates in Magma to something equivalent
         to this vector.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,2,3])
             sage: v._magma_init_(magma)                 # optional - magma
             '_sage_[...]![1,2,3]'
@@ -1629,7 +1678,8 @@ cdef class Vector(ModuleElement):
             sage: mv.Parent()                           # optional - magma
             Full Vector space of degree 3 over Rational Field
 
-        A more demanding example:
+        A more demanding example::
+
             sage: R.<x,y,z> = QQ[]
             sage: v = vector([x^3, y, 2/3*z + x/y])
             sage: magma(v)                              # optional - magma
@@ -1665,16 +1715,16 @@ cdef class Matrix(AlgebraElement):
 
         AUTHOR:
 
-            Gonzalo Tornaria (2007-06-25) - write test cases and fix them
+        - Gonzalo Tornaria (2007-06-25) - write test cases and fix them
 
-        NOTE:
+        .. note::
 
-            scalar * matrix is implemented (and tested) in class RingElement
-            vector * matrix is implemented (and tested) in class Vector
+           scalar * matrix is implemented (and tested) in class RingElement
+           vector * matrix is implemented (and tested) in class Vector
 
-        TEST CASES:
+        TESTS:
 
-            (matrix * matrix)
+        Here we test (matrix * matrix) multiplication::
 
             sage: x, y = var('x, y')
 
@@ -1724,7 +1774,7 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
-            (matrix * vector)
+        Here we test (matrix * vector) multiplication::
 
             sage: parent(matrix(ZZ,2,2,[1,2,3,4])*vector(ZZ,[1,2]))
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
@@ -1772,7 +1822,7 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
 
-            (matrix * scalar)
+        Here we test (matrix * scalar) multiplication::
 
             sage: parent(matrix(ZZ,2,2,[1,2,3,4])*ZZ(1))
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
@@ -1886,14 +1936,16 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
 
     def xgcd(self, right):
         r"""
-        Return the extended gcd of self and other, i.e., elements $r, s, t$ such that
-        $$
-           r = s \cdot self + t \cdot other.
-        $$
+        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
+        .. math::
 
-        Note: there is no guarantee on minimality of the cofactors.
-        In the integer case, see documentation for Integer._xgcd() to
-        obtain minimal cofactors.
+           r = s \cdot self + t \cdot other.
+
+        .. note::
+
+           There is no guarantee on minimality of the cofactors.  In
+           the integer case, see documentation for Integer._xgcd() to
+           obtain minimal cofactors.
         """
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
             return coercion_model.bin_op(self, right, xgcd)
@@ -1940,7 +1992,8 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         Return the quotient and remainder of self divided by other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: divmod(5,3)
             (1, 2)
         """
@@ -1957,7 +2010,8 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         Remainder of division of self by other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
@@ -1982,17 +2036,22 @@ cdef class FieldElement(CommutativeRingElement):
         """
         Return True if self is a unit in its parent ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = 2/3; a.is_unit()
             True
 
         On the other hand, 2 is not a unit, since its parent is ZZ.
+
+        ::
+
             sage: a = 2; a.is_unit()
             False
             sage: parent(a)
             Integer Ring
 
-        However, a is a unit when viewed as an element of QQ:
+        However, a is a unit when viewed as an element of QQ::
+
             sage: a = QQ(2); a.is_unit()
             True
         """
@@ -2038,7 +2097,8 @@ cdef class FieldElement(CommutativeRingElement):
         Since this is a field, all values divide all other values,
         except that zero does not divide any non-zero values.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<rt3> = QQ[sqrt(3)]
             sage: K(0).divides(rt3)
             False
@@ -2065,7 +2125,8 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Used for applying homomorphisms of finite fields.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = FiniteField(73^2, 'a')
             sage: K.<b> = FiniteField(73^4, 'b')
             sage: phi = k.hom([ b^(73*73+1) ])
@@ -2086,7 +2147,9 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
@@ -2110,7 +2173,9 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: k.<a> = FiniteField(3^4)
             sage: parent(a)
             Finite Field in a of size 3^4
@@ -2125,9 +2190,10 @@ cdef class FiniteFieldElement(FieldElement):
 
     def vector(self, reverse=False):
         r"""
-        See \code{_vector_}.
+        See :meth:`_vector_`.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: k.<a> = GF(2^16)
             sage: e = a^2 + 1
             sage: e.vector() # random-ish error message
@@ -2143,11 +2209,13 @@ cdef class FiniteFieldElement(FieldElement):
         Return a vector in self.parent().vector_space() matching
         self. The most significant bit is to the right.
 
-        INPUT:
-            reverse -- reverse the order of the bits
-                       from little endian to big endian.
+        INPUT::
 
-        EXAMPLES:
+        - ``reverse`` -- reverse the order of the bits
+          from little endian to big endian.
+
+        EXAMPLES::
+
             sage: k.<a> = GF(2^16)
             sage: e = a^2 + 1
             sage: v = vector(e)
@@ -2164,7 +2232,7 @@ cdef class FiniteFieldElement(FieldElement):
             sage: k(v)
             2*a^2 + 1
 
-        You can also compute the vector in the other order:
+        You can also compute the vector in the other order::
 
             sage: e._vector_(reverse=True)
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
@@ -2188,9 +2256,10 @@ cdef class FiniteFieldElement(FieldElement):
 
     def matrix(self, reverse=False):
         r"""
-        See \code{_matrix_}.
+        See :meth:`_matrix_`.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: k.<a> = GF(2^16)
             sage: e = a^2 + 1
             sage: e.matrix() # random-ish error message
@@ -2220,14 +2289,16 @@ cdef class FiniteFieldElement(FieldElement):
     def _matrix_(self, reverse=False):
         """
         Return the matrix of right multiplication by the element on
-        the power basis $1, x, x^2, \ldots, x^{d-1}$ for the field
+        the power basis `1, x, x^2, \ldots, x^{d-1}` for the field
         extension.  Thus the \emph{rows} of this matrix give the images
-        of each of the $x^i$.
+        of each of the `x^i`.
 
         INPUT:
-            reverse -- if True act on vectors in reversed order
 
-        EXAMPLE:
+        - ``reverse`` - if True act on vectors in reversed order
+
+        EXAMPLE::
+
             sage: k.<a> = GF(2^4)
             sage: a._vector_(reverse=True), a._matrix_(reverse=True) * a._vector_(reverse=True)
             ((0, 0, 1, 0), (0, 1, 0, 0))
@@ -2264,7 +2335,8 @@ cdef class FiniteFieldElement(FieldElement):
         Return the latex representation of self, which is just the
         latex representation of the polynomial representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
             sage: b._latex_()
@@ -2281,7 +2353,8 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Return string that when evaluated in PARI defines this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S.<b> = GF(5^2); S
             Finite Field in b of size 5^2
             sage: b._pari_init_()
@@ -2301,16 +2374,21 @@ cdef class FiniteFieldElement(FieldElement):
         Return the characteristic polynomial of self as a polynomial with given variable.
 
         INPUT:
-            var -- string (default: 'x')
-            algorithm -- string (default: 'matrix')
-                         'matrix' -- return the charpoly computed from the
-                                     matrix of left multiplication by self
-                         'pari' -- use pari's charpoly routine on polymods,
-                                   which is not very good except in small cases
+
+        - ``var`` - string (default: 'x')
+
+        - ``algorithm`` - string (default: 'matrix')
+
+          - 'matrix' - return the charpoly computed from the matrix of
+            left multiplication by self
+
+          - 'pari' -- use pari's charpoly routine on polymods, which
+            is not very good except in small cases
 
         The result is not cached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
@@ -2336,7 +2414,8 @@ cdef class FiniteFieldElement(FieldElement):
 
         This is the product of the Galois conjugates of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S.<b> = GF(5^2); S
             Finite Field in b of size 5^2
             sage: b.norm()
@@ -2344,7 +2423,8 @@ cdef class FiniteFieldElement(FieldElement):
             sage: b.charpoly('t')
             t^2 + 4*t + 2
 
-        Next we consider a cubic extension:
+        Next we consider a cubic extension::
+
             sage: S.<a> = GF(5^3); S
             Finite Field in a of size 5^3
             sage: a.norm()
@@ -2366,7 +2446,8 @@ cdef class FiniteFieldElement(FieldElement):
         Return the trace of this element, which is the sum of the
         Galois conjugates.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S.<a> = GF(5^3); S
             Finite Field in a of size 5^3
             sage: a.trace()
@@ -2410,24 +2491,31 @@ cdef class FiniteFieldElement(FieldElement):
         Returns an nth root of self.
 
         INPUT:
-            n -- integer >= 1 (must fit in C int type)
-            extend -- bool (default: True); if True, return an nth
-                 root in an extension ring, if necessary. Otherwise,
-                 raise a ValueError if the root is not in the base
-                 ring.  Warning: this option is not implemented!
-            all -- bool (default: False); if True, return all nth
-                 roots of self, instead of just one.
+
+        - ``n`` - integer >= 1 (must fit in C int type)
+
+        - ``extend`` - bool (default: True); if True, return an nth
+          root in an extension ring, if necessary. Otherwise, raise a
+          ValueError if the root is not in the base ring.  Warning:
+          this option is not implemented!
+
+        - ``all`` - bool (default: False); if True, return all nth
+          roots of self, instead of just one.
 
         OUTPUT:
-            If self has an nth root, returns one (if all == False) or a list of
-            all of them (if all == True).  Otherwise, raises a ValueError (if
-            extend = False) or a NotImplementedError (if extend = True).
 
-        WARNING:
-            The 'extend' option is not implemented (yet).
+        If self has an nth root, returns one (if all == False) or a
+        list of all of them (if all == True).  Otherwise, raises a
+        ValueError (if extend = False) or a NotImplementedError (if
+        extend = True).
+
+        .. warning::
+
+           The 'extend' option is not implemented (yet).
 
         AUTHOR:
-            -- David Roe (2007-10-3)
+
+        - David Roe (2007-10-3)
 
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -2449,7 +2537,8 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Return the additive order of this finite field element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = FiniteField(2^12, 'a')
             sage: b = a^3 + a + 1
             sage: b.additive_order()
@@ -2464,20 +2553,19 @@ cdef class FiniteFieldElement(FieldElement):
 
     def pth_power(self, int k = 1):
         """
-        Return the $p^k$th power of self, where $p$ is the characteristic
-        of the field.
+        Return the `(p^k)^{th}` power of self, where `p` is the
+        characteristic of the field.
 
         INPUT:
-            k -- integer (default: 1, must fit in C int type)
 
-        OUTPUT:
-	    The $p^k$th power of self.
+        - ``k`` - integer (default: 1, must fit in C int type)
 
-        Note that if $k$ is negative, then this computes the appropriate root.
+        Note that if `k` is negative, then this computes the appropriate root.
 
-	EXAMPLES:
+        EXAMPLES::
+
             sage: F.<a> = GF(29^2)
-	    sage: z = a^2 + 5*a + 1
+            sage: z = a^2 + 5*a + 1
             sage: z.pth_power()
             19*a + 20
             sage: z.pth_power(10)
@@ -2499,18 +2587,17 @@ cdef class FiniteFieldElement(FieldElement):
 
     def pth_root(self, int k = 1):
         """
-        Return the $p^k$th root of self, where $p$ is the characteristic
+        Return the `(p^k)^{th}` root of self, where `p` is the characteristic
         of the field.
 
         INPUT:
-            k -- integer (default: 1, must fit in C int type)
 
-        OUTPUT:
-	    The $p^k$th root of self.
+        - ``k`` - integer (default: 1, must fit in C int type)
 
-        Note that if $k$ is negative, then this computes the appropriate power.
+        Note that if `k` is negative, then this computes the appropriate power.
 
-	EXAMPLES:
+        EXAMPLES::
+
             sage: F.<b> = GF(2^12)
             sage: y = b^3 + b + 1
             sage: y == (y.pth_root(3))^(2^3)
@@ -2572,7 +2659,8 @@ cpdef canonical_coercion(x, y):
     such that z is got from x and w from y via canonical coercion and
     the parents of z and w are identical.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: A = Matrix([[0,1],[1,0]])
         sage: canonical_coercion(A,1)
         ([0 1]
@@ -2626,7 +2714,8 @@ def get_coercion_model():
     """
     Return the global coercion model.
 
-    EXAMPLES:
+    EXAMPLES::
+
        sage: import sage.structure.element as e
        sage: cm = e.get_coercion_model()
        sage: cm
@@ -2645,7 +2734,8 @@ def coercion_traceback(dump=True):
     that failure is cached, so some errors may be omitted the second time
     around (as it remembers not to retry failed paths for speed reasons.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: 1 + 1/5
         6/5
         sage: coercion_traceback()  # Should be empty, as all went well.
@@ -2685,16 +2775,17 @@ def xgcd(x,y):
 
 def generic_power(a, n, one=None):
     """
-    Computes $a^n$, where $n$ is an integer, and $a$ is an object which
+    Computes `a^n`, where `n` is an integer, and `a` is an object which
     supports multiplication.  Optionally an additional argument,
     which is used in the case that n == 0:
 
-        one: the "unit" element, returned directly (can be anything)
+    - ``one`` - the "unit" element, returned directly (can be anything)
 
     If this is not supplied, int(1) is returned.
 
-    EXAMPLES:
-	sage: from sage.structure.element import generic_power
+    EXAMPLES::
+
+        sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
         1
         sage: generic_power(int(0),int(100))

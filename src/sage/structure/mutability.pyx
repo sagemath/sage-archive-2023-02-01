@@ -1,5 +1,5 @@
 """
-Mutability Pyrex Implementation
+Mutability Cython Implementation
 """
 
 ##########################################################################
@@ -30,7 +30,8 @@ cdef class Mutability:
         """
         Make this object immutable, so it can never again be changed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
             sage: v
@@ -50,7 +51,8 @@ cdef class Mutability:
 
         To make this object immutable use self.set_immutable().
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
             sage: v

@@ -1,0 +1,218 @@
+Algèbre linéaire
+================
+
+Sage fournit les constructions standards d'algèbre linéaire, par exemple
+le polynôme caractéristique, la forme échelonnée, la trace, diverses
+décompositions, etc. d'une matrice.
+
+La création de matrices et la multiplication matricielle sont très
+faciles et naturelles :
+
+::
+
+    sage: A = Matrix([[1,2,3],[3,2,1],[1,1,1]])
+    sage: w = vector([1,1,-4])
+    sage: w*A
+    (0, 0, 0)
+    sage: A*w
+    (-9, 1, -2)
+    sage: kernel(A)
+    Free module of degree 3 and rank 1 over Integer Ring
+    Echelon basis matrix:
+    [ 1  1 -4]
+
+Notez bien qu'avec Sage, le noyau d'une matrice  :math:`A` est le « noyau
+à gauche », c'est-à-dire l'espace des vecteurs :math:`w` tels que
+:math:`wA=0`.
+
+La résolution d'équations matricielles est facile et se fait avec la
+méthode ``solve_right``. L'évaluation de ``A.solve_right(Y)`` renvoie
+une matrice (ou un vecteur)  :math:`X` tel que :math:`AX=Y`:
+
+.. link
+
+::
+
+    sage: Y = vector([0, -4, -1])
+    sage: X = A.solve_right(Y)
+    sage: X
+    (-2, 1, 0)
+    sage: A * X   #vérifions la réponse...
+    (0, -4, -1)
+
+Un antislash (contre-oblique) ``\`` peut être employé à la place de
+``solve_right`` : il suffit d'écrire ``A \ Y`` au lieu de
+``A.solve_right(Y)``.
+
+.. link
+
+::
+
+    sage: A \ Y
+    (-2, 1, 0)
+
+S'il n'y a aucune solution, Sage renvoie une erreur :
+
+.. skip
+
+::
+
+    sage: A.solve_right(w)
+    Traceback (most recent call last):
+    ...
+    ValueError: matrix equation has no solutions
+
+De même, il faut utiliser ``A.solve_left(Y)`` pour résoudre en :math:`X`
+l'équation :math:`XA=Y`.
+
+Créons l'espace :math:`\text{Mat}_{3\times 3}(\mathbb{Q})`:
+
+::
+
+    sage: M = MatrixSpace(QQ,3)
+    sage: M
+    Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+(Pour indiquer l'espace des matrices 3 par 4, il faudrait utiliser
+``MatrixSpace(QQ,3,4)``. Si le nombre de colonnes est omis, il est égal
+par défaut au nombre de lignes. Ainsi ``MatrixSpace(QQ,3)`` est un
+synonyme de ``MatrixSpace(QQ,3,3)``.) L'espace des matrices possède une
+base que Sage enregistre sous forme de liste :
+
+.. link
+
+::
+
+    sage: B = M.basis()
+    sage: len(B)
+    9
+    sage: B[1]
+    [0 1 0]
+    [0 0 0]
+    [0 0 0]
+
+Nous créons une matrice comme un élément de ``M``.
+
+.. link
+
+::
+
+    sage: A = M(range(9)); A
+    [0 1 2]
+    [3 4 5]
+    [6 7 8]
+
+Puis, nous calculons sa forme échelonnée en ligne et son noyau.
+
+.. link
+
+::
+
+    sage: A.echelon_form()
+    [ 1  0 -1]
+    [ 0  1  2]
+    [ 0  0  0]
+    sage: A.kernel()
+    Vector space of degree 3 and dimension 1 over Rational Field
+    Basis matrix:
+    [ 1 -2  1]
+
+Puis nous illustrons les possibilités de calcul de matrices définies sur
+des corps finis :
+
+::
+
+    sage: M = MatrixSpace(GF(2),4,8)
+    sage: A = M([1,1,0,0, 1,1,1,1, 0,1,0,0, 1,0,1,1,
+    ...          0,0,1,0, 1,1,0,1, 0,0,1,1, 1,1,1,0])
+    sage: A
+    [1 1 0 0 1 1 1 1]
+    [0 1 0 0 1 0 1 1]
+    [0 0 1 0 1 1 0 1]
+    [0 0 1 1 1 1 1 0]
+    sage: rows = A.rows()
+    sage: A.columns()
+    [(1, 0, 0, 0), (1, 1, 0, 0), (0, 0, 1, 1), (0, 0, 0, 1),
+     (1, 1, 1, 1), (1, 0, 1, 1), (1, 1, 0, 1), (1, 1, 1, 0)]
+    sage: rows
+    [(1, 1, 0, 0, 1, 1, 1, 1), (0, 1, 0, 0, 1, 0, 1, 1),
+     (0, 0, 1, 0, 1, 1, 0, 1), (0, 0, 1, 1, 1, 1, 1, 0)]
+
+Nous créons le sous-espace engendré sur :math:`\mathbb{F}_2` par les
+vecteurs lignes ci-dessus.
+
+.. link
+
+::
+
+    sage: V = VectorSpace(GF(2),8)
+    sage: S = V.subspace(rows)
+    sage: S
+    Vector space of degree 8 and dimension 4 over Finite Field of size 2
+    Basis matrix:
+    [1 0 0 0 0 1 0 0]
+    [0 1 0 0 1 0 1 1]
+    [0 0 1 0 1 1 0 1]
+    [0 0 0 1 0 0 1 1]
+    sage: A.echelon_form()
+    [1 0 0 0 0 1 0 0]
+    [0 1 0 0 1 0 1 1]
+    [0 0 1 0 1 1 0 1]
+    [0 0 0 1 0 0 1 1]
+
+La base de :math:`S` utilisée par Sage est obtenue à partir des lignes
+non-nulles de la matrice des générateurs de :math:`S` réduite sous forme
+échelonnée en lignes.
+
+Algèbre linéaire creuse
+-----------------------
+
+Sage permet de travailler avec des matrices creuses sur des anneaux
+principaux.
+
+::
+
+    sage: M = MatrixSpace(QQ, 100, sparse=True)
+    sage: A = M.random_element(density = 0.05)
+    sage: E = A.echelon_form()
+
+L'algorithme multi-modulaire présent dans Sage fonctionne bien pour les
+matrices carrées (mais moins pour les autres) :
+
+::
+
+    sage: M = MatrixSpace(QQ, 50, 100, sparse=True)
+    sage: A = M.random_element(density = 0.05)
+    sage: E = A.echelon_form()
+    sage: M = MatrixSpace(GF(2), 20, 40, sparse=True)
+    sage: A = M.random_element()
+    sage: E = A.echelon_form()
+
+Notez que Python distingue les majuscules des minuscules :
+
+::
+
+    sage: M = MatrixSpace(QQ, 10,10, Sparse=True)
+    Traceback (most recent call last):
+    ...
+    TypeError: MatrixSpace() got an unexpected keyword argument 'Sparse'
+
+Sage peut calculer des valeurs propres et des vecteurs propres :
+
+::
+
+
+    sage: g = matrix(GF(7), [[5, 1], [4, 1]])
+    sage: g.eigenvalues()
+    [4, 2]
+    sage: g.eigenvectors_right() # renvoie (valeurs propres, [vecteurs propres], multiplicités algébriques)
+    [(4, [
+    (1, 6)
+    ], 1), (2, [
+    (1, 4)
+    ], 1)]
+
+
+
+Les valeurs propres et vecteurs propres peuvent aussi être calculée avec
+Maxima (voir :ref:`section-maxima` ci-dessous).

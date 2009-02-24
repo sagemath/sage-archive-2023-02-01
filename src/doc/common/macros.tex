@@ -1,0 +1,109 @@
+\newcommand{\G}{\mathbf{G}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\F}{\mathbf{F}}
+\newcommand{\T}{\mathbf{T}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\R}{\mathbf{R}}
+\newcommand{\FF}{\mathbf{F}}
+\renewcommand{\AA}{\mathbf{A}}
+\newcommand{\GG}{\mathbf{G}}
+\newcommand{\TT}{\mathbf{T}}
+\newcommand{\QQ}{\mathbf{Q}}
+\newcommand{\CC}{\mathbf{C}}
+\newcommand{\sS}{\mathbf{S}}
+\newcommand{\sM}{\mathbf{M}}
+\newcommand{\ZZ}{\mathbf{Z}}
+\newcommand{\RR}{\mathbf{R}}
+\newcommand{\PP}{\mathbf{P}}
+\newcommand{\Qp}{\mathbf{Q}_p}
+\newcommand{\Zp}{\mathbf{Z}_p}
+\newcommand{\Zpx}{\mathbf{Z}_p^{\times}}
+\newcommand{\Zpn}{\mathbf{Z} / p^n \mathbf{Z}}
+\newcommand{\OK}{\mathcal{O}_K}
+
+\newcommand{\eps}{\varepsilon}
+\newcommand{\con}{\equiv}
+\newcommand{\nothing}[1]{}
+
+
+% Thanks to Joe Wetherell for pointing out that one should use xspace.
+\usepackage{xspace}  % to allow for text macros that don't eat space
+
+\newcommand{\by}[1]{\par\noindent{\bf AUTHOR:} #1\par}
+
+
+%\def\SAGE{{\tt SAGE}\,\, }
+%\def\SAGE{SAGE\xspace}
+
+%\newcommand{\SAGE}{{\fontsize{10}{12}\usefont{OT1}{phv}{c}{n}\selectfont{SAGE}\normalfont}\xspace}
+%\newcommand{\SAGE}{{\usefont{OT1}{phv}{c}{n}\selectfont{SAGE}\normalfont}\xspace}
+
+% Computer Algebra Systems
+
+\newcommand{\Latex}{\LaTeX\xspace}
+
+\newcommand{\sage}{\SAGE}
+\newcommand{\Sage}{\SAGE}
+\newcommand{\SAGE}{{\sf Sage}\xspace}
+
+\newcommand{\Singular}{\textsc{Singular}\xspace}
+\newcommand{\SINGULAR}{\Singular}
+
+\newcommand{\PolyBoRi}{\textsc{PolyBoRi}\xspace}
+\newcommand{\POLYBORI}{\PolyBoRi}
+
+\newcommand{\MAGMA}{{\sf MAGMA}\xspace}
+\newcommand{\Magma}{\MAGMA}
+
+\newcommand{\GAP}{{\sf GAP}\xspace}
+\newcommand{\PARI}{{\sf PARI}\xspace}
+
+\newcommand{\MAXIMA}{{\sf Maxima}\xspace}
+\newcommand{\Maxima}{{\sf Maxima}\xspace}
+
+% ---- SHA ----
+\DeclareFontEncoding{OT2}{}{} % to enable usage of cyrillic fonts
+  \newcommand{\textcyr}[1]{%
+    {\fontencoding{OT2}\fontfamily{wncyr}\fontseries{m}\fontshape{n}%
+     \selectfont #1}}
+\newcommand{\Sha}{{\mbox{\textcyr{Sh}}}}
+
+\usepackage{amsmath}
+\DeclareMathOperator{\acos}{acos}
+\DeclareMathOperator{\asin}{asin}
+\DeclareMathOperator{\atan}{atan}
+\DeclareMathOperator{\acosh}{acosh}
+\DeclareMathOperator{\asinh}{asinh}
+\DeclareMathOperator{\atanh}{atanh}
+\DeclareMathOperator{\Gal}{Gal}
+\DeclareMathOperator{\Pic}{Pic}
+\DeclareMathOperator{\SL}{SL}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Spec}{Spec}
+\DeclareMathOperator{\Nr}{Nr}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\GF}{GF}
+\DeclareMathOperator{\End}{End}
+\DeclareMathOperator{\Hom}{Hom}
+
+\newcommand{\algorithm}[1]{ALGORITHM: #1}
+%\renewcommand{\comment}[1]{}
+
+\addtolength{\headheight}{2.5pt} % need to add extra space for pdfdest in header
+
+% We override a couple of definitions from python.sty to fix up some
+% minor spacing issues:
+%\makeatletter
+%\renewcommand{\py@itemnewline}[1]{%
+%  \@tempdima\linewidth%
+%  \advance\@tempdima \leftmargin\makebox[\@tempdima][l]{\hskip\labelsep#1}%
+%}
+
+%\renewenvironment{fulllineitems}{
+%  \begin{list}{}{\labelwidth \leftmargin % \labelsep 0pt
+%                 \rightmargin 0pt \topsep -\parskip \partopsep \parskip
+%                 \itemsep -\parsep
+%                 \let\makelabel=\py@itemnewline}
+%}{\end{list}}
+%\makeatother

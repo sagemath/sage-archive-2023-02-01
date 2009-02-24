@@ -28,7 +28,7 @@ from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 SAGE_LOCAL = SAGE_ROOT + '/local/'
-
+SAGE_DOC = os.environ["SAGE_DOC"]
 HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())

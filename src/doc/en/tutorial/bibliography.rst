@@ -1,0 +1,49 @@
+************
+Bibliography
+************
+
+..  [Cyt] Cython, http://www.cython.org.
+
+..  [Dive] Dive into Python, Freely available online at
+    http://diveintopython.org.
+
+..  [GAP] The GAP Group, GAP - Groups, Algorithms, and
+    Programming, Version 4.4; 2005, http://www.gap-system.org
+
+..  [GAPkg] GAP Packages,
+    http://www.gap-system.org/Packages/packages.html
+
+..  [GP] PARI/GP http://pari.math.u-bordeaux.fr/.
+
+..  [Ip] The IPython shell http://ipython.scipy.org.
+
+..  [Jmol] Jmol: an open-source Java viewer for chemical
+    structures in 3D http://www.jmol.org/.
+
+..  [Mag] Magma http://magma.maths.usyd.edu.au/magma/.
+
+..  [Max] Maxima http://maxima.sf.net/
+
+..  [Py] The Python language http://www.python.org/
+    Reference Manual http://docs.python.org/ref/ref.html.
+
+..  [PyDev] Guido, Some Guys, and a Mailing List: How Python is
+    Developed,
+    http://www.python.org/dev/dev_intro.html.
+
+..  [Pyr] Pyrex,
+    http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/.
+
+..  [PyT] The Python Tutorial http://www.python.org/.
+
+..  [SA] Sage web site http://www.sagemath.org/ and
+    http://sage.sf.net/.
+
+..  [Si] G.-M. Greuel, G. Pfister, and H. Schönemann. Singular
+    3.0. A Computer Algebra System for Polynomial Computations. Center
+    for Computer Algebra, University of Kaiserslautern (2005).
+    http://www.singular.uni-kl.de.
+
+..  [SJ] William Stein, David Joyner, Sage: System for Algebra and
+    Geometry Experimentation, Comm. Computer Algebra {39}(2005)61-64.
+

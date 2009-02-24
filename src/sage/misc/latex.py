@@ -42,6 +42,7 @@ import random
 
 from misc import tmp_dir
 import sage_eval
+from sage.misc.misc import SAGE_DOC
 
 _have_dvipng = None
 def have_dvipng():
@@ -505,10 +506,9 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
                      debug=debug, sep=sep, tiny=tiny)
     from sage.misc.viewer import dvi_viewer
     viewer = dvi_viewer()
-    SAGE_ROOT = os.environ['SAGE_ROOT']
     tmp = tmp_dir('sage_viewer')
     open('%s/sage.tex'%tmp,'w').write(s)
-    os.system('ln -sf %s/devel/doc/commontex/macros.tex %s'%(SAGE_ROOT, tmp))
+    os.system('ln -sf %s/common/macros.tex %s'%(SAGE_DOC, tmp))
     O = open('%s/go'%tmp,'w')
     #O.write('export TEXINPUTS=%s/doc/commontex:.\n'%SAGE_ROOT)
     # O.write('latex \\\\nonstopmode \\\\input{sage.tex}; xdvi -noscan -offsets 0.3 -paper 100000x100000 -s %s sage.dvi ; rm sage.* macros.* go ; cd .. ; rmdir %s'%(zoom,tmp))
@@ -539,10 +539,9 @@ def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tin
                      brk=brk)
     abs_path_to_png = os.path.abspath(filename)
 
-    SAGE_ROOT = os.environ['SAGE_ROOT']
     tmp = tmp_dir('sage_viewer')
     open('%s/sage.tex'%tmp,'w').write(s)
-    os.system('ln -sf %s/devel/doc/commontex/macros.tex %s'%(SAGE_ROOT, tmp))
+    os.system('ln -sf %s/common/macros.tex %s'%(SAGE_DOC, tmp))
     O = open('%s/go'%tmp,'w')
     go = 'latex \\\\nonstopmode \\\\input{sage.tex}; dvips -l =1 -f < sage.dvi > sage.ps ; convert -density %sx%s -trim sage.ps "%s";'%(density, density, abs_path_to_png)
     go += ' rm sage.* macros.* go ; cd .. ; rmdir %s'%tmp

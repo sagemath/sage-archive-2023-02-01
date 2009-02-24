@@ -1070,12 +1070,6 @@ hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 cloneable=True,
                 obj_name='sage')
 
-hg_doc     = HG('%s/devel/doc'%SAGE_ROOT,
-                'Sage Documentation',
-                pull_url='%s/doc-main'%SAGE_INCOMING_SERVER,
-                push_url='%s/doc-main'%SAGE_OUTGOING_SERVER,
-                obj_name='doc')
-
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'Sage Scripts',
                 pull_url='%s/scripts-main'%SAGE_INCOMING_SERVER,

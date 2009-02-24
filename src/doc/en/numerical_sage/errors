@@ -1,0 +1,184 @@
+sage -t  "devel/sage-main/doc/en/numerical_sage/cvxopt.rst"
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 47:
+    sage: B = numpy.array([1.0]*5,dtype=float)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[2]>", line 1, in <module>
+        B = numpy.array([RealNumber('1.0')]*Integer(5),dtype=float)###line 47:
+    sage: B = numpy.array([1.0]*5,dtype=float)
+    NameError: name 'numpy' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 48:
+    sage: B.shape=(5,1)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[3]>", line 1, in <module>
+        B.shape=(Integer(5),Integer(1))###line 48:
+    sage: B.shape=(5,1)
+    NameError: name 'B' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 49:
+    sage: print(B)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[4]>", line 1, in <module>
+        print(B)###line 49:
+    sage: print(B)
+    NameError: name 'B' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 55:
+    sage: print(A)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[5]>", line 1, in <module>
+        print(A)###line 55:
+    sage: print(A)
+    NameError: name 'A' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 69:
+    sage: C=m(B)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[6]>", line 1, in <module>
+        C=m(B)###line 69:
+    sage: C=m(B)
+    NameError: name 'B' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 70:
+    sage: umfpack.linsolve(A,C)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[7]>", line 1, in <module>
+        umfpack.linsolve(A,C)###line 70:
+    sage: umfpack.linsolve(A,C)
+    NameError: name 'umfpack' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 71:
+    sage: print(C)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_1[8]>", line 1, in <module>
+        print(C)###line 71:
+    sage: print(C)
+    NameError: name 'C' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 91:
+    sage: A=spmatrix([10,3,5,-2,5,2],[0,2,1,2,2,3],[0,0,1,1,2,3])
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_2[4]>", line 1, in <module>
+        A=spmatrix([Integer(10),Integer(3),Integer(5),-Integer(2),Integer(5),Integer(2)],[Integer(0),Integer(2),Integer(1),Integer(2),Integer(2),Integer(3)],[Integer(0),Integer(0),Integer(1),Integer(1),Integer(2),Integer(3)])###line 91:
+    sage: A=spmatrix([10,3,5,-2,5,2],[0,2,1,2,2,3],[0,0,1,1,2,3])
+    TypeError: non-numeric element in list
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 92:
+    sage: P=amd.order(A)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_2[5]>", line 1, in <module>
+        P=amd.order(A)###line 92:
+    sage: P=amd.order(A)
+    NameError: name 'A' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 93:
+    sage: print(P)
+Exception raised:
+    Traceback (most recent call last):
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1231, in run_one_test
+        self.run_one_example(test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/sagedoctest.py", line 38, in run_one_example
+        OrigDocTestRunner.run_one_example(self, test, example, filename, compileflags)
+      File "/scratch/release-cycle/sage-3.2.2/local/bin/ncadoctest.py", line 1172, in run_one_example
+        compileflags, 1) in test.globs
+      File "<doctest __main__.example_2[6]>", line 1, in <module>
+        print(P)###line 93:
+    sage: print(P)
+    NameError: name 'P' is not defined
+**********************************************************************
+File "/home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/devel/sage-main/doc/en/numerical_sage/cvxopt.rst", line 121:
+    sage: sol = solvers.lp(c,G,h)
+Expected:
+          pcost       dcost       gap    pres   dres   k/t
+         0: -8.1000e+00 -1.8106e+01  8e+00  2e-01  7e-01  1e+00
+         1: -8.9068e+00 -9.5217e+00  2e-01  1e-02  5e-02  2e-01
+         2: -8.9991e+00 -9.0057e+00  2e-03  2e-04  6e-04  2e-03
+         3: -9.0000e+00 -9.0001e+00  2e-05  2e-06  6e-06  2e-05
+         4: -9.0000e+00 -9.0000e+00  2e-07  2e-08  6e-08  2e-07
+Got:
+         pcost       dcost       gap    pres   dres   k/t
+     0: -8.1000e+00 -1.8300e+01  4e+00  0e+00  8e-01  1e+00
+     1: -8.8055e+00 -9.4357e+00  2e-01  1e-16  4e-02  3e-02
+     2: -8.9981e+00 -9.0049e+00  2e-03  1e-16  5e-04  4e-04
+     3: -9.0000e+00 -9.0000e+00  2e-05  3e-16  5e-06  4e-06
+     4: -9.0000e+00 -9.0000e+00  2e-07  1e-16  5e-08  4e-08
+**********************************************************************
+3 items had failures:
+   7 of   9 in __main__.example_1
+   3 of   7 in __main__.example_2
+   1 of  10 in __main__.example_3
+***Test Failed*** 11 failures.
+For whitespace errors, see the file /home/mhansen/sage-3.2.3-sage.math-only-x86_64-Linux/tmp/.doctest_cvxopt.py
+	 [1.0 s]
+exit code: 1024
+
+----------------------------------------------------------------------
+The following tests failed:
+
+
+	sage -t  "devel/sage-main/doc/en/numerical_sage/cvxopt.rst"
+Total time for all tests: 1.0 seconds

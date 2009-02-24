@@ -8,28 +8,28 @@ Sequence derives from list, so has all the functionality of lists and
 can be used wherever lists are used.  When a sequence is created
 without explicitly given the common universe of the elements, the
 constructor coerces the first and second element to some
-\emph{canonical} common parent, if possible, then the second and
+*canonical* common parent, if possible, then the second and
 third, etc.  If this is possible, it then coerces everything into the
 canonical parent at the end.  (Note that canonical coercion is very
-restrictive.)  The sequence then has a function \code{universe()}
+restrictive.)  The sequence then has a function ``universe()``
 which returns either the common canonical parent (if the coercion
 succeeded), or the category of all objects (Objects()).  So if you
-have a list $v$ and type
+have a list `v` and type
 
     sage: v = [1, 2/3, 5]
     sage: w = Sequence(v)
     sage: w.universe()
     Rational Field
 
-then since \code{w.universe()} is $\Q$, you're guaranteed that all
-elements of $w$ are rationals:
+then since ``w.universe()`` is `\mathbb{Q}`, you're guaranteed that all
+elements of `w` are rationals:
 
     sage: v[0].parent()
     Integer Ring
     sage: w[0].parent()
     Rational Field
 
-If you do assignment to $w$ this property of being rationals is guaranteed
+If you do assignment to `w` this property of being rationals is guaranteed
 to be preserved.
 
     sage: w[0] = 2
@@ -40,21 +40,21 @@ to be preserved.
     ...
     TypeError: unable to convert hi to a rational
 
-However, if you do \code{w = Sequence(v)} and the resulting universe
-is \code{Objects()}, the elements are not guaranteed to have any
+However, if you do ``w = Sequence(v)`` and the resulting universe
+is ``Objects()``, the elements are not guaranteed to have any
 special parent.  This is what should happen, e.g., with finite field
-elements of different characteristics:
+elements of different characteristics::
 
     sage: v = Sequence([GF(3)(1), GF(7)(1)])
     sage: v.universe()
     Category of objects
 
-You can make a list immutable with \code{v.freeze()}.  Assignment is
+You can make a list immutable with ``v.freeze()``.  Assignment is
 never again allowed on an immutable list.
 
 Creation of a sequence involves making a copy of the input list, and
 substantial coercions.  It can be greatly sped up by explicitly
-specifying the universe of the sequence:
+specifying the universe of the sequence::
 
     sage: v = Sequence(range(10000), universe=ZZ)
 """
@@ -84,23 +84,34 @@ class Sequence(sage.structure.sage_object.SageObject, list):
     or a category.
 
     INPUT:
-        x -- a list or tuple instance
-        universe -- (default: None) the universe of elements; if None determined
-                    using canonical coercions and the entire list of elements.
-                    If list is empty, is category Objects() of all objects.
-        check -- (default: True) whether to coerce the elements of x into the universe
-        immutable -- (default: True) whether or not this sequence is immutable
-        cr -- (default: False) if True, then print a carriage return after each
-                         comma when printing this sequence.
-        use_sage_types -- (default: False) if True, coerce the builtin
-            Python numerical types int, long, float, complex to the
-            corresponding Sage types (this makes functions like
-            vector() more flexible)
+
+    - ``x`` - a list or tuple instance
+
+    - ``universe`` - (default: None) the universe of elements; if None
+      determined using canonical coercions and the entire list of
+      elements.  If list is empty, is category Objects() of all
+      objects.
+
+    - ``check`` -- (default: True) whether to coerce the elements of x
+      into the universe
+
+    - ``immutable`` - (default: True) whether or not this sequence is
+      immutable
+
+    - ``cr`` - (default: False) if True, then print a carriage return
+      after each comma when printing this sequence.
+
+    - ``use_sage_types`` -- (default: False) if True, coerce the
+       builtin Python numerical types int, long, float, complex to the
+       corresponding Sage types (this makes functions like vector()
+       more flexible)
 
     OUTPUT:
-        a sequence
 
-    EXAMPLES:
+    - a sequence
+
+    EXAMPLES::
+
         sage: v = Sequence(range(10))
         sage: v.universe()
         <type 'int'>
@@ -108,14 +119,16 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     We can request that the builtin Python numerical types be coerced
-    to Sage objects:
+    to Sage objects::
+
         sage: v = Sequence(range(10), use_sage_types=True)
         sage: v.universe()
         Integer Ring
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    You can also use seq for "Sequence", which is identical to using Sequence:
+    You can also use seq for "Sequence", which is identical to using Sequence::
+
         sage: v = seq([1,2,1/1]); v
         [1, 2, 1]
         sage: v.universe()
@@ -127,6 +140,9 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
 
     Note that assignment coerces if possible,
+
+    ::
+
         sage: v = Sequence(range(10), ZZ)
         sage: a = QQ(5)
         sage: v[3] = a
@@ -139,11 +155,13 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         ...
         TypeError: no conversion of this rational to integer
 
-    Sequences can be used absolutely anywhere lists or tuples can be used:
+    Sequences can be used absolutely anywhere lists or tuples can be used::
+
         sage: isinstance(v, list)
         True
 
-    Sequence can be immutable, so entries can't be changed:
+    Sequence can be immutable, so entries can't be changed::
+
         sage: v = Sequence([1,2,3], immutable=True)
         sage: v.is_immutable()
         True
@@ -158,6 +176,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
     is cached, and is only recomputed if the sequence is changed
     (which has a small performance penalty for assignment).
 
+    ::
+
         sage: v = Sequence(range(10), ZZ); v[3] = 5
         sage: hash(v)
         2083920238            # 32-bit
@@ -168,13 +188,17 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         -2271601447248391376  # 64-bit
 
     If you really know what you are doing, you can circumvent the type
-    checking (for an efficiency gain):
+    checking (for an efficiency gain)::
+
         sage: list.__setitem__(v, int(1), 2/3)        # bad circumvention
         sage: v
         [10, 2/3, 2, 5, 4, 5, 6, 7, 8, 9]
         sage: list.__setitem__(v, int(1), int(2))     # not so bad circumvention
 
     You can make a sequence with a new universe from an old sequence.
+
+    ::
+
         sage: w = Sequence(v, QQ)
         sage: w
         [10, 2, 2, 5, 4, 5, 6, 7, 8, 9]
@@ -186,18 +210,25 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     Sequences themselves live in a category, the category of all sequences
     in the given universe.
+
+    ::
+
         sage: w.category()
         Category of sequences in Rational Field
 
-    This is also the parent of any sequence:
+    This is also the parent of any sequence::
+
         sage: w.parent()
         Category of sequences in Rational Field
 
     The default universe for any sequence, if no compatible parent structure
-    can be found, is the universe of all SAGE objects.
+    can be found, is the universe of all Sage objects.
 
     This example illustrates how every element of a list is taken into account
     when constructing a sequence.
+
+    ::
+
         sage: v = Sequence([1,7,6,GF(5)(3)]); v
         [1, 2, 1, 3]
         sage: v.universe()
@@ -272,7 +303,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Reverse the elements of self, in place.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([1,2,3])
             sage: B.reverse(); B
             [3, 2, 1]
@@ -288,7 +320,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def __setslice__(self, i, j, seq):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: v[1:3] = [5,7]
             Traceback (most recent call last):
@@ -308,7 +341,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def __getslice__(self, i, j):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: w = v[2:]
             sage: w
@@ -347,7 +381,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Extend list by appending elements from the iterable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([1,2,3])
             sage: B.extend(range(4))
             sage: B
@@ -361,7 +396,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Insert object before index.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([1,2,3])
             sage: B.insert(10, 5)
             sage: B
@@ -372,9 +408,10 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def pop(self, index=-1):
         """
-        remove and return item at index (default last)
+        Remove and return item at index (default last)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([1,2,3])
             sage: B.pop(1)
             2
@@ -388,7 +425,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Remove first occurrence of value
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([1,2,3])
             sage: B.remove(2)
             sage: B
@@ -403,7 +441,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
         cmp(x, y) -> -1, 0, 1
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: B = Sequence([3,2,1/5])
             sage: B.sort()
             sage: B
@@ -431,7 +470,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def __str__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = Sequence([1,2,3], cr=False)
             sage: str(s)
             '[1, 2, 3]'
@@ -466,7 +506,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Make this object immutable, so it can never again be changed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
             sage: v
@@ -484,9 +525,10 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         Return True if this object is immutable (can not be changed)
         and False if it is not.
 
-        To make this object immutable use self.set_immutable().
+        To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
             sage: v
@@ -513,7 +555,8 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         """
         Return a copy of this sequence
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = seq(range(10))
             sage: t = copy(s)
             sage: t == s

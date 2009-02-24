@@ -1,15 +1,18 @@
 r"""
 Base class for parent objects
 
-CLASS HIEARCHY:
+CLASS HIEARCHY::
 
-SageObject
-    CategoryObject
-        Parent
+    SageObject
+        CategoryObject
+            Parent
 
 
 TESTS:
 This came up in some subtle bug once.
+
+::
+
     sage: gp(2) + gap(3)
     5
 """
@@ -95,7 +98,8 @@ def is_Parent(x):
     Return True if x is a parent object, i.e., derives from
     sage.structure.parent.Parent and False otherwise.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.parent import is_Parent
         sage: is_Parent(2/3)
         False
@@ -118,7 +122,7 @@ cdef bint guess_pass_parent(parent, element_constructor):
 
 cdef class Parent(category_object.CategoryObject):
     """
-    Parents are the SAGE/mathematical analogues of container objects
+    Parents are the Sage/mathematical analogues of container objects
     in computer science.
     """
 
@@ -170,7 +174,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         Used for debugging the coercion model.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sorted(QQ._introspect_coerce().items())
             [('_action_hash', {...}),
              ('_action_list', []),
@@ -202,7 +207,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         Used for pickling.
 
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(RR['x'])) == RR['x']
             True
         """
@@ -220,7 +226,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         Used for pickling.
 
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(CDF['x'])) == CDF['x']
             True
         """
@@ -249,7 +256,7 @@ cdef class Parent(category_object.CategoryObject):
         then be called (with the arguments and keywords if any).
 
         By default this will dispatch as quickly as possible to
-        \code{self._element_constructor_()} though faster pathways are
+        :meth:`_element_constructor_` though faster pathways are
         possible if so desired.
         """
         if self._element_constructor is None:
@@ -287,10 +294,11 @@ cdef class Parent(category_object.CategoryObject):
         True if there is an element of self that is equal to x under ==,
         or if x is already an element of self.
 
-        For many structures we test this by using \code{__call__} and
+        For many structures we test this by using :meth:`__call__` and
         then testing equality between x and the result.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: 2 in Integers(7)
             True
             sage: 2 in ZZ
@@ -336,7 +344,8 @@ cdef class Parent(category_object.CategoryObject):
         Return x as an element of self, if and only if there is a canonical
         coercion from the parent of x to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QQ.coerce(ZZ(2))
             2
             sage: ZZ.coerce(QQ(2))
@@ -344,7 +353,8 @@ cdef class Parent(category_object.CategoryObject):
             ...
             TypeError: no canonical coercion from Rational Field to Integer Ring
 
-        We make an exception for zero:
+        We make an exception for zero::
+
             sage: V = GF(7)^7
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
@@ -383,7 +393,8 @@ cdef class Parent(category_object.CategoryObject):
         statement. Override this method if other behavior is desired
         (for example, for empty sets).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: if ZZ: print "Yes"
             Yes
         """
@@ -393,7 +404,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         Compare left and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ < QQ
             True
         """
@@ -433,7 +445,8 @@ cdef class Parent(category_object.CategoryObject):
         Returns the number of elements in self. This is the naive algorithm
         of listing self and counting the elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: len(GF(5))
             5
             sage: len(MatrixSpace(GF(2), 3, 3))
@@ -443,9 +456,10 @@ cdef class Parent(category_object.CategoryObject):
 
     def __getitem__(self, n):
         """
-        Returns the $n$-th item of self, by getting self as a list.
+        Returns the `n^{th}` item of self, by getting self as a list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MatrixSpace(GF(3), 2, 2)[9]
             [0 2]
             [0 0]
@@ -457,9 +471,10 @@ cdef class Parent(category_object.CategoryObject):
 
     def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
         """
-        Returns the $n$-th through $m$-th items in self.
+        Returns the `n^{th}` through `m^{th}` items in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),
@@ -480,7 +495,7 @@ cdef class Parent(category_object.CategoryObject):
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
        r"""
-       Return True if \code{im_gens} defines a valid homomorphism
+       Return True if ``im_gens`` defines a valid homomorphism
        from self to codomain; otherwise return False.
 
        If determining whether or not a homomorphism is valid has not
@@ -491,24 +506,27 @@ cdef class Parent(category_object.CategoryObject):
 
     def Hom(self, codomain, cat=None):
         r"""
-        self.Hom(codomain, cat=None):
-
-        Return the homspace \code{Hom(self, codomain, cat)} of all
+        Return the homspace ``Hom(self, codomain, cat)`` of all
         homomorphisms from self to codomain in the category cat.  The
-        default category is \code{self.category()}.
+        default category is :meth:`category``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: R.Hom(QQ)
             Set of Homomorphisms from Multivariate Polynomial Ring in x, y over Rational Field to Rational Field
 
-        Homspaces are defined for very general \sage objects, even elements of familiar rings.
+        Homspaces are defined for very general Sage objects, even elements of familiar rings.
+
+        ::
+
             sage: n = 5; Hom(n,7)
             Set of Morphisms from 5 to 7 in Category of elements of Integer Ring
             sage: z=(2/3); Hom(z,8/1)
             Set of Morphisms from 2/3 to 8 in Category of elements of Rational Field
 
-        This example illustrates the optional third argument:
+        This example illustrates the optional third argument::
+
             sage: QQ.Hom(ZZ, Sets())
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
         """
@@ -522,26 +540,34 @@ cdef class Parent(category_object.CategoryObject):
     def hom(self, im_gens, codomain=None, check=None):
        r"""
        Return the unique homomorphism from self to codomain that
-       sends \code{self.gens()} to the entries of \code{im_gens}.
+       sends ``self.gens()`` to the entries of ``im_gens``.
        Raises a TypeError if there is no such homomorphism.
 
        INPUT:
-           im_gens -- the images in the codomain of the generators of
-                      this object under the homomorphism
-           codomain -- the codomain of the homomorphism
-           check -- whether to verify that the images of generators extend
-                    to define a map (using only canonical coercisions).
+
+       - ``im_gens`` - the images in the codomain of the generators of
+         this object under the homomorphism
+
+       - ``codomain`` - the codomain of the homomorphism
+
+       - ``check`` - whether to verify that the images of generators extend
+         to define a map (using only canonical coercisions).
 
        OUTPUT:
-           a homomorphism self --> codomain
 
-       \note{As a shortcut, one can also give an object X instead of
-       \code{im_gens}, in which case return the (if it exists)
-       natural map to X.}
+       - a homomorphism self --> codomain
+
+       .. note::
+
+          As a shortcut, one can also give an object X instead of
+          ``im_gens``, in which case return the (if it exists)
+          natural map to X.
 
        EXAMPLE: Polynomial Ring
        We first illustrate construction of a few homomorphisms
        involving a polynomial ring.
+
+       ::
 
            sage: R.<x> = PolynomialRing(ZZ)
            sage: f = R.hom([5], QQ)
@@ -567,6 +593,9 @@ cdef class Parent(category_object.CategoryObject):
            3
 
        EXAMPLE: Natural morphism
+
+       ::
+
            sage: f = ZZ.hom(GF(5))
            sage: f(7)
            2
@@ -576,6 +605,9 @@ cdef class Parent(category_object.CategoryObject):
              To:   Finite Field of size 5
 
        There might not be a natural morphism, in which case a TypeError exception is raised.
+
+       ::
+
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
@@ -614,22 +646,30 @@ cdef class Parent(category_object.CategoryObject):
         IT SHOULD ONLY BE CALLED DURING THE __INIT__ method, often at the end.
 
         INPUT:
-            coerce_list    -- a list of coercion Morphisms to self and
-                              parents with canonical coercions to self
-            action_list    -- a list of actions on and by self
-            convert_list   -- a list of conversion Maps to self and
-                              parents with conversions to self
-            embedding      -- a single Morphism from self
-            convert_method_name -- a name to look for that other elements
-                              can implement to create elements of self (e.g. _integer_)
-            element_constructor -- A callable object used by the __call__ method to
-                              construct new elements. Typically the element class or a
-                              bound method (defaults to self._element_constructor_).
-            init_no_parent -- if True omit passing self in as the first
-                              argument of element_constructor for conversion. This is
-                              useful if parents are unique, or element_constructor is
-                              a bound method (this latter case can be detected
-                              automatically).
+
+        - ``coerce_list`` - a list of coercion Morphisms to self and
+          parents with canonical coercions to self
+
+        - ``action_list`` - a list of actions on and by self
+
+        - ``convert_list`` - a list of conversion Maps to self and
+           parents with conversions to self
+
+        - ``embedding`` - a single Morphism from self
+
+        - ``convert_method_name`` - a name to look for that other elements
+          can implement to create elements of self (e.g. _integer_)
+
+        - ``element_constructor`` - A callable object used by the
+          __call__ method to construct new elements. Typically the
+          element class or a bound method (defaults to
+          self._element_constructor_).
+
+        - ``init_no_parent`` - if True omit passing self in as the
+          first argument of element_constructor for conversion. This
+          is useful if parents are unique, or element_constructor is a
+          bound method (this latter case can be detected
+          automatically).
         """
         self.init_coerce(False)
 
@@ -725,13 +765,14 @@ cdef class Parent(category_object.CategoryObject):
     cpdef _generic_convert_map(self, S):
         r"""
         Returns the default conversion map based on the data provided to
-        \code{_populate_coercion_lists_()}.
+        :meth:`_populate_coercion_lists_`.
 
-        This called when \code{_coerce_map_from_()} returns \code{True}.
+        This called when :meth:`_coerce_map_from_` returns ``True``.
 
-        If a \code{convert_method_name} is provided, it creates a \code{NamedConvertMap}, otherwise
-        it creates a \code{DefaultConvertMap} or \code{DefaultConvertMap_unique} depending
-        on whether or not init_no_parent is set.
+        If a ``convert_method_name`` is provided, it creates a
+        ``NamedConvertMap``, otherwise it creates a
+        ``DefaultConvertMap`` or ``DefaultConvertMap_unique``
+        depending on whether or not init_no_parent is set.
 
         EXAMPLES:
         """
@@ -767,11 +808,14 @@ cdef class Parent(category_object.CategoryObject):
         defining _coerce_map_from_
 
         INPUT:
-            v -- A list (iterator) of parents with coercions into self. There
-                 MUST be maps provided from each item in the list to self.
-            S -- the starting parent
 
-        EXAMPLES:
+        - ``v`` - A list (iterator) of parents with coercions into self. There
+          MUST be maps provided from each item in the list to self.
+
+        - ``S`` - the starting parent
+
+        EXAMPLES::
+
             sage: CDF._coerce_map_via([ZZ, RR, CC], int)
             Composite map:
               From: Set of Python objects of type 'int'
@@ -814,7 +858,8 @@ cdef class Parent(category_object.CategoryObject):
         Return True if there is a natural map from S to self.
         Otherwise, return False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF.has_coerce_map_from(QQ)
             True
             sage: RDF.has_coerce_map_from(QQ['x'])
@@ -849,7 +894,8 @@ cdef class Parent(category_object.CategoryObject):
         This returns a Map object to coerce from S to self if one exists,
         or None if no such coercion exists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ.coerce_map_from(int)
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -907,14 +953,18 @@ cdef class Parent(category_object.CategoryObject):
         """
         Precedence for discovering a coercion S -> self goes as follows:
 
-            1. If S has an embedding into T, look for T -> self and return composition
-            2. If self._coerce_map_from_(S) is NOT exactly one of
-                    - DefaultConvertMap
-                    - DefaultConvertMap_unique
-                    - NamedConvertMap
-                return this map
-            3. Traverse the coercion lists looking for another map
-               returning the map from step (2) if none is found.
+        1. If S has an embedding into T, look for T -> self and return composition
+
+        2. If self._coerce_map_from_(S) is NOT exactly one of
+
+           - DefaultConvertMap
+           - DefaultConvertMap_unique
+           - NamedConvertMap
+
+           return this map
+
+        3. Traverse the coercion lists looking for another map
+           returning the map from step (2) if none is found.
 
         In the future, multiple paths may be discovered and compared.
         """
@@ -994,7 +1044,8 @@ cdef class Parent(category_object.CategoryObject):
         elements of S to elements of self (short of manually constructing
         the elements) and is used by __call__.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ZZ.convert_map_from(QQ)
             sage: m(-35/7)
             -5
@@ -1067,9 +1118,10 @@ cdef class Parent(category_object.CategoryObject):
         """
         Returns an action of self on S or S on self.
 
-        To provide additional actions, override _get_action_.
+        To provide additional actions, override :meth:`_get_action_`.
 
-        TESTS:
+        TESTS::
+
             sage: M = QQ['y']^3
             sage: M.get_action(ZZ['x']['y'])
             Right scalar multiplication by Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring on Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field
@@ -1236,7 +1288,8 @@ cdef class Parent(category_object.CategoryObject):
         Returns a pair (functor, parent) such that functor(parent) return self.
         If this ring does not have a functorial construction, return None.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QQ.construction()
             (FractionField, Integer Ring)
             sage: f, R = QQ['x'].construction()
@@ -1253,9 +1306,10 @@ cdef class Parent(category_object.CategoryObject):
         r"""
         Implementation of a function that returns an element (often non-trivial)
         of a parent object.  This is cached. Parent structures that are should
-        override \code{_an_element_} instead.
+        override :meth:`_an_element_` instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CDF.an_element()
             1.0*I
             sage: ZZ[['t']].an_element()
@@ -1271,7 +1325,8 @@ cdef class Parent(category_object.CategoryObject):
         that poorly-written functions won't work when they're not
         supposed to. This is cached so doesn't have to be super fast.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QQ._an_element_()
             1/2
             sage: ZZ['x,y,z']._an_element_()
@@ -1360,7 +1415,8 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         The category that this set belongs to, which is the category
         of all sets.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Set(QQ).category()
             Category of sets
         """
@@ -1375,7 +1431,8 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         A set is considered True unless it is empty, in which case it is
         considered to be False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: bool(Set(QQ))
             True
             sage: bool(Set(GF(3)))
@@ -1392,7 +1449,8 @@ def Set_PythonType(theType):
     Return the (unique) Parent that represents the set of Python objects
     of a specified type.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.parent import Set_PythonType
         sage: Set_PythonType(list)
         Set of Python objects of type 'list'
@@ -1421,7 +1479,8 @@ cdef class Set_PythonType_class(Set_generic):
         """
         This doesn't return Elements, but actual objects of the given type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = sage.structure.parent.Set_PythonType(float)
             sage: S(5)
             5.0
@@ -1434,7 +1493,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __hash__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: S = sage.structure.parent.Set_PythonType(int)
             sage: hash(S) == -hash(int)
             True
@@ -1446,7 +1506,8 @@ cdef class Set_PythonType_class(Set_generic):
         Two Python type sets are considered the same if they contain the same
         type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = sage.structure.parent.Set_PythonType(int)
             sage: S == S
             True
@@ -1465,7 +1526,8 @@ cdef class Set_PythonType_class(Set_generic):
         Only things of the right type (or subtypes thereof) are considered to
         belong to the set.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = sage.structure.parent.Set_PythonType(tuple)
             sage: (1,2,3) in S
             True
@@ -1478,7 +1540,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage.structure.parent.Set_PythonType(tuple)
             Set of Python objects of type 'tuple'
             sage: sage.structure.parent.Set_PythonType(Integer)
@@ -1490,7 +1553,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def object(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = sage.structure.parent.Set_PythonType(tuple)
             sage: S.object()
             <type 'tuple'>
@@ -1499,7 +1563,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def cardinality(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = sage.structure.parent.Set_PythonType(bool)
             sage: S.cardinality()
             2
@@ -1586,7 +1651,8 @@ empty_set = Set_generic()
 
 def normalize_names(ngens, names):
     """
-    TESTS:
+    TESTS::
+
         sage: sage.structure.parent.normalize_names(5, 'x')
         ('x0', 'x1', 'x2', 'x3', 'x4')
         sage: sage.structure.parent.normalize_names(2, ['x','y'])

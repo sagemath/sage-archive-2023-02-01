@@ -4,31 +4,31 @@ Scheme implementation overview
 Various parts of schemes were implemented by David Kohel,
 David Joyner, and William Stein.
 
-This document:
 AUTHORS:
-    - David Kohel (2006-01-03): initial version
-    - William Stein (2006-01-05)
-    - William Stein (2006-01-20)
 
-\begin{itemize}
-\item {\bf Scheme:}
+- David Kohel (2006-01-03): initial version
+- William Stein (2006-01-05)
+- William Stein (2006-01-20)
+
+.. comment seperator
+
+- **Scheme:**
   A scheme whose datatype might be not be defined in terms
   of algebraic equations: e.g. the Jacobian of a curve may be
   represented by means of a Scheme.
 
-\item {\bf AlgebraicScheme:}
+- **AlgebraicScheme:**
   A scheme defined by means of polynomial equations, which may be
   reducible or defined over a ring other than a field.
   In particular, the defining ideal need not be a radical ideal,
   and an algebraic scheme may be defined over Spec(R).
-\end{itemize}
 
-\begin{itemize}
-\item {\bf AmbientSpaces:} Most effective models of algebraic scheme will be
+- **AmbientSpaces:**
+  Most effective models of algebraic scheme will be
   defined, not by generic gluings, but by embeddings in some fixed
   ambient space.
 
-\item {\bf AffineSpace:}
+- **AffineSpace:**
   Affine spaces, and their affine subschemes form the most important
   universal objects from which algebraic schemes are built.
   The affine spaces form universal objects in the sense that a morphism
@@ -38,71 +38,75 @@ AUTHORS:
   By default affine spaces will embed in some ordinary projective space,
   unless it is created as an affine patch of another object.
 
-\item {\bf ProjectiveSpace:}
-
+- **ProjectiveSpace:**
   The projective spaces are the most natural ambient spaces for most
   projective objects.  They are locally universal objects.
 
-\item {\bf ProjectiveSpace\_ordinary (not implemented)}
-  The ordinary projective spaces have the standard weights $[1,..,1]$
+- **ProjectiveSpace_ordinary (not implemented)**
+  The ordinary projective spaces have the standard weights `[1,..,1]`
   on their coefficients.
 
-\item {\bf ProjectiveSpace\_weighted (not implemented):}
+- **ProjectiveSpace_weighted (not implemented):**
   A special subtype for non-standard weights.
 
-\item {\bf ToricSpace (not implemented):}
+- **ToricSpace (not implemented):**
   This defines a projective toric variety, which defines a space
   equipped with a toral action and certain defining data.  These
   generalise projective spaces, but it is not envisioned that the
-  latter should inherit from the \code{ToricSpace} type.
+  latter should inherit from the ``ToricSpace`` type.
 
-\item {\bf AlgebraicScheme\_subscheme\_affine:}
+- **AlgebraicScheme_subscheme_affine:**
   An algebraic scheme defined by means of an embedding in a
   fixed ambient affine space.
 
-\item {\bf AlgebraicScheme\_subscheme\_projective:}
+- **AlgebraicScheme_subscheme_projective:**
   An algebraic scheme defined by means of an embedding in a fixed ambient
   projective space.
 
-\item {\bf QuasiAffineScheme (not yet implemented):}
-  An open subset $U = X \setminus Z$ of a closed subset $X$ of affine space; note
+- **QuasiAffineScheme (not yet implemented):**
+  An open subset `U = X \setminus Z` of a closed subset `X` of affine space; note
   that this is mathematically a quasi-projective scheme, but its
   ambient space is an affine space and its points are represented by
   affine rather than projective points.
 
-  NOTE: AlgebraicScheme\_quasi is implemented, as a base class
-  for this.
+  .. note::
 
-\item {\bf QuasiProjectiveScheme (not yet implemented):}
+     AlgebraicScheme_quasi is implemented, as a base class
+     for this.
+
+- **QuasiProjectiveScheme (not yet implemented):**
   An open subset of a closed subset of projective space; this datatype
   stores the defining polynomial, polynomials, or ideal defining the
-  projective closure $X$ plus the closed subscheme $Z$ of $X$ whose complement
-  $U = X \setminus Z$ is the quasi-projective scheme.
+  projective closure `X` plus the closed subscheme `Z` of `X` whose complement
+  `U = X \setminus Z` is the quasi-projective scheme.
 
   Note: the quasi-affine and quasi-projective datatype lets one create
-  schemes like the multiplicative group scheme $\GG_m = \AA^1\setminus
-  \{(0)\}$ and the non-affine scheme $\AA^2\setminus \{(0,0)\}$.  The
-  latter is not affine and is not of the form $\Spec(R)$.
-  \end{itemize}
+  schemes like the multiplicative group scheme `\mathbb{G}_m = \mathbb{A}^1\setminus
+  \{(0)\}` and the non-affine scheme `\mathbb{A}^2\setminus \{(0,0)\}`.  The
+  latter is not affine and is not of the form `\mathrm{Spec}(R)`.
 
+TODO List
+---------
 
-\subsection{TODO List}
-\begin{itemize}
-\item {\bf PointSets and points over a ring:}
-  For algebraic schemes $X/S$ and $T/S$ over $S$, one can form
-  the point set $X(T)$ of morphisms from $T\to X$ over $S$.
+- **PointSets and points over a ring:**
+  For algebraic schemes `X/S` and `T/S` over `S`, one can form
+  the point set `X(T)` of morphisms from `T\to X` over `S`.
+
+  ::
 
         sage: PP.<X,Y,Z> = ProjectiveSpace(2, QQ)
         sage: PP
         Projective Space of dimension 2 over Rational Field
 
   The last line is an abuse of language -- returning the generators
-  of the coordinate ring by \code{gens()}.
+  of the coordinate ring by ``gens()``.
 
   A projective space object in the category of schemes is a locally
-  free object -- the images of the generator functions \emph{locally}
+  free object -- the images of the generator functions *locally*
   determine a point.  Over a field, one can choose one of the standard
-  affine patches by the condition that a coordinate function $X_i \ne 0$
+  affine patches by the condition that a coordinate function `X_i \ne 0`
+
+  ::
 
         sage: PP(QQ)
         Set of Rational Points of Projective Space of dimension 2 over Rational Field
@@ -110,7 +114,9 @@ AUTHORS:
         (-2/5 : 3/5 : 1)
 
   Over a ring, this is not true, e.g. even over an integral domain which is not
-  a PID, there may be no \emph{single} affine patch which covers a point.
+  a PID, there may be no *single* affine patch which covers a point.
+
+  ::
 
         sage: R.<x> = ZZ[]
         sage: S.<t> = R.quo(x^2+5)
@@ -120,20 +126,21 @@ AUTHORS:
         Univariate Quotient Polynomial Ring in t over Integer Ring with
         modulus x^2 + 5
 
-  In order to represent the projective point $(2:1+t) = (1-t:3)$ we
+  In order to represent the projective point `(2:1+t) = (1-t:3)` we
   note that the first representative is not well-defined at the
-  prime $pp = (2,1+t)$ and the second element is not well-defined at
-  the prime $qq = (1-t,3)$, but that $pp + qq = (1)$, so globally the
+  prime `pp = (2,1+t)` and the second element is not well-defined at
+  the prime `qq = (1-t,3)`, but that `pp + qq = (1)`, so globally the
   pair of coordinate representatives is well-defined.
+
+  ::
 
         sage: P( [2, 1+t] )
         Traceback (most recent call last):
         ...
         NotImplementedError
 
-  In fact, we need a test \code{R.ideal([2,1+t]) == R.ideal([1])} in order
+  In fact, we need a test ``R.ideal([2,1+t]) == R.ideal([1])`` in order
   to make this meaningful.
-\end{itemize}
 
 """
 

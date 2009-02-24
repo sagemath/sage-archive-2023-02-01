@@ -1,0 +1,379 @@
+Number Fields: Galois Groups and Class Groups
+=============================================
+
+Galois Groups
+-------------
+
+We can compute the Galois group of the Galois closure as an abstract
+"Pari group" using the ``galois_group`` function, which by default
+calls Pari (http://pari.math.u-bordeaux.fr/). You do not have to worry
+about installing Pari, since *Pari is part of Sage*.  In fact, despite
+appearances much of the difficult algebraic number theory in Sage is
+actually done by the Pari C library (be sure to also cite Pari in
+papers that use Sage).
+
+::
+
+    sage: K.<alpha> = NumberField(x^3 - 2)
+    sage: G = K.galois_group()
+    sage: G
+    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the
+    Number Field in alpha with defining polynomial x^3 - 2
+
+We can find out more about :math:`G`, too
+
+.. link
+
+::
+
+    sage: G.order()
+    6
+
+
+Some more Galois groups
+-----------------------
+
+We compute two more Galois groups of degree :math:`5` extensions, and
+see that one has Galois group :math:`S_5`, so is not solvable by
+radicals::
+
+    sage: NumberField(x^5 - 2, 'a').galois_group()
+    Galois group PARI group [20, -1, 3, "F(5) = 5:4"] of
+    degree 5 of the Number Field in a with defining
+    polynomial x^5 - 2
+    sage: NumberField(x^5 - x + 2, 'a').galois_group()
+    Galois group PARI group [120, -1, 5, "S5"] of degree 5 of
+    the Number Field in a with defining polynomial x^5 - x + 2
+
+
+Magma's Galois group command
+----------------------------
+
+Recent versions of Magma have an algorithm for computing Galois
+groups that in theory applies when the input polynomial has any
+degree. There are no open source implementation of this algorithm
+(as far as I know). If you have Magma, you can use this algorithm
+from Sage by calling the ``galois_group`` function and giving the
+``algorithm='magma'`` option.
+
+::
+
+    sage: K.<a> = NumberField(x^3 - 2)
+    sage: K.galois_group(algorithm='magma')    # optional
+    verbose...
+    Galois group Transitive group number 2 of degree 3 of
+    the Number Field in a with defining polynomial x^3 - 2
+
+We emphasize that the above example should not work if you don't
+have Magma.
+
+
+Explicitly working with automorphisms
+-------------------------------------
+
+It is also possible to work explicitly with the group of
+automorphisms of a field (though the link in Sage between abstract
+groups and automorphisms of fields is currently poor.
+
+.. note::
+
+  An excellent Sage development project would be to make it so Sage
+  supports finding the abstract group structure of automorphism groups
+  of fields; i.e., make the automorphism group more than just a
+  set.
+
+For example, here we first define :math:`\mathbb{Q}(\sqrt[3]{2})`,
+then compute its Galois closure, which we represent as
+:math:`\mathbb{Q}(b)`, where :math:`b^6 + 40b^3 + 1372 = 0`. Then we
+compute the automorphism group of the field :math:`L`, and explicitly
+list its elements.
+
+::
+
+    sage: K.<a> = NumberField(x^3 - 2)
+    sage: L.<b> = K.galois_closure()
+    sage: L
+    Number Field in b with defining polynomial x^6 + 40*x^3 + 1372
+    sage: G = Hom(L, L)
+    sage: G
+    Automorphism group of Number Field in b ...
+    sage: G.list()
+    [
+    Ring endomorphism of Number Field in b ...
+      Defn: b |--> b,
+    Ring endomorphism of Number Field in b ...
+      Defn: b |--> 1/36*b^4 + 1/18*b,
+    ...
+    Ring endomorphism of Number Field in b ...
+      Defn: b |--> -2/63*b^4 - 31/63*b
+    ]
+
+You can explicitly apply any of the automorphisms above to any
+elements of :math:`L`.
+
+.. link
+
+::
+
+    sage: phi = G.list()[1]
+    sage: phi
+    Ring endomorphism of Number Field in b ...
+      Defn: b |--> 1/36*b^4 + 1/18*b
+    sage: phi(b^2 + 2/3*b)
+    -1/36*b^5 + 1/54*b^4 - 19/18*b^2 + 1/27*b
+
+
+Computing complex embeddings
+----------------------------
+
+You can also enumerate all complex embeddings of a number field::
+
+    sage: K.complex_embeddings()
+    [
+    Ring morphism:
+      From: Number Field in a with defining polynomial x^3 - 2
+      To:   Complex Double Field
+      Defn: a |--> -0.629960524947 - 1.09112363597*I,
+    Ring morphism:
+      From: Number Field in a with defining polynomial x^3 - 2
+      To:   Complex Double Field
+      Defn: a |--> -0.629960524947 + 1.09112363597*I,
+    Ring morphism:
+      From: Number Field in a with defining polynomial x^3 - 2
+      To:   Complex Double Field
+      Defn: a |--> 1.25992104989
+    ]
+
+
+Class Numbers and Class Groups
+------------------------------
+
+The class group :math:`C_K` of a number field :math:`K` is the group
+of fractional ideals of the maximal order :math:`R` of :math:`K`
+modulo the subgroup of principal fractional ideals. One of the main
+theorems of algebraic number theory asserts that :math:`C_K` is a
+finite group. For example, the quadratic number field
+:math:`\mathbb{Q}(\sqrt{-23})` has class number :math:`3`, as we see
+using the Sage ``class number`` command.
+
+::
+
+    sage: L.<a> = NumberField(x^2 + 23)
+    sage: L.class_number()
+    3
+
+
+Quadratic imaginary fields with class number 1
+----------------------------------------------
+
+There are only 9 quadratic imaginary field
+:math:`\mathbb{Q}(\sqrt{D})` that have class number :math:`1`:
+
+.. math::
+
+   D = -3, -4, -7, -8, -11, -19, -43, -67, -163
+
+To find this list using Sage, we first experiment with making lists
+in Sage. For example, typing ``[1..10]`` makes the
+list of integers between :math:`1` and :math:`10`.
+
+::
+
+    sage: [1..10]
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+We can also make the list of odd integers between :math:`1` and
+:math:`11`, by typing ``[1,3,..,11]``, i.e., by giving the second term
+in the arithmetic progression.
+
+::
+
+    sage: [1,3,..,11]
+    [1, 3, 5, 7, 9, 11]
+
+Applying this idea, we make the list of negative numbers from
+:math:`-1` down to :math:`-10`.
+
+::
+
+    sage: [-1,-2,..,-10]
+    [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
+
+Enumerating quadratic imaginary fields with class number 1
+----------------------------------------------------------
+
+The first two lines below makes a list :math:`v` of every :math:`D`
+from :math:`-1` down to :math:`-200` such that :math:`D` is a
+fundamental discriminant (the discriminant of a quadratic imaginary
+field).
+
+.. note::
+
+   Note that you will not see the ... in the output below;
+   this ... notation just means that part of the output is omitted
+   below.
+
+::
+
+    sage: w = [-1,-2,..,-200]
+    sage: v = [D for D in w if is_fundamental_discriminant(D)]
+    sage: v
+    [-3, -4, -7, -8, -11, -15, -19, -20, ..., -195, -199]
+
+Finally, we make the list of :math:`D` in our list :math:`v` such that
+the quadratic number field :math:`\mathbb{Q}(\sqrt{D})` has class
+number :math:`1`. Notice that ``QuadraticField(D)`` is a shorthand for
+``NumberField(x^2 - D)``.
+
+.. link
+
+::
+
+    sage: [D for D in v if QuadraticField(D,'a').class_number()==1]
+    [-3, -4, -7, -8, -11, -19, -43, -67, -163]
+
+Of course, we have *not* proved that this is the list of all
+negative :math:`D` so that :math:`\mathbb{Q}(\sqrt{D})` has
+class number :math:`1`.
+
+
+Class number 1 fields
+---------------------
+
+A frustrating open problem is to prove that there are infinitely many
+number fields with class number :math:`1`. It is quite easy to be
+convinced that this is probably true by computing a bunch of class
+numbers of real quadratic fields. For example, over 58 percent of the
+real quadratic number fields with discriminant :math:`D<1000` have
+class number :math:`1`!
+
+::
+
+    sage: w = [1..1000]
+    sage: v = [D for D in w if is_fundamental_discriminant(D)]
+    sage: len(v)
+    302
+    sage: len([D for D in v if QuadraticField(D,'a').class_number() == 1])
+    176
+    sage: 176.0/302
+    0.582781456953642
+
+For more intuition about what is going on, read about the
+Cohen-Lenstra heuristics.
+
+
+Class numbers of cyclotomic fields
+----------------------------------
+
+Sage can also compute class numbers of extensions of higher degree,
+within reason. Here we use the shorthand ``CyclotomicField(n)`` to
+create the number field :math:`\mathbb{Q}(\zeta_n)`.
+
+::
+
+    sage: CyclotomicField(7)
+    Cyclotomic Field of order 7 and degree 6
+    sage: for n in [2..15]: print n, CyclotomicField(n).class_number()
+    2 1
+    3 1
+    ...
+    15 1
+
+In the code above, the notation ``for n in [2..15]: ...`` means
+"do ... for :math:`n` equal to each of the integers :math:`2,3,4,\dots,15`."
+
+.. note::
+
+   Exercise: Compute what is omitted (replaced by ...) in the output
+   of the previous example.
+
+Assuming conjectures to speed computations
+------------------------------------------
+
+Computations of class numbers and class groups in Sage is done by the
+Pari C library, and *unlike in Pari*, by default Sage tells Pari *not
+to assume* any conjectures. This can make some commands vastly slower
+than they might be directly in Pari, which *does assume unproved
+conjectures* by default. Fortunately, it is easy to tell Sage to be
+more permissive and allow Pari to assume conjectures, either just for
+this one call or henceforth for all number field functions. For
+example, with ``proof=False`` it takes only a few seconds to verify,
+modulo the conjectures assumed by Pari, that the class number of
+:math:`\mathbb{Q}(\zeta_{23})` is :math:`3`.
+
+::
+
+    sage: CyclotomicField(23).class_number(proof=False)
+    3
+
+
+.. note::
+
+  Exercise: What is the smallest :math:`n` such that
+  :math:`\mathbb{Q}(\zeta_n)` has class number bigger than :math:`1`?
+
+
+Class group structure
+---------------------
+
+In addition to computing class numbers, Sage can also compute the
+group structure and generators for class groups. For example, the
+quadratic field :math:`\mathbb{Q}(\sqrt{-30})` has class group
+:math:`C = (\mathbb{Z}/2\mathbb{Z})^{\oplus 2}`, with generators the
+ideal classes containing :math:`(5,\sqrt{-30})` and
+:math:`(3,\sqrt{-30})`.
+
+::
+
+    sage: K.<a> = QuadraticField(-30)
+    sage: C = K.class_group()
+    sage: C
+    Class group of order 4 with structure C2 x C2 of Number Field
+    in a with defining polynomial x^2 + 30
+    sage: category(C)
+    Category of groups
+    sage: C.gens()
+    [Fractional ideal class (5, a), Fractional ideal class (3, a)]
+
+
+Arithmetic in the class group
+-----------------------------
+
+In Sage, the notation ``C.i`` means "the :math:`i^{th}` generator of the
+object :math:`C`," where the generators are indexed by numbers
+:math:`0, 1, 2, \dots`. Below, when we write ``C.0 \* C.1``, this
+means "the product of the 0th and 1st generators of the class group
+:math:`C`."
+
+::
+
+    sage: K.<a> = QuadraticField(-30)
+    sage: C = K.class_group()
+    sage: C.0
+    Fractional ideal class (5, a)
+    sage: C.0.ideal()
+    Fractional ideal (5, a)
+    sage: I = C.0 * C.1
+    sage: I
+    Fractional ideal class (2, a)
+
+
+Next we find that the class of the fractional ideal
+:math:`(2,\sqrt{-30}+4/3)` is equal to the ideal class
+:math:`I`.
+
+.. link
+
+::
+
+    sage: A = K.ideal([2, a+4/3])
+    sage: J = C(A)
+    sage: J
+    Fractional ideal class (2/3, 1/3*a)
+    sage: J == I
+    True
+
+
+Unfortunately, there is currently no Sage function that writes a
+fractional ideal class in terms of the generators for the class
+group.

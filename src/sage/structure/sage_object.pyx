@@ -1,5 +1,5 @@
 r"""
-Abstract base class for SAGE objects
+Abstract base class for Sage objects
 """
 
 import cPickle
@@ -32,10 +32,13 @@ cdef class SageObject:
         r"""
         Change self so it prints as x, where x is a string.
 
-        \note{This is \emph{only} supported for Python classes that derive
-        from SageObject.}
+        .. note::
 
-        EXAMPLES:
+           This is *only* supported for Python classes that derive
+           from SageObject.
+
+        EXAMPLES::
+
             sage: x = PolynomialRing(QQ,'x').gen()
             sage: g = x^3 + x - 5
             sage: g
@@ -52,7 +55,8 @@ cdef class SageObject:
             sage: h
             x^300 + ...
 
-        Real numbers are not Python classes, so rename is not supported:
+        Real numbers are not Python classes, so rename is not supported::
+
             sage: a = 3.14
             sage: type(a)
             <type 'sage.rings.real_mpfr.RealLiteral'>
@@ -61,13 +65,15 @@ cdef class SageObject:
             ...
             NotImplementedError: object does not support renaming: 3.14000000000000
 
-        \note{The reason C-extension types are not supported by default
-        is if they were then every single one would have to carry around
-        an extra attribute, which would be slower and waste a lot of
-        memory.
+        .. note::
 
-        To support them for a specific class, add a \code{cdef public __custom_name}
-        attribute.}
+           The reason C-extension types are not supported by default
+           is if they were then every single one would have to carry
+           around an extra attribute, which would be slower and waste
+           a lot of memory.
+
+           To support them for a specific class, add a
+           ``cdef public __custom_name`` attribute.
         """
         if x is None:
             if hasattr(self, '__custom_name'):
@@ -102,11 +108,11 @@ cdef class SageObject:
 
     def version(self):
         r"""
-        The version of \sage.
+        The version of Sage.
 
-        Call this to save the version of \sage in this object.
+        Call this to save the version of Sage in this object.
         If you then save and load this object it will know in what
-        version of \sage it was created.
+        version of Sage it was created.
 
         This only works on Python classes that derive from SageObject.
         """
@@ -121,7 +127,8 @@ cdef class SageObject:
         """
         Save self to the given filename.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = x^3 + 5
             sage: f.save(SAGE_TMP + '/file')
             sage: load(SAGE_TMP + '/file.sobj')
@@ -160,10 +167,10 @@ cdef class SageObject:
 
     def db(self, name, compress=True):
         r"""
-        Dumps self into the SAGE database.  Use db(name) by itself to
+        Dumps self into the Sage database.  Use db(name) by itself to
         reload.
 
-        The database directory is \code{\$HOME/.sage/db}
+        The database directory is ``$HOME/.sage/db``
         """
         #if name is None:
         #    name = self._db_name()
@@ -215,7 +222,7 @@ cdef class SageObject:
         Return coercion of self to an object of the interface I.
 
         The result of coercion is cached, unless self is not a C
-        extension class or \code{self._interface_is_cached_()} returns
+        extension class or ``self._interface_is_cached_()`` returns
         False.
         """
         c = self._interface_is_cached_()
@@ -314,16 +321,22 @@ cdef class SageObject:
         This function may call the magma interpreter when it runs.
 
         INPUT:
-            magma -- a Magma interface
-        OUTPUT:
-            string
 
-        EXAMPLES:
+        - ``magma`` -- a Magma interface
+
+        OUTPUT:
+
+        - string
+
+        EXAMPLES::
+
             sage: n = -3/7
             sage: n._magma_init_(magma)
             '-3/7'
 
         Some other examples that illustrate conversion to Magma.
+        ::
+
             sage: n = -3/7
             sage: m2 = Magma()
             sage: magma(n)                        # optional - magma
@@ -336,7 +349,8 @@ cdef class SageObject:
             True
 
         This example illustrates caching, which happens automatically
-        since K is a Python object:
+        since K is a Python object::
+
             sage: K.<a> = NumberField(x^3 + 2)
             sage: magma(K) is magma(K)        # optional - magma
             True
@@ -388,9 +402,11 @@ cdef class SageObject:
         object.
 
         OUTPUT:
-            string
 
-        EXAMPLES:
+        - string
+
+        EXAMPLES::
+
             sage: a = 2/3
             sage: a._r_init_()
             '2/3'
@@ -434,24 +450,27 @@ cdef class SageObject:
 
 def load(filename, compress=True, verbose=True):
     """
-    load(filename):
-
-    Load \sage object from the file with name filename, which will
+    Load Sage object from the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
 
-    NOTE: There is also a special SAGE command (that is not
-    available in Python) called load that you use by typing
+    .. note::
 
-                sage: load filename.sage           # not tested
+       There is also a special Sage command (that is not
+       available in Python) called load that you use by typing
 
-    The documentation below is not for that command.  The documentation
-    for load is almost identical to that for attach.  Type attach? for
-    help on attach.
+       ::
+
+          sage: load filename.sage           # not tested
+
+       The documentation below is not for that command.  The
+       documentation for load is almost identical to that for attach.
+       Type attach? for help on attach.
 
     This also loads a ".sobj" file over a network by specifying the full URL.
     (Setting "verbose = False" suppresses the loading progress indicator.)
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'
         sage: s = load(u)                                                  # optional - internet
         Attempting to load remote file: http://sage.math.washington.edu/home/was/db/test.sobj
@@ -489,13 +508,12 @@ def load(filename, compress=True, verbose=True):
 
 def save(obj, filename=None, compress=True, **kwds):
     """
-    save(obj, filename=None):
-
     Save obj to the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
-    This will \emph{replace} the contents of filename.
+    This will *replace* the contents of filename.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = matrix(2, [1,2,3,-5/2])
         sage: save(a, 'test.sobj')
         sage: load('test')
@@ -531,11 +549,12 @@ def save(obj, filename=None, compress=True, **kwds):
 
 def dumps(obj, compress=True):
     """
-    dumps(obj):
+    Dump obj to a string s.  To recover obj, use ``loads(s)``.
 
-    Dump obj to a string s.  To recover obj, use loads(s).
+    .. seealso:: :func:`dumps`
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = 2/3
         sage: s = dumps(a)
         sage: print len(s)
@@ -556,9 +575,12 @@ def dumps(obj, compress=True):
 def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
-    using s = dumps(x).
+    using ``s = dumps(x)``.
 
-    EXAMPLES:
+    .. seealso:: :func:`dumps`
+
+    EXAMPLES::
+
         sage: a = matrix(2, [1,2,3,-4/3])
         sage: s = dumps(a)
         sage: loads(s)
@@ -568,6 +590,9 @@ def loads(s, compress=True):
     One can load uncompressed data even if one messes up
     and doesn't specify compress=False.  This is slightly
     slower though.
+
+    ::
+
         sage: v = [1..10]
         sage: loads(dumps(v, compress=False)) == v
         True
@@ -622,11 +647,14 @@ def picklejar(obj, dir=None):
     later.
 
     INPUTS:
-        obj -- a pickleable object
-        dir -- a string or None; if None defaults to
-               SAGE_ROOT/tmp/pickle_jar-version
 
-    EXAMPLES:
+    - ``obj`` - a pickleable object
+
+    - ``dir`` - a string or None; if None defaults to
+      ``SAGE_ROOT/tmp/pickle_jar-version``
+
+    EXAMPLES::
+
         sage: dir = tmp_dir()
         sage: sage.structure.sage_object.picklejar(1,dir)
         sage: len(os.listdir(dir))
@@ -663,10 +691,12 @@ def unpickle_all(dir):
     they occur.  Also printed the number of successes and failure.
 
     INPUT:
-        dir -- string; a directory or name of a .tar.bz2 file that
-               decompresses to give a directo pickirectory.
 
-    EXAMPLES:
+    - ``dir`` - string; a directory or name of a .tar.bz2 file that
+      decompresses to give a directo pickirectory.
+
+    EXAMPLES::
+
         sage: dir = tmp_dir()
         sage: sage.structure.sage_object.picklejar('hello', dir)
         sage: sage.structure.sage_object.unpickle_all(dir)
@@ -678,6 +708,9 @@ def unpickle_all(dir):
     should be updated by running the doctest suite with the environment variable
     SAGE_PICKLE_JAR set, then copying the files from SAGE_ROOT/tmp/pickle_jar*
     into the standard pickle jar.
+
+    ::
+
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
         sage: sage.structure.sage_object.unpickle_all(std)
         doctest:...: DeprecationWarning: Your data is stored in an old format. Please use the save() function to store your data in a more recent format.

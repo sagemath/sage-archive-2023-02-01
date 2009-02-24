@@ -25,7 +25,8 @@ class Primes_class(Set_generic):
     """
     The set of prime numbers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P = Primes(); P
         Set of all prime numbers: 2, 3, 5, 7, ...
         sage: loads(P.dumps()) == P

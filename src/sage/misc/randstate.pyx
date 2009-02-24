@@ -382,9 +382,11 @@ make portable doctests for the results.  Instead, do:
 from sage.misc.randstate cimport random
 \end{verbatim}
 The \function{random} function in \module{sage.misc.randstate} gives a
-31-bit random number (the same range as the \function{random} in libc,
-on all systems I'm familiar with), but it uses the \code{gmp_randstate_t}
-in the current \class{randstate}, so it is portable.
+31-bit random number, but it uses the \code{gmp_randstate_t} in the
+current \class{randstate}, so it is portable.  (This range was chosen
+for two reasons: it matches the range of random() on 32-bit and 64-bit
+Linux, although not Solaris; and it's the largest range of nonnegative
+numbers that fits in a 32-bit signed integer.)
 
 However, you may still need to set the libc random number state; for
 instance, if you are wrapping a library that uses \code{random()}
@@ -408,7 +410,6 @@ cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
 cdef extern from "stdlib.h":
-    long RAND_MAX
     long c_libc_random "random"()
     void c_libc_srandom "srandom"(unsigned int seed)
 

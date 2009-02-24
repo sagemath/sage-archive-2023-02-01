@@ -547,10 +547,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     cdef int _randomize_mpz(self, mpz_t value, x, y, distribution) except -1:
         cdef integer.Integer n_max, n_min, n_width
         cdef randstate rstate = current_randstate()
-        cdef int den = rstate.c_random()-RAND_MAX/2
+        cdef int den = rstate.c_random()-SAGE_RAND_MAX/2
         if den == 0: den = 1
         if (distribution is None and x is None) or distribution == "1/n":
-            mpz_set_si(value, (RAND_MAX/5*2) / den)
+            mpz_set_si(value, (SAGE_RAND_MAX/5*2) / den)
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:

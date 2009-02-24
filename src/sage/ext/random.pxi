@@ -1,9 +1,10 @@
 ##########################################################
 # Setup the c-library and GMP random number generators.
 # seed it when module is loaded.
-# from random import randrange
-cdef extern from "stdlib.h":
-    long RAND_MAX
+
+# The c_random() method on randstate objects gives a value
+# 0 <= n <= SAGE_RAND_MAX
+cdef int SAGE_RAND_MAX = 2147483647 # 2^31 - 1
 
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -34,10 +35,10 @@ cdef inline void mpq_randomize_entry_recip_uniform(mpq_t x):
     # modified to give only positive integers.  (The corresponding
     # probability distribution is $X = \mbox{trunc}(1/R)$, where R
     # varies uniformly between 0 and 1.)
-    cdef int den = rstate.c_random() - RAND_MAX/2
+    cdef int den = rstate.c_random() - SAGE_RAND_MAX/2
     if den == 0: den = 1
-    mpz_set_si(mpq_numref(x), (RAND_MAX/5*2) / den)
+    mpz_set_si(mpq_numref(x), (SAGE_RAND_MAX/5*2) / den)
     den = rstate.c_random()
     if den == 0: den = 1
-    mpz_set_si(mpq_denref(x), RAND_MAX / den)
+    mpz_set_si(mpq_denref(x), SAGE_RAND_MAX / den)
     mpq_canonicalize(x)

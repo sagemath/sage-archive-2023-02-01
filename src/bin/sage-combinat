@@ -67,6 +67,9 @@ parser.add_option("-s", "--server", dest="server",
                   metavar="http://sage.math.washington.edu:2144",
                   default="http://sage.math.washington.edu:2144", type="string")
 
+parser.add_option("-n", dest="n", action="store_true",
+                  help="After qselect: disable all previous non version guards")
+
 (options, args) = parser.parse_args()
 
 ##############################################################################
@@ -184,8 +187,8 @@ def check_for_no_diff(check_patch_queue=True):
             info("Use option --force to proceed anyway")
             exit(1)
 
-def qselect_backward_compatibility_patches():
-    global sage_version
+def qselect_backward_compatibility_patches(guards):
+    global sage_version, options
     r"""
     Selects the appropriate guards for this version of sage
     e.g. if we are running sage 3.0.2, then we want to apply all
@@ -194,8 +197,15 @@ def qselect_backward_compatibility_patches():
 
     # FIXME: how to change the guards on a one by one basis
 
-    active_non_version_guards = filter(lambda guard: re.match("^(sage_)?(\d+_)*(\d+)$", guard) is None, hg_active_guards())
-    info("Active guards: %s"%" ".join(active_non_version_guards))
+    non_version_guards = filter(lambda guard: re.match("^(sage_)?(\d+_)*(\d+)$", guard) is None, hg_active_guards())
+    info("Current non version guards: %s"%" ".join(non_version_guards))
+
+    if options.n:
+        non_version_guards = []
+
+    non_version_guards = non_version_guards + guards
+
+    info("Updated non version guards: %s"%" ".join(non_version_guards))
 
     sage_version_as_list = [int(s) for s in re.split("\.", sage_version)]
     def is_newversion_guard(guard):
@@ -213,14 +223,13 @@ def qselect_backward_compatibility_patches():
             info("Skip backward compatibility patches for sage "+re.sub("_",".",guard))
             return False
 
-    newversion_guards = map(lambda guard: guard[1:], # get rid of leading "+"
+    version_guards = map(lambda guard: guard[1:], # get rid of leading "+"
                             filter(is_newversion_guard, hg_all_guards()))
 
     info("Updating guards")
     system(hg+" qselect -q -n")
     system(hg+" qselect "+
-           " ".join(active_non_version_guards +
-                    newversion_guards))
+           " ".join(non_version_guards + version_guards))
 
 def update(update_from_sage_main = False):
     r"""
@@ -346,7 +355,7 @@ elif args[0] == "status":
     info(hg_qstatus())
 
 elif args[0] == "qselect":
-    qselect_backward_compatibility_patches()
+    qselect_backward_compatibility_patches(args[1:])
 
 else:
     error("unknown command "+args[0])

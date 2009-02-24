@@ -1,14 +1,18 @@
 r"""
-Dense matrices over $\Z/n\Z$ for $n$ small.
+Dense matrices over `\mathbb{Z}/n\mathbb{Z}` for
+`n` small.
 
 AUTHORS:
-    -- William Stein
-    -- Robert Bradshaw
 
-This is a compiled implementation of dense matrices over $\Z/n\Z$
-for $n$ small.
+- William Stein
 
-EXAMPLES:
+- Robert Bradshaw
+
+This is a compiled implementation of dense matrices over
+`\mathbb{Z}/n\mathbb{Z}` for `n` small.
+
+EXAMPLES::
+
     sage: a = matrix(Integers(37),3,range(9),sparse=False); a
     [0 1 2]
     [3 4 5]
@@ -23,6 +27,8 @@ EXAMPLES:
     sage: parent(a)
     Full MatrixSpace of 3 by 3 dense matrices over Ring of integers modulo 37
 
+::
+
     sage: a^2
     [ 3 23 31]
     [20 17 29]
@@ -31,6 +37,8 @@ EXAMPLES:
     [10  2  4]
     [ 6  8 10]
     [12 14 16]
+
+::
 
     sage: b = a.new_matrix(2,3,range(6)); b
     [0 1 2]
@@ -43,10 +51,14 @@ EXAMPLES:
     [15 18 21]
     [20 17 29]
 
+::
+
     sage: a == loads(dumps(a))
     True
     sage: b == loads(dumps(b))
     True
+
+::
 
     sage: a.echelonize(); a
     [1 0 0]
@@ -56,7 +68,8 @@ EXAMPLES:
     [ 1  0 36]
     [ 0  1  2]
 
-We create a matrix group and coerce it to GAP:
+We create a matrix group and coerce it to GAP::
+
     sage: M = MatrixSpace(GF(3),3,3)
     sage: G = MatrixGroup([M([[0,1,0],[0,0,1],[1,0,0]]), M([[0,1,0],[1,0,0],[0,0,1]])])
     sage: G
@@ -69,7 +82,8 @@ We create a matrix group and coerce it to GAP:
       [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, 0*Z(3), 0*Z(3) ],
           [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 
-TESTS:
+TESTS::
+
     sage: M = MatrixSpace(GF(5),2,2)
     sage: A = M([1,0,0,1])
     sage: A - int(-1)
@@ -205,7 +219,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __init__(self, parent, entries, copy, coerce):
         """
-        TESTS:
+        TESTS::
+
             sage: matrix(GF(7), 2, 2, [-1, int(-2), GF(7)(-3), 1/4])
             [6 5]
             [4 2]
@@ -269,13 +284,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __hash__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
             sage: {B:0} # indirect doctest
             {[  9  75  94]
              [  4  57 112]
              [ 59  85  45]: 0}
+
+        ::
 
             sage: M = random_matrix(GF(7), 10, 10)
             sage: M.set_immutable()
@@ -290,7 +308,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: hash(MS)
             143
 
-        TEST:
+        TEST::
+
             sage: A = matrix(GF(2),2,0)
             sage: hash(A)
             Traceback (most recent call last):
@@ -378,15 +397,18 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Utility function for pickling.
 
-        If the prime is small enough to fit in a byte, then it is stored as a
-        contiguous string of bytes (to save space). Otherwise, memcpy is used
-        to copy the raw data in the platforms native format. Any byte-swapping
-        or word size difference is taken care of in unpickling (optimizing for
-        unpickling on the same platform things were pickled on).
+        If the prime is small enough to fit in a byte, then it is stored as
+        a contiguous string of bytes (to save space). Otherwise, memcpy is
+        used to copy the raw data in the platforms native format. Any
+        byte-swapping or word size difference is taken care of in
+        unpickling (optimizing for unpickling on the same platform things
+        were pickled on).
 
-        The upcoming buffer protocol would be useful to not have to do any copying.
+        The upcoming buffer protocol would be useful to not have to do any
+        copying.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(Integers(128), 3, 3, [ord(c) for c in "Hi there!"]); m
             [ 72 105  32]
             [116 104 101]
@@ -427,7 +449,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         r"""
         TESTS:
 
-        Test for char-sized modulus:
+        Test for char-sized modulus::
+
             sage: A = random_matrix(GF(7), 5, 9)
             sage: data, version = A._pickle()
             sage: B = A.parent()(0)
@@ -435,7 +458,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: B == A
             True
 
-        And for larger modulus:
+        And for larger modulus::
+
             sage: A = random_matrix(GF(1009), 51, 5)
             sage: data, version = A._pickle()
             sage: B = A.parent()(0)
@@ -443,12 +467,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: B == A
             True
 
-        Now test all the bit-packing options:
+        Now test all the bit-packing options::
+
             sage: A = matrix(Integers(1000), 2, 2)
             sage: A._unpickle((1, True, '\x01\x02\xFF\x00'), 10)
             sage: A
             [  1   2]
             [255   0]
+
+        ::
 
             sage: A = matrix(Integers(1000), 1, 2)
             sage: A._unpickle((4, True, '\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
@@ -464,7 +491,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: A
             [520 260]
 
-        Now make sure it works in context:
+        Now make sure it works in context::
+
             sage: A = random_matrix(Integers(33), 31, 31)
             sage: loads(dumps(A)) == A
             True
@@ -529,7 +557,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cdef long _hash(self) except -1:
         """
-        TESTS:
+        TESTS::
+
             sage: a = random_matrix(GF(11), 5, 5, range(25))
             sage: a.set_immutable()
             sage: hash(a) #random
@@ -561,7 +590,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __neg__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(GF(19), 3, 3, range(9)); m
             [0 1 2]
             [3 4 5]
@@ -594,7 +624,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = random_matrix(Integers(60), 400, 500)
             sage: 3*a + 9*a == 12*a
             True
@@ -603,7 +634,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(101), 3, 3, range(9)); a
             [0 1 2]
             [3 4 5]
@@ -651,7 +683,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Add two dense matrices over Z/nZ
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = MatrixSpace(GF(19),3)(range(9))
             sage: a+a
             [ 0  2  4]
@@ -694,7 +727,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Subtract two dense matrices over Z/nZ
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(11), 3, 3, range(9)); a
             [0 1 2]
             [3 4 5]
@@ -734,7 +768,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Compare two dense matrices over Z/nZ
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(17), 4, range(3, 83, 5)); a
             [ 3  8 13  1]
             [ 6 11 16  4]
@@ -791,8 +826,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Multiply matrices using LinBox.
 
         INPUT:
-            right -- Matrix
 
+
+        -  ``right`` - Matrix
         """
         if get_verbose() >= 2:
             verbose('linbox multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
@@ -856,21 +892,27 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Returns the characteristic polynomial of self.
 
         INPUT:
-            var -- a variable name
-            algorithm -- 'generic'
-                         'linbox' (default)
 
-        EXAMPLES:
+
+        -  ``var`` - a variable name
+
+        -  ``algorithm`` - 'generic' 'linbox' (default)
+
+
+        EXAMPLES::
+
             sage: A = Mat(GF(7),3,3)(range(3)*3)
             sage: A.charpoly()
             x^3 + 4*x^2
+
+        ::
 
             sage: A = Mat(Integers(6),3,3)(range(9))
             sage: A.charpoly()
             x^3
 
-        ALGORITHM: Uses LinBox if self.base_ring() is a field,
-        otherwise use Hessenberg form algorithm.
+        ALGORITHM: Uses LinBox if self.base_ring() is a field, otherwise
+        use Hessenberg form algorithm.
         """
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
@@ -889,9 +931,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Returns the minimal polynomial of self.
 
         INPUT:
-            var -- a variable name
-            algorithm -- 'generic'
-                         'linbox' (default)
+
+
+        -  ``var`` - a variable name
+
+        -  ``algorithm`` - 'generic' 'linbox' (default)
         """
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm='generic' #LinBox only supports fields
@@ -916,20 +960,23 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def _charpoly_linbox(self, var='x'):
         """
-        Computes the characteristic polynomial using LinBox. No checks
-        are performed.
+        Computes the characteristic polynomial using LinBox. No checks are
+        performed.
         """
         verbose('_charpoly_linbox...')
         return self._poly_linbox(var=var, typ='charpoly')
 
     def _poly_linbox(self, var='x', typ='minpoly'):
         """
-        Computes either the minimal or the characteristic polynomial
-        using LinBox. No checks are performed.
+        Computes either the minimal or the characteristic polynomial using
+        LinBox. No checks are performed.
 
         INPUT:
-            var -- 'x'
-            typ -- 'minpoly' or 'charpoly'
+
+
+        -  ``var`` - 'x'
+
+        -  ``typ`` - 'minpoly' or 'charpoly'
         """
         if self._nrows != self._ncols:
             raise ValueError, "matrix must be square"
@@ -951,23 +998,39 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Puts self in row echelon form.
 
         INPUT:
-            self -- a mutable matrix
-            algorithm -- 'linbox' -- uses the C++ linbox library
-                         'gauss'  -- uses a custom slower $O(n^3)$ Gauss
-                                     elimination implemented in \sage.
-                         'all' -- compute using both algorithms and verify
-                                  that the results are the same (for the paranoid).
-            **kwds -- these are all ignored
+
+
+        -  ``self`` - a mutable matrix
+
+        -  ``algorithm`` - 'linbox' - uses the C++ linbox
+           library
+
+        -  ``'gauss'`` - uses a custom slower `O(n^3)`
+           Gauss elimination implemented in Sage.
+
+        -  ``'all'`` - compute using both algorithms and verify
+           that the results are the same (for the paranoid).
+
+        -  ``**kwds`` - these are all ignored
+
 
         OUTPUT:
-            -- self is put in reduced row echelon form.
-            -- the rank of self is computed and cached
-            -- the pivot columns of self are computed and cached.
-            -- the fact that self is now in echelon form is recorded
-               and cached so future calls to echelonize return
-               immediately.
 
-        EXAMPLES:
+
+        -  self is put in reduced row echelon form.
+
+        -  the rank of self is computed and cached
+
+        -  the pivot columns of self are computed and
+           cached.
+
+        -  the fact that self is now in echelon form is
+           recorded and cached so future calls to echelonize return
+           immediately.
+
+
+        EXAMPLES::
+
             sage: a = matrix(GF(97),3,4,range(12))
             sage: a.echelonize(); a
             [ 1  0 96 95]
@@ -1081,20 +1144,30 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cdef xgcd_eliminate (self, mod_int * row1, mod_int* row2, Py_ssize_t start_col):
         """
-        Reduces row1 and row2 by a unimodular transformation using the xgcd relation between their first
-        coefficients a and b.
+        Reduces row1 and row2 by a unimodular transformation using the xgcd
+        relation between their first coefficients a and b.
 
         INPUT:
-            -- self: a mutable matrix
-            -- row1, row2: the two rows to be transformed (within self)
-            -- start_col: the column of the pivots in row1 and row2. It is assumed that all entries before
-                          start_col in row1 and row2 are zero.
+
+
+        -   self: a mutable matrix
+
+        -````- row1, row2: the two rows to be transformed
+           (within self)
+
+        -```` - start_col: the column of the pivots in row1
+           and row2. It is assumed that all entries before start_col in row1
+           and row2 are zero.
+
 
         OUTPUT:
-            -- g: the gcd of the first elements of row1 and row2 at column start_col
-            -- put row1 = s * row1 + t * row2
-                   row2 = w * row1 + t * row2
-               where g = sa + tb
+
+
+        - g: the gcd of the first elements of row1 and
+          row2 at column start_col
+
+        - put row1 = s \* row1 + t \* row2 row2 = w \*
+          row1 + t \* row2 where g = sa + tb
         """
         cdef mod_int p = self.p
         cdef mod_int * row1_p, * row2_p
@@ -1199,7 +1272,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cdef _rescale_col_c(self, Py_ssize_t col, mod_int multiple, Py_ssize_t start_row):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n=3; b = MatrixSpace(Integers(37),n,n,sparse=False)([1]*n*n)
             sage: b
             [1 1 1]
@@ -1212,18 +1286,25 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [1 5 1]
 
         Recaling need not include the entire row.
+
+        ::
+
             sage: b.rescale_col(0,2,1); b
             [1 5 1]
             [2 5 1]
             [2 5 1]
 
         Bounds are checked.
+
+        ::
+
             sage: b.rescale_col(3,2)
             Traceback (most recent call last):
             ...
             IndexError: matrix column index out of range
 
-        Rescaling by a negative number:
+        Rescaling by a negative number::
+
             sage: b.rescale_col(2,-3); b
             [ 1  5 34]
             [ 2  5 34]
@@ -1350,16 +1431,20 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def _charpoly_hessenberg(self, var):
         """
-        Transforms self in place to its Hessenberg form then computes
-        and returns the coefficients of the characteristic polynomial of
-        this matrix.
+        Transforms self in place to its Hessenberg form then computes and
+        returns the coefficients of the characteristic polynomial of this
+        matrix.
 
         INPUT:
-            var -- name of the indeterminate of the charpoly.
 
-        The characteristic polynomial is represented as a vector of
-        ints, where the constant term of the characteristic polynomial
-        is the 0th coefficient of the vector.
+
+        -  ``var`` - name of the indeterminate of the
+           charpoly.
+
+
+        The characteristic polynomial is represented as a vector of ints,
+        where the constant term of the characteristic polynomial is the 0th
+        coefficient of the vector.
         """
         if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly not defined for non-square matrix."
@@ -1416,12 +1501,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return the rank of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(GF(7),5,range(25))
             sage: m.rank()
             2
 
         Rank is not implemented over the integers modulo a composite yet.
+
+        ::
+
             sage: m = matrix(Integers(4), 2, [2,2,2,2])
             sage: m.rank()
             Traceback (most recent call last):
@@ -1451,16 +1540,20 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return the determinant of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(GF(101),5,range(25))
             sage: m.det()
             0
+
+        ::
 
             sage: m = matrix(Integers(4), 2, [2,2,2,2])
             sage: m.det()
             0
 
-        TESTS:
+        TESTS::
+
             sage: m = random_matrix(GF(3), 3, 4)
             sage: m.determinant()
             Traceback (most recent call last):
@@ -1488,10 +1581,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def randomize(self, density=1):
         """
-        Randomize density proportion of the entries of this matrix,
-        leaving the rest unchanged.
+        Randomize density proportion of the entries of this matrix, leaving
+        the rest unchanged.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(GF(5), 5, 5, 0)
             sage: A.randomize(0.5); A
             [0 0 0 2 0]
@@ -1541,7 +1635,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return the requested matrix window.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(7),3,range(9)); a
             [0 1 2]
             [3 4 5]
@@ -1550,6 +1645,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
 
         We test the optional check flag.
+
+        ::
+
             sage: matrix(GF(7),[1]).matrix_window(0,1,1,1)
             Traceback (most recent call last):
             ...
@@ -1571,11 +1669,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Returns a string representation of self in Magma form.
 
         INPUT:
-            magma -- a Magma session
-        OUTPUT:
-            string
 
-        EXAMPLES:
+
+        -  ``magma`` - a Magma session
+
+
+        OUTPUT: string
+
+        EXAMPLES::
+
             sage: a = matrix(GF(389),2,2,[1..4])
             sage: magma(a)                                         # optional - magma
             [  1   2]
@@ -1583,7 +1685,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: a._magma_init_(magma)                            # optional - magma
             'Matrix(GF(389),2,2,StringToIntegerSequence("1 2 3 4"))'
 
-        A consistency check:
+        A consistency check::
+
             sage: a = random_matrix(GF(13),50); b = random_matrix(GF(13),50)
             sage: magma(a*b) == magma(a)*magma(b)                  # optional - magma
             True
@@ -1596,7 +1699,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return space separated string of the entries in this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = matrix(GF(997),2,3,[1,2,5,-3,8,2]); w
             [  1   2   5]
             [994   8   2]
@@ -1628,14 +1732,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return list of elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = matrix(GF(19), 2, 3, [1..6])
             sage: w.list()
             [1, 2, 3, 4, 5, 6]
             sage: w.list()[0].parent()
             Finite Field of size 19
 
-        TESTS:
+        TESTS::
+
             sage: w = random_matrix(GF(3),100)
             sage: w.parent()(w.list()) == w
             True
@@ -1680,9 +1786,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         the cyclotomic field linear algebra code.
 
         INPUT:
-            nrows, ncols -- integers
+
+        - ``nrows, ncols`` - integers
+
         OUTPUT:
-            list -- list of matrices
+
+        - ``list`` - a list of matrices
         """
         if nrows * ncols != self._ncols:
             raise ValueError, "nrows * ncols must equal self's number of columns"
@@ -1709,9 +1818,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 def _matrix_from_rows_of_matrices(X):
     """
     INPUT:
-        X -- a nonempty list of matrices of the same size mod a single prime p
-    OUTPUT:
-        A single matrix mod p whose ith row is X[i].list().
+
+
+    -  ``X`` - a nonempty list of matrices of the same size
+       mod a single prime p
+
+
+    OUTPUT: A single matrix mod p whose ith row is X[i].list().
     """
     # The code below is just a fast version of the following:
     ##     from constructor import matrix

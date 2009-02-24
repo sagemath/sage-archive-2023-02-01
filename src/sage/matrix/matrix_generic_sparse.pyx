@@ -1,7 +1,8 @@
 r"""
 Sparse Matrices over a general ring
 
-EXAMPLES:
+EXAMPLES::
+
     sage: R.<x> = PolynomialRing(QQ)
     sage: M = MatrixSpace(QQ['x'],2,3,sparse=True); M
     Full MatrixSpace of 2 by 3 sparse matrices over Univariate Polynomial Ring in x over Rational Field
@@ -62,10 +63,11 @@ import sage.misc.misc as misc
 
 cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     r"""
-    The \class{Matrix_generic_sparse} class derives from \class{Matrix}, and
-    defines functionality for sparse matrices over any base ring.  A
-    generic sparse matrix is represented using a dictionary with keys
-    pairs $(i,j)$ and values in the base ring.
+    The ``Matrix_generic_sparse`` class derives from
+    ``Matrix``, and defines functionality for sparse
+    matrices over any base ring. A generic sparse matrix is represented
+    using a dictionary with keys pairs `(i,j)` and values in
+    the base ring.
 
     The values of the dictionary must never be zero.
     """
@@ -161,7 +163,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def _unpickle(self, data, int version):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix([[1,10],[3,4]],sparse=True); a
             [ 1 10]
             [ 3  4]
@@ -196,13 +199,16 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _add_(self, ModuleElement _other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix([[1,10],[3,4]],sparse=True); a
             [ 1 10]
             [ 3  4]
             sage: a+a
             [ 2 20]
             [ 6  8]
+
+        ::
 
             sage: a = matrix([[1,10,-5/3],[2/8,3,4]],sparse=True); a
             [   1   10 -5/3]
@@ -450,12 +456,15 @@ import matrix_space
 def Matrix_sparse_from_rows(X):
     """
     INPUT:
-        X -- nonempty list of SparseVector rows
 
-    OUTPUT:
-        Sparse_matrix with those rows.
 
-    EXAMPLES:
+    -  ``X`` - nonempty list of SparseVector rows
+
+
+    OUTPUT: Sparse_matrix with those rows.
+
+    EXAMPLES::
+
         sage: V = VectorSpace(QQ,20,sparse=True)
         sage: v = V(0)
         sage: v[9] = 4

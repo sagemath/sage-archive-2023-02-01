@@ -34,61 +34,67 @@ def matrix(*args, **kwds):
     """
     Create a matrix.
 
-    INPUT:
+    INPUT: The matrix command takes the entries of a matrix, optionally
+    preceded by a ring and the dimensions of the matrix, and returns a
+    matrix.
 
-        The matrix command takes the entries of a matrix, optionally
-        preceded by a ring and the dimensions of the matrix, and returns
-        a matrix.
+    The entries of a matrix can be specified as a flat list of
+    elements, a list of lists (i.e., a list of rows), a list of Sage
+    vectors, or a dictionary having positions as keys and matrix
+    entries as values (see the examples). You can create a matrix of
+    zeros by passing an empty list or the integer zero for the entries.
+    To construct a multiple of the identity (`cI`), you can
+    specify square dimensions and pass in `c`. Calling matrix()
+    with a Sage object may return something that makes sense. Calling
+    matrix() with a numpy array will convert the array to a matrix.
 
-        The entries of a matrix can be specified as a flat list of
-        elements, a list of lists (i.e., a list of rows), a list of
-        Sage vectors, or a dictionary having positions as keys and
-        matrix entries as values (see the examples).  You can create a
-        matrix of zeros by passing an empty list or the integer zero
-        for the entries.  To construct a multiple of the identity
-        ($cI$), you can specify square dimensions and pass in $c$.
-        Calling matrix() with a Sage object may return something that
-        makes sense.  Calling matrix() with a numpy array will convert
-        the array to a matrix.
+    The ring, number of rows, and number of columns of the matrix can
+    be specified by setting the ring, nrows, or ncols parameters or by
+    passing them as the first arguments to the function in the order
+    ring, nrows, ncols. The ring defaults to ZZ if it is not specified
+    or cannot be determined from the entries. If the numbers of rows
+    and columns are not specified and cannot be determined, then an
+    empty 0x0 matrix is returned.
 
-        The ring, number of rows, and number of columns of the matrix
-        can be specified by setting the ring, nrows, or ncols
-        parameters or by passing them as the first arguments to the
-        function in the order ring, nrows, ncols.  The ring defaults
-        to ZZ if it is not specified or cannot be determined from the
-        entries.  If the numbers of rows and columns are not specified
-        and cannot be determined, then an empty 0x0 matrix is
-        returned.
 
-        ring -- the base ring for the entries of the matrix.
+    -  ``ring`` - the base ring for the entries of the
+       matrix.
 
-        nrows -- the number of rows in the matrix.
+    -  ``nrows`` - the number of rows in the matrix.
 
-        ncols -- the number of columns in the matrix.
+    -  ``ncols`` - the number of columns in the matrix.
 
-        sparse -- create a sparse matrix.  This defaults to True when
-        the entries are given as a dictionary, otherwise defaults to False.
+    -  ``sparse`` - create a sparse matrix. This defaults
+       to True when the entries are given as a dictionary, otherwise
+       defaults to False.
 
 
     OUTPUT:
 
-        a matrix
+    a matrix
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: m=matrix(2); m; m.parent()
         [0 0]
         [0 0]
         Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+    ::
 
         sage: m=matrix(2,3); m; m.parent()
         [0 0 0]
         [0 0 0]
         Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
 
+    ::
+
         sage: m=matrix(QQ,[[1,2,3],[4,5,6]]); m; m.parent()
         [1 2 3]
         [4 5 6]
         Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+    ::
 
         sage: v1=vector((1,2,3))
         sage: v2=vector((4,5,6))
@@ -97,25 +103,35 @@ def matrix(*args, **kwds):
         [4 5 6]
         Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
 
+    ::
+
         sage: m=matrix(QQ,2,[1,2,3,4,5,6]); m; m.parent()
         [1 2 3]
         [4 5 6]
         Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+    ::
 
         sage: m=matrix(QQ,2,3,[1,2,3,4,5,6]); m; m.parent()
         [1 2 3]
         [4 5 6]
         Full MatrixSpace of 2 by 3 dense matrices over Rational Field
 
+    ::
+
         sage: m=matrix({(0,1): 2, (1,1):2/5}); m; m.parent()
         [  0   2]
         [  0 2/5]
         Full MatrixSpace of 2 by 2 sparse matrices over Rational Field
 
+    ::
+
         sage: m=matrix(QQ,2,3,{(1,1): 2}); m; m.parent()
         [0 0 0]
         [0 2 0]
         Full MatrixSpace of 2 by 3 sparse matrices over Rational Field
+
+    ::
 
         sage: import numpy
         sage: n=numpy.array([[1,2],[3,4]],float)
@@ -124,6 +140,8 @@ def matrix(*args, **kwds):
         [3.0 4.0]
         Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
 
+    ::
+
         sage: v = vector(ZZ, [1, 10, 100])
         sage: m=matrix(v); m; m.parent()
         [  1  10 100]
@@ -131,6 +149,8 @@ def matrix(*args, **kwds):
         sage: m=matrix(GF(7), v); m; m.parent()
         [1 3 2]
         Full MatrixSpace of 1 by 3 dense matrices over Finite Field of size 7
+
+    ::
 
         sage: g = graphs.PetersenGraph()
         sage: m = matrix(g); m; m.parent()
@@ -146,8 +166,12 @@ def matrix(*args, **kwds):
         [0 0 0 0 1 0 1 1 0 0]
         Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
 
+    ::
+
         sage: matrix(ZZ, 10, 10, range(100), sparse=True).parent()
         Full MatrixSpace of 10 by 10 sparse matrices over Integer Ring
+
+    ::
 
         sage: R = PolynomialRing(QQ, 9, 'x')
         sage: A = matrix(R, 3, 3, R.gens()); A
@@ -157,8 +181,8 @@ def matrix(*args, **kwds):
         sage: det(A)
         -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
+    TESTS::
 
-    TESTS:
         sage: m=matrix(); m; m.parent()
         []
         Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
@@ -397,9 +421,11 @@ def matrix(*args, **kwds):
         Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
 
     AUTHORS:
-        -- ??: Initial implementation
-        -- Jason Grout: almost a complete rewrite, with bits and pieces
-           from the original implementation (Mar 2008)
+
+    - ??: Initial implementation
+
+    - Jason Grout (2008-03): almost a complete rewrite, with bits and
+      pieces from the original implementation
     """
     args = list(args)
     sparse = kwds.get('sparse',False)
@@ -604,16 +630,21 @@ def prepare(w):
     This is for internal use by the matrix function.
 
     INPUT:
-        w -- list
-    OUTPUT:
-        list, ring
 
-    EXAMPLES:
+    - ``w`` - list
+
+    OUTPUT:
+
+    list, ring
+
+    EXAMPLES::
+
         sage: sage.matrix.constructor.prepare([-2, Mod(1,7)])
         ([5, 1], Ring of integers modulo 7)
 
     Notice that the elements must all canonically coerce to a common
-    ring (since Sequence is called):
+    ring (since Sequence is called)::
+
         sage: sage.matrix.constructor.prepare([2/1, Mod(1,7)])
         Traceback (most recent call last):
         ...
@@ -642,11 +673,15 @@ def prepare_dict(w):
     This is for internal use by the matrix function.
 
     INPUT:
-        w -- dict
-    OUTPUT:
-        dict, ring
 
-    EXAMPLES:
+    - ``w`` - dict
+
+    OUTPUT:
+
+    dict, ring
+
+    EXAMPLES::
+
         sage: sage.matrix.constructor.prepare_dict({(0,1):2, (4,10):Mod(1,7)})
         ({(0, 1): 2, (4, 10): 1}, Ring of integers modulo 7)
     """
@@ -663,15 +698,21 @@ def nrows_from_dict(d):
     This is for internal use by the matrix function.
 
     INPUT:
-        d -- dict
-    OUTPUT:
-        integer
 
-    EXAMPLES:
+    - ``d`` - dict
+
+    OUTPUT:
+
+    integer
+
+    EXAMPLES::
+
         sage: sage.matrix.constructor.nrows_from_dict({})
         0
 
     Here the answer is 301 not 300, since there is a 0-th row.
+
+    ::
         sage: sage.matrix.constructor.nrows_from_dict({(300,4):10})
         301
     """
@@ -687,15 +728,22 @@ def ncols_from_dict(d):
     This is for internal use by the matrix function.
 
     INPUT:
-        d -- dict
-    OUTPUT:
-        integer
 
-    EXAMPLES:
+    - ``d`` - dict
+
+    OUTPUT:
+
+    integer
+
+    EXAMPLES::
+
         sage: sage.matrix.constructor.ncols_from_dict({})
         0
 
     Here the answer is 301 not 300, since there is a 0-th row.
+
+    ::
+
         sage: sage.matrix.constructor.ncols_from_dict({(4,300):10})
         301
     """
@@ -711,14 +759,26 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
     Return a random matrix with entries in the ring R.
 
     INPUT:
-        R -- a ring
-        nrows -- integer; number of rows
-        ncols -- (default: None); number of columns; if None defaults to nrows
-        sparse -- (default; False); whether or not matrix is sparse.
-        density -- integer (default: 1)
-        *args, **kwds -- passed on to randomize function
 
-    EXAMPLES:
+
+    -  ``R`` - a ring
+
+    -  ``nrows`` - integer; number of rows
+
+    -  ``ncols`` - (default: None); number of columns; if
+       None defaults to nrows
+
+    -  ``sparse`` - (default; False); whether or not matrix
+       is sparse.
+
+    -  ``density`` - integer (default: 1)
+
+    -  ``*args, **kwds`` - passed on to randomize
+       function
+
+
+    EXAMPLES::
+
         sage: A = random_matrix(ZZ,50,x=2^16)    # entries are up to 2^16 i size
         sage: A
         50 x 50 dense matrix over Integer Ring
@@ -732,52 +792,60 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
 def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
     """
     INPUT:
+
     Supported formats
-        1. diagonal_matrix(diagonal_entries, [sparse=True]):
-            diagonal matrix with flat list of entries
 
-        2. diagonal_matrix(nrows, diagonal_entries, [sparse=True]):
-            diagonal matrix with flat list of entries and the rest zeros
+    1. diagonal_matrix(diagonal_entries, [sparse=True]):
+       diagonal matrix with flat list of entries
 
-        3. diagonal_matrix(ring, diagonal_entries, [sparse=True]):
-            diagonal matrix over specified ring with flat list of entries
+    2. diagonal_matrix(nrows, diagonal_entries, [sparse=True]):
+       diagonal matrix with flat list of entries and the rest zeros
 
-        4. diagonal_matrix(ring, nrows, diagonal_entries, [sparse=True]):
-            diagonal matrix over specified ring with flat
-            list of entries and the rest zeros
+    3. diagonal_matrix(ring, diagonal_entries, [sparse=True]):
+       diagonal matrix over specified ring with flat list of entries
 
-        5. diagonal_matrix(vect, [sparse=True]):
-            diagonal matrix with entries taken from a vector
+    4. diagonal_matrix(ring, nrows, diagonal_entries, [sparse=True]):
+       diagonal matrix over specified ring with flat
+       list of entries and the rest zeros
+
+    5. diagonal_matrix(vect, [sparse=True]):
+       diagonal matrix with entries taken from a vector
 
     The sparse option is optional, must be explicitly named (i.e.,
     sparse=True), and may be either True or False.
 
     EXAMPLES:
-    Input format 1.
+
+    Input format 1::
+
         sage: diagonal_matrix([1,2,3])
         [1 0 0]
         [0 2 0]
         [0 0 3]
 
-    Input format 2:
+    Input format 2::
+
         sage: diagonal_matrix(3, [1,2])
         [1 0 0]
         [0 2 0]
         [0 0 0]
 
-    Input format 3.
+    Input format 3::
+
         sage: diagonal_matrix(GF(3), [1,2,3])
         [1 0 0]
         [0 2 0]
         [0 0 0]
 
-    Input format 4:
+    Input format 4::
+
         sage: diagonal_matrix(GF(3), 3, [8,2])
         [2 0 0]
         [0 2 0]
         [0 0 0]
 
-    Input format 5:
+    Input format 5::
+
         sage: diagonal_matrix(vector(GF(3),[1,2,3]))
         [1 0 0]
         [0 2 0]
@@ -822,11 +890,13 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
 
 def identity_matrix(ring, n=0, sparse=False):
     r"""
-    Return the $n \times n$ identity matrix over the given ring.
+    Return the `n \times n` identity matrix over the given
+    ring.
 
     The default ring is the integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = identity_matrix(QQ, 2); M
         [1 0]
         [0 1]
@@ -851,12 +921,14 @@ def identity_matrix(ring, n=0, sparse=False):
 
 
 def zero_matrix(ring, nrows, ncols=None, sparse=False):
-    """
-    Return the $nrows \times ncols$ zero matrix over the given ring.
+    r"""
+    Return the `nrows \times ncols` zero matrix over the given
+    ring.
 
     The default ring is the integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = zero_matrix(QQ, 2); M
         [0 0]
         [0 0]
@@ -885,19 +957,29 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
     Returns a larger matrix made by concatinating the sub_matrices
     (rows first, then columns). For example, the matrix
 
+    ::
+
         [ A B ]
         [ C D ]
 
     is made up of submatrices A, B, C, and D.
 
     INPUT:
-        sub_matrices -- matrices (must be of the correct size, or constants)
-        nrows         -- (optional) the number of block rows
-        ncols         -- (optional) the number of block cols
-        subdivide    -- boolean, whether or not to add
-                        subdivision information to the matrix
 
-    EXAMPLES:
+
+    -  ``sub_matrices`` - matrices (must be of the correct
+       size, or constants)
+
+    -  ``nrows`` - (optional) the number of block rows
+
+    -  ``ncols`` - (optional) the number of block cols
+
+    -  ``subdivide`` - boolean, whether or not to add
+       subdivision information to the matrix
+
+
+    EXAMPLES::
+
         sage: A = matrix(QQ, 2, 2, [3,9,6,10])
         sage: block_matrix([A, -A, ~A, 100*A])
         [    3     9|   -3    -9]
@@ -906,7 +988,8 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         [-5/12   3/8|  300   900]
         [  1/4  -1/8|  600  1000]
 
-    One can use constant entries:
+    One can use constant entries::
+
         sage: block_matrix([1, A, 0, 1])
         [ 1  0| 3  9]
         [ 0  1| 6 10]
@@ -914,16 +997,21 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         [ 0  0| 1  0]
         [ 0  0| 0  1]
 
-    One can specify the number of rows or columns (optional for square number of matrices):
+    One can specify the number of rows or columns (optional for square
+    number of matrices)::
+
         sage: block_matrix([A, -A, ~A, 100*A], ncols=4)
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
+
+    ::
 
         sage: block_matrix([A, -A, ~A, 100*A], nrows=1)
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
 
-    It handle baserings nicely too:
+    It handle baserings nicely too::
+
         sage: R.<x> = ZZ['x']
         sage: block_matrix([1/2, A, 0, x-1])
         [  1/2     0|    3     9]
@@ -934,7 +1022,8 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         sage: block_matrix([1/2, A, 0, x-1]).parent()
         Full MatrixSpace of 4 by 4 dense matrices over Univariate Polynomial Ring in x over Rational Field
 
-    Subdivisions are optional:
+    Subdivisions are optional::
+
         sage: B = matrix(QQ, 2, 3, range(6))
         sage: block_matrix([~A, B, B, ~A], subdivide=False)
         [-5/12   3/8     0     1     2]
@@ -1024,12 +1113,13 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
 
 def block_diagonal_matrix(*sub_matrices, **kwds):
     """
-    Create a block matrix whose diagonal block entries are given by sub_matrices,
-    with zero elsewhere.
+    Create a block matrix whose diagonal block entries are given by
+    sub_matrices, with zero elsewhere.
 
-    See also \code{block_matrix}.
+    See also ``block_matrix``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: A = matrix(ZZ, 2, [1,2,3,4])
         sage: block_diagonal_matrix(A, A)
         [1 2|0 0]
@@ -1038,7 +1128,8 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
         [0 0|1 2]
         [0 0|3 4]
 
-    The sub-matrices need not be square:
+    The sub-matrices need not be square::
+
         sage: B = matrix(QQ, 2, 3, range(6))
         sage: block_diagonal_matrix(~A, B)
         [  -2    1|   0    0    0]
@@ -1061,16 +1152,23 @@ def jordan_block(eigenvalue, size, sparse=False):
     eigenvalue.
 
     INPUT:
-        eigenvalue -- eigenvalue for the diagonal entries of the block
-        size -- size of the Jordan block
-        sparse -- (default False) if True, return a sparse matrix
 
-    EXAMPLE:
+
+    -  ``eigenvalue`` - eigenvalue for the diagonal entries
+       of the block
+
+    -  ``size`` - size of the Jordan block
+
+    -  ``sparse`` - (default False) if True, return a
+       sparse matrix
+
+
+    EXAMPLE::
+
         sage: jordan_block(5, 3)
         [5 1 0]
         [0 5 1]
         [0 0 5]
-
     """
     block = diagonal_matrix([eigenvalue]*size, sparse=sparse)
     for i in xrange(size-1):

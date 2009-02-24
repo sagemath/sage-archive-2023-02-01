@@ -1,7 +1,8 @@
 """
 Generic Asymptotically Fast Strassen Algorithms
 
-SAGE implements asymptotically fast echelon form and matrix multiplication algorithms.
+Sage implements asymptotically fast echelon form and matrix
+multiplication algorithms.
 """
 
 ################################################################################
@@ -21,25 +22,28 @@ include "../ext/interrupt.pxi"
 
 def strassen_window_multiply(C, A,B, cutoff):
     """
-    Multiplies the submatrices specified by A and B, places result
-    in C.  Assumes that A and B have compatible dimensions to be
-    multiplied, and that C is the correct size to receive the
-    product, and that they are all defined over the same ring.
+    Multiplies the submatrices specified by A and B, places result in
+    C. Assumes that A and B have compatible dimensions to be
+    multiplied, and that C is the correct size to receive the product,
+    and that they are all defined over the same ring.
 
-    Uses strassen multiplication at high levels and then uses MatrixWindow
-    methods at low levels.
-     EXAMPLES:
-         The following matrix dimensions are chosen especially to exercise the
-         eight possible parity combinations that ocould ccur while subdividing
-         the matrix in the strassen recursion. The base case in both cases will
-         be a (4x5) matrix times a (5x6) matrix.
+    Uses strassen multiplication at high levels and then uses
+    MatrixWindow methods at low levels. EXAMPLES: The following matrix
+    dimensions are chosen especially to exercise the eight possible
+    parity combinations that ocould ccur while subdividing the matrix
+    in the strassen recursion. The base case in both cases will be a
+    (4x5) matrix times a (5x6) matrix.
 
-         sage: A = MatrixSpace(Integers(2^65), 64, 83).random_element()
-         sage: B = MatrixSpace(Integers(2^65), 83, 101).random_element()
-         sage: A._multiply_classical(B) == A._multiply_strassen(B, 3)
-         True
+    ::
 
-    AUTHOR: David Harvey
+        sage: A = MatrixSpace(Integers(2^65), 64, 83).random_element()
+        sage: B = MatrixSpace(Integers(2^65), 83, 101).random_element()
+        sage: A._multiply_classical(B) == A._multiply_strassen(B, 3)
+        True
+
+    AUTHORS:
+
+    - David Harvey
     """
     strassen_window_multiply_c(C, A, B, cutoff)
 
@@ -249,19 +253,23 @@ cdef subtract_strassen_product(MatrixWindow result, MatrixWindow A, MatrixWindow
 
 def strassen_echelon(MatrixWindow A, cutoff):
     """
-    Compute echelon form, in place.
-    Internal function, call with M.echelonize(algorithm="strassen")
-    Based on work of Robert Bradshaw and David Harvey at MSRI workshop in 2006.
+    Compute echelon form, in place. Internal function, call with
+    M.echelonize(algorithm="strassen") Based on work of Robert Bradshaw
+    and David Harvey at MSRI workshop in 2006.
 
     INPUT:
-        A -- matrix window
-        cutoff -- size at which algorithm reverts to naive gaussian
-                  elemination and multiplication must be at least 1.
 
-    OUTPUT:
-        The list of pivot columns
 
-    EXAMPLE:
+    -  ``A`` - matrix window
+
+    -  ``cutoff`` - size at which algorithm reverts to
+       naive gaussian elemination and multiplication must be at least 1.
+
+
+    OUTPUT: The list of pivot columns
+
+    EXAMPLE::
+
         sage: A = matrix(QQ, 7, [5, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 3, 1, 0, -1, 0, 0, -1, 0, 1, 2, -1, 1, 0, -1, 0, 1, 3, -1, 1, 0, 0, -2, 0, 2, 0, 1, 0, 0, -1, 0, 1, 0, 1])
         sage: B = A.copy(); B._echelon_strassen(1); B
         [ 1  0  0  0  0  0  0]
@@ -276,18 +284,23 @@ def strassen_echelon(MatrixWindow A, cutoff):
         sage: C = A.copy(); C._echelon_strassen(4); C == B
         True
 
+    ::
+
         sage: n = 32; A = matrix(Integers(389),n,range(n^2))
         sage: B = A.copy(); B._echelon_in_place_classical()
         sage: C = A.copy(); C._echelon_strassen(2)
         sage: B == C
         True
 
-    TESTS:
+    TESTS::
+
         sage: A = matrix(Integers(7), 4, 4, [1,2,0,3,0,0,1,0,0,1,0,0,0,0,0,1])
         sage: B = A.copy(); B._echelon_in_place_classical()
         sage: C = A.copy(); C._echelon_strassen(2)
         sage: B == C
         True
+
+    ::
 
         sage: A = matrix(Integers(7), 4, 4, [1,0,5,0,2,0,3,6,5,1,2,6,4,6,1,1])
         sage: B = A.copy(); B._echelon_in_place_classical()
@@ -296,7 +309,8 @@ def strassen_echelon(MatrixWindow A, cutoff):
         True
 
     AUTHORS:
-        -- Robert Bradshaw
+
+    - Robert Bradshaw
     """
     if cutoff < 1:
         raise ValueError, "cutoff must be at least 1"
@@ -472,10 +486,12 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
 # would need new from_cols
 class int_range:
     r"""
-    Useful class for dealing with pivots in the strassen echelon, could have much more general application
-    AUTHORS:
-      -- Robert Bradshaw
+    Useful class for dealing with pivots in the strassen echelon, could
+    have much more general application
 
+    AUTHORS:
+
+    - Robert Bradshaw
     """
     def __init__(self, indices=None, range=None):
         if indices is None:

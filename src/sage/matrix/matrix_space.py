@@ -1,11 +1,12 @@
 r"""
 Matrix Spaces.
 
-You can create any space $\text{Mat}_{n\times m}(R)$ of either dense
-or sparse matrices with given number of rows and columns over any
-commutative or noncommutative ring.
+You can create any space `\text{Mat}_{n\times m}(R)` of
+either dense or sparse matrices with given number of rows and
+columns over any commutative or noncommutative ring.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: MS = MatrixSpace(QQ,6,6,sparse=True); MS
     Full MatrixSpace of 6 by 6 sparse matrices over Rational Field
     sage: MS.base_ring()
@@ -13,7 +14,8 @@ EXAMPLES:
     sage: MS = MatrixSpace(ZZ,3,5,sparse=False); MS
     Full MatrixSpace of 3 by 5 dense matrices over Integer Ring
 
-TESTS:
+TESTS::
+
     sage: matrix(RR,2,2,sparse=True)
     [0.000000000000000 0.000000000000000]
     [0.000000000000000 0.000000000000000]
@@ -85,19 +87,20 @@ from sage.structure.sequence import Sequence
 
 def is_MatrixSpace(x):
     """
-    returns true if self is an instance of MatrixSpace
-    returns false if self is not an instance of MatrixSpace
+    Returns True if self is an instance of MatrixSpace returns false if
+    self is not an instance of MatrixSpace
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_space import is_MatrixSpace
-	sage: MS = MatrixSpace(QQ,2)
-	sage: A = MS.random_element()
-	sage: is_MatrixSpace(MS)
-	True
-	sage: is_MatrixSpace(A)
-	False
-	sage: is_MatrixSpace(5)
-	False
+        sage: MS = MatrixSpace(QQ,2)
+        sage: A = MS.random_element()
+        sage: is_MatrixSpace(MS)
+        True
+        sage: is_MatrixSpace(A)
+        False
+        sage: is_MatrixSpace(5)
+        False
     """
 
     return isinstance(x, MatrixSpace_generic)
@@ -107,21 +110,30 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     """
     Create with the command
 
-          MatrixSpace(base_ring , nrows [, ncols] [, sparse])
+    MatrixSpace(base_ring , nrows [, ncols] [, sparse])
 
-    The default value of the optional argument sparse is False.
-    The default value of the optional argument ncols is nrows.
+    The default value of the optional argument sparse is False. The
+    default value of the optional argument ncols is nrows.
 
     INPUT:
-         base_ring -- a ring
-         nrows -- int, the number of rows
-         ncols -- (default nrows) int, the number of columns
-         sparse -- (default false) whether or not matrices are given
-                   a sparse representation
-    OUTPUT:
-        The unique space of all nrows x ncols matrices over base_ring.
 
-    EXAMPLES:
+
+    -  ``base_ring`` - a ring
+
+    -  ``nrows`` - int, the number of rows
+
+    -  ``ncols`` - (default nrows) int, the number of
+       columns
+
+    -  ``sparse`` - (default false) whether or not matrices
+       are given a sparse representation
+
+
+    OUTPUT: The unique space of all nrows x ncols matrices over
+    base_ring.
+
+    EXAMPLES::
+
         sage: MS = MatrixSpace(RationalField(),2)
         sage: MS.base_ring()
         Rational Field
@@ -163,12 +175,13 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         [ 9 12 15]
         [19 26 33]
 
+    ::
+
         sage: M = MatrixSpace(ZZ, 10)
         sage: M
         Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
         sage: loads(M.dumps()) == M
         True
-
     """
     if not sage.rings.ring.is_Ring(base_ring):
         raise TypeError, "base_ring (=%s) must be a ring"%base_ring
@@ -191,7 +204,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     """
     The space of all nrows x ncols matrices over base_ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,2^31)
@@ -230,7 +244,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = Mat(ZZ,5,7,sparse=True)
             sage: A
             Full MatrixSpace of 5 by 7 sparse matrices over Integer Ring
@@ -241,12 +256,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def __call__(self, entries=0, coerce=True, copy=True, rows=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
             sage: g = G.0
             sage: MatrixSpace(k,2)(g)
             [1 1]
             [0 1]
+
+        ::
 
             sage: MS = MatrixSpace(ZZ,2,4)
             sage: M2 = MS(range(8)); M2
@@ -262,6 +280,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: M2 == MS(M2.rows())
             True
 
+        ::
 
             sage: MS = MatrixSpace(ZZ,2,4, sparse=True)
             sage: M2 = MS(range(8)); M2
@@ -277,6 +296,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: M2 == MS(M2.rows())
             True
 
+        ::
+
             sage: MS = MatrixSpace(ZZ,2,2)
             sage: MS([1,2,3,4])
             [1 2]
@@ -287,6 +308,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MS([1,2,3,4], rows=False)
             [1 3]
             [2 4]
+
+        ::
 
             sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
             sage: MS([1,2,3,4])
@@ -362,12 +385,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Return matrix space over R with otherwise same parameters as self.
 
         INPUT:
-            R -- ring
 
-        OUTPUT:
-            a matrix space
 
-        EXAMPLES:
+        -  ``R`` - ring
+
+
+        OUTPUT: a matrix space
+
+        EXAMPLES::
+
             sage: Mat(QQ,3,5).change_ring(GF(7))
             Full MatrixSpace of 3 by 5 dense matrices over Finite Field of size 7
         """
@@ -385,14 +411,16 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Return base extension of this matrix space to R.
 
-
         INPUT:
-            R -- ring
 
-        OUTPUT:
-            a matrix space
 
-        EXAMPLES:
+        -  ``R`` - ring
+
+
+        OUTPUT: a matrix space
+
+        EXAMPLES::
+
             sage: Mat(ZZ,3,5).base_extend(QQ)
             Full MatrixSpace of 3 by 5 dense matrices over Rational Field
             sage: Mat(QQ,3,5).base_extend(GF(7))
@@ -406,7 +434,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def construction(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(ZZ, 2, [1..4], sparse=True)
             sage: A.parent().construction()
             (MatrixFunctor, Integer Ring)
@@ -443,7 +472,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def _coerce_impl(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS1 = MatrixSpace(QQ,3)
             sage: MS2 = MatrixSpace(ZZ,4,5,true)
             sage: A = MS1(range(9))
@@ -469,15 +499,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def __cmp__(self, other):
         """
-        Compare this matrix space with other.  Sparse and dense matrix
-        spaces with otherwise the same parameters are considered
-        equal.
+        Compare this matrix space with other. Sparse and dense matrix
+        spaces with otherwise the same parameters are considered equal.
 
         If other is not a matrix space, return something arbitrary but
-        deterministic.  Otherwise, compare based on base ring, then on
+        deterministic. Otherwise, compare based on base ring, then on
         number of rows and columns.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Mat(ZZ,1000) == Mat(QQ,1000)
             False
             sage: Mat(ZZ,10) == Mat(ZZ,10)
@@ -494,7 +524,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns the string representation of a MatrixSpace
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS = MatrixSpace(ZZ,2,4,true)
             sage: repr(MS)
             'Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring'
@@ -512,7 +543,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         r"""
         Returns the latex representation of a MatrixSpace
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS3 = MatrixSpace(QQ,6,6,true)
             sage: latex(MS3)
             \mbox{\rm Mat}_{6\times 6}(\mathbf{Q})
@@ -521,25 +553,25 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                       latex.latex(self.base_ring()))
 
     def __iter__(self):
-        """
-        Returns a generator object which iterates through the elements
-        of self.  The order in which the elements are generated is
-        based on a 'weight' of a matrix which is the number of
-        iterations on the base ring that are required to reach that
-        matrix.
+        r"""
+        Returns a generator object which iterates through the elements of
+        self. The order in which the elements are generated is based on a
+        'weight' of a matrix which is the number of iterations on the base
+        ring that are required to reach that matrix.
 
-        The ordering is similar to a degree negative lexicographic
-        order in monomials in a multivariate polynomial ring.
+        The ordering is similar to a degree negative lexicographic order in
+        monomials in a multivariate polynomial ring.
 
-        EXAMPLES:
-          Consider the case of 2 x 2 matrices over GF(5).
+        EXAMPLES: Consider the case of 2 x 2 matrices over GF(5).
+
+        ::
 
             sage: list( GF(5) )
             [0, 1, 2, 3, 4]
             sage: MS = MatrixSpace(GF(5), 2, 2)
             sage: l = list(MS)
 
-          Then, consider the following matrices:
+        Then, consider the following matrices::
 
             sage: A = MS([2,1,0,1]); A
             [2 1]
@@ -551,33 +583,39 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 2]
             [0 0]
 
-          A appears before B since the weight of one of A's entries
-          exceeds the weight of the corresponding entry in B earliest
-          in the list.
+        A appears before B since the weight of one of A's entries exceeds
+        the weight of the corresponding entry in B earliest in the list.
+
+        ::
 
             sage: l.index(A)
             41
             sage: l.index(B)
             46
 
-          However, A would come after the matrix C since C has a lower
-          weight than A.
+        However, A would come after the matrix C since C has a lower weight
+        than A.
+
+        ::
 
             sage: l.index(A)
             41
             sage: l.index(C)
             19
 
+        The weights of matrices over other base rings are not as obvious.
+        For example, the weight of
 
-          The weights of matrices over other base rings are not as
-          obvious.  For example, the weight of
+        ::
 
             sage: MS = MatrixSpace(ZZ, 2, 2)
             sage: MS([-1,0,0,0])
             [-1  0]
             [ 0  0]
 
-          is 2 since
+        is 2 since
+
+        ::
 
             sage: i = iter(ZZ)
             sage: i.next()
@@ -587,8 +625,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: i.next()
             -1
 
-
-          Some more examples:
+        Some more examples::
 
             sage: MS = MatrixSpace(GF(2),2)
             sage: a = list(MS)
@@ -644,6 +681,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 1]
             -
 
+        ::
+
             sage: MS = MatrixSpace(GF(2),2, 3)
             sage: a = list(MS)
             sage: len(a)
@@ -651,6 +690,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: a[0]
             [0 0 0]
             [0 0 0]
+
+        ::
 
             sage: MS = MatrixSpace(ZZ, 2, 3)
             sage: i = iter(MS)
@@ -662,8 +703,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [0 0 0]
             [1 0 0]
 
-          For degenerate cases, where either the number of rows or columns (or
-          both) are zero, then the single element of the space is returned.
+        For degenerate cases, where either the number of rows or columns
+        (or both) are zero, then the single element of the space is
+        returned.
+
+        ::
 
             sage: list( MatrixSpace(GF(2), 2, 0) )
             [[]]
@@ -672,9 +716,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: list( MatrixSpace(GF(2), 0, 0) )
             [[]]
 
-          If the base ring does not support iteration (for example, with the
-          reals), then the matrix space over that ring does not support
-          iteration either.
+        If the base ring does not support iteration (for example, with the
+        reals), then the matrix space over that ring does not support
+        iteration either.
+
+        ::
 
             sage: MS = MatrixSpace(RR, 2)
             sage: a = list(MS)
@@ -725,7 +771,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns the class of self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS1 = MatrixSpace(QQ,4)
             sage: MS2 = MatrixSpace(ZZ,4,5,true)
             sage: MS1._get_matrix_class()
@@ -781,13 +828,16 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns a basis for this matrix space.
 
-        WARNING: This will of course compute every generator of this
-        matrix space.  So for large matrices, this could take a long
-        time, waste a massive amount of memory (for dense matrices),
-        and is likely not very useful.  Don't use this on large matrix
-        spaces.
+        .. warning::
 
-        EXAMPLES:
+           This will of course compute every generator of this matrix
+           space. So for large matrices, this could take a long time,
+           waste a massive amount of memory (for dense matrices), and
+           is likely not very useful. Don't use this on large matrix
+           spaces.
+
+        EXAMPLES::
+
             sage: Mat(ZZ,2,2).basis()
             [
             [1 0]
@@ -812,9 +862,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def dimension(self):
         """
-        Returns (m rows) * (n cols) of self as Integer
+        Returns (m rows) \* (n cols) of self as Integer
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS = MatrixSpace(ZZ,4,6)
             sage: u = MS.dimension()
             sage: u - 24 == 0
@@ -826,7 +877,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns (m row, n col) representation of self dimension
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS = MatrixSpace(ZZ,4,6)
             sage: MS.dims()
             (4, 6)
@@ -835,9 +887,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def identity_matrix(self):
         """
-        Create an identity matrix in self.  (Must be a space of square matrices).
+        Create an identity matrix in self. (Must be a space of square
+        matrices).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MS1 = MatrixSpace(ZZ,4)
             sage: MS2 = MatrixSpace(QQ,3,4)
             sage: I = MS1.identity_matrix()
@@ -862,7 +916,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns True if matrices in self are dense and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Mat(RDF,2,3).is_sparse()
             False
             sage: Mat(RR,123456,22,sparse=True).is_sparse()
@@ -874,7 +929,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Returns True if matrices in self are sparse and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Mat(GF(2011),10000).is_sparse()
             False
             sage: Mat(GF(2011),10000,sparse=True).is_sparse()
@@ -884,7 +940,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def is_finite(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MatrixSpace(GF(101), 10000).is_finite()
             True
             sage: MatrixSpace(QQ, 2).is_finite()
@@ -896,9 +953,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Return the n-th generator of this matrix space.
 
-        This doesn't compute all basis matrices, so it is reasonably intelligent.
+        This doesn't compute all basis matrices, so it is reasonably
+        intelligent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(GF(7),10000,5); M.ngens()
             50000
             sage: a = M.10
@@ -929,10 +988,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def ngens(self):
         """
-        Return the number of generators of this matrix space, which is the number
-        of entries in the matrices in this space.
+        Return the number of generators of this matrix space, which is the
+        number of entries in the matrices in this space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(GF(7),100,200); M.ngens()
             20000
         """
@@ -940,11 +1000,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def matrix(self, x=0, coerce=True, copy=True, rows=True):
         """
-        Create a matrix in self.  The entries can be specified either
-        as a single list of length nrows*ncols, or as a list of
-        lists.
+        Create a matrix in self. The entries can be specified either as a
+        single list of length nrows\*ncols, or as a list of lists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = MatrixSpace(ZZ, 2)
             sage: M.matrix([[1,0],[0,-1]])
             [ 1  0]
@@ -995,10 +1055,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
         """
         Return the matrix space with given number of rows, columns and
-        sparcity over the same base ring as self, and defaults the
-        same as self.
+        sparcity over the same base ring as self, and defaults the same as
+        self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(GF(7),100,200)
             sage: M.matrix_space(5000)
             Full MatrixSpace of 5000 by 200 dense matrices over Finite Field of size 7
@@ -1018,7 +1079,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Return the number of columns of matrices in this space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(ZZ['x'],200000,500000,sparse=True)
             sage: M.ncols()
             500000
@@ -1029,7 +1091,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         Return the number of rows of matrices in this space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(ZZ,200000,500000)
             sage: M.nrows()
             200000
@@ -1038,11 +1101,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def row_space(self):
         """
-        Return the module spanned by all rows of matrices in this matrix space.
-        This is a free module of rank the number of rows.  It will be sparse
-        or dense as this matrix space is sparse or dense.
+        Return the module spanned by all rows of matrices in this matrix
+        space. This is a free module of rank the number of rows. It will be
+        sparse or dense as this matrix space is sparse or dense.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(ZZ,20,5,sparse=False); M.row_space()
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
         """
@@ -1055,11 +1119,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def column_space(self):
         """
-        Return the module spanned by all columns of matrices in this matrix space.
-        This is a free module of rank the number of columns.  It will be sparse
-        or dense as this matrix space is sparse or dense.
+        Return the module spanned by all columns of matrices in this matrix
+        space. This is a free module of rank the number of columns. It will
+        be sparse or dense as this matrix space is sparse or dense.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = Mat(GF(9,'a'),20,5,sparse=True); M.column_space()
             Sparse vector space of dimension 20 over Finite Field in a of size 3^2
         """
@@ -1073,14 +1138,20 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     def random_element(self, density=1, *args, **kwds):
         """
         INPUT:
-            density -- integer (default: 1) rough measure of the proportion of nonzero
-                       entries in the random matrix
-            *args, **kwds -- rest of parameters may be passed to the random_element function
-                   of the base ring. ("may be", since this function calls the randomize
-                   function on the zero matrix, which need not call the random_element function
-                   of the base ring at all in general.)
 
-        EXAMPLES:
+
+        -  ``density`` - integer (default: 1) rough measure of
+           the proportion of nonzero entries in the random matrix
+
+        -  ``*args, **kwds`` - rest of parameters may be
+           passed to the random_element function of the base ring. ("may be",
+           since this function calls the randomize function on the zero
+           matrix, which need not call the random_element function of the
+           base ring at all in general.)
+
+
+        EXAMPLES::
+
             sage: Mat(ZZ,2,5).random_element()
             [ -8   2   0   0   1]
             [ -1   2   1 -95  -1]
@@ -1102,10 +1173,14 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def _magma_init_(self, magma):
         r"""
-        EXAMPLES:
-        We first coerce a square matrix.
+        EXAMPLES: We first coerce a square matrix.
+
+        ::
+
             sage: magma(MatrixSpace(QQ,3))                      # optional - magma
             Full Matrix Algebra of degree 3 over Rational Field
+
+        ::
 
             sage: magma(MatrixSpace(Integers(8),2,3))           # optional - magma
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
@@ -1119,19 +1194,19 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
 def dict_to_list(entries, nrows, ncols):
     """
-    Given a dictionary of coordinate tuples, return the
-    list given by reading off the nrows*ncols matrix in
-    row order.
+    Given a dictionary of coordinate tuples, return the list given by
+    reading off the nrows\*ncols matrix in row order.
 
-    EXAMLES:
-       sage: from sage.matrix.matrix_space import dict_to_list
-       sage: d = {}
-       sage: d[(0,0)] = 1
-       sage: d[(1,1)] = 2
-       sage: dict_to_list(d, 2, 2)
-       [1, 0, 0, 2]
-       sage: dict_to_list(d, 2, 3)
-       [1, 0, 0, 0, 2, 0]
+    EXAMLES::
+
+        sage: from sage.matrix.matrix_space import dict_to_list
+        sage: d = {}
+        sage: d[(0,0)] = 1
+        sage: d[(1,1)] = 2
+        sage: dict_to_list(d, 2, 2)
+        [1, 0, 0, 2]
+        sage: dict_to_list(d, 2, 3)
+        [1, 0, 0, 0, 2, 0]
     """
     v = [0]*(nrows*ncols)
     for ij, y in entries.iteritems():
@@ -1141,10 +1216,11 @@ def dict_to_list(entries, nrows, ncols):
 
 def list_to_dict(entries, nrows, ncols, rows=True):
     """
-    Given a list of entries, create a dictionary whose keys
-    are coordinate tuples and values are the entries.
+    Given a list of entries, create a dictionary whose keys are
+    coordinate tuples and values are the entries.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_space import list_to_dict
         sage: d = list_to_dict([1,2,3,4],2,2)
         sage: d[(0,1)]
@@ -1152,7 +1228,6 @@ def list_to_dict(entries, nrows, ncols, rows=True):
         sage: d = list_to_dict([1,2,3,4],2,2,rows=False)
         sage: d[(0,1)]
         3
-
     """
     d = {}
     if ncols == 0 or nrows == 0:
@@ -1186,11 +1261,14 @@ def test_trivial_matrices_inverse(ring, sparse=True):
     which should make clear what is the problem.
 
     INPUT:
-       ring -- a ring
-       sparse -- a boolean
+
+    - ``ring`` - a ring
+
+    - ``sparse`` - a boolean
 
     OUTPUT:
-       nothing if everything is correct otherwise raise an AssertionError
+
+    - nothing if everything is correct otherwise raise an AssertionError
 
     The methods determinant, is_invertible and inverse as checked for
      - the 0x0 empty identity matrix
@@ -1200,7 +1278,8 @@ def test_trivial_matrices_inverse(ring, sparse=True):
 
     TODO: must be adapted to category check framework when ready (see trac \#5274).
 
-    TESTS:
+    TESTS::
+
       sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
       sage: tinv(ZZ, sparse=True)
       sage: tinv(ZZ, sparse=False)

@@ -1,19 +1,21 @@
 """
 Dense matrices over the Real Double Field using numpy.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: b=Mat(RDF,2,3).basis()
     sage: b[0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
 
+We deal with the case of zero rows or zero columns::
 
-We deal with the case of zero rows or zero columns:
     sage: m = MatrixSpace(RDF,0,3)
     sage: m.zero_matrix()
     []
 
-TESTS:
+TESTS::
+
     sage: a = matrix(RDF,2,range(4), sparse=False)
     sage: loads(dumps(a)) == a
     True
@@ -21,9 +23,13 @@ TESTS:
     []
 
 AUTHORS:
-    -- Jason Grout, Sep 2008: switch to numpy backend, factored out the Matrix_double_dense class
-    -- Josh Kantor
-    -- William Stein: many bug fixes and touch ups.
+
+- Jason Grout (2008-09): switch to numpy backend, factored out the
+  Matrix_double_dense class
+
+- Josh Kantor
+
+- William Stein: many bug fixes and touch ups.
 """
 
 ##############################################################################
@@ -42,10 +48,11 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     """
     Class that implements matrices over the real double field. These
     are supposed to be fast matrix operations using C doubles. Most
-    operations are implemented using numpy which will
-    call the underlying BLAS on the system.
+    operations are implemented using numpy which will call the
+    underlying BLAS on the system.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: m = Matrix(RDF, [[1,2],[3,4]])
         sage: m**2
         [ 7.0 10.0]
@@ -54,16 +61,21 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         [-2.0  1.0]
         [ 1.5 -0.5]
 
-    To compute eigenvalues the use the functions left_eigenvectors or right_eigenvectors
+    To compute eigenvalues the use the functions left_eigenvectors or
+    right_eigenvectors
+
+    ::
 
         sage: p,e = m.right_eigenvectors()
 
-    the result of eigen is a pair (p,e), where p is a list
-    of eigenvalues and the e is a matrix whose columns are the eigenvectors.
+    the result of eigen is a pair (p,e), where p is a list of
+    eigenvalues and the e is a matrix whose columns are the
+    eigenvectors.
 
-    To solve a linear system Ax = b
-    where A = [[1,2]  and b = [5,6]
-             [3,4]]
+    To solve a linear system Ax = b where A = [[1,2] and b = [5,6]
+    [3,4]]
+
+    ::
 
         sage: b = vector(RDF,[5,6])
         sage: m.solve_left(b)
@@ -98,11 +110,12 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
 
     cdef set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value):
         """
-        Set the (i,j) entry to value without any typechecking or boundchecking.
+        Set the (i,j) entry to value without any typechecking or
+        boundchecking.
 
-        This currently isn't faster than calling self.set_unsafe;
-        should we speed it up or is it just a convenience function
-        that has the right headers?
+        This currently isn't faster than calling self.set_unsafe; should
+        we speed it up or is it just a convenience function that has the
+        right headers?
         """
         self.set_unsafe(i,j,value)
 
@@ -110,9 +123,9 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         """
         Get the (i,j) entry without any typechecking or boundchecking.
 
-        This currently isn't faster than calling self.get_unsafe;
-        should we speed it up or is it just a convenience function
-        that has the right headers?
+        This currently isn't faster than calling self.get_unsafe; should
+        we speed it up or is it just a convenience function that has the
+        right headers?
         """
         return self.get_unsafe(i,j)
 

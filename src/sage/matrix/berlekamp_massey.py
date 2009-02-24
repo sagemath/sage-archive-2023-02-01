@@ -1,8 +1,9 @@
 """
 Minimal Polynomials of Linear Recurrence Sequences
 
-AUTHOR:
-    -- William Stein
+AUTHORS:
+
+- William Stein
 """
 
 
@@ -29,20 +30,30 @@ def berlekamp_massey(a):
     Use the Berlekamp-Massey algorithm to find the minimal polynomial
     of a linearly recurrence sequence a.
 
-    The minimal polynomial of a linear recurrence $\{a_r\}$ is by
-    definition the unique monic polynomial~$g$, such that if $\{a_r\}$
-    satisfies a linear recurrence $a_{j+k} + b_{j-1} a_{j-1+k} +
-    \cdots + b_0 a_k=0$ (for all $k\geq 0$), then $g$ divides the
-    polynomial $x^j + \sum_{i=0}^{j-1} b_i x^i$.
+    The minimal polynomial of a linear recurrence `\{a_r\}` is
+    by definition the unique monic polynomial `g`, such that if
+    `\{a_r\}` satisfies a linear recurrence
+    `a_{j+k} + b_{j-1} a_{j-1+k} + \cdots + b_0 a_k=0`
+    (for all `k\geq 0`), then `g` divides the
+    polynomial `x^j + \sum_{i=0}^{j-1} b_i x^i`.
 
     INPUT:
-        a -- a list of even length of elements of a field (or domain)
+
+
+    -  ``a`` - a list of even length of elements of a field
+       (or domain)
+
 
     OUTPUT:
-        Polynomial -- the minimal polynomial of the sequence (as a
-           polynomial over the field in which the entries of a live)
 
-    EXAMPLES:
+
+    -  ``Polynomial`` - the minimal polynomial of the
+       sequence (as a polynomial over the field in which the entries of a
+       live)
+
+
+    EXAMPLES::
+
         sage: berlekamp_massey([1,2,1,2,1,2])
         x^2 - 1
         sage: berlekamp_massey([GF(7)(1),19,1,19])

@@ -17,7 +17,8 @@ include '../ext/stdsage.pxi'
 
 def is_Matrix(x):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.matrix.matrix import is_Matrix
         sage: is_Matrix(0)
         False

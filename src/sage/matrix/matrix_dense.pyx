@@ -1,7 +1,8 @@
 r"""
 Base class for dense matrices
 
-TESTS:
+TESTS::
+
     sage: R.<a,b> = QQ[]
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: loads(dumps(m)) == m
@@ -26,8 +27,8 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def __copy__(self):
         """
-        Return a copy of this matrix.  Changing the entries of the
-        copy will not change the entries of this matrix.
+        Return a copy of this matrix. Changing the entries of the copy will
+        not change the entries of this matrix.
         """
         A = self.new_matrix(entries=self.list(), coerce=False, copy=False)
         if self.subdivisions is not None:
@@ -41,16 +42,21 @@ cdef class Matrix_dense(matrix.Matrix):
         Equal matrices should have equal hashes, even if one is sparse and
         the other is dense.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(2, range(24), sparse=True)
             sage: m.set_immutable()
             sage: hash(m)
             976
 
+        ::
+
             sage: d = m.dense_matrix()
             sage: d.set_immutable()
             sage: hash(d)
             976
+
+        ::
 
             sage: hash(m) == hash(d)
             True
@@ -82,8 +88,8 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def _multiply_classical(left, Matrix_dense right):
         """
-        Multiply the matrices left and right using the classical $O(n^3)$
-        algorithm.
+        Multiply the matrices left and right using the classical
+        `O(n^3)` algorithm.
 
         This method assumes that left and right have the same parent and
         compatible dimensions.
@@ -129,7 +135,8 @@ cdef class Matrix_dense(matrix.Matrix):
 
     cdef int _cmp_c_impl(self, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x> = QQ[]
             sage: m = matrix([[x,x+1],[1,x]])
             sage: n = matrix([[x+1,x],[1,x]])
@@ -155,9 +162,11 @@ cdef class Matrix_dense(matrix.Matrix):
         """
         Returns the transpose of self, without changing self.
 
-        EXAMPLES:
-        We create a matrix, compute its transpose, and note that the
-        original matrix is not changed.
+        EXAMPLES: We create a matrix, compute its transpose, and note that
+        the original matrix is not changed.
+
+        ::
+
             sage: M = MatrixSpace(QQ,  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
@@ -167,6 +176,8 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: print A
             [1 2]
             [3 4]
+
+        ::
 
             sage: A.subdivide(None, 1); A
             [1|2]
@@ -195,7 +206,8 @@ cdef class Matrix_dense(matrix.Matrix):
         """
         Returns the anittranspose of self, without changing self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(2,3,range(6)); A
             [0 1 2]
             [3 4 5]
@@ -203,6 +215,8 @@ cdef class Matrix_dense(matrix.Matrix):
             [5 2]
             [4 1]
             [3 0]
+
+        ::
 
             sage: A.subdivide(1,2); A
             [0 1|2]
@@ -235,15 +249,17 @@ cdef class Matrix_dense(matrix.Matrix):
         The resulting matrix is over the codomain of phi.
 
         INPUT:
-            phi -- a morphism, so phi is callable and phi.domain()
-                   and phi.codomain() are defined.  The codomain
-                   must be a ring.
-
-        OUTPUT:
-            a matrix over the codomain of phi
 
 
-        EXAMPLES:
+        -  ``phi`` - a morphism, so phi is callable and
+           phi.domain() and phi.codomain() are defined. The codomain must be a
+           ring.
+
+
+        OUTPUT: a matrix over the codomain of phi
+
+        EXAMPLES::
+
             sage: m = matrix(ZZ, 3, range(9))
             sage: phi = ZZ.hom(GF(5))
             sage: m.apply_morphism(phi)
@@ -253,7 +269,8 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: parent(m.apply_morphism(phi))
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 5
 
-        We apply a morphism to a matrix over a polynomial ring:
+        We apply a morphism to a matrix over a polynomial ring::
+
             sage: R.<x,y> = QQ[]
             sage: m = matrix(2, [x,x^2 + y, 2/3*y^2-x, x]); m
             [          x     x^2 + y]
@@ -262,7 +279,6 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: m.apply_morphism(phi)
             [          y     y^2 + x]
             [2/3*x^2 - y           y]
-
         """
         R = phi.codomain()
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
@@ -274,19 +290,24 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def apply_map(self, phi, R=None, sparse=False):
         """
-        Apply the given map phi (an arbitrary Python function or
-        callable object) to this dense matrix.  If R is not given,
-        automatically determine the base ring of the resulting matrix.
+        Apply the given map phi (an arbitrary Python function or callable
+        object) to this dense matrix. If R is not given, automatically
+        determine the base ring of the resulting matrix.
 
         INPUT:
-            phi -- arbitrary Python function or callable object
-            R -- (optional) ring
             sparse -- True to make the output a sparse matrix; default False
 
-        OUTPUT:
-            a matrix over R
 
-        EXAMPLES:
+        -  ``phi`` - arbitrary Python function or callable
+           object
+
+        -  ``R`` - (optional) ring
+
+
+        OUTPUT: a matrix over R
+
+        EXAMPLES::
+
             sage: m = matrix(ZZ, 3, range(9))
             sage: k.<a> = GF(9)
             sage: f = lambda x: k(x)
@@ -297,8 +318,10 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: n.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
 
-        In this example, we explicitly specify
-        the codomain.
+        In this example, we explicitly specify the codomain.
+
+        ::
+
             sage: s = GF(3)
             sage: f = lambda x: s(x)
             sage: n = m.apply_map(f, k); n
@@ -308,7 +331,8 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: n.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
 
-        If self is subdivided, the result will be as well:
+        If self is subdivided, the result will be as well::
+
             sage: m = matrix(2, 2, srange(4))
             sage: m.subdivide(None, 1); m
             [0|1]
@@ -319,6 +343,9 @@ cdef class Matrix_dense(matrix.Matrix):
 
         If the map sends most of the matrix to zero, then it may be useful
         to get the result as a sparse matrix.
+
+        ::
+
             sage: m = matrix(ZZ, 3, 3, range(1, 10))
             sage: n = m.apply_map(lambda x: 1//x, sparse=True); n
             [1 0 0]
@@ -327,7 +354,8 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: n.parent()
             Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
 
-        TESTS:
+        TESTS::
+
             sage: m = matrix([])
             sage: m.apply_map(lambda x: x*x) == m
             True
@@ -353,13 +381,15 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def _derivative(self, var=None):
         """
-        Differentiate with respect to var by differentiating each
-        element with respect to var.
+        Differentiate with respect to var by differentiating each element
+        with respect to var.
 
-        SEE ALSO:
-            self.derivative()
+        .. seealso::
 
-        EXAMPLES:
+           :meth:`derivative`
+
+        EXAMPLES::
+
             sage: m = matrix(2, [x^i for i in range(4)])
             sage: m._derivative(x)
             [    0     1]

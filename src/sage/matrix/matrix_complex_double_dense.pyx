@@ -1,21 +1,21 @@
 """
-Dense matrices over the Real Double Field.
+Dense matrices over the Complex Double Field using NumPy
 
-Matrix operations using numpy.
+EXAMPLES::
 
-EXAMPLES:
     sage: b=Mat(CDF,2,3).basis()
     sage: b[0]
     [1.0   0   0]
     [  0   0   0]
 
+We deal with the case of zero rows or zero columns::
 
-We deal with the case of zero rows or zero columns:
     sage: m = MatrixSpace(CDF,0,3)
     sage: m.zero_matrix()
     []
 
-TESTS:
+TESTS::
+
     sage: a = matrix(CDF,2,[i+(4-i)*I for i in range(4)], sparse=False)
     sage: loads(dumps(a)) == a
     True
@@ -23,9 +23,12 @@ TESTS:
     []
 
 AUTHORS:
-    -- Jason Grout, Sep 2008: switch to numpy backend
-    -- Josh Kantor
-    -- William Stein: many bug fixes and touch ups.
+
+- Jason Grout (2008-09): switch to numpy backend
+
+- Josh Kantor
+
+- William Stein: many bug fixes and touch ups.
 """
 
 ##############################################################################
@@ -44,10 +47,11 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     """
     Class that implements matrices over the real double field. These
     are supposed to be fast matrix operations using C doubles. Most
-    operations are implemented using numpy which will
-    call the underlying BLAS on the system.
+    operations are implemented using numpy which will call the
+    underlying BLAS on the system.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: m = Matrix(CDF, [[1,2*I],[3+I,4]])
         sage: m**2
         [-1.0 + 6.0*I       10.0*I]
@@ -56,16 +60,21 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
         [  0.333333333333 + 0.333333333333*I   0.166666666667 - 0.166666666667*I]
         [ -0.166666666667 - 0.333333333333*I 0.0833333333333 + 0.0833333333333*I]
 
-    To compute eigenvalues the use the functions left_eigenvectors or right_eigenvectors
+    To compute eigenvalues the use the functions left_eigenvectors or
+    right_eigenvectors
+
+    ::
 
         sage: p,e = m.right_eigenvectors()
 
-    the result of eigen is a pair (p,e), where p is a list
-    of eigenvalues and the e is a matrix whose columns are the eigenvectors.
+    the result of eigen is a pair (p,e), where p is a list of
+    eigenvalues and the e is a matrix whose columns are the
+    eigenvectors.
 
-    To solve a linear system Ax = b
-    where A = [[1,2]  and b = [5,6]
-             [3,4]]
+    To solve a linear system Ax = b where A = [[1,2] and b = [5,6]
+    [3,4]]
+
+    ::
 
         sage: b = vector(CDF,[5,6])
         sage: m.solve_left(b)

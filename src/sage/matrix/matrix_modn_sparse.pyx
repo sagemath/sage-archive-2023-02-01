@@ -1,14 +1,15 @@
 r"""
-Sparse matrices over $\Z/n\Z$ for $n$ small.
+Sparse matrices over `\mathbb{Z}/n\mathbb{Z}` for
+`n` small.
 
-This is a compiled implementation of sparse matrices over $\Z/n\Z$
-for $n$ small.
+This is a compiled implementation of sparse matrices over
+`\mathbb{Z}/n\mathbb{Z}` for `n` small.
 
-TODO:
-   -- move vectors into a pyrex vector class
-   -- add _add_ and _mul_ methods.
+TODO: - move vectors into a pyrex vector class - add _add_ and
+_mul_ methods.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: a = matrix(Integers(37),3,3,range(9),sparse=True); a
     [0 1 2]
     [3 4 5]
@@ -36,10 +37,14 @@ EXAMPLES:
     [15 18 21]
     [ 5 17 29]
 
+::
+
     sage: a == loads(dumps(a))
     True
     sage: b == loads(dumps(b))
     True
+
+::
 
     sage: a.echelonize(); a
     [ 1  0 36]
@@ -156,14 +161,22 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         Create a sparse matrix modulo n.
 
         INPUT:
-            parent -- a matrix space
-            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
-                         0 <= j < ncols, and x is coercible to an int.  The i,j
-                         entry of self is set to x.  The x's can be 0.
-                       * Alternatively, entries can be a list of *all* the entries
-                         of the sparse matrix (so they would be mostly 0).
-            copy -- ignored
-            coerce -- ignored
+
+
+        -  ``parent`` - a matrix space
+
+        -  ``entries``
+
+           - a Python list of triples (i,j,x), where 0 = i nrows, 0 =
+             j ncols, and x is coercible to an int. The i,j entry of
+             self is set to x. The x's can be 0.
+
+           - Alternatively, entries can be a list of *all* the
+             entries of the sparse matrix (so they would be mostly 0).
+
+        -  ``copy`` - ignored
+
+        -  ``coerce`` - ignored
         """
         cdef int s, z, p
         cdef Py_ssize_t i, j, k
@@ -249,10 +262,10 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def _dict(self):
         """
-        Unsafe version of the dict method, mainly for internal use.
-        This may return the dict of elements, but as an *unsafe*
-        reference to the underlying dict of the object.  It might
-        be dangerous if you change entries of the returned dict.
+        Unsafe version of the dict method, mainly for internal use. This
+        may return the dict of elements, but as an *unsafe* reference to
+        the underlying dict of the object. It might be dangerous if you
+        change entries of the returned dict.
 
         EXAMPLES:
             sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
@@ -282,7 +295,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def _pickle(self):
         """
-        TESTS:
+        TESTS::
+
             sage: M = Matrix( GF(2), [[1,1,1,1,0,0,0,0,0,0]], sparse=True )
             sage: loads(dumps(M))
             [1 1 1 1 0 0 0 0 0 0]
@@ -433,7 +447,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     cdef swap_rows_c(self, Py_ssize_t n1, Py_ssize_t n2):
         """
-        Swap the rows in positions n1 and n2.  No bounds checking.
+        Swap the rows in positions n1 and n2. No bounds checking.
         """
         cdef c_vector_modint tmp
         tmp = self.rows[n1]
@@ -444,12 +458,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Replace self by its reduction to reduced row echelon form.
 
-        ALGORITHM: We use Gauss elimination, in a slightly intelligent
-        way, in that we clear each column using a row with the minimum
-        number of nonzero entries.
+        ALGORITHM: We use Gauss elimination, in a slightly intelligent way,
+        in that we clear each column using a row with the minimum number of
+        nonzero entries.
 
-        TODO: Implement switching to a dense method when the matrix
-        gets dense.
+        TODO: Implement switching to a dense method when the matrix gets
+        dense.
         """
         x = self.fetch('in_echelon_form')
         if not x is None and x: return  # already known to be in echelon form
@@ -554,14 +568,16 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         the four values are nonzero.
 
         INPUT:
-            filename -- either a path or None in which case a filename in
-                        the current directory is chosen automatically
-                        (default:None)
-            maxsize -- maximal dimension in either x or y direction of the resulting
-                       image. If None or a maxsize larger than
-                       max(self.nrows(),self.ncols()) is given the image will have
-                       the same pixelsize as the matrix dimensions (default: 512)
 
+
+        -  ``filename`` - either a path or None in which case a
+           filename in the current directory is chosen automatically
+           (default:None)
+
+        -  ``maxsize`` - maximal dimension in either x or y
+           direction of the resulting image. If None or a maxsize larger than
+           max(self.nrows(),self.ncols()) is given the image will have the
+           same pixelsize as the matrix dimensions (default: 512)
         """
         import gd
         import os
@@ -623,16 +639,22 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         Return the density of self, i.e., the ratio of the number of
         nonzero entries of self to the total size of self.
 
-        EXAMPLE:
+
+        EXAMPLES::
+
             sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8],sparse=True)
             sage: A.density()
             2/3
 
         Notice that the density parameter does not ensure the density
         of a matrix; it is only an upper bound.
+
+        ::
+
             sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
             sage: A.density()
             257/1000
+
         """
         cdef Py_ssize_t i, nonzero_entries
 
@@ -646,7 +668,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Return the transpose of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: A = matrix(GF(127),3,3,[0,1,0,2,0,0,3,0,0],sparse=True)
             sage: A
             [0 1 0]
@@ -673,13 +696,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def matrix_from_rows(self, rows):
         """
-        Return the matrix constructed from self using rows with indices
-        in the rows list.
+        Return the matrix constructed from self using rows with indices in
+        the rows list.
 
         INPUT:
-            rows -- list or tuple of row indices
 
-        EXAMPLE:
+
+        -  ``rows`` - list or tuple of row indices
+
+
+        EXAMPLE::
+
             sage: M = MatrixSpace(GF(127),3,3,sparse=True)
             sage: A = M(range(9)); A
             [0 1 2]
@@ -714,10 +741,11 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def matrix_from_columns(self, cols):
         """
-        Return the matrix constructed from self using columns with
-        indices in the columns list.
+        Return the matrix constructed from self using columns with indices
+        in the columns list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = MatrixSpace(GF(127),3,3,sparse=True)
             sage: A = M(range(9)); A
             [0 1 2]
@@ -776,12 +804,16 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         Compute the rank of self.
 
         INPUT:
-            gauss -- if True LinBox' Gaussian elimination is used. If False
-                     'Symbolic Reordering' as implemented in LinBox
-                     is used. If 'native' the native SAGE implementation
-                     is used. (default: False)
 
-        EXAMPLE:
+
+        -  ``gauss`` - if True LinBox' Gaussian elimination is
+           used. If False 'Symbolic Reordering' as implemented in LinBox is
+           used. If 'native' the native Sage implementation is used. (default:
+           False)
+
+
+        EXAMPLE::
+
             sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
             sage: r1 = A.rank(gauss=False)
             sage: r2 = A.rank(gauss=True)
@@ -793,16 +825,20 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         ALGORITHM: Uses LinBox or native implementation.
 
-        REFERENCES: Jean-Guillaume Dumas and Gilles Villars. 'Computing the
-            Rank of Large Sparse Matrices over Finite Fields'. Proc. CASC'2002,
-            The Fifth International Workshop on Computer Algebra in Scientific Computing,
-            Big Yalta, Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
-            http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
+        REFERENCES:
 
-        NOTE:
-            For very sparse matrices Gaussian elimination is faster because
-            it barly has anything to do. If the fill in needs to be considered,
-            'Symbolic Reordering' is usually much faster.
+        - Jean-Guillaume Dumas and Gilles Villars. 'Computing the Rank
+          of Large Sparse Matrices over Finite
+          Fields'. Proc. CASC'2002, The Fifth International Workshop
+          on Computer Algebra in Scientific Computing, Big Yalta,
+          Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
+          http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
+
+        .. note::
+
+           For very sparse matrices Gaussian elimination is faster
+           because it barly has anything to do. If the fill in needs to
+           be considered, 'Symbolic Reordering' is usually much faster.
         """
         x = self.fetch('rank')
         if not x is None: return x
@@ -821,35 +857,50 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank = True):
         """
-        If self is a matrix $A$, then this function returns a vector
-        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
-        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+        If self is a matrix `A`, then this function returns a
+        vector or matrix `X` such that `A X = B`. If
+        `B` is a vector then `X` is a vector and if
+        `B` is a matrix, then `X` is a matrix.
 
-        NOTE: In SAGE one can also write \code{A \ B} for
-        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
-        MATLAB/Octave backslash operator''.
+        .. note::
+
+           In Sage one can also write ``A  B`` for
+           ``A.solve_right(B)``, i.e., Sage implements the "the
+           MATLAB/Octave backslash operator".
 
         INPUT:
-            B -- a matrix or vector
-            algorithm -- one of the following:
-                         'LinBox:BlasElimination' -- dense elimination
-                         'LinBox:Blackbox' -- LinBox chooses a Blackbox algorithm
-                         'LinBox:Wiedemann' -- Wiedemann's algorithm
-                         'generic' -- use generic implementation (inversion)
-                         None -- LinBox chooses an algorithm (default)
-            check_rank -- check rank before attempting to solve (default: True)
 
-        OUTPUT:
-            a matrix or vector
 
-        EXAMPLES:
+        -  ``B`` - a matrix or vector
+
+        -  ``algorithm`` - one of the following:
+
+        -  ``'LinBox:BlasElimination'`` - dense elimination
+
+        -  ``'LinBox:Blackbox'`` - LinBox chooses a Blackbox
+           algorithm
+
+        -  ``'LinBox:Wiedemann'`` - Wiedemann's algorithm
+
+        -  ``'generic'`` - use generic implementation
+           (inversion)
+
+        -  ``None`` - LinBox chooses an algorithm (default)
+
+        -  ``check_rank`` - check rank before attempting to
+           solve (default: True)
+
+
+        OUTPUT: a matrix or vector
+
+        EXAMPLES::
+
             sage: A = matrix(GF(127), 3, [1,2,3,-1,2,5,2,3,1], sparse=True)
             sage: b = vector(GF(127),[1,2,3])
             sage: x = A \ b; x
             (73, 76, 10)
             sage: A * x
             (1, 2, 3)
-
         """
         cdef Matrix_modn_sparse A = self
         cdef Matrix_modn_sparse b

@@ -30,12 +30,14 @@ cimport matrix
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""
-    The \class{Matrix_generic_dense} class derives from \class{Matrix}, and
-    defines functionality for dense matrices over any base ring.
-    Matrices are represented by a list of elements in the base ring,
-    and element access operations are implemented in this class.
+    The ``Matrix_generic_dense`` class derives from
+    ``Matrix``, and defines functionality for dense
+    matrices over any base ring. Matrices are represented by a list of
+    elements in the base ring, and element access operations are
+    implemented in this class.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: A = random_matrix(Integers(25)['x'],2); A
         [    x^2 + 12*x + 2   4*x^2 + 13*x + 8]
         [ 22*x^2 + 2*x + 17 19*x^2 + 22*x + 14]
@@ -179,9 +181,11 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     def __copy__(self):
         """
-        Creates a copy of self, which may be changed without altering self.
+        Creates a copy of self, which may be changed without altering
+        self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(ZZ[['t']], 2,3,range(6)); A
             [0 1 2]
             [3 4 5]
@@ -212,11 +216,10 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     def _multiply_classical(left, matrix.Matrix _right):
         """
-        Multiply the matrices left and right using the classical $O(n^3)$
-        algorithm.
+        Multiply the matrices left and right using the classical
+        `O(n^3)` algorithm.
 
-        EXAMPLES:
-        We multiply two matrices over a fairly general ring:
+        EXAMPLES: We multiply two matrices over a fairly general ring::
             sage: R.<x,y> = Integers(8)['x,y']
             sage: a = matrix(R,2,[x,y,x^2,y^2]); a
             [  x   y]
@@ -238,7 +241,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             [2 2]
             [2 2]
 
-        SAGE fully supports degenerate matrices with 0 rows or 0 columns:
+        Sage fully supports degenerate matrices with 0 rows or 0 columns::
+
             sage: A = matrix(QQ['x,y'], 0, 4, []); A
             []
             sage: B = matrix(QQ['x,y'], 4,0, []); B

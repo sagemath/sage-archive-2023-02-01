@@ -1,37 +1,42 @@
 r"""
-Watkins Symmetric Power $L$-function Calculator
+Watkins Symmetric Power `L`-function Calculator
 
 SYMPOW is a package to compute special values of symmetric power
 elliptic curve L-functions. It can compute up to about 64 digits of
-precision.  This interface provides complete access to sympow, which
-is a standard part of \sage (and includes the extra data files).
+precision. This interface provides complete access to sympow, which
+is a standard part of Sage (and includes the extra data files).
 
-\note{Each call to \code{sympow} runs a complete \code{sympow}
-process. This incurs about 0.2 seconds overhead.}
+.. note::
 
-AUTHOR:
-    -- Mark Watkins  (2005-2006): wrote and released sympow
-    -- William Stein (2006-03-05): wrote SAGE interface
+   Each call to ``sympow`` runs a complete
+   ``sympow`` process. This incurs about 0.2 seconds
+   overhead.
+
+AUTHORS:
+
+- Mark Watkins (2005-2006): wrote and released sympow
+
+- William Stein (2006-03-05): wrote Sage interface
 
 ACKNOWLEDGEMENT (from sympow readme):
-\begin{itemize}
-\item The quad-double package was modified from David Bailey's package:
-\url{http://crd.lbl.gov/~dhbailey/mpdist/}
 
-\item The \code{squfof} implementation was modified from Allan Steel's
-version of Arjen Lenstra's original LIP-based code.
 
-\item The \code{ec_ap} code was originally written for the kernel of
-MAGMA, but was modified to use small integers when possible.
+-  The quad-double package was modified from David Bailey's
+   package: http://crd.lbl.gov/~dhbailey/mpdist/
 
-\item SYMPOW was originally developed using PARI, but due to licensing
-difficulties, this was eliminated. SYMPOW also does not use the
-standard math libraries unless Configure is run with the -lm option.
-SYMPOW still uses GP to compute the meshes of inverse Mellin
-transforms (this is done when a new symmetric power is added to
-datafiles).
+-  The ``squfof`` implementation was modified from
+   Allan Steel's version of Arjen Lenstra's original LIP-based code.
 
-\end{itemize}
+-  The ``ec_ap`` code was originally written for the
+   kernel of MAGMA, but was modified to use small integers when
+   possible.
+
+-  SYMPOW was originally developed using PARI, but due to licensing
+   difficulties, this was eliminated. SYMPOW also does not use the
+   standard math libraries unless Configure is run with the -lm
+   option. SYMPOW still uses GP to compute the meshes of inverse
+   Mellin transforms (this is done when a new symmetric power is added
+   to datafiles).
 """
 
 ########################################################################
@@ -50,15 +55,15 @@ import sage.rings.all
 
 class Sympow(SageObject):
     r"""
-    Watkins Symmetric Power $L$-function Calculator
+    Watkins Symmetric Power `L`-function Calculator
 
-    Type \code{sympow.[tab]} for a list of useful commands that are
-    implemented using the command line interface, but return objects
-    that make sense in SAGE.
+    Type ``sympow.[tab]`` for a list of useful commands
+    that are implemented using the command line interface, but return
+    objects that make sense in Sage.
 
     You can also use the complete command-line interface of sympow via
-    this class.  Type \code{sympow.help()} for a list of commands and
-    how to call them.
+    this class. Type ``sympow.help()`` for a list of
+    commands and how to call them.
     """
     def _repr_(self):
         """
@@ -87,26 +92,38 @@ class Sympow(SageObject):
 
     def L(self, E, n, prec):
         r"""
-        Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
-        of precision, where edge is the \emph{right} edge.
-        Here $n$ must be even.
+        Return `L(\mathrm{Sym}^{(n)}(E, \text{edge}))` to prec digits of
+        precision, where edge is the *right* edge. Here `n` must be
+        even.
 
         INPUT:
-            E -- elliptic curve
-            n -- even integer
-            prec -- integer
+
+
+        -  ``E`` - elliptic curve
+
+        -  ``n`` - even integer
+
+        -  ``prec`` - integer
+
 
         OUTPUT:
-            string -- real number to prec digits of precision as a string.
 
-        \note{Before using this function for the first time for
-        a given $n$, you may have to type \code{sympow('-new_data <n>')},
-        where \code{<n>} is replaced by your value of $n$.}
 
-        If you would like to see the extensive output sympow prints
-        when running this function, just type \code{set_verbose(2)}.
+        -  ``string`` - real number to prec digits of precision
+           as a string.
 
-        EXAMPLES:
+
+        .. note::
+
+           Before using this function for the first time for a given
+           `n`, you may have to type ``sympow('-new_data n')``,
+           where ``n`` is replaced by your value of `n`.
+
+        If you would like to see the extensive output sympow prints when
+        running this function, just type ``set_verbose(2)``.
+
+        EXAMPLES::
+
             sage: a = sympow.L(EllipticCurve('11a'), 2, 16); a   # optional
             '1.057599244590958E+00'
             sage: RR(a)                    # optional -- requires precomputations
@@ -129,25 +146,34 @@ class Sympow(SageObject):
 
     def Lderivs(self, E, n, prec, d):
         r"""
-        Return $0$th to $d$th derivatives of $L(\Sym^{(n)}(E,s)$ to
-        prec digits of precision, where $s$ is the right edge if $n$
-        is even and the center if $n$ is odd.
+        Return `0^{th}` to `d^{th}` derivatives of
+        `L(\mathrm{Sym}^{(n)}(E,s)` to prec digits of precision, where
+        `s` is the right edge if `n` is even and the center
+        if `n` is odd.
 
         INPUT:
-            E -- elliptic curve
-            n -- integer (even or odd)
-            prec -- integer
-            d -- integer
 
-        OUTPUT:
-            a string, exactly as output by sympow
 
-        \note{To use this function you may have to run a few commands
-        like \code{sympow('-new_data 1d2')}, each which takes a few
-        minutes.  If this function fails it will indicate what
-        commands have to be run.}
+        -  ``E`` - elliptic curve
 
-        EXAMPLES:
+        -  ``n`` - integer (even or odd)
+
+        -  ``prec`` - integer
+
+        -  ``d`` - integer
+
+
+        OUTPUT: a string, exactly as output by sympow
+
+        .. note::
+
+           To use this function you may have to run a few commands
+           like ``sympow('-new_data 1d2')``, each which takes a
+           few minutes. If this function fails it will indicate what commands
+           have to be run.
+
+        EXAMPLES::
+
             sage: print sympow.Lderivs(EllipticCurve('11a'), 1, 16, 2)  # not tested
             ...
              1n0: 2.538418608559107E-01
@@ -166,18 +192,23 @@ class Sympow(SageObject):
 
     def modular_degree(self, E):
         """
-        Return the modular degree of the elliptic curve E, assuming
-        the Stevens conjecture.
+        Return the modular degree of the elliptic curve E, assuming the
+        Stevens conjecture.
 
         INPUT:
-            E -- elliptic curve over Q
+
+
+        -  ``E`` - elliptic curve over Q
+
 
         OUTPUT:
-            integer -- modular degree
 
-        EXAMPLES:
-        We compute the modular degrees of the lowest known conductor
-        curves of the first few ranks:
+
+        -  ``integer`` - modular degree
+
+
+        EXAMPLES: We compute the modular degrees of the lowest known
+        conductor curves of the first few ranks::
 
             sage: sympow.modular_degree(EllipticCurve('11a'))
             1
@@ -200,26 +231,36 @@ class Sympow(SageObject):
 
     def analytic_rank(self, E):
         r"""
-        Return the analytic rank and leading $L$-value of the elliptic
-        curve $E$.
+        Return the analytic rank and leading `L`-value of the
+        elliptic curve `E`.
 
         INPUT:
-            E -- elliptic curve over Q
+
+
+        -  ``E`` - elliptic curve over Q
+
 
         OUTPUT:
-            integer -- analytic rank
-            string -- leading coefficient (as string)
 
-        \note{The analytic rank is \emph{not} computed provably
-        correctly in general.}
 
-        \note{In computing the analytic rank we consider $L^{(r)}(E,1)$
-        to be $0$ if $L^{(r)}(E,1)/\Omega_E > 0.0001$.
-        }
+        -  ``integer`` - analytic rank
 
-        EXAMPLES:
-        We compute the analytic ranks of the lowest known conductor
-        curves of the first few ranks:
+        -  ``string`` - leading coefficient (as string)
+
+
+        .. note::
+
+           The analytic rank is *not* computed provably correctly in
+           general.
+
+        .. note::
+
+           In computing the analytic rank we consider
+           `L^{(r)}(E,1)` to be `0` if
+           `L^{(r)}(E,1)/\Omega_E > 0.0001`.
+
+        EXAMPLES: We compute the analytic ranks of the lowest known
+        conductor curves of the first few ranks::
 
             sage: sympow.analytic_rank(EllipticCurve('11a'))
             (0, '2.53842e-01')
@@ -252,8 +293,8 @@ class Sympow(SageObject):
 
     def new_data(self, n):
         """
-        Pre-compute data files needed for computation of
-        n-th symmetric powers.
+        Pre-compute data files needed for computation of n-th symmetric
+        powers.
         """
         print self('-new_data %s'%n)
 

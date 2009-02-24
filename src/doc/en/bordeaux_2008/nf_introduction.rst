@@ -300,7 +300,12 @@ Next, we construct the number field obtained by adjoining the solution
 ``a`` to :math:`\mathbb{Q}`. Notice that the minimal polynomial of the
 root is :math:`x^6 + 10x^3 - 2x^2 + 25`.
 
-.. link
+.. warning::
+
+   The following tests are currently broken until Trac ticket #5338 is
+   fixed.
+
+.. skip
 
 ::
 
@@ -316,7 +321,7 @@ root is :math:`x^6 + 10x^3 - 2x^2 + 25`.
 We can now compute interesting invariants of the number field
 :math:`K`
 
-.. link
+.. skip
 
 ::
 

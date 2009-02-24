@@ -781,7 +781,7 @@ def preparse_generators(code):
 
 quote_state = None
 
-def preparse(line, reset=True, do_time=False, ignore_prompts=False):
+def preparse(line, reset=True, do_time=False, ignore_prompts=False, numeric_literals=True):
     r"""
     EXAMPLES:
         sage: preparse("ZZ.<x> = ZZ['x']")
@@ -852,9 +852,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # 2x -> 2*x
         L = implicit_mul(L, level = implicit_mul_level)
 
-    # Wrapping
-    # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-    L = preparse_numeric_literals(L)
+    if numeric_literals:
+        # Wrapping
+        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
+        L = preparse_numeric_literals(L)
 
     # Generators
     # R.0 -> R.gen(0)
@@ -913,6 +914,8 @@ def preparse_file(contents, attached={}, magic=True,
         sage: from sage.misc.preparser import preparse_file
         sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
         sage: _ = preparse_file(lots_of_numbers)
+        sage: preparse_file("type(100r), type(100)")
+        '_sage_const_100 = Integer(100)\ntype(100 ), type(_sage_const_100 )'
     """
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
@@ -998,7 +1001,7 @@ def preparse_file(contents, attached={}, magic=True,
                 #print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
                 L = 'load("%s")'%name_load
 
-        M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
+        M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts, numeric_literals=not numeric_literals)
         F.append(M)
         i += 1
     # end while

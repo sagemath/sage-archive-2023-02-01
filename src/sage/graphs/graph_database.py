@@ -3,35 +3,39 @@ Graph Database Module
 
 INFO:
 
-    This module implements classes (GraphDatabase, GraphQuery, GenericGraphQuery)
-    for interfacing with the sqlite database graphs.db.
+This module implements classes (GraphDatabase, GraphQuery,
+GenericGraphQuery) for interfacing with the sqlite database
+graphs.db.
 
-    The GraphDatabase class interfaces with the sqlite database graphs.db.
-    It is an immutable database that inherits from SQLDatabase (see
-    sage.databases.database.py).
+The GraphDatabase class interfaces with the sqlite database
+graphs.db. It is an immutable database that inherits from
+SQLDatabase (see sage.databases.database.py).
 
-    The database contains all unlabeled graphs with 7 or fewer nodes.
-    This class will also interface with the optional database package
-    containing all unlabeled graphs with 8 or fewer nodes.
-    The database(s) consists of five tables, and has the structure given
-    by the function graph_info.  (For a full description including column
-    data types, create a GraphDatabase instance and call the method
-    get_skeleton).
+The database contains all unlabeled graphs with 7 or fewer nodes.
+This class will also interface with the optional database package
+containing all unlabeled graphs with 8 or fewer nodes. The
+database(s) consists of five tables, and has the structure given by
+the function graph_info. (For a full description including column
+data types, create a GraphDatabase instance and call the method
+get_skeleton).
 
 AUTHORS:
-    -- Emily A. Kirkman (2008-09-20): first version of interactive queries,
-                                    cleaned up code and generalized many
-                                    elements to sage.databases.database.py
-    -- Emily A. Kirkman (2007-07-23): inherits GenericSQLDatabase, also added
-                                    classes: GraphQuery and GenericGraphQuery
-    -- Emily A. Kirkman (2007-05-11): initial sqlite version
-    -- Emily A. Kirkman (2007-02-13): initial version (non-sqlite)
+
+- Emily A. Kirkman (2008-09-20): first version of interactive queries,
+  cleaned up code and generalized many elements to
+  sage.databases.database.py
+
+- Emily A. Kirkman (2007-07-23): inherits GenericSQLDatabase, also
+  added classes: GraphQuery and GenericGraphQuery
+
+- Emily A. Kirkman (2007-05-11): initial sqlite version
+
+- Emily A. Kirkman (2007-02-13): initial version (non-sqlite)
 
 REFERENCES:
-    -- Data provided by Jason Grout (Brigham Young University).
-       [Online] Available: http://math.byu.edu/~grout/graphs/
 
-
+- Data provided by Jason Grout (Brigham Young University). [Online]
+  Available: http://math.byu.edu/~grout/graphs/
 """
 
 ################################################################################
@@ -54,11 +58,12 @@ dblocation = DB_HOME + '/graphs/graphs.db'
 
 def degseq_to_data(degree_sequence):
     """
-    Takes a degree sequence list (of Integers) and converts to a
-    sorted (max->min) integer data type, as used for faster access
-    in the underlying database.
+    Takes a degree sequence list (of Integers) and converts to a sorted
+    (max-min) integer data type, as used for faster access in the
+    underlying database.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.graph_database import degseq_to_data
         sage: degseq_to_data([2,2,3,1])
         3221
@@ -68,12 +73,14 @@ def degseq_to_data(degree_sequence):
 
 def data_to_degseq(data, graph6=None):
     """
-    Takes the database integer data type (one digit per vertex representing
-    its degree, sorted high to low) and converts it to degree sequence list.
-    The graph6 identifier is required for all graphs with no edges, so that
-    the correct number of zeros will be returned.
+    Takes the database integer data type (one digit per vertex
+    representing its degree, sorted high to low) and converts it to
+    degree sequence list. The graph6 identifier is required for all
+    graphs with no edges, so that the correct number of zeros will be
+    returned.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.graph_database import data_to_degseq
         sage: data_to_degseq(3221)
         [1, 2, 2, 3]
@@ -90,10 +97,11 @@ def data_to_degseq(data, graph6=None):
 
 def graph6_to_plot(graph6):
     """
-    Constructs a graph from a graph6 string and returns a Graphics object
-    with arguments preset for show function.
+    Constructs a graph from a graph6 string and returns a Graphics
+    object with arguments preset for show function.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.graph_database import graph6_to_plot
         sage: type(graph6_to_plot('D??'))
         <class 'sage.plot.plot.Graphics'>
@@ -104,25 +112,22 @@ def graph6_to_plot(graph6):
 def subgraphs_to_query(subgraphs, db):
     """
     Constructs and returns a GraphQuery object respecting the special
-    input required for the induced_subgraphs parameter.  This input
-    can be an individual graph6 string (in which case it is evaluated
-    without the use of this method) or a list of strings.  In the latter
-    case, the list should be of one of the following two formats:
-            1. ['one_of',<String>,...,<String>]
-                Will search for graphs containing a subgraph
-                isomorphic to any of the graph6 strings in
-                the list.
-            2. ['all_of',<String>,...,<String>]
-                Will search for graphs containing a subgraph
-                isomorphic to each of the graph6 strings in
-                the list.
+    input required for the induced_subgraphs parameter. This input can
+    be an individual graph6 string (in which case it is evaluated
+    without the use of this method) or a list of strings. In the latter
+    case, the list should be of one of the following two formats: 1.
+    ['one_of',String,...,String] Will search for graphs containing a
+    subgraph isomorphic to any of the graph6 strings in the list. 2.
+    ['all_of',String,...,String] Will search for graphs containing a
+    subgraph isomorphic to each of the graph6 strings in the list.
 
-    This is a helper method called by the GraphQuery constructor
-    to handle this special format.  This method should not be used
-    on its own because it doesn't set any display columns in the
-    query string, causing a failure to fetch the data when run.
+    This is a helper method called by the GraphQuery constructor to
+    handle this special format. This method should not be used on its
+    own because it doesn't set any display columns in the query string,
+    causing a failure to fetch the data when run.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.graph_database import subgraphs_to_query
         sage: gd = GraphDatabase()
         sage: q = subgraphs_to_query(['all_of','A?','B?','C?'],gd)
@@ -188,11 +193,18 @@ def graph_db_info(tablename=None):
     Returns a dictionary of allowed table and column names.
 
     INPUT:
-        tablename -- restricts the output to a single table
 
-    EXAMPLE:
+
+    -  ``tablename`` - restricts the output to a single
+       table
+
+
+    EXAMPLE::
+
         sage: graph_db_info().keys()
         ['graph_data', 'degrees', 'spectrum', 'misc', 'aut_grp']
+
+    ::
 
         sage: graph_db_info(tablename='graph_data')
         ['complement_graph6',
@@ -222,31 +234,40 @@ class GenericGraphQuery(GenericSQLQuery):
         A query for a GraphDatabase.
 
         INPUT:
-            database -- the GraphDatabase instance to query (if None then a new
-                    instance is created)
-            query_string -- a string representing the SQL query
-            param_tuple -- a tuple of strings - what to replace question marks in
-                    query_string with (optional, but a good idea)
 
-        NOTE:
-            This query class is generally intended for developers and more
-            advanced users.  It allows you to execute any query, and so may be
-            considered unsafe...
 
-            See GraphDatabase class docstrings or enter:
+        -  ``database`` - the GraphDatabase instance to query
+           (if None then a new instance is created)
 
-                sage: G = GraphDatabase()
-                sage: G.get_skeleton()
-                {...
+        -  ``query_string`` - a string representing the SQL
+           query
 
-            to see the underlying structure of the database.  Also see
-            GenericSQLQuery in sage.databases.database for more info and a tutorial.
+        -  ``param_tuple`` - a tuple of strings - what to
+           replace question marks in query_string with (optional, but a good
+           idea)
 
-            A piece of advice about '?' and param_tuple:
-            It is generally considered safer to query with a '?' in place of
-            each value parameter, and using a second argument (a tuple of strings)
-            in a call to the sqlite database.  Successful use of the param_tuple
-            argument is exemplified:
+
+        .. note::
+
+           This query class is generally intended for developers and
+           more advanced users. It allows you to execute any query,
+           and so may be considered unsafe.
+
+        See GraphDatabase class docstrings or enter::
+
+            sage: G = GraphDatabase()
+            sage: G.get_skeleton()
+            {...
+
+        to see the underlying structure of the database. Also see
+        GenericSQLQuery in sage.databases.database for more info and a
+        tutorial.
+
+        A piece of advice about '?' and param_tuple: It is generally
+        considered safer to query with a '?' in place of each value
+        parameter, and using a second argument (a tuple of strings) in a
+        call to the sqlite database. Successful use of the param_tuple
+        argument is exemplified::
 
             sage: G = GraphDatabase()
             sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
@@ -260,7 +281,6 @@ class GenericGraphQuery(GenericSQLQuery):
             20                   D?K                  5                    2
             21                   D@O                  5                    2
             22                   D?[                  5                    3
-
         """
         if database == None: database = GraphDatabase()
         if not isinstance(database, GraphDatabase):
@@ -271,47 +291,49 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
     def __init__(self, graph_db=None, query_dict=None, display_cols=None, **kwds):
         """
-        A query for an instance of GraphDatabase.  This class nicely wraps
-        the SQLQuery class located in sage.databases.database.py to make the
-        query constraints intuitive and with as many predefinitions as posible.
-        (i.e.: since it has to be a GraphDatabase, we already know the table
-        structure and types; and since it is immutable, we can treat these as
-        a guarantee).
+        A query for an instance of GraphDatabase. This class nicely wraps
+        the SQLQuery class located in sage.databases.database.py to make
+        the query constraints intuitive and with as many predefinitions as
+        posible. (i.e.: since it has to be a GraphDatabase, we already know
+        the table structure and types; and since it is immutable, we can
+        treat these as a guarantee).
 
-        NOTE:
-            SQLQuery functions are available for GraphQuery.  See
-            sage.dataabases.database.py for more details.
+        .. note::
+
+           SQLQuery functions are available for GraphQuery. See
+           sage.dataabases.database.py for more details.
 
         INPUT:
-            graph_db -- The GraphDatabase instance to apply the query to.  (If
-                        None, then a new instance is created).
-            query_dict -- A dictionary specifying the query itself.  Format is:
-                                    {'table_name': 'tblname',
-                                    'display_cols': ['col1', 'col2'],
-                                    'expression':[col, operator, value]}
-                        If not None, query_dict will take precedence over all
-                        other arguments.
-            display_cols -- A list of column names (strings) to display in the
-                        result when running or showing a query.
-            kwds -- The columns of the database are all keywords.  For a database
-                    table/column structure dictionary, call graph_db_info.
-                    Keywords accept both single values and lists of length 2.
-                    The list allows the user to specify an expression other than
-                    equality.  Valid expressions are strings, and for numeric
-                    values (i.e. Reals and Integers) are: '=','>','<','>=','<='.
-                    String values also accept 'regexp' as an expression argument.
-                    The only keyword exception to this format is induced_subgraphs,
-                    which accepts one of the following options:
-                        1. ['one_of',<String>,...,<String>]
-                            Will search for graphs containing a subgraph
-                            isomorphic to any of the graph6 strings in
-                            the list.
-                        2. ['all_of',<String>,...,<String>]
-                            Will search for graphs containing a subgraph
-                            isomorphic to each of the graph6 strings in
-                            the list.
 
-        EXAMPLES:
+
+        -  ``graph_db`` - The GraphDatabase instance to apply
+           the query to. (If None, then a new instance is created).
+
+        -  ``query_dict`` - A dictionary specifying the query
+           itself. Format is: 'table_name': 'tblname', 'display_cols':
+           ['col1', 'col2'], 'expression':[col, operator, value] If not None,
+           query_dict will take precedence over all other arguments.
+
+        -  ``display_cols`` - A list of column names (strings)
+           to display in the result when running or showing a query.
+
+        -  ``kwds`` - The columns of the database are all
+           keywords. For a database table/column structure dictionary, call
+           graph_db_info. Keywords accept both single values and lists of
+           length 2. The list allows the user to specify an expression other
+           than equality. Valid expressions are strings, and for numeric
+           values (i.e. Reals and Integers) are: '=','','','=','='. String
+           values also accept 'regexp' as an expression argument. The only
+           keyword exception to this format is induced_subgraphs, which
+           accepts one of the following options: 1.
+           ['one_of',String,...,String] Will search for graphs containing a
+           subgraph isomorphic to any of the graph6 strings in the list. 2.
+           ['all_of',String,...,String] Will search for graphs containing a
+           subgraph isomorphic to each of the graph6 strings in the list.
+
+
+        EXAMPLES::
+
             sage: Q = GraphQuery(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],min_degree=1)
             sage: Q.number_of()
             35
@@ -459,11 +481,18 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
         Displays the results of a query in table format.
 
         INPUT:
-            max_field_size -- width of fields in command prompt version
-            with_picture -- whether or not to display results with a picture
-                of the graph (available only in the notebook)
 
-        EXAMPLES:
+
+        -  ``max_field_size`` - width of fields in command
+           prompt version
+
+        -  ``with_picture`` - whether or not to display
+           results with a picture of the graph (available only in the
+           notebook)
+
+
+        EXAMPLES::
+
             sage: G = GraphDatabase()
             sage: Q = GraphQuery(G, display_cols=['graph6','num_vertices','aut_grp_size'], num_vertices=4, aut_grp_size=4)
             sage: Q.show()
@@ -471,6 +500,8 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             ------------------------------------------------------------
             C@                   4                    4
             C^                   4                    4
+
+        ::
 
             sage: R = GraphQuery(G, display_cols=['graph6','num_vertices','degree_sequence'], num_vertices=4)
             sage: R.show()
@@ -488,14 +519,16 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             C^                   4                    [2, 2, 3, 3]
             C~                   4                    [3, 3, 3, 3]
 
-        Show the pictures (in notebook mode only):
+        Show the pictures (in notebook mode only)::
+
             sage: S = GraphQuery(G, display_cols=['graph6','aut_grp_size'], num_vertices=4)
             sage: S.show(with_picture=True)
             Traceback (most recent call last):
             ...
             NotImplementedError: Cannot display plot on command line.
 
-        Note that pictures can be turned off:
+        Note that pictures can be turned off::
+
             sage: S.show(with_picture=False)
             Graph6               Aut Grp Size
             ----------------------------------------
@@ -511,8 +544,9 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             C^                   4
             C~                   24
 
+        Show your own query (note that the output is not reformatted for
+        generic queries)::
 
-        Show your own query (note that the output is not reformatted for generic queries):
             sage: (GenericGraphQuery('select degree_sequence from degrees where max_degree=2 and min_degree >= 1',G)).show()
             degree_sequence
             --------------------
@@ -561,7 +595,8 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
         """
         Returns a list of Sage Graph objects that satisfy the query.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = GraphQuery(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],min_degree=1)
             sage: L = Q.get_graphs_list()
             sage: L[0]
@@ -579,9 +614,11 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
     def number_of(self):
         """
-        Returns the number of graphs in the database that satisfy the query.
+        Returns the number of graphs in the database that satisfy the
+        query.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = GraphQuery(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],min_degree=1)
             sage: Q.number_of()
             35
@@ -600,57 +637,62 @@ class GraphDatabase(GenericSQLDatabase):
 
         INFO:
 
-            This class interfaces with the sqlite database graphs.db.  It is an
-            immutable database that inherits from SQLDatabase (see
-            sage.databases.database.py).  The display functions and get_graphs_list create
-            their own queries, but it is also possible to query the database by
-            constructing either a GenericSQLQuery or a SQLQuery.
+        This class interfaces with the sqlite database graphs.db. It is an
+        immutable database that inherits from SQLDatabase (see
+        sage.databases.database.py). The display functions and get_graphs_list
+        create their own queries, but it is also possible to query the
+        database by constructing either a GenericSQLQuery or a SQLQuery.
 
-            The database contains all unlabeled graphs with 7 or fewer nodes.
-            This class will also interface with the optional database package
-            containing all unlabeled graphs with 8 or fewer nodes.  The database
-            consists of five tables.  For a full table and column structure, call
-            graph_db_info.
+        The database contains all unlabeled graphs with 7 or fewer nodes.
+        This class will also interface with the optional database package
+        containing all unlabeled graphs with 8 or fewer nodes. The database
+        consists of five tables. For a full table and column structure,
+        call graph_db_info.
 
-        USE:
-            The tables are associated by the unique primary key graph_id (int).
+        USE: The tables are associated by the unique primary key graph_id
+        (int).
 
-            To query this database, we create a GraphQuery.  This can be done
-            directly with the query method or by initializing one of
-                1. GenericGraphQuery -- allows direct entry of a query string
-                    and tuple of parameters.  This is the route for more advanced
-                    users that are familiar with SQL.
-                2. GraphQuery -- is a wrapper of SQLQuery, a general database/query
-                    wrapper of SQLite for new users.
+        To query this database, we create a GraphQuery. This can be done
+        directly with the query method or by initializing one of 1.
+        GenericGraphQuery - allows direct entry of a query string and tuple
+        of parameters. This is the route for more advanced users that are
+        familiar with SQL. 2. GraphQuery - is a wrapper of SQLQuery, a
+        general database/query wrapper of SQLite for new users.
 
         REFERENCES:
-            -- Data provided by Jason Grout (Brigham Young University).
-               [Online] Available: http://math.byu.edu/~grout/graphs/
 
-		EXAMPLE:
-			sage: G = GraphDatabase()
-			sage: G.get_skeleton()
-                        {u'aut_grp': {u'edge_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'vertex_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'aut_grp_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_orbits': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_fixed_points': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'degrees': {u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'degrees_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'max_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'regular': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'average_degree': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'degree_sequence': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'spectrum': {u'max_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'energy': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'spectrum': {'index': False, 'primary_key': False, 'sql': u'TEXT'}, u'eigenvalues_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}}, u'misc': {u'diameter': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'vertex_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_components': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'min_vertex_cover_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'edge_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_spanning_trees': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'induced_subgraphs': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'radius': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cut_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'clique_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'independence_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'girth': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'graph_data': {u'perfect': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'planar': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'complement_graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_edges': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_hamiltonian_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'lovasz_number': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'eulerian': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}}
+        - Data provided by Jason Grout (Brigham Young
+          University). [Online] Available:
+          http://math.byu.edu/~grout/graphs/
+
+        EXAMPLE::
+
+            sage: G = GraphDatabase()
+            sage: G.get_skeleton()
+            {u'aut_grp': {u'edge_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'vertex_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'aut_grp_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_orbits': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_fixed_points': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'degrees': {u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'degrees_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'max_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'regular': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'average_degree': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'degree_sequence': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'spectrum': {u'max_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'energy': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'spectrum': {'index': False, 'primary_key': False, 'sql': u'TEXT'}, u'eigenvalues_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}}, u'misc': {u'diameter': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'vertex_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_components': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'min_vertex_cover_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'edge_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_spanning_trees': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'induced_subgraphs': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'radius': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cut_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'clique_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'independence_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'girth': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'graph_data': {u'perfect': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'planar': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'complement_graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_edges': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_hamiltonian_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'lovasz_number': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'eulerian': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}}
         """
         GenericSQLDatabase.__init__(self,dblocation)
 
     def _gen_interact_func(self, display, **kwds):
         """
         Generates and returns a function to interact with GraphQuery
-        parameters and results.  This is a helper method for the
+        parameters and results. This is a helper method for the
         interactive_query method and should not be called directly.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: D = GraphDatabase()
             sage: D.interactive_query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5],max_degree=3)
             <html>...</html>
 
-			sage: G = GraphDatabase()
-			sage: f = G._gen_interact_func(display=['graph6'], num_vertices=3)
-			sage: type(f)
-			<type 'function'>
-			sage: interact(f)
-			<html>...
+        ::
+
+            sage: G = GraphDatabase()
+            sage: f = G._gen_interact_func(display=['graph6'], num_vertices=3)
+            sage: type(f)
+            <type 'function'>
+            sage: interact(f)
+            <html>...
         """
         from sage.server.notebook.interact import input_grid
         arg=['%s=%s'%(word,kwds[word]) for word in kwds]
@@ -668,10 +710,11 @@ class GraphDatabase(GenericSQLDatabase):
 
     def query(self, query_dict=None, display_cols=None, **kwds):
         """
-        Creates a GraphQuery on this database.  For full class details,
-        type GraphQuery? and press shift+enter.
+        Creates a GraphQuery on this database. For full class details, type
+        GraphQuery? and press shift+enter.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: D = GraphDatabase()
             sage: q = D.query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=['<=',5])
             sage: q.show()
@@ -792,14 +835,15 @@ class GraphDatabase(GenericSQLDatabase):
 
     def interactive_query(self, display_cols, **kwds):
         """
-        TODO:  This function could use improvement.  Add full options of typical
-        GraphQuery (i.e.: have it accept list input); and update options in
-        interact to make it less annoying to put in operators.
+        TODO: This function could use improvement. Add full options of
+        typical GraphQuery (i.e.: have it accept list input); and update
+        options in interact to make it less annoying to put in operators.
 
         Generates an interact shell (in the notebook only) that allows the
         user to manipulate query parameters and see the updated results.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: D = GraphDatabase()
             sage: D.interactive_query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=5,max_degree=3)
             <html>...</html>

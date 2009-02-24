@@ -1,10 +1,12 @@
 r"""
 A module for dealing with lists of graphs.
 
-AUTHOR:
-    -- Robert L. Miller (2007-02-10): initial version
-    -- Emily A. Kirkman (2007-02-13): added show functions (to_graphics_array
-        and show_graphs)
+AUTHORS:
+
+- Robert L. Miller (2007-02-10): initial version
+
+- Emily A. Kirkman (2007-02-13): added show functions
+  (to_graphics_array and show_graphs)
 """
 
 #*****************************************************************************
@@ -17,12 +19,18 @@ AUTHOR:
 
 def from_whatever(data):
     """
-    Returns a list of SAGE Graphs, given a list of whatever kind of data.
+    Returns a list of Sage Graphs, given a list of whatever kind of
+    data.
 
     INPUT:
-        data -- can be a string, a list of strings, or a file stream, or whatever.
 
-    EXAMPLE:
+
+    -  ``data`` - can be a string, a list of strings, or a
+       file stream, or whatever.
+
+
+    EXAMPLE::
+
         sage: l = ['N@@?N@UGAGG?gGlKCMO',':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI']
         sage: graphs_list.from_whatever(l)
         [Graph on 15 vertices, Looped multi-graph on 17 vertices]
@@ -60,12 +68,17 @@ def from_whatever(data):
 
 def from_graph6(data):
     """
-    Returns a list of SAGE Graphs, given a list of graph6 data.
+    Returns a list of Sage Graphs, given a list of graph6 data.
 
     INPUT:
-        data -- can be a string, a list of strings, or a file stream.
 
-    EXAMPLE:
+
+    -  ``data`` - can be a string, a list of strings, or a
+       file stream.
+
+
+    EXAMPLE::
+
         sage: l = ['N@@?N@UGAGG?gGlKCMO','XsGGWOW?CC?C@HQKHqOjYKC_uHWGX?P?~TqIKA`OA@SAOEcEA??']
         sage: graphs_list.from_graph6(l)
         [Graph on 15 vertices, Graph on 25 vertices]
@@ -101,12 +114,17 @@ def from_graph6(data):
 
 def from_sparse6(data):
     """
-    Returns a list of SAGE Graphs, given a list of sparse6 data.
+    Returns a list of Sage Graphs, given a list of sparse6 data.
 
     INPUT:
-        data -- can be a string, a list of strings, or a file stream.
 
-    EXAMPLE:
+
+    -  ``data`` - can be a string, a list of strings, or a
+       file stream.
+
+
+    EXAMPLE::
+
         sage: l = [':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI',':f`??KO?B_OOSCGE_?OWONDBO?GOJBDO?_SSJdApcOIG`?og_UKEbg?_SKFq@[CCBA`p?oYMFp@gw]Qaa@xEMHDb@hMCBCbQ@ECHEcAKKQKFPOwo[PIDQ{KIHEcQPOkVKEW_WMNKqPWwcRKOOWSKIGCqhWt??___WMJFCahWzEBa`xOu[MpPPKqYNoOOOKHHDBPs|??__gWMKEcAHKgTLErqA?A@a@G{kVLErs?GDBA@XCs\\NggWSOJIDbHh@?A@aF']
         sage: graphs_list.from_sparse6(l)
         [Looped multi-graph on 17 vertices, Looped multi-graph on 39 vertices]
@@ -141,19 +159,26 @@ def from_sparse6(data):
         return l
 
 def to_graph6(list, file = None, output_list=False):
-    """
-    Converts a list of SAGE graphs to a single string of graph6 graphs. If file is
-    specified, then the string will be written quietly to the file. If output_list
-    is True, then a list of strings will be returned, one string per graph.
+    r"""
+    Converts a list of Sage graphs to a single string of graph6 graphs.
+    If file is specified, then the string will be written quietly to
+    the file. If output_list is True, then a list of strings will be
+    returned, one string per graph.
 
     INPUT:
-        list -- a Python list of SAGE Graphs
-        file -- (optional) a file stream to write to (must be in 'w' mode)
-        output_list -- False -> output is a string
-                        True -> output is a list of strings
-                      (ignored if file gets specified)
 
-    EXAMPLE:
+
+    -  ``list`` - a Python list of Sage Graphs
+
+    -  ``file`` - (optional) a file stream to write to
+       (must be in 'w' mode)
+
+    -  ``output_list`` - False - output is a string True -
+       output is a list of strings (ignored if file gets specified)
+
+
+    EXAMPLE::
+
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
         sage: graphs_list.to_graph6(l)
         'ShCHGD@?K?_@?@?C_GGG@??cG?G?GK_?C\nIheA@GUAo\n'
@@ -173,19 +198,26 @@ def to_graph6(list, file = None, output_list=False):
         file.flush()
 
 def to_sparse6(list, file = None, output_list=False):
-    """
-    Converts a list of SAGE graphs to a single string of sparse6 graphs. If file is
-    specified, then the string will be written quietly to the file. If output_list
-    is True, then a list of strings will be returned, one string per graph.
+    r"""
+    Converts a list of Sage graphs to a single string of sparse6
+    graphs. If file is specified, then the string will be written
+    quietly to the file. If output_list is True, then a list of
+    strings will be returned, one string per graph.
 
     INPUT:
-        list -- a Python list of SAGE Graphs
-        file -- (optional) a file stream to write to (must be in 'w' mode)
-        output_list -- False -> output is a string
-                        True -> output is a list of strings
-                      (ignored if file gets specified)
 
-    EXAMPLE:
+
+    -  ``list`` - a Python list of Sage Graphs
+
+    -  ``file`` - (optional) a file stream to write to
+       (must be in 'w' mode)
+
+    -  ``output_list`` - False - output is a string True -
+       output is a list of strings (ignored if file gets specified)
+
+
+    EXAMPLE::
+
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
         sage: graphs_list.to_sparse6(l)
         ':S_`abcaDe`Fg_HijhKfLdMkNcOjP_BQ\n:I`ES@obGkqegW~\n'
@@ -206,21 +238,24 @@ def to_sparse6(list, file = None, output_list=False):
 
 def to_graphics_arrays(list, **kwds):
     """
-    Returns a list of SAGE graphics arrays containing the graphs in list.
-    The maximum number of graphs per array is 20 (5 rows of 4).  Use this
-    function if there are too many graphs for the show_graphs function.
-    The graphics arrays will contain 20 graphs each except potentially the
-    last graphics array in the list.
+    Returns a list of Sage graphics arrays containing the graphs in
+    list. The maximum number of graphs per array is 20 (5 rows of 4).
+    Use this function if there are too many graphs for the show_graphs
+    function. The graphics arrays will contain 20 graphs each except
+    potentially the last graphics array in the list.
 
     INPUT:
-        list -- a list of SAGE graphs
 
-    GRAPH PLOTTING:
-    Defaults to circular layout for graphs.  This allows for a nicer display
-    in a small area and takes much less time to compute than the spring-
-    layout algorithm for many graphs.
 
-    EXAMPLES:
+    -  ``list`` - a list of Sage graphs
+
+
+    GRAPH PLOTTING: Defaults to circular layout for graphs. This allows
+    for a nicer display in a small area and takes much less time to
+    compute than the spring- layout algorithm for many graphs.
+
+    EXAMPLES::
+
         sage: glist = []
         sage: for i in range(999):
         ...    glist.append(graphs.RandomGNP(6,.45))
@@ -228,13 +263,22 @@ def to_graphics_arrays(list, **kwds):
         sage: garray = graphs_list.to_graphics_arrays(glist)
 
     Display the first graphics array in the list.
+
+    ::
+
         sage: garray[0].show()
 
     Display the last graphics array in the list.
+
+    ::
+
         sage: garray[len(garray)-1].show()
 
-    See the .plot() or .show() documentation for an individual graph for
-    options, all of which are available from to_graphics_arrays
+    See the .plot() or .show() documentation for an individual graph
+    for options, all of which are available from to_graphics_arrays
+
+    ::
+
         sage: glist = []
         sage: for _ in range(10):
         ...       glist.append(graphs.RandomLobster(41, .3, .4))
@@ -292,25 +336,27 @@ def to_graphics_arrays(list, **kwds):
 
 def show_graphs(list, **kwds):
     """
-    Shows a maximum of 20 graphs from list in a sage graphics array.
-    If more than 20 graphs are given in the list argument, then it
-    will display one graphics array after another with each containing
-    at most 20 graphs.
+    Shows a maximum of 20 graphs from list in a sage graphics array. If
+    more than 20 graphs are given in the list argument, then it will
+    display one graphics array after another with each containing at
+    most 20 graphs.
 
     Note that if to save the image output from the notebook, you must
-    save each graphics array individually.  (There will be a small space
+    save each graphics array individually. (There will be a small space
     between graphics arrays).
 
     INPUT:
-        list -- a list of SAGE graphs
 
-    GRAPH PLOTTING:
-    Defaults to circular layout for graphs.  This allows for a nicer display
-    in a small area and takes much less time to compute than the spring-
-    layout algorithm for many graphs.
 
-    EXAMPLES:
-    Create a list of graphs:
+    -  ``list`` - a list of Sage graphs
+
+
+    GRAPH PLOTTING: Defaults to circular layout for graphs. This allows
+    for a nicer display in a small area and takes much less time to
+    compute than the spring- layout algorithm for many graphs.
+
+    EXAMPLES: Create a list of graphs::
+
         sage: glist = []
         sage: glist.append(graphs.CompleteGraph(6))
         sage: glist.append(graphs.CompleteBipartiteGraph(4,5))
@@ -327,27 +373,32 @@ def show_graphs(list, **kwds):
         sage: glist.append(graphs.StarGraph(17))
         sage: glist.append(graphs.WheelGraph(9))
 
-    Check that length is <= 20:
+    Check that length is = 20::
+
         sage: len(glist)
         14
 
-    Show the graphs in a graphics array:
+    Show the graphs in a graphics array::
+
         sage: graphs_list.show_graphs(glist)
 
-    Here's an example where more than one graphics array is used:
+    Here's an example where more than one graphics array is used::
+
         sage: gq = GraphQuery(display_cols=['graph6'],num_vertices=5)
         sage: g = gq.get_graphs_list()
         sage: len(g)
         34
         sage: graphs_list.show_graphs(g)
 
-    See the .plot() or .show() documentation for an individual graph for
-    options, all of which are available from to_graphics_arrays
+    See the .plot() or .show() documentation for an individual graph
+    for options, all of which are available from to_graphics_arrays
+
+    ::
+
         sage: glist = []
         sage: for _ in range(10):
         ...       glist.append(graphs.RandomLobster(41, .3, .4))
         sage: graphs_list.show_graphs(glist, layout='spring', vertex_size=20)
-
     """
     ga_list = to_graphics_arrays(list, **kwds)
 

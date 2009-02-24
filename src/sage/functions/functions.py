@@ -1,9 +1,11 @@
 """
-SAGE Functions Class
+Sage Functions Class
 
 AUTHORS:
-   -- William Stein
-   -- didier deshommes <dfdeshom@gmail.com>(2007-03-26): added support for RQDF (deprecated)
+
+- William Stein
+
+- Didier Deshommes (2007-03-26): added support for RQDF (deprecated)
 """
 import weakref
 
@@ -36,9 +38,11 @@ class FunctionRing_class(CommutativeRing):
 
     def set_precision(self, prec):
         """
-        Change the precision of the default real field used for coercing functions.
+        Change the precision of the default real field used for coercing
+        functions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: old_prec = FunctionRing.set_precision(200)
             sage: pi.str()
             '3.1415926535897932384626433832795028841971693993751058209749'
@@ -48,19 +52,22 @@ class FunctionRing_class(CommutativeRing):
             sage: pi.str()
             '3.14159265358979'
 
-        Note that there seems to be no real numbers in GAP, which is why that
-        coercion returns a GAP string.
+        Note that there seems to be no real numbers in GAP, which is why
+        that coercion returns a GAP string.
 
-        The precision is only used when there is no way to describe
-        the function to higher precision (or exactly) to the
-        interface:
-             sage: maxima(pi)
-             %pi
+        The precision is only used when there is no way to describe the
+        function to higher precision (or exactly) to the interface::
+
+            sage: maxima(pi)
+            %pi
 
         If we coerce into a GP/PARI session, then the resulting number will
         have precision the precision of that session irregardless of the
-        default precision of FunctionRing.  Note that GP/PARI precision is set in
-        decimal digits, whereas in SAGE precisions are always in binary.
+        default precision of FunctionRing. Note that GP/PARI precision is
+        set in decimal digits, whereas in Sage precisions are always in
+        binary.
+
+        ::
 
             sage: gp = Gp()  # new session so as not to affect overwrite global gp session
             sage: gp(pi)
@@ -85,7 +92,8 @@ class FunctionRing_class(CommutativeRing):
 
     def default_precision(self):
         """
-        Get the precision of the default real field used for coercing functions.
+        Get the precision of the default real field used for coercing
+        functions.
         """
         return self._default_precision
 
@@ -132,8 +140,8 @@ class Function(RingElement):
 
     def str(self, bits=None):
         """
-        Return a string representation of self as a decimal number
-        to at least the given bits of precision.
+        Return a string representation of self as a decimal number to at
+        least the given bits of precision.
         """
         if bits > 2**23:
             # Program around a bug in GMP.
@@ -207,7 +215,8 @@ class Function(RingElement):
 
     def _singular_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = singular(e); s
             2.71828182845905
         """
@@ -247,7 +256,8 @@ class Function(RingElement):
 
     def __cmp__(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = e + pi
             sage: bool(s == 0)
             False
@@ -336,7 +346,8 @@ class Function_arith(Function):
     """
     Generic arithmetic with functions is supported.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: s = (pi + pi) * e + e
         sage: s
         2*e*pi + e
@@ -344,6 +355,8 @@ class Function_arith(Function):
         19.7977502738062
         sage: maxima(s)
         2*%e*%pi+%e
+
+    ::
 
         sage: t = e^2 + pi + 2/3; t
         pi + e^2 + 2/3
@@ -373,7 +386,8 @@ class Function_arith(Function):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: log2 * e + pi^2/2
             e*log(2) + pi^2/2
         """
@@ -381,7 +395,8 @@ class Function_arith(Function):
 
     def _latex_(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: latex(log2 * e + pi^2/2)
             {e \log \left( 2 \right)} + \frac{{\pi}^{2} }{2}
             sage: latex(NaN^3 + 1/golden_ratio)
@@ -409,7 +424,8 @@ class Function_arith(Function):
 
     def _gap_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gap(e + pi)
             pi + e
         """
@@ -417,7 +433,8 @@ class Function_arith(Function):
 
     def _gp_(self, gp):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: gp(e + pi)
             5.859874482048838473822930855             # 32-bit
             5.8598744820488384738229308546321653819   # 64-bit
@@ -426,7 +443,8 @@ class Function_arith(Function):
 
     def _kash_(self, kash):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: kash(e + pi)                        # optional
             5.85987448204883847382293085463
         """
@@ -434,7 +452,8 @@ class Function_arith(Function):
 
     def _maple_(self, maple):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maple(e + pi)              # optional
             exp(1)+Pi
         """
@@ -442,7 +461,8 @@ class Function_arith(Function):
 
     def _mathematica_(self, mathematica):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: mathematica(e + pi)        # optional
             E + Pi
         """
@@ -450,7 +470,8 @@ class Function_arith(Function):
 
     def _maxima_(self, maxima):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: maxima(e + pi)
             %pi+%e
         """
@@ -461,7 +482,8 @@ class Function_arith(Function):
 
     def _octave_(self, octave):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: octave(e + pi)                     # optional
             5.85987
         """
@@ -469,7 +491,8 @@ class Function_arith(Function):
 
     def _pari_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari(e + pi)
             5.85987448204884
         """
@@ -477,7 +500,8 @@ class Function_arith(Function):
 
     def _singular_init_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: singular(e + pi)
             pi + e
         """
@@ -485,7 +509,8 @@ class Function_arith(Function):
 
     def _mpfr_(self, R):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RealField(100)(e + pi)
             5.8598744820488384738229308546
         """
@@ -493,10 +518,11 @@ class Function_arith(Function):
 
 class Function_gen(Function):
     """
-    Function defined by a generic SAGE object.  This makes possible
+    Function defined by a generic Sage object. This makes possible
     symbolic expressions like the following:
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = pi/2 + e
         sage: a
         pi/2 + e
@@ -506,6 +532,8 @@ class Function_gen(Function):
         4.28907815525394
         sage: RealField(200)(a)
         4.2890781552539418545916091629924139398558317933875124854544
+
+    ::
 
         sage: b = e + 5/7
         sage: maxima(b)
@@ -696,7 +724,8 @@ class Function_cos(Function):
     """
     The cosine function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: z = 1+2*I
         sage: theta = arg(z)
         sage: cos(theta)*abs(z)         # slightly random output on cygwin
@@ -845,9 +874,11 @@ They belong to the class of "Bessel functions of fractional order".
         1.20742359495287099
 
 REFERENCE:
-    * Abramowitz and Stegun: Handbook of Mathematical Functions,
-      http://www.math.sfu.ca/~cbm/aands/
-    * http://en.wikipedia.org/wiki/Airy_function
+
+- Abramowitz and Stegun: Handbook of Mathematical Functions,
+  http://www.math.sfu.ca/~cbm/aands/
+
+- http://en.wikipedia.org/wiki/Airy_function
 """)
 
 airy_bi = maxima_function(var='x',
@@ -878,7 +909,9 @@ They belong to the class of "Bessel functions of fractional order".
         1.20742359495287099
 
 REFERENCE:
-    * Abramowitz and Stegun: Handbook of Mathematical Functions,
+
+- Abramowitz and Stegun: Handbook of Mathematical Functions,
       http://www.math.sfu.ca/~cbm/aands/
-    * http://en.wikipedia.org/wiki/Airy_function
+
+- http://en.wikipedia.org/wiki/Airy_function
 """)

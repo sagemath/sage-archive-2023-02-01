@@ -46,29 +46,40 @@ I = CC.gen(0)
 
 def exponential_integral_1(x, n=0):
     r"""
-    Returns the exponential integral $E_1(x)$. If the optional argument
-    $n$ is given, computes list of the first $n$ values of the exponential
-    integral $E_1(x m)$.
+    Returns the exponential integral `E_1(x)`. If the optional
+    argument `n` is given, computes list of the first
+    `n` values of the exponential integral
+    `E_1(x m)`.
 
-    The exponential integral $E_1(x)$ is
-    $$
-             E_1(x) = \int_{x}^{\infty} e^{-t}/t dt
-    $$
+    The exponential integral `E_1(x)` is
+
+    .. math::
+
+                      E_1(x) = \int_{x}^{\infty} e^{-t}/t dt
+
+
 
     INPUT:
-        x -- a positive real number
 
-        n -- (default: 0) a nonnegative integer; if nonzero,
-             then return a list of values E_1(x*m) for
-             m = 1,2,3,...,n.   This is useful, e.g., when
-             computing derivatives of L-functions.
+
+    -  ``x`` - a positive real number
+
+    -  ``n`` - (default: 0) a nonnegative integer; if
+       nonzero, then return a list of values E_1(x\*m) for m =
+       1,2,3,...,n. This is useful, e.g., when computing derivatives of
+       L-functions.
+
 
     OUTPUT:
-        float -- if n is 0 (the default)
-      or
-        list -- list of floats if n > 0
 
-    EXAMPLES:
+
+    -  ``float`` - if n is 0 (the default) or
+
+    -  ``list`` - list of floats if n 0
+
+
+    EXAMPLES::
+
         sage: exponential_integral_1(2)
         0.048900510708061118
         sage: w = exponential_integral_1(2,4); w
@@ -78,14 +89,15 @@ def exponential_integral_1(x, n=0):
     IMPLEMENTATION: We use the PARI C-library functions eint1 and
     veceint1.
 
-    REFERENCE: See page 262, Prop 5.6.12, of Cohen's book "A Course
-    in Computational Algebraic Number Theory".
+    REFERENCE:
+
+    - See page 262, Prop 5.6.12, of Cohen's book "A Course in
+      Computational Algebraic Number Theory".
 
     REMARKS: When called with the optional argument n, the PARI
-    C-library is fast for values of n up to some bound, then very
-    very slow.  For example, if x=5, then the computation takes less
-    than a second for n=800000, and takes "forever" for n=900000.
-
+    C-library is fast for values of n up to some bound, then very very
+    slow. For example, if x=5, then the computation takes less than a
+    second for n=800000, and takes "forever" for n=900000.
     """
     if n <= 0:
         return float(pari(x).eint1())
@@ -96,7 +108,8 @@ def gamma_inc(s, t):
     """
     Incomplete Gamma function Gamma(s,t).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: gamma_inc(CDF(0,1), 3)
         0.00320857499337 + 0.0124061858119*I
         sage: gamma_inc(3, 3)
@@ -124,13 +137,17 @@ def zeta(s):
     Riemann zeta function at s with s a real or complex number.
 
     INPUT:
-        s -- real or complex number
+
+
+    -  ``s`` - real or complex number
+
 
     If s is a real number the computation is done using the MPFR
-    library.  When the input is not real, the computation is done
-    using the PARI C library.
+    library. When the input is not real, the computation is done using
+    the PARI C library.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: zeta(2)
         1.64493406684823
         sage: RR = RealField(200)
@@ -146,22 +163,30 @@ def zeta(s):
 
 def zeta_symmetric(s):
     r"""
-    Completed function $\xi(s)$ that satisfies $\xi(s) = \xi(1-s)$ and
-    has zeros at the same points as the Riemann zeta function.
+    Completed function `\xi(s)` that satisfies
+    `\xi(s) = \xi(1-s)` and has zeros at the same points as the
+    Riemann zeta function.
 
     INPUT:
-        s -- real or complex number
+
+
+    -  ``s`` - real or complex number
+
 
     If s is a real number the computation is done using the MPFR
-    library.  When the input is not real, the computation is done
-    using the PARI C library.
+    library. When the input is not real, the computation is done using
+    the PARI C library.
 
     More precisely,
-    $$
-       xi(s) = \gamma(s/2 + 1) * (s-1) * \pi^{-s/2} * \zeta(s).
-    $$
 
-    EXAMPLES:
+    .. math::
+
+                xi(s) = \gamma(s/2 + 1) * (s-1) * \pi^{-s/2} * \zeta(s).
+
+
+
+    EXAMPLES::
+
         sage: zeta_symmetric(0.7)
         0.497580414651127
         sage: zeta_symmetric(1-0.7)
@@ -178,8 +203,9 @@ def zeta_symmetric(s):
         -0.0000868931282620101 + 7.11507675693612e-20*I
 
     REFERENCE:
-      I copied the definition of xi from
-        \url{http://www.math.ubc.ca/~pugh/RiemannZeta/RiemannZetaLong.html}
+
+    - I copied the definition of xi from
+      http://www.math.ubc.ca/~pugh/RiemannZeta/RiemannZetaLong.html
     """
     if not (is_ComplexNumber(s) or is_RealNumber(s)):
         s = ComplexField()(s)
@@ -211,14 +237,17 @@ def zeta_symmetric(s):
 
 def Ei(z):
     """
-    Return the value of the complex exponential integral Ei(z)
-    at a complex number z.
+    Return the value of the complex exponential integral Ei(z) at a
+    complex number z.
 
-    WARNING: Calculations are done to double precision, and the output
-    is a complex double element, no matter how big the precision of
-    the input is.
+    .. warning::
 
-    EXAMPLES:
+       Calculations are done to double precision, and the output is a
+       complex double element, no matter how big the precision of the
+       input is.
+
+    EXAMPLES::
+
         sage: Ei(10)
         2492.22897624
         sage: Ei(I)
@@ -226,7 +255,8 @@ def Ei(z):
         sage: Ei(3+I)
         7.823134676 + 6.09751978399*I
 
-    The branch cut for this function is along the positive real axis:
+    The branch cut for this function is along the positive real axis::
+
         sage: Ei(3 + 0.1*I)
         9.91152770287 + 0.668898200718*I
         sage: Ei(3 - 0.1*I)
@@ -242,32 +272,45 @@ def Li(x, eps_rel=None, err_bound=False):
     Return value of the function Li(x) as a real double field element.
 
     This is the function
-    $$
-       \int_2^{x} dt / \log(t).
-    $$
 
-    The function Li(x) is an approximation for the number
-    of primes up to $x$.  In fact, the famous Riemann
-    Hypothesis is equivalent to the statement that for
-    $x \geq 2.01$ we have
-    $$
-        |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
-    $$
-    For ``small'' $x$, $Li(x)$ is always slightly bigger than
-    $\pi(x)$.  However it is a theorem that there are (very large,
-    e.g., around $10^{316}$) values of $x$ so that $\pi(x) > Li(x)$.
-    See ``A new bound for the smallest x with $\pi(x) > li(x)$'',
-    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285--1296.
+    .. math::
+
+                \int_2^{x} dt / \log(t).
+
+
+
+    The function Li(x) is an approximation for the number of primes up
+    to `x`. In fact, the famous Riemann Hypothesis is
+    equivalent to the statement that for `x \geq 2.01` we have
+
+    .. math::
+
+                 |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
+
+
+    For "small" `x`, `Li(x)` is always slightly bigger
+    than `\pi(x)`. However it is a theorem that there are (very
+    large, e.g., around `10^{316}`) values of `x` so
+    that `\pi(x) > Li(x)`. See
+    "A new bound for the smallest x with `\pi(x) > li(x)`",
+    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285-1296.
 
     ALGORITHM: Computed numerically using GSL.
 
     INPUT:
-        x -- a real number >= 2.
+
+
+    -  ``x`` - a real number = 2.
+
 
     OUTPUT:
-        x -- a real double
 
-    EXAMPLES:
+
+    -  ``x`` - a real double
+
+
+    EXAMPLES::
+
         sage: Li(2)
         0.0
         sage: Li(5)
@@ -282,6 +325,8 @@ def Li(x, eps_rel=None, err_bound=False):
         Traceback (most recent call last):
         ...
         ValueError: Li only defined for x at least 2.
+
+    ::
 
         sage: for n in range(1,7):
         ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
@@ -314,9 +359,10 @@ def _one_over_log(t):
 
 class PrimePi:
     """
-    Return the number of primes $\leq x$.
+    Return the number of primes `\leq x`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: prime_pi(7)
         4
         sage: prime_pi(100)
@@ -332,8 +378,11 @@ class PrimePi:
         sage: prime_pi(500509)
         41581
 
-    The prime_pi function also has a special plotting method, so it plots
-    quickly and perfectly as a step function.
+    The prime_pi function also has a special plotting method, so it
+    plots quickly and perfectly as a step function.
+
+    ::
+
         sage: P = plot(prime_pi, 50,100)
     """
     def __repr__(self):
@@ -367,28 +416,42 @@ from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
 
 class DickmanRhoComputer(PrimitiveFunction):
     r"""
-    Dickman's function is the continuous function satisfying the differential
-    equation
+    Dickman's function is the continuous function satisfying the
+    differential equation
 
-        $$ x \rho'(x) + \rho(x-1) = 0 $$
 
-    with initial conditions $\rho(x)=1$ for $0 \le x \le 1$. It is useful
-    in estimating the frequency of smooth numbers as asymptotically
+    .. math::
 
-        $$ \Psi(a, a^{1/s}) \sim a \rho(s) $$
+         x \rho'(x) + \rho(x-1) = 0
 
-    where $\Psi(a,b)$ is the number of $b$-smooth numbers less than $a$.
 
-    ALGORITHM:
-        Dickmans's function is analytic on the interval $[n,n+1]$ for each
-        integer $n$. To evalute at $n+t, 0 \le t < 1$, a power series is
-        recursively computed about $n+1/2$ using the differential
-        equation stated above. As high precision arithmetic may be needed
-        for intermediate results the computed series are cached for later use.
 
-        Simple explicit formulas are used for the intervals [0,1] and [1,2].
+    with initial conditions `\rho(x)=1` for
+    `0 \le x \le 1`. It is useful in estimating the frequency
+    of smooth numbers as asymptotically
 
-    EXAMPLES:
+
+    .. math::
+
+         \Psi(a, a^{1/s}) \sim a \rho(s)
+
+
+
+    where `\Psi(a,b)` is the number of `b`-smooth
+    numbers less than `a`.
+
+    ALGORITHM: Dickmans's function is analytic on the interval
+    `[n,n+1]` for each integer `n`. To evalute at
+    `n+t, 0 \le t < 1`, a power series is recursively computed
+    about `n+1/2` using the differential equation stated above.
+    As high precision arithmetic may be needed for intermediate results
+    the computed series are cached for later use.
+
+    Simple explicit formulas are used for the intervals [0,1] and
+    [1,2].
+
+    EXAMPLES::
+
         sage: dickman_rho(2)
         0.306852819440055
         sage: dickman_rho(10)
@@ -397,19 +460,22 @@ class DickmanRhoComputer(PrimitiveFunction):
         2.770171837725958988758121200634342326343e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
 
-    AUTHOR:
-        Robert Bradshaw (2008-09)
+    AUTHORS:
+
+    - Robert Bradshaw (2008-09)
 
     REFERENCES:
-        G. Marsaglia, A. Zaman, J. Marsaglia. "Numerical Solutions to some
-            Classical Differential-Difference Equations." Mathematics of
-            Computation, Vol. 53, No. 187 (1989).
+
+    - G. Marsaglia, A. Zaman, J. Marsaglia. "Numerical
+      Solutions to some Classical Differential-Difference Equations."
+      Mathematics of Computation, Vol. 53, No. 187 (1989).
     """
     _cur_prec = 0
 
     def __call__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [dickman_rho(n) for n in [1..10]]
             [1.00000000000000, 0.306852819440055, 0.0486083882911316, 0.00491092564776083, 0.000354724700456040, 0.0000196496963539553, 8.74566995329392e-7, 3.23206930422610e-8, 1.01624828273784e-9, 2.77017183772596e-11]
             sage: dickman_rho(0)
@@ -440,15 +506,22 @@ class DickmanRhoComputer(PrimitiveFunction):
 
     def power_series(self, n, abs_prec):
         """
-        This function returns the power series about $n+1/2$ used to evaluate
-        Dickman's function. It is scaled such that the interval $[n,n+1]$
-        corresponds to x in $[-1,1]$.
+        This function returns the power series about `n+1/2` used
+        to evaluate Dickman's function. It is scaled such that the interval
+        `[n,n+1]` corresponds to x in `[-1,1]`.
 
         INPUT:
-            n -- the lower endpoint of the interval for which this power series holds
-            abs_prec -- the absolute precision of the resulting power series
 
-        EXAMPLES:
+
+        -  ``n`` - the lower endpoint of the interval for which
+           this power series holds
+
+        -  ``abs_prec`` - the absolute precision of the
+           resulting power series
+
+
+        EXAMPLES::
+
             sage: f = dickman_rho.power_series(2, 20); f
             -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
             sage: f(-1), f(0), f(1)
@@ -460,16 +533,25 @@ class DickmanRhoComputer(PrimitiveFunction):
 
     def _compute_power_series(self, n, abs_prec, cache_ring=None):
         """
-        Compute the power series giving Dickman's function on [n, n+1],
-        by recursion in n.  For internal use; self.power_series()
-        is a wrapper around this intended for the user.
+        Compute the power series giving Dickman's function on [n, n+1], by
+        recursion in n. For internal use; self.power_series() is a wrapper
+        around this intended for the user.
 
         INPUT:
-            n -- the lower endpoint of the interval for which this power series holds
-            abs_prec -- the absolute precision of the resulting power series
-            cache_ring -- for internal use, caches the power series at this precision.
 
-        EXAMPLES:
+
+        -  ``n`` - the lower endpoint of the interval for which
+           this power series holds
+
+        -  ``abs_prec`` - the absolute precision of the
+           resulting power series
+
+        -  ``cache_ring`` - for internal use, caches the power
+           series at this precision.
+
+
+        EXAMPLES::
+
             sage: f = dickman_rho.power_series(2, 20); f
             -9.9376e-8*x^11 + 3.7722e-7*x^10 - 1.4684e-6*x^9 + 5.8783e-6*x^8 - 0.000024259*x^7 + 0.00010341*x^6 - 0.00045583*x^5 + 0.0020773*x^4 - 0.0097336*x^3 + 0.045224*x^2 - 0.11891*x + 0.13032
         """
@@ -509,16 +591,24 @@ class DickmanRhoComputer(PrimitiveFunction):
         r"""
         Approximate using de Bruijn's formula
 
-            $$ \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi} $$
+
+        .. math::
+
+             \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi}
+
+
 
         which is asymptotically equal to Dickman's function, and is much
         faster to compute.
 
         REFERENCES:
-            N. De Bruijn, "The Asymptotic behavior of a function occuring in
-                the theory of primes." J. Indian Math Soc. v 15. (1951)
 
-        EXAMPLES:
+        - N. De Bruijn, "The Asymptotic behavior of a function
+          occuring in the theory of primes." J. Indian Math Soc. v 15.
+          (1951)
+
+        EXAMPLES::
+
             sage: dickman_rho.approximate(10)
             2.41739196365564e-11
             sage: dickman_rho(10)

@@ -1,77 +1,55 @@
 r"""
 Piecewise-defined Functions.
 
-\sage implements a very simple class of piecewise-defined functions.  Functions
-may be any type of symbolic expression.  Infinite intervals are not supported.
-The endpoints of each interval must line up.
-
-Implemented methods:
-    latex outout
-    __call__
-    __eq__
-    plot (using matplotlib)
-    integral
-    convolution
-    derivative
-    critical points
-    tangent_line
-    trapezoid
-    trapezoid_integral_approximation
-    riemann_sum   (right and left end points)
-    riemann_sum_integral_approximation (right and left end points)
-    fourier series
-    fourier series
-       value
-       coefficients (also sine series and cosine series, and Cesaro sum)
-       partial sum (in string format)
-       plot of partial sum
-       plot_fourier_series_partial_sum_cesaro
-       plot_fourier_series_partial_sum_hann
-       plot_fourier_series_partial_sum_filter
-    laplace transform
-       latex output option
-    domain
-    range
-    list
-    __add__  - addition (of functions)
-    __mul__  - multiplication (of functions, or fcn*scalar - ie, *right* multiplication by QQ)
-    __rmul__ - *left* multiplication by QQ
-    extend_by_zero_to
-    unextend
+Sage implements a very simple class of piecewise-defined functions.
+Functions may be any type of symbolic expression. Infinite
+intervals are not supported. The endpoints of each interval must
+line up.
 
 TODO:
-   [] Implement (a) max/min location and values,
-   [] Need: parent object -- ring of piecewise functions
-   [] This class should derive from an element-type class, and should
-      define _add_, _mul_, etc.   That will automatically take care
-      of left multiplication and proper coercion.
-      The coercion mentioned below for scalar mult on right is
-      bad, since it only allows ints and rationals.  The right
-      way is to use an element class and only define _mul_, and
-      have a parent, so anything gets coerced properly.
 
-AUTHOR: David Joyner (2006-04) -- initial version
-        DJ (2006-09) -- added __eq__, extend_by_zero_to, unextend, convolution,
-                        trapezoid, trapezoid_integral_approximation, riemann_sum,
-                        riemann_sum_integral_approximation, tangent_line
-                        fixed bugs in __mul__, __add__
-	DJ (2007-03) -- adding Hann filter for FS, added general FS filter methods
-	                for computing and plotting, added options to plotting of FS
-	                (eg, specifying rgb values arenow allowed). Fixed bug in
-                        documentation reported by Pablo De Napoli.
-	DJ (2007-09) - bug fixes due to behaviour of SymbolicArithmetic
-	DJ (2008-04) - fixed docstring bugs reported by J Morrow; added support for
-                       laplace transform of functions with infinite support.
-        DJ (2008-07) - fixed a left multiplication bug reported by C. Boncelet
-                       (by defining __rmul__ = __mul__).
-        Paul Butler (2009-01) -- added indefinite integration and default_variable
+- Implement max/min location and values,
 
-TESTS:
+- Need: parent object - ring of piecewise functions
+
+- This class should derive from an element-type class, and should
+  define ``_add_``, ``_mul_``, etc. That will automatically take care
+  of left multiplication and proper coercion. The coercion mentioned
+  below for scalar mult on right is bad, since it only allows ints and
+  rationals. The right way is to use an element class and only define
+  ``_mul_``, and have a parent, so anything gets coerced properly.
+
+AUTHORS:
+
+- David Joyner (2006-04): initial version
+
+- David Joyner (2006-09): added __eq__, extend_by_zero_to, unextend,
+  convolution, trapezoid, trapezoid_integral_approximation,
+  riemann_sum, riemann_sum_integral_approximation, tangent_line fixed
+  bugs in __mul__, __add__
+
+- David Joyner (2007-03): adding Hann filter for FS, added general FS
+  filter methods for computing and plotting, added options to plotting
+  of FS (eg, specifying rgb values arenow allowed). Fixed bug in
+  documentation reported by Pablo De Napoli.
+
+- David Joyner (2007-09): bug fixes due to behaviour of
+  SymbolicArithmetic
+
+- David Joyner (2008-04): fixed docstring bugs reported by J Morrow; added
+  support for laplace transform of functions with infinite support.
+
+- David Joyner (2008-07): fixed a left multiplication bug reported by
+  C. Boncelet (by defining __rmul__ = __mul__).
+
+- Paul Butler (2009-01): added indefinite integration and default_variable
+
+TESTS::
+
     sage: R.<x> = QQ[]
     sage: f = Piecewise([[(0,1),1*x^0]])
     sage: 2*f
     Piecewise defined function with 1 parts, [[(0, 1), 2]]
-
 """
 
 #*****************************************************************************
@@ -106,15 +84,16 @@ def piecewise(list_of_pairs):
     Returns a piecewise function from a list of (interval, function)
     pairs.
 
-    \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
-    a Sage function (such as a polynomial over RR, or functions
+    ``list_of_pairs`` is a list of pairs (I, fcn), where
+    fcn is a Sage function (such as a polynomial over RR, or functions
     using the lambda notation), and I is an interval such as I = (1,3).
     Two consecutive intervals must share a common endpoint.
 
     We assume that these definitions are consistent (ie, no checking is
     done).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f1(x) = -1
         sage: f2(x) = 2
         sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
@@ -132,7 +111,8 @@ class PiecewisePolynomial:
     Returns a piecewise function from a list of (interval, function)
     pairs.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f1(x) = -1
         sage: f2(x) = 2
         sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
@@ -143,8 +123,8 @@ class PiecewisePolynomial:
     """
     def __init__(self, list_of_pairs):
         r"""
-        \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
-        a Sage function (such as a polynomial over RR, or functions
+        ``list_of_pairs`` is a list of pairs (I, fcn), where
+        fcn is a Sage function (such as a polynomial over RR, or functions
         using the lambda notation), and I is an interval such as I = (1,3).
         Two consecutive intervals must share a common endpoint.
 
@@ -163,50 +143,53 @@ class PiecewisePolynomial:
         """
         Retuns the number of pieces of this function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.length()
             2
-
         """
         return self._length
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]]); f
             Piecewise defined function with 2 parts, [[(0, 1), x |--> 1], [(1, 2), x |--> 1 - x]]
-
         """
         return 'Piecewise defined function with %s parts, %s'%(
             self.length(),self.list())
 
     def _latex_(self):
 	r"""
-	EXAMPLES:
-            sage: f1(x) = 1
-            sage: f2(x) = 1 - x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: latex(f)
-            \begin{cases}
-            x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
-            x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}\cr
-            \end{cases}
+	EXAMPLES::
 
-            sage: f(x) = sin(x*pi/2)
-            sage: g(x) = 1-(x-1)^2
-            sage: h(x) = -x
-            sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
-            sage: latex(P)
-            \begin{cases}
-            x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
-            x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
-            x \ {\mapsto}\ -x &\text{on  $(3, 5)$}\cr
-            \end{cases}
+	    sage: f1(x) = 1
+	    sage: f2(x) = 1 - x
+	    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+	    sage: latex(f)
+	    \begin{cases}
+	    x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
+	    x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}\cr
+	    \end{cases}
+
+	::
+
+	    sage: f(x) = sin(x*pi/2)
+	    sage: g(x) = 1-(x-1)^2
+	    sage: h(x) = -x
+	    sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
+	    sage: latex(P)
+	    \begin{cases}
+	    x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
+	    x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
+	    x \ {\mapsto}\ -x &\text{on  $(3, 5)$}\cr
+	    \end{cases}
 	"""
         from sage.misc.latex import latex
         tex = ['\\begin{cases}\n']
@@ -217,9 +200,10 @@ class PiecewisePolynomial:
 
     def intervals(self):
         """
-	A piecewise non-polynomial example.
+        A piecewise non-polynomial example.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -234,7 +218,8 @@ class PiecewisePolynomial:
         """
         Returns the domain of the function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -250,7 +235,8 @@ class PiecewisePolynomial:
         """
         Returns the list of functions (the "pieces").
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -263,17 +249,17 @@ class PiecewisePolynomial:
 
     def extend_by_zero_to(self,xmin=-1000,xmax=1000):
         """
-        This function simply returns the piecewise defined
-        function which is extended by 0 so it is defined on all of (xmin,xmax).
-        This is needed to add two piecewise functions in a reasonable way.
+        This function simply returns the piecewise defined function which
+        is extended by 0 so it is defined on all of (xmin,xmax). This is
+        needed to add two piecewise functions in a reasonable way.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.extend_by_zero_to(-1, 3)
             Piecewise defined function with 4 parts, [[(-1, 0), 0], [(0, 1), x |--> 1], [(1, 2), x |--> 1 - x], [(2, 3), 0]]
-
         """
         zero = QQ['x'](0)
         list_of_pairs = self.list()
@@ -286,10 +272,11 @@ class PiecewisePolynomial:
 
     def unextend(self):
         """
-        This removes any parts in the front or back of the function which is
-        zero (the inverse to extend_by_zero_to).
+        This removes any parts in the front or back of the function which
+        is zero (the inverse to extend_by_zero_to).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: f = Piecewise([[(-3,-1),1+2+x],[(-1,1),1-x^2]])
             sage: e = f.extend_by_zero_to(-10,10); e
@@ -298,7 +285,6 @@ class PiecewisePolynomial:
             Piecewise defined function with 2 parts, [[(-3, -1), x + 3], [(-1, 1), -x^2 + 1]]
             sage: d==f
             True
-
         """
         list_of_pairs = self.list()
         funcs = self.functions()
@@ -313,12 +299,18 @@ class PiecewisePolynomial:
         A helper function for computing Riemann sums.
 
         INPUT:
-            N -- the number of subdivisions
-            func -- a function to apply to the endpoints of
-                    each subdivision
-            initial -- the starting value
 
-        EXAMPLES:
+
+        -  ``N`` - the number of subdivisions
+
+        -  ``func`` - a function to apply to the endpoints of
+           each subdivision
+
+        -  ``initial`` - the starting value
+
+
+        EXAMPLES::
+
             sage: f1 = x^2                   ## example 1
             sage: f2 = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
@@ -336,18 +328,18 @@ class PiecewisePolynomial:
 
     def riemann_sum_integral_approximation(self,N,mode=None):
         """
-        Returns the piecewise line function defined by the
-        Riemann sums in numerical integration based on a subdivision
-        into N subintervals.
+        Returns the piecewise line function defined by the Riemann sums in
+        numerical integration based on a subdivision into N subintervals.
 
-    	Set mode="midpoint" for the height of the rectangles to be
-        determined by the midpoint of the subinterval;
-        set mode="right" for the height of the rectangles to be
-        determined by the right-hand endpoint of the subinterval;
-        the default is mode="left" (the height of the rectangles to be
-        determined by the leftt-hand endpoint of the subinterval).
+        Set mode="midpoint" for the height of the rectangles to be
+        determined by the midpoint of the subinterval; set mode="right" for
+        the height of the rectangles to be determined by the right-hand
+        endpoint of the subinterval; the default is mode="left" (the height
+        of the rectangles to be determined by the leftt-hand endpoint of
+        the subinterval).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1 = x^2                   ## example 1
             sage: f2 = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
@@ -371,22 +363,24 @@ class PiecewisePolynomial:
 
     def riemann_sum(self,N,mode=None):
         """
-        Returns the piecewise line function defined by the
-        Riemann sums in numerical integration based on a subdivision
-        into N subintervals.
-	Set mode="midpoint" for the height of the rectangles to be
-	determined by the midpoint of the subinterval;
-        set mode="right" for the height of the rectangles to be
-	determined by the right-hand endpoint of the subinterval;
-	the default is mode="left" (the height of the rectangles to be
-	determined by the leftt-hand endpoint of the subinterval).
+        Returns the piecewise line function defined by the Riemann sums in
+        numerical integration based on a subdivision into N subintervals.
+        Set mode="midpoint" for the height of the rectangles to be
+        determined by the midpoint of the subinterval; set mode="right" for
+        the height of the rectangles to be determined by the right-hand
+        endpoint of the subinterval; the default is mode="left" (the height
+        of the rectangles to be determined by the leftt-hand endpoint of
+        the subinterval).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = x^2
             sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.riemann_sum(6,mode="midpoint")
             Piecewise defined function with 6 parts, [[(0, 1/3), 1/36], [(1/3, 2/3), 1/4], [(2/3, 1), 25/36], [(1, 4/3), 131/36], [(4/3, 5/3), 11/4], [(5/3, 2), 59/36]]
+
+        ::
 
             sage: f = Piecewise([[(-1,1),1-x^2]])
             sage: rsf = f.riemann_sum(7)
@@ -394,6 +388,8 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
+
+        ::
 
             sage: f = Piecewise([[(-1,1),1/2+x-x^3]]) ## example 3
             sage: rsf = f.riemann_sum(8)
@@ -417,17 +413,20 @@ class PiecewisePolynomial:
 
     def trapezoid(self,N):
         """
-        Returns the piecewise line function defined by the
-        trapezoid rule for numerical integration based on a subdivision
-        into N subintervals.
+        Returns the piecewise line function defined by the trapezoid rule
+        for numerical integration based on a subdivision into N
+        subintervals.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: f1 = x^2
             sage: f2 = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.trapezoid(4)
             Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x], [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2], [(3/2, 2), -7/2*x + 8]]
+
+        ::
 
             sage: R.<x> = QQ[]
             sage: f = Piecewise([[(-1,1),1-x^2]])
@@ -436,6 +435,8 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+
+        ::
 
             sage: R.<x> = QQ[]
             sage: f = Piecewise([[(-1,1),1/2+x-x^3]]) ## example 3
@@ -454,11 +455,11 @@ class PiecewisePolynomial:
 
     def trapezoid_integral_approximation(self,N):
         """
-        Returns the approximation given by the
-        trapezoid rule for numerical integration based on a subdivision
-        into N subintervals.
+        Returns the approximation given by the trapezoid rule for numerical
+        integration based on a subdivision into N subintervals.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = x^2                      ## example 1
             sage: f2(x) = 1-(1-x)^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
@@ -470,6 +471,8 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P + Q + t + tt
+
+        ::
 
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])  ## example 2
             sage: tf = f.trapezoid(4)
@@ -489,12 +492,15 @@ class PiecewisePolynomial:
         """
         Return the critical points of this piecewise function.
 
-        WARNINGS: Uses maxima, which prints the warning to use results
-        with caution. Only works for piecewise functions whose parts
-        are polynomials with real critical not occurring on the
-        interval endpoints.
+        .. warning::
 
-        EXAMPLES:
+           Uses maxima, which prints the warning to use results with
+           caution. Only works for piecewise functions whose parts are
+           polynomials with real critical not occurring on the
+           interval endpoints.
+
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: f1 = x^0
             sage: f2 = 10*x - x^2
@@ -516,8 +522,8 @@ class PiecewisePolynomial:
 
     def base_ring(self):
         """
-        Returns the base-ring (ie, QQ[x]) - useful when this
-        class is extended.
+        Returns the base-ring (ie, QQ[x]) - useful when this class is
+        extended.
         """
         return (self.functions()[0]).base_ring()
 
@@ -525,7 +531,8 @@ class PiecewisePolynomial:
         """
         Returns a list of all interval endpoints for this function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = x^2-5
@@ -538,11 +545,12 @@ class PiecewisePolynomial:
 
     def __call__(self,x0):
         """
-        Evaluates self at x0. Returns the average value of the jump if x0 is
-        an interior endpoint of one of the intervals of self and the
+        Evaluates self at x0. Returns the average value of the jump if x0
+        is an interior endpoint of one of the intervals of self and the
         usual value otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f3(x) = exp(x)
@@ -574,7 +582,8 @@ class PiecewisePolynomial:
         """
         Returns the function piece used to evaluate self at x0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(z) = z
             sage: f2(x) = 1-x
             sage: f3(y) = exp(y)
@@ -592,13 +601,14 @@ class PiecewisePolynomial:
         r"""
         Return the default variable. The default variable is defined as the
         first variable in the first piece uses a variable. If no pieces have
-        a variable (each piece is a constant value), $x$ is returned.
+        a variable (each piece is a constant value), `x` is returned.
 
         The result is cached.
 
         AUTHOR: Paul Butler
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = 1
             sage: f2(x) = 5*x
             sage: p = Piecewise([[(0,1),f1],[(1,4),f2]])
@@ -626,12 +636,13 @@ class PiecewisePolynomial:
 
         AUTHOR: Paul Butler
 
-        EXAMPLES:
             sage: f1(x) = 1
             sage: f2(x) = 1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.integral(definite=True)
             1/2
+
+        ::
 
             sage: f1(x) = -1
             sage: f2(x) = 2
@@ -735,10 +746,12 @@ class PiecewisePolynomial:
 
     def convolution(self, other):
         """
-        Returns the convolution function, $f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du$,
-        for compactly supported $f,g$.
+        Returns the convolution function,
+        `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
+        supported `f,g`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = PolynomialRing(QQ,'x').gen()
             sage: f = Piecewise([[(0,1),1*x^0]])  ## example 0
             sage: g = f.convolution(f)
@@ -757,7 +770,6 @@ class PiecewisePolynomial:
             sage: g = Piecewise([[(0,3),1*x^0],[(3,4),2*x^0]])
             sage: f.convolution(g)
             Piecewise defined function with 5 parts, [[(-1, 1), x + 1], [(1, 2), 3], [(2, 3), x], [(3, 4), -x + 8], [(4, 5), -2*x + 10]]
-
         """
         f = self
         g = other
@@ -823,20 +835,23 @@ class PiecewisePolynomial:
     def derivative(self):
         r"""
         Returns the derivative (as computed by maxima)
-        Piecewise(I,$(d/dx)(self|_I)$), as I runs over the intervals
-        belonging to self. self must be piecewise polynomial.
+        Piecewise(I,`(d/dx)(self|_I)`), as I runs over the
+        intervals belonging to self. self must be piecewise polynomial.
 
-        EXAMPLES:
-            sage: f1(x) = 1
-            sage: f2(x) = 1-x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 2), -1]]
-	    sage: f1(x) = -1
-            sage: f2(x) = 2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
-            sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
+        EXAMPLES::
+
+                   sage: f1(x) = 1
+                   sage: f2(x) = 1-x
+                   sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+                   sage: f.derivative()
+                   Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 2), -1]]
+            sage: f1(x) = -1
+                   sage: f2(x) = 2
+                   sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+                   sage: f.derivative()
+                   Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
+
+        ::
 
             sage: f = Piecewise([[(0,1), x * 2]])
             sage: f.derivative()
@@ -848,10 +863,11 @@ class PiecewisePolynomial:
 
     def tangent_line(self, pt):
         """
-        Computes the linear function defining the tangent line of
-        the piecewise function self.
+        Computes the linear function defining the tangent line of the
+        piecewise function self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f1(x) = x^2
             sage: f2(x) = 5-x^3+x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
@@ -859,7 +875,6 @@ class PiecewisePolynomial:
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
             sage: P + Q
-
         """
         pt = QQ(pt)
         R = QQ['x']
@@ -873,51 +888,59 @@ class PiecewisePolynomial:
         """
         Returns the plot of self.
 
-        Keyword arguments are passed onto the plot command for each
-        piece of the function.  E.g., the plot_points keyword affects
-        each segment of the plot.
+        Keyword arguments are passed onto the plot command for each piece
+        of the function. E.g., the plot_points keyword affects each
+        segment of the plot.
 
-        EXAMPLES:
-            sage: f1(x) = 1
-	    sage: f2(x) = 1-x
-            sage: f3(x) = exp(x)
-            sage: f4(x) = sin(2*x)
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-            sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
-            sage: P
+        EXAMPLES::
 
-	Remember: to view this, type show(P) or P.save("<path>/myplot.png") and
-        then open it in a graphics viewer such as GIMP.
+                   sage: f1(x) = 1
+            sage: f2(x) = 1-x
+                   sage: f3(x) = exp(x)
+                   sage: f4(x) = sin(2*x)
+                   sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+                   sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
+                   sage: P
+
+        Remember: to view this, type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
         """
         from sage.plot.all import plot
         return sum([plot(f, a, b, *args, **kwds) for (a,b),f in self.list()])
 
     def fourier_series_cosine_coefficient(self,n,L):
         r"""
-        Returns the n-th Fourier series coefficient of $\cos(n\pi x/L)$, $a_n$.
+        Returns the n-th Fourier series coefficient of
+        `\cos(n\pi x/L)`, `a_n`.
 
         INPUT:
-            self -- the function f(x), defined over -L < x < L
-            n    -- an integer n>=0
-            L    -- (the period)/2
+
+
+        -  ``self`` - the function f(x), defined over -L x L
+
+        -  ``n`` - an integer n=0
+
+        -  ``L`` - (the period)/2
+
 
         OUTPUT:
-            $a_n = \frac{1}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx$
+        `a_n = \frac{1}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx`
 
-        EXAMPLES:
+        EXAMPLES::
+
+                   sage: f(x) = x^2
+                   sage: f = Piecewise([[(-1,1),f]])
+                   sage: f.fourier_series_cosine_coefficient(2,1)
+                   1/pi^2
             sage: f(x) = x^2
-            sage: f = Piecewise([[(-1,1),f]])
-            sage: f.fourier_series_cosine_coefficient(2,1)
-            1/pi^2
-	    sage: f(x) = x^2
-            sage: f = Piecewise([[(-pi,pi),f]])
-            sage: f.fourier_series_cosine_coefficient(2,pi)
-            1
-            sage: f1(x) = -1
-            sage: f2(x) = 2
-            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
-            sage: f.fourier_series_cosine_coefficient(5,pi)
-            -3/(5*pi)
+                   sage: f = Piecewise([[(-pi,pi),f]])
+                   sage: f.fourier_series_cosine_coefficient(2,pi)
+                   1
+                   sage: f1(x) = -1
+                   sage: f2(x) = 2
+                   sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
+                   sage: f.fourier_series_cosine_coefficient(5,pi)
+                   -3/(5*pi)
         """
         from sage.all import cos, pi
         x = var('x')
@@ -927,17 +950,24 @@ class PiecewisePolynomial:
 
     def fourier_series_sine_coefficient(self,n,L):
         r"""
-        Returns the n-th Fourier series coefficient of $\sin(n\pi x/L)$, $b_n$.
+        Returns the n-th Fourier series coefficient of
+        `\sin(n\pi x/L)`, `b_n`.
 
         INPUT:
-            self -- the function f(x), defined over -L < x < L
-            n    -- an integer n>0
-            L    -- (the period)/2
+
+
+        -  ``self`` - the function f(x), defined over -L x L
+
+        -  ``n`` - an integer n0
+
+        -  ``L`` - (the period)/2
+
 
         OUTPUT:
-            $b_n = \frac{1}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx$
+        `b_n = \frac{1}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_sine_coefficient(2,1)  # L=1, n=2
@@ -951,17 +981,17 @@ class PiecewisePolynomial:
 
     def _fourier_series_helper(self, N, L, scale_function):
         r"""
-        A helper function for the construction of Fourier series.
-        The argument scale_function is a function which takes in
-        n, representing the $n^{th}$ coefficient, and return an
+        A helper function for the construction of Fourier series. The
+        argument scale_function is a function which takes in n,
+        representing the `n^{th}` coefficient, and return an
         expression to scale the sine and cosine coefficients by.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f._fourier_series_helper(3, 1, lambda n: 1)
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
-
         """
         from sage.all import pi, sin, cos, srange
         x = var('x')
@@ -976,13 +1006,16 @@ class PiecewisePolynomial:
     def fourier_series_partial_sum(self,N,L):
         r"""
         Returns the partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
+
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
         as a string.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum(3,1)
@@ -998,13 +1031,17 @@ class PiecewisePolynomial:
     def fourier_series_partial_sum_cesaro(self,N,L):
         r"""
         Returns the Cesaro partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        as a string. This is a "smoother" partial sum - the Gibbs phenomenon is mollified.
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        as a string. This is a "smoother" partial sum - the Gibbs
+        phenomenon is mollified.
+
+        EXAMPLE::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_cesaro(3,1)
@@ -1014,20 +1051,24 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_cesaro(3,pi)
             -sin(2*x)/pi + 2*sin(x)/pi - 2*cos(x)/pi - 1/4
-
         """
         return self._fourier_series_helper(N, L, lambda n: 1-n/N)
 
     def fourier_series_partial_sum_hann(self,N,L):
         r"""
-        Returns the Hann-filtered partial sum (named after von Hann, not Hamming)
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        as a string, where $H_N(x) = (1+\cos(\pi x/N))/2$. This is a "smoother" partial sum - the Gibbs phenomenon is mollified.
+        Returns the Hann-filtered partial sum (named after von Hann, not
+        Hamming)
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        as a string, where `H_N(x) = (1+\cos(\pi x/N))/2`. This is
+        a "smoother" partial sum - the Gibbs phenomenon is mollified.
+
+        EXAMPLE::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
@@ -1044,14 +1085,18 @@ class PiecewisePolynomial:
     def fourier_series_partial_sum_filtered(self,N,L,F):
         r"""
         Returns the "filtered" partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        as a string, where $F = [F_1,F_2, ..., F_{N}]$ is a list of length $N$ consisting of real numbers.
-	This can be used to plot FS solutions to the heat and wave PDEs.
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        as a string, where `F = [F_1,F_2, ..., F_{N}]` is a list
+        of length `N` consisting of real numbers. This can be used
+        to plot FS solutions to the heat and wave PDEs.
+
+        EXAMPLE::
+
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
@@ -1067,13 +1112,16 @@ class PiecewisePolynomial:
     def plot_fourier_series_partial_sum(self,N,L,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        over xmin < x < xmin.
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        over xmin x xmin.
+
+        EXAMPLE::
+
             sage: f1(x) = -2
             sage: f2(x) = 1
             sage: f3(x) = -1
@@ -1085,8 +1133,8 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum(15,pi,-5,5)   # long time
 
-	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
-        open it in a graphics viewer such as GIMP.
+        Remember, to view this type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
         """
         from sage.plot.all import plot
         return plot(self.fourier_series_partial_sum(N,L), xmin, xmax, **kwds)
@@ -1094,13 +1142,17 @@ class PiecewisePolynomial:
     def plot_fourier_series_partial_sum_cesaro(self,N,L,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        over xmin < x < xmin. This is a "smoother" partial sum - the Gibbs phenomenon is mollified.
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        over xmin x xmin. This is a "smoother" partial sum - the Gibbs
+        phenomenon is mollified.
+
+        EXAMPLE::
+
             sage: f1(x) = -2
             sage: f2(x) = 1
             sage: f3(x) = -1
@@ -1112,8 +1164,8 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum_cesaro(15,pi,-5,5)   # long time
 
-	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
-        open it in a graphics viewer such as GIMP.
+        Remember, to view this type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
         """
         from sage.plot.all import plot
         return plot(self.fourier_series_partial_sum_cesaro(N,L), xmin, xmax, **kwds)
@@ -1121,13 +1173,17 @@ class PiecewisePolynomial:
     def plot_fourier_series_partial_sum_hann(self,N,L,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        over xmin < x < xmin, where H_N(x) = (0.5)+(0.5)*cos(x*pi/N) is the N-th Hann filter.
 
-        EXAMPLE:
+        .. math::
+
+           f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        over xmin x xmin, where H_N(x) = (0.5)+(0.5)\*cos(x\*pi/N) is the
+        N-th Hann filter.
+
+        EXAMPLE::
+
             sage: f1(x) = -2
             sage: f2(x) = 1
             sage: f3(x) = -1
@@ -1139,8 +1195,8 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum_hann(15,pi,-5,5)   # long time
 
-	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
-        open it in a graphics viewer such as GIMP.
+        Remember, to view this type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
         """
         from sage.plot.all import plot
         return plot(self.fourier_series_partial_sum_hann(N,L), xmin, xmax, **kwds)
@@ -1148,15 +1204,18 @@ class PiecewisePolynomial:
     def plot_fourier_series_partial_sum_filtered(self,N,L,F,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \]
-        over xmin < x < xmin, where $F = [F_1,F_2, ..., F_{N}]$ is a list of length
-	$N$ consisting of real numbers. This can be used to plot FS solutions to the heat
-	and wave PDEs.
 
-        EXAMPLE:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+
+        over xmin x xmin, where `F = [F_1,F_2, ..., F_{N}]` is a
+        list of length `N` consisting of real numbers. This can be
+        used to plot FS solutions to the heat and wave PDEs.
+
+        EXAMPLE::
+
             sage: f1(x) = -2
             sage: f2(x) = 1
             sage: f3(x) = -1
@@ -1168,58 +1227,65 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum_filtered(15,pi,[1]*15,-5,5)   # long time
 
-	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
-        open it in a graphics viewer such as GIMP.
+        Remember, to view this type show(P) or P.save("path/myplot.png")
+        and then open it in a graphics viewer such as GIMP.
         """
         from sage.plot.all import plot
         return plot(self.fourier_series_partial_sum_filtered(N,L,F), xmin, xmax, **kwds)
 
     def fourier_series_value(self,x,L):
         r"""
-        Returns the value of the Fourier series coefficient of self at $x$,
+        Returns the value of the Fourier series coefficient of self at
+        `x`,
 
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^\infty [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-        \ \ \ -L<x<L.
-        \]
+
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^\infty [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         \ \ \ -L<x<L.
+
+
         This method applies to piecewise non-polynomial functions as well.
 
         INPUT:
-            self -- the function f(x), defined over -L < x < L
-            x    -- a real number
-            L    -- (the period)/2
 
-        OUTPUT:
-            $(f^*(x+)+f^*(x-)/2$, where $f^*$ denotes the function $f$
-            extended to $\R$ with period $2L$ (Dirichlet's Theorem for
-	    Fourier series).
 
-        EXAMPLES:
-            sage: f1(x) = 1
-            sage: f2(x) = 1-x
-            sage: f3(x) = exp(x)
-            sage: f4(x) = sin(2*x)
-            sage: f = Piecewise([[(-10,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-            sage: f.fourier_series_value(101,10)
-            1/2
-            sage: f.fourier_series_value(100,10)
-            1
-            sage: f.fourier_series_value(10,10)
-            (sin(20) + 1)/2
-            sage: f.fourier_series_value(20,10)
-            1
-            sage: f.fourier_series_value(30,10)
-            (sin(20) + 1)/2
-            sage: f1(x) = -1
-            sage: f2(x) = 2
-	    sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])
-            sage: f.fourier_series_value(-1,pi)
-            0
-            sage: f.fourier_series_value(20,pi)
-            -1
-            sage: f.fourier_series_value(pi/2,pi)
-            1/2
+        -  ``self`` - the function f(x), defined over -L x L
+
+        -  ``x`` - a real number
+
+        -  ``L`` - (the period)/2
+
+
+        OUTPUT: `(f^*(x+)+f^*(x-)/2`, where `f^*` denotes
+        the function `f` extended to `\mathbb{R}` with period
+        `2L` (Dirichlet's Theorem for Fourier series).
+
+        EXAMPLES::
+
+                   sage: f1(x) = 1
+                   sage: f2(x) = 1-x
+                   sage: f3(x) = exp(x)
+                   sage: f4(x) = sin(2*x)
+                   sage: f = Piecewise([[(-10,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+                   sage: f.fourier_series_value(101,10)
+                   1/2
+                   sage: f.fourier_series_value(100,10)
+                   1
+                   sage: f.fourier_series_value(10,10)
+                   (sin(20) + 1)/2
+                   sage: f.fourier_series_value(20,10)
+                   1
+                   sage: f.fourier_series_value(30,10)
+                   (sin(20) + 1)/2
+                   sage: f1(x) = -1
+                   sage: f2(x) = 2
+            sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])
+                   sage: f.fourier_series_value(-1,pi)
+                   0
+                   sage: f.fourier_series_value(20,pi)
+                   -1
+                   sage: f.fourier_series_value(pi/2,pi)
+                   1/2
         """
         xnew = x - int(RR(x/(2*L)))*2*L
         endpts = self.end_points()
@@ -1230,22 +1296,32 @@ class PiecewisePolynomial:
 
     def cosine_series_coefficient(self,n,L):
         r"""
-        Returns the n-th cosine series coefficient of $\cos(n\pi x/L)$, $a_n$.
+        Returns the n-th cosine series coefficient of
+        `\cos(n\pi x/L)`, `a_n`.
 
         INPUT:
-            self -- the function f(x), defined over 0 < x < L (no checking is done
-	                                                       to insure this)
-            n    -- an integer n>=0
-            L    -- (the period)/2
+
+
+        -  ``self`` - the function f(x), defined over 0 x L (no
+           checking is done to insure this)
+
+        -  ``n`` - an integer n=0
+
+        -  ``L`` - (the period)/2
+
 
         OUTPUT:
-            $a_n = \frac{2}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx$ such that
-        \[
-        f(x) \sim \frac{a_0}{2} +
-                   \sum_{n=1}^\infty a_n\cos(\frac{n\pi x}{L}),\ \ 0<x<L.
-        \]
+        `a_n = \frac{2}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx` such
+        that
 
-        EXAMPLES:
+        .. math::
+
+                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^\infty a_n\cos(\frac{n\pi x}{L}),\ \ 0<x<L.
+
+
+
+        EXAMPLES::
+
             sage: f(x) = x
             sage: f = Piecewise([[(0,1),f]])
             sage: f.cosine_series_coefficient(2,1)
@@ -1261,7 +1337,6 @@ class PiecewisePolynomial:
             2/pi
             sage: f.cosine_series_coefficient(111,pi)
             2/(37*pi)
-
             sage: f1 = lambda x: x*(pi-x)
             sage: f = Piecewise([[(0,pi),f1]])
             sage: f.cosine_series_coefficient(0,pi)
@@ -1277,21 +1352,32 @@ class PiecewisePolynomial:
 
     def sine_series_coefficient(self,n,L):
         r"""
-        Returns the n-th sine series coefficient of $\sin(n\pi x/L)$, $b_n$.
+        Returns the n-th sine series coefficient of
+        `\sin(n\pi x/L)`, `b_n`.
 
         INPUT:
-            self -- the function f(x), defined over 0 < x < L (no checking is done
-	                                                       to insure this)
-            n    -- an integer n>0
-            L    -- (the period)/2
+
+
+        -  ``self`` - the function f(x), defined over 0 x L (no
+           checking is done to insure this)
+
+        -  ``n`` - an integer n0
+
+        -  ``L`` - (the period)/2
+
 
         OUTPUT:
-            $b_n = \frac{2}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx$ such that
-        \[
-        f(x) \sim \sum_{n=1}^\infty b_n\sin(\frac{n\pi x}{L}),\ \ 0<x<L.
-        \]
+        `b_n = \frac{2}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx` such
+        that
 
-        EXAMPLES:
+        .. math::
+
+                     f(x) \sim \sum_{n=1}^\infty b_n\sin(\frac{n\pi x}{L}),\ \ 0<x<L.
+
+
+
+        EXAMPLES::
+
             sage: f(x) = 1
             sage: f = Piecewise([[(0,1),f]])
             sage: f.sine_series_coefficient(2,1)
@@ -1307,17 +1393,22 @@ class PiecewisePolynomial:
 
     def laplace(self, x='x', s='t'):
         r"""
-        Returns the Laplace transform of self with respect to the
-        variable var.
+        Returns the Laplace transform of self with respect to the variable
+        var.
 
         INPUT:
-            x -- variable of self
-            s -- variable of Laplace transform.
 
-        We assume that a piecewise function is 0 outside of its domain
-        and that the left-most endpoint of the domain is 0.
 
-        EXAMPLES:
+        -  ``x`` - variable of self
+
+        -  ``s`` - variable of Laplace transform.
+
+
+        We assume that a piecewise function is 0 outside of its domain and
+        that the left-most endpoint of the domain is 0.
+
+        EXAMPLES::
+
             sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
             sage: f.laplace(x, s)
@@ -1325,10 +1416,14 @@ class PiecewisePolynomial:
             sage: f.laplace(x, w)
             -e^(-w)/w - e^(-w)/w^2 + (w + 1)*e^(-(2*w))/w^2 + 1/w
 
+        ::
+
             sage: y, t = var('y, t')
             sage: f = Piecewise([[(1,2), 1-y]])
             sage: f.laplace(y, t)
             (t + 1)*e^(-(2*t))/t^2 - e^(-t)/t^2
+
+        ::
 
             sage: s = var('s')
             sage: t = var('t')
@@ -1349,11 +1444,12 @@ class PiecewisePolynomial:
 
     def _make_compatible(self, other):
         """
-        Returns self and other extended to be defined on the same
-        domain as well as a refinement of their intervals. This
-        is used for adding and multiplying piecewise functions.
+        Returns self and other extended to be defined on the same domain as
+        well as a refinement of their intervals. This is used for adding
+        and multiplying piecewise functions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: f1 = Piecewise([[(0, 2), x]])
             sage: f2 = Piecewise([[(1, 3), x^2]])
@@ -1361,7 +1457,6 @@ class PiecewisePolynomial:
             (Piecewise defined function with 2 parts, [[(0, 2), x], [(2, 3), 0]],
             Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 3), x^2]],
             [(0, 1), (1, 2), (2, 3)])
-
         """
         a1, b1 = self.domain()
         a2, b2 = other.domain()
@@ -1375,25 +1470,26 @@ class PiecewisePolynomial:
 
     def __add__(self,other):
         """
-	Returns the piecewise defined function which is the sum of
-	self and other. Does not require both domains be the same.
+	Returns the piecewise defined function which is the sum of self and
+	other. Does not require both domains be the same.
 
-	EXAMPLES:
+	EXAMPLES::
+
 	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
-            sage: f2 = 1-x
-            sage: f3 = 2*x
-            sage: f4 = 10-x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+	           sage: f2 = 1-x
+	           sage: f3 = 2*x
+	           sage: f4 = 10-x
+	           sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
 	    sage: g1 = x-2
-            sage: g2 = x-5
-            sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
+	           sage: g2 = x-5
+	           sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
 	    sage: h = f+g
 	    sage: h
-            Piecewise defined function with 5 parts, [[(0, 1), x - 1], [(1, 2), -1], [(2, 3), 3*x - 2], [(3, 5), 8], [(5, 10), 5]]
+	           Piecewise defined function with 5 parts, [[(0, 1), x - 1], [(1, 2), -1], [(2, 3), 3*x - 2], [(3, 5), 8], [(5, 10), 5]]
 
-        Note that in this case the functions must be defined using polynomial
-	expressions *not* using the lambda notation.
+	Note that in this case the functions must be defined using
+	polynomial expressions *not* using the lambda notation.
 	"""
         F, G, intervals = self._make_compatible(other)
         fcn = []
@@ -1403,27 +1499,28 @@ class PiecewisePolynomial:
 
     def __mul__(self,other):
         r"""
-	Returns the piecewise defined function which is the product of
-	one piecewise function (self) with another one (other).
+	Returns the piecewise defined function which is the product of one
+	piecewise function (self) with another one (other).
 
-	EXAMPLES:
+	EXAMPLES::
+
 	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
-            sage: f2 = 1-x
-            sage: f3 = 2*x
-            sage: f4 = 10-x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+	           sage: f2 = 1-x
+	           sage: f3 = 2*x
+	           sage: f4 = 10-x
+	           sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
 	    sage: g1 = x-2
-            sage: g2 = x-5
-            sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
+	           sage: g2 = x-5
+	           sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
 	    sage: h = f*g
 	    sage: h
 	    Piecewise defined function with 5 parts, [[(0, 1), x - 2], [(1, 2), -x^2 + 3*x - 2], [(2, 3), 2*x^2 - 4*x], [(3, 5), -x^2 + 12*x - 20], [(5, 10), -x^2 + 15*x - 50]]
-            sage: g*(11/2)
-            Piecewise defined function with 2 parts, [[(0, 5), 11/2*x - 11], [(5, 10), 11/2*x - 55/2]]
+	           sage: g*(11/2)
+	           Piecewise defined function with 2 parts, [[(0, 5), 11/2*x - 11], [(5, 10), 11/2*x - 55/2]]
 
-        Note that in this method the functions must be defined using polynomial
-	expressions *not* using the lambda notation.
+	Note that in this method the functions must be defined using
+	polynomial expressions *not* using the lambda notation.
 	"""
         ## needed for scalar multiplication
         if isinstance(other,Rational) or isinstance(other,Integer):

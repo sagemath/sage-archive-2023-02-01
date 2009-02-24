@@ -1,42 +1,49 @@
 """
 Block designs.
 
-A module to help with constructions and computations of block designs and
-other incidence structures.
+A module to help with constructions and computations of block
+designs and other incidence structures.
 
-A block design is an incidence structure consisting of a set of points P
-and a set of blocks B, where each block is considered as a subset of P.
-More precisely, a *block design* B is a class of k-element subsets of P such that
-the number r of blocks that contain any point x in P is independent of x,
-and the number lambda of blocks that contain any given t-element
-subset T is independent of the choice of T (see [1] for more). Such a block
-design is also called a t-(v,k,lambda)-design, and v (the number of points),
-b (the number of blocks), k, r, and lambda are the parameters of the design.
-(In Python, lambda is reserved, so we sometimes use lmbda or L instead.)
+A block design is an incidence structure consisting of a set of
+points P and a set of blocks B, where each block is considered as a
+subset of P. More precisely, a *block design* B is a class of
+k-element subsets of P such that the number r of blocks that
+contain any point x in P is independent of x, and the number lambda
+of blocks that contain any given t-element subset T is independent
+of the choice of T (see [1] for more). Such a block design is also
+called a t-(v,k,lambda)-design, and v (the number of points), b
+(the number of blocks), k, r, and lambda are the parameters of the
+design. (In Python, lambda is reserved, so we sometimes use lmbda
+or L instead.)
 
 In Sage, sets are replaced by (ordered) lists and the standard
-representation of a block design uses P = [0,1,..., v-1], so a block
-design is specified by (v,B).
+representation of a block design uses P = [0,1,..., v-1], so a
+block design is specified by (v,B).
 
-This software is released under the terms of the GNU General Public License,
-version 2 or above (your choice). For details on licencing, see the
-accompanying documentation.
+This software is released under the terms of the GNU General Public
+License, version 2 or above (your choice). For details on
+licencing, see the accompanying documentation.
 
 REFERENCES:
-  [1] Block design from wikipedia, http://en.wikipedia.org/wiki/Block_design
-  [2] What is a block design?, http://designtheory.org/library/extrep/html/node4.html
-      (in "The External Representation of Block Designs" by Peter J. Cameron,
-      Peter Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
-This is a significantly modified form of the module block_design.py (version 0.6)
-written by Peter Dobcsanyi <peter@designtheory.org>. Thanks go to Robert
-Miller for lots of good design suggestions.
+- [1] Block design from wikipedia,
+  http://en.wikipedia.org/wiki/Block_design
 
-Copyright 2007-2008 by Peter Dobcsanyi <peter@designtheory.org>,
-and David Joyner <wdjoyner@gmail.com>.
+- [2] What is a block design?,
+  http://designtheory.org/library/extrep/html/node4.html (in 'The
+  External Representation of Block Designs' by Peter J. Cameron, Peter
+  Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
-TODO: Implement DerivedDesign, ComplementaryDesign, Hadamard3Design
+This is a significantly modified form of the module
+block_design.py (version 0.6) written by Peter Dobcsanyi
+peter@designtheory.org. Thanks go to Robert Miller for lots of good
+design suggestions.
 
+Copyright 2007-2008 by Peter Dobcsanyi peter@designtheory.org, and
+David Joyner wdjoyner@gmail.com.
+
+TODO: Implement DerivedDesign, ComplementaryDesign,
+Hadamard3Design
 """
 
 import types
@@ -51,15 +58,15 @@ from sage.combinat.designs.incidence_structures import IncidenceStructure, Incid
 
 def tdesign_params(t, v, k, L):
     """
-    Return the design's parameters: (t, v, b, r , k, L).
-    Note t must be given.
+    Return the design's parameters: (t, v, b, r , k, L). Note t must be
+    given.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: from sage.combinat.designs.block_design import tdesign_params
         sage: tdesign_params(2,7,3,1)
         (2, 7, 7, 3, 3, 1)
-
     """
     x = binomial(v, t)
     y = binomial(k, t)
@@ -71,21 +78,21 @@ def tdesign_params(t, v, k, L):
 
 def ProjectiveGeometryDesign(n, d, F, method=None):
     """
-    Input: n is the projective dimension, so the number of points is
-             v = |PP^n(GF(q))|
-           d is the dimension of the subspaces of P = PP^n(GF(q))
-             which make up the blocks, so b is the number of d-dimensional
-             subspaces of P
+    Input: n is the projective dimension, so the number of points is v
+    = PPn(GF(q)) d is the dimension of the subspaces of P = PPn(GF(q))
+    which make up the blocks, so b is the number of d-dimensional
+    subspaces of P
 
-    Wraps GAP Design's PGPointFlatBlockDesign. Does *not* require GAP's Design.
+    Wraps GAP Design's PGPointFlatBlockDesign. Does *not* require
+    GAP's Design.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
         sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), method="gap")      # requires optional gap package
         sage: BD.is_block_design()                                     # requires optional gap package
         (True, [2, 7, 3, 1])
-
     """
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
@@ -114,25 +121,29 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
 def AffineGeometryDesign(n, d, F):
-    """
+    r"""
     Input: n is the Euclidian dimension, so the number of points is
-             $v = |F^n|$ (F = GF(q), some q)
-           d is the dimension of the (affine) subspaces of $P = GF(q)^n$
-             which make up the blocks.
+    `v = |F^n|` (F = GF(q), some q) d is the dimension of the
+    (affine) subspaces of `P = GF(q)^n` which make up the
+    blocks.
 
-    $AG_{n,d} (F)$, as it is sometimes denoted, is a
-    $2$-$(v, k, \lambda)$ design of points and $d$-flats
-    (cosets of dimension n) in the affine geometry $AG_n (F)$,
-    where
-    \[
-    v = q^n,\  k = q^d ,
-    \lambda =\frac{(q^{n-1}-1)\dots(q^{n+1-d}-1)}{(q^{n-1}-1)\dots(q-1)}.
-    \]
+    `AG_{n,d} (F)`, as it is sometimes denoted, is a
+    `2` - `(v, k, \lambda)` design of points and
+    `d`- flats (cosets of dimension n) in the affine geometry
+    `AG_n (F)`, where
+
+    .. math::
+
+             v = q^n,\  k = q^d ,
+             \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
+
+
 
     Wraps some functions used in GAP Design's PGPointFlatBlockDesign.
     Does *not* require GAP's Design.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: BD = AffineGeometryDesign(3, 1, GF(2))
         sage: BD.parameters()
         (2, 8, 2, 2)
@@ -143,7 +154,6 @@ def AffineGeometryDesign(n, d, F):
         (2, 8, 4, 12)
         sage: BD.is_block_design()
         (True, [3, 8, 4, 4])
-
     """
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
@@ -162,17 +172,18 @@ def AffineGeometryDesign(n, d, F):
 
 def WittDesign(n):
     """
-    Input: n is in {9,10,11,12,21,22,23,24}.
+    Input: n is in 9,10,11,12,21,22,23,24.
 
     Wraps GAP Design's WittDesign. If n=24 then this function returns
-    the large Witt design W24, the unique (up to isomorphism) 5-(24,8,1) design.
-    If n=12 then this function returns the small Witt design W12, the
-    unique (up to isomorphism) 5-(12,6,1) design. The other values of n return
-    a block design derived from these.
+    the large Witt design W24, the unique (up to isomorphism)
+    5-(24,8,1) design. If n=12 then this function returns the small
+    Witt design W12, the unique (up to isomorphism) 5-(12,6,1) design.
+    The other values of n return a block design derived from these.
 
     REQUIRES: GAP's Design package.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: BD = WittDesign(9)   # requires optional gap package
         sage: BD.parameters()      # requires optional gap package
         (2, 9, 3, 1)
@@ -183,7 +194,6 @@ def WittDesign(n):
         sage: BD = WittDesign(12)  # requires optional gap package
         sage: BD.parameters(t=5)   # requires optional gap package
         (5, 12, 6, 1)
-
     """
     from sage.interfaces.gap import gap, GapElement
     gap.eval('LoadPackage("design")')
@@ -197,21 +207,21 @@ def WittDesign(n):
 
 def HadamardDesign(n):
     """
-    As described in \S 1, p. 10, in [CvL]. The input n must
-    have the property that there is a Hadamard matrix of order
-    n+1 (and that a construction of that Hadamard matrix has been
-    implemented...).
+    As described in Section 1, p. 10, in [CvL]. The input n must have the
+    property that there is a Hadamard matrix of order n+1 (and that a
+    construction of that Hadamard matrix has been implemented...).
 
+    EXAMPLES::
 
-    EXAMPLES:
         sage: HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
         sage: print HadamardDesign(7)
         HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     REFERENCES:
-        [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes
-        and their links, London Math. Soc., 1991.
+
+    - [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+      their links, London Math. Soc., 1991.
     """
     from sage.combinat.combinat import hadamard_matrix
     from sage.matrix.constructor import matrix
@@ -227,15 +237,15 @@ def HadamardDesign(n):
 def BlockDesign(max_pt, blks, name=None, test=True):
     """
     Returns an instance of the IncidenceStructure class. Requires each
-    B in blks to be contained in range(max_pt). Does not test if
-    the result is a block design.
+    B in blks to be contained in range(max_pt). Does not test if the
+    result is a block design.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="Fano plane")
         Incidence structure with 7 points and 7 blocks
         sage: print BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="Fano plane")
         Fano plane<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-
     """
     nm = name
     tst = test

@@ -1,24 +1,26 @@
 """
 Symmetric functions defined by orthogonality and triangularity.
 
+One characterization of Schur functions is that they are upper
+triangularly related to the monomial symmetric functions and
+orthogonal with respect to the Hall scalar product. We can use the
+class SymmetricFunctionAlgebra_orthotriang to obtain the Schur
+functions from this definition.
 
-One characterization of Schur functions is that they are upper triangularly
-related to the monomial symmetric functions and orthogonal with respect to
-the Hall scalar product.  We can use the class
-SymmetricFunctionAlgebra_orthotriang to obtain the Schur functions from
-this definition.
+::
 
-sage: from sage.combinat.sf.sfa import zee
-sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-sage: m = SFAMonomial(QQ)
-sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
-sage: s([2,1])^2
-s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+    sage: from sage.combinat.sf.sfa import zee
+    sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
+    sage: m = SFAMonomial(QQ)
+    sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+    sage: s([2,1])^2
+    s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
-sage: s2 = SFASchur(QQ)
-sage: s2([2,1])^2
-s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+::
 
+    sage: s2 = SFASchur(QQ)
+    sage: s2([2,1])^2
+    s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -46,7 +48,8 @@ from sage.rings.all import ZZ, QQ
 class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic):
     def __init__(self, R, base, scalar, prefix, name, leading_coeff=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
@@ -71,7 +74,8 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         """
         Coerce other symmetric functions into self through the base.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
@@ -90,7 +94,8 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         Computes the change of basis between self and base for the
         homogenous component of size n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
@@ -114,15 +119,16 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _to_base(self, part):
         """
-        Returns a function which takes in a partition part2 and returns
-        the coefficient of part2 in the expansion of self(part) in
-        base.
+        Returns a function which takes in a partition part2 and returns the
+        coefficient of part2 in the expansion of self(part) in base.
 
-        NOTE:
-            We assume that self._gram_schmidt has been called before
-            self._to_base is called.
+        .. note::
 
-        EXAMPLES:
+           We assume that self._gram_schmidt has been called before
+           self._to_base is called.
+
+        EXAMPLES::
+
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)
@@ -138,10 +144,11 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _multiply(self, left, right):
         """
-        Returns left*right by converting both to the base and then
+        Returns left\*right by converting both to the base and then
         converting back to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: m = SFAMonomial(QQ)

@@ -26,7 +26,8 @@ import multiplicative, sfa, classical
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: h = SFAHomogeneous(QQ)
             sage: h == loads(dumps(h))
             True
@@ -35,11 +36,11 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     def dual_basis(self, scalar=None, prefix=None):
         """
-        The dual basis of the homogeneous basis with
-        respect to the standard scalar product is the
-        monomial basis.
+        The dual basis of the homogeneous basis with respect to the
+        standard scalar product is the monomial basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: h = SFAHomogeneous(QQ)
             sage: h.dual_basis() == m
@@ -54,9 +55,11 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlgebraElement_classical):
     def omega(self):
         """
-        Returns the image of self under the Frobenius / omega automorphism.
+        Returns the image of self under the Frobenius / omega
+        automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: h = SFAHomogeneous(QQ)
             sage: a = h([2,1]); a
             h[2, 1]
@@ -71,9 +74,11 @@ class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlg
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: h = SFAHomogeneous(QQ)
             sage: h([3]).expand(2)
             x0^3 + x0^2*x1 + x0*x1^2 + x1^3
@@ -87,8 +92,6 @@ class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlg
             x^3 + x^2*y + x*y^2 + y^3
             sage: h([3]).expand(3,alphabet='x,y,z')
             x^3 + x^2*y + x*y^2 + y^3 + x^2*z + x*y*z + y^2*z + x*z^2 + y*z^2 + z^3
-
-
         """
         condition = lambda part: False
         return self._expand(condition, n, alphabet)

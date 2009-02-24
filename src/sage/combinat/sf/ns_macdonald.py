@@ -1,3 +1,6 @@
+"""
+Non-symmetric Macdonald Polynomials
+"""
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 from sage.combinat.words.words import Words
 from sage.combinat.combination import Combinations
@@ -9,14 +12,14 @@ import copy
 class LatticeDiagram(CombinatorialObject):
     def boxes(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,0,2])
             sage: a.boxes()
             [(1, 1), (1, 2), (1, 3), (3, 1), (3, 2)]
             sage: a = LatticeDiagram([2, 1, 3, 0, 0, 2])
             sage: a.boxes()
             [(1, 1), (1, 2), (2, 1), (3, 1), (3, 2), (3, 3), (6, 1), (6, 2)]
-
         """
         res = []
         for i in range(1, len(self)+1):
@@ -25,10 +28,11 @@ class LatticeDiagram(CombinatorialObject):
 
     def __getitem__(self, i):
         """
-        Returns the $i^{th}$ entry of self. Note that the
-        indexing starts for lattice diagrams starts at 1.
+        Returns the `i^{th}` entry of self. Note that the indexing
+        starts for lattice diagrams starts at 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,0,2])
             sage: a[1]
             3
@@ -49,7 +53,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the leg of the box (i,j) in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.leg(5,2)
             [(5, 3)]
@@ -60,7 +65,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the left arm of the box (i,j) in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.arm_left(5,2)
             [(1, 2), (3, 2)]
@@ -71,7 +77,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the right arm of the box (i,j) in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.arm_right(5,2)
             [(8, 1)]
@@ -82,11 +89,11 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the arm of the box (i,j) in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.arm(5,2)
             [(1, 2), (3, 2), (8, 1)]
-
         """
         return self.arm_left(i,j) + self.arm_right(i,j)
 
@@ -94,7 +101,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the self[i] - j.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.l(5,2)
             1
@@ -106,7 +114,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns len(self.arm(i,j)).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.a(5,2)
             3
@@ -118,7 +127,8 @@ class LatticeDiagram(CombinatorialObject):
         """
         Returns the number of boxes in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,1,2,4,3,0,4,2,3])
             sage: a.size()
             22
@@ -128,10 +138,11 @@ class LatticeDiagram(CombinatorialObject):
 
     def flip(self):
         """
-        Returns the flip of the self where flip is defined as follows.
-        Let r = max(self).  Then self.flip()[i] = r - self[i].
+        Returns the flip of the self where flip is defined as follows. Let
+        r = max(self). Then self.flip()[i] = r - self[i].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = LatticeDiagram([3,0,2])
             sage: a.flip()
             [0, 3, 1]
@@ -141,11 +152,12 @@ class LatticeDiagram(CombinatorialObject):
 
     def boxes_same_and_lower_right(self, ii, jj):
         """
-        Returns a list of the boxes that are in the same row as self, and in the
-        row below self (including the basement) that are strictly to the
-        right of self.
+        Returns a list of the boxes that are in the same row as self, and
+        in the row below self (including the basement) that are strictly to
+        the right of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a = a.shape()
             sage: a.boxes_same_and_lower_right(1,1)
@@ -173,7 +185,8 @@ class LatticeDiagram(CombinatorialObject):
 class AugmentedLatticeDiagramFilling(CombinatorialObject):
     def __init__(self, l, pi=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a == loads(dumps(a))
             True
@@ -189,7 +202,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def __getitem__(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a[0]
             Traceback (most recent call last):
@@ -215,7 +229,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns the shape of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.shape()
             [2, 1, 3, 0, 0, 2]
@@ -224,10 +239,11 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def __contains__(self, ij):
         """
-        Returns True if the box (i,j) (= ij) is in self.  Note
-        that this does not include the basement row.
+        Returns True if the box (i,j) (= ij) is in self. Note that this
+        does not include the basement row.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: (1,1) in a
             True
@@ -242,10 +258,10 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def are_attacking(self, i,j, ii, jj):
         """
-        Returns True if the boxes (i,j) and (ii,jj) in self
-        are attacking.
+        Returns True if the boxes (i,j) and (ii,jj) in self are attacking.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: all( a.are_attacking(i,j,ii,jj) for (i,j),(ii,jj) in a.attacking_boxes())
             True
@@ -274,7 +290,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         Returns a list of the coordinates of the boxes of self, including
         the 'basement row'.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.boxes()
             [(1, 1),
@@ -296,10 +313,10 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def attacking_boxes(self):
         """
-        Returns a list of pairs of boxes in self that are
-        attacking.
+        Returns a list of pairs of boxes in self that are attacking.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.attacking_boxes()[:5]
             [((1, 1), (2, 1)),
@@ -307,7 +324,6 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
              ((1, 1), (6, 1)),
              ((1, 1), (2, 0)),
              ((1, 1), (3, 0))]
-
         """
         boxes = self.boxes()
         res = []
@@ -321,7 +337,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns True if self in non-attacking.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.is_non_attacking()
             True
@@ -345,7 +362,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns the weight of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.weight()
             [1, 2, 1, 1, 2, 1]
@@ -356,7 +374,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns a list of the descents of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.descents()
             [(1, 2), (3, 2)]
@@ -371,7 +390,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns the major index of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.maj()
             3
@@ -384,11 +404,12 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def reading_order(self):
         """
-        Returns a list of coordinates of the boxes in self, starting
-        from the top right, and reading from right to left.  Note that
-        this includes the 'basement row' of self.
+        Returns a list of coordinates of the boxes in self, starting from
+        the top right, and reading from right to left. Note that this
+        includes the 'basement row' of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.reading_order()
             [(3, 3),
@@ -405,7 +426,6 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
              (3, 0),
              (2, 0),
              (1, 0)]
-
         """
         boxes = self.boxes()
         f = lambda ij: (-ij[1],-ij[0])
@@ -417,7 +437,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         Return the reading word of self, obtained by reading the boxes
         entries of self from right to left, starting in the upper right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.reading_word()
             word: 25465321
@@ -430,7 +451,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns a list of the inversions of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.inversions()[:5]
             [((6, 2), (3, 2)),
@@ -454,7 +476,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def _inv_aux(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a._inv_aux()
             7
@@ -472,7 +495,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns self's inversion statistic.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.inv()
             15
@@ -486,7 +510,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         Returns self's co-inversion statistic.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: a.coinv()
             2
@@ -497,16 +522,16 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def coeff(self, q, t):
         """
-        Returns the coefficient in front of self in the HHL formula
-        for the expansion of the non-symmetric Macdonald polynomial
+        Returns the coefficient in front of self in the HHL formula for the
+        expansion of the non-symmetric Macdonald polynomial
         E(self.shape()).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: q,t = var('q,t')
             sage: a.coeff(q,t)
             (1 - t)^4/((1 - q*t^2)^2*(1 - q^2*t^3)^2)
-
         """
         res = 1
         shape = self.shape()
@@ -517,16 +542,16 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def coeff_integral(self, q, t):
         """
-        Returns the coefficient in front of self in the HHL formula
-        for the expansion of the integral non-symmetric Macdonald
-        polynomial E(self.shape())
+        Returns the coefficient in front of self in the HHL formula for the
+        expansion of the integral non-symmetric Macdonald polynomial
+        E(self.shape())
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: q,t = var('q,t')
             sage: a.coeff_integral(q,t)
             (1 - t)^4*(1 - q*t^2)^2*(1 - q^2*t^3)^2
-
         """
         res = 1
         shape = self.shape()
@@ -541,7 +566,8 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def permuted_filling(self, sigma):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pi=Permutation([2,1,4,3]).to_permutation_group_element()
             sage: fill=[[2],[1,2,3],[],[3,1]]
             sage: AugmentedLatticeDiagramFilling(fill).permuted_filling(pi)
@@ -556,10 +582,11 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
 def NonattackingFillings(shape, pi=None):
     """
-    Returning the combinatorial class of nonattacking
-    fillings of a given shape.
+    Returning the combinatorial class of nonattacking fillings of a
+    given shape.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: NonattackingFillings([0,1,2])
         Nonattacking fillings of [0, 1, 2]
         sage: NonattackingFillings([0,1,2]).list()
@@ -575,14 +602,14 @@ def NonattackingFillings(shape, pi=None):
          [[1], [2, 2], [3, 3, 1]],
          [[1], [2, 2], [3, 3, 2]],
          [[1], [2, 2], [3, 3, 3]]]
-
     """
     return NonattackingFillings_shape(shape, pi)
 
 class NonattackingFillings_shape(CombinatorialClass):
     def __init__(self, shape, pi=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = NonattackingFillings([0,1,2])
             sage: n == loads(dumps(n))
             True
@@ -593,19 +620,19 @@ class NonattackingFillings_shape(CombinatorialClass):
 
     def flip(self):
         """
-        Returns the nonattacking fillings of the the flipped
-        shape.
+        Returns the nonattacking fillings of the the flipped shape.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: NonattackingFillings([0,1,2]).flip()
             Nonattacking fillings of [2, 1, 0]
-
         """
         return NonattackingFillings(list(self._shape.flip()),self.pi)
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: NonattackingFillings([0,1,2]).list() #indirect doctest
             [[[1], [2, 1], [3, 2, 1]],
              [[1], [2, 1], [3, 2, 2]],
@@ -622,7 +649,8 @@ class NonattackingFillings_shape(CombinatorialClass):
             sage: len(_)
             12
 
-        TESTS:
+        TESTS::
+
             sage: NonattackingFillings([3,2,1,1]).count()
             3
             sage: NonattackingFillings([3,2,1,2]).count()
@@ -633,7 +661,6 @@ class NonattackingFillings_shape(CombinatorialClass):
             1
             sage: NonattackingFillings([1,2,3,2]).count()
             24
-
         """
         if sum(self._shape) == 0:
             yield AugmentedLatticeDiagramFilling([ [] for s in self._shape ], self.pi)
@@ -646,7 +673,8 @@ class NonattackingFillings_shape(CombinatorialClass):
 class NonattackingBacktracker(GenericBacktracker):
     def __init__(self, shape, pi=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
             sage: n = NonattackingBacktracker(LatticeDiagram([0,1,2]))
             sage: n._ending_position
@@ -676,7 +704,8 @@ class NonattackingBacktracker(GenericBacktracker):
 
     def _rec(self, obj, state):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
             sage: n = NonattackingBacktracker(LatticeDiagram([0,1,2]))
             sage: len(list(n.iterator()))
@@ -686,7 +715,6 @@ class NonattackingBacktracker(GenericBacktracker):
             sage: list(n._rec(obj, state))
             [([[], [1], [None, None]], (3, 1), False),
              ([[], [2], [None, None]], (3, 1), False)]
-
         """
         #We need to set the i,j^th entry.
         i, j = state
@@ -713,7 +741,8 @@ class NonattackingBacktracker(GenericBacktracker):
 
     def get_next_pos(self, ii, jj):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: n = NonattackingBacktracker(a.shape())
@@ -741,7 +770,8 @@ class NonattackingBacktracker(GenericBacktracker):
 
 def _check_muqt(mu, q, t, pi=None):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.ns_macdonald import _check_muqt
         sage: P, q, t, n, R, x = _check_muqt([0,0,1],None,None)
         sage: P
@@ -757,17 +787,20 @@ def _check_muqt(mu, q, t, pi=None):
         sage: x
         (x0, x1, x2)
 
+    ::
+
         sage: q,t = var('q,t')
         sage: P, q, t, n, R, x = _check_muqt([0,0,1],q,None)
         Traceback (most recent call last):
         ...
         ValueError: you must specify either both q and t or neither of them
 
+    ::
+
         sage: P, q, t, n, R, x = _check_muqt([0,0,1],q,2)
         Traceback (most recent call last):
         ...
         ValueError: the parents of q and t must be the same
-
     """
     if q is None and t is None:
         P = PolynomialRing(QQ,'q,t').fraction_field()
@@ -785,16 +818,21 @@ def _check_muqt(mu, q, t, pi=None):
 
 def E(mu, q=None, t=None, pi=None):
     """
-    Returns the non-symmetric Mcadonald polynomial in type A corresponding to
-    a shape mu, with basement permuted according to pi.
+    Returns the non-symmetric Mcadonald polynomial in type A
+    corresponding to a shape mu, with basement permuted according to
+    pi.
 
-    Note that if both q and t are specifed, then they must have the same parent.
+    Note that if both q and t are specifed, then they must have the
+    same parent.
 
     REFERENCE:
-        'A combinatorial formula for non-symmetric Macdonald polynomials'. Haiman,
-            Haglund, and Loehr. http://arxiv.org/abs/math/0601693
 
-    EXAMPLES:
+    - 'A combinatorial formula for non-symmetric Macdonald
+      polynomials'. Haiman, Haglund, and Loehr.
+      http://arxiv.org/abs/math/0601693
+
+    EXAMPLES::
+
         sage: from sage.combinat.sf.ns_macdonald import E
         sage: E([0,0,0])
         1
@@ -814,7 +852,6 @@ def E(mu, q=None, t=None, pi=None):
         x0^2 + ((-q*t + q)/(-q*t + 1))*x0*x1 + ((-q*t + q)/(-q*t + 1))*x0*x2
         sage: E([0,2,0])
         ((-t + 1)/(-q^2*t^2 + 1))*x0^2 + ((-q^2*t^3 + q^2*t^2 - q*t^2 + 2*q*t - q + t - 1)/(-q^3*t^3 + q^2*t^2 + q*t - 1))*x0*x1 + x1^2 + ((q*t^2 - 2*q*t + q)/(q^3*t^3 - q^2*t^2 - q*t + 1))*x0*x2 + ((-q*t + q)/(-q*t + 1))*x1*x2
-
     """
     P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0
@@ -825,17 +862,20 @@ def E(mu, q=None, t=None, pi=None):
 
 def E_integral(mu, q=None, t=None, pi=None):
     """
-    Returns the integral form for the non-symmetric Mcadonald polynomial
-    in type A corresponding to a shape mu.
+    Returns the integral form for the non-symmetric Mcadonald
+    polynomial in type A corresponding to a shape mu.
 
-    Note that if both q and t are specifed, then they must have
-    the same parent.
+    Note that if both q and t are specifed, then they must have the
+    same parent.
 
     REFERENCE:
-        'A combinatorial formula for non-symmetric Macdonald polynomials'. Haiman,
-            Haglund, and Loehr. http://arxiv.org/abs/math/0601693
 
-    EXAMPLES:
+    - 'A combinatorial formula for non-symmetric Macdonald
+      polynomials'. Haiman, Haglund, and Loehr.
+      http://arxiv.org/abs/math/0601693
+
+    EXAMPLES::
+
         sage: from sage.combinat.sf.ns_macdonald import E_integral
         sage: E_integral([0,0,0])
         1
@@ -855,7 +895,6 @@ def E_integral(mu, q=None, t=None, pi=None):
         (t^2 - 2*t + 1)*x0^2 + (q^2*t^2 - q^2*t - q*t + q)*x0*x1 + (q^2*t^2 - q^2*t - q*t + q)*x0*x2
         sage: E_integral([0,2,0])
         (q^2*t^3 - q^2*t^2 - t + 1)*x0^2 + (q^4*t^3 - q^3*t^2 - q^2*t + q*t^2 - q*t + q - t + 1)*x0*x1 + (t^2 - 2*t + 1)*x1^2 + (q^4*t^3 - q^3*t^2 - q^2*t + q)*x0*x2 + (q^2*t^2 - q^2*t - q*t + q)*x1*x2
-
     """
     P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0
@@ -866,17 +905,20 @@ def E_integral(mu, q=None, t=None, pi=None):
 
 def Ht(mu, q=None, t=None, pi=None):
     """
-    Returns the symmetric Macdonald polynomial using the
-    Haiman, Haglund, and Loehr formula.
+    Returns the symmetric Macdonald polynomial using the Haiman,
+    Haglund, and Loehr formula.
 
-    Note that if both q and t are specifed, then they must have
-    the same parent.
+    Note that if both q and t are specifed, then they must have the
+    same parent.
 
     REFERENCE:
-        'A combinatorial formula for non-symmetric Macdonald polynomials'. Haiman,
-            Haglund, and Loehr. http://arxiv.org/abs/math/0601693
 
-    EXAMPLES:
+    - 'A combinatorial formula for non-symmetric Macdonald
+      polynomials'. Haiman, Haglund, and Loehr.
+      http://arxiv.org/abs/math/0601693
+
+    EXAMPLES::
+
         sage: from sage.combinat.sf.ns_macdonald import Ht
         sage: HHt = MacdonaldPolynomialsHt(QQ)
         sage: Ht([0,0,1])
@@ -887,7 +929,6 @@ def Ht(mu, q=None, t=None, pi=None):
         x0^2 + (q + 1)*x0*x1 + x1^2 + (q + 1)*x0*x2 + (q + 1)*x1*x2 + x2^2
         sage: HHt([2]).expand(3)
         x0^2 + (q + 1)*x0*x1 + x1^2 + (q + 1)*x0*x2 + (q + 1)*x1*x2 + x2^2
-
     """
     P, q, t, n, R, x = _check_muqt(mu, q, t, pi)
     res = 0

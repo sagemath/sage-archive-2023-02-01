@@ -27,7 +27,8 @@ def from_contre_tableau(comps):
     """
     Returns an alternating sign matrix from a contretableaux.
 
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.alternating_sign_matrix as asm
         sage: asm.from_contre_tableau([[1, 2, 3], [1, 2], [1]])
         [0 0 1]
@@ -57,11 +58,12 @@ def from_contre_tableau(comps):
     return MS(M)
 
 def AlternatingSignMatrices(n):
-    """
+    r"""
     Returns the combinatorial class of alternating sign matrices of
     size n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a2 = AlternatingSignMatrices(2); a2
         Alternating sign matrices of size 2
         sage: for a in a2: print a, "-\n"
@@ -77,7 +79,8 @@ def AlternatingSignMatrices(n):
 class AlternatingSignMatrices_n(CombinatorialClass):
     def __init__(self, n):
         """
-        TESTS:
+        TESTS::
+
             sage: a2 = AlternatingSignMatrices(2); a2
             Alternating sign matrices of size 2
             sage: a2 == loads(dumps(a2))
@@ -87,7 +90,8 @@ class AlternatingSignMatrices_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(AlternatingSignMatrices(2))
             'Alternating sign matrices of size 2'
         """
@@ -95,9 +99,12 @@ class AlternatingSignMatrices_n(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: [ AlternatingSignMatrices(n).count() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
+
+        ::
 
             sage: asms = [ AlternatingSignMatrices(n) for n in range(6) ]
             sage: all( [ asm.count() == len(asm.list()) for asm in asms] )
@@ -107,8 +114,8 @@ class AlternatingSignMatrices_n(CombinatorialClass):
 
     def iterator(self):
         """
+        TESTS::
 
-        TESTS:
             sage: AlternatingSignMatrices(0).list()
             [[]]
             sage: AlternatingSignMatrices(1).list()
@@ -123,7 +130,6 @@ class AlternatingSignMatrices_n(CombinatorialClass):
              [(0, 1, 0), (1, 0, 0), (0, 0, 1)],
              [(1, 0, 0), (0, 0, 1), (0, 1, 0)],
              [(1, 0, 0), (0, 1, 0), (0, 0, 1)]]
-
         """
         for z in ContreTableaux(self.n):
             yield from_contre_tableau(z)
@@ -133,7 +139,8 @@ def ContreTableaux(n):
     """
     Returns the combinatorial class of contre tableaux of size n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ct4 = ContreTableaux(4); ct4
         Contre tableaux of size 4
         sage: ct4.count()
@@ -150,7 +157,8 @@ def ContreTableaux(n):
 class ContreTableaux_n(CombinatorialClass):
     def __init__(self, n):
         """
-        TESTS:
+        TESTS::
+
             sage: ct2 = ContreTableaux(2); ct2
             Contre tableaux of size 2
             sage: ct2 == loads(dumps(ct2))
@@ -160,7 +168,8 @@ class ContreTableaux_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(ContreTableaux(2))
             'Contre tableaux of size 2'
         """
@@ -168,7 +177,8 @@ class ContreTableaux_n(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: [ ContreTableaux(n).count() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
         """
@@ -176,7 +186,8 @@ class ContreTableaux_n(CombinatorialClass):
 
     def _iterator_rec(self, i):
         """
-        TESTS:
+        TESTS::
+
             sage: c = ContreTableaux(2)
             sage: list(c._iterator_rec(0))
             [[]]
@@ -197,7 +208,8 @@ class ContreTableaux_n(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: ContreTableaux(0).list()     #indirect test
             [[]]
             sage: ContreTableaux(1).list()     #indirect test
@@ -221,10 +233,11 @@ class ContreTableaux_n(CombinatorialClass):
 
 def _next_column_iterator(previous_column, height, i = None):
     """
-    Returns a generator for all columbs of height height
-    properly filled from row 1 to i
+    Returns a generator for all columbs of height height properly
+    filled from row 1 to i
 
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.alternating_sign_matrix as asm
         sage: list(asm._next_column_iterator([1], 0))
         [[]]
@@ -232,7 +245,6 @@ def _next_column_iterator(previous_column, height, i = None):
         [[1], [2], [3], [4], [5]]
         sage: list(asm._next_column_iterator([1,4,5],2))
         [[1, 4], [1, 5], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]
-
     """
     if i is None:
         i = height
@@ -250,7 +262,8 @@ def _next_column_iterator(previous_column, height, i = None):
 
 def _previous_column_iterator(column, height, max_value):
     """
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.alternating_sign_matrix as asm
         sage: list(asm._previous_column_iterator([2,3], 3, 4))
         [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
@@ -260,10 +273,11 @@ def _previous_column_iterator(column, height, max_value):
 
 def TruncatedStaircases(n, last_column):
     """
-    Returns the combinatorial class of truncated staircases
-    of size n with last column last_column.
+    Returns the combinatorial class of truncated staircases of size n
+    with last column last_column.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: t4 = TruncatedStaircases(4, [2,3]); t4
         Truncated staircases of size 4 with last column [2, 3]
         sage: t4.count()
@@ -278,7 +292,8 @@ def TruncatedStaircases(n, last_column):
 class TruncatedStaircases_nlastcolumn(CombinatorialClass):
     def __init__(self, n, last_column):
         """
-        TESTS:
+        TESTS::
+
             sage: t4 = TruncatedStaircases(4, [2,3]); t4
             Truncated staircases of size 4 with last column [2, 3]
             sage: t4 == loads(dumps(t4))
@@ -289,7 +304,8 @@ class TruncatedStaircases_nlastcolumn(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(TruncatedStaircases(4, [2,3]))
             'Truncated staircases of size 4 with last column [2, 3]'
         """
@@ -297,7 +313,8 @@ class TruncatedStaircases_nlastcolumn(CombinatorialClass):
 
     def _iterator_rec(self, i):
         """
-        TESTS:
+        TESTS::
+
             sage: t = TruncatedStaircases(3, [2,3])
             sage: list(t._iterator_rec(1))
             []
@@ -318,10 +335,10 @@ class TruncatedStaircases_nlastcolumn(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES::
+        EXAMPLES:::
+
             sage: TruncatedStaircases(4, [2,3]).list() #indirect test
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]
-
         """
         for z in self._iterator_rec(self.n):
             yield map(lambda x: list(reversed(x)), z)

@@ -1,16 +1,16 @@
 """
 Species structures
 
-We will illustrate the use of the structure classes using the "balls and bars"
-model for integer compositions.  An integer composition of 6 such as
-[2, 1, 3] can be represented in this model as 'oo|o|ooo' where the 6 o's
-correspond to the balls and the 2 |'s correspond to the bars.  If BB is
-our species for this model, the it satisfies the following recursive
-definition:
+We will illustrate the use of the structure classes using the
+"balls and bars" model for integer compositions. An integer
+composition of 6 such as [2, 1, 3] can be represented in this model
+as 'oooooo' where the 6 o's correspond to the balls and the 2 's
+correspond to the bars. If BB is our species for this model, the it
+satisfies the following recursive definition:
 
-BB = o + o*BB + o*|*BB
+BB = o + o\*BB + o\*\*BB
 
-Here we define this species using the default structures:
+Here we define this species using the default structures::
 
     sage: ball = species.SingletonSpecies(); o = var('o')
     sage: bar = species.EmptySetSpecies()
@@ -19,9 +19,8 @@ Here we define this species using the default structures:
     sage: BB.isotypes([o]*3).list()
     [o*(o*o), o*((o*{})*o), (o*{})*(o*o), (o*{})*((o*{})*o)]
 
-If we ignore the parentheses, we can read off that the integer compositions
-are [3], [2, 1], [1, 2], and [1, 1, 1].
-
+If we ignore the parentheses, we can read off that the integer
+compositions are [3], [2, 1], [1, 2], and [1, 1, 1].
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -47,7 +46,8 @@ class SpeciesStructure(SageObject):
         """
         Returns the species that this structure is associated with.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: a,b = L.structures([1,2])
             sage: a.parent()
@@ -61,7 +61,8 @@ class SpeciesStructure(SageObject):
 class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
     def __init__(self, parent, labels, list):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.structure import GenericSpeciesStructure
             sage: a = GenericSpeciesStructure(None, [2,3,4], [1,2,3])
             sage: a
@@ -77,18 +78,19 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.structure import GenericSpeciesStructure
             sage: a = GenericSpeciesStructure(None, [2,3,4], [1,2,3])
             sage: a
             [2, 3, 4]
-
         """
         return repr(self.labels())
 
     def labels(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.SubsetSpecies()
             sage: S = P.structures(["a", "b", "c"])
             sage: [s.labels() for s in S]
@@ -98,7 +100,8 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
 
     def change_labels(self, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.SubsetSpecies()
             sage: S = P.structures(["a", "b", "c"])
             sage: [s.change_labels([1,2,3]) for s in S]
@@ -110,14 +113,14 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
 
     def _relabel(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.structure import GenericSpeciesStructure
             sage: a = GenericSpeciesStructure(None, [2,3,4], [1,2,3])
             sage: a._relabel(1)
             2
             sage: a._relabel([1,2,3])
             [1, 2, 3]
-
         """
         if isinstance(i, (int, Integer)):
             return self._labels[i-1]
@@ -126,7 +129,8 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
 
     def is_isomorphic(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: a = S.structures([1,2,3]).random_element(); a
             {1, 2, 3}
@@ -145,14 +149,14 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
 class SpeciesStructureWrapper(GenericSpeciesStructure):
     def __init__(self, parent, s, **options):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = species.SetSpecies(); B = E+E
             sage: s = B.structures([1,2,3]).random_element()
             sage: s.parent()
             Sum of (Set species) and (Set species)
             sage: s == loads(dumps(s))
             True
-
         """
         self._parent = parent
         self._s = s
@@ -161,7 +165,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 
     def __getattr__(self, attr):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = species.SetSpecies(); B = E+E
             sage: s = B.structures([1,2,3]).random_element()
             sage: s
@@ -176,17 +181,18 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         """
         Returns the repr of the object which tihs one wraps.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = species.SetSpecies()
             sage: s = (E+E).structures([1,2,3]).random_element(); s
             {1, 2, 3}
-
         """
         return repr(self._s)
 
     def transport(self, perm):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: s = (P+P).structures([1,2,3]).random_element(); s
             {{1, 3}, {2}}
@@ -197,7 +203,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: s = (P+P).structures([1,2,3]).random_element(); s
             {{1, 3}, {2}}
@@ -208,7 +215,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 
     def labels(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: s = (P+P).structures([1,2,3]).random_element(); s
             {{1, 3}, {2}}
@@ -226,7 +234,8 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
 class SpeciesWrapper(CombinatorialClass):
     def __init__(self, species, labels, iterator, generating_series, name, structure_class):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.structure import SpeciesWrapper
             sage: F = species.SetSpecies()
             sage: S = SpeciesWrapper(F, [1,2,3], "_structures", "generating_series", 'Structures', None)
@@ -246,7 +255,8 @@ class SpeciesWrapper(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: F.structures([1,2,3]).list()
             [{1, 2, 3}]
@@ -272,7 +282,8 @@ class SpeciesWrapper(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: F.structures([1,2,3]).count()
             1
@@ -282,7 +293,8 @@ class SpeciesWrapper(CombinatorialClass):
 class StructuresWrapper(SpeciesWrapper):
     def __init__(self, species, labels, structure_class):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: S = F.structures([1,2,3])
             sage: S == loads(dumps(S))
@@ -297,7 +309,8 @@ class StructuresWrapper(SpeciesWrapper):
 class IsotypesWrapper(SpeciesWrapper):
     def __init__(self, species, labels, structure_class):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: S = F.isotypes([1,2,3])
             sage: S == loads(dumps(S))
@@ -313,7 +326,8 @@ class IsotypesWrapper(SpeciesWrapper):
 class SimpleStructuresWrapper(SpeciesWrapper):
     def __init__(self, species, labels, structure_class):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: S = F.structures([1,2,3])
             sage: S == loads(dumps(S))
@@ -328,7 +342,8 @@ class SimpleStructuresWrapper(SpeciesWrapper):
 class SimpleIsotypesWrapper(SpeciesWrapper):
     def __init__(self, species, labels, structure_class):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.SetSpecies()
             sage: S = F.structures([1,2,3])
             sage: S == loads(dumps(S))

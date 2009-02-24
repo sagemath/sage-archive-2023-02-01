@@ -23,7 +23,8 @@ from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: m = SFAMonomial(QQ)
             sage: m == loads(dumps(m))
             True
@@ -32,11 +33,11 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
-        The dual basis of the monomial basis with
-        respect to the standard scalar product is the
-        homogeneous basis.
+        The dual basis of the monomial basis with respect to the standard
+        scalar product is the homogeneous basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: h = SFAHomogeneous(QQ)
             sage: m.dual_basis() == h
@@ -50,11 +51,14 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def _multiply(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: a = m([2,1])
             sage: a^2
             4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]
+
+        ::
 
             sage: QQx.<x> = QQ['x']
             sage: m = SFAMonomial(QQx)
@@ -63,7 +67,6 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             2*x*m[] + 2*m[2, 1]
             sage: a^2
             x^2*m[] + 2*x*m[2, 1] + 4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]
-
         """
         #Use symmetrica to do the multiplication
         A = left.parent()
@@ -96,9 +99,11 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebraElement_classical):
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: m([2,1]).expand(3)
             x0^2*x1 + x0*x1^2 + x0^2*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2

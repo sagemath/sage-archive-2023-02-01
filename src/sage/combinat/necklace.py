@@ -1,20 +1,14 @@
 """
 Necklaces
 
-
 Algorithm from
 
-A fast algorithm to generate necklaces with fixed content
-Source 	Theoretical Computer Science archive
-Volume 301 ,  Issue 1-3  (May 2003) table of contents
-Pages: 477 - 489
-Year of Publication: 2003
-ISSN:0304-3975
-Author
-Joe Sawada 	 Department of Computer Science, University of Toronto, 10 King's College Road, Toronto, Ont. Canada M5S 1A4
-Publisher
-Elsevier Science Publishers Ltd.   Essex, UK
-
+A fast algorithm to generate necklaces with fixed content Source
+Theoretical Computer Science archive Volume 301 , Issue 1-3 (May
+2003) table of contents Pages: 477 - 489 Year of Publication: 2003
+ISSN:0304-3975 Author Joe Sawada Department of Computer Science,
+University of Toronto, 10 King's College Road, Toronto, Ont. Canada
+M5S 1A4 Publisher Elsevier Science Publishers Ltd. Essex, UK
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -39,10 +33,10 @@ from sage.combinat.misc import DoublyLinkedList
 
 def Necklaces(e):
     """
-    Returns the combinatorial class of necklaces with
-    evaluation e.
+    Returns the combinatorial class of necklaces with evaluation e.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Necklaces([2,1,1])
         Necklaces with evaluation [2, 1, 1]
         sage: Necklaces([2,1,1]).count()
@@ -53,14 +47,14 @@ def Necklaces(e):
         [1, 2, 1, 3]
         sage: Necklaces([2,1,1]).list()
         [[1, 1, 2, 3], [1, 1, 3, 2], [1, 2, 1, 3]]
-
     """
     return Necklaces_evaluation(e)
 
 class Necklaces_evaluation(CombinatorialClass):
     def __init__(self, e):
         """
-        TESTS:
+        TESTS::
+
             sage: N = Necklaces([2,2,2])
             sage: N == loads(dumps(N))
             True
@@ -73,7 +67,8 @@ class Necklaces_evaluation(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Necklaces([2,1,1]))
             'Necklaces with evaluation [2, 1, 1]'
         """
@@ -81,7 +76,8 @@ class Necklaces_evaluation(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [2,1,2,1] in Necklaces([2,2])
             False
             sage: [1,2,1,2] in Necklaces([2,2])
@@ -123,10 +119,10 @@ class Necklaces_evaluation(CombinatorialClass):
 
     def count(self):
         """
-        Returns the number of integer necklaces with the
-        evaluation e.
+        Returns the number of integer necklaces with the evaluation e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Necklaces([]).count()
             0
             sage: Necklaces([2,2]).count()
@@ -134,8 +130,10 @@ class Necklaces_evaluation(CombinatorialClass):
             sage: Necklaces([2,3,2]).count()
             30
 
-          Check to make sure that the count matches up with the
-          number of Lyndon words generated.
+        Check to make sure that the count matches up with the number of
+        Lyndon words generated.
+
+        ::
 
             sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
             sage: ns = [ Necklaces(comp) for comp in comps]
@@ -156,7 +154,8 @@ class Necklaces_evaluation(CombinatorialClass):
         """
         An iterator for the integer necklaces iwth evaluation e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Necklaces([]).list()    #indirect test
             []
             sage: Necklaces([1]).list()   #indirect test
@@ -194,7 +193,8 @@ class Necklaces_evaluation(CombinatorialClass):
 ##############################
 def _ffc(content, equality=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _ffc
         sage: list(_ffc([3,3])) #necklaces
         [[0, 1, 0, 1, 0, 1],
@@ -222,7 +222,8 @@ def _ffc(content, equality=False):
 
 def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _fast_fixed_content
         sage: from sage.combinat.misc import DoublyLinkedList
         sage: e = [3,3]
@@ -288,7 +289,8 @@ def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
 ################################
 def _lfc(content, equality=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _lfc
         sage: list(_lfc([3,3])) #necklaces
         [[0, 1, 0, 1, 0, 1],
@@ -315,7 +317,8 @@ def _lfc(content, equality=False):
 
 def _list_fixed_content(a, content, t, p, k, dll, equality=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _list_fixed_content
         sage: from sage.combinat.misc import DoublyLinkedList
         sage: e = [3,3]
@@ -371,7 +374,8 @@ def _sfc(content, equality=False):
     """
     This function sets things up and calls _simple_fixed_content.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _sfc
         sage: list(_sfc([3,3])) #necklaces
         [[0, 0, 0, 1, 1, 1],
@@ -389,7 +393,8 @@ def _sfc(content, equality=False):
 
 def _simple_fixed_content(a, content, t, p, k, equality=False):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.necklace import _simple_fixed_content
         sage: content = [3,3]
         sage: a = [0]*sum(content)
@@ -429,10 +434,11 @@ def _simple_fixed_content(a, content, t, p, k, equality=False):
 
 def _lyn(w):
     """
-    Returns the length of the longest prefix of w that
-    is a Lyndon word.
+    Returns the length of the longest prefix of w that is a Lyndon
+    word.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.necklace as necklace
         sage: necklace._lyn([0,1,1,0,0,1,2])
         3

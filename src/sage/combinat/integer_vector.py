@@ -29,7 +29,8 @@ import functools
 
 def _default_function(l, default, i):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_vector import _default_function
         sage: import functools
         sage: f = functools.partial(_default_function, [1,2,3], 99)
@@ -54,11 +55,12 @@ def _default_function(l, default, i):
 infinity = PlusInfinity()
 def list2func(l, default=None):
     """
-    Given a list l, return a function that takes in a value
-    i and return l[i-1].  If default is not None, then the function
-    will return the default value for out of range i's.
+    Given a list l, return a function that takes in a value i and
+    return l[i-1]. If default is not None, then the function will
+    return the default value for out of range i's.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f = sage.combinat.integer_vector.list2func([1,2,3])
         sage: f(1)
         1
@@ -70,6 +72,8 @@ def list2func(l, default=None):
         Traceback (most recent call last):
         ...
         IndexError: list index out of range
+
+    ::
 
         sage: f = sage.combinat.integer_vector.list2func([1,2,3], 0)
         sage: f(3)
@@ -87,7 +91,8 @@ def constant_func(i):
     """
     Returns the constant function i.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f = sage.combinat.integer_vector.constant_func(3)
         sage: f(-1)
         3
@@ -100,9 +105,10 @@ def IntegerVectors(n=None, k=None, **kwargs):
     """
     Returns the combinatorial class of integer vectors.
 
-    EXAMPLES:
-      If n is not specified, it returns the class of all
-      integer vectors.
+    EXAMPLES: If n is not specified, it returns the class of all
+    integer vectors.
+
+    ::
 
         sage: IntegerVectors()
         Integer vectors
@@ -113,20 +119,26 @@ def IntegerVectors(n=None, k=None, **kwargs):
         sage: [1, 0, 0] in IntegerVectors()
         True
 
-      If n is specified, then it returns the class of all
-      integer vectors which sum to n.
+    If n is specified, then it returns the class of all integer vectors
+    which sum to n.
+
+    ::
 
         sage: IV3 = IntegerVectors(3); IV3
         Integer vectors that sum to 3
 
-      Note that trailing zeros are ignored so that [3, 0]
-      does not show up in the following list (since [3] does)
+    Note that trailing zeros are ignored so that [3, 0] does not show
+    up in the following list (since [3] does)
+
+    ::
 
         sage: IntegerVectors(3, max_length=2).list()
         [[3], [2, 1], [1, 2], [0, 3]]
 
-      If n and k are both specified, then it returns the class
-      of integer vectors that sum to n and are of length k.
+    If n and k are both specified, then it returns the class of integer
+    vectors that sum to n and are of length k.
+
+    ::
 
         sage: IV53 = IntegerVectors(5,3); IV53
         Integer vectors of length 3 that sum to 5
@@ -138,7 +150,6 @@ def IntegerVectors(n=None, k=None, **kwargs):
         [0, 0, 5]
         sage: IV53.random_element()
         [4, 0, 1]
-
     """
     if n is None:
         return IntegerVectors_all()
@@ -157,7 +168,8 @@ def IntegerVectors(n=None, k=None, **kwargs):
 class IntegerVectors_all(CombinatorialClass):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors()
             Integer vectors
         """
@@ -165,7 +177,8 @@ class IntegerVectors_all(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [] in IntegerVectors()
             True
             sage: [3,2,2,1] in IntegerVectors()
@@ -183,7 +196,8 @@ class IntegerVectors_all(CombinatorialClass):
 
     def list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors().list()
             Traceback (most recent call last):
             ...
@@ -193,7 +207,8 @@ class IntegerVectors_all(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors().count()
             +Infinity
         """
@@ -202,14 +217,17 @@ class IntegerVectors_all(CombinatorialClass):
 class IntegerVectors_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: IV = IntegerVectors(2,3)
             sage: IV == loads(dumps(IV))
             True
 
         AUTHORS:
-            --Martin Albrecht
-            --Mike Hansen
+
+        - Martin Albrecht
+
+        - Mike Hansen
         """
         self.n = n
         self.k = k
@@ -217,14 +235,19 @@ class IntegerVectors_nk(CombinatorialClass):
 
     def _list_rec(self, n, k):
         """
-        Return a list of a exponent tuples of length $size$ such that the
-        degree of the associated monomial is $D$.
+        Return a list of a exponent tuples of length `size` such
+        that the degree of the associated monomial is `D`.
 
         INPUT:
-            n -- degree (must be > 0)
-            k -- length of exponent tuples (must be > 0)
 
-        EXAMPLES:
+
+        -  ``n`` - degree (must be 0)
+
+        -  ``k`` - length of exponent tuples (must be 0)
+
+
+        EXAMPLES::
+
             sage: IV = IntegerVectors(2,3)
             sage: IV._list_rec(2,3)
             [(2, 0, 0), (1, 1, 0), (1, 0, 1), (0, 2, 0), (0, 1, 1), (0, 0, 2)]
@@ -242,7 +265,8 @@ class IntegerVectors_nk(CombinatorialClass):
 
     def list(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: IV = IntegerVectors(2,3)
             sage: IV.list()
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
@@ -274,7 +298,8 @@ class IntegerVectors_nk(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: IV = IntegerVectors(2,3)
             sage: list(IV)
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
@@ -300,7 +325,6 @@ class IntegerVectors_nk(CombinatorialClass):
             []
             sage: IntegerVectors(-1,2).list()
             []
-
         """
         if self.n < 0:
             return
@@ -320,7 +344,8 @@ class IntegerVectors_nk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: IV = IntegerVectors(2,3)
             sage: repr(IV)
             'Integer vectors of length 3 that sum to 2'
@@ -329,7 +354,8 @@ class IntegerVectors_nk(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: IV = IntegerVectors(2,3)
             sage: all([i in IV for i in IV])
             True
@@ -361,7 +387,8 @@ class IntegerVectors_nk(CombinatorialClass):
 class IntegerVectors_nkconstraints(CombinatorialClass):
     def __init__(self, n, k, constraints):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IV = IntegerVectors(2,3,min_slope=0)
             sage: IV == loads(dumps(IV))
             True
@@ -372,7 +399,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(2,3,min_slope=0).__repr__()
             'Integer vectors of length 3 that sum to 2 with constraints: min_slope=0'
         """
@@ -381,7 +409,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [0] in IntegerVectors(0)
             True
             sage: [0] in IntegerVectors(0, 1)
@@ -432,7 +461,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(3,3, min_part=1).count()
             1
             sage: IntegerVectors(5,3, min_part=1).count()
@@ -459,10 +489,11 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def _parameters(self):
         """
-        Returns a tuple (min_length, max_length, floor, ceiling, min_slope, max_slope)
-        for the parameters of self.
+        Returns a tuple (min_length, max_length, floor, ceiling,
+        min_slope, max_slope) for the parameters of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IV = IntegerVectors(2,3,min_slope=0)
             sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
             sage: min_length
@@ -477,7 +508,6 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             0
             sage: max_slope
             +Infinity
-
         """
         constraints = self.constraints
         #n, min_length, max_length, floor, ceiling, min_slope, max_slope
@@ -507,7 +537,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def first(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(2,3,min_slope=0).first()
             [0, 1, 1]
         """
@@ -515,7 +546,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def next(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(2,3,min_slope=0).last()
             [0, 0, 2]
         """
@@ -523,7 +555,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(-1, 0, min_part = 1).list()
             []
             sage: IntegerVectors(-1, 2, min_part = 1).list()
@@ -540,6 +573,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             []
             sage: IntegerVectors(4, 2, min_part=1).list()
             [[3, 1], [2, 2], [1, 3]]
+
+        ::
 
             sage: IntegerVectors(0, 3, outer=[0,0,0]).list()
             [[0, 0, 0]]
@@ -563,6 +598,8 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
              [0, 0, 1, 0, 1],
              [0, 0, 0, 1, 1]]
 
+        ::
+
             sage: iv = [ IntegerVectors(n,k) for n in range(-2, 7) for k in range(7) ]
             sage: all(map(lambda x: x.count() == len(x.list()), iv))
             True
@@ -570,14 +607,14 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
             sage: all(map(lambda x: x.count() == len(x.list()), iv))
             True
-
         """
         return integer_list.iterator(self.n, *self._parameters())
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):
         """
-        TESTS:
+        TESTS::
+
             sage: IV = IntegerVectors(3, max_length=2)
             sage: IV == loads(dumps(IV))
             True
@@ -586,7 +623,8 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: repr(IntegerVectors(3))
             'Integer vectors that sum to 3'
             sage: repr(IntegerVectors(3, max_length=2))
@@ -599,7 +637,8 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [0,3,0,1,2] in IntegerVectors(6)
             True
             sage: [0,3,0,1,2] in IntegerVectors(6, max_length=3)
@@ -612,7 +651,8 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(3).count()
             +Infinity
         """
@@ -620,7 +660,8 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 
     def list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(3, max_length=2).list()
             [[3], [2, 1], [1, 2], [0, 3]]
             sage: IntegerVectors(3).list()
@@ -636,22 +677,23 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
 
 class IntegerVectors_nnondescents(CombinatorialClass):
     r"""
-    The combinatorial class of integer vectors v graded by two parameters:
-     - n: the sum of the parts of v
-     - comp: the non descents composition of v
+    The combinatorial class of integer vectors v graded by two
+    parameters: - n: the sum of the parts of v - comp: the non descents
+    composition of v
 
     In other words: the length of v equals c[1]+...+c[k], and v is
     descreasing in the consecutive blocs of length c[1], ..., c[k]
 
     Those are the integer vectors of sum n which are lexicographically
-    maximal (for the natural left->right reading) in their orbit by the
-    young subgroup S_{c_1} x \dots x S_{c_k}.  In particular, they form
-    a set of orbit representative of integer vectors w.r.t. this young
+    maximal (for the natural left-right reading) in their orbit by the
+    young subgroup S_c_1 x x S_c_k. In particular, they form a set
+    of orbit representative of integer vectors w.r.t. this young
     subgroup.
     """
     def __init__(self, n, comp):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IV = IntegerVectors(4, [2])
             sage: IV == loads(dumps(IV))
             True
@@ -661,7 +703,8 @@ class IntegerVectors_nnondescents(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: IntegerVectors(4, [2]).__repr__()
             'Integer vectors of 4 with non-descents composition [2]'
         """
@@ -669,52 +712,52 @@ class IntegerVectors_nnondescents(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
-            sage: IntegerVectors(0, []).list()
-            [[]]
-            sage: IntegerVectors(5, []).list()
-            []
-            sage: IntegerVectors(0, [1]).list()
-            [[0]]
-            sage: IntegerVectors(4, [1]).list()
-            [[4]]
-            sage: IntegerVectors(4, [2]).list()
-            [[4, 0], [3, 1], [2, 2]]
-            sage: IntegerVectors(4, [2,2]).list()
-             [[4, 0, 0, 0],
-             [3, 0, 1, 0],
-             [2, 0, 2, 0],
-             [2, 0, 1, 1],
-             [1, 0, 3, 0],
-             [1, 0, 2, 1],
-             [0, 0, 4, 0],
-             [0, 0, 3, 1],
-             [0, 0, 2, 2]]
-            sage: IntegerVectors(5, [1,1,1]).list()
-            [[5, 0, 0],
-             [4, 1, 0],
-             [4, 0, 1],
-             [3, 2, 0],
-             [3, 1, 1],
-             [3, 0, 2],
-             [2, 3, 0],
-             [2, 2, 1],
-             [2, 1, 2],
-             [2, 0, 3],
-             [1, 4, 0],
-             [1, 3, 1],
-             [1, 2, 2],
-             [1, 1, 3],
-             [1, 0, 4],
-             [0, 5, 0],
-             [0, 4, 1],
-             [0, 3, 2],
-             [0, 2, 3],
-             [0, 1, 4],
-             [0, 0, 5]]
-            sage: IntegerVectors(0, [2,3]).list()
-            [[0, 0, 0, 0, 0]]
+         TESTS::
 
+             sage: IntegerVectors(0, []).list()
+             [[]]
+             sage: IntegerVectors(5, []).list()
+             []
+             sage: IntegerVectors(0, [1]).list()
+             [[0]]
+             sage: IntegerVectors(4, [1]).list()
+             [[4]]
+             sage: IntegerVectors(4, [2]).list()
+             [[4, 0], [3, 1], [2, 2]]
+             sage: IntegerVectors(4, [2,2]).list()
+              [[4, 0, 0, 0],
+              [3, 0, 1, 0],
+              [2, 0, 2, 0],
+              [2, 0, 1, 1],
+              [1, 0, 3, 0],
+              [1, 0, 2, 1],
+              [0, 0, 4, 0],
+              [0, 0, 3, 1],
+              [0, 0, 2, 2]]
+             sage: IntegerVectors(5, [1,1,1]).list()
+             [[5, 0, 0],
+              [4, 1, 0],
+              [4, 0, 1],
+              [3, 2, 0],
+              [3, 1, 1],
+              [3, 0, 2],
+              [2, 3, 0],
+              [2, 2, 1],
+              [2, 1, 2],
+              [2, 0, 3],
+              [1, 4, 0],
+              [1, 3, 1],
+              [1, 2, 2],
+              [1, 1, 3],
+              [1, 0, 4],
+              [0, 5, 0],
+              [0, 4, 1],
+              [0, 3, 2],
+              [0, 2, 3],
+              [0, 1, 4],
+              [0, 0, 5]]
+             sage: IntegerVectors(0, [2,3]).list()
+             [[0, 0, 0, 0, 0]]
          """
         for iv in IntegerVectors(self.n, len(self.comp)):
             blocks = [ IntegerVectors(iv[i], self.comp[i], max_slope=0).iterator() for i in range(len(self.comp))]

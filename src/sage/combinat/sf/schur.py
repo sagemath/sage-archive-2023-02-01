@@ -22,7 +22,8 @@ from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: s = SFASchur(QQ)
             sage: s == loads(dumps(s))
             True
@@ -31,7 +32,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
     def is_schur_basis(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s.is_schur_basis()
             True
@@ -40,11 +42,11 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
     def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
-        The dual basis to the Schur basis with respect to
-        the standard scalar product is the Schur basis since
-        it is self-dual.
+        The dual basis to the Schur basis with respect to the standard
+        scalar product is the Schur basis since it is self-dual.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: ds = s.dual_basis()
             sage: s is ds
@@ -58,12 +60,15 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
     def _multiply(self, left, right):
         """
-        TESTS:
+        TESTS::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1]) + 1; a
             s[] + s[2, 1]
             sage: a^2   # indirect doctest
             s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+        ::
 
             sage: QQx.<x> = QQ[]
             sage: s = SFASchur(QQx)
@@ -72,10 +77,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: a^2
             4*x^2*s[] + 4*x^3*s[2, 1] + x^4*s[2, 2, 1, 1] + x^4*s[2, 2, 2] + x^4*s[3, 1, 1, 1] + 2*x^4*s[3, 2, 1] + x^4*s[3, 3] + x^4*s[4, 1, 1] + x^4*s[4, 2]
 
+        ::
+
             sage: len(s([2,1])^8) #long
             1485
             sage: len(s([2,1])^9) #long
             2876
+
+        ::
 
             sage: 0*s([2,1])
             0
@@ -104,9 +113,11 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraElement_classical):
     def omega(self):
         """
-        Returns the image of self under the Frobenius / omega automorphism.
+        Returns the image of self under the Frobenius / omega
+        automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s([2,1]).omega()
             s[2, 1]
@@ -121,12 +132,12 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
         """
         Returns the standard scalar product between self and x.
 
-        Note that the Schur functions are self-dual with respect
-        to this scalar product. They are also lower-triangularly
-        related to the monomial symmetric functions with respect
-        to this scalar product.
+        Note that the Schur functions are self-dual with respect to this
+        scalar product. They are also lower-triangularly related to the
+        monomial symmetric functions with respect to this scalar product.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(ZZ)
             sage: a = s([2,1])
             sage: b = s([1,1,1])
@@ -149,6 +160,8 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
             sage: d.scalar(c)
             2
 
+        ::
+
             sage: m = SFAMonomial(ZZ)
             sage: p4 = Partitions(4)
             sage: l = [ [s(p).scalar(m(q)) for q in p4] for p in p4]
@@ -168,9 +181,11 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1])
             sage: a.expand(2)

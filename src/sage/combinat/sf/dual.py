@@ -22,7 +22,8 @@ from sage.matrix.all import matrix
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", prefix=None):
         """
-        TESTS:
+        TESTS::
+
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis()
             sage: f == loads(dumps(f))
@@ -55,11 +56,12 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def dual_basis(self, scalar=None, scalar_name="", prefix=None):
         """
-        Return the dual basis to self.  If a the scalar option is not passed,
-        then it returns the dual basis with respect to the scalar product used
-        to define self.
+        Return the dual basis to self. If a the scalar option is not
+        passed, then it returns the dual basis with respect to the scalar
+        product used to define self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
@@ -78,7 +80,8 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee); h #indirect doctests
@@ -94,10 +97,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def __call__(self, x):
         """
-        Coerce things into self.  We do this by coercing things into
-        self's dual basis, and then converting that to self.
+        Coerce things into self. We do this by coercing things into self's
+        dual basis, and then converting that to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ['t'].fraction_field())
             sage: t = QQ['t'].fraction_field().gen()
             sage: zee_hl = lambda x: x.centralizer_size(t=t)
@@ -120,10 +124,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _precompute(self, n):
         """
-        Computes the transition matrix between self and its dual basis
-        for the homogenous component of size n.
+        Computes the transition matrix between self and its dual basis for
+        the homogenous component of size n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis()
             sage: f._precompute(2)
@@ -138,7 +143,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: f._inverse_transition_matrices[2]
             [ 2 -1]
             [-1  1]
-
         """
         base_ring = self.base_ring()
         zero = base_ring(0)
@@ -212,10 +216,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def transition_matrix(self, basis, n ):
         r"""
-        Returns the transition matrix between the $n^th$ homogeneous
-        component of self and basis.
+        Returns the transition matrix between the `n^{th}`
+        homogeneous component of self and basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis()
@@ -247,10 +252,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _multiply(self, left, right):
         """
-        Multiplication is done by performing the multiplication in
-        self's dual basis and then converting back to self.
+        Multiplication is done by performing the multiplication in self's
+        dual basis and then converting back to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
@@ -273,14 +279,18 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         """
         Create an element of a dual basis.
 
-        INPUT:
-          At least one of the following must be specified.  The one (if any)
-          which is not provided will be computed.
-            dictionary -- an internal dictionary for the monomials and coefficents
-                         of self
-            dual -- self as an element of the dual basis.
+        INPUT: At least one of the following must be specified. The one (if
+        any) which is not provided will be computed.
 
-        TESTS:
+
+        -  ``dictionary`` - an internal dictionary for the
+           monomials and coefficents of self
+
+        -  ``dual`` - self as an element of the dual basis.
+
+
+        TESTS::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee, prefix='h')
@@ -296,7 +306,6 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             m[1, 1] + m[2]
             sage: m(h([2]))
             m[1, 1] + m[2]
-
         """
         if dictionary is None and dual is None:
             raise ValueError, "you must specify either x or dual"
@@ -361,7 +370,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         """
         Returns self in the dual basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
@@ -376,7 +386,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         Returns the image of self under the Frobenius / omega
         automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -393,7 +404,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         """
         Returns the standard scalar product of self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
@@ -405,10 +417,10 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
     def scalar_hl(self, x):
         """
-        Returns the Hall-Littlewood scalar product of self
-        and x.
+        Returns the Hall-Littlewood scalar product of self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
@@ -422,7 +434,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
     def _add_(self, y):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -430,14 +443,14 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             d_m[2, 1] + d_m[3]
             sage: a.dual()
             4*m[1, 1, 1] + 3*m[2, 1] + 2*m[3]
-
         """
         eclass = self.__class__
         return eclass(self.parent(), dual=(self.dual()+y.dual()))
 
     def _neg_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -450,7 +463,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
     def _sub_(self, y):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -463,20 +477,21 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
     def _div_(self, y):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
             sage: a = h([2,1])+h([3])
             sage: a/2 # indirect doctest
             1/2*d_m[2, 1] + 1/2*d_m[3]
-
         """
         return self*(~y)
 
     def __invert__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -490,7 +505,8 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
     def expand(self, n, alphabet='x'):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
@@ -503,6 +519,5 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             2*y0^3 + 3*y0^2*y1 + 3*y0*y1^2 + 2*y1^3
             sage: a.expand(2,alphabet='x,y')
             2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
-
         """
         return self._dual.expand(n, alphabet)

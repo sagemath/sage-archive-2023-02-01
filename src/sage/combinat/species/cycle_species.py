@@ -1,6 +1,5 @@
 """
 Cycle Species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -27,7 +26,8 @@ from sage.combinat.species.misc import accept_size
 class CycleSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.CycleSpecies()
             sage: a = S.structures(["a","b","c"]).random_element(); a
             ('a', 'b', 'c')
@@ -37,11 +37,11 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: P.structures(["a","b","c"]).random_element().canonical_label()
             ('a', 'b', 'c')
-
         """
         n = len(self._labels)
         return CycleSpeciesStructure(self.parent(), self._labels, range(1, n+1))
@@ -50,7 +50,8 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
         """
         Returns this cycle as a permutation group element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CycleSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ('a', 'b', 'c')
@@ -62,16 +63,17 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
     def transport(self, perm):
         """
-        Returns the transport of this structure along the permutation perm.
+        Returns the transport of this structure along the permutation
+        perm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CycleSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ('a', 'b', 'c')
             sage: p = PermutationGroupElement((1,2))
             sage: a.transport(p)
             ('a', 'c', 'b')
-
         """
         p = self.permutation_group_element()
         p = perm*p*~perm
@@ -82,18 +84,21 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        Returns the group of permutations whose action on this structure leave it fixed.
+        Returns the group of permutations whose action on this structure
+        leave it fixed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: a = P.structures([1, 2, 3, 4]).random_element(); a
             (1, 2, 3, 4)
             sage: a.automorphism_group()
             Permutation Group with generators [(1,2,3,4)]
 
+        ::
+
             sage: [a.transport(perm) for perm in a.automorphism_group()]
             [(1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3, 4)]
-
         """
         from sage.groups.all import SymmetricGroup
         S = SymmetricGroup(len(self._labels))
@@ -106,7 +111,8 @@ def CycleSpecies(*args, **kwds):
     """
     Returns the species of cycles.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = species.CycleSpecies(); C
         Cyclic permutation species
         sage: C.structures([1,2,3,4]).list()
@@ -117,9 +123,11 @@ def CycleSpecies(*args, **kwds):
          (1, 4, 2, 3),
          (1, 4, 3, 2)]
 
-    TESTS:
-    We check to verify that the caching of species
-    is actually working.
+    TESTS: We check to verify that the caching of species is actually
+    working.
+
+    ::
+
         sage: species.CycleSpecies() is species.CycleSpecies()
         True
     """
@@ -128,7 +136,8 @@ def CycleSpecies(*args, **kwds):
 class CycleSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: c = P.generating_series().coefficients(3)
             sage: P._check()
@@ -145,11 +154,11 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: P.structures([1,2,3]).list()
             [(1, 2, 3), (1, 3, 2)]
-
         """
         from sage.combinat.permutation import CyclicPermutations
         for c in CyclicPermutations(range(1, len(labels)+1)):
@@ -158,11 +167,11 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
 
     def _isotypes(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: P.isotypes([1,2,3]).list()
             [(1, 2, 3)]
-
         """
         if len(labels) != 0:
             yield structure_class(self, labels, range(1, len(labels)+1))
@@ -170,15 +179,17 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
     def _gs_iterator(self, base_ring):
         r"""
         The generating series for cyclic permutations is
-        $-\log(1-x) = \sum_{n=1}^\infty x^n/n$.
+        `-\log(1-x) = \sum_{n=1}^\infty x^n/n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series()
             sage: g.coefficients(10)
             [0, 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7, 1/8, 1/9]
 
-        TESTS:
+        TESTS::
+
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series(RR)
             sage: g.coefficients(3)
@@ -193,7 +204,8 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
         """
         Returns the order of the generating series.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: P._order()
             1
@@ -202,33 +214,45 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
 
     def _itgs_list(self, base_ring):
         """
-        The isomorphism type generating series for cyclic permutations
-        is given by $x/(1-x)$.
+        The isomorphism type generating series for cyclic permutations is
+        given by `x/(1-x)`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: g = P.isotype_generating_series()
             sage: g.coefficients(5)
             [0, 1, 1, 1, 1]
 
-        TESTS:
+        TESTS::
+
             sage: P = species.CycleSpecies()
             sage: g = P.isotype_generating_series(RR)
             sage: g.coefficients(3)
             [0.000000000000000, 1.00000000000000, 1.00000000000000]
-
         """
         return [base_ring(0), self._weight*base_ring(1)]
 
     def _cis_iterator(self, base_ring):
         r"""
-        The cycle index series of the species of cyclic permutations is given
-        by
-        $$ -\sum_{k=1}^\infty \phi(k)/k * log(1 - x_k) $$
-        which is equal to
-        $$ \sum_{n=1}^\infty \frac{1}{n} * \sum_{k|n} \phi(k) * x_k^{n/k} $$.
+        The cycle index series of the species of cyclic permutations is
+        given by
 
-        EXAMPLES:
+        .. math::
+
+             -\sum_{k=1}^\infty \phi(k)/k * log(1 - x_k)
+
+
+        which is equal to
+
+        .. math::
+
+             \sum_{n=1}^\infty \frac{1}{n} * \sum_{k|n} \phi(k) * x_k^{n/k}
+
+        .
+
+        EXAMPLES::
+
             sage: P = species.CycleSpecies()
             sage: cis = P.cycle_index_series()
             sage: cis.coefficients(7)
@@ -239,7 +263,6 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
              1/4*p[1, 1, 1, 1] + 1/4*p[2, 2] + 1/2*p[4],
              1/5*p[1, 1, 1, 1, 1] + 4/5*p[5],
              1/6*p[1, 1, 1, 1, 1, 1] + 1/6*p[2, 2, 2] + 1/3*p[3, 3] + 1/3*p[6]]
-
         """
         from sage.combinat.sf.all import SFAPower
         p = SFAPower(base_ring)

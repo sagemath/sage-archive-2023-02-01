@@ -21,7 +21,8 @@ def FiniteCombinatorialClass(l):
     """
     Returns the combinatorial class with elements in l.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: F = FiniteCombinatorialClass([1,2,3])
         sage: F.list()
         [1, 2, 3]
@@ -41,7 +42,8 @@ def FiniteCombinatorialClass(l):
 class FiniteCombinatorialClass_l(CombinatorialClass):
     def __init__(self, l):
         """
-        TESTS:
+        TESTS::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: F == loads(dumps(F))
             True
@@ -50,7 +52,8 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def object_class(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: F.object_class(1)
             1
@@ -59,7 +62,8 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: repr(F)
             'Combinatorial class with elements in [1, 2, 3]'
@@ -68,7 +72,8 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: 1 in F
             True
@@ -83,7 +88,8 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def list(self):
         """
-        TESTS:
+        TESTS::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: F.list()
             [1, 2, 3]
@@ -92,7 +98,8 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: F.count()
             3

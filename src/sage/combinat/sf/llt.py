@@ -27,21 +27,22 @@ def LLT(R, k, t=None):
     """
     Returns a class for working with LLT polynomials.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: L3 = LLT(QQ,3); L3
         LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: L3.cospin([3,2,1])
         (t+1)*m[1, 1] + m[2]
         sage: L3.hcospin()
         LLT polynomials in the HCosp basis at level 3 with t=t over Fraction Field of Univariate Polynomial Ring in t over Rational Field
-
     """
     return cache_llt(R, k, t)
 
 class LLT_class:
     def __init__(self, R, k, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L3 = LLT(QQ,3)
             sage: L3 == loads(dumps(L3))
             True
@@ -63,7 +64,8 @@ class LLT_class:
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LLT(QQ,3)
             LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: LLT(QQ,3,2)
@@ -75,7 +77,8 @@ class LLT_class:
         """
         Returns the base ring of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LLT(QQ,3).base_ring()
             Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
@@ -83,7 +86,8 @@ class LLT_class:
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L3Q = LLT(QQ,3)
             sage: L4Q = LLT(QQ,4)
             sage: L3Z = LLT(ZZ, 4)
@@ -113,7 +117,8 @@ class LLT_class:
         """
         Returns the level of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LLT(QQ,3).level()
             3
         """
@@ -121,16 +126,16 @@ class LLT_class:
 
     def _llt_generic(self, skp, stat):
         """
-        Takes in partition, list of partitions, or a list of skew partitions as well
-        as a statistic which takes in two partitions and a level and spits out a
-        coefficient.
+        Takes in partition, list of partitions, or a list of skew
+        partitions as well as a statistic which takes in two partitions and
+        a level and spits out a coefficient.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L3 = LLT(QQ,3)
             sage: f = lambda skp,mu,level: QQ(1)
             sage: L3._llt_generic([3,2,1],f)
             m[1, 1] + m[2]
-
         """
         if skp in sage.combinat.partition.Partitions():
             m = (sum(skp) / self.level()).floor()
@@ -158,11 +163,12 @@ class LLT_class:
         return sum([ stat(skp,nu,self.level()).subs(t=self._t)*self._m(nu) for nu in mu])
 
     def spin_square(self, skp):
-         """
-         Returns the spin polynomial associated with skp with the substitution
-         t -> t^2 made.
+         r"""
+         Returns the spin polynomial associated with skp with the
+         substitution `t \rightarrow t^2` made.
 
-         EXAMPLES:
+         EXAMPLES::
+
              sage: L3 = LLT(QQ,3)
              sage: L3.spin_square([2,1])
              t*m[1]
@@ -175,7 +181,8 @@ class LLT_class:
 
     def cospin(self, skp):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L3 = LLT(QQ,3)
             sage: L3.cospin([2,1])
             m[1]
@@ -201,10 +208,10 @@ class LLT_class:
         """
         Returns the HCopsin basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LLT(QQ,3).hcospin()
             LLT polynomials in the HCosp basis at level 3 with t=t over Fraction Field of Univariate Polynomial Ring in t over Rational Field
-
         """
         return cache_llt_cospin(self._m.base_ring(), self._k, self._t)
 
@@ -212,10 +219,10 @@ class LLT_class:
         """
         Returns the HSpin basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LLT(QQ,3).hspin()
             LLT polynomials in the HSp basis at level 3 with t=t over Fraction Field of Univariate Polynomial Ring in t over Rational Field
-
         """
         return cache_llt_spin(self._m.base_ring(), self._k, self._t)
 
@@ -224,7 +231,8 @@ class LLT_class:
 class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
     def __init__(self, R, level, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: LLT_spin(QQ, 3)
             LLT polynomials in the HSp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -250,7 +258,8 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         Returns the level of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: HSp3.level()
@@ -267,7 +276,8 @@ def LLTHSpin(R, level, t=None):
     """
     Returns the LLT polynomials in the HSpin basis at level level.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HSp3 = LLTHSpin(QQ,3)
         sage: HSp3([1])^2
         HSp[1, 1] + (-t+1)*HSp[2]
@@ -279,7 +289,8 @@ m_to_hsp_cache={}
 class LLT_spin(LLT_generic):
     def __init__(self, R, level, t=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: HSp3 == loads(dumps(HSp3))
@@ -305,7 +316,8 @@ class LLT_spin(LLT_generic):
         Convert to the monomial basis, do the multiplication there, and
         convert back to the HSp basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: HSp3([1])^2 #indirect doctest
@@ -315,10 +327,11 @@ class LLT_spin(LLT_generic):
 
     def _to_m(self, part):
         """
-        Returns a function which gives the coefficient of part2 in the monomial
-        expansion of self(part).
+        Returns a function which gives the coefficient of part2 in the
+        monomial expansion of self(part).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: f21 = HSp3._to_m(Partition([2,1]))
@@ -335,7 +348,8 @@ class LLT_spin(LLT_generic):
         Compute the change of basis from the monomial symmetric functions
         to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: HSp3._m_cache(2)
@@ -344,7 +358,6 @@ class LLT_spin(LLT_generic):
             [([1, 1], [([1, 1], t + 1), ([2], t)]), ([2], [([1, 1], 1), ([2], 1)])]
             sage: l( HSp3._m_to_self_cache[2] )
             [([1, 1], [([1, 1], 1), ([2], -t)]), ([2], [([1, 1], -1), ([2], t + 1)])]
-
         """
         self._invert_morphism(n, self.base_ring(), self._self_to_m_cache, \
                               self._m_to_self_cache, to_other_function = self._to_m)
@@ -353,7 +366,8 @@ class LLT_spin(LLT_generic):
         """
         Coerce things into the LLT HSp basis through the monomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HSp3 = LLT_spin(QQ, 3)
             sage: s = SFASchur(HSp3.base_ring())
@@ -361,7 +375,6 @@ class LLT_spin(LLT_generic):
             HSp[2]
             sage: HSp3._coerce_start(s([1,1]))
             HSp[1, 1] - t*HSp[2]
-
         """
         if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
             x = self._m(x)
@@ -379,11 +392,11 @@ def LLTHCospin(R, level, t=None):
     """
     Returns the LLT polynomials in the HCospin basis at level level.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HCosp3 = LLTHCospin(QQ,3)
         sage: HCosp3([1])^2
         1/t*HCosp3[1, 1] + ((t-1)/t)*HCosp3[2]
-
     """
     return cache_llt_cospin(R, level, t)
 
@@ -392,7 +405,8 @@ m_to_hcosp_cache={}
 class LLT_cospin(LLT_generic):
     def __init__(self, R, level, t=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: HCosp3 == loads(dumps(HCosp3))
@@ -418,7 +432,8 @@ class LLT_cospin(LLT_generic):
         Convert to the monomial basis, do the multiplication there, and
         convert back to the Hcosp basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: HCosp3([1])^2 #indirect doctest
@@ -428,10 +443,11 @@ class LLT_cospin(LLT_generic):
 
     def _to_m(self, part):
         """
-        Returns a function which gives the coefficient of part2 in the monomial
-        expansion of self(part).
+        Returns a function which gives the coefficient of part2 in the
+        monomial expansion of self(part).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: f21 = HCosp3._to_m(Partition([2,1]))
@@ -448,7 +464,8 @@ class LLT_cospin(LLT_generic):
         Compute the change of basis from the monomial symmetric functions
         to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: HCosp3._m_cache(2)
@@ -458,7 +475,6 @@ class LLT_cospin(LLT_generic):
             sage: l( HCosp3._m_to_self_cache[2] )
             [([1, 1], [([1, 1], 1/t), ([2], -1/t)]),
              ([2], [([1, 1], -1/t), ([2], (t + 1)/t)])]
-
         """
         self._invert_morphism(n, self.base_ring(), self._self_to_m_cache, \
                               self._m_to_self_cache, to_other_function = self._to_m)
@@ -467,7 +483,8 @@ class LLT_cospin(LLT_generic):
         """
         Coerce things into the LLT HCosp basis through the monomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.sf.llt import *
             sage: HCosp3 = LLT_cospin(QQ, 3)
             sage: s = SFASchur(HCosp3.base_ring())
@@ -475,7 +492,6 @@ class LLT_cospin(LLT_generic):
             HCosp3[2]
             sage: HCosp3._coerce_start(s([1,1]))
             1/t*HCosp3[1, 1] - 1/t*HCosp3[2]
-
         """
         BR = self.base_ring()
         if isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):

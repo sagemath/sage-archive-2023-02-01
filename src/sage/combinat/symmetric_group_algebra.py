@@ -30,7 +30,8 @@ def SymmetricGroupAlgebra(R,n):
     """
     Returns the symmetric group algebra of order n over R.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3); QS3
         Symmetric group algebra of order 3 over Rational Field
         sage: QS3(1)
@@ -60,7 +61,8 @@ class SymmetricGroupAlgebraElement_n(CombinatorialAlgebraElement):
 class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
     def __init__(self, R, n):
         """
-        TESTS:
+        TESTS::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: QS3 == loads(dumps(QS3))
             True
@@ -75,10 +77,11 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
     def _multiply_basis(self, left, right):
         """
-        Returns the product of the basis elements indexed by left
-        and right.
+        Returns the product of the basis elements indexed by left and
+        right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: p1 = Permutation([1,2,3])
             sage: p2 = Permutation([2,1,3])
@@ -91,7 +94,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         """
         Coerce things into the symmetric group algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: QS3._coerce_start([])
             [1, 2, 3]
@@ -110,24 +114,25 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         """
         Returns a list of the centrally primitive idempotents.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: a = QS3.cpis()
             sage: a[0]  # [3]
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: a[1]  # [2, 1]
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
-
         """
         return [self.cpi(p) for p in partition.Partitions_n(self.n)]
 
     def cpi(self, p):
         """
-        Returns the centrally primitive idempotent for the symmetric
-        group of order n for the irreducible corresponding indexed by
-        the partition p.
+        Returns the centrally primitive idempotent for the symmetric group
+        of order n for the irreducible corresponding indexed by the
+        partition p.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: QS3.cpi([2,1])
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
@@ -135,7 +140,6 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: QS3.cpi([1,1,1])
             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
-
         """
         if p not in partition.Partitions_n(self.n):
             raise TypeError, "p must be a partition of %s"%self.n
@@ -157,15 +161,16 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
     def jucys_murphy(self, k):
         """
-        Returns the Jucys-Murphy element J_k for the symmetric group algebra.
+        Returns the Jucys-Murphy element J_k for the symmetric group
+        algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: QS3.jucys_murphy(2)
             [2, 1, 3]
             sage: QS3.jucys_murphy(3)
             [1, 3, 2] + [2, 1, 3]
-
         """
         res = self(0)
 
@@ -185,7 +190,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         """
         Returns a list of the seminormal basis elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: QS3.seminormal_basis()
             [1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1],
@@ -208,7 +214,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         """
         Returns the discrete Fourier transform for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: QS3.dft()
             [   1    1    1    1    1    1]
@@ -225,10 +232,10 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
     def _dft_seminormal(self):
         """
-        Returns the seminormal form of the discrete Fourier for
-        self.
+        Returns the seminormal form of the discrete Fourier for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: QS3._dft_seminormal()
             [   1    1    1    1    1    1]
@@ -244,10 +251,11 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
     def epsilon_ik(self, itab, ktab, star=0):
         """
-        Returns the seminormal basis element of self corresponding
-        to the pair of tableaux itab and ktab.
+        Returns the seminormal basis element of self corresponding to the
+        pair of tableaux itab and ktab.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: a = QS3.epsilon_ik([[1,2,3]], [[1,2,3]]); a
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
@@ -257,7 +265,6 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
             sage: QS3.dft()*vector(a)
             (0, 0, 0, 0, 1, 0)
-
         """
         it = Tableau(itab)
         kt = Tableau(ktab)
@@ -292,7 +299,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 epsilon_ik_cache = {}
 def epsilon_ik(itab, ktab, star=0):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import epsilon_ik
         sage: epsilon_ik([[1,2],[3]], [[1,3],[2]])
         1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1]
@@ -327,7 +335,8 @@ def epsilon_ik(itab, ktab, star=0):
 epsilon_cache = {}
 def epsilon(tab, star=0):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import epsilon
         sage: epsilon([[1,2]])
         1/2*[1, 2] + 1/2*[2, 1]
@@ -361,7 +370,8 @@ def epsilon(tab, star=0):
 
 def pi_ik(itab, ktab):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import pi_ik
         sage: pi_ik([[1,3],[2]], [[1,2],[3]])
         [1, 3, 2]
@@ -381,10 +391,11 @@ def pi_ik(itab, ktab):
 
 def kappa(alpha):
     r"""
-    Returns $\kappa_\alpha$ which is n! divided by the number
-    of standard tableaux of shape $\alpha$.
+    Returns `\kappa_\alpha` which is n! divided by the number
+    of standard tableaux of shape `\alpha`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import kappa
         sage: kappa(Partition([2,1]))
         3
@@ -401,13 +412,13 @@ def kappa(alpha):
 e_cache = {}
 def e(tableau, star=0):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import e
         sage: e([[1,2]])
         [1, 2] + [2, 1]
         sage: e([[1],[2]])
         [1, 2] - [2, 1]
-
     """
     t = Tableau(tableau)
     if star:
@@ -437,7 +448,8 @@ def e(tableau, star=0):
 ehat_cache = {}
 def e_hat(tab, star=0):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import e_hat
         sage: e_hat([[1,2,3]])
         1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
@@ -456,7 +468,8 @@ def e_hat(tab, star=0):
 e_ik_cache = {}
 def e_ik(itab, ktab, star=0):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import e_ik
         sage: e_ik([[1,2,3]], [[1,2,3]])
         [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
@@ -490,11 +503,13 @@ def e_ik(itab, ktab, star=0):
 
 def seminormal_test(n):
     """
-    Runs a variety of tests to verify that the construction of the seminormal
-    basis works as desired.  The numbers appearing are Theorems in James and
-    Kerber's 'Representation Theory of the Symmetric Group'.
+    Runs a variety of tests to verify that the construction of the
+    seminormal basis works as desired. The numbers appearing are
+    Theorems in James and Kerber's 'Representation Theory of the
+    Symmetric Group'.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.symmetric_group_algebra import seminormal_test
         sage: seminormal_test(3)
         True
@@ -538,13 +553,15 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
     """
     Returns the Hecke algebra of the symmetric group on the T basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HeckeAlgebraSymmetricGroupT(QQ, 3)
         Hecke algebra of the symmetric group of order 3 on the T basis over Univariate Polynomial Ring in q over Rational Field
 
+    ::
+
         sage: HeckeAlgebraSymmetricGroupT(QQ, 3, 2)
         Hecke algebra of the symmetric group of order 3 with q=2 on the T basis over Rational Field
-
     """
 
     return HeckeAlgebraSymmetricGroup_t(R, n, q)
@@ -552,13 +569,15 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
 class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
     def __init__(self, R, n, q=None):
         """
-        TESTS:
+        TESTS::
+
             sage: HeckeAlgebraSymmetricGroupT(QQ, 3)
             Hecke algebra of the symmetric group of order 3 on the T basis over Univariate Polynomial Ring in q over Rational Field
 
+        ::
+
             sage: HeckeAlgebraSymmetricGroupT(QQ, 3, q=1)
             Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
-
         """
         self.n = n
         self._combinatorial_class = permutation.Permutations(n)
@@ -579,7 +598,8 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
 
     def q(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HeckeAlgebraSymmetricGroupT(QQ, 3).q()
             q
             sage: HeckeAlgebraSymmetricGroupT(QQ, 3, 2).q()
@@ -590,11 +610,11 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
 
     def _coerce_start(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
             sage: H3._coerce_start([2,1])
             T[2, 1, 3]
-
         """
         ###################################################
         # Coerce permutations of size smaller that self.n #
@@ -611,7 +631,8 @@ class HeckeAlgebraSymmetricGroupElement_t(CombinatorialAlgebraElement):
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
     def __init__(self, R, n, q=None):
         """
-        TESTS:
+        TESTS::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
             sage: H3 == loads(dumps(H3))
             True
@@ -623,7 +644,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def t_action_on_basis(self, perm, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
             sage: H3.t_action_on_basis(Permutation([2,1,3]), 1)
             q*T[1, 2, 3] + (q-1)*T[2, 1, 3]
@@ -634,7 +656,6 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             T[1, 2, 3]
             sage: H3.t_action_on_basis(Permutation([1,3,2]), 2)
             T[1, 2, 3]
-
         """
         if i not in range(1, self.n):
             raise ValueError, "i must be between 1 and n (= %s)"%self.n
@@ -654,7 +675,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         """
         Return the action of T_i on a.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
             sage: a = H3([2,1,3])+2*H3([1,2,3])
             sage: H3.t_action(a, 1)
@@ -668,11 +690,14 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def _multiply_basis(self, perm1, perm2):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3, 1)
             sage: a = H3([2,1,3])+2*H3([1,2,3])-H3([3,2,1])
             sage: a^2 #indirect doctest
             6*T[1, 2, 3] + 4*T[2, 1, 3] - T[2, 3, 1] - T[3, 1, 2] - 4*T[3, 2, 1]
+
+        ::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: a = QS3([2,1,3])+2*QS3([1,2,3])-QS3([3,2,1])
@@ -686,7 +711,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def t(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
             sage: H3.t(1)
             T[2, 1, 3]
@@ -706,20 +732,21 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         """
         Return the generators of the algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HeckeAlgebraSymmetricGroupT(QQ,3).algebra_generators()
             [T[2, 1, 3], T[1, 3, 2]]
-
         """
         return map(self.t, range(1, self.n))
 
     def jucys_murphy(self, k):
         """
-        Returns the Jucys-Murphy element J_k of the Hecke algebra.
-        The Jucys-Murphy elements generate the maximal commutative
-        sub-algebra of the Hecke algebra.
+        Returns the Jucys-Murphy element J_k of the Hecke algebra. The
+        Jucys-Murphy elements generate the maximal commutative sub-algebra
+        of the Hecke algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
             sage: j2 = H3.jucys_murphy(2); j2
             q*T[1, 2, 3] + (q-1)*T[2, 1, 3]

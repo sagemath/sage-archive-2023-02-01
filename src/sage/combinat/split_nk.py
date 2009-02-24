@@ -1,3 +1,6 @@
+"""
+Low-level splits
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -20,11 +23,11 @@ from combinat import CombinatorialClass
 
 def SplitNK(n, k):
     """
-    Returns the combinatorial class of splits of
-    a the set range(n) into a set of size k and a
-    set of size n-k.
+    Returns the combinatorial class of splits of a the set range(n)
+    into a set of size k and a set of size n-k.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.split_nk import SplitNK
         sage: S = SplitNK(5,2); S
         Splits of {0, ..., 4} into a set of size 2 and one of size 3
@@ -49,7 +52,8 @@ def SplitNK(n, k):
 class SplitNK_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.split_nk import SplitNK
             sage: S = SplitNK(5,2)
             sage: S == loads(dumps(S))
@@ -60,7 +64,8 @@ class SplitNK_nk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.split_nk import SplitNK
             sage: repr(SplitNK(5,2))
             'Splits of {0, ..., 4} into a set of size 2 and one of size 3'
@@ -69,11 +74,11 @@ class SplitNK_nk(CombinatorialClass):
 
     def count(self):
         """
-        Returns the number of choices of set partitions of
-        range(n) into a set of size k and a set of size
-        n-k.
+        Returns the number of choices of set partitions of range(n) into a
+        set of size k and a set of size n-k.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.split_nk import SplitNK
             sage: SplitNK(5,2).count()
             10
@@ -82,11 +87,11 @@ class SplitNK_nk(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for all set partitions of
-        range(n) into a set of size k and a set of size
-        n-k in lexicographic order.
+        An iterator for all set partitions of range(n) into a set of size k
+        and a set of size n-k in lexicographic order.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.split_nk import SplitNK
             sage: [c for c in SplitNK(5,2)]
             [[[0, 1], [2, 3, 4]],
@@ -107,11 +112,11 @@ class SplitNK_nk(CombinatorialClass):
 
     def random_element(self):
         """
-        Returns a random set partition of
-        range(n) into a set of size k and a set of size
-        n-k.
+        Returns a random set partition of range(n) into a set of size k and
+        a set of size n-k.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.split_nk import SplitNK
             sage: SplitNK(5,2).random_element()
             [[0, 2], [1, 3, 4]]

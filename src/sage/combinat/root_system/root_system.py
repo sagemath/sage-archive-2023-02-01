@@ -39,74 +39,89 @@ class RootSystem(SageObject):
     r"""
     Returns the root system associated to the Cartan type t.
 
-    EXAMPLES:
-      We construct the root system for type $B_3$
+    EXAMPLES: We construct the root system for type `B_3`
+
+    ::
 
         sage: R=RootSystem(['B',3]); R
         Root system of type ['B', 3]
 
-      R models the root system abstractly. It comes equipped with
-      various realizations of the root and weight lattices, where all
-      computation take place. Let us play first with the root lattice.
+    R models the root system abstractly. It comes equipped with various
+    realizations of the root and weight lattices, where all computation
+    take place. Let us play first with the root lattice.
+
+    ::
 
         sage: space = R.root_lattice()
         sage: space
         Root lattice of the Root system of type ['B', 3]
 
-      It is the free $\ZZ$-module $\bigoplus_i \ZZ.\alpha_i$ spanned by
-      the simple roots:
+    It is the free `\mathbb{Z}`-module
+    `\bigoplus_i \mathbb{Z}.\alpha_i` spanned by the simple
+    roots::
 
         sage: space.base_ring()
         Integer Ring
         sage: list(space.basis())
         [alpha[1], alpha[2], alpha[3]]
 
-      Let us do some computations with the simple roots:
+    Let us do some computations with the simple roots::
 
         sage: alpha = space.simple_roots()
         sage: alpha[1] + alpha[2]
         alpha[1] + alpha[2]
 
-      There is a canonical pairing between the root lattice and the
-      coroot lattice:
+    There is a canonical pairing between the root lattice and the
+    coroot lattice::
+
         sage: R.coroot_lattice()
         Coroot lattice of the Root system of type ['B', 3]
 
-      We construct the simple coroots, and do some computations (see
-      comments about duality below for some caveat).
+    We construct the simple coroots, and do some computations (see
+    comments about duality below for some caveat).
+
+    ::
+
         sage: alphacheck = space.simple_coroots()
         sage: list(alphacheck)
         [alphacheck[1], alphacheck[2], alphacheck[3]]
 
-
-      We can carry over the same computations in any of the other
-      realizations of the root lattice, like the root space
-      $\bigoplus_i \QQ.\alpha_i$, the weight lattice $\bigoplus_i
-      \ZZ.\Lambda_i$, the weight space $\bigoplus_i \QQ.\Lambda_i$.
-      For example:
+    We can carry over the same computations in any of the other
+    realizations of the root lattice, like the root space
+    `\bigoplus_i \mathbb{Q}.\alpha_i`, the weight lattice
+    `\bigoplus_i \mathbb{Z}.\Lambda_i`, the weight
+    space `\bigoplus_i \mathbb{Q}.\Lambda_i`. For example::
 
         sage: space = R.weight_space()
         sage: space
         Weight space over the Rational Field of the Root system of type ['B', 3]
+
+    ::
 
         sage: space.base_ring()
         Rational Field
         sage: list(space.basis())
         [Lambda[1], Lambda[2], Lambda[3]]
 
+    ::
+
         sage: alpha = space.simple_roots()
         sage: alpha[1] + alpha[2]
         Lambda[1] + Lambda[2] - 2*Lambda[3]
 
-      The fundamental weights are the dual basis of the coroots:
+    The fundamental weights are the dual basis of the coroots::
 
         sage: Lambda = space.fundamental_weights()
         sage: Lambda[1]
         Lambda[1]
 
+    ::
+
         sage: alphacheck = space.simple_coroots()
         sage: list(alphacheck)
         [alphacheck[1], alphacheck[2], alphacheck[3]]
+
+    ::
 
         sage: [Lambda[i].scalar(alphacheck[1]) for i in space.index_set()]
         [1, 0, 0]
@@ -115,10 +130,11 @@ class RootSystem(SageObject):
         sage: [Lambda[i].scalar(alphacheck[3]) for i in space.index_set()]
         [0, 0, 1]
 
-      Let us us use the simple reflections. In the weight space, they
-      work as in the \emph{number game}: firing the node $i$ on an
-      element x adds $c$ times the simple root $\alpha_i$, where $c$
-      is the coefficient of $i$ in $x$:
+    Let us us use the simple reflections. In the weight space, they
+    work as in the *number game*: firing the node `i` on an
+    element x adds `c` times the simple root
+    `\alpha_i`, where `c` is the coefficient of
+    `i` in `x`::
 
         sage: s = space.simple_reflections()
         sage: Lambda[1].simple_reflection(1)
@@ -130,8 +146,8 @@ class RootSystem(SageObject):
         sage: (-2*Lambda[1] + Lambda[2] + Lambda[3]).simple_reflection(1)
         2*Lambda[1] - Lambda[2] + Lambda[3]
 
-      It can be convenient to manipulate the simple reflections
-      themselves:
+    It can be convenient to manipulate the simple reflections
+    themselves::
 
         sage: s = space.simple_reflections()
         sage: s[1](Lambda[1])
@@ -141,33 +157,32 @@ class RootSystem(SageObject):
         sage: s[1](Lambda[3])
         Lambda[3]
 
-      The root system may also come equipped with an ambient space,
-      that is a simultaneous realization of the weight lattice and the
-      coroot lattice in an euclidean vector space. This is implemented
-      on a type by type basis, and is not always available. When the
-      coefficients permit it, this is also available as an ambient
-      lattice.
+    The root system may also come equipped with an ambient space, that
+    is a simultaneous realization of the weight lattice and the coroot
+    lattice in an euclidean vector space. This is implemented on a type
+    by type basis, and is not always available. When the coefficients
+    permit it, this is also available as an ambient lattice.
 
-      TODO: Demo: signed permutations realization of type B
+    TODO: Demo: signed permutations realization of type B
 
+    The root system is aware of its dual root system::
 
-
-      The root system is aware of its dual root system:
         sage: R.dual
         Dual of root system of type ['B', 3]
 
-      R.dual is really the root system of type $C_3$:
+    R.dual is really the root system of type `C_3`::
+
         sage: R.dual.cartan_type()
         ['C', 3]
 
-      And the coroot lattice that we have been manipulating before is
-      really implemented as the root lattice of the dual root system:
+    And the coroot lattice that we have been manipulating before is
+    really implemented as the root lattice of the dual root system::
 
         sage: R.dual.root_lattice()
         Coroot lattice of the Root system of type ['B', 3]
 
-      In particular, the coroots for the root lattice are in fact the
-      roots of the coroot lattice:
+    In particular, the coroots for the root lattice are in fact the
+    roots of the coroot lattice::
 
         sage: list(R.root_lattice().simple_coroots())
         [alphacheck[1], alphacheck[2], alphacheck[3]]
@@ -176,12 +191,10 @@ class RootSystem(SageObject):
         sage: list(R.dual.root_lattice().simple_roots())
         [alphacheck[1], alphacheck[2], alphacheck[3]]
 
-      The coweight lattice and space are defined similarly. Note
-      that, to limit confusion, all the output have been tweaked
-      appropriately.
+    The coweight lattice and space are defined similarly. Note that, to
+    limit confusion, all the output have been tweaked appropriately.
 
-
-    TESTS:
+    TESTS::
 
         sage: R = RootSystem(['C',3])
         sage: R == loads(dumps(R))
@@ -196,12 +209,15 @@ class RootSystem(SageObject):
         sage: L == loads(dumps(L))
         True
 
+    ::
+
         sage: all(RootSystem(T).check() for T in CartanType.samples(finite=True,crystalographic=True))
         True
     """
     def __init__(self, cartan_type, as_dual_of=None):
         """
-        TESTS:
+        TESTS::
+
             sage: R = RootSystem(['A',3])
             sage: R
             Root system of type ['A', 3]
@@ -224,7 +240,8 @@ class RootSystem(SageObject):
         """
         Runs the checks on the root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(["A",3]).check()
             True
         """
@@ -241,7 +258,8 @@ class RootSystem(SageObject):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3])
             Root system of type ['A', 3]
         """
@@ -254,7 +272,8 @@ class RootSystem(SageObject):
         """
         Returns the Cartan type of the root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = RootSystem(['A',3])
             sage: R.cartan_type()
             ['A', 3]
@@ -266,7 +285,8 @@ class RootSystem(SageObject):
         """
         Returns the Dynkin diagram of the root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = RootSystem(['A',3])
             sage: R.dynkin_diagram()
             Dynkin diagram of type ['A', 3]
@@ -276,7 +296,8 @@ class RootSystem(SageObject):
     @cached_method
     def cartan_matrix(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).cartan_matrix()
             [ 2 -1  0]
             [-1  2 -1]
@@ -286,7 +307,8 @@ class RootSystem(SageObject):
 
     def index_set(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).index_set()
             [1, 2, 3]
         """
@@ -297,7 +319,8 @@ class RootSystem(SageObject):
         """
         Returns True if self is a finite root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(["A",3]).is_finite()
             True
             sage: RootSystem(["A",3,1]).is_finite()
@@ -310,7 +333,8 @@ class RootSystem(SageObject):
         """
         Returns True if self is an irreducible root system.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A', 3]).is_irreducible()
             True
             sage: RootSystem("A2xB2").is_irreducible()
@@ -320,7 +344,8 @@ class RootSystem(SageObject):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r1 = RootSystem(['A',3])
             sage: r2 = RootSystem(['B',3])
             sage: r1 == r1
@@ -338,7 +363,8 @@ class RootSystem(SageObject):
         """
         Returns the root lattice associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).root_lattice()
             Root lattice of the Root system of type ['A', 3]
         """
@@ -350,6 +376,9 @@ class RootSystem(SageObject):
         Returns the root space associated to self.
 
         EXAMPLES
+
+        ::
+
             sage: RootSystem(['A',3]).root_space()
             Root space over the Rational Field of the Root system of type ['A', 3]
         """
@@ -359,10 +388,10 @@ class RootSystem(SageObject):
         """
         Returns the coroot lattice associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).coroot_lattice()
             Coroot lattice of the Root system of type ['A', 3]
-
         """
         return self.dual.root_lattice()
 
@@ -371,9 +400,11 @@ class RootSystem(SageObject):
         Returns the coroot space associated to self.
 
         EXAMPLES
+
+        ::
+
             sage: RootSystem(['A',3]).coroot_space()
             Coroot space over the Rational Field of the Root system of type ['A', 3]
-
         """
         return self.dual.root_space(base_ring)
 
@@ -381,10 +412,10 @@ class RootSystem(SageObject):
         """
         Returns the weight lattice associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).weight_lattice()
             Weight lattice of the Root system of type ['A', 3]
-
         """
         return self.weight_space(ZZ)
 
@@ -393,10 +424,10 @@ class RootSystem(SageObject):
         """
         Returns the weight space associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).weight_space()
             Weight space over the Rational Field of the Root system of type ['A', 3]
-
         """
         return WeightSpace(self, base_ring)
 
@@ -404,10 +435,10 @@ class RootSystem(SageObject):
         """
         Returns the coweight lattice associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).coweight_lattice()
             Coweight lattice of the Root system of type ['A', 3]
-
         """
         return self.dual.weight_lattice()
 
@@ -415,10 +446,10 @@ class RootSystem(SageObject):
         """
         Returns the weight space associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',3]).coweight_space()
             Coweight space over the Rational Field of the Root system of type ['A', 3]
-
         """
         return self.dual.weight_space(base_ring)
 
@@ -426,14 +457,17 @@ class RootSystem(SageObject):
     def ambient_lattice(self):
         r"""
         Returns the usual ambient lattice for this root_system, if it
-        exists and is implemented, and None otherwise. This is a
-        Z-module, endowed with its canonical euclidean scalar product,
-        which embeds simultaneously the root lattice and the coroot
-        lattice (what about the weight lattice?)
+        exists and is implemented, and None otherwise. This is a Z-module,
+        endowed with its canonical euclidean scalar product, which embeds
+        simultaneously the root lattice and the coroot lattice (what about
+        the weight lattice?)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',4]).ambient_lattice()
             Ambient lattice of the Root system of type ['A', 4]
+
+        ::
 
             sage: RootSystem(['B',4]).ambient_lattice()
             sage: RootSystem(['C',4]).ambient_lattice()
@@ -448,32 +482,44 @@ class RootSystem(SageObject):
     def ambient_space(self, base_ring=QQ):
         """
         Returns the usual ambient space for this root_system, if it is
-        implemented, and None otherwise. This is a QQ-module, endowed
-        with its canonical euclidean scalar product, which embeds
-        simultaneously the root lattice and the coroot lattice (what
-        about the weight lattice?). An alternative base ring can be
-        provided as an option; it must contain the smallest ring over
-        which the ambient space can be defined (ZZ or QQ, depending on
-        the type).
+        implemented, and None otherwise. This is a QQ-module, endowed with
+        its canonical euclidean scalar product, which embeds simultaneously
+        the root lattice and the coroot lattice (what about the weight
+        lattice?). An alternative base ring can be provided as an option;
+        it must contain the smallest ring over which the ambient space can
+        be defined (ZZ or QQ, depending on the type).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RootSystem(['A',4]).ambient_space()
             Ambient space of the Root system of type ['A', 4]
+
+        ::
 
             sage: RootSystem(['B',4]).ambient_space()
             Ambient space of the Root system of type ['B', 4]
 
+        ::
+
             sage: RootSystem(['C',4]).ambient_space()
             Ambient space of the Root system of type ['C', 4]
+
+        ::
 
             sage: RootSystem(['D',4]).ambient_space()
             Ambient space of the Root system of type ['D', 4]
 
+        ::
+
             sage: RootSystem(['E',6]).ambient_space()
             Ambient space of the Root system of type ['E', 6]
 
+        ::
+
             sage: RootSystem(['F',4]).ambient_space()
             Ambient space of the Root system of type ['F', 4]
+
+        ::
 
             sage: RootSystem(['G',2]).ambient_space()
             Ambient space of the Root system of type ['G', 2]
@@ -492,17 +538,21 @@ def WeylDim(ct, coeffs):
     The Weyl Dimension Formula.
 
     INPUT:
-        type -- a Cartan type
-        coeffs -- a list of nonnegative integers
+
+
+    -  ``type`` - a Cartan type
+
+    -  ``coeffs`` - a list of nonnegative integers
+
 
     The length of the list must equal the rank type[1]. A dominant
-    weight hwv is constructed by summing the fundamental weights
-    with coefficients from this list. The dimension of the
-    irreducible representation of the semisimple complex Lie
-    algebra with highest weight vector hwv is returned.
+    weight hwv is constructed by summing the fundamental weights with
+    coefficients from this list. The dimension of the irreducible
+    representation of the semisimple complex Lie algebra with highest
+    weight vector hwv is returned.
 
-    EXAMPLES:
-      For SO(7), the Cartan type is B3, so:
+    EXAMPLES: For SO(7), the Cartan type is B3, so::
+
         sage: WeylDim(['B',3],[1,0,0]) # standard representation of SO(7)
         7
         sage: WeylDim(['B',3],[0,1,0]) # exterior square

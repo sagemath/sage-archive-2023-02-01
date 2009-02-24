@@ -1,8 +1,9 @@
 r"""
 Compute Bell and Uppuluri-Carpenter numbers.
 
-AUTHOR:
-    -- Nick Alexander
+AUTHORS:
+
+- Nick Alexander
 """
 
 include "../ext/interrupt.pxi"
@@ -16,30 +17,39 @@ from sage.rings.integer_ring import ZZ
 
 def expnums(int n, int aa):
     r"""
-    Compute the first $n$ exponential numbers around $aa$, starting
-    with the zero-th.
+    Compute the first `n` exponential numbers around
+    `aa`, starting with the zero-th.
 
     INPUT:
-         n -- C machine int
-         aa -- C machine int
 
-    OUTPUT:
-         A list of length $n$.
 
-    ALGORITHM: We use the same integer addition algorithm as GAP.
-    This is an extension of Bell's triangle to the general case of
-    exponential numbers.  The recursion performs $O(n^2)$ additions,
-    but the running time is dominated by the cost of the last integer
-    addition, because the growth of the integer results of partial
-    computations is exponential in $n$.  The algorithm stores $O(n)$
-    integers, but each is exponential in $n$.
+    -  ``n`` - C machine int
 
-    EXAMPLES:
+    -  ``aa`` - C machine int
+
+
+    OUTPUT: A list of length `n`.
+
+    ALGORITHM: We use the same integer addition algorithm as GAP. This
+    is an extension of Bell's triangle to the general case of
+    exponential numbers. The recursion performs `O(n^2)`
+    additions, but the running time is dominated by the cost of the
+    last integer addition, because the growth of the integer results of
+    partial computations is exponential in `n`. The algorithm
+    stores `O(n)` integers, but each is exponential in
+    `n`.
+
+    EXAMPLES::
+
         sage: expnums(10, 1)
         [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
 
+    ::
+
         sage: expnums(10, -1)
         [1, -1, 0, 1, 1, -2, -9, -9, 50, 267]
+
+    ::
 
         sage: expnums(1, 1)
         [1]
@@ -48,8 +58,9 @@ def expnums(int n, int aa):
         sage: expnums(-1, 0)
         []
 
-    AUTHOR:
-        -- Nick Alexander
+    AUTHORS:
+
+    - Nick Alexander
     """
     if n < 1:
         return []
@@ -112,12 +123,14 @@ def expnums(int n, int aa):
 
 def expnums2(n, aa):
     r"""
-    A vanilla python (but compiled via pyrex) implementation of expnums.
+    A vanilla python (but compiled via pyrex) implementation of
+    expnums.
 
-    We Compute the first $n$ exponential numbers around $aa$, starting
-    with the zero-th.
+    We Compute the first `n` exponential numbers around
+    `aa`, starting with the zero-th.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.expnums import expnums2
         sage: expnums2(10, 1)
         [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]

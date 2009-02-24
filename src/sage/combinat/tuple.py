@@ -23,27 +23,30 @@ from sage.rings.all import ZZ
 
 def Tuples(S,k):
     """
-    Returns the combinatorial class of ordered tuples of S of length k.
+    Returns the combinatorial class of ordered tuples of S of length
+    k.
 
     An ordered tuple of length k of set is an ordered selection with
     repetition and is represented by a list of length k containing
     elements of set.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: S = [1,2]
         sage: Tuples(S,3).list()
-	[[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
+        [[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
         sage: mset = ["s","t","e","i","n"]
         sage: Tuples(mset,2).list()
-	[['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
-	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
+        [['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
+         ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
          ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
-	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
+         ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
 
+    ::
 
-	sage: K.<a> = GF(4, 'a')
-	sage: mset = [x for x in K if x!=0]
-	sage: Tuples(mset,2).list()
+        sage: K.<a> = GF(4, 'a')
+        sage: mset = [x for x in K if x!=0]
+        sage: Tuples(mset,2).list()
         [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
     """
     return Tuples_sk(S,k)
@@ -51,7 +54,8 @@ def Tuples(S,k):
 class Tuples_sk(CombinatorialClass):
     def __init__(self, S, k):
         """
-        TESTS:
+        TESTS::
+
             sage: T = Tuples([1,2,3],2)
             sage: T == loads(dumps(T))
             True
@@ -62,7 +66,8 @@ class Tuples_sk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Tuples([1,2,3],2))
             'Tuples of [1, 2, 3] of length 2'
         """
@@ -70,7 +75,8 @@ class Tuples_sk(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = [1,2]
             sage: Tuples(S,3).list()
             [[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
@@ -100,14 +106,14 @@ class Tuples_sk(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = [1,2,3,4,5]
             sage: Tuples(S,2).count()
             25
             sage: S = [1,1,2,3,4,5]
             sage: Tuples(S,2).count()
             25
-
         """
         ans=gap.eval("NrTuples(%s,%s)"%(self._index_list,ZZ(self.k)))
         return ZZ(ans)
@@ -116,14 +122,15 @@ class Tuples_sk(CombinatorialClass):
 
 def UnorderedTuples(S,k):
     """
-    Returns the combinatorial class of unordered tuples of S
-    of length k.
+    Returns the combinatorial class of unordered tuples of S of length
+    k.
 
-    An unordered tuple of length k of set is a unordered selection
-    with repetitions of set and is represented by a sorted list of
-    length k containing elements from set.
+    An unordered tuple of length k of set is a unordered selection with
+    repetitions of set and is represented by a sorted list of length k
+    containing elements from set.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: S = [1,2]
         sage: UnorderedTuples(S,3).list()
         [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
@@ -136,7 +143,8 @@ def UnorderedTuples(S,k):
 class UnorderedTuples_sk(CombinatorialClass):
     def __init__(self, S, k):
         """
-        TESTS:
+        TESTS::
+
             sage: T = Tuples([1,2,3],2)
             sage: T == loads(dumps(T))
             True
@@ -147,7 +155,8 @@ class UnorderedTuples_sk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(UnorderedTuples([1,2,3],2))
             'Unordered tuples of [1, 2, 3] of length 2'
         """
@@ -155,7 +164,8 @@ class UnorderedTuples_sk(CombinatorialClass):
 
     def list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = [1,2]
             sage: UnorderedTuples(S,3).list()
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
@@ -167,7 +177,8 @@ class UnorderedTuples_sk(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = [1,2,3,4,5]
             sage: UnorderedTuples(S,2).count()
             15

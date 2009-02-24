@@ -47,15 +47,14 @@ class CartanTypeFactory(SageObject):
         """
         Returns an object corresponding to the Cartan type t.
 
-        INPUT:
-        [letter, rank]
-        where letter is one of 'A','B','C','D','E','F','G' and rank
-        is the rank. An alternative string notation is allowed.
-        A third optional parameter is permitted for affine
-        types. Reducible types may be entered by giving a list of
-        irreducible types or by a single string
+        INPUT: [letter, rank] where letter is one of
+        'A','B','C','D','E','F','G' and rank is the rank. An alternative
+        string notation is allowed. A third optional parameter is permitted
+        for affine types. Reducible types may be entered by giving a list
+        of irreducible types or by a single string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',4])
             ['A', 4]
             sage: CartanType("A4")
@@ -103,12 +102,17 @@ class CartanTypeFactory(SageObject):
         With finite=True resp. affine=True, one can restrict to finite
         resp. affine only cartan types
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType.samples(finite=True)
             [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4]]
 
+        ::
+
             sage: CartanType.samples(affine=True)
             [['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
+
+        ::
 
             sage: CartanType.samples()
             [['A', 1], ['A', 5], ['B', 5], ['C', 5], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4], ['A', 1, 1], ['A', 5, 1], ['B', 5, 1], ['C', 5, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['A', 2, 2], ['A', 10, 2], ['A', 9, 2], ['D', 5, 2], ['D', 4, 3], ['E', 6, 2]]
@@ -141,20 +145,28 @@ class CartanType_abstract(SageObject):
 
     Subclasses should implement:
 
-    type()
-    type_string()
-    dynkin_diagram()
-    cartan_matrix()
-    is_finite()
-    is_affine()
-    is_irreducible()
+    - type()
+
+    - type_string()
+
+    - dynkin_diagram()
+
+    - cartan_matrix()
+
+    - is_finite()
+
+    - is_affine()
+
+    - is_irreducible()
     """
+
     def type(self):
         r"""
-        Returns the type of self, or None if unknown. This method should be overridden in
-        any subclass.
+        Returns the type of self, or None if unknown. This method should be
+        overridden in any subclass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
             sage: C = CartanType_abstract()
             sage: C.type() is None
@@ -166,7 +178,8 @@ class CartanType_abstract(SageObject):
         """
         Returns the rank of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 4]).rank()
             4
             sage: CartanType(['A', 7, 2]).rank()
@@ -180,20 +193,20 @@ class CartanType_abstract(SageObject):
         """
         Returns the dual cartan type, possibly just as a formal dual.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['F',4]).dual()
             ['F', 4]^*
-
         """
         return root_system.type_dual.CartanType(self)
 
     def is_reducible(self):
         """
-        Report whether the root system is reducible (i.e. not simple),
-        that is whether it can be factored as a product of root
-        systems.
+        Report whether the root system is reducible (i.e. not simple), that
+        is whether it can be factored as a product of root systems.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType("A2xB3").is_reducible()
             True
             sage: CartanType(['A',2]).is_reducible()
@@ -203,32 +216,35 @@ class CartanType_abstract(SageObject):
 
     def is_irreducible(self):
         """
-        Report whether this Cartan type is irreducible (i.e. simple).  This
+        Report whether this Cartan type is irreducible (i.e. simple). This
         should be overridden in any subclass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
             sage: C = CartanType_abstract()
             sage: C.is_irreducible()
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
     def is_finite(self):
         """
-        Returns whether this Cartan type is finite.  This should be overridden in
-        any subclass.
+        Returns whether this Cartan type is finite. This should be
+        overridden in any subclass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
             sage: C = CartanType_abstract()
             sage: C.is_irreducible()
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        ::
 
             sage: CartanType(['A',4]).is_finite()
             True
@@ -241,7 +257,8 @@ class CartanType_abstract(SageObject):
         """
         Returns whether self is affine.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3]).is_affine()
             False
             sage: CartanType(['A', 3, 1]).is_affine()
@@ -253,7 +270,8 @@ class CartanType_abstract(SageObject):
         """
         Returns whether this Cartan type is simple laced
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [ [t, t.is_crystalographic() ] for t in CartanType.samples(finite=True) ]
             [[['A', 1], True], [['A', 5], True],
             [['B', 5], True], [['C', 5], True], [['D', 5], True],
@@ -261,7 +279,8 @@ class CartanType_abstract(SageObject):
             [['F', 4], True], [['G', 2], True],
             [['I', 5], False], [['H', 3], False], [['H', 4], False]]
 
-        TESTS:
+        TESTS::
+
             sage: all(t.is_crystalographic() for t in CartanType.samples(affine=True))
             True
         """
@@ -271,7 +290,8 @@ class CartanType_abstract(SageObject):
         """
         Returns whether this Cartan type is simple laced
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [ [t, t.is_simply_laced() ] for t in CartanType.samples() ]
             [[['A', 1], True], [['A', 5], True],
             [['B', 5], False], [['C', 5], False], [['D', 5], True],
@@ -289,7 +309,8 @@ class CartanType_abstract(SageObject):
         """
         Returns the index set for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).index_set()
             [0, 1, 2, 3]
             sage: CartanType(['D', 4]).index_set()
@@ -305,7 +326,8 @@ class CartanType_abstract(SageObject):
         """
         Returns the root system associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',4]).root_system()
             Root system of type ['A', 4]
         """
@@ -316,7 +338,8 @@ class CartanType_abstract(SageObject):
 class CartanType_simple(CartanType_abstract):
     def __cmp__(self, other):
         """
-        TESTS:
+        TESTS::
+
             sage: ct1 = CartanType(['A',4])
             sage: ct2 = CartanType(['A',4])
             sage: ct3 = CartanType(['A',5])
@@ -333,7 +356,8 @@ class CartanType_simple(CartanType_abstract):
 
     def __hash__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType(['A',2])
             sage: hash(ct) #random
             -5684143898951441983
@@ -342,7 +366,8 @@ class CartanType_simple(CartanType_abstract):
 
     def __getitem__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = CartanType(['A', 3, 1])
             sage: t[0]
             'A'
@@ -359,7 +384,8 @@ class CartanType_simple(CartanType_abstract):
 
     def is_irreducible(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3]).is_irreducible()
             True
         """
@@ -369,7 +395,8 @@ class CartanType_simple(CartanType_abstract):
         """
         Returns the Dynkin diagram associated with self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',4]).dynkin_diagram()
             Dynkin diagram of type ['A', 4]
         """
@@ -379,13 +406,13 @@ class CartanType_simple(CartanType_abstract):
         """
         Returns the Cartan matrix associated with self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',4]).cartan_matrix()
             [ 2 -1  0  0]
             [-1  2 -1  0]
             [ 0 -1  2 -1]
             [ 0  0 -1  2]
-
         """
         return root_system.cartan_matrix.cartan_matrix(self)
 
@@ -393,7 +420,8 @@ class CartanType_simple(CartanType_abstract):
         """
         Returns the type of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 4]).type()
             'A'
             sage: CartanType(['A', 4, 1]).type()
@@ -403,12 +431,12 @@ class CartanType_simple(CartanType_abstract):
 
     def dual(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(["A", 3]).dual()
             ['A', 3]
             sage: CartanType(["B", 3]).dual()
             ['C', 3]
-
         """
         if self.type() in ["A", "D", "E"]:
             return self
@@ -423,7 +451,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def __init__(self, t):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType(['A',4])
             sage: ct == loads(dumps(ct))
             True
@@ -457,7 +486,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: ct = CartanType(['A',3])
             sage: repr(ct)
             "['A', 3]"
@@ -466,7 +496,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def __len__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: len(CartanType(['A',4]))
             2
         """
@@ -474,7 +505,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def rank(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(["A", 3]).rank()
             3
         """
@@ -485,7 +517,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def is_finite(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(["A", 3]).is_finite()
             True
         """
@@ -493,7 +526,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def is_affine(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(["A", 3]).is_affine()
             False
         """
@@ -501,7 +535,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def is_crystalographic(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(["A", 3]).is_crystalographic()
             True
             sage: CartanType(["I", 2]).is_crystalographic()
@@ -511,7 +546,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def is_simply_laced(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',3]).is_simply_laced()
             True
             sage: CartanType(['B',3]).is_simply_laced()
@@ -523,7 +559,8 @@ class CartanType_simple_finite(CartanType_simple):
         """
         Returns the corresponding untwisted affine Cartan type
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',3]).affine()
             ['A', 3, 1]
         """
@@ -531,7 +568,8 @@ class CartanType_simple_finite(CartanType_simple):
 
     def dual(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A',3]).dual()
             ['A', 3]
             sage: CartanType(['D',4]).dual()
@@ -557,7 +595,8 @@ class CartanType_simple_affine(CartanType_simple):
     """
     def __init__(self, t):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct = CartanType(['A',4])
             sage: ct == loads(dumps(ct))
             True
@@ -597,7 +636,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: ct = CartanType(['A',3, 1])
             sage: repr(ct)
             "['A', 3, 1]"
@@ -606,7 +646,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ct1 = CartanType(['A',3, 1])
             sage: ct2 = CartanType(['B',3, 1])
             sage: ct3 = CartanType(['A',3])
@@ -625,7 +666,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def __len__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: len(CartanType(['A',4,1]))
             3
         """
@@ -633,7 +675,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def rank(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['D', 4, 3]).rank()
             3
             sage: CartanType(['B', 4, 1]).rank()
@@ -650,7 +693,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def is_finite(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).is_finite()
             False
         """
@@ -658,7 +702,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def is_affine(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).is_affine()
             True
         """
@@ -666,7 +711,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def is_crystalographic(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).is_crystalographic()
             True
         """
@@ -674,7 +720,8 @@ class CartanType_simple_affine(CartanType_simple):
 
     def is_simply_laced(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).is_simply_laced()
             True
             sage: CartanType(['D', 4, 3]).is_simply_laced()
@@ -692,11 +739,13 @@ class CartanType_simple_affine(CartanType_simple):
 
     def classical(self):
         r"""
-        Returns the classical Cartan type associated with self (which should be affine)
+        Returns the classical Cartan type associated with self (which
+        should be affine)
 
         Caveat: only implemented for untwisted
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartanType(['A', 3, 1]).classical()
             ['A', 3]
             sage: CartanType(['B', 3, 1]).classical()

@@ -1,3 +1,6 @@
+"""
+Weighted Integer Vectors
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -21,10 +24,11 @@ from permutation import Permutation_class
 
 def WeightedIntegerVectors(n, weight):
     """
-    Returns the combinatorial class of integer vectors of n
-    weighted by weight.
+    Returns the combinatorial class of integer vectors of n weighted by
+    weight.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: WeightedIntegerVectors(8, [1,1,2])
         Integer vectors of 8 weighted by [1, 1, 2]
         sage: WeightedIntegerVectors(8, [1,1,2]).first()
@@ -41,7 +45,8 @@ def WeightedIntegerVectors(n, weight):
 class WeightedIntegerVectors_nweight(CombinatorialClass):
     def __init__(self, n, weight):
         """
-        TESTS:
+        TESTS::
+
             sage: WIV = WeightedIntegerVectors(8, [1,1,2])
             sage: WIV == loads(dumps(WIV))
             True
@@ -51,7 +56,8 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(WeightedIntegerVectors(8, [1,1,2]))
             'Integer vectors of 8 weighted by [1, 1, 2]'
         """
@@ -59,7 +65,8 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [] in WeightedIntegerVectors(0, [])
             True
             sage: [] in WeightedIntegerVectors(1, [])
@@ -99,7 +106,8 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
     def _recfun(self, n, l):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = WeightedIntegerVectors(3, [2,1,1])
             sage: w._recfun(3, [1,1,2])
             [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
@@ -121,16 +129,21 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
     def list(self):
         """
-        TESTS:
+        TESTS::
+
             sage: WeightedIntegerVectors(7, [2,2]).list()
             []
             sage: WeightedIntegerVectors(3, [2,1,1]).list()
             [[1, 0, 1], [1, 1, 0], [0, 0, 3], [0, 1, 2], [0, 2, 1], [0, 3, 0]]
 
+        ::
+
             sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
             sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
             sage: all( [ sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11) ] )
             True
+
+        ::
 
             sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
             sage: all( [ i.count() == len(i.list()) for i in ivw] )

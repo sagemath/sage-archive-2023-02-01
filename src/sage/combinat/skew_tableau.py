@@ -37,10 +37,11 @@ def SkewTableau(st=None, expr=None):
     """
     Returns the skew tableau object corresponding to st.
 
-    Note that Sage uses the English convention for
-    partitions and tableaux.
+    Note that Sage uses the English convention for partitions and
+    tableaux.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: st = SkewTableau([[None, 1],[2,3]]); st
         [[None, 1], [2, 3]]
         sage: st.inner_shape()
@@ -48,9 +49,11 @@ def SkewTableau(st=None, expr=None):
         sage: st.outer_shape()
         [2, 2]
 
-      The expr form of a skew tableau consists of the inner
-      partition followed by a list of the entries in row
-      from bottom to top.
+    The expr form of a skew tableau consists of the inner partition
+    followed by a list of the entries in row from bottom to top.
+
+    ::
+
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
@@ -71,7 +74,8 @@ def SkewTableau(st=None, expr=None):
 class SkewTableau_class(CombinatorialObject):
     def __init__(self, t):
         """
-        TESTS:
+        TESTS::
+
             sage: st = SkewTableau([[None, 1],[2,3]])
             sage: st == loads(dumps(st))
             True
@@ -82,7 +86,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns a pretty print string of the tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,2,3],[None,4],[5]]).pp()
               .  2  3
               .  4
@@ -96,7 +101,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the outer shape of the tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1,2],[None,3],[4]]).outer_shape()
             [3, 2, 1]
         """
@@ -108,7 +114,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the inner shape of the tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1,2],[None,3],[4]]).inner_shape()
             [1, 1]
         """
@@ -119,7 +126,8 @@ class SkewTableau_class(CombinatorialObject):
         r"""
         Returns the shape of a tableau t.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1,2],[None,3],[4]]).shape()
             [[3, 2, 1], [1, 1]]
         """
@@ -131,12 +139,12 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the size of the outer shape of the skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).outer_size()
             6
             sage: SkewTableau([[None, 2], [1, 3]]).outer_size()
             4
-
         """
         return self.outer_shape().size()
 
@@ -146,12 +154,12 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the size of the inner shape of the skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).inner_size()
             2
             sage: SkewTableau([[None, 2], [1, 3]]).inner_size()
             1
-
         """
         return self.inner_shape().size()
 
@@ -159,12 +167,12 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the number of boxes in the skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).size()
             4
             sage: SkewTableau([[None, 2], [1, 3]]).size()
             3
-
         """
         return sum([len(filter(lambda x: x is not None,row)) for row in self])
 
@@ -174,7 +182,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the conjugate of the skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2,3]]).conjugate()
             [[None, 2], [1, 3]]
         """
@@ -194,7 +203,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns a word obtained from a row reading of the skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SkewTableau([[None,1],[2,3]])
             sage: s.pp()
               .  1
@@ -218,15 +228,19 @@ class SkewTableau_class(CombinatorialObject):
 
     def to_word_by_column(self):
         """
-        Returns the word obtained from a column reading of the skew tableau
+        Returns the word obtained from a column reading of the skew
+        tableau
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SkewTableau([[None,1],[2,3]])
             sage: s.pp()
               .  1
               2  3
             sage: s.to_word_by_column()
             word: 132
+
+        ::
 
             sage: s = SkewTableau([[None, 2, 4], [None, 3], [1]])
             sage: s.pp()
@@ -235,7 +249,6 @@ class SkewTableau_class(CombinatorialObject):
             1
             sage: s.to_word_by_column()
             word: 4231
-
         """
         return self.conjugate().to_word_by_row()
 
@@ -243,7 +256,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         An alias for SkewTableau.to_word_by_row().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2,3]]).to_word()
             word: 231
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word()
@@ -255,7 +269,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the evaluation of the word from skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[1,2],[3,4]]).evaluation()
             [1, 1, 1, 1]
         """
@@ -265,9 +280,11 @@ class SkewTableau_class(CombinatorialObject):
 
     def is_standard(self):
         """
-        Returns True if self is a standard skew tableau and False otherwise.
+        Returns True if self is a standard skew tableau and False
+        otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None, 2], [1, 3]]).is_standard()
             True
             sage: SkewTableau([[None, 2], [2, 4]]).is_standard()
@@ -289,7 +306,8 @@ class SkewTableau_class(CombinatorialObject):
         Returns True if self is a semistandard skew tableau and False
         otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None, 2, 2], [1, 3]]).is_semistandard()
             True
             sage: SkewTableau([[None, 2], [2, 4]]).is_semistandard()
@@ -319,13 +337,13 @@ class SkewTableau_class(CombinatorialObject):
 
     def to_tableau(self):
         """
-        Returns a tableau with the same filling.  This only works if the
+        Returns a tableau with the same filling. This only works if the
         inner shape of the skew tableau has size zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[1,2],[3,4]]).to_tableau()
             [[1, 2], [3, 4]]
-
         """
 
         if self.inner_size() != 0:
@@ -335,17 +353,17 @@ class SkewTableau_class(CombinatorialObject):
 
     def restrict(self, n):
         """
-        Returns the restriction of the (semi)standard skew tableau to all the numbers less
-        than or equal to n.
+        Returns the restriction of the (semi)standard skew tableau to all
+        the numbers less than or equal to n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2],[3]]).restrict(2)
             [[None, 1], [2]]
             sage: SkewTableau([[None,1],[2],[3]]).restrict(1)
             [[None, 1]]
             sage: SkewTableau([[None,1],[1],[2]]).restrict(1)
             [[None, 1], [1]]
-
         """
         t = self[:]
         return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
@@ -355,7 +373,8 @@ class SkewTableau_class(CombinatorialObject):
         Returns the chain of partitions corresponding to the (semi)standard
         skew tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2],[3]]).to_chain()
             [[1], [2], [2, 1], [2, 1, 1]]
             sage: SkewTableau([[None,1],[1],[2]]).to_chain()
@@ -366,14 +385,13 @@ class SkewTableau_class(CombinatorialObject):
 
     def slide(self, corner=None):
         """
-
         Fulton, William. 'Young Tableaux'. p12-13
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
             sage: st.slide([2,0])
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
-
         """
         new_st = copy.copy(self[:])
         inner_corners = self.inner_shape().corners()
@@ -442,7 +460,8 @@ class SkewTableau_class(CombinatorialObject):
 
         Fulton, William. 'Young Tableaux'. p15
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SkewTableau([[None,1],[2,3]])
             sage: s.rectify()
             [[1, 3], [2]]
@@ -459,15 +478,16 @@ class SkewTableau_class(CombinatorialObject):
 
     def to_expr(self):
         """
-        The first list in a result corresponds to the inner partition of the
-        skew shape.  The second list is a list of the rows in the skew
+        The first list in a result corresponds to the inner partition of
+        the skew shape. The second list is a list of the rows in the skew
         tableau read from the bottom up.
 
-        Provided for compatability with MuPAD-Combinat.  In MuPAD-Combinat, if
-        t is a skew tableau, then to_expr gives the same result as
+        Provided for compatability with MuPAD-Combinat. In MuPAD-Combinat,
+        if t is a skew tableau, then to_expr gives the same result as
         expr(t) would give in MuPAD-Combinat.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1,1,3],[None,2,2],[1]]).to_expr()
             [[1, 1], [[1], [2, 2], [1, 1, 3]]]
             sage: SkewTableau([]).to_expr()
@@ -480,10 +500,11 @@ class SkewTableau_class(CombinatorialObject):
 
     def is_ribbon(self):
         """
-        Returns True if and only if self is a ribbon, that is if it has
-        no 2x2 boxes.
+        Returns True if and only if self is a ribbon, that is if it has no
+        2x2 boxes.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2,3]]).is_ribbon()
             True
             sage: SkewTableau([[None,1,2],[3,4,5]]).is_ribbon()
@@ -503,7 +524,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns the ribbon version of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SkewTableau([[None,1],[2,3]]).to_ribbon()
             [[1], [2, 3]]
         """
@@ -518,7 +540,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns a list of the non-empty entries in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = SkewTableau([[None,1],[2,3]])
             sage: t.filling()
             [[1], [2, 3]]
@@ -527,8 +550,10 @@ class SkewTableau_class(CombinatorialObject):
 
     def boxes_by_content(self, c):
         """
-        Returns the coordinates of the boxes in self with
-        content c.
+        Returns the coordinates of the boxes in self with content c.
+
+        ::
+
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
             sage: s.boxes_by_content(0)
             [(1, 1)]
@@ -567,7 +592,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns on the entries in self with content c.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
             sage: s.entries_by_content(0)
             [4]
@@ -586,7 +612,8 @@ class SkewTableau_class(CombinatorialObject):
         """
         Returns on the entries in self with content c.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SkewTableau([[None,1,2],[3],[6]])
             sage: s.boxes()
             [(0, 1), (0, 2), (1, 0), (2, 0)]
@@ -602,10 +629,11 @@ class SkewTableau_class(CombinatorialObject):
 
 def _label_skew(list, sk):
     """
-    Returns a filled in a standard skew tableaux given an ordered list of the
-    coordinates to filled in.
+    Returns a filled in a standard skew tableaux given an ordered list
+    of the coordinates to filled in.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.skew_tableau as skew_tableau
         sage: l = [ '0,0', '1,1', '1,0', '0,1' ]
         sage: empty = [[None,None],[None,None]]
@@ -624,10 +652,11 @@ def _label_skew(list, sk):
 
 def StandardSkewTableaux(skp=None):
     """
-    Returns the combinatorial class of standard skew tableaux of
-    shape skp (where skp is a skew partition).
+    Returns the combinatorial class of standard skew tableaux of shape
+    skp (where skp is a skew partition).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
         [[[None, 1, 2], [None, 3], [4]],
          [[None, 1, 2], [None, 4], [3]],
@@ -650,7 +679,8 @@ def StandardSkewTableaux(skp=None):
 class StandardSkewTableaux_all(CombinatorialClass):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux() #indirect doctest
             Standard skew tableaux
         """
@@ -658,7 +688,8 @@ class StandardSkewTableaux_all(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [[None, 2], [1, 3]] in StandardSkewTableaux()
             True
             sage: [[None, 2], [2, 4]] in StandardSkewTableaux()
@@ -681,7 +712,8 @@ class StandardSkewTableaux_all(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux().count()
             +Infinity
         """
@@ -689,7 +721,8 @@ class StandardSkewTableaux_all(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux().list() #indirect doctest
             Traceback (most recent call last):
             ...
@@ -700,7 +733,8 @@ class StandardSkewTableaux_all(CombinatorialClass):
 class StandardSkewTableaux_n(CombinatorialClass):
     def __init__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = StandardSkewTableaux(3)
             sage: s == loads(dumps(s))
             True
@@ -709,7 +743,8 @@ class StandardSkewTableaux_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux(3) #indirect doctest
             Standard skew tableaux of size 3
         """
@@ -717,7 +752,8 @@ class StandardSkewTableaux_n(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux(1).count()
             1
             sage: StandardSkewTableaux(2).count()
@@ -726,7 +762,6 @@ class StandardSkewTableaux_n(CombinatorialClass):
             24
             sage: StandardSkewTableaux(4).count()
             194
-
         """
         count = 0
         for skp in skew_partition.SkewPartitions(self.n):
@@ -735,7 +770,8 @@ class StandardSkewTableaux_n(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux(2).list() #indirect doctest
             [[[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2]]]
         """
@@ -747,7 +783,8 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
     object_class = SkewTableau_class
     def __init__(self, skp):
         """
-        TESTS:
+        TESTS::
+
             sage: S = StandardSkewTableaux([[3, 2, 1], [1, 1]])
             sage: S == loads(dumps(S))
             True
@@ -756,12 +793,12 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
 
     def list(self):
         """
-        Returns a list for all the standard skew tableaux with shape
-        of the skew partition skp. The standard skew tableaux are
-        ordered lexicographically by the word obtained from their
-        row reading.
+        Returns a list for all the standard skew tableaux with shape of the
+        skew partition skp. The standard skew tableaux are ordered
+        lexicographically by the word obtained from their row reading.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).list()
             [[[None, 1, 2], [None, 3], [4]],
              [[None, 1, 2], [None, 4], [3]],
@@ -771,16 +808,16 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
              [[None, 1, 4], [None, 3], [2]],
              [[None, 2, 3], [None, 4], [1]],
              [[None, 2, 4], [None, 3], [1]]]
-
         """
         return [st for st in self]
 
     def count(self):
         """
-        Returns the number of standard skew tableaux with shape of the
-        skew partition skp.
+        Returns the number of standard skew tableaux with shape of the skew
+        partition skp.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).count()
             8
         """
@@ -790,11 +827,11 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
     def iterator(self):
         """
         An iterator for all the standard skew tableau with shape of the
-        skew partition skp. The standard skew tableaux are
-        ordered lexicographically by the word obtained from their
-        row reading.
+        skew partition skp. The standard skew tableaux are ordered
+        lexicographically by the word obtained from their row reading.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [st for st in StandardSkewTableaux([[3, 2, 1], [1, 1]])] # indirect doctest
             [[[None, 1, 2], [None, 3], [4]],
              [[None, 1, 2], [None, 4], [3]],
@@ -818,25 +855,32 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
 
 def SemistandardSkewTableaux(p=None, mu=None):
     """
-    Returns a combinatorial class of semistandard skew
-    tableaux.
+    Returns a combinatorial class of semistandard skew tableaux.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SemistandardSkewTableaux()
         Semistandard skew tableaux
+
+    ::
 
         sage: SemistandardSkewTableaux(3)
         Semistandard skew tableaux of size 3
 
+    ::
+
         sage: SemistandardSkewTableaux([[2,1],[]])
         Semistandard skew tableaux of shape [[2, 1], []]
+
+    ::
 
         sage: SemistandardSkewTableaux([[2,1],[]],[2,1])
         Semistandard skew tableaux of shape [[2, 1], []] and weight [2, 1]
 
+    ::
+
         sage: SemistandardSkewTableaux(3, [2,1])
         Semistandard skew tableaux of size 3 and weight [2, 1]
-
     """
     if p is None and mu is None:
         return SemistandardSkewTableaux_all()
@@ -862,7 +906,8 @@ def SemistandardSkewTableaux(p=None, mu=None):
 class SemistandardSkewTableaux_all(CombinatorialClass):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux().__repr__()
             'Semistandard skew tableaux'
         """
@@ -871,7 +916,8 @@ class SemistandardSkewTableaux_all(CombinatorialClass):
 class SemistandardSkewTableaux_n(CombinatorialClass):
     def __init__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SemistandardSkewTableaux(3)
             sage: s == loads(dumps(s))
             True
@@ -880,7 +926,8 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(3).__repr__()
             'Semistandard skew tableaux of size 3'
         """
@@ -888,7 +935,8 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(2).count()
             8
         """
@@ -899,7 +947,8 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(2).list() # indirect doctest
             [[[1], [2]],
              [[None, 1], [1]],
@@ -917,7 +966,8 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
 class SemistandardSkewTableaux_nmu(CombinatorialClass):
     def __init__(self, n, mu):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SemistandardSkewTableaux(3,[2,1])
             sage: s == loads(dumps(s))
             True
@@ -927,7 +977,8 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(3,[2,1]).__repr__()
             'Semistandard skew tableaux of size 3 and weight [2, 1]'
         """
@@ -935,7 +986,8 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(2,[1,1]).count()
             4
         """
@@ -946,7 +998,8 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux(2,[1,1]).list() # indirect doctest
             [[[1], [2]], [[None, 2], [1]], [[None, 1], [2]], [[1, 2]]]
         """
@@ -957,7 +1010,8 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
 class SemistandardSkewTableaux_p(CombinatorialClass):
     def __init__(self, p):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SemistandardSkewTableaux([[2,1],[]])
             sage: s == loads(dumps(s))
             True
@@ -966,7 +1020,8 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: repr(SemistandardSkewTableaux([[2,1],[]]))
             'Semistandard skew tableaux of shape [[2, 1], []]'
         """
@@ -974,7 +1029,8 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux([[2,1],[]]).count()
             8
         """
@@ -985,7 +1041,8 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux([[2,1],[]]).list() #indirect test
             [[[1, 1], [2]],
              [[1, 1], [3]],
@@ -1003,7 +1060,8 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
 class SemistandardSkewTableaux_pmu(CombinatorialClass):
     def __init__(self, p, mu):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SemistandardSkewTableaux([[2,1],[]],[2,1])
             sage: s == loads(dumps(s))
             True
@@ -1013,7 +1071,8 @@ class SemistandardSkewTableaux_pmu(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).__repr__()
             'Semistandard skew tableaux of shape [[2, 1], []] and weight [2, 1]'
         """
@@ -1022,7 +1081,8 @@ class SemistandardSkewTableaux_pmu(CombinatorialClass):
 
     def list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
             [[[1, 1], [2]]]
         """
@@ -1032,14 +1092,15 @@ class SemistandardSkewTableaux_pmu(CombinatorialClass):
 
 def from_expr(expr):
     """
-    Returns a SkewTableau from a MuPAD-Combinat expr for a
-    skew tableau.  The first list in expr is the inner shape
-    of the skew tableau.  The second list are the entries
-    in the rows of the skew tableau from bottom to top.
+    Returns a SkewTableau from a MuPAD-Combinat expr for a skew
+    tableau. The first list in expr is the inner shape of the skew
+    tableau. The second list are the entries in the rows of the skew
+    tableau from bottom to top.
 
     Provided primarily for compatability with MuPAD-Combinat.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.skew_tableau as skew_tableau
         sage: sage.combinat.skew_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
@@ -1057,10 +1118,11 @@ def from_expr(expr):
 
 def from_shape_and_word(shape, word):
     """
-    Returns the skew tableau correspnding to the skew partition
-    shape and the word obtained from the row reading.
+    Returns the skew tableau correspnding to the skew partition shape
+    and the word obtained from the row reading.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.skew_tableau as skew_tableau
         sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
         sage: shape = t.shape()

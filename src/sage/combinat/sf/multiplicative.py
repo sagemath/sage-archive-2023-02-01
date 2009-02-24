@@ -21,18 +21,25 @@ import sage.combinat.partition
 class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra_classical):
     def _multiply_basis(self, left, right):
         """
-        TESTS:
+        TESTS::
+
             sage: e = SFAElementary(QQ)
             sage: e([2,1])^2
             e[2, 2, 1, 1]
+
+        ::
 
             sage: h = SFAHomogeneous(QQ)
             sage: h([2,1])^2
             h[2, 2, 1, 1]
 
+        ::
+
             sage: p = SFAPower(QQ)
             sage: p([2,1])^2
             p[2, 2, 1, 1]
+
+        ::
 
             sage: QQx.<x> = QQ[]
             sage: p = SFAPower(QQx) # indirect doctest

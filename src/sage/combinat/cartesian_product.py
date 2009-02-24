@@ -23,18 +23,21 @@ from combinat import CombinatorialClass
 
 def CartesianProduct(*iters):
     """
-    Returns the combinatorial class of the cartesian
-    product of *iters.
+    Returns the combinatorial class of the cartesian product of
+    \*iters.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: cp = CartesianProduct([1,2], [3,4]); cp
         Cartesian product of [1, 2], [3, 4]
         sage: cp.list()
         [[1, 3], [1, 4], [2, 3], [2, 4]]
 
-      Note that if you have a generator-type object that is returned
-      by a function, then you should use IterableFunctionCall class
-      defined in sage.combinat.misc.
+    Note that if you have a generator-type object that is returned by a
+    function, then you should use IterableFunctionCall class defined in
+    sage.combinat.misc.
+
+    ::
 
         sage: def a(n): yield 1*n; yield 2*n
         sage: def b(): yield 'a'; yield 'b'
@@ -51,7 +54,8 @@ def CartesianProduct(*iters):
 class CartesianProduct_iters(CombinatorialClass):
     def __init__(self, *iters):
         """
-        TESTS:
+        TESTS::
+
             sage: import sage.combinat.cartesian_product as cartesian_product
             sage: cp = cartesian_product.CartesianProduct_iters([1,2],[3,4]); cp
             Cartesian product of [1, 2], [3, 4]
@@ -62,7 +66,8 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cp = CartesianProduct([1,2],[3,4])
             sage: [1,3] in cp
             True
@@ -78,7 +83,8 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartesianProduct(range(2), range(3))
             Cartesian product of [0, 1], [0, 1, 2]
         """
@@ -87,9 +93,10 @@ class CartesianProduct_iters(CombinatorialClass):
     def count(self):
         """
         Returns the number of elements in the cartesian product of
-        everything in *iters.
+        everything in \*iters.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartesianProduct(range(2), range(3)).count()
             6
             sage: CartesianProduct(range(2), xrange(3)).count()
@@ -107,7 +114,8 @@ class CartesianProduct_iters(CombinatorialClass):
         """
         Returns
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartesianProduct(range(3), range(3)).list()
             [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]]
             sage: CartesianProduct('dog', 'cat').list()
@@ -126,13 +134,14 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for the elements in the cartesian product
-        of the iterables *iters.
+        An iterator for the elements in the cartesian product of the
+        iterables \*iters.
 
-        From Recipe 19.9 in the Python Cookbook by Alex Martelli
-        and David Ascher.
+        From Recipe 19.9 in the Python Cookbook by Alex Martelli and David
+        Ascher.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [e for e in CartesianProduct(range(3), range(3))]
             [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]]
             sage: [e for e in CartesianProduct('dog', 'cat')]
@@ -164,10 +173,10 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def random_element(self):
         """
-        Returns a random element from the cartesian product
-        of *iters.
+        Returns a random element from the cartesian product of \*iters.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CartesianProduct('dog', 'cat').random_element()
             ['d', 'a']
         """

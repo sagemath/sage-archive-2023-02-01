@@ -1,3 +1,6 @@
+"""
+Word utilities
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>
 #
@@ -12,11 +15,12 @@ from copy import copy
 
 def copy_it(it):
     r"""
-    Copy an iterator using its builtin __copy__ method if available,
-    otherwise use itertools.tee().  Define __copy__ for your iterators.
-    (See PEP 323)
+    Copy an iterator using its builtin __copy__ method if
+    available, otherwise use itertools.tee(). Define __copy__ for
+    your iterators. (See PEP 323)
 
-    TESTS:
+    TESTS::
+
         sage: from sage.combinat.words.utils import copy_it
         sage: it = iter([1, 2, 3, 4, 5])
         sage: it, it2 = copy_it(it)
@@ -38,15 +42,15 @@ def copy_it(it):
 
 def slice_it(it, l, key):
     r"""
-    Slice an iterator, supporting negative step sizes
-    by expliciting the elements if needed.
+    Slice an iterator, supporting negative step sizes by expliciting
+    the elements if needed.
 
-    NOTE:
-        The iterator returned depends on it.  You must pass
-        in a copy of your iterator if you intend to keep using
-        the original iterator.
+    NOTE: The iterator returned depends on it. You must pass in a copy
+    of your iterator if you intend to keep using the original
+    iterator.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.combinat.words.utils import slice_it
         sage: list(slice_it(iter(range(5)), 5, slice(None)))
         [0, 1, 2, 3, 4]
@@ -71,10 +75,11 @@ def slice_it(it, l, key):
 
 def peek_it(it):
     r"""
-    Returns the first element of an iterator and returns an iterator at the
-    same position as the original iterator
+    Returns the first element of an iterator and returns an iterator at
+    the same position as the original iterator
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import peek_it
         sage: it = iter([1, 2, 3])
         sage: it, n = peek_it(it); n
@@ -90,10 +95,11 @@ def len_it(it):
     Returns the number of elements in it.
 
     This function will modify the iterator, so if you want to access
-    the elements later, make a copy of the iterator and pass it to
-    this function.
+    the elements later, make a copy of the iterator and pass it to this
+    function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import len_it
         sage: len_it(iter([1, 2, 3]))
         3
@@ -110,21 +116,22 @@ def haslen(obj):
     r"""
     Returns true if obj has a properly defined length
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import haslen
         sage: haslen([1, 2, 3])
         True
         sage: haslen(33)
         False
 
-    TESTS:
+    TESTS::
+
         sage: class test(object):
         ...     def __len__(self):
         ...         return -1
         ...
         sage: haslen(test())
         False
-
     """
     try:
         len(obj)
@@ -134,16 +141,19 @@ def haslen(obj):
 
 def sliceable(obj):
     r"""
-    Returns true if obj is completely sliceable, including negative step sizes
+    Returns true if obj is completely sliceable, including negative
+    step sizes
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import sliceable
         sage: sliceable([1, 2, 3])
         True
         sage: sliceable(33)
         False
 
-    TESTS:
+    TESTS::
+
         sage: class test(object):
         ...     def __getitem__(self, key):
         ...         return islice(iter([1]), *key)
@@ -159,10 +169,11 @@ def sliceable(obj):
 
 def isint(obj):
     r"""
-    Returns True if obj is an integer or a custom object representing an integer
-    and False otherwise.
+    Returns True if obj is an integer or a custom object representing
+    an integer and False otherwise.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import isint
         sage: isint(1)
         True
@@ -177,7 +188,8 @@ def is_iterable(obj):
     r"""
     Returns true if the obj is iterable.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import is_iterable
         sage: is_iterable('123')
         True
@@ -198,7 +210,8 @@ def slice_ok(part):
     r"""
     Returns true if part is a slice and doesn't have funny values.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import slice_ok
         sage: slice_ok(slice(None))
         True
@@ -230,7 +243,8 @@ def slice_indices(s, l):
     r"""
     Implement slice.indices whitout bugs.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.combinat.words.utils import slice_indices
         sage: slice_indices(slice(None), 8)
         (0, 8, 1)
@@ -265,7 +279,8 @@ def reverse_map(d):
     r"""
     Return a new dict with swapped keys and values
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import reverse_map
         sage: reverse_map({'a': 1, 'b': 2}) == {1: 'a', 2: 'b'}
         True
@@ -274,9 +289,11 @@ def reverse_map(d):
 
 def id_f(x):
     r"""
-    Dummy identity function for when a function is required but none is desired.
+    Dummy identity function for when a function is required but none is
+    desired.
 
-    TESTS:
+    TESTS::
+
         sage: l = [1, 2, 3]
         sage: l is sage.combinat.words.utils.id_f(l)
         True
@@ -287,7 +304,8 @@ def clamp(x, min, max):
     r"""
     Clamp a value between a maximum and a minimum.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.utils import clamp
         sage: clamp(0, -1, 1)
         0
@@ -305,9 +323,11 @@ def clamp(x, min, max):
 
 class Factorization(list):
     r"""
-    A list subclass having a nicer representation for factorization of words.
+    A list subclass having a nicer representation for factorization of
+    words.
 
-    TESTS:
+    TESTS::
+
         sage: f = sage.combinat.words.utils.Factorization()
         sage: f == loads(dumps(f))
         True
@@ -316,7 +336,8 @@ class Factorization(list):
         r"""
         Returns a string representation of the object.
 
-        TESTS:
+        TESTS::
+
             sage: sage.combinat.words.utils.Factorization()
             ()
             sage: sage.combinat.words.utils.Factorization([Word('ab'), Word('ba')])

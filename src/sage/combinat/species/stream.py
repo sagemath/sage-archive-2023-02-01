@@ -1,8 +1,9 @@
 """
 Streams or Infinite Arrays
 
-This code is based on the work of Ralf Hemmecke and Martin Rubey's Aldor-Combinat, which
-can be found at http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
+This code is based on the work of Ralf Hemmecke and Martin Rubey's
+Aldor-Combinat, which can be found at
+http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
 In particular, the relevent section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse12.html.
 """
@@ -14,7 +15,8 @@ def _integers_from(n):
     """
     Returns a generator for the integers starting at n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.species.stream import _integers_from
         sage: g = _integers_from(5)
         sage: [g.next() for i in range(5)]
@@ -28,7 +30,8 @@ def _apply_function(func, list):
     """
     Returns an iterator for func(i) for i in list.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.species.stream import _apply_function
         sage: def square(l):
         ...       l.append(l[-1]^2)
@@ -38,7 +41,6 @@ def _apply_function(func, list):
         sage: g = _apply_function(square, l)
         sage: [g.next() for i in range(5)]
         [4, 16, 256, 65536, 4294967296]
-
     """
     while True:
         try:
@@ -50,13 +52,14 @@ def Stream(x=None, const=None):
     """
     Returns a stream.
 
-    EXAMPLES:
-      We can create a constant stream by just passing a
+    EXAMPLES: We can create a constant stream by just passing a
+
+    ::
+
         sage: from sage.combinat.species.stream import Stream
         sage: s = Stream(const=0)
         sage: [s[i] for i in range(10)]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
     """
     if const is not None:
         return Stream_class(const=const)
@@ -69,8 +72,8 @@ def Stream(x=None, const=None):
 
 class Stream_class(SageObject):
     """
+    EXAMPLES::
 
-    EXAMPLES:
         sage: from sage.combinat.species.stream import Stream
         sage: from itertools import izip
         sage: s = Stream(const=0)
@@ -81,6 +84,8 @@ class Stream_class(SageObject):
         sage: len(s)
         1
 
+    ::
+
         sage: s = Stream(const=4)
         sage: g = iter(s)
         sage: l1 = [x for (x,i) in izip(g, range(10))]
@@ -88,10 +93,14 @@ class Stream_class(SageObject):
         sage: l == l1
         True
 
+    ::
+
         sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
         sage: fib = Stream(h)
         sage: [x for (x,i) in izip(fib, range(11))]
         [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+
+    ::
 
         sage: s = Stream()
         sage: l = Stream([1, 0])
@@ -99,6 +108,8 @@ class Stream_class(SageObject):
         sage: s.set_gen(iter(l + y * s * s))
         sage: [x for (x,i) in izip(s, range(6))]
         [1, 1, 2, 5, 14, 42]
+
+    ::
 
         sage: r = [4, 3, 5, 2, 6, 1, 1, 1, 1, 1]
         sage: l = [4, 3, 5, 2, 6, 1]
@@ -123,11 +134,14 @@ class Stream_class(SageObject):
 
     def __init__(self, gen=None, const=None, func=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream_class, Stream
             sage: s = Stream_class(const=4)
             sage: loads(dumps(s))
             <class 'sage.combinat.species.stream.Stream_class'>
+
+        ::
 
             sage: list(sorted(s.__dict__.iteritems()))
             [('_constant', 4),
@@ -136,13 +150,15 @@ class Stream_class(SageObject):
              ('_list', [4]),
              ('end_reached', True)]
 
-             sage: s = Stream(ZZ)
-             sage: list(sorted(s.__dict__.iteritems()))
-             [('_constant', None),
-              ('_gen', <generator object at 0x...>),
-              ('_last_index', -1),
-              ('_list', []),
-              ('end_reached', False)]
+        ::
+
+            sage: s = Stream(ZZ)
+            sage: list(sorted(s.__dict__.iteritems()))
+            [('_constant', None),
+             ('_gen', <generator object at 0x...>),
+             ('_last_index', -1),
+             ('_list', []),
+             ('end_reached', False)]
         """
         #We define self._list up here so that
         #_apply_function can make use of it if
@@ -172,8 +188,11 @@ class Stream_class(SageObject):
         """
         Sets the ith entry of self to t.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
+
+        ::
 
             sage: s = Stream(const=0)
             sage: s[5]
@@ -186,6 +205,8 @@ class Stream_class(SageObject):
             sage: s.data()
             [0, 0, 0, 0, 0, 5]
 
+        ::
+
             sage: s = Stream(ZZ)
             sage: s[10]
             -5
@@ -194,7 +215,6 @@ class Stream_class(SageObject):
             sage: s[10] = 10
             sage: s.data()
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, 10]
-
         """
         #Compute all of the coefficients up to (and including) the ith one
         test = self[i]
@@ -213,7 +233,8 @@ class Stream_class(SageObject):
 
     def set_gen(self, gen):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: from itertools import izip
             sage: fib = Stream()
@@ -225,10 +246,13 @@ class Stream_class(SageObject):
             ...              yield fib[n] + fib[n+1]
             ...              n += 1
 
+        ::
+
             sage: fib.set_gen(g())
             sage: [x for (x,i) in izip(fib, range(11))]
             [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 
+        ::
 
             sage: l = [4,3,5,2,6,1]
             sage: s = Stream(l)
@@ -248,7 +272,8 @@ class Stream_class(SageObject):
 
     def map(self, f):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream(ZZ)
             sage: square = lambda x: x^2
@@ -256,7 +281,8 @@ class Stream_class(SageObject):
             sage: [ss[i] for i in range(10)]
             [0, 1, 1, 4, 4, 9, 9, 16, 16, 25]
 
-        TESTS:
+        TESTS::
+
             sage: from itertools import izip
             sage: f = lambda l: 0 if len(l) == 0 else l[-1] + 1
             sage: o = Stream(f)
@@ -267,6 +293,8 @@ class Stream_class(SageObject):
             sage: [x for (x,i) in izip(t, range(10))]
             [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
+        ::
+
             sage: double = lambda z: 2*z
             sage: o = Stream([0,1,2,3])
             sage: [x for (x,i) in izip(o, range(6))]
@@ -274,7 +302,6 @@ class Stream_class(SageObject):
             sage: t = o.map(double)
             sage: [x for (x,i) in izip(t, range(6))]
             [0, 2, 4, 6, 6, 6]
-
         """
         return Stream((f(x) for x in self))
 
@@ -282,7 +309,8 @@ class Stream_class(SageObject):
         """
         Returns the ith entry of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream(ZZ)
             sage: [s[i] for i in range(10)]
@@ -290,9 +318,13 @@ class Stream_class(SageObject):
             sage: s[1]
             1
 
+        ::
+
             sage: s = Stream([1,2,3])
             sage: [s[i] for i in range(10)]
             [1, 2, 3, 3, 3, 3, 3, 3, 3, 3]
+
+        ::
 
             sage: s = Stream(QQ)
             sage: s[10]
@@ -322,7 +354,8 @@ class Stream_class(SageObject):
         """
         Returns the sum of two streams.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream(ZZ)
             sage: ss = s + s
@@ -337,16 +370,16 @@ class Stream_class(SageObject):
         """
         Returns the product of two streams.
 
-        EXAMPLES:
-          We can use a stream to represent the polynomial 1+x and use it to compute the
-          coefficients of (1+x)^2.
+        EXAMPLES: We can use a stream to represent the polynomial 1+x and
+        use it to compute the coefficients of (1+x)2.
+
+        ::
 
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream([1,1,0])
             sage: ss = s*s
             sage: [ss[i] for i in range(5)]
             [1, 2, 1, 0, 0]
-
         """
         if not isinstance(s, Stream_class):
             raise TypeError, "s must be a Stream"
@@ -354,11 +387,12 @@ class Stream_class(SageObject):
 
     def _times_naive(self, s, n):
         """
-        Returns the nth entry in the product of self and s via the naive multiplication
-        algorithm.  Note that this requires that all entries for self and s in range(n+1)
-        be computed.
+        Returns the nth entry in the product of self and s via the naive
+        multiplication algorithm. Note that this requires that all entries
+        for self and s in range(n+1) be computed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream([1,1,0])
             sage: s._times_naive(s, 0)
@@ -378,7 +412,8 @@ class Stream_class(SageObject):
 
     def __iter__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream([1,2,3])
             sage: g = iter(s)
@@ -398,7 +433,8 @@ class Stream_class(SageObject):
         """
         Returns the number of coefficients computed so far.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: l = [4,3,5,7,4,1,9,7]
             sage: s = Stream(l)
@@ -419,8 +455,8 @@ class Stream_class(SageObject):
             sage: len(s)
             5
 
+        TESTS::
 
-        TESTS:
             sage: l = ['Hello', ' ', 'World', '!']
             sage: s = Stream(l)
             sage: len(s)
@@ -439,7 +475,6 @@ class Stream_class(SageObject):
             'Hello World!!!!!!!'
             sage: len(s)
             4
-
         """
         return len(self._list)
 
@@ -449,7 +484,8 @@ class Stream_class(SageObject):
         """
         Returns a list of all the coefficients computed so far.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream, _integers_from
             sage: s = Stream(_integers_from(3))
             sage: s.data()
@@ -458,7 +494,6 @@ class Stream_class(SageObject):
             8
             sage: s.data()
             [3, 4, 5, 6, 7, 8]
-
         """
         return self._list
 
@@ -466,7 +501,8 @@ class Stream_class(SageObject):
         """
         Returns True if and only if
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream([1,2,3])
             sage: s.is_constant()
@@ -478,7 +514,8 @@ class Stream_class(SageObject):
             sage: s.is_constant()
             True
 
-        TESTS:
+        TESTS::
+
             sage: l = [2,3,5,7,11,0]
             sage: s = Stream(l)
             sage: s.is_constant()
@@ -496,6 +533,8 @@ class Stream_class(SageObject):
             sage: s.is_constant()
             True
 
+        ::
+
             sage: s = Stream(const='I am constant.')
             sage: s.is_constant()
             True
@@ -505,25 +544,25 @@ class Stream_class(SageObject):
 
     def stretch(self, k):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream(range(1, 10))
             sage: s2 = s.stretch(2)
             sage: [s2[i] for i in range(10)]
             [1, 0, 2, 0, 3, 0, 4, 0, 5, 0]
-
         """
         return Stream(self._stretch_gen(k))
 
     def _stretch_gen(self, k):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.stream import Stream
             sage: s = Stream(range(1, 10))
             sage: g = s._stretch_gen(2)
             sage: [g.next() for i in range(10)]
             [1, 0, 2, 0, 3, 0, 4, 0, 5, 0]
-
         """
         yield self[0]
         for i in _integers_from(1):

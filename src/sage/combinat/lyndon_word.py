@@ -1,7 +1,5 @@
 """
 Lyndon words
-
-
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -31,9 +29,10 @@ def LyndonWords(e, k=None):
     """
     Returns the combinatorial class of Lyndon words.
 
-    EXAMPLES:
-      If e is an integer, then e specifies the length of the
-      alphabet; k must also be specified in this case.
+    EXAMPLES: If e is an integer, then e specifies the length of the
+    alphabet; k must also be specified in this case.
+
+    ::
 
         sage: LW = LyndonWords(3,3); LW
         Lyndon words from an alphabet of size 3 of length 3
@@ -46,8 +45,10 @@ def LyndonWords(e, k=None):
         sage: LW.count()
         8
 
-      If e is a (weak) composition, then it returns the class of
-      Lyndon words that have evaluation e.
+    If e is a (weak) composition, then it returns the class of Lyndon
+    words that have evaluation e.
+
+    ::
 
         sage: LyndonWords([2, 0, 1]).list()
         [[1, 1, 3]]
@@ -71,7 +72,8 @@ def LyndonWords(e, k=None):
 class LyndonWords_evaluation(CombinatorialClass):
     def __init__(self, e):
         """
-        TESTS:
+        TESTS::
+
             sage: LW21 = LyndonWords([2,1]); LW21
             Lyndon words with evaluation [2, 1]
             sage: LW21 == loads(dumps(LW21))
@@ -81,7 +83,8 @@ class LyndonWords_evaluation(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(LyndonWords([2,1,1]))
             'Lyndon words with evaluation [2, 1, 1]'
         """
@@ -89,7 +92,8 @@ class LyndonWords_evaluation(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [1,2,1,2] in LyndonWords([2,2])
             False
             sage: [1,1,2,2] in LyndonWords([2,2])
@@ -113,10 +117,10 @@ class LyndonWords_evaluation(CombinatorialClass):
 
     def count(self):
         """
-        Returns the number of Lyndon words with the
-        evaluation e.
+        Returns the number of Lyndon words with the evaluation e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LyndonWords([]).count()
             0
             sage: LyndonWords([2,2]).count()
@@ -124,14 +128,15 @@ class LyndonWords_evaluation(CombinatorialClass):
             sage: LyndonWords([2,3,2]).count()
             30
 
-          Check to make sure that the count matches up with the
-          number of Lyndon words generated.
+        Check to make sure that the count matches up with the number of
+        Lyndon words generated.
+
+        ::
 
             sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
             sage: lws = [ LyndonWords(comp) for comp in comps]
             sage: all( [ lw.count() == len(lw.list()) for lw in lws] )
             True
-
         """
         evaluation = self.e
         le = __builtin__.list(evaluation)
@@ -147,7 +152,8 @@ class LyndonWords_evaluation(CombinatorialClass):
         """
         An iterator for the Lyndon words with evaluation e.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: LyndonWords([1]).list()    #indirect doctest
             [[1]]
             sage: LyndonWords([2]).list()    #indirect doctest
@@ -168,7 +174,6 @@ class LyndonWords_evaluation(CombinatorialClass):
              [1, 1, 1, 2, 2, 1, 2],
              [1, 1, 2, 1, 1, 2, 2],
              [1, 1, 2, 1, 2, 1, 2]]
-
         """
         if self.e == []:
             return
@@ -181,7 +186,8 @@ class LyndonWords_evaluation(CombinatorialClass):
 class LyndonWords_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: LW23 = LyndonWords(2,3); LW23
             Lyndon words from an alphabet of size 2 of length 3
             sage: LW23== loads(dumps(LW23))
@@ -192,7 +198,8 @@ class LyndonWords_nk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(LyndonWords(2, 3))
             'Lyndon words from an alphabet of size 2 of length 3'
         """
@@ -200,7 +207,8 @@ class LyndonWords_nk(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: LW33 = LyndonWords(3,3)
             sage: all([lw in LW33 for lw in LW33])
             True
@@ -221,7 +229,8 @@ class LyndonWords_nk(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: [ LyndonWords(3,i).count() for i in range(1, 11) ]
             [3, 3, 8, 18, 48, 116, 312, 810, 2184, 5880]
         """
@@ -235,16 +244,17 @@ class LyndonWords_nk(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
-           sage: LyndonWords(3,3).list() # indirect doctest
-           [[1, 1, 2],
-            [1, 1, 3],
-            [1, 2, 2],
-            [1, 2, 3],
-            [1, 3, 2],
-            [1, 3, 3],
-            [2, 2, 3],
-            [2, 3, 3]]
+        TESTS::
+
+            sage: LyndonWords(3,3).list() # indirect doctest
+            [[1, 1, 2],
+             [1, 1, 3],
+             [1, 2, 2],
+             [1, 2, 3],
+             [1, 3, 2],
+             [1, 3, 3],
+             [2, 2, 3],
+             [2, 3, 3]]
         """
         for c in IntegerVectors(self.k, self.n):
             cf = filter(lambda x: x != 0, c)
@@ -258,12 +268,13 @@ class LyndonWords_nk(CombinatorialClass):
 
 def StandardBracketedLyndonWords(n, k):
     """
-    Returns the combinatorial class of standard bracketed Lyndon
-    words from [1, ..., n] of length k.  These are in one to one
-    correspondence with the Lyndon words and form a basis for
-    the subspace of degree k of the free Lie algebra of rank n.
+    Returns the combinatorial class of standard bracketed Lyndon words
+    from [1, ..., n] of length k. These are in one to one
+    correspondence with the Lyndon words and form a basis for the
+    subspace of degree k of the free Lie algebra of rank n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SBLW33 = StandardBracketedLyndonWords(3,3); SBLW33
         Standard bracketed Lyndon words from an alphabet of size 3 of length 3
         sage: SBLW33.first()
@@ -280,7 +291,8 @@ def StandardBracketedLyndonWords(n, k):
 class StandardBracketedLyndonWords_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: SBLW = StandardBracketedLyndonWords(3, 2)
             sage: SBLW == loads(dumps(SBLW))
             True
@@ -290,7 +302,8 @@ class StandardBracketedLyndonWords_nk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(StandardBracketedLyndonWords(3, 3))
             'Standard bracketed Lyndon words from an alphabet of size 3 of length 3'
         """
@@ -298,7 +311,8 @@ class StandardBracketedLyndonWords_nk(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardBracketedLyndonWords(3, 3).count()
             8
             sage: StandardBracketedLyndonWords(3, 4).count()
@@ -308,7 +322,8 @@ class StandardBracketedLyndonWords_nk(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardBracketedLyndonWords(3, 3).list()
             [[1, [1, 2]],
              [1, [1, 3]],
@@ -327,7 +342,8 @@ def standard_bracketing(lw):
     """
     Returns the standard bracketing of a Lyndon word lw.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.lyndon_word as lyndon_word
         sage: map( lyndon_word.standard_bracketing, LyndonWords(3,3) )
         [[1, [1, 2]],

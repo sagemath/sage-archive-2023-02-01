@@ -33,14 +33,16 @@ from sage.misc.misc import prod
 
 def HallLittlewoodP(R,t=None):
     """
-    Returns the algebra of symmetric functions in Hall-Littlewood
-    P basis.  This is the same as the HL basis in John Stembridge's
-    SF examples file.
+    Returns the algebra of symmetric functions in Hall-Littlewood P
+    basis. This is the same as the HL basis in John Stembridge's SF
+    examples file.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HallLittlewoodP(QQ)
         Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: HallLittlewoodP(QQ, t=-1)
@@ -50,15 +52,21 @@ def HallLittlewoodP(R,t=None):
         sage: s(HLP([2,1]))
         (-t^2-t)*s[1, 1, 1] + s[2, 1]
 
-      The Hall-Littlewood polynomials in the P basis at t = 0 are the Schur
-      functions.
+    The Hall-Littlewood polynomials in the P basis at t = 0 are the
+    Schur functions.
+
+    ::
+
         sage: HLP = HallLittlewoodP(QQ,t=0)
         sage: s = SFASchur(HLP.base_ring())
         sage: s(HLP([2,1])) == s([2,1])
         True
 
-      The Hall-Littlewood polynomials in the P basis at t = 1 are the monomial
-      symmetric functions.
+    The Hall-Littlewood polynomials in the P basis at t = 1 are the
+    monomial symmetric functions.
+
+    ::
+
         sage: HLP = HallLittlewoodP(QQ,t=1)
         sage: m = SFAMonomial(HLP.base_ring())
         sage: m(HLP([2,2,1])) == m([2,2,1])
@@ -68,37 +76,39 @@ def HallLittlewoodP(R,t=None):
 
 def HallLittlewoodQ(R,t=None):
     """
-    Returns the algebra of symmetric functions in Hall-Littlewood
-    Q basis.  This is the same as the Q basis in John Stembridge's
-    SF examples file.
+    Returns the algebra of symmetric functions in Hall-Littlewood Q
+    basis. This is the same as the Q basis in John Stembridge's SF
+    examples file.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HallLittlewoodQ(QQ)
         Hall-Littlewood polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: HallLittlewoodQ(QQ, t=-1)
         Hall-Littlewood polynomials in the Q basis with t=-1 over Rational Field
-
     """
     return cache_q(R,t)
 
 def HallLittlewoodQp(R,t=None):
     """
-    Returns the algebra of symmetric functions in Hall-Littlewood
-    Qp basis.  This is dual to the Hall-Littlewood P basis with
-    respect to the standard scalar product.
+    Returns the algebra of symmetric functions in Hall-Littlewood Qp
+    basis. This is dual to the Hall-Littlewood P basis with respect to
+    the standard scalar product.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: HallLittlewoodQp(QQ)
         Hall-Littlewood polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: HallLittlewoodQp(QQ, t=-1)
         Hall-Littlewood polynomials in the Qp basis with t=-1 over Rational Field
-
     """
     return cache_qp(R,t)
 
@@ -108,7 +118,8 @@ def HallLittlewoodQp(R,t=None):
 class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
     def __init__(self, R, t=None):
         """
-        TESTS:
+        TESTS::
+
             sage: HallLittlewoodP(QQ)
             Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: HallLittlewoodP(QQ,t=2)
@@ -131,10 +142,11 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
 
     def transition_matrix(self, basis, n):
         """
-        Returns the transitions matrix between self and basis
-        for the homogenous component of degree n.
+        Returns the transitions matrix between self and basis for the
+        homogenous component of degree n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP = HallLittlewoodP(QQ)
             sage: s   = SFASchur(HLP.base_ring())
             sage: HLP.transition_matrix(s, 4)
@@ -153,8 +165,6 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
             [      1       0       0]
             [      t       1       0]
             [    t^3 t^2 + t       1]
-
-
         """
         P = sage.combinat.partition.Partitions_n(n)
         Plist = P.list()
@@ -167,9 +177,11 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
 class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic):
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -190,11 +202,11 @@ class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic)
         """
         Returns standard scalar product between self and s.
 
-        This is the default implementation that converts both self
-        and x into Schur functions and performs the scalar product
-        that basis.
+        This is the default implementation that converts both self and x
+        into Schur functions and performs the scalar product that basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -217,7 +229,8 @@ class HallLittlewoodElement_generic(sfa.SymmetricFunctionAlgebraElement_generic)
         """
         Returns the standard Hall-Littlewood scalar product of self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -245,7 +258,8 @@ class HallLittlewoodElement_p(HallLittlewoodElement_generic):
 class HallLittlewood_p(HallLittlewood_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = HallLittlewoodP(QQ)
             sage: P == loads(dumps(P))
             True
@@ -268,11 +282,11 @@ class HallLittlewood_p(HallLittlewood_generic):
         Convert to the Schur basis, do the multiplication there, and
         convert back to the P basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP = HallLittlewoodP(QQ)
             sage: HLP([2])^2 # indirect doctest
             (t+1)*P[2, 2] + (-t+1)*P[3, 1] + P[4]
-
         """
         return self( self._s(left) * self._s(right) )
 
@@ -281,11 +295,12 @@ class HallLittlewood_p(HallLittlewood_generic):
         """
         Coerce things into the Hall-Littlewood P basis.
 
-        1) Hall-Littlewood polynomials in the Q basis
-        2) Hall-Littlewood polynomials in the Qp basis (via the Schurs)
-        3) Classical symmetric functions
+        1) Hall-Littlewood polynomials in the Q basis 2) Hall-Littlewood
+        polynomials in the Qp basis (via the Schurs) 3) Classical symmetric
+        functions
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -298,7 +313,6 @@ class HallLittlewood_p(HallLittlewood_generic):
             t*P[1, 1] + P[2]
             sage: HLP(p([2]))
             (t-1)*P[1, 1] + P[2]
-
         """
         BR = self.base_ring()
         if isinstance(x, HallLittlewoodElement_q):
@@ -315,14 +329,14 @@ class HallLittlewood_p(HallLittlewood_generic):
     def _q_to_self(self, m):
         """
         Returns the scalar coefficient on self(m) when converting from the
-        Q basis to the P basis.  Note that this assumes that m is a
+        Q basis to the P basis. Note that this assumes that m is a
         Partition object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLP._q_to_self(Partition([2,1]))
             t^2 - 2*t + 1
-
         """
         t = self.t
         coeff = (1-t)**len(m)
@@ -333,10 +347,11 @@ class HallLittlewood_p(HallLittlewood_generic):
 
     def _s_to_self(self, part):
         """
-        Returns a function which gives the coefficient of part2 in the expansion
-        of the Schur functions s(part) in self.
+        Returns a function which gives the coefficient of part2 in the
+        expansion of the Schur functions s(part) in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = HallLittlewoodP(QQ)
             sage: f21 = P._s_to_self(Partition([2,1]))
             sage: [f21(p) for p in Partitions(3)]
@@ -352,13 +367,14 @@ class HallLittlewood_p(HallLittlewood_generic):
 
     def _s_cache(self, n):
         """
-        Computes the change of basis between the P polynomials and
-        the Schur functions for partitions of size n.
+        Computes the change of basis between the P polynomials and the
+        Schur functions for partitions of size n.
 
-        Uses the fact that the transformation matrix is upper-triangular
-        in order to obtain the inverse transformation.
+        Uses the fact that the transformation matrix is upper-triangular in
+        order to obtain the inverse transformation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = HallLittlewoodP(QQ)
             sage: P._s_cache(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
@@ -366,7 +382,6 @@ class HallLittlewood_p(HallLittlewood_generic):
             [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], t), ([2], 1)])]
             sage: l(P._self_to_s_cache[2])
             [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], -t), ([2], 1)])]
-
         """
 
         self._invert_morphism(n, ZZ['t'], self._self_to_s_cache, \
@@ -386,7 +401,8 @@ class HallLittlewoodElement_q(HallLittlewoodElement_generic):
 class HallLittlewood_q(HallLittlewood_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = HallLittlewoodQ(QQ)
             sage: Q == loads(dumps(Q))
             True
@@ -405,18 +421,19 @@ class HallLittlewood_q(HallLittlewood_generic):
         Converts to the P basis, does the multiplication there, and
         converts back to the Q basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLQ = HallLittlewoodQ(QQ)
             sage: HLQ([2])^2 # indirect doctest
             Q[2, 2] + (-t+1)*Q[3, 1] + (-t+1)*Q[4]
-
         """
         return self( self._P(left) * self._P(right) )
 
 
     def _coerce_start(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -442,14 +459,14 @@ class HallLittlewood_q(HallLittlewood_generic):
     def _p_to_self(self, m):
         """
         Returns the scalar coefficient on self(m) when converting from the
-        Q basis to the P basis.  Note that this assumes that m is a
+        Q basis to the P basis. Note that this assumes that m is a
         Partition object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQ._p_to_self(Partition([2,1]))
             1/(t^2 - 2*t + 1)
-
         """
         t = self.t
         coeff = 1/(1-t)**len(m)
@@ -471,7 +488,8 @@ class HallLittlewoodElement_qp(HallLittlewoodElement_generic):
 class HallLittlewood_qp(HallLittlewood_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Qp = HallLittlewoodQp(QQ)
             sage: Qp == loads(dumps(Qp))
             True
@@ -492,11 +510,12 @@ class HallLittlewood_qp(HallLittlewood_generic):
         """
         Coerce things into the Hall-Littlewood Qp basis.
 
-        1) Hall-Littlewood polynomials in the Q basis (via the Schurs)
-        2) Hall-Littlewood polynomials in the P basis (via the Schurs)
-        3) Symmetric Functions
+        1) Hall-Littlewood polynomials in the Q basis (via the Schurs) 2)
+        Hall-Littlewood polynomials in the P basis (via the Schurs) 3)
+        Symmetric Functions
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLP  = HallLittlewoodP(QQ)
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
@@ -522,24 +541,25 @@ class HallLittlewood_qp(HallLittlewood_generic):
 
     def _multiply(self, left, right):
         """
-        Converts the Hall-Littlewood polynomial in the Qp basis
-        to a Schur function, performs the multiplication there,
-        and converts it back to the Qp basis.
+        Converts the Hall-Littlewood polynomial in the Qp basis to a Schur
+        function, performs the multiplication there, and converts it back
+        to the Qp basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: HLQp = HallLittlewoodQp(QQ)
             sage: HLQp([2])^2 # indirect doctest
             Qp[2, 2] + (-t+1)*Qp[3, 1] + (-t+1)*Qp[4]
-
         """
         return self( self._s(left)*self._s(right) )
 
     def _to_s(self, part):
         """
-        Returns a function which gives the coefficient of part2 in the Schur
-        expansion of self(part).
+        Returns a function which gives the coefficient of part2 in the
+        Schur expansion of self(part).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Qp = HallLittlewoodQp(QQ)
             sage: f21 = Qp._to_s(Partition([2,1]))
             sage: [f21(p) for p in Partitions(3)]
@@ -559,13 +579,14 @@ class HallLittlewood_qp(HallLittlewood_generic):
 
     def _s_cache(self, n):
         """
-        Computes the change of basis between the Qp polynomials and
-        the Schur functions for partitions of size n.
+        Computes the change of basis between the Qp polynomials and the
+        Schur functions for partitions of size n.
 
-        Uses the fact that the transformation matrix is lower-triangular
-        in order to obtain the inverse transformation.
+        Uses the fact that the transformation matrix is lower-triangular in
+        order to obtain the inverse transformation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Qp = HallLittlewoodQp(QQ)
             sage: Qp._s_cache(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
@@ -573,7 +594,6 @@ class HallLittlewood_qp(HallLittlewood_generic):
             [([1, 1], [([1, 1], 1), ([2], -t)]), ([2], [([2], 1)])]
             sage: l(Qp._self_to_s_cache[2])
             [([1, 1], [([1, 1], 1), ([2], t)]), ([2], [([2], 1)])]
-
         """
         self._invert_morphism(n, ZZ['t'], self._self_to_s_cache, \
                               self._s_to_self_cache, to_other_function = self._to_s, \

@@ -22,209 +22,223 @@ from sage.combinat.finite_class import FiniteCombinatorialClass_l
 def Family(indices, function = None, name = None, hidden_keys = [], hidden_function = None):
     r"""
     A Family is an associative container which models a family
-    (f_i)_{i in I}. Then, f[i] returns the element of the family
+    `(f_i)_{i \in I}`. Then, f[i] returns the element of the family
     indexed by i. Whenever available, set and combinatorial class
-    operations (counting, iteration, listing) on the family are
-    induced from those of the index set.
+    operations (counting, iteration, listing) on the family are induced
+    from those of the index set.
 
-    There are several available implementations (classes) for
-    different usages; Family serves as a factory, and will create
-    instances of the appropriate classes depending on its arguments.
+    There are several available implementations (classes) for different
+    usages; Family serves as a factory, and will create instances of
+    the appropriate classes depending on its arguments.
 
     EXAMPLES:
 
-        In its simplest form, a list l by itself is considered as the
-        family $(l[i]_{i in I})$ where $I$ is the range $0\dots,len(l)$.
-        So Family(l) just returns it.
+    In its simplest form, a list l by itself is considered as the
+    family `(l[i]_{i \in I})` where `I` is the range
+    `0\dots,len(l)`. So Family(l) just returns it.
 
-            sage: f = Family([1,2,3])
-            sage: f
-            [1, 2, 3]
+    ::
 
-        A family can also be constructed from a dictionary t. The
-        resulting family is very close to t, except that the elements
-        of the family are the values of t. Here, we define the family
-        (f_i)_{i in \{3,4,7\}} with f_3='a', f_4='b', and f_7='d':
+        sage: f = Family([1,2,3])
+        sage: f
+        [1, 2, 3]
 
-            sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
-            sage: f
-            Finite family {3: 'a', 4: 'b', 7: 'd'}
-            sage: f[7]
-            'd'
-            sage: len(f)
-            3
-            sage: list(f)
-            ['a', 'b', 'd']
-            sage: [ x for x in f ]
-            ['a', 'b', 'd']
-            sage: f.keys()
-            [3, 4, 7]
-            sage: 'b' in f
-            True
-            sage: 'e' in f
-            False
+    A family can also be constructed from a dictionary t. The resulting
+    family is very close to t, except that the elements of the family
+    are the values of t. Here, we define the family `(f_i)_{i \in \{3,4,7\}}`
+    with f_3='a', f_4='b', and f_7='d'::
 
-        A familly can also be constructed by its index set $I$ and a
-        function $f$, as in $(f(i))_{i in I}$:
+        sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
+        sage: f
+        Finite family {3: 'a', 4: 'b', 7: 'd'}
+        sage: f[7]
+        'd'
+        sage: len(f)
+        3
+        sage: list(f)
+        ['a', 'b', 'd']
+        sage: [ x for x in f ]
+        ['a', 'b', 'd']
+        sage: f.keys()
+        [3, 4, 7]
+        sage: 'b' in f
+        True
+        sage: 'e' in f
+        False
 
-            sage: f = Family([3,4,7], lambda i: 2*i)
-            sage: f
-            Finite family {3: 6, 4: 8, 7: 14}
-            sage: f.keys()
-            [3, 4, 7]
-            sage: f[7]
-            14
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+    A familly can also be constructed by its index set `I` and
+    a function `f`, as in `(f(i))_{i \in I}`::
 
-        By default, if the index set is a list, all images are
-        computed right away, and stored in an internal
-        dictionary. Note that this requires all the elements of the
-        list to be hashable. One can ask instead for the images $f(i)$
-        to be computed lazily, when needed:
+        sage: f = Family([3,4,7], lambda i: 2*i)
+        sage: f
+        Finite family {3: 6, 4: 8, 7: 14}
+        sage: f.keys()
+        [3, 4, 7]
+        sage: f[7]
+        14
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
 
-            sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
-            sage: f
-            Lazy family (f(i))_{i in [3, 4, 7]}
-            sage: f[7]
-            14
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+    By default, if the index set is a list, all images are computed
+    right away, and stored in an internal dictionary. Note that this
+    requires all the elements of the list to be hashable. One can ask
+    instead for the images `f(i)` to be computed lazily, when
+    needed::
 
-        This allows in particular for modeling infinite families:
-            sage: f = Family(ZZ, lambda i: 2r*i)
-            sage: f
-            Lazy family (f(i))_{i in Integer Ring}
-            sage: f.keys()
-            Integer Ring
-            sage: f[1]
-            2
-            sage: f[-5]
-            -10
-            sage: i = f.__iter__()
-            sage: i.next(), i.next(), i.next(), i.next(), i.next()
-            (0, 2, -2, 4, -4)
+        sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
+        sage: f
+        Lazy family (f(i))_{i in [3, 4, 7]}
+        sage: f[7]
+        14
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
 
-        Caveat: Only certain families with lazy behavior can be pickled. In
-        particular, only functions that work with Sage's pickle_function
-        and unpickle_function (in sage.misc.fpickle) will correctly
-        unpickle.
+    This allows in particular for modeling infinite families::
 
-        Finally, it can occasionally be useful to add some hidden
-        elements in a family, which are accessible as f[i], but
-        do not appear in the keys or the container operations.
+        sage: f = Family(ZZ, lambda i: 2r*i)
+        sage: f
+        Lazy family (f(i))_{i in Integer Ring}
+        sage: f.keys()
+        Integer Ring
+        sage: f[1]
+        2
+        sage: f[-5]
+        -10
+        sage: i = f.__iter__()
+        sage: i.next(), i.next(), i.next(), i.next(), i.next()
+        (0, 2, -2, 4, -4)
 
-            sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
-            sage: f
-            Finite family {3: 6, 4: 8, 7: 14}
-            sage: f.keys()
-            [3, 4, 7]
-            sage: f.hidden_keys()
-            [2]
-            sage: f[7]
-            14
-            sage: f[2]
-            4
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+    Caveat: Only certain families with lazy behavior can be pickled. In
+    particular, only functions that work with Sage's pickle_function
+    and unpickle_function (in sage.misc.fpickle) will correctly
+    unpickle.
 
-        The following example illustrates when the function is actually called:
-            sage: def compute_value(i):
-            ...       print('computing 2*'+str(i))
-            ...       return 2*i
-            sage: f = Family([3,4,7], compute_value, hidden_keys=[2])
-            computing 2*3
-            computing 2*4
-            computing 2*7
-            sage: f
-            Finite family {3: 6, 4: 8, 7: 14}
-            sage: f.keys()
-            [3, 4, 7]
-            sage: f.hidden_keys()
-            [2]
-            sage: f[7]
-            14
-            sage: f[2]
-            computing 2*2
-            4
-            sage: f[2]
-            4
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+    Finally, it can occasionally be useful to add some hidden elements
+    in a family, which are accessible as f[i], but do not appear in the
+    keys or the container operations.
 
-        Here is a close variant where the function for the hidden keys
-        is different from that for the other keys:
+    ::
 
-            sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2], hidden_function = lambda i: 3*i)
-            sage: f
-            Finite family {3: 6, 4: 8, 7: 14}
-            sage: f.keys()
-            [3, 4, 7]
-            sage: f.hidden_keys()
-            [2]
-            sage: f[7]
-            14
-            sage: f[2]
-            6
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+        sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
+        sage: f
+        Finite family {3: 6, 4: 8, 7: 14}
+        sage: f.keys()
+        [3, 4, 7]
+        sage: f.hidden_keys()
+        [2]
+        sage: f[7]
+        14
+        sage: f[2]
+        4
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
 
-        Family behaves the same way with FiniteCombinatorialClass
-        instances and lists.  This feature will eventually disapear
-        when FiniteCombinatorialClass won't be needed anymore.
+    The following example illustrates when the function is actually
+    called::
 
-            sage: f = Family(FiniteCombinatorialClass([1,2,3]))
-            sage: f
-            Combinatorial class with elements in [1, 2, 3]
+        sage: def compute_value(i):
+        ...       print('computing 2*'+str(i))
+        ...       return 2*i
+        sage: f = Family([3,4,7], compute_value, hidden_keys=[2])
+        computing 2*3
+        computing 2*4
+        computing 2*7
+        sage: f
+        Finite family {3: 6, 4: 8, 7: 14}
+        sage: f.keys()
+        [3, 4, 7]
+        sage: f.hidden_keys()
+        [2]
+        sage: f[7]
+        14
+        sage: f[2]
+        computing 2*2
+        4
+        sage: f[2]
+        4
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
 
-            sage: f = Family(FiniteCombinatorialClass([3,4,7]), lambda i: 2*i)
-            sage: f
-            Finite family {3: 6, 4: 8, 7: 14}
-            sage: f.keys()
-            [3, 4, 7]
-            sage: f[7]
-            14
-            sage: list(f)
-            [6, 8, 14]
-            sage: [ x for x in f]
-            [6, 8, 14]
-            sage: len(f)
-            3
+    Here is a close variant where the function for the hidden keys is
+    different from that for the other keys::
 
-        TESTS:
-            sage: f = Family({1:'a', 2:'b', 3:'c'})
-            sage: f
-            Finite family {1: 'a', 2: 'b', 3: 'c'}
-            sage: f[2]
-            'b'
-            sage: loads(dumps(f)) == f
-            True
+        sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2], hidden_function = lambda i: 3*i)
+        sage: f
+        Finite family {3: 6, 4: 8, 7: 14}
+        sage: f.keys()
+        [3, 4, 7]
+        sage: f.hidden_keys()
+        [2]
+        sage: f[7]
+        14
+        sage: f[2]
+        6
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
 
-            sage: f = Family(range(1,27), lambda i: chr(i+96))
-            sage: f
-                Finite family {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f', 7: 'g', 8: 'h', 9: 'i', 10: 'j', 11: 'k', 12: 'l', 13: 'm', 14: 'n', 15: 'o', 16: 'p', 17: 'q', 18: 'r', 19: 's', 20: 't', 21: 'u', 22: 'v', 23: 'w', 24: 'x', 25: 'y', 26: 'z'}
-            sage: f[2]
-            'b'
+    Family behaves the same way with FiniteCombinatorialClass instances
+    and lists. This feature will eventually disapear when
+    FiniteCombinatorialClass won't be needed anymore.
+
+    ::
+
+        sage: f = Family(FiniteCombinatorialClass([1,2,3]))
+        sage: f
+        Combinatorial class with elements in [1, 2, 3]
+
+    ::
+
+        sage: f = Family(FiniteCombinatorialClass([3,4,7]), lambda i: 2*i)
+        sage: f
+        Finite family {3: 6, 4: 8, 7: 14}
+        sage: f.keys()
+        [3, 4, 7]
+        sage: f[7]
+        14
+        sage: list(f)
+        [6, 8, 14]
+        sage: [ x for x in f]
+        [6, 8, 14]
+        sage: len(f)
+        3
+
+    TESTS::
+
+        sage: f = Family({1:'a', 2:'b', 3:'c'})
+        sage: f
+        Finite family {1: 'a', 2: 'b', 3: 'c'}
+        sage: f[2]
+        'b'
+        sage: loads(dumps(f)) == f
+        True
+
+    ::
+
+        sage: f = Family(range(1,27), lambda i: chr(i+96))
+        sage: f
+            Finite family {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f', 7: 'g', 8: 'h', 9: 'i', 10: 'j', 11: 'k', 12: 'l', 13: 'm', 14: 'n', 15: 'o', 16: 'p', 17: 'q', 18: 'r', 19: 's', 20: 't', 21: 'u', 22: 'v', 23: 'w', 24: 'x', 25: 'y', 26: 'z'}
+        sage: f[2]
+        'b'
     """
     assert(type(hidden_keys) == list)
     if function == None and hidden_keys == []:
@@ -250,7 +264,8 @@ class AbstractFamily(CombinatorialClass):
         """
         Returns the hidden keys of the family, if any.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
             sage: f.hidden_keys()
             []
@@ -259,18 +274,19 @@ class AbstractFamily(CombinatorialClass):
 
     def zip(self, f, other, name = None):
         """
-        Given two families with same index set $I$ (and same hidden keys
-        if relevant), returns the family $( f(self[i], other[i]) )_{i in I}$
+        Given two families with same index set `I` (and same hidden
+        keys if relevant), returns the family
+        `( f(self[i], other[i]) )_{i \in I}`
 
         TODO: generalize to any number of families and merge with map?
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
             sage: g = Family({3: '1', 4: '2', 7: '3'})
             sage: h = f.zip(lambda x,y: x+y, g)
             sage: list(h)
             ['a1', 'b2', 'd3']
-
         """
         assert(self.keys() == other.keys())
         assert(self.hidden_keys() == other.hidden_keys())
@@ -278,12 +294,13 @@ class AbstractFamily(CombinatorialClass):
 
     def map(self, f, name = None):
         """
-        Returns the family $( f(self[i]) )_{i in I}$, where
-        $I$ is the index set of self.
+        Returns the family `( f(\mathtt{self}[i]) )_{i \in I}`, where
+        `I` is the index set of self.
 
         TODO: good name?
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
             sage: g = f.map(lambda x: x+'1')
             sage: list(g)
@@ -294,25 +311,31 @@ class AbstractFamily(CombinatorialClass):
 class FiniteFamily(AbstractFamily):
     r"""
     A FiniteFamily is an associative container which models a finite
-    family (f_i)_{i in I}. Its elements $f_i$ are therefore its
-    values. Instances should be created via the Family factory, which
-    see for further examples and tests.
+    family `(f_i)_{i \in I}`. Its elements `f_i` are therefore
+    its values. Instances should be created via the Family factory,
+    which see for further examples and tests.
 
-    EXAMPLES:
-    We define the family (f_i)_{i in \{3,4,7\}} with f_3=a, f_4=b, and f_7=d
+    EXAMPLES: We define the family `(f_i)_{i \in \{3,4,7\}}` with f_3=a,
+    f_4=b, and f_7=d
+
+    ::
+
         sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
 
-    Individual elements are accessible as in a usual dictionary:
+    Individual elements are accessible as in a usual dictionary::
+
         sage: f[7]
         'd'
 
-    And the other usual dictionary operations are also available:
+    And the other usual dictionary operations are also available::
+
         sage: len(f)
         3
         sage: f.keys()
         [3, 4, 7]
 
-    However f behaves as a container for the $f_i$'s:
+    However f behaves as a container for the `f_i`'s::
+
         sage: list(f)
         ['a', 'b', 'd']
         sage: [ x for x in f ]
@@ -321,7 +344,8 @@ class FiniteFamily(AbstractFamily):
 
     def __init__(self, dictionary, keys = None):
         """
-        TESTS:
+        TESTS::
+
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f == loads(dumps(f))
             True
@@ -333,7 +357,8 @@ class FiniteFamily(AbstractFamily):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: FiniteFamily({3: 'a'})
             Finite family {3: 'a'}
         """
@@ -341,7 +366,8 @@ class FiniteFamily(AbstractFamily):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = FiniteFamily({3: 'a'})
             sage: 'a' in f
             True
@@ -354,7 +380,8 @@ class FiniteFamily(AbstractFamily):
         """
         Returns the number of elements in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f.count()
             3
@@ -363,23 +390,24 @@ class FiniteFamily(AbstractFamily):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = FiniteFamily({3: 'a'})
             sage: i = iter(f)
             sage: i.next()
             'a'
-
         """
         return iter(self.values())
 
     def __getitem__(self, i):
         """
+        Note that we can't just do self.__getitem__ =
+        dictionary.__getitem__ in the __init__ method since Python
+        queries the object's type/class for the special methods rather than
+        querying the object itself.
 
-        Note that we can't just do self.__getitem__ = dictionary.__getitem__ in the
-        __init__ method since Python queries the object's type/class
-        for the special methods rather than querying the object itself.
+        EXAMPLES::
 
-        EXAMPLES:
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f[3]
             'a'
@@ -389,7 +417,8 @@ class FiniteFamily(AbstractFamily):
     # For the pickle and copy modules
     def __getstate__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__getstate__()
             {'dictionary': {3: 'a'}}
@@ -398,12 +427,12 @@ class FiniteFamily(AbstractFamily):
 
     def __setstate__(self, state):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__setstate__({'dictionary': {4:'b'}})
             sage: f
             Finite family {4: 'b'}
-
         """
         self.__init__(state['dictionary'])
 
@@ -414,12 +443,13 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
     remembered). Instances should be created via the Family factory,
     which see for examples and tests.
 
-    Caveat: Only instances of this class whose functions are
-    compatible with sage.misc.fpickle can be pickled.
+    Caveat: Only instances of this class whose functions are compatible
+    with sage.misc.fpickle can be pickled.
     """
     def __init__(self, dictionary, hidden_keys, hidden_function):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family([3,4,7], lambda i: 2r*i, hidden_keys=[2])
             sage: f == loads(dumps(f))
             True
@@ -435,7 +465,8 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
 
     def __getitem__(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
             sage: f[3]
             6
@@ -445,7 +476,6 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
             Traceback (most recent call last):
             ...
             KeyError
-
         """
         if i in self.dictionary:
             return self.dictionary[i]
@@ -461,7 +491,8 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
         """
         Returns self's hidden keys.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
             sage: f.hidden_keys()
             [2]
@@ -470,7 +501,8 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
 
     def __getstate__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
             sage: d = f.__getstate__()
             sage: d['hidden_keys']
@@ -485,7 +517,8 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
 
     def __setstate__(self, d):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = Family([3,4,7], lambda i: 2r*i, hidden_keys=[2])
             sage: d = f.__getstate__()
             sage: f = Family([4,5,6], lambda i: 2r*i, hidden_keys=[2])
@@ -504,14 +537,15 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
 class LazyFamily(AbstractFamily):
     r"""
     A LazyFamily(I, f) is an associative container which models the
-    (possibly infinite) family (f(i))_{i in I}.
+    (possibly infinite) family `(f(i))_{i \in I}`.
 
     Instances should be created via the Family factory, which see for
     examples and tests.
     """
     def __init__(self, set, function, name = "f"):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i); f
             Lazy family (f(i))_{i in [3, 4, 7]}
             sage: f == loads(dumps(f))
@@ -523,7 +557,8 @@ class LazyFamily(AbstractFamily):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2*i); f
             Lazy family (f(i))_{i in [3, 4, 7]}
         """
@@ -533,7 +568,8 @@ class LazyFamily(AbstractFamily):
         """
         Returns self's keys.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f.keys()
             [3, 4, 7]
@@ -542,7 +578,8 @@ class LazyFamily(AbstractFamily):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: [i for i in f]
             [6, 8, 14]
@@ -552,12 +589,14 @@ class LazyFamily(AbstractFamily):
 
     def __getitem__(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f[3]
             6
 
-        TESTS:
+        TESTS::
+
             sage: f[5]
             10
         """
@@ -565,12 +604,12 @@ class LazyFamily(AbstractFamily):
 
     def __getstate__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
             sage: d = f.__getstate__()
             sage: d['set']
             [3, 4, 7]
-
         """
         from sage.misc.fpickle import pickle_function
         f = pickle_function(self.function)
@@ -580,7 +619,8 @@ class LazyFamily(AbstractFamily):
 
     def __setstate__(self, d):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
             sage: d = f.__getstate__()
             sage: f = LazyFamily([4,5,6], lambda i: 2r*i)

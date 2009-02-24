@@ -1,3 +1,6 @@
+"""
+Restricted growth arrays
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -18,7 +21,8 @@ import copy
 class RestrictedGrowthArrays(CombinatorialClass):
     def __init__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.restricted_growth import RestrictedGrowthArrays
             sage: R = RestrictedGrowthArrays(3)
             sage: R == loads(dumps(R))
@@ -29,7 +33,8 @@ class RestrictedGrowthArrays(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.restricted_growth import RestrictedGrowthArrays
             sage: R = RestrictedGrowthArrays(3)
             sage: R.list()
@@ -56,7 +61,8 @@ class RestrictedGrowthArrays(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.restricted_growth import RestrictedGrowthArrays
             sage: R = RestrictedGrowthArrays(6)
             sage: R.count()

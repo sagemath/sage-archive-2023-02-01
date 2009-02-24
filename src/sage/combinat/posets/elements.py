@@ -29,7 +29,8 @@ class PosetElement(Element):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Poset([[1,2],[4],[3],[4],[]])(0))
             '0'
         """
@@ -37,7 +38,8 @@ class PosetElement(Element):
 
     def __eq__(self,other):
         """
-        TESTS:
+        TESTS::
+
             sage: P = Poset([[1,2],[4],[3],[4],[]])
             sage: P(0).__eq__(P(4))
             False
@@ -55,7 +57,8 @@ class PosetElement(Element):
 
     def _cmp(self,other):
         """
-        TESTS:
+        TESTS::
+
             sage: P = Poset([[1,2],[4],[3],[4],[]])
             sage: P(0)._cmp(P(4))
             -1
@@ -74,6 +77,9 @@ class PosetElement(Element):
     def __lt__(self,other):
         """
         TESTS
+
+        ::
+
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: P = Poset(dag)
             sage: P(0) < P(1)
@@ -88,6 +94,9 @@ class PosetElement(Element):
     def __le__(self,other):
         """
         TESTS
+
+        ::
+
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: P = Poset(dag)
             sage: P(1) <= P(0)
@@ -104,6 +113,9 @@ class PosetElement(Element):
     def __gt__(self,other):
         """
         TESTS
+
+        ::
+
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: P = Poset(dag)
             sage: P(0).__gt__(P(5))
@@ -118,6 +130,9 @@ class PosetElement(Element):
     def __ge__(self,other):
         """
         TESTS
+
+        ::
+
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: P = Poset(dag)
             sage: P(0).__ge__(P(5))

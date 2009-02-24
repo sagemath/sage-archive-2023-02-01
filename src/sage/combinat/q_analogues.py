@@ -24,11 +24,11 @@ def q_int(n, p=None):
     """
     Returns the q-analogue of the integer n.
 
-    If p is unspecified, then it defaults to using
-    the generator q for a univariate polynomial
-    ring over the integers.
+    If p is unspecified, then it defaults to using the generator q for
+    a univariate polynomial ring over the integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_int(3)
         q^2 + q + 1
@@ -45,11 +45,11 @@ def q_factorial(n, p=None):
     """
     Returns the q-analogue of the n!.
 
-    If p is unspecified, then it defaults to using
-    the generator q for a univariate polynomial
-    ring over the integers.
+    If p is unspecified, then it defaults to using the generator q for
+    a univariate polynomial ring over the integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_factorial(3)
         q^3 + 2*q^2 + 2*q + 1
@@ -63,11 +63,11 @@ def q_binomial(n,k,p=None):
     """
     Returns the q-binomial coefficient.
 
-    If p is unspecified, then it defaults to using
-    the generator q for a univariate polynomial
-    ring over the integers.
+    If p is unspecified, then it defaults to using the generator q for
+    a univariate polynomial ring over the integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_binomial(4,2)
         q^4 + q^3 + 2*q^2 + q + 1
@@ -83,7 +83,8 @@ def qt_catalan_number(n):
     """
     Returns the q,t-Catalan number.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.qt_catalan_number(1)
         1
@@ -93,7 +94,6 @@ def qt_catalan_number(n):
         q^3 + q^2*t + q*t^2 + t^3 + q*t
         sage: q_analogues.qt_catalan_number(4)
         q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3
-
     """
     ZZqt = ZZ['q','t']
 

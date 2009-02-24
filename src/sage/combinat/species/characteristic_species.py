@@ -1,6 +1,5 @@
 """
 Characteristic Species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -25,7 +24,8 @@ from sage.misc.cachefunc import cached_function
 class CharacteristicSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(3)
             sage: a = F.structures([1, 2, 3]).random_element(); a
             {1, 2, 3}
@@ -45,7 +45,8 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(3)
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             {'a', 'b', 'c'}
@@ -59,9 +60,11 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
 
     def transport(self, perm):
         """
-        Returns the transport of this structure along the permutation perm.
+        Returns the transport of this structure along the permutation
+        perm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(3)
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             {'a', 'b', 'c'}
@@ -73,17 +76,17 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        Returns the group of permutations whose action on this structure leave it fixed.
-        For the characteristic species, there is only one structure, so every
-        permutation is in its automorphism group.
+        Returns the group of permutations whose action on this structure
+        leave it fixed. For the characteristic species, there is only one
+        structure, so every permutation is in its automorphism group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(3)
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             {'a', 'b', 'c'}
             sage: a.automorphism_group()
             Symmetric group of order 3! as a permutation group
-
         """
         from sage.groups.all import SymmetricGroup
         return SymmetricGroup(len(self._labels))
@@ -92,11 +95,12 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
 @cached_function
 def CharacteristicSpecies(*args, **kwds):
     """
-    Returns the characteristic species of order n.  This species has exactly
-    one structure on a set of of size n and no structures of on sets of any
-    other size.
+    Returns the characteristic species of order n. This species has
+    exactly one structure on a set of of size n and no structures of on
+    sets of any other size.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = species.CharacteristicSpecies(1)
         sage: X.structures([1]).list()
         [1]
@@ -109,7 +113,8 @@ def CharacteristicSpecies(*args, **kwds):
         sage: X.cycle_index_series().coefficients(4)
         [0, p[1], 0, 0]
 
-    TESTS:
+    TESTS::
+
         sage: S1 = species.CharacteristicSpecies(1)
         sage: S2 = species.CharacteristicSpecies(1)
         sage: S3 = species.CharacteristicSpecies(2)
@@ -118,14 +123,14 @@ def CharacteristicSpecies(*args, **kwds):
         True
         sage: S1 == S3
         False
-
     """
     return CharacteristicSpecies_class(*args, **kwds)
 
 class CharacteristicSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, n, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(3)
             sage: c = F.generating_series().coefficients(4)
             sage: F._check()
@@ -144,7 +149,8 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(2)
             sage: l = [1, 2, 3]
             sage: F.structures(l).list()
@@ -160,7 +166,8 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
 
     def _gs_term(self, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(2)
             sage: F.generating_series().coefficients(5)
             [0, 0, 1/2, 0, 0]
@@ -173,22 +180,26 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
         """
         Returns the order of the generating series.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(2)
             sage: F._order()
             2
-
         """
         return self._n
 
     def _itgs_term(self, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(2)
             sage: F.isotype_generating_series().coefficients(5)
             [0, 0, 1, 0, 0]
 
         Here we test out weighting each structure by q.
+
+        ::
+
             sage: R.<q> = ZZ[]
             sage: Fq = species.CharacteristicSpecies(2, weight=q)
             sage: Fq.isotype_generating_series().coefficients(5)
@@ -198,7 +209,8 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
 
     def _cis_term(self, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.CharacteristicSpecies(2)
             sage: g = F.cycle_index_series()
             sage: g.coefficients(5)
@@ -210,27 +222,29 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
     def _equation(self, var_mapping):
         """
         Returns the right hand side of an algebraic equation satisfied by
-        this species.  This is a utility function called by the
+        this species. This is a utility function called by the
         algebraic_equation_system method.
 
-        EXAMPLES:
-        sage: C = species.CharacteristicSpecies(2)
-            sage: Qz = QQ['z']
-            sage: R.<node0> = Qz[]
-            sage: var_mapping = {'z':Qz.gen(), 'node0':R.gen()}
-            sage: C._equation(var_mapping)
-            z^2
+        EXAMPLES::
+
+            sage: C = species.CharacteristicSpecies(2)
+                sage: Qz = QQ['z']
+                sage: R.<node0> = Qz[]
+                sage: var_mapping = {'z':Qz.gen(), 'node0':R.gen()}
+                sage: C._equation(var_mapping)
+                z^2
         """
         return var_mapping['z']**(self._n)
 
 @cached_function
 def EmptySetSpecies(*args, **kwds):
     """
-    Returns the empty set species.  This species has exactly one
-    structure on the empty set.  It is the same (and is implemented)
-    as CharacteristicSpecies(0).
+    Returns the empty set species. This species has exactly one
+    structure on the empty set. It is the same (and is implemented) as
+    CharacteristicSpecies(0).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = species.EmptySetSpecies()
         sage: X.structures([]).list()
         [{}]
@@ -243,7 +257,8 @@ def EmptySetSpecies(*args, **kwds):
         sage: X.cycle_index_series().coefficients(4)
         [p[], 0, 0, 0]
 
-    TESTS:
+    TESTS::
+
         sage: E1 = species.EmptySetSpecies()
         sage: E2 = species.EmptySetSpecies()
         sage: E1 is E2
@@ -254,7 +269,8 @@ def EmptySetSpecies(*args, **kwds):
 class EmptySetSpecies_class(CharacteristicSpecies_class):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = species.EmptySetSpecies()
             sage: E._check()
             True
@@ -270,11 +286,12 @@ class EmptySetSpecies_class(CharacteristicSpecies_class):
 @cached_function
 def SingletonSpecies(*args, **kwds):
     """
-    Returns the species of singletons.  This species has exactly one
-    structure on a set of size n.  It is the same (and is implemented)
+    Returns the species of singletons. This species has exactly one
+    structure on a set of size n. It is the same (and is implemented)
     as CharacteristicSpecies(1).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = species.SingletonSpecies()
         sage: X.structures([1]).list()
         [1]
@@ -287,8 +304,8 @@ def SingletonSpecies(*args, **kwds):
         sage: X.cycle_index_series().coefficients(4)
         [0, p[1], 0, 0]
 
+    TESTS::
 
-    TESTS:
         sage: S1 = species.SingletonSpecies()
         sage: S2 = species.SingletonSpecies()
         sage: S1 is S2
@@ -299,7 +316,8 @@ def SingletonSpecies(*args, **kwds):
 class SingletonSpecies_class(CharacteristicSpecies_class):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SingletonSpecies()
             sage: S._check()
             True

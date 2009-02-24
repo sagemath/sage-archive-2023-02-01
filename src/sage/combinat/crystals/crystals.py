@@ -1,65 +1,83 @@
 r"""
 Crystals
 
-Let $T$ be a CartanType with index set $I$, and $W$ be a realization of the
-type $T$ weight lattice.
+Let `T` be a CartanType with index set `I`, and
+`W` be a realization of the type `T` weight
+lattice.
 
-A type $T$ crystal $C$ is a colored oriented graph equipped with a weight
-function from the nodes to some realization of the type $T$ weight lattice
-such that:
-\begin{itemize}
-\item Each edge is colored with a label in $i \in I$.
-\item For each $i\in I$, each node $x$ has:
-  \begin{itemize}
-     \item at most one $i$-successor $f_i(x)$;
-     \item at most one $i$-predecessor $e_i(x)$.
-  \end{itemize}
+A type `T` crystal `C` is a colored oriented graph
+equipped with a weight function from the nodes to some realization
+of the type `T` weight lattice such that:
+
+
+-  Each edge is colored with a label in `i \in I`.
+
+-  For each `i\in I`, each node `x` has:
+
+
+   -  at most one `i`-successor `f_i(x)`;
+
+   -  at most one `i`-predecessor `e_i(x)`.
+
+
    Furthermore, when they exist,
-   \begin{itemize}
-     \item $f_i(x)$.weight() = x.weight() - $\alpha_i$;
-     \item $e_i(x)$.weight() = x.weight() + $\alpha_i$.
-   \end{itemize}
-\end{itemize}
 
-This crystal actually models a representation of a Lie algebra if it
-satisfies some further local conditions due to Stembridge, see
-J. Stembridge, \textit{A local characterization of simply-laced crystals},
-Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807--4823.
+
+   -  `f_i(x)`.weight() = x.weight() - `\alpha_i`;
+
+   -  `e_i(x)`.weight() = x.weight() +
+      `\alpha_i`.
+
+
+
+This crystal actually models a representation of a Lie algebra if
+it satisfies some further local conditions due to Stembridge, see
+J. Stembridge, *A local characterization of simply-laced crystals*,
+Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807-4823.
 
 EXAMPLES:
 
-We construct the type $A_5$ crystal on letters (or in representation
-theoretic terms, the highest weight crystal of type $A_5$ corresponding
-to the highest weight $\Lambda_1$)
+We construct the type `A_5` crystal on letters (or in
+representation theoretic terms, the highest weight crystal of type
+`A_5` corresponding to the highest weight
+`\Lambda_1`)
+
+::
 
     sage: C = CrystalOfLetters(['A',5]); C
     The crystal of letters for type ['A', 5]
 
-It has a single highest weight element:
+It has a single highest weight element::
+
     sage: C.highest_weight_vectors()
     [1]
 
-A crystal is a CombinatorialClass; and we can count and list its elements
-in the usual way:
+A crystal is a CombinatorialClass; and we can count and list its
+elements in the usual way::
+
     sage: C.count()
     6
     sage: C.list()
     [1, 2, 3, 4, 5, 6]
 
 as well as use it in for loops
+
+::
+
     sage: [x for x in C]
     [1, 2, 3, 4, 5, 6]
 
-Here are some more elaborate crystals (see their respective documentations):
+Here are some more elaborate crystals (see their respective
+documentations)::
+
     sage: Tens = TensorProductOfCrystals(C, C)
     sage: Spin = CrystalOfSpins(['B', 3])
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
     sage: Fast  = FastCrystal(['B', 2], shape = [3/2, 1/2])
 
-One can get (currently) crude ploting via:
+One can get (currently) crude ploting via::
 
     sage: Tab.plot()
-
 
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see C.metapost?
@@ -69,22 +87,36 @@ classical crystals, is still in an early development stage, and the
 syntax details may be subject to changes.
 
 TODO:
-\begin{itemize}
-  \item Vocabulary and conventions:
-  \begin{itemize}
-    \item elements or vectors of a crystal?
-    \item For a classical crystal: connected / highest weight / irreducible
-    \item ...
-  \end{itemize}
-  \item More introductory doc explaining the mathematical background
-  \item Layout instructions for plot() for rank 2 types
-  \item Streamlining the latex output
-  \item Littelmann paths and/or alcove paths (this would give us the exceptional types)
-  \item RestrictionOfCrystal / DirectSumOfCrystals
-  \item Crystal.crystal_morphism
-  \item Affine crystals
-  \item Kirillov--Reshetikhin crystals
-\end{itemize}
+
+
+-  Vocabulary and conventions:
+
+
+   -  elements or vectors of a crystal?
+
+   -  For a classical crystal: connected / highest weight /
+      irreducible
+
+   -  ...
+
+
+-  More introductory doc explaining the mathematical background
+
+-  Layout instructions for plot() for rank 2 types
+
+-  Streamlining the latex output
+
+-  Littelmann paths and/or alcove paths (this would give us the
+   exceptional types)
+
+-  RestrictionOfCrystal / DirectSumOfCrystals
+
+-  Crystal.crystal_morphism
+
+-  Affine crystals
+
+-  Kirillov-Reshetikhin crystals
+
 
 Most of the above features (except Littelmann/alcove paths) are in
 MuPAD-Combinat (see lib/COMBINAT/crystals.mu), which could provide
@@ -127,14 +159,16 @@ class Crystal(CombinatorialClass, Parent):
     The abstract class of crystals
 
     instances of this class should have the following attributes:
-    \begin{itemize}
-    \item cartan_type
-    \item index_set
-        the index set of the cartan type
-    \item module_generators
-        a list (or container) of distinct elements which generate the crystal using $f_i$
-    \item weight_lattice_realization
-    \end{itemize}
+
+
+    -  cartan_type
+
+    -  index_set the index set of the cartan type
+
+    -  module_generators a list (or container) of distinct elements
+       which generate the crystal using `f_i`
+
+    -  weight_lattice_realization
     """
 
     def weight_lattice_realization(self):
@@ -142,7 +176,8 @@ class Crystal(CombinatorialClass, Parent):
         Returns the weight lattice realization for the root system
         associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.weight_lattice_realization()
             Ambient space of the Root system of type ['A', 5]
@@ -151,30 +186,32 @@ class Crystal(CombinatorialClass, Parent):
 
     def Lambda(self):
         """
-        Returns the fundamentals weights in the weight lattice
-        realization for the root system associated to self.
+        Returns the fundamentals weights in the weight lattice realization
+        for the root system associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.Lambda()
             Finite family {1: (1, 0, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0, 0), 3: (1, 1, 1, 0, 0, 0), 4: (1, 1, 1, 1, 0, 0), 5: (1, 1, 1, 1, 1, 0)}
-
         """
         return self.weight_lattice_realization().fundamental_weights()
 
     def check(self):
         r"""
         Runs sanity checks on the crystal:
-        \begin{itemize}
-          \item Checks that count, list, and __iter__ are
-        consistent. For a ClassicalCrystal, this in particular checks
-        that the number of elements returned by the brute force
-        listing and the iterator __iter__ are consistent with the Weyl
-        dimension formula.
-          \item Should check Stembridge's rules, etc.
-        \end{itemize}
 
-        EXAMPLES:
+
+        -  Checks that count, list, and __iter__ are consistent. For a
+           ClassicalCrystal, this in particular checks that the number of
+           elements returned by the brute force listing and the iterator
+           __iter__ are consistent with the Weyl dimension formula.
+
+        -  Should check Stembridge's rules, etc.
+
+
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.check()
             True
@@ -196,15 +233,16 @@ class Crystal(CombinatorialClass, Parent):
     def list(self):
         """
         Returns a list of the elements of self obtained by continually
-        apply the $f_i$ operators to the module generators of self.
+        apply the `f_i` operators to the module generators of
+        self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.crystals.crystals import Crystal
             sage: C = CrystalOfLetters(['A', 5])
             sage: l = Crystal.list(C)
             sage: l.sort(); l
             [1, 2, 3, 4, 5, 6]
-
         """
         # To be generalized to some transitiveIdeal
         # To be moved in a super category CombinatorialModule
@@ -224,7 +262,8 @@ class Crystal(CombinatorialClass, Parent):
         """
         Returns the DiGraph associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.crystals.crystals import Crystal
             sage: C = CrystalOfLetters(['A', 5])
             sage: Crystal.digraph(C)
@@ -242,17 +281,19 @@ class Crystal(CombinatorialClass, Parent):
 
     def character(self, R):
         """
-        INPUT: R, a WeylCharacterRing. Produces the character of the crystal.
+        INPUT: R, a WeylCharacterRing. Produces the character of the
+        crystal.
 
-        EXAMPLES:
-           sage: C = CrystalOfLetters(['A',2])
-           sage: T = TensorProductOfCrystals(C, C)
-           sage: A2 = WeylCharacterRing(C.cartan_type); A2
-           The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
-           sage: chi = T.character(A2); chi
-           A2(1,1,0) + A2(2,0,0)
-           sage: chi.check(verbose = true)
-           [9, 9]
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C, C)
+            sage: A2 = WeylCharacterRing(C.cartan_type); A2
+            The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
+            sage: chi = T.character(A2); chi
+            A2(1,1,0) + A2(2,0,0)
+            sage: chi.check(verbose = true)
+            [9, 9]
         """
         if not R.cartan_type == self.cartan_type:
             raise ValueError, "ring does not have the right Cartan type"
@@ -275,10 +316,12 @@ class Crystal(CombinatorialClass, Parent):
 
     def latex_file(self, filename):
         r"""
-        Exports a file, suitable for pdflatex, to 'filename'.  This requires a proper installation
-        of dot2tex in sage-python.  For more information see the documentation for self.latex().
+        Exports a file, suitable for pdflatex, to 'filename'. This requires
+        a proper installation of dot2tex in sage-python. For more
+        information see the documentation for self.latex().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.latex_file('/tmp/test.tex') #optional requires dot2tex
         """
@@ -305,53 +348,58 @@ class Crystal(CombinatorialClass, Parent):
 
     def latex(self):
         r"""
-        Returns the crystal graph as a bit of latex.  This can be exported to a file with
-        self.latex_file('filename').
+        Returns the crystal graph as a bit of latex. This can be exported
+        to a file with self.latex_file('filename').
 
         This requires dot2tex to be installed in sage-python.
 
         Here some tips for installation:
-        \begin{itemize}
-         \item Install graphviz >= 2.14
-         \item Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz dot2tex-2.7.0.tar.gz
-           (see the dot2tex web page for download links)
-           (note that the most recent version of pydot may not work.  Be sure to install the 0.9.10
-           version.)
-           Install each of them using the standard python install, but using sage-python:
 
-           \begin{verbatim}
-            # FIX ACCORDING TO YOUR SAGE INSTALL
-            export sagedir=/opt/sage/
-            export sagepython=$sagedir/local/bin/sage-python
 
-            # Use downloaded version nums
-            for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\
-                    tar zxvf $package.tar.gz;\
-                    cd $package;\
-                    sudo $sagepython setup.py install;\
-                    cd ..;\
-                done
-           \end{verbatim}
+        -  Install graphviz = 2.14
 
-         \item Install pgf-2.00 inside your latex tree
-           In short:
-           \begin{itemize}
-             \item untaring in /usr/share/texmf/tex/generic
-             \item clean out remaining pgf files from older version
-             \item run texhash
-           \end{itemize}
-        \end{itemize}
+        -  Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz
+           dot2tex-2.7.0.tar.gz (see the dot2tex web page for download links)
+           (note that the most recent version of pydot may not work. Be sure
+           to install the 0.9.10 version.) Install each of them using the
+           standard python install, but using sage-python:
 
-        You should be done!
-        To test, go to the dot2tex-2.7.0/examples directory, and type:
+           ::
 
-        \begin{verbatim}
-        $sagedir//local/bin/dot2tex balls.dot > balls.tex
-        pdflatex balls.tex
-        open balls.pdf \#your favorite viewer here
-        \end{verbatim}
+                           # FIX ACCORDING TO YOUR Sage INSTALL
+                           export sagedir=/opt/sage/
+                           export sagepython=$sagedir/local/bin/sage-python
 
-        EXAMPLES:
+                           # Use downloaded version nums
+                           for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\
+                                   tar zxvf $package.tar.gz;\
+                                   cd $package;\
+                                   sudo $sagepython setup.py install;\
+                                   cd ..;\
+                               done
+
+
+        -  Install pgf-2.00 inside your latex tree In short:
+
+
+           -  untaring in /usr/share/texmf/tex/generic
+
+           -  clean out remaining pgf files from older version
+
+           -  run texhash
+
+
+
+        You should be done! To test, go to the dot2tex-2.7.0/examples
+        directory, and type::
+
+                    $sagedir//local/bin/dot2tex balls.dot > balls.tex
+                    pdflatex balls.tex
+                    open balls.pdf \#your favorite viewer here
+
+
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.latex() #optional requires dot2tex
             ...
@@ -374,49 +422,47 @@ class Crystal(CombinatorialClass, Parent):
         """Use C.metapost("filename.mp",[options])
         where options can be:
 
-            thicklines = True (for thicker edges)
-            labels = False (to suppress labeling of the vertices)
-            scaling_factor=value, where value is a floating point
-              number, 1.0 by default. Increasing or decreasing the
-              scaling factor changes the size of the image.
-            tallness=1.0. Increasing makes the image taller without
-              increasing the width.
+        thicklines = True (for thicker edges) labels = False (to suppress
+        labeling of the vertices) scaling_factor=value, where value is a
+        floating point number, 1.0 by default. Increasing or decreasing the
+        scaling factor changes the size of the image. tallness=1.0.
+        Increasing makes the image taller without increasing the width.
 
-        Root operators e(1) or f(1) move along red lines, e(2) or
-        f(2) along green. The highest weight is in the lower left.
-        Vertices with the same weight are kept close together.
-        The concise labels on the nodes are strings introduced by
-        Berenstein and Zelevinsky and Littelmann; see Littelmann's
-        paper Cones, Crystals, Patterns, sections 5 and 6.
+        Root operators e(1) or f(1) move along red lines, e(2) or f(2)
+        along green. The highest weight is in the lower left. Vertices with
+        the same weight are kept close together. The concise labels on the
+        nodes are strings introduced by Berenstein and Zelevinsky and
+        Littelmann; see Littelmann's paper Cones, Crystals, Patterns,
+        sections 5 and 6.
 
         For Cartan types B2 or C2, the pattern has the form
 
-              a2  a3  a4
-                  a1
+        a2 a3 a4 a1
 
-        where c*a2 >= a3 >= 2*a4 >=0 and a1>=0, with c=2 for B2, c=1 for C2.
+        where c\*a2 = a3 = 2\*a4 =0 and a1=0, with c=2 for B2, c=1 for C2.
         Applying e(2) a1 times, e(1) a2 times, e(2) a3 times, e(1) a4 times
         returns to the highest weight. (Observe that Littelmann writes the
         roots in opposite of the usual order, so our e(1) is his e(2) for
         these Cartan types.) For type A2, the pattern has the form
 
-              a3   a2
-                 a1
+        a3 a2 a1
 
         where applying e(1) a1 times, e(2) a2 times then e(3) a1 times
-        returns to the highest weight. These data determine the vertex
-        and may be translated into a Gelfand-Tsetlin pattern or tableau.
+        returns to the highest weight. These data determine the vertex and
+        may be translated into a Gelfand-Tsetlin pattern or tableau.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 2])
             sage: C.metapost('/tmp/test.mp') #optional
+
+        ::
 
             sage: C = CrystalOfLetters(['A', 5])
             sage: C.metapost('/tmp/test.mp')
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         if self.cartan_type[0] == 'B' and self.cartan_type[1] == 2:
             word = [2,1,2,1]
@@ -511,15 +557,14 @@ class Crystal(CombinatorialClass, Parent):
         f.close()
 
     def dot_tex(self):
-        """
+        r"""
         Returns a dot_tex version of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: C = CrystalOfLetters(['A',2])
-        sage: C.dot_tex()
-        'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$\\text{1}$" ];\n  N_1 [ label = " ", texlbl = "$\\text{2}$" ];\n  N_2 [ label = " ", texlbl = "$\\text{3}$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
-
+            sage: C = CrystalOfLetters(['A',2])
+            sage: C.dot_tex()
+            'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$\\text{1}$" ];\n  N_1 [ label = " ", texlbl = "$\\text{2}$" ];\n  N_2 [ label = " ", texlbl = "$\\text{3}$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
         """
         import re
         rank = ranker.from_list(self.list())[0]
@@ -547,12 +592,12 @@ class Crystal(CombinatorialClass, Parent):
         """
         Returns the plot of self as a directed graph.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A', 5])
             sage: show_default(False) #do not show the plot by default
             sage: C.plot()
             Graphics object consisting of 17 graphics primitives
-
         """
         return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
 
@@ -561,16 +606,19 @@ class CrystalElement(Element):
     The abstract class of crystal elements
 
     Sub classes should implement:
-    \begin{itemize}
-    \item x.e(i)        (returning $e_i(x)$)
-    \item x.f(i)        (returning $f_i(x)$)
-    \item x.weight()
-    \end{itemize}
+
+
+    -  x.e(i) (returning `e_i(x)`)
+
+    -  x.f(i) (returning `f_i(x)`)
+
+    -  x.weight()
     """
 
     def index_set(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).index_set()
             [1, 2, 3, 4, 5]
@@ -579,7 +627,8 @@ class CrystalElement(Element):
 
     def weight(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).weight()
             (1, 0, 0, 0, 0, 0)
@@ -588,10 +637,11 @@ class CrystalElement(Element):
 
     def e(self, i):
         r"""
-        Returns $e_i(x)$ if it exists or None otherwise.  This is to be
-        implemented by subclasses of CrystalElement.
+        Returns `e_i(x)` if it exists or None otherwise. This is
+        to be implemented by subclasses of CrystalElement.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.crystals.crystals import CrystalElement
             sage: C = CrystalOfLetters(['A',5])
             sage: CrystalElement.e(C(1), 1)
@@ -603,23 +653,24 @@ class CrystalElement(Element):
 
     def f(self, i):
         r"""
-        Returns $f_i(x)$ if it exists or None otherwise.  This is to be
-        implemented by subclasses of CrystalElement.
+        Returns `f_i(x)` if it exists or None otherwise. This is
+        to be implemented by subclasses of CrystalElement.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.crystals.crystals import CrystalElement
             sage: C = CrystalOfLetters(['A',5])
             sage: CrystalElement.f(C(1), 1)
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
     def epsilon(self, i):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).epsilon(1)
             0
@@ -638,7 +689,8 @@ class CrystalElement(Element):
 
     def phi(self, i):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).phi(1)
             1
@@ -657,7 +709,8 @@ class CrystalElement(Element):
 
     def Epsilon(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(0).Epsilon()
             (0, 0, 0, 0, 0, 0)
@@ -670,7 +723,8 @@ class CrystalElement(Element):
 
     def Phi(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C(0).Phi()
             (0, 0, 0, 0, 0, 0)
@@ -678,15 +732,15 @@ class CrystalElement(Element):
             (1, 0, 0, 0, 0, 0)
             sage: C(2).Phi()
             (1, 1, 0, 0, 0, 0)
-
         """
 	return sum(self.phi(i) * self._parent.Lambda()[i] for i in self.index_set())
 
     def s(self, i):
 	r"""
-	Returns the reflection of self along its $i$-string
+	Returns the reflection of self along its `i`-string
 
-	EXAMPLES:
+	EXAMPLES::
+
 	    sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
 	    sage: b=C(rows=[[1,1],[3]])
 	    sage: b.s(1)
@@ -711,9 +765,10 @@ class CrystalElement(Element):
 
     def is_highest_weight(self):
 	r"""
-        Returns True if self is a highest weight.
+	Returns True if self is a highest weight.
 
-        EXAMPLES:
+	EXAMPLES::
+
 	    sage: C = CrystalOfLetters(['A',5])
 	    sage: C(1).is_highest_weight()
 	    True
@@ -725,40 +780,44 @@ class CrystalElement(Element):
 class CrystalBacktracker(GenericBacktracker):
     def __init__(self, crystal):
         """
-        Time complexity: $O(nf)$ amortized for each produced element,
-        where $n$ is the size of the index set, and f is the cost of
-        computing $e$ and $f$ operators.
+        Time complexity: `O(nf)` amortized for each produced
+        element, where `n` is the size of the index set, and f is
+        the cost of computing `e` and `f` operators.
 
         Memory complexity: O(depth of the crystal)
 
         Principle of the algorithm:
 
         Let C be a classical crystal. It's an acyclic graph where all
-        connected componnent has a unique element without predecessors
-        (the highest weight element for this component). Let's assume
-        for simplicity that C is irreducible (i.e. connected) with
-        highest weigth element u.
+        connected componnent has a unique element without predecessors (the
+        highest weight element for this component). Let's assume for
+        simplicity that C is irreducible (i.e. connected) with highest
+        weigth element u.
 
-        One can define a natural spanning tree of $C$ by taking $u$ as
-        rot of the tree, and for any other element $y$ taking as
-        ancestor the element $x$ such that there is an $i$-arrow from
-        $x$ to $y$ with $i$ minimal. Then, a path from $u$ to $y$
+        One can define a natural spanning tree of `C` by taking
+        `u` as rot of the tree, and for any other element
+        `y` taking as ancestor the element `x` such that
+        there is an `i`-arrow from `x` to `y` with
+        `i` minimal. Then, a path from `u` to `y`
         describes the lexicographically smallest sequence
-        $i_1,\dots,i_k$ such that $(f_{i_k} \circ f_{i_1})(u)=y$.
+        `i_1,\dots,i_k` such that
+        `(f_{i_k} \circ f_{i_1})(u)=y`.
 
-        Morally, the iterator implemented below just does a depth
-        first search walk through this spanning tree. In practice,
-        this can be achieved recursively as follow: take an element
-        $x$, and consider in turn each successor $y = f_i(x)$,
-        ignoring those such that $y = f_j(x')$ for some $x'$ and $j<i$
-        (this can be tested by computing $e_j(y)$ for $j<i$).
+        Morally, the iterator implemented below just does a depth first
+        search walk through this spanning tree. In practice, this can be
+        achieved recursively as follow: take an element `x`, and
+        consider in turn each successor `y = f_i(x)`, ignoring
+        those such that `y = f_j(x')` for some `x'` and
+        `j<i` (this can be tested by computing `e_j(y)`
+        for `j<i`).
 
-        EXAMPLES:
-             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
-             sage: C = CrystalOfTableaux(['B',3],shape=[3,2,1])
-             sage: CB = CrystalBacktracker(C)
-             sage: len(list(CB))
-             1617
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.crystals import CrystalBacktracker
+            sage: C = CrystalOfTableaux(['B',3],shape=[3,2,1])
+            sage: CB = CrystalBacktracker(C)
+            sage: len(list(CB))
+            1617
         """
         GenericBacktracker.__init__(self, None, None)
         self._crystal = crystal
@@ -768,13 +827,13 @@ class CrystalBacktracker(GenericBacktracker):
         Returns an iterator for the (immediate) children of x in the search
         tree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
             sage: C = CrystalOfLetters(['A', 5])
             sage: CB = CrystalBacktracker(C)
             sage: list(CB._rec(C(1), 'n/a'))
             [(2, 'n/a', True)]
-
         """
         #We will signal the inital case by having a object and state
         #of None and consider it separately.
@@ -813,12 +872,14 @@ class ClassicalCrystal(Crystal):
         r"""
         Returns an iterator over the elements of the crystal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: [x for x in C]
             [1, 2, 3, 4, 5, 6]
 
-        TESTS:
+        TESTS::
+
             sage: C = CrystalOfLetters(['D',4])
             sage: D = CrystalOfSpinsPlus(['D',4])
             sage: E = CrystalOfSpinsMinus(['D',4])
@@ -831,7 +892,7 @@ class ClassicalCrystal(Crystal):
             sage: U.check()
             True
 
-            Bump's systematic tests:
+        Bump's systematic tests::
 
             sage: fa3 = lambda a,b,c: CrystalOfTableaux(['A',3],shape=[a+b+c,b+c,c])
             sage: fb3 = lambda a,b,c: CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
@@ -848,18 +909,19 @@ class ClassicalCrystal(Crystal):
                  D = CrystalOfSpins(['B',3]);\
                  return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
 
+        TODO: choose a good panel of values for a,b,c ... both for basic
+        systematic tests and for conditionally run more computatinaly
+        involved tests
 
-            TODO: choose a good panel of values for a,b,c ... both for
-            basic systematic tests and for conditionally run more
-            computatinaly involved tests
+        ::
 
             sage: fb4(1,0,1,0).check()
             True
 
+        ::
+
             #sage: fb4(1,1,1,1).check() # expensive: the crystal is of size 297297
             #True
-
-
         """
         return CrystalBacktracker(self).iterator()
 
@@ -869,16 +931,18 @@ class ClassicalCrystal(Crystal):
         r"""
         Returns a list of the highest weight vectors of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C.highest_weight_vectors()
             [1]
+
+        ::
 
             sage: C = CrystalOfLetters(['A',2])
             sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
             sage: T.highest_weight_vectors()
             [[2, 1, 1], [1, 2, 1]]
-
         """
         # Implementation: selects among the module generators those that are
         # highest weight and cache the result
@@ -892,10 +956,11 @@ class ClassicalCrystal(Crystal):
 
     def highest_weight_vector(self):
         r"""
-        Returns the higest weight vector if there is a single one; otherwise,
-        raise an error.
+        Returns the higest weight vector if there is a single one;
+        otherwise, raise an error.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: C = CrystalOfLetters(['A',5])
             sage: C.highest_weight_vector()
             1
@@ -908,10 +973,11 @@ class ClassicalCrystal(Crystal):
 
     def count(self):
         r"""
-        Returns the number of elements of the crystal, using Weyl's dimension
-        formula on each connected component
+        Returns the number of elements of the crystal, using Weyl's
+        dimension formula on each connected component
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.crystals.crystals import ClassicalCrystal
             sage: C = CrystalOfLetters(['A', 5])
             sage: ClassicalCrystal.count(C)

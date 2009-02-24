@@ -23,7 +23,8 @@ def coxeter_matrix_as_function(t):
     """
     Returns the coxeter matrix associated to the Cartan type t.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.root_system.coxeter_matrix import coxeter_matrix_as_function
         sage: f = coxeter_matrix_as_function(['A',4])
         sage: matrix([[f(i,j) for j in range(1,5)] for i in range(1,5)])
@@ -44,7 +45,8 @@ def coxeter_matrix(t):
     """
     Returns the Coxeter matrix of type t.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: coxeter_matrix(['A', 4])
         [1 3 2 2]
         [3 1 3 2]
@@ -66,6 +68,8 @@ def coxeter_matrix(t):
         [2 3 1 2]
         [2 3 2 1]
 
+    ::
+
         sage: coxeter_matrix(['E', 6])
         [1 2 3 2 2 2]
         [2 1 2 3 2 2]
@@ -74,16 +78,19 @@ def coxeter_matrix(t):
         [2 2 2 3 1 3]
         [2 2 2 2 3 1]
 
+    ::
+
         sage: coxeter_matrix(['F', 4])
         [1 3 2 2]
         [3 1 4 2]
         [2 4 1 3]
         [2 2 3 1]
 
+    ::
+
         sage: coxeter_matrix(['G', 2])
         [1 6]
         [6 1]
-
     """
     ct = CartanType(t)
     cf = coxeter_matrix_as_function(ct)

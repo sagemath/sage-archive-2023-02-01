@@ -1,125 +1,134 @@
 r"""
 Symmetric Functions
 
-AUTHOR: Mike Hansen, 2007-06-15
+AUTHORS:
 
-sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
-sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
-sage: f1 = s([2,1]); f1
-s[2, 1]
-sage: f2 = e(f1); f2
-e[2, 1] - e[3]
-sage: f1 == f2
-True
-sage: f1.expand(3, alphabet=['x','y','z'])
-x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
-sage: f2.expand(3, alphabet=['x','y','z'])
-x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
+- Mike Hansen (2007-06-15)
 
+::
 
-sage: m = SFAMonomial(QQ)
-sage: m([3,1])
-m[3, 1]
-sage: m(4)
-4*m[]
-sage: m([4])
-m[4]
-sage: 3*m([3,1])-1/2*m([4])
-3*m[3, 1] - 1/2*m[4]
+    sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
+    sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
+    sage: f1 = s([2,1]); f1
+    s[2, 1]
+    sage: f2 = e(f1); f2
+    e[2, 1] - e[3]
+    sage: f1 == f2
+    True
+    sage: f1.expand(3, alphabet=['x','y','z'])
+    x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
+    sage: f2.expand(3, alphabet=['x','y','z'])
+    x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
 
+::
 
-Code needs to be added to coerce symmetric polynomials into symmetric functions.
+    sage: m = SFAMonomial(QQ)
+    sage: m([3,1])
+    m[3, 1]
+    sage: m(4)
+    4*m[]
+    sage: m([4])
+    m[4]
+    sage: 3*m([3,1])-1/2*m([4])
+    3*m[3, 1] - 1/2*m[4]
 
-sage: p = SFAPower(QQ)
-sage: m = p(3)
-sage: m
-3*p[]
-sage: m.parent()
-Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
-sage: m + p([3,2])
-3*p[] + p[3, 2]
+Code needs to be added to coerce symmetric polynomials into
+symmetric functions.
 
+::
 
-sage: s = SFASchur(QQ)
-sage: h = SFAHomogeneous(QQ)
-sage: P = SFAPower(QQ)
-sage: e = SFAElementary(QQ)
-sage: m = SFAMonomial(QQ)
-sage: a = s([3,1])
-sage: s(a)
-s[3, 1]
-sage: h(a)
-h[3, 1] - h[4]
-sage: p(a)
-1/8*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] - 1/8*p[2, 2] - 1/4*p[4]
-sage: e(a)
-e[2, 1, 1] - e[2, 2] - e[3, 1] + e[4]
-sage: m(a)
-3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
-sage: a.expand(4)
-x0^3*x1 + x0^2*x1^2 + x0*x1^3 + x0^3*x2 + 2*x0^2*x1*x2 + 2*x0*x1^2*x2 + x1^3*x2 + x0^2*x2^2 + 2*x0*x1*x2^2 + x1^2*x2^2 + x0*x2^3 + x1*x2^3 + x0^3*x3 + 2*x0^2*x1*x3 + 2*x0*x1^2*x3 + x1^3*x3 + 2*x0^2*x2*x3 + 3*x0*x1*x2*x3 + 2*x1^2*x2*x3 + 2*x0*x2^2*x3 + 2*x1*x2^2*x3 + x2^3*x3 + x0^2*x3^2 + 2*x0*x1*x3^2 + x1^2*x3^2 + 2*x0*x2*x3^2 + 2*x1*x2*x3^2 + x2^2*x3^2 + x0*x3^3 + x1*x3^3 + x2*x3^3
+    sage: p = SFAPower(QQ)
+    sage: m = p(3)
+    sage: m
+    3*p[]
+    sage: m.parent()
+    Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+    sage: m + p([3,2])
+    3*p[] + p[3, 2]
 
+::
 
-sage: h(m([1]))
-h[1]
-sage: h( m([2]) +m([1,1]) )
-h[2]
-sage: h( m([3]) + m([2,1]) + m([1,1,1]) )
-h[3]
-sage: h( m([4]) + m([3,1]) + m([2,2]) + m([2,1,1]) + m([1,1,1,1]) )
-h[4]
-sage: k = 5
-sage: h( sum([ m(part) for part in Partitions(k)]) )
-h[5]
-sage: k = 10
-sage: h( sum([ m(part) for part in Partitions(k)]) )
-h[10]
+    sage: s = SFASchur(QQ)
+    sage: h = SFAHomogeneous(QQ)
+    sage: P = SFAPower(QQ)
+    sage: e = SFAElementary(QQ)
+    sage: m = SFAMonomial(QQ)
+    sage: a = s([3,1])
+    sage: s(a)
+    s[3, 1]
+    sage: h(a)
+    h[3, 1] - h[4]
+    sage: p(a)
+    1/8*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] - 1/8*p[2, 2] - 1/4*p[4]
+    sage: e(a)
+    e[2, 1, 1] - e[2, 2] - e[3, 1] + e[4]
+    sage: m(a)
+    3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
+    sage: a.expand(4)
+    x0^3*x1 + x0^2*x1^2 + x0*x1^3 + x0^3*x2 + 2*x0^2*x1*x2 + 2*x0*x1^2*x2 + x1^3*x2 + x0^2*x2^2 + 2*x0*x1*x2^2 + x1^2*x2^2 + x0*x2^3 + x1*x2^3 + x0^3*x3 + 2*x0^2*x1*x3 + 2*x0*x1^2*x3 + x1^3*x3 + 2*x0^2*x2*x3 + 3*x0*x1*x2*x3 + 2*x1^2*x2*x3 + 2*x0*x2^2*x3 + 2*x1*x2^2*x3 + x2^3*x3 + x0^2*x3^2 + 2*x0*x1*x3^2 + x1^2*x3^2 + 2*x0*x2*x3^2 + 2*x1*x2*x3^2 + x2^2*x3^2 + x0*x3^3 + x1*x3^3 + x2*x3^3
 
-sage: P3 = Partitions(3)
-sage: P3.list()
-[[3], [2, 1], [1, 1, 1]]
-sage: m = SFAMonomial(QQ)
-sage: f = sum([m(p) for p in P3])
-sage: m.get_print_style()
-'lex'
-sage: f
-m[1, 1, 1] + m[2, 1] + m[3]
-sage: m.set_print_style('length')
-sage: f
-m[3] + m[2, 1] + m[1, 1, 1]
-sage: m.set_print_style('maximal_part')
-sage: f
-m[1, 1, 1] + m[2, 1] + m[3]
-sage: m.set_print_style('lex')
+::
 
+    sage: h(m([1]))
+    h[1]
+    sage: h( m([2]) +m([1,1]) )
+    h[2]
+    sage: h( m([3]) + m([2,1]) + m([1,1,1]) )
+    h[3]
+    sage: h( m([4]) + m([3,1]) + m([2,2]) + m([2,1,1]) + m([1,1,1,1]) )
+    h[4]
+    sage: k = 5
+    sage: h( sum([ m(part) for part in Partitions(k)]) )
+    h[5]
+    sage: k = 10
+    sage: h( sum([ m(part) for part in Partitions(k)]) )
+    h[10]
 
-sage: s = SFASchur(QQ)
-sage: m = SFAMonomial(QQ)
-sage: m([3])*s([2,1])
-2*m[3, 1, 1, 1] + m[3, 2, 1] + 2*m[4, 1, 1] + m[4, 2] + m[5, 1]
-sage: s(m([3])*s([2,1]))
-s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
-sage: s(s([2,1])*m([3]))
-s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
-sage: e = SFAElementary(QQ)
-sage: e([4])*e([3])*e([1])
-e[4, 3, 1]
+::
 
+    sage: P3 = Partitions(3)
+    sage: P3.list()
+    [[3], [2, 1], [1, 1, 1]]
+    sage: m = SFAMonomial(QQ)
+    sage: f = sum([m(p) for p in P3])
+    sage: m.get_print_style()
+    'lex'
+    sage: f
+    m[1, 1, 1] + m[2, 1] + m[3]
+    sage: m.set_print_style('length')
+    sage: f
+    m[3] + m[2, 1] + m[1, 1, 1]
+    sage: m.set_print_style('maximal_part')
+    sage: f
+    m[1, 1, 1] + m[2, 1] + m[3]
+    sage: m.set_print_style('lex')
 
-sage: s = SFASchur(QQ)
-sage: z = s([2,1]) + s([1,1,1])
-sage: z.coefficient([2,1])
-1
-sage: z.length()
-2
-sage: z.support()
-[[1, 1, 1], [2, 1]]
-sage: z.degree()
-3
+::
 
+    sage: s = SFASchur(QQ)
+    sage: m = SFAMonomial(QQ)
+    sage: m([3])*s([2,1])
+    2*m[3, 1, 1, 1] + m[3, 2, 1] + 2*m[4, 1, 1] + m[4, 2] + m[5, 1]
+    sage: s(m([3])*s([2,1]))
+    s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
+    sage: s(s([2,1])*m([3]))
+    s[2, 1, 1, 1, 1] - s[2, 2, 2] - s[3, 3] + s[5, 1]
+    sage: e = SFAElementary(QQ)
+    sage: e([4])*e([3])*e([1])
+    e[4, 3, 1]
 
+::
 
-
+    sage: s = SFASchur(QQ)
+    sage: z = s([2,1]) + s([1,1,1])
+    sage: z.coefficient([2,1])
+    1
+    sage: z.length()
+    2
+    sage: z.support()
+    [[1, 1, 1], [2, 1]]
+    sage: z.degree()
+    3
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -151,28 +160,31 @@ from functools import partial
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
     """
-    Return the free algebra over the ring $R$ on $n$ generators with
-    given names.
+    Return the free algebra over the ring `R` on `n`
+    generators with given names.
 
     INPUT:
-        R -- ring with identity
-        basis
 
-    OUTPUT:
-        A SymmetricFunctionAlgebra
 
-    EXAMPLES:
+    -  ``R`` - ring with identity basis
+
+
+    OUTPUT: A SymmetricFunctionAlgebra
+
+    EXAMPLES::
+
         sage: SymmetricFunctionAlgebra(QQ)
         Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
 
+    ::
 
         sage: SymmetricFunctionAlgebra(QQ, basis='m')
         Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
 
+    ::
 
         sage: SymmetricFunctionAlgebra(QQ, basis='power')
         Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
-
     """
     if basis == 'schur' or basis == 's':
         return cache_s(R)
@@ -189,10 +201,11 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
 
 def SFAPower(R):
     """
-    Returns the symmetric function algebra over R with the power-sum symmetric
-    functions as the basis.
+    Returns the symmetric function algebra over R with the power-sum
+    symmetric functions as the basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SFAPower(QQ)
         Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
     """
@@ -201,10 +214,11 @@ def SFAPower(R):
 
 def SFAElementary(R):
     """
-    Returns the symmetric function algebra over R with the elementary symmetric
-    functions as the basis.
+    Returns the symmetric function algebra over R with the elementary
+    symmetric functions as the basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SFAElementary(QQ)
         Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis
     """
@@ -213,10 +227,11 @@ def SFAElementary(R):
 
 def SFAHomogeneous(R):
     """
-    Returns the symmetric function algebra over R with the Homogeneous symmetric
-    functions as the basis.
+    Returns the symmetric function algebra over R with the Homogeneous
+    symmetric functions as the basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SFAHomogeneous(QQ)
         Symmetric Function Algebra over Rational Field, Homogeneous symmetric functions as basis
     """
@@ -225,10 +240,11 @@ def SFAHomogeneous(R):
 
 def SFASchur(R):
     """
-    Returns the symmetric function algebra over R with the Schur symmetric
-    functions as the basis.
+    Returns the symmetric function algebra over R with the Schur
+    symmetric functions as the basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SFASchur(QQ)
         Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
     """
@@ -237,10 +253,11 @@ def SFASchur(R):
 
 def SFAMonomial(R):
     """
-    Returns the symmetric function algebra over R with the monomial symmetric
-    functions as the basis.
+    Returns the symmetric function algebra over R with the monomial
+    symmetric functions as the basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SFAMonomial(QQ)
         Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
     """
@@ -248,9 +265,11 @@ def SFAMonomial(R):
 
 def is_SymmetricFunctionAlgebra(x):
     """
-    Return True if x is a symmetric function algebra; otherwise, return False.
+    Return True if x is a symmetric function algebra; otherwise, return
+    False.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.combinat.sf.sfa.is_SymmetricFunctionAlgebra(5)
         False
         sage: sage.combinat.sf.sfa.is_SymmetricFunctionAlgebra(ZZ)
@@ -264,14 +283,19 @@ def is_SymmetricFunctionAlgebra(x):
 
 def zee(part):
     """
-    Returns the size of the centralizer of permutations of cycle
-    type part.  Note that this is the inner product between
-    p(part) and itself where p is the power-sum symmetric functions.
+    Returns the size of the centralizer of permutations of cycle type
+    part. Note that this is the inner product between p(part) and
+    itself where p is the power-sum symmetric functions.
 
     INPUT:
-        part -- an integer partition (for example, [2,1,1])
 
-    EXAMPLES:
+
+    -  ``part`` - an integer partition (for example,
+       [2,1,1])
+
+
+    EXAMPLES::
+
         sage: from sage.combinat.sf.sfa import zee
         sage: zee([2,1,1])
         4
@@ -285,7 +309,8 @@ def is_SymmetricFunction(x):
     """
     Returns True if x is a symmetric function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.sfa import is_SymmetricFunction
         sage: s = SFASchur(QQ)
         sage: is_SymmetricFunction(2)
@@ -306,23 +331,20 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         Return the symmetric function obtained by scaling each basis
         element corresponding to the partition part by f(part).
 
-        INPUT:
-            x: a symmetric function
-            function: a function which takes in a partition and returns
-                      a scalar
+        INPUT: x: a symmetric function function: a function which takes in
+        a partition and returns a scalar
 
-        OUTPUT:
-            a symmetric function in self which is a scaled version
-            of x
+        OUTPUT: a symmetric function in self which is a scaled version of
+        x
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([3])+s([2,1])+s([1,1,1]); a
             s[1, 1, 1] + s[2, 1] + s[3]
             sage: f = lambda part: len(part)
             sage: s._change_by_proportionality(a, f)
             3*s[1, 1, 1] + 2*s[2, 1] + s[3]
-
         """
         BR = self.base_ring()
         z_elt = {}
@@ -333,7 +355,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def _change_by_plethysm(self, x, expr, deg_one):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: a = m([2,1])
             sage: a.omega()
@@ -341,11 +364,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: m._change_by_plethysm(-a,-1,[])
             -m[2, 1] - 2*m[3]
 
+        ::
+
             sage: s = SFASchur(QQ)
             sage: a = s([3])
             sage: s._change_by_plethysm(-a,-1,[])
             s[1, 1, 1]
-
         """
         #Covert to the power sum
         p = SFAPower(self.base_ring())
@@ -363,14 +387,21 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         """
         INPUT:
-            -- x : a element of self
-            -- y : a element of self
-            -- f : a function that takes in two partitions (basis elements)
-                   and returns an element of the target domain
-            -- orthogonal: if orthogonal is set to True, then f(part1, part2)
-                           is assumed to be 0 if part1 != part2.
 
-        EXAMPLES:
+
+        -   x : a element of self
+
+        -```` - y : a element of self
+
+        -   f : a function that takes in two partitions
+           (basis elements) and returns an element of the target domain
+
+        -```` - orthogonal: if orthogonal is set to True,
+           then f(part1, part2) is assumed to be 0 if part1 != part2.
+
+
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1])+s([1,1,1])
             sage: b = s([3])+s([2,1])
@@ -409,7 +440,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def _coerce_impl(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: m = SFAMonomial(ZZ)
             sage: s._coerce_impl(m([2,1]))
@@ -438,7 +470,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         Return the element of self with the same 'internal structure' as
         x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = SFAElementary(QQ)
             sage: s = SFASchur(QQ)
             sage: a = e([2,1]) + e([1,1,1]); a
@@ -453,19 +486,25 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         Return an element of self from .
 
         INPUT:
-            element -- a symmetric function
-            cache_function -- a function which accepts an integer n as its
-                              input and creates the cache for that
-                              homogenous component
-            cache_dict -- the dictionary storing the cache; it is indexed by
-                          the positive integers n, and it's values are dictionaries
-                          indexed by partitions size n.  The values of those
-                          dictionaries are in dictionaries indexed by partitions
-                          of size n.
-            subs_dict -- a dictionary for any substitutions to make after the
-                         value is extracted from cache_dict.
 
-        EXAMPLES:
+
+        -  ``element`` - a symmetric function
+
+        -  ``cache_function`` - a function which accepts an
+           integer n as its input and creates the cache for that homogenous
+           component
+
+        -  ``cache_dict`` - the dictionary storing the cache;
+           it is indexed by the positive integers n, and it's values are
+           dictionaries indexed by partitions size n. The values of those
+           dictionaries are in dictionaries indexed by partitions of size n.
+
+        -  ``subs_dict`` - a dictionary for any substitutions
+           to make after the value is extracted from cache_dict.
+
+
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: s = SFASchur(R)
             sage: p21 = Partition([2,1])
@@ -500,39 +539,51 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
                          upper_triangular=False, lower_triangular=False, \
                          ones_on_diagonal=False):
         """
-
-        Compute the inverse of a morphism between self and other.  In order to
-        use this, you must be able compute the morphism in one direction.  This
-        method assumes that the morphism is indeed invertible.
+        Compute the inverse of a morphism between self and other. In order
+        to use this, you must be able compute the morphism in one
+        direction. This method assumes that the morphism is indeed
+        invertible.
 
         INPUT:
-            n -- an integer, the homogeneous component of symmetric functions
-                 for which we want to a morphism's inverse
-            base_ring -- the base ring being worked over
-            self_to_other_cache -- a dictionary which stores the transition
-                                   from self to other
-            other_to_self_cache -- a dictionary which stores the transition
-                                   from other to self
-            to_other_function -- a function which takes in a partition and
-                                 returns a function which gives the coefficients
-                                 of self(part) in the other basis
-            to_self_function -- a function which takes in a partition and
-                                returns a function which gives the coefficients
-                                of other(part) in self
-            upper_triangular -- a boolean, if True, the inverse will be computed
-                                by back substitution
-            lower_triangular -- a boolean, if True, the inverse will be computed
-                                by forward substitution
-            ones_on_diagonal -- a boolean, if True, the entries on the diagonal
-                                of the morphism (and inverse) matrix are assumed
-                                to be one.  This is used to remove divisions from
-                                the forward and back substitute algorithms.
 
 
-        EXAMPLES:
-          First, we will do an example of inverting the morphism which sends a
-          Schur function to its conjugate Schur function.  Note that this is
-          an involution.
+        -  ``n`` - an integer, the homogeneous component of
+           symmetric functions for which we want to a morphism's inverse
+
+        -  ``base_ring`` - the base ring being worked over
+
+        -  ``self_to_other_cache`` - a dictionary which
+           stores the transition from self to other
+
+        -  ``other_to_self_cache`` - a dictionary which
+           stores the transition from other to self
+
+        -  ``to_other_function`` - a function which takes in
+           a partition and returns a function which gives the coefficients of
+           self(part) in the other basis
+
+        -  ``to_self_function`` - a function which takes in a
+           partition and returns a function which gives the coefficients of
+           other(part) in self
+
+        -  ``upper_triangular`` - a boolean, if True, the
+           inverse will be computed by back substitution
+
+        -  ``lower_triangular`` - a boolean, if True, the
+           inverse will be computed by forward substitution
+
+        -  ``ones_on_diagonal`` - a boolean, if True, the
+           entries on the diagonal of the morphism (and inverse) matrix are
+           assumed to be one. This is used to remove divisions from the
+           forward and back substitute algorithms.
+
+
+        EXAMPLES: First, we will do an example of inverting the morphism
+        which sends a Schur function to its conjugate Schur function. Note
+        that this is an involution.
+
+        ::
+
             sage: s = SFASchur(QQ)
             sage: conj = lambda p1: lambda p2: QQ(1) if p2 == p1.conjugate() else QQ(0)
             sage: c1 = {}
@@ -554,7 +605,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: c2 == c1
             True
 
-          We can check that we get the same results if specify to_self_function = conj.
+        We can check that we get the same results if specify
+        to_self_function = conj.
+
+        ::
+
             sage: d1 = {}
             sage: d2 = {}
             sage: s._invert_morphism(4, QQ, d1, d2, to_self_function = conj)
@@ -563,9 +618,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: d2 == c2
             True
 
+        Now we do an example of upper triangularity and check that we get
+        the same thing whether or not we specify ones_on_diagonal.
 
-          Now we do an example of upper triangularity and check that we get
-          the same thing whether or not we specify ones_on_diagonal.
+        ::
+
             sage: f = lambda p1: lambda p2: QQ(1) if p2 <= p1 else QQ(0)
             sage: c1 = {}
             sage: c2 = {}
@@ -579,6 +636,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
              ([2, 1], [([1, 1, 1], -1), ([2, 1], 1)]),
              ([3], [([2, 1], -1), ([3], 1)])]
 
+        ::
+
             sage: d1 = {}
             sage: d2 = {}
             sage: s._invert_morphism(3, QQ, d1, d2, to_other_function = f,upper_triangular=True, ones_on_diagonal=True)
@@ -587,7 +646,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: c2 == d2
             True
 
-          Finally, we do the same thing for lower triangular matrices.
+        Finally, we do the same thing for lower triangular matrices.
+
+        ::
+
             sage: f = lambda p1: lambda p2: QQ(1) if p2 >= p1 else QQ(0)
             sage: c1 = {}
             sage: c2 = {}
@@ -597,10 +659,14 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
              ([2, 1], [([2, 1], 1), ([3], 1)]),
              ([3], [([3], 1)])]
 
+        ::
+
             sage: l(c2[3])
             [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], -1)]),
              ([2, 1], [([2, 1], 1), ([3], -1)]),
              ([3], [([3], 1)])]
+
+        ::
 
             sage: d1 = {}
             sage: d2 = {}
@@ -734,7 +800,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         """
         Returns the prefix on the elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: schur = SFASchur(QQ)
             sage: schur([3,2,1])
             s[3, 2, 1]
@@ -745,10 +812,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def transition_matrix(self, basis, n):
         """
-        Returns the transitions matrix between self and basis
-        for the homogenous component of degree n.
+        Returns the transitions matrix between self and basis for the
+        homogenous component of degree n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: m = SFAMonomial(QQ)
             sage: s.transition_matrix(m,5)
@@ -759,6 +827,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             [0 0 0 0 1 2 5]
             [0 0 0 0 0 1 4]
             [0 0 0 0 0 0 1]
+
+        ::
 
             sage: p = SFAPower(QQ)
             sage: s.transition_matrix(p, 4)
@@ -783,18 +853,24 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: p(a)
             7/24*p[1, 1, 1, 1] - 5/4*p[2, 1, 1] + 3/8*p[2, 2] + 4/3*p[3, 1] - 7/4*p[4]
 
+        ::
 
             sage: h = SFAHomogeneous(QQ)
             sage: e = SFAElementary(QQ)
             sage: s.transition_matrix(m,7) == h.transition_matrix(s,7).transpose()
             True
 
+        ::
+
             sage: h.transition_matrix(m, 7) == h.transition_matrix(m, 7).transpose()
             True
+
+        ::
 
             sage: h.transition_matrix(e, 7) == e.transition_matrix(h, 7)
             True
 
+        ::
 
             sage: p.transition_matrix(s, 5)
             [ 1 -1  0  1  0 -1  1]
@@ -805,10 +881,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             [ 1  2  1  0 -1 -2 -1]
             [ 1  4  5  6  5  4  1]
 
+        ::
+
             sage: e.transition_matrix(m,7) == e.transition_matrix(m,7).transpose()
             True
-
-
         """
         P = sage.combinat.partition.Partitions_n(n)
         Plist = P.list()
@@ -821,7 +897,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def _gram_schmidt(self, n, source, scalar, cache, leading_coeff=None, upper_triangular=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: cache = {}
             sage: from sage.combinat.sf.sfa import zee
             sage: s = SFASchur(QQ)
@@ -832,7 +909,6 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             [([1, 1, 1], [([1, 1, 1], 1)]),
              ([2, 1], [([1, 1, 1], 2), ([2, 1], 1)]),
              ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
-
         """
         BR = self.base_ring(); one = BR(1)
         p = SFAPower(BR)
@@ -876,14 +952,16 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def dual_basis(self, scalar=None, scalar_name="", prefix=None):
         """
-        Returns the dual basis of self with respect to the scalar
-        product scalar.  If scalar is None, then the standard (Hall)
-        scalar product is used.
+        Returns the dual basis of self with respect to the scalar product
+        scalar. If scalar is None, then the standard (Hall) scalar product
+        is used.
 
-        EXAMPLES:
-          The duals of the elementary symmetric functions with respect
-          to the Hall scalar product are the forgotten symmetric
-          functions.
+        EXAMPLES: The duals of the elementary symmetric functions with
+        respect to the Hall scalar product are the forgotten symmetric
+        functions.
+
+        ::
+
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis(prefix='f'); f
             Dual basis to Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis with respect to the Hall scalar product
@@ -894,9 +972,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             sage: f([2,1]).scalar(e([1,1,1]))
             0
 
-          Since the power-sum symmetric functions are orthogonal, their
-          duals with respect to the Hall scalar product are scalar multiples
-          of themselves.
+        Since the power-sum symmetric functions are orthogonal, their duals
+        with respect to the Hall scalar product are scalar multiples of
+        themselves.
+
+        ::
+
             sage: p = SFAPower(QQ)
             sage: q = p.dual_basis(prefix='q'); q
             Dual basis to Symmetric Function Algebra over Rational Field, Power symmetric functions as basis with respect to the Hall scalar product
@@ -919,7 +1000,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         """
         Returns the name of the basis of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s.basis_name()
             'schur'
@@ -945,7 +1027,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         """
         Returns the value of the current print style for self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s.get_print_style()
             'lex'
@@ -960,7 +1043,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         """
         Set the value of the current print style to ps.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s.get_print_style()
             'lex'
@@ -979,7 +1063,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: f = sum([m(p) for p in Partitions(3)])
             sage: m.get_print_style()
@@ -1017,7 +1102,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         """
         Returns a string representing the LaTeX version of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = SFAMonomial(QQ)
             sage: f = sum([m(p) for p in Partitions(3)])
             sage: m.get_print_style()
@@ -1054,17 +1140,23 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         """
         Returns the outer plethysm of self with x.
 
-        By default, the degree one elements are the generators for the self's
-        base ring.
+        By default, the degree one elements are the generators for the
+        self's base ring.
 
         INPUT:
-            x -- a symmetric function
-            include -- a list of variables to be treated as degree one elements
-                       instead of the default degree one elements
-            exclude -- a list of variables to be excluded from the default
-                       degree one elements
 
-        EXAMPLES:
+
+        -  ``x`` - a symmetric function
+
+        -  ``include`` - a list of variables to be treated as
+           degree one elements instead of the default degree one elements
+
+        -  ``exclude`` - a list of variables to be excluded
+           from the default degree one elements
+
+
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: h = SFAHomogeneous(QQ)
             sage: s ( h([3])( h([2]) ) )
@@ -1076,6 +1168,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             sage: e([3])( e([2]) )
             e[3, 3] + e[4, 1, 1] - 2*e[4, 2] - e[5, 1] + e[6]
 
+        ::
 
             sage: R.<t> = QQ[]
             sage: s = SFASchur(R);
@@ -1085,7 +1178,6 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             t^3*s[2, 2, 2] + t^3*s[4, 2] + t^3*s[6]
             sage: f(a)
             t*s[4, 2] + t*s[6]
-
         """
         if not is_SymmetricFunction(x):
             raise TypeError, "only know how to compute plethysms between symmetric functions"
@@ -1132,15 +1224,21 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def _inner_plethysm_pk_g(self, k, g, cache):
         r"""
-        Returns the inner plethysm between $p_k$ and $g$.
+        Returns the inner plethysm between `p_k` and `g`.
 
         INPUT:
-            k -- a positive integer
-            g -- a symmetric function in the power sum basis
-            cache -- a dictionary whose keys are (k, g) pairs and values
-                     are the cached output of this function
 
-        EXAMPLES:
+
+        -  ``k`` - a positive integer
+
+        -  ``g`` - a symmetric function in the power sum basis
+
+        -  ``cache`` - a dictionary whose keys are (k, g) pairs
+           and values are the cached output of this function
+
+
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: _inner_plethysm_pk_g = p(0)._inner_plethysm_pk_g
             sage: _inner_plethysm_pk_g(2, p([1,1,1]), {})
@@ -1167,13 +1265,14 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def _inner_plethysm_pnu_g(self, p_x, cache, nu):
         """
-        Returns the inner plethysm of p(nu) with another symmetric
-        function p_x in the power-sum basis.
+        Returns the inner plethysm of p(nu) with another symmetric function
+        p_x in the power-sum basis.
 
-        Note that the order of the arguments is somewhat strange
-        in order to facilitate partial function application.
+        Note that the order of the arguments is somewhat strange in order
+        to facilitate partial function application.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: s = SFASchur(QQ)
             sage: _inner_plethysm_pnu_g = p(0)._inner_plethysm_pnu_g
@@ -1183,7 +1282,6 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]
             sage: s(_)
             s[3]
-
         """
         #We handle the constant term case separately.  It should be
         #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
@@ -1207,24 +1305,28 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         r"""
         Retuns the inenr plethysm of self with x.
 
-        The result of f.inner_plethysm(g) is linear in f and linear
-        in 'homogeneous pieces' of g. So, to describe this function, we
-        assume without loss that f is some Schur function s(la) and g is
-        a homogeneous symmetric function of degree n. The function g can
-        be thought of as the character of an irreducible representation, rho,
-        of the symmetric group $S_n$. Let N be the dimension of this representation.
-        If the number of parts of la is greater then N, then
-        f.inner_plethysm(g) = 0 by definition. Otherwise, we can interpret f
-        as the character of an irreducible $GL_N$ representation, call it $\sigma$.
-        Now $\sigma \circ \rho$ is an $S_n$ representation and, by definition, the
-        character of this representation is f.inner_plethysm(g).
-
+        The result of f.inner_plethysm(g) is linear in f and linear in
+        'homogeneous pieces' of g. So, to describe this function, we assume
+        without loss that f is some Schur function s(la) and g is a
+        homogeneous symmetric function of degree n. The function g can be
+        thought of as the character of an irreducible representation, rho,
+        of the symmetric group `S_n`. Let N be the dimension of
+        this representation. If the number of parts of la is greater then
+        N, then f.inner_plethysm(g) = 0 by definition. Otherwise, we can
+        interpret f as the character of an irreducible `GL_N`
+        representation, call it `\sigma`. Now
+        `\sigma \circ \rho` is an `S_n` representation
+        and, by definition, the character of this representation is
+        f.inner_plethysm(g).
 
         REFERENCES:
-            King, R. 'Branching rules for $GL_m \supset \Sigma_n $ and the evaluation
-                      of inner plethysms.' J. Math. Phys. 15, 258 (1974)
 
-        EXAMPLES:
+        - King, R. 'Branching rules for `GL_m \supset \Sigma_n`
+          and the evaluation of inner plethysms.' J. Math. Phys. 15,
+          258 (1974)
+
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: p = SFAPower(QQ)
             sage: h = SFAHomogeneous(QQ)
@@ -1235,18 +1337,20 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             sage: s(_)
             s[2, 1] + s[3]
 
+        ::
+
             sage: f = s([2,1]) + 2*s([3,1])
             sage: f.itensor(f)
             s[1, 1, 1] + s[2, 1] + 4*s[2, 1, 1] + 4*s[2, 2] + s[3] + 4*s[3, 1] + 4*s[4]
             sage: s( h([1,1]).inner_plethysm(f) )
             s[1, 1, 1] + s[2, 1] + 4*s[2, 1, 1] + 4*s[2, 2] + s[3] + 4*s[3, 1] + 4*s[4]
 
+        ::
+
             sage: s([]).inner_plethysm(s([1,1]) + 2*s([2,1])+s([3]))
             s[2] + s[3]
             sage: [s([]).inner_plethysm(s(p)) for p in Partitions(4)]
             [s[4], s[4], s[4], s[4], s[4]]
-
-
         """
         parent = self.parent()
         base_ring = parent.base_ring()
@@ -1266,7 +1370,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         The default implementation converts to the Schurs performs the
         automorphism and changes back.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = JackPolynomialsP(QQ,1)
             sage: a = J([2,1]) + J([1,1,1])
             sage: a.omega()
@@ -1278,10 +1383,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def theta(self,a):
         """
-        Returns the image of self under the theta automorphism
-        which sends $p[k]$ to $a*p[k]$.
+        Returns the image of self under the theta automorphism which sends
+        `p[k]` to `a*p[k]`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s([2,1]).theta(2)
             2*s[1, 1, 1] + 6*s[2, 1] + 2*s[3]
@@ -1296,10 +1402,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def theta_qt(self,q,t):
         """
-        Returns the image of self under the theta automorphism
-        which sends $p[k]$ to $(1-q^k)/(1-t^k)*p[k]$.
+        Returns the image of self under the theta automorphism which sends
+        `p[k]` to `(1-q^k)/(1-t^k)*p[k]`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QQqt = QQ['q,t'].fraction_field()
             sage: q,t = QQqt.gens()
             sage: p = SFAPower(QQqt)
@@ -1307,7 +1414,6 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             ((-q^2+1)/(-t^2+1))*p[2]
             sage: p([2,1]).theta_qt(q,t)
             ((q^3-q^2-q+1)/(t^3-t^2-t+1))*p[2, 1]
-
         """
         BR = self.parent().base_ring()
         p = SFAPower(BR)
@@ -1318,10 +1424,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def itensor(self, x):
         """
-        Returns the inner tensor product of self and x
-        in the basis of self.
+        Returns the inner tensor product of self and x in the basis of
+        self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1])
             sage: b = s([3])
@@ -1331,13 +1438,12 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             sage: c.itensor(c)
             s[1, 1, 1, 1, 1, 1] + 2*s[2, 1, 1, 1, 1] + 3*s[2, 2, 1, 1] + 2*s[2, 2, 2] + 4*s[3, 1, 1, 1] + 5*s[3, 2, 1] + 2*s[3, 3] + 4*s[4, 1, 1] + 3*s[4, 2] + 2*s[5, 1] + s[6]
 
+        TESTS::
 
-        TESTS:
             sage: s = SFASchur(QQ)
             sage: a = s([8,8])
             sage: a.itensor(a) #long
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2] + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1] + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2] + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2] + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2] + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
-
         """
         #Convert both self and x to the p basis
         p = SFAPower(self.parent().base_ring())
@@ -1353,7 +1459,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         """
         Returns the standard Hall-Littlewood scalar product of self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1])
             sage: sp = a.scalar_t(a); sp
@@ -1372,12 +1479,13 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def derivative_with_respect_to_p1(self, n=1):
         """
-        Returns the symmetric function obtained by taking the derivative
-        of self with respect to the power-sum symmetric function p([1]) when
-        the expansion of self in the power-sum basis is considered as a polynomial
-        in p([1])'s.
+        Returns the symmetric function obtained by taking the derivative of
+        self with respect to the power-sum symmetric function p([1]) when
+        the expansion of self in the power-sum basis is considered as a
+        polynomial in p([1])'s.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([1,1,1])
             sage: a.derivative_with_respect_to_p1()
@@ -1388,6 +1496,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             6*p[1]
             sage: a.derivative_with_respect_to_p1(3)
             6*p[]
+
+        ::
 
             sage: s = SFASchur(QQ)
             sage: s([3]).derivative_with_respect_to_p1()
@@ -1406,9 +1516,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def _expand(self, condition, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([2])+p([3])
             sage: a._expand(lambda part: False, 3)
@@ -1427,11 +1539,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         """
         Returns standard scalar product between self and s.
 
-        This is the default implementation that converts both self
-        and x into Schur functions and performs the scalar product
-        that basis.
+        This is the default implementation that converts both self and x
+        into Schur functions and performs the scalar product that basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = SFAElementary(QQ)
             sage: h = SFAHomogeneous(QQ)
             sage: m = SFAMonomial(QQ)
@@ -1460,7 +1572,6 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             [0 0 1 0 0]
             [0 0 0 1 0]
             [0 0 0 0 1]
-
         """
         sp = self.parent()
         xp = x.parent()
@@ -1474,11 +1585,12 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def is_schur_positive(self):
         """
-        Returns True if and only if self is Schur positive. If s is the space
-        of Schur functions over self's base ring, then this is the same
-        as self._is_positive(s).
+        Returns True if and only if self is Schur positive. If s is the
+        space of Schur functions over self's base ring, then this is the
+        same as self._is_positive(s).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1]) + s([3])
             sage: a.is_schur_positive()
@@ -1486,6 +1598,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             sage: a = s([2,1]) - s([3])
             sage: a.is_schur_positive()
             False
+
+        ::
 
             sage: QQx = QQ['x']
             sage: s = SFASchur(QQx)
@@ -1502,10 +1616,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def _is_positive(self, s):
         """
-        Returns True if and only if self has nonnegative coefficients in the
-        basis s.
+        Returns True if and only if self has nonnegative coefficients in
+        the basis s.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2,1]) + s([3])
             sage: a._is_positive(s)
@@ -1519,7 +1634,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def degree(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1]) + 3
             sage: z.degree()
@@ -1529,7 +1645,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def restrict_degree(self, d, exact=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
             sage: z.restrict_degree(2)
@@ -1549,8 +1666,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def restrict_partition_lengths(self, l, exact=True):
         """
+        EXAMPLES::
 
-        EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
             sage: z.restrict_partition_lengths(2)
@@ -1566,8 +1683,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def restrict_parts(self, n):
         """
+        EXAMPLES::
 
-        EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
             sage: z.restrict_parts(2)
@@ -1580,9 +1697,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J =JackPolynomialsJ(QQ, t=2)
             sage: J([2,1]).expand(3)
             4*x0^2*x1 + 4*x0*x1^2 + 4*x0^2*x2 + 6*x0*x1*x2 + 4*x1^2*x2 + 4*x0*x2^2 + 4*x1*x2^2
@@ -1593,10 +1712,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def skew_by(self, x):
         """
-        Returns the element whose result is the dual to
-        multiplication by x applied to self.
+        Returns the element whose result is the dual to multiplication by x
+        applied to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s([3,2]).skew_by(s([2]))
             s[2, 1] + s[3]
@@ -1604,6 +1724,8 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             0
             sage: s([3,2,1]).skew_by(s([2,1]))
             s[1, 1, 1] + 2*s[2, 1] + s[3]
+
+        ::
 
             sage: p = SFAPower(QQ)
             sage: p([4,3,3,2,2,1]).skew_by(p([2,1]))
@@ -1620,15 +1742,20 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def hl_creation_operator(self, nu):
         """
-        This is the vertex operator that generalizes Jing's operator
-        It is from: Hall-Littlewood Vertex Operators and Kostka Polynomials, Shimizono-Zabrocki, Proposition 5
-        It is a linear operator that rases the degree by sum(nu)
-        This creation operator is a t-analogue of multiplication by s(nu)
+        This is the vertex operator that generalizes Jing's operator It is
+        from: Hall-Littlewood Vertex Operators and Kostka Polynomials,
+        Shimizono-Zabrocki, Proposition 5 It is a linear operator that
+        rases the degree by sum(nu) This creation operator is a t-analogue
+        of multiplication by s(nu)
 
         INPUT:
-            nu -- a partition
 
-        EXAMPLES:
+
+        -  ``nu`` - a partition
+
+
+        EXAMPLES::
+
             sage: s = SFASchur(QQ['t'])
             sage: s([2]).hl_creation_operator([3,2])
             s[3, 2, 2] + t*s[3, 3, 1] + t*s[4, 2, 1] + t^2*s[4, 3] + t^2*s[5, 2]
@@ -1672,10 +1799,11 @@ cache_h = Cache(homogeneous.SymmetricFunctionAlgebra_homogeneous)
 ###################
 def _lmax(x):
     """
-    Returns the max of x[0] where x is a list.  If x is the
-    empty list, the _lmax returns 0.
+    Returns the max of x[0] where x is a list. If x is the empty list,
+    the _lmax returns 0.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.sfa import _lmax
         sage: _lmax(([3,2,1], 2))
         3
@@ -1691,7 +1819,8 @@ def _nonnegative_coefficients(x):
     """
     Returns True if x has nonnegative coefficients.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.sfa import _nonnegative_coefficients
         sage: _nonnegative_coefficients(2)
         True

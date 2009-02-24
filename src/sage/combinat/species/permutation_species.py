@@ -1,6 +1,5 @@
 """
 Permutation species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -28,7 +27,8 @@ from sage.combinat.species.misc import accept_size
 class PermutationSpeciesStructure(GenericSpeciesStructure):
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: S = P.structures(["a", "b", "c"])
             sage: [s.canonical_label() for s in S]
@@ -38,7 +38,6 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
              ['b', 'c', 'a'],
              ['b', 'c', 'a'],
              ['b', 'a', 'c']]
-
         """
         P = self.parent()
         return P._canonical_rep_from_partition(self.__class__, self._labels, Permutation(self._list).cycle_type())
@@ -47,23 +46,25 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
         """
         Returns self as a permutation group element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
             sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
             ['a', 'c', 'b', 'd']
             sage: a.permutation_group_element()
             (2,3)
-
         """
         from sage.groups.all import PermutationGroupElement
         return Permutation(self._list).to_permutation_group_element()
 
     def transport(self, perm):
         """
-        Returns the transport of this structure along the permutation perm.
+        Returns the transport of this structure along the permutation
+        perm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
             sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
@@ -77,15 +78,19 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        Returns the group of permutations whose action on this structure leave it fixed.
+        Returns the group of permutations whose action on this structure
+        leave it fixed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3,4))
             sage: P = species.PermutationSpecies()
             sage: a = P.structures(["a", "b", "c", "d"]).random_element(); a
             ['a', 'c', 'b', 'd']
             sage: a.automorphism_group()
             Permutation Group with generators [(2,3), (1,4)]
+
+        ::
 
             sage: [a.transport(perm) for perm in a.automorphism_group()]
             [['a', 'c', 'b', 'd'],
@@ -104,7 +109,8 @@ def PermutationSpecies(*args, **kwds):
     """
     Returns the species of permutations.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P = species.PermutationSpecies()
         sage: P.generating_series().coefficients(5)
         [1, 1, 1, 1, 1]
@@ -116,7 +122,8 @@ def PermutationSpecies(*args, **kwds):
 class PermutationSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: c = P.generating_series().coefficients(3)
             sage: P._check()
@@ -133,7 +140,8 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: P.structures([1,2,3]).list()
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
@@ -146,7 +154,8 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
 
     def _isotypes(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: P.isotypes([1,2,3]).list()
             [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
@@ -162,7 +171,8 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
 
     def _canonical_rep_from_partition(self, structure_class, labels, p):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: P._canonical_rep_from_partition(P._default_structure_class, ["a","b","c"], [2,1])
             ['b', 'a', 'c']
@@ -177,9 +187,10 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
     def _gs_list(self, base_ring):
         r"""
         The generating series for the species of linear orders is
-        $\frac{1}{1-x}$.
+        `\frac{1}{1-x}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: g = P.generating_series()
             sage: g.coefficients(10)
@@ -191,14 +202,14 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
     def _itgs_iterator(self, base_ring):
         r"""
         The isomorphism type generating series is given by
-        $\frac{1}{1-x}$.
+        `\frac{1}{1-x}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: g = P.isotype_generating_series()
             sage: g.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-
         """
         from sage.combinat.partition import number_of_partitions
         for n in _integers_from(0):
@@ -208,9 +219,15 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
     def _cis(self, series_ring, base_ring):
         r"""
         The cycle index series for the species of permutations is given by
-        $$ \prod{n=1}^\infty \frac{1}{1-x_n}. $$
 
-        EXAMPLES:
+        .. math::
+
+             \prod{n=1}^\infty \frac{1}{1-x_n}.
+
+
+
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: g = P.cycle_index_series()
             sage: g.coefficients(5)
@@ -225,12 +242,12 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
 
     def _cis_gen(self, base_ring, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: g = P._cis_gen(QQ, 2)
             sage: [g.next() for i in range(10)]
             [p[], 0, p[2], 0, p[2, 2], 0, p[2, 2, 2], 0, p[2, 2, 2, 2], 0]
-
         """
         from sage.combinat.sf.all import SFAPower
         p = SFAPower(base_ring)

@@ -1,3 +1,6 @@
+"""
+Low-level permutations
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -21,7 +24,8 @@ from sage.combinat.misc import DoublyLinkedList
 class PermutationsNK(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: a = PermutationsNK(3,2)
             sage: a == loads(dumps(a))
@@ -32,10 +36,11 @@ class PermutationsNK(CombinatorialClass):
 
     def count(self):
         """
-        Returns the number of permutations of k things from a list
-        of n things.
+        Returns the number of permutations of k things from a list of n
+        things.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: PermutationsNK(3,2).count()
             6
@@ -49,7 +54,8 @@ class PermutationsNK(CombinatorialClass):
         """
         An iterator for all permutations of k thinkgs from range(n).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: [ p for p in PermutationsNK(3,2)]
             [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
@@ -107,7 +113,8 @@ class PermutationsNK(CombinatorialClass):
         """
         Returns a random permutation of k things from range(n).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.permutation_nk import PermutationsNK
             sage: PermutationsNK(3,2).random_element()
             [0, 1]

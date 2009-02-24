@@ -1,4 +1,6 @@
-# Suffix Tries and Suffix Trees
+"""
+Suffix Tries and Suffix Trees
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -38,27 +40,29 @@ class SuffixTrie(SageObject):
         It constructs the suffix trie of w[:i] from that of w[:i-1].
 
         A suffix trie is modelled as a deterministic finite-state automaton
-        together with the suffix_link map. The set of states corresponds to
-        factors of the word (below we write x' for the state corresponding
-        to x); these are always 0, 1, .... The state 0 is the initial
-        state, and it corresponds to the empty word.  For the purposes of
-        the algorithm, there is also an auxiliary state -1. The transition
-        function t is defined as
-                t(-1,a) = 0 for all letters a; and
-                t(x',a) = y' for all x',y' \in Q such that y = xa,
-        and the suffix link function is defined as
-                suffix_link(0) = -1;
-                suffix_link(x') = y', if x = ay for some letter a.
+        together with the suffix_link map. The set of states corresponds
+        to factors of the word (below we write x' for the state
+        corresponding to x); these are always 0, 1, .... The state 0 is the
+        initial state, and it corresponds to the empty word. For the
+        purposes of the algorithm, there is also an auxiliary state -1. The
+        transition function t is defined as t(-1,a) = 0 for all letters a;
+        and t(x',a) = y' for all x',y' Q such that y = xa, and the suffix
+        link function is defined as suffix_link(0) = -1; suffix_link(x')
+        = y', if x = ay for some letter a.
 
         REFERENCES:
-            [1] E. Ukkonen, "On-line construction of suffix trees",
-            Algorithmica, 1995, volume 14, number 3, pages 249--260.
 
-        EXAMPLES:
+        - [1] E. Ukkonen, "On-line construction of suffix trees",
+          Algorithmica, 1995, volume 14, number 3, pages 249-260.
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w); t
             Suffix Trie of the word: cacao
+
+        ::
 
             sage: e = Words("ab")(format="empty")
             sage: t = SuffixTrie(e); t
@@ -70,7 +74,8 @@ class SuffixTrie(SageObject):
             sage: t.process_letter("a"); t
             Suffix Trie of the word: aba
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: s = SuffixTrie(w)
@@ -94,10 +99,10 @@ class SuffixTrie(SageObject):
         Process a letter. That is, modify the current suffix trie producing
         the suffix trie for self.word() + letter.
 
-        NOTE:
-            letter must occur within the alphabet of the word.
+        NOTE: letter must occur within the alphabet of the word.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: t = SuffixTrie(Word("ababba"))
             sage: t._process_letter(Words("ab")("b")); t
@@ -131,10 +136,10 @@ class SuffixTrie(SageObject):
         r"""
         Modify self to produce the suffix trie for self.word() + letter.
 
-        NOTE:
-            letter must occur within the alphabet of the word.
+        NOTE: letter must occur within the alphabet of the word.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("ab")("ababba")
             sage: t = SuffixTrie(w); t
@@ -142,7 +147,8 @@ class SuffixTrie(SageObject):
             sage: t.process_letter("a"); t
             Suffix Trie of the word: ababbaa
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w); t
@@ -164,7 +170,8 @@ class SuffixTrie(SageObject):
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("abcba"))._repr_()
             'Suffix Trie of the word: abcba'
@@ -176,7 +183,8 @@ class SuffixTrie(SageObject):
         Returns the word obtained by reading the edge labels from 0 to
         state.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("abc")("abcba")
             sage: t = SuffixTrie(w)
@@ -204,7 +212,8 @@ class SuffixTrie(SageObject):
         r"""
         Returns the word whose suffix tree this is.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("abc")("abcba")
             sage: t = SuffixTrie(w)
@@ -220,7 +229,8 @@ class SuffixTrie(SageObject):
         If self and other have the same transition function, the same
         suffix link, and the same word, then they are equal.
 
-        TEST:
+        TEST::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("cacao")) == SuffixTrie(Word("ababc"))
             False
@@ -246,7 +256,8 @@ class SuffixTrie(SageObject):
         Returns the state reached by beginning at node and following the
         arrows in the transition graph labelled by the letters of word.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words([0,1])([0,1,0,1,1])
             sage: t = SuffixTrie(w)
@@ -269,12 +280,15 @@ class SuffixTrie(SageObject):
         r"""
         Returns the states of the automaton defined by the suffix trie.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words([0,1])([0,1,1])
             sage: t = SuffixTrie(w)
             sage: t.states()
             [0, 1, 2, 3, 4]
+
+        ::
 
             sage: u = Words("aco")("cacao")
             sage: s = SuffixTrie(u)
@@ -285,10 +299,11 @@ class SuffixTrie(SageObject):
 
     def suffix_link(self, state):
         r"""
-        Evaluates the suffix link map of the suffix trie on state.
-        Note that the suffix link map is not defined on -1.
+        Evaluates the suffix link map of the suffix trie on state. Note
+        that the suffix link map is not defined on -1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
@@ -297,8 +312,8 @@ class SuffixTrie(SageObject):
             sage: t.suffix_link(0)
             -1
 
+        TESTS::
 
-        TESTS:
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
@@ -328,12 +343,15 @@ class SuffixTrie(SageObject):
         Returns the active state of the suffix trie. This is the state
         corresponding to the word as a suffix of itself.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
             sage: t.active_state()
             8
+
+        ::
 
             sage: u = Words([0,1])([0,1,1,0,1,0,0,1])
             sage: s = SuffixTrie(u)
@@ -349,7 +367,8 @@ class SuffixTrie(SageObject):
         obtained be repeatedly following the suffix link from the active
         state until we reach 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
@@ -367,7 +386,8 @@ class SuffixTrie(SageObject):
         r"""
         Return True if and only if word is a suffix of self.word().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
@@ -391,9 +411,11 @@ class SuffixTrie(SageObject):
 
     def to_digraph(self):
         r"""
-        Returns a DiGraph object of the transition graph of the suffix trie.
+        Returns a DiGraph object of the transition graph of the suffix
+        trie.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cac")
             sage: t = SuffixTrie(w)
@@ -418,11 +440,13 @@ class SuffixTrie(SageObject):
         Returns a Graphics object corresponding to the transition graph of
         the suffix trie.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("cacao")).plot()
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: type(SuffixTrie(Word("cacao")).plot())
             <class 'sage.plot.plot.Graphics'>
@@ -443,7 +467,8 @@ class SuffixTrie(SageObject):
         r"""
         Displays the output of self.plot().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cac")
             sage: t = SuffixTrie(w)
@@ -469,8 +494,8 @@ class ImplicitSuffixTree(SageObject):
         indices of the occurrence of the factors in w.
 
         The following is a straightforward implementation of Ukkonen's
-        on-line algorithm for constructing the implicit suffix tree [1].
-        It constructs the suffix tree for w[:i] from that of w[:i-1].
+        on-line algorithm for constructing the implicit suffix tree [1]. It
+        constructs the suffix tree for w[:i] from that of w[:i-1].
 
         GENERAL IDEA. The suffix tree of w[:i+1] can be obtained from that
         of w[:i] by visiting each node corresponding to a suffix of w[:i]
@@ -510,10 +535,12 @@ class ImplicitSuffixTree(SageObject):
         is quadratic).
 
         REFERENCES:
-            [1] E. Ukkonen, "On-line construction of suffix trees",
-            Algorithmica, 1995, volume 14, number 3, pages 249--260.
 
-        EXAMPLES:
+        - [1] E. Ukkonen, "On-line construction of suffix trees",
+          Algorithmica, 1995, volume 14, number 3, pages 249-260.
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("aco")("cacao")
             sage: t = ImplicitSuffixTree(w); t
@@ -522,7 +549,8 @@ class ImplicitSuffixTree(SageObject):
             sage: s = ImplicitSuffixTree(ababb); s
             Implicit Suffix Tree of the word: 01011
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("cao")("cacao")
             sage: s = ImplicitSuffixTree(w)
@@ -547,10 +575,12 @@ class ImplicitSuffixTree(SageObject):
         the algorithm "update" in [1].
 
         REFERENCES:
-            [1] E. Ukkonen, "On-line construction of suffix trees",
-            Algorithmica, 1995, volume 14, number 3, pages 249--260.
 
-        TESTS:
+        - [1] E. Ukkonen, "On-line construction of suffix trees",
+          Algorithmica, 1995, volume 14, number 3, pages 249-260.
+
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("aco")("caca")
             sage: t = ImplicitSuffixTree(w); t
@@ -560,6 +590,8 @@ class ImplicitSuffixTree(SageObject):
             sage: t._process_letter(new_letter)
             sage: t
             Implicit Suffix Tree of the word: cacao
+
+        ::
 
             sage: W = Words([0,1])
             sage: s = ImplicitSuffixTree(W([0,1,0,1])); s
@@ -599,7 +631,8 @@ class ImplicitSuffixTree(SageObject):
         needs to be split. Returns (True, state), where state is the next
         state to process (either a newly created state or the original s).
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("aco")("caca")
             sage: t = ImplicitSuffixTree(w)
@@ -637,7 +670,8 @@ class ImplicitSuffixTree(SageObject):
         labels along the path from s to r. A reference pair is canonical if
         s is the closest ancestor of r.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: t = ImplicitSuffixTree(Word("cacao"))
             sage: t._canonize(0,(3,5))
@@ -665,9 +699,10 @@ class ImplicitSuffixTree(SageObject):
         by the nodes, with the corresponding dictionary keyed by pairs
         (i,j) of integers representing the word w[i-1:j].
 
-            ._transition_function = {..., node: {(i,j): target_node, ...} }
+        ._transition_function = ..., node: (i,j): target_node, ...
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: t = ImplicitSuffixTree(Word("cacao"))
             sage: t._find_transition(-1, 1)
@@ -679,6 +714,8 @@ class ImplicitSuffixTree(SageObject):
             sage: t._find_transition(5, 1)
             ((3, None), 2)
             sage: t._find_transition(5, 0)
+
+        ::
 
             sage: t = ImplicitSuffixTree(Word([0,1,0,1,1]))
             sage: t._find_transition(3, 1)
@@ -704,7 +741,8 @@ class ImplicitSuffixTree(SageObject):
 
     def _repr_(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word("abcba"))._repr_()
             'Implicit Suffix Tree of the word: abcba'
@@ -715,7 +753,8 @@ class ImplicitSuffixTree(SageObject):
         r"""
         Returns the word whose implicit suffix tree this is.
 
-        TEST:
+        TEST::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word([0,1,0,1,0])).word() == Word([0,1,0,1,0])
             True
@@ -727,12 +766,15 @@ class ImplicitSuffixTree(SageObject):
         Returns the transition function as a dictionary of dictionaries.
         The format is consistent with the input format for DiGraph.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words("aco")
             sage: t = ImplicitSuffixTree(W("cac"))
             sage: t.transition_function_dictionary()
             {0: {1: (0, None), 2: (1, None)}}
+
+        ::
 
             sage: W = Words([0,1])
             sage: t = ImplicitSuffixTree(W([0,1,0]))
@@ -746,12 +788,14 @@ class ImplicitSuffixTree(SageObject):
 
     def to_digraph(self, word_labels=False):
         r"""
-        Returns a DiGraph object of the transition graph of the suffix tree.
+        Returns a DiGraph object of the transition graph of the suffix
+        tree.
 
-            word_labels -- if False, labels the edges by pairs (i, j);
-                           if True, labels the edges by word[i:j].
+        word_labels - if False, labels the edges by pairs (i, j); if True,
+        labels the edges by word[i:j].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words([0,1,2])
             sage: t = ImplicitSuffixTree(W([0,1,0,1,2]))
@@ -778,15 +822,20 @@ class ImplicitSuffixTree(SageObject):
         the suffix tree.
 
         INPUT:
-            word_labels -- if False, labels the edges by pairs (i, j);
-                           if True, labels the edges by word[i:j].
 
-        EXAMPLES:
+
+        -  ``word_labels`` - if False, labels the edges by
+           pairs (i, j); if True, labels the edges by word[i:j].
+
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=True)
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=False)
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: type(ImplicitSuffixTree(Word('cacao')).plot(word_labels=True))
             <class 'sage.plot.plot.Graphics'>
@@ -809,10 +858,14 @@ class ImplicitSuffixTree(SageObject):
         Displays the output of self.plot().
 
         INPUT:
-            word_labels -- if False, labels the edges by pairs (i, j);
-                           if True, labels the edges by word[i:j].
 
-        EXAMPLES:
+
+        -  ``word_labels`` - if False, labels the edges by
+           pairs (i, j); if True, labels the edges by word[i:j].
+
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("cao")("cacao")
             sage: t = ImplicitSuffixTree(w)
@@ -829,10 +882,11 @@ class ImplicitSuffixTree(SageObject):
 
     def __eq__(self,other):
         r"""
-        If self and other have the same transition function and the
-        same word, then they are equal.
+        If self and other have the same transition function and the same
+        word, then they are equal.
 
-        TEST:
+        TEST::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words([0,1,2])([0,1,0,1,2])
             sage: u = Words([0,1,2])(iter([0,1,0,1,2]))[:5]
@@ -851,7 +905,8 @@ class ImplicitSuffixTree(SageObject):
         end_node) if we end at end_node, or ("implicit", (edge, d)) if we
         end d spots along an edge.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words([0,1,2])
             sage: t = ImplicitSuffixTree(W([0,1,0,1,2]))
@@ -892,7 +947,8 @@ class ImplicitSuffixTree(SageObject):
         r"""
         Returns the states (explicit nodes) of the suffix tree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words([0,1,2])
             sage: t = ImplicitSuffixTree(W([0,1,0,1,2]))
@@ -910,7 +966,8 @@ class ImplicitSuffixTree(SageObject):
         defined to be -1 is x' is the root (0) and y' otherwise, where y'
         is the state corresponding to the suffix x[1:].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words([0,1,2])
             sage: t = ImplicitSuffixTree(W([0,1,0,1,2]))
@@ -934,7 +991,8 @@ class ImplicitSuffixTree(SageObject):
         r"""
         Returns the active state of the suffix tree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: W = Words([0,1,2])
             sage: t = ImplicitSuffixTree(W([0,1,0,1,2]))
@@ -948,13 +1006,16 @@ class ImplicitSuffixTree(SageObject):
         Modifies the current implicit suffix tree producing the implicit
         suffix tree for self.word() + letter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("aco")("cacao")
             sage: t = ImplicitSuffixTree(w[:-1]); t
             Implicit Suffix Tree of the word: caca
             sage: t.process_letter(w[-1]); t
             Implicit Suffix Tree of the word: cacao
+
+        ::
 
             sage: W = Words([0,1])
             sage: s = ImplicitSuffixTree(W([0,1,0,1])); s
@@ -969,15 +1030,18 @@ class ImplicitSuffixTree(SageObject):
     def to_explicit_suffix_tree(self):
         r"""
         Converts self to an explicit suffix tree. It is obtained by
-        processing an end of string letter as if it were a regular
-        letter, except that no new leaf nodes are created (thus, the only
-        thing that happens is that some implicit nodes become explicit).
+        processing an end of string letter as if it were a regular letter,
+        except that no new leaf nodes are created (thus, the only thing
+        that happens is that some implicit nodes become explicit).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: w = Words("aco")("cacao")
             sage: t = ImplicitSuffixTree(w[:-1])
             sage: t.to_explicit_suffix_tree()
+
+        ::
 
             sage: W = Words([0,1])
             sage: s = ImplicitSuffixTree(W([0,1,0,1, 1]))
@@ -1000,11 +1064,12 @@ class ImplicitSuffixTree(SageObject):
 
     def edge_iterator(self):
         r"""
-        Returns an iterator over the edges of the suffix tree. The
-        edge from u to v labelled by (i,j) is returned as the tuple
+        Returns an iterator over the edges of the suffix tree. The edge
+        from u to v labelled by (i,j) is returned as the tuple
         (u,v,(i,j)).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: sorted( ImplicitSuffixTree(Word("aaaaa")).edge_iterator() )
             [(0, 1, (0, None))]
@@ -1025,14 +1090,17 @@ class ImplicitSuffixTree(SageObject):
         Count the number of distinct factors of self.word().
 
         INPUT:
-            n -- an integer, or None.
 
-        OUTPUT:
-            If n is an integer, returns the number of distinct factors
-            of length n. If n is None, returns the total number of
-            distinct factors.
 
-        EXAMPLES:
+        -  ``n`` - an integer, or None.
+
+
+        OUTPUT: If n is an integer, returns the number of distinct factors
+        of length n. If n is None, returns the total number of distinct
+        factors.
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: t = ImplicitSuffixTree(Word([1,2,1,3,1,2,1]))
             sage: t.number_of_factors()
@@ -1044,11 +1112,15 @@ class ImplicitSuffixTree(SageObject):
             sage: t.number_of_factors(0)
             1
 
+        ::
+
             sage: t = ImplicitSuffixTree(Word("cacao"))
             sage: t.number_of_factors()
             13
             sage: map(t.number_of_factors, range(10))
             [1, 3, 3, 3, 2, 1, 0, 0, 0, 0]
+
+        ::
 
             sage: t = ImplicitSuffixTree(Word("c"*1000))
             sage: t.number_of_factors()
@@ -1058,8 +1130,12 @@ class ImplicitSuffixTree(SageObject):
             sage: t.number_of_factors(0)
             1
 
+        ::
+
             sage: ImplicitSuffixTree(Word()).number_of_factors()
             1
+
+        ::
 
             sage: blueberry = ImplicitSuffixTree(Word("blueberry"))
             sage: blueberry.number_of_factors()
@@ -1101,14 +1177,17 @@ class ImplicitSuffixTree(SageObject):
         Generate distinct factors of self.
 
         INPUT:
-            n -- an integer, or None.
 
-        OUTPUT:
-            If n is an integer, returns an iterator over all distinct
-            factors of length n. If n is None, returns an iterator
-            generating all distinct factors.
 
-        EXAMPLES:
+        -  ``n`` - an integer, or None.
+
+
+        OUTPUT: If n is an integer, returns an iterator over all distinct
+        factors of length n. If n is None, returns an iterator generating
+        all distinct factors.
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: sorted( ImplicitSuffixTree(Word("cacao")).factor_iterator() )
             [word: , word: a, word: ac, word: aca, word: acao, word: ao, word: c, word: ca, word: cac, word: caca, word: cacao, word: cao, word: o]
@@ -1170,7 +1249,8 @@ class ImplicitSuffixTree(SageObject):
         are labelled by exactly one letter. The resulting tree is
         isomorphic to the suffix trie.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree, SuffixTrie
             sage: abbab = Words("ab")("abbab")
             sage: s = SuffixTrie(abbab)
@@ -1199,7 +1279,8 @@ class ImplicitSuffixTree(SageObject):
         Returns a dictionary in a format compatible with that of the suffix
         trie transition function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree, SuffixTrie
             sage: W = Words("ab")
             sage: t = ImplicitSuffixTree(W("aba"))
@@ -1232,18 +1313,26 @@ def NaiveSuffixTree(word):
     algorithm. Useful for testing.
 
     INPUT:
-        word -- any word
 
-    EXAMPLES:
+
+    -  ``word`` - any word
+
+
+    EXAMPLES::
+
         sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
         sage: W = Words('abco')
         sage: s = NaiveSuffixTree(W("abacabaabaca")); s
         Suffix Tree of the word: abacabaabaca
 
+    ::
+
         sage: s = NaiveSuffixTree(W("cacao")); s
         Suffix Tree of the word: cacao
         sage: s.edges()
         [(0, 3, word: ca), (0, 5, word: a), (0, 7, word: o), (3, 1, word: cao), (3, 4, word: o), (5, 2, word: cao), (5, 6, word: o)]
+
+    ::
 
         sage: W = Words([0,1])
         sage: s = NaiveSuffixTree(W([0,1,0,1,1])); s
@@ -1281,14 +1370,14 @@ class NaiveSuffixTreeClass(DiGraph):
 
     def word_to_node(self,node,word):
         r"""
-        Returns the node obtained by starting from node and following
-        the edges labelled by the letters of word. Returns ("node",
-        node2, word2) if we end at node2, or ("implicit", edge, word2)
-        if we end in the middle of an edge (called an implicit node),
-        where word2 is the suffix of word that does not match any more
-        edge labels.
+        Returns the node obtained by starting from node and following the
+        edges labelled by the letters of word. Returns ("node", node2,
+        word2) if we end at node2, or ("implicit", edge, word2) if we end
+        in the middle of an edge (called an implicit node), where word2 is
+        the suffix of word that does not match any more edge labels.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: W = Words("abc")
             sage: NST = NaiveSuffixTree(W("abacabaabaca"))
@@ -1324,7 +1413,8 @@ class NaiveSuffixTreeClass(DiGraph):
         r"""
         Helper function for constructing the suffix tree.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTreeClass
             sage: W = Words([0,1,2])
             sage: NST = NaiveSuffixTreeClass({0:[]})
@@ -1363,11 +1453,13 @@ class NaiveSuffixTreeClass(DiGraph):
         r"""
         Returns a Graphics object associated to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: NaiveSuffixTree(Word("abacabaabaca")).plot()
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: type(NaiveSuffixTree(Word("abacabaabaca")).plot())
             <class 'sage.plot.plot.Graphics'>
@@ -1381,10 +1473,11 @@ class NaiveSuffixTreeClass(DiGraph):
 
     def node_to_word(self,node):
         r"""
-        Returns the word obtained by reading the edge labels from the root to
-        node.
+        Returns the word obtained by reading the edge labels from the root
+        to node.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: NaiveSuffixTree(Word("abacabaabaca")).node_to_word(17)
             word: ca
@@ -1404,7 +1497,8 @@ class NaiveSuffixTreeClass(DiGraph):
         r"""
         Returns the word whose suffix tree this is.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: NaiveSuffixTree(Word("abcba")).word()
             word: abcba
@@ -1413,7 +1507,8 @@ class NaiveSuffixTreeClass(DiGraph):
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.suffix_trees import NaiveSuffixTree
             sage: NaiveSuffixTree(Word("abcba"))._repr_()
             'Suffix Tree of the word: abcba'

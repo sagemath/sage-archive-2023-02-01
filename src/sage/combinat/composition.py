@@ -1,32 +1,41 @@
 r"""
 Compositions
 
-A composition c of a nonnegative integer n is a list of positive integers with total sum n.
+A composition c of a nonnegative integer n is a list of positive
+integers with total sum n.
 
+EXAMPLES: There are 8 compositions of 4.
 
-EXAMPLES:
-  There are 8 compositions of 4.
+::
 
     sage: Compositions(4).count()
     8
 
-  Here is the list of them:
+Here is the list of them::
 
     sage: Compositions(4).list()
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
 
-  You can use the .first() method to get the 'first' composition of a number.
+You can use the .first() method to get the 'first' composition of a
+number.
+
+::
 
     sage: Compositions(4).first()
     [1, 1, 1, 1]
 
-  You can also calculate the 'next' composition given the current one.
+You can also calculate the 'next' composition given the current
+one.
+
+::
 
     sage: Compositions(4).next([1,1,2])
     [1, 2, 1]
 
-  The following examples shows how to test whether or not an object
-  is a composition.
+The following examples shows how to test whether or not an object
+is a composition.
+
+::
 
     sage: [3,4] in Compositions()
     True
@@ -35,8 +44,10 @@ EXAMPLES:
     sage: [3,4] in Compositions(5)
     False
 
-  Similarly, one can check whether or not an object is a composition
-  which satisfies further constraints.
+Similarly, one can check whether or not an object is a composition
+which satisfies further constraints.
+
+::
 
     sage: [4,2] in Compositions(6, inner=[2,2], min_part=2)
     True
@@ -45,16 +56,17 @@ EXAMPLES:
     sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
     False
 
-  Note that the given constraints should compatible.
+Note that the given constraints should compatible.
+
+::
 
     sage: [4,1] in Compositions(5, inner=[2,1], min_part=1)
     True
 
-
-  The options length, min_length, and max_length can be used to set
-  length constraints on the compositions.  For example, the
-  compositions of 4 of length equal to, at least, and at most
-  2 are given by:
+The options length, min_length, and max_length can be used to set
+length constraints on the compositions. For example, the
+compositions of 4 of length equal to, at least, and at most 2 are
+given by::
 
     sage: Compositions(4, length=2).list()
     [[1, 3], [2, 2], [3, 1]]
@@ -63,52 +75,58 @@ EXAMPLES:
     sage: Compositions(4, max_length=2).list()
     [[1, 3], [2, 2], [3, 1], [4]]
 
-  Setting both min_length and max_length to the same value is
-  equaivalent to setting length to this value.
+Setting both min_length and max_length to the same value is
+equaivalent to setting length to this value.
+
+::
 
     sage: Compositions(4, min_length=2, max_length=2).list()
     [[1, 3], [2, 2], [3, 1]]
 
-
-  The options inner and outer can be used to set part-by-part
-  containment constaints.  The list of compositions of 4 bounded
-  above by [3,1,2] is given by:
+The options inner and outer can be used to set part-by-part
+containment constaints. The list of compositions of 4 bounded above
+by [3,1,2] is given by::
 
     sage: Compositions(4, outer=[3,1,2]).list()
     [[1, 1, 2], [2, 1, 1], [3, 1]]
 
-  Outer sets max_length to the length of its argument.  Moreover,
-  the parts of outer may be infinite to clear the constraint
-  on specific parts.  This is the list of compositions
-  of 4 of length at most 3 such that the first and third
-  parts are at most 1:
+Outer sets max_length to the length of its argument. Moreover, the
+parts of outer may be infinite to clear the constraint on specific
+parts. This is the list of compositions of 4 of length at most 3
+such that the first and third parts are at most 1::
 
     sage: Compositions(4, outer=[1,oo,1]).list()
     [[1, 2, 1], [1, 3]]
 
-  This is the list of compositions of 4 bounded below by [1,1,1].
+This is the list of compositions of 4 bounded below by [1,1,1].
+
+::
 
     sage: Compositions(4, inner=[1,1,1]).list()
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1]]
 
-  The options min_slope and max_slope can be used to set
-  constraints on the slope, that is the difference p[i+1]-p[i] of
-  two consecutive parts.  The following is the list of weakly
-  increasing compositions of 4.
+The options min_slope and max_slope can be used to set
+constraints on the slope, that is the difference p[i+1]-p[i] of two
+consecutive parts. The following is the list of weakly increasing
+compositions of 4.
+
+::
 
     sage: Compositions(4, min_slope=0).list()
     [[1, 1, 1, 1], [1, 1, 2], [1, 3], [2, 2], [4]]
 
-  The following is the list of compositions of 4 such that two
-  consecutive parts differ by at most one unit:
+The following is the list of compositions of 4 such that two
+consecutive parts differ by at most one unit::
 
     sage: Compositions(4, min_slope=-1, max_slope=1).list()
     [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [2, 2], [4]]
 
-  The constraints can be combinat together in all reasonable
-  ways.  This is the list of compositions of 5 of length
-  between 2 and 4 such that the differnce between consecutive
-  parts is between -2 and 1.
+The constraints can be combinat together in all reasonable ways.
+This is the list of compositions of 5 of length between 2 and 4
+such that the differnce between consecutive parts is between -2 and
+1.
+
+::
 
     sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4).list()
     [[1, 1, 1, 2],
@@ -122,18 +140,20 @@ EXAMPLES:
      [3, 1, 1],
      [3, 2]]
 
-  We can do the same thing with an outer constraint:
+We can do the same thing with an outer constraint::
 
     sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
     [[1, 2, 2], [2, 1, 2], [2, 2, 1], [2, 3]]
 
-  However, providing incoherent constraints may yield strange results.
-  It is up to the user to ensure that the inner and outer compositions
-  themselves satisfy the parts and slope constraints.
+However, providing incoherent constraints may yield strange
+results. It is up to the user to ensure that the inner and outer
+compositions themselves satisfy the parts and slope constraints.
 
 AUTHORS:
-    --Mike Hansen
-    --MuPAD-Combinat developers (for algorithms and design inspiration)
+
+- Mike Hansen
+
+- MuPAD-Combinat developers (for algorithms and design inspiration)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -161,21 +181,26 @@ def Composition(co=None, descents=None, code=None):
     """
     Returns a composition object.
 
-    EXAMPLES:
-      The standard way to create a composition is by specifying it
-      as a list.
+    EXAMPLES: The standard way to create a composition is by specifying
+    it as a list.
+
+    ::
 
         sage: Composition([3,1,2])
         [3, 1, 2]
 
-      You can create a composition from a list of its descents.
+    You can create a composition from a list of its descents.
+
+    ::
 
         sage: Composition([1, 1, 3, 4, 3]).descents()
         [0, 1, 4, 8, 11]
         sage: Composition(descents=[1,0,4,8,11])
         [1, 1, 3, 4, 3]
 
-      You can also create a composition from its code.
+    You can also create a composition from its code.
+
+    ::
 
         sage: Composition([4,1,2,3,5]).to_code()
         [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
@@ -210,10 +235,10 @@ class Composition_class(CombinatorialObject):
 
         Algorithm from mupad-combinat.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).conjugate()
             [1, 1, 3, 3, 1, 3]
-
         """
         comp = self
         if comp == []:
@@ -231,15 +256,15 @@ class Composition_class(CombinatorialObject):
 
     def complement(self):
         """
-        Returns the complement of the composition co.  The complement
-        is the reverse of co's conjugate composition.
+        Returns the complement of the composition co. The complement is the
+        reverse of co's conjugate composition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).conjugate()
             [1, 1, 3, 3, 1, 3]
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).complement()
             [3, 1, 3, 3, 1, 1]
-
         """
         return Composition([element for element in reversed(self.conjugate())])
 
@@ -248,7 +273,8 @@ class Composition_class(CombinatorialObject):
         Returns True if the composition self is finer than the composition
         co2; otherwise, it returns False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([4,1,2]).is_finer([3,1,3])
             False
             sage: Composition([3,1,3]).is_finer([4,1,2])
@@ -281,7 +307,8 @@ class Composition_class(CombinatorialObject):
         """
         Returns the refinement composition of self and co2.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1,2,2,1,1,2]).refinement([5,1,3])
             [3, 1, 2]
         """
@@ -311,10 +338,11 @@ class Composition_class(CombinatorialObject):
 
     def major_index(self):
         """
-        Returns the major index of the composition co.  The major index is defined
-        as the sum of the descents.
+        Returns the major index of the composition co. The major index is
+        defined as the sum of the descents.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).major_index()
             31
         """
@@ -332,7 +360,8 @@ class Composition_class(CombinatorialObject):
         is a list of length self.size() of 1s and 0s such that there is a 1
         wherever a new part starts.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([4,1,2,3,5]).to_code()
             [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
         """
@@ -351,7 +380,8 @@ class Composition_class(CombinatorialObject):
         """
         Returns the list of descents of the composition co.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).descents()
             [0, 1, 4, 5, 7, 8, 11]
         """
@@ -370,13 +400,13 @@ class Composition_class(CombinatorialObject):
         Returns a list of the peaks of the composition self.
 
         The peaks are the positions i in the compositions such that
-        self[i-1] < self[i] > self[i+1].  Note that len(self)-1 is
-        never a peak.
+        self[i-1] self[i] self[i+1]. Note that len(self)-1 is never a
+        peak.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).peaks()
             [2, 4]
-
         """
         p = []
         for i in range(1,len(self)-1):
@@ -387,16 +417,16 @@ class Composition_class(CombinatorialObject):
 
     def to_skew_partition(self, overlap=1):
         """
-        Returns the skew partition obtained from the composition co.
-        The parameter overlap indicates the number of boxes that are
-        covered by boxes of the previous line.
+        Returns the skew partition obtained from the composition co. The
+        parameter overlap indicates the number of boxes that are covered by
+        boxes of the previous line.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Composition([3,4,1]).to_skew_partition()
             [[6, 6, 3], [5, 2]]
             sage: Composition([3,4,1]).to_skew_partition(overlap=0)
             [[8, 7, 3], [7, 3]]
-
         """
         outer = []
         inner = []
@@ -425,9 +455,10 @@ def Compositions(n=None, **kwargs):
     """
     Returns the combinatorial class of compositions.
 
-    EXAMPLES:
-      If n is not specificied, it returns the combinatorial
-      class of all (non-negative) integer compositions.
+    EXAMPLES: If n is not specificied, it returns the combinatorial
+    class of all (non-negative) integer compositions.
+
+    ::
 
         sage: Compositions()
         Compositions of non-negative integers
@@ -438,8 +469,9 @@ def Compositions(n=None, **kwargs):
         sage: [-2,3,1] in Compositions()
         False
 
-      If n is specified, it returns the class of compositions
-      of n.
+    If n is specified, it returns the class of compositions of n.
+
+    ::
 
         sage: Compositions(3)
         Compositions of 3
@@ -448,10 +480,12 @@ def Compositions(n=None, **kwargs):
         sage: Compositions(3).count()
         4
 
-      In addition, the following constaints can be put on the
-      compositions: length, min_part, max_part, min_length,
-      max_length, min_slope, max_slope, inner, and outer.
-      For example,
+    In addition, the following constaints can be put on the
+    compositions: length, min_part, max_part, min_length,
+    max_length, min_slope, max_slope, inner, and outer. For
+    example,
+
+    ::
 
         sage: Compositions(3, length=2).list()
         [[1, 2], [2, 1]]
@@ -469,7 +503,8 @@ def Compositions(n=None, **kwargs):
 class Compositions_all(CombinatorialClass):
     def __init__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: C = Compositions()
             sage: C == loads(dumps(C))
             True
@@ -477,7 +512,8 @@ class Compositions_all(CombinatorialClass):
         pass
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Compositions())
             'Compositions of non-negative integers'
         """
@@ -487,7 +523,8 @@ class Compositions_all(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [2,1,3] in Compositions()
             True
             sage: [] in Compositions()
@@ -511,7 +548,8 @@ class Compositions_all(CombinatorialClass):
 
     def list(self):
         """
-        TESTS:
+        TESTS::
+
             sage: Compositions().list()
             Traceback (most recent call last):
             ...
@@ -522,7 +560,8 @@ class Compositions_all(CombinatorialClass):
 class Compositions_n(CombinatorialClass):
     def __init__(self, n):
         """
-        TESTS:
+        TESTS::
+
             sage: C = Compositions(3)
             sage: C == loads(dumps(C))
             True
@@ -531,7 +570,8 @@ class Compositions_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Compositions(3))
             'Compositions of 3'
         """
@@ -539,7 +579,8 @@ class Compositions_n(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [2,1,3] in Compositions(6)
             True
             sage: [2,1,2] in Compositions(6)
@@ -553,7 +594,8 @@ class Compositions_n(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: Compositions(3).count()
             4
             sage: Compositions(0).count()
@@ -568,7 +610,8 @@ class Compositions_n(CombinatorialClass):
 
     def list(self):
         """
-        TESTS:
+        TESTS::
+
             sage: Compositions(4).list()
             [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
             sage: Compositions(0).list()
@@ -589,6 +632,8 @@ class Compositions_constraints(CombinatorialClass):
 
     def __init__(self, n, **kwargs):
         """
+        ::
+
             sage: C = Compositions(4, length=2)
             sage: C == loads(dumps(C))
             True
@@ -598,7 +643,8 @@ class Compositions_constraints(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Compositions(6, min_part=2, length=3))
             'Compositions of 6 with constraints length=3, min_part=2'
         """
@@ -606,7 +652,8 @@ class Compositions_constraints(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [2, 1] in Compositions(3, length=2)
             True
             sage: [2,1,2] in Compositions(5, min_part=1)
@@ -619,7 +666,8 @@ class Compositions_constraints(CombinatorialClass):
 
     def count(self):
         """
-         EXAMPLES:
+        EXAMPLES::
+
             sage: Compositions(4, length=2).count()
             3
             sage: Compositions(4, min_length=2).count()
@@ -651,7 +699,8 @@ class Compositions_constraints(CombinatorialClass):
         """
         Returns a list of all the compositions of n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Compositions(4, length=2).list()
             [[1, 3], [2, 2], [3, 1]]
             sage: Compositions(4, min_length=2).list()
@@ -685,7 +734,6 @@ class Compositions_constraints(CombinatorialClass):
              [3, 2]]
             sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
             [[1, 2, 2], [2, 1, 2], [2, 2, 1], [2, 3]]
-
         """
         n = self.n
 
@@ -710,7 +758,8 @@ def from_descents(descents, nps=None):
     """
     Returns a composition from the list of descents.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Composition([1, 1, 3, 4, 3]).descents()
         [0, 1, 4, 8, 11]
         sage: sage.combinat.composition.from_descents([1,0,4,8],12)
@@ -743,12 +792,12 @@ def from_descents(descents, nps=None):
 
 def from_code(code):
     """
-    Return the composition from its code.The code of a composition
-    is a list of length self.size() of 1s and 0s such that there is a 1
+    Return the composition from its code.The code of a composition is a
+    list of length self.size() of 1s and 0s such that there is a 1
     wherever a new part starts.
 
+    EXAMPLES::
 
-    EXAMPLES:
         sage: import sage.combinat.composition as composition
         sage: Composition([4,1,2,3,5]).to_code()
         [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
@@ -758,7 +807,6 @@ def from_code(code):
         [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
         sage: composition.from_code(_)
         [3, 1, 2, 3, 5]
-
     """
     if code == [0]:
         return []

@@ -1,4 +1,7 @@
 # coding=utf-8
+"""
+Word contents
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #
@@ -17,19 +20,32 @@ def BuildWordContent(obj, mapping=id_f, format=None, part=slice(None)):
     Builds the content for a word.
 
     INPUT:
-        obj -- a function, an iterator or a list, potentially with a length defined
-        mapping -- function, a map sending elements of the iterable to
-                   nonnegative integers.
-        format -- string (default None), the explicit type of obj.  Can be
-                  either 'empty', 'list', 'function' or 'iterator'.  If set
-                  to None (the default), the type will be guessed from the
-                  properties of obj.
-        part --  slice (default slice(None)), the portion of the object to use
+
+
+    -  ``obj`` - a function, an iterator or a list,
+       potentially with a length defined
+
+    -  ``mapping`` - function, a map sending elements of
+       the iterable to nonnegative integers.
+
+    -  ``format`` - string (default None), the explicit
+       type of obj. Can be either 'empty', 'list', 'function' or
+       'iterator'. If set to None (the default), the type will be guessed
+       from the properties of obj.
+
+    -  ``part`` - slice (default slice(None)), the portion
+       of the object to use
+
 
     OUTPUT:
-        word content -- an object respecting the word content protocol wrapping obj
 
-    TESTS:
+
+    -  ``word content`` - an object respecting the word
+       content protocol wrapping obj
+
+
+    TESTS::
+
         sage: from sage.combinat.words.word_content import BuildWordContent
         sage: from itertools import count, imap, repeat
         sage: len(BuildWordContent(None))
@@ -94,7 +110,8 @@ def is_WordContent(obj):
     r"""
     Returns True if obj is the content of a word.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.word_content import BuildWordContent, is_WordContent
         sage: is_WordContent(33)
         False
@@ -110,7 +127,8 @@ class WordContent(object):
 
         The types of the contents doesn't matter.
 
-        TESTS:
+        TESTS::
+
             sage: c1 = sage.combinat.words.word_content.WordContentFromList([1, 2, 1, 1])
             sage: c2 = sage.combinat.words.word_content.WordContentFromList([1, 2, 3])
             sage: c3 = sage.combinat.words.word_content.WordContentFromList([1, 4])
@@ -134,7 +152,8 @@ class WordContent(object):
         r"""
         Method to concatenate two contents together.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.word_content import BuildWordContent
             sage: list(BuildWordContent([1]).concatenate(BuildWordContent([2, 3, 4])))
             [1, 2, 3, 4]
@@ -147,7 +166,8 @@ class WordContent(object):
         r"""
         Returns self as a list of contents suitable for concatenate
 
-        TESTS:
+        TESTS::
+
             sage: type(sage.combinat.words.word_content.BuildWordContent([1, 2, 3])._get_list())
             <type 'tuple'>
         """
@@ -156,13 +176,15 @@ class WordContent(object):
     def _check_getitem_args(self, key):
         r"""
         Does all the type and range checking for the key argument to
-        __getitem__().  Also takes care of normalizing the ranges specified
-        by slicing to values suitable for xrange() or similar in the finite
-        case.  In the infinite case a stop value of None, will stay as None
-        since no end can be defined.
+        __getitem__(). Also takes care of normalizing the ranges
+        specified by slicing to values suitable for xrange() or similar in
+        the finite case. In the infinite case a stop value of None, will
+        stay as None since no end can be defined.
 
-        TESTS:
-            # Generic Cases
+        TESTS: Generic Cases
+
+        ::
+
             sage: w = sage.combinat.words.word_content.WordContent()
             sage: w._check_getitem_args(1)
             1
@@ -185,7 +207,10 @@ class WordContent(object):
             ...
             TypeError: word indices must be integers
 
-            # Finite Cases
+        Finite Cases
+
+        ::
+
             sage: f = sage.combinat.words.word_content.WordContentFromList(range(10))
             sage: f._check_getitem_args(slice(None, None, None))
             slice(0, 10, 1)
@@ -284,7 +309,10 @@ class WordContent(object):
             ...
             IndexError: word index out of range
 
-            # Infinite Cases
+        Infinite Cases
+
+        ::
+
             sage: from itertools import count
             sage: i = sage.combinat.words.word_content.WordContentFromIterator(count())
             sage: i._check_getitem_args(slice(None, None, None))
@@ -397,10 +425,16 @@ class WordContentFromList(WordContent):
     def __init__(self, l, trans=id_f):
         r"""
         INPUT:
-            l -- list
-            trans -- function (default identity), defines a mapping between the objects in l and the nonnegative integers
 
-        TESTS:
+
+        -  ``l`` - list
+
+        -  ``trans`` - function (default identity), defines a
+           mapping between the objects in l and the nonnegative integers
+
+
+        TESTS::
+
             sage: c = sage.combinat.words.word_content.WordContentFromList([0, 1, 1, 2, 1])
             sage: c == loads(dumps(c))
             True
@@ -413,7 +447,8 @@ class WordContentFromList(WordContent):
 
     def __iter__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: list(sage.combinat.words.word_content.WordContentFromList('012345', int)) # indirect test
             [0, 1, 2, 3, 4, 5]
         """
@@ -421,7 +456,8 @@ class WordContentFromList(WordContent):
 
     def __len__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: len(sage.combinat.words.word_content.WordContentFromList([0, 1, 0, 0, 1]))
             5
         """
@@ -429,7 +465,8 @@ class WordContentFromList(WordContent):
 
     def __getitem__(self, key):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.word_content import WordContentFromList
             sage: w = WordContentFromList('012345', int)
             sage: e = WordContentFromList('', int)
@@ -495,15 +532,20 @@ class WordContentFromFunction(WordContent):
     def __init__(self, func, trans=id_f):
         r"""
         INPUT:
-            func -- callable
-            trans -- callable (default: identity), defines a mapping between the objects returned by func and the nonnegative integers.
 
-        NOTE:
-            Unnamed functions do not pickle.  And if you arbitrarily
-            slice this type of container then it may use lambdas
-            and break pickling.
 
-        TESTS:
+        -  ``func`` - callable
+
+        -  ``trans`` - callable (default: identity), defines a
+           mapping between the objects returned by func and the nonnegative
+           integers.
+
+
+        NOTE: Unnamed functions do not pickle. And if you arbitrarily slice
+        this type of container then it may use lambdas and break pickling.
+
+        TESTS::
+
             sage: c = sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)[:10]
             sage: c == loads(dumps(c))
             True
@@ -514,7 +556,8 @@ class WordContentFromFunction(WordContent):
 
     def __iter__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: list(sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)[:6]) # indirect test
             [0, 1, 2, 3, 4, 5]
         """
@@ -523,7 +566,8 @@ class WordContentFromFunction(WordContent):
 
     def __len__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: c = sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)
             sage: len(c)
             Traceback (most recent call last):
@@ -537,7 +581,8 @@ class WordContentFromFunction(WordContent):
 
     def __getitem__(self, key):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.utils import id_f
             sage: from sage.combinat.words.word_content import WordContentFromFunction, WordContentFromList
             sage: w = WordContentFromFunction(id_f);
@@ -633,18 +678,25 @@ class WordContentFromIterator(WordContent):
     def __init__(self, it, trans=id_f):
         r"""
         INPUT:
-            it -- iterator
-            trans -- function (default identity), defines a mapping between the objects returned by it and the nonnegative integers.
 
-        NOTE:
-            It appears that islice does not pickle correctly causing
-            various errors when reloading.  Also, most iterators
-            do not support copying and should not support pickling by
-            extension.
 
-        TESTS:
+        -  ``it`` - iterator
+
+        -  ``trans`` - function (default identity), defines a
+           mapping between the objects returned by it and the nonnegative
+           integers.
+
+
+        NOTE: It appears that islice does not pickle correctly causing
+        various errors when reloading. Also, most iterators do not support
+        copying and should not support pickling by extension.
+
+        TESTS::
+
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())[:10]
+
+        ::
 
             #sage: c == loads(dumps(c)) # broken because of islice
             #True
@@ -655,7 +707,8 @@ class WordContentFromIterator(WordContent):
 
     def __iter__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from itertools import count
             sage: list(sage.combinat.words.word_content.WordContentFromIterator(count())[:6]) # indirect test
             [0, 1, 2, 3, 4, 5]
@@ -664,7 +717,8 @@ class WordContentFromIterator(WordContent):
 
     def _get_it(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())
             sage: it1 = c._get_it()
@@ -685,7 +739,8 @@ class WordContentFromIterator(WordContent):
 
     def __len__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())
             sage: len(c)
@@ -700,7 +755,8 @@ class WordContentFromIterator(WordContent):
 
     def __getitem__(self, key):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from itertools import count
             sage: from sage.combinat.words.word_content import WordContentFromIterator, WordContentFromList
             sage: w = WordContentFromIterator(count())
@@ -803,7 +859,8 @@ class ConcatenateContent(WordContentFromFunction):
     """
     def __init__(self, l):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: c = ConcatenateContent((BuildWordContent([1, 2]),))
             sage: len(c)
@@ -818,7 +875,8 @@ class ConcatenateContent(WordContentFromFunction):
 
     def __iter__(self):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: list(ConcatenateContent((BuildWordContent('012', int), BuildWordContent([3, 4, 5])))) # indirect test
             [0, 1, 2, 3, 4, 5]
@@ -831,7 +889,8 @@ class ConcatenateContent(WordContentFromFunction):
         r"""
         Optimization: for ConcatenateContents return the internal list.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: type(ConcatenateContent((BuildWordContent([1, 2]),))._get_list())
             <type 'tuple'>
@@ -842,7 +901,8 @@ class ConcatenateContent(WordContentFromFunction):
         r"""
         Returns the character at position key in the word.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: c = ConcatenateContent((BuildWordContent('1221', int), BuildWordContent('2112', int)))
             sage: c(0)

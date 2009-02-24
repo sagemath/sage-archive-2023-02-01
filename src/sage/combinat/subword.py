@@ -36,10 +36,11 @@ def Subwords(w, k=None):
     """
     Returns the combinatorial class of subwords of w.
 
-    If k is specified, then it returns the combinatorial class
-    of subwords of w of length k.
+    If k is specified, then it returns the combinatorial class of
+    subwords of w of length k.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: S = Subwords(['a','b','c']); S
         Subwords of ['a', 'b', 'c']
         sage: S.first()
@@ -49,11 +50,12 @@ def Subwords(w, k=None):
         sage: S.list()
         [[], ['a'], ['b'], ['c'], ['a', 'b'], ['a', 'c'], ['b', 'c'], ['a', 'b', 'c']]
 
+    ::
+
         sage: S = Subwords(['a','b','c'], 2); S
         Subwords of ['a', 'b', 'c'] of length 2
         sage: S.list()
         [['a', 'b'], ['a', 'c'], ['b', 'c']]
-
     """
     if k == None:
         return Subwords_w(w)
@@ -67,7 +69,8 @@ def Subwords(w, k=None):
 class Subwords_w(CombinatorialClass):
     def __init__(self, w):
         """
-        TESTS:
+        TESTS::
+
             sage: S = Subwords([1,2,3])
             sage: S == loads(dumps(S))
             True
@@ -76,7 +79,8 @@ class Subwords_w(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Subwords([1,2,3]))
             'Subwords of [1, 2, 3]'
         """
@@ -84,7 +88,8 @@ class Subwords_w(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Subwords([1,2,3]).count()
             8
         """
@@ -92,7 +97,8 @@ class Subwords_w(CombinatorialClass):
 
     def first(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Subwords([1,2,3]).first()
             []
         """
@@ -100,7 +106,8 @@ class Subwords_w(CombinatorialClass):
 
     def last(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Subwords([1,2,3]).last()
             [1, 2, 3]
         """
@@ -108,7 +115,8 @@ class Subwords_w(CombinatorialClass):
 
     def iterator(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [sw for sw in Subwords([1,2,3])]
             [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
         """
@@ -121,7 +129,8 @@ class Subwords_w(CombinatorialClass):
 class Subwords_wk(CombinatorialClass):
     def __init__(self, w, k):
         """
-        TESTS:
+        TESTS::
+
             sage: S = Subwords([1,2,3],2)
             sage: S == loads(dumps(S))
             True
@@ -131,7 +140,8 @@ class Subwords_wk(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(Subwords([1,2,3],2))
             'Subwords of [1, 2, 3] of length 2'
         """
@@ -142,7 +152,8 @@ class Subwords_wk(CombinatorialClass):
         r"""
         Returns the number of subwords of w of length k.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Subwords([1,2,3], 2).count()
             3
         """
@@ -153,8 +164,8 @@ class Subwords_wk(CombinatorialClass):
 
     def first(self):
         r"""
+        EXAMPLES::
 
-        EXAMPLES:
             sage: Subwords([1,2,3],2).first()
             [1, 2]
             sage: Subwords([1,2,3],0).first()
@@ -164,7 +175,8 @@ class Subwords_wk(CombinatorialClass):
 
     def last(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Subwords([1,2,3],2).last()
             [2, 3]
         """
@@ -175,7 +187,8 @@ class Subwords_wk(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [sw for sw in Subwords([1,2,3],2)]
             [[1, 2], [1, 3], [2, 3]]
             sage: [sw for sw in Subwords([1,2,3],0)]
@@ -194,14 +207,14 @@ class Subwords_wk(CombinatorialClass):
 
 def smallest_positions(word, subword, pos = 0):
     """
-    Returns the smallest positions for which subword apppears
-    as a subword of word.  If pos is specified, then it returns
-    the positions of the first appearance of subword starting
-    at pos.
+    Returns the smallest positions for which subword apppears as a
+    subword of word. If pos is specified, then it returns the positions
+    of the first appearance of subword starting at pos.
 
     If subword is not found in word, then it returns False
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.combinat.subword.smallest_positions([1,2,3,4], [2,4])
         [1, 3]
         sage: sage.combinat.subword.smallest_positions([1,2,3,4,4], [2,4])
@@ -216,7 +229,6 @@ def smallest_positions(word, subword, pos = 0):
         [1, 2]
         sage: sage.combinat.subword.smallest_positions([1,2,3,4], [5,5])
         False
-
     """
     pos -= 1
     for i in range(len(subword)):

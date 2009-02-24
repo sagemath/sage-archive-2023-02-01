@@ -18,19 +18,20 @@ Backtracking
 class GenericBacktracker(object):
     def __init__(self, initial_data, initial_state):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.backtrack import GenericBacktracker
             sage: p = GenericBacktracker([], 1)
             sage: loads(dumps(p))
             <sage.combinat.backtrack.GenericBacktracker object at 0x...>
-
         """
         self._initial_data = initial_data
         self._initial_state = initial_state
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.permutation import PatternAvoider
             sage: p = PatternAvoider(4, [[1,3,2]])
             sage: len(list(p.iterator()))

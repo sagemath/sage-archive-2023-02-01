@@ -30,13 +30,17 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     satisfying the conditions.
 
     Preconditions:
-    //  - minslope < maxslope
-    //  - floor and ceiling need to satisfy the slope constraints
-    //    e.g. be obtained from comp2floor or comp2ceil
-    //  - floor must be below ceiling to ensure the existence a
-    //    valid composition
 
-    TESTS:
+    - minslope < maxslope
+
+    - floor and ceiling need to satisfy the slope constraints,
+      e.g. be obtained fromcomp2floor or comp2ceil
+
+    - floor must be below ceiling to ensure
+      the existence a valid composition
+
+    TESTS::
+
         sage: import sage.combinat.integer_list as integer_list
         sage: f = lambda l: lambda i: l[i-1]
         sage: f([0,1,2,3,4,5])(1)
@@ -49,7 +53,6 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         [7, 6, 5, 4, 2, 1, 0, 0, 0]
         sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,4,2,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
         [7, 6, 5, 5, 5, 4, 3, 1, 0]
-
     """
 
     #Increase minl until n <= sum([ceiling(i) for i in range(min_length)])
@@ -130,7 +133,8 @@ def lower_regular(comp, min_slope, max_slope):
     """
     Returns the uppest regular composition below comp
 
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.integer_list as integer_list
         sage: integer_list.lower_regular([4,2,6], -1, 1)
         [3, 2, 3]
@@ -159,8 +163,8 @@ def lower_regular(comp, min_slope, max_slope):
 
 def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
+    TESTS::
 
-    TESTS:
         sage: import sage.combinat.integer_list as integer_list
         sage: f = lambda l: lambda i: l[i-1]
         sage: integer_list.rightmost_pivot([7,6,5,5,4,3,3,2,1], 9, 9, f([3,3,3,2,1,1,0,0,0]), f([7,6,5,5,5,5,5,4,4]), -1, 0)
@@ -202,8 +206,6 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
         sage: integer_list.rightmost_pivot([1,4],1,5,lambda i: i,g(10),-10,10)
         sage: integer_list.rightmost_pivot([2,4],1,5,lambda i: i,g(10),-10,10)
         [1, 1]
-
-
     """
 
     y = len(comp) + 1
@@ -286,9 +288,11 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
 
 def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Returns the next integer list after comp that satisfies the contraints.
+    Returns the next integer list after comp that satisfies the
+    contraints.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_list import next
         sage: IV = IntegerVectors(2,3,min_slope=0)
         sage: params = IV._parameters()
@@ -328,7 +332,8 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_list import iterator
         sage: IV = IntegerVectors(2,3,min_slope=0)
         sage: params = IV._parameters()
@@ -350,7 +355,8 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.integer_list as integer_list
         sage: g = lambda x: lambda i: x
         sage: integer_list.list(0,0,infinity,g(1),g(infinity),0,infinity)
@@ -436,7 +442,8 @@ def upper_regular(comp, min_slope, max_slope):
     """
     Returns the uppest regular composition above comp.
 
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.integer_list as integer_list
         sage: integer_list.upper_regular([4,2,6],-1,1)
         [4, 5, 6]
@@ -459,10 +466,11 @@ def upper_regular(comp, min_slope, max_slope):
 
 def comp2floor(f, min_slope, max_slope):
     """
-    Given a composition, returns the lowest regular function N->N above
+    Given a composition, returns the lowest regular function N-N above
     it.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_list import comp2floor
         sage: f = comp2floor([2, 1, 1],-1,0)
         sage: [f(i) for i in range(10)]
@@ -475,10 +483,11 @@ def comp2floor(f, min_slope, max_slope):
 
 def comp2ceil(c, min_slope, max_slope):
     """
-    Given a composition, returns the lowest regular function N->N below
+    Given a composition, returns the lowest regular function N-N below
     it.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_list import comp2ceil
         sage: f = comp2ceil([2, 1, 1],-1,0)
         sage: [f(i) for i in range(10)]
@@ -491,10 +500,11 @@ def comp2ceil(c, min_slope, max_slope):
 
 def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Compute a coarse upper bound on the size of a vector satisfying
-    the constraints.
+    Compute a coarse upper bound on the size of a vector satisfying the
+    constraints.
 
-    TESTS:
+    TESTS::
+
         sage: import sage.combinat.integer_list as integer_list
         sage: f = lambda x: lambda i: x
         sage: integer_list.upper_bound(0,4,f(0), f(1),-infinity,infinity)
@@ -525,9 +535,11 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Returns True if comp meets the constraints imposed by the arguments.
+    Returns True if comp meets the constraints imposed by the
+    arguments.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.integer_list import is_a
         sage: IV = IntegerVectors(2,3,min_slope=0)
         sage: params = IV._parameters()

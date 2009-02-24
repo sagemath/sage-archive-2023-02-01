@@ -30,7 +30,8 @@ import functools
 
 def create_set_partition_function(letter, k):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.partition_algebra import create_set_partition_function
         sage: create_set_partition_function('A', 3)
         Set partitions of {1, ..., 3, -1, ..., -3}
@@ -83,18 +84,20 @@ EXAMPLES:
 class SetPartitionsAk_k(set_partition.SetPartitions_set):
     def __init__(self, k):
         """
-        TESTS:
-           sage: A3 = SetPartitionsAk(3); A3
-           Set partitions of {1, ..., 3, -1, ..., -3}
-           sage: A3 == loads(dumps(A3))
-           True
+        TESTS::
+
+            sage: A3 = SetPartitionsAk(3); A3
+            Set partitions of {1, ..., 3, -1, ..., -3}
+            sage: A3 == loads(dumps(A3))
+            True
         """
         self.k = k
         set_partition.SetPartitions_set.__init__(self, Set(range(1,k+1) + map(lambda x: -1*x,range(1,k+1))))
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsAk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3}'
         """
@@ -103,7 +106,8 @@ class SetPartitionsAk_k(set_partition.SetPartitions_set):
 class SetPartitionsAkhalf_k(CombinatorialClass):
     def __init__(self, k):
         """
-        TESTS:
+        TESTS::
+
             sage: A2p5 = SetPartitionsAk(2.5); A2p5
             Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block
             sage: A2p5 == loads(dumps(A2p5))
@@ -114,7 +118,8 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsAk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block'
         """
@@ -123,7 +128,8 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A2p5 = SetPartitionsAk(2.5)
             sage: all([ sp in A2p5 for sp in A2p5])
             True
@@ -144,7 +150,8 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsAk(1.5).count()
             5
             sage: SetPartitionsAk(2.5).count()
@@ -156,7 +163,8 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsAk(1.5).list() #random
             [{{1, 2, -2, -1}},
              {{2, -2, -1}, {1}},
@@ -164,10 +172,12 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
              {{-1}, {1, 2, -2}},
              {{-1}, {2, -2}, {1}}]
 
-             sage: ks = [ 1.5, 2.5, 3.5 ]
-             sage: aks = map(SetPartitionsAk, ks)
-             sage: all([ak.count() == len(ak.list()) for ak in aks])
-             True
+        ::
+
+            sage: ks = [ 1.5, 2.5, 3.5 ]
+            sage: aks = map(SetPartitionsAk, ks)
+            sage: all([ak.count() == len(ak.list()) for ak in aks])
+            True
         """
         kp = Set([-self.k-1])
         for sp in set_partition.SetPartitions_set(self._set):
@@ -230,7 +240,8 @@ EXAMPLES:
 class SetPartitionsSk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsSk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} with propagating number 3'
         """
@@ -238,7 +249,8 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: S3 = SetPartitionsSk(3)
             sage: all([ sp in S3 for sp in S3])
@@ -260,7 +272,8 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
         """
         Returns k!.
 
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsSk(2).count()
             2
             sage: SetPartitionsSk(3).count()
@@ -274,7 +287,8 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsSk(3).list() #random
             [{{2, -2}, {3, -3}, {1, -1}},
              {{1, -1}, {2, -3}, {3, -2}},
@@ -296,7 +310,8 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: S2p5 = SetPartitionsSk(2.5)
             sage: A3 = SetPartitionsAk(3)
             sage: all([sp in S2p5 for sp in S2p5])
@@ -314,7 +329,8 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsSk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number 3'
         """
@@ -323,7 +339,8 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsSk(2.5).count()
             2
             sage: SetPartitionsSk(3.5).count()
@@ -331,18 +348,19 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
             sage: SetPartitionsSk(4.5).count()
             24
 
+        ::
+
             sage: ks = [2.5, 3.5, 4.5, 5.5]
             sage: sks = [SetPartitionsSk(k) for k in ks]
             sage: all([ sk.count() == len(sk.list()) for sk in sks])
             True
-
         """
         return factorial(self.k)
 
     def iterator(self):
         """
+        TESTS::
 
-        TESTS:
             sage: SetPartitionsSk(3.5).list() #random indirect test
             [{{2, -2}, {3, -3}, {1, -1}, {4, -4}},
              {{2, -3}, {1, -1}, {4, -4}, {3, -2}},
@@ -398,7 +416,8 @@ EXAMPLES:
 class SetPartitionsIk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsIk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} with propagating number < 3'
         """
@@ -406,7 +425,8 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: I3 = SetPartitionsIk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: all([ sp in I3 for sp in I3])
@@ -424,7 +444,8 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsIk(2).count()
             13
         """
@@ -432,7 +453,8 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsIk(2).list() #random indirect test
                 [{{1, 2, -1, -2}},
                  {{2, -1, -2}, {1}},
@@ -455,7 +477,8 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: I2p5 = SetPartitionsIk(2.5)
             sage: A3 = SetPartitionsAk(3)
             sage: all([ sp in I2p5 for sp in I2p5])
@@ -473,7 +496,8 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsIk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number < 3'
         """
@@ -481,7 +505,8 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsIk(1.5).count()
             4
             sage: SetPartitionsIk(2.5).count()
@@ -493,7 +518,8 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsIk(1.5).list() #random
             [{{1, 2, -2, -1}},
              {{2, -2, -1}, {1}},
@@ -543,7 +569,8 @@ EXAMPLES:
 class SetPartitionsBk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsBk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2'
         """
@@ -551,7 +578,8 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: B3 = SetPartitionsBk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: len(filter(lambda x: x in B3, A3))
@@ -571,9 +599,10 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
     def count(self):
         """
         Returns the number of set partitions in B_k where k is an integer.
-        This is given by (2k)!! = (2k-1)*(2k-3)*...*5*3*1.
+        This is given by (2k)!! = (2k-1)\*(2k-3)\*...\*5\*3\*1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: SetPartitionsBk(3).count()
             15
             sage: SetPartitionsBk(2).count()
@@ -584,7 +613,6 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
             105
             sage: SetPartitionsBk(5).count()
             945
-
         """
         c = 1
         for i in range(1, 2*self.k,2):
@@ -593,9 +621,12 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsBk(1).list()
             [{{1, -1}}]
+
+        ::
 
             sage: SetPartitionsBk(2).list() #random
             [{{2, -1}, {1, -2}}, {{2, -2}, {1, -1}}, {{1, 2}, {-1, -2}}]
@@ -616,8 +647,10 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
              {{1, 3}, {-3, -1}, {2, -2}},
              {{1, 2}, {3, -2}, {-3, -1}}]
 
-          Check to make sure that the number of elements generated
-          is the same as what is given by count()
+        Check to make sure that the number of elements generated is the
+        same as what is given by count()
+
+        ::
 
             sage: bks = [ SetPartitionsBk(i) for i in range(1, 6) ]
             sage: all( [ bk.count() == len(bk.list()) for bk in bks] )
@@ -629,7 +662,8 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsBk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2'
         """
@@ -638,7 +672,8 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: B2p5 = SetPartitionsBk(2.5)
             sage: all([ sp in B2p5 for sp in B2p5 ])
@@ -657,7 +692,8 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: B3p5 = SetPartitionsBk(3.5)
             sage: B3p5.count()
             15
@@ -666,10 +702,13 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: B3p5 = SetPartitionsBk(3.5)
             sage: B3p5.count()
             15
+
+        ::
 
             sage: B3p5.list() #random
             [{{2, -2}, {1, -3}, {4, -4}, {3, -1}},
@@ -730,7 +769,8 @@ sage: P2p5.random_element() #random
 class SetPartitionsPk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsPk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} that are planar'
         """
@@ -738,7 +778,8 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: P3 = SetPartitionsPk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: len(filter(lambda x: x in P3, A3))
@@ -758,7 +799,8 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPk(2).count()
             14
             sage: SetPartitionsPk(3).count()
@@ -770,7 +812,8 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPk(2).list() #random indirect test
             [{{1, 2, -1, -2}},
              {{2, -1, -2}, {1}},
@@ -794,7 +837,8 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: P2p5 = SetPartitionsPk(2.5)
             sage: all([ sp in P2p5 for sp in P2p5 ])
@@ -813,7 +857,8 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr( SetPartitionsPk(2.5) )
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and that are planar'
         """
@@ -821,7 +866,8 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPk(2.5).count()
             42
             sage: SetPartitionsPk(1.5).count()
@@ -831,14 +877,14 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPk(1.5).list() #random
             [{{1, 2, -2, -1}},
              {{2, -2, -1}, {1}},
              {{2, -2}, {1, -1}},
              {{-1}, {1, 2, -2}},
              {{-1}, {2, -2}, {1}}]
-
         """
         for sp in SetPartitionsAkhalf_k.iterator(self):
             if is_planar(sp):
@@ -879,7 +925,8 @@ sage: T2p5.last() #random
 class SetPartitionsTk_k(SetPartitionsBk_k):
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsTk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} with block size 2 and that are planar'
         """
@@ -887,7 +934,8 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: T3 = SetPartitionsTk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: all([ sp in T3 for sp in T3])
@@ -907,7 +955,8 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsTk(2).count()
             2
             sage: SetPartitionsTk(3).count()
@@ -921,7 +970,8 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsTk(3).list() #random
             [{{1, -3}, {2, 3}, {-1, -2}},
              {{2, -2}, {3, -3}, {1, -1}},
@@ -936,7 +986,8 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: T2p5 = SetPartitionsTk(2.5)
             sage: all([ sp in T2p5 for sp in T2p5 ])
@@ -955,7 +1006,8 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsTk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2 and that are planar'
         """
@@ -963,7 +1015,8 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsTk(2.5).count()
             2
             sage: SetPartitionsTk(3.5).count()
@@ -975,7 +1028,8 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsTk(3.5).list() #random
             [{{1, -3}, {2, 3}, {4, -4}, {-1, -2}},
              {{2, -2}, {3, -3}, {1, -1}, {4, -4}},
@@ -995,18 +1049,20 @@ SetPartitionsRk.__doc__ = """
 class SetPartitionsRk_k(SetPartitionsAk_k):
     def __init__(self, k):
         """
-        TESTS:
-           sage: R3 = SetPartitionsRk(3); R3
-           Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block
-           sage: R3 == loads(dumps(R3))
-           True
+        TESTS::
+
+            sage: R3 = SetPartitionsRk(3); R3
+            Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block
+            sage: R3 == loads(dumps(R3))
+            True
         """
         self.k = k
         SetPartitionsAk_k.__init__(self, k)
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsRk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block'
         """
@@ -1014,7 +1070,8 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: R3 = SetPartitionsRk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: all([ sp in R3 for sp in R3])
@@ -1046,7 +1103,8 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsRk(2).count()
             7
             sage: SetPartitionsRk(3).count()
@@ -1060,7 +1118,8 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: len(SetPartitionsRk(3).list() ) == SetPartitionsRk(3).count()
             True
         """
@@ -1081,7 +1140,8 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: R2p5 = SetPartitionsRk(2.5)
             sage: all([ sp in R2p5 for sp in R2p5 ])
@@ -1114,7 +1174,8 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsRk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with at most 1 positive and negative entry in each block'
         """
@@ -1122,7 +1183,8 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsRk(2.5).count()
             7
             sage: SetPartitionsRk(3.5).count()
@@ -1134,7 +1196,8 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: R2p5 = SetPartitionsRk(2.5)
             sage: list(R2p5.iterator()) #random due to sets
             [{{-2}, {-1}, {3, -3}, {2}, {1}},
@@ -1167,18 +1230,20 @@ SetPartitionsPRk.__doc__ = """
 class SetPartitionsPRk_k(SetPartitionsRk_k):
     def __init__(self, k):
         """
-        TESTS:
-           sage: PR3 = SetPartitionsPRk(3); PR3
-           Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block and that are planar
-           sage: PR3 == loads(dumps(PR3))
-           True
+        TESTS::
+
+            sage: PR3 = SetPartitionsPRk(3); PR3
+            Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block and that are planar
+            sage: PR3 == loads(dumps(PR3))
+            True
         """
         self.k = k
         SetPartitionsRk_k.__init__(self, k)
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsPRk(3))
             'Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive and negative entry in each block and that are planar'
         """
@@ -1186,7 +1251,8 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: PR3 = SetPartitionsPRk(3)
             sage: A3 = SetPartitionsAk(3)
             sage: all([ sp in PR3 for sp in PR3])
@@ -1206,7 +1272,8 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPRk(2).count()
             6
             sage: SetPartitionsPRk(3).count()
@@ -1220,7 +1287,8 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: len(SetPartitionsPRk(3).list() ) == SetPartitionsPRk(3).count()
             True
         """
@@ -1242,7 +1310,8 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: A3 = SetPartitionsAk(3)
             sage: PR2p5 = SetPartitionsPRk(2.5)
             sage: all([ sp in PR2p5 for sp in PR2p5 ])
@@ -1262,7 +1331,8 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SetPartitionsPRk(2.5))
             'Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with at most 1 positive and negative entry in each block and that are planar'
         """
@@ -1270,7 +1340,8 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SetPartitionsPRk(2.5).count()
             6
             sage: SetPartitionsPRk(3.5).count()
@@ -1282,7 +1353,8 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: list(SetPartitionsPRk(2.5).iterator())
             [{{-2}, {-1}, {3, -3}, {2}, {1}},
              {{-2}, {3, -3}, {2}, {1, -1}},
@@ -1313,7 +1385,8 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 class PartitionAlgebra_generic(CombinatorialAlgebra):
     def __init__(self, R, cclass, n, k, name=None, prefix=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: s = PartitionAlgebra_sk(QQ, 3, 1)
             sage: s == loads(dumps(s))
@@ -1329,7 +1402,8 @@ class PartitionAlgebra_generic(CombinatorialAlgebra):
 
     def _multiply_basis(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: s = PartitionAlgebra_sk(QQ, 3, 1)
             sage: t12 = s(Set([Set([1,-2]),Set([2,-1]),Set([3,-3])]))
@@ -1346,7 +1420,8 @@ class PartitionAlgebraElement_ak(PartitionAlgebraElement_generic):
 class PartitionAlgebra_ak(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_ak(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1363,7 +1438,8 @@ class PartitionAlgebraElement_bk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_bk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_bk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1380,7 +1456,8 @@ class PartitionAlgebraElement_sk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_sk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_sk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1397,7 +1474,8 @@ class PartitionAlgebraElement_pk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_pk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_pk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1414,7 +1492,8 @@ class PartitionAlgebraElement_tk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_tk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_tk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1431,7 +1510,8 @@ class PartitionAlgebraElement_rk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_rk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_rk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1448,7 +1528,8 @@ class PartitionAlgebraElement_prk(PartitionAlgebraElement_generic):
 class PartitionAlgebra_prk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.partition_algebra import *
             sage: p = PartitionAlgebra_prk(QQ, 3, 1)
             sage: p == loads(dumps(p))
@@ -1464,10 +1545,11 @@ class PartitionAlgebra_prk(PartitionAlgebra_generic):
 
 def is_planar(sp):
     """
-    Returns True if the diagram corresponding to the set partition is planar;
-    otherwise, it returns False.
+    Returns True if the diagram corresponding to the set partition is
+    planar; otherwise, it returns False.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: pa.is_planar( pa.to_set_partition([[1,-2],[2,-1]]))
         False
@@ -1551,10 +1633,13 @@ def to_graph(sp):
     """
     Returns a graph representing the set partition sp.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: g = pa.to_graph( pa.to_set_partition([[1,-2],[2,-1]])); g
         Graph on 4 vertices
+
+    ::
 
         sage: g.vertices() #random
         [1, 2, -2, -1]
@@ -1573,17 +1658,19 @@ def to_graph(sp):
 
 def pair_to_graph(sp1, sp2):
     """
-    Returns a graph consisting of the graphs of set partitions sp1
-    and sp2 along with edges joining the bottom row (negative numbers)
-    of sp1 to the top row (positive numbers) of sp2.
+    Returns a graph consisting of the graphs of set partitions sp1 and
+    sp2 along with edges joining the bottom row (negative numbers) of
+    sp1 to the top row (positive numbers) of sp2.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: sp1 = pa.to_set_partition([[1,-2],[2,-1]])
         sage: sp2 = pa.to_set_partition([[1,-2],[2,-1]])
         sage: g = pa.pair_to_graph( sp1, sp2 ); g
         Graph on 8 vertices
 
+    ::
 
         sage: g.vertices() #random
         [(1, 2), (-1, 1), (-2, 2), (-1, 2), (-2, 1), (2, 1), (2, 2), (1, 1)]
@@ -1631,11 +1718,12 @@ def pair_to_graph(sp1, sp2):
 
 def propagating_number(sp):
     """
-    Returns the propagating number of the set partition sp.
-    The propagating number is the number of blocks with
-    both a positive and negative number.
+    Returns the propagating number of the set partition sp. The
+    propagating number is the number of blocks with both a positive and
+    negative number.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: sp1 = pa.to_set_partition([[1,-2],[2,-1]])
         sage: sp2 = pa.to_set_partition([[1,2],[-2,-1]])
@@ -1652,16 +1740,16 @@ def propagating_number(sp):
 
 def to_set_partition(l,k=None):
     """
-    Coverts a list of a list of numbers to a set partitions. Each
-    list of numbers in the outer list specifies the numbers
-    contained in one of the blocks in the set partition.
+    Coverts a list of a list of numbers to a set partitions. Each list
+    of numbers in the outer list specifies the numbers contained in one
+    of the blocks in the set partition.
 
-    If k is specified, then the set partition will be a
-    set partition of {1, ..., k, -1, ..., -k}.  Otherwise,
-    k will default to the minimum number needed to contain all
-    of the specified numbers.
+    If k is specified, then the set partition will be a set partition
+    of 1, ..., k, -1, ..., -k. Otherwise, k will default to the minimum
+    number needed to contain all of the specified numbers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: pa.to_set_partition([[1,-1],[2,-2]]) == pa.identity(2)
         True
@@ -1687,9 +1775,10 @@ def to_set_partition(l,k=None):
 
 def identity(k):
     """
-    Returns the identity set partition {{1, -1}, ..., {k, -k}}
+    Returns the identity set partition 1, -1, ..., k, -k
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: pa.identity(2)
         {{2, -2}, {1, -1}}
@@ -1702,11 +1791,12 @@ def identity(k):
 
 def set_partition_composition(sp1, sp2):
     """
-    Returns a tuple consisting of the composition of the set
-    partitions sp1 and sp2 and the number of components removed
-    from the middle rows of the graph.
+    Returns a tuple consisting of the composition of the set partitions
+    sp1 and sp2 and the number of components removed from the middle
+    rows of the graph.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.combinat.partition_algebra as pa
         sage: sp1 = pa.to_set_partition([[1,-2],[2,-1]])
         sage: sp2 = pa.to_set_partition([[1,-2],[2,-1]])

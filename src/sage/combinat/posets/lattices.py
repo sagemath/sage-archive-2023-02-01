@@ -31,9 +31,9 @@ def LatticePoset(data):
 
 class FiniteLatticePoset(FinitePoset):
     """
-    We assume that the argument passed to FiniteLatticePoset is the poset
-    of a lattice (i.e. a poset with greatest lower bound and least
-    upper bound for each pair of elements).
+    We assume that the argument passed to FiniteLatticePoset is the
+    poset of a lattice (i.e. a poset with greatest lower bound and
+    least upper bound for each pair of elements).
     """
     def __repr__(self):
         return "Finite lattice containing %s elements"%self.hasse_diagram().order()
@@ -92,8 +92,8 @@ def JoinSemilattice(data):
 
 class FiniteJoinSemilattice(FinitePoset):
     """
-    We assume that the argument passed to FiniteJoinSemilattice is the poset
-    of a join-semilattice (i.e. a poset with least upper bound
+    We assume that the argument passed to FiniteJoinSemilattice is the
+    poset of a join-semilattice (i.e. a poset with least upper bound
     for each pair of elements).
     """
     def __repr__(self):

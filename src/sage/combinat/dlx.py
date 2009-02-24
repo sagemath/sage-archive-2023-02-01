@@ -53,42 +53,31 @@ COUNT  = 5
 class DLXMatrix:
     def __init__(self, ones, initialsolution=None):
         """
-        Solves the Exact Cover problem by using the Dancing Links
-        algorithm described by Knuth.
+        Solves the Exact Cover problem by using the Dancing Links algorithm
+        described by Knuth.
 
-        Consider a matrix M with entries of 0 and 1, and compute a
-        subset of the rows of this matrix which sum to the vector
-        of all 1's.
+        Consider a matrix M with entries of 0 and 1, and compute a subset
+        of the rows of this matrix which sum to the vector of all 1's.
 
-        The dancing links algorithm works particularly well for
-        sparse matrices, so the input is a list of lists of the
-        form: (note the 1-index!)
-            [
-             [1, [i_11,i_12,...,i_1r]]
-             ...
-             [m, [i_m1,i_m2,...,i_ms]]
-            ]
-        where M[j][i_jk] = 1.
+        The dancing links algorithm works particularly well for sparse
+        matrices, so the input is a list of lists of the form: (note the
+        1-index!) [ [1, [i_11,i_12,...,i_1r]] ... [m,
+        [i_m1,i_m2,...,i_ms]] ] where M[j][i_jk] = 1.
 
         The first example below corresponds to the matrix
 
-            1110
-            1010
-            0100
-            0001
+        1110 1010 0100 0001
 
         which is exactly covered by
 
-            1110
-            0001
+        1110 0001
 
         and
 
-            1010
-            0100
-            0001
+        1010 0100 0001
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
@@ -100,12 +89,12 @@ class DLXMatrix:
             [4, 1]
             [4, 2, 3]
 
-        NOTE:
-            The 0 entry is reserved internally for headers in the
-            sparse representation, so rows and columns begin
-            their indexing with 1.  Apologies for any heartache
-            this causes.  Blame the original author, or fix it
-            yourself.
+        .. note::
+
+           The 0 entry is reserved internally for headers in the
+           sparse representation, so rows and columns begin their
+           indexing with 1.  Apologies for any heartache this
+           causes. Blame the original author, or fix it yourself.
         """
         if initialsolution is None: initialsolution = []
         self._cursolution = []
@@ -116,13 +105,18 @@ class DLXMatrix:
 
     def __eq__(self, other):
         r"""
-        Return \code{True} if every attribute of \var{other} matches the attribute
-        of \code{self}.
+        Return ``True`` if every attribute of
+        ``other`` matches the attribute of
+        ``self``.
 
         INPUT:
-            other -- a DLX matrix
 
-        EXAMPLE:
+
+        -  ``other`` - a DLX matrix
+
+
+        EXAMPLE::
+
             sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1]]])
             sage: M == loads(dumps(M))
@@ -136,7 +130,8 @@ class DLXMatrix:
         """
         Returns self.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1]]])
             sage: print M.__iter__() is M
@@ -147,10 +142,11 @@ class DLXMatrix:
 
     def _walknodes(self, firstnode, direction):
         """
-        Generator for iterating over all nodes in given direction
-        (not including firstnode).
+        Generator for iterating over all nodes in given direction (not
+        including firstnode).
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
@@ -173,18 +169,19 @@ class DLXMatrix:
 
     def _constructmatrix(self, ones, initialsolution=None):
         """
-        Construct the (sparse) DLX matrix based on list 'ones'. The
-        first component in the list elements is row index (which will
-        be returned by solve) and the second component is list of
-        column indexes of ones in given row.
+        Construct the (sparse) DLX matrix based on list 'ones'. The first
+        component in the list elements is row index (which will be returned
+        by solve) and the second component is list of column indexes of
+        ones in given row.
 
-        'initialsolution' is list of row indexes that are required to
-        be part of the solution. They will be removed from the matrix.
+        'initialsolution' is list of row indexes that are required to be
+        part of the solution. They will be removed from the matrix.
 
-        Note: rows and cols are 1-indexed -- the zero index is reserved
-        for the root node and column heads.
+        Note: rows and cols are 1-indexed - the zero index is reserved for
+        the root node and column heads.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
@@ -261,22 +258,15 @@ class DLXMatrix:
 
     def _covercolumn(self, c):
         """
-        Performs the column covering operation, as described by
-        Knuth's pseudocode:
-            cover(c):
-                i <- D[c]
-                while i != c:
-                    j <- R[i]
-                    while j != i
-                        D[U[j]] <- D[j]
-                        U[D[j]] <- U[j]
-                        N[C[j]] <- N[C[j]] - 1
-                        j <- R[j]
-                    i <- D[i]
+        Performs the column covering operation, as described by Knuth's
+        pseudocode: cover(c): i - D[c] while i != c: j - R[i] while j != i
+        D[U[j]] - D[j] U[D[j]] - U[j] N[C[j]] - N[C[j]] - 1 j - R[j] i -
+        D[i]
 
         This is undone by the uncover operation.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
             sage: one = M._nodes[ROOTNODE][RIGHT]
@@ -302,23 +292,16 @@ class DLXMatrix:
 
     def _uncovercolumn(self, c):
         """
-        Performs the column uncovering operation, as described by
-        Knuth's pseudocode:
-            uncover(c):
-                i <- U[c]
-                while i != c:
-                    j <- L[i]
-                    while j != i
-                        U[j] <- U[D[j]]
-                        D[j] <- D[U[j]]
-                        N[C[j]] <- N[C[j]] + 1
-                        j <- L[j]
-                    i <- U[i]
+        Performs the column uncovering operation, as described by Knuth's
+        pseudocode: uncover(c): i - U[c] while i != c: j - L[i] while j !=
+        i U[j] - U[D[j]] D[j] - D[U[j]] N[C[j]] - N[C[j]] + 1 j - L[j] i -
+        U[i]
 
-        This undoes by the cover operation since everything is done
-        in the reverse order.
+        This undoes by the cover operation since everything is done in the
+        reverse order.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
             sage: one = M._nodes[ROOTNODE][RIGHT]
@@ -343,46 +326,47 @@ class DLXMatrix:
         """
         Search for the first solution we can find, and return it.
 
-        Knuth describes the Dancing Links algorithm recursively,
-        though actually implementing it as a recursive algorithm
-        is permissible only for highly restricted problems.  (for
-        example, the original author implemented this for Sudoku,
-        and it works beautifully there)
+        Knuth describes the Dancing Links algorithm recursively, though
+        actually implementing it as a recursive algorithm is permissible
+        only for highly restricted problems. (for example, the original
+        author implemented this for Sudoku, and it works beautifully
+        there)
 
-        What follows is an iterative description of DLX:
+        What follows is an iterative description of DLX::
 
-        stack <- [(NULL)]
-        level <- 0
-        while level >= 0:
-            cur <- stack[level]
-            if cur = NULL:
-                if R[h] = h:
-                    level <- level - 1
-                    yield solution
+            stack <- [(NULL)]
+            level <- 0
+            while level >= 0:
+                cur <- stack[level]
+                if cur = NULL:
+                    if R[h] = h:
+                        level <- level - 1
+                        yield solution
+                    else:
+                        cover(best_column)
+                        stack[level] = best_column
+                else if D[cur] != C[cur]:
+                    if cur != C[cur]:
+                        delete solution[level]
+                        for j in L[cur], L[L[cur]], ... , while j != cur:
+                            uncover(C[j])
+                    cur <- D[cur]
+                    solution[level] <- cur
+                    stack[level] <- cur
+                    for j in R[cur], R[R[cur]], ... , while j != cur:
+                        cover(C[j])
+                    level <- level + 1
+                    stack[level] <- (NULL)
                 else:
-                    cover(best_column)
-                    stack[level] = best_column
-            else if D[cur] != C[cur]:
-                if cur != C[cur]:
-                    delete solution[level]
-                    for j in L[cur], L[L[cur]], ... , while j != cur:
-                        uncover(C[j])
-                cur <- D[cur]
-                solution[level] <- cur
-                stack[level] <- cur
-                for j in R[cur], R[R[cur]], ... , while j != cur:
-                    cover(C[j])
-                level <- level + 1
-                stack[level] <- (NULL)
-            else:
-                if C[cur] != cur:
-                    delete solution[level]
-                    for j in L[cur], L[L[cur]], ... , while j != cur:
-                        uncover(C[j])
-                uncover(cur)
-                level <- level - 1
+                    if C[cur] != cur:
+                        delete solution[level]
+                        for j in L[cur], L[L[cur]], ... , while j != cur:
+                            uncover(C[j])
+                    uncover(cur)
+                    level <- level - 1
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,2]],[2,[2,3]],[3,[1,3]]])
             sage: while 1:
@@ -452,7 +436,8 @@ def AllExactCovers(M):
     Utilizes A. Ajanki's DLXMatrix class to solve the exact cover
     problem on the matrix M (treated as a dense binary matrix).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = Matrix([[1,1,0],[1,0,1],[0,1,1]])  #no exact covers
         sage: for cover in AllExactCovers(M):
         ...       print cover
@@ -461,7 +446,6 @@ def AllExactCovers(M):
         ...       print cover
         [(1, 1, 0), (0, 0, 1)]
         [(1, 0, 1), (0, 1, 0)]
-
     """
     ones = []
     r = 1   #damn 1-indexing
@@ -480,7 +464,8 @@ def OneExactCover(M):
     Utilizes A. Ajanki's DLXMatrix class to solve the exact cover
     problem on the matrix M (treated as a dense binary matrix).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = Matrix([[1,1,0],[1,0,1],[0,1,1]])  #no exact covers
         sage: print OneExactCover(M)
         None

@@ -19,12 +19,13 @@ from sage.misc.misc import prod
 
 class DoublyLinkedList():
     """
-    A doubly linked list class that provides constant time hiding and unhiding
-    of entries.
+    A doubly linked list class that provides constant time hiding and
+    unhiding of entries.
 
     Note that this list's indexing is 1-based.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3]); dll
         Doubly linked list of [1, 2, 3]: [1, 2, 3]
         sage: dll.hide(1); dll
@@ -38,7 +39,8 @@ class DoublyLinkedList():
     """
     def __init__(self, l):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll == loads(dumps(dll))
             True
@@ -59,7 +61,8 @@ class DoublyLinkedList():
 
     def __cmp__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll2 = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll == dll2
@@ -80,7 +83,8 @@ class DoublyLinkedList():
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(sage.combinat.misc.DoublyLinkedList([1,2,3]))
             'Doubly linked list of [1, 2, 3]: [1, 2, 3]'
         """
@@ -88,7 +92,8 @@ class DoublyLinkedList():
 
     def __iter__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: list(dll)
             [1, 2, 3]
@@ -100,7 +105,8 @@ class DoublyLinkedList():
 
     def hide(self, i):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll.hide(1)
             sage: list(dll)
@@ -111,7 +117,8 @@ class DoublyLinkedList():
 
     def unhide(self,i):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll.hide(1); dll.unhide(1)
             sage: list(dll)
@@ -122,7 +129,8 @@ class DoublyLinkedList():
 
     def head(self):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll.head()
             1
@@ -134,7 +142,8 @@ class DoublyLinkedList():
 
     def next(self, j):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll.next(1)
             2
@@ -146,7 +155,8 @@ class DoublyLinkedList():
 
     def prev(self, j):
         """
-        TESTS:
+        TESTS::
+
             sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
             sage: dll.prev(3)
             2
@@ -160,11 +170,11 @@ class DoublyLinkedList():
 
 def _monomial_exponent_to_lower_factorial(me, x):
     r"""
-    Converts a tuple of exponents to the monomial
-    obtained by replacing each me[i] with
-    $x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)$
+    Converts a tuple of exponents to the monomial obtained by replacing
+    each me[i] with `x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)`
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.misc import _monomial_exponent_to_lower_factorial
         sage: R.<x,y,z> = QQ[]
         sage: a = R.gens()
@@ -189,13 +199,14 @@ def _monomial_exponent_to_lower_factorial(me, x):
 
 def umbral_operation(poly):
     r"""
-    Returns the umbral operation $\downarrow$ applied to poly.
+    Returns the umbral operation `\downarrow` applied to poly.
 
-    The umbral operation replaces each instance of $x_i^(a_i)$
-    with $x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)$.
+    The umbral operation replaces each instance of
+    `x_i^(a_i)` with
+    `x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)`.
 
+    EXAMPLES::
 
-    EXAMPLES:
         sage: P = PolynomialRing(QQ, 2, 'x')
         sage: x = P.gens()
         sage: from sage.combinat.misc import umbral_operation
@@ -207,7 +218,6 @@ def umbral_operation(poly):
         x0 + x1
         sage: umbral_operation(x[0]^2*x[1]^2) == x[0]*(x[0]-1)*x[1]*(x[1]-1)
         True
-
     """
     x = poly.parent().gens()
     exponents = poly.exponents()
@@ -218,20 +228,23 @@ def umbral_operation(poly):
 
 class IterableFunctionCall:
     """
-    This class wraps functions with a yield statement (generators)
-    by an object that can be iterated over.  For example,
+    This class wraps functions with a yield statement (generators) by
+    an object that can be iterated over. For example,
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: def f(): yield 'a'; yield 'b'
 
-    This does not work:
+    This does not work::
+
         sage: for z in f: print z
         Traceback (most recent call last):
         ...
         TypeError: 'function' object is not iterable
 
-    Use IterableFunctionCall if you want something like
-    the above to work:
+    Use IterableFunctionCall if you want something like the above to
+    work::
+
         sage: from sage.combinat.misc import IterableFunctionCall
         sage: g = IterableFunctionCall(f)
         sage: for z in g: print z
@@ -250,7 +263,8 @@ class IterableFunctionCall:
     """
     def __init__(self, f, *args, **kwargs):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.misc import IterableFunctionCall
             sage: IterableFunctionCall(iter, [1,2,3])
             Iterable function call <built-in function iter> with args=([1, 2, 3],) and kwargs={}
@@ -261,7 +275,8 @@ class IterableFunctionCall:
 
     def __iter__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.misc import IterableFunctionCall
             sage: list(iter(IterableFunctionCall(iter, [1,2,3])))
             [1, 2, 3]
@@ -270,11 +285,11 @@ class IterableFunctionCall:
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.misc import IterableFunctionCall
             sage: repr(IterableFunctionCall(iter, [1,2,3]))
             'Iterable function call <built-in function iter> with args=([1, 2, 3],) and kwargs={}'
-
         """
         return "Iterable function call %s with args=%s and kwargs=%s"%(self.f, self.args, self.kwargs)
 
@@ -284,7 +299,8 @@ class IterableFunctionCall:
 
 def check_integer_list_constraints(l, **kwargs):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.misc import check_integer_list_constraints
         sage: cilc = check_integer_list_constraints
         sage: l = [[2,1,3],[1,2],[3,3],[4,1,1]]
@@ -307,11 +323,12 @@ def check_integer_list_constraints(l, **kwargs):
         sage: cilc(l, inner=[2,2])
         [[3, 3]]
 
+    ::
+
         sage: cilc([1,2,3], length=3, singleton=True)
         [1, 2, 3]
         sage: cilc([1,2,3], length=2, singleton=True) is None
         True
-
     """
     if 'singleton' in kwargs and kwargs['singleton']:
         singleton = True

@@ -23,19 +23,25 @@ from root_system import RootSystem
 def DynkinDiagram(*args):
     """
     INPUT:
-       ct -- A Cartan Type
-    Returns a Dynkin diagram for type ct.
+
+
+    -  ``ct`` - A Cartan Type Returns a Dynkin diagram for
+       type ct.
+
 
     The edge multiplicities are encoded as edge labels. This uses the
     convention in Kac / Fulton Harris Representation theory wikipedia
-    http://en.wikipedia.org/wiki/Dynkin_diagram, that is for i != j:
+    http://en.wikipedia.org/wiki/Dynkin_diagram, that is for i != j::
 
-    j -k-> i  <==>  a_ij = -k  <==>  -scalar(coroot[i], root[j]) = k
-    <==>  multiple arrows point from the longer root to the shorter one
+       j --k--> i <==> a_ij = -k
+                  <==> -scalar(coroot[i], root[j]) = k
+                  <==> multiple arrows point from the longer root
+                       to the shorter one
 
     TODO: say something about the node labelling conventions.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: DynkinDiagram(['A', 4])
         Dynkin diagram of type ['A', 4]
         sage: DynkinDiagram(['A',1],['A',1])
@@ -68,14 +74,15 @@ def dynkin_diagram(t):
     """
     Returns the Dynkin diagram of type t.
 
-    Note that this function is deprecated, and that you should use DynkinDiagram
-    instead as this will be disappearing in the near future.
+    Note that this function is deprecated, and that you should use
+    DynkinDiagram instead as this will be disappearing in the near
+    future.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: dynkin_diagram(["A", 3])
         doctest:1: DeprecationWarning: dynkin_diagram is deprecated, use DynkinDiagram instead!
         Dynkin diagram of type ['A', 3]
-
     """
     from sage.misc.misc import deprecation
     deprecation("dynkin_diagram is deprecated, use DynkinDiagram instead!")
@@ -85,7 +92,8 @@ def dynkin_diagram(t):
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
     def __init__(self, t):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: d = DynkinDiagram(["A", 3])
             sage: d == loads(dumps(d))
             True
@@ -95,7 +103,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DynkinDiagram(['A',3])
             Dynkin diagram of type ['A', 3]
         """
@@ -106,7 +115,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def add_edge(self, i, j, label=1):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
             sage: d = DynkinDiagram_class(CartanType(['A',3]))
             sage: list(sorted(d.edges()))
@@ -114,7 +124,6 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: d.add_edge(2, 3)
             sage: list(sorted(d.edges()))
             [(2, 3, 1), (3, 2, 1)]
-
         """
         DiGraph.add_edge(self, i, j, label)
         if not self.has_edge(j,i):
@@ -122,17 +131,19 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def index_set(self):
         """
-        EXAMPLES:
-             sage: DynkinDiagram(['C',3]).index_set()
-             [1, 2, 3]
-             sage: DynkinDiagram("A2","B2","F4").index_set()
-             [1, 2, 3, 4, 5, 6, 7, 8]
+        EXAMPLES::
+
+            sage: DynkinDiagram(['C',3]).index_set()
+            [1, 2, 3]
+            sage: DynkinDiagram("A2","B2","F4").index_set()
+            [1, 2, 3, 4, 5, 6, 7, 8]
         """
         return self.vertices()
 
     def cartan_type(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DynkinDiagram("A2","B2","F4").cartan_type()
             A2xB2xF4
         """
@@ -142,7 +153,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         r"""
         Returns the index set for this Dynkin diagram
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DynkinDiagram(['C',3]).rank()
             3
             sage: DynkinDiagram("A2","B2","F4").rank()
@@ -152,7 +164,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def dynkin_diagram(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DynkinDiagram(['C',3]).dynkin_diagram()
             Dynkin diagram of type ['C', 3]
         """
@@ -162,7 +175,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         r"""
         returns the Cartan matrix for this Dynkin diagram
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: DynkinDiagram(['C',3]).cartan_matrix()
             [ 2 -1  0]
             [-1  2 -2]
@@ -174,7 +188,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         r"""
         Returns the dual Dynkin diagram, obtained by reversing all edges.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: D = DynkinDiagram(['C',3])
             sage: D.edges()
             [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
@@ -185,7 +200,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: D.dual() == DynkinDiagram(['B',3])
             True
 
-        TESTS:
+        TESTS::
+
             sage: D = DynkinDiagram(['A',0]); D
             Dynkin diagram of type ['A', 0]
             sage: D.edges()
@@ -201,7 +217,6 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             Dynkin diagram of type ['A', 1]
             sage: D.dual().edges()
             []
-
         """
         result = DynkinDiagram_class(None)
         result.add_vertices(self.vertices())
@@ -212,13 +227,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def __getitem__(self, i):
         r"""
-        With a tuple (i,j) as argument, returns the scalar product $\langle
-        \alpha^\vee_i, \alpha_j\rangle$.
+        With a tuple (i,j) as argument, returns the scalar product
+        `\langle
+                \alpha^\vee_i, \alpha_j\rangle`.
 
         Otherwise, behaves as the usual DiGraph.__getitem__
 
-        EXAMPLES:
-        We use the $C_4$ dynkin diagram as a cartan matrix:
+        EXAMPLES: We use the `C_4` dynkin diagram as a cartan
+        matrix::
+
             sage: g = DynkinDiagram(['C',4])
             sage: matrix([[g[i,j] for j in range(1,5)] for i in range(1,5)])
             [ 2 -1  0  0]
@@ -226,7 +243,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             [ 0 -1  2 -2]
             [ 0  0 -1  2]
 
-        The neighbors of a node can still be obtained in the usual way:
+        The neighbors of a node can still be obtained in the usual way::
+
             sage: [g[i] for i in range(1,5)]
             [[2], [1, 3], [2, 4], [3]]
         """
@@ -242,25 +260,26 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def column(self, j):
         """
-        Returns the $j$-th column $(a_{i,j})_i$ of the Cartan matrix
-        corresponding to this Dynkin diagram, as a container (or iterator)
-        of tuples (i, a_{i,j})
+        Returns the `j`-th column `(a_{i,j})_i` of the
+        Cartan matrix corresponding to this Dynkin diagram, as a container
+        (or iterator) of tuples (i, a_i,j)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = DynkinDiagram(["B",4])
             sage: [ (i,a) for (i,a) in g.column(3) ]
             [(3, 2), (2, -1), (4, -2)]
-
         """
         return [(j,2)] + [(i,-m) for (j1, i, m) in self.outgoing_edges(j)]
 
     def row(self, i):
         """
-        Returns the $i$-th row $(a_{i,j})_j$ of the Cartan matrix
-        corresponding to this Dynkin diagram, as a container (or iterator)
-        of tuples (j, a_{i,j})
+        Returns the `i`-th row `(a_{i,j})_j` of the
+        Cartan matrix corresponding to this Dynkin diagram, as a container
+        (or iterator) of tuples (j, a_i,j)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = DynkinDiagram(["C",4])
             sage: [ (i,a) for (i,a) in g.row(3) ]
             [(3, 2), (2, -1), (4, -2)]
@@ -269,7 +288,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
 def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.root_system.dynkin_diagram import precheck
         sage: ct = CartanType(['A',4])
         sage: precheck(ct, letter='C')
@@ -292,7 +312,6 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
         Traceback (most recent call last):
         ...
         ValueError: t[1] must be >= 5
-
     """
     if letter is not None:
         if t[0] != letter:

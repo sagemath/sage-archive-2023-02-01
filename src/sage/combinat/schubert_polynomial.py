@@ -25,7 +25,8 @@ def SchubertPolynomialRing(R):
     """
     Returns the Schubert polynomial ring over R on the X basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = SchubertPolynomialRing(ZZ); X
         Schubert polynomial ring with X basis over Integer Ring
         sage: X(1)
@@ -46,7 +47,8 @@ def is_SchubertPolynomial(x):
     """
     Returns True if x is a Schubert polynomial and False otherwise.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.schubert_polynomial import is_SchubertPolynomial
         sage: X = SchubertPolynomialRing(ZZ)
         sage: a = 1
@@ -64,15 +66,18 @@ def is_SchubertPolynomial(x):
 class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement):
     def expand(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(ZZ)
             sage: X([2,1,3]).expand()
             x0
             sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
 
-        TESTS:
-          Calling .expand() should always return an element of an MPolynomialRing
+        TESTS: Calling .expand() should always return an element of an
+        MPolynomialRing
+
+        ::
 
             sage: X = SchubertPolynomialRing(ZZ)
             sage: f = X([1]); f
@@ -87,7 +92,6 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
             sage: f = X([1,3,2,4])
             sage: type(f.expand())
             <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
-
         """
         p = symmetrica.t_SCHUBERT_POLYNOM(self)
         if not is_MPolynomial(p):
@@ -97,7 +101,8 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
 
     def divided_difference(self, i):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(ZZ)
             sage: a = X([3,2,1])
             sage: a.divided_difference(1)
@@ -116,7 +121,8 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
         """
         Returns the standard scalar product of self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(ZZ)
             sage: a = X([3,2,4,1])
             sage: a.scalar_product(a)
@@ -132,7 +138,6 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
             x0^2*x1*x2 + x0*x1^2*x2 + x0*x1*x2^2 + x0^2*x1*x3 + x0*x1^2*x3 + x0^2*x2*x3 + 3*x0*x1*x2*x3 + x1^2*x2*x3 + x0*x2^2*x3 + x1*x2^2*x3 + x0*x1*x3^2 + x0*x2*x3^2 + x1*x2*x3^2
             sage: c.expand(4)
             x0^2*x1*x2 + x0*x1^2*x2 + x0*x1*x2^2 + x0^2*x1*x3 + x0*x1^2*x3 + x0^2*x2*x3 + 3*x0*x1*x2*x3 + x1^2*x2*x3 + x0*x2^2*x3 + x1*x2^2*x3 + x0*x1*x3^2 + x0*x2*x3^2 + x1*x2*x3^2
-
         """
         if is_SchubertPolynomial(x):
             return symmetrica.scalarproduct_schubert(self, x)
@@ -141,10 +146,11 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
 
     def multiply_variable(self, i):
         """
-        Returns the Schubert polynomial obtained by multiplying self by
-        the variable x_i.
+        Returns the Schubert polynomial obtained by multiplying self by the
+        variable x_i.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(ZZ)
             sage: a = X([3,2,4,1])
             sage: a.multiply_variable(0)
@@ -155,7 +161,6 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
             X[3, 2, 5, 1, 4] - X[3, 4, 2, 1] - X[4, 2, 3, 1]
             sage: a.multiply_variable(3)
             X[3, 2, 4, 5, 1]
-
         """
         if isinstance(i, Integer):
             return symmetrica.mult_schubert_variable(self, i)
@@ -167,7 +172,8 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
 class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
     def __init__(self, R):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(QQ)
             sage: X == loads(dumps(X))
             True
@@ -183,12 +189,15 @@ class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
         """
         Coerce x into self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = SchubertPolynomialRing(QQ)
             sage: X._coerce_start([2,1,3])
             X[2, 1]
             sage: X._coerce_start(Permutation([2,1,3]))
             X[2, 1]
+
+        ::
 
             sage: R.<x1, x2, x3> = QQ[]
             sage: X(x1^2*x2)
@@ -207,7 +216,8 @@ class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
 
     def _multiply_basis(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p1 = Permutation([3,2,1])
             sage: p2 = Permutation([2,1,3])
             sage: X = SchubertPolynomialRing(QQ)

@@ -1,18 +1,25 @@
 r"""
 Ordered Set Partitions
 
-An ordered set partition  p of a set s is a partition of s, into subsets called parts and represented as a list of sets. By extension, an ordered set partition of a nonnegative integer n is the set partition of the integers from 1 to n. The number of ordered set partitions of n is called the n-th ordered Bell number.
+An ordered set partition p of a set s is a partition of s, into
+subsets called parts and represented as a list of sets. By
+extension, an ordered set partition of a nonnegative integer n is
+the set partition of the integers from 1 to n. The number of
+ordered set partitions of n is called the n-th ordered Bell
+number.
 
+There is a natural integer composition associated with an ordered
+set partition, that is the sequence of sizes of all its parts in
+order.
 
-There is a natural integer composition associated with an ordered set partition, that is the sequence of sizes of all its parts in order.
+EXAMPLES: There are 13 ordered set partitions of 1,2,3.
 
-EXAMPLES:
-  There are 13 ordered set partitions of {1,2,3}.
+::
 
     sage: OrderedSetPartitions(3).count()
     13
 
-  Here is the list of them:
+Here is the list of them::
 
     sage: OrderedSetPartitions(3).list() #random due to the sets
     [[{1}, {2}, {3}],
@@ -29,8 +36,10 @@ EXAMPLES:
      [{2, 3}, {1}],
      [{1, 2, 3}]]
 
-  There are 12 ordered set partitions of {1,2,3,4} whose underlying
-  composition is [1,2,1].
+There are 12 ordered set partitions of 1,2,3,4 whose underlying
+composition is [1,2,1].
+
+::
 
     sage: OrderedSetPartitions(4,[1,2,1]).list() #random due to the sets
     [[{1}, {2, 3}, {4}],
@@ -47,9 +56,10 @@ EXAMPLES:
      [{4}, {2, 3}, {1}]]
 
 AUTHORS:
-    --Mike Hansen
-    --MuPAD-Combinat developers (for algorithms and design inspiration)
 
+- Mike Hansen
+
+- MuPAD-Combinat developers (for algorithms and design inspiration)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -81,10 +91,10 @@ from sage.misc.misc import prod
 
 def OrderedSetPartitions(s, c=None):
     """
-    Returns the combinatorial class of ordered set partitions
-    of s.
+    Returns the combinatorial class of ordered set partitions of s.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: OS = OrderedSetPartitions([1,2,3,4]); OS
         Ordered set partitions of {1, 2, 3, 4}
         sage: OS.count()
@@ -95,6 +105,8 @@ def OrderedSetPartitions(s, c=None):
         [{1, 2, 3, 4}]
         sage: OS.random_element()
         [{3}, {1}, {2}, {4}]
+
+    ::
 
         sage: OS = OrderedSetPartitions([1,2,3,4], [2,2]); OS
         Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 2]
@@ -112,22 +124,24 @@ def OrderedSetPartitions(s, c=None):
          [{2, 4}, {1, 3}],
          [{3, 4}, {1, 2}]]
 
-         sage: OS = OrderedSetPartitions("cat"); OS
-         Ordered set partitions of ['c', 'a', 't']
-         sage: OS.list()
-         [[{'a'}, {'c'}, {'t'}],
-          [{'a'}, {'t'}, {'c'}],
-          [{'c'}, {'a'}, {'t'}],
-          [{'t'}, {'a'}, {'c'}],
-          [{'c'}, {'t'}, {'a'}],
-          [{'t'}, {'c'}, {'a'}],
-          [{'a'}, {'c', 't'}],
-          [{'c'}, {'a', 't'}],
-          [{'t'}, {'a', 'c'}],
-          [{'a', 'c'}, {'t'}],
-          [{'a', 't'}, {'c'}],
-          [{'c', 't'}, {'a'}],
-          [{'a', 'c', 't'}]]
+    ::
+
+        sage: OS = OrderedSetPartitions("cat"); OS
+        Ordered set partitions of ['c', 'a', 't']
+        sage: OS.list()
+        [[{'a'}, {'c'}, {'t'}],
+         [{'a'}, {'t'}, {'c'}],
+         [{'c'}, {'a'}, {'t'}],
+         [{'t'}, {'a'}, {'c'}],
+         [{'c'}, {'t'}, {'a'}],
+         [{'t'}, {'c'}, {'a'}],
+         [{'a'}, {'c', 't'}],
+         [{'c'}, {'a', 't'}],
+         [{'t'}, {'a', 'c'}],
+         [{'a', 'c'}, {'t'}],
+         [{'a', 't'}, {'c'}],
+         [{'c', 't'}, {'a'}],
+         [{'a', 'c', 't'}]]
     """
     if isinstance(s, (int, sage.rings.integer.Integer)):
         if s < 0:
@@ -152,7 +166,8 @@ def OrderedSetPartitions(s, c=None):
 class OrderedSetPartitions_s(CombinatorialClass):
     def __init__(self, s):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4])
             sage: OS == loads(dumps(OS))
             True
@@ -161,7 +176,8 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(OrderedSetPartitions([1,2,3,4]))
             'Ordered set partitions of {1, 2, 3, 4}'
         """
@@ -169,7 +185,8 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4])
             sage: all([sp in OS for sp in OS])
             True
@@ -200,7 +217,8 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: OrderedSetPartitions(0).count()
             1
             sage: OrderedSetPartitions(1).count()
@@ -223,7 +241,8 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: OrderedSetPartitions([1,2,3]).list() # indirect doctest
             [[{1}, {2}, {3}],
              [{1}, {3}, {2}],
@@ -247,7 +266,8 @@ class OrderedSetPartitions_s(CombinatorialClass):
 class OrderedSetPartitions_sn(CombinatorialClass):
     def __init__(self, s, n):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4], 2)
             sage: OS == loads(dumps(OS))
             True
@@ -257,7 +277,8 @@ class OrderedSetPartitions_sn(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4], 2)
             sage: all([sp in OS for sp in OS])
             True
@@ -270,7 +291,8 @@ class OrderedSetPartitions_sn(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(OrderedSetPartitions([1,2,3,4], 2))
             'Ordered set partitions of {1, 2, 3, 4} into 2 parts'
         """
@@ -278,13 +300,12 @@ class OrderedSetPartitions_sn(CombinatorialClass):
 
     def count(self):
         """
+        EXAMPLES::
 
-        EXAMPLES:
             sage: OrderedSetPartitions(4,2).count()
             14
             sage: OrderedSetPartitions(4,1).count()
             1
-
         """
         set = self.s
         n   = self.n
@@ -292,7 +313,8 @@ class OrderedSetPartitions_sn(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: OrderedSetPartitions([1,2,3,4], 2).list() # indirect doctest
             [[{1}, {2, 3, 4}],
              [{2}, {1, 3, 4}],
@@ -316,7 +338,8 @@ class OrderedSetPartitions_sn(CombinatorialClass):
 class OrderedSetPartitions_scomp(CombinatorialClass):
     def __init__(self, s, comp):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4], [2,1,1])
             sage: OS == loads(dumps(OS))
             True
@@ -326,7 +349,8 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(OrderedSetPartitions([1,2,3,4], [2,1,1]))
             'Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 1, 1]'
         """
@@ -334,7 +358,8 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: OS = OrderedSetPartitions([1,2,3,4], [2,1,1])
             sage: all([ sp in OS for sp in OS])
             True
@@ -347,7 +372,8 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: OrderedSetPartitions(5,[2,3]).count()
             10
             sage: OrderedSetPartitions(0, []).count()
@@ -363,7 +389,8 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: OrderedSetPartitions([1,2,3,4], [2,1,1]).list() # indirect doctest
             [[{1, 2}, {3}, {4}],
              [{1, 2}, {4}, {3}],

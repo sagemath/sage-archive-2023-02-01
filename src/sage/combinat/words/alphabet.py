@@ -1,4 +1,7 @@
 # coding=utf-8
+"""
+Alphabets
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -18,7 +21,8 @@ def Alphabet(data=None, name=None):
     r"""
     Returns an object representing an ordered alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Alphabet("ab")
         Ordered Alphabet ['a', 'b']
         sage: Alphabet([0,1,2])
@@ -62,10 +66,10 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         given by the order the items appear in the iterable. There must be
         no duplicates.
 
-        NOTE:
-            The alphabet is expanded in memory and stored as a list.
+        NOTE: The alphabet is expanded in memory and stored as a list.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: A = OrderedAlphabet_Finite([0,1,2])
             sage: A == loads(dumps(A))
@@ -74,7 +78,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
             sage: A == loads(dumps(A))
             True
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('aba')
             Traceback (most recent call last):
@@ -94,7 +99,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite([0,1,2]).__repr__()
             'Ordered Alphabet [0, 1, 2]'
@@ -105,7 +111,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: type(OrderedAlphabet_Finite("abc").iterator())
             <type 'generator'>
@@ -119,7 +126,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
 
     def __contains__(self, a):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: A = OrderedAlphabet_Finite([0,1,2])
             sage: 2 in A
@@ -142,7 +150,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         Returns True if the elements of self appear among the elements of
         other in the same respective order, and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite('daefbgc')
             True
@@ -164,7 +173,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
 
         The ordering of the alphabet is taken into consideration.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite('daefbgc')
             False
@@ -183,7 +193,8 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         r"""
         Returns the string representation of the alphabet.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('cba').string_rep()
             "['c', 'b', 'a']"
@@ -197,12 +208,19 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         Returns the index of letter in self.
 
         INPUT:
-            letter -- a letter contained in this alphabet
+
+
+        -  ``letter`` - a letter contained in this alphabet
+
 
         OUTPUT:
-            integer -- the integer mapping for the letter
 
-        EXAMPLES:
+
+        -  ``integer`` - the integer mapping for the letter
+
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('abcd').rank('a')
             0
@@ -227,12 +245,15 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         Returns the letter in position n of the alphabet self.
 
         INPUT:
-            n -- a nonnegative integer
 
-        OUTPUT:
-            the (n+1)-th object output by iter(self)
 
-        EXAMPLES:
+        -  ``n`` - a nonnegative integer
+
+
+        OUTPUT: the (n+1)-th object output by iter(self)
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite('abcd').unrank(0)
             'a'
@@ -251,7 +272,8 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         Returns NotimplementedError since it is not clear how to define
         this for infinite ordered alphabets.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
             sage: A1 = OrderedAlphabet_Infinite()
             sage: A2 = OrderedAlphabet_Infinite()
@@ -267,7 +289,8 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         Returns NotimplementedError since it is not clear how to define
         this for infinite ordered alphabets.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
             sage: A1 = OrderedAlphabet_Infinite()
             sage: A2 = OrderedAlphabet_Infinite()
@@ -282,10 +305,10 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         r"""
         Return the number of elements in self.
 
-        OUTPUT:
-            +Infinity
+        OUTPUT: +Infinity
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
             sage: OrderedAlphabet_Infinite().count()
             +Infinity
@@ -297,7 +320,8 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         Returns NotImplementedError since we cannot list all the
         nonnegative integers.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
             sage: OrderedAlphabet_Infinite().list()
             Traceback (most recent call last):
@@ -308,10 +332,10 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
 
 class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
     r"""
-    The alphabet of nonnegative integers,
-    ordered in the usual way.
+    The alphabet of nonnegative integers, ordered in the usual way.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
         sage: NN = OrderedAlphabet_NaturalNumbers()
         sage: NN == loads(dumps(NN))
@@ -319,7 +343,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
     """
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: OrderedAlphabet_NaturalNumbers().__repr__()
             'Ordered Alphabet of Natural Numbers'
@@ -328,7 +353,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: it = OrderedAlphabet_NaturalNumbers().iterator()
             sage: type(it)
@@ -345,7 +371,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
 
     def __contains__(self, a):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: A = OrderedAlphabet_NaturalNumbers()
             sage: 2 in A
@@ -365,7 +392,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
         r"""
         Returns the string representation of the alphabet.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: OrderedAlphabet_NaturalNumbers().string_rep()
             'Natural Numbers'
@@ -377,12 +405,19 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
         Returns the index of letter in self.
 
         INPUT:
-            letter -- a letter contained in this alphabet
+
+
+        -  ``letter`` - a letter contained in this alphabet
+
 
         OUTPUT:
-            integer -- the integer mapping for the letter
 
-        EXAMPLES:
+
+        -  ``integer`` - the integer mapping for the letter
+
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: NN = OrderedAlphabet_NaturalNumbers()
             sage: NN.rank(0)
@@ -390,7 +425,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
             sage: NN.rank(17)
             17
 
-        TESTS:
+        TESTS::
+
             sage: NN.rank(-1)
             Traceback (most recent call last):
             ...
@@ -410,12 +446,19 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
         Returns the letter in position n in self, which in this case is n.
 
         INPUT:
-            n -- nonnegative integer
+
+
+        -  ``n`` - nonnegative integer
+
 
         OUTPUT:
-            n -- nonnegative integer
 
-        EXAMPLES:
+
+        -  ``n`` - nonnegative integer
+
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: NN = OrderedAlphabet_NaturalNumbers()
             sage: NN.unrank(0)
@@ -423,7 +466,8 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
             sage: NN.unrank(17)
             17
 
-        TESTS:
+        TESTS::
+
             sage: NN.unrank(-1)
             Traceback (most recent call last):
             ...
@@ -443,12 +487,15 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
         Returns the letter following n in the alphabet self.
 
         INPUT:
-            n -- nonnegative integer
 
-        OUTPUT:
-            n+1
 
-        EXAMPLES:
+        -  ``n`` - nonnegative integer
+
+
+        OUTPUT: n+1
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
             sage: NN = OrderedAlphabet_NaturalNumbers()
             sage: NN.next(0)
@@ -467,10 +514,10 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
 
 class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
     r"""
-    The alphabet of nonnegative integers,
-    ordered in the usual way.
+    The alphabet of nonnegative integers, ordered in the usual way.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
         sage: PP = OrderedAlphabet_PositiveIntegers()
         sage: PP == loads(dumps(PP))
@@ -478,7 +525,8 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
     """
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: OrderedAlphabet_PositiveIntegers().__repr__()
             'Ordered Alphabet of Positive Integers'
@@ -487,7 +535,8 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: it = OrderedAlphabet_PositiveIntegers().iterator()
             sage: type(it)
@@ -504,7 +553,8 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
 
     def __contains__(self, a):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: A = OrderedAlphabet_PositiveIntegers()
             sage: 2 in A
@@ -524,7 +574,8 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
         r"""
         Returns the string representation of the alphabet.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: OrderedAlphabet_PositiveIntegers().string_rep()
             'Positive Integers'
@@ -536,19 +587,23 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
         Returns the index of letter in self.
 
         INPUT:
-            letter -- a positive integer
 
-        OUTPUT:
-            letter-1
 
-        EXAMPLES:
+        -  ``letter`` - a positive integer
+
+
+        OUTPUT: letter-1
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: OrderedAlphabet_PositiveIntegers().rank(1)
             0
             sage: OrderedAlphabet_PositiveIntegers().rank(8)
             7
 
-        TESTS:
+        TESTS::
+
             sage: OrderedAlphabet_PositiveIntegers().rank(-1)
             Traceback (most recent call last):
             ...
@@ -565,12 +620,15 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
         letter.
 
         INPUT:
-            i -- an integer
 
-        OUTPUT:
-            i+1
 
-        EXAMPLES:
+        -  ``i`` - an integer
+
+
+        OUTPUT: i+1
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: OrderedAlphabet_PositiveIntegers().unrank(0)
             1
@@ -589,12 +647,15 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
         Returns the letter following n in the alphabet self.
 
         INPUT:
-            n -- positive integer
 
-        OUTPUT:
-            n+1
 
-        EXAMPLES:
+        -  ``n`` - positive integer
+
+
+        OUTPUT: n+1
+
+        EXAMPLES::
+
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
             sage: PP = OrderedAlphabet_PositiveIntegers()
             sage: PP.next(1)

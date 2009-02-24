@@ -1,6 +1,5 @@
 """
 Linear-order Species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -26,7 +25,8 @@ from sage.combinat.species.misc import accept_size
 class LinearOrderSpeciesStructure(GenericSpeciesStructure):
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.LinearOrderSpecies()
             sage: s = P.structures(["a", "b", "c"]).random_element()
             sage: s.canonical_label()
@@ -36,9 +36,11 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
 
     def transport(self, perm):
         """
-        Returns the transport of this structure along the permutation perm.
+        Returns the transport of this structure along the permutation
+        perm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.LinearOrderSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ['a', 'b', 'c']
@@ -50,16 +52,17 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        Returns the group of permutations whose action on this structure leave it fixed.
-        For the species of linear orders, there is no non-trivial automorphism.
+        Returns the group of permutations whose action on this structure
+        leave it fixed. For the species of linear orders, there is no
+        non-trivial automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = species.LinearOrderSpecies()
             sage: a = F.structures(["a", "b", "c"]).random_element(); a
             ['a', 'b', 'c']
             sage: a.automorphism_group()
             Symmetric group of order 1! as a permutation group
-
         """
         from sage.groups.all import SymmetricGroup
         return SymmetricGroup(1)
@@ -70,7 +73,8 @@ def LinearOrderSpecies(*args, **kwds):
     """
     Returns the species of linear orders.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: L = species.LinearOrderSpecies()
         sage: L.generating_series().coefficients(5)
         [1, 1, 1, 1, 1]
@@ -80,7 +84,8 @@ def LinearOrderSpecies(*args, **kwds):
 class LinearOrderSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: L._check()
             True
@@ -96,7 +101,8 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: L.structures([1,2,3]).list()
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
@@ -107,7 +113,8 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
 
     def _isotypes(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: L.isotypes([1,2,3]).list()
             [[1, 2, 3]]
@@ -117,9 +124,10 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
     def _gs_list(self, base_ring):
         r"""
         The generating series for the species of linear orders is
-        $\frac{1}{1-x}$.
+        `\frac{1}{1-x}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: g = L.generating_series()
             sage: g.coefficients(10)
@@ -130,9 +138,10 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
     def _itgs_list(self, base_ring):
         r"""
         The isomorphism type generating series is given by
-        $\frac{1}{1-x}$.
+        `\frac{1}{1-x}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: g = L.isotype_generating_series()
             sage: g.coefficients(10)
@@ -143,12 +152,12 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
 
     def _cis_iterator(self, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = species.LinearOrderSpecies()
             sage: g = L.cycle_index_series()
             sage: g.coefficients(5)
             [p[], p[1], p[1, 1], p[1, 1, 1], p[1, 1, 1, 1]]
-
         """
         from sage.combinat.sf.all import SFAPower
         p = SFAPower(base_ring)

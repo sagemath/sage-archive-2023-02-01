@@ -1,3 +1,6 @@
+"""
+Low-level multichoose
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -19,7 +22,8 @@ import sage.misc.prandom as rnd
 class MultichooseNK(CombinatorialClass):
     def __init__(self, n, k):
         """
-        TESTS:
+        TESTS::
+
             sage: a = MultichooseNK(3,2)
             sage: a == loads(dumps(a))
             True
@@ -29,10 +33,11 @@ class MultichooseNK(CombinatorialClass):
 
     def count(self):
         """
-        Returns the number of multichoices of k things from a list
-        of n things.
+        Returns the number of multichoices of k things from a list of n
+        things.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MultichooseNK(3,2).count()
             6
         """
@@ -43,10 +48,10 @@ class MultichooseNK(CombinatorialClass):
         """
         An iterator for all multichoies of k thinkgs from range(n).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: [c for c in MultichooseNK(3,2)]
             [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
-
         """
         n,k = self._n, self._k
         dif = 0
@@ -86,7 +91,8 @@ class MultichooseNK(CombinatorialClass):
         """
         Returns a random multichoice of k things from range(n).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: MultichooseNK(5,2).random_element()
             [0, 2]
             sage: MultichooseNK(5,2).random_element()

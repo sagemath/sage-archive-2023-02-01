@@ -27,7 +27,8 @@ import sage.libs.symmetrica.all as symmetrica
 class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: e = SFAElementary(QQ)
             sage: e == loads(dumps(e))
             True
@@ -38,14 +39,18 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
 class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlgebraElement_classical):
     def omega(self):
         """
-        Returns the image of self under the Frobenius / omega automorphism.
+        Returns the image of self under the Frobenius / omega
+        automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = SFAElementary(QQ)
             sage: a = e([2,1]); a
             e[2, 1]
             sage: a.omega()
             e[1, 1, 1] - e[2, 1]
+
+        ::
 
             sage: h = SFAHomogeneous(QQ)
             sage: h(e([2,1]).omega())
@@ -58,9 +63,11 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = SFAElementary(QQ)
             sage: e([2,1]).expand(3)
             x0^2*x1 + x0*x1^2 + x0^2*x2 + 3*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2

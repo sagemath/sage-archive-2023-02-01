@@ -20,7 +20,8 @@ import sfa, multiplicative, classical
 class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: p = SFAPower(QQ)
             sage: p == loads(dumps(p))
             True
@@ -33,9 +34,11 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraElement_classical):
     def omega(self):
         """
-        Returns the image of self under the Frobenius / omega automorphism.
+        Returns the image of self under the Frobenius / omega
+        automorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([2,1]); a
             p[2, 1]
@@ -49,12 +52,13 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
         """
         Returns the standard scalar product of self and x.
 
-        Note that the power-sum symmetric functions are orthogonal
-        under this scalar product.  The value of <p_lambda, p_lambda>
-        is given by the size of the centralizer in S_n of a permutation
-        of cycle type lambda.
+        Note that the power-sum symmetric functions are orthogonal under
+        this scalar product. The value of p_lambda, p_lambda is given by
+        the size of the centralizer in S_n of a permutation of cycle type
+        lambda.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: p4 = Partitions(4)
             sage: matrix([ [p(a).scalar(p(b)) for a in p4] for b in p4])
@@ -74,7 +78,8 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
         """
         Returns the 'derivative' of p([part]) with respect to p([1]).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([2,1])
             sage: a._derivative(Partition([2,1]))
@@ -90,7 +95,8 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
 
     def _derivative_with_respect_to_p1(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([1,1,1])
             sage: a._derivative_with_respect_to_p1()
@@ -104,9 +110,11 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
 
     def expand(self, n, alphabet='x'):
         """
-        Expands the symmetric function as a symmetric polynomial in n variables.
+        Expands the symmetric function as a symmetric polynomial in n
+        variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = SFAPower(QQ)
             sage: a = p([2])
             sage: a.expand(2)

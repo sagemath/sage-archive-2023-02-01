@@ -1,8 +1,12 @@
+"""
+Output functions
+"""
 from sage.misc.latex import latex
 
 def tex_from_array(a):
-    """
-    EXAMPLES:
+    r"""
+    EXAMPLES::
+
         sage: from sage.combinat.output import tex_from_array
         sage: print tex_from_array([[1,2,3],[4,5]])
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}

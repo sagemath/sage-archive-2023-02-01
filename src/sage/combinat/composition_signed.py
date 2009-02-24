@@ -24,10 +24,10 @@ import __builtin__
 
 def SignedCompositions(n):
     """
-    Returns the combinatorial class of signed compositions of
-    n.
+    Returns the combinatorial class of signed compositions of n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: SC3 = SignedCompositions(3); SC3
         Signed compositions of 3
         sage: SC3.count()
@@ -65,7 +65,8 @@ def SignedCompositions(n):
 class SignedCompositions_n(CombinatorialClass):
     def __init__(self, n):
         """
-        TESTS:
+        TESTS::
+
             sage: SC3 = SignedCompositions(3)
             sage: SC3 == loads(dumps(SC3))
             True
@@ -74,7 +75,8 @@ class SignedCompositions_n(CombinatorialClass):
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: repr(SignedCompositions(3))
             'Signed compositions of 3'
         """
@@ -82,7 +84,8 @@ class SignedCompositions_n(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: [] in SignedCompositions(0)
             True
             sage: [0] in SignedCompositions(0)
@@ -109,7 +112,8 @@ class SignedCompositions_n(CombinatorialClass):
 
     def count(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SC4 = SignedCompositions(4)
             sage: SC4.count() == len(SC4.list())
             True
@@ -120,7 +124,8 @@ class SignedCompositions_n(CombinatorialClass):
 
     def iterator(self):
         """
-        TESTS:
+        TESTS::
+
             sage: SignedCompositions(0).list()   #indirect doctest
             [[]]
             sage: SignedCompositions(1).list()   #indirect doctest

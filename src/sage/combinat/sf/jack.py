@@ -27,16 +27,22 @@ def JackPolynomialsP(R, t=None):
     """
     Returns the algebra of Jack polynomials in the P basis.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: JackPolynomialsP(QQ)
         Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: JackPolynomialsP(QQ,t=-1)
         Jack polynomials in the P basis with t=-1 over Rational Field
 
-      At t = 1, the Jack polynomials on the P basis are the Schur symmetric functions.
+    At t = 1, the Jack polynomials on the P basis are the Schur
+    symmetric functions.
+
+    ::
+
         sage: P = JackPolynomialsP(QQ,1)
         sage: s = SFASchur(QQ)
         sage: P([2,1])^2
@@ -44,7 +50,11 @@ def JackPolynomialsP(R, t=None):
         sage: s([2,1])^2
         s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
-      At t = 2, the Jack polynomials on the P basis are the zonal polynomials.
+    At t = 2, the Jack polynomials on the P basis are the zonal
+    polynomials.
+
+    ::
+
         sage: P = JackPolynomialsP(QQ,2)
         sage: Z = ZonalPolynomials(QQ)
         sage: P([2])^2
@@ -62,10 +72,12 @@ def JackPolynomialsQ(R, t=None):
     """
     Returns the algebra of Jack polynomials in the Q basis.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: JackPolynomialsQ(QQ)
         Jack polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: JackPolynomialsQ(QQ,t=-1)
@@ -77,45 +89,55 @@ def JackPolynomialsJ(R, t=None):
     """
     Returns the algebra of Jack polynomials in the J basis.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: JackPolynomialsJ(QQ)
         Jack polynomials in the J basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: JackPolynomialsJ(QQ,t=-1)
         Jack polynomials in the J basis with t=-1 over Rational Field
 
-      At t = 1, the Jack polynomials in the J basis are scalar multiples of the Schur
-      functions with the scalar given by a Partition's hook_product method at 1.
+    At t = 1, the Jack polynomials in the J basis are scalar multiples
+    of the Schur functions with the scalar given by a Partition's
+    hook_product method at 1.
+
+    ::
+
         sage: J = JackPolynomialsJ(QQ, t=1)
         sage: s = SFASchur(J.base_ring())
         sage: p = Partition([3,2,1,1])
         sage: s(J(p)) == p.hook_product(1)*s(p)
         True
 
-      At t = 2, the Jack polynomials on the J basis are scalar multiples of the
-      zonal polynomials with the scalar given by a Partition's hook_product method
-      at 1.
+    At t = 2, the Jack polynomials on the J basis are scalar multiples
+    of the zonal polynomials with the scalar given by a Partition's
+    hook_product method at 1.
+
+    ::
+
         sage: t = 2
         sage: J = JackPolynomialsJ(QQ,t=t)
         sage: Z = ZonalPolynomials(J.base_ring())
         sage: p = Partition([2,2,1])
         sage: Z(J(p)) == p.hook_product(t)*Z(p)
         True
-
     """
     return cache_j(R,t)
 
 def JackPolynomialsQp(R, t=None):
     """
-    Returns the algebra of Jack polynomials in the Qp, which is dual to the P
-    basis with respect to the standard scalar product.
+    Returns the algebra of Jack polynomials in the Qp, which is dual to
+    the P basis with respect to the standard scalar product.
 
-    If t is not specified, then the base ring will be obtained by making the univariate
-    polynomial ring over R with the variable t and taking its fraction field.
+    If t is not specified, then the base ring will be obtained by
+    making the univariate polynomial ring over R with the variable t
+    and taking its fraction field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Qp = JackPolynomialsQp(QQ)
         sage: P = JackPolynomialsP(QQ)
         sage: a = Qp([2])
@@ -125,7 +147,6 @@ def JackPolynomialsQp(R, t=None):
         0
         sage: P(Qp([2]))
         ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
-
     """
     res = JackPolynomialsP(R, t=None).dual_basis(prefix="JackQp")
     res._name = "Jack polynomials in the Qp basis"
@@ -137,7 +158,8 @@ def ZonalPolynomials(R):
     """
     Returns the algebra of zonal polynomials.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Z = ZonalPolynomials(QQ)
         sage: a = Z([2])
         sage: Z([2])^2
@@ -147,11 +169,12 @@ def ZonalPolynomials(R):
 
 def _makeZonalPolynomials(R):
     """
-    A utility function that is used to make the zonal polynomials
-    from the Jack polynomials on the P basis.  This routine is
-    called by the cache.
+    A utility function that is used to make the zonal polynomials from
+    the Jack polynomials on the P basis. This routine is called by the
+    cache.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.jack import _makeZonalPolynomials
         sage: _makeZonalPolynomials(QQ)
         Zonal polynomials over Rational Field
@@ -166,7 +189,8 @@ def _makeZonalPolynomials(R):
 ###################################################################
 def c1(part, t):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.jack import c1
         sage: t = QQ['t'].gen()
         sage: [c1(p,t) for p in Partitions(3)]
@@ -176,7 +200,8 @@ def c1(part, t):
 
 def c2(part, t):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.jack import c2
         sage: t = QQ['t'].gen()
         sage: [c2(p,t) for p in Partitions(3)]
@@ -189,7 +214,8 @@ def c2(part, t):
 class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: JackPolynomialsJ(QQ).base_ring()
             Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: JackPolynomialsJ(QQ, t=2).base_ring()
@@ -215,9 +241,11 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         If our coefficient ring is the field of fractions over a univariate
         polynomial ring over the rationals, then we should clear both the
-        numerator and denominator of the denominators of their coefficients.
+        numerator and denominator of the denominators of their
+        coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: t = P.base_ring().gen()
             sage: a = 2/(1/2*t+1/2)
@@ -257,7 +285,8 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 class JackPolynomial_generic(sfa.SymmetricFunctionAlgebraElement_generic):
     def scalar_jack(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: Q = JackPolynomialsQ(QQ)
             sage: p = Partitions(3).list()
@@ -265,7 +294,6 @@ class JackPolynomial_generic(sfa.SymmetricFunctionAlgebraElement_generic):
             [1 0 0]
             [0 1 0]
             [0 0 1]
-
         """
         parent = self.parent()
 
@@ -284,10 +312,11 @@ class JackPolynomial_generic(sfa.SymmetricFunctionAlgebraElement_generic):
 
 def scalar_jack(part1, part2, t):
     """
-    Returns the Jack scalar product between p(part1) and p(part2)
-    where p is the power-sum basis.
+    Returns the Jack scalar product between p(part1) and p(part2) where
+    p is the power-sum basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q.<t> = QQ[]
         sage: from sage.combinat.sf.jack import scalar_jack
         sage: matrix([[scalar_jack(p1,p2,t) for p1 in Partitions(4)] for p2 in Partitions(4)])
@@ -307,7 +336,8 @@ def scalar_jack(part1, part2, t):
 class JackPolynomial_p(JackPolynomial_generic):
     def scalar_jack(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: l = [P(p) for p in Partitions(3)]
             sage: matrix([[a.scalar_jack(b) for a in l] for b in l])
@@ -325,7 +355,8 @@ class JackPolynomial_p(JackPolynomial_generic):
 class JackPolynomials_p(JackPolynomials_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: P == loads(dumps(P))
             True
@@ -343,10 +374,13 @@ class JackPolynomials_p(JackPolynomials_generic):
         """
         Coerce things into the Jack polynomials P basis.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = JackPolynomialsQ(QQ)
             sage: P = JackPolynomialsP(QQ)
             sage: J = JackPolynomialsJ(QQ)
+
+        ::
 
             sage: P(Q([2,1])) # indirect doctest
             ((t+2)/(2*t^3+t^2))*JackP[2, 1]
@@ -355,12 +389,16 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: P(Q([1,1,1]))
             (6/(t^3+3*t^2+2*t))*JackP[1, 1, 1]
 
+        ::
+
             sage: P(J([3]))
             (2*t^2+3*t+1)*JackP[3]
             sage: P(J([2,1]))
             (t+2)*JackP[2, 1]
             sage: P(J([1,1,1]))
             6*JackP[1, 1, 1]
+
+        ::
 
             sage: s = SFASchur(QQ)
             sage: P(s([2,1]))
@@ -383,11 +421,12 @@ class JackPolynomials_p(JackPolynomials_generic):
 
     def _m_cache(self, n):
         """
-        Computes the change of basis between the Jack polynomials in the P basis
-        and the monomial symmetric functions.  This uses Gram-Schmidt to go
-        to the monomials, and then that matrix is simply inverted.
+        Computes the change of basis between the Jack polynomials in the P
+        basis and the monomial symmetric functions. This uses Gram-Schmidt
+        to go to the monomials, and then that matrix is simply inverted.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: P._m_cache(2)
@@ -418,13 +457,15 @@ class JackPolynomials_p(JackPolynomials_generic):
     def _to_m(self, part):
         """
         Return a function that takes in a partition lambda that returns the
-        coefficient of lambda in the expansion of self(part) in the monomial
-        basis.
+        coefficient of lambda in the expansion of self(part) in the
+        monomial basis.
 
-        This assumes that the cache from the Jack polynomials in the P basis
-        to the monomial symmetric functions has already been computed.
+        This assumes that the cache from the Jack polynomials in the P
+        basis to the monomial symmetric functions has already been
+        computed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: P._m_cache(2)
             sage: p2 = Partition([2])
@@ -445,7 +486,8 @@ class JackPolynomials_p(JackPolynomials_generic):
 
     def _multiply(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = JackPolynomialsP(QQ)
             sage: P([1])^2 # indirect doctest
             (2*t/(t+1))*JackP[1, 1] + JackP[2]
@@ -470,7 +512,8 @@ class JackPolynomial_j(JackPolynomial_generic):
 class JackPolynomials_j(JackPolynomials_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = JackPolynomialsJ(QQ)
             sage: J == loads(dumps(J))
             True
@@ -484,11 +527,14 @@ class JackPolynomials_j(JackPolynomials_generic):
 
     def _coerce_start(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = JackPolynomialsJ(QQ)
             sage: P = JackPolynomialsP(QQ)
             sage: J(sum(P(p) for p in Partitions(3)))
             1/6*JackJ[1, 1, 1] + (1/(t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
+
+        ::
 
             sage: s = SFASchur(J.base_ring())
             sage: J(s([3])) # indirect doctest
@@ -509,7 +555,8 @@ class JackPolynomials_j(JackPolynomials_generic):
 
     def _multiply(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = JackPolynomialsJ(QQ)
             sage: J([1])^2 #indirect doctest
             (t/(t+1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
@@ -527,7 +574,8 @@ class JackPolynomial_q(JackPolynomial_generic):
 class JackPolynomials_q(JackPolynomials_generic):
     def __init__(self, R, t=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = JackPolynomialsQ(QQ)
             sage: Q == loads(dumps(Q))
             True
@@ -541,11 +589,14 @@ class JackPolynomials_q(JackPolynomials_generic):
 
     def _coerce_start(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = JackPolynomialsQ(QQ)
             sage: P = JackPolynomialsP(QQ)
             sage: Q(sum(P(p) for p in Partitions(3)))
             (1/6*t^3+1/2*t^2+1/3*t)*JackQ[1, 1, 1] + ((2*t^3+t^2)/(t+2))*JackQ[2, 1] + (6*t^3/(2*t^2+3*t+1))*JackQ[3]
+
+        ::
 
             sage: s = SFASchur(Q.base_ring())
             sage: Q(s([3])) # indirect doctest
@@ -566,13 +617,13 @@ class JackPolynomials_q(JackPolynomials_generic):
 
     def _multiply(self, left, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = JackPolynomialsQ(QQ)
             sage: Q([1])^2 # indirect doctest
             JackQ[1, 1] + (2/(t+1))*JackQ[2]
             sage: Q([2])^2
             JackQ[2, 2] + (2/(t+1))*JackQ[3, 1] + ((6*t+6)/(6*t^2+5*t+1))*JackQ[4]
-
         """
         return self( self._P(left) * self._P(right) )
 

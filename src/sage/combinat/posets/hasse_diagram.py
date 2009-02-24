@@ -34,7 +34,9 @@ class HasseDiagram(DiGraph):
     The Hasse diagram of a poset. This is just a transitively-reduced,
     directed, acyclic graph without loops or multiple edges.
 
-    NOTE: We assume that range(n) is a linear extension of the poset.
+    .. note::
+
+       We assume that range(n) is a linear extension of the poset.
 
     That is, range(n) is the vertex set and a topological sort of the
     digraph.
@@ -65,14 +67,17 @@ class HasseDiagram(DiGraph):
 
     def level_sets(self):
         """
-        Returns a list l such that l[i+1] is the set of minimal
-        elements of the poset obtained by removing the elements
-        in l[0], l[1], ..., l[i].
+        Returns a list l such that l[i+1] is the set of minimal elements of
+        the poset obtained by removing the elements in l[0], l[1], ...,
+        l[i].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
             sage: [len(x) for x in P.level_sets()]
             [1, 2, 1]
+
+        ::
 
             sage: Q = Poset({0:[1,2], 1:[3], 2:[4], 3:[4]})
             sage: [len(x) for x in Q.level_sets()]
@@ -90,9 +95,10 @@ class HasseDiagram(DiGraph):
     def plot(self, label_elements=True, element_labels=None,
             label_font_size=12,label_font_color='black',**kwds):
         """
-	Returns a Graphics object corresponding to the Hasse diagram.
+        Returns a Graphics object corresponding to the Hasse diagram.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
             sage: elm_lbls = Permutations(3).list()
             sage: P = Poset(uc,elm_lbls)
@@ -101,6 +107,8 @@ class HasseDiagram(DiGraph):
             sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
             sage: type(H.plot(label_elements=True))
             <class 'sage.plot.plot.Graphics'>
+
+        ::
 
             sage: from sage.combinat.posets.poset_examples import SymmetricGroupBruhatIntervalPoset
             sage: P = SymmetricGroupBruhatIntervalPoset([0,1,2,3], [2,3,0,1])
@@ -133,14 +141,21 @@ class HasseDiagram(DiGraph):
             label_font_size=12,label_font_color='black',
             vertex_size=300, vertex_colors=None,**kwds):
         """
-	Shows the Graphics object corresponding to the Hasse diagram.
-	Optionally, it is labelled.
+        Shows the Graphics object corresponding to the Hasse diagram.
+        Optionally, it is labelled.
 
         INPUT:
-            label_elements -- whether to display element labels
-            element_labels -- a dictionary of element labels
 
-        EXAMPLES:
+
+        -  ``label_elements`` - whether to display element
+           labels
+
+        -  ``element_labels`` - a dictionary of element
+           labels
+
+
+        EXAMPLES::
+
             sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
             sage: elm_lbls = Permutations(3).list()
             sage: P = Poset(uc,elm_lbls)
@@ -162,8 +177,8 @@ class HasseDiagram(DiGraph):
 
     def is_lequal(self, i, j):
         """
-        Returns True if i is less than or equal to j in the poset, and False
-        otherwise.
+        Returns True if i is less than or equal to j in the poset, and
+        False otherwise.
 
         EXAMPLES:
         """
@@ -186,7 +201,8 @@ class HasseDiagram(DiGraph):
         """
         Returns a list of the minimal elements of the poset.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P(0) in P.minimal_elements()
             True
@@ -202,7 +218,8 @@ class HasseDiagram(DiGraph):
         """
         Returns a list of the maximal elements of the poset.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P.maximal_elements()
             [4]
@@ -214,7 +231,8 @@ class HasseDiagram(DiGraph):
         """
         Returns the bottom element of the poset, if it exists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P.bottom() is None
             True
@@ -230,7 +248,8 @@ class HasseDiagram(DiGraph):
         """
         Returns True if the poset has a unique minimal element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P.has_bottom()
             False
@@ -245,7 +264,8 @@ class HasseDiagram(DiGraph):
         """
         Returns the top element of the poset, if it exists.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4,5],4:[],5:[]})
             sage: P.top() is None
             True
@@ -259,10 +279,11 @@ class HasseDiagram(DiGraph):
 
     def has_top(self):
         """
-        Returns True if the poset contains a unique maximal element,
-        and False otherwise.
+        Returns True if the poset contains a unique maximal element, and
+        False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4,5],4:[],5:[]})
             sage: P.has_top()
             False
@@ -275,10 +296,11 @@ class HasseDiagram(DiGraph):
 
     def is_bounded(self):
         """
-        Returns True if the poset contains a unique maximal element
-        and a unique minimal element, and False otherwise.
+        Returns True if the poset contains a unique maximal element and a
+        unique minimal element, and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4,5],4:[],5:[]})
             sage: P.is_bounded()
             False
@@ -290,10 +312,10 @@ class HasseDiagram(DiGraph):
 
     def is_chain(self):
         """
-        Returns True if the poset is totally ordered, and False
-        otherwise.
+        Returns True if the poset is totally ordered, and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = Poset({0:[1],1:[2],2:[3],3:[4]})
             sage: L.is_chain()
             True
@@ -310,7 +332,8 @@ class HasseDiagram(DiGraph):
         """
         Returns a poset that is dual to the given poset.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P = Poset([[1,2],[4],[3],[4],[]])
             sage: P.dual()
             Finite poset containing 5 elements
@@ -322,14 +345,19 @@ class HasseDiagram(DiGraph):
 
     def interval(self, x, y):
         """
-        Returns a list of the elements z such that x <= z <= y. The
-        order is that induced by the ordering in self.linear_extension.
+        Returns a list of the elements z such that x = z = y. The order is
+        that induced by the ordering in self.linear_extension.
 
         INPUT:
-            x -- any element of the poset
-            y -- any element of the poset
 
-        EXAMPLES:
+
+        -  ``x`` - any element of the poset
+
+        -  ``y`` - any element of the poset
+
+
+        EXAMPLES::
+
             sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
             sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -343,10 +371,11 @@ class HasseDiagram(DiGraph):
 
     def closed_interval(self, x, y):
         """
-        Returns a list of the elements z such that x <= z <= y. The
-        order is that induced by the ordering in self.linear_extension.
+        Returns a list of the elements z such that x = z = y. The order is
+        that induced by the ordering in self.linear_extension.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
             sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -358,10 +387,11 @@ class HasseDiagram(DiGraph):
 
     def open_interval(self, x, y):
         """
-        Returns a list of the elements z such that x < z < y. The
-        order is that induced by the ordering in self.linear_extension.
+        Returns a list of the elements z such that x z y. The order is that
+        induced by the ordering in self.linear_extension.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
             sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -381,11 +411,13 @@ class HasseDiagram(DiGraph):
         r"""
         Returns a rank function of the poset, if it exists.
 
-        A \textit{rank function} of a poset $P$ is a function $r$ from
-        that maps elements of $P$ to integers and satisfies: $r(x) =
-        r(y) + 1$ if $x$ covers $y$.
+        A *rank function* of a poset `P` is a function `r`
+        from that maps elements of `P` to integers and satisfies:
+        `r(x) = r(y) + 1` if `x` covers
+        `y`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: P.rank_function() is not None
             True
@@ -393,6 +425,8 @@ class HasseDiagram(DiGraph):
             sage: for u,v in P.cover_relations_iterator():
             ...    if r(v) != r(u) + 1:
             ...        print "Bug in rank_function!"
+
+        ::
 
             sage: Q = Poset([[1,2],[4],[3],[4],[]])
             sage: Q.rank_function() is None
@@ -421,9 +455,10 @@ class HasseDiagram(DiGraph):
         r"""
         Returns True if the poset is ranked, and False otherwise.
 
-        A poset is \texit{ranked} if it admits a rank function.
+        A poset is *ranked* if it admits a rank function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset([[1],[2],[3],[4],[]])
             sage: P.is_ranked()
             True
@@ -437,9 +472,10 @@ class HasseDiagram(DiGraph):
         r"""
         Returns True if the poset is graded, and False otherwise.
 
-        A poset is \texit{graded} if it admits a rank function.
+        A poset is {graded} if it admits a rank function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset([[1],[2],[3],[4],[]])
             sage: P.is_graded()
             True
@@ -453,7 +489,8 @@ class HasseDiagram(DiGraph):
         """
         Returns True if y covers x and False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
             sage: Q.covers(Q(1),Q(6))
             True
@@ -474,7 +511,8 @@ class HasseDiagram(DiGraph):
         """
         Returns the number of elements in the poset.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Poset([[1,2,3],[4],[4],[4],[]]).size()
             5
         """
@@ -485,7 +523,8 @@ class HasseDiagram(DiGraph):
         Returns the value of the M\"obius function of the poset
         on the elements x and y.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P.hasse_diagram()
             sage: H.mobius_function(0,4)
@@ -528,10 +567,11 @@ class HasseDiagram(DiGraph):
         """
         Returns the order filter generated by a list of elements.
 
-        I is an order filter if it satisfies:
-          x in I  and y >= x implies y in I
+        I is an order filter if it satisfies: x in I and y = x implies y in
+        I
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = BooleanLattice(4).hasse_diagram()
             sage: H.order_filter([3,8])
             [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -546,7 +586,8 @@ class HasseDiagram(DiGraph):
         """
         Returns the order filter generated by i.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = BooleanLattice(4).hasse_diagram()
             sage: H.principal_order_filter(2)
             [2, 3, 6, 7, 10, 11, 14, 15]
@@ -557,10 +598,11 @@ class HasseDiagram(DiGraph):
         """
         Returns the order ideal generated by a list of elements.
 
-        I is an order ideal if it satisfies:
-          x in I  and y <= x implies y in I
+        I is an order ideal if it satisfies: x in I and y = x implies y in
+        I
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = BooleanLattice(4).hasse_diagram()
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
@@ -576,7 +618,8 @@ class HasseDiagram(DiGraph):
         """
         Returns the order ideal generated by i.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = BooleanLattice(4).hasse_diagram()
             sage: H.principal_order_ideal(6)
             [0, 2, 4, 6]
@@ -586,11 +629,12 @@ class HasseDiagram(DiGraph):
     def lequal_matrix(self,ring=ZZ,sparse=True):
         """
         Computes a matrix whose [i,j] entry is 1 if
-        self.linear_extension[i] < self.linear_extension[j] and 0
-        otherwise. The matrix is stored in the attribute _leq_matrix
-        and the method __lt__ is redefined to use this matrix.
+        self.linear_extension[i] self.linear_extension[j] and 0
+        otherwise. The matrix is stored in the attribute _leq_matrix and
+        the method __lt__ is redefined to use this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: H = P.hasse_diagram()
             sage: hasattr(H,'_leq_matrix')
@@ -622,8 +666,8 @@ class HasseDiagram(DiGraph):
         # Redefine self.is_lequal
         def is_lequal(i, j):
             """
-            Returns True if i is less than or equal to j in the poset, and False
-            otherwise.
+            Returns True if i is less than or equal to j in the poset, and
+            False otherwise.
 
             EXAMPLES:
             """
@@ -762,20 +806,21 @@ class HasseDiagram(DiGraph):
         return c
 
     def antichains(self): # Freese-Jezek-Nation p226
-	"""
+        """
         Returns a list of all antichains of the poset.
 
         An antichain of a poset is a collection of elements of the poset
         that are pairwise incomparable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: PentagonPoset().hasse_diagram().antichains()
             [[], [0], [1], [2], [3], [4], [1, 2], [1, 3]]
             sage: AntichainPoset(3).hasse_diagram().antichains()
-	    [[], [0], [1], [2], [1, 2], [0, 1], [0, 2], [0, 1, 2]]
-	    sage: ChainPoset(3).hasse_diagram().antichains()
-	    [[], [0], [1], [2]]
-	"""
+            [[], [0], [1], [2], [1, 2], [0, 1], [0, 2], [0, 1, 2]]
+            sage: ChainPoset(3).hasse_diagram().antichains()
+            [[], [0], [1], [2]]
+        """
         S = [[]]
         leq = self.lequal_matrix()
         def antichains_rec(A,x,T,S):

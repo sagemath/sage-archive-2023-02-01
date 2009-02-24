@@ -1,13 +1,31 @@
+"""
+Miscellaneous Functions
+"""
+#*****************************************************************************
+#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.groups.all import PermutationGroup, PermutationGroup_generic, PermutationGroupElement, SymmetricGroup
 from sage.rings.all import prod
 from functools import wraps
 
 def change_support(perm, support, change_perm=None):
     """
-    Changes the support of a permutation defined on [1, ..., n]
-    to support.
+    Changes the support of a permutation defined on [1, ..., n] to
+    support.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.species.misc import change_support
         sage: p = PermutationGroupElement((1,2,3)); p
         (1,2,3)
@@ -25,12 +43,13 @@ def change_support(perm, support, change_perm=None):
 
 def accept_size(f):
     """
-    The purpose of this decorator is to change calls like species.SetSpecies(size=1)
-    to species.SetSpecies(min=1, max=2).  This is to make caching species easier and
-    to restrict the number of parameters that the lower level code needs to know
-    about.
+    The purpose of this decorator is to change calls like
+    species.SetSpecies(size=1) to species.SetSpecies(min=1, max=2).
+    This is to make caching species easier and to restrict the number
+    of parameters that the lower level code needs to know about.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.species.misc import accept_size
         sage: def f(*args, **kwds):
         ...       print args, list(sorted(kwds.items()))
@@ -39,7 +58,6 @@ def accept_size(f):
         () [('min', 1)]
         sage: f(size=2)
         () [('max', 3), ('min', 2)]
-
     """
     @wraps(f)
     def new_func(*args, **kwds):

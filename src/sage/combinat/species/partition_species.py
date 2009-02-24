@@ -1,6 +1,5 @@
 """
 Partition Species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -30,7 +29,8 @@ from sage.combinat.species.misc import accept_size
 class PartitionSpeciesStructure(GenericSpeciesStructure):
     def __init__(self, parent, labels, list):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.species.partition_species import PartitionSpeciesStructure
             sage: P = species.PartitionSpecies()
             sage: s = PartitionSpeciesStructure(P, ['a','b','c'], [[1,2],[3]]); s
@@ -44,7 +44,8 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.PartitionSpecies()
             sage: a = S.structures(["a","b","c"]).random_element(); a
             {{'a', 'b', 'c'}}
@@ -54,7 +55,8 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: S = P.structures(["a", "b", "c"])
             sage: [s.canonical_label() for s in S]
@@ -63,7 +65,6 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
              {{'a', 'b'}, {'c'}},
              {{'a', 'b'}, {'c'}},
              {{'a'}, {'b'}, {'c'}}]
-
         """
         P = self.parent()
         p = [len(block) for block in self._list]
@@ -71,11 +72,12 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def transport(self, perm):
         """
-        Returns the transport of this set partition along the permutation perm.  For set
-        partitions, this is the direct product of the automorphism groups for each of the
-        blocks.
+        Returns the transport of this set partition along the permutation
+        perm. For set partitions, this is the direct product of the
+        automorphism groups for each of the blocks.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3))
             sage: from sage.combinat.species.partition_species import PartitionSpeciesStructure
             sage: a = PartitionSpeciesStructure(None, [2,3,4], [[1,2],[3]]); a
@@ -89,9 +91,11 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        Returns the group of permutations whose action on this set partition leave it fixed.
+        Returns the group of permutations whose action on this set
+        partition leave it fixed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3))
             sage: from sage.combinat.species.partition_species import PartitionSpeciesStructure
             sage: a = PartitionSpeciesStructure(None, [2,3,4], [[1,2],[3]]); a
@@ -106,7 +110,8 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def change_labels(self, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3))
             sage: from sage.combinat.species.partition_species import PartitionSpeciesStructure
             sage: a = PartitionSpeciesStructure(None, [2,3,4], [[1,2],[3]]); a
@@ -123,7 +128,8 @@ def PartitionSpecies(*args, **kwds):
     """
     Returns the species of partitions.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: P = species.PartitionSpecies()
         sage: P.generating_series().coefficients(5)
         [1, 1, 1, 5/6, 5/8]
@@ -135,7 +141,8 @@ def PartitionSpecies(*args, **kwds):
 class PartitionSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: P._check()
             True
@@ -151,11 +158,11 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: P.structures([1,2,3]).list()
             [{{1, 2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2, 3}, {1}}, {{1}, {2}, {3}}]
-
         """
         from sage.combinat.restricted_growth import RestrictedGrowthArrays
         n = len(labels)
@@ -186,7 +193,8 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
 
     def _isotypes(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: P.isotypes([1,2,3,4]).list()
             [{{1, 2, 3, 4}},
@@ -194,7 +202,6 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
              {{1, 2}, {3, 4}},
              {{1, 2}, {3}, {4}},
              {{1}, {2}, {3}, {4}}]
-
         """
         from sage.combinat.partition import Partitions
         for p in Partitions(len(labels)):
@@ -202,20 +209,22 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
 
     def _canonical_rep_from_partition(self, structure_class, labels, p):
         """
-        Returns the canonical representative corresponding to the partition p.
+        Returns the canonical representative corresponding to the partition
+        p.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: P._canonical_rep_from_partition(P._default_structure_class,[1,2,3],[2,1])
             {{1, 2}, {3}}
-
         """
         breaks = [sum(p[:i]) for i in range(len(p)+1)]
         return structure_class(self, labels, [range(breaks[i]+1, breaks[i+1]+1) for i in range(len(p))])
 
     def _gs_iterator(self, base_ring):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: g = P.generating_series()
             sage: g.coefficients(5)
@@ -228,14 +237,14 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
     def _itgs_iterator(self, base_ring):
         r"""
         The isomorphism type generating series is given by
-        $\frac{1}{1-x}$.
+        `\frac{1}{1-x}`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: g = P.isotype_generating_series()
             sage: g.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-
         """
         from sage.combinat.partition import number_of_partitions
         for n in _integers_from(0):
@@ -244,9 +253,15 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
     def _cis(self, series_ring, base_ring):
         r"""
         The cycle index series for the species of partitions is given by
-        $$ exp \sum_{n \ge 1} \frac{1}{n} \left( exp \left( \sum_{k \ge 1} \frac{x_{kn}}{k} \right) -1 \right).$$
 
-        EXAMPLES:
+        .. math::
+
+             exp \sum_{n \ge 1} \frac{1}{n} \left( exp \left( \sum_{k \ge 1} \frac{x_{kn}}{k} \right) -1 \right).
+
+
+
+        EXAMPLES::
+
             sage: P = species.PartitionSpecies()
             sage: g = P.cycle_index_series()
             sage: g.coefficients(5)
@@ -255,7 +270,6 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
              p[1, 1] + p[2],
              5/6*p[1, 1, 1] + 3/2*p[2, 1] + 2/3*p[3],
              5/8*p[1, 1, 1, 1] + 7/4*p[2, 1, 1] + 7/8*p[2, 2] + p[3, 1] + 3/4*p[4]]
-
         """
         ciset = SetSpecies().cycle_index_series(base_ring)
         CIS = ciset.parent()

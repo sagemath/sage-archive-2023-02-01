@@ -1,45 +1,50 @@
 r"""
 Combinatorial Algebras
 
-A combinatorial algebra is an algebra whose basis elements are indexed
-by a combinatorial class.  Some examples of combinatorial algebras are
-the symmetric group algebra of order n (indexed by permutations of size n)
-and the algebra of symmetric functions (indexed by integer partitions).
+A combinatorial algebra is an algebra whose basis elements are
+indexed by a combinatorial class. Some examples of combinatorial
+algebras are the symmetric group algebra of order n (indexed by
+permutations of size n) and the algebra of symmetric functions
+(indexed by integer partitions).
 
-The CombinatorialAlgebra base class makes it easy to define and work
-with new combinatorial algebras in Sage.  For example, the following
-code constructs an algebra which models the power-sum symmetric
-functions.
+The CombinatorialAlgebra base class makes it easy to define and
+work with new combinatorial algebras in Sage. For example, the
+following code constructs an algebra which models the power-sum
+symmetric functions.
 
-sage: class PowerSums(CombinatorialAlgebra):
-...     def __init__(self, R):
-...         self._combinatorial_class = Partitions()
-...         self._one = Partition([])
-...         self._name = 'Power-sum symmetric functions'
-...         self._prefix = 'p'
-...         CombinatorialAlgebra.__init__(self, R)
-...     def _multiply_basis(self, a, b):
-...         l = list(a)+list(b)
-...         l.sort(reverse=True)
-...         return Partition(l)
-...
+::
 
-sage: ps = PowerSums(QQ); ps
-Power-sum symmetric functions over Rational Field
-sage: ps([2,1])^2
-p[2, 2, 1, 1]
-sage: ps([2,1])+2*ps([1,1,1])
-2*p[1, 1, 1] + p[2, 1]
-sage: ps(2)
-2*p[]
+    sage: class PowerSums(CombinatorialAlgebra):
+    ...     def __init__(self, R):
+    ...         self._combinatorial_class = Partitions()
+    ...         self._one = Partition([])
+    ...         self._name = 'Power-sum symmetric functions'
+    ...         self._prefix = 'p'
+    ...         CombinatorialAlgebra.__init__(self, R)
+    ...     def _multiply_basis(self, a, b):
+    ...         l = list(a)+list(b)
+    ...         l.sort(reverse=True)
+    ...         return Partition(l)
+    ...
 
-The important things to define are ._combinatorial_class which specifies
-the combinatorial class that indexes the basis elements, ._one which
-specifies the identity element in the algebra, ._name which specifies
-the name of the algebra, ._prefix which is the string put in front of
-each basis element, and finally a _multiply or _multiply basis method
-that defines the multiplication in the algebra.
+::
 
+    sage: ps = PowerSums(QQ); ps
+    Power-sum symmetric functions over Rational Field
+    sage: ps([2,1])^2
+    p[2, 2, 1, 1]
+    sage: ps([2,1])+2*ps([1,1,1])
+    2*p[1, 1, 1] + p[2, 1]
+    sage: ps(2)
+    2*p[]
+
+The important things to define are ._combinatorial_class which
+specifies the combinatorial class that indexes the basis elements,
+._one which specifies the identity element in the algebra, ._name
+which specifies the name of the algebra, ._prefix which is the
+string put in front of each basis element, and finally a _multiply
+or _multiply basis method that defines the multiplication in the
+algebra.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -67,11 +72,12 @@ from sage.misc.misc import repr_lincomb
 class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
     def __init__(self, A, x):
         """
-        Create a combinatorial algebra element x.  This should never
-        be called directly, but only through the parent combinatorial
+        Create a combinatorial algebra element x. This should never be
+        called directly, but only through the parent combinatorial
         algebra's __call__ method.
 
-        TESTS:
+        TESTS::
+
             sage: s = SFASchur(QQ)
             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
             2*s[2, 1]
@@ -84,7 +90,8 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 
     def _mul_(self, y):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2])
             sage: a._mul_(a) #indirect doctest
@@ -94,7 +101,8 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 
     def _div_(self, y):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2])
             sage: a._div_(s(2))
@@ -103,13 +111,13 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
             Traceback (most recent call last):
             ...
             ValueError: cannot invert self (= s[2])
-
         """
         return self.parent().multiply(self, ~y)
 
     def __invert__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: ~s(2)
             1/2*s[]
@@ -127,20 +135,24 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 
     def __pow__(self, n):
         """
-        Returns self to the $n^{th}$ power.
+        Returns self to the `n^{th}` power.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s([2])^2
             s[2, 2] + s[3, 1] + s[4]
 
-        TESTS:
+        TESTS::
+
             sage: s = SFASchur(QQ)
             sage: z = s([2,1])
             sage: z
             s[2, 1]
             sage: z^2
             s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+        ::
 
             sage: e = SFAElementary(QQ)
             sage: y = e([1])
@@ -159,12 +171,12 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 
     def _matrix_(self, new_BR = None):
         """
-        Returns a matrix version of self obtained by
-        the action of self on the left.  If new_BR
-        is specified, then the matrix will be over
+        Returns a matrix version of self obtained by the action of self on
+        the left. If new_BR is specified, then the matrix will be over
         new_BR.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: a = QS3([2,1,3])
             sage: a._matrix_()
@@ -181,7 +193,6 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
             [0.0 0.0 0.0 0.0 0.0 1.0]
             [0.0 1.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 1.0 0.0 0.0]
-
         """
         parent = self.parent()
 
@@ -200,12 +211,12 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 
     def to_matrix(self):
         """
-        Returns a matrix version of self obtained by
-        the action of self on the left.  If new_BR
-        is specified, then the matrix will be over
+        Returns a matrix version of self obtained by the action of self on
+        the left. If new_BR is specified, then the matrix will be over
         new_BR.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: a = QS3([2,1,3])
             sage: a._matrix_() # indirect doctest
@@ -222,14 +233,14 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
             [0.0 0.0 0.0 0.0 0.0 1.0]
             [0.0 1.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 1.0 0.0 0.0]
-
         """
         return self._matrix_()
 
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: a = 2 + QS3([2,1,3])
             sage: print a.__repr__()
@@ -250,7 +261,8 @@ class CombinatorialAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement
 class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
     def __init__(self, R, element_class = None):
         """
-        TESTS:
+        TESTS::
+
             sage: s = SFASchur(QQ)
             sage: s == loads(dumps(s))
             True
@@ -308,7 +320,8 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
         """
         Returns an element of self, namely the unit element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s._an_element_impl()
             s[]
@@ -319,7 +332,8 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
 
     def _coerce_impl(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: s._coerce_impl(2)
             2*s[]
@@ -339,16 +353,16 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
 
     def multiply(self,left,right):
         """
-        Returns left*right where left and right are elements of self.
-        multiply() uses either _multiply or _multiply basis to carry
-        out the actual multiplication.
+        Returns left\*right where left and right are elements of self.
+        multiply() uses either _multiply or _multiply basis to carry out
+        the actual multiplication.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = SFASchur(QQ)
             sage: a = s([2])
             sage: s.multiply(a,a)
             s[2, 2] + s[3, 1] + s[4]
-
         """
         A = left.parent()
         BR = A.base_ring()

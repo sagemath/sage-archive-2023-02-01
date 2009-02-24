@@ -1,9 +1,9 @@
 r"""
 Kostka-Foulkes Polynomials
 
-
-Based on the algorithms in John Stembridge's SF package for Maple which
-can be found at http://www.math.lsa.umich.edu/~jrs/maple.html .
+Based on the algorithms in John Stembridge's SF package for Maple
+which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
+.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -28,9 +28,10 @@ global_t = PolynomialRing(ZZ, 't').gen()
 
 def KostkaFoulkesPolynomial(mu, nu, t=None):
     r"""
-    Returns the Kostka-Foulkes polynomial K_{mu nu}(t).
+    Returns the Kostka-Foulkes polynomial `K_{\mu, \nu}(t)`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: KostkaFoulkesPolynomial([2,2],[2,2])
         1
         sage: KostkaFoulkesPolynomial([2,2],[4])
@@ -54,12 +55,13 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
     return kfpoly(mu, nu, t)
 
 def kfpoly(mu, nu, t=None):
-    """
-    kfpoly(mu,nu,t) computes the Kostka-Foulkes polynomial K[mu,nu](t)
-    by generating all rigging sequences for the shape mu, and then
-    selecting those of content nu.
+    r"""
+    Returns the Kostka-Foulkes polynomial `K_{\mu, \nu}(t)`
+    by generating all rigging sequences for the shape `\mu`, and then
+    selecting those of content `\nu`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import kfpoly
         sage: kfpoly([2,2], [2,1,1])
         t
@@ -69,7 +71,6 @@ def kfpoly(mu, nu, t=None):
         t^2
         sage: kfpoly([1,1,1,1], [2,2])
         0
-
     """
     if mu == nu:
         return 1
@@ -88,10 +89,11 @@ def kfpoly(mu, nu, t=None):
 
 def schur_to_hl(mu, t=None):
     """
-    Returns a dictionary corresponding to s(mu) in Hall-Littlewood
-    P basis.
+    Returns a dictionary corresponding to `s_\mu` in Hall-Littlewood P
+    basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: schur_to_hl([1,1,1])
         {[1, 1, 1]: 1}
@@ -135,7 +137,6 @@ def schur_to_hl(mu, t=None):
         [2, 1, 1, 1, 1] t^4 + t^2
         [2, 2, 1, 1] t
         [2, 2, 2] 1
-
     """
     if mu == []:
         return {mu: 1}
@@ -153,10 +154,11 @@ def schur_to_hl(mu, t=None):
 
 def riggings(part):
     """
-    Generate all possible rigging sequences for a
-    fixed sage.combinat.partition.
+    Generate all possible rigging sequences for a fixed
+    sage.combinat.partition.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: riggings([3])
         [[[1, 1, 1]], [[2, 1]], [[3]]]
@@ -189,11 +191,12 @@ def riggings(part):
     return map(lambda x: x[:l], res)
 
 def compat(n, mu, nu):
-    """
-    Generate all possible partitions of n that can
-    precede mu,nu in a rigging sequence.
+    r"""
+    Generate all possible partitions of `n` that can precede `\mu,\nu` in a
+    rigging sequence.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: compat(4, [1], [2,1])
         [[1, 1, 1, 1], [2, 1, 1], [2, 2], [3, 1], [4]]
@@ -209,7 +212,6 @@ def compat(n, mu, nu):
         [[2, 2], [3, 1], [4]]
         sage: compat(4, [2], [])
         [[4]]
-
     """
     sp = map(lambda p: p.conjugate(),sage.combinat.partition.Partitions_n(n))
     l = max( len(mu), len(nu))
@@ -234,10 +236,11 @@ def compat(n, mu, nu):
 
 def dom(mu, snu):
     """
-    Returns True if sum(mu[:i+1]) >= snu[i] for all
-    0 <= i < len(snu); otherwise, it returns False.
+    Returns True if ``sum(mu[:i+1]) = snu[i]`` for all 0 <= i < len(snu);
+    otherwise, it returns False.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: dom([3,2,1],[2,4,5])
         True
@@ -261,7 +264,8 @@ def weight(rg, t=None):
     """
     Returns the wieght of a rigging.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: t = PolynomialRing(ZZ, 't').gen()
         sage: weight([[2,1], [1]], t)
@@ -297,7 +301,8 @@ def weight(rg, t=None):
 
 def q_bin(a,b,t=None):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.sf.kfpoly import *
         sage: t = PolynomialRing(ZZ, 't').gen()
         sage: q_bin(4,2, t)

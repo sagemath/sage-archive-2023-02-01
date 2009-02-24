@@ -1,6 +1,5 @@
 """
 Sum species
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -26,7 +25,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
         """
         Returns the string representation of this object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: (S*S).structures(['a','b','c']).random_element()
             {}*{'a', 'b', 'c'}
@@ -42,7 +42,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
     def __init__(self, parent, labels, subset, left, right):
         """
-        TESTS:
+        TESTS::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: a = F.structures(['a','b','c']).random_element()
@@ -54,7 +55,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
     def transport(self, perm):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3))
             sage: S = species.SetSpecies()
             sage: F = S * S
@@ -75,7 +77,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: S = F.structures(['a','b','c']).list(); S
@@ -87,6 +90,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
              {'a', 'c'}*{'b'},
              {'b', 'c'}*{'a'},
              {'a', 'b', 'c'}*{}]
+
+        ::
 
             sage: F.isotypes(['a','b','c']).count()
             4
@@ -112,14 +117,14 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
     def change_labels(self, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: a = F.structures(['a','b','c']).random_element(); a
             {}*{'a', 'b', 'c'}
             sage: a.change_labels([1,2,3])
             {}*{1, 2, 3}
-
         """
         left, right = self._list
         new_subset = self._subset.change_labels(labels)
@@ -132,7 +137,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
     def automorphism_group(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = PermutationGroupElement((2,3))
             sage: S = species.SetSpecies()
             sage: F = S * S
@@ -140,6 +146,8 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
             {1}*{2, 3, 4}
             sage: a.automorphism_group()
             Permutation Group with generators [(2,3), (2,3,4)]
+
+        ::
 
             sage: [a.transport(g) for g in a.automorphism_group()]
             [{1}*{2, 3, 4},
@@ -149,11 +157,12 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
              {1}*{2, 3, 4},
              {1}*{2, 3, 4}]
 
+        ::
+
             sage: a = F.structures([1,2,3,4]).random_element(); a
             {2, 3}*{1, 4}
             sage: [a.transport(g) for g in a.automorphism_group()]
             [{2, 3}*{1, 4}, {2, 3}*{1, 4}, {2, 3}*{1, 4}, {2, 3}*{1, 4}]
-
         """
         from sage.groups.all import PermutationGroupElement, PermutationGroup, SymmetricGroup
         from sage.misc.misc import uniq
@@ -184,13 +193,15 @@ def ProductSpecies(*args, **kwds):
     """
     Returns the product of two species.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: X = species.SingletonSpecies()
         sage: A = X*X
         sage: A.generating_series().coefficients(4)
         [0, 0, 1, 0]
 
-    TESTS:
+    TESTS::
+
         sage: X = species.SingletonSpecies()
         sage: X*X is X*X
         True
@@ -200,7 +211,8 @@ def ProductSpecies(*args, **kwds):
 class ProductSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: F = P * P; F
             Product of (Permutation species) and (Permutation species)
@@ -222,10 +234,11 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
     def _name(self):
         """
         Note that we use a function to return the name of this species
-        because we can't do it in the __init__ method due to it requiring
-        that self._F and self._G already be unpickled.
+        because we can't do it in the __init__ method due to it
+        requiring that self._F and self._G already be unpickled.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: F = P * P
             sage: F._name()
@@ -235,34 +248,34 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
     def _structures(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: F.structures([1,2]).list()
             [{}*{1, 2}, {1}*{2}, {2}*{1}, {1, 2}*{}]
-
         """
         return self._times_gen(structure_class, "structures", labels)
 
     def _isotypes(self, structure_class, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: F.isotypes([1,2,3]).list()
             [{}*{1, 2, 3}, {1}*{2, 3}, {1, 2}*{3}, {1, 2, 3}*{}]
-
         """
         return self._times_gen(structure_class, "isotypes", labels)
 
     def _times_gen(self, structure_class, attr, labels):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: F = S * S
             sage: list(F._times_gen(F._default_structure_class, 'structures',[1,2]))
             [{}*{1, 2}, {1}*{2}, {2}*{1}, {1, 2}*{}]
-
         """
         c = lambda F,n: F.generating_series().coefficient(n)
         S = SubsetSpecies()
@@ -278,12 +291,12 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
     def _gs(self, series_ring, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: F = P * P
             sage: F.generating_series().coefficients(5)
             [1, 2, 3, 4, 5]
-
         """
         res = self._F.generating_series(base_ring) * self._G.generating_series(base_ring)
         if self.is_weighted():
@@ -293,12 +306,12 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
     def _itgs(self, series_ring, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: F = P * P
             sage: F.isotype_generating_series().coefficients(5)
             [1, 2, 5, 10, 20]
-
         """
         res =  (self._F.isotype_generating_series(base_ring) *
                 self._G.isotype_generating_series(base_ring))
@@ -308,7 +321,8 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
     def _cis(self, series_ring, base_ring):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P = species.PermutationSpecies()
             sage: F = P * P
             sage: F.cycle_index_series().coefficients(5)
@@ -317,7 +331,6 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
              3*p[1, 1] + 2*p[2],
              4*p[1, 1, 1] + 4*p[2, 1] + 2*p[3],
              5*p[1, 1, 1, 1] + 6*p[2, 1, 1] + 3*p[2, 2] + 4*p[3, 1] + 2*p[4]]
-
         """
         res =  (self._F.cycle_index_series(base_ring) *
                 self._G.cycle_index_series(base_ring))
@@ -327,20 +340,25 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
     def weight_ring(self):
         """
-        Returns the weight ring for this species.  This is determined by asking
-        Sage's coercion model what the result is when you multiply (and add)
-        lements of the weight rings for each of the operands.
+        Returns the weight ring for this species. This is determined by
+        asking Sage's coercion model what the result is when you multiply
+        (and add) lements of the weight rings for each of the operands.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = species.SetSpecies()
             sage: C = S*S
             sage: C.weight_ring()
             Rational Field
 
+        ::
+
             sage: S = species.SetSpecies(weight=QQ['t'].gen())
             sage: C = S*S
             sage: C.weight_ring()
             Univariate Polynomial Ring in t over Rational Field
+
+        ::
 
             sage: S = species.SetSpecies()
             sage: C = (S*S).weighted(QQ['t'].gen())
@@ -352,10 +370,11 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
     def _equation(self, var_mapping):
         """
         Returns the right hand side of an algebraic equation satisfied by
-        this species.  This is a utility function called by the
+        this species. This is a utility function called by the
         algebraic_equation_system method.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = species.SingletonSpecies()
             sage: S = X * X
             sage: S.algebraic_equation_system()

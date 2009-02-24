@@ -1,4 +1,7 @@
 # coding=utf-8
+"""
+Words
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                          Sébastien Labbé <slabqc@gmail.com>,
@@ -26,7 +29,8 @@ def is_Words(obj):
     r"""
     Returns True if obj is a word set and False otherwise.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.words.words import is_Words
         sage: is_Words(33)
         False
@@ -37,10 +41,11 @@ def is_Words(obj):
 
 def Words(alphabet=None, length=None, finite=True, infinite=True):
     """
-    Returns the combinatorial class of words of length k over an ordered
-    alphabet.
+    Returns the combinatorial class of words of length k over an
+    ordered alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Words()
         Words
         sage: Words(length=7)
@@ -99,7 +104,8 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
 class Words_all(CombinatorialClass):
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_all
             sage: Words_all().__repr__()
             'Words'
@@ -108,7 +114,8 @@ class Words_all(CombinatorialClass):
 
     def count(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_all
             sage: Words_all().count()
             +Infinity
@@ -119,7 +126,8 @@ class Words_all(CombinatorialClass):
         """
         Return True if x is contained in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_all
             sage: 2 in Words_all()
             False
@@ -133,7 +141,8 @@ class Words_all(CombinatorialClass):
 
     def iterator(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_all
             sage: Words_all().list() #indirect doctest
             Traceback (most recent call last):
@@ -145,7 +154,8 @@ class Words_all(CombinatorialClass):
 class Words_n(Words_all):
     def __init__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_n
             sage: w = Words_n(3)
             sage: w == loads(dumps(w))
@@ -155,7 +165,8 @@ class Words_n(Words_all):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_n
             sage: Words_n(3).__repr__()
             'Finite Words of length 3'
@@ -164,7 +175,8 @@ class Words_n(Words_all):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_n
             sage: 2 in Words_n(3)
             False
@@ -185,7 +197,8 @@ class Words_n(Words_all):
 class Words_over_Alphabet(Words_all):
     def __init__(self, alphabet):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_over_Alphabet
             sage: w = Words_over_Alphabet([1,2,3])
             sage: w == loads(dumps(w))
@@ -198,7 +211,8 @@ class Words_over_Alphabet(Words_all):
 
     def alphabet(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_over_Alphabet
             sage: W = Words_over_Alphabet([1,2,3])
             sage: W.alphabet()
@@ -212,7 +226,8 @@ class Words_over_Alphabet(Words_all):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_over_Alphabet
             sage: Words_over_Alphabet([1,2,3]).__repr__()
             'Words over [1, 2, 3]'
@@ -221,7 +236,8 @@ class Words_over_Alphabet(Words_all):
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_over_Alphabet
             sage: from sage.combinat.words.words import OrderedAlphabet
             sage: A = OrderedAlphabet('ab')
@@ -243,7 +259,8 @@ class Words_over_Alphabet(Words_all):
 
     def __call__(self, obj=None, part=slice(None), format=None):
         r"""
-        TESTS:
+        TESTS::
+
             sage: from itertools import repeat, count, imap
             sage: W = Words('ab')
             sage: W(format='empty')
@@ -313,7 +330,8 @@ class Words_over_Alphabet(Words_all):
         r"""
         Returns the size of the alphabet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Words('abcdef').size_of_alphabet()
             6
             sage: Words('').size_of_alphabet()
@@ -323,9 +341,11 @@ class Words_over_Alphabet(Words_all):
 
     def __lt__(self, other):
         r"""
-        Returns True if self is a proper subset of other and False otherwise.
+        Returns True if self is a proper subset of other and False
+        otherwise.
 
-        TESTS:
+        TESTS::
+
             sage: Words('ab') < Words('ab')
             False
             sage: Words('ab') < Words('abc')
@@ -339,9 +359,11 @@ class Words_over_Alphabet(Words_all):
 
     def __gt__(self, other):
         r"""
-        Returns True if self is a proper superset of other and False otherwise.
+        Returns True if self is a proper superset of other and False
+        otherwise.
 
-        TESTS:
+        TESTS::
+
             sage: Words('ab') > Words('ab')
             False
             sage: Words('ab') > Words('abc')
@@ -357,7 +379,8 @@ class Words_over_Alphabet(Words_all):
         r"""
         Returns True if self is a subset of other and False otherwise.
 
-        TESTS:
+        TESTS::
+
             sage: Words('ab') <= Words('ab')
             True
             sage: Words('ab') <= Words('abc')
@@ -376,7 +399,8 @@ class Words_over_Alphabet(Words_all):
         r"""
         Returns True if self is a superset of other and False otherwise.
 
-        TESTS:
+        TESTS::
+
             sage: Words('ab') >= Words('ab')
             True
             sage: Words('ab') >= Words('abc')
@@ -394,7 +418,8 @@ class Words_over_Alphabet(Words_all):
 class Words_over_OrderedAlphabet(Words_over_Alphabet):
     def __init__(self, alphabet):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import Words_over_OrderedAlphabet
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet("abc")
@@ -412,9 +437,14 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         Returns an iterator over all the words of self of length l.
 
         INPUT:
-            l -- integer (default: 1) the length of the desired words
 
-        EXAMPLES:
+
+        -  ``l`` - integer (default: 1) the length of the
+           desired words
+
+
+        EXAMPLES::
+
             sage: W = Words('ab')
             sage: list(W.iterate_by_length(1))
             [word: a, word: b]
@@ -443,11 +473,12 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
     def iterator(self):
         r"""
-        Returns an iterator over all the words of self.
-        The iterator outputs the words in lexicographic order,
-        based on the order of the letters in the alphabet.
+        Returns an iterator over all the words of self. The iterator
+        outputs the words in lexicographic order, based on the order of the
+        letters in the alphabet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W = Words([4,5])
             sage: for w in W:
             ...     if len(w)>3:
@@ -499,16 +530,26 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
     def iter_morphisms(self, l):
         r"""
-        Iterate over all endomorphisms $\varphi$ of self satisfying
-        $|\varphi(a[i])|=l[i]$, where a[i] is the i-th letter of self.
+        Iterate over all endomorphisms `\varphi` of self satisfying
+        `|\varphi(a[i])|=l[i]`, where a[i] is the i-th letter of
+        self.
 
         INPUT:
-            l -- list of integers such that len(l) == self.size_of_alphabet()
+
+
+        -  ``l`` - list of integers such that len(l) ==
+           self.size_of_alphabet()
+
 
         OUTPUT:
-            iterator outputting WordMorphism -- outputs the endomorphisms
 
-        EXAMPLES:
+
+        -  ``iterator outputting WordMorphism`` - outputs the
+           endomorphisms
+
+
+        EXAMPLES::
+
             sage: W = Words('ab')
             sage: map(str, W.iter_morphisms([2, 1]))
             ['WordMorphism: a->aa, b->a',
@@ -543,7 +584,8 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: list(W.iter_morphisms([1,0]))
             [Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b'], Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b']]
 
-        TESTS:
+        TESTS::
+
             sage: list(W.iter_morphisms([0, 1, 2]))
             Traceback (most recent call last):
             ...
@@ -576,7 +618,8 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 class InfiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
     def __init__(self, alphabet):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import InfiniteWords_over_OrderedAlphabet
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet("abc")
@@ -593,7 +636,8 @@ class InfiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         r"""
         Returns a string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Words('ab', infinite=False).__repr__()
             "Finite Words over Ordered Alphabet ['a', 'b']"
         """
@@ -602,7 +646,8 @@ class InfiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
 class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
     def __init__(self, alphabet):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import FiniteWords_over_OrderedAlphabet
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet("abc")
@@ -619,7 +664,8 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         r"""
         Returns a string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Words('ab', infinite=False).__repr__()
             "Finite Words over Ordered Alphabet ['a', 'b']"
         """
@@ -627,7 +673,8 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
 
     def __call__(self, *args, **kwds):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import FiniteWords_over_OrderedAlphabet
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet("abc")
@@ -644,7 +691,8 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
 class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet):
     def __init__(self, alphabet, length):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.words import FiniteWords_length_k_over_OrderedAlphabet
             sage: A = sage.combinat.words.alphabet.OrderedAlphabet([0,1])
             sage: W = FiniteWords_length_k_over_OrderedAlphabet(A, 3)
@@ -657,7 +705,8 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
 
     def __contains__(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.words.words import FiniteWords_length_k_over_OrderedAlphabet
             sage: A = sage.combinat.words.alphabet.OrderedAlphabet([0,1])
             sage: W = FiniteWords_length_k_over_OrderedAlphabet(A, 3)
@@ -682,7 +731,8 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
 
     def __repr__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.words.words import FiniteWords_length_k_over_OrderedAlphabet
             sage: A = sage.combinat.words.alphabet.OrderedAlphabet([1,0])
             sage: FiniteWords_length_k_over_OrderedAlphabet(A,3).__repr__()
@@ -694,7 +744,8 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         r"""
         Returns the number of words of length n from alphabet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Words(['a','b','c'], 4).count()
             81
             sage: Words(3, 4).count()
@@ -727,7 +778,8 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         self.alphabet(). The iterator outputs the words in lexicographic
         order, with respect to the ordering of the alphabet.
 
-        TESTS:
+        TESTS::
+
             sage: [w for w in Words(['a', 'b'], 2)]
             [word: aa, word: ab, word: ba, word: bb]
             sage: [w for w in Words(['b', 'a'], 2)]
@@ -745,7 +797,8 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         All words in this class are of the same length, so use iterator
         instead.
 
-        TESTS:
+        TESTS::
+
             sage: W = Words(['a', 'b'], 2)
             sage: list(W.iterate_by_length(2))
             [word: aa, word: ab, word: ba, word: bb]

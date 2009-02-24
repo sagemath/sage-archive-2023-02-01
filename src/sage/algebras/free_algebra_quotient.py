@@ -1,7 +1,8 @@
 """
 Free algebra quotients
 
-TESTS:
+TESTS::
+
     sage: n = 2
     sage: A = FreeAlgebra(QQ,n,'x')
     sage: F = A.monoid()
@@ -44,15 +45,16 @@ from sage.structure.parent_gens import ParentWithGens
 class FreeAlgebraQuotient(Algebra, object):
     def __init__(self, A, mons, mats, names):
         """
-        Returns a quotient algebra defined via the action of a free algebra A
-        on a (finitely generated) free module.  The input for the quotient algebra
-        is a list of monomials (in the underlying monoid for A) which form a free
-        basis for the module of A, and a list of matrices, which give the action
-        of the free generators of A on this monomial basis.
+        Returns a quotient algebra defined via the action of a free algebra
+        A on a (finitely generated) free module. The input for the quotient
+        algebra is a list of monomials (in the underlying monoid for A)
+        which form a free basis for the module of A, and a list of
+        matrices, which give the action of the free generators of A on this
+        monomial basis.
 
         EXAMPLES:
 
-        Quaternion algebra defined in terms of three generators:
+        Quaternion algebra defined in terms of three generators::
 
             sage: n = 3
             sage: A = FreeAlgebra(QQ,n,'i')
@@ -68,8 +70,10 @@ class FreeAlgebraQuotient(Algebra, object):
             sage: x**128
             -170141183460469231731687303715884105728 + 170141183460469231731687303715884105728*i + 170141183460469231731687303715884105728*j + 170141183460469231731687303715884105728*k
 
-        Same algebra defined in terms of two generators, with some
-        penalty on already slow arithmetic.
+        Same algebra defined in terms of two generators, with some penalty
+        on already slow arithmetic.
+
+        ::
 
             sage: n = 2
             sage: A = FreeAlgebra(QQ,n,'x')
@@ -86,7 +90,6 @@ class FreeAlgebraQuotient(Algebra, object):
             1 + i + j + i*j
             sage: x**128
             -170141183460469231731687303715884105728 + 170141183460469231731687303715884105728*i + 170141183460469231731687303715884105728*j + 170141183460469231731687303715884105728*i*j
-
         """
         if not is_FreeAlgebra(A):
             raise TypeError, "Argument A must be an algebra."
@@ -123,8 +126,10 @@ class FreeAlgebraQuotient(Algebra, object):
 
         The algebras that coerce into this quotient ring canonically, are:
 
-           * this quotient algebra
-           * anything that coerces into the algebra of which this is the quotient
+        - this quotient algebra
+
+        - anything that coerces into the algebra of which this is the
+          quotient
         """
         return self._coerce_try(x, [self.__free_algebra, self.base_ring()])
 
@@ -188,8 +193,8 @@ class FreeAlgebraQuotient(Algebra, object):
 
     def monomial_basis(self):
         """
-        The free monoid of generators of the algebra as elements
-        of a free monoid.
+        The free monoid of generators of the algebra as elements of a free
+        monoid.
         """
         return self.__monomial_basis
 

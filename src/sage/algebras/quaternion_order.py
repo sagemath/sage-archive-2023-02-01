@@ -1,7 +1,9 @@
 """
 Quaternion orders
 
-AUTHOR: David Kohel, 2005-09
+AUTHORS:
+
+- David Kohel (2005-09)
 """
 
 #*****************************************************************************
@@ -42,11 +44,13 @@ def QuaternionOrderWithBasis(R, B):
 
 def QuaternionDefiningOrder(H, R):
     """
-    Returns a hypothetical underlying order of H spanned by the basis over R.
+    Returns a hypothetical underlying order of H spanned by the basis
+    over R.
 
-    No checking is done to ensure that the ring R is an integral domain whose
-    field of fractions is the base field of H.  Nor is it checked that the basis
-    of H in fact generates an R-module which is closed under multiplication.
+    No checking is done to ensure that the ring R is an integral domain
+    whose field of fractions is the base field of H. Nor is it checked
+    that the basis of H in fact generates an R-module which is closed
+    under multiplication.
     """
     if not isinstance(H, QuaternionAlgebra_generic):
         raise TypeError, "Argument H (= %s) must be a quaternion algebra."%H
@@ -61,7 +65,7 @@ class QuaternionOrder_generic(AlgebraOrder_generic):
     """
     def __init__(self, H, R, gens, basis=None):
         """
-        An order in a quaternion algebra.
+	An order in a quaternion algebra.
 	"""
         AlgebraOrder_generic.__init__(self, H, R, gens, basis=basis, rank=4)
 

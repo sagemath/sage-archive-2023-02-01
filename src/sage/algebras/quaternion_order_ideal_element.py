@@ -1,7 +1,9 @@
 """
 Quaternion ideal elements
 
-AUTHOR: David Kohel, 2005-09
+AUTHORS:
+
+- David Kohel (2005-09)
 """
 
 #*****************************************************************************
@@ -23,6 +25,7 @@ from quaternion_order_element import QuaternionOrderElement
 
 class QuaternionOrderIdealElement(QuaternionOrderElement):
     """
+
     """
     def __init__(self, A, x):
         """

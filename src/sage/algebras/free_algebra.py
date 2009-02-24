@@ -1,10 +1,15 @@
 """
 Free algebras
 
-AUTHOR: David Kohel, 2005-09
-    William Stein 2006-11-01 -- add all doctests; implemented many things.
+AUTHORS:
 
-EXAMPLES:
+- David Kohel (2005-09)
+
+- William Stein (2006-11-01): add all doctests; implemented many
+  things.
+
+EXAMPLES::
+
     sage: F = FreeAlgebra(ZZ,3,'x,y,z')
     sage: F.base_ring()
     Integer Ring
@@ -13,27 +18,35 @@ EXAMPLES:
     sage: G.base_ring()
     Free Algebra on 3 generators (x, y, z) over Integer Ring
 
-TESTS:
+TESTS::
+
     sage: F = FreeAlgebra(GF(5),3,'x')
     sage: F == loads(dumps(F))
     True
+
+::
 
     sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
     sage: F == loads(dumps(F))
     True
 
+::
+
     sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
     sage: F == loads(dumps(F))
     True
+
+::
 
     sage: F = FreeAlgebra(GF(5),3, 'abc')
     sage: F == loads(dumps(F))
     True
 
+::
+
     sage: F = FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
     sage: F == loads(dumps(F))
     True
-
 """
 
 #*****************************************************************************
@@ -58,18 +71,23 @@ import sage.structure.parent_gens
 
 def FreeAlgebra(R, n, names):
     """
-    Return the free algebra over the ring $R$ on $n$ generators with
-    given names.
+    Return the free algebra over the ring `R` on `n`
+    generators with given names.
 
     INPUT:
-        R -- ring
-        n -- integer
-        names -- string or list/tuple of n strings
 
-    OUTPUT:
-        a free algebra
 
-    EXAMPLES:
+    -  ``R`` - ring
+
+    -  ``n`` - integer
+
+    -  ``names`` - string or list/tuple of n strings
+
+
+    OUTPUT: a free algebra
+
+    EXAMPLES::
+
         sage: FreeAlgebra(GF(5),3,'x')
         Free Algebra on 3 generators (x0, x1, x2) over Finite Field of size 5
         sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
@@ -86,13 +104,17 @@ def FreeAlgebra(R, n, names):
         sage: FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
         Free Algebra on 2 generators (x0, x1) over Free Algebra on 1 generators (a,) over Integer Ring
 
-    Free algebras are globally unique:
+    Free algebras are globally unique::
+
         sage: F = FreeAlgebra(ZZ,3,'x,y,z')
         sage: G = FreeAlgebra(ZZ,3,'x,y,z')
         sage: F is G
         True
 
     Free algebras commute with their base ring.
+
+    ::
+
         sage: K.<a,b> = FreeAlgebra(QQ,2)
         sage: K.is_commutative()
         False
@@ -113,7 +135,8 @@ def is_FreeAlgebra(x):
     """
     Return True if x is a free algebra; otherwise, return False.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.free_algebra import is_FreeAlgebra
         sage: is_FreeAlgebra(5)
         False
@@ -127,9 +150,10 @@ def is_FreeAlgebra(x):
 
 class FreeAlgebra_generic(Algebra):
     """
-    The free algebra on $n$ generators over a base ring.
+    The free algebra on `n` generators over a base ring.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F
         Free Algebra on 3 generators (x, y, z) over Rational Field
         sage: mul(F.gens())
@@ -138,16 +162,19 @@ class FreeAlgebra_generic(Algebra):
         x*y*z*x*y*z*x*y*z*x*y*z
         sage: mul([ F.gen(i%3) for i in range(12) ]) + mul([ F.gen(i%2) for i in range(12) ])
         x*y*x*y*x*y*x*y*x*y*x*y + x*y*z*x*y*z*x*y*z*x*y*z
-
         sage: (2 + x*z + x^2)^2 + (x - y)^2
         4 + 5*x^2 - x*y + 4*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
     """
     def __init__(self, R, n, names):
         """
         INPUT:
-            R -- ring
-            n -- an integer
-            names -- generator names
+
+
+        -  ``R`` - ring
+
+        -  ``n`` - an integer
+
+        -  ``names`` - generator names
         """
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
@@ -157,16 +184,17 @@ class FreeAlgebra_generic(Algebra):
 
     def is_field(self):
         """
-        Return True if this Free Algebra is a field, which is only if
-        the base ring is a field and there are no generators
+        Return True if this Free Algebra is a field, which is only if the
+        base ring is a field and there are no generators
 
-        EXAMPLES:
-        sage: A=FreeAlgebra(QQ,0,'')
-        sage: A.is_field()
-        True
-        sage: A=FreeAlgebra(QQ,1,'x')
-        sage: A.is_field()
-        False
+        EXAMPLES::
+
+            sage: A=FreeAlgebra(QQ,0,'')
+            sage: A.is_field()
+            True
+            sage: A=FreeAlgebra(QQ,1,'x')
+            sage: A.is_field()
+            False
         """
         if self.__ngens == 0:
             return self.base_ring().is_field()
@@ -176,7 +204,8 @@ class FreeAlgebra_generic(Algebra):
         """
         Return True if this free algebra is commutative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = FreeAlgebra(QQ,1)
             sage: R.is_commutative()
             True
@@ -188,10 +217,11 @@ class FreeAlgebra_generic(Algebra):
 
     def __cmp__(self, other):
         """
-        Two free algebras are considered the same if they have the
-        same base ring, number of generators and variable names.
+        Two free algebras are considered the same if they have the same
+        base ring, number of generators and variable names.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAlgebra(QQ,3,'x')
             sage: F ==  FreeAlgebra(QQ,3,'x')
             True
@@ -218,7 +248,8 @@ class FreeAlgebra_generic(Algebra):
         """
         Text representation of this free algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAlgebra(QQ,3,'x')
             sage: print F
             Free Algebra on 3 generators (x0, x1, x2) over Rational Field
@@ -231,12 +262,13 @@ class FreeAlgebra_generic(Algebra):
 
     def __call__(self, x):
         """
-        Coerce x into self.
+       Coerce x into self.
 
-        EXAMPLES:
-            sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: R(3)
-            3
+       EXAMPLES::
+
+           sage: R.<x,y> = FreeAlgebra(QQ,2)
+           sage: R(3)
+           3
        """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
@@ -262,47 +294,69 @@ class FreeAlgebra_generic(Algebra):
         Canonical coercion of x into self.
 
         Here's what canonically coerces to self:
-            * this free algebra
-            * the underlying monoid
-            * anything that coerces to the base ring of this free algebra
-            * any free algebra whose base ring coerces to the base ring of this free algebra
 
-        EXAMPLES:
+        - this free algebra
+
+        - the underlying monoid
+
+        - anything that coerces to the base ring of this free algebra
+
+        - any free algebra whose base ring coerces to the base ring of
+          this free algebra
+
+        EXAMPLES::
+
             sage: F.<x,y,z> = FreeAlgebra(GF(7),3); F
             Free Algebra on 3 generators (x, y, z) over Finite Field of size 7
 
         Elements of the free algebra canonically coerce in.
+
+        ::
+
             sage: F._coerce_(x*y)
             x*y
 
-        Elements of the integers coerce in, since there is a coerce map from ZZ to GF(7).
+        Elements of the integers coerce in, since there is a coerce map
+        from ZZ to GF(7).
+
+        ::
+
             sage: F._coerce_(1)
             1
 
         There is no coerce map from QQ to GF(7).
+
+        ::
+
             sage: F._coerce_(2/3)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion of element into self
 
         Elements of the base ring coerce in.
+
+        ::
+
             sage: F._coerce_(GF(7)(5))
             5
 
-        Elements of the corresponding monoid (of monomials) coerce in:
+        Elements of the corresponding monoid (of monomials) coerce in::
+
             sage: M = F.monoid(); m = M.0*M.1^2; m
             x*y^2
             sage: F._coerce_(m)
             x*y^2
 
-        The free algebra over ZZ on x,y,z coerces in, since ZZ coerces
-        to GF(7):
+        The free algebra over ZZ on x,y,z coerces in, since ZZ coerces to
+        GF(7)::
+
             sage: G = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F._coerce_(G.0^3 * G.1)
             x^3*y
 
-        However, GF(7) doesn't coerce to ZZ, so the free algebra over
-        GF(7) doesn't coerce to the one over ZZ:
+        However, GF(7) doesn't coerce to ZZ, so the free algebra over GF(7)
+        doesn't coerce to the one over ZZ::
+
             sage: G._coerce_(x^3*y)
             Traceback (most recent call last):
             ...
@@ -347,7 +401,8 @@ class FreeAlgebra_generic(Algebra):
         """
         The i-th generator of the algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F.gen(0)
             x
@@ -361,12 +416,12 @@ class FreeAlgebra_generic(Algebra):
 
     def quotient(self, mons, mats, names):
         """
-        Returns a quotient algebra defined via the action of a free
-        algebra A on a (finitely generated) free module.  The input
-        for the quotient algebra is a list of monomials (in the
-        underlying monoid for A) which form a free basis for the
-        module of A, and a list of matrices, which give the action of
-        the free generators of A on this monomial basis.
+        Returns a quotient algebra defined via the action of a free algebra
+        A on a (finitely generated) free module. The input for the quotient
+        algebra is a list of monomials (in the underlying monoid for A)
+        which form a free basis for the module of A, and a list of
+        matrices, which give the action of the free generators of A on this
+        monomial basis.
         """
         import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
@@ -376,7 +431,8 @@ class FreeAlgebra_generic(Algebra):
         """
         The number of generators of the algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F.ngens()
             3
@@ -387,7 +443,8 @@ class FreeAlgebra_generic(Algebra):
         """
         The free monoid of generators of the algebra.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F.monoid()
             Free monoid on 3 generators (x, y, z)

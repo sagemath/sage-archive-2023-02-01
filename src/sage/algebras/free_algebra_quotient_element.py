@@ -1,7 +1,9 @@
 """
 Free algebra quotient elements
 
-AUTHOR: David Kohel, 2005-09
+AUTHORS:
+
+- David Kohel (2005-09)
 """
 
 from __future__ import with_statement

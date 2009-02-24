@@ -2,49 +2,55 @@ r"""
 Steenrod algebra bases
 
 AUTHORS:
-    - John H. Palmieri (2008-07-30: version 0.9)
+
+- John H. Palmieri (2008-07-30): version 0.9
 
 This package defines functions for computing various bases of the
-Steenrod algebra, and for converting between the Milnor basis and any
-other basis.
+Steenrod algebra, and for converting between the Milnor basis and
+any other basis.
 
-This packages implements a number of different bases, at least at the
-prime 2.  The Milnor and Serre-Cartan bases are the most familiar and
-most standard ones, and all of the others are defined in terms of one
-of these.  The bases are described in the documentation for the
-function \code{steenrod_algebra_basis}; also see the papers by Monks [M]
-and Wood [W] for more information about them.  For commutator bases,
-see the preprint by Palmieri and Zhang [PZ].
+This packages implements a number of different bases, at least at
+the prime 2. The Milnor and Serre-Cartan bases are the most
+familiar and most standard ones, and all of the others are defined
+in terms of one of these. The bases are described in the
+documentation for the function
+``steenrod_algebra_basis``; also see the papers by
+Monks [M] and Wood [W] for more information about them. For
+commutator bases, see the preprint by Palmieri and Zhang [PZ].
 
-  * 'milnor': Milnor basis.
+- 'milnor': Milnor basis.
 
-  * 'serre-cartan' or 'adem' or 'admissible': Serre-Cartan basis.
+- 'serre-cartan' or 'adem' or 'admissible': Serre-Cartan basis.
 
-The other bases are as follows; these are only defined when $p=2$:
+The other bases are as follows; these are only defined when
+`p=2`:
 
-  * 'wood_y': Wood's Y basis.
+-  'wood_y': Wood's Y basis.
 
-  * 'wood_z': Wood's Z basis.
+-  'wood_z': Wood's Z basis.
 
-  * 'wall', 'wall_long': Wall's basis.
+-  'wall', 'wall_long': Wall's basis.
 
-  * 'arnon_a', 'arnon_a_long': Arnon's A basis.
+-  'arnon_a', 'arnon_a_long': Arnon's A basis.
 
-  * 'arnon_c': Arnon's C basis.
+-  'arnon_c': Arnon's C basis.
 
-  * 'pst', 'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz': various
-     $P^s_t$-bases.
+-  'pst', 'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz':
+   various `P^s_t`-bases.
 
-  * 'comm', 'comm_rlex', 'comm_llex', 'comm_deg', 'comm_revz', or
-     these with '_long' appended: various commutator bases.
+-  'comm', 'comm_rlex', 'comm_llex', 'comm_deg', 'comm_revz',
+   or these with '_long' appended: various commutator bases.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: steenrod_algebra_basis(7,'milnor')
     (Sq(0,0,1), Sq(1,2), Sq(4,1), Sq(7))
     sage: steenrod_algebra_basis(5)   # milnor basis is the default
     (Sq(2,1), Sq(5))
 
-The third (optional) argument to \code{steenrod_algebra_basis} is the prime $p$:
+The third (optional) argument to
+``steenrod_algebra_basis`` is the prime `p`::
+
     sage: steenrod_algebra_basis(9, 'milnor', p=3)
     (Q_1 P(1), Q_0 P(2))
     sage: steenrod_algebra_basis(9, 'milnor', 3)
@@ -52,7 +58,8 @@ The third (optional) argument to \code{steenrod_algebra_basis} is the prime $p$:
     sage: steenrod_algebra_basis(17, 'milnor', 3)
     (Q_2, Q_1 P(3), Q_0 P(0,1), Q_0 P(4))
 
-Other bases:
+Other bases::
+
     sage: steenrod_algebra_basis(7,'admissible')
     (Sq^{7}, Sq^{6} Sq^{1}, Sq^{4} Sq^{2} Sq^{1}, Sq^{5} Sq^{2})
     sage: [x.basis('milnor') for x in steenrod_algebra_basis(7,'admissible')]
@@ -75,25 +82,29 @@ Other bases:
     sage: steenrod_algebra_basis(5,'pst-rlex')
     (P^{0}_{1} P^{2}_{1}, P^{1}_{1} P^{0}_{2})
 
-This file also contains a function \code{milnor_convert} which converts
-elements from the (default) Milnor basis representation to a
-representation in another basis.  The output is a dictionary which
-gives the new representation; its form depends on the chosen basis.
-For example, in the basis of admissible sequences (a.k.a. the
-Serre-Cartan basis), each basis element is of the form $\text{Sq}^a
-\text{Sq}^b ...$, and so is represented by a tuple $(a,b,...)$ of
-integers.  Thus the dictionary has such tuples as keys, with the
-coefficient of the basis element as the associated value:
+This file also contains a function ``milnor_convert``
+which converts elements from the (default) Milnor basis
+representation to a representation in another basis. The output is
+a dictionary which gives the new representation; its form depends
+on the chosen basis. For example, in the basis of admissible
+sequences (a.k.a. the Serre-Cartan basis), each basis element is of
+the form `\text{Sq}^a
+\text{Sq}^b ...`, and so is
+represented by a tuple `(a,b,...)` of integers. Thus the
+dictionary has such tuples as keys, with the coefficient of the
+basis element as the associated value::
+
     sage: from sage.algebras.steenrod_algebra_bases import milnor_convert
     sage: milnor_convert(Sq(2)*Sq(4) + Sq(2)*Sq(5), 'admissible')
     {(5, 1): 1, (6, 1): 1, (6,): 1}
     sage: milnor_convert(Sq(2)*Sq(4) + Sq(2)*Sq(5), 'pst')
     {((1, 1), (2, 1)): 1, ((0, 1), (1, 1), (2, 1)): 1, ((0, 2), (2, 1)): 1}
 
-Users shouldn't need to call \code{milnor_convert}; they should use the
-\code{basis} method to view a single element in another basis, or define a
-Steenrod algebra with a different default basis and work in that
-algebra:
+Users shouldn't need to call ``milnor_convert``; they
+should use the ``basis`` method to view a single
+element in another basis, or define a Steenrod algebra with a
+different default basis and work in that algebra::
+
     sage: x = Sq(2)*Sq(4) + Sq(2)*Sq(5)
     sage: x
     Sq(3,1) + Sq(4,1) + Sq(6) + Sq(7)
@@ -107,46 +118,44 @@ algebra:
     sage: A(Sq(2) * Sq(4) + Sq(2) * Sq(5))
     P^{0}_{1} P^{1}_{1} P^{2}_{1} + P^{0}_{2} P^{2}_{1} + P^{1}_{1} P^{2}_{1}
 
-**************
-
 INTERNAL DOCUMENTATION:
 
 If you want to implement a new basis for the Steenrod algebra:
 
-    In the file 'steenrod_algebra.py':
+In the file 'steenrod_algebra.py':
 
-        add functionality to \code{get_basis_name}: this should accept as
-        input various synonyms for the basis, and its output should be
-        an element of \code{_steenrod_basis_unique_names} (see the next
-        file).
+- add functionality to ``get_basis_name``: this should accept as input
+  various synonyms for the basis, and its output should be an element
+  of ``_steenrod_basis_unique_names`` (see the next file).
 
-    In the file 'steenrod_algebra_element.py':
+In the file 'steenrod_algebra_element.py':
 
-        add name of basis to \code{_steenrod_basis_unique_names}
+- add name of basis to
+  ``_steenrod_basis_unique_names``
 
-        add functionality to \code{string_rep}, which probably involves
-        adding a \code{BASIS_mono_to_string} function
+- add functionality to ``string_rep``, which probably involves adding
+  a ``BASIS_mono_to_string`` function
 
-        add functionality to the \code{_basis_dictionary} method
+- add functionality to the ``_basis_dictionary`` method
 
-    In this file ('steenrod_algebra_bases.py'):
+In this file 'steenrod_algebra_bases.py':
 
-        add appropriate lines to \code{steenrod_algebra_basis}
+- add appropriate lines to ``steenrod_algebra_basis``
 
-        add a function to compute the basis in a given dimension (to be
-        called by \code{steenrod_algebra_basis})
+- add a function to compute the basis in a given dimension (to be
+  called by ``steenrod_algebra_basis``)
 
 REFERENCES:
 
-    [M]  K. G. Monks, "Change of basis, monomial relations, and $P^s_t$
-         bases for the Steenrod algebra," J. Pure Appl. Algebra 125 (1998),
-         no. 1-3, 235--260.
+- [M] K. G. Monks, "Change of basis, monomial relations, and
+  `P^s_t` bases for the Steenrod algebra," J. Pure Appl.
+  Algebra 125 (1998), no. 1-3, 235-260.
 
-    [PZ] J. H. Palmieri and J. J. Zhang, "Commutators in the Steenrod
-         algebra," preprint (2008)
+- [PZ] J. H. Palmieri and J. J. Zhang, "Commutators in the Steenrod
+  algebra," preprint (2008)
 
-    [W]  R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
-         Math. Soc. 30 (1998), no. 5, 449--517.
+- [W] R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
+  Math. Soc. 30 (1998), no. 5, 449-517.
 """
 
 #*****************************************************************************
@@ -167,20 +176,32 @@ _conversion_matrices = {}
 
 def convert_to_milnor_matrix(n, basis, p=2):
     r"""
-    Change-of-basis matrix, 'basis' to Milnor, in dimension $n$, at the prime $p$.
+    Change-of-basis matrix, 'basis' to Milnor, in dimension
+    `n`, at the prime `p`.
 
     INPUT:
-        n -- non-negative integer, the dimension
-        basis -- string, the basis from which to convert
-        p -- positive prime number (optional, default 2)
+
+
+    -  ``n`` - non-negative integer, the dimension
+
+    -  ``basis`` - string, the basis from which to convert
+
+    -  ``p`` - positive prime number (optional, default
+       2)
+
 
     OUTPUT:
-        matrix -- change-of-basis matrix, a square matrix over GF(p)
 
-    (This is not really intended for casual users, so no error
-    checking is made on the integer $n$, the basis name, or the prime.)
 
-    EXAMPLES:
+    -  ``matrix`` - change-of-basis matrix, a square matrix
+       over GF(p)
+
+
+    (This is not really intended for casual users, so no error checking
+    is made on the integer `n`, the basis name, or the prime.)
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import convert_to_milnor_matrix
         sage: convert_to_milnor_matrix(5, 'adem')
         [0 1]
@@ -196,7 +217,9 @@ def convert_to_milnor_matrix(n, basis, p=2):
         [0 0 1 1 1 0 1]
         [0 0 0 0 1 0 1]
 
-    The function takes an optional argument, the prime $p$ over which to work:
+    The function takes an optional argument, the prime `p` over
+    which to work::
+
         sage: convert_to_milnor_matrix(17,'adem',3)
         [0 0 1 1]
         [0 0 0 1]
@@ -230,20 +253,32 @@ def convert_to_milnor_matrix(n, basis, p=2):
 
 def convert_from_milnor_matrix(n, basis, p=2):
     r"""
-    Change-of-basis matrix, Milnor to 'basis', in dimension $n$.
+    Change-of-basis matrix, Milnor to 'basis', in dimension
+    `n`.
 
     INPUT:
-        n -- non-negative integer, the dimension
-        basis -- string, the basis to which to convert
-        p -- positive prime number (optional, default 2)
+
+
+    -  ``n`` - non-negative integer, the dimension
+
+    -  ``basis`` - string, the basis to which to convert
+
+    -  ``p`` - positive prime number (optional, default
+       2)
+
 
     OUTPUT:
-        matrix -- change-of-basis matrix, a square matrix over GF(p)
 
-    (This is not really intended for casual users, so no error
-    checking is made on the integer $n$, the basis name, or the prime.)
 
-    EXAMPLES:
+    -  ``matrix`` - change-of-basis matrix, a square matrix
+       over GF(p)
+
+
+    (This is not really intended for casual users, so no error checking
+    is made on the integer `n`, the basis name, or the prime.)
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import convert_from_milnor_matrix, convert_to_milnor_matrix
         sage: convert_from_milnor_matrix(12,'wall')
         [1 0 0 1 0 0 0]
@@ -276,7 +311,9 @@ def convert_from_milnor_matrix(n, basis, p=2):
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
 
-    The function takes an optional argument, the prime $p$ over which to work:
+    The function takes an optional argument, the prime `p` over
+    which to work::
+
         sage: convert_from_milnor_matrix(17,'adem',3)
         [2 1 1 2]
         [0 2 0 1]
@@ -292,15 +329,20 @@ def convert_from_milnor_matrix(n, basis, p=2):
 
 def make_elt_homogeneous(poly):
     """
-    Break element of the Steenrod algebra into a list of homogeneous pieces.
+    Break element of the Steenrod algebra into a list of homogeneous
+    pieces.
 
     INPUT:
-        poly -- an element of the Steenrod algebra
 
-    OUTPUT:
-        list of homogeneous elements of the Steenrod algebra whose sum is poly
 
-    EXAMPLES:
+    -  ``poly`` - an element of the Steenrod algebra
+
+
+    OUTPUT: list of homogeneous elements of the Steenrod algebra whose
+    sum is poly
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import make_elt_homogeneous
         sage: make_elt_homogeneous(Sq(2)*Sq(4) + Sq(2)*Sq(5))
         [Sq(3,1) + Sq(6), Sq(4,1) + Sq(7)]
@@ -318,22 +360,29 @@ def make_elt_homogeneous(poly):
 
 def milnor_convert(poly, basis):
     r"""
-    Convert an element of the Steenrod algebra in the Milnor basis
-    to its representation in the chosen basis.
+    Convert an element of the Steenrod algebra in the Milnor basis to
+    its representation in the chosen basis.
 
     INPUT:
-        poly -- element of the Steenrod algebra
-        basis -- basis to which to convert
+
+
+    -  ``poly`` - element of the Steenrod algebra
+
+    -  ``basis`` - basis to which to convert
+
 
     OUTPUT:
-        dict -- dictionary
 
 
-    This returns a dictionary of terms of the form (mono: coeff),
-    where mono is a monomial in 'basis'.  The form of mono depends on
-    the chosen basis.
+    -  ``dict`` - dictionary
 
-    EXAMPLES:
+
+    This returns a dictionary of terms of the form (mono: coeff), where
+    mono is a monomial in 'basis'. The form of mono depends on the
+    chosen basis.
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import milnor_convert
         sage: milnor_convert(Sq(2)*Sq(4) + Sq(2)*Sq(5), 'adem')
         {(5, 1): 1, (6, 1): 1, (6,): 1}
@@ -382,151 +431,181 @@ def milnor_convert(poly, basis):
 
 def steenrod_algebra_basis(n, basis='milnor', p=2):
     r"""
-    Basis for the Steenrod algebra in degree $n$.
+    Basis for the Steenrod algebra in degree `n`.
 
     INPUT:
-        n -- non-negative integer
-        basis -- string, which basis to use  (optional, default = 'milnor')
-        p -- positive prime number (optional, default = 2)
 
-    OUTPUT:
-        tuple of basis elements for the Steenrod algebra in dimension n
+
+    -  ``n`` - non-negative integer
+
+    -  ``basis`` - string, which basis to use (optional,
+       default = 'milnor')
+
+    -  ``p`` - positive prime number (optional, default =
+       2)
+
+
+    OUTPUT: tuple of basis elements for the Steenrod algebra in
+    dimension n
 
     The choices for the string basis are as follows:
 
-      * 'milnor': Milnor basis.  When $p=2$, the Milnor basis consists
-        of symbols of the form $\text{Sq}(m_1, m_2, ..., m_t)$, where each
-        $m_i$ is a non-negative integer and if $t>1$, then the last
-        entry $m_t > 0$.  When $p$ is odd, the Milnor basis consists
-        of symbols of the form $Q_{e_1} Q_{e_2} ... \mathcal{P}(m_1,
-        m_2, ..., m_t)$, where $0 \leq e_1 < e_2 < ...$, each $m_i$ is
-        a non-negative integer, and if $t>1$, then the last entry $m_t
-        > 0$.
+    - 'milnor': Milnor basis. When `p=2`, the Milnor basis
+      consists of symbols of the form
+      `\text{Sq}(m_1, m_2, ..., m_t)`,
+      where each `m_i` is a non-negative integer and if
+      `t>1`, then the last entry `m_t > 0`. When `p`
+      is odd, the Milnor basis consists of symbols of the form
+      `Q_{e_1} Q_{e_2} ... \mathcal{P}(m_1, m_2, ..., m_t)`,
+      where `0 \leq e_1 < e_2 < ...`, each `m_i` is a
+      non-negative integer, and if `t>1`, then the last entry
+      `m_t > 0`.
 
-      * 'serre-cartan' or 'adem' or 'admissible': Serre-Cartan basis.
-        The Serre-Cartan basis consists of 'admissible monomials' in
-        the Steenrod operations.  Thus at the prime 2, it consists of
-        monomials $\text{Sq}^{m_1} \text{Sq}^{m_2} ... \text{Sq}^{m_t}$
-        with $m_i \geq 2m_{i+1}$ for each $i$.  At odd primes, it
-        consists of monomials $\beta^{\epsilon_0} \mathcal{P}^{s_1}
-        \beta^{\epsilon_1} \mathcal{P}^{s_2} ...  \mathcal{P}^{s_k}
-        \beta^{\epsilon_k}$ with each $\epsilon_i$ either 0 or 1, $s_i
-        \geq p s_{i+1} + \epsilon_i$, and $s_k \geq 1$.
+    - 'serre-cartan' or 'adem' or 'admissible': Serre-Cartan basis.
+      The Serre-Cartan basis consists of 'admissible monomials' in the
+      Steenrod operations. Thus at the prime 2, it consists of
+      monomials
+      `\text{Sq}^{m_1} \text{Sq}^{m_2} ... \text{Sq}^{m_t}`
+      with `m_i \geq 2m_{i+1}` for each
+      `i`. At odd primes, it consists of monomials
+      `\beta^{\epsilon_0} \mathcal{P}^{s_1} \beta^{\epsilon_1} \mathcal{P}^{s_2} ...  \mathcal{P}^{s_k} \beta^{\epsilon_k}`
+      with each `\epsilon_i` either 0 or 1,
+      `s_i \geq p s_{i+1} + \epsilon_i`, and `s_k \geq 1`.
 
-        When $p=2$, the element $\text{Sq}^a$ equals the Milnor
-        element $\text{Sq}(a)$; when $p$ is odd, $\mathcal{P}^a =
-        \mathcal{P}(a)$ and $\beta = Q_0$.  Hence for any Serre-Cartan
-        basis element, one can represent it in the Milnor basis by
-        computing an appropriate product using Milnor multiplication.
+      When `p=2`, the element `\text{Sq}^a` equals the
+      Milnor element `\text{Sq}(a)`; when `p` is odd,
+      `\mathcal{P}^a = \mathcal{P}(a)` and
+      `\beta = Q_0`. Hence for any Serre-Cartan basis element,
+      one can represent it in the Milnor basis by computing an
+      appropriate product using Milnor multiplication.
 
-    The rest of these bases are only defined when $p=2$.
+    The rest of these bases are only defined when `p=2`.
 
-      * 'wood_y': Wood's Y basis.  For pairs of non-negative integers
-        $(m,k)$, let $w(m,k) = \text{Sq}^{2^m (2^{k+1}-1)}$.  Wood's $Y$
-        basis consists of monomials $w(m_0,k_0) ... w(m_t, k_t)$ with
-        $(m_i,k_i) > (m_{i+1},k_{i+1})$, in left lex order.
+    -  'wood_y': Wood's Y basis. For pairs of non-negative integers
+       `(m,k)`, let
+       `w(m,k) = \text{Sq}^{2^m (2^{k+1}-1)}`. Wood's `Y`
+       basis consists of monomials
+       `w(m_0,k_0) ... w(m_t, k_t)` with
+       `(m_i,k_i) > (m_{i+1},k_{i+1})`, in left lex order.
 
-      * 'wood_z': Wood's Z basis.  For pairs of non-negative integers
-        $(m,k)$, let $w(m,k) = \text{Sq}^{2^m (2^{k+1}-1)}$.  Wood's $Z$
-        basis consists of monomials $w(m_0,k_0) ... w(m_t, k_t)$ with
-        $(m_i+k_i,m_i) > (m_{i+1}+k_{i+1},m_{i+1})$, in left lex
-        order.
+    -  'wood_z': Wood's Z basis. For pairs of non-negative integers
+       `(m,k)`, let
+       `w(m,k) = \text{Sq}^{2^m (2^{k+1}-1)}`. Wood's `Z`
+       basis consists of monomials
+       `w(m_0,k_0) ... w(m_t, k_t)` with
+       `(m_i+k_i,m_i) > (m_{i+1}+k_{i+1},m_{i+1})`, in left
+       lex order.
 
-      * 'wall' or 'wall_long': Wall's basis.  For any pair of integers
-        $(m,k)$ with $m \geq k \geq 0$, let $Q^m_k = \text{Sq}^{2^k}
-        \text{Sq}^{2^{k+1}} ... \text{Sq}^{2^m}$.  The elements of
-        Wall's basis are monomials $Q^{m_0}_{k_0} ... Q^{m_t}_{k_t}$
-        with $(m_i, k_i) > (m_{i+1}, k_{i+1})$, ordered left
-        lexicographically.
+    -  'wall' or 'wall_long': Wall's basis. For any pair of integers
+       `(m,k)` with `m \geq k \geq 0`, let
+       `Q^m_k = \text{Sq}^{2^k} \text{Sq}^{2^{k+1}} ... \text{Sq}^{2^m}`.
+       The elements of Wall's basis are monomials
+       `Q^{m_0}_{k_0} ... Q^{m_t}_{k_t}` with
+       `(m_i, k_i) > (m_{i+1}, k_{i+1})`, ordered left
+       lexicographically.
 
-        (Note that $Q^m_k$ is the reverse of the element $X^m_k$ used in
-        defining Arnon's A basis.)
+       (Note that `Q^m_k` is the reverse of the element
+       `X^m_k` used in defining Arnon's A basis.)
 
-        The standard way of printing elements of the Wall basis is to
-        write elements in terms of the $Q^m_k$.  If one sets the basis
-        to 'wall_long' instead of 'wall', then each $Q^m_k$ is
-        expanded as a product of factors of the form $\text{Sq}^{2^i}$.
+       The standard way of printing elements of the Wall basis is to write
+       elements in terms of the `Q^m_k`. If one sets the basis to
+       'wall_long' instead of 'wall', then each `Q^m_k` is
+       expanded as a product of factors of the form
+       `\text{Sq}^{2^i}`.
 
-      * 'arnon_a' or 'arnon_a_long': Arnon's A basis.  For any pair of
-        integers $(m,k)$ with $m \geq k \geq 0$, let $X^m_k =
-        \text{Sq}^{2^m} \text{Sq}^{2^{m-1}} ... \text{Sq}^{2^k}$.  The
-        elements of Arnon's A basis are monomials $X^{m_0}_{k_0}
-        ... X^{m_t}_{k_t}$ with $(m_i, k_i) < (m_{i+1}, k_{i+1})$,
-        ordered left lexicographically.
+    -  'arnon_a' or 'arnon_a_long': Arnon's A basis. For any pair of
+       integers `(m,k)` with `m \geq k \geq 0`, let
+       `X^m_k = \text{Sq}^{2^m} \text{Sq}^{2^{m-1}} ... \text{Sq}^{2^k}`.
+       The elements of Arnon's A basis are monomials
+       `X^{m_0}_{k_0} ... X^{m_t}_{k_t}` with
+       `(m_i, k_i) < (m_{i+1}, k_{i+1})`, ordered left
+       lexicographically.
 
-        (Note that $X^m_k$ is the reverse of the element $Q^m_k$ used
-        in defining Wall's basis.)
+       (Note that `X^m_k` is the reverse of the element
+       `Q^m_k` used in defining Wall's basis.)
 
-        The standard way of printing elements of Arnon's A basis is to
-        write elements in terms of the $X^m_k$.  If one sets the basis
-        to 'arnon_a_long' instead of 'arnon_a', then each $X^m_k$ is
-        expanded as a product of factors of the form $\text{Sq}^{2^i}$.
+       The standard way of printing elements of Arnon's A basis is to
+       write elements in terms of the `X^m_k`. If one sets the
+       basis to 'arnon_a_long' instead of 'arnon_a', then each
+       `X^m_k` is expanded as a product of factors of the form
+       `\text{Sq}^{2^i}`.
 
-      * 'arnon_c': Arnon's C basis.  The elements of Arnon's C basis
-        are monomials of the form $\text{Sq}^{t_1} ... \text{Sq}^{t_m}$
-        where for each $i$, we have $t_i \leq 2t_{i+1}$ and $2^i | t_{m-i}$.
+    -  'arnon_c': Arnon's C basis. The elements of Arnon's C basis are
+       monomials of the form
+       `\text{Sq}^{t_1} ... \text{Sq}^{t_m}` where for each
+       `i`, we have `t_i \leq 2t_{i+1}` and
+       `2^i | t_{m-i}`.
 
-      * 'pst', 'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz': various
-        $P^s_t$-bases.  For integers $s \geq 0$ and $t > 0$, the element
-        $P^s_t$ is the Milnor basis element $\text{Sq}(0, ..., 0, 2^s, 0,
-        ...)$, with the nonzero entry in position $t$.  To obtain a
-        $P^s_t$-basis, for each set $\{P^{s_1}_{t_1}, ...,
-        P^{s_k}_{t_k}\}$ of (distinct) $P^s_t$'s, one chooses an
-        ordering and forms the resulting monomial.  The set of all
-        such monomials then forms a basis, and so one gets a basis by
-        choosing an ordering on each monomial.
+    -  'pst', 'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz':
+       various `P^s_t`-bases. For integers `s \geq 0` and
+       `t > 0`, the element `P^s_t` is the Milnor basis
+       element `\text{Sq}(0, ..., 0, 2^s, 0, ...)`, with
+       the nonzero entry in position `t`. To obtain a
+       `P^s_t`-basis, for each set
+       `\{P^{s_1}_{t_1}, ..., P^{s_k}_{t_k}\}` of
+       (distinct) `P^s_t`'s, one chooses an ordering and forms
+       the resulting monomial. The set of all such monomials then forms a
+       basis, and so one gets a basis by choosing an ordering on each
+       monomial.
 
-        The strings 'rlex', 'llex', etc., correspond to the following
-        orderings.  These are all 'global' -- they give a global
-        ordering on the $P^s_t$'s, not different orderings depending
-        on the monomial.  They order the $P^s_t$'s using the pair of
-        integers $(s,t)$ as follows:
+    The strings 'rlex', 'llex', etc., correspond to the following
+    orderings. These are all 'global' - they give a global ordering on
+    the `P^s_t`'s, not different orderings depending on the
+    monomial. They order the `P^s_t`'s using the pair of
+    integers `(s,t)` as follows:
 
-          * 'rlex': right lexicographic ordering
+    -  'rlex': right lexicographic ordering
 
-          * 'llex': left lexicographic ordering
+    -  'llex': left lexicographic ordering
 
-          * 'deg': ordered by degree, which is the same as left
-            lexicographic ordering on the pair $(s+t,t)$
+    -  'deg': ordered by degree, which is the same as left
+       lexicographic ordering on the pair `(s+t,t)`
 
-          * 'revz': left lexicographic ordering on the pair $(s+t,s)$,
-            which is the reverse of the ordering used (on elements in
-            the same degrees as the $P^s_t$'s) in Wood's Z basis:
-            'revz' stands for 'reversed Z'.  This is the default:
-            'pst' is the same as 'pst_revz'.
+    -  'revz': left lexicographic ordering on the pair
+       `(s+t,s)`, which is the reverse of the ordering used (on
+       elements in the same degrees as the `P^s_t`'s) in Wood's Z
+       basis: 'revz' stands for 'reversed Z'. This is the default: 'pst'
+       is the same as 'pst_revz'.
 
-      * 'comm', 'comm_rlex', 'comm_llex', 'comm_deg', 'comm_revz', or
-        any of these with '_long' appended: various commutator bases.
-        Let $c_{i,1} = \text{Sq}^{2^i}$, let $c_{i,2} = [c_{i,1},
-        c_{i+1,1}]$, and inductively define $c_{i,k} = [c_{i,k-1},
-        c_{i+k-1,1}]$.  Thus $c_{i,k}$ is a $k$-fold iterated
-        commutator of the elements $\text{Sq}^{2^i}$, ...,
-        $\text{Sq}^{2^{i+k-1}}$.  Note that $\dim c_{i,k} = \dim
-        P^i_k$.
+    -  'comm', 'comm_rlex', 'comm_llex', 'comm_deg', 'comm_revz',
+       or any of these with '_long' appended: various commutator bases.
+       Let `c_{i,1} = \text{Sq}^{2^i}`, let
+       `c_{i,2} = [c_{i,1}, c_{i+1,1}]`, and
+       inductively define
+       `c_{i,k} = [c_{i,k-1}, c_{i+k-1,1}]`. Thus
+       `c_{i,k}` is a `k`-fold iterated commutator of the
+       elements `\text{Sq}^{2^i}`, ...,
+       `\text{Sq}^{2^{i+k-1}}`. Note that
+       `\dim c_{i,k} = \dim P^i_k`.
 
-        To obtain a commutator basis, for each set $\{c_{s_1,t_1},
-        ..., c_{s_k,t_k}\}$ of (distinct) $c_{s,t}$'s, one chooses an
-        ordering and forms the resulting monomial.  The set of all
-        such monomials then forms a basis, and so one gets a basis by
-        choosing an ordering on each monomial.  The strings 'rlex',
-        etc., have the same meaning as for the orderings on
-        $P^s_t$-bases.  As with the $P^s_t$-bases, 'comm_revz' is the
-        default: 'comm' means 'comm_revz'.
+       To obtain a commutator basis, for each set
+       `\{c_{s_1,t_1}, ..., c_{s_k,t_k}\}` of
+       (distinct) `c_{s,t}`'s, one chooses an ordering and forms
+       the resulting monomial. The set of all such monomials then forms a
+       basis, and so one gets a basis by choosing an ordering on each
+       monomial. The strings 'rlex', etc., have the same meaning as for
+       the orderings on `P^s_t`-bases. As with the
+       `P^s_t`-bases, 'comm_revz' is the default: 'comm' means
+       'comm_revz'.
 
-        The commutator bases have alternative representations,
-        obtained by appending 'long' to their names: instead of, say,
-        $c_{2,2}$, the representation is $s_{48}$, indicating the
-        commutator of $\text{Sq}^4$ and $\text{Sq}^8$, and $c_{0,3}$,
-        which is equal to $[[\text{Sq}^1, \text{Sq}^2], \text{Sq}^4]$,
-        is written as $s_{124}$.
+       The commutator bases have alternative representations, obtained by
+       appending 'long' to their names: instead of, say,
+       `c_{2,2}`, the representation is `s_{48}`,
+       indicating the commutator of `\text{Sq}^4` and
+       `\text{Sq}^8`, and `c_{0,3}`, which is equal to
+       `[[\text{Sq}^1, \text{Sq}^2], \text{Sq}^4]`, is written as
+       `s_{124}`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: steenrod_algebra_basis(7,'milnor')
         (Sq(0,0,1), Sq(1,2), Sq(4,1), Sq(7))
         sage: steenrod_algebra_basis(5)   # milnor basis is the default
         (Sq(2,1), Sq(5))
 
-    The third (optional) argument to 'steenrod_algebra_basis' is the prime p:
+    The third (optional) argument to 'steenrod_algebra_basis' is the
+    prime p::
+
         sage: steenrod_algebra_basis(9, 'milnor', p=3)
         (Q_1 P(1), Q_0 P(2))
         sage: steenrod_algebra_basis(9, 'milnor', 3)
@@ -534,7 +613,8 @@ def steenrod_algebra_basis(n, basis='milnor', p=2):
         sage: steenrod_algebra_basis(17, 'milnor', 3)
         (Q_2, Q_1 P(3), Q_0 P(0,1), Q_0 P(4))
 
-    Other bases:
+    Other bases::
+
         sage: steenrod_algebra_basis(7,'admissible')
         (Sq^{7}, Sq^{6} Sq^{1}, Sq^{4} Sq^{2} Sq^{1}, Sq^{5} Sq^{2})
         sage: [x.basis('milnor') for x in steenrod_algebra_basis(7,'admissible')]
@@ -579,20 +659,27 @@ def steenrod_algebra_basis(n, basis='milnor', p=2):
 
 def restricted_partitions(n, list, no_repeats=False):
     """
-    List of 'restricted' partitions of n: partitions with parts taken from list.
+    List of 'restricted' partitions of n: partitions with parts taken
+    from list.
 
     INPUT:
-        n -- non-negative integer
-        list -- list of positive integers
-        no_repeats -- boolean (optional, default = False), if True, only
-            return partitions with no repeated parts
 
-    This seems to be faster than RestrictedPartitions, although I
-    don't know why.  Maybe because all I want is the list of
-    partitions (with each partition represented as a list), not the
-    extra stuff provided by RestrictedPartitions.
 
-    EXAMPLES:
+    -  ``n`` - non-negative integer
+
+    -  ``list`` - list of positive integers
+
+    -  ``no_repeats`` - boolean (optional, default =
+       False), if True, only return partitions with no repeated parts
+
+
+    This seems to be faster than RestrictedPartitions, although I don't
+    know why. Maybe because all I want is the list of partitions (with
+    each partition represented as a list), not the extra stuff provided
+    by RestrictedPartitions.
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import restricted_partitions
         sage: restricted_partitions(10, [7,5,1])
         [[7, 1, 1, 1], [5, 5], [5, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
@@ -603,10 +690,11 @@ def restricted_partitions(n, list, no_repeats=False):
         sage: restricted_partitions(10, [6,4,2], no_repeats=True)
         [[6, 4]]
 
-    'list' may have repeated elements.  If 'no_repeats' is False, this
-    has no effect.  If 'no_repeats' is True, and if the repeated
+    'list' may have repeated elements. If 'no_repeats' is False, this
+    has no effect. If 'no_repeats' is True, and if the repeated
     elements appear consecutively in 'list', then each element may be
-    used only as many times as it appears in 'list':
+    used only as many times as it appears in 'list'::
+
         sage: restricted_partitions(10, [6,4,2,2], no_repeats=True)
         [[6, 4], [6, 2, 2]]
         sage: restricted_partitions(10, [6,4,2,2,2], no_repeats=True)
@@ -616,7 +704,8 @@ def restricted_partitions(n, list, no_repeats=False):
     are likely meaningless, containing several partitions more than
     once, for example.)
 
-    In the following examples, 'no_repeats' is False:
+    In the following examples, 'no_repeats' is False::
+
         sage: restricted_partitions(10, [6,4,2])
         [[6, 4], [6, 2, 2], [4, 4, 2], [4, 2, 2, 2], [2, 2, 2, 2, 2]]
         sage: restricted_partitions(10, [6,4,2,2,2])
@@ -646,17 +735,26 @@ def restricted_partitions(n, list, no_repeats=False):
 
 def list_to_hist(list):
     """
-    Given list of positive integers [a,b,c,...], return corresponding 'histogram'.
+    Given list of positive integers [a,b,c,...], return corresponding
+    'histogram'.
 
     That is, in the output [n1, n2, ...], n1 is the number of 1's in
     the original list, n2 is the number of 2's, etc.
 
     INPUT:
-        list -- list of positive integers
-    OUTPUT:
-        answer -- list of non-negative integers
 
-    EXAMPLES:
+
+    -  ``list`` - list of positive integers
+
+
+    OUTPUT:
+
+
+    -  ``answer`` - list of non-negative integers
+
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import list_to_hist
         sage: list_to_hist([1,2,3,4,2,1,2])
         [2, 3, 1, 1]
@@ -702,18 +800,25 @@ def xi_degrees(n,p=2):
     Decreasing list of degrees of the xi_i's, starting in degree n.
 
     INPUT:
-        n -- integer
+
+
+    -  ``n`` - integer
+
 
     OUTPUT:
-        list -- list of integers
 
-    When $p=2$: decreasing list of the degrees of the $\xi_i$'s with
-    degree at most n.
 
-    At odd primes: decreasing list of these degrees, each divided
-    by $2(p-1)$.
+    -  ``list`` - list of integers
 
-    EXAMPLES:
+
+    When `p=2`: decreasing list of the degrees of the
+    `\xi_i`'s with degree at most n.
+
+    At odd primes: decreasing list of these degrees, each divided by
+    `2(p-1)`.
+
+    EXAMPLES::
+
         sage: sage.algebras.steenrod_algebra_bases.xi_degrees(17)
         [15, 7, 3, 1]
         sage: sage.algebras.steenrod_algebra_bases.xi_degrees(17,p=3)
@@ -731,24 +836,30 @@ def xi_degrees(n,p=2):
 
 def milnor_basis(n, p=2):
     r"""
-    Milnor basis in dimension $n$.
+    Milnor basis in dimension `n`.
 
     INPUT:
-        n -- non-negative integer
-        p -- positive prime number (optional, default 2)
 
-    OUTPUT:
-        tuple of mod p Milnor basis elements in dimension n
+
+    -  ``n`` - non-negative integer
+
+    -  ``p`` - positive prime number (optional, default
+       2)
+
+
+    OUTPUT: tuple of mod p Milnor basis elements in dimension n
 
     At the prime 2, the Milnor basis consists of symbols of the form
-    $\text{Sq}(m_1, m_2, ..., m_t)$, where each $m_i$ is a
-    non-negative integer and if $t>1$, then $m_t \neq 0$.
-    At odd primes, it consists of symbols of the form
-    $Q_{e_1} Q_{e_2} ... P(m_1, m_2, ..., m_t)$, where
-    $0 \leq e_1 < e_2 < ...$, each $m_i$ is a non-negative integer,
-    and if $t>1$, then $m_t \neq 0$.
+    `\text{Sq}(m_1, m_2, ..., m_t)`, where each
+    `m_i` is a non-negative integer and if `t>1`, then
+    `m_t \neq 0`. At odd primes, it consists of symbols of the
+    form `Q_{e_1} Q_{e_2} ... P(m_1, m_2, ..., m_t)`,
+    where `0 \leq e_1 < e_2 < ...`, each `m_i` is a
+    non-negative integer, and if `t>1`, then
+    `m_t \neq 0`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import milnor_basis
         sage: milnor_basis(7)
         (Sq(0,0,1), Sq(1,2), Sq(4,1), Sq(7))
@@ -839,25 +950,33 @@ def milnor_basis(n, p=2):
 
 def serre_cartan_basis(n, p=2, bound=1):
     r"""
-    Serre-Cartan basis in dimension $n$.
+    Serre-Cartan basis in dimension `n`.
 
     INPUT:
-        n -- non-negative integer
-        bound -- positive integer (optional)
-        prime -- positive prime number (optional, default 2)
 
-    OUTPUT:
-        tuple of mod p Serre-Cartan basis elements in dimension n
+
+    -  ``n`` - non-negative integer
+
+    -  ``bound`` - positive integer (optional)
+
+    -  ``prime`` - positive prime number (optional, default
+       2)
+
+
+    OUTPUT: tuple of mod p Serre-Cartan basis elements in dimension n
 
     The Serre-Cartan basis consists of 'admissible monomials in the
-    Steenrod squares'.  Thus at the prime 2, it consists of monomials
-    $\text{Sq}^{m_1} \text{Sq}^{m_2} ... \text{Sq}^{m_t}$ with $m_i
-    \geq 2m_{i+1}$ for each $i$.  At odd primes, it consists of
-    monomials $\beta^{e_0} P^{s_1} \beta^{e_1} P^{s_2} ...  P^{s_k}
-    \beta^{e_k}$ with each $e_i$ either 0 or 1, $s_i \geq p s_{i+1} +
-    e_i$, and $s_k \geq 1$.
+    Steenrod squares'. Thus at the prime 2, it consists of monomials
+    `\text{Sq}^{m_1} \text{Sq}^{m_2} ... \text{Sq}^{m_t}`
+    with `m_i \geq 2m_{i+1}` for each `i`. At odd
+    primes, it consists of monomials
+    `\beta^{e_0} P^{s_1} \beta^{e_1} P^{s_2} ...  P^{s_k} \beta^{e_k}`
+    with each `e_i` either 0 or 1,
+    `s_i \geq p s_{i+1} +  e_i`, and
+    `s_k \geq 1`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import serre_cartan_basis
         sage: serre_cartan_basis(7)
         (Sq^{7}, Sq^{6} Sq^{1}, Sq^{4} Sq^{2} Sq^{1}, Sq^{5} Sq^{2})
@@ -866,9 +985,12 @@ def serre_cartan_basis(n, p=2, bound=1):
         sage: serre_cartan_basis(50,5)
         (beta P^{5} P^{1} beta, beta P^{6} beta)
 
-    If optional argument bound is present, include only those
-    monomials whose last term is at least bound (when p=2), or those
-    for which $s_k - epsilon_k >= bound$ (when p is odd).
+    If optional argument bound is present, include only those monomials
+    whose last term is at least bound (when p=2), or those for which
+    `s_k - epsilon_k >= bound` (when p is odd).
+
+    ::
+
         sage: serre_cartan_basis(7, bound=2)
         (Sq^{7}, Sq^{5} Sq^{2})
         sage: serre_cartan_basis(13, 3, bound=3)
@@ -949,24 +1071,28 @@ def serre_cartan_basis(n, p=2, bound=1):
 
 def atomic_basis(n, basis, long=False):
     r"""
-    Basis for dimension $n$ made of elements in 'atomic' degrees:
-    degrees of the form $2^i (2^j - 1)$.
+    Basis for dimension `n` made of elements in 'atomic'
+    degrees: degrees of the form `2^i (2^j - 1)`.
 
     INPUT:
-        n -- non-negative integer
-        basis -- string, the name of the basis
 
-    OUTPUT:
-        tuple of basis elements in dimension n
+
+    -  ``n`` - non-negative integer
+
+    -  ``basis`` - string, the name of the basis
+
+
+    OUTPUT: tuple of basis elements in dimension n
 
     The atomic bases include Wood's Y and Z bases, Wall's basis,
-    Arnon's A basis, the $P^s_t$-bases, and the commutator bases.
-    (All of these bases are constructed similarly, hence their
-    constructions have been consolidated into a single function.
-    Also, see the documentation for 'steenrod_algebra_basis' for
+    Arnon's A basis, the `P^s_t`-bases, and the commutator
+    bases. (All of these bases are constructed similarly, hence their
+    constructions have been consolidated into a single function. Also,
+    see the documentation for 'steenrod_algebra_basis' for
     descriptions of them.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import atomic_basis
         sage: atomic_basis(6,'woody')
         (Sq^{2} Sq^{3} Sq^{1}, Sq^{4} Sq^{2}, Sq^{6})
@@ -977,30 +1103,35 @@ def atomic_basis(n, basis, long=False):
         sage: atomic_basis(9,'woodz') == atomic_basis(9, 'woody')
         False
 
-    Wall's basis:
+    Wall's basis::
+
         sage: atomic_basis(6,'wall')
         (Q^{1}_{1} Q^{1}_{0} Q^{0}_{0}, Q^{2}_{2} Q^{1}_{1}, Q^{2}_{1})
 
-    Elements of the Wall basis have an alternate, 'long'
-    representation as monomials in the $\text{Sq}^{2^n}$s:
+    Elements of the Wall basis have an alternate, 'long' representation
+    as monomials in the `\text{Sq}^{2^n}` s::
+
         sage: atomic_basis(6, 'wall', long=True)
         (Sq^{2} Sq^{1} Sq^{2} Sq^{1}, Sq^{4} Sq^{2}, Sq^{2} Sq^{4})
 
-    Arnon's A basis:
+    Arnon's A basis::
+
         sage: atomic_basis(7,'arnona')
         (X^{0}_{0} X^{1}_{1} X^{2}_{2},
         X^{0}_{0} X^{2}_{1},
         X^{1}_{0} X^{2}_{2},
         X^{2}_{0})
 
-    These also have a 'long' representation:
+    These also have a 'long' representation::
+
         sage: atomic_basis(7,'arnona',long=True)
         (Sq^{1} Sq^{2} Sq^{4},
         Sq^{1} Sq^{4} Sq^{2},
         Sq^{2} Sq^{1} Sq^{4},
         Sq^{4} Sq^{2} Sq^{1})
 
-    $P^s_t$-bases:
+    `P^s_t`-bases::
+
         sage: atomic_basis(7,'pst_rlex')
         (P^{0}_{1} P^{1}_{1} P^{2}_{1},
         P^{0}_{1} P^{1}_{2},
@@ -1022,7 +1153,8 @@ def atomic_basis(n, basis, long=False):
         P^{0}_{2} P^{2}_{1},
         P^{0}_{3})
 
-    Commutator bases:
+    Commutator bases::
+
         sage: atomic_basis(7,'comm_rlex')
         (c_{0,1} c_{1,1} c_{2,1}, c_{0,1} c_{1,2}, c_{2,1} c_{0,2}, c_{0,3})
         sage: atomic_basis(7,'comm_llex')
@@ -1030,9 +1162,10 @@ def atomic_basis(n, basis, long=False):
         sage: atomic_basis(7,'comm_deg')
         (c_{0,1} c_{1,1} c_{2,1}, c_{0,1} c_{1,2}, c_{0,2} c_{2,1}, c_{0,3})
         sage: atomic_basis(7,'comm_revz')
-   	(c_{0,1} c_{1,1} c_{2,1}, c_{0,1} c_{1,2}, c_{0,2} c_{2,1}, c_{0,3})
+        (c_{0,1} c_{1,1} c_{2,1}, c_{0,1} c_{1,2}, c_{0,2} c_{2,1}, c_{0,3})
 
-    Long representations of commutator bases:
+    Long representations of commutator bases::
+
         sage: atomic_basis(7,'comm_revz', long=True)
         (s_{1} s_{2} s_{4}, s_{1} s_{24}, s_{12} s_{4}, s_{124})
     """
@@ -1040,12 +1173,11 @@ def atomic_basis(n, basis, long=False):
         """
         Dictionary of atomic degrees for basis up to degree n.
 
-        The keys for the dictionary are the atomic degrees -- the
-        numbers of the form 2^i (2^j - 1) -- which are less than or
-        equal to n.  The value associated to such a degree depends on
-        basis; it has the form ((s,t), x), where (s,t) is a pair of
-        integers which indexes the corresponding element, and x is the
-        element in the Milnor basis.
+        The keys for the dictionary are the atomic degrees - the numbers of
+        the form 2i (2j - 1) - which are less than or equal to n. The value
+        associated to such a degree depends on basis; it has the form
+        ((s,t), x), where (s,t) is a pair of integers which indexes the
+        corresponding element, and x is the element in the Milnor basis.
         """
         dict = {}
         if basis.find('wood') >= 0:
@@ -1144,20 +1276,26 @@ def atomic_basis(n, basis, long=False):
 
 def Q(m,k,basis):
     r"""
-    Compute $Q^m_k$ (Wall basis) and $X^m_k$ (Arnon's A basis).
+    Compute `Q^m_k` (Wall basis) and `X^m_k` (Arnon's
+    A basis).
 
     INPUT:
-        m,k -- non-negative integers with $m >= k$
-        basis -- 'wall' or 'arnona'
 
-    OUTPUT:
-        element of Steenrod algebra
 
-    If basis is 'wall', this returns $Q^m_k = Sq(2^k) Sq(2^(k+1))
-    ... Sq(2^m)$.  If basis is 'arnona', it returns the reverse of
-    this: $X^m_k = Sq(2^m) ... Sq(2^(k+1)) Sq(2^k)$
+    - ``m,k`` - non-negative integers with `m >= k`
 
-    EXAMPLES:
+    -  ``basis`` - 'wall' or 'arnona'
+
+
+    OUTPUT: element of Steenrod algebra
+
+    If basis is 'wall', this returns
+    `Q^m_k = Sq(2^k) Sq(2^{k+1}) ... Sq(2^m)`. If basis is
+    'arnona', it returns the reverse of this:
+    `X^m_k = Sq(2^m) ... Sq(2^{k+1}) Sq(2^k)`
+
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import Q
         sage: Q(2,2,'wall')
         Sq(4)
@@ -1181,26 +1319,32 @@ def Q(m,k,basis):
 
 def arnonC_basis(n,bound=1):
     r"""
-    Arnon's C basis in dimension $n$.
+    Arnon's C basis in dimension `n`.
 
     INPUT:
-        n -- non-negative integer
-        bound -- positive integer (optional)
 
-    OUTPUT:
-        tuple of basis elements in dimension n
+
+    -  ``n`` - non-negative integer
+
+    -  ``bound`` - positive integer (optional)
+
+
+    OUTPUT: tuple of basis elements in dimension n
 
     The elements of Arnon's C basis are monomials of the form
-    $\text{Sq}^{t_1} ... \text{Sq}^{t_m}$ where for each $i$, we
-    have $t_i \leq 2t_{i+1}$ and $2^i | t_{m-i}$.
+    `\text{Sq}^{t_1} ... \text{Sq}^{t_m}` where for each
+    `i`, we have `t_i \leq 2t_{i+1}` and
+    `2^i | t_{m-i}`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import arnonC_basis
         sage: arnonC_basis(7)
         (Sq^{7}, Sq^{2} Sq^{5}, Sq^{4} Sq^{3}, Sq^{4} Sq^{2} Sq^{1})
 
-    If optional argument bound is present, include only those
-    monomials whose first term is at least as large as bound:
+    If optional argument bound is present, include only those monomials
+    whose first term is at least as large as bound::
+
         sage: arnonC_basis(7,3)
         (Sq^{7}, Sq^{4} Sq^{3}, Sq^{4} Sq^{2} Sq^{1})
     """
@@ -1242,18 +1386,18 @@ _commutators = {}
 
 def commutator(s,t):
     r"""
-    $t$th iterated commutator of consecutive $\text{Sq}^{2^i}$'s.
+    Returns the `t^{th}` iterated commutator of consecutive
+    `\text{Sq}^{2^i}` 's.
 
-    INPUT:
-        s, t: integers
+    INPUT: s, t: integers
 
-    OUTPUT:
-        element of the Steenrod algebra
+    OUTPUT: element of the Steenrod algebra
 
-    If t=1, return $Sq(2^s)$.  Otherwise, return the commutator
-    $[commutator(s,t-1), \text{Sq}(2^{s+t-1})]$.
+    If t=1, return `Sq(2^s)`. Otherwise, return the commutator
+    `[commutator(s,t-1), \text{Sq}(2^{s+t-1})]`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.algebras.steenrod_algebra_bases import commutator
         sage: commutator(1,2)
         Sq(0,2)
@@ -1262,15 +1406,16 @@ def commutator(s,t):
         sage: commutator(2,2)
         Sq(0,4) + Sq(3,3)
 
-    NOTES:
-        commutator(0,n) is equal to $\text{Sq}(0,...,0,1)$, with the
-        1 in the $n$th spot.  commutator(i,n) always has
-        $\text{Sq}(0,...,0,2^i)$, with $2^i$ in the $n$th spot, as a
-        summand, but there may be other terms, as the example of
-        commutator(2,2) illustrates.
+    .. note::
 
-        That is, commutator(s,t) is equal to $P^s_t$, possibly plus
-        other Milnor basis elements.
+       ``commutator(0,n)`` is equal to `\text{Sq}(0,...,0,1)`,
+       with the 1 in the `n^{th}` spot. commutator(i,n) always has
+       `\text{Sq}(0,...,0,2^i)`, with `2^i` in the
+       `n^{th}` spot, as a summand, but there may be other
+       terms, as the example of commutator(2,2) illustrates.
+
+       That is, commutator(s,t) is equal to `P^s_t`, possibly
+       plus other Milnor basis elements.
     """
     if _commutators.has_key((s,t)):
         return _commutators[(s,t)]
@@ -1290,25 +1435,29 @@ def steenrod_basis_error_check(dim,p):
     This performs crude error checking.
 
     INPUT:
-        dim -- non-negative integer
-        p -- positive prime number
 
-    OUTPUT:
-        None
 
-    This checks to see if the different bases have the same length,
-    and if the change-of-basis matrices are invertible.  If something
-    goes wrong, an error message is printed.
+    -  ``dim`` - non-negative integer
+
+    -  ``p`` - positive prime number
+
+
+    OUTPUT: None
+
+    This checks to see if the different bases have the same length, and
+    if the change-of-basis matrices are invertible. If something goes
+    wrong, an error message is printed.
 
     This function checks at the prime p as the dimension goes up from
     0, in which case the basis functions use the saved basis
-    computations in lower dimensions in the computations.  It also
+    computations in lower dimensions in the computations. It also
     checks as the dimension goes down from the top, in which case it
-    doesn't have access to the saved computations.  (The saved
+    doesn't have access to the saved computations. (The saved
     computations are deleted first: the cache _steenrod_bases is set
     to {} before doing the computations.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.algebras.steenrod_algebra_bases.steenrod_basis_error_check(12,2)
         p=2, in decreasing order of dimension, starting in dimension 12.
         down to dimension  10

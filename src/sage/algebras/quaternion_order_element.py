@@ -1,7 +1,9 @@
 """
 Quaternion order elements
 
-AUTHOR: David Kohel, 2005-09
+AUTHORS:
+
+- David Kohel (2005-09)
 """
 
 #*****************************************************************************
@@ -26,6 +28,7 @@ from sage.algebras.algebra_order_element import AlgebraOrderElement
 
 class QuaternionOrderElement(AlgebraOrderElement):
     """
+
     """
     def __init__(self, A, x, check=True):
         """
@@ -47,24 +50,29 @@ class QuaternionOrderElement(AlgebraOrderElement):
 
     def reduced_trace(self):
         r"""
-        Return the reduced trace of this element.
+	Return the reduced trace of this element.
 
-	\note{In a quaternion algebra $A$, every element $x$ is
-	quadratic over the center, thus $x^2 = \Tr(x)*x - \Nr(x)$, so
-	we solve for a linear relation $(1,-\Tr(x),\Nr(x))$ among
-	$[x^2, x, 1]$ for the reduced trace of $x$.}
+	.. note::
+
+           In a quaternion algebra `A`, every element
+	   `x` is quadratic over the center, thus
+           `x^2 = \mathrm{Tr}(x)*x - \mathrm{Nr}(x)`, so we solve for a linear
+           relation `(1,-\mathrm{Tr}(x),\mathrm{Nr}(x))` among `[x^2, x, 1]`
+           for the reduced trace of `x`.
 	"""
         R = self.parent().base_ring()
         return R(self.ambient_algebra_element().reduced_trace())
 
     def reduced_norm(self):
         """
+
 	"""
         R = self.parent().base_ring()
         return R(self.ambient_algebra_element().reduced_norm())
 
     def charpoly(self, var):
         """
+
 	"""
         R = self.parent().base_ring()
         P = PolynomialRing(R, var)
@@ -74,6 +82,7 @@ class QuaternionOrderElement(AlgebraOrderElement):
 
     def minpoly(self, var):
         """
+
 	"""
         R = self.parent().base_ring()
         P = PolynomialRing(R, var)
@@ -83,6 +92,7 @@ class QuaternionOrderElement(AlgebraOrderElement):
 
     def vector(self):
         """
+
 	"""
         A = self.parent()
         R = A.base_ring()

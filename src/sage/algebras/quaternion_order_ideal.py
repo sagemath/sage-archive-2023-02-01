@@ -1,7 +1,9 @@
 """
 Quaternion ideal
 
-AUTHOR: David Kohel, 2005-09
+AUTHOR:
+
+- David Kohel (2005-09)
 """
 
 #*****************************************************************************
@@ -52,6 +54,7 @@ class QuaternionOrderLeftIdeal_generic(AlgebraOrderLeftIdeal):
     """
     def __init__(self, O, gens):
         """
+
         """
         AlgebraOrderLeftIdeal.__init__(self, O, gens)
 
@@ -61,6 +64,7 @@ class QuaternionOrderRightIdeal_generic(AlgebraOrderRightIdeal):
     """
     def __init__(self, O, gens):
         """
+
         """
         AlgebraOrderRightIdeal.__init__(self, O, gens)
 
@@ -70,5 +74,6 @@ class QuaternionOrderTwoSidedIdeal_generic(AlgebraOrderTwoSidedIdeal):
     """
     def __init__(self, O, gens = []):
         """
+
         """
         AlgebraOrderTwoSidedIdeal.__init__(self, O, gens)

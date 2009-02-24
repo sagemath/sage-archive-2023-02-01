@@ -33,6 +33,7 @@ SID_COOKIE = None
 import os, shutil, time
 from sage.version import version
 import bz2
+from cgi import escape
 
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode

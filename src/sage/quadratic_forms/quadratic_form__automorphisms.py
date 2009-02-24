@@ -254,7 +254,7 @@ def automorphisms(self):
     Return a list of the automorphisms of the quadratic form.
 
     sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
-    sage: Q.number_of_automorphisms()
+    sage: Q.number_of_automorphisms()                     # optional -- souvigner
     48
     sage: 2^3 * factorial(3)
     48
@@ -262,7 +262,7 @@ def automorphisms(self):
     48
 
     sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
-    sage: Q.number_of_automorphisms()
+    sage: Q.number_of_automorphisms()                     # optional -- souvigner
     16
     sage: aut = Q.automorphisms()
     sage: len(aut)
@@ -360,13 +360,13 @@ def number_of_automorphisms(self, recompute=False):
         ['number_of_automorphisms']
         sage: Q.number_of_automorphisms()
         -1
-        sage: Q.number_of_automorphisms(recompute=True)
+        sage: Q.number_of_automorphisms(recompute=True)           # optional -- souvigner
         48
-        sage: Q.list_external_initializations()
+        sage: Q.list_external_initializations()                   # optional -- souvigner
         []
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
-        sage: Q.number_of_automorphisms()
+        sage: Q.number_of_automorphisms()                         # optional -- souvigner
         384
         sage: 2^4 * factorial(4)
         384
@@ -407,7 +407,7 @@ def number_of_automorphisms__souvigner(self):
     Uses the Souvigner code to compute the number of automorphisms.
 
     sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
-    sage: Q.number_of_automorphisms__souvigner()
+    sage: Q.number_of_automorphisms__souvigner()                           # optional -- souvigner
     3840
     sage: 2^5 * factorial(5)
     3840

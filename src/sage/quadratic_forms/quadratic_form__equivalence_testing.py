@@ -26,11 +26,11 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
 
         sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q1 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
-        sage: M = Q.is_globally_equivalent__souvigner(Q1, True) ; M
+        sage: M = Q.is_globally_equivalent__souvigner(Q1, True) ; M   # optional -- souvigner
         [ 0  0 -1]
         [ 1  0  0]
         [-1  1  1]
-        sage: Q1(M) == Q
+        sage: Q1(M) == Q                                              # optional -- souvigner
         True
     """
     ## Write an input text file
@@ -131,21 +131,21 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
         sage: Q1 = Q(M)
         sage: Q.is_globally_equivalent_to(Q1)
         True
-        sage: MM = Q.is_globally_equivalent_to(Q1, return_matrix=True)
-        sage: Q(MM) == Q1
+        sage: MM = Q.is_globally_equivalent_to(Q1, return_matrix=True)  # optional -- souvigner
+        sage: Q(MM) == Q1                                               # optional -- souvigner
         True
         sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
         sage: Q3 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
-        sage: Q1.is_globally_equivalent_to(Q2)
+        sage: Q1.is_globally_equivalent_to(Q2)                          # optional -- souvigner
         False
-        sage: Q1.is_globally_equivalent_to(Q3)
+        sage: Q1.is_globally_equivalent_to(Q3)                          # optional -- souvigner
         True
-        sage: M = Q1.is_globally_equivalent_to(Q3, True) ; M
+        sage: M = Q1.is_globally_equivalent_to(Q3, True) ; M            # optional -- souvigner
         [-1 -1  0]
         [ 1  1  1]
         [-1  0  0]
-        sage: Q1(M) == Q3
+        sage: Q1(M) == Q3                                               # optional -- souvigner
         True
         sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
         sage: Q.is_globally_equivalent_to(Q)
@@ -229,7 +229,7 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
 
         sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
-        sage: Q1.is_globally_equivalent_to(Q2)
+        sage: Q1.is_globally_equivalent_to(Q2)                           # optional -- souvigner
         False
         sage: Q1.is_locally_equivalent_to(Q2)
         True

@@ -193,7 +193,8 @@ class PanAxiom(Expect):
     """
     def __init__(self, name='axiom', command='axiom -nox -noclef',
                  script_subdirectory=None, logfile=None,
-                 server=None, server_tmpdir=None):
+                 server=None, server_tmpdir=None,
+                 init_code=[')lisp (si::readline-off)']):
         """
         Create an instance of the Axiom interpreter.
 
@@ -215,7 +216,7 @@ class PanAxiom(Expect):
                         server_tmpdir=server_tmpdir,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        #init_code = [')lisp (si::readline-off)'],
+                        init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._prompt_wait = self._prompt

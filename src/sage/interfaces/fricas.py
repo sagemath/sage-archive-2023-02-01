@@ -32,7 +32,7 @@ EXAMPLES: We evaluate a very simple expression in FriCas.
     sage: a = fricas(3) * fricas(5); a        # optional - fricas
     15
 
-The type of a is FriCASElement, i.e., an element of the axiom
+The type of a is FriCASElement, i.e., an element of the FriCAS
 interpreter.
 
 ::
@@ -75,8 +75,8 @@ Note that FriCAS objects are normally displayed using "ASCII art".
            7
 
 The ``fricas.eval`` command evaluates an expression in
-axiom and returns the result as a string. This is exact as if we
-typed in the given line of code to axiom; the return value is what
+FriCAS and returns the result as a string. This is exact as if we
+typed in the given line of code to FriCAS; the return value is what
 FriCAS would print out.
 
 ::
@@ -265,7 +265,7 @@ def is_FriCASElement(x):
     """
     return isinstance(x, FriCASElement)
 
-fricas = FriCAS(name='fricas', command='fricas -nox -noclef')
+fricas = FriCAS(name='fricas', command='fricas -nox -noclef', init_code=[])
 
 def reduce_load_fricas():
     """

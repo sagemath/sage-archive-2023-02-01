@@ -367,7 +367,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
 
     #   * cdef _cmp_c_impl
-    #   * __copy__
+    # x * __copy__
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
@@ -487,7 +487,37 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             raise ZeroDivisionError, "singular matrix"
         return M
 
-    # def __copy__(self):
+    def __copy__(self):
+        r"""
+        Returns a new copy of this matrix.
+
+        EXAMPLES::
+
+            sage: a = matrix(RDF,1,3, [1,2,-3])
+            sage: a
+            [ 1.0  2.0 -3.0]
+            sage: b = a.__copy__()
+            sage: b
+            [ 1.0  2.0 -3.0]
+            sage: b is a
+            False
+            sage: b == a
+            True
+            sage: b[0,0] = 3
+            sage: a[0,0] # note that a hasn't changed
+            1.0
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return self.new_matrix(self._nrows, self._ncols)
+
+        cdef Matrix_double_dense A
+        A = self._new(self._nrows, self._ncols)
+        A._matrix_numpy = self._matrix_numpy.copy()
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
+        return A
+
+
     # def _list(self):
     # def _dict(self):
 

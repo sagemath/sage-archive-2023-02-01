@@ -23,7 +23,7 @@ def mwrank_initprimes(filename, verb=False):
 
     EXAMPLES::
 
-        sage: file= Sage_TMP + '/PRIMES'
+        sage: file = tmp_filename()
         sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^6)]))
         sage: mwrank_initprimes(file, verb=False)
     """

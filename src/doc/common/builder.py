@@ -54,7 +54,7 @@ def mkdir(path):
         os.makedirs(path)
     return path
 
-def copytree(src, dst, symlinks=False):
+def copytree(src, dst, symlinks=False, ignore_errors=False):
     """
     Recursively copy a directory tree using copy2().
 
@@ -80,7 +80,7 @@ def copytree(src, dst, symlinks=False):
                 linkto = os.readlink(srcname)
                 os.symlink(linkto, dstname)
             elif os.path.isdir(srcname):
-                shutil.copytree(srcname, dstname, symlinks)
+                copytree(srcname, dstname, symlinks)
             else:
                 shutil.copy2(srcname, dstname)
             # XXX What about devices, sockets etc.?
@@ -88,17 +88,14 @@ def copytree(src, dst, symlinks=False):
             errors.append((srcname, dstname, str(why)))
         # catch the Error from the recursive copytree so that we can
         # continue with other files
-        except Error, err:
+        except shutil.Error, err:
             errors.extend(err.args[0])
     try:
         shutil.copystat(src, dst)
-    except WindowsError:
-        # can't copy file access times on Windows
-        pass
     except OSError, why:
         errors.extend((src, dst, str(why)))
-    if errors:
-        raise Error, errors
+    if errors and not ignore_errors:
+        raise shutil.Error, errors
 
 
 
@@ -288,7 +285,8 @@ class WebsiteBuilder(DocBuilder):
         DocBuilder.html(self)
         html_output_dir = self._output_dir('html')
         copytree(html_output_dir,
-                 os.path.realpath(os.path.join(html_output_dir, '..')))
+                 os.path.realpath(os.path.join(html_output_dir, '..')),
+                 ignore_errors=False)
 
     def clean(self):
         """

@@ -469,10 +469,12 @@ class GraphPlot(SageObject):
                     for i in range(len(local_labels)/2):
                         k = (i+1.0)*distance
                         if self._multidigraph:
-                            C,D = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)
-                            E,F = self._polar_hack_for_multidigraph([odd_x(k),odd_y(k)], p2, self._vertex_radius)
-                            self._plot_components['edges'].append(arrow(path=[[C,[odd_x(k),odd_y(k)],F]], head=local_labels[2*i][2], zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
-                            self._plot_components['edges'].append(arrow(path=[[C,[even_x(k),even_y(k)],F]], head=local_labels[2*i+1][2], zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))
+                            odd_start = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)[0]
+                            odd_end = self._polar_hack_for_multidigraph([odd_x(k),odd_y(k)], p2, self._vertex_radius)[1]
+                            even_start = self._polar_hack_for_multidigraph(p1, [even_x(k),even_y(k)], self._vertex_radius)[0]
+                            even_end = self._polar_hack_for_multidigraph([even_x(k),even_y(k)], p2, self._vertex_radius)[1]
+                            self._plot_components['edges'].append(arrow(path=[[odd_start,[odd_x(k),odd_y(k)],odd_end]], head=local_labels[2*i][2], zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
+                            self._plot_components['edges'].append(arrow(path=[[even_start,[even_x(k),even_y(k)],even_end]], head=local_labels[2*i+1][2], zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))
                         else:
                             self._plot_components['edges'].append(bezier_path([[p1,[odd_x(k),odd_y(k)],p2]],zorder=1, rgbcolor=local_labels[2*i][1], **eoptions))
                             self._plot_components['edges'].append(bezier_path([[p1,[even_x(k),even_y(k)],p2]],zorder=1, rgbcolor=local_labels[2*i+1][1], **eoptions))

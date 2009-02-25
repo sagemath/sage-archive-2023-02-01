@@ -1882,9 +1882,10 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Compare two free module elements with identical parents.
 
-        Free module elements are compared in lexicographic order on the
-        underlying list of coefficients. A dense a sparse free module
-        element are equal if their coefficients are the same.
+        Free module elements are compared in lexicographic order on
+        the underlying list of coefficients. Two free module elements
+        are equal if their coefficients are the same. (This is true
+        even if one is sparse and one is dense.)
         """
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
@@ -1982,6 +1983,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         Sparse vector space of dimension 3 over Rational Field
         sage: b - a
         (0, 0, -1)
+        sage: (b-a).dict()
+        {2: -1}
     """
     cdef _new_c(self, object v):
         # Create a new sparse free module element with minimal overhead and
@@ -2044,8 +2047,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._add_(<RingElement> e[i])
-            else:
+                sum = (<RingElement>a)._add_(<RingElement> e[i])
+                if sum:
+                    e[i] = sum
+                else:
+                    del e[i]
+            elif a:
                 e[i] = a
         return left._new_c(e)
 
@@ -2054,24 +2061,33 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement> e[i])._sub_(<RingElement>a)
-            else:
+                diff = (<RingElement> e[i])._sub_(<RingElement>a)
+                if diff:
+                    e[i] = diff
+                else:
+                    del e[i]
+            elif a:
                 e[i] = -a
         return left._new_c(e)
-
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         cdef object v
         v = PyDict_New()
-        for i, a in self._entries.iteritems():
-            v[i] = (<RingElement>a)._mul_(right)
+        if right:
+            for i, a in self._entries.iteritems():
+                prod = (<RingElement>a)._mul_(right)
+                if prod:
+                    v[i] = prod
         return self._new_c(v)
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         cdef object v
         v = PyDict_New()
-        for i, a in self._entries.iteritems():
-            v[i] = left._mul_(a)
+        if left:
+            for i, a in self._entries.iteritems():
+                prod = left._mul_(a)
+                if prod:
+                    v[i] = prod
         return self._new_c(v)
 
     cpdef Element _dot_product_(left, element_Vector right):
@@ -2102,7 +2118,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         for i, a in left._entries.iteritems():
             if e.has_key(i):
                 prod = (<RingElement>a)._mul_(<RingElement> e[i])
-                if prod != 0:
+                if prod:
                     v[i] = prod
         return left._new_c(v)
 
@@ -2110,9 +2126,10 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Compare two sparse free module elements.
 
-        Free module elements are compared in lexicographic order on the
-        underlying list of coefficients. A dense a sparse free module
-        element are equal if their coefficients are the same.
+        Free module elements are compared in lexicographic order on
+        the underlying list of coefficients. Two free module elements
+        are equal if their coefficients are the same. (This is true
+        even if one is sparse and one is dense.)
         """
         a = left._entries.items()
         a.sort()
@@ -2236,7 +2253,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def nonzero_positions(self):
         """
-        Returns the set of pairs (i,j) such that self[i,j] != 0.
+        Returns the list of numbers i such that self[i] != 0.
+
+        EXAMPLES::
+
+            sage: v = vector({1: 1, 3: -2})
+            sage: w = vector({1: 4, 3: 2})
+            sage: v+w
+            (0, 5, 0, 0)
+            sage: (v+w).nonzero_positions()
+            [1]
         """
         K = self._entries.keys()
         K.sort()

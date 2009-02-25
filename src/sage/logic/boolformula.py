@@ -234,6 +234,27 @@ class BooleanFormula:
         return latex_expression
 
     def tree(self):
+        r"""
+        Returns a list containing the parse tree of this boolean expression.
+
+        INPUT:
+            self -- the calling object.
+
+        OUTPUT:
+            A list containing the parse tree of self.
+
+        EXAMPLES:
+            sage: import sage.logic.propcalc as propcalc
+            sage: s = propcalc.formula("man -> monkey & human")
+            sage: s.tree()
+            ['->', 'man', ['&', 'monkey', 'human']]
+            sage: f = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
+            sage: f.tree()
+            <BLANKLINE>
+            ['<->',
+             ['&', 'a', ['->', ['^', ['|', ['~', 'b', None], 'c'], 'a'], 'c']],
+             ['~', 'b', None]]
+        """
         return self.__tree
 
     def __or__(self, other):
@@ -619,16 +640,43 @@ class BooleanFormula:
 
     def convert_cnf(self):
         r"""
-        This function calls convert_cnf_table().
-        Please refer to that documentation.
+        This function converts an instance of boolformula to conjunctive
+        normal form. It does so by calling the function convert_cnf_table().
+        Hence convert_cnf() and convert_cnf_table() are functionally
+        identical, with the latter performing the actual conversion.
+
+        INPUT:
+             self -- the calling object.
+
+        OUTPUT:
+            An instance of boolformula with an identical truth table that is in
+            conjunctive normal form.
+
+        EXAMPLES:
+
+        Converting a boolean expression to conjunctive normal form.
+            sage: import sage.logic.propcalc as propcalc
+            sage: s = propcalc.formula("a ^ b <-> c")
+            sage: s.convert_cnf(); s
+            (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
+
+        Ensure that convert_cnf() and convert_cnf_table() produce the same result.
+            sage: t = propcalc.formula("a ^ b <-> c")
+            sage: t.convert_cnf_table(); t
+            (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
+            sage: t == s
+            True
+
+        SEE ALSO:
+            convert_cnf_table()
         """
         self.convert_cnf_table()
 
     def convert_cnf_table(self):
         r"""
-        This function converts an instance of boolformula to conjunctive normal form.
-        It does this by examining the truthtable of the formula, and thus takes O(2^n)
-        time, where n is the number of variables.
+        This function converts an instance of boolformula to conjunctive
+        normal form. It does this by examining the truthtable of the formula,
+        and thus takes O(2^n) time, where n is the number of variables.
 
         INPUT:
              self -- the calling object.
@@ -639,10 +687,17 @@ class BooleanFormula:
 
         EXAMPLES:
             sage: import sage.logic.propcalc as propcalc
-            sage: s = propcalc.formula("a^b<->c")
+            sage: s = propcalc.formula("a ^ b <-> c")
             sage: s.convert_cnf()
     	    sage: s
             (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
+
+        Ensure that convert_cnf() and convert_cnf_table() produce the same result.
+            sage: t = propcalc.formula("a ^ b <-> c")
+            sage: t.convert_cnf_table(); t
+            (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
+            sage: t == s
+            True
 
         NOTES:
             This method creates the cnf parse tree by examining the logic
@@ -670,11 +725,11 @@ class BooleanFormula:
 
     def convert_cnf_recur(self):
         r"""
-        This function converts an instance of boolformula to conjunctive normal form.
-        It does this by applying a set of rules that are gaurenteed to convert the
-        formula.  Worst case the converted expression has an O(2^n) increase in
-        size (and time as well), but if the formula is already in CNF (or close to)
-        it is only O(n).
+        This function converts an instance of boolformula to conjunctive
+        normal form. It does this by applying a set of rules that are
+        gaurenteed to convert the formula.  Worst case the converted
+        expression has an O(2^n) increase in size (and time as well), but if
+        the formula is already in CNF (or close to) it is only O(n).
 
         INPUT:
             self -- the calling object.

@@ -4307,6 +4307,108 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         from sage.interfaces.singular import SingularElement
         return SingularElement(singular, 'foobar', name, True)
 
+    def transpose(self):
+        """
+        Returns the transpose of self, without changing self.
+
+        EXAMPLES:
+
+        We create a matrix, compute its transpose, and note that the
+        original matrix is not changed.
+
+        ::
+
+            sage: A = matrix(ZZ,2,3,xrange(6))
+            sage: type(A)
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            sage: B = A.transpose()
+            sage: print B
+            [0 3]
+            [1 4]
+            [2 5]
+            sage: print A
+            [0 1 2]
+            [3 4 5]
+
+            sage: A.subdivide(None, 1); A
+            [0|1 2]
+            [3|4 5]
+            sage: A.transpose()
+            [0 3]
+            [---]
+            [1 4]
+            [2 5]
+        """
+        cdef Matrix_integer_dense A
+        A = Matrix_integer_dense.__new__(Matrix_integer_dense,
+                                          self._parent.matrix_space(self._ncols,self._nrows),
+                                          0,False,False)
+        cdef Py_ssize_t i,j
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpz_init_set(A._matrix[j][i], self._matrix[i][j])
+        _sig_off
+        A._initialized = True
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            A.subdivide(col_divs, row_divs)
+        return A
+
+    def antitranspose(self):
+        """
+        Returns the antitranspose of self, without changing self.
+
+        EXAMPLES::
+
+            sage: A = matrix(2,3,range(6))
+            sage: type(A)
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            sage: A.antitranspose()
+            [5 2]
+            [4 1]
+            [3 0]
+            sage: A
+            [0 1 2]
+            [3 4 5]
+
+            sage: A.subdivide(1,2); A
+            [0 1|2]
+            [---+-]
+            [3 4|5]
+            sage: A.antitranspose()
+            [5|2]
+            [-+-]
+            [4|1]
+            [3|0]
+        """
+        nr , nc = (self._nrows, self._ncols)
+
+        cdef Matrix_integer_dense A
+        A = Matrix_integer_dense.__new__(Matrix_integer_dense,
+                                          self._parent.matrix_space(nc,nr),
+                                          0,False,False)
+
+        cdef Py_ssize_t i,j
+        cdef Py_ssize_t ri,rj # reversed i and j
+        _sig_on
+        ri = nr
+        for i from 0 <= i < nr:
+            rj = nc
+            ri =  ri-1
+            for j from 0 <= j < nc:
+                rj = rj-1
+                mpz_init_set(A._matrix[rj][ri], self._matrix[i][j])
+        _sig_off
+        A._initialized = True
+
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            A.subdivide([nc - t for t in reversed(col_divs)],
+                        [nr - t for t in reversed(row_divs)])
+        return A
+
+
     #####################################################################################
 
 cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):

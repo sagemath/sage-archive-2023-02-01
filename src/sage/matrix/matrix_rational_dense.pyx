@@ -491,20 +491,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [-1/4 -1/5 -1/6]
             [-1/7 -1/8 -1/9]
         """
-        cdef Py_ssize_t i, j
+        cdef Py_ssize_t i
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
 
         cdef mpq_t *M_row
         cdef mpq_t *self_row
         _sig_on
-        for i from 0 <= i < self._nrows:
-            M_row = M._matrix[i]
-            self_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpq_set(M_row[0], self_row[0])
-                M_row = M_row + 1
-                self_row = self_row + 1
+        for i from 0 <= i < self._nrows*self._ncols:
+            mpq_set(M._entries[i],self._entries[i])
         _sig_off
         if self.subdivisions is not None:
             M.subdivide(*self.get_subdivisions())
@@ -1864,6 +1859,106 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         r = A.rank()
         self.cache('rank', r)
         return r
+
+    def transpose(self):
+        """
+        Returns the transpose of self, without changing self.
+
+        EXAMPLES:
+
+        We create a matrix, compute its transpose, and note that the
+        original matrix is not changed.
+
+        ::
+
+            sage: A = matrix(QQ,2,3,xrange(6))
+            sage: type(A)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: B = A.transpose()
+            sage: print B
+            [0 3]
+            [1 4]
+            [2 5]
+            sage: print A
+            [0 1 2]
+            [3 4 5]
+
+            sage: A.subdivide(None, 1); A
+            [0|1 2]
+            [3|4 5]
+            sage: A.transpose()
+            [0 3]
+            [---]
+            [1 4]
+            [2 5]
+        """
+        cdef Matrix_rational_dense A
+        A = Matrix_rational_dense.__new__(Matrix_rational_dense,
+                                          self._parent.matrix_space(self._ncols,self._nrows),
+                                          0,False,False)
+        cdef Py_ssize_t i,j
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpq_set(A._matrix[j][i], self._matrix[i][j])
+        _sig_off
+
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            A.subdivide(col_divs, row_divs)
+        return A
+
+    def antitranspose(self):
+        """
+        Returns the antitranspose of self, without changing self.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ,2,3,range(6))
+            sage: type(A)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: A.antitranspose()
+            [5 2]
+            [4 1]
+            [3 0]
+            sage: A
+            [0 1 2]
+            [3 4 5]
+
+            sage: A.subdivide(1,2); A
+            [0 1|2]
+            [---+-]
+            [3 4|5]
+            sage: A.antitranspose()
+            [5|2]
+            [-+-]
+            [4|1]
+            [3|0]
+        """
+        nr , nc = (self._nrows, self._ncols)
+
+        cdef Matrix_rational_dense A
+        A = Matrix_rational_dense.__new__(Matrix_rational_dense,
+                                          self._parent.matrix_space(nc,nr),
+                                          0,False,False)
+
+        cdef Py_ssize_t i,j
+        cdef Py_ssize_t ri,rj # reversed i and j
+        _sig_on
+        ri = nr
+        for i from 0 <= i < nr:
+            rj = nc
+            ri =  ri-1
+            for j from 0 <= j < nc:
+                rj = rj-1
+                mpq_set(A._matrix[rj][ri], self._matrix[i][j])
+        _sig_off
+
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            A.subdivide([nc - t for t in reversed(col_divs)],
+                        [nr - t for t in reversed(row_divs)])
+        return A
 
     def set_row_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """

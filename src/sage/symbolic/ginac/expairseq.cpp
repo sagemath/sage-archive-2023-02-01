@@ -510,13 +510,6 @@ int expairseq::compare_same_type(const basic &other) const
 	if (seq.size() != o.seq.size())
 		return (seq.size()<o.seq.size()) ? -1 : 1;
 
-	// compare overall_coeff
-	/*
-	cmpval = overall_coeff.compare(o.overall_coeff);
-	if (cmpval!=0)
-		return cmpval;
-		*/
-	
 #if EXPAIRSEQ_USE_HASHTAB
 	GINAC_ASSERT(hashtabsize==o.hashtabsize);
 	if (hashtabsize==0) {
@@ -533,6 +526,11 @@ int expairseq::compare_same_type(const basic &other) const
 
 		GINAC_ASSERT(cit1==last1);
 		GINAC_ASSERT(cit2==last2);
+	
+		// compare overall_coeff
+		cmpval = overall_coeff.compare(o.overall_coeff);
+		if (cmpval!=0)
+			return cmpval;
 	
 		return 0;
 #if EXPAIRSEQ_USE_HASHTAB

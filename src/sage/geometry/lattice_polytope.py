@@ -2674,7 +2674,7 @@ def all_faces(polytopes):
     Compute faces for all given ``polytopes``.
 
     This functions does it MUCH faster than member functions of
-    codeLatticePolytope during the first run. So it is recommended to
+    ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
 
     INPUT: a sequence of lattice polytopes.
@@ -2712,7 +2712,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     Compute NEF-partitions for all given ``polytopes``.
 
     This functions does it MUCH faster than member functions of
-    codeLatticePolytope during the first run. So it is recommended to
+    ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
 
     Note: member function ``is_reflexive`` will be called
@@ -2766,7 +2766,7 @@ def all_points(polytopes):
     Compute lattice points for all given ``polytopes``.
 
     This functions does it MUCH faster than member functions of
-    codeLatticePolytope during the first run. So it is recommended to
+    ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
 
     INPUT: a sequence of lattice polytopes.
@@ -2798,7 +2798,7 @@ def all_polars(polytopes):
     for all non-reflexive ``polytopes``.
 
     This functions does it MUCH faster than member functions of
-    codeLatticePolytope during the first run. So it is recommended to
+    ``LatticePolytope`` during the first run. So it is recommended to
     use this functions if you work with big sets of data.
 
     INPUT: a sequence of lattice polytopes.
@@ -3179,7 +3179,7 @@ def read_palp_matrix(data):
     of rows and columns of the matrix. The rest of the first line is
     ignored. The next m lines must contain n numbers each.
 
-    If mn, returns the transposed matrix. If the string is empty or EOF
+    If m>n, returns the transposed matrix. If the string is empty or EOF
     is reached, returns the empty matrix, constructed by
     ``matrix()``.
 

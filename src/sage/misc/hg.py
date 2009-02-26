@@ -410,14 +410,15 @@ class HG:
         INPUT:
 
 
-        -  ``filename`` - a string
+        -  ``filename`` - string
 
-        -  ``options`` - a string options: [-p NUM] [-b BASE]
-           [-m MESSage] [-f] PATCH... -p -strip directory strip option for
-           patch. This has the same meaning as the corresponding patch option
-           (default: 1) -m -message use text as commit message -b -base base
-           path -f -force skip check for outstanding uncommitted changes
+        -  ``options`` - string (default: '')::
 
+               options: [-p NUM] [-b BASE] [-m MESSage] [-f] PATCH...
+                 -p --strip         directory strip option for patch. This has the same meaning as the corresponding patch option (default: 1)
+                 -m --message       use text as commit message
+                 -b --base          base path
+                 -f --force         skip check for outstanding uncommitted changes
 
         ALIASES: patch
         """

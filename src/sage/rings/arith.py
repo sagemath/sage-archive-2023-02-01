@@ -962,17 +962,10 @@ def divisors(n):
     Returns a list of all positive integer divisors of the nonzero
     integer n.
 
-    A second parameter may be passed to surpress sorting of the list
-    (as ordering the list can be more time consuming then creating
-    it).
-
     INPUT:
 
 
     -  ``n`` - the element
-
-    -  ``sorted`` - whether or not to sort the output
-       (default True)
 
 
     EXAMPLES::

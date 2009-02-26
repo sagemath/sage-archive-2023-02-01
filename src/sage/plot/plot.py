@@ -987,7 +987,7 @@ class Graphics(SageObject):
 
         This only works when other is a Python int equal to 0. In all other
         cases a TypeError is raised. The main reason for this function is
-        to make suming a list of graphics objects easier.
+        to make summing a list of graphics objects easier.
 
         EXAMPLES::
 
@@ -1080,63 +1080,63 @@ class Graphics(SageObject):
         """
         Show this graphics image with the default image viewer.
 
-       OPTIONAL INPUT:
+        OPTIONAL INPUT:
 
-       - ``filename`` - (default: None) string
+        - ``filename`` - (default: None) string
 
-       - ``dpi`` - dots per inch
+        - ``dpi`` - dots per inch
 
-       - ``figsize`` - [width, height]
+        - ``figsize`` - [width, height]
 
-       - ``aspect_ratio`` - the perceived width divided by the
-         perceived height.  If the aspect ratio is set to 1, circles
-         will look round.  If it is set to 2 they will look twice as
-         wide as they are tall.  This is the aspect_ratio of the
-         image, not of the frame that contains it.  If you want to set
-         the aspect ratio of the frame, use figsize.
+        - ``aspect_ratio`` - the perceived width divided by the
+          perceived height.  If the aspect ratio is set to 1, circles
+          will look round.  If it is set to 2 they will look twice as
+          wide as they are tall.  This is the aspect_ratio of the
+          image, not of the frame that contains it.  If you want to set
+          the aspect ratio of the frame, use figsize.
 
-       - ``axes`` - (default: True)
+        - ``axes`` - (default: True)
 
-       - ``axes_labels`` - (default: None) list (or tuple) of two
-         strings; the first is used as the label for the horizontal
-         axis, and the second for the vertical axis.
+        - ``axes_labels`` - (default: None) list (or tuple) of two
+          strings; the first is used as the label for the horizontal
+          axis, and the second for the vertical axis.
 
-       - ``fontsize`` - (default: current setting -- 10) positive
-         integer; used for axes labels; if you make this very large,
-         you may have to increase figsize to see all labels.
+        - ``fontsize`` - (default: current setting -- 10) positive
+          integer; used for axes labels; if you make this very large,
+          you may have to increase figsize to see all labels.
 
-       - ``frame`` - (default: False) draw a frame around the image
+        - ``frame`` - (default: False) draw a frame around the image
 
-       - ``gridlines`` - (default: None) can be any of the following:
+        - ``gridlines`` - (default: None) can be any of the following:
 
-         -  None, False: do not add grid lines.
+          -  None, False: do not add grid lines.
 
-         - True, "automatic", "major": add grid lines at major ticks of the axes.
+          - True, "automatic", "major": add grid lines at major ticks of the axes.
 
-         - "minor": add grid at major and minor ticks.
+          - "minor": add grid at major and minor ticks.
 
-         - [xlist,ylist]: a tuple or list containing
-           two elements, where xlist (or ylist) can be
-           any of the following.
-
-
-           - None, False: don't add horizontal (or vertical) lines.
-
-           - True, "automatic", "major": add horizontal (or vertical) grid lines at
-             the major ticks of the axes.
-
-           - "minor": add horizontal (or vertical) grid lines at major and minor ticks of
-             axes.
-
-           - an iterable yielding numbers n or pairs (n,opts), where n
-             is the coordinate of the line and opt is a dictionary of
-             MATPLOTLIB options for rendering the line.
+          - [xlist,ylist]: a tuple or list containing
+            two elements, where xlist (or ylist) can be
+            any of the following.
 
 
-       - ``gridlinesstyle, hgridlinesstyle, vgridlinesstyle`` -
-         (default: None) a dictionary of MATPLOTLIB options for the
-         rendering of the grid lines, the horizontal grid lines or the
-         vertical grid lines, respectively.
+            - None, False: don't add horizontal (or vertical) lines.
+
+            - True, "automatic", "major": add horizontal (or vertical) grid lines at
+              the major ticks of the axes.
+
+            - "minor": add horizontal (or vertical) grid lines at major and minor ticks of
+              axes.
+
+            - an iterable yielding numbers n or pairs (n,opts), where n
+              is the coordinate of the line and opt is a dictionary of
+              MATPLOTLIB options for rendering the line.
+
+
+        - ``gridlinesstyle, hgridlinesstyle, vgridlinesstyle`` -
+          (default: None) a dictionary of MATPLOTLIB options for the
+          rendering of the grid lines, the horizontal grid lines or the
+          vertical grid lines, respectively.
 
         EXAMPLES::
 
@@ -1824,7 +1824,7 @@ def plot(funcs, *args, **kwds):
         sage: E = EllipticCurve([0,-1])
         sage: plot(E, (1, 4), rgbcolor=hue(0.6))
 
-    We can change the line style to one of '-' (dashed), '-.' (dash
+    We can change the line style to one of '--' (dashed), '-.' (dash
     dot), '-' (solid), 'steps', ':' (dotted)::
 
         sage: plot(sin(x), 0, 10, linestyle='-.')
@@ -2556,7 +2556,7 @@ def float_to_html(r,g,b):
     """
     This is a function to present tuples of RGB floats as HTML-happy
     hex for matplotlib. This may not seem necessary, but there are some
-    odd cases where matplotlib is just plain schizophrenic-for an
+    odd cases where matplotlib is just plain schizophrenic -- for an
     example, do
 
     EXAMPLES::

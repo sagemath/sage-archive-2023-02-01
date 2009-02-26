@@ -1807,8 +1807,8 @@ not %s" % (poly, poly.parent().prime, p)
 
     def additive_order(self):
         """
-        The additive order of any element of the mod p Steenrod algebra is
-        p.
+        The additive order of any nonzero element of the mod p
+        Steenrod algebra is p.
 
         OUTPUT:
 
@@ -1821,6 +1821,8 @@ not %s" % (poly, poly.parent().prime, p)
             sage: z = Sq(4) + Sq(6) + Sq(0)
             sage: z.additive_order()
             2
+            sage: (Sq(3) + Sq(3)).additive_order()
+            1
         """
         if len(self._raw['milnor']) == 0:
             return 1

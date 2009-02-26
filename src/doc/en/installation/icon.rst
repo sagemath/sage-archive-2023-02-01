@@ -51,4 +51,4 @@ terminal running Sage, then enter ``Ctrl-d`` to quit Sage in the
 terminal, and finally close the browser (or browser tab) which was
 displaying the Sage notebook server.
 
-For a picture for your icon, check out the Sage art at http://www.sagemath.org/art/.
+For a picture for your icon, check out the Sage art at http://wiki.sagemath.org/art.

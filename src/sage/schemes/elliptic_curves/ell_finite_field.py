@@ -678,7 +678,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                implemented in PARI via the C-library function ellap.
 
             -  ``'sea'`` - use sea.gp as implemented in PARI by
-               Christophe Doche and Sylvain Duquesne.
+               Christophe Doche and Sylvain Duquesne.  ('sea' stands
+               for 'Schoof-Elkies-Atkin'.)
 
             -  ``bsgs`` - use the baby step giant step method as
                implemented in Sage, with the Cremona -

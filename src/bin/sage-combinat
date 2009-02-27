@@ -64,8 +64,8 @@ parser.add_option("-q", "--quiet",
                   help="Don't print status messages to stdout")
 parser.add_option("-s", "--server", dest="server",
                   help="Set the URL for the sage-combinat server",
-                  metavar="http://sage.math.washington.edu:2144",
-                  default="http://sage.math.washington.edu:2144", type="string")
+                  metavar="http://combinat.sagemath.org/patches/",
+                  default="http://combinat.sagemath.org/patches/", type="string")
 
 parser.add_option("-n", dest="n", action="store_true",
                   help="After qselect: disable all previous non version guards")

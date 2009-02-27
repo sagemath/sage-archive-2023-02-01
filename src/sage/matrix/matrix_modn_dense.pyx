@@ -1,6 +1,5 @@
 r"""
-Dense matrices over `\mathbb{Z}/n\mathbb{Z}` for
-`n` small.
+Dense matrices over `\mathbb{Z}/n\mathbb{Z}` for `n` small.
 
 AUTHORS:
 
@@ -1754,7 +1753,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Return the lift of this matrix to the integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(GF(7),2,3,[1..6])
             sage: a.lift()
             [1 2 3]

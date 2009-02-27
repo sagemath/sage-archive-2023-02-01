@@ -1,6 +1,5 @@
 r"""
-Morphisms between modular abelian varieties, including Hecke
-operators acting on modular abelian varieties.
+Morphisms between modular abelian varieties, including Hecke operators acting on modular abelian varieties.
 
 Sage can compute with Hecke operators on modular abelian varieties.
 A Hecke operator is defined by given a modular abelian variety and

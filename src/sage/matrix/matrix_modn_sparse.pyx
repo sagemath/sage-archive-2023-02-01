@@ -1,6 +1,5 @@
 r"""
-Sparse matrices over `\mathbb{Z}/n\mathbb{Z}` for
-`n` small.
+Sparse matrices over `\mathbb{Z}/n\mathbb{Z}` for `n` small.
 
 This is a compiled implementation of sparse matrices over
 `\mathbb{Z}/n\mathbb{Z}` for `n` small.

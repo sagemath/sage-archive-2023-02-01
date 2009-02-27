@@ -1,6 +1,5 @@
 r"""
-Ring `\mathbb{Z}/n\mathbb{Z}` of integers modulo
-`n`
+Ring `\mathbb{Z}/n\mathbb{Z}` of integers modulo `n`
 
 EXAMPLES::
 

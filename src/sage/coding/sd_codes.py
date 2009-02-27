@@ -1,7 +1,8 @@
 r"""
+Binary self-dual codes
+
 This module implements functions useful for studying binary
 self-dual codes.
-
 The main function is ``self_dual_codes_binary``,
 which is a case-by-case list of entries, each represented by a
 Python dictionary.

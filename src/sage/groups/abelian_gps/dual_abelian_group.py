@@ -1,6 +1,5 @@
 r"""
-Basic functionality for dual groups of finite multiplicative
-Abelian groups
+Basic functionality for dual groups of finite multiplicative Abelian groups
 
 AUTHORS:
 

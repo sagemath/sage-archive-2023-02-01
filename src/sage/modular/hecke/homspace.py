@@ -1,6 +1,5 @@
 r"""
-Hom spaces between objects of the category of hecke modules over a
-given base ring.
+Hom spaces between objects of the category of hecke modules over a given base ring.
 """
 
 #*****************************************************************************

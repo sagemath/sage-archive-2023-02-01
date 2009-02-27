@@ -16,14 +16,11 @@ try:
 except:
     numglobaliteration = 1
 
-try:
-    checktex = int(os.environ['SAGE_TEST_TEX'])
-except:
-    checktex = 0
+SAGE_ROOT = os.environ['SAGE_ROOT']
+BUILD_DIR = os.path.realpath(SAGE_ROOT + '/devel/sage/build')
 
 print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
-print 'TeX files: ' + str(checktex)
 
 abort = False
 
@@ -210,8 +207,14 @@ def populatefilelist(filelist):
             else:
                 files.append(FF)
             continue
+
         curdir = os.getcwd()
         walkdir = os.path.join(CUR,FF)
+
+        #Ignore the .build directory
+        if os.path.realpath(walkdir).startswith(BUILD_DIR):
+            continue
+
         for root, dirs, lfiles in os.walk(walkdir):
             for F in lfiles:
                 base, ext = os.path.splitext(F)
@@ -228,10 +231,6 @@ def populatefilelist(filelist):
             for D in dirs:
                 if '#' in D or '/notes' in D:
                     dirs.remove(D)
-    if checktex:
-        files.insert(0,SAGE_ROOT+"/devel/doc/tut/tut.tex")
-        files.insert(0,SAGE_ROOT+"/devel/doc/prog/prog.tex")
-        files.insert(0,SAGE_ROOT+"/devel/doc/const/const.tex")
     filemutex.release()
     return 0
 

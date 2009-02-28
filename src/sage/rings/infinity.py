@@ -44,7 +44,9 @@ the same as Infinity in the UnsignedInfinityRing::
     sage: oo == UnsignedInfinityRing.0
     True
 
-EXAMPLES: We fetch the unsigned infinity ring and create some
+EXAMPLES:
+
+We fetch the unsigned infinity ring and create some
 elements::
 
     sage: P = UnsignedInfinityRing; P
@@ -570,7 +572,8 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
         Generate a floating-point -infinity.  The printing of
         floating-point -infinity varies across platforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(-infinity)
             -inf
             sage: float(-infinity) # random
@@ -666,7 +669,8 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
         Generate a floating-point infinity.  The printing of
         floating-point infinity varies across platforms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: RDF(infinity)
             inf
             sage: float(infinity) # random

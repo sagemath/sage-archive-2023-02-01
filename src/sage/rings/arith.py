@@ -167,23 +167,24 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     INPUT:
 
+    -  ``n`` - an integer
 
-    -  ``n`` - an integer algorithm:
+    -  ``algorithm``:
 
-    -  ``'default'`` - (default) use 'pari' for n = 30000,
-       and 'bernmm' for n 30000 (this is just a heuristic, and not
-       guaranteed to be optimal on all hardware)
+        -  ``'default'`` - (default) use 'pari' for n <= 30000,
+           and 'bernmm' for n > 30000 (this is just a heuristic, and not
+           guaranteed to be optimal on all hardware)
 
-    -  ``'pari'`` - use the PARI C library
+        -  ``'pari'`` - use the PARI C library
 
-    -  ``'gap'`` - use GAP
+        -  ``'gap'`` - use GAP
 
-    -  ``'gp'`` - use PARI/GP interpreter
+        -  ``'gp'`` - use PARI/GP interpreter
 
-    -  ``'magma'`` - use MAGMA (optional)
+        -  ``'magma'`` - use MAGMA (optional)
 
-    -  ``'bernmm'`` - use bernmm package (a multimodular
-       algorithm)
+        -  ``'bernmm'`` - use bernmm package (a multimodular
+           algorithm)
 
     -  ``num_threads`` - positive integer, number of
        threads to use (only used for bernmm algorithm)
@@ -222,7 +223,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
         sage: union([len(union(x))==1 for x in vals]) #long time
         [True]
 
-    .. note:
+    .. note::
 
        If `n>50000` then algorithm = 'gp' is used instead of
        algorithm = 'pari', since the C-library interface to PARI is
@@ -272,10 +273,10 @@ def factorial(n, algorithm='gmp'):
 
     -  ``algorithm`` - string (default: 'gmp')
 
-    -  ``'gmp'`` - use the GMP C-library factorial
-       function
+        -  ``'gmp'`` - use the GMP C-library factorial
+           function
 
-    -  ``'pari'`` - use PARI's factorial function
+        -  ``'pari'`` - use PARI's factorial function
 
 
     OUTPUT: an integer
@@ -340,9 +341,13 @@ def is_prime(n, flag=0):
     INPUT:
 
 
-    -  ``flag`` - int 0 (default): use a combination of
-       algorithms. 1: certify primality using the Pocklington-Lehmer Test.
-       2: certify primality using the APRCL test.
+    -  ``flag`` - int
+
+       - ``0`` (default) - use a combination of algorithms.
+
+       - ``1`` - certify primality using the Pocklington-Lehmer Test.
+
+       - ``2`` - certify primality using the APRCL test.
 
 
     OUTPUT:
@@ -385,21 +390,21 @@ def is_pseudoprime(n, flag=0):
 
     INPUT:
 
+    -  ``flag`` - int
 
-    -  ``flag`` - int 0 (default): checks whether x is a
-       Baillie-Pomerance- Selfridge-Wagstaff pseudo prime (strong
-       Rabin-Miller pseudo prime for base 2, followed by strong Lucas test
-       for the sequence (P,-1), P smallest positive integer such that
-       `P^2 - 4` is not a square mod x). 0: checks whether x is a
-       strong Miller-Rabin pseudo prime for flag randomly chosen bases
-       (with end-matching to catch square roots of -1).
+       - ``0`` (default): checks whether x is a Baillie-Pomerance-
+         Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo
+         prime for base 2, followed by strong Lucas test for the
+         sequence (P,-1), P smallest positive integer such that
+         `P^2 - 4` is not a square mod x).
 
+       - ``>0``: checks whether x is a strong Miller-Rabin pseudo
+         prime for flag randomly chosen bases (with end-matching to
+         catch square roots of -1).
 
     OUTPUT:
 
-
     -  ``bool`` - True or False
-
 
     .. note::
 
@@ -438,10 +443,13 @@ def is_prime_power(n, flag=0):
 
     -  ``n`` - an integer
 
-    -  ``flag (for primality testing)`` - int 0 (default):
-       use a combination of algorithms. 1: certify primality using the
-       Pocklington-Lehmer Test. 2: certify primality using the APRCL
-       test.
+    -  ``flag (for primality testing)`` - int
+
+       - ``0`` (default): use a combination of algorithms.
+
+       - ``1``: certify primality using the Pocklington-Lehmer Test.
+
+       - ``2``: certify primality using the APRCL test.
 
 
     EXAMPLES:::
@@ -807,8 +815,8 @@ def next_prime(n, proof=None):
 
 def previous_prime(n):
     """
-    The largest prime n. The result is provably correct. If n = 2, this
-    function raises a ValueError.
+    The largest prime < n. The result is provably correct. If n <= 1,
+    this function raises a ValueError.
 
     EXAMPLES::
 
@@ -894,14 +902,14 @@ def previous_prime_power(n):
 
 def random_prime(n, proof=None):
     """
-    Returns a random prime p between 2 and n (i.e. 2 = p = n). The
+    Returns a random prime p between 2 and n (i.e. 2 <= p <= n). The
     returned prime is chosen uniformly at random from the set of prime
     numbers less than or equal to n.
 
     INPUT:
 
 
-    -  ``n`` - an integer = 2.
+    -  ``n`` - an integer >= 2.
 
     -  ``proof`` - bool or None (default: None) If False,
        the function uses a pseudo-primality test, which is much faster for
@@ -1354,7 +1362,7 @@ def __LCM_sequence(v):
 def xlcm(m,n):
     """
     Extended lcm function: given two positive integers m,n, returns a
-    triple (l,m1,n1) such that l=lcm(m,n)=m1\*n1 where m1m, n1n and
+    triple (l,m1,n1) such that l=lcm(m,n)=m1\*n1 where m1|m, n1|n and
     gcd(m1,n1)=1. All with no factorization.
 
     Used to construct an element of order l from elements of orders m,n
@@ -1594,10 +1602,10 @@ def power_mod(a,n,m):
 
 
 def rational_reconstruction(a, m, algorithm='fast'):
-    """
-    This function tries to compute x/y, where x/y is rational number is
-    lowest terms such that reduction of x/y modulo m is equal to a and
-    the absolute values of x and y are both = sqrt(m/2). If such x/y
+    r"""
+    This function tries to compute `x/y`, where `x/y` is rational number is
+    lowest terms such that reduction of `x/y` modulo `m` is equal to `a` and
+    the absolute values of `x` and `y` are both `\le \sqrt{m/2}`. If such `x/y`
     exists, that pair is unique and this function returns it. If no
     such pair exists, this function raises ZeroDivisionError.
 
@@ -1605,13 +1613,23 @@ def rational_reconstruction(a, m, algorithm='fast'):
     very similar to the extended Euclidean algorithm. For more details,
     see Knuth, Vol 2, 3rd ed, pages 656-657.
 
-    Input: a - an integer m - a modulus algorithm - (default: 'fast')
-    fast - a fast compiled implementation python - a slow pure python
-    implementation
+    INPUT:
 
-    Output: Numerator and denominator n, d of the unique rational
-    number r=n/d, if it exists, with n and d = sqrt(N/2). Return (0,0)
-    if no such number exists.
+    - ``a`` - an integer
+
+    - ``m`` - a modulus
+
+    - ``algorithm`` - (default: 'fast')
+
+      - ``'fast'`` - a fast compiled implementation
+
+      - ``'python'`` - a slow pure python implementation
+
+    OUTPUT:
+
+    Numerator and denominator `n`, `d` of the unique rational number
+    `r=n/d`, if it exists, with `n` and `|d| \le \sqrt{N/2}`. Return
+    `(0,0)` if no such number exists.
 
     The algorithm for rational reconstruction is described (with a
     complete nontrivial proof) on pages 656-657 of Knuth, Vol 2, 3rd
@@ -1619,13 +1637,14 @@ def rational_reconstruction(a, m, algorithm='fast'):
     the conclusion paragraph right in the middle of page 657, which
     describes the algorithm thus:
 
-    This discussion proves that the problem can be solved efficiently
-    by applying Algorithm 4.5.2X with u=m and v=a, but with the
-    following replacement for step X2: If v3=sqrt(m/2), the algorithm
-    terminates. The pair (x,y)=(v2,v3\*sign(v2)) is then the unique
-    solution, provided that x and y are coprime and x=sqrt(m/2);
-    otherwise there is no solution. (Alg 4.5.2X is the extended
-    Euclidean algorithm.)
+        This discussion proves that the problem can be solved
+        efficiently by applying Algorithm 4.5.2X with `u=m` and `v=a`,
+        but with the following replacement for step X2: If
+        `v3 \le \sqrt{m/2}`, the algorithm terminates. The pair
+        `(x,y)=(|v2|,v3*\mathrm{sign}(v2))` is then the unique
+        solution, provided that `x` and `y` are coprime and
+        `x \le \sqrt{m/2}`; otherwise there is no solution. (Alg 4.5.2X is
+        the extended Euclidean algorithm.)
 
     Knuth remarks that this algorithm is due to Wang, Kornerup, and
     Gregory from around 1983.
@@ -1703,14 +1722,19 @@ def _rational_reconstruction_python(a,m):
     raise ValueError, "Rational reconstruction of %s (mod %s) does not exist."%(a,m)
 
 def mqrr_rational_reconstruction(u, m, T):
-    """
+    r"""
     Maximal Quotient Rational Reconstruction.
 
     FOR research purposes only - this is pure Python, so slow.
 
-    Input: u, m, and T are integers and m u=0, T0. Output: Either
-    integer n,d such that d0, gcd(n,d)=1, n/d=u (mod m), and
-    T\*abs(n)\*d m, or None.
+    INPUT:
+
+    - ``u, m, T`` -  integers such that `m > u \ge 0,` `T > 0`.
+
+    OUTPUT:
+
+    Either integers `n,d` such that `d>0`, `gcd(n,d)=1`, `n/d=u (mod m)`, and
+    `T*d*|n|< m`, or ``None``.
 
     Reference: Monagan, Maximal Quotient Rational Reconstruction: An
     Almost Optimal Algorithm for Rational Reconstruction (page 11)
@@ -1741,19 +1765,17 @@ def mqrr_rational_reconstruction(u, m, T):
 
 def trial_division(n, bound=None):
     """
-    Return the smallest prime divisor = bound of the positive integer
+    Return the smallest prime divisor <= bound of the positive integer
     n, or n if there is no such prime. If the optional argument bound
-    is omitted, then bound=n.
+    is omitted, then bound <= n.
 
     INPUT:
 
+    -  ``n`` - a positive integer
 
-    -  ``n`` - a positive integer bound - (optional) a
-       positive integer
-
+    - ``bound`` - (optional) a positive integer
 
     OUTPUT:
-
 
     -  ``int`` - a prime p=bound that divides n, or n if
        there is no such prime.
@@ -2044,7 +2066,7 @@ prime_factors = prime_divisors
 def odd_part(n):
     r"""
     The odd part of the integer `n`. This is `n / 2^v`,
-    where `v =valuation(n,2)`.
+    where `v = \mathrm{valuation}(n,2)`.
 
     EXAMPLES::
 
@@ -2161,7 +2183,7 @@ def is_square(n, root=False):
 def is_squarefree(n):
     """
     Returns True if and only if n is not divisible by the square of an
-    integer 1.
+    integer > 1.
     """
     if n==0:
         return False
@@ -2177,8 +2199,8 @@ def is_squarefree(n):
 class Euler_Phi:
     r"""
     Return the value of the Euler phi function on the integer n. We
-    defined this to be the number of positive integers = n that are
-    relatively prime to n. Thus if n=0 then
+    defined this to be the number of positive integers <= n that are
+    relatively prime to n. Thus if n<=0 then
     ``euler_phi(n)`` is defined and equals 0.
 
     INPUT:
@@ -2660,10 +2682,9 @@ def gaussian_binomial(n,k,q=None):
 
 def kronecker_symbol(x,y):
     """
-    The Kronecker symbol (xy).
+    The Kronecker symbol `(x|y)`.
 
     INPUT:
-
 
     -  ``x`` - integer
 
@@ -2688,13 +2709,13 @@ def kronecker_symbol(x,y):
 
 def kronecker(x,y):
     r"""
-    Synonym for ``kronecker_symbol``.
+    Synonym for :func:`kronecker_symbol`.
     """
     return kronecker_symbol(x,y)
 
 def legendre_symbol(x,p):
     r"""
-    The Legendre symbol (xp), for `p` prime.
+    The Legendre symbol `(x|p)`, for `p` prime.
 
     .. note::
 
@@ -3305,12 +3326,12 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
     -  ``algorithm`` - string
 
-    -  ``'pari'`` - (default) use the PARI C library
+       -  ``'pari'`` - (default) use the PARI C library
 
-    -  ``'direct'`` - use a Python implementation
+       -  ``'direct'`` - use a Python implementation
 
-    -  ``'all'`` - use both PARI and direct and check that
-       the results agree, then return the common answer
+       -  ``'all'`` - use both PARI and direct and check that
+          the results agree, then return the common answer
 
 
     OUTPUT: integer (0, -1, or 1)
@@ -3413,13 +3434,13 @@ def falling_factorial(x, a):
 
     INPUT:
 
-
     -  ``x`` - element of a ring
 
     -  ``a`` - a non-negative integer or
 
-    -  ``x and a`` - any numbers
+    OR
 
+    -  ``x and a`` - any numbers
 
     OUTPUT: the falling factorial
 

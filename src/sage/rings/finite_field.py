@@ -191,7 +191,7 @@ class FiniteFieldFactory(UniqueFactory):
        can be arbitrary.
 
     -  ``elem_cache`` - cache all elements to avoid
-       creation time (default: order500)
+       creation time (default: order < 500)
 
     -  ``check_irreducible`` - verify that the polynomial
        modulus is irreducible

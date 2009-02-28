@@ -181,7 +181,9 @@ def is_Ideal(x):
     r"""
     Returns True if object is an ideal of a ring.
 
-    EXAMPLES: A simple example involving the ring of integers. Note
+    EXAMPLES:
+
+    A simple example involving the ring of integers. Note
     that Sage does not interpret rings objects themselves as ideals.
     However, one can still explicitly construct these ideals::
 
@@ -249,7 +251,9 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def __nonzero__(self):
-        r"""Return True if this ideal is not (0).
+        r"""
+        Return True if this ideal is not (0).
+
         TESTS::
 
             sage: I = ZZ.ideal(5)
@@ -471,7 +475,9 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def is_trivial(self):
-        r"""Return True if this ideal is (0) or (1).
+        r"""
+        Return True if this ideal is (0) or (1).
+
         TESTS::
 
             sage: I = ZZ.ideal(5)
@@ -517,7 +523,9 @@ class Ideal_generic(MonoidElement):
         """
         Return the category of this ideal.
 
-        EXAMPLES: Note that category is dependent on the ring of the
+        EXAMPLES:
+
+        Note that category is dependent on the ring of the
         ideal.
 
         ::
@@ -574,7 +582,9 @@ class Ideal_principal(Ideal_generic):
         ideal. When the ideal construction is explicitly principal (i.e.
         when we define an ideal with one element) this is always the case.
 
-        EXAMPLES: Note that Sage automatically coerces ideals into
+        EXAMPLES:
+
+        Note that Sage automatically coerces ideals into
         principals ideals during initialization::
 
             sage: R = ZZ[x]
@@ -601,7 +611,9 @@ class Ideal_principal(Ideal_generic):
         Returns the generator of the principal ideal. The generators are
         elements of the ring containing the ideal.
 
-        EXAMPLES: A simple example in the integers::
+        EXAMPLES:
+
+        A simple example in the integers::
 
             sage: R = ZZ
             sage: I = R.ideal(7)
@@ -725,7 +737,9 @@ class Ideal_pid(Ideal_principal):
         Also, it seems that this class is used only in PIDs--is this
         redundant? Note: second example is broken.
 
-        EXAMPLES: An example in the principal ideal domain ZZ::
+        EXAMPLES:
+
+        An example in the principal ideal domain ZZ::
 
             sage: R = ZZ
             sage: I = R.ideal(42)
@@ -735,7 +749,9 @@ class Ideal_pid(Ideal_principal):
             sage: J.gcd(I)
             Principal ideal (14) of Integer Ring
 
-        TESTS: We cannot take the gcd of a principal ideal with a
+        TESTS:
+
+        We cannot take the gcd of a principal ideal with a
         non-principal ideal as well: ( gcd(I,J) should be (7) )
 
         ::
@@ -878,7 +894,9 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
 
        R will be set as the active ring in Singular
 
-    EXAMPLES: An example from a multivariate polynomial ring over the
+    EXAMPLES:
+
+    An example from a multivariate polynomial ring over the
     rationals::
 
         sage: P.<x,y,z> = PolynomialRing(QQ,3,order='lex')
@@ -973,7 +991,9 @@ def FieldIdeal(R):
     We call this ideal the field ideal and the generators the field
     equations.
 
-    EXAMPLES: The Field Ideal generated from the polynomial ring over
+    EXAMPLES:
+
+    The Field Ideal generated from the polynomial ring over
     two variables in the finite field of size 2::
 
         sage: P.<x,y> = PolynomialRing(GF(2),2)
@@ -981,7 +1001,7 @@ def FieldIdeal(R):
         Ideal (x^2 + x, y^2 + y) of Multivariate Polynomial Ring in x, y over
         Finite Field of size 2
 
-    Antoher, similar example::
+    Another, similar example::
 
         sage: Q.<x1,x2,x3,x4> = PolynomialRing(GF(2^4,name='alpha'), 4)
         sage: J = sage.rings.ideal.FieldIdeal(Q); J

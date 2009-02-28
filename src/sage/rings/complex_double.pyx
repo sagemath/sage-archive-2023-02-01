@@ -431,7 +431,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def gen(self, n=0):
         """
-        Return the generator of the complex double field. EXAMPLES::
+        Return the generator of the complex double field.
+
+        EXAMPLES::
 
             sage: CDF.0
             1.0*I
@@ -1321,10 +1323,10 @@ cdef class ComplexDoubleElement(FieldElement):
         We raise to symbolic powers::
 
             sage: x, n = var('x, n')
-                sage: CDF(1.2)^x
-                1.2^x
-                sage: CDF(1.2)^(x^n + n^x)
-                1.2^(x^n + n^x)
+            sage: CDF(1.2)^x
+            1.2^x
+            sage: CDF(1.2)^(x^n + n^x)
+            1.2^(x^n + n^x)
         """
         try:
             return z._pow_(a)

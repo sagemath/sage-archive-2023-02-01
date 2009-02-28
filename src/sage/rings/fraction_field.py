@@ -8,7 +8,9 @@ AUTHORS:
 
 - Burcin Erocal
 
-EXAMPLES: Quotienting is a constructor for an element of the
+EXAMPLES:
+
+Quotienting is a constructor for an element of the
 fraction field::
 
     sage: R.<x> = QQ[]

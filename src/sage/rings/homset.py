@@ -103,7 +103,9 @@ class RingHomset_quo_ring(RingHomset_generic):
         sage: phi(b)
         a
 
-    TESTS: We test pickling of a homset from a quotient.
+    TESTS:
+
+    We test pickling of a homset from a quotient.
 
     ::
 

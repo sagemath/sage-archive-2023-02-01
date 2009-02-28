@@ -160,7 +160,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         element of the polynomial ring over the prime finite field, with
         the same variable as the finite field.
 
-        EXAMPLES: The default variable is a::
+        EXAMPLES:
+
+        The default variable is a::
 
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2,'a')

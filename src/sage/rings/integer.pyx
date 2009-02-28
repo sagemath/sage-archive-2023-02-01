@@ -198,13 +198,22 @@ def _test_mpz_set_longlong(long long v):
 
 cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
     """
-    Parameters: v - the value whose digits we want to put into the list
-    l - the list to file offset - offset from the beginning of the list
-    that we want to fill at power_index - a measure of size to fill
-    and index to power_list we're filling 1(power_index+1) digits
-    power_list - a list of powers of the base, precomputed in method
-    digits digits - a python sequence type with objects to use for
-    digits note that python negative index semantics are relied upon
+    INTPUT:
+
+    - ``v`` - the value whose digits we want to put into the list
+
+    - ``l`` - the list to file
+
+    - ``offset`` - offset from the beginning of the list that we want
+      to fill at
+
+    - ``power_index`` - a measure of size to fill and index to
+      power_list we're filling 1 << (power_index+1) digits
+
+    - ``power_list`` - a list of powers of the base, precomputed in
+      method digits digits - a python sequence type with objects to
+      use for digits note that python negative index semantics are
+      relied upon
     """
     cdef mpz_t mpz_res
     cdef mpz_t mpz_quot
@@ -1341,7 +1350,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1)^(1/3)
             (-1)^(1/3)
 
-        For consistency with Python and MPFR, 00 is defined to be 1 in
+        For consistency with Python and MPFR, 0^0 is defined to be 1 in
         Sage::
 
             sage: 0^0
@@ -1460,7 +1469,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         INPUT:
 
 
-        -  ``n`` - integer = 1 (must fit in C int type)
+        -  ``n`` - integer >= 1 (must fit in C int type)
 
         -  ``report_exact`` - boolean, whether to report if
            the root extraction was exact
@@ -1543,7 +1552,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         INPUT:
 
 
-        -  ``m`` - integer = 2
+        -  ``m`` - integer >= 2
 
 
         AUTHORS:
@@ -3158,11 +3167,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         INPUT:
 
 
-        -  ``flag (for primality testing)`` - int 0 (default):
-           use a combination of algorithms. 1: certify primality using the
-           Pocklington-Lehmer Test. 2: certify primality using the APRCL
-           test.
+        -  ``flag`` (for primality testing) - int
 
+           - ``0`` (default): use a combination of algorithms.
+
+           - ``1``: certify primality using the Pocklington-Lehmer
+             Test.
+
+           - ``2``: certify primality using the APRCL test.
 
         EXAMPLES::
 

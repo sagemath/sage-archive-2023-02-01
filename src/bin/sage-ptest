@@ -224,7 +224,6 @@ def populatefilelist(filelist):
                 if skip(appendstr):
                     continue
                 if os.path.realpath(appendstr).startswith(BUILD_DIR):
-                    print "MATCH - ignoring %s", os.path.realpath(appendstr)
                     continue
                 files.append(appendstr)
             for D in dirs:

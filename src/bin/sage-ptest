@@ -17,7 +17,7 @@ except:
     numglobaliteration = 1
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
-BUILD_DIR = os.path.realpath(SAGE_ROOT + '/devel/sage/build')
+BUILD_DIR = os.path.realpath(SAGE_ROOT + "/devel/sage/build")
 
 print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
@@ -211,10 +211,6 @@ def populatefilelist(filelist):
         curdir = os.getcwd()
         walkdir = os.path.join(CUR,FF)
 
-        #Ignore the .build directory
-        if os.path.realpath(walkdir).startswith(BUILD_DIR):
-            continue
-
         for root, dirs, lfiles in os.walk(walkdir):
             for F in lfiles:
                 base, ext = os.path.splitext(F)
@@ -226,6 +222,9 @@ def populatefilelist(filelist):
                     continue
                 appendstr = os.path.join(root,F)
                 if skip(appendstr):
+                    continue
+                if os.path.realpath(appendstr).startswith(BUILD_DIR):
+                    print "MATCH - ignoring %s", os.path.realpath(appendstr)
                     continue
                 files.append(appendstr)
             for D in dirs:

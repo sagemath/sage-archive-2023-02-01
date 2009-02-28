@@ -59,7 +59,7 @@ class KohelBrandtModuleDatabase(sage.databases.db.Database):
         INPUT:
             read_only -- bool (default: True), if True, then the
                          database is read_only and changes cannot be
-                         commited to disk.
+                         committed to disk.
         """
         sage.databases.db.Database.__init__(self,
              name="kohel_brandt_modules", read_only=read_only)

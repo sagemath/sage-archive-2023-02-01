@@ -115,8 +115,12 @@ from sage.rings.integer import Integer as Integer_class
 Integer = ZZ
 
 class SloaneSequence(SageObject):
-    r"""Base class for a Slone integer sequence.
-    EXAMPLES: We create a dummy sequence:
+    r"""
+    Base class for a Sloane integer sequence.
+
+    EXAMPLES:
+
+    We create a dummy sequence:
     """
     def __init__(self, offset=1):
         r"""
@@ -241,7 +245,7 @@ class SloaneSequence(SageObject):
         We interpret slices as best we can, but our sequences are infinite
         so we want to prevent some mis-incantations.
 
-        Therefore, we abitrarily cap slices to be at most LENGTH=100000
+        Therefore, we arbitrarily cap slices to be at most LENGTH=100000
         elements long. Since many Sloane sequences are costly to compute,
         this is probably not an unreasonable decision, but just in case,
         list does not cap length.
@@ -681,7 +685,7 @@ class A000796(SloaneSequence):
 
     def pi(self):
         """
-        Based on a algorithm of Lambert Meertens The ABC-programming
+        Based on an algorithm of Lambert Meertens The ABC-programming
         language!!!
 
         EXAMPLES::
@@ -4081,7 +4085,7 @@ class A000045(SloaneSequence):
 
     def fib(self):
         """
-        Returns a generator over all Fibanacci numbers, starting with 0.
+        Returns a generator over all Fibonacci numbers, starting with 0.
 
         EXAMPLES::
 
@@ -7467,7 +7471,7 @@ class A001836(SloaneSequence):
             ValueError: input n (=0) must be a positive integer
 
         Compare: Searching Sloane's online database... Numbers n such that
-        phi(2n-1) phi(2n), where phi is Eler's totient function A000010.
+        phi(2n-1) phi(2n), where phi is Euler's totient function A000010.
         [53, 83, 158, 263, 293, 368, 578, 683, 743, 788, 878, 893]
 
         AUTHORS:
@@ -8187,7 +8191,7 @@ class A082411(RecurrenceSequence2):
 
         `a(0) = 407389224418`, `a(1) = 76343678551`. This
         is the second-order linear recurrence sequence with `a(0)`
-        and `a(1)` co- prime, that R. L. Graham in 1964 stated did
+        and `a(1)` co-prime, that R. L. Graham in 1964 stated did
         not contain any primes.
 
         INPUT:

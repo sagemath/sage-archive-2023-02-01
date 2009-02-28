@@ -1,11 +1,11 @@
 """nodoctest
-This file gathers together all the tables in SAGE.
+This file gathers together all the tables in Sage.
 
     * ConwayPolynomials -- database of selected Conway polynomials.
 
     * CremonaDatabase() - Cremona's tables of elliptic curves and related data.
 
-    * Gamma0Wt2Database() -- table of arithmetic informationa about
+    * Gamma0Wt2Database() -- table of arithmetic information about
                     newforms of weight 2 on Gamma_0(N).
 
     * JonesDatabase() -- returns the John Jones table of number fields
@@ -28,7 +28,7 @@ EXAMPLES:
     Cremona's database of elliptic curves
 
     sage: Gamma0Wt2Database()
-    Table of arithmetic informationa about newforms of weight 2 on Gamma_0(N)
+    Table of arithmetic information about newforms of weight 2 on Gamma_0(N)
 
     sage: JonesDatabase()
     John Jones's table of number fields with bounded ramification and degree <= 6
@@ -42,7 +42,7 @@ EXAMPLES:
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #

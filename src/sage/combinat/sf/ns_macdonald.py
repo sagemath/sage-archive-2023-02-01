@@ -273,7 +273,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         if j == jj:
             return True
 
-        #Make it so that the lower boxe is in position i,j
+        #Make it so that the lower box is in position i,j
         if jj < j:
             i,j,ii,jj = ii,jj,i,j
 

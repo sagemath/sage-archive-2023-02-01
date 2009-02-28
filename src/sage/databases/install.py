@@ -54,8 +54,8 @@ def database_install(name):
     INPUT:
         name -- string
     OUTPUT:
-        installs the database so it is available to SAGE.
-        (You may have to restart SAGE.)
+        installs the database so it is available to Sage.
+        (You may have to restart Sage.)
     """
     i = name.find('.')
     if i != -1:

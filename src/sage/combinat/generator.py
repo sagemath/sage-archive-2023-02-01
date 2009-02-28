@@ -77,7 +77,7 @@ def select(f, gen):
 
 def successor(initial, succ):
     """
-    Given an initial value and a successor function, yeild the initial
+    Given an initial value and a successor function, yield the initial
     value and each following successor. The generator will continue to
     generate values until the successor function yields None.
 

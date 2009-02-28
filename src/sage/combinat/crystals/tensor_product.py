@@ -578,7 +578,7 @@ class CrystalOfTableaux(TensorProductOfCrystalsWithGenerators, ClassicalCrystal)
          [[1, 3], [2], [4]], [[1, 3], [3], [4]], [[2, 3], [3], [4]],
          [[1, 1], [3], [4]], [[1, 2], [3], [4]], [[2, 2], [3], [4]]]
 
-    One can get (currently) crude ploting via::
+    One can get (currently) crude plotting via::
 
         #        sage: Tab.plot()  # random
 

@@ -4,7 +4,7 @@ Linear codes
 
 #*****************************************************************************
 #
-#      SAGE: Copyright (C) 2005 William Stein <was@math.harvard.edu>
+#      Sage: Copyright (C) 2005 William Stein <was@math.harvard.edu>
 #                          2005 Steven Sivek
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

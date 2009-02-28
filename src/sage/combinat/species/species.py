@@ -8,7 +8,7 @@ basic species required for other constructions.
 This code is based on the work of Ralf Hemmecke and Martin Rubey's
 Aldor-Combinat, which can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
-In particular, the relevent section for this file can be found at
+In particular, the relevant section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse8.html.
 
 Weighted Species:
@@ -152,7 +152,7 @@ class GenericCombinatorialSpecies(SageObject):
         This is used during the pickling process and returns a dictionary
         of the data needed to create this object during the unpickling
         process. It returns an (\*args, \*\*kwds) tuple which is to be
-        passed into the constrcutor for the class of this species. Any
+        passed into the constructor for the class of this species. Any
         subclass should define a _state_info list for any arguments which
         need to be passed in in the constructor.
 
@@ -710,9 +710,9 @@ class GenericCombinatorialSpecies(SageObject):
 
     def algebraic_equation_system(self):
         """
-        Returns a system of algebraic equations satisified by this species.
+        Returns a system of algebraic equations satisfied by this species.
         The nodes are numbered in the order that they appear as vertices of
-        the associted digraph.
+        the associated digraph.
 
         EXAMPLES::
 

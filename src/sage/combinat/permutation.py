@@ -1418,7 +1418,7 @@ class Permutation_class(CombinatorialObject):
         r"""
         Returns the descent polynomial of the permutation p.
 
-        The descent polymomial of p is the product of all the z[p[i]] where
+        The descent polynomial of p is the product of all the z[p[i]] where
         i ranges over the descents of p.
 
         REFERENCES:
@@ -2912,7 +2912,7 @@ def from_rank(n, rank):
     Returns the permutation with the specified lexicographic rank. The
     permutation is of the set [1,...,n].
 
-    The permutation is computed without iteratiing through all of the
+    The permutation is computed without iterating through all of the
     permutations with lower rank. This makes it efficient for large
     permutations.
 

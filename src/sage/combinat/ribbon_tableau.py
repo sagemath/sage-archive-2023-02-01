@@ -114,7 +114,7 @@ def from_expr(l):
     tableau. The second list are the entries in the rows of the skew
     tableau from bottom to top.
 
-    Provided primarily for compatability with MuPAD-Combinat.
+    Provided primarily for compatibility with MuPAD-Combinat.
 
     EXAMPLES::
 
@@ -582,7 +582,7 @@ def cospin_polynomial(part, weight, length):
 
 ##     //This function construct the graph of the set of k-ribbon tableaux
 ##     //of a given skew shape and a given weight.
-##     //The first argument is alaways a skew partition.
+##     //The first argument is always a skew partition.
 ##     //In the case where the inner partition is empty there is no branch without solutions
 ##     //In the other cases there is in average a lot of branches without solutions
 ##     /////////////////////////////////////////////////////////////////////////////////////////
@@ -742,7 +742,7 @@ class MultiSkewTableau_class(CombinatorialObject):
 
     def inversions(self):
         """
-        Returns the number of inverion pairs of self.
+        Returns the number of inversion pairs of self.
 
         EXAMPLES::
 

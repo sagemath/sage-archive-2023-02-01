@@ -4,7 +4,7 @@ Compression for ZODB.
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -69,7 +69,7 @@ data.  If the prefix byte is 1, the data is compressed.  If the
 prefix byte is 0, the data is uncompressed.  If the first byte is not 0
 or 1, the data is assumed uncompressed.  Since python pickles never
 start with 0 or 1, they are stored directly without a prefix byte.  This
-makes compatability with existing storages easier -- you can simply
+makes compatibility with existing storages easier -- you can simply
 stick a CompressedStorage atop an existing storage and it will work.
 
 However, if some other layered storage sits atop this one, say an

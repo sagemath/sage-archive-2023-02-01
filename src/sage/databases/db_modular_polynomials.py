@@ -4,7 +4,7 @@ Database of Modular Polynomials
 
 #######################################################################
 #
-#  SAGE: System for Algebra and Geometry Experimentation
+#  Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>

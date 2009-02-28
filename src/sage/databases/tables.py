@@ -4,7 +4,7 @@ Access to external tables of modular forms and elliptic curves
 
 #*****************************************************************************
 #
-#      SAGE: Copyright (C) 2004 William Stein <wstein@gmail.com>
+#      Sage: Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

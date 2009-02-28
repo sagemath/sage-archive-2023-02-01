@@ -4,7 +4,7 @@ Streams or Infinite Arrays
 This code is based on the work of Ralf Hemmecke and Martin Rubey's
 Aldor-Combinat, which can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
-In particular, the relevent section for this file can be found at
+In particular, the relevant section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse12.html.
 """
 import itertools

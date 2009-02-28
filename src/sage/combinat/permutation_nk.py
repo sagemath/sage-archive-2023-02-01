@@ -52,7 +52,7 @@ class PermutationsNK(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for all permutations of k thinkgs from range(n).
+        An iterator for all permutations of k things from range(n).
 
         EXAMPLES::
 

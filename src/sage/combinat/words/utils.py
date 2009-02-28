@@ -241,7 +241,7 @@ def slice_ok(part):
 
 def slice_indices(s, l):
     r"""
-    Implement slice.indices whitout bugs.
+    Implement slice.indices without bugs.
 
     TESTS::
 

@@ -133,7 +133,7 @@ Partitions:
    transposing the corresponding Ferrers diagram.
 
 -  Ferrers diagram, ``ferrers_diagram``. Analogous to
-   the Young diagram of an irredicible representation of
+   the Young diagram of an irreducible representation of
    `S_n`.
 
 
@@ -940,7 +940,7 @@ class CombinatorialClass(SageObject):
 
     def __count_from_iterator(self):
         """
-        Default implmentation of count which just goes through the iterator
+        Default implementation of count which just goes through the iterator
         of the combinatorial class to count the number of objects.
 
         EXAMPLES::
@@ -1688,7 +1688,7 @@ def combinations(mset,k):
 
        Wraps GAP's Combinations. Hence mset must be a list of objects
        that have string representations that can be interpreted by the
-       GAP intepreter. If mset consists of at all complicated Sage
+       GAP interpreter. If mset consists of at all complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
 
@@ -1787,7 +1787,7 @@ def arrangements(mset,k):
 
        Wraps GAP - hence mset must be a list of objects that have
        string representations that can be interpreted by the GAP
-       intepreter. If mset consists of at all complicated Sage
+       interpreter. If mset consists of at all complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
 
@@ -1851,7 +1851,7 @@ def derangements(mset):
 
        Wraps GAP - hence mset must be a list of objects that have
        string representations that can be interpreted by the GAP
-       intepreter. If mset consists of at all complicated Sage
+       interpreter. If mset consists of at all complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
 

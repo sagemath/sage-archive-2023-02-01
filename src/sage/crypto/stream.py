@@ -43,7 +43,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
             True
 
         TODO: Implement LFSR cryptosytem for arbitrary rings. The current
-        implementation if limitated to the finite field of 2 elements only
+        implementation is limited to the finite field of 2 elements only
         because of the dependence on binary strings.
         """
 	if field is None:

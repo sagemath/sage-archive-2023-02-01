@@ -1303,7 +1303,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def inner_plethysm(self, x):
         r"""
-        Retuns the inenr plethysm of self with x.
+        Returns the inner plethysm of self with x.
 
         The result of f.inner_plethysm(g) is linear in f and linear in
         'homogeneous pieces' of g. So, to describe this function, we assume

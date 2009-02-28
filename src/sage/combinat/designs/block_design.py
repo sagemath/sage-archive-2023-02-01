@@ -122,7 +122,7 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
 def AffineGeometryDesign(n, d, F):
     r"""
-    Input: n is the Euclidian dimension, so the number of points is
+    Input: n is the Euclidean dimension, so the number of points is
     `v = |F^n|` (F = GF(q), some q) d is the dimension of the
     (affine) subspaces of `P = GF(q)^n` which make up the
     blocks.

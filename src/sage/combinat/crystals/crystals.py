@@ -75,7 +75,7 @@ documentations)::
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
     sage: Fast  = FastCrystal(['B', 2], shape = [3/2, 1/2])
 
-One can get (currently) crude ploting via::
+One can get (currently) crude plotting via::
 
     sage: Tab.plot()
 
@@ -789,10 +789,10 @@ class CrystalBacktracker(GenericBacktracker):
         Principle of the algorithm:
 
         Let C be a classical crystal. It's an acyclic graph where all
-        connected componnent has a unique element without predecessors (the
+        connected component has a unique element without predecessors (the
         highest weight element for this component). Let's assume for
         simplicity that C is irreducible (i.e. connected) with highest
-        weigth element u.
+        weight element u.
 
         One can define a natural spanning tree of `C` by taking
         `u` as rot of the tree, and for any other element
@@ -835,7 +835,7 @@ class CrystalBacktracker(GenericBacktracker):
             sage: list(CB._rec(C(1), 'n/a'))
             [(2, 'n/a', True)]
         """
-        #We will signal the inital case by having a object and state
+        #We will signal the initial case by having a object and state
         #of None and consider it separately.
         if x is None and state is None:
             for gen in self._crystal.highest_weight_vectors():
@@ -910,7 +910,7 @@ class ClassicalCrystal(Crystal):
                  return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
 
         TODO: choose a good panel of values for a,b,c ... both for basic
-        systematic tests and for conditionally run more computatinaly
+        systematic tests and for conditionally run more computationally
         involved tests
 
         ::
@@ -956,7 +956,7 @@ class ClassicalCrystal(Crystal):
 
     def highest_weight_vector(self):
         r"""
-        Returns the higest weight vector if there is a single one;
+        Returns the highest weight vector if there is a single one;
         otherwise, raise an error.
 
         EXAMPLES::

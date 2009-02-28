@@ -35,7 +35,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields.
 ## (1) delete SAGE_ROOT/data/conway_polynomials/*
 ## (2) put your conway_polynomial.py.bz2 file in a new directory
 ##      /home/was/s/data/src/conway/
-## (3) Start SAGE:
+## (3) Start Sage:
 ## sage: c = ConwayPolynomials(read_only=False)
 ## sage: c._init()       # builds database
 ## sage: c.polynomial(3,10)
@@ -47,7 +47,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields.
 
 #*****************************************************************************
 #
-#       SAGE: Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Sage: Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -77,7 +77,7 @@ class ConwayPolynomials(sage.databases.db.Database):
 
 
         -  ``read_only`` - bool (default: True), if True, then
-           the database is read_only and changes cannot be commited to
+           the database is read_only and changes cannot be committed to
            disk.
         """
         sage.databases.db.Database.__init__(self,

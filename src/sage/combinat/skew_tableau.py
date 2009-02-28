@@ -482,7 +482,7 @@ class SkewTableau_class(CombinatorialObject):
         the skew shape. The second list is a list of the rows in the skew
         tableau read from the bottom up.
 
-        Provided for compatability with MuPAD-Combinat. In MuPAD-Combinat,
+        Provided for compatibility with MuPAD-Combinat. In MuPAD-Combinat,
         if t is a skew tableau, then to_expr gives the same result as
         expr(t) would give in MuPAD-Combinat.
 
@@ -1097,7 +1097,7 @@ def from_expr(expr):
     tableau. The second list are the entries in the rows of the skew
     tableau from bottom to top.
 
-    Provided primarily for compatability with MuPAD-Combinat.
+    Provided primarily for compatibility with MuPAD-Combinat.
 
     EXAMPLES::
 
@@ -1118,7 +1118,7 @@ def from_expr(expr):
 
 def from_shape_and_word(shape, word):
     """
-    Returns the skew tableau correspnding to the skew partition shape
+    Returns the skew tableau corresponding to the skew partition shape
     and the word obtained from the row reading.
 
     EXAMPLES::

@@ -74,7 +74,7 @@ Gallileus GmbH                   http://www.gallileus.info/
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -206,10 +206,10 @@ class Database(_uniq):
 
         A copy of the old database file is created before rebuild.
 
-        If you specify a thresh then that threshhold is used for
-        recompressing all the objects.  Note that the threshhold is
+        If you specify a thresh then that threshold is used for
+        recompressing all the objects.  Note that the threshold is
         not saved as part of the database, so new objects will be
-        compressed using whatever threshhold you use when creating
+        compressed using whatever threshold you use when creating
         the database object.
         """
         import BTrees.OOBTree
@@ -325,7 +325,7 @@ class Database(_uniq):
         """
         Restore all files that start with the given basename.
 
-        Each file is loaded then commited to disk before the next
+        Each file is loaded then committed to disk before the next
         file is loaded.
         """
         X = os.listdir("%s/pickles/"%DB_HOME)

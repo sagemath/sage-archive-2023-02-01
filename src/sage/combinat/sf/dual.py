@@ -284,7 +284,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
 
 
         -  ``dictionary`` - an internal dictionary for the
-           monomials and coefficents of self
+           monomials and coefficients of self
 
         -  ``dual`` - self as an element of the dual basis.
 

@@ -342,7 +342,7 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
         """
         Returns the weight ring for this species. This is determined by
         asking Sage's coercion model what the result is when you multiply
-        (and add) lements of the weight rings for each of the operands.
+        (and add) elements of the weight rings for each of the operands.
 
         EXAMPLES::
 

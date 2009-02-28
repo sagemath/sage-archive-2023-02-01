@@ -37,7 +37,7 @@ class GenericBacktracker(object):
             sage: len(list(p.iterator()))
             14
         """
-        #Initialize the stack of generators with the inital data.
+        #Initialize the stack of generators with the initial data.
         #The generator in stack[i] is a generator for the i^th level
         #of the search tree.
         stack = []

@@ -1461,7 +1461,7 @@ def from_shape_and_word(shape, w):
 def Tableaux(n=None):
     """
     Returns the combinatorial class of tableaux. If n is specified,
-    then it returns the combinatoiral class of all tableaux of size n.
+    then it returns the combinatorial class of all tableaux of size n.
 
     EXAMPLES::
 
@@ -1909,7 +1909,7 @@ class StandardTableaux_partition(CombinatorialClass):
         """
 
         pi = self.p
-        #Set the intial tableaux by filling it in going down the columns
+        #Set the initial tableaux by filling it in going down the columns
         tableau = [[None]*n for n in pi]
         size = sum(pi)
         row = 0

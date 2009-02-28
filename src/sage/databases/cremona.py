@@ -21,7 +21,7 @@ The name of the database may change as it is updated. Type "!sage
 
 #*****************************************************************************
 #
-#       SAGE: Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Sage: Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -348,7 +348,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
 
         -  ``read_only`` - bool (default: True), if True, then
-           the database is read_only and changes cannot be commited to
+           the database is read_only and changes cannot be committed to
            disk.
         """
         sage.databases.db.Database.__init__(self,

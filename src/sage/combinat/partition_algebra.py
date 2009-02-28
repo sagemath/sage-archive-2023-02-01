@@ -1577,7 +1577,7 @@ def is_planar(sp):
             for j in range(n):
                 if i == j:
                     continue
-                #Get the postitive and negative entries of this part
+                #Get the positive and negative entries of this part
                 bp = filter(lambda x: x>0, to_consider[j])
                 bn = filter(lambda x: x<0, to_consider[j])
                 bn = map(abs, bn)

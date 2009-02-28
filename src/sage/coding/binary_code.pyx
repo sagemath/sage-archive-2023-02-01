@@ -3463,7 +3463,7 @@ cdef class BinaryCodeClassifier:
                 if j == hh: state = 13; continue
 
                 # recall hh: the height of the oldest ancestor of zeta for which Lemma 2.25 is
-                # satsified, which implies that all terminal nodes descended from there are equivalent.
+                # satisfied, which implies that all terminal nodes descended from there are equivalent.
                 # If we are looking at such a node, then the partition at nu[hh] can be used for later
                 # pruning, so we store its fixed set and a set of representatives of its cells.
                 if l < self.L-1: l += 1

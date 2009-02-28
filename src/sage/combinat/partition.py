@@ -30,7 +30,7 @@ number.
     sage: Partitions(4).first()
     [4]
 
-Using the method .next(), we can calculute the 'next' partition.
+Using the method .next(), we can calculate the 'next' partition.
 When we are at the last partition, None will be returned.
 
 ::
@@ -1255,7 +1255,7 @@ class Partition_class(CombinatorialObject):
 
     def centralizer_size(self, t=0, q=0):
         """
-        Returns the size of the centralizer of any permuation of cycle type
+        Returns the size of the centralizer of any permutation of cycle type
         p. If m_i is the multiplicity of i as a part of p, this is given
         by `\prod_i (i^m[i])*(m[i]!)`. Including the optional
         parameters t and q gives the q-t analog which is the former product
@@ -1270,7 +1270,7 @@ class Partition_class(CombinatorialObject):
 
         REFERENCES:
 
-        - Kerber, A. 'Algebraic Combintorics via Finite Group Action',
+        - Kerber, A. 'Algebraic Combinatorics via Finite Group Action',
           1.3 p24
         """
         p = self
@@ -2005,7 +2005,7 @@ def number_of_partitions_list(n,k=None):
 ######################
 def OrderedPartitions(n, k=None):
     """
-    Returns the combinatoiral class of ordered partitions of n. If k is
+    Returns the combinatorial class of ordered partitions of n. If k is
     specified, then only the ordered partitions of length k are
     returned.
 
@@ -2535,7 +2535,7 @@ def Partitions(n=None, **kwargs):
         sage: [2,1] in Partitions()
         True
 
-    If an integer n is passed, then the combinatorial class of intger
+    If an integer n is passed, then the combinatorial class of integer
     partitions of n is returned.
 
     ::
@@ -3166,7 +3166,7 @@ def partitions_set(S,k=None, use_file=True):
 
        Wraps GAP - hence S must be a list of objects that have string
        representations that can be interpreted by the GAP
-       intepreter. If mset consists of at all complicated Sage
+       interpreter. If mset consists of at all complicated Sage
        objects, this function does *not* do what you expect. See
        SetPartitions in ``combinat/set_partition``.
 

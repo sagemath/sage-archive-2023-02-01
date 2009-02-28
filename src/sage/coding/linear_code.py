@@ -123,14 +123,14 @@ AUTHORS:
 - David Joyner (2006-07): added documentation, group-theoretical
   methods, ToricCode
 
-- David Joyner (2006-08): hopeful latex fixes to documention, added
+- David Joyner (2006-08): hopeful latex fixes to documentation, added
   list and __iter__ methods to LinearCode and examples, added
   hamming_weight function, fixed random method to return a vector,
   TrivialCode, fixed subtle bug in dual_code, added galois_closure
   method, fixed mysterious bug in permutation_automorphism_group (GAP
   was over-using "G" somehow?)
 
-- David Joyner (2006-08): hopeful latex fixes to documention, added
+- David Joyner (2006-08): hopeful latex fixes to documentation, added
   CyclicCode, best_known_linear_code, bounds_minimum_distance,
   assmus_mattson_designs (implementing Assmus-Mattson Theorem).
 
@@ -513,9 +513,9 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
        and if b=4, all doubly even codes are generated). Must be an even
        positive integer.
 
-    -  ``parent`` - dafault None, used in recursion
+    -  ``parent`` - default None, used in recursion
 
-    -  ``BC`` - dafault None, used in recursion
+    -  ``BC`` - default None, used in recursion
 
     -  ``equal`` - default False, if True generates only
        [n, k] codes
@@ -779,7 +779,7 @@ class LinearCode(module.Module):
         blocks is called a simple block design. If every subset of points
         of size `t` is contained in exactly `\lambda` blocks the block
         design is called a `t-(v,k,\lambda)` design (or simply a
-        `t`-design when the parameters are not specfied). When
+        `t`-design when the parameters are not specified). When
         `\lambda=1` then the block design is called a
         `S(t,k,v)` Steiner system.
 

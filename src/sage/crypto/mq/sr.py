@@ -668,7 +668,7 @@ class SR_generic(MPolynomialSystemGenerator):
         INPUT:
 
 
-        -  ``d`` - state array or something coercable to a
+        -  ``d`` - state array or something coercible to a
            state array
         """
         d = self.state_array(d)
@@ -877,7 +877,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         INPUT:
 
-        - ``d`` - state array or something coercable to a state array
+        - ``d`` - state array or something coercible to a state array
 
         EXAMPLES::
 
@@ -910,7 +910,7 @@ class SR_generic(MPolynomialSystemGenerator):
         INPUT:
 
 
-        -  ``d`` - state array or something coercable to a
+        -  ``d`` - state array or something coercible to a
            state array
 
 
@@ -961,10 +961,10 @@ class SR_generic(MPolynomialSystemGenerator):
         INPUT:
 
 
-        -  ``d`` - state array or something coercable to a
+        -  ``d`` - state array or something coercible to a
            state array
 
-        -  ``key`` - state array or something coercable to a
+        -  ``key`` - state array or something coercible to a
            state array
 
 
@@ -1213,14 +1213,14 @@ class SR_generic(MPolynomialSystemGenerator):
         r"""
         Encrypts the plaintext `P` using the key `K`.
 
-        Both must be given as state arrays or coercable to state arrays.
+        Both must be given as state arrays or coercible to state arrays.
 
         INPUTS:
 
-        - ``P`` - plaintext as state array or something coercable to a
+        - ``P`` - plaintext as state array or something coercible to a
           qstate array
 
-        - ``K`` - key as state array or something coercable to a state
+        - ``K`` - key as state array or something coercible to a state
           array
 
         TESTS: The official AES test vectors::
@@ -3279,7 +3279,7 @@ def test_consistency(max_n=2, **kwargs):
     TESTS::
 
         sage: from sage.crypto.mq.sr import test_consistency
-        sage: test_consistency(1) # long time -- calling w/ max_n = 2 requires a LOT of RAM (>> 2GB, evidently).  Calling w/ max_n = 1 is far more managable.
+        sage: test_consistency(1) # long time -- calling w/ max_n = 2 requires a LOT of RAM (>> 2GB, evidently).  Calling w/ max_n = 1 is far more manageable.
         True
 
     The above doctest used to fail on a machine with "only" 2GB RAM.

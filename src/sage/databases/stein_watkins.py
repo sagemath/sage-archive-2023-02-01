@@ -120,7 +120,7 @@ prime conductor::
 
 #*****************************************************************************
 #
-#       SAGE: Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Sage: Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

@@ -66,7 +66,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         sage: 'e' in f
         False
 
-    A familly can also be constructed by its index set `I` and
+    A family can also be constructed by its index set `I` and
     a function `f`, as in `(f(i))_{i \in I}`::
 
         sage: f = Family([3,4,7], lambda i: 2*i)
@@ -197,7 +197,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         3
 
     Family behaves the same way with FiniteCombinatorialClass instances
-    and lists. This feature will eventually disapear when
+    and lists. This feature will eventually disappear when
     FiniteCombinatorialClass won't be needed anymore.
 
     ::

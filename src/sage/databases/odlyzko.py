@@ -4,7 +4,7 @@ Tables of zeros of the Riemann-Zeta function.
 
 #*****************************************************************************
 #
-#       SAGE: Copyright (C) 2004 William Stein <wstein@gmail.com>
+#       Sage: Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

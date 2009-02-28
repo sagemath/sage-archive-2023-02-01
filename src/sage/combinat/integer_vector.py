@@ -685,7 +685,7 @@ class IntegerVectors_nnondescents(CombinatorialClass):
     - comp: the non descents composition of v
 
     In other words: the length of v equals c[1]+...+c[k], and v is
-    descreasing in the consecutive blocs of length c[1], ..., c[k]
+    decreasing in the consecutive blocs of length c[1], ..., c[k]
 
     Those are the integer vectors of sum n which are lexicographically
     maximal (for the natural left->right reading) in their orbit by the

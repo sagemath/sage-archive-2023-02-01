@@ -207,7 +207,7 @@ class Subwords_wk(CombinatorialClass):
 
 def smallest_positions(word, subword, pos = 0):
     """
-    Returns the smallest positions for which subword apppears as a
+    Returns the smallest positions for which subword appears as a
     subword of word. If pos is specified, then it returns the positions
     of the first appearance of subword starting at pos.
 

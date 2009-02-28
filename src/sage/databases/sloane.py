@@ -112,7 +112,7 @@ AUTHORS:
 
 #*****************************************************************************
 #
-#      SAGE: Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
+#      Sage: Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #                               and  Steven Sivek  <ssivek@mit.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -225,7 +225,7 @@ class SloaneEncyclopediaClass:
         try:
             file = bz2.BZ2File(self.__file__, 'r')
         except IOError:
-            raise IOError, "The Sloane Encyclopedia optional SAGE package must be installed.  Usage e.g., 'sage -i database_sloane_oeis-2005-12' to download and install it."
+            raise IOError, "The Sloane Encyclopedia optional Sage package must be installed.  Usage e.g., 'sage -i database_sloane_oeis-2005-12' to download and install it."
 
         entry = re.compile(r'A(?P<num>\d{6}) ,(?P<body>.*),$');
         self.__data__ = [None] * self.__arraysize__

@@ -4,7 +4,7 @@ Database of Hilbert Polynomials
 
 #######################################################################
 
-#  SAGE: System for Algebra and Geometry Experimentation
+#  Sage: System for Algebra and Geometry Experimentation
 #
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #

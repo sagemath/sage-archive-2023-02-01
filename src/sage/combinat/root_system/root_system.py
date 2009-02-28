@@ -159,7 +159,7 @@ class RootSystem(SageObject):
 
     The root system may also come equipped with an ambient space, that
     is a simultaneous realization of the weight lattice and the coroot
-    lattice in an euclidean vector space. This is implemented on a type
+    lattice in a Euclidean vector space. This is implemented on a type
     by type basis, and is not always available. When the coefficients
     permit it, this is also available as an ambient lattice.
 

@@ -96,7 +96,7 @@ This is the conjugate of the skew partition [[4,3,1],[2]]
     sage: SkewPartition([[4,3,1],[2]]).conjugate()
     [[3, 2, 2, 1], [1, 1]]
 
-Geometrically, we just applied a relection with respect to the main
+Geometrically, we just applied a reflection with respect to the main
 diagonal on the diagram of the partition. Of course, this operation
 is an involution::
 

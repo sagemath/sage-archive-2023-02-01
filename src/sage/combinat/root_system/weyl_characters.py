@@ -683,7 +683,7 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     """
     Returns the dictionary of multiplicities for the irreducible
     character with highest weight lamb. The weight multiplicities are
-    computed by the Freudenthal multiplity formula. The algorithm is
+    computed by the Freudenthal multiplicity formula. The algorithm is
     based on recursion relation that is stated, for example, in
     Humphrey's book on Lie Algebras. The multiplicities are invariant
     under the Weyl group, so to compute them it would be sufficient to
@@ -1354,7 +1354,7 @@ class WeightRing(Algebra):
         objects are the characters. Attached to this is a second WeightRing
         called a2. The Weyl denominator is created and labeled wd. This is
         the product of factors a2(alpha/2)-a2(-alpha/2) where alpha runs
-        through the postive roots. Then character chi with highest weight
+        through the positive roots. Then character chi with highest weight
         [5,3,0] is created and coerced into a2. It has many terms. It is
         multiplied by wd and compared with the alternating sum of its
         images under Weyl group elements. These are equal, illustrating the

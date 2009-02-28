@@ -186,7 +186,7 @@ class WordMorphism(SageObject):
     def _build_codomain(self, data):
         r"""
         Returns a Words domain containing all the letter in the keys of
-        data (which must be a dictionnary).
+        data (which must be a dictionary).
 
         TESTS: 1. If the image of all the letters are iterable ::
 

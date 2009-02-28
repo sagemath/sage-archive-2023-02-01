@@ -63,7 +63,7 @@ A linear code with length
 `n,k,d` are called its parameters. A (not necessarily
 linear) code `C` with length `n`, size
 `M=|C|`, and minimum distance `d` is called an
-`(n,M,d)_q`-code (using parantheses instead of square
+`(n,M,d)_q`-code (using parentheses instead of square
 brackets). Of course, `k=\log_q(M)` for linear codes.
 
 What is the "best" code of a given length? Let `F` be a
@@ -308,7 +308,7 @@ def hamming_upper_bound(n,q,d):
 
 
 
-    where M is the maxmimum number of codewords and `V(n,e)` is
+    where M is the maximum number of codewords and `V(n,e)` is
     equal to the contents of a ball of radius e. This bound is useful
     for small values of d. Codes for which equality holds are called
     perfect.

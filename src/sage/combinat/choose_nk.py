@@ -71,7 +71,7 @@ class ChooseNK(CombinatorialClass):
 
     def iterator(self):
         """
-        An iterator for all choies of k thinkgs from range(n).
+        An iterator for all choices of k things from range(n).
 
         EXAMPLES::
 

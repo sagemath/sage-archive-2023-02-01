@@ -161,7 +161,7 @@ def MacdonaldPolynomialsHt(R, q=None, t=None):
 def MacdonaldPolynomialsS(R, q=None, t=None):
     """
     Returns the modified Schur functions defined by the plethystic
-    subsitution `S_{\mu} = s_{\mu}[X(1-t)]`. When the
+    substitution `S_{\mu} = s_{\mu}[X(1-t)]`. When the
     Macdonald polynomials in the J basis are expressed in terms of the
     modified Schur functions, the coefficients are qt-Kostka numbers.
 

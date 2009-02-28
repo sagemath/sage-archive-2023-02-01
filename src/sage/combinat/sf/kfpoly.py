@@ -262,7 +262,7 @@ def dom(mu, snu):
 
 def weight(rg, t=None):
     """
-    Returns the wieght of a rigging.
+    Returns the weight of a rigging.
 
     EXAMPLES::
 

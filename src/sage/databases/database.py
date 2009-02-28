@@ -145,7 +145,7 @@ def verify_column(col_dict):
 def verify_operator(operator):
     """
     Checks that the provided operator is one of the allowed strings.
-    Legal operators inclue the following strings:
+    Legal operators include the following strings:
         - '='
         - '<='
         - '>='
@@ -319,7 +319,7 @@ def _apply_plot(func, x, fig_num, figsize=[1,1], with_label=True,**kwds):
     """
     Saves a representative plot to be drawn in the database output.
     Allows passing of plot keywords.  Data x is assumed to be an
-    identifer for the object's plotting function.  For an example of
+    identifier for the object's plotting function.  For an example of
     use, see the GenericSQLQuery show function.
 
     INPUT:
@@ -2731,7 +2731,7 @@ class SQLDatabase(GenericSQLDatabase):
         Uses a SQLQuery instance to modify (delete rows from) the
         database.  Note that this function will not allow deletion via a
         GenericSQLQuery (a method for more advanced users) in order to
-        prevent an accidental disaster (ommitting a where clause or using '*').
+        prevent an accidental disaster (omitting a where clause or using '*').
 
         SQLQuery must have no join statements.  (As of now, you can only
         delete from one table at a time -- ideas and patches are welcome).

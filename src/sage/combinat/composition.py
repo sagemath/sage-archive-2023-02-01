@@ -76,7 +76,7 @@ given by::
     [[1, 3], [2, 2], [3, 1], [4]]
 
 Setting both min_length and max_length to the same value is
-equaivalent to setting length to this value.
+equivalent to setting length to this value.
 
 ::
 
@@ -84,7 +84,7 @@ equaivalent to setting length to this value.
     [[1, 3], [2, 2], [3, 1]]
 
 The options inner and outer can be used to set part-by-part
-containment constaints. The list of compositions of 4 bounded above
+containment constraints. The list of compositions of 4 bounded above
 by [3,1,2] is given by::
 
     sage: Compositions(4, outer=[3,1,2]).list()
@@ -123,7 +123,7 @@ consecutive parts differ by at most one unit::
 
 The constraints can be combinat together in all reasonable ways.
 This is the list of compositions of 5 of length between 2 and 4
-such that the differnce between consecutive parts is between -2 and
+such that the difference between consecutive parts is between -2 and
 1.
 
 ::
@@ -450,7 +450,7 @@ def Compositions(n=None, **kwargs):
     """
     Returns the combinatorial class of compositions.
 
-    EXAMPLES: If n is not specificied, it returns the combinatorial
+    EXAMPLES: If n is not specified, it returns the combinatorial
     class of all (non-negative) integer compositions.
 
     ::
@@ -475,7 +475,7 @@ def Compositions(n=None, **kwargs):
         sage: Compositions(3).count()
         4
 
-    In addition, the following constaints can be put on the
+    In addition, the following constraints can be put on the
     compositions: length, min_part, max_part, min_length,
     max_length, min_slope, max_slope, inner, and outer. For
     example,

@@ -4,7 +4,7 @@ weight 2 on Gamma_0(N) for N <= 10000.
 """
 
 #*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+#       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -89,7 +89,7 @@ class Gamma0Wt2Database(sage.databases.db.Database):
              name="gamma0wt2", read_only=read_only)
 
     def __repr__(self):
-        return "Table of arithmetic informationa about newforms of weight 2 on Gamma_0(N)"
+        return "Table of arithmetic information about newforms of weight 2 on Gamma_0(N)"
 
 
 def migrate(Nstart, Nstop):

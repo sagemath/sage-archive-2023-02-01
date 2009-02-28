@@ -304,6 +304,9 @@ for gr in range(0,numglobaliteration):
     files.sort(infiles_cmp)
     files.reverse()
     interrupt = False
+
+    print "Doctesting %i files doing %i jobs in parallel" % (len(files), numthreads)
+
     try:
         from processing import Pool
         p = Pool(numthreads)

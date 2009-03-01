@@ -278,32 +278,95 @@ def discrec(self):
 
 def hasse_conductor(self):
     """
-    This is the product of all primes where the Hasse invariant equals -(-1,-D).
-
-    Note: For ternary forms, this is the discriminant of the
-    quaternion algebra associated to the quadratic space
+    This is the product of all primes where the Hasse invariant equals -1
 
     EXAMPLES:
 
         sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q.hasse_invariant(2)
         -1
-        sage: hilbert_symbol(-1, -37, 2)
-        -1
         sage: Q.hasse_invariant(37)
         -1
-        sage: hilbert_symbol(-1, -37, 37)
-        1
         sage: Q.hasse_conductor()
-        37
+        74
 
         sage: DiagonalQuadraticForm(ZZ, [1, 1, 1]).hasse_conductor()
-        2
+        1
         sage: QuadraticForm(ZZ, 3, [2, -2, 0, 2, 0, 5]).hasse_conductor()
-        30
+        10
     """
     D = self.disc()
-    return prod(filter(lambda(p):self.hasse_invariant(p)==-hilbert_symbol(-1,-D,p), \
+    return prod(filter(lambda(p):self.hasse_invariant(p)==-1, \
+             map(lambda(x):x[0],factor(2*self.level()))))
+
+def clifford_invariant(self, p):
+    """
+    This is the Clifford invariant, i.e. the class in the Brauer group of the
+    Clifford algebra for even dimension, of the even Clifford Algebra for odd dimension.
+
+    See Lam (AMS GSM 67) p. 117 for the definition, and p. 119 for the formula
+    relating it to the Hasse invariant.
+
+    EXAMPLES:
+
+        For hyperbolic spaces, the clifford invariant is +1
+        sage: H = QuadraticForm(ZZ, 2, [0, 1, 0])
+        sage: H.clifford_invariant(2)
+        1
+        sage: (H + H).clifford_invariant(2)
+        1
+        sage: (H + H + H).clifford_invariant(2)
+        1
+        sage: (H + H + H + H).clifford_invariant(2)
+        1
+    """
+    n = self.dim() % 8
+    if  n == 1 or n == 2:
+        s = 1
+    elif n == 3 or n == 4:
+        s = hilbert_symbol(-1, -self.disc(), p)
+    elif n == 5 or n == 6:
+        s = hilbert_symbol(-1, -1, p)
+    elif n == 7 or n == 0:
+        s = hilbert_symbol(-1, self.disc(), p)
+    return s * self.hasse_invariant(p)
+
+def clifford_conductor(self):
+    """
+    This is the product of all primes where the Clifford invariant is -1
+
+    Note: For ternary forms, this is the discriminant of the
+    quaternion algebra associated to the quadratic space
+    (i.e. the even Clifford algebra)
+
+    EXAMPLES:
+
+        sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
+        sage: Q.clifford_invariant(2)
+        1
+        sage: Q.clifford_invariant(37)
+        -1
+        sage: Q.clifford_conductor()
+        37
+
+        sage: DiagonalQuadraticForm(ZZ, [1, 1, 1]).clifford_conductor()
+        2
+        sage: QuadraticForm(ZZ, 3, [2, -2, 0, 2, 0, 5]).clifford_conductor()
+        30
+
+        For hyperbolic spaces, the clifford conductor is 1
+        sage: H = QuadraticForm(ZZ, 2, [0, 1, 0])
+        sage: H.clifford_conductor()
+        1
+        sage: (H + H).clifford_conductor()
+        1
+        sage: (H + H + H).clifford_conductor()
+        1
+        sage: (H + H + H + H).clifford_conductor()
+        1
+    """
+    D = self.disc()
+    return prod(filter(lambda(p):self.clifford_invariant(p)==-1, \
              map(lambda(x):x[0],factor(2*self.level()))))
 
 
@@ -402,7 +465,7 @@ def xi_rec(self,p):
 
         sage: Q1 = QuadraticForm(ZZ, 3, [1, 1, 1, 14, 3, 14])
         sage: Q2 = QuadraticForm(ZZ, 3, [2, -1, 0, 2, 0, 50])
-        sage: [Q1.hasse_conductor(), Q2.hasse_conductor()]   # equivalent over Q
+        sage: [Q1.clifford_conductor(), Q2.clifford_conductor()]   # equivalent over Q
         [3, 3]
         sage: Q1.is_locally_equivalent_to(Q2)                # not in the same genus
         False

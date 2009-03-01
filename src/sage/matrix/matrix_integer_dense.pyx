@@ -2093,6 +2093,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: L.hermite_form()
             [ 1 64  3 12]
             [ 0 89  4 17]
+
+        Two kernel matrices via PARI, one of full rank::
+
+            sage: B = matrix(ZZ, [[2,-1,1],[1,-1,0],[-5,4,-1],[-8,6,-2]])
+            sage: B.kernel_matrix(algorithm='pari')
+            [ 1  1 -1  1]
+            [ 0  2  2 -1]
+            sage: C = matrix(ZZ, [[1,1,2],[1,1,4]])
+            sage: D = C.kernel_matrix(algorithm='pari'); D
+            []
+            sage: D.ncols()
+            2
         """
         if self._nrows == 0:    # from a 0 space
             return self.new_matrix(0, self.nrows())
@@ -2178,24 +2190,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         ALGORITHM: Call pari's matkerint function.
         """
-        A = self._pari_().mattranspose()
-        B = A.matkerint()
-
-        if B.ncols() == 0:
-            return []
-
-        # Now B is a basis for the LLL-reduced integer kernel as a
-        # PARI object.  The basis vectors or B[0], ..., B[n-1],
-        # where n is the dimension of the kernel.
-        M = sage.modules.free_module.FreeModule(ZZ, self.nrows())
-        X = []
-        for b in B:
-            tmp = []
-            for x in b:
-                tmp.append(ZZ(x))
-            X.append(M(tmp))
-
-        return X
+        A = self._pari_().mattranspose().matkerint().mattranspose().python()
+        if A.nrows() == 0:
+            return A.new_matrix(nrows = 0, ncols = self._nrows)
+        else:
+            return A
 
     def _adjoint(self):
         """

@@ -30,7 +30,6 @@ from quaternion_algebra import QuaternionAlgebra
 #from quaternion_algebra import (QuaternionAlgebra, QuaternionAlgebraWithInnerProduct,
 #     QuaternionAlgebraWithGramMatrix, QuaternionAlgebraWithDiscriminants,
 #     hilbert_symbol, fundamental_discriminant)
-from quaternion_algebra_element import QuaternionAlgebraElement_generic
 #from quaternion_order import QuaternionOrderWithBasis, QuaternionDefiningOrder
 #from quaternion_order_ideal import QuaternionOrderLeftIdeal, QuaternionOrderRightIdeal, QuaternionOrderTwoSidedIdeal
 from steenrod_algebra import SteenrodAlgebra

@@ -20,5 +20,4 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
     pass
 
 cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abstract):
-
-    pass
+    cdef mpz_t x, y, z, w, a, b, d

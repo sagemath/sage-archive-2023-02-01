@@ -130,6 +130,8 @@ def update_hardcoded_files(path):
         O.write(SAGE_ROOT)
         O.close()
 
+# Note that due to updating setuptools to 0.6c9 in Sage 3.3 we no longer need to rewrite
+# site-packages in easy-install.pth
 def update_easy_install():
     """
     Find the easy-install.pth file in the current tree, and replace the line
@@ -162,6 +164,6 @@ if __name__ ==  '__main__':
         print "Do not interrupt this."
 	update_library_files(R)
         update_hardcoded_files(SAGE_ROOT + '/local/lib/python/')
-        update_easy_install()
+        #update_easy_install()
 
 

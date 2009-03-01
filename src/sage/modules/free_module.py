@@ -1432,10 +1432,17 @@ class FreeModule_generic(module.Module):
             (0, 0, 0, 0, 1)]
             sage: V.gens() == tuple(B)
             True
+
+        TESTS::
+
+            sage: (QQ^3).gen(4/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
         """
         if i < 0 or i >= self.rank():
             raise ValueError, "Generator %s not defined."%i
-        return self.basis()[int(i)]
+        return self.basis()[i]
 
     def gram_matrix(self):
         """

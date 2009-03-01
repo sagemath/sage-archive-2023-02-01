@@ -213,7 +213,7 @@ AUTHORS:
 
 The following illustrates an important concept: how Sage interacts
 with the data being used and returned by Singular. Let's compute a
-Gröbner basis for some ideal, using Singular through Sage.
+Groebner basis for some ideal, using Singular through Sage.
 
 ::
 

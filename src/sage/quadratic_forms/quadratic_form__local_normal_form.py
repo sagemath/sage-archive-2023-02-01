@@ -312,7 +312,7 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
     ## Try to use the cached result
     try:
         if safe_flag:
-            return deepcopy(self.__jordan_blocks_by_scale_and_unimodular_dict[p])
+            return copy.deepcopy(self.__jordan_blocks_by_scale_and_unimodular_dict[p])
         else:
             return self.__jordan_blocks_by_scale_and_unimodular_dict[p]
     except:
@@ -438,7 +438,7 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
         + "This routine requires an integer-matrix quadratic form for the output indexing to work properly!"
 
     ## Make the new list of unimodular Jordan components
-    zero_form = self.deepcopy()
+    zero_form = copy.deepcopy(self)
     zero_form.__init__(ZZ, 0)
     list_by_scale = [zero_form  for _ in range(s_max+1)]
     for P in  list_of_jordan_pairs:

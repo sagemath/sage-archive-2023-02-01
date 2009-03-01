@@ -197,7 +197,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
         sage: bernoulli(50)
         495057205241079648212477525/66
 
-    We use of each of the alternative algorithms::
+    We demonstrate each of the alternative algorithms::
 
         sage: bernoulli(12, algorithm='gap')
         -691/2730
@@ -1603,8 +1603,8 @@ def power_mod(a,n,m):
 
 def rational_reconstruction(a, m, algorithm='fast'):
     r"""
-    This function tries to compute `x/y`, where `x/y` is rational number is
-    lowest terms such that reduction of `x/y` modulo `m` is equal to `a` and
+    This function tries to compute `x/y`, where `x/y` is a rational number in
+    lowest terms such that the reduction of `x/y` modulo `m` is equal to `a` and
     the absolute values of `x` and `y` are both `\le \sqrt{m/2}`. If such `x/y`
     exists, that pair is unique and this function returns it. If no
     such pair exists, this function raises ZeroDivisionError.
@@ -1649,7 +1649,7 @@ def rational_reconstruction(a, m, algorithm='fast'):
     Knuth remarks that this algorithm is due to Wang, Kornerup, and
     Gregory from around 1983.
 
-    EXAMPLES:::
+    EXAMPLES::
 
         sage: m = 100000
         sage: (119*inverse_mod(53,m))%m

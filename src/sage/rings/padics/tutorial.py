@@ -366,7 +366,7 @@ desired precision, and then ask for more precision. For example,
 
 There can be a performance penalty to using lazy `p`-adics
 in this way. When one does computations with them, the computer
-construct an expression tree. As you compute, values of these
+constructs an expression tree. As you compute, values of these
 elements are cached, and the overhead is reasonably low (though
 obviously higher than for a fixed modulus element for example). But
 when you set the precision, the computer has to reset precision

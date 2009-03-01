@@ -172,13 +172,13 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
     def __call__(self, x, check=True):
         """
-        Coerce ``x`` into this multivariate polynomial ring,
+        Convert ``x`` to an element of this multivariate polynomial ring,
         possibly non-canonically.
 
         EXAMPLES:
 
         We create a Macaulay2 multivariate polynomial via ideal
-        arithmetic, then coerce it into R.
+        arithmetic, then convert it into R.
 
         ::
 
@@ -192,7 +192,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: R(repr(f))                                             # optional
             x^6*y + 2*x^3*y^2 + y^3
 
-        Some other subtle coercions. We create polynomial rings in 2
+        Some other subtle conversions. We create polynomial rings in 2
         variables over the rationals, integers, and a finite field.
 
         ::
@@ -201,7 +201,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S.<x,y> = ZZ[]
             sage: T.<x,y> = GF(7)[]
 
-        We coerce from the integer to the rationals, and back::
+        We convert from integer polynomials to rational polynomials,
+        and back::
 
             sage: f = R(S.0^2 - 4*S.1^3); f
             -4*y^3 + x^2
@@ -210,7 +211,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(S(f))
             Multivariate Polynomial Ring in x, y over Integer Ring
 
-        We coerce from the finite field.
+        We convert from polynomials over the finite field.
 
         ::
 
@@ -219,7 +220,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(f)
             Multivariate Polynomial Ring in x, y over Rational Field
 
-        We dump and load a the polynomial ring S::
+        We dump and load the polynomial ring S::
 
             sage: S2 = loads(dumps(S))
             sage: S2 == S
@@ -232,7 +233,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(S2._coerce_(S.0)) is S2
             True
 
-        Coercion to reduce modulo a prime between rings with different
+        Conversion to reduce modulo a prime between rings with different
         variable names::
 
             sage: R.<x,y> = PolynomialRing(QQ,2)
@@ -241,7 +242,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S(f)
             3*b^3 + a^2
 
-        Coercion from symbolic variables::
+        Conversion from symbolic variables::
 
             sage: x,y,z = var('x,y,z')
             sage: R = QQ[x,y,z]
@@ -269,7 +270,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: (f - g).expand()
             0
 
-        It intellegently handles coercion from polynomial rings in a subset
+        It intelligently handles conversions from polynomial rings in a subset
         of the variables too.
 
         ::
@@ -301,7 +302,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: u^3*x^2 + v*y
             u^3*x^2 + v*y
 
-        Stacked polynomial rings coerce into constants if possible. First,
+        Stacked polynomial rings convert into constants if possible. First,
         the univariate case::
 
             sage: R.<x> = QQ[]
@@ -333,8 +334,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S('u^2 + u*v + v^2')
             u^2 + u*v + v^2
 
-        Foreign polynomial rings coerce into the highest ring; the point
-        here is that an element of T could coerce to an element of R or an
+        Foreign polynomial rings convert into the highest ring; the point
+        here is that an element of T could convert to an element of R or an
         element of S; it is anticipated that an element of T is more likely
         to be "the right thing" and is historically consistent.
 

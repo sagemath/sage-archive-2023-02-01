@@ -18,7 +18,7 @@ AUTHORS:
   ``f[1,3]`` to get coeff of `xy^3`; added examples of the new
   ``R.x,y = PolynomialRing(QQ,2)`` notation.
 
-- Martin Albrecht: improved singular coercions (restructed class
+- Martin Albrecht: improved singular coercions (restructured class
   hierarchy) and added ETuples
 
 - Robert Bradshaw (2007-08-14): added support for coercion of

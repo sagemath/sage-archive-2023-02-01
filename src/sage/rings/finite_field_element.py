@@ -156,7 +156,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     def polynomial(self):
         """
         Elements of a finite field are represented as a polynomial modulo a
-        modulus. This functions returns the representing polynomial as an
+        modulus. This function returns the representing polynomial as an
         element of the polynomial ring over the prime finite field, with
         the same variable as the finite field.
 

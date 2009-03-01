@@ -28,7 +28,7 @@ The Sage graphical user interface is described in
 :ref:`ch:notebook`. This graphical user interface is unusual in that
 it operates via your web browser. It provides you with Sage worksheets
 that you can edit and evaluate, which contain scalable typeset
-mathematics and beautiful antialised images.
+mathematics and beautiful antialiased images.
 
 Enjoy Sage!
 

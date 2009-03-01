@@ -29,17 +29,17 @@ following additional ways to compute with matrices:
    GAP, Maxima, and Singular all have a notion of matrices.
 
 -  The GSL C-library is included with Sage, and can be used via
-   Cython. See :mod:`sage.matrix.matrix_real_double_dense` for
-   example code that does this.
+   Cython.
 
--  The optional ``scipy`` module provides support for
+-  The ``scipy`` module provides support for
    *sparse* numerical linear algebra, among many other things.
 
 -  The ``numpy`` module, which you load by typing
    ``import numpy`` is included standard with Sage. It
    contains a very sophisticated and well developed array class, plus
-   optimized support for *numerical linear algebra*. Unfortunately the
-   numpy documentation is only available for purchase.
+   optimized support for *numerical linear algebra*.  Sage's matrices
+   over RDF and CDF (native floating-point real and complex numbers)
+   use numpy.
 
 
 .. toctree::

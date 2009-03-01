@@ -1084,7 +1084,7 @@ cdef class RealDoubleElement(FieldElement):
         r"""
         Returns `n` such that self^n == 1.
 
-        Only `\pm 1` have finite multiplicative_order order.
+        Only `\pm 1` have finite multiplicative order.
 
         EXAMPLES::
 
@@ -1129,7 +1129,7 @@ cdef class RealDoubleElement(FieldElement):
     def round(self):
         """
         Given real number x, rounds up if fractional part is greater than
-        .5, rounds down if fractional part is lesser than .5.
+        .5, rounds down if fractional part is less than .5.
 
         EXAMPLES::
 
@@ -2034,7 +2034,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.agm(b)
             1.87864845581
 
-        The arithmetic-geometric always lies between the geometric and
+        The arithmetic-geometric mean always lies between the geometric and
         arithmetic mean.
 
         ::

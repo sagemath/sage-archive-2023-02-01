@@ -20,7 +20,7 @@ implemented using tables of Zech logs via the Givaro C++ library
 While this representation is very fast it is limited to finite
 fields of small cardinality. Larger finite extension fields of
 order `q >= 2^{16}` are internally represented as
-polynomials over a smaller finite prime fields. If the
+polynomials over smaller finite prime fields. If the
 characteristic of such a field is 2 then NTL is used internally to
 represent the field
 (``sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e``).
@@ -42,8 +42,8 @@ of `C_n` we have that
 `\beta=
 \alpha^{(p^n - 1)/(p^m - 1)}` is a root of
 `C_m` for all `m` dividing `n`. Sage
-contains a database of conway polynomials which also can be queried
-independendtly of finite field construction.
+contains a database of Conway polynomials which also can be queried
+independently of finite field construction.
 
 While Sage supports basic arithmetic in finite fields some more
 advanced features for computing with finite fields are still not
@@ -463,7 +463,7 @@ def conway_polynomial(p, n):
 
     See also the ``ConwayPolynomials()`` object, which is a
     table of Conway polynomials. For example, if
-    ``c=ConwayPolynomials``, then
+    ``c=ConwayPolynomials()``, then
     ``c.primes()`` is a list of all primes for which the
     polynomials are known, and for a given prime `p`,
     ``c.degree(p)`` is a list of all degrees for which the

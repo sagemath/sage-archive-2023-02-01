@@ -216,20 +216,7 @@ The same result can be achieved by::
 
 If any other unsupported term ordering is given the provided string
 is passed through as is to Singular, Macaulay2, and Magma. This
-ensures that it is for example possible to calculated a Groebner
-basis with respect to some term ordering Singular supports but Sage
-doesn't. However a warning is issued to make the user aware of the
-situation and potential typos::
-
-    sage: P.<a,b,c,d,e,f> = PolynomialRing(QQ, 6, order=T)
-    sage: a > c^4
-    False
-    sage: a > e^4
-    True
-
-If any other unsupported term ordering is given the provided string
-is passed through as is to Singular, Macaulay2, and Magma. This
-ensures that it is for example possible to calculated a Groebner
+ensures that it is for example possible to calculate a Groebner
 basis with respect to some term ordering Singular supports but Sage
 doesn't. However a warning is issued to make the user aware of the
 situation and potential typos::
@@ -692,7 +679,7 @@ class TermOrder(SageObject):
 
     def compare_tuples_block(self, f,g):
         """
-        Compares two exponent tuple with respec to the block ordering as
+        Compares two exponent tuples with respect to the block ordering as
         specified when constructing this element.
 
         INPUT:
@@ -916,8 +903,8 @@ class TermOrder(SageObject):
 
     def greater_tuple_block(self, f,g):
         """
-        Compares two exponent tuple with respec to the block ordering as
-        specified when constructing this element.
+        Returns the greater exponent tuple with respect to the block
+        ordering as specified when constructing this element.
 
         This method is called by the lm/lc/lt methods of
         ``MPolynomial_polydict``.

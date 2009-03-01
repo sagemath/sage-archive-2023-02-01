@@ -4,7 +4,7 @@ Ideals in multivariate polynomial rings.
 
 Sage has a powerful system to compute with multivariate polynomial
 rings. Most algorithms dealing with these ideals are centered the
-computation of *Groebner basis*. Sage makes use of Singular to
+computation of *Groebner bases*. Sage makes use of Singular to
 implement this functionality. Singular is widely regarded as the best
 open-source system for Groebner basis calculation in multivariate
 polynomial rings over fields.
@@ -375,7 +375,7 @@ def is_MPolynomialIdeal(x):
         sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
 
     Sage distinguishes between a list of generators for an ideal and
-    the ideal itself. This distinction is inconsisten with Singular but
+    the ideal itself. This distinction is inconsistent with Singular but
     matches Magma's behavior.
 
     ::
@@ -560,7 +560,7 @@ class MPolynomialIdeal_singular_repr:
         `n \in \mathbb{Z}`, is called the
         *associated prime* of `Q`.
 
-        If `I` is a proper idea of the ring `R` then there
+        If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
 
 
@@ -661,7 +661,7 @@ class MPolynomialIdeal_singular_repr:
         `a \not\in Q` then `b^n \in Q` for some
         `n \in \mathbb{Z}`.
 
-        If `I` is a proper idea of the ring `R` then there
+        If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
 
 
@@ -729,7 +729,7 @@ class MPolynomialIdeal_singular_repr:
         `n \in \mathbb{Z}`, is called the
         *associated prime* of `Q`.
 
-        If `I` is a proper idea of the ring `R` then there
+        If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
 
 
@@ -1046,7 +1046,7 @@ class MPolynomialIdeal_singular_repr:
     def _groebner_basis_singular(self, algorithm="groebner", *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal. If the Groebner
-        basis for this ideal has been calculated before the cached Groebner
+        basis for this ideal has been calculated before, the cached Groebner
         basis is returned regardless of the requested algorithm.
 
         INPUT:
@@ -1579,7 +1579,7 @@ class MPolynomialIdeal_singular_repr:
            believe this refers to the mathematical fact that the
            results may have no meaning if self is no standard basis,
            i.e., Singular doesn't 'add' any additional 'nonsense' to
-           the result. So we may acutally use reduce to determine if
+           the result. So we may actually use reduce to determine if
            self is a Groebner basis.
         """
         self.ring()._singular_().set_ring()
@@ -1716,7 +1716,7 @@ class MPolynomialIdeal_singular_repr:
 
         .. note::
 
-           Requires computation of a Groebner basis, which can be very
+           Requires computation of a Groebner basis, which can be a very
            expensive operation.
         """
         if not isinstance(variables, (list,tuple)):
@@ -1731,7 +1731,7 @@ class MPolynomialIdeal_singular_repr:
         r"""
         Given ideals `I` = ``self`` and `J` in
         the same polynomial ring `P`, return the ideal quotient of
-        `I` by `J` consisting of the polynomials a of
+        `I` by `J` consisting of the polynomials `a` of
         `P` such that `\{aJ \subset I\}`.
 
         This is also referred to as the colon ideal
@@ -2032,7 +2032,7 @@ class MPolynomialIdeal_macaulay2_repr:
         Macaulay2.
 
         ALGORITHM: Computed using Macaulay2. A big advantage of Macaulay2
-        is that it can compute Groebner basis of ideals in polynomial rings
+        is that it can compute the Groebner basis of ideals in polynomial rings
         over the integers.
 
         EXAMPLE::
@@ -2042,7 +2042,7 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I.groebner_basis('macaulay2')                # indirect doctest; optional - macaulay2
             [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
-        Groebner basis can be used to compute in
+        The Groebner basis can be used to compute in
         `\mathbb{Z}/n\mathbb{Z}[x,\ldots]`.
 
         ::
@@ -2292,7 +2292,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         .. note::
 
            The Singular and libSingular versions of the respective
-           algorithms are identically, but the former calls an external
+           algorithms are identical, but the former calls an external
            Singular process while the later calls a C function, i.e. the
            calling overhead is smaller.
 

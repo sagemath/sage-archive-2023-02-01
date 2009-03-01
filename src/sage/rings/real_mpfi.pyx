@@ -13,7 +13,7 @@ This is a straightforward binding to the MPFI library; it may be
 useful to refer to its documentation for more details.
 
 An interval is represented as a pair of floating-point numbers a
-and b (where a <= b) and are printed as a standard floating-point
+and b (where a <= b) and is printed as a standard floating-point
 number with a question mark (for instance, 3.1416?). The question
 mark indicates that the preceding digit may have an error of +/- 1.
 These floating-point numbers are implemented using MPFR (the same
@@ -3789,7 +3789,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #              1.6449340668482264364724151666460251892    # 64-bit
 
 #         Note that the number of bits of precision in the constructor only
-#         effects the internel precision of the pari number, not the number
+#         affects the internal precision of the pari number, not the number
 #         of digits that gets displayed.  To increase that you must
 #         use \code{pari.set_real_precision}.
 

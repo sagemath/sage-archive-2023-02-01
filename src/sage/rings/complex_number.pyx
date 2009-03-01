@@ -305,7 +305,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __getitem__(self, i):
         r"""
-        Returns either the real of imaginary component of self depending on
+        Returns either the real or imaginary component of self depending on
         the choice of i: real (i=0), imaginary (i=1)
 
         INPUTS:

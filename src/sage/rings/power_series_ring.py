@@ -139,7 +139,7 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None,
 
     -  ``name`` - name of the indeterminate
 
-    -  ``default_prec`` - (efault: 20) the default
+    -  ``default_prec`` - (default: 20) the default
        precision used if an exact object must be changed to an approximate
        object in order to do an arithmetic operation.
 

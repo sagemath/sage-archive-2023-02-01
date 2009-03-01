@@ -243,7 +243,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         -  ``xmax`` - float
 
-        -  ``*args, **kwds`` - passed to either point or
+        -  ``*args, **kwds`` - passed to either plot or
            point
 
 
@@ -833,7 +833,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def inverse_mod(a, m):
         """
-        Inverts the polynomial a with respect to m, or throw a ValueError
+        Inverts the polynomial a with respect to m, or raises a ValueError
         if no such inverse exists. m may be either a single polynomial or
         an ideal (for consistency with inverse_mod in other rings)
 
@@ -1542,7 +1542,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _mul_fateman(self, right):
         r"""
         Returns the product of two polynomials using Kronecker's trick to
-        do the multiplication. This could be used used over a generic base
+        do the multiplication. This could be used over a generic base
         ring.
 
         .. note::
@@ -2281,7 +2281,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots() # random output (unfortunately)
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
 
-        Over the complex double field. Because this approximate, all
+        Over the complex double field. Because this is approximate, all
         factors will occur with multiplicity 1.
 
         ::
@@ -2993,7 +2993,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def prec(self):
         """
-        Return the precision of this polynomials. This is always infinity,
+        Return the precision of this polynomial. This is always infinity,
         since polynomials are of infinite precision by definition (there is
         no big-oh).
 
@@ -3009,8 +3009,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def padded_list(self, n=None):
         """
-        Return list of coefficients of self up to (but not include
-        `q^n`).
+        Return list of coefficients of self up to (but not including)
+        `q^n`.
 
         Includes 0's in the list on the right so that the list has length
         `n`.

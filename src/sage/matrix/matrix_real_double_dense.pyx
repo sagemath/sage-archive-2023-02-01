@@ -1,5 +1,5 @@
 """
-Dense matrices over the Real Double Field using numpy.
+Dense matrices over the Real Double Field using NumPy
 
 EXAMPLES::
 

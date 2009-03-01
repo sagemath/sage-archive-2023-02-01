@@ -4230,7 +4230,7 @@ class NumberField_absolute(NumberField_generic):
         Canonical coercion of x into self.
 
         Currently integers, rationals, and this field itself coerce
-        canonical into this field.
+        canonically into this field.
 
         EXAMPLES:
             sage: S.<y> = NumberField(x^3 + x + 1)
@@ -4906,7 +4906,7 @@ class NumberField_absolute(NumberField_generic):
         not even be a number field, e.g., it could be the complex numbers).
         This will return an identical result when given K as input again.
 
-        If possible, the most natural embedding of K into self is put first
+        If possible, the most natural embedding of self into K is put first
         in the list.
 
         INPUT:
@@ -5859,7 +5859,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES:
 
-        This function is implicitly caled by the Hom method or
+        This function is implicitly called by the Hom method or
         function.
 
         ::

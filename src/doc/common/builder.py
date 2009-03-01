@@ -346,8 +346,7 @@ class ReferenceBuilder(DocBuilder):
 
         #Update the .rst files for modified Python modules
         for module_name in self.get_modified_modules():
-            continue
-            self.write_auto_rest_file(name.replace(os.path.sep, '.'))
+            self.write_auto_rest_file(module_name.replace(os.path.sep, '.'))
 
         #Copy over the custom .rst files from _sage
         _sage = os.path.join(self.dir, '_sage')

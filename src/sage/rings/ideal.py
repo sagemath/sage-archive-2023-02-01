@@ -337,7 +337,7 @@ class Ideal_generic(MonoidElement):
             Integer Ring
 
         Note that ``self.ring()`` is different from
-        ``self.ring()``
+        ``self.base_ring()``
 
         ::
 
@@ -365,7 +365,7 @@ class Ideal_generic(MonoidElement):
 
     def reduce(self, f):
         r"""
-        Return the reduction the element of `f` modulo the ideal
+        Return the reduction of the element of `f` modulo the ideal
         `I` (=self). This is an element of `R` that is
         equivalent modulo `I` to `f`.
 
@@ -585,7 +585,7 @@ class Ideal_principal(Ideal_generic):
         EXAMPLES:
 
         Note that Sage automatically coerces ideals into
-        principals ideals during initialization::
+        principal ideals during initialization::
 
             sage: R = ZZ[x]
             sage: I = R.ideal(x)

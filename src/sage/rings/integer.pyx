@@ -2352,7 +2352,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
-           using trial divsion and primits up to limit.
+           using trial division and primes up to limit.
 
 
         EXAMPLES::
@@ -2360,7 +2360,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
 
-        We using proof=False, which doesn't prove correctness of the primes
+        We use proof=False, which doesn't prove correctness of the primes
         that appear in the factorization::
 
             sage: n = 920384092842390423848290348203948092384082349082
@@ -2874,7 +2874,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_one(self):
         r"""
-        Returns ``True`` if the integers is `1`,
+        Returns ``True`` if the integer is `1`,
         otherwise ``False``.
 
         EXAMPLES::
@@ -2888,7 +2888,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __nonzero__(self):
         r"""
-        Returns ``True`` if the integers is not `0`,
+        Returns ``True`` if the integer is not `0`,
         otherwise ``False``.
 
         EXAMPLES::
@@ -4332,8 +4332,8 @@ Py_INCREF(ONE)
 
 cpdef LCM_list(v):
     """
-    Return the LCM of a list v of integers. Element of v is converted
-    to a Sage integer if it isn't one already.
+    Return the LCM of a list v of integers. Elements of v are converted
+    to Sage integers if they aren't already.
 
     This function is used, e.g., by rings/arith.py
 
@@ -4388,8 +4388,8 @@ cpdef LCM_list(v):
 
 def GCD_list(v):
     r"""
-    Return the GCD of a list v of integers. Element of v is converted
-    to a Sage integer if it isn't one already.
+    Return the GCD of a list v of integers. Elements of v are converted
+    to Sage integers if they aren't already.
 
     This function is used, e.g., by rings/arith.py
 

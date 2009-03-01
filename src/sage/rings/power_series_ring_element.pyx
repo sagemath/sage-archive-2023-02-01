@@ -39,7 +39,7 @@ its generator as follows::
 
 EXAMPLE:
 
-COERCION This example illustrates that coercion for power
+This example illustrates that coercion for power
 series rings is consistent with coercion for polynomial rings.
 
 ::
@@ -390,8 +390,8 @@ cdef class PowerSeries(AlgebraElement):
 
     def padded_list(self, n):
         """
-        Return list of coefficients of self up to (but not include
-        `q^n`).
+        Return list of coefficients of self up to (but not including)
+        `q^n`.
 
         Includes 0's in the list on the right so that the list has length
         `n`.
@@ -1045,7 +1045,7 @@ cdef class PowerSeries(AlgebraElement):
         power series has even valuation and the leading coefficent is a
         perfect square.
 
-        For an integral domain, it operates attempts the square root in the
+        For an integral domain, it attempts the square root in the
         fraction field and tests whether or not the result lies in the
         original ring.
 
@@ -1098,7 +1098,7 @@ cdef class PowerSeries(AlgebraElement):
             coefficient is defined as an element of a formal extension ring.
 
           - name - if extend is True, you must also specify the print name of
-            formal square root.
+            the formal square root.
 
           - all - bool (default: False); if True, return
             all square roots of self, instead of just one.

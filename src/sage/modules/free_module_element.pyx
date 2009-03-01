@@ -1165,8 +1165,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def pairwise_product(self, right):
         """
-        Return the dot product of self and right, which is a vector of
-        the product of the corresponding entries.
+        Return the pairwise product of self and right, which is a vector of
+        the products of the corresponding entries.
 
         INPUT:
 

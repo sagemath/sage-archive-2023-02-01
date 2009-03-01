@@ -44,7 +44,7 @@ def QuotientRing(R, I, names=None):
 
     - ``R`` - a commutative ring
 
-    - ``I`` - and ideal of R
+    - ``I`` - an ideal of R
 
     - ``names`` - a list of
       strings to be used as names for the variables in the quotient ring

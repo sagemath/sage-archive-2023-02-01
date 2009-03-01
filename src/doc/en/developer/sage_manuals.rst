@@ -25,7 +25,7 @@ The Sage manuals and the corresponding files to edit:
    ``SAGE_ROOT/devel/sage/doc/en/reference``, but most of it is
    automatically generated from the Sage source code.
 
--  Additional, more specialied  manuals can be found under
+-  Additional, more specialized  manuals can be found under
    ``SAGE_ROOT/devel/sage/doc/en`` as well.
 
 .. note::

@@ -1857,7 +1857,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def _integer_(self, Z=None):
         """
         Return self coerced to an integer. Of course this rational number
-        have a denominator of 1.
+        must have a denominator of 1.
 
         OUTPUT: Integer
 
@@ -2302,7 +2302,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the multiplicative order of self.
 
-        OUTPUT: Integer of infinity
+        OUTPUT: Integer or infinity
 
         EXAMPLES::
 
@@ -2492,7 +2492,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def _interface_init_(self):
         """
         Return representation of this rational suitable for coercing into
-        most any computer algebra system.
+        almost any computer algebra system.
 
         OUTPUT: string
 

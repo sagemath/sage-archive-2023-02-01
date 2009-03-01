@@ -1233,8 +1233,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def _integer_(self, Z=None):
         """
-        Returns a rational integer if this element is actually a rational
-        integer.
+        Returns an integer if this element is actually an integer.
 
         EXAMPLES::
 
@@ -2106,7 +2105,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def list(self):
         """
-        Return list of coefficients of self written in terms of a power
+        Return the list of coefficients of self written in terms of a power
         basis.
         """
         # Power basis list is total nonsense, unless the parent of self is an
@@ -2312,7 +2311,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES:
 
-        We compute the charpoly of cube root of `2`.
+        We compute the charpoly of the cube root of `2`.
 
         ::
 
@@ -2380,7 +2379,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
     def list(self):
         """
-        Return list of coefficients of self written in terms of a power
+        Return the list of coefficients of self written in terms of a power
         basis.
 
         EXAMPLE::
@@ -2413,7 +2412,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def list(self):
         """
-        Return list of coefficients of self written in terms of a power
+        Return the list of coefficients of self written in terms of a power
         basis.
 
         EXAMPLES::

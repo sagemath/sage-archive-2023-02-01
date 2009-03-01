@@ -18,7 +18,7 @@ what it can in C, and will call out to Python if necessary.
 
 Essential to the understanding of this class is the distinction
 between symbolic expressions and callable symbolic expressions (where
-the later binds argument names to argument positions). The
+the latter binds argument names to argument positions). The
 \code{*vars} parameter passed around encapsulates this information.
 
 See the function \code{fast_float(f, *vars)} to create a fast-callable

@@ -1,12 +1,12 @@
 Fixed and Arbitrary Precision Numerical Fields
 ==============================================
 
-Sage supports two optimized fixed precision fields for the numerical
+Sage supports two optimized fixed precision fields for numerical
 computation, the real double (RealDoubleField) and complex double
 fields (ComplexDoubleField).
 Sage also supports arbitrary precision real (RealField) and
-complex fields (ComplexField).  Sage also supports optimized
-interval arithmetic (RealIntervalField).
+complex fields (ComplexField), and real and complex
+interval arithmetic (RealIntervalField and ComplexIntervalField).
 
 
 Real and complex double elements are optimized implementations that

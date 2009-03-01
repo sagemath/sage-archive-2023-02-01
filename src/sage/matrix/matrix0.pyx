@@ -2692,6 +2692,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     def rank(self):
         x = self.fetch('rank')
         if not x is None: return x
+        if self._nrows == 0 or self._ncols == 0:
+            return 0
         r = len(self.pivots())
         self.cache('rank', r)
         return r

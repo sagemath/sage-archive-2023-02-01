@@ -839,6 +839,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            because it barly has anything to do. If the fill in needs to
            be considered, 'Symbolic Reordering' is usually much faster.
         """
+
+        if self._nrows == 0 or self._ncols == 0:
+            return 0
         x = self.fetch('rank')
         if not x is None: return x
 

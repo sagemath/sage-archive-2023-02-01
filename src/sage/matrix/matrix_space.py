@@ -1250,7 +1250,7 @@ def list_to_dict(entries, nrows, ncols, rows=True):
 # 0
 
 
-def test_trivial_matrices_inverse(ring, sparse=True):
+def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     """
     Tests inversion, determinant and is_inverstible for trivial matrices.
 
@@ -1266,15 +1266,20 @@ def test_trivial_matrices_inverse(ring, sparse=True):
 
     - ``sparse`` - a boolean
 
+    - ``checkrank`` - a boolean
+
     OUTPUT:
 
     - nothing if everything is correct otherwise raise an AssertionError
 
-    The methods determinant, is_invertible and inverse as checked for
+    The methods determinant, is_invertible, rank and inverse are checked for
      - the 0x0 empty identity matrix
      - the 0x3 and 3x0 matrices
      - the 1x1 null matrix [0]
      - the 1x1 identity matrix [1]
+
+    If ``checkrank`` is ``False`` then the rank is not checked. This is used
+    the check matrix over ring where echelon form is not implemented.
 
     TODO: must be adapted to category check framework when ready (see trac \#5274).
 
@@ -1291,14 +1296,32 @@ def test_trivial_matrices_inverse(ring, sparse=True):
       sage: tinv(GF(2), sparse=False)
       sage: tinv(SR, sparse=True)
       sage: tinv(SR, sparse=False)
-      sage: tinv(QQ['x,y'], sparse=True)
-      sage: tinv(QQ['x,y'], sparse=False)
       sage: tinv(RDF, sparse=True)
       sage: tinv(RDF, sparse=False)
       sage: tinv(CDF, sparse=True)
       sage: tinv(CDF, sparse=False)
       sage: tinv(CyclotomicField(7), sparse=True)
       sage: tinv(CyclotomicField(7), sparse=False)
+
+   TODO: As soon as rank of sparse matrix over QQ['x,y'] is implemented,
+   please remove the following test and the ``checkrank=False`` in the next one:
+
+      sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=True)(1).rank()
+      Traceback (most recent call last):
+      ...
+      NotImplementedError: echelon form over Multivariate Polynomial Ring in x, y over Rational Field not yet implemented
+      sage: tinv(QQ['x,y'], sparse=True, checkrank=False)
+
+
+   TODO: As soon as rank of dense matrix over QQ['x,y'] is implemented,
+   please remove the following test and the ``checkrank=False`` in the next one:
+
+      sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=False)(1).rank()
+      Traceback (most recent call last):
+      ...
+      RuntimeError: BUG: matrix pivots should have been set but weren't, matrix parent = 'Full MatrixSpace of 3 by 3 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field'
+
+      sage: tinv(QQ['x,y'], sparse=False, checkrank=False)
 
     """
     # Check that the empty 0x0 matrix is it's own inverse with det=1.
@@ -1307,26 +1330,30 @@ def test_trivial_matrices_inverse(ring, sparse=True):
     assert(m00.determinant() == ring(1))
     assert(m00.is_invertible())
     assert(m00.inverse() == m00)
+    if checkrank:
+        assert(m00.rank() == 0)
 
     # Check that the empty 0x3 and 3x0 matrices are not invertible and that
     # computing the detemininant raise the proper exception.
     for ms0 in [MatrixSpace(ring, 0, 3, sparse=sparse),
                 MatrixSpace(ring, 3, 0, sparse=sparse)]:
-        m0  = ms0(0)
-        assert(not m0.is_invertible())
+        mn0  = ms0(0)
+        assert(not mn0.is_invertible())
         try:
-            d = m0.determinant()
+            d = mn0.determinant()
             print d
             res = False
         except ArithmeticError:
             res = True
         assert(res)
         try:
-            m0.inverse()
+            mn0.inverse()
             res =False
         except ArithmeticError:
             res = True
         assert(res)
+        if checkrank:
+            assert(mn0.rank() == 0)
 
     # Check that the null 1x1 matrix is not invertible and that det=0
     ms1 = MatrixSpace(ring, 1, 1, sparse=sparse)
@@ -1339,6 +1366,8 @@ def test_trivial_matrices_inverse(ring, sparse=True):
     except ZeroDivisionError:
         res = True
     assert(res)
+    if checkrank:
+        assert(m0.rank() == 0)
 
     # Check that the identity 1x1 matrix is its own inverse with det=1
     m1  = ms1(1)
@@ -1346,3 +1375,5 @@ def test_trivial_matrices_inverse(ring, sparse=True):
     assert(m1.determinant() == ring(1))
     inv = m1.inverse()
     assert(inv == m1)
+    if checkrank:
+        assert(m1.rank() == 1)

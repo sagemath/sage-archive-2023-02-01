@@ -89,6 +89,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.algebras
+    ##
+    ################################
+
+    Extension('sage.algebras.quaternion_algebra_element',
+               sources = ['sage/algebras/quaternion_algebra_element.pyx']),
+
+    ################################
+    ##
     ## sage.calculus
     ##
     ################################

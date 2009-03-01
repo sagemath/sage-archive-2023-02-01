@@ -3869,3 +3869,15 @@ def sort_complex_numbers_for_display(nums):
     else:
         return sorted(nums, cmp=_cmp_complex_for_display)
 
+def fundamental_discriminant(D):
+    r"""
+    Return the discriminant of the quadratic extension
+    `K=Q(\sqrt{D})`, i.e. an integer d congruent to either 0 or
+    1, mod 4, and such that, at most, the only square dividing it is
+    4.
+    """
+    D = Integer(D)
+    D = D.squarefree_part()
+    if D%4 == 1:
+        return D
+    return 4*D

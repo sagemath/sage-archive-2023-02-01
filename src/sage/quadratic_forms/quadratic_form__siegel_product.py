@@ -1,6 +1,6 @@
 
 
-from sage.algebras.quaternion_algebra import fundamental_discriminant
+from sage.rings.arith import fundamental_discriminant
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.arith import kronecker_symbol, bernoulli, prime_divisors

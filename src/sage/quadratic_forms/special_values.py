@@ -2,9 +2,8 @@
 ## Routines for computing special values of L-functions ##
 ##########################################################
 
-from sage.algebras.quaternion_algebra import fundamental_discriminant
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import kronecker_symbol, bernoulli, factorial
+from sage.rings.arith import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
 from sage.rings.all import RealField
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.rings.rational_field import QQ

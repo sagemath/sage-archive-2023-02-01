@@ -72,7 +72,6 @@ import sage.rings.number_field.number_field as number_field
 from   sage.structure.element import MultiplicativeGroupElement
 from   sage.structure.sequence import Sequence
 import sage.categories.all
-import sage.algebras.quaternion_algebra
 
 def trivial_character(N, base_ring=rings.RationalField()):
     return DirichletGroup(N, base_ring, zeta=base_ring(1), zeta_order=1)(1)
@@ -104,7 +103,7 @@ def kronecker_character(d):
     if d == 0:
         raise ValueError, "d must be nonzero"
 
-    D = sage.algebras.quaternion_algebra.fundamental_discriminant(d)
+    D = arith.fundamental_discriminant(d)
     G = DirichletGroup(abs(D), rings.RationalField())
     return G([arith.kronecker(D,u) for u in G.unit_gens()])
 

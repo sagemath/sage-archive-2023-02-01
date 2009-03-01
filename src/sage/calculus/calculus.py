@@ -4768,6 +4768,23 @@ class Symbolic_object(SymbolicExpression):
     def _fast_float_(self, *vars):
         return fast_float.fast_float_constant(float(self))
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: SR(pi)._fast_callable_(etb)
+            pi
+            sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
+            sage: SR(pi)._fast_callable_(etb)
+            3.14159265359
+        """
+        return etb.constant(self._obj)
+
     def __float__(self):
         """
         EXAMPLES:
@@ -5592,6 +5609,25 @@ class SymbolicArithmetic(SymbolicOperation):
         fops = [op._fast_float_(*vars) for op in self._operands]
         return self._operator(*fops)
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y')
+            (x, y)
+            sage: (x+y)._fast_callable_(etb)
+            add(v_0, v_1)
+            sage: (-x)._fast_callable_(etb)
+            neg(v_0)
+        """
+        fops = [op._fast_callable_(etb) for op in self._operands]
+        return self._operator(*fops)
+
     def _convert(self, typ):
         """
         Convert self to the given type by converting each of the operands
@@ -6178,6 +6214,28 @@ class SymbolicVariable(SymbolicExpression):
         except TypeError:
             raise ValueError, "free variable: %s" % self._name
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: x._fast_callable_(etb)
+            v_0
+            sage: y._fast_callable_(etb)
+            v_1
+            sage: z._fast_callable_(etb)
+            Traceback (most recent call last):
+            ...
+            ValueError: list.index(x): x not in list
+        """
+        return etb.var(self)
+
     def _recursive_sub(self, kwds):
         # do the replacement if needed
         if kwds.has_key(self):
@@ -6684,6 +6742,21 @@ class CallableSymbolicExpression(SymbolicExpression):
         if vars == ():
             vars = self.arguments()
         return self._expr._fast_float_(*vars)
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: g(x) = sin(x) + 2
+            sage: g._fast_callable_(etb)
+            add(sin(v_0), 2)
+        """
+        return self._expr._fast_callable_(etb)
 
     def __float__(self):
         return float(self._expr)
@@ -7235,6 +7308,22 @@ class SymbolicComposition(SymbolicOperation):
             else:
                 return fast_float.fast_float_func(f, g)
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y')
+            (x, y)
+            sage: sin(sqrt(x+y))._fast_callable_(etb)
+            sin(sqrt(add(v_0, v_1)))
+        """
+        return etb.call(self._operands[0], etb(self._operands[1]))
+
     def __complex__(self):
         """
         Convert this symbolic composition to a Python complex number.
@@ -7516,7 +7605,7 @@ class PrimitiveFunction(SymbolicExpression):
 
             sage: from sage.ext.fast_eval import fast_float
             sage: fast_float(sin)
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
+            <sage.ext... object at 0x...>
             sage: sin._fast_float_()
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: sin._fast_float_()(0)
@@ -7546,6 +7635,23 @@ class PrimitiveFunction(SymbolicExpression):
             return self(*args)
         except TypeError:
             return fast_float.fast_float_func(self, *args)
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: sin._fast_callable_(etb)
+            sin(v_0)
+            sage: erf._fast_callable_(etb)
+            {erf}(v_0)
+        """
+        args = [etb._var_number(n) for n in range(self.number_of_arguments())]
+        return etb.call(self, *args)
 
 _syms = {}
 

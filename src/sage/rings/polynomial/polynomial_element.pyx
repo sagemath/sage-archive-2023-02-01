@@ -618,6 +618,43 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['t'])
+            sage: R.<t> = QQ[]
+            sage: v = R.random_element(6); v
+            -t^6 - 12*t^5 + 1/2*t^4 - 1/95*t^3 - 1/2*t^2 - 4
+            sage: v._fast_callable_(etb)
+            add(mul(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2), v_0), v_0), -4)
+        """
+        x = etb.var(self.variable_name())
+        expr = x
+        cdef int i, d = self.degree()
+        coeff = self[d]
+        # We handle polynomial rings like QQ['x']['y']; that gives us some
+        # slowdown.  Optimize away some of that:
+        if len(etb._vars) == 1:
+            # OK, we're in the (very common) univariate case.
+            coeff_maker = etb.constant
+        else:
+            # There may be variables in our coefficients...
+            coeff_maker = etb.make
+        if coeff != 1:
+            expr *= coeff_maker(coeff)
+        for i from d > i >= 0:
+            coeff = self[i]
+            if coeff:
+                expr += coeff_maker(coeff)
+            if i > 0:
+                expr *= x
+        return expr
+
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
         Compare the two polynomials self and other.

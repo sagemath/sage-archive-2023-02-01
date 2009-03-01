@@ -126,6 +126,9 @@ import sage.finance.all  as finance
 
 from sage.parallel.all   import *
 
+from sage.ext.fast_callable  import fast_callable
+from sage.ext.fast_eval      import fast_float
+
 from copy import copy, deepcopy
 
 # The code executed here uses a large amount of Sage components

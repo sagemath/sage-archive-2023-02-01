@@ -225,11 +225,11 @@ cdef class MPolynomial(CommutativeRingElement):
 
         TESTS:
             sage: from sage.ext.fast_eval import fast_float
-            sage: list(fast_float(K(0)))
+            sage: list(fast_float(K(0), old=True))
             ['push 0.0']
-            sage: list(fast_float(K(17)))
+            sage: list(fast_float(K(17), old=True))
             ['push 0.0', 'push 17.0', 'add']
-            sage: list(fast_float(y))
+            sage: list(fast_float(y, old=True))
             ['push 0.0', 'push 1.0', 'load 1', 'mul', 'add']
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
@@ -248,6 +248,40 @@ cdef class MPolynomial(CommutativeRingElement):
             expr = expr + monom
         return expr
 
+    def _fast_callable_(self, etb):
+        """
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y','z'])
+            sage: K.<x,y,z> = QQ[]
+            sage: v = K.random_element(degree=3, terms=4); v
+            -6/5*x*y*z + 2*y*z^2 - x
+            sage: v._fast_callable_(etb)
+            add(add(add(0, mul(-6/5, mul(mul(pow(v_0, 1), pow(v_1, 1)), pow(v_2, 1)))), mul(2, mul(pow(v_1, 1), pow(v_2, 2)))), mul(-1, pow(v_0, 1)))
+
+        TESTS:
+            sage: K.<x,y,z> = QQ[]
+            sage: from sage.ext.fast_eval import fast_float
+            sage: fast_float(K(0)).op_list()
+            [('load_const', 0.0), 'return']
+            sage: fast_float(K(17)).op_list()
+            [('load_const', 0.0), ('load_const', 17.0), 'add', 'return']
+            sage: fast_float(y).op_list()
+            [('load_const', 0.0), ('load_const', 1.0), ('load_arg', 1), ('load_const', 1.0), 'pow', 'mul', 'add', 'return']
+        """
+        my_vars = self.parent().variable_names()
+        x = [etb.var(v) for v in my_vars]
+        n = len(x)
+
+        expr = etb.constant(0)
+        for (m, c) in self.dict().iteritems():
+            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0],
+                             etb.constant(c))
+            expr = expr + monom
+        return expr
 
     def derivative(self, *args):
         r"""

@@ -110,6 +110,7 @@ version.py
 ^c_lib/config.status$
 ^c_lib/libtool$
 ^c_lib/libcsage.la$
+^sage/ext/interpreters/
 ^sage/libs/ntl/misc.h$
 ^sage/libs/ntl/ntl.h$
 ^sage/rings/integer.h$

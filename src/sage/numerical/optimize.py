@@ -229,15 +229,16 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
     """
     from sage.calculus.calculus import SymbolicExpression
+    from sage.ext.fast_eval import fast_callable
     import scipy
     from scipy import optimize
     if isinstance(func,SymbolicExpression):
         var_list=func.variables()
         var_names=map(str,var_list)
-        fast_f=func._fast_float_(*var_names)
+        fast_f=fast_callable(func, vars=var_names, domain=RDF)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
-        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in xrange(len(gradient_list))]
+        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=RDF)  for i in xrange(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
@@ -259,7 +260,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         elif algorithm=="ncg":
             if isinstance(func,SymbolicExpression):
                 hess=func.hessian()
-                hess_fast= [ [a._fast_float_(*var_names) for a in row] for row in hess]
+                hess_fast= [ [fast_callable(a, vars=var_names, domain=RDF) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
                 hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
                 min= optimize.fmin_ncg(f,map(float,x0),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)

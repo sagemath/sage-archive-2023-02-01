@@ -165,6 +165,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.ext.fast_callable',
+              sources = ['sage/ext/fast_callable.pyx']),
+
     Extension('sage.ext.fast_eval',
               sources = ['sage/ext/fast_eval.pyx']),
 

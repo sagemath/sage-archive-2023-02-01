@@ -434,6 +434,35 @@ class Constant(Function):
         from sage.ext.fast_eval import fast_float_constant
         return fast_float_constant(self)
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: pi._fast_callable_(etb)
+            pi
+            sage: e._fast_callable_(etb)
+            e
+            sage: golden_ratio._fast_callable_(etb)
+            golden_ratio
+            sage: log2._fast_callable_(etb)
+            log2
+            sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RealField(150))
+            sage: pi._fast_callable_(etb)
+            3.1415926535897932384626433832795028841971694
+            sage: e._fast_callable_(etb)
+            2.7182818284590452353602874713526624977572471
+            sage: golden_ratio._fast_callable_(etb)
+            1.6180339887498948482045868343656381177203092
+            sage: log2._fast_callable_(etb)
+            0.69314718055994530941723212145817656807550013
+        """
+        return etb.constant(self)
+
     def floor(self):
         """
         Returns the floor of self.

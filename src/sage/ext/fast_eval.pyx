@@ -24,6 +24,12 @@ the latter binds argument names to argument positions). The
 See the function \code{fast_float(f, *vars)} to create a fast-callable
 version of f.
 
+NOTE: Sage temporarily has two implementations of this functionality;
+one in this file, which will probably be deprecated soon, and one in
+fast_callable.pyx.  The following instructions are for the old
+implementation; you probably want to be looking at fast_callable.pyx
+instead.
+
 To provide this interface for a class, implement
 \code{_fast_float_(self, *vars)}.  The basic building blocks are
 provided by the functions \code{fast_float_constant} (returns a
@@ -35,7 +41,7 @@ math functions such sqrt, exp, and trig functions.
 
 EXAMPLES:
     sage: from sage.ext.fast_eval import fast_float
-    sage: f = fast_float(sqrt(x^7+1), 'x')
+    sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
@@ -80,6 +86,9 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.ext.fast_callable import fast_callable, Wrapper
+from sage.rings.all import RDF
 
 include "stdsage.pxi"
 
@@ -1288,16 +1297,21 @@ def fast_float_func(f, *args):
     return FastDoubleFunc('callable', f, *args)
 
 
-def fast_float(f, *vars):
+new_fast_float=True
+
+def fast_float(f, *vars, old=None):
     """
-    Tries to create a fast float function out of the
-    input, if possible.
+    Tries to create a function that evaluates f quickly using
+    floating-point numbers, if possible.  There are two implementations
+    of fast_float in Sage; by default we use the newer, which is
+    slightly faster on most tests.
 
     On failure, returns the input unchanged.
 
     INPUT:
         f    -- an expression
         vars -- the names of the arguments
+        old  -- use the original algorithm for fast_float
 
     EXAMPLES:
         sage: from sage.ext.fast_eval import fast_float
@@ -1315,6 +1329,9 @@ def fast_float(f, *vars):
         sage: f(1,2)
         1.0
     """
+    if old is None:
+        old = not new_fast_float
+
     if isinstance(f, (tuple, list)):
         return tuple([fast_float(x, *vars) for x in f])
 
@@ -1328,7 +1345,10 @@ def fast_float(f, *vars):
             vars = vars[:i] + (v,) + vars[i+1:]
 
     try:
-        return f._fast_float_(*vars)
+        if old:
+            return f._fast_float_(*vars)
+        else:
+            return fast_callable(f, vars=vars, domain=RDF)
     except AttributeError:
         pass
 
@@ -1339,7 +1359,7 @@ def fast_float(f, *vars):
 
     try:
         from sage.calculus.calculus import SR
-        return SR(f)._fast_float_(*vars)
+        return fast_float(SR(f), *vars)
     except TypeError:
         pass
 
@@ -1349,4 +1369,5 @@ def fast_float(f, *vars):
     return f
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc)
+    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+

@@ -1,0 +1,1907 @@
+r"""
+Fast Expression Evaluation.
+
+For many applications such as numerical integration, differential
+equation approximation, plotting a 3d surface, optimization problems,
+monte-carlo simulations, etc., one wishes to pass around and evaluate
+a single algebraic expression many, many times at various floating
+point values.  Other applications may need to evaluate an expression
+many times in interval arithmetic, or in a finite field.  Doing this
+via recursive calls over a python representation of the object (even
+if maxima or other outside packages are not involved) is extremely
+inefficient.
+
+This module provides a function, \function{fast_callable}, to
+transform such expressions into a form where they can be evaluated
+quickly.
+
+sage: f = sin(x) + 3*x^2
+sage: ff = fast_callable(f)
+sage: ff(3.5)
+36.3992167723104
+sage: ff(RIF(3.5))
+36.39921677231038?
+
+By default, \function{fast_callable} only removes some interpretive
+overhead from the evaluation, but all of the individual arithmetic
+operations are done using standard \sage arithmetic.  This is still a
+huge win over sage.calculus, which evidently has a lot of overhead.
+Compare the cost of evaluating Wilkinson's polynomial (in unexpanded
+form) at x=30:
+
+sage: wilk = prod((x-i) for i in [1 .. 20]); wilk
+(x - 20)*(x - 19)*(x - 18)*(x - 17)*(x - 16)*(x - 15)*(x - 14)*(x - 13)*(x - 12)*(x - 11)*(x - 10)*(x - 9)*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1)
+sage: timeit('wilk.subs(x=30)') # random, long time
+625 loops, best of 3: 1.46 ms per loop
+sage: fc_wilk = fast_callable(wilk)
+sage: timeit('fc_wilk(30)') # random, long time
+625 loops, best of 3: 10.4 us per loop
+
+You can specify a particular domain for the evaluation using
+\code{domain=}:
+
+sage: fc_wilk_zz = fast_callable(wilk, domain=ZZ)
+
+The meaning of domain=D is that each intermediate and final result
+is converted to type D.  For instance, the previous example of
+``sin(x) + 3*x^2`` with domain=D would be equivalent to
+``D(D(sin(D(x))) + D(D(3)*D(D(x)^2)))``.  (This example also
+demonstrates the one exception to the general rule: if an exponent is an
+integral constant, then it is not wrapped with D().)
+
+At first glance, this seems like a very bad idea if you want to
+compute quickly.  And it is a bad idea, for types where we don't
+have a special interpreter.  It's not too bad of a slowdown, though.
+To mitigate the costs, we check whether the value already has
+the correct parent before we call D.
+
+We don't yet have a special interpreter with domain ZZ, so we can see
+how that compares to the generic fc_wilk example above:
+
+sage: timeit('fc_wilk_zz(30)') # random, long time
+625 loops, best of 3: 15.6 us per loop
+
+However, for other types, using domain=D will get a large speedup,
+because we have special-purpose interpreters for those types.  One
+example is RDF.  Since with domain=RDF we know that every single
+operation will be floating-point, we can just execute the
+floating-point operations directly and skip all the Python object
+creations that you would get from actually using RDF objects.
+
+sage: fc_wilk_rdf = fast_callable(wilk, domain=RDF)
+sage: timeit('fc_wilk_rdf(30.0)') # random, long time
+625 loops, best of 3: 5.13 us per loop
+
+We also have support for RR:
+
+sage: fc_wilk_rr = fast_callable(wilk, domain=RR)
+sage: timeit('fc_wilk_rr(30.0)') # random, long time
+625 loops, best of 3: 12.9 us per loop
+
+By default, \function{fast_callable} uses the same variable names in the
+same order that the \method{__call__} method on its argument would use;
+for instance, on symbolic expressions, the variables are used in alphabetical
+order.
+
+sage: var('y,z,x')
+(y, z, x)
+sage: f = 10*y + 100*z + x
+sage: f(1,2,3)
+321
+sage: ff = fast_callable(f)
+sage: ff(1,2,3)
+321
+
+However, this can be overridden with \code{vars=}:
+
+sage: ff = fast_callable(f, vars=('x','w','z','y'))
+sage: ff(1,2,3,4)
+341
+
+This should be enough for normal use of \function{fast_callable}; let's
+discuss some more advanced topics.
+
+Sometimes it may be useful to create a fast version of an expression
+without going through symbolic expressions or polynomials; perhaps
+because you want to describe to \function{fast_callable} an expression
+with common subexpressions.
+
+Internally, \function{fast_callable} works in two stages: it constructs
+an expression tree from its argument, and then it builds a
+fast evaluator from that expression tree.  You can bypass the first phase
+by building your own expression tree and passing that directly to
+\function{fast_callable}, using an \class{ExpressionTreeBuilder}.
+
+sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+sage: etb = ExpressionTreeBuilder(vars=('x','y','z'))
+
+An \class{ExpressionTreeBuilder} has three interesting methods:
+\method{constant}, \method{var}, and \method{call}.
+All of these methods return \class{ExpressionTree} objects.
+
+The \method{var} method takes a string, and returns an expression tree
+for the corresponding variable.
+
+sage: x = etb.var('x')
+sage: y = etb.var('y')
+sage: z = etb.var('y')
+
+Expression trees support Python's numeric operators, so you can easily
+build expression trees representing arithmetic expressions.
+
+sage: v1 = (x+y)*(y+z) + (y//z)
+
+The \method{constant} method takes a \sage value, and returns an
+expression tree representing that value.
+
+sage: v2 = etb.constant(3.14159) * x + etb.constant(1729) * y
+
+The \method{call} method takes a \sage/Python function and zero or more
+expression trees, and returns an expression tree representing
+the function call.
+
+sage: v3 = etb.call(sin, v1+v2)
+sage: v3
+sin(add(add(mul(add(v_0, v_1), add(v_1, v_1)), floordiv(v_1, v_1)), add(mul(3.14159000000000, v_0), mul(1729, v_1))))
+
+Many \sage/Python built-in functions are specially handled; for instance,
+when evaluating an expression involving \function{sin} over \code{RDF},
+the C math library function \function{sin} is called.  Arbitrary functions
+are allowed, but will be much slower since they will call back to
+Python code on every call; for example, the following will work.
+
+sage: def my_sqrt(x): return pow(x, 0.5)
+sage: e = etb.call(my_sqrt, v1); e
+{my_sqrt}(add(mul(add(v_0, v_1), add(v_1, v_1)), floordiv(v_1, v_1)))
+sage: fast_callable(e)(1, 2, 3)
+3.60555127546399
+
+To provide \function{fast_callable} for your own class (so that
+\code{fast_callable(x)} works when \variable{x} is an instance of your
+class), implement a method \code{_fast_callable_(self, etb)} for your class.
+This method takes an \class{ExpressionTreeBuilder}, and returns an
+expression tree built up using the methods described above.
+
+EXAMPLES:
+    sage: var('x')
+    x
+    sage: f = fast_callable(sqrt(x^7+1), domain=RDF)
+
+    sage: f(1)
+    1.4142135623730951
+    sage: f.op_list()
+    [('load_arg', 0), ('load_const', 7.0), 'pow', ('load_const', 1.0), 'add', 'sqrt', 'return']
+
+    To interpret that last line, we load argument 0 ('x' in this case) onto
+    the stack, push the constant 7.0 onto the stack, call the pow function
+    (which takes 2 arguments from the stack), push the constant 1.0, add the
+    top two arguments of the stack, and then call sqrt.
+
+Here we take sin of the first argument and add it to f:
+
+    sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+    sage: etb = ExpressionTreeBuilder('x')
+    sage: x = etb.var('x')
+    sage: f = etb.call(sqrt, x^7 + 1)
+    sage: g = etb.call(sin, x)
+    sage: fast_callable(f+g).op_list()
+    [('load_arg', 0), ('load_const', 7), 'pow', ('load_const', 1), 'add', ('py_call', sqrt, 1), ('load_arg', 0), ('py_call', sin, 1), 'add', 'return']
+
+
+AUTHOR:
+    -- Carl Witty (2009-02): initial version (heavily inspired by
+       Robert Bradshaw's fast_eval.pyx)
+"""
+
+
+#*****************************************************************************
+#       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2009 Carl Witty <Carl.Witty@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+# The following bits of text were written for the module docstring.
+# They are not true yet, but I hope they will be true someday, at
+# which point I will move them into the docstring.
+#------------------------------ WRONG (for now) docs follow
+# The final interesting method of \class{ExpressionTreeBuilder} is
+# \method{choice}.  This produces conditional expressions, like the C
+# \code{COND ? T : F} expression or the Python {T if COND else F}.
+# This lets you define piecewise functions using \function{fast_callable}.
+
+# sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)
+
+# The arguments are \code{(COND, T, F)} (the same order as in C), so the
+# above means that if \variable{v3} evaluates to a nonnegative number,
+# then \variable{v4} will evaluate to the result of \variable{v1};
+# otherwise, \variable{v4} will evaluate to the result of \variable{v2}.
+
+# Let's see an example where we see that \function{fast_callable} does not
+# evaluate common subexpressions more than once.  We'll make a
+# \function{fast_callable} expression that gives the result
+# of 16 iterations of the Mandelbrot function.
+
+# sage: etb = ExpressionTreeBuilder('c')
+# sage: z = etb.constant(0)
+# sage: c = etb.var('c')
+# sage: for i in range(16):
+# ...       z = z*z + c
+# sage: mand = fast_callable(z, domain=CDF) # not tested
+
+# Now \variable{ff} does 32 complex arithmetic operations on each call
+# (16 additions and 16 multiplications).  However, if \code{z*z} produced
+# code that evaluated \variable{z} twice, then this would do many
+# thousands of arithmetic operations instead.
+
+# Note that the handling for common subexpressions only checks whether
+# expression trees are the same Python object; for instance, the following
+# code will evaluate \code{x+1} twice:
+
+# sage: etb = ExpressionTreeBuilder('x')
+# sage: x = etb.var('x')
+# sage: (x+1)*(x+1)
+# *(+(v_0, 1), +(v_0, 1))
+
+# but this code will only evaluate \code{x+1} once:
+
+# sage: v = x+1; v*v
+# *(+(v_0, 1), +(v_0, 1))
+#------------------------------ done with WRONG (for now) docs
+
+
+import operator
+from copy import copy
+from sage.rings.real_mpfr cimport RealField, RealNumber
+from sage.structure.element cimport Element
+from sage.rings.all import RDF
+from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
+
+include "stdsage.pxi"
+
+def fast_callable(x, domain=None, vars=None):
+    r"""
+    Given an expression x, compiles it into a form that can be quickly
+    evaluated, given values for the variables in x.
+
+    x can be an expression object, or anything that has a .variables()
+    method and a ._fast_callable_() method (this includes SR, univariate
+    polynomials, and multivariate polynomials).
+
+    By default, x is evaluated the same way that a Python function would
+    evaluate it -- addition maps to PyNumber_Add, etc.  However, you
+    can specify domain=D where D is some Sage parent; in this case,
+    all arithmetic is done in that parent.  If we have a special-purpose
+    interpreter for that parent (like RDF), domain=RDF will trigger the
+    use of that interpreter.
+
+    If vars is None, then we will attempt to determine the set of
+    variables from x; otherwise, we will use the given set.
+
+    EXAMPLES:
+        sage: var('x')
+        x
+        sage: expr = sin(x) + 3*x^2
+        sage: f = fast_callable(expr)
+        sage: f(2)
+        sin(2) + 12
+        sage: f(2.0)
+        12.9092974268257
+        sage: f_rdf = fast_callable(expr, domain=RDF)
+        sage: f_rdf(2)
+        12.909297426825681
+        sage: f = fast_callable(expr, vars=('z','x','y'))
+        sage: f(1, 2, 3)
+        sin(2) + 12
+        sage: K.<x> = QQ[]
+        sage: p = K.random_element(6); p
+        -x^6 - 12*x^5 + 1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+        sage: fp = fast_callable(p, domain=RDF)
+        sage: fp.op_list()
+        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.0105263157895), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
+        sage: fp(3.14159)
+        -4594.1618236401764
+        sage: K.<x,y,z> = QQ[]
+        sage: p = K.random_element(degree=3, terms=5); p
+        -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
+        sage: fp = fast_callable(p, domain=RDF)
+        sage: fp.op_list()
+        [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 2), ('load_const', 1.0), 'pow', 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 1), ('load_const', 2.0), 'pow', 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('load_const', 2.0), 'pow', 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('load_const', 2.0), 'pow', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 2), ('load_const', 2.0), 'pow', 'mul', 'mul', 'add', 'return']
+        sage: fp(e, pi, sqrt(2))
+        -98.001564033629322
+        sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
+        -1*e*pi^2 - pi^2 - 6*e^2 - 3*sqrt(2)*e - 2*e
+        sage: n(symbolic_result)
+        -98.0015640336293
+
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=('x','y'), domain=RDF)
+        sage: x = etb.var('x')
+        sage: y = etb.var('y')
+        sage: expr = etb.call(sin, x^2 + y); expr
+        sin(add(pow(v_0, 2.0), v_1))
+        sage: fc = fast_callable(expr, domain=RDF)
+        sage: fc(5, 7)
+        0.55142668124169059
+    """
+    cdef Expression et
+    if isinstance(x, Expression):
+        et = x
+        vars = et._etb._vars
+    else:
+        if vars is None or len(vars) == 0:
+            vars = x.variables()
+            # XXX This is pretty gross... there should be a "callable_variables"
+            # method that does all this.
+            from sage.calculus.calculus import SR
+            from sage.rings.all import is_PolynomialRing, is_MPolynomialRing
+            if x.parent() is SR and x.number_of_arguments() > len(vars):
+                vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
+            if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
+                vars = x.parent().variable_names()
+        etb = ExpressionTreeBuilder(vars=vars, domain=domain)
+        et = x._fast_callable_(etb)
+    if isinstance(domain, RealField):
+        import sage.ext.interpreters.wrapper_rr
+        builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
+
+        str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
+                                len(vars),
+                                domain)
+    elif domain == RDF:
+        import sage.ext.interpreters.wrapper_rdf
+        builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
+        str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
+                                len(vars))
+    elif domain is None:
+        import sage.ext.interpreters.wrapper_py
+        builder = sage.ext.interpreters.wrapper_py.Wrapper_py
+        str = InstructionStream(sage.ext.interpreters.wrapper_py.metadata,
+                                len(vars))
+    else:
+        import sage.ext.interpreters.wrapper_el
+        builder = sage.ext.interpreters.wrapper_el.Wrapper_el
+        str = InstructionStream(sage.ext.interpreters.wrapper_el.metadata,
+                                len(vars),
+                                domain)
+    generate_code(et, str)
+    str.instr('return')
+    return builder(str.get_current())
+
+def function_name(fn):
+    r"""
+    Given a function, returns a string giving a name for the function.
+
+    For functions we recognize, we use our standard opcode name for the
+    function (so operator.add becomes 'add', and sage.all.sin becomes 'sin').
+
+    For functions we don't recognize, we try to come up with a name,
+    but the name will be wrapped in braces; this is a signal that
+    we'll definitely use a slow Python call to call this function.
+    (We may use a slow Python call even for functions we do recognize,
+    if we're targeting an interpreter without an opcode for the function.)
+
+    Only used when printing Expressions.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import function_name
+        sage: function_name(operator.pow)
+        'pow'
+        sage: function_name(cos)
+        'cos'
+        sage: function_name(factorial)
+        '{factorial}'
+    """
+    builtins = get_builtin_functions()
+    if fn in builtins:
+        return builtins[fn]
+    try:
+        return "{%s}" % fn.__name__
+    except AttributeError:
+        return "{%r}" % fn
+
+cdef class ExpressionTreeBuilder:
+    r"""
+    A class with helper methods for building Expressions.
+
+    An instance of this class is passed to _fast_callable_ methods;
+    you can also instantiate it yourself to create your own expressions
+    for fast_callable, bypassing _fast_callable_.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder('x')
+        sage: x = etb.var('x')
+        sage: (x+3)*5
+        mul(add(v_0, 3), 5)
+    """
+
+    cdef readonly object _domain
+    cdef readonly object _vars
+
+    def __init__(self, vars, domain=None):
+        r"""
+        Initialize an instance of ExpressionTreeBuilder.  Takes
+        a list or tuple of variable names to use, and also an optional
+        domain.  If a domain is given, then creating an ExpressionConstant
+        node with the __call__, make, or constant methods will convert
+        the value into the given domain.
+
+        Note that this is the only effect of the domain parameter.  It
+        is quite possible to use different domains for
+        ExpressionTreeBuilder and for fast_callable; in that case,
+        constants will be converted twice (once when building the
+        Expression, and once when generating code).
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder('x')
+            sage: etb(3^50)
+            717897987691852588770249
+            sage: etb = ExpressionTreeBuilder('x', domain=RR)
+            sage: etb(3^50)
+            7.17897987691853e23
+        """
+
+        if isinstance(vars, tuple):
+            vars = list(vars)
+        elif not isinstance(vars, list):
+            vars = [vars]
+
+        vars = map(self._clean_var, vars)
+
+        self._domain = domain
+        self._vars = vars
+
+    def __call__(self, x):
+        r"""
+        Try to convert the given value to an Expression.  If it is already
+        an Expression, just return it.  If it has a _fast_callable_
+        method, then call the method with self as an argument.  Otherwise,
+        use self.constant() to turn it into a constant.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder('x')
+            sage: v = etb(3); v, type(v)
+            (3, <type 'sage.ext.fast_callable.ExpressionConstant'>)
+            sage: v = etb(polygen(QQ)); v, type(v)
+            (v_0, <type 'sage.ext.fast_callable.ExpressionVariable'>)
+            sage: v is etb(v)
+            True
+        """
+        if isinstance(x, Expression):
+            return x
+
+        try:
+            fc = x._fast_callable_
+        except AttributeError:
+            return self.constant(x)
+
+        return fc(self)
+
+    def _clean_var(self, v):
+        r"""
+        Give a variable name, given a variable.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder('x')
+            sage: var('x')
+            x
+            sage: etb._clean_var(x)
+            'x'
+            sage: x = polygen(RR); x
+            1.00000000000000*x
+            sage: etb._clean_var(x)
+            'x'
+        """
+        # There should be a better way to do this.  (Maybe there is.)
+        if not PY_TYPE_CHECK(v, str):
+            v = str(v)
+            if '*' in v:
+                v = v[v.index('*')+1:]
+        return v
+
+    def constant(self, c):
+        r"""
+        Turn the argument into an ExpressionConstant, converting it to
+        our domain if we have one.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder('x')
+            sage: etb.constant(pi)
+            pi
+            sage: etb = ExpressionTreeBuilder('x', domain=RealField(200))
+            sage: etb.constant(pi)
+            3.1415926535897932384626433832795028841971693993751058209749
+        """
+        if self._domain is not None:
+            c = self._domain(c)
+        return ExpressionConstant(self, c)
+
+    def var(self, v):
+        r"""
+        Turn the argument into an ExpressionVariable.  Looks it up in
+        the list of variables.  (Variables are matched by name.)
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: var('a,b,some_really_long_name')
+            (a, b, some_really_long_name)
+            sage: x = polygen(QQ)
+            sage: etb = ExpressionTreeBuilder(vars=('a','b',some_really_long_name, x))
+            sage: etb.var(some_really_long_name)
+            v_2
+            sage: etb.var('some_really_long_name')
+            v_2
+            sage: etb.var(x)
+            v_3
+            sage: etb.var('y')
+            Traceback (most recent call last):
+            ...
+            ValueError: list.index(x): x not in list
+        """
+        ind = self._vars.index(self._clean_var(v))
+        return ExpressionVariable(self, ind)
+
+    def _var_number(self, n):
+        r"""
+        Given an integer, return the variable with that index.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=('a','b','c','d'))
+            sage: etb._var_number(0)
+            v_0
+            sage: etb._var_number(3)
+            v_3
+            sage: etb._var_number(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Variable number 4 out of range
+        """
+        if 0 <= n < len(self._vars):
+            return ExpressionVariable(self, n)
+        raise ValueError, "Variable number %d out of range" % n
+
+    def call(self, fn, *args):
+        r"""
+        Construct a call node, given a function and a list of arguments.
+        The arguments will be converted to Expressions using
+        ExpressionTreeBuilder.__call__.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb.call(cos, x)
+            cos(v_0)
+            sage: etb.call(sin, 1)
+            sin(1)
+            sage: etb.call(sin, etb(1))
+            sin(1)
+            sage: etb.call(factorial, x+57)
+            {factorial}(add(v_0, 57))
+        """
+        return ExpressionCall(self, fn, map(self, args))
+
+    def choice(self, cond, iftrue, iffalse):
+        r"""
+        Construct a choice node (a conditional expression), given the
+        condition, and the values for the true and false cases.
+
+        (It's possible to create choice nodes, but they don't work yet.)
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb.choice(etb.call(operator.eq, x, 0), 0, 1/x)
+            (0 if {eq}(v_0, 0) else div(1, v_0))
+        """
+        return ExpressionChoice(self,
+                                cond,
+                                self(iftrue),
+                                self(iffalse))
+
+# Cache these values, to make expression building a tiny bit faster
+# (by skipping the hash-table lookup in the operator module).
+cdef op_add = operator.add
+cdef op_sub = operator.sub
+cdef op_mul = operator.mul
+cdef op_div = operator.div
+cdef op_floordiv = operator.floordiv
+cdef op_pow = operator.pow
+cdef op_neg = operator.neg
+cdef op_abs = operator.abs
+cdef op_inv = operator.inv
+
+cdef class Expression:
+    r"""
+    Represents an expression for fast_callable.
+
+    Supports the standard Python arithmetic operators; if arithmetic
+    is attempted between an Expression and a non-Expression, the
+    non-Expression is converted to an expression (using the
+    __call__ method of the Expression's ExpressionTreeBuilder).
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: x = etb.var(x)
+        sage: etb(x)
+        v_0
+        sage: etb(3)
+        3
+        sage: etb.call(sin, x)
+        sin(v_0)
+        sage: (x+1)/(x-1)
+        div(add(v_0, 1), sub(v_0, 1))
+        sage: x//5
+        floordiv(v_0, 5)
+        sage: -abs(~x)
+        neg(abs(inv(v_0)))
+    """
+
+    cdef ExpressionTreeBuilder _etb
+
+    def __init__(self, etb):
+        r"""
+        Initialize an Expression.  Sets the _etb member.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: v = etb(3); v # indirect doctest
+            3
+            sage: v._get_etb() is etb
+            True
+        """
+        self._etb = etb
+
+    def _get_etb(self):
+        r"""
+        Returns the ExpressionTreeBuilder used to build a given expression.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: v = etb(3); v
+            3
+            sage: v._get_etb() is etb
+            True
+        """
+        return self._etb
+
+    def __add__(s, o):
+        r"""
+        Compute a sum of two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x+x
+            add(v_0, v_0)
+            sage: x+1
+            add(v_0, 1)
+            sage: 1+x
+            add(1, v_0)
+            sage: x.__add__(1)
+            add(v_0, 1)
+            sage: x.__radd__(1)
+            add(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_add)
+
+    def __sub__(s, o):
+        r"""
+        Compute a difference of two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x-x
+            sub(v_0, v_0)
+            sage: x-1
+            sub(v_0, 1)
+            sage: 1-x
+            sub(1, v_0)
+            sage: x.__sub__(1)
+            sub(v_0, 1)
+            sage: x.__rsub__(1)
+            sub(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_sub)
+
+    def __mul__(s, o):
+        r"""
+        Compute a product of two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x*x
+            mul(v_0, v_0)
+            sage: x*1
+            mul(v_0, 1)
+            sage: 1*x
+            mul(1, v_0)
+            sage: x.__mul__(1)
+            mul(v_0, 1)
+            sage: x.__rmul__(1)
+            mul(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_mul)
+
+    def __div__(s, o):
+        r"""
+        Compute a quotient of two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x/x
+            div(v_0, v_0)
+            sage: x/1
+            div(v_0, 1)
+            sage: 1/x
+            div(1, v_0)
+            sage: x.__div__(1)
+            div(v_0, 1)
+            sage: x.__rdiv__(1)
+            div(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_div)
+
+    def __floordiv__(s, o):
+        r"""
+        Compute the floordiv (the floor of the quotient) of two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x//x
+            floordiv(v_0, v_0)
+            sage: x//1
+            floordiv(v_0, 1)
+            sage: 1//x
+            floordiv(1, v_0)
+            sage: x.__floordiv__(1)
+            floordiv(v_0, 1)
+            sage: x.__rfloordiv__(1)
+            floordiv(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_floordiv)
+
+    def __pow__(s, o, dummy):
+        r"""
+        Compute a power expression from two Expressions.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x^x
+            pow(v_0, v_0)
+            sage: x^1
+            pow(v_0, 1)
+            sage: x.__pow__(1)
+            pow(v_0, 1)
+            sage: x.__rpow__(1)
+            pow(1, v_0)
+        """
+        # XXX There is a performance regression from the original
+        # fast_float here; it would replace small integer powers with
+        # multiplication.  We can't do this safely until we support
+        # common subexpression elimination (or at least the dup instruction).
+        # (Plus, we should consider how strict a semantics we want;
+        # probably this sort of optimization should be controlled by a
+        # flag.)
+        return _expression_binop_helper(s, o, op_pow)
+
+    def __neg__(self):
+        r"""
+        Compute the negation of an Expression.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: -x
+            neg(v_0)
+            sage: x.__neg__()
+            neg(v_0)
+        """
+        return ExpressionCall(self._etb, op_neg, [self])
+
+    def __abs__(self):
+        r"""
+        Compute the absolute value of an Expression.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: abs(x)
+            abs(v_0)
+            sage: x.abs()
+            abs(v_0)
+            sage: x.__abs__()
+            abs(v_0)
+        """
+        return ExpressionCall(self._etb, op_abs, [self])
+
+    def abs(self):
+        r"""
+        Compute the absolute value of an Expression.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: abs(x)
+            abs(v_0)
+            sage: x.abs()
+            abs(v_0)
+            sage: x.__abs__()
+            abs(v_0)
+        """
+        return ExpressionCall(self._etb, op_abs, [self])
+
+    def __invert__(self):
+        r"""
+        Compute the inverse of an Expression.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: ~x
+            inv(v_0)
+            sage: x.__invert__()
+            inv(v_0)
+        """
+        return ExpressionCall(self._etb, op_inv, [self])
+
+
+cdef class ExpressionConstant(Expression):
+    r"""
+    An Expression that represents an arbitrary constant.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: type(etb(3))
+        <type 'sage.ext.fast_callable.ExpressionConstant'>
+    """
+
+    cdef object _value
+
+    def __init__(self, etb, c):
+        r"""
+        Initialize an ExpressionConstant.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionConstant
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb(3)
+            3
+            sage: v = ExpressionConstant(etb, 3); v
+            3
+            sage: v._get_etb() is etb
+            True
+            sage: v.value()
+            3
+            sage: v.value() == 3
+            True
+        """
+        Expression.__init__(self, etb)
+        self._value = c
+
+    def value(self):
+        r"""
+        Return the constant value of an ExpressionConstant.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb(3).value()
+            3
+        """
+        return self._value
+
+    def __repr__(self):
+        r"""
+        Give a string representing this ExpressionConstant.
+        (We use the repr of its value.)
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: v = etb.constant(pi)
+            sage: v
+            pi
+            sage: repr(v)
+            'pi'
+            sage: v.__repr__()
+            'pi'
+        """
+        return repr(self._value)
+
+cdef class ExpressionVariable(Expression):
+    r"""
+    An Expression that represents a variable.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: type(etb.var(x))
+        <type 'sage.ext.fast_callable.ExpressionVariable'>
+    """
+    cdef int _variable_index
+
+    def __init__(self, etb, int n):
+        r"""
+        Initialize an ExpressionVariable.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionVariable
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb(x)
+            v_0
+            sage: v = ExpressionVariable(etb, 0); v
+            v_0
+            sage: v._get_etb() is etb
+            True
+            sage: v.variable_index()
+            0
+        """
+        Expression.__init__(self, etb)
+        self._variable_index = n
+
+    def variable_index(self):
+        r"""
+        Return the variable index of an ExpressionVariable.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb(x).variable_index()
+            0
+        """
+        return self._variable_index
+
+    def __repr__(self):
+        r"""
+        Give a string representing this ExpressionVariable.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: v = etb._var_number(0)
+            sage: v
+            v_0
+            sage: repr(v)
+            'v_0'
+            sage: v.__repr__()
+            'v_0'
+        """
+        # Should we look up the variable name in self._etb, instead?
+        # I think not.. I like the emphasis that we're totally removed
+        # from the original expression when we have an Expression.
+        return "v_%d" % self._variable_index
+
+cdef class ExpressionCall(Expression):
+    r"""
+    An Expression that represents a function call.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: type(etb.call(sin, x))
+        <type 'sage.ext.fast_callable.ExpressionCall'>
+    """
+    cdef object _function
+    cdef object _arguments
+
+    def __init__(self, etb, fn, args):
+        r"""
+        Initialize an ExpressionCall.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionCall
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: etb.call(factorial, x)
+            {factorial}(v_0)
+            sage: v = ExpressionCall(etb, factorial, [x]); v
+            {factorial}(v_0)
+            sage: v._get_etb() is etb
+            True
+            sage: v.function()
+            factorial
+            sage: v.arguments()
+            [v_0]
+        """
+        Expression.__init__(self, etb)
+        self._function = fn
+        self._arguments = args
+
+    def function(self):
+        r"""
+        Return the function from this ExpressionCall.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb.call(sin, x).function()
+            sin
+        """
+        return self._function
+
+    def arguments(self):
+        r"""
+        Return the arguments from this ExpressionCall.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: etb.call(sin, x).arguments()
+            [v_0]
+        """
+        return copy(self._arguments)
+
+    def __repr__(self):
+        r"""
+        Give a string representing this ExpressionCall.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb.var(x)
+            sage: etb.call(operator.add, x, 1)
+            add(v_0, 1)
+            sage: etb.call(factorial, x)
+            {factorial}(v_0)
+            sage: v = etb.call(sin, x)
+            sage: v
+            sin(v_0)
+            sage: repr(v)
+            'sin(v_0)'
+            sage: v.__repr__()
+            'sin(v_0)'
+        """
+        fn = function_name(self._function)
+        return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
+
+cdef class ExpressionChoice(Expression):
+    r"""
+    A conditional expression.
+
+    (It's possible to create choice nodes, but they don't work yet.)
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: etb.choice(etb.call(operator.eq, x, 0), 0, 1/x)
+        (0 if {eq}(v_0, 0) else div(1, v_0))
+    """
+
+    cdef object _cond
+    cdef object _iftrue
+    cdef object _iffalse
+
+    def __init__(self, etb, cond, iftrue, iffalse):
+        r"""
+        Initialize an ExpressionChoice.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionChoice
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: etb.choice(x, ~x, 0)
+            (inv(v_0) if v_0 else 0)
+            sage: v = ExpressionChoice(etb, x, ~x, etb(0)); v
+            (inv(v_0) if v_0 else 0)
+            sage: v._get_etb() is etb
+            True
+            sage: v.condition()
+            v_0
+            sage: v.if_true()
+            inv(v_0)
+            sage: v.if_false()
+            0
+        """
+        Expression.__init__(self, etb)
+        self._cond = cond
+        self._iftrue = iftrue
+        self._iffalse = iffalse
+
+    def condition(self):
+        r"""
+        Return the condition of an ExpressionChoice.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: etb.choice(x, ~x, 0).condition()
+            v_0
+        """
+        return self._cond
+
+    def if_true(self):
+        r"""
+        Return the true branch of an ExpressionChoice.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: etb.choice(x, ~x, 0).if_true()
+            inv(v_0)
+        """
+        return self._iftrue
+
+    def if_false(self):
+        r"""
+        Return the false branch of an ExpressionChoice.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: etb.choice(x, ~x, 0).if_false()
+            0
+        """
+        return self._iffalse
+
+    def __repr__(self):
+        r"""
+        Give a string representation for this ExpressionChoice.
+        (Based on the syntax for Python conditional expressions.)
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: v = etb.choice(x, ~x, 0)
+            sage: v
+            (inv(v_0) if v_0 else 0)
+            sage: repr(v)
+            '(inv(v_0) if v_0 else 0)'
+            sage: v.__repr__()
+            '(inv(v_0) if v_0 else 0)'
+        """
+        return '(%s if %s else %s)' % (repr(self._iftrue),
+                                       repr(self._cond),
+                                       repr(self._iffalse))
+
+cpdef _expression_binop_helper(s, o, op):
+   r"""
+   Makes an Expression for (s op o).  Either s or o (or both) must already
+   be an expression.
+
+   EXAMPLES:
+       sage: from sage.ext.fast_callable import _expression_binop_helper, ExpressionTreeBuilder
+       sage: var('x,y')
+       (x, y)
+       sage: etb = ExpressionTreeBuilder(vars=(x,y))
+       sage: x = etb(x)
+
+   Now x is an Expression, but y is not.  Still, all the following
+   cases work.
+       sage: _expression_binop_helper(x, x, operator.add)
+       add(v_0, v_0)
+       sage: _expression_binop_helper(x, y, operator.add)
+       add(v_0, v_1)
+       sage: _expression_binop_helper(y, x, operator.add)
+       add(v_1, v_0)
+   """
+   # The Cython way of handling operator overloading on cdef classes
+   # (which is inherited from Python) is quite annoying.  Inside the
+   # code for a binary operator, you know that either the first or
+   # second argument (or both) is a member of your class, but you
+   # don't know which.
+
+   # If there is an arithmetic operator between an Expression and
+   # a non-Expression, I want to convert the non-Expression into
+   # an Expression.  But to do that, I need the ExpressionTreeBuilder
+   # from the Expression.
+
+   cdef Expression self
+   cdef Expression other
+
+   if not isinstance(o, Expression):
+       self = s
+       other = self._etb(o)
+   elif not isinstance(s, Expression):
+       other = o
+       self = other._etb(s)
+   else:
+       self = s
+       other = o
+       assert self._etb is other._etb
+
+   return ExpressionCall(self._etb, op, [self, other])
+
+builtin_functions = None
+cpdef get_builtin_functions():
+    r"""
+    To handle ExpressionCall, we need to map from Sage and
+    Python functions to opcode names.
+
+    This returns a dictionary which is that map.
+
+    We delay building builtin_functions to break a circular import
+    between sage.calculus and this file.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import get_builtin_functions
+        sage: builtins = get_builtin_functions()
+        sage: sorted(list(builtins.values()))
+        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        sage: builtins[sin]
+        'sin'
+    """
+    # We delay building builtin_functions to break a circular import
+    # between sage.calculus and this file.
+    global builtin_functions
+    if builtin_functions is not None:
+        return builtin_functions
+    builtin_functions = {
+        operator.add: 'add',
+        operator.sub: 'sub',
+        operator.mul: 'mul',
+        operator.div: 'div',
+        operator.floordiv: 'floordiv',
+        operator.abs: 'abs',
+        operator.neg: 'neg',
+        operator.inv: 'inv',
+        operator.pow: 'pow',
+        }
+    # not handled: atan2, log2, log10
+    import sage.calculus.all as calc_all
+    for fn in ('sqrt', 'ceil', 'floor',
+               'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
+               'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
+               'asinh', 'acosh', 'atanh', 'exp', 'log'):
+        builtin_functions[getattr(calc_all, fn)] = fn
+    builtin_functions[calc_all.abs_symbolic] = 'abs'
+    return builtin_functions
+
+cpdef generate_code(Expression expr, stream):
+    r"""
+    Generate code from an Expression tree; write the result into an
+    InstructionStream.
+
+    In fast_callable, first we create an Expression, either directly
+    with an ExpressionTreeBuilder or with _fast_callable_ methods.
+    Then we optimize the Expression in tree form.  (Unfortunately,
+    this step is currently missing -- we do no optimizations.)
+
+    Then we linearize the Expression into a sequence of instructions,
+    by walking the Expression and sending the corresponding stack
+    instructions to an InstructionStream.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder, generate_code, InstructionStream
+        sage: etb = ExpressionTreeBuilder('x')
+        sage: x = etb.var('x')
+        sage: expr = ((x+pi)*(x+1))
+        sage: from sage.ext.interpreters.wrapper_py import metadata, Wrapper_py
+        sage: instr_stream = InstructionStream(metadata, 1)
+        sage: generate_code(expr, instr_stream)
+        sage: instr_stream.instr('return')
+        sage: v = Wrapper_py(instr_stream.get_current())
+        sage: type(v)
+        <type 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
+        sage: v(7)
+        8*(pi + 7)
+
+    TESTS:
+        sage: def my_sin(x): return sin(x)
+        sage: def my_norm(x, y): return x*x + y*y
+        sage: def my_sqrt(x): return sqrt(x, extend=False)
+        sage: fc = fast_callable(expr, domain=RealField(130))
+        sage: fc(0)
+        3.1415926535897932384626433832795028842
+        sage: fc(1)
+        8.2831853071795864769252867665590057684
+        sage: fc = fast_callable(expr, domain=RDF)
+        sage: fc(0)
+        3.1415926535897931
+        sage: fc(1)
+        8.2831853071795862
+        sage: fc.op_list()
+        [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
+        sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x), domain=RDF)
+        sage: fc(1)
+        1.8414709848078965
+        sage: fc.op_list()
+        [('load_arg', 0), 'sin', ('load_arg', 0), 'sqrt', 'add', 'return']
+        sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x))
+        sage: fc(1)
+        sin(1) + 1
+        sage: fc.op_list()
+        [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', sqrt, 1), 'add', 'return']
+        sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
+        sage: fc(3)
+        0.14112000805986721
+        sage: fc = fast_callable(etb.call(my_sin, x), domain=RealField(100))
+        sage: fc(3)
+        0.14112000805986722210074480281
+        sage: fc.op_list()
+        [('load_arg', 0), ('py_call', <function my_sin at 0x...>, 1), 'return']
+        sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RDF)
+        sage: fc(3)
+        1.7320508075688772
+        sage: fc(-3)
+        Traceback (most recent call last):
+        ...
+        ValueError: math domain error
+        sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RR)
+        sage: fc(3)
+        1.73205080756888
+        sage: fc(-3)
+        Traceback (most recent call last):
+        ...
+        ValueError: negative number -3.00000000000000 does not have a square root in the real field
+        sage: etb2 = ExpressionTreeBuilder(('y','z'))
+        sage: y = etb2.var('y')
+        sage: z = etb2.var('z')
+        sage: fc = fast_callable(etb2.call(sqrt, etb2.call(my_norm, y, z)), domain=RDF)
+        sage: fc(3, 4)
+        5.0
+        sage: fc.op_list()
+        [('load_arg', 0), ('load_arg', 1), ('py_call', <function my_norm at 0x...>, 2), 'sqrt', 'return']
+        sage: fc.python_calls()
+        [<function my_norm at 0x...>]
+        sage: fc = fast_callable(etb2.call(sqrt, etb2.call(my_norm, y, z)), domain=RR)
+        sage: fc(3, 4)
+        5.00000000000000
+        sage: fc = fast_callable(etb2.call(my_norm, y, z), domain=ZZ)
+        sage: fc(3, 4)
+        25
+        sage: fc.op_list()
+        [('load_arg', 0), ('load_arg', 1), ('py_call', <function my_norm at 0x...>, 2), 'return']
+        sage: fc = fast_callable(expr)
+        sage: fc(3.0r)
+        4.0*(pi + 3.0)
+        sage: fc = fast_callable(x+3, domain=ZZ)
+        sage: fc(4)
+        7
+        sage: fc = fast_callable(x/3, domain=ZZ)
+        sage: fc(4)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+        sage: fc(6)
+        2
+        sage: fc = fast_callable(etb.call(sin, x), domain=ZZ)
+        sage: fc(0)
+        0
+        sage: fc(3)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert x (=sin(3)) to an integer
+    """
+    cdef ExpressionConstant econst
+    cdef ExpressionVariable evar
+    cdef ExpressionCall ecall
+    cdef ExpressionChoice echoice
+
+    if isinstance(expr, ExpressionConstant):
+        econst = expr
+        stream.load_const(econst._value)
+    elif isinstance(expr, ExpressionVariable):
+        evar = expr
+        stream.load_arg(evar._variable_index)
+    elif isinstance(expr, ExpressionCall):
+        ecall = expr
+        fn = ecall._function
+        for arg in ecall._arguments:
+            generate_code(arg, stream)
+        builtins = get_builtin_functions()
+        if fn in builtins:
+            opname = builtins[fn]
+            if stream.has_instr(opname):
+                stream.instr(builtin_functions[fn])
+                return
+        if stream.has_instr('py_call'):
+            stream.instr('py_call', fn, len(ecall._arguments))
+        else:
+            raise ValueError, "Unhandled function %s in generate_code" % fn
+    else:
+        raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
+
+
+cdef class InstructionStream:
+    r"""
+    An InstructionStream takes a sequence of instructions (passed in by
+    a series of method calls) and computes the data structures needed
+    by the interpreter.  This is the stage where we switch from operating
+    on Expression trees to a linear representation.  If we had a peephole
+    optimizer (we don't) it would go here.
+
+    Currently, this class is not very general; it only works for
+    interpreters with a fixed set of memory chunks (with fixed names).
+    Basically, it only works for stack-based expression interpreters.
+    It should be generalized, so that the interpreter metadata includes
+    a description of the memory chunks involved and the instruction stream
+    can handle any interpreter.
+
+    Once you're done adding instructions, you call get_current() to retrieve
+    the information needed by the interpreter (as a Python dictionary).
+    """
+
+    cdef object _metadata
+    cdef object _instrs
+    cdef object _bytecode
+    cdef object _constants
+    cdef object _constant_locs
+    cdef object _py_constants
+    cdef object _py_constant_locs
+    cdef int _stack_cur_size
+    cdef int _stack_max_size
+    cdef int _n_args
+    cdef object _domain
+
+    def __init__(self, metadata, n_args, domain=None):
+        r"""
+        Initialize an InstructionStream.
+
+        INPUTS:
+            metadata - The metadata_by_opname from a wrapper module
+            n_args - The number of arguments accessible by the generated code
+                     (this is just passed to the wrapper class)
+            domain - The domain of interpretation (this is just passed to the
+                     wrapper class)
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.get_current()
+            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            sage: md = instr_stream.get_metadata()
+            sage: type(md)
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
+            sage: md.by_opname['py_call']
+            (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3)
+            sage: md.by_opcode[3]
+            ('py_call', CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']))
+        """
+        self._metadata = metadata
+        self._instrs = []
+        self._bytecode = []
+        self._constants = []
+        self._constant_locs = {}
+        self._py_constants = []
+        self._py_constant_locs = {}
+        self._stack_cur_size = 0
+        self._stack_max_size = 0
+        self._domain = domain
+        self._n_args = n_args
+
+    def load_const(self, c):
+        r"""
+        Add a 'load_const' instruction to this InstructionStream.
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream, op_list
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.load_const(5)
+            sage: instr_stream.current_op_list()
+            [('load_const', 5)]
+            sage: instr_stream.load_const(7)
+            sage: instr_stream.load_const(5)
+            sage: instr_stream.current_op_list()
+            [('load_const', 5), ('load_const', 7), ('load_const', 5)]
+
+        Note that constants are shared: even though we load 5 twice, it
+        only appears once in the constant table.
+            sage: instr_stream.get_current()['constants']
+            [5, 7]
+        """
+        self.instr('load_const', c)
+
+    def load_arg(self, n):
+        r"""
+        Add a 'load_arg' instruction to this InstructionStream.
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 12)
+            sage: instr_stream.load_arg(5)
+            sage: instr_stream.current_op_list()
+            [('load_arg', 5)]
+            sage: instr_stream.load_arg(3)
+            sage: instr_stream.current_op_list()
+            [('load_arg', 5), ('load_arg', 3)]
+        """
+        self.instr('load_arg', n)
+
+    def has_instr(self, opname):
+        r"""
+        Check whether this InstructionStream knows how to generate code
+        for a given instruction.
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.has_instr('return')
+            True
+            sage: instr_stream.has_instr('factorial')
+            False
+            sage: instr_stream.has_instr('abs')
+            True
+        """
+        return (opname in self._metadata.by_opname)
+
+    def instr(self, opname, *args):
+        r"""
+        Generate code in this InstructionStream for the given instruction
+        and arguments.
+
+        The opname is used to look up a CompilerInstrSpec; the
+        CompilerInstrSpec describes how to interpret the arguments.
+        (This is documented in the class docstring for CompilerInstrSpec.)
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.instr('load_arg', 0)
+            sage: instr_stream.instr('sin')
+            sage: instr_stream.instr('py_call', math.sin, 1)
+            sage: instr_stream.instr('abs')
+            sage: instr_stream.instr('factorial')
+            Traceback (most recent call last):
+            ...
+            KeyError: 'factorial'
+            sage: instr_stream.instr('return')
+            sage: instr_stream.current_op_list()
+            [('load_arg', 0), 'sin', ('py_call', <built-in function sin>, 1), 'abs', 'return']
+        """
+        cdef int i
+
+        spec, opcode = self._metadata.by_opname[opname]
+        assert len(spec.parameters) == len(args)
+
+        n_inputs = spec.n_inputs
+        n_outputs = spec.n_outputs
+
+        self._bytecode.append(opcode)
+        for i in range(len(args)):
+            if spec.parameters[i] == 'constants':
+                # XXX bad for strict-mode floating-point constants
+                # (doesn't handle signed 0, NaN)
+                arg = args[i]
+                if arg in self._constant_locs:
+                    self._bytecode.append(self._constant_locs[arg])
+                else:
+                    loc = len(self._constants)
+                    self._constants.append(arg)
+                    self._constant_locs[arg] = loc
+                    self._bytecode.append(loc)
+            elif spec.parameters[i] == 'args':
+                self._bytecode.append(args[i])
+            elif spec.parameters[i] == 'n_inputs':
+                self._bytecode.append(args[i])
+                n_inputs = args[i]
+            elif spec.parameters[i] == 'n_outputs':
+                self._bytecode.append(args[i])
+                n_outputs = args[i]
+            elif spec.parameters[i] == 'py_constants':
+                arg = args[i]
+                if arg in self._py_constant_locs:
+                    self._bytecode.append(self._py_constant_locs[arg])
+                else:
+                    loc = len(self._py_constants)
+                    self._py_constants.append(arg)
+                    self._py_constant_locs[arg] = loc
+                    self._bytecode.append(loc)
+            else:
+                raise ValueError
+
+        self._stack_cur_size -= n_inputs
+        self._stack_cur_size += n_outputs
+        self._stack_max_size = max(self._stack_max_size, self._stack_cur_size)
+
+    def get_metadata(self):
+        r"""
+        Returns the interpreter metadata being used by the current
+        InstructionStream.
+
+        (Probably only useful for writing doctests.)
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: md = instr_stream.get_metadata()
+            sage: type(md)
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
+        """
+        return self._metadata
+
+    def current_op_list(self):
+        r"""
+        Returns the list of intructions that have been added to this
+        InstructionStream so far.
+
+        It's OK to call this, then add more instructions.
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.instr('load_arg', 0)
+            sage: instr_stream.instr('py_call', math.sin, 1)
+            sage: instr_stream.instr('abs')
+            sage: instr_stream.instr('return')
+            sage: instr_stream.current_op_list()
+            [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
+        """
+        return op_list(self.get_current(), self._metadata)
+
+    def get_current(self):
+        r"""
+        Return the current state of the InstructionStream, as a dictionary
+        suitable for passing to a wrapper class.
+
+        NOTE: The dictionary includes internal data structures of the
+        InstructionStream; you must not modify it.
+
+        EXAMPLES:
+            sage: from sage.ext.interpreters.wrapper_rdf import metadata
+            sage: from sage.ext.fast_callable import InstructionStream
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: instr_stream.get_current()
+            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            sage: instr_stream.instr('load_arg', 0)
+            sage: instr_stream.instr('py_call', math.sin, 1)
+            sage: instr_stream.instr('abs')
+            sage: instr_stream.instr('return')
+            sage: instr_stream.current_op_list()
+            [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
+            sage: instr_stream.get_current()
+            {'domain': None, 'code': [0, 0, 3, 0, 1, 11, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
+        """
+        d = {'args': self._n_args,
+             'constants': self._constants,
+             'py_constants': self._py_constants,
+             'stack': self._stack_max_size,
+             'code': self._bytecode,
+             'domain': self._domain}
+        return d
+
+class InterpreterMetadata(object):
+    r"""
+    The interpreter metadata for a fast_callable interpreter.  Currently
+    only consists of a dictionary mapping instruction names to
+    (CompilerInstrSpec, opcode) pairs, and a list mapping opcodes to
+    (instruction name, CompilerInstrSpec) pairs.
+
+    See the class docstring for CompilerInstrSpec for more information.
+
+    NOTE: You must not modify the metadata.
+    """
+
+    def __init__(self, by_opname, by_opcode):
+        r"""
+        Initialize an InterpreterMetadata object.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import InterpreterMetadata
+
+        Currently we do no error checking or processing, so we can
+        use this simple test:
+            sage: metadata = InterpreterMetadata(by_opname='opname dict goes here', by_opcode='opcode list goes here')
+            sage: metadata.by_opname
+            'opname dict goes here'
+            sage: metadata.by_opcode
+            'opcode list goes here'
+        """
+        self.by_opname = by_opname
+        self.by_opcode = by_opcode
+
+class CompilerInstrSpec(object):
+    r"""
+    Describes a single instruction to the fast_callable code generator.
+
+    An instruction has a number of stack inputs, a number of stack
+    outputs, and a parameter list describing extra arguments that
+    must be passed to the InstructionStream.instr method (that end up
+    as extra words in the code).
+
+    The parameter list is a list of strings.  Each string is one of
+    the following:
+
+        - 'args' - The instruction argument refers to an input argument
+                   of the wrapper class; it is just appended to the code.
+        - 'constants', 'py_constants' - The instruction argument is a value;
+                   the value is added to the corresponding list (if it's
+                   not already there) and the index is appended to the
+                   code.
+        - 'n_inputs', 'n_outputs' - The instruction actually takes a variable
+                   number of inputs or outputs (the n_inputs and n_outputs
+                   attributes of this instruction are ignored).
+                   The instruction argument specifies the number of inputs
+                   or outputs (respectively); it is just appended to the code.
+    """
+
+    def __init__(self, n_inputs, n_outputs, parameters):
+        r"""
+        Initialize a CompilerInstrSpec.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import CompilerInstrSpec
+            sage: CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
+            CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
+        """
+        self.n_inputs = n_inputs
+        self.n_outputs = n_outputs
+        self.parameters = parameters
+
+    def __repr__(self):
+        r"""
+        Give a string representation for this CompilerInstrSpec.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import CompilerInstrSpec
+            sage: v = CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
+            sage: v
+            CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
+            sage: repr(v)
+            "CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])"
+            sage: v.__repr__()
+            "CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])"
+        """
+        return "CompilerInstrSpec(%d, %d, %s)" % (self.n_inputs, self.n_outputs, self.parameters)
+
+def op_list(args, metadata):
+    r"""
+    Given a dictionary with the result of calling get_current on an
+    InstructionStream, and the corresponding interpreter metadata,
+    return a list of the instructions, in a simple somewhat
+    human-readable format.
+
+    For debugging only.  (That is, it's probably not a good idea to
+    try to programmatically manipulate the result of this function;
+    the expected use is just to print the returned list to the
+    screen.)
+
+    There's probably no reason to call this directly; if you
+    have a wrapper object, call op_list on it; if you have an
+    InstructionStream object, call current_op_list on it.
+
+    EXAMPLES:
+        sage: from sage.ext.interpreters.wrapper_rdf import metadata
+        sage: from sage.ext.fast_callable import InstructionStream, op_list
+        sage: instr_stream = InstructionStream(metadata, 1)
+        sage: instr_stream.instr('load_arg', 0)
+        sage: instr_stream.instr('abs')
+        sage: instr_stream.instr('return')
+        sage: instr_stream.current_op_list()
+        [('load_arg', 0), 'abs', 'return']
+        sage: op_list(instr_stream.get_current(), metadata)
+        [('load_arg', 0), 'abs', 'return']
+    """
+    ops = []
+    code = args['code']
+    while len(code):
+        opcode = code[0]
+        code = code[1:]
+        (opname, instr) = metadata.by_opcode[opcode]
+        if len(instr.parameters):
+            op = [opname]
+            for p in instr.parameters:
+                p_loc = code[0]
+                code = code[1:]
+                if p in ('args', 'n_inputs', 'n_outputs'):
+                    op.append(p_loc)
+                else:
+                    op.append(args[p][p_loc])
+            ops.append(tuple(op))
+        else:
+            ops.append(opname)
+    return ops
+
+
+cdef class Wrapper:
+    r"""
+    The parent class for all fast_callable wrappers.  Implements shared
+    behavior (currently only debugging).
+    """
+
+    def __init__(self, args, metadata):
+        r"""
+        Initialize a Wrapper object.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, generate_code, InstructionStream
+            sage: etb = ExpressionTreeBuilder('x')
+            sage: x = etb.var('x')
+            sage: expr = ((x+pi)*(x+1))
+            sage: from sage.ext.interpreters.wrapper_py import metadata, Wrapper_py
+            sage: instr_stream = InstructionStream(metadata, 1)
+            sage: generate_code(expr, instr_stream)
+            sage: instr_stream.instr('return')
+            sage: v = Wrapper_py(instr_stream.get_current())
+            sage: v.get_orig_args()
+            {'domain': None, 'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2], 'py_constants': [], 'args': 1, 'stack': 3, 'constants': [pi, 1]}
+            sage: v.op_list()
+            [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
+        """
+
+        # We only keep the original arguments for debugging (op_list(), etc.);
+        # is it worth the memory cost?  (Note that we may be holding on to
+        # large objects that could otherwise be garbage collected, for
+        # instance.)
+        self._orig_args = args
+        self._metadata = metadata
+
+    def get_orig_args(self):
+        r"""
+        Get the original arguments used when initializing this
+        wrapper.
+
+        (Probably only useful when writing doctests.)
+
+        EXAMPLES:
+            sage: fast_callable(sin(x)/x, domain=RDF).get_orig_args()
+            {'domain': None, 'code': [0, 0, 15, 0, 0, 7, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+        """
+        return self._orig_args
+
+    def op_list(self):
+        r"""
+        Return the list of instructions in this wrapper.
+
+        EXAMPLES:
+            sage: fast_callable(cos(x)*x, domain=RDF).op_list()
+            [('load_arg', 0), 'cos', ('load_arg', 0), 'mul', 'return']
+        """
+        return op_list(self._orig_args, self._metadata)
+
+    def python_calls(self):
+        r"""
+        List the Python functions that are called in this wrapper.
+
+        (Python function calls are slow, so ideally this list would
+        be empty.  If it is not empty, then perhaps there is an
+        optimization opportunity where a Sage developer could speed
+        this up by adding a new instruction to the interpreter.)
+
+        EXAMPLES:
+            sage: fast_callable(abs(sin(x)), domain=RDF).python_calls()
+            []
+            sage: fast_callable(abs(sin(factorial(x)))).python_calls()
+            [factorial, sin]
+        """
+        ops = self.op_list()
+        py_calls = []
+        for op in ops:
+            if isinstance(op, tuple) and op[0] == 'py_call':
+                py_calls.append(op[1])
+        return py_calls
+

@@ -65,8 +65,6 @@ import interpreter
 import latex
 import misc
 
-import sage.plot.all
-
 from   sage.misc.viewer  import browser, dvi_viewer
 
 offset = 0

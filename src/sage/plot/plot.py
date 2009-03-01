@@ -2801,7 +2801,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
 
         sage: x,y = var('x,y')
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
-        ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
+        ([<sage.ext... object at ...>],
          0.5,
          0.31415926535897931,
          (0.0, 5.0),
@@ -2812,7 +2812,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     ::
 
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2+y^2], (x,0,1), (y,-1,1), 1)
-        ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
+        ([<sage.ext... object at ...>],
         1.0,
         2.0,
         (0.0, 1.0),

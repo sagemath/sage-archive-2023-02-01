@@ -390,7 +390,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     cpdef _coerce_map_from_(self, S):
         """
-        x canonically coerces to the integers ZZ over only if x is an int,
+        x canonically coerces to the integers ZZ only if x is an int,
         long or already an element of ZZ.
 
         EXAMPLES::

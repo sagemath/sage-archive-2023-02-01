@@ -26,6 +26,7 @@ from algebra_element import AlgebraElement, is_AlgebraElement
 
 from free_algebra import FreeAlgebra, is_FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
+from quaternion_algebra import QuaternionAlgebra
 #from quaternion_algebra import (QuaternionAlgebra, QuaternionAlgebraWithInnerProduct,
 #     QuaternionAlgebraWithGramMatrix, QuaternionAlgebraWithDiscriminants,
 #     hilbert_symbol, fundamental_discriminant)

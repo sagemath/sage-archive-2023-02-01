@@ -35,4 +35,31 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         return QuaternionAlgebraElement_generic(self._parent, x, y, z, w)
 
     def _repr_(self):
-        return "%s + %s*i +%s*j + %s*k"%(self.x,self.y,self.z,self.w)
+        i,j,k = self._parent.variable_names()
+        v = []
+        if self.x:
+            v.append(str(self.x))
+        if self.y:
+            if self.y == 1:
+                v.append(i)
+            elif self.y == -1:
+                v.append("-%s"%i)
+            else:
+                v.append('%s*%s'%(self.y, i))
+        if self.z:
+            if self.z == 1:
+                v.append(j)
+            elif self.z == -1:
+                v.append("-%s"%j)
+            else:
+                v.append('%s*%s'%(self.z, j))
+        if self.w:
+            if self.w == 1:
+                v.append(k)
+            elif self.w == -1:
+                v.append("-%s"%k)
+            else:
+                v.append('%s*%s'%(self.w, k))
+
+        return ' + '.join(v).replace('+ -','- ')
+

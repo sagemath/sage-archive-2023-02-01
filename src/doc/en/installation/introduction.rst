@@ -29,14 +29,14 @@ Here is a list of some of the software included with Sage:
 * cython: the Cython programming language: a language, based on Pyrex,
   for easily writing C extensions for Python
 
-* eclib: John Cremona's programs for enumerating and computating with
+* eclib: John Cremona's programs for enumerating and computing with
   elliptic curves defined over the rational numbers
 
 * ecm: elliptic curve method for integer factorization
 
 * flint: fast library for number theory
 
-* fortran: the Fortran programmming language
+* fortran: the Fortran programming language
 
 * GAP: A System for Computational Discrete Algebra
 
@@ -44,7 +44,7 @@ Here is a list of some of the software included with Sage:
 
 * gfan: Computation of Groebner fans and toric varieties
 
-* ghmm: the hidden markov model library
+* ghmm: the hidden Markov model library
 
 * givaro: a C++ library for arithmetic and algebraic computations
 
@@ -78,14 +78,14 @@ Here is a list of some of the software included with Sage:
 * linbox: C++ template library for exact, high-performance linear
   algebra computation
 
-* matplotlib: a python 2D plotting library
+* matplotlib: a Python 2-D plotting library
 
 * maxima: symbolic algebra and calculus
 
 * mercurial: a Source Control Management system designed for handling of
   very large distributed projects
 
-* mpfi: a C library for arithemtic by multi-precision intervals, based
+* mpfi: a C library for arithmetic by multi-precision intervals, based
   on MPFR and GMP
 
 * mpfr: a C library for multiple-precision floating-point computations
@@ -94,10 +94,10 @@ Here is a list of some of the software included with Sage:
 * networkx: a Python package for the creation, manipulation, and study
   of the structure, dynamics, and functions of complex networks
 
-* NTL: Number theory C++ library
+* NTL: number theory C++ library
 
 * numpy: numerical linear algebra and other numerical computing
-  capabilities for python
+  capabilities for Python
 
 * palp: a package for analyzing lattice polytopes
 
@@ -107,10 +107,10 @@ Here is a list of some of the software included with Sage:
 
 * polybori: provide high-level data types for Boolean polynomials and
   monomials, exponent vectors, as well as for the underlying
-  polynomial rings and subsets of the powerset of the Boolean
+  polynomial rings and subsets of the power set of the Boolean
   variables
 
-* pynac: A modified version of GiNaC (a C++ library for symbolic
+* pynac: a modified version of GiNaC (a C++ library for symbolic
   mathematical calculations) that replaces the dependency on CLN by
   Python
 
@@ -120,7 +120,7 @@ Here is a list of some of the software included with Sage:
 
 * readline: GNU Readline line editor library
 
-* scipy: scientific tools for python
+* scipy: scientific tools for Python
 
 * singular: Polynomial computations in algebraic geometry, etc.
 

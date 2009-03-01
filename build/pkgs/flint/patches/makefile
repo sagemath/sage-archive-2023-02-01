@@ -22,14 +22,19 @@ endif
 
 CPP = $(FLINT_CPP)
 
-LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+ifdef HAVE_ZNPOLY
+	ZNPOLY_LIB=-lzn_poly
+	WITH_ZNPOLY=-DHAVE_ZNPOLY
+endif
 
-LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++
+LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_ZNPOLY_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++ $(ZNPOLY_LIB)
+
+LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm -lstdc++ $(ZNPOLY_LIB)
 
 ifndef FLINT_NTL_INCLUDE_DIR
-	INCS = -I$(FLINT_GMP_INCLUDE_DIR)
+	INCS = -I$(FLINT_GMP_INCLUDE_DIR) -I$(FLINT_ZNPOLY_INCLUDE_DIR)
 else
-	INCS = -I$(FLINT_GMP_INCLUDE_DIR) -I$(FLINT_NTL_INCLUDE_DIR)
+	INCS = -I$(FLINT_GMP_INCLUDE_DIR) -I$(FLINT_NTL_INCLUDE_DIR) -I$(FLINT_ZNPOLY_INCLUDE_DIR)
 endif
 
 CFLAGS = $(INCS) $(FLINT_TUNE) -O3
@@ -56,8 +61,10 @@ HEADERS = \
 	profiler.h \
 	test-support.h \
 	long_extras.h \
-	zmod_poly.h
-
+	zmod_poly.h \
+	theta.h \
+	zmod_mat.h \
+	mpz_mat.h \
 
 ####### library object files
 
@@ -75,13 +82,28 @@ FLINTOBJ = \
 	ZmodF_poly.o \
 	long_extras.o \
 	zmod_poly.o \
-	NTL-interface.o
+        NTL-interface.o \
+	theta.o \
+	zmod_mat.o \
+	mpz_mat.o \
 
 QS: mpQS
 
 tune: ZmodF_mul-tune mpz_poly-tune
 
-test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test
+test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test zmod_mat-test
+
+check: test
+	./mpn_extras-test
+	./long_extras-test
+	./ZmodF-test
+	./ZmodF_poly-test
+	./ZmodF_mul-test
+	./fmpz-test
+	./mpz_poly-test
+	./zmod_poly-test
+	./zmod_mat-test
+	./fmpz_poly-test
 
 profile: ZmodF_poly-profile kara-profile fmpz_poly-profile mpz_poly-profile ZmodF_mul-profile
 
@@ -112,6 +134,9 @@ mpz_extras.o: mpz_extras.c $(HEADERS)
 memory-manager.o: memory-manager.c $(HEADERS)
 	$(CC) $(CFLAGS) -c memory-manager.c -o memory-manager.o
 
+F_mpz_mul-timing.o: F_mpz_mul-timing.c
+	$(CC) $(CFLAGS) -c F_mpz_mul-timing.c -o F_mpz_mul-timing.o
+
 ZmodF.o: ZmodF.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ZmodF.c -o ZmodF.o
 
@@ -122,13 +147,16 @@ ZmodF_mul-tuning.o: ZmodF_mul-tuning.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ZmodF_mul-tuning.c -o ZmodF_mul-tuning.o
 
 fmpz.o: fmpz.c $(HEADERS)
-	$(CC) $(CFLAGS) -c fmpz.c -o fmpz.o
+	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c fmpz.c -o fmpz.o
 
 fmpz_poly.o: fmpz_poly.c $(HEADERS)
-	$(CC) $(CFLAGS) -c fmpz_poly.c -o fmpz_poly.o
+	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c fmpz_poly.c -o fmpz_poly.o
 
 mpz_poly.o: mpz_poly.c $(HEADERS)
 	$(CC) $(CFLAGS) -c mpz_poly.c -o mpz_poly.o
+
+mpz_mat.o: mpz_mat.c $(HEADERS)
+	$(CC) $(CFLAGS) -c mpz_mat.c -o mpz_mat.o
 
 mpz_poly-tuning.o: mpz_poly-tuning.c $(HEADERS)
 	$(CC) $(CFLAGS) -c mpz_poly-tuning.c -o mpz_poly-tuning.o
@@ -145,16 +173,22 @@ zmod_poly.o: zmod_poly.c $(HEADERS)
 NTL-interface.o: NTL-interface.cpp $(HEADERS)
 	$(CPP) $(CFLAGS) -c NTL-interface.cpp -o NTL-interface.o
 
+theta.o: theta.c $(HEADERS)
+	$(CC) $(CFLAGS) -c theta.c -o theta.o
+
+zmod_mat.o: zmod_mat.c $(HEADERS)
+	$(CC) $(CFLAGS) -c zmod_mat.c -o zmod_mat.o
+
 ####### test program object files
 
 test-support.o: test-support.c $(HEADERS)
 	$(CC) $(CFLAGS) -c test-support.c -o test-support.o
 
 fmpz_poly-test.o: fmpz_poly-test.c $(HEADERS)
-	$(CC) $(CFLAGS) -c fmpz_poly-test.c -o fmpz_poly-test.o
+	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c fmpz_poly-test.c -o fmpz_poly-test.o
 
 fmpz-test.o: fmpz-test.c $(HEADERS)
-	$(CC) $(CFLAGS) -c fmpz-test.c -o fmpz-test.o
+	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c fmpz-test.c -o fmpz-test.o
 
 ZmodF-test.o: ZmodF-test.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ZmodF-test.c -o ZmodF-test.o
@@ -176,6 +210,9 @@ long_extras-test.o: long_extras-test.c
 
 zmod_poly-test.o: zmod_poly-test.c
 	$(CC) $(CFLAGS) -c zmod_poly-test.c -o zmod_poly-test.o
+
+zmod_mat-test.o: zmod_mat-test.c
+	$(CC) $(CFLAGS) -c zmod_mat-test.c -o zmod_mat-test.o
 
 NTL-interface-test.o: NTL-interface-test.cpp
 	$(CPP) $(CFLAGS) -c NTL-interface-test.cpp -o NTL-interface-test.o
@@ -208,6 +245,9 @@ long_extras-test: long_extras.o long_extras-test.o test-support.o memory-manager
 
 zmod_poly-test: zmod_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
 	$(CC) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
+
+zmod_mat-test: zmod_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
+	$(CC) $(CFLAGS) zmod_mat-test.o test-support.o -o zmod_mat-test $(FLINTOBJ) $(LIBS)
 
 NTL-interface-test: NTL-interface.o NTL-interface-test.o test-support.o $(FLINTOBJ) $(HEADERS)
 	$(CPP) $(CFLAGS) NTL-interface-test.o NTL-interface.o test-support.o $(FLINTOBJ) -o NTL-interface-test $(LIBS2)
@@ -246,7 +286,6 @@ fmpz_poly-profile-tables.o: fmpz_poly-profile.c $(HEADERS)
 
 fmpz_poly-profile.o: fmpz_poly-profile.c $(HEADERS)
 	$(CC) $(CFLAGS) -c fmpz_poly-profile.c -o fmpz_poly-profile.o
-
 
 mpz_poly-profile-tables.o: mpz_poly-profile.c $(HEADERS)
 	$(FLINT_PY) make-profile-tables.py mpz_poly
@@ -355,6 +394,12 @@ bernoulli_zmod.o: bernoulli_zmod.c $(HEADERS)
 bernoulli_zmod: bernoulli_zmod.o $(FLINTOBJ)
 	$(CC) $(CFLAGS) -o bernoulli_zmod bernoulli_zmod.o $(FLINTOBJ) $(LIBS)
 
+thetaproduct.o: thetaproduct.c $(HEADERS)
+	$(CC) $(CFLAGS) $(WITH_ZNPOLY) -c thetaproduct.c -o thetaproduct.o
+
+thetaproduct: thetaproduct.o $(FLINTOBJ)
+	$(CC) $(CFLAGS) -o thetaproduct thetaproduct.o $(FLINTOBJ) $(LIBS)
+
 ####### Quadratic sieve
 
 poly.o: QS/poly.c QS/poly.h
@@ -372,14 +417,14 @@ linear_algebra.o: QS/linear_algebra.c QS/linear_algebra.h
 block_lanczos.o: QS/block_lanczos.c QS/block_lanczos.h
 	$(CC) $(CFLAGS) -c QS/block_lanczos.c -o block_lanczos.o
 
+tinyQS.o: QS/tinyQS.c QS/tinyQS.h
+	$(CC) $(CFLAGS) -o tinyQS.o -c QS/tinyQS.c
+
 mp_sieve.o: QS/mp_sieve.c QS/mp_sieve.h
 	$(CC) $(CFLAGS) -c QS/mp_sieve.c -o mp_sieve.o
 
 mp_linear_algebra.o: QS/mp_linear_algebra.c QS/mp_linear_algebra.h
 	$(CC) $(CFLAGS) -c QS/mp_linear_algebra.c -o mp_linear_algebra.o
-
-tinyQS.o: QS/tinyQS.c QS/tinyQS.h
-	$(CC) $(CFLAGS) -o tinyQS.o -c QS/tinyQS.c
 
 mp_poly.o: QS/mp_poly.c QS/mp_poly.h
 	$(CC) $(CFLAGS) -c QS/mp_poly.c -o mp_poly.o
@@ -395,7 +440,7 @@ mpQS: QS/mpQS.c QS/mpQS.h QS/tinyQS.h factor_base.o poly.o sieve.o linear_algebr
 
 ####### Integer multiplication timing
 
-ZMULOBJ = zmod_poly.o memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o long_extras.o
+ZMULOBJ = zmod_mat.o zmod_poly.o memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o long_extras.o
 
 F_mpz_mul-timing: $(ZMULOBJ)
 	$(CC) $(ZMULOBJ) -o Zmul $(LIBS)

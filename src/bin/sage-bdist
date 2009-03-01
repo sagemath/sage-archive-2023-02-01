@@ -50,7 +50,6 @@ cd "$SAGE_ROOT"
 
 echo "Copying files over to tmp directory"
 cp -$OPT examples local makefile *.txt *.sage sage ipython data "$TMP"/
-cp -L$OPT devel/doc/html "$TMP"/doc
 
 if [ -d devel/sage-main ]; then
    echo "Copying Sage library over"
@@ -64,17 +63,6 @@ if [ -d devel/sage-main ]; then
    cd "$TMP"/local/lib/python/site-packages
    rm -rf sage
    ln -sf ../../../../devel/sage/build/sage .
-fi
-
-cd "$SAGE_ROOT"
-
-if [ -d devel/doc-main ]; then
-   if [ ! -d $TMP/devel ];  then
-       mkdir $TMP/devel/
-   fi
-   cp -L$OPT devel/doc-main $TMP/devel/doc-main
-   cd $TMP/devel
-   ln -s doc-main doc
 fi
 
 cd "$SAGE_ROOT"

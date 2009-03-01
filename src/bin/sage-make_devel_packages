@@ -40,33 +40,6 @@ cd "$DESTINATION"
 DESTINATION=`pwd`
 PKG=$DESTINATION
 
-
-
-# NEW DOCUMENTATION PACKAGE
-if [ -d $SAGE_ROOT/devel/doc ]; then
-   cd $SAGE_ROOT/devel/doc
-   hg diff
-   hg status
-   hg tag "$SAGE_VERSION"
-   hg commit -m "$SAGE_VERSION"
-   chmod +x scripts/spkg-dist
-   scripts/spkg-dist $SAGE_VERSION
-   if [ $? -ne 0 ]; then
-       echo "****************************************"
-       echo "Error building the documentation package"
-       echo "****************************************"
-       exit 1
-   fi
-   mv doc-$SAGE_VERSION.spkg $DESTINATION/
-   touch $SPKG_INST/doc-$SAGE_VERSION
-fi
-
-
-if [ ! -f $PKG/doc-$SAGE_VERSION.spkg ]; then
-    echo "The package doc-$SAGE_VERSION.spkg wasn't created."
-    exit 1
-fi
-
 # NEW SAGE SOURCE PACKAGE
 if [ -d $SAGE_ROOT/devel/sage-main ]; then
    cd $SAGE_ROOT/devel/sage-main

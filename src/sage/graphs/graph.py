@@ -335,6 +335,8 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
 from sage.plot.misc import options
+import sage.groups.perm_gps.partn_ref.refinement_graphs
+from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
 
 class GenericGraph(SageObject):
     """
@@ -7585,40 +7587,51 @@ class GenericGraph(SageObject):
             possible = False
         if self.size() != other.size():
             possible = False
-        if self._directed:
-            if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                possible = False
-            if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                possible = False
-        else:
-            if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                possible = False
         if not possible and certify:
             return False, None
         elif not possible:
             return False
-        import sage.groups.perm_gps.partn_ref.refinement_graphs
-        from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
         if edge_labels:
             if sorted(self.edge_labels()) != sorted(other.edge_labels()):
                 return False, None if certify else False
             else:
                 G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self.vertices()])
                 G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other.vertices()])
+                partition2 = sum(partition2,[])
         elif self.has_multiple_edges():
             G, partition = graph_isom_equivalent_non_multi_graph(self, [self.vertices()])
             G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other.vertices()])
+            partition2 = sum(partition2,[])
         else:
             G = self; partition = [self.vertices()]
-            G2 = other; partition2 = [other.vertices()]
-
+            G2 = other; partition2 = other.vertices()
+        if not hasattr(G._backend, '_cg'):
+            is_range = True
+            G_verts = partition[0] # will be sorted if it is a range
+            if len(partition) > 1 or G.num_verts() != len(G_verts):
+                is_range = False
+            else:
+                for j in xrange(G.num_verts()):
+                    if G_verts[j] != j:
+                        is_range = False; break
+            if is_range:
+                G = G.copy(implementation='c_graph')
         if hasattr(G._backend, '_cg'):
             G = G._backend._cg
+        if not hasattr(G2._backend, '_cg'):
+            is_range = True
+            G2_verts = partition2 # will be sorted if it is a range
+            if G2.num_verts() != len(G2_verts):
+                is_range = False
+            else:
+                for j in xrange(G2.num_verts()):
+                    if G2_verts[j] != j:
+                        is_range = False; break
+            if is_range:
+                G2 = G2.copy(implementation='c_graph')
         if hasattr(G2._backend, '_cg'):
             G2 = G2._backend._cg
-
-        from sage.misc.flatten import flatten
-        isom = isomorphic(G, G2, partition, flatten(partition2, max_level=1), (self._directed or self.has_loops()), 1)
+        isom = isomorphic(G, G2, partition, partition2, (self._directed or self.has_loops()), 1)
         if not isom and certify:
             return False, None
         elif not isom:

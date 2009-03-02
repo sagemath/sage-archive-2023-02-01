@@ -5,7 +5,9 @@
 #    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
 #
 
-GAP=gap-4.4.10
+GAP0=`./newest_version gap`
+GAP=`echo $GAP0 | cut -f 1,2,3 -d "."`
+# returns latest gap version - eg, GAP=gap-4.4.12
 
 PATH=$SAGE_ROOT:$SAGE_ROOT/local/bin:$PATH
 
@@ -14,7 +16,7 @@ export PATH
 rm -rf "$SAGE_ROOT/local/lib/$GAP/pkg/"
 mkdir "$SAGE_ROOT/local/lib/$GAP/pkg/"
 
-cp patches/guava/* src/guava3.6/   # is this still needed?
+cp patches/guava/* src/guava3.9/   # is this still needed?
 # get around problem on osx
 
 
@@ -78,7 +80,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Copying Guava package"
-$CP -pr  guava3.6              "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -pr  guava3.9              "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
     echo "Error copying guava package."
     exit 1
@@ -94,7 +96,14 @@ fi
 echo "Copying HAPcryst package"
 $CP -pr  HAPcryst             "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
-    echo "Error copying Hapcryst package."
+    echo "Error copying HAPcryst package."
+    exit 1
+fi
+
+echo "Copying HAPprime package"
+$CP -pr  happrime-0.3.2             "$SAGE_ROOT/local/lib/$GAP/pkg/"
+if [ $? -ne 0 ]; then
+    echo "Error copying happrime package."
     exit 1
 fi
 
@@ -145,7 +154,7 @@ fi
 
 
 # Finally build Guava
-"$SAGE_ROOT/local/lib/$GAP/pkg/guava3.6/"
+"$SAGE_ROOT/local/lib/$GAP/pkg/guava3.9/"
 ./configure ../../ --enable-libsuffix=64
 if [ $? -ne 0 ]; then
    echo "Error configuring Guava"

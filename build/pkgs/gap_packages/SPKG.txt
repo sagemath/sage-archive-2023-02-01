@@ -77,6 +77,11 @@ HAPcryst - an extension package for HAP, which allows for
 group cohomology computation for a wider class of groups.
 (Author: Marc Roeder)
 
+HAPprime - a HAP extension for small prime power groups.
+It provides tools to compute resolutions and mod-p cohomology
+rings of finite p-groups.
+(Author: Paul Smith)
+
 LAGUNA - this package provides functionality for calculation of the
 normalized unit group of the modular group algebra of the finite
 p-group and for investigation of Lie algebra associated with group

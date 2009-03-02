@@ -39,6 +39,8 @@ from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.ring import is_Ring
 from sage.matrix.matrix import is_Matrix
 from sage.structure.element import is_Vector
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.modules.free_module_element import vector
 
 from sage.quadratic_forms.quadratic_form__evaluate import QFEvaluateVector, QFEvaluateMatrix
 
@@ -1112,6 +1114,58 @@ class QuadraticForm():
             raise TypeError, "Oops! The given quadratic form must be defined over ZZ."
 
         return GCD(self.coefficients())
+
+
+    def polynomial(self,names='x'):
+        r"""
+        Returns the polynomial in 'n' variables of the quadratic form in the ring 'R[names].'
+
+        INPUT:
+
+            -'self' - a quadratic form over a commatitive ring.
+            -'names' - the name of the variables. Digits will be appended to the name for each different canonical
+            variable e.g x1, x2, x3 etc.
+
+        OUTPUT:
+
+            The polynomial form of the quadratic form.
+
+        EXAMPLES::
+
+            sage: Q = DiagonalQuadraticForm(QQ,[1, 3, 5, 7])
+            sage: P = Q.polynomial(); P
+            2*x0^2 + 6*x1^2 + 10*x2^2 + 14*x3^2
+
+        ::
+
+            sage: F.<a> = NumberField(x^2 - 5)
+            sage: Z = F.ring_of_integers()
+            sage: Q = QuadraticForm(Z,3,[2*a, 3*a, 0 , 1 - a, 0, 2*a + 4])
+            sage: P = Q.polynomial(names='y'); P
+            4*a*y0^2 + 6*a*y0*y1 + (-2*a + 2)*y1^2 + (4*a + 8)*y2^2
+            sage: Q = QuadraticForm(F,4,[a, 3*a, 0, 1 - a, a - 3, 0, 2*a + 4, 4 + a, 0, 1])
+            sage: Q.polynomial(names='z')
+            (2*a)*z0^2 + (6*a)*z0*z1 + (2*a - 6)*z1^2 + (2*a + 8)*z2^2 + (-2*a + 2)*z0*z3 + (4*a + 8)*z1*z3 + 2*z3^2
+            sage: B.<i,j,k> = QuaternionAlgebra(F,-1,-1)
+            sage: Q = QuadraticForm(B, 3, [2*a, 3*a, i, 1 - a, 0, 2*a + 4])
+            sage: Q.polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only create polynomial rings over commutative rings.
+
+        """
+        M = self.matrix()
+        n = self.dim()
+        B = self.base_ring()
+        try:
+            R = PolynomialRing(self.base_ring(),names,n)
+        except:
+            raise ValueError, 'Can only create polynomial rings over commutative rings.'
+        V = vector(R.gens())
+        P = (V*M).dot_product(V)
+        return P
+
+
 
 
     def is_primitive(self):

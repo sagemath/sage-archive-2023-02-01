@@ -5,7 +5,7 @@
 #    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
 #
 
-GAP0=`./newest_version gap`
+GAP0=`$SAGE_ROOT/spkg/standard/newest_version gap`
 GAP=`echo $GAP0 | cut -f 1,2,3 -d "."`
 # returns latest gap version - eg, GAP=gap-4.4.12
 

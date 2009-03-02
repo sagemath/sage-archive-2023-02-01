@@ -15,7 +15,7 @@ from html import html
 
 from sage_timeit_class import timeit
 
-from edit_module import edit
+from edit_module import edit, set_edit_template
 
 from flatten import flatten
 

@@ -30,6 +30,9 @@ The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
 
 == Changelog ==
 
+=== mpfr-2.4.1 (Michael Abshoff, March 2nd, 2009) ===
+ * update to the official MPFR 2.4.1 release
+
 === mpfr-2.4.0 (Michael Abshoff, February 7th, 2009) ===
  * update to the official MPFR 2.4.0 release
  * turn on the test suite per default

@@ -21,6 +21,8 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
 cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstract):
     cdef fmpz_poly_t x, y, z, w, a, b, modulus
     cdef mpz_t d
+    cdef inline canonicalize(self)
 
 cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abstract):
     cdef mpz_t x, y, z, w, a, b, d
+    cdef inline canonicalize(self)

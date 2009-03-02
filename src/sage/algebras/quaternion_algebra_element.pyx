@@ -554,6 +554,20 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         sage: i + j + k == loads(dumps(i+j+k))
         True
     """
+
+    # Implementation Notes:
+    #
+    # A Quaternion algebra element (call it a) over Q are implemented as a 4-tuple of
+    # integers x, y, z, w and a demoninator d, all of type mpz_t, such that
+    #
+    #           a = (1/d) * (x + y * i + z * j + w * k)
+    #
+    # (although different letters may be specified instead of i, j, and k, if desired).
+    #
+    # Inside the element we also store mpz_t integers a and b, where
+    #
+    #       i^2 = a   and   j^2 = b
+
     def __cinit__(self):
         """
         Initialize C variables.
@@ -694,41 +708,47 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             sage: (2/3 + 3/4*i + 5/6*j + 7/8*k)._add_(-2/3 - 3/4*i + 5/6*j + 7/8*k)
             5/3*j + 7/4*k
         """
+
+        #   Given two quaternion algebra elements
+        #       a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #       b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #
+        #   we compute their sum as
+        #
+        #   (a + b) = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #
+        #   with    d3 = d1 * d2
+        #           x3 = d1 * x2 + d2 * x1
+        #           y3 = d1 * y2 + d2 * y1
+        #           z3 = d1 * z2 + d2 * z1
+        #           w3 = d1 * w2 + d2 * w1
+        #
+        #   and then we reduce the sum by dividing everything
+        #   by the gcd of d3, x3, y3, z3, and w3
+
         cdef QuaternionAlgebraElement_rational_field right = _right
         cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
-        mpz_mul(U1, self.x, right.d)
-        mpz_mul(U2, right.x, self.d)
-        mpz_add(result.x, U1, U2)
+        mpz_mul(U1, self.x, right.d)        # U1 = x1 * d2
+        mpz_mul(U2, right.x, self.d)        # U2 = x2 * d1
+        mpz_add(result.x, U1, U2)           # x3 = x1 * d2 + x2 * d1
 
-        mpz_mul(U1, self.y, right.d)
-        mpz_mul(U2, right.y, self.d)
-        mpz_add(result.y, U1, U2)
+        mpz_mul(U1, self.y, right.d)        # U1 = y1 * d2
+        mpz_mul(U2, right.y, self.d)        # U2 = y2 * d1
+        mpz_add(result.y, U1, U2)           # x3 = y1 * d2 + y2 * d1
 
-        mpz_mul(U1, self.z, right.d)
-        mpz_mul(U2, right.z, self.d)
-        mpz_add(result.z, U1, U2)
+        mpz_mul(U1, self.z, right.d)        # U1 = z1 * d2
+        mpz_mul(U2, right.z, self.d)        # U2 = z2 * d1
+        mpz_add(result.z, U1, U2)           # z3 = z1 * d2 + z2 * d1
 
-        mpz_mul(U1, self.w, right.d)
-        mpz_mul(U2, right.w, self.d)
-        mpz_add(result.w, U1, U2)
+        mpz_mul(U1, self.w, right.d)        # U1 = w1 * d2
+        mpz_mul(U2, right.w, self.d)        # U2 = w2 * d1
+        mpz_add(result.w, U1, U2)           # w3 = w1 * d2 + w2 * d1
 
-        mpz_mul(result.d, self.d, right.d)
+        mpz_mul(result.d, self.d, right.d) # d3 = d1 * d2
 
-        mpz_gcd(U1, result.d, result.x)
-        if mpz_cmp_ui(U1, 1) != 0:
-            mpz_gcd(U1, U1, result.y)
-            if mpz_cmp_ui(U1, 1) != 0:
-                mpz_gcd(U1, U1, result.z)
-                if mpz_cmp_ui(U1, 1) != 0:
-                    mpz_gcd(U1, U1, result.w)
-                    if mpz_cmp_ui(U1, 1) != 0:
-                        mpz_divexact(result.d, result.d, U1)
-                        mpz_divexact(result.x, result.x, U1)
-                        mpz_divexact(result.y, result.y, U1)
-                        mpz_divexact(result.z, result.z, U1)
-                        mpz_divexact(result.w, result.w, U1)
+        result.canonicalize()
 
         mpz_set(result.a, self.a)
         mpz_set(result.b, self.b)
@@ -748,6 +768,9 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
 
+        # Implementation Note: To obtain _sub_, we simply replace every occurrence of
+        # "add" in _add_ with "sub"; that is, we s/add/sub to get _sub_
+
         mpz_mul(U1, self.x, right.d)
         mpz_mul(U2, right.x, self.d)
         mpz_sub(result.x, U1, U2)
@@ -766,22 +789,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         mpz_mul(result.d, self.d, right.d)
 
-        mpz_gcd(U1, result.d, result.x)
-        if mpz_cmp_ui(U1, 1) != 0:
-            mpz_gcd(U1, U1, result.y)
-            if mpz_cmp_ui(U1, 1) != 0:
-                mpz_gcd(U1, U1, result.z)
-                if mpz_cmp_ui(U1, 1) != 0:
-                    mpz_gcd(U1, U1, result.w)
-                    if mpz_cmp_ui(U1, 1) != 0:
-                        mpz_divexact(result.d, result.d, U1)
-                        mpz_divexact(result.x, result.x, U1)
-                        mpz_divexact(result.y, result.y, U1)
-                        mpz_divexact(result.z, result.z, U1)
-                        mpz_divexact(result.w, result.w, U1)
-
-
-
+        result.canonicalize()
 
         mpz_set(result.a, self.a)
         mpz_set(result.b, self.b)
@@ -800,6 +808,43 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             sage: (2/3 + 3/4*i + 5/6*j + 7/8*k)._mul_(-2/3 - 3/4*i + 5/6*j + 7/8*k)
             9331/576 - i - 63/16*j + 5/4*k
         """
+
+        # We use the following formula for multiplication:
+        #
+        #    Given two quaternion algebra elements
+        #
+        #        a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #        b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #
+        #    we compute their product as
+        #
+        #    ab = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #
+        #    where
+        #       x3 = t1 + a * t2 + b * (t3 - a*t4)
+        #       y3 = s1*(x2 + y2) - t1 - t2 + b*( s2*(z2 - w2) - t3 + t4)
+        #       z3 = t5 - a*t6 + t7 + a*t8
+        #       w3 = (x2 - y2)*s2 - t5 + t6 + s1*(z2 + w2) - t7 - t8
+        #
+        #       and where
+        #           t1 = x1 * x2
+        #           t2 = y1 * y2
+        #           t3 = z1 * z2
+        #           t4 = w1 * w2
+        #           t5 = x2 * z1
+        #           t6 = y2 * w1
+        #           t7 = x1 * z2
+        #           t8 = y1 * w2
+        #
+        #           s1 = x1 + y1
+        #           s2 = z1 + w1
+        #
+        # This takes more integer addition operations but fewer integer multiplication
+        # operations than the "straightforward" multiplication method.
+        #
+        # There might be a way to optimize this formula further.
+
+
         cdef QuaternionAlgebraElement_rational_field right = _right
         cdef QuaternionAlgebraElement_rational_field result = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
         result._parent = self._parent
@@ -865,19 +910,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         mpz_mul(result.d, self.d, right.d)
 
-        mpz_gcd(U1, result.d, result.x)
-        if mpz_cmp_ui(U1, 1) != 0:
-            mpz_gcd(U1, U1, result.y)
-            if mpz_cmp_ui(U1, 1) != 0:
-                mpz_gcd(U1, U1, result.z)
-                if mpz_cmp_ui(U1, 1) != 0:
-                    mpz_gcd(U1, U1, result.w)
-                    if mpz_cmp_ui(U1, 1) != 0:
-                        mpz_divexact(result.d, result.d, U1)
-                        mpz_divexact(result.x, result.x, U1)
-                        mpz_divexact(result.y, result.y, U1)
-                        mpz_divexact(result.z, result.z, U1)
-                        mpz_divexact(result.w, result.w, U1)
+        result.canonicalize()
 
         return result
 
@@ -953,8 +986,6 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-
-
     cpdef trace(self):
         """
         Return the *reduced* trace of this quaternion.
@@ -979,6 +1010,43 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         mpq_set_den(result.value, self.d)
         mpq_canonicalize(result.value)
         return result
+
+    cdef inline canonicalize(self):
+        """
+        Put the representation of this quaternion element into
+        smallest form. For a = (1/d)*(x + yi + zj + wk) we
+        divide a, x, y, z, and w by the gcd of all of them.
+
+        TESTS::
+            sage: K.<i,j,k> = QuaternionAlgebra(QQ, -10, -7)
+            sage: (1/4 + 1/2 * i + 1/7 * j + 1/28 * k)*14*i     # implicit doctest
+            -70 + 7/2*i + 5*j - 2*k
+        """
+
+        # Note: this function changes the module-level global variable
+        # U1, so it isn't always safe to use this in the middle of
+        # another function. Normally this function is called
+        # at the end of an arithmetic routine, so this is fine.
+
+        # Implemenationwise, we compute the gcd's one at a time,
+        # and quit if it ever becomes one
+
+
+        mpz_gcd(U1, self.d, self.x)
+        if mpz_cmp_ui(U1, 1) != 0:
+            mpz_gcd(U1, U1, self.y)
+            if mpz_cmp_ui(U1, 1) != 0:
+                mpz_gcd(U1, U1, self.z)
+                if mpz_cmp_ui(U1, 1) != 0:
+                    mpz_gcd(U1, U1, self.w)
+                    if mpz_cmp_ui(U1, 1) != 0:
+                        # at this point U1 actually contains the gcd of all the terms, and we divide
+                        mpz_divexact(self.d, self.d, U1)
+                        mpz_divexact(self.x, self.x, U1)
+                        mpz_divexact(self.y, self.y, U1)
+                        mpz_divexact(self.z, self.z, U1)
+                        mpz_divexact(self.w, self.w, U1)
+
 
 
 cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstract):
@@ -1120,7 +1188,27 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             sage: z._add_(w)
             2*a + (2*a + 4/3)*k
         """
-        # Note: We are assuming in the routine that the modulus is monic. If it isn't there could be some problems.
+
+        #   Given two quaternion algebra elements
+        #       a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #       b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #
+        #   we compute their sum as
+        #
+        #   (a + b) = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #
+        #   with    d3 = d1 * d2
+        #           x3 = d1 * x2 + d2 * x1
+        #           y3 = d1 * y2 + d2 * y1
+        #           z3 = d1 * z2 + d2 * z1
+        #           w3 = d1 * w2 + d2 * w1
+        #
+        #   and then we reduce the sum by calling canonicalize().
+
+        # Note: We are assuming in this routine that the modulus is monic. This shouldn't
+        # currently be an issue because it is impossible to create a number field with
+        # a modulus that is not monic.
+
         cdef QuaternionAlgebraElement_number_field right = _right
         cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
 
@@ -1147,31 +1235,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(result.x)) # TODO: think about how big this should be (probably the size of d)
-
-        fmpz_poly_content(content, result.x)
-        fmpz_to_mpz(U1, content)
-        mpz_gcd(U1, result.d, U1)
-        if mpz_cmp_ui(U1, 1) != 0:
-            fmpz_poly_content(content, result.y)
-            fmpz_to_mpz(U2, content)
-            mpz_gcd(U1, U1, U2)
-            if mpz_cmp_ui(U1, 1) != 0:
-                fmpz_poly_content(content, result.z)
-                fmpz_to_mpz(U2, content)
-                mpz_gcd(U1, U1, U2)
-                if mpz_cmp_ui(U1, 1) != 0:
-                    fmpz_poly_content(content, result.w)
-                    fmpz_to_mpz(U2, content)
-                    mpz_gcd(U1, U1, U2)
-                    if mpz_cmp_ui(U1, 1) != 0:
-                        fmpz_poly_scalar_div_mpz(result.x, result.x, U1)
-                        fmpz_poly_scalar_div_mpz(result.y, result.y, U1)
-                        fmpz_poly_scalar_div_mpz(result.z, result.z, U1)
-                        fmpz_poly_scalar_div_mpz(result.w, result.w, U1)
-                        mpz_divexact(result.d, result.d, U1)
-
-        fmpz_clear(content)
+        self.canonicalize()
 
         return result
 
@@ -1193,9 +1257,15 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             2*i + 8/3*j + 2/3*k
 
         """
-        # Note: We are assuming in the routine that the modulus is monic. If it isn't there could be some problems.
+        # Implementation Note: To obtain _sub_, we simply replace every occurrence of
+        # "add" in _add_ with "sub"; that is, we s/add/sub to get _sub_
+
+        # Note: We are assuming in this routine that the modulus is monic. This shouldn't
+        # currently be an issue because it is impossible to create a number field with
+        # a modulus that is not monic.
         cdef QuaternionAlgebraElement_number_field right = _right
         cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
+
 
         fmpz_poly_set(result.a, self.a)
         fmpz_poly_set(result.b, self.b)
@@ -1220,31 +1290,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(result.x)) # TODO: think about how big this should be (probably the size of d)
-
-        fmpz_poly_content(content, result.x)
-        fmpz_to_mpz(U1, content)
-        mpz_gcd(U1, result.d, U1)
-        if mpz_cmp_ui(U1, 1) != 0:
-            fmpz_poly_content(content, result.y)
-            fmpz_to_mpz(U2, content)
-            mpz_gcd(U1, U1, U2)
-            if mpz_cmp_ui(U1, 1) != 0:
-                fmpz_poly_content(content, result.z)
-                fmpz_to_mpz(U2, content)
-                mpz_gcd(U1, U1, U2)
-                if mpz_cmp_ui(U1, 1) != 0:
-                    fmpz_poly_content(content, result.w)
-                    fmpz_to_mpz(U2, content)
-                    mpz_gcd(U1, U1, U2)
-                    if mpz_cmp_ui(U1, 1) != 0:
-                        fmpz_poly_scalar_div_mpz(result.x, result.x, U1)
-                        fmpz_poly_scalar_div_mpz(result.y, result.y, U1)
-                        fmpz_poly_scalar_div_mpz(result.z, result.z, U1)
-                        fmpz_poly_scalar_div_mpz(result.w, result.w, U1)
-                        mpz_divexact(result.d, result.d, U1)
-
-        fmpz_clear(content)
+        self.canonicalize()
 
         return result
 
@@ -1261,6 +1307,42 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             sage: z._mul_(w)
             5*a^2 - 7/9*a + 9 + (-8/3*a^2 - 16/9*a)*i + (-6*a - 4)*j + (2*a^2 + 4/3*a)*k
         """
+
+        # We use the following formula for multiplication:
+        #
+        #    Given two quaternion algebra elements
+        #
+        #        a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #        b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #
+        #    we compute their product as
+        #
+        #    ab = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #
+        #    where
+        #       x3 = t1 + a * t2 + b * (t3 - a*t4)
+        #       y3 = s1*(x2 + y2) - t1 - t2 + b*( s2*(z2 - w2) - t3 + t4)
+        #       z3 = t5 - a*t6 + t7 + a*t8
+        #       w3 = (x2 - y2)*s2 - t5 + t6 + s1*(z2 + w2) - t7 - t8
+        #
+        #       and where
+        #           t1 = x1 * x2
+        #           t2 = y1 * y2
+        #           t3 = z1 * z2
+        #           t4 = w1 * w2
+        #           t5 = x2 * z1
+        #           t6 = y2 * w1
+        #           t7 = x1 * z2
+        #           t8 = y1 * w2
+        #
+        #           s1 = x1 + y1
+        #           s2 = z1 + w1
+        #
+        # This takes more polynomial addition operations but fewer polynomial multiplication
+        # operations than the "straightforward" multiplication method.
+        #
+        # There might be a way to optimize this formula further.
+
         cdef QuaternionAlgebraElement_number_field right = _right
         cdef QuaternionAlgebraElement_number_field result = <QuaternionAlgebraElement_number_field> PY_NEW(QuaternionAlgebraElement_number_field)
 
@@ -1325,6 +1407,18 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         fmpz_poly_mul(fU2, fU2, fs2)
         fmpz_poly_add(result.w, fU1, fU2)
 
+        # At this point we have essentially computed the product, but we still
+        # need to reduce modulo the modulus, which is what the following 12 lines do.
+        #
+        # When this was written, the version of flint in Sage had problems with
+        # fpmz_poly_divrem(). This should be fixed in the newest version of
+        # flint, which also should have some new functions which should do
+        # this faster (Bill Hart sent an email to Bober and William about this).
+        #
+        # This should be fixed in the near future. (I don't know how much
+        # faster it will be when it is updated, but the following code is
+        # currently quite a bottleneck.
+
         fmpz_poly_div(fT1, result.x, result.modulus)
         fmpz_poly_mul(fT1, fT1, result.modulus)
         fmpz_poly_sub(result.x, result.x, fT1)
@@ -1343,33 +1437,62 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(result.x)) # TODO: think about how big this should be (probably the size of d)
+        self.canonicalize()
 
-        fmpz_poly_content(content, result.x)
+        return result
+
+    cdef inline canonicalize(self):
+        """
+        Put the representation of this quaternion element into
+        smallest form. For a = (1/d)*(x + yi + zj + wk) we
+        divide a, x, y, z, and w by the gcd of all of them.
+
+        TESTS::
+            sage: F = QQ[3^(1/3)]
+            sage: a = F.gen()
+            sage: K.<i,j,k> = QuaternionAlgebra(F, -10 + a, -7 - a)
+            sage: ((1/4 + 1/2 * i + a^3/7 * j + a/28 * k)*14*i)^3   # implicit doctest
+            34503/2*a^2 + 132195/2*a + 791399/4 + (203/8*a^2 - 10591*a + 169225/4)*i + (-84695/4*a^2 + 483413/8*a + 18591/4)*j + (-87/2*a^2 + 18156*a - 72525)*k
+        """
+
+        # Note: this function changes the module-level global variables
+        # U1 and U2, so it isn't always safe to use this in the middle of
+        # another function. Normally this function is called
+        # at the end of an arithmetic routine, so this is fine.
+
+        # Implemenationwise, we compute the gcd's one at a time,
+        # and quit if it ever becomes one
+
+        cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(self.x)) # TODO: think about how big this should be (probably the size of d)
+                                                                     # Note that we have to allocate this here, and not
+                                                                     # as a global variable, because fmpz_t's do not
+                                                                     # self allocate memory
+        fmpz_poly_content(content, self.x)
         fmpz_to_mpz(U1, content)
-        mpz_gcd(U1, result.d, U1)
+        mpz_gcd(U1, self.d, U1)
         if mpz_cmp_ui(U1, 1) != 0:
-            fmpz_poly_content(content, result.y)
+            fmpz_poly_content(content, self.y)
             fmpz_to_mpz(U2, content)
             mpz_gcd(U1, U1, U2)
             if mpz_cmp_ui(U1, 1) != 0:
-                fmpz_poly_content(content, result.z)
+                fmpz_poly_content(content, self.z)
                 fmpz_to_mpz(U2, content)
                 mpz_gcd(U1, U1, U2)
                 if mpz_cmp_ui(U1, 1) != 0:
-                    fmpz_poly_content(content, result.w)
+                    fmpz_poly_content(content, self.w)
                     fmpz_to_mpz(U2, content)
                     mpz_gcd(U1, U1, U2)
                     if mpz_cmp_ui(U1, 1) != 0:
-                        fmpz_poly_scalar_div_mpz(result.x, result.x, U1)
-                        fmpz_poly_scalar_div_mpz(result.y, result.y, U1)
-                        fmpz_poly_scalar_div_mpz(result.z, result.z, U1)
-                        fmpz_poly_scalar_div_mpz(result.w, result.w, U1)
-                        mpz_divexact(result.d, result.d, U1)
+                        fmpz_poly_scalar_div_mpz(self.x, self.x, U1)
+                        fmpz_poly_scalar_div_mpz(self.y, self.y, U1)
+                        fmpz_poly_scalar_div_mpz(self.z, self.z, U1)
+                        fmpz_poly_scalar_div_mpz(self.w, self.w, U1)
+                        mpz_divexact(self.d, self.d, U1)
 
         fmpz_clear(content)
 
-        return result
+
+
 
 #######################################################################
 # Versioned unpickle functions

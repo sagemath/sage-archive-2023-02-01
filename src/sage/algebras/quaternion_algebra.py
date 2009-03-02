@@ -41,9 +41,9 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 
 from sage.rings.ring import Algebra, is_Field
-from sage.rings.rational_field import is_RationalField
+from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.number_field.number_field import is_NumberField
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent_gens import ParentWithGens, normalize_names
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix
 from sage.structure.sequence import Sequence
@@ -109,50 +109,63 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
         sage: type(QuaternionAlgebra(-1,-3/2).0)
         <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
+
+    Make sure caching is sane:
+        sage: A = QuaternionAlgebra(2,3); A
+        Quaternion Algebra (2, 3) with base ring Rational Field
+        sage: B = QuaternionAlgebra(GF(5)(2),GF(5)(3)); B
+        Quaternion Algebra (2, 3) with base ring Finite Field of size 5
+        sage: A is QuaternionAlgebra(2,3)
+        True
+        sage: B is QuaternionAlgebra(GF(5)(2),GF(5)(3))
+        True
+        sage: Q = QuaternionAlgebra(2); Q
+        Quaternion Algebra (-1, -1) with base ring Rational Field
+        sage: Q is QuaternionAlgebra(QQ,-1,-1)
+        True
+        sage: Q is QuaternionAlgebra(-1,-1)
+        True
+        sage: Q.<ii,jj,kk> = QuaternionAlgebra(15); Q.variable_names()
+        ('ii', 'jj', 'kk')
+        sage: QuaternionAlgebra(15).variable_names()
+        ('i', 'j', 'k')
     """
-    global _cache
-    key = (arg0, arg1, arg2, names)
-    if _cache.has_key(key):
-        return _cache[key]
 
     # QuaternionAlgebra(D)
     if arg1 is None and arg2 is None:
-        A = QuaternionAlgebra_disc(arg0, names=names)
+        K = QQ
+        D = Integer(arg0)
+        a, b = hilbert_conductor_inverse(D)
+        a = Rational(a); b = Rational(b)
 
     elif arg2 is None:
         if is_Element(arg0):
             # QuaternionAlgebra(a, b)
             v = Sequence([arg0, arg1])
             K = v.universe().fraction_field()
-            A = QuaternionAlgebra_ab(K, v[0], v[1], names=names)
+            a = v[0]
+            b = v[1]
         else:
             raise ValueError, "unknown input"
 
     # QuaternionAlgebra(K, a, b)
     else:
-        A = QuaternionAlgebra_ab(arg0, arg1, arg2, names=names)
+        K = arg0
+        if not is_Field(K):
+            raise TypeError, "base ring of quaternion algebra must be a field"
+        a = K(arg1)
+        b = K(arg2)
 
+    global _cache
+    names = normalize_names(3, names)
+    key = (K, a, b, names)
+    if _cache.has_key(key):
+        return _cache[key]
+    A = QuaternionAlgebra_ab(K, a, b, names=names)
     A._key = key
     _cache[key] = A
     return A
 
-def QuaternionAlgebra_disc(D, names):
-    """
-    Return a rational quaternion algebra of discriminant D.
-
-    INPUT:
-
-         D -- square-free positive integer
-         names -- variable names
-
-    EXAMPLES::
-
-        sage: sage.algebras.quaternion_algebra.QuaternionAlgebra_disc(2, 'i,j,k')
-        Quaternion Algebra (-1, -1) with base ring Rational Field
-    """
-    a, b = hilbert_conductor_inverse(D)
-    a = Rational(a); b = Rational(b)
-    return QuaternionAlgebra_ab(a.parent(), a, b,  names=names)
 
 
 
@@ -513,7 +526,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         TESTS::
 
             sage: QuaternionAlgebra(QQ,-1,-2).__reduce__()
-            (<function unpickle_QuaternionAlgebra_v0 at ...>, (Rational Field, -1, -2, 'i,j,k'))
+            (<function unpickle_QuaternionAlgebra_v0 at ...>, (Rational Field, -1, -2, ('i', 'j', 'k')))
 
         Test uniqueness of parent::
 

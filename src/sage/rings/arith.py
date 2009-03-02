@@ -23,7 +23,7 @@ import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op, parent
 from sage.interfaces.all import gp
-from sage.misc.misc import prod
+from sage.misc.misc import prod, union
 from sage.rings.fraction_field_element import is_FractionFieldElement
 
 import fast_arith
@@ -3406,6 +3406,108 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     else:
         raise ValueError, "Algorithm %s not defined"%algorithm
 
+
+def hilbert_conductor(a, b):
+    """
+    This is the product of all (finite) primes where the hilbert symbol is -1.
+    What is the same, this is the (reduced) discriminant of the quaternion
+    algebra (a,b) over Q.
+
+    INPUT:
+        a, b -- integers
+
+    OUTPUT:
+        squarefree positive integer
+
+    EXAMPLES:
+        sage: hilbert_conductor(-1, -1)
+        2
+        sage: hilbert_conductor(-1, -11)
+        11
+        sage: hilbert_conductor(-2, -5)
+        5
+        sage: hilbert_conductor(-3, -17)
+        17
+
+    AUTHOR:
+        -- Gonzalo Tornaria (2009-03-02)
+    """
+    a, b = ZZ(a), ZZ(b)
+    d = ZZ(1)
+    for p in union(union( [2], prime_divisors(a) ), prime_divisors(b) ):
+        if hilbert_symbol(a, b, p) == -1:
+            d *= p
+    return d
+
+def hilbert_conductor_inverse(d):
+    """
+    Finds a pair of integers (a,b) such that hilbert_conductor(a,b) == d.
+    The quaternion algebra (a,b) over Q will have (reduced) discriminant d.
+
+    INPUT:
+        d -- square-free positive integer
+
+    OUTPUT:
+        pair of integers
+
+    EXAMPLES:
+        sage: hilbert_conductor_inverse(2)
+        (-1, -1)
+        sage: hilbert_conductor_inverse(3)
+        (-1, -3)
+        sage: hilbert_conductor_inverse(6)
+        (-1, 3)
+        sage: hilbert_conductor_inverse(30)
+        (-3, -10)
+        sage: hilbert_conductor_inverse(4)
+        Traceback (most recent call last):
+        ...
+        ValueError: d needs to be squarefree
+        sage: hilbert_conductor_inverse(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: d needs to be positive
+
+    AUTHOR:
+        -- Gonzalo Tornaria (2009-03-02)
+
+    TEST:
+        sage: for i in xrange(100):
+        ...     d = random_int_upto(2**32).squarefree_part()
+        ...     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
+        ...         print "hilbert_conductor_inverse failed for d =", d
+    """
+    Z = ZZ
+    d = Z(d)
+    if d <= 0:
+        raise ValueError, "d needs to be positive"
+    if d == 1:
+        return (Z(-1), Z(1))
+    if d == 2:
+        return (Z(-1), Z(-1))
+    if d.is_prime():
+        if d%4 == 3:
+            return (Z(-1), -d)
+        if d%8 == 5:
+            return (Z(-2), -d)
+        q = 3
+        while q%4 != 3 or kronecker_symbol(d,q) != -1:
+            q = next_prime(q)
+        return (Z(-q), -d)
+    else:
+        mo = moebius(d)
+        if mo == 0:
+            raise ValueError, "d needs to be squarefree"
+        if d % 2 == 0 and mo*d % 16 != 2:
+            dd = mo * d / 2
+        else:
+            dd = mo * d
+        q = 1
+        while hilbert_conductor(-q, dd) != d:
+            q+=1;
+        if dd%q == 0:
+            dd /= q
+        return (Z(-q), Z(dd))
 
 
 ##############################################################################

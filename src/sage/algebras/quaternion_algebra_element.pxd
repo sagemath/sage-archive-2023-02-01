@@ -9,6 +9,7 @@ from sage.categories.morphism cimport Morphism
 
 cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
     cdef _do_print(self, x,y,z,w)
+    cpdef conjugate(self)
     cpdef norm(self)
     cpdef trace(self)
 

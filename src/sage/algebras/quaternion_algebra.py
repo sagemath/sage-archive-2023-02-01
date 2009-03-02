@@ -17,6 +17,24 @@ We test pickles::
     sage: Q == loads(dumps(Q))
     True
 """
+
+#*****************************************************************************
+#       Copyright (C) 2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 from sage.rings.arith import (GCD, fundamental_discriminant, hilbert_symbol,
                               hilbert_conductor_inverse, hilbert_conductor)
 from sage.rings.integer import Integer
@@ -455,13 +473,38 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             raise TypeError, "base ring of quaternion algebra must be a field"
         if is_RationalField(base_ring) and a.denominator() == 1 and b.denominator() == 1:
             element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_rational_field
-        elif is_NumberField(base_ring) and base_ring.degree() > 2 and \
-                 a.denominator() == 1 and b.denominator() == 1:
+        elif is_NumberField(base_ring) and base_ring.degree() > 2 and base_ring.is_absolute() and \
+                 a.denominator() == 1 and b.denominator() == 1 and base_ring.defining_polynomial().is_monic():
+            # This QuaternionAlgebraElement_number_field class is not
+            # designed to work with elements of a quadratic field.  To
+            # do that, the main thing would be to implement
+            # __getitem__, etc.  This would maybe give a factor of 2
+            # (or more?) speedup.  Much care must be taken because the
+            # underlying representation of quadratic fields is a bit
+            # tricky.
             element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_number_field
         else:
             element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_generic
         self._populate_coercion_lists_(coerce_list=[base_ring], element_constructor=element_constructor)
         self._gens = [self([0,1,0,0]), self([0,0,1,0]), self([0,0,0,1])]
+
+    def invariants(self):
+        """
+        Return the structural invariants a, b of this quaternion
+        algebra.  Thus are the numbers that are squares of the first
+        two generators.
+
+        EXAMPLES::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(15)
+            sage: Q.invariants()
+            (-3, 5)
+            sage: i^2
+            -3
+            sage: j^2
+            5
+        """
+        return self._a, self._b
 
     def __reduce__(self):
         """

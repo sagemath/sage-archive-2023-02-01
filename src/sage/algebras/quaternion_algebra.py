@@ -20,6 +20,8 @@ from sage.rings.arith import GCD, fundamental_discriminant, hilbert_symbol
 from sage.rings.integer import Integer
 
 from sage.rings.ring import Algebra
+from sage.rings.rational_field import is_RationalField
+from sage.rings.number_field.number_field import is_NumberField
 from sage.structure.parent_gens import ParentWithGens
 from sage.matrix.matrix_space import MatrixSpace
 from sage.structure.sequence import Sequence
@@ -61,7 +63,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k', **kwds):
           sage: QuaternionAlgebra(2)
           ??
 
-    QuaternionAlgebra(D1, D2, T) - D1, D2, T integers; returns
+    QuaternionOrder(D1, D2, T) - D1, D2, T integers; returns
     quaternion algebra Q<x, y> where Z[x] and Z[y] are quadratic
     suborders of discriminants D1, D2, respectively, and Z[x*y - y*x]
     is a quadratic suborder of discriminant D1*D2-T^2.::
@@ -69,7 +71,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k', **kwds):
         - QuaternionAlgebra(K, norms, traces) - quaternion algebra with
           inner product having given norms and traces.
 
-        - QuaternionAlgebra(K, gram) - quaternion algebra with given
+        - QuaternionLattice(K, gram) - quaternion algebra with given
           Gram matrix.
     """
     # QuaternionAlgebra(D)
@@ -257,12 +259,7 @@ class QuaternionAlgebra_abstract(Algebra):
         R = self.base_ring()
         if R.characteristic() != 0:
             return False
-        # In characteristic 0 over field anything is invertible.  If
-        # not over field, then stuff in base ring not invertible
-        # already.  (NB -- we actually don't allow quaternion algebras
-        # not over a field, so this is a little silly.  Anyway, this
-        # is a good "just in case" test.)
-        return R.is_field()
+        raise NotImplementedError
 
     def is_exact(self):
         """
@@ -407,7 +404,7 @@ class QuaternionAlgebra_abstract(Algebra):
         raise NotImplementedError
 
 
-from quaternion_algebra_element import QuaternionAlgebraElement_generic
+import quaternion_algebra_element
 
 class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
     """
@@ -427,13 +424,54 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             - ``a, b`` -
             - ``names`` -
 
-        EXAMPLES::
+        TESTS::
+
+        Test making quaternion elements (using the element constructor)::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-1,-2)
+            sage: a = Q(2/3); a
+            2/3
+            sage: type(a)
+            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
+            sage: Q(a)
+            2/3
+            sage: Q([1,2,3,4])
+            1 + 2*i + 3*j + 4*k
+            sage: Q((1,2,3,4))
+            1 + 2*i + 3*j + 4*k
+            sage: Q(-3/5)
+            -3/5
         """
         ParentWithGens.__init__(self, base_ring, names)
         self._a = a
         self._b = b
-        self._populate_coercion_lists_(coerce_list=[base_ring])
+        if is_RationalField(base_ring):
+            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_rational_field
+        elif is_NumberField(base_ring):
+            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_number_field
+        else:
+            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_generic
+        self._populate_coercion_lists_(coerce_list=[base_ring], element_constructor=element_constructor)
         self._gens = [self([0,1,0,0]), self([0,0,1,0]), self([0,0,0,1])]
+
+    def __reduce__(self):
+        """
+        Internal method used for pickling.
+
+        TESTS::
+
+            sage: QuaternionAlgebra(QQ,-1,-2).__reduce__()
+            (<class 'sage.algebras.quaternion_algebra.QuaternionAlgebra_ab'>,
+             (Rational Field, -1, -2, ('i', 'j', 'k')))
+
+        Test uniqueness of parent::
+
+            sage: Q = QuaternionAlgebra(QQ,-1,-2)
+            sage: loads(dumps(Q)) is Q
+            True
+        """
+        # TODO: make parents uniq!  Also, make it versioned!
+        return QuaternionAlgebra_ab, (self._base, self._a, self._b, self.variable_names())
 
     def gen(self, i=0):
         """
@@ -447,7 +485,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             jj
             sage: Q.gen(2)
             kk
-            sage:
             sage: Q.gens()
             (ii, jj, kk)
         """
@@ -475,21 +512,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         Make sure x defines a valid member of self, then return the
         constructed element.
 
-        EXAMPLES::
-
-            sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-1,-2)
-            sage: a = Q._element_constructor_(2/3); a
-            2/3
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: Q._element_constructor_(a)
-            2/3
-            sage: Q._element_constructor_([1,2,3,4])
-            1 + 2*i + 3*j + 4*k
-            sage: Q._element_constructor_((1,2,3,4))
-            1 + 2*i + 3*j + 4*k
-            sage: Q._element_constructor_(-3/5)
-            -3/5
         """
         if isinstance(x, QuaternionAlgebraElement_generic):
             return x  # ok, since they are immutable

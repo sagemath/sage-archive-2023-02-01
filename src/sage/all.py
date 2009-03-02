@@ -266,9 +266,12 @@ def quit_sage(verbose=True):
     except:
         pass
 
+    # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     sage.rings.integer.clear_mpz_globals()
+    import sage.algebras.quaternion_algebra_element
+    sage.algebras.quaternion_algebra_element._clear_globals()
 
     from sage.libs.all import symmetrica
     symmetrica.end()

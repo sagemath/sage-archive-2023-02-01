@@ -3978,6 +3978,7 @@ def fundamental_discriminant(D):
     1, mod 4, and such that, at most, the only square dividing it is
     4.
     """
+    from sage.rings.all import Integer
     D = Integer(D)
     D = D.squarefree_part()
     if D%4 == 1:

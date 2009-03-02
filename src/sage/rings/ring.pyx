@@ -735,7 +735,7 @@ cdef class CommutativeRing(Ring):
             sage: ZpCA(7).is_commutative()
             True
             sage: A = QuaternionAlgebra(QQ, -1, -3, names=('i','j','k')); A
-            Quaternion algebra with generators (i, j, k) over Rational Field
+            Quaternion Algebra (-1, -3) with base ring Rational Field
             sage: A.is_commutative()
             False
         """

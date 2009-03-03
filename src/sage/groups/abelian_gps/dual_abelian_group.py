@@ -196,9 +196,9 @@ class DualAbelianGroup_class(group.AbelianGroup):
             sage: F = AbelianGroup(3, [2]*3)
             sage: Fd = DualAbelianGroup(F)
             sage: Fd._latex_()
-            '${\rm DualAbelianGroup}( AbelianGroup ( 3, [2, 2, 2] ) )$'
+            '$\\mathrm{DualAbelianGroup}( AbelianGroup ( 3, [2, 2, 2] ) )$'
         """
-        s = "${\rm DualAbelianGroup}( AbelianGroup ( %s, %s ) )$"%(self.ngens(), self.invariants())
+        s = "$\mathrm{DualAbelianGroup}( AbelianGroup ( %s, %s ) )$"%(self.ngens(), self.invariants())
         return s
 
     def __call__(self, x):

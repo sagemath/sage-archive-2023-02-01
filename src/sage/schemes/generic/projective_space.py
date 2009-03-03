@@ -233,7 +233,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
                    [right.dimension(), right.coordinate_ring()])
 
     def _latex_(self):
-        return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
+        return "\\mathbf{P}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
 
 
     def _constructor(self, *args, **kwds):

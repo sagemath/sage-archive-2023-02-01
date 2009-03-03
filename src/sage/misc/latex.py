@@ -306,9 +306,9 @@ class Latex:
 
 
 def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
-                 sep='$$ $$', tiny=False, center=False, math_left='$$',
-                 math_right='$$',
-                 extra_preamble='', brk=0):
+                 sep='', tiny=False, math_left='\\[',
+                 math_right='\\]',
+                 extra_preamble=''):
     """
     Compute a latex file that defines a representation of each object
     in objects.
@@ -318,8 +318,28 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
 
     -  ``objects`` - list (or object)
 
-    -  ``size`` - latex size of document ('small',
-       'tiny')
+    -  ``title`` - string (default: 'Sage'): title for the
+       document
+
+    -  ``expert`` - bool (default: True): mode passed on to
+       xdvi
+
+    -  ``debug`` - bool (default: False): print verbose
+       output
+
+    -  ``sep`` - string (default: ''): separator between
+       math objects
+
+    -  ``tiny`` - bool (default: False): use 'tiny' font.
+
+    -  ``extra_preamble`` - string (default: ''): extra LaTeX commands,
+       inserted before "\\begin{document}"
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import _latex_file_
+        sage: _latex_file_(3, title="The number three")
+        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\thispagestyle{empty}\n \\small \\vfill\\thispagestyle{empty}\\pagestyle{empty}\n\n \\[ 3 \\]\n\n\\vfill \\end{document}'
     """
     process = True
     if hasattr(objects, '_latex_'):
@@ -343,16 +363,9 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
     else:
         size='small'
 
-    if center:
-        center0 = '\\begin{center}'
-        center1 = '\\end{center}'
-    else:
-        center0 =''
-        center1 = ''
-
     s = LATEX_HEADER
-    s += '\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n %s\\%s '%(
-        extra_preamble, title, center0, size)
+    s += '\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n \\%s '%(
+        extra_preamble, title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
     s += '\\vfill'
@@ -369,23 +382,9 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
     else:
         s += "\n\n".join([str(x) for x in objects])
 
-    s += '\n\n\\vfill %s\\vfill\\end{document}'%center1
+    s += '\n\n\\vfill \\end{document}'
     if debug:
         print s
-
-    # Finally break input so there is whitespace every brk characters, assuming brk > 0
-    if brk > 0:
-        # add a space to any block of brk characters or more.
-        i = 0
-        j = 0
-        while i < len(s):
-            if s[i] in ['\n', '\t', ' ']:
-                j = i
-            else:
-                if i - j > brk:
-                    s = s[:i] + ' ' + s[i:]
-                    j = i
-            i += 1
 
     return s
 
@@ -557,18 +556,37 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     #return os.popen('cd %s; chmod +x go; ./go %s & '%(tmp,direct), 'r').read()
 
 
-def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tiny=False):
+def png(x, filename, density=150, debug=False,
+        do_in_background=True, tiny=False):
     """
     Create a png image representation of x and save to the given
     filename.
+
+    INPUT:
+
+
+    -  ``x`` - object to be displayed
+
+    -  ``filename`` - file in which to save the image
+
+    -  ``density`` - integer (default: 150)
+
+    -  ``debug`` - bool (default: False): print verbose
+       output
+
+    -  ``do_in_background`` - bool (default: True): create the
+       file in the background
+
+    -  ``tiny`` - bool (default: False): use 'tiny' font
+
     """
     import sage.plot.all
     if sage.plot.all.is_Graphics(x):
         x.save(filename)
         return
     s = _latex_file_([x], math_left='$\\displaystyle', math_right='$', title='',
-                     debug=debug, tiny=tiny, extra_preamble='\\textheight=2\\textheight',
-                     brk=brk)
+                     debug=debug, tiny=tiny,
+                     extra_preamble='\\textheight=2\\textheight')
     abs_path_to_png = os.path.abspath(filename)
 
     tmp = tmp_dir('sage_viewer')

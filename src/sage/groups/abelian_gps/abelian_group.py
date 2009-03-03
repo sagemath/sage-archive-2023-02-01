@@ -613,9 +613,9 @@ class AbelianGroup_class(group.AbelianGroup):
 
             sage: F = AbelianGroup(10, [2]*10)
             sage: F._latex_()
-            '${\rm AbelianGroup}( 10, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2] )$'
+            '$\\mathrm{AbelianGroup}( 10, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2] )$'
         """
-        s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
+        s = "$\mathrm{AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
         return s
 
     def _gap_init_(self):

@@ -768,7 +768,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 self.dimension(), self.weight(), self.group(), self.sign(), self.character(), self.base_ring())
 
     def _latex_(self):
-        return "\\text{\\rm ModSym}_{%s}(%s,%s;%s)"%(self.weight(),
+        return "\\mathrm{ModSym}_{%s}(%s,%s;%s)"%(self.weight(),
                                                      latex.latex(self.group()),
                                                      latex.latex(self.character()),
                                                      latex.latex(self.base_ring()))

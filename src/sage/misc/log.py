@@ -109,7 +109,7 @@ class Log:
         return "Logger"
 
     def _latex_(self):
-        return "\\mbox{\\rm %s}"%self
+        return "\\mathrm{%s}"%self
 
     def dir(self):
         """

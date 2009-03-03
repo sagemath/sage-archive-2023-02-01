@@ -130,7 +130,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             return self.__matrix_space_cache
 
     def _latex_(self):
-        return "\\mbox{\\bf{}T}_{%s}"%latex(self.__M)
+        return "\\mathbf{T}_{%s}"%latex(self.__M)
 
     def level(self):
         return self.module().level()
@@ -232,7 +232,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         return "Anemic Hecke algebra acting on %s"%self.module()
 
     def _latex_(self):
-        return "\\mbox{\\bf{}T}'_{%s}"%latex(self.__M)
+        return "\\mathbf{T}'_{%s}"%latex(self.__M)
 
     def __cmp__(self, other):
         if not isinstance(HeckeAlgebra_anemic):

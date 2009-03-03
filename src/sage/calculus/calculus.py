@@ -587,7 +587,7 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             sage: latex(SR)
             \text{SR}
             sage: M = MatrixSpace(SR, 2); latex(M)
-            \mbox{\rm Mat}_{2\times 2}(\text{SR})
+            \mathrm{Mat}_{2\times 2}(\text{SR})
         """
         return r'\text{SR}'
 
@@ -9669,7 +9669,7 @@ class SymbolicFunction(PrimitiveFunction):
         return True
 
     def _latex_(self):
-        return "{\\rm %s}"%self._name
+        return "\\mathrm{%s}"%self._name
 
     def _maxima_init_(self):
         return "'%s"%self._name
@@ -9867,7 +9867,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         try:
             return  latex(self._maxima_())
         except:
-            return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
+            return "\\mathrm{%s}(%s)"%(self._f._name, ', '.join([x._latex_() for
                                                               x in self._args]))
 
 

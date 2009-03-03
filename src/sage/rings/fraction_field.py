@@ -312,9 +312,9 @@ class FractionField_generic(field.Field):
         EXAMPLES::
 
             sage: latex(Frac(GF(7)['x,y,z']))
-            \mbox{\rm Frac}(\mathbf{F}_{7}[x, y, z])
+            \mathrm{Frac}(\mathbf{F}_{7}[x, y, z])
         """
-        return "\\mbox{\\rm Frac}(%s)"%latex.latex(self.__R)
+        return "\\mathrm{Frac}(%s)"%latex.latex(self.__R)
 
     def _magma_init_(self, magma):
         """

@@ -2338,10 +2338,10 @@ class MaximaFunction(MaximaElement):
 
             sage: f = maxima.function('x,y','sin(x+y)')
             sage: latex(f)
-            \mbox{\rm sin(x+y)}
+            \mathrm{sin(x+y)}
         """
         if self.__latex is None:
-            return r'\mbox{\rm %s}'%self.__defn
+            return r'\mathrm{%s}'%self.__defn
         else:
             return self.__latex
 

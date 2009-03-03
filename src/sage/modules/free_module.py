@@ -4730,9 +4730,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M._latex_()
-            '\\mbox{\\rm RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1 & 2 & 3 \\\\\n4 & 5 & 6\n\\end{array}\\right)'
+            '\\mathrm{RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1 & 2 & 3 \\\\\n4 & 5 & 6\n\\end{array}\\right)'
         """
-        return "\\mbox{\\rm RowSpan}_{%s}%s"%(latex.latex(self.base_ring()), latex.latex(self.basis_matrix()))
+        return "\\mathrm{RowSpan}_{%s}%s"%(latex.latex(self.base_ring()), latex.latex(self.basis_matrix()))
 
     def ambient_module(self):
         """

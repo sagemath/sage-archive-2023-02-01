@@ -80,7 +80,14 @@ class Elements(uniq1, Category):
         return "Category of elements of %s"%self.object()
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Elt}_{%s}"%latex(self.__object)
+        """
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,3)
+            sage: x = V.0
+            sage: latex(x.category())
+            \mathbf{Elt}_{\mathbf{Q}^{3}}
+        """
+        return "\\mathbf{Elt}_{%s}"%latex(self.__object)
 
 
 #############################################################
@@ -129,7 +136,14 @@ class Sequences(uniq1, Category):
         return "Category of sequences in %s"%self.object()
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Seq}_{%s}"%latex(self.__object)
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3])
+            sage: latex(v.category())
+            \mathbf{Seq}_{\mathbf{Z}}
+        """
+
+        return "\\mathbf{Seq}_{%s}"%latex(self.__object)
 
 #############################################################
 # Category of objects over some base object
@@ -150,7 +164,7 @@ class Category_over_base(uniq1, Category):
         return Category._repr_(self) + " over %s"%self.__base
 
     def _latex_(self):
-        return "\\mbox{\\bf %s}_{%s}"%(self.__label, latex(self.__base))
+        return "\\mathbf{%s}_{%s}"%(self.__label, latex(self.__base))
 
 
 #############################################################

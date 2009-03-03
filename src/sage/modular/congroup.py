@@ -1875,7 +1875,7 @@ class SL2Z_class(Gamma0_class):
             [1 1]
             [0 1]
             sage: latex(G)
-            \mbox{\rm SL}_2(\mathbf{Z})
+            \mathrm{SL}_2(\mathbf{Z})
             sage: G([1,-1,0,1])
             [ 1 -1]
             [ 0  1]
@@ -1923,11 +1923,11 @@ class SL2Z_class(Gamma0_class):
         EXAMPLES::
 
             sage: SL2Z._latex_()
-            '\\mbox{\\rm SL}_2(\\mathbf{Z})'
+            '\\mathrm{SL}_2(\\mathbf{Z})'
             sage: latex(SL2Z)
-            \mbox{\rm SL}_2(\mathbf{Z})
+            \mathrm{SL}_2(\mathbf{Z})
         """
-        return "\\mbox{\\rm SL}_2(%s)"%(ZZ._latex_())
+        return "\\mathrm{SL}_2(%s)"%(ZZ._latex_())
 
     def is_subgroup(self, right):
         """

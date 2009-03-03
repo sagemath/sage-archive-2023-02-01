@@ -102,7 +102,7 @@ class Category(SageObject):
         return "Category of %s"%self.__category
 
     def _latex_(self):
-        return "\\mbox{\\bf %s}"%self.__label
+        return "\\mathbf{%s}"%self.__label
 
     def __hash__(self):
         return hash(self.__category)

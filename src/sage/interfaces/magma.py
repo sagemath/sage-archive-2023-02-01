@@ -2221,7 +2221,7 @@ class MagmaElement(ExpectElement):
         """
         P = self._check_valid()
         s = str(P.eval('Latex(%s)'%self.name()))
-        v = '\\mbox{\\rm '
+        v = '\\mathrm{'
         if s[:len(v)] == v:
             raise AttributeError
         return s

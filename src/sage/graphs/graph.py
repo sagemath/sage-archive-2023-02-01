@@ -6964,6 +6964,8 @@ class GenericGraph(SageObject):
         if not inplace:
             G = self.copy()
             G.relabel(perm)
+            if return_map:
+                return G, perm
             return G
         if type(perm) is list:
             perm = dict( [ [i,perm[i]] for i in xrange(len(perm)) ] )
@@ -7591,46 +7593,54 @@ class GenericGraph(SageObject):
             return False, None
         elif not possible:
             return False
+        self_vertices = self.vertices()
+        other_vertices = other.vertices()
         if edge_labels:
             if sorted(self.edge_labels()) != sorted(other.edge_labels()):
                 return False, None if certify else False
             else:
-                G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self.vertices()])
-                G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other.vertices()])
+                G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self_vertices])
+                self_vertices = sum(partition,[])
+                G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other_vertices])
                 partition2 = sum(partition2,[])
+                other_vertices = partition2
         elif self.has_multiple_edges():
-            G, partition = graph_isom_equivalent_non_multi_graph(self, [self.vertices()])
-            G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other.vertices()])
+            G, partition = graph_isom_equivalent_non_multi_graph(self, [self_vertices])
+            self_vertices = sum(partition,[])
+            G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other_vertices])
             partition2 = sum(partition2,[])
+            other_vertices = partition2
         else:
-            G = self; partition = [self.vertices()]
-            G2 = other; partition2 = other.vertices()
+            G = self; partition = [self_vertices]
+            G2 = other; partition2 = other_vertices
         if not hasattr(G._backend, '_cg'):
-            is_range = True
-            G_verts = partition[0] # will be sorted if it is a range
-            if len(partition) > 1 or G.num_verts() != len(G_verts):
-                is_range = False
-            else:
-                for j in xrange(G.num_verts()):
-                    if G_verts[j] != j:
-                        is_range = False; break
-            if is_range:
-                G = G.copy(implementation='c_graph')
-        if hasattr(G._backend, '_cg'):
+            G_to = {}
+            for i in xrange(len(self_vertices)):
+                G_to[self_vertices[i]] = i
+            H = Graph(len(self_vertices), implementation='c_graph', loops=G.allows_loops())
+            HB = H._backend
+            for u,v in G.edge_iterator(labels=False):
+                u = G_to[u]; v = G_to[v]
+                HB.add_edge(u,v,None,G._directed)
+            G = HB._cg
+            partition = [[G_to[v] for v in cell] for cell in partition]
+        else:
             G = G._backend._cg
+            G_to = self_vertices
         if not hasattr(G2._backend, '_cg'):
-            is_range = True
-            G2_verts = partition2 # will be sorted if it is a range
-            if G2.num_verts() != len(G2_verts):
-                is_range = False
-            else:
-                for j in xrange(G2.num_verts()):
-                    if G2_verts[j] != j:
-                        is_range = False; break
-            if is_range:
-                G2 = G2.copy(implementation='c_graph')
-        if hasattr(G2._backend, '_cg'):
+            G2_to = {}
+            for i in xrange(len(other_vertices)):
+                G2_to[other_vertices[i]] = i
+            H2 = Graph(len(other_vertices), implementation='c_graph', loops=G2.allows_loops())
+            H2B = H2._backend
+            for u,v in G2.edge_iterator(labels=False):
+                u = G2_to[u]; v = G2_to[v]
+                H2B.add_edge(u,v,None,G2._directed)
+            G2 = H2B._cg
+            partition2 = [G2_to[v] for v in partition2]
+        else:
             G2 = G2._backend._cg
+            G2_to = other_vertices
         isom = isomorphic(G, G2, partition, partition2, (self._directed or self.has_loops()), 1)
         if not isom and certify:
             return False, None
@@ -7639,7 +7649,10 @@ class GenericGraph(SageObject):
         elif not certify:
             return True
         else:
-            return True, isom
+            isom_trans = {}
+            for v in isom:
+                isom_trans[self_vertices[v]] = G2_to[isom[v]]
+            return True, isom_trans
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """

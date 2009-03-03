@@ -8,17 +8,8 @@ from subprocess import *
 from optparse import OptionParser
 import ConfigParser
 
-##############################################################################
-# Configuration file handling
-
-# TODO: this is probably not needed anymore with sage 3.1.3
-# where this script can be called via sage -combinat ...
-
-config_file = os.path.expanduser('~/.sage-combinat.cfg')
-config = ConfigParser.SafeConfigParser([])
-config.read([config_file])
-if config.has_option("sage", "command"):
-    sage = config.get("sage", "command")
+if "SAGE_ROOT" in os.environ:
+    sage = os.environ["SAGE_ROOT"]+"/sage"
 else:
     sage = "sage"
 
@@ -43,13 +34,6 @@ def set_sage_command(option, opt, value, parser):
     if sage == value:
         return
     setattr(parser.values, option.dest, value)
-    if not config.has_section("sage"):
-        config.add_section("sage")
-    config.set("sage", "command", value)
-    try:
-        config.write(open(config_file, "w"))
-    except IOError, e:
-        print >> stderr, "Warning: could not write configuration file: "+str(e)
 
 parser.add_option("--sage", action = "callback", callback = set_sage_command,
                   help="Specify and store the sage command line",
@@ -187,7 +171,7 @@ def check_for_no_diff(check_patch_queue=True):
             info("Use option --force to proceed anyway")
             exit(1)
 
-def qselect_backward_compatibility_patches(guards):
+def qselect_backward_compatibility_patches(guards = []):
     global sage_version, options
     r"""
     Selects the appropriate guards for this version of sage
@@ -299,7 +283,6 @@ if args[0] == "config":
     info("sage version:                "+sage_version)
     info("sage-combinat branch:        "+branch)
     info("sage-combinat server:        "+options.server)
-    info("sage-combinat config file:   "+config_file)
     info("")
     info("sage root:                   "+sage_root)
     info("sage-combinat root:          "+sage_combinat_root)

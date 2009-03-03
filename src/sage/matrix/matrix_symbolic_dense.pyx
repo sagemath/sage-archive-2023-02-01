@@ -795,6 +795,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [sin + cos         0]
             [        0 sin + cos]
             sage: h(1)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             [sin(1) + cos(1)               0]
             [              0 sin(1) + cos(1)]
             sage: h(x)
@@ -802,6 +804,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [              0 sin(x) + cos(x)]
             sage: h = 3*M(sin)
             sage: h(1)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             [3*sin(1)        0]
             [       0 3*sin(1)]
             sage: h(x)
@@ -812,8 +815,31 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [sin(1) + 1          0]
             [         0 sin(1) + 1]
             sage: M(x+sin)(5)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             [sin(5) + 5          0]
             [         0 sin(5) + 5]
+
+            sage: h = M((sin(x)+cos(x)).function(x))
+            sage: h
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+            sage: h(1)
+            [sin(1) + cos(1)               0]
+            [              0 sin(1) + cos(1)]
+            sage: h(x)
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+
+            sage: h = M(sin(x)+cos(x))
+            sage: h
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+            sage: h(x=1)
+            [sin(1) + cos(1)               0]
+            [              0 sin(1) + cos(1)]
+            sage: h(x=x)
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
 
             sage: f = M([0,x,y,z]); f
             [0 x]
@@ -870,6 +896,10 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
                     new_entries.append(entry)
         else:
             #Handle the case where args are specified
+
+            if args:
+                from sage.misc.misc import deprecation
+                deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
 
             #Get all the variables
             variables = list( self.arguments() )

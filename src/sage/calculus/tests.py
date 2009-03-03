@@ -73,8 +73,8 @@ simplified version using ASCII art::
 We check a statement made at the beginning of Friedlander and
 Joshi's book on Distributions::
 
-    sage: f = sin(x^2)
-    sage: g = cos(x) + x^3
+    sage: f(x) = sin(x^2)
+    sage: g(x) = cos(x) + x^3
     sage: u = f(x+t) + g(x-t)
     sage: u
     sin((x + t)^2) + cos(x - t) + (x - t)^3

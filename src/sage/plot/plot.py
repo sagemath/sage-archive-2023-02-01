@@ -180,7 +180,7 @@ are labeled, so this is really a bad example::
 
 An illustration of integration::
 
-    sage: f = (x-3)*(x-5)*(x-7)+40
+    sage: f(x) = (x-3)*(x-5)*(x-7)+40
     sage: P = line([(2,0),(2,f(2))], rgbcolor=(0,0,0))
     sage: P += line([(8,0),(8,f(8))], rgbcolor=(0,0,0))
     sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8))
@@ -1194,7 +1194,7 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
-            ...             (-2,2), (-2,2), plot_points=1000)
+            ...             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=[[1,0],[-1,0,1]])
 
         Add grid lines at specific positions (using iterators).
@@ -1239,7 +1239,7 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
-            ...             (-2,2), (-2,2), plot_points=1000)
+            ...             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=(
             ...    [
             ...     (1,{"color":"red","linestyle":":"}),
@@ -1258,7 +1258,7 @@ class Graphics(SageObject):
         ::
 
             sage: f = sin(x^2 + y^2)*cos(x)*sin(y)
-            sage: c = contour_plot(f, (-4, 4), (-4, 4), plot_points=100)
+            sage: c = contour_plot(f, (x, -4, 4), (y, -4, 4), plot_points=100)
             sage: c.show(gridlines=True, gridlinesstyle={'linestyle':':','linewidth':1, 'rgbcolor':'red'})
 
         Grid lines can be added to matrix plots.
@@ -1973,7 +1973,7 @@ def plot(funcs, *args, **kwds):
 def _plot(funcs, xrange, parametric=False,
               polar=False, fill=None, label='', randomize=True, **options):
     if not is_fast_float(funcs):
-        funcs =  fast_float(funcs)
+        funcs =  fast_float(funcs, expect_one_var=True)
 
     #parametric_plot will be a list or tuple of two functions (f,g)
     #and will plotted as (f(x), g(x)) for all x in the given range
@@ -2057,7 +2057,7 @@ def _plot(funcs, xrange, parametric=False,
                     msg = "WARNING: You use the built-in function %s for filling. You probably wanted the string '%s'." % (fstr, fstr)
                     sage.misc.misc.verbose(msg, level=0)
                 if not is_fast_float(fill):
-                    fill_f = fast_float(fill)
+                    fill_f = fast_float(fill, expect_one_var=True)
                 else:
                     fill_f = fill
 
@@ -2923,7 +2923,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     points::
 
         sage: x = var('x')
-        sage: f = sin(1/x)
+        sage: f(x) = sin(1/x)
         sage: n1 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_tolerance=0.01)); n1
         15
         sage: n2 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_recursion=10, adaptive_tolerance=0.01)); n2
@@ -2989,7 +2989,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         sage: generate_plot_points(sin, (0, pi), plot_points=2, adaptive_recursion=0)
         [(0.0, 0.0), (3.1415926535897931, 1.2246...e-16)]
 
-        sage: generate_plot_points(sin(x), (-pi, pi), randomize=False)
+        sage: generate_plot_points(sin(x).function(x), (-pi, pi), randomize=False)
         [(-3.1415926535897931, -1.2246...e-16), (-2.748893571891069,
         -0.3826834323650898...), (-2.3561944901923448, -0.707106781186547...),
         (-2.1598449493429825, -0.831469612302545...), (-1.9634954084936207,
@@ -3011,7 +3011,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     adaptive_recursion both increase the number of subdivision points::
 
         sage: x = var('x')
-        sage: f = sin(1/x)
+        sage: f(x) = sin(1/x)
         sage: [len(generate_plot_points(f, (-pi, pi), adaptive_tolerance=i)) for i in [0.01, 0.001, 0.0001]]
         [42, 67, 104]
 

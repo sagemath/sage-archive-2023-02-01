@@ -41,7 +41,7 @@ class PlotField(GraphicPrimitive):
 
         EXAMPLES:
             sage: x,y = var('x,y')
-            sage: d = plot_vector_field((.01*x,x+y), (10,20), (10,20))[0].get_minmax_data()
+            sage: d = plot_vector_field((.01*x,x+y), (x,10,20), (y,10,20))[0].get_minmax_data()
             sage: d['xmin']
             10.0
             sage: d['ymin']

@@ -37,7 +37,7 @@ class ContourPlot(GraphicPrimitive):
 
         EXAMPLES:
             sage: x,y = var('x,y')
-            sage: f = x^2 + y^2
+            sage: f(x,y) = x^2 + y^2
             sage: d = contour_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
             sage: d['xmin']
             3.0
@@ -124,25 +124,25 @@ def contour_plot(f, xrange, yrange, **options):
 
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: contour_plot(cos(x^2+y^2), (-4, 4), (-4, 4))
+        sage: contour_plot(cos(x^2+y^2), (x, -4, 4), (y, -4, 4))
 
 
     Here we change the ranges and add some options:
-        sage: contour_plot((x^2)*cos(x*y), (-10, 5), (-5, 5), fill=False, plot_points=100)
+        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=100)
 
 
     An even more complicated plot.
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (-4, 4), (-4, 4),plot_points=100)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=100)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
     variables x,y.
         sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
-        sage: contour_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
 
 
     We can play with the contour levels.
-        sage: f = x^2 + y^2
+        sage: f(x,y) = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
@@ -183,7 +183,7 @@ def implicit_plot(f, xrange, yrange, **options):
     A simple circle with a radius of 2:
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2+y^2-2, (-3,3), (-3,3)).show(aspect_ratio=1)
+        sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
 
     We can define a level-$n$ approximation of the boundary of the
     Mandelbrot set.
@@ -233,28 +233,28 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: region_plot(cos(x^2+y^2) <= 0, (-3, 3), (-3, 3))
+        sage: region_plot(cos(x^2+y^2) <= 0, (x, -3, 3), (y, -3, 3))
 
     Here we play with the colors:
-        sage: region_plot(x^2+y^3 < 2, (-2, 2), (-2, 2), incol='lightblue', bordercol='gray')
+        sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
 
     An even more complicated plot:
-        sage: region_plot(sin(x)*sin(y) >= 1/4, (-10,10), (-10,10), incol='yellow', bordercol='black', plot_points=100)
+        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=100)
 
     A plot with more than one condition:
-        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2))
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
     Since it doesn't look very good, let's increase plot_points:
-        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2), plot_points=400).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1) #long time
 
     Here is anoher plot:
-        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
     If we want to keep only the region where x is positive:
-        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
     Here we have a cut circle:
-        sage: region_plot([x^2+y^2<4, x>-1], (-2, 2), (-2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
     """
 
     from sage.plot.plot import Graphics, setup_for_eval_on_grid

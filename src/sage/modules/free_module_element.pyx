@@ -1500,7 +1500,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         EXAMPLES::
 
             sage: m = vector([1,x,sin(x+1)])
-            sage: m.apply_map(x^2)
+            sage: m.apply_map(lambda x: x^2)
             (1, x^2, sin(x + 1)^2)
             sage: m.apply_map(sin)
             (sin(1), sin(x), sin(sin(x + 1)))

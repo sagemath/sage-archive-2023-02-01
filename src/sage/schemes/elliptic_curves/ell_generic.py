@@ -387,6 +387,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                                   - sqrt(4 x  - 4 x  - 40 x - 79) - 1
                                   -----------------------------------
                                                    2
+            sage: v = v.function(x)
             sage: v(3)
             (-sqrt(127)*I - 1)/2
             sage: v(7)

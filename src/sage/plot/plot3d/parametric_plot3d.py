@@ -447,13 +447,13 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
     From Trac #2858::
 
-        sage: parametric_plot3d((u,-u,v), (-10,10),(-10,10))
+        sage: parametric_plot3d((u,-u,v), (u,-10,10),(v,-10,10))
         sage: f(u)=u; g(v)=v^2; parametric_plot3d((g,f,f), (-10,10),(-10,10))
 
     From Trac #5368::
 
         sage: x, y = var('x,y')
-        sage: plot3d(x*y^2 - sin(x), (-1,1), (-1,1))
+        sage: plot3d(x*y^2 - sin(x), (x,-1,1), (y,-1,1))
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -614,6 +614,9 @@ def adapt_to_callable(f, nargs=None):
             # Otherwise any free variable names in any order
             try:
                 vars = tuple(sorted(set(sum( [z.variables() for z in f], ()) )))
+                if len(vars) > 1:
+                    from sage.misc.misc import deprecation
+                    deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             except AttributeError:
                 vars = ()
                 f = [fast_float_constant(x) for x in f]

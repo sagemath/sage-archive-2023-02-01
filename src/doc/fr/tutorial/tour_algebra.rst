@@ -133,9 +133,10 @@ ordinaires. Pour résoudre l'équation :math:`x'+x-1=0`:
 ::
 
     sage: t = var('t')    # define a variable t
-    sage: x = function('x',t)   # define x to be a function of that variable
+    sage: function('x',t)   # define x to be a function of that variable
+    x(t)
     sage: DE = lambda y: diff(y,t) + y - 1
-    sage: desolve(DE(x(t)), [x,t])
+    sage: desolve(DE(x(t)), [x(t),t])
     e^(-t)*(e^t + c)
 
 Ceci utilise l'interface de Sage vers Maxima [Max]_, aussi il se peut

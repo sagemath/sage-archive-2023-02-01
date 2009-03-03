@@ -210,8 +210,8 @@ where :math:`f` is a piecewise defined function, can
 
 ::
 
-    sage: f1 = x^2
-    sage: f2 = 5-x^2
+    sage: f1(x) = x^2
+    sage: f2(x) = 5-x^2
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
     sage: f.trapezoid(4)
     Piecewise defined function with 4 parts, [[(0, 1/2), x/2],

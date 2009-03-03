@@ -42,7 +42,7 @@ class DensityPlot(GraphicPrimitive):
 
         EXAMPLES:
             sage: x,y = var('x,y')
-            sage: f = x^2 + y^2
+            sage: f(x, y) = x^2 + y^2
             sage: d = density_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
             sage: d['xmin']
             3.0
@@ -107,22 +107,22 @@ def density_plot(f, xrange, yrange, **options):
     EXAMPLES:
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: density_plot(sin(x)*sin(y), (-2, 2), (-2, 2))
+        sage: density_plot(sin(x)*sin(y), (x, -2, 2), (y, -2, 2))
 
 
     Here we change the ranges and add some options:
-        sage: density_plot((x^2)*cos(x*y), (-10, 5), (-5, 5), interpolation='sinc', plot_points=100)
+        sage: density_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), interpolation='sinc', plot_points=100)
 
 
     An even more complicated plot.
-        sage: density_plot(sin(x^2 + y^2)*cos(x)*sin(y), (-4, 4), (-4, 4), cmap='jet', plot_points=100)
+        sage: density_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4), cmap='jet', plot_points=100)
 
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
     variables x,y.
         sage: density_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
-        sage: density_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
+        sage: density_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])

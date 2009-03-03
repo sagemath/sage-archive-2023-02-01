@@ -295,7 +295,8 @@ from sage.rings.integer_ring import ZZ
 include "stdsage.pxi"
 
 def fast_callable(x, domain=None, vars=None,
-                  _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False):
+                  _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,
+                  expect_one_var=False):
     r"""
     Given an expression x, compiles it into a form that can be quickly
     evaluated, given values for the variables in x.
@@ -313,7 +314,8 @@ def fast_callable(x, domain=None, vars=None,
 
     If vars is None and x is a polynomial, then we will use the
     generators of parent(x) as the variables; otherwise, vars must be
-    specified.
+    specified (unless x is a symbolic expression with only one variable,
+    and expect_one_var is True, in which case we will use that variable).
 
     EXAMPLES:
         sage: var('x')
@@ -377,15 +379,29 @@ def fast_callable(x, domain=None, vars=None,
         vars = et._etb._vars
     else:
         if vars is None or len(vars) == 0:
-            from sage.calculus.calculus import SR
-            if x.parent() is SR and not _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
-                raise ValueError, "List of variables must be specified for symbolic expressions"
-            vars = x.variables()
+            from sage.calculus.calculus import SR, PrimitiveFunction, CallableSymbolicExpression
             # XXX This is pretty gross... there should be a "callable_variables"
             # method that does all this.
-            from sage.rings.all import is_PolynomialRing, is_MPolynomialRing
+            vars = x.variables()
             if x.parent() is SR and x.number_of_arguments() > len(vars):
                 vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
+
+            # Failing to specify the variables is deprecated for any
+            # symbolic expression, except for PrimitiveFunction and
+            # CallableSymbolicExpression.
+            ok_sr = isinstance(x, PrimitiveFunction) or isinstance(x, CallableSymbolicExpression)
+
+            if x.parent() is SR and not ok_sr:
+                if expect_one_var and len(vars) <= 1:
+                    if len(vars) == 0:
+                        vars = ['EXTRA_VAR0']
+                else:
+                    if _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
+                        from sage.misc.misc import deprecation
+                        deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+                    else:
+                        raise ValueError, "List of variables must be specified for symbolic expressions"
+            from sage.rings.all import is_PolynomialRing, is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)

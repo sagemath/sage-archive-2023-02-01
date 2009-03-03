@@ -219,8 +219,15 @@ class SymbolicEquation(SageObject):
             y
             sage: eqn = x^3 < sin(y)
             sage: eqn(2)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            8 < sin(y)
+            sage: eqn(x=2)
             8 < sin(y)
             sage: eqn(2,3)
+            8 < sin(3)
+            sage: eqn(x=2,y=3)
             8 < sin(3)
             sage: eqn = x^3 < 2
             sage: eqn(2)
@@ -1001,8 +1008,9 @@ class SymbolicEquation(SageObject):
         EXAMPLES::
 
             sage: (x == sin(x)).find_root(-2,2)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             0.0
-            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2)
+            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2,x)
             -0.63283452024215225
             sage: (cos(x) == sin(x)).find_root(10,20)
             19.634954084936208

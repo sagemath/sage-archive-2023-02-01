@@ -1298,7 +1298,7 @@ def fast_float_func(f, *args):
 
 new_fast_float=True
 
-def fast_float(f, *vars, old=None):
+def fast_float(f, *vars, old=None, expect_one_var=False):
     """
     Tries to create a function that evaluates f quickly using
     floating-point numbers, if possible.  There are two implementations
@@ -1311,6 +1311,8 @@ def fast_float(f, *vars, old=None):
         f    -- an expression
         vars -- the names of the arguments
         old  -- use the original algorithm for fast_float
+        expect_one_var -- don't give deprecation warning if vars is
+                          omitted, as long as expression has only one var
 
     EXAMPLES:
         sage: from sage.ext.fast_eval import fast_float
@@ -1332,7 +1334,7 @@ def fast_float(f, *vars, old=None):
         old = not new_fast_float
 
     if isinstance(f, (tuple, list)):
-        return tuple([fast_float(x, *vars) for x in f])
+        return tuple([fast_float(x, *vars, expect_one_var=expect_one_var) for x in f])
 
     cdef int i
     for i from 0 <= i < len(vars):
@@ -1347,7 +1349,7 @@ def fast_float(f, *vars, old=None):
         if old:
             return f._fast_float_(*vars)
         else:
-            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True)
+            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True, expect_one_var=expect_one_var)
     except AttributeError:
         pass
 

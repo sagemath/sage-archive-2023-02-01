@@ -1,0 +1,23 @@
+--- ARC2.c.orig	2009-03-02 16:00:26.000000000 -0800
++++ ARC2.c	2009-03-02 16:02:33.000000000 -0800
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include <string.h>  
++#include "Python.h"
+ 
+ #define MODULE_NAME ARC2
+ #define BLOCK_SIZE 8
+@@ -146,6 +147,12 @@
+ 	   We'll hardwire it to 1024. */
+ #define bits 1024
+ 
++	if ((U32)keylength > sizeof(self->xkey)) {
++		PyErr_SetString(PyExc_ValueError,
++				"ARC2 key length must be less than 128 bytes");
++		return;
++	}
++
+ 	memcpy(self->xkey, key, keylength);
+   
+ 	/* Phase 1: Expand input key to 128 bytes */

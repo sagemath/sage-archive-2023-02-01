@@ -15,6 +15,10 @@ fi
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
 export CFLAGS
 
+# http://www.securityfocus.com/bid/33674/info
+echo "patching ARC2.c for a security problem"
+cp patches/ARC2.c src/src/ARC2.c
+
 cd src
 
 python setup.py install

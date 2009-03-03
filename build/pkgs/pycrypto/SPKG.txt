@@ -2,6 +2,9 @@ FIXME
 
 == Releases ==
 
+=== pycrypto-2.0.1.p3 (Michael Abshoff, March 2nd, 2009) ===
+ * Apply security fix from http://www.securityfocus.com/bid/33674/info
+
 === pycrypto-2.0.1.p2 (Michael Abshoff, May 18th, 2008) ===
  * Add 64 bit OSX build support
 

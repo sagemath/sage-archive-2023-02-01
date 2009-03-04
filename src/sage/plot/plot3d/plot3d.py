@@ -174,7 +174,8 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
     """
     if len(urange) == 2:
         try:
-            f, (u,v) = parametric_plot3d.adapt_to_callable(f, 2)
+            f_list, (u,v) = parametric_plot3d.adapt_to_callable([f], 2)
+            f = f_list[0]
             w = (u, v, f)
             urange = (u, urange[0], urange[1])
             vrange = (v, vrange[0], vrange[1])

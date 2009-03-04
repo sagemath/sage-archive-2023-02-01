@@ -449,6 +449,11 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
         sage: parametric_plot3d((u,-u,v), (-10,10),(-10,10))
         sage: f(u)=u; g(v)=v^2; parametric_plot3d((g,f,f), (-10,10),(-10,10))
+
+    From Trac #5368::
+
+        sage: x, y = var('x,y')
+        sage: plot3d(x*y^2 - sin(x), (-1,1), (-1,1))
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -587,19 +592,18 @@ def adapt_if_symbolic(f):
 
 def adapt_to_callable(f, nargs=None):
     """
-    Tries to make f into a (fast) callable function, returning f and
-    the expected arguments.
+    Tries to make every function in f into a (fast) callable
+    function, returning a new list of functions and the expected
+    arguments.
 
     INPUT:
 
+    - ``f`` -- a list of functions; these can be symbolic expressions,
+            polynomials, etc
 
-    -  ``f`` - a symbolic expression, polynomial, etc.
+    -  ``nargs`` -- number of input args to have in the output functions
 
-    -  ``nargs`` - number of input args to have in the
-       output function
-
-
-    OUTPUT: function, expected arguments
+    OUTPUT: functions, expected arguments
     """
     try:
         if sum([sage.calculus.calculus.is_CallableSymbolicExpression(z) for z in f]):

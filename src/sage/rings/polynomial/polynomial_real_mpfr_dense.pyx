@@ -246,11 +246,18 @@ cdef class PolynomialRealDense(Polynomial):
             3.00000000000000*x + 2.00000000000000
             sage: f.shift(-10)
             0
+
+        TESTS:
+            sage: f = RR['x'](0)
+            sage: f.shift(3).is_zero()
+            True
+            sage: f.shift(-3).is_zero()
+            True
         """
         cdef Py_ssize_t i
         cdef Py_ssize_t nn = 0 if n < 0 else n
         cdef PolynomialRealDense f
-        if n == 0:
+        if n == 0 or self._degree < 0:
             return self
         elif self._degree < -n:
             return self._new(-1)

@@ -257,10 +257,18 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             sage: p.shift(2)
              x^4 + 2*x^3 + 4*x^2
 
+        TESTS::
+
+            sage: p = R(0)
+            sage: p.shift(3).is_zero()
+            True
+            sage: p.shift(-3).is_zero()
+            True
+
         AUTHOR:
             -- David Harvey (2006-08-06)
         """
-        if n == 0:
+        if n == 0 or self.degree() < 0:
             return self
 ##        self._ntl_set_modulus()
         return self.parent()(self.__poly.left_shift(n),
@@ -901,6 +909,15 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x^6 + 1
             sage: f.shift(10).shift(-10) == f
             True
+
+        TESTS::
+
+            sage: p = R(0)
+            sage: p.shift(3).is_zero()
+            True
+            sage: p.shift(-3).is_zero()
+            True
+
         """
         return self << n
 
@@ -1415,6 +1432,15 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             x^6 + 1
             sage: f.shift(10).shift(-10) == f
             True
+
+        TESTS::
+
+            sage: p = R(0)
+            sage: p.shift(3).is_zero()
+            True
+            sage: p.shift(-3).is_zero()
+            True
+
         """
         return self << n
 

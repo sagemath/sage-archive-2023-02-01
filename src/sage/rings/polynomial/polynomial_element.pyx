@@ -4439,7 +4439,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'w'),'x')
+            sage: R.<x> = QQ[]
             sage: p = x^2 + 2*x + 4
             sage: p.shift(0)
              x^2 + 2*x + 4
@@ -4458,6 +4458,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f << 2
             x^5 + x^3
 
+        TESTS::
+
+            sage: p = R(0)
+            sage: p.shift(3).is_zero()
+            True
+            sage: p.shift(-3).is_zero()
+            True
+
         AUTHORS:
 
         - David Harvey (2006-08-06)
@@ -4465,7 +4473,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - Robert Bradshaw (2007-04-18): Added support for infix
           operator.
         """
-        if n == 0:
+        if n == 0 or self.degree() < 0:
             return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring()(0)] * n
@@ -4771,7 +4779,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: R.<x> = QQ['a,b']['x']
             sage: f = x^3-x
             sage: loads(dumps(f)) == f
@@ -5070,11 +5079,19 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: p.shift(2)
              x^4 + 2*x^3 + 4*x^2
 
+        TESTS::
+
+            sage: p = R(0)
+            sage: p.shift(3).is_zero()
+            True
+            sage: p.shift(-3).is_zero()
+            True
+
         AUTHORS:
 
         - David Harvey (2006-08-06)
         """
-        if n == 0:
+        if n == 0 or self.degree() < 0:
             return self
         if n > 0:
             output = [self.base_ring()(0)] * n

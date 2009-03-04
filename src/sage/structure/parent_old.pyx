@@ -595,13 +595,16 @@ cdef class Parent(parent.Parent):
 
     cpdef _generic_convert_map(self, S):
         if self._element_constructor is None:
-            from sage.categories.morphism import CallMorphism
-            from sage.categories.homset import Hom
-            if PY_TYPE_CHECK(S, type):
-                S = Set_PythonType(S)
-            return CallMorphism(Hom(S, self))
-        else:
-            return parent.Parent._generic_convert_map(self, S)
+            if hasattr(self, '_element_constructor_'):
+                assert callable(self._element_constructor_)
+                self._element_constructor = self._element_constructor_
+            else:
+                from sage.categories.morphism import CallMorphism
+                from sage.categories.homset import Hom
+                if PY_TYPE_CHECK(S, type):
+                    S = Set_PythonType(S)
+                return CallMorphism(Hom(S, self))
+        return parent.Parent._generic_convert_map(self, S)
 
 
 ############################################################################

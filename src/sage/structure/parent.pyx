@@ -260,7 +260,12 @@ cdef class Parent(category_object.CategoryObject):
         possible if so desired.
         """
         if self._element_constructor is None:
-            raise NotImplementedError
+            # Neither __init__ nor _populate_coercion_lists_ have been called...
+            try:
+                assert callable(self._element_constructor_)
+                self._element_constructor = self._element_constructor_
+            except (AttributeError, AssertionError):
+                raise NotImplementedError
         cdef Py_ssize_t i
         cdef R = parent_c(x)
         cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0

@@ -276,9 +276,9 @@ for gr in range(0,numglobaliteration):
         with open(time_file_name) as time_file:
             time_dict = pickle.load(time_file)
         if opts.count("-long"):
-            print "Using long cached timings."
+            print "Using long cached timings to run longest doctests first."
         else:
-            print "Using cached timings."
+            print "Using cached timings to run longest doctests first."
     except:
         time_dict = { }
         if opts.count("-long"):

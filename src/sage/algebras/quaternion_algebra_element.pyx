@@ -227,7 +227,6 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-
     cdef int _cmp_c_impl(self, sage.structure.element.Element right) except -2:
         """
         Comparing elements.
@@ -257,7 +256,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
     cpdef conjugate(self):
         """
-        Return the conjugate of this quaternion.
+        Return the conjugate of the quaternion: if theta = x + y*i + z*j + w*k, return
+        x - y*i - z*j - w*k = theta.reduced_trace() - theta.
 
         EXAMPLES::
 
@@ -268,40 +268,41 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: a.conjugate()
             2 - 3*i + j
 
-        A generic test::
+        The ``universal'' test::
 
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a.conjugate()
-            x + (-2*x)*i + (-3)*j + (-x + 2)*k
+            sage: K.<x,y,z,w,a,b> = QQ[]
+            sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
+            sage: theta = x+y*i+z*j+w*k
+            sage: theta.conjugate()
+            x + (-y)*i + (-z)*j + (-w)*k
         """
         return self.__class__(self._parent, (self[0], -self[1], -self[2], -self[3]))
 
     cpdef reduced_trace(self):
         """
-        Return the reduced trace of self, which is 2*x if self is x+i*y+z*j+w.
+        Return the reduced trace of self: if theta = x + i*y + z*j + w*k, then theta has
+        reduced trace 2*x.
 
         EXAMPLES::
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a.reduced_trace()
+            sage: K.<x,y,z,w,a,b> = QQ[]
+            sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
+            sage: theta = x+y*i+z*j+w*k
+            sage: theta.reduced_trace()
             2*x
         """
         return 2*self[0]
 
     cpdef reduced_norm(self):
         """
-        Return the reduced norm of self. Given a quaternion
-        x+i*y+z*j+w, this is x^2 - y^2*a - z^2*b + w^2*a*b.
+        Return the reduced norm of self: if theta = x + i*y + z*j + w*k, then theta has
+        reduced norm x^2 - a*y^2 - b*z^2 + a*b*w^2.
 
         EXAMPLES::
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a.reduced_norm()
-            2*x^4 - 12*x^3 + 9*x^2 - 18*x
+            sage: K.<x,y,z,w,a,b> = QQ[]
+            sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
+            sage: theta = x+y*i+z*j+w*k
+            sage: theta.reduced_norm()
+            w^2*a*b - y^2*a - z^2*b + x^2
         """
         a,b,x,y,z,w = self._parent._a,self._parent._b,self[0],self[1],self[2],self[3]
         return w*w*a*b - y*y*a - z*z*b + x*x
@@ -313,35 +314,34 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         EXAMPLES::
 
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-7,-13)
-            sage: a = 1/3 - 2/3*i + 4/19*j - 17/3*k
-            sage: (1/a) * a
+            sage: theta = 1/3 - 2/3*i + 4/19*j - 17/3*k
+            sage: (1/theta) * theta
             1
-            sage: type(a)
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
+            sage: 1/Q(0)
+            ...
+            ZeroDivisionError: rational division by zero
 
         Note that the quaternion algebra need not be a division
         algebra, in which case we can get a ZeroDivisionException::
 
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,4,9)
-            sage: a = 2-i
-            sage: a.reduced_norm()
+            sage: theta = 2-i
+            sage: theta.reduced_norm()
             0
-            sage: 1/a
+            sage: 1/theta
             Traceback (most recent call last):
             ...
             ZeroDivisionError: rational division by zero
 
-        A test with a generic type:
-            sage: Q.<i,j,k> = QuaternionAlgebra(Frac(QQ['x,y']),4,9)
-            sage: a = 1/3 - 2/3*i + 4/19*j - 17/3*k
-            sage: (1/a) * a
-            1
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: 1/(2-i)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: Cannot invert 0
+        The ``universal`` test:
+
+            sage: K.<x,y,z,w,a,b> = QQ[]
+            sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
+            sage: theta = x+y*i+z*j+w*k
+            sage: 1/theta == theta.conjugate()/theta.reduced_norm()
+            True
         """
         return self.reduced_norm().__invert__() * self.conjugate()
 
@@ -350,12 +350,13 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         Return quotient of self by right.
 
         EXAMPLES::
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
+            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x);
+            sage: theta = x + 2*x*i + 3*j + (x-2)*k
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a._div_(a)   # funny reduced form of Frac(QQ['x'])...
+            sage: theta._div_(theta)   # funny reduced form of Frac(QQ['x'])...
             64/64
-            sage: a._div_(a) == 1
+            sage: theta._div_(theta) == 1
             True
         """
         return self * right.__invert__()
@@ -367,8 +368,8 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
     We test pickling::
 
         sage: R.<x> = Frac(QQ['x']); Q.<i,j,k> = QuaternionAlgebra(R,-5*x,-2)
-        sage: a = x + i*x^3 + j*x^2 + k*x
-        sage: a == loads(dumps(a))
+        sage: theta = x + i*x^3 + j*x^2 + k*x
+        sage: theta == loads(dumps(theta))
         True
     """
     def __init__(self, parent, v):
@@ -389,10 +390,10 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         EXAMPLES::
 
             sage: Q.<i,j,k> = QuaternionAlgebra(Frac(QQ['x']),-5,-2)
-            sage: a = 1/2 + 2/3*i - 3/4*j + 5/7*k
-            sage: type(a)
+            sage: theta = 1/2 + 2/3*i - 3/4*j + 5/7*k
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: list(a)
+            sage: list(theta)
             [1/2, 2/3, -3/4, 5/7]
         """
         if i == 0:
@@ -412,10 +413,10 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
 
         TESTS::
             sage: K.<x> = Frac(QQ['x']); Q.<i,j,k> = QuaternionAlgebra(K,-5,-2)
-            sage: a = 1/x + x*i - (x+1)*j + 2/(3*x^3+5)*k
-            sage: loads(dumps(a)) == a
+            sage: theta = 1/x + x*i - (x+1)*j + 2/(3*x^3+5)*k
+            sage: loads(dumps(theta)) == theta
             True
-            sage: type(a)
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
         """
         return (unpickle_QuaternionAlgebraElement_generic_v0,
@@ -499,10 +500,10 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         EXAMPLES::
 
             sage: K.<x> = Frac(QQ['x']); Q.<i,j,k> = QuaternionAlgebra(K,-5,-2)
-            sage: a = 1/x + x*i - (x+1)*j + 2/(3*x^3+5)*k
-            sage: type(a)
+            sage: theta = 1/x + x*i - (x+1)*j + 2/(3*x^3+5)*k
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a._repr_()
+            sage: theta._repr_()
             '1/x + x*i + (-x - 1)*j + (2/(3*x^3 + 5))*k'
         """
         return self._do_print(self.x, self.y, self.z, self.w)
@@ -525,7 +526,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
     # A Quaternion algebra element (call it a) over Q are implemented as a 4-tuple of
     # integers x, y, z, w and a demoninator d, all of type mpz_t, such that
     #
-    #           a = (1/d) * (x + y * i + z * j + w * k)
+    #           theta = (1/d) * (x + y * i + z * j + w * k)
     #
     # (although different letters may be specified instead of i, j, and k, if desired).
     #
@@ -624,10 +625,10 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         TESTS::
 
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-5,-2)
-            sage: a = 1/2 + 2/3*i - 3/4*j + 5/7*k
-            sage: type(a)
+            sage: theta = 1/2 + 2/3*i - 3/4*j + 5/7*k
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
-            sage: list(a)
+            sage: list(theta)
             [1/2, 2/3, -3/4, 5/7]
         """
         cdef Rational r = Rational()
@@ -653,10 +654,10 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
             sage: K.<x> = QQ[]
             sage: Q.<i,j,k> = QuaternionAlgebra(Frac(K),-5,-19)
-            sage: a = 1/2 + 2/3*i - 3/4*j + 5/7*k
-            sage: type(a)
+            sage: theta = 1/2 + 2/3*i - 3/4*j + 5/7*k
+            sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: loads(dumps(a)) == a
+            sage: loads(dumps(theta)) == theta
             True
 
         """
@@ -675,12 +676,12 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
 
         #   Given two quaternion algebra elements
-        #       a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
-        #       b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #       theta = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #       nu = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
         #
         #   we compute their sum as
         #
-        #   (a + b) = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #   (theta + nu) = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
         #
         #   with    d3 = d1 * d2
         #           x3 = d1 * x2 + d2 * x1
@@ -760,9 +761,6 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         mpz_set(result.b, self.b)
         return result
 
-
-
-
     cpdef RingElement _mul_(self, RingElement _right):
         """
         EXAMPLES::
@@ -778,12 +776,12 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         #
         #    Given two quaternion algebra elements
         #
-        #        a = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
-        #        b = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
+        #        theta = (1/d1)*(x1 + y1 * i + z1 * j + w1 * k)
+        #        nu = (1/d2)*(x2 + y2 * i + z2 * j + w2 * k)
         #
         #    we compute their product as
         #
-        #    ab = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
+        #    theta*nu = (1/d3)*(x3 + y3 * i + z3 * j + w3 * k)
         #
         #    where
         #       x3 = t1 + a * t2 + b * (t3 - a*t4)

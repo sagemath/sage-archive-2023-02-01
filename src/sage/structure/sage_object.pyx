@@ -730,7 +730,7 @@ def unpickle_all(dir):
         # Now use the directory in the tarball instead of dir
         dir = T + "/" + os.listdir(T)[0]
 
-    for A in os.listdir(dir):
+    for A in sorted(os.listdir(dir)):
         if A.endswith('.sobj'):
             try:
                 load(dir + '/' + A)

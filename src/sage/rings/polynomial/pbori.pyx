@@ -145,7 +145,7 @@ library interfaces. An interface in PolyBoRi style is also provided
 which is effectively a reimplementation of the official Boost
 wrapper in Cython. This means that some functionality of the
 official wrapper might be missing from this wrapper and this
-wrapper might have bugs not present in the offical Python
+wrapper might have bugs not present in the official Python
 interface.
 
 Access to the original PolyBoRi interface
@@ -176,7 +176,7 @@ not obey Sage's naming convention. For instance,
 expects the function ``f.zerosIn``.
 
 Also, the interface provides functions for compatibility with Sage
-accepting convenient Sage datatypes which are slower than their
+accepting convenient Sage data types which are slower than their
 native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as
 ``BooleSet``\s (PolyBoRi) and naturally the second
@@ -1147,7 +1147,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _magma_init_(self, magma):
         r"""
-        Return a a string which when evaluated with Magma returns a Magma
+        Return a string which when evaluated with Magma returns a Magma
         representation of this boolean polynomial ring.
 
         INPUT:
@@ -1366,7 +1366,7 @@ def get_var_mapping(ring, other):
     Return a variable mapping between variables of
     ``other`` and ``ring``. When other is a
     parent object, the mapping defines images for all variables of
-    other. If it is an element, only variables occuring in other are
+    other. If it is an element, only variables occurring in other are
     mapped.
 
     Raises ``NameError`` if no such mapping is possible.
@@ -2325,7 +2325,7 @@ cdef class BooleanPolynomial(MPolynomial):
         .. note::
 
            Do not use this method to construct boolean polynomials,
-           but use the approriate ``__call__`` method in the parent.
+           but use the appropriate ``__call__`` method in the parent.
         """
         PBPoly_construct(&self._pbpoly)
         self._parent = <ParentWithBase>parent
@@ -3263,7 +3263,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def set(self):
         r"""
-        Return a ``BooleSet`` with all monomials apprearing in
+        Return a ``BooleSet`` with all monomials appearing in
         this polynomial.
 
         EXAMPLE::
@@ -4013,7 +4013,7 @@ cdef inline DD new_DD_from_PBDD(PBDD juice):
 cdef class BooleSet:
     def __init__(self, param=None, ring=None):
         r"""
-        Return a new set of boolan monomials. This data type is also
+        Return a new set of boolean monomials. This data type is also
         implemented on the top of ZDDs and allows to see polynomials from a
         different angle. Also, it makes high-level set operations possible,
         which are in most cases faster than operations handling individual

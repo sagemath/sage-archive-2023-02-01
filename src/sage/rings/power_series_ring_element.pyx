@@ -30,7 +30,7 @@ EXAMPLE::
     sage: g * f
     1 + O(x^4)
 
-In Python (as opposted to Sage) create the power series ring and
+In Python (as opposed to Sage) create the power series ring and
 its generator as follows::
 
     sage: R, x = objgen(PowerSeriesRing(ZZ, 'x'))
@@ -257,7 +257,7 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We can only change irng if there is a __call__ coercion
+        We can only change ring if there is a __call__ coercion
         defined. The following succeeds because ZZ(K(4)) is defined.
 
         ::
@@ -322,7 +322,7 @@ cdef class PowerSeries(AlgebraElement):
             y = y[:prec]
         return cmp(x,y)
 
-    def __call__(self, x):   # you *MUST* overrride this in the derived class
+    def __call__(self, x):   # you *MUST* override this in the derived class
         raise NotImplementedError
 
 
@@ -355,10 +355,10 @@ cdef class PowerSeries(AlgebraElement):
         l = self.list()
         return [i for i in range(len(l)) if l[i] != zero]
 
-    def list(self):          # you *MUST* overrride this in the derived class
+    def list(self):          # you *MUST* override this in the derived class
         raise NotImplementedError
 
-    def polynomial(self):          # you *MUST* overrride this in the derived class
+    def polynomial(self):          # you *MUST* override this in the derived class
         raise NotImplementedError
 
     def __copy__(self):
@@ -390,7 +390,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def padded_list(self, n):
         """
-        Return list of coefficients of self up to (but not including)
+        Return a list of coefficients of self up to (but not including)
         `q^n`.
 
         Includes 0's in the list on the right so that the list has length
@@ -441,7 +441,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def _repr_(self):
         """
-        Return string represenation of this power series.
+        Return string representation of this power series.
 
         EXAMPLES::
 
@@ -1006,7 +1006,7 @@ cdef class PowerSeries(AlgebraElement):
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
            powers of `t`, while left shifting increases
-           them. This is to be consistant with polynomials, integers,
+           them. This is to be consistent with polynomials, integers,
            etc.
 
         EXAMPLES::
@@ -1041,8 +1041,8 @@ cdef class PowerSeries(AlgebraElement):
         there is an element `y` in ``self.parent()``
         such that `y^2 = ``self```.
 
-        ALGORITHM: If the basering is a field, this is true whenever the
-        power series has even valuation and the leading coefficent is a
+        ALGORITHM: If the base ring is a field, this is true whenever the
+        power series has even valuation and the leading coefficient is a
         perfect square.
 
         For an integral domain, it attempts the square root in the
@@ -1508,7 +1508,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (1 + x + O(x^2)).exp()
             Traceback (most recent call last):
             ...
-            ArithmeticError: constant term of power series does not support exponentation
+            ArithmeticError: constant term of power series does not support exponentiation
         """
         if prec is None:
             prec = self._parent.default_prec()
@@ -1519,7 +1519,7 @@ cdef class PowerSeries(AlgebraElement):
             try:
                 C = self[0].exp()
             except AttributeError:
-                raise ArithmeticError, "constant term of power series does not support exponentation"
+                raise ArithmeticError, "constant term of power series does not support exponentiation"
 
             if C.parent() is not self.base_ring():
                 raise ArithmeticError, "exponential of constant term does not belong to coefficient ring (consider working in a larger ring)"

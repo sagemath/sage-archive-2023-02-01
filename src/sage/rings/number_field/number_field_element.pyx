@@ -1293,7 +1293,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             TypeError: An embedding into RR or CC must be specified.
 
-        Now a more compicated example::
+        Now a more complicated example::
 
             sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
             sage: b = SR(a); b
@@ -1942,7 +1942,7 @@ cdef class NumberFieldElement(FieldElement):
                 return self._matrix_over_base(base)
             else:
                 return self._matrix_over_base_morphism(base)
-        # Mutiply each power of field generator on
+        # Multiply each power of field generator on
         # the left by this element; make matrix
         # whose rows are the coefficients of the result,
         # and transpose.
@@ -2311,7 +2311,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES:
 
-        We compute the charpoly of the cube root of `2`.
+        We compute the characteristic polynomial of the cube root of `2`.
 
         ::
 
@@ -2352,7 +2352,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES:
 
-        We compute the charpoly of cube root of `2`.
+        We compute the characteristic polynomial of cube root of `2`.
 
         ::
 

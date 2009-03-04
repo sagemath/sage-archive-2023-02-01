@@ -118,7 +118,7 @@ def max_degree(list_of_polys):
 
 def _cone_parse(fan_dict_cone):
     """
-    Utility funtion that parses cone information into a dict indexed by
+    Utility function that parses cone information into a dict indexed by
     dimension.
 
     INPUT:
@@ -483,7 +483,7 @@ class GroebnerFan(SageObject):
 
     def __eq__(self,right):
         """
-        Tests equality of Groeber fan objects.
+        Tests equality of Groebner fan objects.
 
         EXAMPLES::
 
@@ -1236,7 +1236,7 @@ class GroebnerFan(SageObject):
 
     def interactive(self, *args, **kwds):
         """
-        See the documentation for self[0].interactive() This does not work
+        See the documentation for self[0].interactive(). This does not work
         with the notebook.
 
         EXAMPLES::

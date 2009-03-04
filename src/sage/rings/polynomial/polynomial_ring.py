@@ -449,7 +449,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) # optional - magma
             Univariate Polynomial Ring in x over Univariate Polynomial Ring in w over Integer Ring
 
-        Watch out, Magma has different semantics than Sage, i.e., in Magma
+        Watch out, Magma has different semantics from Sage, i.e., in Magma
         there is a unique univariate polynomial ring, and the variable name
         has no intrinsic meaning (it only impacts printing), so can't be
         reliably set because of caching.
@@ -645,7 +645,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""
-        Returns the list of variable names of this and its baserings, as if
+        Returns the list of variable names of this and its base rings, as if
         it were a single multi-variate polynomial.
 
         EXAMPLES::
@@ -669,7 +669,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def _mpoly_base_ring(self, variables=None):
         r"""
-        Returns the basering if this is viewed as a polynomial ring over
+        Returns the base ring if this is viewed as a polynomial ring over
         ``variables``. See also
         Polynomial._mpoly_dict_recursive
         """

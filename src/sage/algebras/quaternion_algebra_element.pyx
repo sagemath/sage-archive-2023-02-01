@@ -278,26 +278,9 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self.__class__(self._parent, (self[0], -self[1], -self[2], -self[3]))
 
-    cpdef trace(self):
+    cpdef reduced_trace(self):
         """
-        Return the *reduced* trace of this quaternion.
-
-        This is 2*x.
-
-        EXAMPLES::
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a.trace()
-            2*x
-        """
-        return 2*self[0]
-
-    def reduced_trace(self):
-        """
-        Return the reduced trace of self.
-
-        This is an alias for self.trace().
+        Return the reduced trace of self, which is 2*x if self is x+i*y+z*j+w.
 
         EXAMPLES::
             sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
@@ -306,30 +289,12 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: a.reduced_trace()
             2*x
         """
-        # do not overload this in a derived class!
-        return self.trace()
+        return 2*self[0]
 
-    cpdef norm(self):
+    cpdef reduced_norm(self):
         """
-        Return the *reduced* norm of this quaternion.
-
-        This is w^2*a*b - y^2*a - z^2*b + x^2.
-
-        EXAMPLES::
-            sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
-            sage: type(a)
-            <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
-            sage: a.norm()
-            2*x^4 - 12*x^3 + 9*x^2 - 18*x
-        """
-        a,b,x,y,z,w = self._parent._a,self._parent._b,self[0],self[1],self[2],self[3]
-        return w*w*a*b - y*y*a - z*z*b + x*x
-
-    def reduced_norm(self):
-        """
-        Return the reduced norm of self.
-
-        This is an alias for self.norm().
+        Return the reduced norm of self. Given a quaternion
+        x+i*y+z*j+w, this is x^2 - y^2*a - z^2*b + w^2*a*b.
 
         EXAMPLES::
             sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x); a = x + 2*x*i + 3*j + (x-2)*k
@@ -338,8 +303,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: a.reduced_norm()
             2*x^4 - 12*x^3 + 9*x^2 - 18*x
         """
-        # do not overload this in a derived class!
-        return self.norm()
+        a,b,x,y,z,w = self._parent._a,self._parent._b,self[0],self[1],self[2],self[3]
+        return w*w*a*b - y*y*a - z*z*b + x*x
 
     def __invert__(self):
         """
@@ -359,7 +324,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,4,9)
             sage: a = 2-i
-            sage: a.norm()
+            sage: a.reduced_norm()
             0
             sage: 1/a
             Traceback (most recent call last):
@@ -378,7 +343,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             ...
             ZeroDivisionError: Cannot invert 0
         """
-        return self.norm().__invert__() * self.conjugate()
+        return self.reduced_norm().__invert__() * self.conjugate()
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -914,20 +879,19 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-    cpdef norm(self):
+    cpdef reduced_norm(self):
         """
-        Return the *reduced* norm of this quaternion.
-
-        This is w^2*a*b - y^2*a - z^2*b + x^2.
+        Return the reduced norm of self. Given a quaternion
+        x+i*y+z*j+w, this is x^2 - y^2*a - z^2*b + w^2*a*b.
 
         EXAMPLES::
             sage: K.<i,j,k> = QuaternionAlgebra(QQ, -5, -2)
-            sage: i.norm()
+            sage: i.reduced_norm()
             5
-            sage: j.norm()
+            sage: j.reduced_norm()
             2
             sage: a = 1/3 + 1/5*i + 1/7*j + k
-            sage: a.norm()
+            sage: a.reduced_norm()
             22826/2205
         """
         mpz_mul(U1, self.x, self.x)         # U1 = x*x
@@ -986,20 +950,18 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
         return result
 
-    cpdef trace(self):
+    cpdef reduced_trace(self):
         """
-        Return the *reduced* trace of this quaternion.
-
-        This is 2 * x.
+        Return the reduced trace of self, which is 2*x if self is x+i*y+z*j+w.
 
         EXAMPLES::
             sage: K.<i,j,k> = QuaternionAlgebra(QQ, -5, -2)
-            sage: i.trace()
+            sage: i.reduced_trace()
             0
-            sage: j.trace()
+            sage: j.reduced_trace()
             0
             sage: a = 1/3 + 1/5*i + 1/7*j + k
-            sage: a.trace()
+            sage: a.reduced_trace()
             2/3
         """
         #return 2*self[0]

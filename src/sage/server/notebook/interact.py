@@ -516,8 +516,11 @@ class InteractControl(InteractElement):
             sage: InteractControl('x', x^2).html_escaped_default_value()
             'x^2'
         """
+        s = self.default_value()
+        if not isinstance(s, str):
+            s = repr(s)
         import cgi
-        return cgi.escape(repr(self.default_value()), quote=True)
+        return cgi.escape(s, quote=True)
 
     def adapt_number(self):
         """

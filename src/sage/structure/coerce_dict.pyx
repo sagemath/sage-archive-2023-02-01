@@ -110,6 +110,7 @@ cdef class TripleDict:
         cdef int i
         self.threshold = threshold
         self.buckets = [[] for i from 0 <= i <  size]
+        self._size = 0
         if data is not None:
             for k, v in data.iteritems():
                 self[k] = v
@@ -129,11 +130,7 @@ cdef class TripleDict:
             sage: len(L)
             3
         """
-        cdef Py_ssize_t size = 0
-        for bucket in self.buckets:
-            if bucket:
-                size += len(bucket)/4
-        return size
+        return self._size
 
     def stats(self):
         """
@@ -159,7 +156,7 @@ cdef class TripleDict:
             sage: L.stats()
             (100, 100.0, 100)
         """
-        cdef Py_ssize_t size = len(self)
+        cdef Py_ssize_t size = self._size
         cdef Py_ssize_t cur, min = size, max = 0
         for bucket in self.buckets:
             if bucket:
@@ -251,7 +248,7 @@ cdef class TripleDict:
         self.set(k1, k2, k3, value)
 
     cdef set(self, k1, k2, k3, value):
-        if self.threshold and len(self) > len(self.buckets) * self.threshold:
+        if self.threshold and self._size > len(self.buckets) * self.threshold:
             self.resize()
         cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 ^ 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
@@ -264,6 +261,7 @@ cdef class TripleDict:
                 bucket[i+3] = value
                 return
         bucket += [k1, k2, k3, value]
+        self._size += 1
 
     def __delitem__(self, k):
         """
@@ -289,6 +287,7 @@ cdef class TripleDict:
                PyList_GET_ITEM(bucket, i+1) == <PyObject*>k2 and \
                PyList_GET_ITEM(bucket, i+2) == <PyObject*>k3:
                 del bucket[i:i+4]
+                self._size -= 1
                 return
         raise KeyError, k
 

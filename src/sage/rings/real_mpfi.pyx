@@ -198,6 +198,7 @@ import  sage.structure.element
 
 cimport real_mpfr
 from real_mpfr cimport RealField, RealNumber
+from real_mpfr import RealField_constructor
 import real_mpfr
 
 import operator
@@ -383,6 +384,15 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         -0.1052631578947368421052631578948?
         sage: R(e,pi).str(style='brackets')
         '[2.7182818284590452353602874713512 .. 3.1415926535897932384626433832825]'
+
+    TESTS::
+
+        sage: RIF._lower_field() is RealField(53, rnd='RNDD')
+        True
+        sage: RIF._upper_field() is RealField(53, rnd='RNDU')
+        True
+        sage: RIF._middle_field() is RR
+        True
     """
 
     def __init__(self, int prec=53, int sci_not=0):
@@ -391,9 +401,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
         self.__prec = prec
         self.sci_not = sci_not
-        self.__lower_field = RealField(prec, sci_not, "RNDD")
-        self.__middle_field = RealField(prec, sci_not, "RNDN")
-        self.__upper_field = RealField(prec, sci_not, "RNDU")
+        self.__lower_field = RealField_constructor(prec, sci_not, "RNDD")
+        self.__middle_field = RealField_constructor(prec, sci_not, "RNDN")
+        self.__upper_field = RealField_constructor(prec, sci_not, "RNDU")
         ParentWithGens.__init__(self, self, tuple([]), False)
 
     def _lower_field(self):
@@ -413,7 +423,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         elif rnd == "RNDU":
             return self._upper_field()
         else:
-            return RealField(self.__prec, self.sci_not, "RNDZ")
+            return RealField_constructor(self.__prec, self.sci_not, "RNDZ")
 
     cdef RealIntervalFieldElement _new(self):
         """

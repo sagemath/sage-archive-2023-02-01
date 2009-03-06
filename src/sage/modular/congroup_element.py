@@ -6,6 +6,7 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.all import ZZ
 import sage.matrix.all as matrix
 import congroup
+from sage.matrix.matrix_integer_2x2 import Matrix_integer_2x2 as mi2x2
 
 M2Z = matrix.MatrixSpace(ZZ,2)
 
@@ -53,7 +54,7 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             if not congroup.is_CongruenceSubgroup(parent):
                 raise TypeError, "parent (= %s) must be a congruence subgroup"%parent
 
-            x = M2Z(x)
+            x = mi2x2(M2Z, x, copy=True, coerce=True)
             if x.determinant() != 1:
                 raise TypeError, "matrix must have determinant 1"
 
@@ -64,6 +65,17 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
 
         MultiplicativeGroupElement.__init__(self, parent)
         self.__x = x
+
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: Gamma0(2).0
+            [1 1]
+            [0 1]
+            sage: list(Gamma0(2).0)
+            [1, 1, 0, 1]
+        """
+        return iter(self.__x)
 
     def __repr__(self):
         """
@@ -89,6 +101,13 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             sage: x = Gamma0(5)([1,1,0,1])
             sage: x == 0
             False
+
+        This once caused a segfault (see trac #5443):
+            sage: r,s,t,u = Gamma0(2).gens()
+            sage: t == r^(-1)*u^(-1)
+            True
+            sage: r^(-1) * u^(-1) == t
+            True
         """
         from sage.misc.functional import parent
         if parent(self) != parent(right):
@@ -130,7 +149,7 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             [1 1]
             [0 1]
         """
-        I = M2Z([self.__x[1,1], -self.__x[0,1], -self.__x[1,0], self.__x[0,0]])
+        I = mi2x2(M2Z, [self.__x[1,1], -self.__x[0,1], -self.__x[1,0], self.__x[0,0]], copy=True, coerce=True)
         return self.parent()(I, check=False)
 
     def matrix(self):
@@ -145,7 +164,7 @@ class CongruenceSubgroupElement(MultiplicativeGroupElement):
             [4 5]
             [3 4]
             sage: type(x.matrix())
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <type 'sage.matrix.matrix_integer_2x2.Matrix_integer_2x2'>
         """
         return self.__x
 

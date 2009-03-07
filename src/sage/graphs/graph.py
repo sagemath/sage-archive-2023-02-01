@@ -7893,7 +7893,7 @@ class Graph(GenericGraph):
        example, 'out' is the label for the edge on 2 and 5. Labels can be
        used as weights, if all the labels share some common parent.
 
-        sage: a,b,c,d,e,f=sorted(SymmetricGroup(3))
+        sage: a,b,c,d,e,f = sorted(SymmetricGroup(3))
         sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
         Graph on 4 vertices
 

@@ -19,7 +19,4 @@ Basic Structures
    sage/sets/family
 
    sage/structure/parent
-   sage/structure/coerce
-   sage/structure/coerce_actions
-   sage/structure/coerce_maps
 

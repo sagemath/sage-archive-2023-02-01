@@ -50,6 +50,7 @@ Enjoy Sage!
    constants
    functions
    structure
+   coercion
    misc
    databases
    interfaces

@@ -7893,6 +7893,10 @@ class Graph(GenericGraph):
        example, 'out' is the label for the edge on 2 and 5. Labels can be
        used as weights, if all the labels share some common parent.
 
+        sage: a,b,c,d,e,f=sorted(SymmetricGroup(3))
+        sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
+        Graph on 4 vertices
+
     #. A dictionary of lists::
 
         sage: g = Graph({0:[1,2,3], 2:[4]}); g
@@ -8286,7 +8290,7 @@ class Graph(GenericGraph):
                 for v in data[u]:
                     if v not in verts: verts.append(v)
                     if hash(u) > hash(v):
-                        if u in data[v]:
+                        if v in data and u in data[v]:
                             if data[u][v] != data[v][u]:
                                 raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
                             continue

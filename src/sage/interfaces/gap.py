@@ -232,6 +232,9 @@ class Gap(Expect):
             sage: gap == loads(dumps(gap))
             True
         """
+        if os.uname()[-1] == 'ia64':
+            # workspace cache is buggy on Itanium in GAP-4.4.12 -- see #5455.
+            use_workspace_cache = False
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"

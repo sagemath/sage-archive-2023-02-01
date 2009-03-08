@@ -6110,6 +6110,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(buchfu(self.g))
 
+    def bnfisunit(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(isunit(self.g, t0))
+
     def dirzetak(self, n):
         t0GEN(n)
         _sig_on

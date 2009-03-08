@@ -115,6 +115,7 @@ from sage.rings.integer_mod import mod
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
+from unit_group import UnitGroup
 from class_group import ClassGroup
 #import order
 
@@ -2270,7 +2271,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: pari(k)
             [x^2 + x + 1, [0, 1], -3, 1, ...[1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         return 'nfinit(%s)'%self.pari_polynomial()
 
@@ -2289,7 +2290,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_nf())
             9
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         try:
             if certify:
@@ -2326,7 +2327,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.pari_bnf_certify()
             True
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         if not self.__pari_bnf_certified:
             if self.pari_bnf(certify=False, units=True).bnfcertify() != 1:
@@ -3930,6 +3931,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         INPUTS: proof - default: True
 
+        NOTE: For more functionality see the unit_group() function.
+
         EXAMPLES::
 
             sage: x = QQ['x'].0
@@ -3994,24 +3997,102 @@ class NumberField_generic(number_field_base.NumberField):
             self.__units_no_proof = [self(R(g)) for g in B]
             return self.__units_no_proof
 
+    def unit_group(self, proof=None):
+        """
+        Return the unit group (including torsion) of this number field.
+
+        ALGORITHM: Uses PARI's bnfunit command.
+
+        INPUTS: proof -- default: True
+
+        NOTE: the group is cached.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0
+            sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
+            sage: K = NumberField(A, 'a')
+            sage: U = K.unit_group(); U
+            Unit group with structure C10 x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375
+            sage: U.gens()
+            [-1/275*a^3 + 7/55*a^2 - 6/11*a + 4, 8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+            sage: U.invariants()
+            [10, 0]
+            sage: [u.multiplicative_order() for u in U.gens()]
+            [10, +Infinity]
+
+        Sage might not be able to provably compute the unit group::
+
+            sage: K = NumberField(x^17 + 3, 'a')
+            sage: K.unit_group(proof=True) # default
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
+
+        In this case, one can ask for the conjectural unit group (correct if
+        the Generalized Riemann Hypothesis is true)::
+
+            sage: U = K.unit_group(proof=False); U; U.gens()
+            Unit group with structure C2 x Z x Z x Z x Z x Z x Z x Z x Z of Number Field in a with defining polynomial x^17 + 3
+            [-1,
+            a^9 + a - 1,
+            a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+            2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
+            2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
+            a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+            a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
+            a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
+            3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
+
+        The provable and the conjectural results are cached separately
+        (this fixes trac #2504)::
+
+            sage: K.units(proof=True)
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
+        """
+        try:
+            return self._unit_group
+        except AttributeError:
+            pass
+
+        if proof == False:
+            try:
+                return self._unit_group_no_proof
+            except AttributeError:
+                pass
+
+        U = UnitGroup(self,proof)
+        if proof:
+            self._unit_group = U
+        else:
+            self._unit_group_no_proof = U
+        return U
+
     def zeta(self, n=2, all=False):
         """
-        If all is False, return a primitive n-th root of unity in this
-        field, or raise an ArithmeticError exception if there are none.
-
-        If all is True, return a list of all primitive n-th roots of unity
-        in this field (possibly empty).
-
-        Note that if one wants to know the maximal root of unity in this
-        field, one can use self.zeta_order().
+        Return one, or a list of all, primitive n-th root of unity in this field.
 
         INPUT:
 
-
         -  ``n`` - positive integer
 
-        -  ``all`` - bool, default: False.
+        - ``all`` - bool.  If False (default), return a primitive
+        `n`-th root of unity in this field, or raise an
+        ArithmeticError exception if there are none.  If True, return
+        a list of all primitive `n`-th roots of unity in this field
+        (possibly empty).
 
+        .. note::
+
+        To obtain the maximal order of a root of unity in this field,
+        use self.number_of_roots_of_unity().
+
+        .. note::
+
+        We do not create the full unit group since that can be
+        expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -4029,7 +4110,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 4-th roots of unity in self.
+            ValueError: n (=4) does not divide order of generator
 
         ::
 
@@ -4042,50 +4123,54 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity in self.
+            ValueError: n (=3) does not divide order of generator
             sage: K.zeta(3,all=True)
             []
         """
+        try:
+            return self._unit_group.zeta(n,all)
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.zeta(n,all)
+        except AttributeError:
+            pass
+
+        K = self
         n = ZZ(n)
         if n <= 0:
             raise ValueError, "n (=%s) must be positive"%n
         if n == 1:
             if all:
-                return [self(1)]
+                return [K(1)]
             else:
-                return self(1)
+                return K(1)
         elif n == 2:
             if all:
-                return [self(-1)]
+                return [K(-1)]
             else:
-                return self(-1)
-        else:
-            field = self.absolute_field('a')
-            from_field = field.structure()[0]
-            f = field.polynomial_ring().cyclotomic_polynomial(n)
-            F = field['x'](f)
-            R = F.roots()
-            if len(R) == 0:
-                if all:
-                    return []
-                else:
-                    if n == 1:
-                        th = 'st'
-                    elif n == 2:
-                        th = 'nd'
-                    elif n == 3:
-                        th = 'rd'
-                    else:
-                        th = 'th'
-                    raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
+                return K(-1)
+        N = K.zeta_order()
+        if n.divides(N):
+            z = K.primitive_root_of_unity() ** (N//n)
             if all:
-                return [from_field(r[0]) for r in R]
+                return [z**i for i in n.coprime_integers(n)]
             else:
-                return from_field(R[0][0])
+                return z
+        else:
+            if all:
+                return []
+            else:
+                raise ValueError, "n (=%s) does not divide order of generator"%n
 
     def zeta_order(self):
         r"""
         Return the number of roots of unity in this field.
+
+        .. note::
+
+        We do not create the full unit group since that can be
+        expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -4096,19 +4181,65 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.zeta_order()
             2
         """
+        try:
+            return self._unit_group.zeta_order()
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.zeta_order()
+        except AttributeError:
+            pass
+
         return ZZ(self.pari_nf().nfrootsof1()[0])
 
-    def number_of_roots_of_unity(self):
+    number_of_roots_of_unity = zeta_order
+
+    def primitive_root_of_unity(self):
         """
-        Return number of roots of unity in this field.
+        Return a generator of the roots of unity in this field.
+
+        .. note::
+
+        We do not create the full unit group since that can be
+        expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
-            sage: K.<b> = NumberField(x^2+1)
-            sage: K.number_of_roots_of_unity()
+            sage: K.<i> = NumberField(x^2+1)
+            sage: z = K.primitive_root_of_unity(); z
+            i
+            sage: z.multiplicative_order()
             4
+
+            sage: K.<a> = NumberField(x^2+x+1)
+            sage: z = K.primitive_root_of_unity(); z
+            -a
+            sage: z.multiplicative_order()
+            6
         """
-        return ZZ(self.pari_nf().nfrootsof1()[0])
+        try:
+            return self._unit_group.torsion_generator()
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.torsion_generator()
+        except AttributeError:
+            pass
+
+        pK = self.pari_nf()
+        n, z = pK.nfrootsof1()
+        n = ZZ(n)
+        if self.is_absolute():
+            z = self(z)
+        else:
+            zk = pK.getattr('zk')
+            z = z.mattranspose()
+            cc = [z[0,i] for i in range(z.ncols())]
+            z = sum([self(c*d) for d,c in zip(zk,cc)])
+
+        primitives = [z**i for i in n.coprime_integers(n)]
+        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
+        return primitives[0]
 
     def roots_of_unity(self):
         """
@@ -4122,12 +4253,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: [ z**K.number_of_roots_of_unity() for z in zs ]
             [1, 1, 1, 1]
         """
-        temp = self.pari_nf().nfrootsof1()
-        n = ZZ(temp[0])
-        z = self(temp[1])
-        primitives = [ z**k for k in range(1, n) if sage.rings.arith.gcd(k,n)==1 ]
-        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
-        z = primitives[0]
+        z = self.primitive_root_of_unity()
+        n = self.zeta_order()
         return [ z**k for k in range(1, n+1) ]
 
     def zeta_coefficients(self, n):
@@ -6529,6 +6656,27 @@ class NumberField_cyclotomic(NumberField_absolute):
             v += [-x for x in v]
         return v
 
+    def primitive_root_of_unity(self):
+        """
+        Return a generator of the roots of unity in this field.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: z = K.primitive_root_of_unity(); z
+            -a
+            sage: z.multiplicative_order()
+            6
+
+            sage: K.<a> = CyclotomicField(10)
+            sage: z = K.primitive_root_of_unity(); z
+            a
+            sage: z.multiplicative_order()
+            10
+        """
+        if self._n()%2:
+            return -self.gen()
+        return self.gen()
 
 class NumberField_quadratic(NumberField_absolute):
     """

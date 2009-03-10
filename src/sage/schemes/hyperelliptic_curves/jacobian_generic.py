@@ -8,7 +8,7 @@ Jacobian of a General Hyperelliptic Curve
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Ring
+from sage.rings.all import is_Ring, Integer
 from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
 import sage.schemes.generic.homset as homset
 import sage.schemes.generic.morphism as morphism
@@ -108,7 +108,23 @@ class HyperellipticJacobian_generic(Jacobian_generic):
     """
 
     def dimension(self):
-        return self.__curve.genus()
+        """
+        Return the dimension of this Jacobian.
+
+        OUTPUT:
+            Integer
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9); R.<x> = k[]
+            sage: HyperellipticCurve(x^3 + x - 1, x+a).jacobian().dimension()
+            1
+            sage: g = HyperellipticCurve(x^6 + x - 1, x+a).jacobian().dimension(); g
+            2
+            sage: type(g)
+            <type 'sage.rings.integer.Integer'>
+        """
+        return Integer(self.curve().genus())
 
     def point(self, mumford, check=True):
         try:

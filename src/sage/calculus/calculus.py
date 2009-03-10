@@ -6114,6 +6114,16 @@ class SymbolicVariable(SymbolicExpression):
         elif not is_python_identifier.match(name):
             raise ValueError, "variable name is not a valid Python identifier"
 
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: a = var('a')
+            sage: a is loads(dumps(a))
+            True
+        """
+        return (var, (self._name,))
+
     def __hash__(self):
         """
         Return the hash of this symbolic variable, which is just the hash

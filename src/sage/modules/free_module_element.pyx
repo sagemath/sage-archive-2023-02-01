@@ -330,6 +330,52 @@ def prepare_dict(w, R):
         X[key] = value
     return prepare(X, R)
 
+vector_delimiters = ['(', ')']
+
+def set_vector_latex_delimiters(left='(', right=')'):
+    r"""
+    Change the left and right delimiters for the LaTeX representation
+    of vectors
+
+    INPUT:
+
+    - ``left``, ``right`` - strings (default '(' and ')', respectively)
+
+    Good choices for ``left`` and ``right`` are any delimiters which
+    LaTeX understands and knows how to resize; some examples are:
+
+    - parentheses: '(', ')'
+    - brackets: '[', ']'
+    - braces: '\\{', '\\}'
+    - vertical lines: '|'
+    - angle brackets: '\\langle', '\\rangle'
+
+    .. note::
+
+       Putting aside aesthetics, you may combine these in any way
+       imaginable; for example, you could set ``left`` to be a
+       right-hand bracket ']' and ``right`` to be a right-hand brace
+       '\\}', and it will be typeset correctly.
+
+    EXAMPLES::
+
+        sage: a = vector(QQ, [1,2,3])
+        sage: latex(a)
+        \left(1,2,3\right)
+        sage: sage.modules.free_module_element.set_vector_latex_delimiters("[", "]")
+        sage: latex(a)
+        \left[1,2,3\right]
+        sage: sage.modules.free_module_element.set_vector_latex_delimiters("\\{", "\\}")
+        sage: latex(a)
+        \left\{1,2,3\right\}
+
+    Reset to default::
+
+        sage: sage.modules.free_module_element.set_vector_latex_delimiters()
+    """
+    global vector_delimiters
+    vector_delimiters = [left, right]
+
 cdef class FreeModuleElement(element_Vector):   # abstract base class
     """
     An element of a generic free module.
@@ -1404,13 +1450,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Return a latex representation of self. For example, if self is the
         free module element (1,2,3,4), then following latex is generated:
         "(1,2,3,4)" (without the quotes).
+
+        EXAMPLES::
+
+            sage: v = vector(QQ, [1,2,3])
+            sage: latex(v)
+            \left(1,2,3\right)
         """
-        s = '\\left('
+        s = '\\left' + vector_delimiters[0]
         for a in self.list():
             s = s + sage.misc.latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
-        return s + '\\right)'
+        return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):
         if self.is_dense():

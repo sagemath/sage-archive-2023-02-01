@@ -528,44 +528,67 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
+    def invert(self):
+        """
+        Compute the inverse of this matrix.
+
+        .. warning::
+
+            This function is deprecated.  Use ``inverse`` instead.
+
+        EXAMPLES::
+
+            sage: a = matrix(QQ,3,range(9))
+            sage: a.invert()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+        """
+        from sage.misc.misc import deprecation
+        deprecation("'invert' is deprecated; use 'inverse' instead.")
+        return self.__invert__()
+
     def __invert__(self):
         """
         EXAMPLES::
 
             sage: a = matrix(QQ,3,range(9))
-            sage: a^(-1)
+            sage: a.inverse()
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
-
-        TESTS:
-            sage: matrix(QQ,0,0).inverse()
-            []
+            sage: a = matrix(QQ, 2, [1, 5, 17, 3])
+            sage: a.inverse()
+            [-3/82  5/82]
+            [17/82 -1/82]
         """
-        return self.invert()
+        return self.__invert__main()
 
-    def invert(self, check_invertible=True, algorithm="iml"):
+
+    def __invert__main(self, check_invertible=True, algorithm="iml"):
         """
         INPUT:
 
 
         -  ``check_invertible`` - default: True (whether to
-           check that matrix is invertible) algorithm -"iml" (only option
-           right now)
+           check that matrix is invertible)
+
+        -  ``algorithm`` -"iml" (only option right now)
 
 
         OUTPUT: the inverse of self
 
         .. note::
 
-           - If self is not invertible, a ZeroDivisionError is raised.
-
            - The n x n cases for n <= 2 are handcoded for speed.
+
+           - The ``inverse`` function calls ``__invert__`` which calls
+             this.
 
         EXAMPLES::
 
             sage: a = matrix(QQ,3,[1,2,5,3,2,1,1,1,1,])
-            sage: a.invert(check_invertible=False)
+            sage: a.__invert__main(check_invertible=False)
             [1/2 3/2  -4]
             [ -1  -2   7]
             [1/2 1/2  -2]
@@ -573,7 +596,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         A 1x1 matrix (a special case)::
 
             sage: a = matrix(QQ, 1, [390284089234])
-            sage: a.invert()
+            sage: a.__invert__main()
             [1/390284089234]
 
         A 2x2 matrix (a special hand-coded case)::
@@ -581,10 +604,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: a = matrix(QQ, 2, [1, 5, 17, 3]); a
             [ 1  5]
             [17  3]
-            sage: a.invert()
+            sage: a.inverse()
             [-3/82  5/82]
             [17/82 -1/82]
-            sage: a.invert()  * a
+            sage: a.__invert__main()  * a
             [1 0]
             [0 1]
         """

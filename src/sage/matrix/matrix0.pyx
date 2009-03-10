@@ -48,6 +48,58 @@ import sage.modules.free_module
 
 import matrix_misc
 
+matrix_delimiters = ['(', ')']
+
+def set_matrix_latex_delimiters(left='(', right=')'):
+    r"""
+    Change the left and right delimiters for the LaTeX representation
+    of matrices
+
+    INPUT:
+
+    - ``left``, ``right`` - strings (default '(' and ')', respectively)
+
+    Good choices for ``left`` and ``right`` are any delimiters which
+    LaTeX understands and knows how to resize; some examples are:
+
+    - parentheses: '(', ')'
+    - brackets: '[', ']'
+    - braces: '\\{', '\\}'
+    - vertical lines: '|'
+    - angle brackets: '\\langle', '\\rangle'
+
+    .. note::
+
+       Putting aside aesthetics, you may combine these in any way
+       imaginable; for example, you could set ``left`` to be a
+       right-hand bracket ']' and ``right`` to be a right-hand brace
+       '\\}', and it will be typeset correctly.
+
+    EXAMPLES::
+
+        sage: a = matrix(1, 1, [17])
+        sage: latex(a)
+        \left(\begin{array}{r}
+        17
+        \end{array}\right)
+        sage: sage.matrix.matrix0.set_matrix_latex_delimiters("[", "]")
+        sage: latex(a)
+        \left[\begin{array}{r}
+        17
+        \end{array}\right]
+        sage: sage.matrix.matrix0.set_matrix_latex_delimiters("\\{", "\\}")
+        sage: latex(a)
+        \left\{\begin{array}{r}
+        17
+        \end{array}\right\}
+
+    Reset to default::
+
+        sage: sage.matrix.matrix0.set_matrix_latex_delimiters()
+    """
+    global matrix_delimiters
+    matrix_delimiters = [left, right]
+
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
 
@@ -1617,7 +1669,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         nr = self._nrows
         nc = self._ncols
         if nr == 0 or nc == 0:
-            return "()"
+            return matrix_delimiters[0] + matrix_delimiters[1]
 
         S = self.list()
         rows = []
@@ -1653,7 +1705,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
         format = '|'.join(tmp)
 
-        return "\\left(\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right)"
+        return "\\left" + matrix_delimiters[0] + "\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right" + matrix_delimiters[1]
 
 
 

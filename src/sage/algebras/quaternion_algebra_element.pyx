@@ -320,6 +320,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: type(theta)
             <type 'sage.algebras.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
             sage: 1/Q(0)
+            Traceback (most recent call last):
             ...
             ZeroDivisionError: rational division by zero
 

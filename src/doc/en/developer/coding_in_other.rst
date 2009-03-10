@@ -62,22 +62,31 @@ There are several ways to create and build Cython code in Sage.
    but works completely from the command line (and not from the
    notebook).
 
-#. Create a .pyx file in the Sage library and add a listing for it
-   to the variable ``ext_modules`` in the file
-   ``SAGE_ROOT/devel/sage/setup.py``. For example, the file
-   ``SAGE_ROOT/devel/sage/sage/graphs/chrompoly.pyx`` has
-   lines
+#. Create a .pyx file and add it to the Sage library.
 
-   ::
 
-           Extension('sage.graphs.chrompoly',
-                     ['sage/graphs/chrompoly.pyx']
-                     ), \
+   #. First, add a listing for the Cython extension to the variable
+      ``ext_modules`` in the file
+      ``SAGE_ROOT/devel/sage/module_list.py``. See the
+      ``distutils.extension.Extension`` class for more information on creating
+      a new Cython extension.
 
-   in ``setup.py``. Also, the module - in this example
-   ``sage.graphs.chrompoly`` - needs to be added to the
-   ``packages`` list in ``setup.py`` . Then type
-   ``sage -b`` to build Sage with the new code.
+   #. Then, add the module name to the ``packages`` list in the file
+      ``SAGE_ROOT/devel/sage/setup.py``.
+
+   #. Run ``sage -b`` to rebuild Sage.
+
+
+   For example, the file ``SAGE_ROOT/devel/sage/sage/graphs/chrompoly.pyx``
+   has the lines
+
+::
+
+    Extension('sage.graphs.chompoly',
+              sources = ['sage/graphs/chrompoly.pyx']),
+
+   in ``module_list.py``. In addition, ``sage.graphs`` is included in the
+   packages list under the Distutils section of ``setup.py``.
 
 
 Special Pragmas

@@ -101,6 +101,9 @@ followed by ``TAB``, Sage will print
 taylor``. This provides a good way to find
 the names of functions and other structures in Sage.
 
+
+.. _section-functions:
+
 Functions, Indentation, and Counting
 ====================================
 

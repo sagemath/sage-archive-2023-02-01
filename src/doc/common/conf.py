@@ -11,8 +11,13 @@ SAGE_DOC = os.environ['SAGE_ROOT'] + '/devel/sage/doc'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.pngmath', 'sphinx.ext.autodoc']
-jsmath_path = ''
+extensions = ['sphinx.ext.autodoc']
+
+if 'SAGE_DOC_JSMATH' in os.environ:
+    extensions.append('sphinx.ext.jsmath')
+else:
+    extensions.append('sphinx.ext.pngmath')
+jsmath_path = '/javascript_local/jsMath/easy/load.js'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [SAGE_DOC + '/common/templates', 'templates']

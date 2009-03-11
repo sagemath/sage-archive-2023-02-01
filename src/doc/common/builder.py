@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, subprocess, shutil, glob
+import os, sys, subprocess, shutil, glob, optparse
 
 #We remove the current directory from sys.path right away
 #so that we import sage from the proper spot
@@ -640,34 +640,29 @@ def help_message():
     help += "         documentation since it was last built\n"
     help += "    print_unincluded_modules: list modules not included in the documentation\n"
     help += "    print_included_modules: list modules included in the documentation\n"
-    return help
+    print help
+
+
+parser = optparse.OptionParser(usage="usage: sage -docbuild [options] name type")
+parser.add_option("--jsmath", action="store_true",
+                  help="render math using jsMath")
+parser.print_help = help_message
 
 if __name__ == '__main__':
-    cmd  = sys.argv.pop(0)
+    options, args = parser.parse_args()
+
+    if options.jsmath:
+        os.environ['SAGE_DOC_JSMATH'] = "True"
 
     #Get the name of the document we are trying to build
     try:
-        name = sys.argv.pop(0)
-    except IndexError:
-        name = 'help'
-
-    if name == 'help':
-        print help_message()
+        name, type = args
+    except ValueError:
+        print "You must specify the document name and the output format"
         sys.exit(0)
-
-    try:
-        type = sys.argv.pop(0)
-    except IndexError:
-        print "You must specify an output type (html, pdf, etc.)"
-        sys.exit(1)
-
-    #Ignore any extra arguments for now
-    args = sys.argv[:]
 
     #Make sure common/static exists
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))
 
     #Get the builder and build
-    getattr(get_builder(name), type)(*args)
-
-
+    getattr(get_builder(name), type)()

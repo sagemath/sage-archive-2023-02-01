@@ -820,61 +820,19 @@ class MPolynomialIdeal_singular_repr:
                 sage: I = sage.rings.ideal.Cyclic(P)
                 sage: GB = Ideal(I.groebner_basis('singular:stdfglm'))
                 sage: GB.triangular_decomposition('singular:triangLfak')
-                [Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a - 1) of
-                  Multivariate Polynomial Ring in e, d, c, b, a over
-                  Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^2 + 3*a + 1) of
-                  Multivariate Polynomial Ring in e, d, c, b, a over
-                  Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 - 4*a^3 + 6*a^2
-                  + a + 1) of Multivariate Polynomial Ring in e, d, c, b,
-                  a over Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + a^2 + a
-                  + 1) of Multivariate Polynomial Ring in e, d, c, b, a
-                  over Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + 6*a^2 -
-                  4*a + 1) of Multivariate Polynomial Ring in e, d, c, b,
-                  a over Rational Field]
+                [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3, e + b^3 + b^2 + b + 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1, 11*b^2 - 6*b*a^3 + 26*b*a^2 - 41*b*a + 4*b + 8*a^3 - 31*a^2 + 40*a + 24, 11*c + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2 + 26*a - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - 1, c + a^3 + a^2 + a + 1, d - a^3, e - a^2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c - a, d^2 + 3*d*a + a^2, e + d + 3*a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2, d + c + 3*a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b + 3*a, d - a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2 + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 + b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a - a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 - 10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24, 11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 + 25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field]
             """
 
         P = self.ring()
@@ -889,7 +847,7 @@ class MPolynomialIdeal_singular_repr:
 
         if is_groebner:
             if Q == P:
-                I = self
+                I =  MPolynomialIdeal(P, self.interreduced_basis())
             else:
                 I = self
                 I = MPolynomialIdeal(P, I.transformed_basis('fglm')) # -> 'lex'
@@ -1887,6 +1845,50 @@ class MPolynomialIdeal_singular_repr:
             sage: T = I.triangular_decomposition('singular:triangLfak')
             sage: I.variety()
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
+
+        Testing that a bug is indeed fixed.
+
+        ::
+
+            sage: R = PolynomialRing(GF(2), 30, ['x%d'%(i+1) for i in range(30)], order='lex')
+            sage: R.inject_variables()
+            Defining...
+            sage: I = Ideal([x1 + 1, x2, x3 + 1, x5*x10 + x10 + x18, x5*x11 + x11, \
+                             x5*x18, x6, x7 + 1, x9, x10*x11 + x10 + x18, x10*x18 + x18, \
+                             x11*x18, x12, x13, x14, x15, x16 + 1, x17 + x18 + 1, x19, x20, \
+                             x21 + 1, x22, x23, x24, x25 + 1, x28 + 1, x29 + 1, x30, x8, \
+                             x26, x1^2 + x1, x2^2 + x2, x3^2 + x3, x4^2 + x4, x5^2 + x5, \
+                             x6^2 + x6, x7^2 + x7, x8^2 + x8, x9^2 + x9, x10^2 + x10, \
+                             x11^2 + x11, x12^2 + x12, x13^2 + x13, x14^2 + x14, x15^2 + x15, \
+                             x16^2 + x16, x17^2 + x17, x18^2 + x18, x19^2 + x19, x20^2 + x20, \
+                             x21^2 + x21, x22^2 + x22, x23^2 + x23, x24^2 + x24, x25^2 + x25, \
+                             x26^2 + x26, x27^2 + x27, x28^2 + x28, x29^2 + x29, x30^2 + x30])
+            sage: I.basis_is_groebner()
+            True
+            sage: for V in I.variety():
+            ...     print V
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+
+
 
         ALGORITHM: Uses triangular decomposition.
         """

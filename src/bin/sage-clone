@@ -55,15 +55,18 @@ cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
 
 print "Copying over build directory."
 cmd = 'cp -r sage/build %s'%branch
-
 print cmd
-
-
-
 if os.system(cmd):
     print "Error copying build directory"
     sys.exit(1)
 # Done copying over build cache.
+
+#Copying over documentation output
+print "Copying over documentation output"
+cmd = 'cp -r sage/doc/output %s/doc'%branch
+print cmd
+if os.system(cmd):
+    print "Error copying documentation output"
 
 print "Building " + branch
 try:

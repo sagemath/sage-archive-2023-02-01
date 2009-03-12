@@ -1115,8 +1115,8 @@ class Maxima(Expect):
             'x'
         """
         try:
-            self._eval_line('kill(%s)$'%var, reformat=False)
-        except TypeError:
+            self._expect.send('kill(%s)$'%var)
+        except (TypeError, AttributeError):
             pass
 
     def console(self):

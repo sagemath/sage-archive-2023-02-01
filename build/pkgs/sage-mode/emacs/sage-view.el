@@ -56,6 +56,7 @@
 
 ;;; Code:
 (require 'sage)
+(require 'sage-mode)
 
 (defvar sage-view-latex-head
   "\\documentclass{article}

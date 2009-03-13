@@ -10,6 +10,7 @@ easily customizable!
 == License ==
 
 Copyright (C) 2007, 2008, 2009  Nick Alexander
+
 Author: Nick Alexander <ncalexander [at] gmail.com>
 
 sage-mode is free software; you can redistribute it and/or modify
@@ -42,9 +43,9 @@ Boston, MA 02110-1301, USA.
 
 == Special Update/Build Instructions ==
 
-[[attachment:sage-mode-0.5.3.spkg]]
+[[attachment:sage-mode-0.5.4.spkg]]
 
-Use {{{sage -f sage-mode-0.5.3.spkg}}}.  The following installation instructions are suggested:
+Use {{{sage -f sage-mode-0.5.4.spkg}}}.  The following installation instructions are suggested:
 
 A basic install might include the following Emacs Lisp in your .emacs:
 
@@ -62,10 +63,13 @@ A basic install might include the following Emacs Lisp in your .emacs:
 ;; 'sage-view-disable-inline-output 'sage-view-disable-inline-plots)
 ;; to have some combination of features.  In future, the customize interface
 ;; will make this simpler... hint, hint!
-
 }}}
 
 == Changelog ==
+
+=== sage-mode-0.5.4 (Nick Alexander, 2009-03-13) ===
+* Fixed errors in `sage-build' and `sage-test' autoloads; made sage-mode.el
+provide 'sage-mode.
 
 === sage-mode-0.5.3 (Nick Alexander, 2009-03-12) ===
 * Updated `sage-view' to new version.

@@ -502,8 +502,6 @@ buffer for a list of commands.)"
 
 ;;;_* SAGE major mode for editing SAGE library code
 
-(provide 'sage)
-
 ;;;###autoload
 (define-derived-mode
   sage-mode
@@ -1335,3 +1333,5 @@ Interactively, try to find current method at point."
 ;;;_* Setup imenu by default
 (when (featurep 'imenu)
   (add-hook 'sage-mode-hook 'imenu-add-menubar-index))
+
+(provide 'sage-mode)

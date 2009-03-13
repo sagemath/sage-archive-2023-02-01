@@ -5,6 +5,9 @@
 ;; Author: Nicholas Alexander <ncalexan@pv109055.reshsg.uci.edu>
 ;; Keywords: sage test
 
+(require 'sage)
+(require 'sage-mode)
+
 ;; History of sage-test commands.
 ;;;###autoload
 (defvar sage-test-history nil)

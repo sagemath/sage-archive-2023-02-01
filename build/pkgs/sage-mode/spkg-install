@@ -26,17 +26,21 @@ cp -r emacs $SAGE_DATA/emacs
 cat <<EOF
 
 
-A basic sage-mode install might include the following Emacs Lisp in your .emacs:"
+A basic install might include the following Emacs Lisp in your .emacs:
 
-
-(add-to-list 'load-path (expand-file-name "$SAGE_DATA/emacs"))
-(require 'python)
-(require 'pyrex "pyrex-mode")
-(require 'sage "sage-mode")
-(setq sage-command "$SAGE_ROOT/sage")
+(add-to-list 'load-path (expand-file-name "path-to-sage-mode-el-files"))
+(require 'sage "sage")
+(setq sage-command "/path/to/sage")
 
 ;; If you want sage-view to typeset all your output and have plot()
 ;; commands inline, uncomment the following line and configure sage-view:
 ;; (require 'sage-view "sage-view")
-;; (add-hook 'sage-startup-hook 'sage-view-always)
+;; (add-hook 'sage-startup-hook 'sage-view)
+;; You can use commands like
+;; (add-hook 'sage-startup-hook 'sage-view
+;; 'sage-view-disable-inline-output 'sage-view-disable-inline-plots)
+;; to have some combination of features.  In future, the customize interface
+;; will make this simpler... hint, hint!
+
+
 EOF

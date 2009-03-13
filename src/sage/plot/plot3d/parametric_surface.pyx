@@ -175,7 +175,7 @@ cdef class ParametricSurface(IndexFaceSet):
         return IndexFaceSet.bounding_box(self)
 
     def triangulate(self, render_params=None):
-        """
+        r"""
         Call self.eval() for all (u,v) in urange \times vrange
         to construct this surface.
 

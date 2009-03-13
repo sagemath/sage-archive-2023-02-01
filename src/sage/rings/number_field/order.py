@@ -255,7 +255,7 @@ class Order(IntegralDomain):
 
         """
         if self._is_maximal is None:
-            self._is_maximal = (self.absolute_discriminant() == self._K.discriminant())
+            self._is_maximal = (self.absolute_discriminant() == self._K.absolute_discriminant())
         return self._is_maximal
 
     def is_field(self):
@@ -1188,10 +1188,27 @@ class RelativeOrder(Order):
     def __call__(self, x):
         """
         Coerce an element into this relative order.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: OK = K.ring_of_integers()
+            sage: OK(a)
+            a
+            sage: OK([3, 4])
+            4*a + 3
+
+        The following used to fail; see trac #5276::
+
+            sage: S.<y> = OK[]; S
+            Univariate Polynomial Ring in y over Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
+
         """
-        if x.parent() is not self._K:
-            x = self._K(x)
-        x = self._absolute_order(x) # will test membership
+
+        x = self._K(x)
+        abs_order = self._absolute_order
+        to_abs = abs_order._K.structure()[1]
+        x = abs_order(to_abs(x)) # will test membership
         return OrderElement_relative(self, x)
 
     def _repr_(self):

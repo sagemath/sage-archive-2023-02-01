@@ -6,7 +6,7 @@ AUTHOR:
    -- William Stein (2007-09-06)
    -- Nick Alexander (2009-01)
 
-EXAMPLEES:
+EXAMPLES:
     sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
     sage: A = K.absolute_field('z')
     sage: I = A.factor(3)[0][0]
@@ -15,7 +15,7 @@ EXAMPLEES:
     [3, (-2*b - 1)*a + b - 1]
     sage: K.fractional_ideal(G)
     Fractional ideal ((-b + 1)*a - b - 2)
-    sage: K.fractional_ideal(G).absolute_ideal().norm().factor()
+    sage: K.fractional_ideal(G).absolute_norm().factor()
     3^2
 """
 
@@ -35,9 +35,12 @@ EXAMPLEES:
 #*****************************************************************************
 
 from number_field_ideal import NumberFieldFractionalIdeal, convert_from_zk_basis
+from sage.structure.factorization import Factorization
 
 import sage.rings.rational_field as rational_field
+import sage.rings.integer_ring as integer_ring
 QQ = rational_field.RationalField()
+ZZ = integer_ring.IntegerRing()
 
 class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
     """
@@ -61,6 +64,38 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: ((a0 + 1) / g).is_integral()
         True
     """
+    def __cmp__(self, other):
+        """
+        Compare an ideal of a relative number field to something else.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
+            sage: I = K.ideal(2, (a + 2*b + 3)/2)
+            sage: J = K.ideal(2, a - b)
+            sage: I == J
+            False
+        """
+        if not isinstance(other, NumberFieldFractionalIdeal):
+            return cmp(type(self), type(other))
+        return cmp(self.pari_rhnf(), other.pari_rhnf())
+
+    def _contains_(self, x):
+        """
+        Return True if x is an element of this ideal.
+
+        This function is called (indirectly) when the \code{in}
+        operator is used.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
+            sage: I = K.ideal(2, (a + 2*b + 3)/2)
+            sage: [z in I for z in [a, b, 2, a + b]]
+            [False, False, True, True]
+        """
+        abs_ideal = self.absolute_ideal()
+        to_abs = abs_ideal.number_field().structure()[1]
+        return to_abs(x) in abs_ideal
+
     def pari_rhnf(self):
         """
         Return PARI's representation of this relative ideal in Hermite
@@ -104,9 +139,9 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             Fractional ideal (b)
             sage: J.absolute_ideal()
             Fractional ideal (a^2)
-            sage: J.norm()
+            sage: J.relative_norm()
             Fractional ideal (2)
-            sage: J.norm().norm()
+            sage: J.absolute_norm()
             4
             sage: J.absolute_ideal().norm()
             4
@@ -117,7 +152,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             Fractional ideal (c)
             sage: J.absolute_ideal()
             Fractional ideal (a)
-            sage: J.absolute_ideal().norm()
+            sage: J.absolute_norm()
             2
             sage: J.ideal_below()
             Fractional ideal (b)
@@ -148,9 +183,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             Fractional ideal (22584817, a - b - 120132)
             sage: (2*a + b) in J
             True
-            sage: (- b - 120132).minpoly()
-            x + b + 120132
-            sage: J.norm().norm()
+            sage: J.absolute_norm()
             22584817
             sage: J.absolute_ideal()
             Fractional ideal (188/812911*a^5 - 1/812911*a^4 + 45120/812911*a^3 - 56/73901*a^2 + 3881638/812911*a + 50041/812911)
@@ -162,13 +195,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         L = self.number_field()
         K = L.absolute_field('a')
-        K_to_L, L_to_K = K.structure()
-        rnf = L.pari_rnf()
-        nf_zk = id.number_field().pari_nf().getattr('zk')
-        gens_in_K = [ QQ['x'](x) for x in nf_zk * id.pari_hnf()]
-        # each gen is now a polynomial giving an element of the absolute number field
-        gens_in_L = [ L(K(x)) for x in gens_in_K ]
-        return L.ideal( gens_in_L )
+        to_L = K.structure()[0]
+        return L.ideal([to_L(g) for g in id.gens()])
 
     def free_module(self):
         return self.absolute_ideal().free_module()
@@ -179,7 +207,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         except AttributeError:
             L = self.number_field()
             K = L.base_field()
-            R = L.polynomial().parent()
+            R = L.relative_polynomial().parent()
             S = L['x']
             gens = L.pari_rnf().rnfidealtwoelt(self.pari_rhnf())
             gens = [ L(R(x.lift().lift())) for x in gens ]
@@ -215,32 +243,70 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         zero = self.number_field().pari_rnf().rnfidealhnf(0)
         return self.pari_rhnf() == zero
 
-    def norm(self):
+    def absolute_norm(self):
         """
-        Compute the relative norm of this extension L/K as an ideal of K.
+        Compute the absolute norm of this fractional ideal in a relative number
+        field, returning a positive integer.
 
-        EXAMPLE:
+        EXAMPLES:
+            sage: L.<a, b, c> = QQ.extension([x^2 - 23, x^2 - 5, x^2 - 7])
+            sage: I = L.ideal(a + b)
+            sage: I.absolute_norm()
+            104976
+            sage: I.relative_norm().relative_norm().relative_norm()
+            104976
+        """
+        return self.absolute_ideal().norm()
+
+    def relative_norm(self):
+        """
+        Compute the relative norm of this fractional ideal in a relative number
+        field, returning an ideal in the base field.
+
+        EXAMPLES:
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
-            sage: N = L.ideal(b).norm(); N
+            sage: N = L.ideal(b).relative_norm(); N
             Fractional ideal (-a)
             sage: N.parent()
             Monoid of ideals of Number Field in a with defining polynomial x^2 + 6
             sage: N.ring()
             Number Field in a with defining polynomial x^2 + 6
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberField([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: K.ideal(1).relative_norm()
+            Fractional ideal (1)
+            sage: K.ideal(13).relative_norm().relative_norm()
+            Fractional ideal (28561)
+            sage: K.ideal(13).relative_norm().relative_norm().relative_norm()
+            815730721
+            sage: K.ideal(13).absolute_norm()
+            815730721
         """
         L = self.number_field()
         K = L.base_field()
-        R = K.polynomial().parent()
+        K_abs = K.absolute_field('a')
+        to_K = K_abs.structure()[0]
+        R = K_abs.polynomial().parent()
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
-        return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, hnf) ])
+        return K.ideal([ to_K(K_abs(R(x))) for x in convert_from_zk_basis(K, hnf) ])
+
+    def norm(self):
+        """
+        The norm of a fractional ideal in a relative number field is deliberately
+        unimplemented, so that a user cannot mistake the absolute norm
+        for the relative norm, or vice versa.
+        """
+        raise NotImplementedError, "For a fractional ideal in a relative number field you must use relative_norm or absolute_norm as appropriate"
 
     def ideal_below(self):
         """
         Compute the ideal of K below this ideal of L.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
@@ -307,31 +373,298 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             True
             sage: K0.ideal([-a0 + 1]) == K0.ideal([-a0 + 5])
             False
+
+            It works when the base_field is itself a relative number field
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: I = K.ideal(3, c)
+            sage: J = I.ideal_below(); J
+            Fractional ideal (-b*a + 3)
+            sage: J.number_field() == F
+            True
         """
         L = self.number_field()
         K = L.base_field()
-        R = K.polynomial().parent()
+        K_abs = K.absolute_field('a')
+        to_K = K_abs.structure()[0]
+        R = K_abs.polynomial().parent()
         hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
-        return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, hnf) ])
+        return K.ideal([ to_K(K_abs(R(x))) for x in convert_from_zk_basis(K, hnf) ])
 
     def factor(self):
-        raise NotImplementedError
+        """
+        Factor the ideal by factoring the corresponding ideal
+        in the absolute number field.
+
+        EXAMPLES:
+            sage: K.<a, b> = QQ.extension([x^2 + 11, x^2 - 5])
+            sage: K.factor(5)
+            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            sage: K.ideal(5).factor()
+            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            sage: K.ideal(5).prime_factors()
+            [Fractional ideal (5, 1/2*a - 1/2*b - 1),
+             Fractional ideal (5, 1/2*a - 1/2*b + 1)]
+
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: K.ideal(c)
+            Fractional ideal (6, -2*c + (171/2*b + 291/2)*a + 117*b + 216)
+            sage: K.ideal(c).factor()
+            (Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1))^2 * (Fractional ideal (3, c))
+        """
+        F = self.number_field()
+        abs_ideal = self.absolute_ideal()
+        to_F = abs_ideal.number_field().structure()[0]
+        factor_list = [(F.ideal([to_F(g) for g in p.gens()]), e) for p, e in abs_ideal.factor()]
+        # sorting and simplification will already have been done
+        return Factorization(factor_list, sort=False, simplify=False)
+
     def integral_basis(self):
         raise NotImplementedError
+
     def integral_split(self):
-        raise NotImplementedError
-    def is_maximal(self):
-        raise NotImplementedError
+        """
+        Return a tuple (I, d), where I is an integral ideal, and d is the
+        smallest positive integer such that this ideal is equal to I/d.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberFieldTower([x^2 - 23, x^2 + 1])
+            sage: I = K.ideal([a + b/3])
+            sage: J, d = I.integral_split()
+            sage: J.is_integral()
+            True
+            sage: J == d*I
+            True
+
+        """
+        d = self.absolute_ideal().integral_split()[1]
+        return (d*self, d)
+
     def is_prime(self):
-        raise NotImplementedError
-    def ramification(self):
-        raise NotImplementedError
+        """
+        Return True if this ideal of a relative number field is prime.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 - 17, x^3 - 2])
+            sage: K.ideal(a + b).is_prime()
+            True
+            sage: K.ideal(13).is_prime()
+            False
+        """
+        return self.absolute_ideal().is_prime()
+
+    def is_integral(self):
+        """
+        Return True if this ideal is integral.
+
+        EXAMPLES:
+           sage: K.<a, b> = QQ.extension([x^2 + 11, x^2 - 5])
+           sage: I = K.ideal(7).prime_factors()[0]
+           sage: I.is_integral()
+           True
+           sage: (I/2).is_integral()
+           False
+        """
+        return self.absolute_ideal().is_integral()
+
+    def absolute_ramification_index(self):
+        """
+        Return the absolute ramification index of this fractional ideal,
+        assuming it is prime.  Otherwise, raise a ValueError.
+
+        The absolute ramification index is the power of this prime
+        appearing in the factorization of the rational prime that
+        this prime lies over.
+
+        Use relative_ramification_index to obtain the power of this
+        prime occurring in the factorization of the prime ideal
+        of the  base field that this prime lies over.
+
+        EXAMPLES:
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: I = K.ideal(3, c)
+            sage: I.absolute_ramification_index()
+            4
+            sage: I.smallest_integer()
+            3
+            sage: K.ideal(3) == I^4
+            True
+        """
+        if self.is_prime():
+            return self.absolute_ideal().ramification_index()
+        raise ValueError, "the fractional ideal (= %s) is not prime"%self
+
+    def relative_ramification_index(self):
+        """
+        Return the relative ramification index of this fractional ideal,
+        assuming it is prime.  Otherwise, raise a ValueError.
+
+        The relative ramification index is the power of this prime
+        appearing in the factorization of the prime ideal of the
+        base field that this prime lies over.
+
+        Use absolute_ramification_index to obtain the power of this
+        prime occurring in the factorization of the rational prime
+        that this prime lies over.
+
+        EXAMPLES:
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: I = K.ideal(3, c)
+            sage: I.relative_ramification_index()
+            2
+            sage: I.ideal_below()
+            Fractional ideal (-b*a + 3)
+            sage: K.ideal(-b*a + 3) == I^2
+            True
+        """
+        if self.is_prime():
+            abs_index = self.absolute_ramification_index()
+            base_ideal = self.ideal_below()
+            return ZZ(abs_index/base_ideal.absolute_ramification_index())
+        raise ValueError, "the fractional ideal (= %s) is not prime"%self
+
+    def ramification_index(self):
+        """
+        For ideals in relative number fields ramification_index is
+        deliberately not implemented in order to avoid ambiguity.  Either
+        relative_ramification_index or absolute_ramification_index should
+        be used instead.
+        """
+        raise NotImplementedError, "For an ideal in a relative number field you must use relative_ramification_index or absolute_ramification_index as appropriate"
+
     def residue_class_degree(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: [I.residue_class_degree() for I in K.ideal(c).prime_factors()]
+            [1, 2]
+         """
+        if self.is_prime():
+            return self.absolute_ideal().residue_class_degree()
+        raise ValueError, "the ideal (= %s) is not prime"%self
+
+    def residues(self):
+        """
+        Returns a iterator through a complete list of residues modulo this integral ideal.
+
+        An error is raised if this fractional ideal is not integral.
+
+        EXAMPLES:
+            sage: K.<a, w> = NumberFieldTower([x^2 - 3, x^2 + x + 1])
+            sage: I = K.ideal(6, -w*a - w + 4)
+            sage: list(I.residues())[:5]
+            [(-10/3*w - 8/3)*a,
+             (-10/3*w - 8/3)*a + 1,
+             (-10/3*w - 8/3)*a + 2,
+             (-10/3*w - 8/3)*a + 3,
+             (-10/3*w - 8/3)*a + 4]
+        """
+        abs_ideal = self.absolute_ideal()
+        from_abs = abs_ideal.number_field().structure()[0]
+        from sage.misc.mrange import xmrange_iter
+        abs_residues = abs_ideal.residues()
+        return xmrange_iter(abs_residues.iter_list, lambda c: from_abs(abs_residues.typ(c)))
+
+    def element_1_mod(self, other):
+        """
+        Returns an element r in this ideal such that 1-r is in other.
+
+        An error is raised if either ideal is not integral of if they
+        are not coprime.
+
+        INPUT:
+            other -- another ideal of the same field, or generators of an ideal.
+        OUTPUT:
+            r -- an element of the ideal self such that 1-r is in the ideal other.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberFieldTower([x^2 - 23, x^2 + 1])
+            sage: I = Ideal(2, (a - 3*b + 2)/2)
+            sage: J = K.ideal(a)
+            sage: z = I.element_1_mod(J); z
+            -8*b*a + 24
+            sage: z in I
+            True
+            sage: 1 - z in J
+            True
+        """
+        # Catch invalid inputs by making sure that we can make an ideal out of other.
+        K = self.number_field()
+        if not self.is_integral():
+            raise TypeError, "%s is not an integral ideal"%self
+
+        other = K.ideal(other)
+        if not other.is_integral():
+            raise TypeError, "%s is not an integral ideal"%other
+
+        if not self.is_coprime(other):
+            raise TypeError, "%s and %s are not coprime ideals"%(self, other)
+
+        to_K = K.absolute_field('a').structure()[0]
+        return to_K(self.absolute_ideal().element_1_mod(other.absolute_ideal()))
+
     def smallest_integer(self):
-        raise NotImplementedError
-    def valuation(self):
-        raise NotImplementedError
+        r"""
+        Return the smallest non-negative integer in $I \cap \mathbb{Z}$,
+        where $I$ is this ideal.  If $I = 0$, returns $0$.
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberFieldTower([x^2 - 23, x^2 + 1])
+            sage: I = K.ideal([a + b])
+            sage: I.smallest_integer()
+            12
+            sage: [m for m in range(13) if m in I]
+            [0, 12]
+        """
+        return self.absolute_ideal().smallest_integer()
+
+    def valuation(self, p):
+        r"""
+        Return the valuation of this fractional ideal at the prime
+        $\mathfrak{p}$.  If $\mathfrak{p}$ is not prime, raise a
+        ValueError.
+
+        INPUT:
+            p -- a prime ideal of this relative number field.
+
+        OUTPUT:
+            integer
+
+        EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 - 17, x^3 - 2])
+            sage: A = K.ideal(a + b)
+            sage: A.is_prime()
+            True
+            sage: (A*K.ideal(3)).valuation(A)
+            1
+            sage: K.ideal(25).valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: p (= Fractional ideal (5)) must be a prime
+         """
+        if p == 0:
+            raise ValueError, "p (= %s) must be nonzero"%p
+        if not isinstance(p, NumberFieldFractionalIdeal):
+            p = self.number_field().ideal(p)
+        if not p.is_prime():
+            raise ValueError, "p (= %s) must be a prime"%p
+        if p.ring() != self.number_field():
+            raise ValueError, "p (= %s) must be an ideal in %s"%self.number_field()
+        return self.absolute_ideal().valuation(p.absolute_ideal())
 
 def is_NumberFieldFractionalIdeal_rel(x):
     """
@@ -356,7 +689,7 @@ def is_NumberFieldFractionalIdeal_rel(x):
         Fractional ideal (b)
         sage: is_NumberFieldFractionalIdeal_rel(I)
         True
-        sage: N = I.norm(); N
+        sage: N = I.relative_norm(); N
         Fractional ideal (-a)
         sage: is_NumberFieldFractionalIdeal_rel(N)
         False

@@ -119,6 +119,7 @@ import sage.rings.rational as rational
 import sage.rings.integer as integer
 import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.polynomial.polynomial_element as polynomial_element
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
@@ -329,13 +330,32 @@ class NumberField_relative(NumberField_generic):
             Number Field in n with defining polynomial x^2 + x + 1 over its base field
             sage: L.base_field().base_field()
             Number Field in r with defining polynomial x^3 - 2
+
+        And a more complicated example:
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberField([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: L.<m, n, r> = K.change_names(); L
+            Number Field in m with defining polynomial x^2 + (-2*r - 3)*n - 2*r - 6 over its base field
+            sage: L.structure()
+            (Isomorphism given by variable name change map:
+              From: Number Field in m with defining polynomial x^2 + (-2*r - 3)*n - 2*r - 6 over its base field
+              To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field,
+             Isomorphism given by variable name change map:
+              From: Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
+              To:   Number Field in m with defining polynomial x^2 + (-2*r - 3)*n - 2*r - 6 over its base field)
         """
         if len(names) == 0:
             names = self.variable_names()
         elif isinstance(names, str):
             names = names.split(',')
         K = self.base_field().change_names(tuple(names[1:]))
-        L = K.extension(self.defining_polynomial(), names=names[0])
+        to_K = K.structure()[1]
+        old_poly = self.relative_polynomial()
+        new_poly = PolynomialRing(K, 'x')([to_K(c) for c in old_poly])
+        L = K.extension(new_poly, names=names[0])
+        L._set_structure(maps.NameChangeMap(L, self), maps.NameChangeMap(self, L))
         return L
 
     def is_absolute(self):
@@ -407,14 +427,32 @@ class NumberField_relative(NumberField_generic):
 
     def absolute_degree(self):
         """
+        The degree of this relative number field over the rational field.
+
         EXAMPLES:
-            sage: K.<a> = NumberField([x^2 + 3, x^2 + 2])
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: K.absolute_degree()
-            4
-            sage: K.degree()
-            2
+            6
         """
         return self.absolute_polynomial().degree()
+
+    def relative_degree(self):
+        """
+
+        EXAMPLES:
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: K.relative_degree()
+            2
+        """
+        return self.relative_polynomial().degree()
+
+    def degree(self):
+        """
+        The degree, unqualified, of a relative number field is deliberately
+        not implemented, so that a user cannot mistake the absolute degree
+        for the relative degree, or vice versa.
+        """
+        raise NotImplementedError, "For a relative number field you must use relative_degree or absolute_degree as appropriate"
 
     def maximal_order(self):
         """
@@ -458,7 +496,7 @@ class NumberField_relative(NumberField_generic):
             sage: print L == K
             True
         """
-        return NumberField_relative_v1, (self.__base_field, self.polynomial(), self.variable_name(),
+        return NumberField_relative_v1, (self.__base_field, self.relative_polynomial(), self.variable_name(),
                                           self.latex_variable_name(), self.gen_embedding())
 
     def _repr_(self):
@@ -476,7 +514,7 @@ class NumberField_relative(NumberField_generic):
             Number Field in b with defining polynomial x^7 + 3
         """
 
-        return "Number Field in %s with defining polynomial %s over its base field"%(self.variable_name(), self.polynomial())
+        return "Number Field in %s with defining polynomial %s over its base field"%(self.variable_name(), self.relative_polynomial())
 
         #return "Extension by %s of the Number Field in %s with defining polynomial %s"%(
         #self.polynomial(), self.base_field().variable_name(),
@@ -504,7 +542,7 @@ class NumberField_relative(NumberField_generic):
         r"""
         Return a \LaTeX representation of the extension.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: x = QQ['x'].0
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
@@ -512,7 +550,7 @@ class NumberField_relative(NumberField_generic):
             '( \\mathbf{Q}[a]/(a^{3} - 2) )[b]/(b^{2} + b + a)'
         """
         return "( %s )[%s]/(%s)"%(latex(self.base_field()), self.latex_variable_name(),
-                              self.polynomial()._latex_(self.latex_variable_name()))
+                              self.relative_polynomial()._latex_(self.latex_variable_name()))
 
     def _coerce_from_other_number_field(self, x):
         """
@@ -938,7 +976,7 @@ class NumberField_relative(NumberField_generic):
         """
         return self.absolute_field('a').is_galois()
 
-    def vector_space(self):
+    def relative_vector_space(self):
         """
         Return vector space over the base field of self and isomorphisms
         from the vector space to self and in the other direction.
@@ -946,7 +984,7 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES:
             sage: K.<a,b,c> = NumberField([x^2 + 2, x^3 + 2, x^3 + 3]); K
             Number Field in a with defining polynomial x^2 + 2 over its base field
-            sage: V, from_V, to_V = K.vector_space()
+            sage: V, from_V, to_V = K.relative_vector_space()
             sage: from_V(V.0)
             1
             sage: to_V(K.0)
@@ -959,19 +997,19 @@ class NumberField_relative(NumberField_generic):
             (0, 1)
 
         The underlying vector space and maps is cached:
-            sage: W, from_V, to_V = K.vector_space()
+            sage: W, from_V, to_V = K.relative_vector_space()
             sage: V is W
             True
         """
         try:
-            return self.__vector_space
+            return self.__relative_vector_space
         except AttributeError:
             pass
-        V = self.base_field()**self.degree()
+        V = self.base_field()**self.relative_degree()
         from_V = maps.MapRelativeVectorSpaceToRelativeNumberField(V, self)
         to_V   = maps.MapRelativeNumberFieldToRelativeVectorSpace(self, V)
-        self.__vector_space = (V, from_V, to_V)
-        return self.__vector_space
+        self.__relative_vector_space = (V, from_V, to_V)
+        return self.__relative_vector_space
 
     def absolute_vector_space(self):
         """
@@ -1009,6 +1047,14 @@ class NumberField_relative(NumberField_generic):
         ans = (V, fr, to)
         self.__absolute_vector_space = ans
         return ans
+
+    def vector_space(self):
+        """
+        For a relative number field \code{L}, \code{L.vector_space()} is deliberately
+        not implemented, so that a user cannot confuse \code{L.relative_vector_space()}
+        with \code{L.absolute_vector_space()}.
+        """
+        raise NotImplementedError, "For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate"
 
     def absolute_base_field(self):
         """
@@ -1089,7 +1135,7 @@ class NumberField_relative(NumberField_generic):
             sage: k.<a, c> = NumberField([x^2 + 3, x^2 + 1])
             sage: k.pari_polynomial()
             x^4 + 8*x^2 + 4
-            sage: k.defining_polynomial ()
+            sage: k.relative_polynomial ()
             x^2 + 3
         """
         try:
@@ -1165,7 +1211,7 @@ class NumberField_relative(NumberField_generic):
         """
         abs_base, _, _ = self.absolute_base_field()
         g = QQ['y'](abs_base.polynomial())
-        vals = [ QQ['y'](f.polynomial())._pari_().Mod(g) for f in self.polynomial().list() ]
+        vals = [ QQ['y'](f.polynomial())._pari_().Mod(g) for f in self.relative_polynomial().list() ]
         f = pari(vals).Polrev()
         return f
 
@@ -1214,7 +1260,6 @@ class NumberField_relative(NumberField_generic):
         except AttributeError:
             self.__abs_gen = self._element_class(self, QQ['x'].gen())
             return self.__abs_gen
-
 
     def absolute_field(self, names):
         r"""
@@ -1307,6 +1352,47 @@ class NumberField_relative(NumberField_generic):
         """
         return QQ['x'](self._pari_rnfequation()[0])
 
+    def relative_polynomial(self):
+        """
+        Return the defining polynomial of this relative number field over its base field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
+            sage: K.relative_polynomial()
+            x^2 + x + 1
+
+            Use absolute polynomial for a polynomial that defines the
+            absolute extension.
+
+            sage: K.absolute_polynomial()
+            x^6 + 3*x^5 + 8*x^4 + 9*x^3 + 7*x^2 + 6*x + 3
+        """
+        return self.__relative_polynomial
+
+    def defining_polynomial(self):
+        """
+        Return the defining polynomial of this relative number field.
+
+        This is exactly the same as \code{self.relative_polynomal()}.
+
+        EXAMPLES:
+            sage: C.<z> = CyclotomicField(5)
+            sage: PC.<X> = C[]
+            sage: K.<a> = C.extension(X^2 + X + z); K
+            Number Field in a with defining polynomial X^2 + X + z over its base field
+            sage: K.defining_polynomial()
+            X^2 + X + z
+        """
+        return self.relative_polynomial()
+
+    def polynomial(self):
+        """
+        For a relative number field \code{L}, \code{L.polynomial()} is deliberately
+        not implemented.  Either \code{L.relative_polynomial()}
+        or \code{L.absolute_polynomial()} must be used.
+        """
+        raise NotImplementedError, "For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate"
+
     def base_field(self):
         """
         Return the base field of this relative number field.
@@ -1393,6 +1479,74 @@ class NumberField_relative(NumberField_generic):
         self.__embeddings[K] = Sequence(v, cr=v!=[], immutable=True, check=False, universe=self.Hom(K))
         return self.__embeddings[K]
 
+    def absolute_different(self):
+        r"""
+        Return the absolute different of this relative number field as
+        an ideal of $L$.  To get the relative different of $L/K$,
+        use \code{L.relative_different()}.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: t = K['t'].gen()
+            sage: L.<b> = K.extension(t^4 - i)
+            sage: L.absolute_different()
+            Fractional ideal (8)
+        """
+        abs = self.absolute_field('a')
+        from_abs = abs.structure()[0]
+        return self.ideal([from_abs(g) for g in abs.different().gens()])
+
+    def relative_different(self):
+        r"""
+        Return the relative different of this extension $L/K$ as
+        an ideal of $L$.  If you want the absolute different of
+        $L/Q$, use \code{L.different()}.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: PK.<t> = K[]
+            sage: L.<a> = K.extension(t^4  - i)
+            sage: L.relative_different()
+            Fractional ideal (4)
+        """
+        I = self.absolute_different()
+        J = self.ideal(self.base_field().absolute_different().gens())
+        return  I/J
+
+    def different(self):
+        """
+        The different, unqualified, of a relative number field is deliberately
+        not implemented, so that a user cannot mistake the absolute different
+        for the relative different, or vice versa.
+        """
+        raise NotImplementedError, "For a relative number field you must use relative_different or absolute_different as appropriate"
+
+    def absolute_discriminant(self, v=None):
+        r"""
+        Return the absolute discriminant of this relative number field
+        or if v is specified, the determinant of the trace pairing
+        on the elements of the list v.
+
+        INPUT:
+            v (optional) -- list of element of this relative number field.
+        OUTPUT:
+            Integer if v is omitted, and Rational otherwise.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: t = K['t'].gen()
+            sage: L.<b> = K.extension(t^4 - i)
+            sage: L.absolute_discriminant()
+            16777216
+            sage: L.absolute_discriminant([(b + i)^j for j in range(8)])
+            61911970349056
+        """
+        abs = self.absolute_field('a')
+        if v != None:
+            to_abs = abs.structure()[1]
+            v = [to_abs(x) for x in v]
+        return abs.discriminant(v=v)
+
     def relative_discriminant(self, proof=None):
         r"""
         Return the relative discriminant of this extension $L/K$ as
@@ -1408,17 +1562,13 @@ class NumberField_relative(NumberField_generic):
         INPUT:
             proof -- (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: K.<i> = NumberField(x^2 + 1)
             sage: t = K['t'].gen()
             sage: L.<b> = K.extension(t^4 - i)
             sage: L.relative_discriminant()
             Fractional ideal (256)
-            sage: factor(L.discriminant())
-            2^24
-            sage: factor( L.relative_discriminant().norm() )
-            2^16
-        """
+         """
         proof = proof_flag(proof)
 
         bnf = self._pari_base_bnf(proof)
@@ -1426,6 +1576,22 @@ class NumberField_relative(NumberField_generic):
         R = K.polynomial().parent()
         D, d = bnf.rnfdisc(self.pari_relative_polynomial())
         return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, D) ])
+
+    def discriminant(self):
+        """
+        The discriminant, unqualified, of a relative number field is deliberately
+        not implemented, so that a user cannot mistake the absolute discriminant
+        for the relative discriminant, or vice versa.
+        """
+        raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
+
+    def disc(self):
+        """
+        The discriminant, unqualified, of a relative number field is deliberately
+        not implemented, so that a user cannot mistake the absolute discriminant
+        for the relative discriminant, or vice versa.
+        """
+        raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
 
     def order(self, *gens, **kwds):
         """
@@ -1472,7 +1638,6 @@ class NumberField_relative(NumberField_generic):
         gens = [self(x) for x in gens]
         return order.relative_order_from_ring_generators(gens, **kwds)
 
-
     def galois_group(self, pari_group = True, algorithm='pari'):
         r"""
         Return the Galois group of the Galois closure of this number
@@ -1490,7 +1655,7 @@ class NumberField_relative(NumberField_generic):
         typing \code{K.polynomial().galois_group?}, where $K$
         is a number field.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: x = QQ['x'].0
             sage: K.<a> = NumberField(x^2 + 1)
             sage: R.<t> = PolynomialRing(K)
@@ -1510,7 +1675,6 @@ class NumberField_relative(NumberField_generic):
         H = GaloisGroup(G, self)
         self.__galois_group[pari_group, algorithm] = H
         return H
-
 
     def is_free(self, proof=None):
         r"""
@@ -1560,27 +1724,6 @@ class NumberField_relative(NumberField_generic):
         # than they are.
         f = QQ['y'](str_poly)
         return self.base_field()(f.list())
-
-    def polynomial(self):
-        """
-        Return the defining polynomial of this number field.
-
-        EXAMPLES:
-            sage: y = polygen(QQ,'y')
-            sage: k.<a> = NumberField([y^2 + y + 1, x^3 + x + 1])
-            sage: k.polynomial()
-            y^2 + y + 1
-
-        This is the same as defining_polynomial:
-            sage: k.defining_polynomial()
-            y^2 + y + 1
-
-        Use absolute polynomial for a polynomial that defines the
-        absolute extension.
-            sage: k.absolute_polynomial()
-            x^6 + 3*x^5 + 8*x^4 + 9*x^3 + 7*x^2 + 6*x + 3
-        """
-        return self.__relative_polynomial
 
     def relativize(self, alpha, names):
         r"""

@@ -301,7 +301,7 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         Return generators for a representative ideal in this
         ideal class.
 
-        EXAMPLE:
+        EXAMPLES:
         sage: K.<w>=QuadraticField(-23)
         sage: OK=K.ring_of_integers()
         sage: C=OK.class_group()

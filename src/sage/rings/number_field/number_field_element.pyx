@@ -567,7 +567,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             IndexError: index must be between 0 and degree minus 1.
 
-        The list method implicitly calls __getitem__::
+        The list method implicitly calls ``__getitem__``::
 
             sage: list(c)
             [8/27, -16/15, 32/25, -64/125]
@@ -1791,7 +1791,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (O.2).vector()
             (1, -b)
         """
-        return self.number_field().vector_space()[2](self)
+        return self.number_field().relative_vector_space()[2](self)
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
@@ -1951,7 +1951,7 @@ cdef class NumberFieldElement(FieldElement):
             v = []
             x = K.gen()
             a = K(1)
-            d = K.degree()
+            d = K.relative_degree()
             for n in range(d):
                 v += (a*self).list()
                 a *= x
@@ -2409,6 +2409,44 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     """
     def __init__(self, parent, f):
         NumberFieldElement.__init__(self, parent, f)
+
+    def __getitem__(self, n):
+        """
+        Return the n-th coefficient of this relative number field element, written
+        as a polynomial in the generator.
+
+        Note that `n` must be between 0 and `d-1`, where
+        `d` is the relative degree of the number field.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^3 - 5, x^2 + 3])
+            sage: c = (a + b)^3; c
+            3*b*a^2 - 9*a - 3*b + 5
+            sage: c[0]
+            -3*b + 5
+
+        We illustrate bounds checking::
+
+            sage: c[-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and the relative degree minus 1.
+            sage: c[4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and the relative degree minus 1.
+
+        The list method implicitly calls ``__getitem__``::
+
+            sage: list(c)
+            [-3*b + 5, -9, 3*b]
+            sage: K(list(c)) == c
+            True
+        """
+        if n < 0 or n >= self.parent().relative_degree():
+            raise IndexError, "index must be between 0 and the relative degree minus 1."
+        return self.vector()[n]
 
     def list(self):
         """

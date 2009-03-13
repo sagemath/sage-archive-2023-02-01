@@ -224,12 +224,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I   # random sign in output
             Fractional ideal (-2*a^2 - 1)
         """
-        # The first method does not work for ideals in relative extensions
-        try:
-            return self.coordinates(self.number_field()(x)).denominator() == 1
-        except NotImplementedError:
-            x_ideal = self.number_field().ideal(x)
-            return self + x_ideal == self
+        return self.coordinates(self.number_field()(x)).denominator() == 1
 
     def __elements_from_hnf(self, hnf):
         """
@@ -508,7 +503,7 @@ class NumberFieldIdeal(Ideal_generic):
         uses \code{bnfisprincipal}, so set \code{proof=True} if you
         want to prove correctness (which \emph{is} the default).
 
-        EXAMPLE:
+        EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<i> = NumberField(x^2+1, 'i')
             sage: J = K.ideal([i+1, 2])
@@ -561,7 +556,7 @@ class NumberFieldIdeal(Ideal_generic):
         r"""
         Return a list of generators for this ideal as a $\mathbb{Z}$-module.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<i> = NumberField(x^2 + 1)
             sage: J = K.ideal(i+1)
@@ -576,7 +571,7 @@ class NumberFieldIdeal(Ideal_generic):
         Return a tuple (I, d), where I is an integral ideal, and d is the
         smallest positive integer such that this ideal is equal to I/d.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2-5)
             sage: I = K.ideal(2/(5+a))
@@ -747,6 +742,52 @@ class NumberFieldIdeal(Ideal_generic):
         self._norm = QQ(self.number_field().pari_nf().idealnorm(self.pari_hnf()))
         return self._norm
 
+    # synonyms (using terminology of relative number fields)
+
+    def absolute_norm(self):
+        """
+        A synonym for norm.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.ideal(1 + 2*i).absolute_norm()
+            5
+        """
+        return self.norm()
+
+    def relative_norm(self):
+        """
+        A synonym for norm.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.ideal(1 + 2*i).relative_norm()
+            5
+        """
+        return self.norm()
+
+    def absolute_ramification_index(self):
+        """
+        A synonym for ramification_index.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.ideal(1 + i).absolute_ramification_index()
+            2
+        """
+        return self.ramification_index()
+
+    def relative_ramification_index(self):
+        """
+        A synonym for ramification_index.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.ideal(1 + i).relative_ramification_index()
+            2
+        """
+        return self.ramification_index()
+
     def number_field(self):
         """
         Return the number field that this is a fractional ideal in.
@@ -763,10 +804,10 @@ class NumberFieldIdeal(Ideal_generic):
 
     def smallest_integer(self):
         r"""
-        Return the smallest nonnegative integer in $I \cap \mathbb{Z}$,
+        Return the smallest non-negative integer in $I \cap \mathbb{Z}$,
         where $I$ is this ideal.  If $I = 0$, returns $0$.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2+6)
             sage: I = K.ideal([4,a])/7
@@ -1110,7 +1151,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         assuming it is prime.  Otherwise, raise a ValueError.
 
         The ramification index is the power of this prime appearing in
-        the factorization of the prime in $\ZZ$ that this primes lies
+        the factorization of the prime in $\ZZ$ that this prime lies
         over.
 
         EXAMPLES:
@@ -1317,19 +1358,23 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             False
             sage: (j/k).is_coprime(j/k)
             False
+
+            sage: F.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: F.ideal(3 - a*b).is_coprime(F.ideal(3))
+            False
         """
         # Catch invalid inputs by making sure that we can make an ideal out of other.
         K = self.number_field()
         one = K.unit_ideal()
         other = K.ideal(other)
         if self.is_integral() and other.is_integral():
-            if arith.gcd(ZZ(self.norm()), ZZ(other.norm())) == 1:
+            if arith.gcd(ZZ(self.absolute_norm()), ZZ(other.absolute_norm())) == 1:
                 return True
             else:
                 return self+other == one
         # This special case is necessary since the zero ideal is not a
         # fractional ideal!
-        if other.norm() == 0:
+        if other.absolute_norm() == 0:
             return self == one
         D1 = self.denominator()
         N1 = self.numerator()
@@ -1404,7 +1449,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             M_self = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self_b])
             M_other = MatrixSpace(ZZ,n)([R.coordinates(y) for y in other_b])
         except TypeError:
-	    raise TypeError, "element_1_mod only defined for integral ideals"
+            raise TypeError, "element_1_mod only defined for integral ideals"
 
         #hnf for matrix representing C = self+other:
         C = M_self.stack(M_other)
@@ -1448,12 +1493,16 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             True
             sage: I.euler_phi()*J.euler_phi() == (I*J).euler_phi()
             True
+            sage: L.<b> = K.extension(x^2 - 7)
+            sage: L.ideal(3).euler_phi()
+            64
         """
         if not self.is_integral():
             raise ValueError, "euler_phi only defined for integral ideals"
         return prod([(np-1)*np**(e-1) \
-                     for np,e in [(p.norm(),e) \
+                     for np,e in [(p.absolute_norm(),e) \
                                   for p,e in self.factor()]])
+
     def prime_to_idealM_part(self, M):
         """
         Version for integral ideals of the prime_to_m_part function over ZZ.

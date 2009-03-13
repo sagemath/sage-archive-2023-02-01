@@ -750,7 +750,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
             K = F.extension(Fx([-1,1,1]), 'tK')
             Kabs = K.absolute_field('tKabs')
             Kabs_pari = pari(Kabs.defining_polynomial())
-            d = K.disc()
+            d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
                 ind = bisect.bisect_left(S, [d,ng])
@@ -762,7 +762,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
                 K = F.extension(f, 'tK')
                 Kabs = K.absolute_field('tKabs')
                 Kabs_pari = pari(Kabs.defining_polynomial())
-                d = K.disc()
+                d = K.absolute_discriminant()
                 if abs(d) <= B:
                     ng = Kabs_pari.polredabs()
                     ind = bisect.bisect_left(S, [d,ng])

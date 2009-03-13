@@ -135,7 +135,7 @@ Next we create the univariate polynomial ring :math:`R = K[X]`.  In
 Sage, we do this by typing ``R.<X> = K[]``. Here ``R.<X>`` means
 "create the object :math:`R` with generator :math:`X`" and ``K[]``
 means a "polynomial ring over :math:`K`", where the generator is named
-based on the afformentioned :math:`X` (to create a polynomial ring in
+based on the aformentioned :math:`X` (to create a polynomial ring in
 two variables :math:`X,Y` simply replace ``R.<X>`` by ``R.<X,Y>``).
 
 .. link
@@ -180,16 +180,18 @@ Functions on relative number fields
 -----------------------------------
 
 The relative number field :math:`L` also has numerous functions, many
-of which are by default relative. For example the ``degree`` function
-on :math:`L` returns the relative degree of :math:`L` over :math:`K`;
-for the degree of :math:`L` over :math:`\mathbb{Q}` use the
-``absolute_degree`` function.
+of which have both relative and absolute version. For example the
+``relative_degree`` function on :math:`L` returns the relative degree
+of :math:`L` over :math:`K`; the degree of :math:`L` over
+:math:`\mathbb{Q}` is given by the ``absolute_degree`` function.  To
+avoid possible ambiguity ``degree`` is not implemented for relative
+number fields.
 
 .. link
 
 ::
 
-    sage: L.degree()
+    sage: L.relative_degree()
     3
     sage: L.absolute_degree()
     6
@@ -260,7 +262,7 @@ scenes all arithmetic is done in terms of a single absolute
 defining polynomial, and in some cases this can be very slow (much
 slower than Magma). Perhaps this could be fixed by using Singular's
 multivariate polynomials modulo an appropriate ideal, since
-Singular polynomial arithmetic is extremely flast. Also, Sage has
+Singular polynomial arithmetic is extremely fast. Also, Sage has
 very little direct support for constructive class field theory,
 which is a major motivation for explicit computation with relative
 orders; it would be good to expose more of Pari's functionality in

@@ -45,7 +45,7 @@ QQ = rational_field.RationalField()
 
 class NumberFieldIsomorphism(Map):
     r"""
-    A base class for various isomorphisms betweeen number fields and
+    A base class for various isomorphisms between number fields and
     vector spaces.
     """
     def _repr_type(self):
@@ -145,7 +145,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
         sage: L.<b> = NumberField(x^4 + 3*x^2 + 1)
         sage: K = L.relativize(L.subfields(2)[0][1], 'a'); K
         Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
-        sage: V, fr, to = K.vector_space()
+        sage: V, fr, to = K.relative_vector_space()
         sage: V
         Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
         sage: fr
@@ -206,7 +206,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         self.__K = K
         self.__rnf = K.pari_rnf()
         self.__zero = QQ(0)
-        self.__n = K.degree()
+        self.__n = K.relative_degree()
         self.__x = pari('x')
         self.__y = pari('y')
         self.__B = K.absolute_base_field()
@@ -218,7 +218,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         alpha = self.__K(alpha)
         f = alpha.polynomial('x')
         # f is the absolute polynomial that defines this number field element
-        if self.__K.degree() == 1:
+        if self.__K.relative_degree() == 1:
             # Pari doesn't return a valid relative polynomial from an
             # absolute one in the case of relative degree one. (Bug
             # submitted to Pari, fixed in svn unstable as of 1/22/08

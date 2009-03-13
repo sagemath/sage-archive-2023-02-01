@@ -48,34 +48,28 @@ EXAMPLES:
     sage: all(P.residue_class_degree() == 1 for P in Ps)
     True
 
-    In the next two examples, relative residue class degrees are not yet
-    implemented, but we can check that the absolute norms are in fact prime.
+    The next two examples are for relative number fields.
 
     sage: L.<b> = F.extension(x^3 - a, 'b')
     sage: Ps = L.primes_of_degree_one_list(3)
     sage: Ps # random
     [Fractional ideal (17, b - 5), Fractional ideal (23, b - 4), Fractional ideal (31, b - 2)]
-    sage: [ P.norm().norm() for P in Ps ] # random
+    sage: [ P.absolute_norm() for P in Ps ] # random
     [17, 23, 31]
-    sage: all(ZZ(P.norm().norm()).is_prime() for P in Ps)
+    sage: all(ZZ(P.absolute_norm()).is_prime() for P in Ps)
     True
     sage: all(P.residue_class_degree() == 1 for P in Ps)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError...
-
+    True
     sage: M.<c> = NumberField(x^2 - x*b^2 + b, 'c')
     sage: Ps = M.primes_of_degree_one_list(3)
     sage: Ps # random
     [Fractional ideal (17, c - 2), Fractional ideal (c - 1), Fractional ideal (41, c + 15)]
-    sage: [ P.norm().norm().norm() for P in Ps ] # random
+    sage: [ P.absolute_norm() for P in Ps ] # random
     [17, 31, 41]
-    sage: all(ZZ(P.norm().norm().norm()).is_prime() for P in Ps)
+    sage: all(ZZ(P.absolute_norm()).is_prime() for P in Ps)
     True
     sage: all(P.residue_class_degree() == 1 for P in Ps)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError...
+    True
 
 AUTHOR:
     -- Nick Alexander

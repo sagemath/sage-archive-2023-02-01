@@ -1,6 +1,6 @@
 from number_field_base import is_NumberField
 
-from number_field import (NumberField, CyclotomicField, QuadraticField,
+from number_field import (NumberField, NumberFieldTower, CyclotomicField, QuadraticField,
                           is_CyclotomicField, is_QuadraticField,
                           is_AbsoluteNumberField,
                           is_fundamental_discriminant)

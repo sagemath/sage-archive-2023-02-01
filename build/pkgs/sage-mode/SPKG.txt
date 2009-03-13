@@ -4,6 +4,9 @@
 
 sage-mode provides Emacs Lisp that helps you use Sage in GNU Emacs.
 
+'''Warning!'''  This is alpha code.  This might fail horribly and is not (yet)
+easily customizable!
+
 == License ==
 
 Copyright (C) 2007, 2008, 2009  Nick Alexander
@@ -39,6 +42,10 @@ Boston, MA 02110-1301, USA.
 
 == Special Update/Build Instructions ==
 
+[[attachment:sage-mode-0.5.3.spkg]]
+
+Use {{{sage -f sage-mode-0.5.3.spkg}}}.  The following installation instructions are suggested:
+
 A basic install might include the following Emacs Lisp in your .emacs:
 
 {{{
@@ -53,7 +60,8 @@ A basic install might include the following Emacs Lisp in your .emacs:
 ;; You can use commands like
 ;; (add-hook 'sage-startup-hook 'sage-view
 ;; 'sage-view-disable-inline-output 'sage-view-disable-inline-plots)
-;; to have some combination of features.
+;; to have some combination of features.  In future, the customize interface
+;; will make this simpler... hint, hint!
 
 }}}
 
@@ -105,3 +113,32 @@ First alpha version, for Mike Hansen to use and test.
 
 === sage-mode-0.1 (Nick Alexander) ===
 First internal version.
+
+== Old versions ==
+
+[[attachment:sage-mode-0.5.2.spkg]]
+
+[[attachment:sage-mode-0.5.1.spkg]]
+
+[[attachment:sage-mode-0.5.spkg]]
+
+[[attachment:sage-mode-0.4.spkg]]
+
+[[attachment:sage-mode-0.3.1.spkg]]
+
+[[attachment:sage-mode-0.3.spkg]]
+
+[[attachment:sage-mode-0.2.spkg]]
+
+== Original version ==
+
+This version was from Sage Days 4.
+
+[[attachment:sage-mode.el]]
+[[attachment:pyrex-mode.el]]
+
+The following files need to go into sage/misc.
+
+[[attachment:sage_emacs.py]]
+[[attachment:xreload.py]]
+[[attachment:sagetest.py]]

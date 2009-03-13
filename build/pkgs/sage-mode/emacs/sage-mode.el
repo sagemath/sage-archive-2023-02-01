@@ -119,6 +119,7 @@
 
 (defun inferior-sage-wait-for-prompt ()
   "Wait until the SAGE process is ready for input."
+  (message "Waiting for sage: prompt...")
   (with-current-buffer sage-buffer
     (let* ((sprocess (get-buffer-process sage-buffer))
 	    (success nil)
@@ -131,9 +132,13 @@
 		 (accept-process-output nil 0 1)
 		 (sit-for 0)
 		 (goto-char (point-max))
-		 (forward-line 0)
-		 (setq success (looking-at inferior-sage-prompt))
+		 ;; (forward-line 0)
+		 ;; (setq success (looking-at inferior-sage-prompt))
+		 (setq success (looking-back "^.*sage:.*$"))
 		 (not (or success (looking-at ".*\\?\\s *"))))))
+      (if success
+	  (message "Waiting for sage: prompt... DONE")
+	(message "Waiting for sage: prompt... FAILED"))
       (goto-char (point-max))
       success)))
 
@@ -285,9 +290,15 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
 
 ;;;_* SAGE process management
 
-(defun sage-send-startup-command ()
-  (sage-send-command sage-startup-command t))
-(add-hook 'sage-startup-hook 'sage-send-startup-command)
+(defun sage-send-startup-before-prompt-command ()
+  (sage-send-command sage-startup-before-prompt-command nil))
+(add-hook 'sage-startup-before-prompt-hook 'sage-send-startup-before-prompt-command)
+
+(defun sage-send-startup-after-prompt-command ()
+  (sage-send-command "" t)
+  (accept-process-output nil 0 1) ;; make sure the prompt appears between inputs
+  (sage-send-command sage-startup-after-prompt-command t))
+(add-hook 'sage-startup-after-prompt-hook 'sage-send-startup-after-prompt-command)
 
 (defvaralias 'sage-buffer 'python-buffer)
 ;; (defvar sage-buffer nil
@@ -452,10 +463,11 @@ buffer for a list of commands.)"
 
     (with-current-buffer sage-buffer
       (unless noshow (pop-to-buffer sage-buffer)) ; show progress
+      (run-hooks 'sage-startup-before-prompt-hook)
       (unless (inferior-sage-mode-p)
 	(inferior-sage-mode))
       (when (inferior-sage-wait-for-prompt) ; wait for prompt
-	(run-hooks 'sage-startup-hook)))
+	(run-hooks 'sage-startup-after-prompt-hook)))
 
     (when (sage-mode-p)
       ;; If we're coming from a sage-mode buffer, update inferior buffer

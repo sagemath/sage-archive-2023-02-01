@@ -38,24 +38,35 @@
   :type 'regexp)
 
 (defcustom inferior-sage-timeout 500000
-  "How long to wait for a SAGE prompt."
+  "*How long to wait for a SAGE prompt at startup."
   :group 'sage
   :type 'integer)
 
 (defcustom sage-command (expand-file-name "~/bin/sage")
-  "Actual command used to run SAGE.
+  "*Actual command used to run sage.
 Additional arguments are added when the command is used by `run-sage' et al."
   :group 'sage
   :type 'string)
 
-(defcustom sage-startup-command "import sage_emacs as emacs"
-  "Run this command each time SAGE slave is executed by `run-sage'."
+(defcustom sage-startup-before-prompt-command "%colors NoColor"
+  "*Run this command each time sage slave is executed by `run-sage', BEFORE the first prompt is seen."
   :group 'sage
   :type 'string)
 
-(defcustom sage-startup-hook nil
-  "*Normal hook (list of functions) run after `sage' is run and the first prompt is seen.
-See `run-hooks'."
+(defcustom sage-startup-after-prompt-command "import sage_emacs as emacs"
+  "*Run this command each time sage slave is executed by `run-sage', AFTER the first prompt is seen."
+  :group 'sage
+  :type 'string)
+
+(defcustom sage-startup-before-prompt-hook nil
+  "*Normal hook (list of functions) run after `sage' is run but BEFORE the first prompt is seen.
+See `sage-startup-after-prompt-hook' and `run-hooks'."
+  :group 'sage
+  :type 'hook)
+
+(defcustom sage-startup-after-prompt-hook nil
+  "*Normal hook (list of functions) run after `sage' is run and AFTER the first prompt is seen.
+See `sage-startup-before-prompt-hook' and `run-hooks'."
   :group 'sage
   :type 'hook)
 

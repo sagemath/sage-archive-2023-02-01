@@ -22,6 +22,11 @@
 
 ;;; Commentary:
 
+;; `sage-mode' is a major mode for editing sage (and python, and cython)
+;; source code.  `inferior-sage-mode' is the companion mode for interacting
+;; with a slave sage session.  See the help for `sage-mode' for help getting
+;; started and the default key bindings.
+
 ;;; Code:
 
 (require 'python)
@@ -29,20 +34,63 @@
 (require 'ansi-color)
 (require 'compile)
 
-(autoload 'sage-view "sage-view" "Sage view minor mode." t)
+;;;_ + SAGE mode key bindings
+
+(defvar sage-mode-map
+  (let ((map (make-keymap)))	  ;`sparse' doesn't allow binding to charsets.
+    (define-key map [(control c) (control c)] 'sage-send-buffer)
+    (define-key map [(control c) (control r)] 'sage-send-region)
+    (define-key map [(control c) (control j)] 'sage-send-doctest)
+    (define-key map [(control c) (control t)] 'sage-test)
+    (define-key map [(control c) (control b)] 'sage-build)
+    (define-key map [(control h) (control f)] 'ipython-describe-symbol)
+    (define-key map [(control h) (control g)] 'sage-find-symbol-other-window)
+
+    (easy-menu-define menu-map map "Sage Mode menu"
+      `("Sage"
+	:help "sage-mode Specific Features"
+	["Send Buffer" sage-send-buffer
+	 :help "Send current buffer to inferior sage"]
+	["Send Region" sage-send-region :active mark-active
+	 :help "Send current region to inferior sage"]
+	["Send Doctest" sage-send-doctest
+	 :help "Send current doctest to inferior sage"]
+	"-"
+	["Run Sage" sage
+	 :help "Run sage"]
+	["Rerun Sage" sage-rerun
+	 :help "Kill running sage and rerun sage"]
+	["Build Sage" sage-build
+	 :help "Build sage with \"sage -b\""]
+	["Run Doctests" sage-test
+	 :help "Run doctests with \"sage -t\""]))
+    map)
+  "Keymap for `sage-mode'.")
+
+(defvar inferior-sage-mode-map
+  (let ((map (make-keymap)))	  ;`sparse' doesn't allow binding to charsets.
+    (define-key map [(control c) (control t)] 'sage-test)
+    (define-key map [(control c) (control b)] 'sage-build)
+    (define-key map [(control h) (control f)] 'ipython-describe-symbol)
+    (define-key map [(control h) (control g)] 'sage-find-symbol-other-window)
+    (define-key map (kbd "TAB") 'sage-pcomplete-or-help)
+
+    (easy-menu-define menu-map map "Inferior Sage Mode menu"
+      `("Sage"
+	["Run Sage" sage
+	 :help "Run sage"]
+	["Rerun Sage" sage-rerun
+	 :help "Kill running sage and rerun sage"]
+	["Build Sage" sage-build
+	 :help "Build sage with \"sage -b\""]
+	["Run Doctests" sage-test
+	 :help "Run doctests with \"sage -t\""]))
+    map)
+  "Keymap for `inferior-sage-mode'.")
 
 ;;;_* Inferior SAGE major mode for interacting with a slave SAGE process
 
-(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>" "(gdb)") " ")))
-  "Regular expression matching the SAGE prompt."
-  :group 'sage
-  :type 'regexp)
-
-(defcustom inferior-sage-timeout 500000
-  "How long to wait for a SAGE prompt."
-  :group 'sage
-  :type 'integer)
-
+;;;###autoload
 (define-derived-mode
   inferior-sage-mode
   inferior-python-mode
@@ -66,6 +114,7 @@
   (add-to-list 'compilation-error-regexp-alist-alist sage-build-compilation-regexp)
   (add-to-list 'compilation-error-regexp-alist 'sage-build-compilation)
 
+  (pcomplete-sage-setup)
   (compilation-shell-minor-mode 1))
 
 (defun inferior-sage-wait-for-prompt ()
@@ -236,23 +285,6 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
 
 ;;;_* SAGE process management
 
-(defcustom sage-command (expand-file-name "~/bin/sage")
-  "Actual command used to run SAGE.
-Additional arguments are added when the command is used by `run-sage' et al."
-  :group 'sage
-  :type 'string)
-
-(defcustom sage-startup-command "import sage_emacs as emacs"
-  "Run this command each time SAGE slave is executed by `run-sage'."
-  :group 'sage
-  :type 'string)
-
-(defcustom sage-startup-hook nil
-  "*Normal hook (list of functions) run after `sage' is run and the first prompt is seen.
-See `run-hooks'."
-  :group 'sage
-  :type 'hook)
-
 (defun sage-send-startup-command ()
   (sage-send-command sage-startup-command t))
 (add-hook 'sage-startup-hook 'sage-send-startup-command)
@@ -387,6 +419,9 @@ See variable `python-buffer'.  Starts a new process if necessary."
 
 ;;;###autoload
 (defalias 'sage 'run-sage)
+;;;###autoload
+(defalias 'sage-run 'run-sage)
+;;;###autoload
 (defun run-sage (&optional new cmd noshow)
   "Run an inferior SAGE process, input and output via buffer *SAGE*.
 
@@ -469,11 +504,31 @@ buffer for a list of commands.)"
 
 (provide 'sage)
 
+;;;###autoload
 (define-derived-mode
   sage-mode
   python-mode
   "SAGE"
-  "Major mode for editing SAGE files."
+  "Major mode for editing SAGE files.
+
+The major entry points are:
+
+`sage', to spawn a new sage session.
+
+`sage-send-buffer', to send the current buffer to the inferior sage, using
+\"load\"; `sage-send-region', to send the current region to the inferior
+sage, using \"load\"; and `sage-send-doctest', to send the docstring point is
+currently looking at to the inferior sage interactively.
+
+`sage-test', to execute \"sage -t\" and friends and parse the output
+
+`sage-build', to execute \"sage -b\" and friends and parse the output.
+
+`sage-rerun' to restart an inferior sage in an existing buffer, and
+`sage-build' with a prefix argument to execute \"sage -br\" to rebuild sage
+and restart a fresh inferior sage in an existing buffer.
+
+\\{sage-mode-map}"
   (set (make-local-variable 'font-lock-multiline) t)
   (set (make-local-variable 'font-lock-defaults)
        `(, (cons
@@ -500,30 +555,71 @@ buffer for a list of commands.)"
 (add-to-list 'interpreter-mode-alist '("sage" . sage-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sage\\'" . sage-mode))
-;;;###autoload
+
 (add-to-list 'python-source-modes 'sage-mode)
 
+;;;###autoload
 (defun sage-send-buffer ()
+  "Send the current buffer to the inferior sage process.
+The buffer is loaded using sage's \"load\" command."
   (interactive)
-  (sage-send-command (format "load %s" (buffer-file-name)) t)
+  (when (buffer-file-name)
+    ;; named file -- offer to save it, then send it
+    (when (buffer-modified-p)
+      (save-some-buffers))
+    (sage-send-command (format "load %s" (buffer-file-name)) t))
+  (unless (buffer-file-name)
+    ;; un-named buffer -- use sage-send-region
+    (sage-send-region (point-min) (point-max)))
   (pop-to-buffer sage-buffer))
+
+;;;###autoload
+(defun sage-send-region (start end)
+  "Send the region to the inferior sage process.
+The region is treated as a temporary \".sage\" file with minimal
+processing.  The logic is that this command is intended to
+emulate interactive input, although this isn't perfect: sending
+the region \"2\" does not print \"2\"."
+  ;; The region is evaluated from a temporary file.  This avoids
+  ;; problems with blank lines, which have different semantics
+  ;; interactively and in files.  It also saves the inferior process
+  ;; buffer filling up with interpreter prompts.  We need a Python
+  ;; function to remove the temporary file when it has been evaluated
+  ;; (though we could probably do it in Lisp with a Comint output
+  ;; filter).  This function also catches exceptions and truncates
+  ;; tracebacks not to mention the frame of the function itself.
+  ;;
+  ;; The `compilation-shell-minor-mode' parsing takes care of relating
+  ;; the reference to the temporary file to the source.
+  ;;
+  ;; Fixme: Write a `coding' header to the temp file if the region is
+  ;; non-ASCII.
+  (interactive "r")
+  (let* ((f (make-temp-file "sage" nil ".sage"))
+	 (command (format "load '%s' # loading region..." f))
+	 (orig-start (copy-marker start)))
+    (when (save-excursion
+	    (goto-char start)
+	    (/= 0 (current-indentation))) ; need dummy block
+      (save-excursion
+	(goto-char orig-start)
+	;; Wrong if we had indented code at buffer start.
+	(set-marker orig-start (line-beginning-position 0)))
+      (write-region "if True:\n" nil f nil 'nomsg))
+    (write-region start end f t 'nomsg)
+    (message "Sending region to sage buffer...")
+    (sage-send-command command t) ;; the true is whether to show the input line or not
+    (pop-to-buffer sage-buffer)
+    (message "Sending region to sage buffer... done.")
+    (with-current-buffer (process-buffer (python-proc))
+      ;; Tell compile.el to redirect error locations in file `f' to
+      ;; positions past marker `orig-start'.  It has to be done *after*
+      ;; `python-send-command''s call to `compilation-forget-errors'.
+      (compilation-fake-loc orig-start f))))
 
 ;;;_* Integrate SAGE mode with Emacs
 
-;;;_ + SAGE mode key bindings
-
 ;;;###autoload
-(defun sage-bindings ()
-  "Install sage-mode bindings locally."
-  (interactive)
-
-  (local-set-key [(control c) (control j)] 'sage-send-doctest)
-  (local-set-key [(control c) (control c)] 'sage-send-buffer)
-  (local-set-key [(control c) (control t)] 'sage-test)
-  (local-set-key [(control c) (control b)] 'sage-build)
-  (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
-  (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
-
 (defun sage-pcomplete-or-help ()
   "If point is after ?, describe preceding symbol; otherwise, pcomplete."
   (interactive)
@@ -533,16 +629,6 @@ buffer for a list of commands.)"
       (backward-char)
       (when (python-current-word)
 	(ipython-describe-symbol (python-current-word))))))
-
-(defun inferior-sage-bindings ()
-  "Install inferior-sage-mode bindings locally."
-  (interactive)
-  (pcomplete-sage-setup)
-  (local-set-key (kbd "TAB") 'sage-pcomplete-or-help))
-
-(add-hook 'sage-mode-hook 'sage-bindings)
-;; (add-hook 'inferior-sage-mode-hook 'sage-bindings)
-(add-hook 'inferior-sage-mode-hook 'inferior-sage-bindings)
 
 ;;;_ + Set better grep defaults for SAGE and Pyrex code
 
@@ -1249,11 +1335,3 @@ Interactively, try to find current method at point."
 ;;;_* Setup imenu by default
 (when (featurep 'imenu)
   (add-hook 'sage-mode-hook 'imenu-add-menubar-index))
-
-(require 'sage-test)
-(defun sage-send-doctest (&optional all)
-  (interactive "P")
-  (if all
-      (let ((current-prefix-arg nil))
-	(sage-send-all-doctest-lines))
-    (sage-send-doctest-line-and-forward)))

@@ -5,14 +5,6 @@
 ;; Author: Nicholas Alexander <ncalexan@pv109055.reshsg.uci.edu>
 ;; Keywords: sage test
 
-;;;###autoload
-(defcustom sage-test-setup-hook nil
-  "List of hook functions run by `sage-test-process-setup' (see `run-hooks')."
-  :type 'hook
-  :group 'sage-test)
-
-(require 'sage-build)
-
 ;; History of sage-test commands.
 ;;;###autoload
 (defvar sage-test-history nil)
@@ -65,11 +57,11 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
     (format "%s*" default-directory)))
 
 (defun sage-default-test-command ()
-  "Compute the default sage test command for C-u M-x sage-test to offer."
+  "Compute the default sage test command for `sage-test' to offer."
   (format "%s >/dev/null && %s -tp 4 %s" (sage-default-build-command) sage-command (sage-default-test-files)))
 
 (defun sage-default-test-new-command ()
-  "Compute the default sage test new command for C-u M-x sage-test to offer."
+  "Compute the default sage test new command for `sage-test' to offer."
   (format "%s >/dev/null && %s -tnew" (sage-default-build-command) sage-command))
 
 ;;;###autoload
@@ -94,11 +86,6 @@ easily repeat a sage-test command."
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
   (compilation-start command-args 'sage-test-mode))
-
-(defcustom sage-test-prompt (rx line-start (? (or "-" "+")) (0+ (or space punct)) (1+ (or "sage: " ">>> " "....." "...")))
-  "Regular expression matching the SAGE prompt of a single doctest line."
-  :group 'sage
-  :type 'regexp)
 
 ;;;_* "Interactive" doctesting
 (defun sage-send-doctest-line-and-forward (&optional noshow)
@@ -179,5 +166,16 @@ If NOGO is nil, pop to the Sage process buffer."
     (flet ((sage-default-test-files () files-str))
       ;; (setq default-directory (sage-current-devel-root))
       (call-interactively 'sage-test))))
+
+;;;###autoload
+(defun sage-send-doctest (&optional all)
+  "If looking at a sage: prompt, send the current doctest line to the inferior sage.
+With prefix argument, send all doctests (at sage: prompts) until
+the end of the docstring."
+  (interactive "P")
+  (if all
+      (let ((current-prefix-arg nil))
+	(sage-send-all-doctest-lines))
+    (sage-send-doctest-line-and-forward)))
 
 (provide 'sage-test)

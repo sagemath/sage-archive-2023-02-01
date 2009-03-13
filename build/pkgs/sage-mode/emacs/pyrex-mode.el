@@ -8,7 +8,7 @@
   (font-lock-add-keywords
    nil
    `((,(concat "\\<\\(NULL"
-	       "\\|c\\(def\\|har\\|typedef\\|import\\)"
+	       "\\|c\\(pdef\\|def\\|har\\|typedef\\|import\\)"
 	       "\\|e\\(num\\|xtern\\)"
 	       "\\|float"
 	       "\\|in\\(clude\\|t\\)"

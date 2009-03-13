@@ -5,23 +5,12 @@
 ;; Author: Nicholas Alexander <ncalexan@pv109055.reshsg.uci.edu>
 ;; Keywords: sage build
 
-;;;###autoload
-(defcustom sage-build-setup-hook nil
-  "List of hook functions run by `sage-build-process-setup' (see `run-hooks')."
-  :type 'hook
-  :group 'sage-build)
-
 ;; History of sage-build commands.
 ;;;###autoload
 (defvar sage-build-history nil)
 
-(defcustom sage-rerun-command (format "%s" sage-command)
-  "Actual command used to rerun SAGE.
-Additional arguments are added when the command is used by `rerun-sage' et al."
-  :group 'sage
-  :type 'string)
-
 (defun sage-wait-until-dead (process seconds msg)
+  "Wait SECONDS until PROCESS is dead, displaying MSG."
   (let ((killed nil))
     (message "Trying %s..." msg)
     (accept-process-output)
@@ -44,9 +33,18 @@ Additional arguments are added when the command is used by `rerun-sage' et al."
       t
       )))
 
-(defalias 'restart-sage 'rerun-sage)
 
+;;;###autoload
+(defalias 'restart-sage 'rerun-sage)
+;;;###autoload
+(defalias 'sage-restart 'rerun-sage)
+;;;###autoload
+(defalias 'sage-rerun 'rerun-sage)
+;;;###autoload
 (defun rerun-sage ()
+  "Kill a running sage and spawn a new sage in the same buffer.
+Use `sage-build' with a prefix argument to rebuild sage and then
+rerun the freshly built sage."
   (interactive)
   (let ((bufs (sage-all-inferior-sage-buffers))
 	(buffer nil))
@@ -83,34 +81,7 @@ Additional arguments are added when the command is used by `rerun-sage' et al."
       (goto-char (point-max))
       )))
 
-	  ;; 	  ;; if we're not dead yet...
-;; 	  (message "Killing soft")
-;; 	  (goto-char (point-max))
-;; 	  (comint-kill-input)
-;; 	  (comint-send-eof) ;; kill nicely
-;; 	  (accept-process-output nil 0 1)
-;; 	  (sit-for 0.5) ;; XXX correct way to do this?
-;; 	  (if (not (eq (process-status sprocess) 'exit))
-;; 	      (message "Killing hard")
-;; 	      (comint-kill-subjob) ;; kill rudely
-;; 	    (accept-process-output nil 0 1))
-;; 	  (sit-for 0.5)) ;; XXX correct way to do this?
-
-;;       (pop-to-buffer buffer)
-;; ;;       (while (and (get-buffer-process (current-buffer))
-;; ;; 		  (< dummy 10))
-;; ;; 	(comint-send-eof) ;; nicer than comint-kill-subjob
-;; ;; 	(sleep-for 0 1)
-;; ;; 	(incf dummy))
-;;       (message "A")
-;;       (when (get-buffer-process buffer)
-;; 	(with-current-buffer buffer
-;; 	  (comint-kill-subjob)))
-;;       (run-sage t)
-;;       (unless (get-buffer-process buffer)
-;; 	(kill-buffer buffer))
-;;       (message "C"))))
-
+;;;###autoload
 (defun sage-build-process-setup ()
   "Setup compilation variables and buffer for `sage-build'.
 Set up `compilation-exit-message-function' and run `sage-build-setup-hook'."
@@ -146,9 +117,13 @@ Set up `compilation-exit-message-function' and run `sage-build-setup-hook'."
   (set (make-local-variable 'compilation-process-setup-function)
        'sage-build-process-setup))
 
+;;;###autoload
 (defun sage-default-build-command ()
   "Compute the default sage build command for C-u M-x sage-build to offer."
   (format "%s -b" sage-command))
+
+;;;###autoload
+(defalias 'build-sage 'sage-build)
 
 ;;;###autoload
 (defun sage-build (command-args)

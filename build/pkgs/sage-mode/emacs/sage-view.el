@@ -1,8 +1,10 @@
 ;;; sage-view.el --- Typeset SAGE output on the fly
+;; $Id: sage-view.el,v 1.2 2009/02/25 18:32:51 meulien Exp $
 
-;; Copyright (C) 2008  Matthias Meulien
+;; Copyright (C) 2008  Matthias Meulien, Nick Alexander
 
-;; Author: Matthias Meulien <matthias.meulien@xlim.fr>
+;; Authors: Matthias Meulien <matthias.meulien@xlim.fr>, Nick Alexander
+;; <ncalexander@gmail.com>
 ;; Keywords: sage math image
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -20,11 +22,19 @@
 
 ;;; Commentary:
 
-;; Put this file in a directory in `load-path' and add the following
-;; line to `.emacs':
+;; `sage-view' typesets output in an `inferior-sage-mode' buffer and displays
+;; plots inline in an `inferior-sage-mode'.  Inline displays are context
+;; sensitive; by default, right-clicking brings up a context-menu.
 
-;; if you want sage-view to be enabled for every sage session, try
-;; (add-hook 'sage-startup-hook 'sage-view-always)
+;; Use `sage-view' to enable the minor mode, and then
+;; `sage-view-enable-inline-output', `sage-view-disable-inline-output' and
+;; `sage-view-enable-inline-plots', `sage-view-disable-inline-plots' enable
+;; and disable the relevant features.  You might add some of those functions
+;; to `sage-view-hook' to configure `sage-view' to your liking.
+
+;; You can customize `sage-view' using the Emacs customize interface by M-x
+;; customize-group RET sage-view RET.  In particular you can customize
+;; magnification and margins
 
 ;; This mode was inspired by doc-view.el by Tassilo Horn, preview.el
 ;; by David Kastrup, and imath.el by Yasuaki Honda.
@@ -33,223 +43,181 @@
 ;; sage-view.el. It is shipped with AUCTeX.
 
 ;;; Todo:
-;; - Add a auto-reveal stuff to overlays so that one can copy-cut from
-;;   them (use convertion from pdf to text?)
+;; - Add a auto-reveal stuff to overlays
 ;; - Check that display is image capable
-;; - Disabling sage preview should remove overlays
+;; - Disabling sage-view mode should remove overlays
 ;; - Set color, center image, enlarge overlay to window full size
-;; - Split output string according to <html> tags (split-string)
 ;; - Add zoom features to overlays
-;; - Add XML parser error treatment
 ;; - Add horizontal scrolling
-;; - Make variables local, so that one can run multiple instance of SAGE
-;; - Delete files
 
 ;; Bugs:
-;; - Seems that latex produce buggy DVI when there are overlays... It
-;;   happens with large matrices of polynomials
-;; - error in process filter: Wrong type argument: number-or-marker-p, nil
-;; - Multiple output
-;; - Numpy output can be a text array... should not be inserted into $$
-;;   signs
+;; - Numpy output can be a text array... should not be inserted into
+;;   $$ signs (hum... example?)
 
 ;;; Code:
 (require 'sage)
 
-;; (add-hook 'inferior-sage-mode-hook 'sage-view)
+(defvar sage-view-latex-head
+  "\\documentclass{article}
+\\usepackage[active, tightpage, pdftex, displaymath]{preview}
+\\usepackage{amstext}
+\\begin{document}
+\\begin{preview}
+\\begin{math}\n"
+  "String to be inserted at the top of a LaTeX document.")
 
-(defvar sage-view-head
-  "\\documentclass{article}\\usepackage[active, tightpage, pdftex, displaymath]{preview}\\usepackage{amstext}\\begin{document}\\begin{preview}\$")
-;; it should be possible to choose the conversion technique, and
-;; change pdftex to dvips
-(defvar sage-view-tail
-  "\$\\end{preview}\\end{document}\n")
+(defvar sage-view-latex-tail
+  "\n\\end{math}
+\\end{preview}
+\\end{document}\n"
+  "String to be inserted at the end of a LaTeX document.")
 
-(defvar sage-view-temp-dir-name nil
-  "Name of directory for temporary files")
+(defvar sage-view-start-string "<html><span class=\"math\">"
+  "HTML tags that identify the begining of a math formula in Sage
+  output.")
 
-(defvar sage-view-conversion-process nil)
-(defvar sage-view-conversion-buffer "*sage-view*")
+(defvar sage-view-final-string "</span></html>"
+  "HTML tags that identify the end of a math formula in Sage
+  output.")
 
-(defvar sage-view-anti-aliasing-level 2)
-(defvar sage-view-ghostscript-program "gs")
-(defvar sage-view-ghostscript-options
-  (list "-sDEVICE=png16m"
-	(concat "-dTextAlphaBits=" (int-to-string sage-view-anti-aliasing-level))
-	"-dBATCH"
-	(concat "-dGraphicsAlphaBits=" (int-to-string sage-view-anti-aliasing-level))
-	"-dSAFER"
-	"-q"
-	"-dNOPAUSE"))
+(defvar sage-view-dir-name nil)
+(defvar sage-view-inline-plots-enabled nil)
+(defvar sage-view-inline-output-enabled nil)
 
-;; XXX these should all be customizable
-(defvar sage-view-resolution nil)
-(defvar sage-view-scale 1.2)
-(defvar sage-view-current-overlay nil)
+(defun sage-view-latex->pdf (ov)
+  "Start conversion of the LATEX document associated to OV to PDF.
 
-(defvar sage-view-start-string "<html><span class=\"math\">")
-(defvar sage-view-final-string "</span></html>")
+See also `sage-view-process-overlay'."
+  (let* ((latex (concat (overlay-get ov 'file-sans-extension) ".tex"))
+	 (options (append
+		   (list (concat "--output-directory=" sage-view-dir-name)
+			 (concat "-interaction=" "nonstopmode")
+			 (concat "-output-format=" "pdf")
+			 latex)))
+	 (proc (apply 'start-process
+		      (append (list "latex->pdf" nil "latex") options))))
+    (process-put proc 'overlay ov)
+    (set-process-sentinel proc 'sage-view-latex->pdf-sentinel)))
 
-(defvar sage-view-inline-plots-enabled nil) ;; do we want inline plotting?
-(defvar sage-view-inline-output-enabled nil) ;; do we want inline latex output?
+(defun sage-view-pdf->png (ov)
+  "Start conversion of the PDF file associated to OV to PNG.
 
-(defun sage-view-latex->dvi (latex)
-  "Convert LATEX to DVI asynchronously."
-  (setq sage-view-conversion-process
-	(apply 'start-process
-	       (append (list "latex->dvi" sage-view-conversion-buffer
-			     "latex")
-		       (list (concat "--output-directory=" (shell-quote-argument (sage-view-temp-dir)))
-			     (concat "-interaction=" (shell-quote-argument "nonstopmode"))
-			     (concat "-output-format=" (shell-quote-argument "dvi")))
-		       (list latex))))
-  (set-process-sentinel sage-view-conversion-process
-			'sage-view-latex->dvi-sentinel)
-  (process-put sage-view-conversion-process 'dvi-file
-	       (concat (file-name-sans-extension latex) ".dvi")))
-
-(defun sage-view-latex->pdf (latex)
-  "Convert LATEX to PDF asynchronously."
-  (setq sage-view-conversion-process
-	(apply 'start-process
-	       (append (list "latex->pdf" sage-view-conversion-buffer
-			     "latex")
-		       (list (concat "--output-directory=" (shell-quote-argument (sage-view-temp-dir)))
-			     (concat "-interaction=" (shell-quote-argument "nonstopmode"))
-			     (concat "-output-format=" (shell-quote-argument "pdf")))
-		       (list latex))))
-  (set-process-sentinel sage-view-conversion-process
-			'sage-view-latex->pdf-sentinel)
-  (process-put sage-view-conversion-process 'pdf-file
-	       (concat (file-name-sans-extension latex) ".pdf")))
-
-(defun sage-view-dvi->ps (dvi ps)
-  "Convert DVI to PS asynchronously."
-  (setq sage-view-conversion-process
-	(start-process "dvi->ps" sage-view-conversion-buffer
-		       "dvips" "-Pwww" "-A" "-o" ps dvi))
-  (set-process-sentinel sage-view-conversion-process
-			'sage-view-dvi->ps-sentinel)
-  (process-put sage-view-conversion-process 'ps-file ps))
-
-
-(defun sage-view-pdf/ps->png (ps-pdf png)
-  "Convert PDF-PS to PNG asynchronously."
-  (setq sage-view-conversion-process
-	(apply 'start-process
-	       (append (list "pdf/ps->png" sage-view-conversion-buffer
-			     sage-view-ghostscript-program)
-		       sage-view-ghostscript-options
-		       (list (concat "-sOutputFile=" png))
-		       (list (concat "-r" (sage-view-compute-resolution)))
-		       (list ps-pdf))))
-  (set-process-sentinel sage-view-conversion-process
-			'sage-view-pdf/ps->png-sentinel)
-  (process-put sage-view-conversion-process 'png-file png))
-
-(defun sage-view-latex->dvi-sentinel (proc event)
-  "If LATEX->DVI conversion was successful, convert the DVI to PS."
-  (let* ((dvi (process-get proc 'dvi-file))
-	 (ps (concat (file-name-sans-extension dvi) ".dvi")))
-    (if (string-match "finished" event)
-	(sage-view-dvi->ps dvi ps)
-      (overlay-put sage-view-current-overlay 'display
-		   (concat "SAGE View failed (sage-view-latex->dvi-sentinel) (see "
-			   (file-name-sans-extension dvi) ".log" ")")))))
+See also `sage-view-process-overlay'."
+  (let* ((base (overlay-get ov 'file-sans-extension))
+	 (png (concat base ".png"))
+	 (pdf (concat base ".pdf"))
+	 (level (int-to-string sage-view-anti-aliasing-level))
+	 (scale (or (overlay-get ov 'scale) sage-view-scale))
+	 (options (append
+		   sage-view-gs-options
+		   (list (concat "-dTextAlphaBits=" level)
+			 (concat "-dGraphicsAlphaBits=" level)
+			 (concat "-sOutputFile=" png)
+			 (concat "-r" (sage-view-compute-resolution scale))
+			 pdf)))
+	 (proc (apply 'start-process
+		      (append
+		       (list "pdf->png" "*sage-view*" sage-view-gs-command)
+		       options))))
+    (process-put proc 'overlay ov)
+    (set-process-sentinel proc 'sage-view-pdf->png-sentinel)))
 
 (defun sage-view-latex->pdf-sentinel (proc event)
-  "If LATEX->PDF conversion was successful, convert the PDF to PNG."
-  (let* ((pdf (process-get proc 'pdf-file))
-	 (png (concat (file-name-sans-extension pdf) ".png")))
-    (if (string-match "finished" event)
-	(sage-view-pdf/ps->png pdf png)
-      (overlay-put sage-view-current-overlay 'display
-		   (concat "SAGE View failed (sage-view-latex->pdf-sentinel) (see "
-			   (file-name-sans-extension pdf) ".log" ")")))))
+  "If PROC (supposed to be a conversion process from LATEX to
+PDF) was successful, convert the PDF to PNG.
 
-(defun sage-view-dvi->ps-sentinel (proc event)
-  "If DVI->PS conversion was successful, convert the PS to PNG."
-  (let* ((ps (process-get proc 'ps-file))
-	 (png (concat (file-name-sans-extension ps) ".png")))
+See also `sage-view-process-overlay'."
+  (let* ((ov (process-get proc 'overlay))
+	 (base (overlay-get ov 'file-sans-extension)))
     (if (string-match "finished" event)
-	(sage-view-pdf/ps->png ps png)
-      (overlay-put sage-view-current-overlay 'display
-		   (concat "SAGE View failed (sage-view-dvi->ps-sentinel) (see "
-			   (file-name-sans-extension ps) ".log" ")")))))
+	(sage-view-pdf->png ov)
+      (overlay-put ov 'display
+		   (concat "Conversion failed (see " base ".log" ")")))))
 
-(defun sage-view-pdf/ps->png-sentinel (proc event)
-  "If PDF/PS->PNG conversion was successful, update
-  `sage-view-current-overlay' overlay."
-  (let ((png (process-get proc 'png-file)))
-    (if (string-match "finished" event)
-	(let ((image (if (and png (file-readable-p png))
-			(create-image png 'png))))
-	  (cond
-	   (image
-	    (overlay-put sage-view-current-overlay 'display image)
-	    (sit-for 0))
-	   (t (overlay-put sage-view-current-overlay 'display
-			   (concat "SAGE View failed (sage-view-pdf/ps->png-sentinel A) (see "
-			 (file-name-sans-extension png) ".log" ")")))))
-      (overlay-put sage-view-current-overlay 'display
-		   (concat "SAGE View failed (sage-view-pdf/ps->png-sentinel B) (see "
-			 (file-name-sans-extension png) ".log" ")")))))
+(defun sage-view-pdf->png-sentinel (proc event)
+  "If PROC (supposed to be a conversion process from PDF to PNG)
+was successful, update the overlay associated to PROC.
 
-(defun sage-view-compute-resolution ()
-  (let ((w (* sage-view-scale (/ (* 25.4 (display-pixel-width))
+See also `sage-view-process-overlay'."
+  (let* ((ov (process-get proc 'overlay))
+	 (base (overlay-get ov 'file-sans-extension))
+	 (png (concat base ".png"))
+	 (image (when (and (string-match "finished" event)
+			   png (file-readable-p png))
+		  (append (list 'image :type 'png :file png :margin sage-view-margin)))))
+    (if (not image)
+	(overlay-put ov 'display
+		     (concat "Conversion failed (see " base ".log" ")"))
+      (overlay-put ov 'display image))
+    (sit-for 0)))
+
+(defun sage-view-compute-resolution (scale)
+  (let ((w (* scale (/ (* 25.4 (display-pixel-width))
 	      (display-mm-width))))
-	(h (* sage-view-scale (/ (* 25.4 (display-pixel-height))
+	(h (* scale (/ (* 25.4 (display-pixel-height))
 	      (display-mm-height)))))
     (concat (int-to-string w) "x" (int-to-string h))))
 
+(defun sage-view-process-overlay (ov)
+  "Associate a LATEX document to OV and start conversion process
+from LATEX to PDF.
+
+The conversion process is done by `sage-view-latex->pdf'. When it
+ends, `sage-view-latex->pdf-sentinel' is called: If the
+conversion is successful, a conversion process from PDF to PNG
+starts. When it ends, `sage-view-pdf->png-sentinel' is called: If
+the last conversion is successful, OV displays the resulting
+image."
+  (let* ((base (expand-file-name
+		(make-temp-name "sage-view_") sage-view-dir-name))
+	 (file (concat base ".tex")))
+    (with-temp-file file
+      (insert sage-view-latex-head)
+      (insert (overlay-get ov 'math))
+      (insert sage-view-latex-tail))
+    (overlay-put ov 'file-sans-extension base)
+    (sage-view-latex->pdf ov)))
+
 (defun sage-view-output-filter-process-inline-output (string)
-  "Generate and place overlay images for inline output delimited
-by `sage-view-start-string' and `sage-view-final-string'.
+  "Substitute overlays to inline output.
 
-This function expects the buffer to be narrowed to just the
-current output; see `sage-view-output-filter' for how to do
-that."
+Each region delimited by `sage-view-start-string' and
+`sage-view-final-string' is replaced by an overlay.
 
+This function expects the buffer to be narrowed to the current
+output. And should be wrapped in a `save-excursion' and
+`save-restriction' call.
+
+See also `sage-view-output-filter'."
   (goto-char (point-min))
-
-  (when (string-match (regexp-quote sage-view-final-string) string) ;; we found the end of some html; go back and texify that range
-    (setq sage-view-text (buffer-substring-no-properties (point-min) (point-max)))
-
-    (when (search-forward sage-view-start-string (point-max) t) ;; change this to while to do many
-      (setq sage-view-overlay-start (- (point) (length sage-view-start-string)))
-      (search-forward sage-view-final-string) ;; find the terminal
-      (search-backward sage-view-final-string) ;; position ourselves at the front of the terminal
-      (setq sage-view-overlay-final (+ (point) (length sage-view-final-string)))
-      (setq sage-view-insert
-	    (buffer-substring-no-properties
-	     (+ sage-view-overlay-start (length sage-view-start-string))
-	     (- sage-view-overlay-final (length sage-view-final-string))))
-      ;; (message "sage-view-insert _%s_" sage-view-insert)
-
-      (setq sage-view-current-overlay (make-overlay sage-view-overlay-start sage-view-overlay-final nil nil nil))
-      (overlay-put sage-view-current-overlay 'help-echo "Overlay made by sage-view")
-
-      (let* ((base (expand-file-name (make-temp-name "output_")
-				     (sage-view-temp-dir)))
-	     (file (concat base ".tex")))
-	(with-temp-file file
-	  (insert sage-view-head)
-	  (insert sage-view-insert)
-	  (insert sage-view-tail))
-	(sage-view-latex->pdf file)))))
+  (while (search-forward sage-view-start-string (point-max) t)
+    (let* ((beg (point))
+	   (end (- (search-forward sage-view-final-string (point-max) t)
+		   (length sage-view-final-string)))
+	   (text (buffer-substring-no-properties beg end))
+	   (ov (make-overlay (- beg (length sage-view-start-string))
+			     (+ end (length sage-view-final-string))
+			     nil nil nil))
+	   (map (make-sparse-keymap)))
+      (overlay-put ov 'help-echo "mouse-3: Open contextual menu")
+      (overlay-put ov 'math text)
+      (define-key map [mouse-3]
+	`(lambda (event) (interactive "e")
+	   (sage-view-context-menu ,ov event)))
+      (overlay-put ov 'keymap map)
+      (sage-view-process-overlay ov))))
 
 (defun sage-view-output-filter-process-inline-plots (string)
   "Generate and place one overlay image for one inline plot,
-found by looking for a particular png file in
-`sage-view-temp-dir'.
+found by looking for a particular png file in directory
+`sage-view-dir-name'.
 
 This function expects the buffer to be narrowed to just the
 current output; see `sage-view-output-filter' for how to do
 that."
-
   ;; we need to foil emacs' image cache, which doesn't reload files with the same name
-  (let* ((pngname (format "%s/sage-view.png" (sage-view-temp-dir)))
-	 (base (expand-file-name (make-temp-name "plot_") (sage-view-temp-dir)))
+  (let* ((pngname (format "%s/sage-view.png" sage-view-dir-name))
+	 (base (expand-file-name (make-temp-name "sage-view-plot_") sage-view-dir-name))
 	 (pngname2 (concat base ".png")))
     ;; (message "Looking for plot at %s..." pngname)
     (if (not (and pngname
@@ -260,9 +228,10 @@ that."
       ;; the found branch
       ;; (message "Looking for plot at %s... found!" pngname)
       (dired-rename-file pngname pngname2 t)
+      ;; (message "Renamed %s to %s" pngname pngname2)
 
       (goto-char (point-max))
-      (let ((im (create-image pngname2 'png nil)))
+      (let ((im (create-image pngname2 'png))) ;; adding a margin screws this up
 	(setq sage-view-inline-plot-overlay
 	      (make-overlay (- (point) 1) (- (point) 0) nil nil nil))
 	(overlay-put sage-view-inline-plot-overlay 'display im)
@@ -275,75 +244,166 @@ that."
   "Generate and place overlay images for inline output and inline plots.
 
 Function to be inserted in `comint-output-filter-functions'."
-
   (save-excursion
     (save-restriction
-      (narrow-to-region comint-last-input-end (process-mark (get-buffer-process (current-buffer))))
-
-      (when sage-view-inline-plots-enabled ;; do we even want plot images inline?
+      (narrow-to-region comint-last-input-end
+			(process-mark (get-buffer-process (current-buffer))))
+      (when sage-view-inline-plots-enabled
 	(sage-view-output-filter-process-inline-plots string))
-
-      (when sage-view-inline-output-enabled ;; do we even want output latexed inline?
+      (when (and sage-view-inline-output-enabled
+		 (string-match (regexp-quote sage-view-final-string) string))
 	(sage-view-output-filter-process-inline-output string)))))
 
-(defun sage-view-gs-open ()
-  "Start a Ghostscript conversion pass.")
-
-(defun sage-view-temp-dir ()
-  (unless (and sage-view-temp-dir-name
-	       (file-exists-p sage-view-temp-dir-name)
-	       (file-readable-p sage-view-temp-dir-name))
-    (setq sage-view-temp-dir-name (make-temp-file (expand-file-name "tmp" "~/.sage/temp/") t))
-    (unless (file-exists-p sage-view-temp-dir-name)
-      (make-directory sage-view-temp-dir-name)))
-  sage-view-temp-dir-name)
-
+;;;###autoload
 (defun sage-view-enable-inline-output ()
+  "Enable inline output pretty-printing, i.e. typeset output from sage in the `inferior-sage-mode' buffer.
+WARNING: this communicates with the sage process.  Only use this
+when `sage-view' mode is enabled and sage is running."
   (interactive)
   (setq sage-view-inline-output-enabled t)
   (python-send-receive-multiline "pretty_print_default(True);"))
 
+;;;###autoload
 (defun sage-view-disable-inline-output ()
+  "Disable inline output pretty-printing, i.e. do not typeset output from sage in the `inferior-sage-mode' buffer.
+WARNING: this communicates with the sage process.  Only use this
+when `sage-view' mode is enabled and sage is running."
   (interactive)
   (setq sage-view-inline-output-enabled nil)
   (python-send-receive-multiline "pretty_print_default(False);"))
 
+;;;###autoload
 (defun sage-view-enable-inline-plots ()
+  "Enable inline plotting, i.e. display plots in the `inferior-sage-mode' buffer and do not spawn an external viewer.
+WARNING: this communicates with the sage process.  Only use this
+when `sage-view' mode is enabled and sage is running."
   (interactive)
   (setq sage-view-inline-plots-enabled t)
   (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = True;")
-  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';" (format "%s/sage-view.png" (sage-view-temp-dir)))))
+  (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = '%s';"
+					 (format "%s/sage-view.png" sage-view-dir-name))))
 
+;;;###autoload
 (defun sage-view-disable-inline-plots ()
+  "Disable inline plotting, i.e. do not display plots in the `inferior-sage-mode' buffer and instead spawn an external viewer.
+WARNING: this communicates with the sage process.  Only use this
+when `sage-view' mode is enabled and sage is running."
   (interactive)
   (setq sage-view-inline-plots-enabled nil)
   (python-send-receive-multiline "sage.plot.plot.DOCTEST_MODE = False;")
   (python-send-receive-multiline (format "sage.plot.plot.DOCTEST_MODE_FILE = None;")))
 
+(defun sage-view-create-temp ()
+  "Create a temporary directory and set `sage-view-dir-name'
+to its name.
+
+Nothing is done if `sage-view-dir-name' equals the name of a
+writable directory."
+  (unless (and sage-view-dir-name
+	       (file-directory-p sage-view-dir-name)
+	       (file-writable-p sage-view-dir-name))
+    (setq sage-view-dir-name
+	  (make-temp-name (expand-file-name "tmp" "~/.sage/temp/")))
+    (condition-case err
+	(make-directory sage-view-dir-name)
+      (error (message "Creation of `%s' failed: %s"
+		      sage-view-dir-name (error-message-string err))))))
+
+(defun sage-view-delete-temp ()
+  "Delete the directory named after `sage-view-dir-name'."
+  (when sage-view-dir-name
+    (condition-case err
+	(progn
+	  (mapc #'delete-file
+		(directory-files sage-view-dir-name t "^sage-view" t))
+	  (delete-directory sage-view-dir-name))
+      (error (message "Deletion of `%s' failed: %s"
+		      sage-view-dir-name (error-message-string err))))))
+
+(defun sage-view-overlay-activep (ov)
+  "Check whether there is a valid image associated with OV."
+  (eq (car (overlay-get ov 'display) 'image)))
+
+(defun sage-view-copy-text (ov)
+  "Copy LATEX source of OV into the kill buffer."
+  (let ((text (overlay-get ov 'math)))
+    (if text
+	(kill-new text)
+      (message "No LaTeX code available"))))
+
+(defun sage-view-save-image (ov)
+  "Copy image file associated to OV.
+
+Make sure that there is a valid image associated with OV with
+`sage-view-overlay-activep'."
+  (let* ((spec (cdr (overlay-get ov 'display)))
+	 (file (plist-get spec :file))
+	 (name (when (and file (file-readable-p file))
+		 (expand-file-name
+		  (read-file-name "Write image to file: "
+				 default-directory
+				 "sage-view.png")))))
+    (if name
+	(copy-file file name))))
+
+(defun sage-view-regenerate (ov)
+  ""
+  (overlay-put ov 'scale sage-view-scale)
+  (sage-view-process-overlay ov))
+
+(defun sage-view-zoom-in (ov)
+  ""
+  (let ((scale (or (overlay-get ov 'scale) sage-view-scale)))
+    (overlay-put ov 'scale (+ scale sage-view-scale-factor))
+    (message "Overlay's scale set to %s" scale)
+    ;(overlay-put ov 'display (overlay-get ov 'math))
+    (sage-view-process-overlay ov)))
+
+(defun sage-view-zoom-out (ov)
+  ""
+  (let ((scale (or (overlay-get ov 'scale) sage-view-scale)))
+    (overlay-put ov 'scale (- scale sage-view-scale-factor))
+    (message "Overlay's scale set to %s" scale)
+    ;(overlay-put ov 'display (overlay-get ov 'math))
+    (sage-view-process-overlay ov)))
+
+(defun sage-view-context-menu (ov ev)
+  "Pop up a menu for OV at position EV."
+  (popup-menu
+   `("Sage Mode"
+     ["Regenerate" (lambda () (interactive) (sage-view-regenerate ,ov))]
+     ["Copy Text" (lambda () (interactive) (sage-view-copy-text ,ov))]
+     ["Save As..." (lambda () (interactive) (sage-view-save-image ,ov))
+      `(sage-view-overlay-activep ,ov)]
+     ["Zoom in" (lambda () (interactive) (sage-view-zoom-in ,ov))
+      `(sage-view-overlay-activep ,ov)]
+     ["Zoom out" (lambda () (interactive) (sage-view-zoom-out ,ov))
+      `(sage-view-overlay-activep ,ov)])
+   ev))
+
+;;;###autoload
 (define-minor-mode sage-view
-  "With this mode, output in SAGE interactive buffers is
-  preprocessed and texify." nil
-  :group 'sage
+  "Toggle automatic typesetting of Sage output.
+
+Typesetting of math formulas is done by LATEX subprocesses and
+PDF to PNG conversions." nil
+  :group 'sage-view
   :lighter " Sage-View"
   (if sage-view
       (progn
-	;; (sage-view-pretty-print-enable)
+	(make-local-variable 'sage-view-dir-name)
+	(sage-view-create-temp)
 	(sage-view-enable-inline-output)
 	(sage-view-enable-inline-plots)
 	(make-local-variable 'comint-preoutput-filter-functions)
 	(make-local-variable 'comint-output-filter-function)
-	(add-hook 'comint-output-filter-functions 'sage-view-output-filter))
+	(add-hook 'comint-output-filter-functions 'sage-view-output-filter)
+	(add-hook 'kill-buffer-hook 'sage-view-delete-temp))
     (progn
       (sage-view-disable-inline-output)
       (sage-view-disable-inline-plots)
       (remove-hook 'comint-output-filter-functions 'sage-view-output-filter)
-      (remove-hook 'comint-preoutput-filter-functions 'sage-view-preoutput-filter)
-      (dired-delete-file (sage-view-temp-dir) 'always)
-      (sage-view-pretty-print-disable)
-      )))
-
-(defun sage-view-always ()
-  (sage-view 1))
+      (remove-hook 'comint-preoutput-filter-functions 'sage-view-preoutput-filter))))
 
 (provide 'sage-view)
 ;;; sage-view.el ends here

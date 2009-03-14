@@ -1593,12 +1593,26 @@ cdef class NumberFieldElement(FieldElement):
             10
             sage: (1+z).multiplicative_order()
             +Infinity
+
+            sage: x = polygen(QQ)
+            sage: K.<a>=NumberField(x^40 - x^20 + 4)
+            sage: u = 1/4*a^30 + 1/4*a^10 + 1/2
+            sage: u.multiplicative_order()
+            6
+            sage: a.multiplicative_order()
+            +Infinity
         """
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
 
-        if self.is_rational_c():
-            self.__multiplicative_order = self._rational_().multiplicative_order()
+        one = self.number_field().one_element()
+        infinity = sage.rings.infinity.infinity
+
+        if self == one:
+            self.__multiplicative_order = ZZ(1)
+            return self.__multiplicative_order
+        if self == -one:
+            self.__multiplicative_order = ZZ(2)
             return self.__multiplicative_order
 
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
@@ -1611,37 +1625,18 @@ cdef class NumberFieldElement(FieldElement):
                 self.__multiplicative_order = sage.rings.infinity.infinity
                 return self.__multiplicative_order
 
-        ####################################################################
-        # VERY DUMB Algorithm to compute the multiplicative_order of
-        # an element x of a number field K.
-        #
-        # 1. Find an integer B such that if n>=B then phi(n) > deg(K).
-        #    For this use that for n>6 we have phi(n) >= log_2(n)
-        #    (to see this think about the worst prime factorization
-        #    in the multiplicative formula for phi.)
-        # 2. Compute x, x^2, ..., x^B in order to determine the multiplicative_order.
-        #
-        # todo-- Alternative: Only do the above if we don't require an optional
-        # argument which gives a multiple of the order, which is usually
-        # something available in any actual application.
-        #
-        # BETTER TODO: Factor cyclotomic polynomials over K to determine
-        # possible orders of elements?  Is there something even better?
-        #
-        ####################################################################
-        d = self.number_field().degree()
-        B = max(7, 2**d+1)
-        x = self
-        i = 1
-        while i < B:
-            if x == 1:
-                self.__multiplicative_order = i
-                return self.__multiplicative_order
-            x *= self
-            i += 1
+        if self.is_rational_c() or not self.is_integral() or not self.norm() ==1:
+            self.__multiplicative_order = infinity
+            return self.__multiplicative_order
 
-        # it must have infinite order
-        self.__multiplicative_order = sage.rings.infinity.infinity
+        # Now we have a unit, and check if it is a root of unity
+
+        n = self.number_field().zeta_order()
+        if not self**n ==1:
+            self.__multiplicative_order = infinity
+            return self.__multiplicative_order
+        from sage.groups.generic import order_from_multiple
+        self.__multiplicative_order = order_from_multiple(self,n,operation='*')
         return self.__multiplicative_order
 
     def additive_order(self):

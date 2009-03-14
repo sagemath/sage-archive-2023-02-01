@@ -280,7 +280,7 @@ fi
 if [ $1 = '-twistd'  -o $1 = '--twistd' ]; then
     cd "$CUR"
     shift
-    twistd "$@"
+    python $(which twistd) "$@"
     exit $?
 fi
 

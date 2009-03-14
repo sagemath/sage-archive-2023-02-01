@@ -21,7 +21,9 @@ fi
 # entirety of doc/, so that we can skip doc/output.
 "$SAGE_ROOT"/sage -t -sagenb "$@" "$SAGE_ROOT"/devel/sage/doc/common "$SAGE_ROOT"/devel/sage/doc/en "$SAGE_ROOT"/devel/sage/doc/fr  "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
 
-cat "$SAGE_TEST_LOG" >> "$SAGE_ROOT"/test.log
+if [ "$SAGE_TESTDIR" = "$SAGE_ROOT/tmp" ]; then
+    cat "$SAGE_TEST_LOG" >> "$SAGE_ROOT"/test.log
+fi
 
 echo "Please see $SAGE_TEST_LOG for the complete log from this test."
 

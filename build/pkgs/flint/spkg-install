@@ -13,10 +13,6 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-echo "Deleting old FLINT"
-rm -f $SAGE_LOCAL/lib/libflint*
-
-
 if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
    # This line causes *MAJOR* Illegal Instruction problems on
    # 64-bit Pentium 4's.  Do *not* do that!!  Only enable the
@@ -75,7 +71,10 @@ if [ $UNAME != "Darwin" ]; then
         echo "Error building flint shared library."
         exit 1
     fi
-    $CP libflint.so "$SAGE_LOCAL/lib/"
+    echo "Deleting old FLINT"
+    rm -f $SAGE_LOCAL/lib/libflint*
+    echo "Installing new library file"
+    $CP -a libflint* "$SAGE_LOCAL/lib/"
 fi
 
 # OS X
@@ -89,6 +88,9 @@ if [ $UNAME = "Darwin" ]; then
         echo "Failed to build FLINT dylib."
         exit 1
     fi
+    echo "Deleting old FLINT"
+    rm -f $SAGE_LOCAL/lib/libflint*
+    echo "Installing new library file"
     $CP libflint.dylib "$SAGE_LOCAL/lib/"
 fi
 
@@ -96,22 +98,23 @@ fi
 # Copy the header files
 
 rm -rf "$SAGE_LOCAL"/include/FLINT
-mkdir "$SAGE_LOCAL"/include/FLINT
 
-if [ $? -ne 0 ]; then
-    echo "Error building FLINT"
-    exit 1
-fi
+for i in {FLINT/,FLINT/zn_poly/}; do
+	mkdir "$SAGE_LOCAL"/include/$i
+	if [ $? -ne 0 ]; then
+	    echo "Error building FLINT"
+	    exit 1
+	fi
 
-$CP *.h "$SAGE_LOCAL"/include/FLINT/
-
-if [ $? -ne 0 ]; then
-    echo "Error building FLINT"
-    exit 1
-fi
+	$CP ${i/FLINT\//}*.h "$SAGE_LOCAL"/include/$i
+	if [ $? -ne 0 ]; then
+	    echo "Error building FLINT"
+	    exit 1
+	fi
+done
 
 #uncomment the line below to avoid running the test suite.
 #this should be done in all final releases
-exit 0
-#cd ..; ./spkg-check
+#exit 0
+cd ..; ./spkg-check
 

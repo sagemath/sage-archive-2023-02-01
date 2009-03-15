@@ -43,13 +43,15 @@ export FLINT_LINK_OPTIONS
 cd src
 
 make test
-./mpn_extras-test
-./ZmodF-test
-./ZmodF_mul-test
-./ZmodF_poly-test
-./fmpz-test
-./fmpz_poly-test
-./mpz_poly-test
-./long_extras-test
-./zmod_poly-test
+if [ $? -ne 0 ]; then
+    echo "Error building the test suite for FLINT"
+    exit 1
+fi
 
+for i in {mpn_extras-test,ZmodF-test,ZmodF_mul-test,ZmodF_poly-test,fmpz-test,fmpz_poly-test,mpz_poly-test,long_extras-test,zmod_poly-test,zmod_mat-test,NTL-interface-test}; do
+	./$i
+	if [ $? -ne 0 ]; then
+	    echo "FLINT test failed: $i"
+	    exit 1
+	fi
+done

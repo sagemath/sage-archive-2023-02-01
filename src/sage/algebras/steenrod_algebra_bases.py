@@ -1518,3 +1518,61 @@ def steenrod_basis_error_check(dim,p):
                 print "%s invertibility problem in dim %s at the prime %s" % (B, i, p)
 
     print "done checking"
+
+# This function is needed for the computation of antipodes
+# since for the antipode of P(n) we only want the P part of
+# the basis. This is only different from the 'milnor_basis'
+# function in odd characteristic.
+
+def milnor_P_basis(n, p=2):
+    r"""
+    Milnor P basis in dimension `n`.
+
+    INPUT:
+
+    - ``n`` - non-negative integer
+    - ``p`` - positive prime number (optional, default 2)
+
+    OUTPUT:
+
+    - tuple of mod p Milnor P basis elements in dimension n
+
+    At the prime 2, the Milnor P basis consists of symbols of the form
+    `\text{Sq}(m_1, m_2, ..., m_t)`, where each `m_i` is a non-negative
+    integer and if `t>1`, then `m_t \neq 0`. At odd primes, it consists
+    of symbols of the form `P(m_1, m_2, ..., m_t)`, where each `m_i` is
+    a non-negative integer, and if `t>1`, then `m_t \neq 0`.
+
+    Thus at the prime 2, this is just the Milnor basis.  At odd
+    primes, it is a subset of the Milnor basis of those terms with no
+    `Q` factors.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.steenrod_algebra_bases import milnor_P_basis
+        sage: milnor_P_basis(7)
+        (Sq(0,0,1), Sq(1,2), Sq(4,1), Sq(7))
+        sage: milnor_P_basis(7, 2)
+        (Sq(0,0,1), Sq(1,2), Sq(4,1), Sq(7))
+        sage: milnor_P_basis(9, 3)
+        ()
+        sage: milnor_P_basis(17, 3)
+        ()
+        sage: milnor_P_basis(48, p=5)
+        (P(0,1), P(6))
+        sage: len(milnor_P_basis(100,3))
+        11
+        sage: len(milnor_P_basis(200,7))
+        0
+        sage: len(milnor_P_basis(240,7))
+        3
+    """
+    if p == 2:
+        return milnor_basis(n,2)
+
+    elif n == 0:
+        return (SteenrodAlgebra(p).P(0),)
+
+    else:
+        return tuple(filter(lambda x: len(x._raw['milnor'].keys()[0][0]) == 0,
+                            milnor_basis(n, p)))

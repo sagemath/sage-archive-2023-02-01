@@ -161,7 +161,7 @@ antipode.
     sage: (Sq(4) * Sq(2)).antipode()
     Sq(6)
     sage: SteenrodAlgebra(7).P(3,1).antipode()
-    4 P(3,1) + 5 P(11)
+    P(3,1)
 
 Applying the antipode twice returns the original element::
 
@@ -854,9 +854,10 @@ not %s" % (poly, poly.parent().prime, p)
             return self
         else:
             F = self._base_field
-            dict = self._raw['milnor']
-            for mono in dict:
-                dict[mono] = F(-dict[mono])
+            old_dict = self._raw['milnor']
+            dict = {}
+            for mono in old_dict:
+                dict[mono] = F(-old_dict[mono])
             return SteenrodAlgebraElement(dict,p)
 
 
@@ -1598,10 +1599,9 @@ not %s" % (poly, poly.parent().prime, p)
         `c(ab) = c(b) c(a)`.
 
         At odd primes, a similar method is used: the antipode of
-        `P(n)` is the sum of the Milnor basis elements in dimension
-        `n*2(p-1)`, and the antipode of `\beta = Q_0` is
-        `-Q_0`. So convert to the Serre-Cartan basis, as in the
-        `p=2` case.
+        `P(n)` is the sum of the Milnor P basis elements in dimension
+        `n*2(p-1)`, and the antipode of `\beta = Q_0` is `-Q_0`. So
+        convert to the Serre-Cartan basis, as in the `p=2` case.
 
         EXAMPLES::
 
@@ -1618,14 +1618,31 @@ not %s" % (poly, poly.parent().prime, p)
             P(2)
             sage: A3.P(2,1).antipode()
             2 P(2,1)
-            sage: a = SteenrodAlgebra(7).P(3,1)
-            sage: a.antipode()
-            4 P(3,1) + 5 P(11)
 
         Applying the antipode twice returns the original element::
 
             sage: y = Sq(8)*Sq(4)
             sage: y == (y.antipode()).antipode()
+            True
+            sage: z = A3.P(1,1)
+            sage: z == (z.antipode()).antipode()
+            True
+            sage: w = A3.Q(5)
+            sage: w == (w.antipode()).antipode()
+            True
+            sage: a = SteenrodAlgebra(7).P(55)
+            sage: a == a.antipode().antipode()
+            True
+
+        TESTS::
+
+            sage: all(a.antipode().antipode() == a for a in steenrod_algebra_basis(201, basis='adem', p=5))
+            True
+            sage: all(a.antipode().antipode() == a for a in steenrod_algebra_basis(100, basis='milnor', p=3))  # long time (5 seconds)
+            True
+            sage: all(a.antipode().antipode() == a for a in steenrod_algebra_basis(30, basis='milnor', p=2))   # long time (15 seconds)
+            True
+            sage: all(a.antipode().antipode() == a for a in steenrod_algebra_basis(33, basis='adem', p=2))     # long time (10 seconds)
             True
         """
         def sum_of_basis(n,p):
@@ -1649,32 +1666,83 @@ not %s" % (poly, poly.parent().prime, p)
             This returns the sum of all of the elements P(...) in the Milnor
             basis in dimension `n` at the prime p
             """
-            from steenrod_algebra_bases import steenrod_algebra_basis
-            return sum(steenrod_algebra_basis(n,'milnor',p=p))
+            from steenrod_algebra_bases import milnor_P_basis
+            return sum(milnor_P_basis(n,p=p))
 
         from sage.algebras.steenrod_algebra import SteenrodAlgebra
-        from steenrod_algebra_bases import milnor_convert
         result = 0
         p = self._prime
+        basis = self._basis
+
         if p == 2:
             for mono in self._basis_dictionary('serre_cartan'):
                 antipode = Sq(0)
                 for n in mono:
                     antipode = sum_of_basis(n, p) * antipode
                 result = result + antipode
-        else:
+
+        elif basis == 'serre-cartan':
+            # Here the characteristic is odd and our element is
+            # already expressed with respect to the Serre-Cartan
+            # basis, so we should stick with this basis.
+
             from sage.misc.functional import is_even
-            for mono in self._basis_dictionary('serre_cartan'):
-                antipode = SteenrodAlgebra(p).P(0)
-                index = 0
-                for n in mono:
-                    if is_even(index) and n != 0:
-                        antipode = -SteenrodAlgebra(p).Q(0) * antipode
+            for mono,coef in self._basis_dictionary('serre_cartan').items():
+                antipode = SteenrodAlgebra(p).P(0) * coef
+
+                for index,n in enumerate(mono):
+                    if is_even(index):
+                        if n!= 0:
+                            antipode = -SteenrodAlgebra(p).Q(0) * antipode
                     else:
-                        antipode = sum_of_basis(n*2*(p-1),p) * antipode
-                    index += 1
+                        antipode = sum_of_basis(n*2*(p-1),p) * antipode * (-1)**n
+
                 result = result + antipode
-        return result
+
+        else:
+            # Here the characteristic is odd and our element is
+            # expressed with respect to the Milnor basis, so we
+            # should use this basis to compute the antipode of
+            # any nontrivial Q part. Once we've done this, the
+            # Serre-Cartan representation can be used to take
+            # care of the P part.
+
+            for tup,coef in self._basis_dictionary('milnor').items():
+                antipode = SteenrodAlgebra(p).P(0) * coef
+
+                try:
+                    q_tup,p_tup = tup
+
+                    # Only the sign of the Q part may change and this
+                    # depends entirely on the length of q_tup.
+
+                    k,r = divmod(len(q_tup),2)
+                    antipode = SteenrodAlgebra(p).Q(*q_tup) * (-1)**(k+r) * antipode
+
+                    p_part = SteenrodAlgebra(p).P(*p_tup)
+                    p_result = 0
+                    for mono,co in p_part._basis_dictionary('serre_cartan').items():
+                        anti = SteenrodAlgebra(p).P(0) * co
+
+                        # Since we're dealing with p_part, a purely P element,
+                        # the even indices in mono will all have the value 0,
+                        # so we'll just skip them.
+
+                        for n in mono[1::2]:
+                            anti = sum_of_basis(n*2*(p-1),p) * anti * (-1)**n
+                        p_result = p_result + anti
+
+                    antipode = p_result * antipode
+
+                except ValueError:
+                    # We've reached this point only if 'tup' is equal to ().
+                    # This corresponds to the identity element which of course
+                    # doesn't change the antipode.
+                    pass
+
+                result = result + antipode
+
+        return result.basis(basis)
 
 
     def _repr_(self):

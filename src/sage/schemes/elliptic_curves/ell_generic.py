@@ -2740,8 +2740,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         INPUT:
 
 
-        -  ``xmin, xmax`` - points will be computed at least
-           within this rings, but possibly farther. These may be left off.
+        -  ``xmin, xmax`` - (optional) points will be computed at
+           least within this range, but possibly farther.
 
         -  ``**args`` - all other options are passed to the
            line graphing primitive.

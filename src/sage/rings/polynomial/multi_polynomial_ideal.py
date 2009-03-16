@@ -2727,13 +2727,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     def plot(self, *args, **kwds):
         """
-        Plot the real zero locus of this ideal (if principal).
+        Plot the real zero locus of this principal ideal.
 
         INPUT:
 
 
-        -  ``self`` - must be a principal ideal in 2 variables
-           over QQ.
+        -  ``self`` - a principal ideal in 2 variables
 
         -  ``algorithm`` - set this to 'surf' if you want
            'surf' to plot the ideal (default: None)
@@ -2787,8 +2786,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-        if self.ring().base_ring() is not QQ:
-            raise TypeError, "Base ring must be rational field."
+
+        K = self.base_ring()
+        try:
+            RR._coerce_(K(1))
+        except TypeError:
+            raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
+
         if not self.is_principal():
             raise TypeError, "Ideal must be principal."
 
@@ -2833,6 +2837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                     V[var_index] = variables[var_index], mi, ma
 
             kwds.setdefault("plot_points",200)
+            kwds.pop('algorithm', '')
             return implicit_plot(f, V[0], V[1], **kwds)
 
         elif len(variables) == 3 or kwds.get('algorithm','') == 'surf':

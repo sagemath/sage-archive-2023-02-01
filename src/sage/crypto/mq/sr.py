@@ -1,7 +1,7 @@
 r"""
 Small Scale Variants of the AES (SR) Polynomial System Generator.
 
-Sage support polynomial system generation for small scale (and full
+Sage supports polynomial system generation for small scale (and full
 scale) AES variants over `\mathbb{F}_2` and `\mathbb{F}_{2^e}`. Also, Sage supports
 both the specification of SR as given in the papers [CMR05]_ and
 [CMR06]_ and a variant of SR* which is equivalent to AES.
@@ -20,7 +20,7 @@ We construct SR(1,1,1,4) and study its properties.
     sage: sr = mq.SR(1, 1, 1, 4)
 
 ``n`` is the number of rounds, ``r`` the number of rows in the
-state array, ``c`` the number of columns in the state array. ``e`` the
+state array, ``c`` the number of columns in the state array, and ``e`` the
 degree of the underlying field.
 
 ::
@@ -28,7 +28,7 @@ degree of the underlying field.
     sage: sr.n, sr.r, sr.c, sr.e
     (1, 1, 1, 4)
 
-By default variables are ordered reverse to as they appear., e.g.::
+By default variables are ordered reverse to as they appear, e.g.::
 
     sage: print sr.R.repr_long()
     Polynomial Ring
@@ -55,7 +55,7 @@ Also, the ``MixColumns`` matrix is the identity matrix.::
     [0 0 1 0]
     [0 0 0 1]
 
-``Lin``, however is not the identity matrix.::
+``Lin``, however, is not the identity matrix.::
 
     sage: sr.Lin
     [          a^2 + 1                 1         a^3 + a^2           a^2 + 1]
@@ -96,7 +96,7 @@ instances to recover all solutions to the system.::
      x101 + k003 + 1, x100 + 1, k103 + k003, k102,
      k101 + 1, k100]
 
-Note that the order of ``k000``, ``k001``,``k002`` and ``k003}`` is
+Note that the order of ``k000``, ``k001``, ``k002`` and ``k003`` is
 little endian. Thus the result ``k002 + 1, k001, k000`` indicates that
 the key is either `a` or `a+1`. We can verify that both keys encrypt P
 to the same ciphertext::
@@ -155,7 +155,7 @@ All solutions can easily be recovered using the variety function for ideals.::
    k101 1
    k100 0
 
-Note that the SBox object for SR can be constructed with a call to ``sr.sbox()``::
+Note that the S-Box object for SR can be constructed with a call to ``sr.sbox()``::
 
    sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True)
    sage: S = sr.sbox()
@@ -324,7 +324,7 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     - ``gf2`` - generate polynomial systems over `\mathbb{F}_2` rather than
       over `\mathbb{F}_{2^e}` (default: ``False``)
     - ``polybori`` - use the ``BooleanPolynomialRing`` as polynomial
-      representation (default=False, `\mathbb{F}_2` only)
+      representation (default: ``False``, `\mathbb{F}_2` only)
     - ``order`` - a string to specify the term ordering of the
       variables
     - ``postfix`` - a string which is appended after the variable name
@@ -732,7 +732,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def sbox_constant(self):
         """
-        Return the sbox constant which is added after `L(x^{-1})` was
+        Return the S-Box constant which is added after `L(x^{-1})` was
         performed. That is ``0x63`` if ``e == 8`` or ``0x6`` if ``e ==
         4``.
 
@@ -752,7 +752,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def sbox(self, inversion_only=False):
         r"""
-        Return an SBox object for this SR instance.
+        Return an S-Box object for this SR instance.
 
         INPUT:
 
@@ -961,7 +961,7 @@ class SR_generic(MPolynomialSystemGenerator):
         INPUT:
 
 
-        -  ``d`` - ``None``, a matrix, a list, or a tuple
+        -  ``d`` - a matrix, a list, or a tuple (default: ``None``)
 
 
         EXAMPLES::
@@ -1003,8 +1003,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def is_state_array(self, d):
         """
-        Return True if d is a state array, i.e. has the correct dimensions
-        and base field.
+        Return ``True`` if ``d`` is a state array, i.e. has the correct
+        dimensions and base field.
 
         EXAMPLE::
 
@@ -1382,7 +1382,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def hex_str_matrix(self, M):
         r"""
-        Return a two-dimensional AES like representation of the matrix M.
+        Return a two-dimensional AES-like representation of the matrix M.
 
         That is, show the finite field elements as hex strings.
 
@@ -1413,7 +1413,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
     def hex_str_vector(self, M):
         """
-        Return a one dimensional AES like representation of the matrix M.
+        Return a one-dimensional AES-like representation of the matrix M.
 
         That is, show the finite field elements as hex strings.
 
@@ -1551,8 +1551,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
         - ``name`` - variable name
         - ``nr`` - number of round to create variable strings for
-        - ``rc`` - number of rows * number of columns in the state array
-        - ``e`` - exponent of base field
+        - ``rc`` - number of rows * number of columns in the state array (default: ``None``)
+        - ``e`` - exponent of base field (default: ``None``)
 
         EXAMPLE::
 
@@ -1581,8 +1581,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
         - ``name`` - variable name
         - ``nr`` - number of round to create variable strings for
-        - ``rc`` - number of rounds * number of columns in the state array
-        - ``e`` - exponent of base field
+        - ``rc`` - number of rounds * number of columns in the state array (default: ``None``)
+        - ``e`` - exponent of base field (default: ``None``)
 
         EXAMPLE::
 
@@ -1673,7 +1673,7 @@ class SR_generic(MPolynomialSystemGenerator):
         Construct a ring as a base ring for the polynomial system.
 
         By default, variables are ordered in the reverse of their natural
-        i.e. the reverse of as they appear.
+        ordering, i.e. the reverse of as they appear.
 
         INPUT:
 
@@ -1831,7 +1831,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         INPUT:
 
-        -  ``i`` - round (0 <= i <= n)
+        -  ``i`` - round (`0 \leq i \leq n`)
 
         EXAMPLE::
 
@@ -1931,7 +1931,7 @@ class SR_generic(MPolynomialSystemGenerator):
         Return a polynomial system for this small scale AES variant for a
         given plaintext-key pair.
 
-        If neither ``P`` nor ``K`` are provided a random pair will be
+        If neither ``P`` nor ``K`` are provided, a random pair will be
         generated.
 
         INPUT:
@@ -1958,7 +1958,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: s # random -- maybe we need a better doctest here?
             {k000: 1, k001: 0, k003: 1, k002: 0}
 
-        This solution is not the only solution what we can learn from the
+        This solution is not the only solution that we can learn from the
         Groebner basis of the system.
 
         ::
@@ -2074,7 +2074,7 @@ class SR_gf2n(SR_generic):
 
         INPUT:
 
-        -  ``l`` - element to perform phi on.
+        -  ``l`` - element to perform `\phi` on.
 
         EXAMPLE::
 
@@ -2169,14 +2169,14 @@ class SR_gf2n(SR_generic):
         """
         Return the ``Lin`` matrix.
 
-        If no ``length`` is provided the standard state space size is
+        If no ``length`` is provided, the standard state space size is
         used. The key schedule calls this method with an explicit
         length argument because only ``self.r`` S-Box applications are
         performed in the key schedule.
 
         INPUT:
 
-        -  ``length`` - length of state space. (default: ``None``)
+        -  ``length`` - length of state space (default: ``None``)
 
 
         EXAMPLE::
@@ -2385,7 +2385,7 @@ class SR_gf2(SR_generic):
 
         INPUT:
 
-        -  ``d`` - values for vector(default:``None``)
+        -  ``d`` - values for vector (default: ``None``)
 
 
         EXAMPLE::
@@ -2461,10 +2461,10 @@ class SR_gf2(SR_generic):
 
         INPUT:
 
-        -  ``l`` - element to perform phi on.
-        - ``diffusion_matrix`` - if True the given matrix ``l`` is
-           transformed to a matrix which performs the same operation
-           over `\mathbb{F}_2` as ``l`` over `GF(2^n)` (default: ``False``).
+        -  ``l`` - element to perform `\phi` on.
+        - ``diffusion_matrix`` - if ``True``, the given matrix ``l`` is
+          transformed to a matrix which performs the same operation
+          over `\mathbb{F}_2` as ``l`` over `\mathbb{F}_{2^n}` (default: ``False``).
 
         EXAMPLE::
 
@@ -2618,14 +2618,14 @@ class SR_gf2(SR_generic):
         """
         Return the ``Lin`` matrix.
 
-        If no ``length`` is provided the standard state space size is
+        If no ``length`` is provided, the standard state space size is
         used. The key schedule calls this method with an explicit
         length argument because only ``self.r`` S-Box applications are
         performed in the key schedule.
 
         INPUT:
 
-        -  ``length`` - length of state space. (default: ``None``)
+        -  ``length`` - length of state space (default: ``None``)
 
 
         EXAMPLE::
@@ -3226,7 +3226,7 @@ def test_consistency(max_n=2, **kwargs):
 
     INPUT:
 
-    - ``max_n`` - maximal number of rounds to consider.
+    - ``max_n`` - maximal number of rounds to consider (default: 2)
     - ``kwargs`` - are passed to the SR constructor
 
     TESTS::

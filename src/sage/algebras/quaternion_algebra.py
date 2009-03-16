@@ -9,7 +9,7 @@ AUTHORS:
 
 This code is partly based on Sage code by David Kohel from 2005.
 
-TESTS::
+TESTS:
 
 We test pickles::
 
@@ -70,7 +70,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         - QuaternionAlgebra(D): a rational quaternion algebra with discriminant D,
           where D > 1 is a squarefree integer.
 
-    EXAMPLES::
+    EXAMPLES:
 
     QuaternionAlgebra(a, b) - return quaternion algebra over the
     `smallest` field containing the nonzero elements a and b with
@@ -667,7 +667,8 @@ def unpickle_QuaternionAlgebra_v0(*key):
     """
     The 0th version of pickling for quaternion algebras.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuaternionAlgebra(-5,-19)
         sage: f, t = Q.__reduce__()
         sage: sage.algebras.quaternion_algebra.unpickle_QuaternionAlgebra_v0(*t)

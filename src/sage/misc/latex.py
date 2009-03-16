@@ -305,41 +305,68 @@ class Latex:
 #########################################
 
 
-def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
+def _latex_file_(objects, title='SAGE', debug=False, \
                  sep='', tiny=False, math_left='\\[',
                  math_right='\\]',
                  extra_preamble=''):
-    """
-    Compute a latex file that defines a representation of each object
-    in objects.
+    r"""nodetex
+    Produce a string to be used as a LaTeX file, containing a
+    representation of each object in objects.
 
     INPUT:
 
 
     -  ``objects`` - list (or object)
 
-    -  ``title`` - string (default: 'Sage'): title for the
-       document
+    -  ``title`` - string (default: 'Sage'): title for the document
 
-    -  ``expert`` - bool (default: True): mode passed on to
-       xdvi
+    -  ``math_left`` - string (default: '\\['), left delimiter for math mode
 
-    -  ``debug`` - bool (default: False): print verbose
-       output
+    -  ``math_right`` - string (default: '\\]'), right delimiter for math mode
 
-    -  ``sep`` - string (default: ''): separator between
-       math objects
+    -  ``debug`` - bool (default: False): print verbose output
+
+    -  ``sep`` - string (default: ''): separator between math objects
 
     -  ``tiny`` - bool (default: False): use 'tiny' font.
 
     -  ``extra_preamble`` - string (default: ''): extra LaTeX commands,
        inserted before "\\begin{document}"
 
+    This creates a string intended to be a LaTeX file containing the
+    LaTeX representations of objects. It contains the following:
+
+      - a header (with documentclass and usepackage commands)
+
+      - ``extra_preamble``
+
+      - the title (centered)
+
+      - a size specification if ``tiny`` is True
+
+      - LaTeX representation of the first element of ``objects``,
+        surrounded by ``math_left`` and ``math_right``
+
+    Then if ``objects`` contains more than one element, for each
+    remaining element:
+
+      - the string ``sep``: you can use this, for example, to add
+        vertical space between objects with ``sep='\\vspace{15mm}'``,
+        or to add a horizontal line between objects with
+        ``sep='\\hrule'``, or to insert a page break between objects
+        with ``sep='\\newpage'``.
+
+      - the LaTeX representation of the element
+
+    The string ends with '\\end{document}'.
+
     EXAMPLES::
 
         sage: from sage.misc.latex import _latex_file_
         sage: _latex_file_(3, title="The number three")
-        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\thispagestyle{empty}\n \\small \\vfill\\thispagestyle{empty}\\pagestyle{empty}\n\n \\[ 3 \\]\n\n\\vfill \\end{document}'
+        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
+        sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
+        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
     process = True
     if hasattr(objects, '_latex_'):
@@ -353,36 +380,31 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
     if not isinstance(objects, list):
         objects = [objects]
 
-    if expert:
-        expert='-expert'
-    else:
-        expert=''
-
     if tiny:
-        size='tiny'
+        size='\\tiny\n'
     else:
-        size='small'
+        size=''
 
     s = LATEX_HEADER
-    s += '\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n \\%s '%(
+    s += '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
         extra_preamble, title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
-    s += '\\vfill'
+    s += '\\vspace{40mm}'
     if process:
         for i in range(len(objects)):
             x = objects[i]
             L = latex(x)
             if not '\\begin{verbatim}' in L:
-                s += '\\thispagestyle{empty}\\pagestyle{empty}\n\n %s %s %s'%(math_left, latex(x), math_right)
+                s += '%s%s%s'%(math_left, latex(x), math_right)
             else:
-                s += '\\thispagestyle{empty}\\pagestyle{empty}\n\n %s'%latex(x)
+                s += '%s'%latex(x)
             if i < len(objects)-1:
                 s += '\n\n%s\n\n'%sep
     else:
         s += "\n\n".join([str(x) for x in objects])
 
-    s += '\n\n\\vfill \\end{document}'
+    s += '\n\\end{document}'
     if debug:
         print s
 
@@ -469,9 +491,8 @@ def jsmath(x, mode='display'):
     '''
     return jsmath.eval(x, mode)
 
-def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
-         sep='', tiny=False,  **kwds):
-    r"""
+def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
+    r"""nodetex
     Compute a latex representation of each object in objects, compile,
     and display typeset. If used from the command line, this requires
     that latex be installed.
@@ -483,11 +504,6 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
 
     -  ``title`` - string (default: 'Sage'): title for the
        document
-
-    -  ``zoom`` - zoom factor, passed on to xdvi if used
-
-    -  ``expert`` - bool (default: True): mode passed on to
-       xdvi
 
     -  ``debug`` - bool (default: False): print verbose
        output
@@ -506,12 +522,14 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     If not in notebook mode, this opens up a window displaying a dvi
     (or pdf) file, displaying the following: the title string is
     printed, centered, at the top. Beneath that, each object in objects
-    is typeset on its own line, with the string sep typeset between
+    is typeset on its own line, with the string sep inserted between
     these lines.
 
-    If the program xdvi is used to display the dvi file, then the
-    values of expert and zoom are passed on to it. On OS X displays a
-    pdf.
+    The value of ``sep`` is inserted between each element of the list
+    ``objects``; you can, for example, add vertical space between
+    objects with ``sep='\\vspace{15mm}'``, while ``sep='\\hrule'``
+    adds a horizontal line between objects, and ``sep='\\newpage'``
+    inserts a page break between objects.
 
     If in notebook mode, this uses jmath to display the output in the
     notebook. Only the first argument, objects, is relevant; the others
@@ -533,8 +551,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     if isinstance(objects, LatexExpr):
         s = str(objects)
     else:
-        s = _latex_file_(objects, title=title, expert=expert,
-                     debug=debug, sep=sep, tiny=tiny)
+        s = _latex_file_(objects, title=title, debug=debug, sep=sep, tiny=tiny)
     from sage.misc.viewer import dvi_viewer
     viewer = dvi_viewer()
     tmp = tmp_dir('sage_viewer')

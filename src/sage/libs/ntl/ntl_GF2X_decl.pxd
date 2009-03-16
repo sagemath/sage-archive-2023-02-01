@@ -56,6 +56,7 @@ cdef extern from "ntl_wrap.h":
     long GF2X_NumBytes "NumBytes"(GF2X_c a)
 
     #### GF2XFactoring
+    long GF2X_IterIrredTest "IterIrredTest" (GF2X_c f)
     void GF2X_BuildSparseIrred "BuildSparseIrred" (GF2X_c f, long n)
     void GF2X_BuildRandomIrred "BuildRandomIrred" (GF2X_c f, GF2X_c g)
 

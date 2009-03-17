@@ -1,6 +1,37 @@
 r"""
 Subwords
+
+A subword of a word $w$ is a word obtained by deleting the letters at some
+(non necessarily adjacent) positions in `w`. It is not to be confused with the
+notion of factor where one keeps adjacent positions in `w`. Sometimes it is
+useful to allow repeated uses of the same letter of `w` in a "generalized"
+subword. We call this a subword with repetitions.
+
+For example:
+
+- "bnjr" is a subword of the word "bonjour" but not a factor;
+
+- "njo" is both a factor and a subword of the word "bonjour";
+
+- "nr" is a subword of "bonjour";
+
+- "rn" is not a subword of "bonjour";
+
+- "nnu" is not a subword of "bonjour";
+
+- "nnu" is a subword with repetitions of "bonjour";
+
+A word can be given either as a string or as a list.
+
+AUTHORS:
+
+- Mike Hansen: initial version
+
+- Florent Hivert (2009/02/06): doc improvements + new methods + bug fixes
+
+
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -21,20 +52,11 @@ from sage.rings.arith import factorial
 import itertools
 from combinat import CombinatorialClass, CombinatorialObject
 
-#A subword of a word w is a word obtaining by deleting the letters at
-#some of the positions in w.
-
-#Example:
-#    - [b,n,j,r] is a subword of [b,o,n,j,o,u,r]
-#    - [n,r] is a subword of [b,o,n,j,o,u,r]
-#    - [r,n] is not a subword of [b,o,n,j,o,u,r]
-#    - [n,n,u] is not a subword of [b,o,n,j,o,u,r]
-#    - [n,n,u] is a subword with repetitions of [b,o,n,j,o,u,r]
-
 
 def Subwords(w, k=None):
     """
-    Returns the combinatorial class of subwords of w.
+    Returns the combinatorial class of subwords of w. The word w can be given
+    by either a string or a list.
 
     If k is specified, then it returns the combinatorial class of
     subwords of w of length k.
@@ -85,6 +107,29 @@ class Subwords_w(CombinatorialClass):
             'Subwords of [1, 2, 3]'
         """
         return "Subwords of %s"%self.w
+
+    def __contains__(self, w):
+        """
+        TESTS::
+
+            sage: [] in Subwords([1,2,3,4,3,4,4])
+            True
+            sage: [2,3,3,4] in Subwords([1,2,3,4,3,4,4])
+            True
+            sage: [5, 5, 3] in Subwords([1, 3, 3, 5, 4, 5, 3, 5])
+            True
+            sage: [3, 5, 5, 3] in Subwords([1, 3, 3, 5, 4, 5, 3, 5])
+            True
+            sage: [3, 5, 5, 3, 4] in Subwords([1, 3, 3, 5, 4, 5, 3, 5])
+            False
+            sage: [2,3,3,4] in Subwords([1,2,3,4,3,4,4])
+            True
+            sage: [2,3,3,1] in Subwords([1,2,3,4,3,4,4])
+            False
+        """
+        if smallest_positions(self.w, w) != False:
+            return True
+        return False
 
     def count(self):
         """
@@ -147,6 +192,26 @@ class Subwords_wk(CombinatorialClass):
         """
         return "Subwords of %s of length %s"%(self.w, self.k)
 
+    def __contains__(self, w):
+        """
+        TESTS::
+
+            sage: [] in Subwords([1, 3, 3, 5, 4, 5, 3, 5],0)
+            True
+            sage: [2,3,3,4] in Subwords([1,2,3,4,3,4,4],4)
+            True
+            sage: [2,3,3,4] in Subwords([1,2,3,4,3,4,4],3)
+            False
+            sage: [5, 5, 3] in Subwords([1, 3, 3, 5, 4, 5, 3, 5],3)
+            True
+            sage: [5, 5, 3] in Subwords([1, 3, 3, 5, 4, 5, 3, 5],4)
+            False
+        """
+        if len(w) != self.k:
+            return False
+        if smallest_positions(self.w, w) != False:
+            return True
+        return False
 
     def count(self):
         r"""
@@ -211,7 +276,7 @@ def smallest_positions(word, subword, pos = 0):
     subword of word. If pos is specified, then it returns the positions
     of the first appearance of subword starting at pos.
 
-    If subword is not found in word, then it returns False
+    If subword is not found in word, then it returns False.
 
     EXAMPLES::
 
@@ -229,14 +294,26 @@ def smallest_positions(word, subword, pos = 0):
         [1, 2]
         sage: sage.combinat.subword.smallest_positions([1,2,3,4], [5,5])
         False
+        sage: sage.combinat.subword.smallest_positions([1,3,3,4,5],[3,5])
+        [1, 4]
+        sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3])
+        [1, 3, 6]
+        sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3],2)
+        [2, 3, 6]
+        sage: sage.combinat.subword.smallest_positions([1,2,3,4,3,4,4],[2,3,3,1])
+        False
+        sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3],3)
+        False
     """
     pos -= 1
     for i in range(len(subword)):
-        for j in range(pos+1, len(word)):
+        for j in range(pos+1, len(word)+1):
+            if j == len(word):
+                return False
             if word[j] == subword[i]:
                 pos = j
                 break
-        if pos == -1:
+        if pos != j:
             return False
         subword[i] = pos
 

@@ -253,7 +253,7 @@ def format_search_as_html(what, r, search):
     s += '<ol>'
 
     files = set([])
-    for L in r.splitlines()[4:]:
+    for L in r.splitlines():
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
@@ -261,6 +261,7 @@ def format_search_as_html(what, r, search):
     files.sort()
     for F in files:
         if F.endswith('.html'):
+            F = F.split('/', 2)[2]
             url = '/doc/live/' + F
         else:
             # source code

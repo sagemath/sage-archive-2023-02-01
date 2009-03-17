@@ -21,7 +21,7 @@ fi
 
 # check wether dependencies are installed
 
-PACKAGE=vtk-5.2
+PACKAGE=vtk-5.2.1
 PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
 if [ $? -ne 0 ]; then
     echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
@@ -70,26 +70,26 @@ echo "" >> $HOME/.numpy-site.cfg
 echo "Cleaning up previous install"
 
 # removing remains of mayavi-2.*
-rm -rf $PYTHONPATH/site-packages/enthought*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/enthought*
 
 # removing previous install
-rm -rf $PYTHONPATH/site-packages/AppTools*
-rm -rf $PYTHONPATH/site-packages/BlockCanvas*
-rm -rf $PYTHONPATH/site-packages/Chaco*
-rm -rf $PYTHONPATH/site-packages/CodeTools*
-rm -rf $PYTHONPATH/site-packages/Enable*
-rm -rf $PYTHONPATH/site-packages/EnthoughtBase*
-rm -rf $PYTHONPATH/site-packages/EnvisageCore*
-rm -rf $PYTHONPATH/site-packages/EnvisagePlugins*
-rm -rf $PYTHONPATH/site-packages/ETS*
-rm -rf $PYTHONPATH/site-packages/ETSDevTools*
-rm -rf $PYTHONPATH/site-packages/ETSProjectTools*
-rm -rf $PYTHONPATH/site-packages/Mayavi*
-rm -rf $PYTHONPATH/site-packages/SciMath*
-rm -rf $PYTHONPATH/site-packages/Traits*
-rm -rf $PYTHONPATH/site-packages/TraitsBackendQt*
-rm -rf $PYTHONPATH/site-packages/TraitsBackendWX*
-rm -rf $PYTHONPATH/site-packages/TraitsGUI*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/AppTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/BlockCanvas*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Chaco*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/CodeTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Enable*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnthoughtBase*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnvisageCore*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnvisagePlugins*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETS*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETSDevTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETSProjectTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Mayavi*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/SciMath*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Traits*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendQt*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendWX*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsGUI*
 
 # python egg_builder.py --clean
 

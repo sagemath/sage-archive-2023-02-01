@@ -544,7 +544,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def __contains__(self, item):
         """
-        Returns boolean value of ``item`` in ``self``.
+        Returns boolean value of ``item in self``.
 
         EXAMPLES::
 
@@ -571,7 +571,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def has_element(self, item):
         """
-        Returns boolean value of ``item`` in ``self`` - however *ignores*
+        Returns boolean value of ``item in self`` - however *ignores*
         parentage.
 
         EXAMPLES::
@@ -643,7 +643,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def gens_small(self):
         """
-        Returns a generating set of a group `G`, which has few elements.
+        For this group, returns a generating set which has few elements.
         As neither irredundancy nor minimal length is proven, it is fast.
 
         EXAMPLES::
@@ -1325,7 +1325,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(1, 1, 1, 1, 1, 1, 1), (5, 1, 2, -1, -1, 0, 0), (5, 1, -1, 2, -1, 0, 0), (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2), (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1), (9, 1, 0, 0, 1, -1, -1), (10, -2, 1, 1, 0, 0, 0)]
 
         Suppose that you have a class function `f(g)` on
-        `G` and you know the values `v_1, \dots, v_n` on
+        `G` and you know the values `v_1, \ldots, v_n` on
         the conjugacy class elements in
         ``conjugacy_classes_representatives(G)`` =
         `[g_1, \ldots, g_n]`. Since the irreducible characters
@@ -1333,10 +1333,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         `E`-basis of the space of all class functions (`E`
         a "sufficiently large" cyclotomic field), such a class function is
         a linear combination of these basis elements,
-        `f = c_1\rho_1 + \cdots + c_n\rho_n`. To find
+        `f = c_1 \rho_1 + \cdots + c_n \rho_n`. To find
         the coefficients `c_i`, you simply solve the linear system
-        ``character_table_values(G)``\* [v_1, ..., v_n] = [c_1, ..., c_n],
-        where [v_1, ..., v_n] = ``character_table_values(G)`` ^(-1)[c_1, ..., c_n].
+        ``character_table_values(G)`` `[v_1, ..., v_n] = [c_1, ..., c_n]`,
+        where `[v_1, \ldots, v_n]` = ``character_table_values(G)`` `^{(-1)}[c_1, ..., c_n]`.
 
         AUTHORS:
 
@@ -1397,7 +1397,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def character(self, values):
         r"""
-        Returns a group character of from ``values``, where ``values`` is
+        Returns a group character from ``values``, where ``values`` is
         a list of the values of the character evaluated on the conjugacy
         classes.
 
@@ -2014,7 +2014,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Return the normal subgroups of this group as a (sorted in
         increasing order) list of permutation groups.
 
-        The normal subgroups of `H = PSL(2,7) \cdot PSL(2,7)` are
+        The normal subgroups of `H = PSL(2,7) \\times PSL(2,7)` are
         `1`, two copies of `PSL(2,7)` and `H`
         itself, as the following example shows.
 

@@ -43,6 +43,7 @@ from sage.rings.real_double import RDF
 cimport sage.ext.numpy as cnumpy
 
 numpy=None
+scipy=None
 
 cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     """
@@ -129,3 +130,42 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         """
         return self.get_unsafe(i,j)
 
+    def _cholesky_decomposition_(self):
+        r"""
+        Return the Cholesky factorization of this matrix.
+
+        The input matrix must be symmetric and positive definite or
+        ``ValueError`` exception will be raised.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(RDF,5)
+            sage: r = matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
+
+            sage: m = r*M.identity_matrix()*r.transpose()
+            sage: L = m.cholesky_decomposition() # indirect doctest
+            sage: L*L.transpose()
+            [ 1.0     1.0     1.0     1.0     1.0]
+            [ 1.0     5.0    31.0   121.0   341.0]
+            [ 1.0    31.0   341.0  1555.0  4681.0]
+            [ 1.0   121.0  1555.0  7381.0 22621.0]
+            [ 1.0   341.0  4681.0 22621.0 69905.0]
+        """
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+        if self._nrows == 0:   # special case
+            return self.copy()
+
+        # cdef matrix_double_dense
+
+        cdef Matrix_real_double_dense M = self._new()
+        global scipy
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        from numpy.linalg import LinAlgError
+        try:
+            M._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
+        except LinAlgError:
+            raise ValueError, "The input matrix was not symmetric and positive definite"
+
+        return M

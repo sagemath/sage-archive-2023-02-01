@@ -1153,12 +1153,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         matrix must be symmetric and positive definite or an exception
         will be raised.
 
-        EXAMPLES:
+        WARNING::
+
+        .. This is deprecated!  Use ``cholesky_decomposition'' instead.
+
+        EXAMPLES::
+
             sage: M = MatrixSpace(RDF,5)
             sage: r = matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
 
             sage: m = r*M.identity_matrix()*r.transpose()
             sage: L = m.cholesky()
+            doctest... DeprecationWarning: cholesky is deprecated for matrices over RDF; use cholesky_decomposition instead.
             sage: L*L.transpose()
             [ 1.0     1.0     1.0     1.0     1.0]
             [ 1.0     5.0    31.0   121.0   341.0]
@@ -1166,21 +1172,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 1.0   121.0  1555.0  7381.0 22621.0]
             [ 1.0   341.0  4681.0 22621.0 69905.0]
         """
-        if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
-        if self._nrows == 0:   # special case
-            return self.copy()
-
-        cdef matrix_double_dense
-
-
-        cdef Matrix_double_dense M = self._new()
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        M._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
-        return M
+        # deprecation added 2009-05
+        from sage.misc.misc import deprecation
+        deprecation("cholesky is deprecated for matrices over RDF; use cholesky_decomposition instead.")
+        return self.cholesky_decomposition()
 
     cdef Vector _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:

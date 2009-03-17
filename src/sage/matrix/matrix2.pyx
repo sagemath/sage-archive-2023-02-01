@@ -4843,6 +4843,184 @@ cdef class Matrix(matrix1.Matrix):
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_field(self)
 
+    def cholesky_decomposition(self):
+        r"""
+        Return the Cholesky decomposition of ``self``.
+
+        INPUT:
+
+        The input matrix must be:
+
+        - real, symmetric, and positive definite; or
+
+        - imaginary, Hermitian, and positive definite.
+
+        If not, a ``ValueError`` exception will be raised.
+
+        OUTPUT:
+
+        A lower triangular matrix `L` such that `L L^t` equals ``self``.
+
+        ALGORITHM:
+
+        Calls the method ``_cholesky_decomposition_``, which by
+        default uses a standard recursion.
+
+        .. warning::
+
+            This implementation uses a standard recursion that is not known to
+            be numerically stable.
+
+        .. warning::
+
+            It is potentially expensive to ensure that the input is
+            positive definite.  Therefore this is not checked and it
+            is possible that the output matrix is *not* a valid
+            Cholesky decomposition of ``self``.  An example of this is
+            given in the tests below.
+
+        EXAMPLES:
+
+        Here is an example over the real double field; internally, this uses scipy::
+
+            sage: r = matrix(RDF, 5, 5, [ 0,0,0,0,1, 1,1,1,1,1, 16,8,4,2,1, 81,27,9,3,1, 256,64,16,4,1 ])
+            sage: m = r * r.transpose(); m
+            [    1.0     1.0     1.0     1.0     1.0]
+            [    1.0     5.0    31.0   121.0   341.0]
+            [    1.0    31.0   341.0  1555.0  4681.0]
+            [    1.0   121.0  1555.0  7381.0 22621.0]
+            [    1.0   341.0  4681.0 22621.0 69905.0]
+            sage: L = m.cholesky_decomposition(); L
+            [          1.0           0.0           0.0           0.0           0.0]
+            [          1.0           2.0           0.0           0.0           0.0]
+            [          1.0          15.0 10.7238052948           0.0           0.0]
+            [          1.0          60.0 60.9858144589 7.79297342371           0.0]
+            [          1.0         170.0 198.623524155 39.3665667796 1.72309958068]
+            sage: L.parent()
+            Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
+            sage: L*L.transpose()
+            [ 1.0     1.0     1.0     1.0     1.0]
+            [ 1.0     5.0    31.0   121.0   341.0]
+            [ 1.0    31.0   341.0  1555.0  4681.0]
+            [ 1.0   121.0  1555.0  7381.0 22621.0]
+            [ 1.0   341.0  4681.0 22621.0 69905.0]
+            sage: ( L*L.transpose() - m ).norm(1) < 2^-30
+            True
+
+        Here is an example over a higher precision real field::
+
+            sage: r = matrix(RealField(100), 5, 5, [ 0,0,0,0,1, 1,1,1,1,1, 16,8,4,2,1, 81,27,9,3,1, 256,64,16,4,1 ])
+            sage: m = r * r.transpose()
+            sage: L = m.cholesky_decomposition()
+            sage: L.parent()
+            Full MatrixSpace of 5 by 5 dense matrices over Real Field with 100 bits of precision
+            sage: ( L*L.transpose() - m ).norm(1) < 2^-50
+            True
+
+        Here is a Hermitian example::
+
+            sage: r = matrix(CDF, 2, 2, [ 1, -2*I, 2*I, 6 ]); r
+            [   1.0 -2.0*I]
+            [ 2.0*I    6.0]
+            sage: r.eigenvalues()
+            [0.298437881284, 6.70156211872]
+            sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
+            True
+            sage: L = r.cholesky_decomposition(); L
+            [          1.0             0]
+            [        2.0*I 1.41421356237]
+            sage: ( r - L*L.conjugate().transpose() ).norm(1) < 1e-30
+            True
+            sage: L.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
+
+        TESTS:
+
+        The following examples are not positive definite::
+
+            sage: m = -identity_matrix(3).change_ring(RDF)
+            sage: m.cholesky_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: The input matrix was not symmetric and positive definite
+
+            sage: m = -identity_matrix(2).change_ring(RealField(100))
+            sage: m.cholesky_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: The input matrix was not symmetric and positive definite
+
+        Here is a large example over a higher precision complex field::
+
+            sage: r = MatrixSpace(ComplexField(100), 6, 6).random_element()
+            sage: m = r * r.conjugate().transpose()
+            sage: m.change_ring(CDF) # for display purposes
+            [                      2.5891918451    1.58308081508 - 0.93917354232*I    0.4508660242 - 0.898986215453*I  -0.125366701515 - 1.32575360944*I  -0.161174433016 - 1.92791089094*I -0.852634739628 + 0.592301526741*I]
+            [   1.58308081508 + 0.93917354232*I                      3.39096359127  -0.823614467666 - 0.70698381556*I   0.964188058124 - 1.80624774667*I   0.884237835922 - 1.12339941545*I   -1.14625014365 + 0.64233624728*I]
+            [   0.4508660242 + 0.898986215453*I  -0.823614467666 + 0.70698381556*I                      4.94253304499  -1.61505575668 - 0.539043412246*I    1.16580777654 - 2.24511228411*I    1.22264068801 + 1.21537124374*I]
+            [ -0.125366701515 + 1.32575360944*I   0.964188058124 + 1.80624774667*I  -1.61505575668 + 0.539043412246*I                      3.73381314119   0.30433428398 + 0.852908810051*I  -3.03684690541 - 0.437547321546*I]
+            [ -0.161174433016 + 1.92791089094*I   0.884237835922 + 1.12339941545*I    1.16580777654 + 2.24511228411*I   0.30433428398 - 0.852908810051*I                      4.24526168246 -1.03348617777 - 0.0868365809834*I]
+            [-0.852634739628 - 0.592301526741*I   -1.14625014365 - 0.64233624728*I    1.22264068801 - 1.21537124374*I  -3.03684690541 + 0.437547321546*I -1.03348617777 + 0.0868365809834*I                      3.95129528414]
+            sage: m.change_ring(CDF).eigenvalues() # again for display purposes
+            [10.463115298 - 4.98835989975e-16*I, 7.42365754809 - 5.05298436852e-16*I, 3.36964641458 + 5.59670199836e-17*I, 1.25904669699 + 4.34508443713e-17*I, 0.00689184179485 - 5.75358699674e-17*I, 0.330700789655 + 5.1816322259e-16*I]
+
+            sage: ( m - m.conjugate().transpose() ).norm(1) < 1e-50
+            True
+            sage: L = m.cholesky_decomposition(); L.change_ring(CDF)
+            [                      1.60909659284                                   0                                   0                                   0                                   0                                   0]
+            [   0.98383205963 + 0.583665111527*I                       1.44304300258                                   0                                   0                                   0                                   0]
+            [  0.280198234342 + 0.558690024857*I  -0.987753204014 + 0.222355529831*I                       1.87797472744                                   0                                   0                                   0]
+            [-0.0779112342122 + 0.823911762252*I   0.388034921026 + 0.658457765816*I  -0.967353506777 + 0.533197825056*I                       1.11566210466                                   0                                   0]
+            [  -0.100164548065 + 1.19813247975*I  0.196442380181 - 0.0788779556296*I   0.391945946049 + 0.968705709652*I  -0.763918835279 + 0.415837754312*I                      0.952045463612                                   0]
+            [ -0.529884124682 - 0.368095693804*I  -0.284183173327 - 0.408488713349*I      0.738503847 - 0.998388403822*I   -1.02976885437 - 0.563208016935*I  -0.521713761022 - 0.245786008887*I                      0.187109707194]
+            sage: ( m - L*L.conjugate().transpose() ).norm(1) < 1e-20
+            True
+            sage: L.parent()
+            Full MatrixSpace of 6 by 6 dense matrices over Complex Field with 100 bits of precision
+
+        Here is an example that returns an incorrect answer, because the input is *not* positive definite::
+
+            sage: r = matrix(CDF, 2, 2, [ 1, -2*I, 2*I, 0 ]); r
+            [   1.0 -2.0*I]
+            [ 2.0*I      0]
+            sage: r.eigenvalues()
+            [2.56155281281, -1.56155281281]
+            sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
+            True
+            sage: L = r.cholesky_decomposition(); L
+            [  1.0     0]
+            [2.0*I 2.0*I]
+            sage: L*L.conjugate().transpose()
+            [   1.0 -2.0*I]
+            [ 2.0*I    8.0]
+        """
+        assert self._nrows == self._ncols, "Can only Cholesky decompose square matrices"
+        if self._nrows == 0:
+            return self.copy()
+        return self._cholesky_decomposition_()
+
+    def _cholesky_decomposition_(self):
+        r"""
+        Return the Cholesky decomposition of ``self``; see ``cholesky_decomposition``.
+
+        This generic implementation uses a standard recursion.
+        """
+        A = self.copy()
+        L = A.parent()(0)
+        n = self.nrows()
+        for k in range(0, n-1 + 1):
+            try:
+                L[k, k] = A[k, k].sqrt()
+            except TypeError:
+                raise ValueError, "The input matrix was not symmetric and positive definite"
+
+            for s in range(k+1, n):
+                L[s, k] = A[s, k] / L[k, k]
+            for j in range(k+1, n):
+                for i in range(j, n):
+                    A[i, j] -= L[i, k]*L[j, k].conjugate()
+        return L
+
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the determinant of

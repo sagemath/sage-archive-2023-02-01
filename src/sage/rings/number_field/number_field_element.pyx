@@ -1601,6 +1601,16 @@ cdef class NumberFieldElement(FieldElement):
             6
             sage: a.multiplicative_order()
             +Infinity
+
+        An example in a relative extension:
+
+            sage: K.<a, b> = NumberField([x^2 + x + 1, x^2 - 3])
+            sage: z = (a - 1)*b/3
+            sage: z.multiplicative_order()
+            12
+            sage: z^12==1 and z^6!=1 and z^4!=1
+            True
+
         """
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
@@ -1629,7 +1639,7 @@ cdef class NumberFieldElement(FieldElement):
             self.__multiplicative_order = infinity
             return self.__multiplicative_order
 
-        # Now we have a unit, and check if it is a root of unity
+        # Now we have a unit of norm 1, and check if it is a root of unity
 
         n = self.number_field().zeta_order()
         if not self**n ==1:

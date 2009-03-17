@@ -25,13 +25,12 @@ Depends on experimental packages:
  * swig-1.3.31
 
 Note that wxPython is linux only for now (20081219)
-{{{
-./sage -i wxPython-2.8.9.1
-./sage -i cmake-2.4.8
-./sage -i vtk-5.2
-./sage -i pyrex-0.9.4.1
-./sage -i swig-1.3.31
-}}}
 
 == Changelog ==
+
  * first release ETS-3.1.1 - December 19th, 2008 - Jaap Spies
+
+ * Updated to revision 23061 - Februari 26th, 2009 - Jaap Spies
+
+ * Updated to revision 23241 - March 17th, 2009 - Jaap Spies
+

@@ -91,7 +91,7 @@ rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendQt*
 rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendWX*
 rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsGUI*
 
-# python egg_builder.py --clean
+python egg_builder.py --clean
 
 python egg_builder.py -r -v
 if [ $? -ne 0 ]; then

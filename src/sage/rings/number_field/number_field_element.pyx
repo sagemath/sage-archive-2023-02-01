@@ -1988,6 +1988,7 @@ cdef class NumberFieldElement(FieldElement):
             <type 'sage.rings.integer.Integer'>
         """
         from number_field_ideal import is_NumberFieldIdeal
+        from sage.rings.infinity import infinity
         if not is_NumberFieldIdeal(P):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)
@@ -1996,6 +1997,8 @@ cdef class NumberFieldElement(FieldElement):
         if not P.is_prime():
             # We always check this because it caches the pari prime representation of this ideal.
             raise ValueError, "P must be prime"
+        if self == 0:
+            return infinity
         return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
 
     def support(self):

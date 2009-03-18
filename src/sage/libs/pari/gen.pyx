@@ -6115,6 +6115,35 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
 
+    def galoisapply(self, aut, x):
+        t0GEN(aut)
+        t1GEN(x)
+        _sig_on
+        return self.new_gen(galoisapply(self.g, t0, t1))
+
+    def galoisinit(self, den=None):
+        """
+        galoisinit(K{,den}): calculate Galois group of number field K; see PARI manual
+        for meaning of den
+        """
+        if den is None:
+            _sig_on
+            return self.new_gen(galoisinit(self.g, NULL))
+        else:
+            t0GEN(den)
+            _sig_on
+            return self.new_gen(galoisinit(self.g, t0))
+
+    def galoispermtopol(self, perm):
+        t0GEN(perm)
+        _sig_on
+        return self.new_gen(galoispermtopol(self.g, t0))
+
+    def galoisfixedfield(self, v, long flag, long y):
+        t0GEN(v);
+        _sig_on
+        return self.new_gen(galoisfixedfield(self.g, t0, flag, y))
+
     def idealred(self, I, vdir=0):
         t0GEN(I); t1GEN(vdir)
         _sig_on
@@ -6372,6 +6401,10 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(x)
         _sig_on
         return self.new_gen(nffactor(self.g, t0))
+
+    def galoisconj(self):
+        _sig_on
+        return self.new_gen(galoisconj(self.g))
 
     def nfgenerator(self):
         f = self[0]

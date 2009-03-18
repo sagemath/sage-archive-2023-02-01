@@ -89,6 +89,8 @@ TESTS::
 
 from __future__ import with_statement
 from sage.structure.parent_gens import localvars
+from sage.misc.cachefunc import cached_method
+
 from sage.categories.map import Map
 
 # There will be one running instance of GP for all
@@ -114,7 +116,7 @@ import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
 from class_group import ClassGroup
-from galois_group import GaloisGroup
+#from galois_group import GaloisGroup
 #import order
 
 from sage.structure.element import is_Element
@@ -469,7 +471,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
 
     The Galois group is a product of 3 groups of order 2::
 
-        sage: k.galois_group()
+        sage: k.galois_group(type="pari")
         Galois group PARI group [8, 1, 3, "E(8)=2[x]2[x]2"] of degree 8 of the Number Field in a with defining polynomial x^2 + 1 over its base field
 
     Repeatedly calling base_field allows us to descend the internally
@@ -3014,50 +3016,72 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3 + 2, 'a').is_galois()
             False
         """
-        return self.galois_group(pari_group=True).group().order() == self.degree()
+        return self.galois_group(type="pari").order() == self.degree()
 
-    def galois_group(self, pari_group = True, algorithm='pari'):
+    def galois_group(self, type=None, algorithm='pari', names=None):
         r"""
-        Return the Galois group of the Galois closure of this number field
-        as an abstract group.
+        Return the Galois group of the Galois closure of this number field.
 
         INPUT:
 
+        -  ``type`` - ``none``, ``gap``, or ``pari``. If None (the default),
+           return an explicit group of automorphisms of self as a
+           ``GaloisGroup`` object.  Otherwise, return a ``GaloisGroupWrapper``
+           object based on a Pari or Gap transitive group object, which is
+           quicker to compute, but rather less useful (in particular, it can't
+           be made to act on self).  If type = 'gap', the database_gap package
+           should be installed.
 
-        -  ``pari_group`` - bool (default: False); if True
-           instead return the Galois group as a PARI group.
+        -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
+           when the degree is >= 12 when 'kash' is tried.)
 
-        -  ``algorithm`` - 'pari', 'kash', 'magma' (default:
-           'pari', except when the degree is >= 12 when 'kash' is tried)
+        -  ``name`` - a string giving a name for the generator of the Galois
+           closure of self, when self is not Galois. This is ignored if type is
+           not None.
+
+        Note that computing Galois groups as abstract groups is often much
+        faster than computing them as explicit automorphism groups (but of
+        course you get less information out!) For more (important!)
+        documentation, so the documentation for Galois groups of polynomials
+        over `\mathbb{Q}`, e.g., by typing ``K.polynomial().galois_group?``,
+        where `K` is a number field.
+
+        To obtain actual field homomorphisms from the number field to its
+        splitting field, use type=None.
+
+        EXAMPLES:
+
+        With type ``None``::
+
+            sage: k.<b> = NumberField(x^2 - 14) # a Galois extension
+            sage: G = k.galois_group(); G
+            Galois group of Number Field in b with defining polynomial x^2 - 14
+            sage: G.gen(0)
+            (1,2)
+            sage: G.gen(0)(b)
+            -b
+            sage: G.artin_symbol(k.primes_above(3)[0])
+            (1,2)
+
+            sage: k.<b> = NumberField(x^3 - x + 1) # not Galois
+            sage: G = k.galois_group(names='c'); G
+            Galois group of Number Field in b with defining polynomial x^3 - x + 1
+            sage: G.gen(0)
+            (1,3,4)(2,6,5)
 
 
-        For more (important!) documentation, so the documentation for
-        Galois groups of polynomials over `\mathbb{Q}`, e.g., by
-        typing ``K.polynomial().galois_group?``, where
-        `K` is a number field.
+        With type ``'pari'``::
 
-        To obtain actual field automorphisms that can be applied to
-        elements, use ``End(K).list()`` and
-        ``K.galois_closure()`` together (see example below).
-
-        EXAMPLES::
-
-            sage: k.<b> = NumberField(x^2 - 14)
-            sage: k.galois_group ()
-            Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in b with defining polynomial x^2 - 14
-
-        ::
-
-            sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
+            sage: NumberField(x^3-2, 'a').galois_group(type="pari")
             Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
 
-            sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional - database_gap
+            sage: NumberField(x-1, 'a').galois_group(type="gap")    # optional - database_gap
             Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional - database_gap
+            sage: NumberField(x^2+2, 'a').galois_group(type="gap")  # optional - database_gap
             Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional - database_gap
+            sage: NumberField(x^3-2, 'a').galois_group(type="gap")  # optional - database_gap
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
@@ -3089,17 +3113,28 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G[1](b1)
             1/36*b1^4 + 1/18*b1
         """
-        try:
-            return self.__galois_group[pari_group, algorithm]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__galois_group = {}
+        return self._galois_group_cached(type, algorithm, names)
 
-        G = self.polynomial().galois_group(pari_group = pari_group, algorithm = algorithm)
-        H = GaloisGroup(G, self)
-        self.__galois_group[pari_group, algorithm] = H
-        return H
+
+    @cached_method
+    def _galois_group_cached(self, type, algorithm, names):
+
+        r"""
+        Return the Galois group of this number field, caching the result
+        properly. (This method exists because the introspection machinery
+        doesn't interact terribly well with the @cached_method decorator.)
+        """
+        from galois_group import GaloisGroup, GaloisGroupWrapper
+
+        if type is None:
+            return GaloisGroup(self, names)
+
+        elif type=="pari":
+            return GaloisGroupWrapper(self.absolute_polynomial().galois_group(pari_group = True, algorithm = algorithm), self)
+        elif type=="gap":
+            return GaloisGroupWrapper(self.absolute_polynomial().galois_group(pari_group = False, algorithm = algorithm), self)
+        else:
+            raise ValueError, "Galois group type must be None, 'pari', or 'gap'."
 
     def _normalize_prime_list(self, v):
         """
@@ -4805,7 +4840,7 @@ class NumberField_absolute(NumberField_generic):
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2, 'a')
-            sage: K.galois_group().order()
+            sage: K.galois_group(type='pari').order()
             48
             sage: L, phi = K._galois_closure_and_embedding('c')
             sage: phi.domain() is K, phi.codomain() is L
@@ -4825,7 +4860,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        G = self.galois_group()
+        G = self.galois_group(type='pari')
         K = self
         self_into_K = maps.IdentityMap(self)
 
@@ -4865,7 +4900,7 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b with defining polynomial x^8 + 28*x^4 + 2500
             sage: L.<a2> = K.galois_closure(); L
             Number Field in a2 with defining polynomial x^8 + 28*x^4 + 2500
-            sage: K.galois_group().order()
+            sage: K.galois_group(names=("a3")).order()
             8
 
         ::

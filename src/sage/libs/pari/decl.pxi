@@ -1061,7 +1061,7 @@ cdef extern from 'pari/pari.h':
     GEN     galoisexport(GEN gal, long format)
     GEN     galoisfixedfield(GEN gal, GEN v, long flag, long y)
     GEN     galoisidentify(GEN gal)
-    GEN     galoisinit(GEN nf, GEN den, long karma)
+    GEN     galoisinit(GEN nf, GEN den)
     GEN     galoisisabelian(GEN gal, long flag)
     GEN     galoispermtopol(GEN gal, GEN perm)
     GEN     galoissubgroups(GEN G)

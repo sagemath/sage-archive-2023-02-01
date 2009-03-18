@@ -91,7 +91,6 @@ import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
 from class_group import ClassGroup
-from galois_group import GaloisGroup
 
 from sage.structure.element import is_Element
 from sage.categories.map import is_Map
@@ -964,17 +963,46 @@ class NumberField_relative(NumberField_generic):
 
     def is_galois(self):
         r"""
-        Return True if this relative number field is Galois over $\QQ$.
+        For a relative number field, is_galois() is deliberately not
+        implemented, since it is not clear whether this would mean "Galois over
+        QQ" or "Galois over the given base field". Use either
+        is_galois_absolute() or is_galois_relative() respectively.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> =NumberField([x^3 - 2, x^2 + x + 1])
             sage: k.is_galois()
-            True
-            sage: k.<a> =NumberField([x^3 - 2, x^2 + 1])
-            sage: k.is_galois()
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field L you must use either L.is_galois_relative() or L.is_galois_absolute() as appropriate
         """
-        return self.absolute_field('a').is_galois()
+        raise NotImplementedError, "For a relative number field L you must use either L.is_galois_relative() or L.is_galois_absolute() as appropriate"
+
+    def is_galois_relative(self):
+        r"""
+        Return True if for this relative extension L/K, L is a Galois extension of K.
+
+        EXAMPLE::
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: y = polygen(K); L.<b> = K.extension(y^2 - a)
+            sage: L.is_galois_relative()
+            True
+        """
+        return self.Hom(self).order() == self.relative_degree()
+
+    def is_galois_absolute(self):
+        r"""
+        Return True if for this relative extension L/K, L is a Galois extension of `\mathbb{Q}`.
+
+        EXAMPLE::
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: y = polygen(K); L.<b> = K.extension(y^2 - a)
+            sage: L.is_galois_absolute()
+            False
+
+        """
+        f = self.absolute_polynomial()
+        return f.galois_group(pari_group=True).order() == self.absolute_degree()
 
     def relative_vector_space(self):
         """
@@ -1638,43 +1666,38 @@ class NumberField_relative(NumberField_generic):
         gens = [self(x) for x in gens]
         return order.relative_order_from_ring_generators(gens, **kwds)
 
-    def galois_group(self, pari_group = True, algorithm='pari'):
+
+    def galois_group(self, type = 'pari', algorithm='pari', names=None):
         r"""
         Return the Galois group of the Galois closure of this number
         field as an abstract group.  Note that even though this is an
         extension $L/K$, the group will be computed as if it were $L/\QQ$.
 
         INPUT:
-            pari_group -- bool (default: False); if True instead return
-                          the Galois group as a PARI group.
-            algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except
-                          when the degree is >= 12 when 'kash' is tried)
 
-        For more (important!) documentation, so the documentation
-        for Galois groups of polynomials over $\QQ$, e.g., by
-        typing \code{K.polynomial().galois_group?}, where $K$
-        is a number field.
+        - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
+          wrapper around a Pari or Gap transitive group object.         -
+
+        - algorithm - 'pari', 'kash', 'magma' (default: 'pari', except when
+          the degree is >= 12 when 'kash' is tried)
+
+        At present much less functionality is available for Galois groups of
+        relative extensions than absolute ones, so try the galois_group method
+        of the corresponding absolute field.
 
         EXAMPLES:
             sage: x = QQ['x'].0
             sage: K.<a> = NumberField(x^2 + 1)
             sage: R.<t> = PolynomialRing(K)
             sage: L = K.extension(t^5-t+a, 'b')
-            sage: L.galois_group()
+            sage: L.galois_group(type="pari")
             Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 - t + a over its base field
         """
-        try:
-            return self.__galois_group[pari_group, algorithm]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__galois_group = {}
 
-        G = self.absolute_polynomial().galois_group(pari_group = pari_group,
-                                                    algorithm = algorithm)
-        H = GaloisGroup(G, self)
-        self.__galois_group[pari_group, algorithm] = H
-        return H
+        if type is None:
+            raise NotImplementedError, "Galois groups of relative extensions not implemented (use the corresponding absolute field)"
+        else:
+            return self._galois_group_cached(type, algorithm, names)
 
     def is_free(self, proof=None):
         r"""

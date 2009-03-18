@@ -682,9 +682,16 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             True
             sage: (x^2 - 1).is_irreducible()
             False
+
+        See \#5140:
+            sage: (2*x).is_irreducible()
+            True
+
         """
         S = PolynomialRing(ZZ, self.variable_name())
-        return S(self.denominator()*self).is_irreducible()
+        f = S(self.denominator()*self)
+        f //= f.content()
+        return f.is_irreducible()
 
     def galois_group(self, pari_group=False, algorithm='pari'):
         r"""

@@ -4496,6 +4496,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         `\mathbb{Z}/n\mathbb{Z}` for composite `n` is not
         implemented.
 
+        The function returns False for polynomials which are units,
+        and raises an exception for the zero polynomial.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
@@ -4510,10 +4513,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             ValueError: self must be nonzero
 
-        `4` is irreducible as a polynomial, since as a polynomial
-        it doesn't factor::
-
+        See \#5140:
+            sage: R(1).is_irreducible()
+            False
             sage: R(4).is_irreducible()
+            False
+            sage: R(5).is_irreducible()
+            True
+
+        The base ring does matter: for example, 2x is irreducible as a
+        polynomial in QQ[x], but not in ZZ[x]:
+
+            sage: R.<x> = ZZ[]
+            sage: R(2*x).is_irreducible()
+            False
+            sage: R.<x> = QQ[]
+            sage: R(2*x).is_irreducible()
             True
 
         TESTS::
@@ -4529,8 +4544,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.is_zero():
             raise ValueError, "self must be nonzero"
+        if self.is_unit():
+            return False
         if self.degree() == 0:
-            return True
+            return self.base_ring()(self).is_irreducible()
 
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:

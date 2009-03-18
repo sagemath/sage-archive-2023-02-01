@@ -364,6 +364,28 @@ cdef class Ring(ParentWithGens):
         """
         return False
 
+    def is_zero(self):
+        """
+        True if this is the zero ring.
+
+        EXAMPLES:
+            sage: Integers(1).is_zero()
+            True
+            sage: Integers(2).is_zero()
+            False
+            sage: QQ.is_zero()
+            False
+            sage: R.<x> = ZZ[]
+            sage: R.quo(1).is_zero()
+            True
+            sage: R.<x> = GF(101)[]
+            sage: R.quo(77).is_zero()
+            True
+            sage: R.quo(x^2+1).is_zero()
+            False
+        """
+        return self.one_element() == self.zero_element()
+
     def is_commutative(self):
         """
         Return True if this ring is commutative.
@@ -377,6 +399,8 @@ cdef class Ring(ParentWithGens):
             sage: Q.is_commutative()
             False
         """
+        if self.is_zero():
+            return True
         raise NotImplementedError
 
     def is_field(self):
@@ -395,6 +419,8 @@ cdef class Ring(ParentWithGens):
             sage: Frac(QQ['x']).is_field()
             True
         """
+        if self.is_zero():
+            return False
         raise NotImplementedError
 
     cpdef bint is_exact(self) except -2:
@@ -471,6 +497,8 @@ cdef class Ring(ParentWithGens):
             sage: S.is_finite()
             True
         """
+        if self.is_zero():
+            return True
         raise NotImplementedError
 
     def is_integral_domain(self):
@@ -491,6 +519,8 @@ cdef class Ring(ParentWithGens):
             sage: Qp(7).is_integral_domain()
             True
         """
+        if self.is_zero():
+            return False
         return NotImplementedError
 
     def is_ring(self):
@@ -544,6 +574,8 @@ cdef class Ring(ParentWithGens):
             sage: QQ.order()
             +Infinity
         """
+        if self.is_zero():
+            return 1
         raise NotImplementedError
 
     def __hash__(self):

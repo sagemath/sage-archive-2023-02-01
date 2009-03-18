@@ -442,20 +442,52 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: G = PermutationGroup([[(3,4)], [(1,2,3),(4,5)]])
-            sage: G.gen(0) < G.gen(1)
+            sage: G.gen(0) != G.gen(1)
             True
-            sage: G.gen(0) > G.gen(1)
+            sage: G.gen(0) == G.gen(1)
             False
+
+        Permutations are ordered left lexicographically on their
+        associated 'lists'; thus in the symmetric group S(5), the
+        permutation (1,2)(3,4), which corresponds to the list
+        [2,1,4,3,5], is larger than (1,2), which corresponds to the
+        list [2,1,3,4,5].
+
+        ::
+
+            sage: S = SymmetricGroup(5)
+            sage: S("(1,2)(3,4)") < S("(1,2)")
+            False
+            sage: S("(1,2)(3,4)") > S("(1,2)")
+            True
+
+        TESTS:
+
+        Verify that we fixed bug #5537::
+
+            sage: h = PermutationGroupElement('(1,3,2)')
+            sage: k = PermutationGroupElement('(1,2,3),(4,5)')
+            sage: k^2 == h, h == k^2
+            (True, True)
+            sage: k^6 == PermutationGroupElement('()')
+            True
         """
         cdef int i
-        cdef bint equal = 1
+        cdef int swap = 1
+        if right.n < self.n:
+            self, right = right, self
+            swap = -1
         for i from 0 <= i < self.n:
-            if self.perm[i] != right.perm[i]:
-                equal = 0
-                break
-        if equal:
-            return 0
-        return cmp(self.list(), right.list())
+            if self.perm[i] < right.perm[i]:
+                return -swap
+            elif self.perm[i] > right.perm[i]:
+                return swap
+        for i from self.n <= i < right.n:
+            if i < right.perm[i]:
+                return -swap
+            elif i > right.perm[i]:
+                return swap
+        return 0
 
     def __call__(self, i):
         """

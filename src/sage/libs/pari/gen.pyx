@@ -6402,6 +6402,26 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(nfdiscf0(self.g, flag, g))
 
+    def nfeltreduce(self, x, I):
+        """
+        Given an ideal I in Hermite normal form and an element x of the pari
+        number field self, finds an element r in self such that x-r belongs
+        to the ideal and r is small.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: I = k.ideal(a)
+            sage: kp = pari(k)
+            sage: kp.nfeltreduce(12, I.pari_hnf())
+            [2, 0]~
+            sage: 12 - k(kp.nfeltreduce(12, I.pari_hnf())) in I
+            True
+        """
+        t0GEN(x); t1GEN(I)
+        _sig_on
+        return self.new_gen(element_reduce(self.g, t0, t1))
+
     def nffactor(self, x):
         t0GEN(x)
         _sig_on

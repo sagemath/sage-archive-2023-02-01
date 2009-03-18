@@ -237,6 +237,7 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.rings.integer_ring import ZZ
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
+import sage.rings.polynomial.toy_variety as toy_variety
 import sage.rings.polynomial.toy_d_basis as toy_d_basis
 
 class RedSBContext:
@@ -1724,38 +1725,41 @@ class MPolynomialIdeal_singular_repr:
 
         return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
 
-    def variety(self, ring=None):
+    def variety(self, ring=None, proof=True):
         r"""
         Return the variety of ``self``.
 
-        Given a zero-dimensional ideal `I` (==
-        ``self``) of a polynomial ring P whose order is
-        lexicographic, return the variety of I as a list of dictionaries
-        with (variable, value) pairs. By default, the variety of the ideal
-        over its coefficient field `K` is returned;
-        ``ring`` can be specified to find the variety over a
-        different ring.
+        Given a zero-dimensional ideal `I` (== ``self``) of a
+        polynomial ring P whose order is lexicographic, return the
+        variety of I as a list of dictionaries with (variable, value)
+        pairs. By default, the variety of the ideal over its
+        coefficient field `K` is returned; ``ring`` can be specified
+        to find the variety over a different ring.
 
         These dictionaries have cardinality equal to the number of
         variables in P and represent assignments of values to these
         variables such that all polynomials in I vanish.
 
-        If ``ring`` is specified, then a triangular
-        decomposition of ``self`` is found over the original
-        coefficient field `K`; then the triangular systems are
-        solved using root-finding over ``ring``. This is
-        particularly useful when `K` is ``QQ`` (to
-        allow fast symbolic computation of the triangular decomposition)
-        and ``ring`` is ``RR``, ``AA``,
-        ``CC``, or ``QQbar`` (to compute the whole
-        real or complex variety of the ideal).
+        If ``ring`` is specified, then a triangular decomposition of
+        ``self`` is found over the original coefficient field `K`;
+        then the triangular systems are solved using root-finding over
+        ``ring``. This is particularly useful when `K` is ``QQ`` (to
+        allow fast symbolic computation of the triangular
+        decomposition) and ``ring`` is ``RR``, ``AA``, ``CC``, or
+        ``QQbar`` (to compute the whole real or complex variety of the
+        ideal).
 
-        Note that with ``ring``=``RR`` or
-        ``CC``, computation is done numerically and potentially
-        inaccurately; in particular, the number of points in the real
-        variety may be miscomputed. With
-        ``ring``=``AA`` or ``QQbar``,
-        computation is done exactly (which may be much slower, of course).
+        Note that with ``ring``=``RR`` or ``CC``, computation is done
+        numerically and potentially inaccurately; in particular, the
+        number of points in the real variety may be miscomputed. With
+        ``ring``=``AA`` or ``QQbar``, computation is done exactly
+        (which may be much slower, of course).
+
+        INPUT:
+
+        - ``ring`` - return roots in the ``ring`` instead of the base
+          ring of this ideal (default: ``None``)
+        - ``proof`` - return a provably correct result (default: ``True``)
 
         EXAMPLE::
 
@@ -1772,28 +1776,20 @@ class MPolynomialIdeal_singular_repr:
             + 1) of Multivariate Polynomial Ring in x, y over Finite
             Field in w of size 3^3
 
-        ::
-
             sage: V = I.variety(); V
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
-
-        ::
 
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
 
         However, we only account for solutions in the ground field and not
-        in the algebraic closure.
-
-        ::
+        in the algebraic closure::
 
             sage: I.vector_space_dimension()
             48
 
         Here we compute the points of intersection of a hyperbola and a
-        circle, in several fields.
-
-        ::
+        circle, in several fields::
 
             sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
             sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
@@ -1831,6 +1827,16 @@ class MPolynomialIdeal_singular_repr:
               x: 0.11535382288068429? - 0.5897428050222055?*I},
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
+
+        If the ground field's characteristic is too large for
+        Singular, we resort to a toy implementation::
+
+            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: I=ideal([x^3-2*y^2,3*x+y^4])
+            sage: I.variety()
+            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [{y: 0, x: 0}]
 
         TESTS::
 
@@ -1920,11 +1926,20 @@ class MPolynomialIdeal_singular_repr:
 
         P = self.ring()
         if ring is not None: P = P.change_ring(ring)
-        T = self.triangular_decomposition('singular:triangLfak')
+        try:
+          TI = self.triangular_decomposition('singular:triangLfak')
+          T = [list(each.gens()) for each in TI]
+        except TypeError, msg: # conversion to Singular not supported
+          if self.ring().term_order().is_global():
+            verbose("Warning: falling back to very slow toy implementation.", level=0)
+            T = toy_variety.triangular_factorization(self.groebner_basis(),proof=proof)
+          else:
+            raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
 
         V = []
         for t in T:
-            Vbar = _variety(list(t.gens()),[])
+            Vbar = _variety(list(t),[])
+            #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
                 V.append(dict([(P(var),val) for var,val in v.iteritems()]))

@@ -160,7 +160,7 @@ dimension formulas.
     11156973844800
     sage: a = [dimension_cusp_forms(Gamma0(N),2) for N in [1..25]]; a
     [0, 0, ..., 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 2, 2, 1, 0]
-    sage: sloane_find(a)
+    sage: sloane_find(a)      #optional -- requires internet
     Searching Sloane's online database...
     [[1617,
       'Genus of modular group GAMMA_0 (n). Or, genus of

@@ -476,7 +476,7 @@ class GaloisGroup_subgroup(GaloisGroup):
 
         EXAMPLE::
 
-            sage: from sage.rings.number_field.galois_group_new import GaloisGroup_subgroup
+            sage: from sage.rings.number_field.galois_group import GaloisGroup_subgroup
             sage: G = NumberField(x^3 - x - 1,'a').galois_closure('b').galois_group()
             sage: GaloisGroup_subgroup( G, [ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
             Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307

@@ -104,12 +104,12 @@ from collections import defaultdict
 from distutils.extension import Extension
 
 ##############################
-# This module is used during the Sage buld process, so it should not
+# This module is used during the Sage build process, so it should not
 # use any other Sage modules.  (In particular, it MUST NOT use any
 # Cython modules -- they won't be built yet!)
 # Also, we have some trivial dependency tracking, where we don't
 # rebuild the interpreters if this file hasn't changed; if
-# interpreter configuation is split out into a separate file,
+# interpreter configuration is split out into a separate file,
 # that will have to be changed.
 ##############################
 
@@ -1644,7 +1644,8 @@ def params_gen(**chunks):
             chunk = chunks[chunk_code]
             addr = None
             ch_len = None
-            if chunk.is_stack():
+            # shouldn't hardcode 'code' here
+            if chunk.is_stack() or chunk.name == 'code':
                 pass
             else:
                 m = re.match(r'\[(?:([0-9]+)|([a-zA-Z]))\]', s)
@@ -1959,23 +1960,33 @@ class InterpreterSpec(object):
         err_return -- a string indicating the value to be returned
                       in case of a Python exception
         mc_code -- a memory chunk to use for the interpreted code
+        extra_class_members -- Class members for the wrapper that
+                               don't correspond to memory chunks
+        extra_members_initialize -- Code to initialize extra_class_members
 
         EXAMPLES:
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: interp.header
-            ''
+            '\n#include <gsl/gsl_math.h>\n'
             sage: interp.pyx_header
             ''
             sage: interp.err_return
             '-1094648009105371'
             sage: interp.mc_code
             {MC:code}
+            sage: interp = RRInterpreter()
+            sage: interp.extra_class_members
+            ''
+            sage: interp.extra_members_initialize
+            ''
         """
         self.header = ''
         self.pyx_header = ''
         self.err_return = 'NULL'
         self.mc_code = MemoryChunkConstants('code', ty_int)
+        self.extra_class_members = ''
+        self.extra_members_initialize = ''
 
     def _set_opcodes(self):
         r"""
@@ -2017,6 +2028,11 @@ class StackInterpreter(InterpreterSpec):
         return_type -- the type returned by the C interpreter (None for int,
                        where 1 means success and 0 means error)
         mc_retval -- None, or the MemoryChunk to use as a return value
+        ipow_range -- the range of exponents supported by the ipow
+                      instruction (default is False, meaning never use ipow)
+        adjust_retval -- None, or a string naming a function to call
+                         in the wrapper's __call__ to modify the return
+                         value of the interpreter
 
         EXAMPLES:
             sage: from sage.ext.gen_interpreters import *
@@ -2044,11 +2060,16 @@ class StackInterpreter(InterpreterSpec):
         else:
             self.return_type = None
         self.mc_retval = mc_retval
+        self.ipow_range = False
+        self.adjust_retval = None
 
 class RDFInterpreter(StackInterpreter):
     r"""
     A subclass of StackInterpreter, specifying an interpreter over
-    machine-floating-point values (C doubles).
+    machine-floating-point values (C doubles).  This is used for
+    both domain=RDF and domain=float; currently the only difference
+    between the two is the type of the value returned from the
+    wrapper (they use the same wrapper and interpreter).
     """
 
     def __init__(self):
@@ -2060,6 +2081,12 @@ class RDFInterpreter(StackInterpreter):
             sage: interp = RDFInterpreter()
             sage: interp.name
             'rdf'
+            sage: interp.extra_class_members
+            'cdef object _domain\n'
+            sage: interp.extra_members_initialize
+            "self._domain = args['domain']\n"
+            sage: interp.adjust_retval
+            'self._domain'
             sage: interp.mc_py_constants
             {MC:py_constants}
             sage: interp.chunks
@@ -2087,6 +2114,9 @@ class RDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
+        self.header = """
+#include <gsl/gsl_math.h>
+"""
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
                        code='o0 = i0;'),
@@ -2123,6 +2153,7 @@ if (o0 == -1 && PyErr_Occurred()) {
                            ('mul', '*'), ('div', '/')]:
             instrs.append(instr_infix(name, pg('SS', 'S'), op))
         instrs.append(instr_funcall_2args('pow', pg('SS', 'S'), 'pow'))
+        instrs.append(instr_funcall_2args('ipow', pg('SD', 'S'), 'gsl_pow_int'))
         for (name, op) in [('neg', '-i0'), ('invert', '1/i0'),
                            ('abs', 'fabs(i0)')]:
             instrs.append(instr_unary(name, pg('S', 'S'), op))
@@ -2132,6 +2163,11 @@ if (o0 == -1 && PyErr_Occurred()) {
             instrs.append(instr_unary(name, pg('S',  'S'), "%s(i0)" % name))
         self.instr_descs = instrs
         self._set_opcodes()
+        # supported for exponents that fit in an int
+        self.ipow_range = (int(-2**31), int(2**31-1))
+        self.extra_class_members = "cdef object _domain\n"
+        self.extra_members_initialize = "self._domain = args['domain']\n"
+        self.adjust_retval = 'self._domain'
 
 class RRInterpreter(StackInterpreter):
     r"""
@@ -2255,6 +2291,7 @@ if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
                            ('mul', 'mpfr_mul'), ('div', 'mpfr_div'),
                            ('pow', 'mpfr_pow')]:
             instrs.append(instr_funcall_2args_mpfr(name, pg('SS', 'S'), op))
+        instrs.append(instr_funcall_2args_mpfr('ipow', pg('SD', 'S'), 'mpfr_pow_si'))
         for name in ['neg', 'abs',
                      'log', 'log2', 'log10',
                      'exp', 'exp2', 'exp10',
@@ -2277,6 +2314,11 @@ if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
                                  code='mpfr_ui_div(o0, 1, i0, GMP_RNDN);'))
         self.instr_descs = instrs
         self._set_opcodes()
+        # Supported for exponents that fit in a long, so we could use
+        # a much wider range on a 64-bit machine.  On the other hand,
+        # it's easier to write the code this way, and constant integer
+        # exponents outside this range probably aren't very common anyway.
+        self.ipow_range = (int(-2**31), int(2**31-1))
 
 class PythonInterpreter(StackInterpreter):
     r"""
@@ -2300,7 +2342,7 @@ class PythonInterpreter(StackInterpreter):
     it's different than Py_XDECREF followed by assigning NULL.)
 
     Note that as a tiny optimization, the interpreter always assumes
-    (and assures) that empty parts of the stack contain NULL, so
+    (and ensures) that empty parts of the stack contain NULL, so
     it doesn't bother to Py_XDECREF before it pushes onto the stack.
     """
 
@@ -2368,12 +2410,16 @@ Py_DECREF(py_args);
             instrs.append(instr_funcall_2args(name, pg('SS', 'S'), op))
         instrs.append(InstrSpec('pow', pg('SS', 'S'),
                                 code='o0 = PyNumber_Power(i0, i1, Py_None);'))
+        instrs.append(InstrSpec('ipow', pg('SC[D]', 'S'),
+                                code='o0 = PyNumber_Power(i0, i1, Py_None);'))
         for (name, op) in [('neg', 'PyNumber_Negative'),
                            ('invert', 'PyNumber_Invert'),
                            ('abs', 'PyNumber_Absolute')]:
             instrs.append(instr_unary(name, pg('S', 'S'), '%s(i0)'%op))
         self.instr_descs = instrs
         self._set_opcodes()
+        # Always use ipow
+        self.ipow_range = True
 
 class ElementInterpreter(PythonInterpreter):
     r"""
@@ -2542,7 +2588,10 @@ class InterpreterGenerator(object):
             if input_len is not None:
                 w("        int n_i%d = %s;\n" % (i, string_of_addr(input_len)))
             if not ch.is_stack():
-                if input_len is not None:
+                # Shouldn't hardcode 'code' here
+                if ch.name == 'code':
+                    w("        %s i%d = %s;\n" % (chst.c_local_type(), i, string_of_addr(ch)))
+                elif input_len is not None:
                     w("        %s i%d = %s + ai%d;\n" %
                       (chst.c_ptr_type(), i, ch.name, i))
                 else:
@@ -2742,11 +2791,13 @@ error:
 
         the_call = je("""
         {% if s.return_type %}return {% endif -%}
+{% if s.adjust_retval %}{{ s.adjust_retval }}({% endif %}
 interp_{{ s.name }}({{ arg_ch.pass_argument() }}
 {% for ch in s.chunks[1:] %}
             , {{ ch.pass_argument() }}
 {% endfor %}
-            )
+            ){% if s.adjust_retval %}){% endif %}
+
 """, s=s, arg_ch=arg_ch)
 
         w(je("""
@@ -2783,6 +2834,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 {% for ch in s.chunks %}
 {% print ch.declare_class_members() %}
 {% endfor %}
+{% print indent_lines(4, s.extra_class_members) %}
 
     def __init__(self, args):
         Wrapper.__init__(self, args, metadata)
@@ -2795,6 +2847,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 {% for ch in s.chunks %}
 {% print ch.init_class_members() %}
 {% endfor %}
+{% print indent_lines(8, s.extra_members_initialize) %}
 
     def __dealloc__(self):
         cdef int i
@@ -2840,7 +2893,8 @@ metadata = InterpreterMetadata(by_opname={
   ('{{ instr.name }}',
    CompilerInstrSpec({{ instr.n_inputs }}, {{ instr.n_outputs }}, {{ instr.parameters }})),
 {% endfor %}
- ])
+ ],
+ ipow_range={{ s.ipow_range }})
 """, s=s, self=self, types=types, arg_ch=arg_ch, indent_lines=indent_lines, the_call=the_call, do_cleanup=do_cleanup))
 
     def get_interpreter(self):
@@ -2895,7 +2949,7 @@ metadata = InterpreterMetadata(by_opname={
         simplest instructions:
             sage: print rdf_interp
             /* ... */ ...
-                case 9: /* neg */
+                case 10: /* neg */
                   {
                     double i0 = *--stack;
                     double o0;
@@ -2913,7 +2967,7 @@ metadata = InterpreterMetadata(by_opname={
         type.
             sage: print rr_interp
             /* ... */ ...
-                case 9: /* neg */
+                case 10: /* neg */
                   {
                     mpfr_ptr i0 = *--stack;
                     mpfr_ptr o0 = *stack++;
@@ -2932,7 +2986,7 @@ metadata = InterpreterMetadata(by_opname={
         Python-object element interpreter.
             sage: print el_interp
             /* ... */ ...
-                case 9: /* neg */
+                case 10: /* neg */
                   {
                     PyObject* i0 = *--stack;
                     *stack = NULL;
@@ -3153,6 +3207,12 @@ metadata = InterpreterMetadata(by_opname={
         Finally we get to the __call__ method.  We grab the arguments
         passed by the caller, stuff them in our pre-allocated
         argument array, and then call the C interpreter.
+
+        We optionally adjust the return value of the interpreter
+        (currently only the RDF/float interpreter performs this step;
+        this is the only place where domain=RDF differs than
+        domain=float):
+
             sage: print rdf_wrapper
             # ...
                 def __call__(self, *args):
@@ -3161,12 +3221,12 @@ metadata = InterpreterMetadata(by_opname={
                     cdef int i
                     for i from 0 <= i < len(args):
                         self._args[i] = args[i]
-                    return interp_rdf(c_args
+                    return self._domain(interp_rdf(c_args
                         , self._constants
                         , self._py_constants
                         , self._stack
                         , self._code
-                        )
+                        ))
             ...
 
         In Python-object based interpreters, the call to the C
@@ -3200,12 +3260,13 @@ metadata = InterpreterMetadata(by_opname={
         documented at InterpreterMetadata; for now, we'll just show
         what it looks like.
 
-        Currently, there are two parts to the metadata; the first maps
+        Currently, there are three parts to the metadata; the first maps
         instruction names to instruction descriptions.  The second one
         maps opcodes to instruction descriptions.  Note that we don't
         use InstrSpec objects here; instead, we use CompilerInstrSpec
         objects, which are much simpler and contain only the information
-        we'll need at runtime.
+        we'll need at runtime.  The third part says what range the
+        ipow instruction is defined over.
 
         First the part that maps instruction names to
         (CompilerInstrSpec, opcode) pairs.
@@ -3237,7 +3298,14 @@ metadata = InterpreterMetadata(by_opname={
               ('add',
                CompilerInstrSpec(2, 1, [])),
             ...
-             ])
+             ], ...)
+
+        And then the ipow range:
+            sage: print rdf_wrapper
+            # ...
+            metadata = InterpreterMetadata(...,
+              ipow_range=(-2147483648, 2147483647))
+
 
         And that's it for the wrapper.
         """
@@ -3367,7 +3435,8 @@ def rebuild(dir):
 modules = [
     Extension('sage.ext.interpreters.wrapper_rdf',
               sources = ['sage/ext/interpreters/wrapper_rdf.pyx',
-                         'sage/ext/interpreters/interp_rdf.c']),
+                         'sage/ext/interpreters/interp_rdf.c'],
+              libraries = ['gsl']),
 
     Extension('sage.ext.interpreters.wrapper_rr',
               sources = ['sage/ext/interpreters/wrapper_rr.pyx',

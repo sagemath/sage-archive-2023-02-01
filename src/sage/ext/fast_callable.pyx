@@ -32,10 +32,10 @@ form) at x=30:
 sage: wilk = prod((x-i) for i in [1 .. 20]); wilk
 (x - 20)*(x - 19)*(x - 18)*(x - 17)*(x - 16)*(x - 15)*(x - 14)*(x - 13)*(x - 12)*(x - 11)*(x - 10)*(x - 9)*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1)
 sage: timeit('wilk.subs(x=30)') # random, long time
-625 loops, best of 3: 1.46 ms per loop
+625 loops, best of 3: 1.43 ms per loop
 sage: fc_wilk = fast_callable(wilk)
 sage: timeit('fc_wilk(30)') # random, long time
-625 loops, best of 3: 10.4 us per loop
+625 loops, best of 3: 9.72 us per loop
 
 You can specify a particular domain for the evaluation using
 \code{domain=}:
@@ -59,7 +59,7 @@ We don't yet have a special interpreter with domain ZZ, so we can see
 how that compares to the generic fc_wilk example above:
 
 sage: timeit('fc_wilk_zz(30)') # random, long time
-625 loops, best of 3: 15.6 us per loop
+625 loops, best of 3: 15.4 us per loop
 
 However, for other types, using domain=D will get a large speedup,
 because we have special-purpose interpreters for those types.  One
@@ -70,13 +70,23 @@ creations that you would get from actually using RDF objects.
 
 sage: fc_wilk_rdf = fast_callable(wilk, domain=RDF)
 sage: timeit('fc_wilk_rdf(30.0)') # random, long time
-625 loops, best of 3: 5.13 us per loop
+625 loops, best of 3: 7 us per loop
+
+The domain does not need to be a Sage type; for instance, domain=float
+also works.  (We actually use the same fast interpreter for domain=float
+and domain=RDF; the only difference is that when domain=RDF is used,
+the return value is an RDF element, and when domain=float is used,
+the return value is a Python float.)
+
+sage: fc_wilk_float = fast_callable(wilk, domain=float)
+sage: timeit('fc_wilk_float(30.0)') # random, long time
+625 loops, best of 3: 5.04 us per loop
 
 We also have support for RR:
 
 sage: fc_wilk_rr = fast_callable(wilk, domain=RR)
 sage: timeit('fc_wilk_rr(30.0)') # random, long time
-625 loops, best of 3: 12.9 us per loop
+625 loops, best of 3: 13 us per loop
 
 By default, \function{fast_callable} uses the same variable names in the
 same order that the \method{__call__} method on its argument would use;
@@ -165,12 +175,12 @@ expression tree built up using the methods described above.
 EXAMPLES:
     sage: var('x')
     x
-    sage: f = fast_callable(sqrt(x^7+1), domain=RDF)
+    sage: f = fast_callable(sqrt(x^7+1), domain=float)
 
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
-    [('load_arg', 0), ('load_const', 7.0), 'pow', ('load_const', 1.0), 'add', 'sqrt', 'return']
+    [('load_arg', 0), ('ipow', 7), ('load_const', 1.0), 'add', 'sqrt', 'return']
 
     To interpret that last line, we load argument 0 ('x' in this case) onto
     the stack, push the constant 7.0 onto the stack, call the pow function
@@ -185,7 +195,7 @@ Here we take sin of the first argument and add it to f:
     sage: f = etb.call(sqrt, x^7 + 1)
     sage: g = etb.call(sin, x)
     sage: fast_callable(f+g).op_list()
-    [('load_arg', 0), ('load_const', 7), 'pow', ('load_const', 1), 'add', ('py_call', sqrt, 1), ('load_arg', 0), ('py_call', sin, 1), 'add', 'return']
+    [('load_arg', 0), ('ipow', 7), ('load_const', 1), 'add', ('py_call', sqrt, 1), ('load_arg', 0), ('py_call', sin, 1), 'add', 'return']
 
 
 AUTHOR:
@@ -265,6 +275,8 @@ from sage.rings.real_mpfr cimport RealField, RealNumber
 from sage.structure.element cimport Element
 from sage.rings.all import RDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 include "stdsage.pxi"
 
@@ -277,12 +289,12 @@ def fast_callable(x, domain=None, vars=None):
     method and a ._fast_callable_() method (this includes SR, univariate
     polynomials, and multivariate polynomials).
 
-    By default, x is evaluated the same way that a Python function would
-    evaluate it -- addition maps to PyNumber_Add, etc.  However, you
-    can specify domain=D where D is some Sage parent; in this case,
-    all arithmetic is done in that parent.  If we have a special-purpose
-    interpreter for that parent (like RDF), domain=RDF will trigger the
-    use of that interpreter.
+    By default, x is evaluated the same way that a Python function
+    would evaluate it -- addition maps to PyNumber_Add, etc.  However,
+    you can specify domain=D where D is some Sage parent or Python
+    type; in this case, all arithmetic is done in that domain.  If we
+    have a special-purpose interpreter for that parent (like RDF or float),
+    domain=... will trigger the use of that interpreter.
 
     If vars is None, then we will attempt to determine the set of
     variables from x; otherwise, we will use the given set.
@@ -296,9 +308,19 @@ def fast_callable(x, domain=None, vars=None):
         sin(2) + 12
         sage: f(2.0)
         12.9092974268257
+
+    We have special fast interpreters for domain=float and domain=RDF.
+    (Actually it's the same interpreter; only the return type varies.)
+    Note that the float interpreter is not actually more accurate than
+    the RDF interpreter; elements of RDF just don't display all
+    their digits.
+
+        sage: f_float = fast_callable(expr, domain=float)
+        sage: f_float(2)
+        12.909297426825681
         sage: f_rdf = fast_callable(expr, domain=RDF)
         sage: f_rdf(2)
-        12.909297426825681
+        12.9092974268
         sage: f = fast_callable(expr, vars=('z','x','y'))
         sage: f(1, 2, 3)
         sin(2) + 12
@@ -309,27 +331,27 @@ def fast_callable(x, domain=None, vars=None):
         sage: fp.op_list()
         [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.0105263157895), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
         sage: fp(3.14159)
-        -4594.1618236401764
+        -4594.16182364
         sage: K.<x,y,z> = QQ[]
         sage: p = K.random_element(degree=3, terms=5); p
         -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 2), ('load_const', 1.0), 'pow', 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 1), ('load_const', 2.0), 'pow', 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('load_const', 2.0), 'pow', 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('load_const', 2.0), 'pow', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('load_const', 1.0), 'pow', ('load_arg', 2), ('load_const', 2.0), 'pow', 'mul', 'mul', 'add', 'return']
+        [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
         sage: fp(e, pi, sqrt(2))
-        -98.001564033629322
+        -98.0015640336
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
         -1*e*pi^2 - pi^2 - 6*e^2 - 3*sqrt(2)*e - 2*e
         sage: n(symbolic_result)
         -98.0015640336293
 
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-        sage: etb = ExpressionTreeBuilder(vars=('x','y'), domain=RDF)
+        sage: etb = ExpressionTreeBuilder(vars=('x','y'), domain=float)
         sage: x = etb.var('x')
         sage: y = etb.var('y')
         sage: expr = etb.call(sin, x^2 + y); expr
-        sin(add(pow(v_0, 2.0), v_1))
-        sage: fc = fast_callable(expr, domain=RDF)
+        sin(add(ipow(v_0, 2), v_1))
+        sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.55142668124169059
     """
@@ -357,11 +379,12 @@ def fast_callable(x, domain=None, vars=None):
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
-    elif domain == RDF:
+    elif domain == RDF or domain is float:
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
-                                len(vars))
+                                len(vars),
+                                domain)
     elif domain is None:
         import sage.ext.interpreters.wrapper_py
         builder = sage.ext.interpreters.wrapper_py.Wrapper_py
@@ -550,9 +573,13 @@ cdef class ExpressionTreeBuilder:
             sage: etb.var('y')
             Traceback (most recent call last):
             ...
-            ValueError: list.index(x): x not in list
+            ValueError: Variable 'y' not found
         """
-        ind = self._vars.index(self._clean_var(v))
+        var_name = self._clean_var(v)
+        try:
+            ind = self._vars.index(var_name)
+        except ValueError:
+            raise ValueError, "Variable '%s' not found" % var_name
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -581,6 +608,10 @@ cdef class ExpressionTreeBuilder:
         The arguments will be converted to Expressions using
         ExpressionTreeBuilder.__call__.
 
+        As a special case, notices if the function is operator.pow and
+        the second argument is integral, and constructs an ExpressionIPow
+        instead.
+
         EXAMPLES:
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
@@ -592,8 +623,14 @@ cdef class ExpressionTreeBuilder:
             sin(1)
             sage: etb.call(factorial, x+57)
             {factorial}(add(v_0, 57))
+            sage: etb.call(operator.pow, x, 543)
+            ipow(v_0, 543)
         """
-        return ExpressionCall(self, fn, map(self, args))
+        if fn is operator.pow:
+            base, exponent = args
+            return self(base)**exponent
+        else:
+            return ExpressionCall(self, fn, map(self, args))
 
     def choice(self, cond, iftrue, iffalse):
         r"""
@@ -791,6 +828,9 @@ cdef class Expression:
         r"""
         Compute a power expression from two Expressions.
 
+        If the second Expression is a constant integer, then return
+        an ExpressionIPow instead of an ExpressionCall.
+
         EXAMPLES:
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
@@ -798,9 +838,11 @@ cdef class Expression:
             sage: x^x
             pow(v_0, v_0)
             sage: x^1
-            pow(v_0, 1)
+            ipow(v_0, 1)
             sage: x.__pow__(1)
-            pow(v_0, 1)
+            ipow(v_0, 1)
+            sage: x.__pow__(1.0)
+            pow(v_0, 1.00000000000000)
             sage: x.__rpow__(1)
             pow(1, v_0)
         """
@@ -811,7 +853,19 @@ cdef class Expression:
         # (Plus, we should consider how strict a semantics we want;
         # probably this sort of optimization should be controlled by a
         # flag.)
-        return _expression_binop_helper(s, o, op_pow)
+
+        cdef Expression es
+        if isinstance(o, (int, long, Integer)):
+            es = s
+            return ExpressionIPow(es._etb, s, o)
+        else:
+            # I really don't like this, but I can't think of a better way
+            from sage.calculus.calculus import is_SymbolicExpression
+            if is_SymbolicExpression(o) and o in ZZ:
+                es = s
+                return ExpressionIPow(es._etb, s, ZZ(o))
+            else:
+                return _expression_binop_helper(s, o, op_pow)
 
     def __neg__(self):
         r"""
@@ -1088,6 +1142,88 @@ cdef class ExpressionCall(Expression):
         fn = function_name(self._function)
         return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
 
+cdef class ExpressionIPow(Expression):
+    r"""
+    A power Expression with an integer exponent.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+        sage: etb = ExpressionTreeBuilder(vars=(x,))
+        sage: type(etb.var('x')^17)
+        <type 'sage.ext.fast_callable.ExpressionIPow'>
+    """
+    cdef object _base
+    cdef object _exponent
+
+    def __init__(self, etb, base, exponent):
+        r"""
+        Initialize an ExpressionIPow.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionIPow
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x^(-12)
+            ipow(v_0, -12)
+            sage: v = ExpressionIPow(etb, x, 55); v
+            ipow(v_0, 55)
+            sage: v._get_etb() is etb
+            True
+            sage: v.base()
+            v_0
+            sage: v.exponent()
+            55
+        """
+        Expression.__init__(self, etb)
+        self._base = base
+        self._exponent = exponent
+
+    def base(self):
+        r"""
+        Return the base from this ExpressionIPow.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: (etb(33)^42).base()
+            33
+        """
+        return self._base
+
+    def exponent(self):
+        r"""
+        Return the exponent from this ExpressionIPow.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: (etb(x)^(-1)).exponent()
+            -1
+        """
+        return self._exponent
+
+    def __repr__(self):
+        r"""
+        Give a string representing this ExpressionIPow.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb.var(x)
+            sage: x^3
+            ipow(v_0, 3)
+            sage: x^(-2)
+            ipow(v_0, -2)
+            sage: v = (x+1)^3
+            sage: v
+            ipow(add(v_0, 1), 3)
+            sage: repr(v)
+            'ipow(add(v_0, 1), 3)'
+            sage: v.__repr__()
+            'ipow(add(v_0, 1), 3)'
+        """
+        return 'ipow(%s, %d)' % (repr(self._base), self._exponent)
+
 cdef class ExpressionChoice(Expression):
     r"""
     A conditional expression.
@@ -1239,6 +1375,85 @@ cpdef _expression_binop_helper(s, o, op):
 
    return ExpressionCall(self._etb, op, [self, other])
 
+class IntegerPowerFunction(object):
+    r"""
+    This class represents the function x^n for an arbitrary integral
+    power n.  That is, IntegerPowerFunction(2) is the squaring function;
+    IntegerPowerFunction(-1) is the reciprocal function.
+
+    EXAMPLES:
+        sage: from sage.ext.fast_callable import IntegerPowerFunction
+        sage: square = IntegerPowerFunction(2)
+        sage: square
+        (^2)
+        sage: square(pi)
+        pi^2
+        sage: square(I)
+        -1
+        sage: square(RIF(-1, 1)).str(style='brackets')
+        '[0.00000000000000000 .. 1.0000000000000000]'
+        sage: IntegerPowerFunction(-1)
+        (^(-1))
+        sage: IntegerPowerFunction(-1)(22/7)
+        7/22
+        sage: v = Integers(123456789)(54321)
+        sage: v^9876543210
+        79745229
+        sage: IntegerPowerFunction(9876543210)(v)
+        79745229
+    """
+
+    def __init__(self, n):
+        r"""
+        Initializes an IntegerPowerFunction.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import IntegerPowerFunction
+            sage: cube = IntegerPowerFunction(3)
+            sage: cube
+            (^3)
+            sage: cube(AA(7)^(1/3))
+            7.000000000000000?
+            sage: cube.exponent
+            3
+        """
+        self.exponent = n
+
+    def __repr__(self):
+        r"""
+        Return a string representing this IntegerPowerFunction.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import IntegerPowerFunction
+            sage: square = IntegerPowerFunction(2)
+            sage: square
+            (^2)
+            sage: repr(square)
+            '(^2)'
+            sage: square.__repr__()
+            '(^2)'
+            sage: repr(IntegerPowerFunction(-57))
+            '(^(-57))'
+        """
+        if self.exponent >= 0:
+            return "(^%s)" % self.exponent
+        else:
+            return "(^(%s))" % self.exponent
+
+    def __call__(self, x):
+        r"""
+        Call this IntegerPowerFunction, to compute a power of its argument.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_callable import IntegerPowerFunction
+            sage: square = IntegerPowerFunction(2)
+            sage: square.__call__(5)
+            25
+            sage: square(5)
+            25
+        """
+        return x**self.exponent
+
 builtin_functions = None
 cpdef get_builtin_functions():
     r"""
@@ -1324,14 +1539,14 @@ cpdef generate_code(Expression expr, stream):
         8.2831853071795864769252867665590057684
         sage: fc = fast_callable(expr, domain=RDF)
         sage: fc(0)
-        3.1415926535897931
+        3.14159265359
         sage: fc(1)
-        8.2831853071795862
+        8.28318530718
         sage: fc.op_list()
         [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x), domain=RDF)
         sage: fc(1)
-        1.8414709848078965
+        1.84147098481
         sage: fc.op_list()
         [('load_arg', 0), 'sin', ('load_arg', 0), 'sqrt', 'add', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x))
@@ -1341,7 +1556,7 @@ cpdef generate_code(Expression expr, stream):
         [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', sqrt, 1), 'add', 'return']
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
         sage: fc(3)
-        0.14112000805986721
+        0.14112000806
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RealField(100))
         sage: fc(3)
         0.14112000805986722210074480281
@@ -1349,7 +1564,9 @@ cpdef generate_code(Expression expr, stream):
         [('load_arg', 0), ('py_call', <function my_sin at 0x...>, 1), 'return']
         sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RDF)
         sage: fc(3)
-        1.7320508075688772
+        1.73205080757
+        sage: parent(fc(3))
+        Real Double Field
         sage: fc(-3)
         Traceback (most recent call last):
         ...
@@ -1399,6 +1616,50 @@ cpdef generate_code(Expression expr, stream):
         Traceback (most recent call last):
         ...
         TypeError: unable to convert x (=sin(3)) to an integer
+
+        sage: fc = fast_callable(etb(x)^100)
+        sage: fc(pi)
+        pi^100
+        sage: fc = fast_callable(etb(x)^100, domain=ZZ)
+        sage: fc(2)
+        1267650600228229401496703205376
+        sage: fc = fast_callable(etb(x)^100, domain=RIF)
+        sage: fc(RIF(-2))
+        1.2676506002282295?e30
+        sage: fc = fast_callable(etb(x)^100, domain=RDF)
+        sage: fc.op_list()
+        [('load_arg', 0), ('ipow', 100), 'return']
+        sage: fc(1.1)
+        13780.6123398
+        sage: fc = fast_callable(etb(x)^100, domain=RR)
+        sage: fc.op_list()
+        [('load_arg', 0), ('ipow', 100), 'return']
+        sage: fc(1.1)
+        13780.6123398224
+        sage: fc = fast_callable(etb(x)^(-100), domain=RDF)
+        sage: fc.op_list()
+        [('load_arg', 0), ('ipow', -100), 'return']
+        sage: fc(1.1)
+        7.25657159015e-05
+        sage: fc = fast_callable(etb(x)^(-100), domain=RR)
+        sage: fc(1.1)
+        0.0000725657159014814
+        sage: expo = 2^32
+        sage: base = (1.0).nextabove()
+        sage: fc = fast_callable(etb(x)^expo, domain=RDF)
+        sage: fc.op_list()
+        [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
+        sage: fc(base)
+        1.00000095367
+        sage: RDF(base)^expo
+        1.00000095367
+        sage: fc = fast_callable(etb(x)^expo, domain=RR)
+        sage: fc.op_list()
+        [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
+        sage: fc(base)
+        1.00000095367477
+        sage: base^expo
+        1.00000095367477
     """
     cdef ExpressionConstant econst
     cdef ExpressionVariable evar
@@ -1426,6 +1687,23 @@ cpdef generate_code(Expression expr, stream):
             stream.instr('py_call', fn, len(ecall._arguments))
         else:
             raise ValueError, "Unhandled function %s in generate_code" % fn
+    elif isinstance(expr, ExpressionIPow):
+        base = expr.base()
+        exponent = expr.exponent()
+        metadata = stream.get_metadata()
+        ipow_range = metadata.ipow_range
+        if ipow_range is True:
+            use_ipow = True
+        elif isinstance(ipow_range, tuple):
+            a,b = ipow_range
+            use_ipow = (a <= exponent <= b)
+        else:
+            use_ipow = False
+        generate_code(base, stream)
+        if use_ipow:
+            stream.instr('ipow', exponent)
+        else:
+            stream.instr('py_call', IntegerPowerFunction(exponent), 1)
     else:
         raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
 
@@ -1604,6 +1882,8 @@ cdef class InstructionStream:
                     self._bytecode.append(loc)
             elif spec.parameters[i] == 'args':
                 self._bytecode.append(args[i])
+            elif spec.parameters[i] == 'code':
+                self._bytecode.append(args[i])
             elif spec.parameters[i] == 'n_inputs':
                 self._bytecode.append(args[i])
                 n_inputs = args[i]
@@ -1631,7 +1911,8 @@ cdef class InstructionStream:
         Returns the interpreter metadata being used by the current
         InstructionStream.
 
-        (Probably only useful for writing doctests.)
+        The code generator sometimes uses this to decide which code
+        to generate.
 
         EXAMPLES:
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
@@ -1684,7 +1965,7 @@ cdef class InstructionStream:
             sage: instr_stream.current_op_list()
             [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [0, 0, 3, 0, 1, 11, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
+            {'domain': None, 'code': [0, 0, 3, 0, 1, 12, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
         """
         d = {'args': self._n_args,
              'constants': self._constants,
@@ -1697,16 +1978,21 @@ cdef class InstructionStream:
 class InterpreterMetadata(object):
     r"""
     The interpreter metadata for a fast_callable interpreter.  Currently
-    only consists of a dictionary mapping instruction names to
-    (CompilerInstrSpec, opcode) pairs, and a list mapping opcodes to
-    (instruction name, CompilerInstrSpec) pairs.
+    consists of a dictionary mapping instruction names to
+    (CompilerInstrSpec, opcode) pairs, a list mapping opcodes to
+    (instruction name, CompilerInstrSpec) pairs, and a range of exponents
+    for which the ipow instruction can be used.  This range can be
+    False (if the ipow instruction should never be used), a pair of
+    two integers (a,b), if ipow should be used for a<=n<=b, or True,
+    if ipow should always be used.  When ipow cannot be used, then
+    we fall back on calling IntegerPowerFunction.
 
     See the class docstring for CompilerInstrSpec for more information.
 
     NOTE: You must not modify the metadata.
     """
 
-    def __init__(self, by_opname, by_opcode):
+    def __init__(self, by_opname, by_opcode, ipow_range):
         r"""
         Initialize an InterpreterMetadata object.
 
@@ -1715,14 +2001,17 @@ class InterpreterMetadata(object):
 
         Currently we do no error checking or processing, so we can
         use this simple test:
-            sage: metadata = InterpreterMetadata(by_opname='opname dict goes here', by_opcode='opcode list goes here')
+            sage: metadata = InterpreterMetadata(by_opname='opname dict goes here', by_opcode='opcode list goes here', ipow_range=(2, 57))
             sage: metadata.by_opname
             'opname dict goes here'
             sage: metadata.by_opcode
             'opcode list goes here'
+            sage: metadata.ipow_range
+            (2, 57)
         """
         self.by_opname = by_opname
         self.by_opcode = by_opcode
+        self.ipow_range = ipow_range
 
 class CompilerInstrSpec(object):
     r"""
@@ -1817,7 +2106,7 @@ def op_list(args, metadata):
             for p in instr.parameters:
                 p_loc = code[0]
                 code = code[1:]
-                if p in ('args', 'n_inputs', 'n_outputs'):
+                if p in ('args', 'code', 'n_inputs', 'n_outputs'):
                     op.append(p_loc)
                 else:
                     op.append(args[p][p_loc])
@@ -1869,7 +2158,7 @@ cdef class Wrapper:
 
         EXAMPLES:
             sage: fast_callable(sin(x)/x, domain=RDF).get_orig_args()
-            {'domain': None, 'code': [0, 0, 15, 0, 0, 7, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 7, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
         """
         return self._orig_args
 

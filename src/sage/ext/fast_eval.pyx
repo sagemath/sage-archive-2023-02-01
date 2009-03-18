@@ -88,7 +88,6 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.ext.fast_callable import fast_callable, Wrapper
-from sage.rings.all import RDF
 
 include "stdsage.pxi"
 
@@ -1348,7 +1347,7 @@ def fast_float(f, *vars, old=None):
         if old:
             return f._fast_float_(*vars)
         else:
-            return fast_callable(f, vars=vars, domain=RDF)
+            return fast_callable(f, vars=vars, domain=float)
     except AttributeError:
         pass
 

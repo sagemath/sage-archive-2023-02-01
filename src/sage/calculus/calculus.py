@@ -5624,9 +5624,18 @@ class SymbolicArithmetic(SymbolicOperation):
             add(v_0, v_1)
             sage: (-x)._fast_callable_(etb)
             neg(v_0)
+
+        TESTS::
+
+            sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
+            sage: (x^7)._fast_callable_(etb)
+            ipow(v_0, 7)
         """
-        fops = [op._fast_callable_(etb) for op in self._operands]
-        return self._operator(*fops)
+        # This used to convert the operands first.  Doing it this way
+        # instead gives a chance to notice powers with an integer
+        # exponent before the exponent gets (potentially) converted
+        # to another type.
+        return etb.call(self._operator, *self._operands)
 
     def _convert(self, typ):
         """
@@ -6232,7 +6241,7 @@ class SymbolicVariable(SymbolicExpression):
             sage: z._fast_callable_(etb)
             Traceback (most recent call last):
             ...
-            ValueError: list.index(x): x not in list
+            ValueError: Variable 'z' not found
         """
         return etb.var(self)
 

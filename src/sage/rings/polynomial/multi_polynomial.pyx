@@ -260,9 +260,15 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: v = K.random_element(degree=3, terms=4); v
             -6/5*x*y*z + 2*y*z^2 - x
             sage: v._fast_callable_(etb)
-            add(add(add(0, mul(-6/5, mul(mul(pow(v_0, 1), pow(v_1, 1)), pow(v_2, 1)))), mul(2, mul(pow(v_1, 1), pow(v_2, 2)))), mul(-1, pow(v_0, 1)))
+            add(add(add(0, mul(-6/5, mul(mul(ipow(v_0, 1), ipow(v_1, 1)), ipow(v_2, 1)))), mul(2, mul(ipow(v_1, 1), ipow(v_2, 2)))), mul(-1, ipow(v_0, 1)))
 
         TESTS:
+            sage: v = K(0)
+            sage: vf = fast_callable(v)
+            sage: type(v(0r, 0r, 0r))
+            <type 'sage.rings.rational.Rational'>
+            sage: type(vf(0r, 0r, 0r))
+            <type 'sage.rings.rational.Rational'>
             sage: K.<x,y,z> = QQ[]
             sage: from sage.ext.fast_eval import fast_float
             sage: fast_float(K(0)).op_list()
@@ -270,13 +276,13 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: fast_float(K(17)).op_list()
             [('load_const', 0.0), ('load_const', 17.0), 'add', 'return']
             sage: fast_float(y).op_list()
-            [('load_const', 0.0), ('load_const', 1.0), ('load_arg', 1), ('load_const', 1.0), 'pow', 'mul', 'add', 'return']
+            [('load_const', 0.0), ('load_const', 1.0), ('load_arg', 1), ('ipow', 1), 'mul', 'add', 'return']
         """
         my_vars = self.parent().variable_names()
         x = [etb.var(v) for v in my_vars]
         n = len(x)
 
-        expr = etb.constant(0)
+        expr = etb.constant(self.base_ring()(0))
         for (m, c) in self.dict().iteritems():
             monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))

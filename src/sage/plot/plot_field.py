@@ -71,9 +71,10 @@ class PlotField(GraphicPrimitive):
 def plot_vector_field((f, g), xrange, yrange, **options):
     r"""
 
-    \code{plot_vector_field} takes two functions of two variables, $(f(x,y), g(x,y))$
-    and plots vector arrows of the function over the specified
-    xrange and yrange as demonstrated below.
+    \code{plot_vector_field} takes two functions of two variables xvar and yvar
+    (for instance, if the variables are $x$ and $y$, take $(f(x,y), g(x,y))$)
+    and plots vector arrows of the function over the specified ranges, with
+    xrange being of xvar between xmin and xmax and yrange similarly (see below).
 
     plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
 
@@ -115,9 +116,12 @@ def plot_vector_field((f, g), xrange, yrange, **options):
 def plot_slope_field(f, xrange, yrange, **kwds):
     r"""
 
-    \code{plot_slope_field} takes a function of two variables, $f(x,y)$, and at various points (x_i,y_i), plots a line with slope $f(x_i,y_i)$
+    \code{plot_slope_field} takes a function of two variables xvar and yvar
+    (for instance, if the variables are $x$ and $y$, take $f(x,y)$), and at
+    representative points $(x_i,y_i)$ between xmin, xmax, and ymin, ymax
+    respectively, plots a line with slope $f(x_i,y_i)$ (see below).
 
-    plot_slope_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
+    plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))
 
     EXAMPLES:
     A logistic function modeling population growth.

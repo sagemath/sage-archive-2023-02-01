@@ -317,7 +317,7 @@ class ComplexField_class(field.Field):
         return "Complex Field with %s bits of precision"%self._prec
 
     def _latex_(self):
-        return "\\C"
+        return "\\mathbf{C}"
 
     def _sage_input_(self, sib, coerce):
         r"""

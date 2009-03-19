@@ -767,6 +767,9 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
     def _repr_(self):
         return "Algebraic Field"
 
+    def _latex_(self):
+        return "\\overline{\\mathbf{Q}}"
+
     def _sage_input_(self, sib, coerce):
         r"""
         Produce an expression which will reproduce this value when evaluated.

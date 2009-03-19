@@ -337,8 +337,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             # All this shifting and masking is because the
             # rows are word-aligned.
-            truerow = self._entries.rowswap[i]
-            row = self._entries.values + truerow
+            row = self._entries.rows[i]
             start = (i*self._entries.ncols) >> 6
             shift = (i*self._entries.ncols) & 0x3F
             bot_mask = (~(<word>0)) << shift
@@ -796,7 +795,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             []
         """
         cdef int k = 0
-        cdef packedmatrix *I
+        cdef mzd_t *I
         cdef Matrix_mod2_dense A
 
         if self._nrows != self._ncols:
@@ -962,7 +961,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 k = 0
 
             _sig_on
-            r =  mzd_echelonize_m4ri(self._entries, full, k, NULL, NULL)
+            r =  mzd_echelonize_m4ri(self._entries, full, k)
             _sig_off
 
             self.cache('in_echelon_form',True)
@@ -1076,7 +1075,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef int i, j, k
         cdef int nc
-        cdef int truerow
         cdef unsigned int low, high
         cdef word mask = 1
 
@@ -1084,14 +1082,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             assert(sizeof(word) == 8)
             mask = ~((mask<<(RADIX - self._entries.ncols%RADIX))-1)
             for i from 0 <= i < self._nrows:
-                truerow = self._entries.rowswap[i]
                 for j from 0 <= j < self._entries.width:
                     # for portability we get 32-bit twice rather than 64-bit once
                     low = gmp_urandomb_ui(rstate.gmp_state, 32)
                     high = gmp_urandomb_ui(rstate.gmp_state, 32)
-                    self._entries.values[truerow + j] = ((<unsigned long long>high)<<32)| (<unsigned long long>low)
-                j = truerow + self._entries.width - 1
-                self._entries.values[j] &= mask
+                    self._entries.rows[i][j] = ((<unsigned long long>high)<<32)| (<unsigned long long>low)
+                self._entries.rows[i][self._entries.width - 1] &= mask
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
@@ -1527,6 +1523,32 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             return matrix_dense.Matrix_dense.density(self)
 
+    def rank(self):
+        """
+        Return the rank of this matrix.
+
+        EXAMPLE:
+            sage: A = random_matrix(GF(2), 1000, 1000)
+            sage: A.rank()
+            999
+
+            sage: A = matrix(GF(2),10, 0)
+            sage: A.rank()
+            0
+        """
+        x = self.fetch('rank')
+        if not x is None:
+            return x
+        if self._nrows == 0 or self._ncols == 0:
+            return 0
+        cdef mzd_t *A = mzd_copy(NULL, self._entries)
+        # for now we always call m4ri but in the future we will call a
+        # yet to be written mzd_rank(0) function.
+        r = mzd_echelonize_m4ri(A, 0, 0)
+        mzd_free(A)
+        self.cache('rank', r)
+        return r
+
 # Used for hashing
 cdef int i, k
 cdef unsigned long parity_table[256]
@@ -1722,8 +1744,8 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
         [1, 2, 3, 3]
     """
     cdef Matrix_mod2_dense B = A.copy()
-    cdef permutation *p = mzp_init(A._entries.nrows)
-    cdef permutation *q = mzp_init(A._entries.ncols)
+    cdef mzp_t *p = mzp_init(A._entries.nrows)
+    cdef mzp_t *q = mzp_init(A._entries.ncols)
 
     if algorithm == "standard":
         _sig_on

@@ -849,10 +849,9 @@ cdef class ModuleElement(Element):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
 
-        The coercion model will catch this error and create the
-        appropriate action.
+        Returning None indicates that this action is not implemented.
         """
-        raise NotImplementedError
+        return None
 
     # lmul -- self * right
 
@@ -862,10 +861,9 @@ cdef class ModuleElement(Element):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
 
-        The coercion model will catch this error and create the
-        appropriate action.
+        Returning None indicates that this action is not implemented.
         """
-        raise NotImplementedError
+        return None
 
     cpdef ModuleElement _ilmul_(self, RingElement right):
         return self._lmul_(right)
@@ -926,7 +924,7 @@ cdef class MonoidElement(Element):
                 return right
             elif isinstance(right, (int, long)) and right==1:
                 return left
-            raise TypeError, msg
+            raise
 
 
     cpdef MonoidElement _mul_(left, MonoidElement right):
@@ -991,10 +989,9 @@ cdef class AdditiveGroupElement(ModuleElement):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
 
-        The coercion model will catch this error and create the
-        appropriate action.
+        Returning None indicates this action is not implemented.
         """
-        raise NotImplementedError
+        return None
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1050,12 +1047,12 @@ cdef class RingElement(ModuleElement):
     ##################################
 
     cpdef ModuleElement _lmul_(self, RingElement right):
-        # We raise an error to invoke the default action of coercing into self
-        raise NotImplementedError, "parents %s %s %s" % (parent_c(self), parent_c(right), parent_c(self) is parent_c(right))
+        # We return None to invoke the default action of coercing into self
+        return None
 
     cpdef ModuleElement _rmul_(self, RingElement left):
-        # We raise an error to invoke the default action of coercing into self
-        raise NotImplementedError
+        # We return None to invoke the default action of coercing into self
+        return None
 
     def __mul__(self, right):
         """

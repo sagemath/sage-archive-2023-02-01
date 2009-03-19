@@ -310,6 +310,7 @@ MAX_UNSIGNED_LONG = 2 * sys.maxint
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
+from sage.structure.coerce_exceptions import CoercionException
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
@@ -1376,7 +1377,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if isinstance(s, (str, list, tuple)):
             return s*int(self)
-        raise TypeError
+        raise CoercionException
 
     def _l_action(self, s):
         """
@@ -1389,7 +1390,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if isinstance(s, (str, list, tuple)):
             return int(self)*s
-        raise TypeError
+        raise CoercionException
 
     cpdef RingElement _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers

@@ -17,10 +17,11 @@ include "../ext/python_int.pxi"
 include "../ext/python_number.pxi"
 include "coerce.pxi"
 
+from coerce_exceptions import CoercionException
+
 cdef extern from *:
     ctypedef struct RefPyObject "PyObject":
         int ob_refcnt
-
 
 
 cdef class LAction(Action):
@@ -73,28 +74,29 @@ cdef class ModuleAction(Action):
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError, "Actor must be a parent."
-        if S.base() is S:
+        base = S.base()
+        if base is S or base is None:
             # The right thing to do is a normal multiplication
-            raise TypeError
+            raise CoercionException
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the base ring
-        if G is not S.base():
+        if G is not base:
             # first we try the easy case of coercing G to the base ring of S
-            self.connecting = S.base().coerce_map_from(G)
+            self.connecting = base.coerce_map_from(G)
             if self.connecting is None:
                 # otherwise, we try and find a base extension
                 from sage.categories.pushout import pushout
                 # this may raise a type error, which we propagate
                 self.extended_base = pushout(G, S)
                 # make sure the pushout actually gave correct a base extension of S
-                if self.extended_base.base() != pushout(G, S.base()):
-                    raise TypeError, "Actor must be coercible into base."
+                if self.extended_base.base() != pushout(G, base):
+                    raise CoercionException, "Actor must be coercible into base."
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
                     if self.connecting is None:
                         # this may happen if G is, say, int rather than a parent
                         # TODO: let python types be valid actions
-                        raise TypeError
+                        raise CoercionException
 
         # Don't waste time if our connecting morphisms happen to be the identity.
         if self.connecting is not None and self.connecting.codomain() is G:
@@ -108,12 +110,15 @@ cdef class ModuleAction(Action):
         the_set = S if self.extended_base is None else self.extended_base
         assert the_ring is the_set.base(), "BUG in coercion model"
 
-        cpdef RingElement g = G.an_element()
-        cpdef ModuleElement a = S.an_element()
+        g = G.an_element()
+        a = S.an_element()
+        if not isinstance(g, RingElement) or not isinstance(a, ModuleElement):
+            raise CoercionException
         res = self.act(g, a)
 
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
-            raise TypeError
+            # In particular we will raise an error if res is None
+            raise CoercionException
 
 
     def _repr_name_(self):
@@ -341,9 +346,9 @@ cdef inline fast_mul_long(a, long n):
         a = -a
     if n < 4:
         if n == 0: return parent_c(a)(0)
-        if n == 1: return a
-        if n == 2: return a+a
-        if n == 3: return a+a+a
+        elif n == 1: return a
+        elif n == 2: return a+a
+        elif n == 3: return a+a+a
     _sig_on
     pow2a = a
     while n & 1 == 0:

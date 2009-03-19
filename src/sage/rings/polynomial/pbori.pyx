@@ -2603,9 +2603,9 @@ cdef class BooleanPolynomial(MPolynomial):
             a*z + b + 1
         """
         if left:
-            return new_BP_from_PBPoly(left._parent, self._pbpoly)
+            return new_BP_from_PBPoly(self._parent, self._pbpoly)
         else:
-            return 0
+            return self._parent.zero_element()
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """

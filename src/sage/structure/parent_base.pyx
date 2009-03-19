@@ -10,6 +10,8 @@ include "../ext/stdsage.pxi"
 
 cimport parent
 
+from coerce_exceptions import CoercionException
+
 cdef inline check_old_coerce(parent.Parent p):
     if p._element_constructor is not None:
         raise RuntimeError, "%s still using old coercion framework" % p
@@ -83,7 +85,7 @@ cdef class ParentWithBase(parent_old.Parent):
     # Derived class *must* define base_extend.
     def base_extend(self, X):
         check_old_coerce(self)
-        raise TypeError, "BUG: the base_extend method must be defined for '%s' (class '%s')"%(
+        raise CoercionException, "BUG: the base_extend method must be defined for '%s' (class '%s')"%(
             self, type(self))
 
     ############################################################################

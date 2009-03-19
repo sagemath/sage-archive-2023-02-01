@@ -1320,7 +1320,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef bint do_sig = ZZ_pX_deg(self.x) * self.c.p_bits > 1e7
         if do_sig: _sig_on
         self.c.restore_c()
-        cdef ntl_ZZ_p value = ntl_ZZ_p(c)
+        cdef ntl_ZZ_p value = ntl_ZZ_p(c, self.c)
         ZZ_pX_rmul(r.x, self.x, value.x)
         if do_sig: _sig_off
         return r

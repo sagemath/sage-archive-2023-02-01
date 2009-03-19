@@ -1,13 +1,15 @@
 from functor import Functor
 from category_types import *
 
+from sage.structure.parent import CoercionException
+
 # TODO, think through the rankings, and override pushout where necessary.
 
 class ConstructionFunctor(Functor):
 
     def __mul__(self, other):
         if not isinstance(self, ConstructionFunctor) and not isinstance(other, ConstructionFunctor):
-            raise TypeError, "Non-constructive product"
+            raise CoercionException, "Non-constructive product"
         return CompositConstructionFunctor(other, self)
 
     def pushout(self, other):
@@ -203,9 +205,9 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         """
         if isinstance(other, MultiPolynomialFunctor):
             if self.term_order != other.term_order:
-                raise TypeError, "Incompatible term orders (%s,%s)." % (self.term_order, other.term_order)
+                raise CoercionException, "Incompatible term orders (%s,%s)." % (self.term_order, other.term_order)
             if set(self.vars).intersection(other.vars):
-                raise TypeError, "Overlapping variables (%s,%s)" % (self.vars, other.vars)
+                raise CoercionException, "Overlapping variables (%s,%s)" % (self.vars, other.vars)
             return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
         elif isinstance(other, CompositConstructionFunctor) \
               and isinstance(other.all[-1], MultiPolynomialFunctor):
@@ -553,7 +555,7 @@ def pushout(R, S):
             sage: pushout(ZZ['x,y,z'], QQ['w,z,t'])
             Traceback (most recent call last):
             ...
-            TypeError: Ambiguous Base Extension
+            CoercionException: ('Ambiguous Base Extension', Multivariate Polynomial Ring in x, y, z over Integer Ring, Multivariate Polynomial Ring in w, z, t over Rational Field)
             sage: pushout(ZZ['x,y,z'], QQ['w,x,z,t'])
             Multivariate Polynomial Ring in w, x, y, z, t over Rational Field
 
@@ -623,7 +625,7 @@ def pushout(R, S):
         Z = Rs.pop()
 
     else:
-        raise TypeError, "No common base"
+        raise CoercionException, "No common base"
 
     # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
     Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
@@ -634,58 +636,68 @@ def pushout(R, S):
 
     all = IdentityConstructionFunctor()
 
-    while len(Rc) > 0 or len(Sc) > 0:
-        # print Z
-        # if we are out of functors in either tower, there is no ambiguity
-        if len(Sc) == 0:
-            all = Rc.pop() * all
-        elif len(Rc) == 0:
-            all = Sc.pop() * all
-        # if one of the functors has lower rank, do it first
-        elif Rc[-1].rank < Sc[-1].rank:
-            all = Rc.pop() * all
-        elif Sc[-1].rank < Rc[-1].rank:
-            all = Sc.pop() * all
-        else:
-            # the ranks are the same, so things are a bit subtler
-            if Rc[-1] == Sc[-1]:
-                # If they are indeed the same operation, we only do it once.
-                # The \code{merge} function here takes into account non-mathematical
-                # distinctions (e.g. single vs. multivariate polynomials).
-                cR = Rc.pop()
-                cS = Sc.pop()
-                c = cR.merge(cS) or cS.merge(cR)
-                if c:
-                    all = c * all
-                else:
-                    raise TypeError, "Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+    try:
+
+        while len(Rc) > 0 or len(Sc) > 0:
+            # print Z
+            # if we are out of functors in either tower, there is no ambiguity
+            if len(Sc) == 0:
+                all = Rc.pop() * all
+            elif len(Rc) == 0:
+                all = Sc.pop() * all
+            # if one of the functors has lower rank, do it first
+            elif Rc[-1].rank < Sc[-1].rank:
+                all = Rc.pop() * all
+            elif Sc[-1].rank < Rc[-1].rank:
+                all = Sc.pop() * all
             else:
-                # Now we look ahead to see if either top functor is
-                # applied later on in the other tower.
-                # If this is the case for exactly one of them, we unambiguously
-                # postpone that operation, but if both then we abort.
-                if Rc[-1] in Sc:
-                    if Sc[-1] in Rc:
-                        raise TypeError, "Ambiguous Base Extension"
-                    else:
-                        all = Sc.pop() * all
-                elif Sc[-1] in Rc:
-                    all = Rc.pop() * all
-                # If, perchance, the two functors commute, then we may do them in any order.
-                elif Rc[-1].commutes(Sc[-1]):
-                    all = Sc.pop() * Rc.pop() * all
-                else:
-                    # try and merge (default merge is failure for unequal functors)
+                # the ranks are the same, so things are a bit subtler
+                if Rc[-1] == Sc[-1]:
+                    # If they are indeed the same operation, we only do it once.
+                    # The \code{merge} function here takes into account non-mathematical
+                    # distinctions (e.g. single vs. multivariate polynomials).
                     cR = Rc.pop()
                     cS = Sc.pop()
                     c = cR.merge(cS) or cS.merge(cR)
-                    if c is not None:
+                    if c:
                         all = c * all
                     else:
-                        # Otherwise, we cannot proceed.
-                        raise TypeError, "Ambiguous Base Extension"
+                        raise CoercionException, "Incompatible Base Extension %r, %r (on %r, %r)" % (R, S, cR, cS)
+                else:
+                    # Now we look ahead to see if either top functor is
+                    # applied later on in the other tower.
+                    # If this is the case for exactly one of them, we unambiguously
+                    # postpone that operation, but if both then we abort.
+                    if Rc[-1] in Sc:
+                        if Sc[-1] in Rc:
+                            raise CoercionException, ("Ambiguous Base Extension", R, S)
+                        else:
+                            all = Sc.pop() * all
+                    elif Sc[-1] in Rc:
+                        all = Rc.pop() * all
+                    # If, perchance, the two functors commute, then we may do them in any order.
+                    elif Rc[-1].commutes(Sc[-1]):
+                        all = Sc.pop() * Rc.pop() * all
+                    else:
+                        # try and merge (default merge is failure for unequal functors)
+                        cR = Rc.pop()
+                        cS = Sc.pop()
+                        c = cR.merge(cS) or cS.merge(cR)
+                        if c is not None:
+                            all = c * all
+                        else:
+                            # Otherwise, we cannot proceed.
+                            raise CoercionException, ("Ambiguous Base Extension", R, S)
 
-    return all(Z)
+        return all(Z)
+
+    except CoercionException:
+        raise
+    except (TypeError, ValueError, AttributeError), ex:
+        # We do this because we may be trying all kinds of things that don't
+        # make sense, and in this case simply want to return that a pushout
+        # couldn't be found.
+        raise CoercionException(ex)
 
 
 
@@ -805,7 +817,7 @@ def pushout_lattice(R, S):
             except (AttributeError, NameError):
                 print i, j
                 pp(lattice)
-                raise TypeError, "%s does not support %s" % (lattice[i,j], 'F')
+                raise CoercionException, "%s does not support %s" % (lattice[i,j], 'F')
 
     # If we are successful, we should have something that looks like this.
     #

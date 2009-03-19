@@ -123,7 +123,11 @@ cdef inline Py_ssize_t PyDict_GET_SIZE(o):
 
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
+#       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
+#       Copyright (C) 2008 David Roe       <roed@math.harvard.edu>
+#       Copyright (C) 2007 William Stein   <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -134,6 +138,7 @@ import weakref
 
 from category_object import CategoryObject
 from generators import Generators
+from coerce_exceptions import CoercionException
 
 # TODO: Theses should probably go in the printer module (but lots of stuff imports them from parent)
 from category_object import localvars
@@ -143,6 +148,7 @@ cdef object BuiltinMethodType = type(repr)
 include '../ext/python_object.pxi'
 include '../ext/python_bool.pxi'
 include '../ext/stdsage.pxi'
+
 
 def is_Parent(x):
     """
@@ -1248,7 +1254,7 @@ cdef class Parent(category_object.CategoryObject):
             self._coerce_from_hash[S] = mor
             _unregister_pair(self, S)
             return mor
-        except NotImplementedError:
+        except CoercionException:
             _record_exception()
             return None
 
@@ -1371,16 +1377,12 @@ cdef class Parent(category_object.CategoryObject):
         if mor is not None:
             return mor
 
-        try:
-            if PY_TYPE_CHECK(S, Parent):
-                mor = S.coerce_map_from(self)
+        if PY_TYPE_CHECK(S, Parent):
+            mor = S.coerce_map_from(self)
+            if mor is not None:
+                mor = mor.section()
                 if mor is not None:
-                    mor = mor.section()
-                    if mor is not None:
-                        return mor
-        except NotImplementedError:
-            pass
-
+                    return mor
 
         user_provided_mor = self._convert_map_from_(S)
 
@@ -1468,7 +1470,7 @@ cdef class Parent(category_object.CategoryObject):
                 else:
                     if action.right_domain() is not self: continue
                     R = action.left_domain()
-            elif op is operator.mul:
+            elif op is operator.mul and isinstance(action, Parent):
                 try:
                     R = action
                     _register_pair(x,y) # to kill circular recursion
@@ -1485,7 +1487,7 @@ cdef class Parent(category_object.CategoryObject):
                     ## of discovered actions.
                     #i = self._action_list.index(R)
                     #self._action_list[i] = action
-                except TypeError:
+                except CoercionException:
                     _record_exception()
                     _unregister_pair(x,y)
                     continue
@@ -1501,6 +1503,8 @@ cdef class Parent(category_object.CategoryObject):
                     else:
                         return PrecomposedAction(action, connecting, None)
 
+        # We didn't find an action in the list, but maybe the elements define
+        # _rmul_, _lmul_, _l_action_, or _r_action_.
         if op is operator.mul and PY_TYPE_CHECK(S, Parent):
             from coerce_actions import LeftModuleAction, RightModuleAction, LAction, RAction
             # Actors define _l_action_ and _r_action_
@@ -1517,61 +1521,56 @@ cdef class Parent(category_object.CategoryObject):
             #print "looking for action ", self, "<--->", S
             #print "looking for action ", x, "<--->", y
 
-            _register_pair(x,y) # this is to avoid possible infinite loops
-            if self_on_left:
-                try:
-                    #print "RightModuleAction", S, self
-                    action = RightModuleAction(S, self) # this will test _lmul_
-                    _unregister_pair(x,y)
-                    #print "got", action
-                    return action
-                except (NotImplementedError, TypeError, AttributeError, ValueError), ex:
-                    _record_exception()
-
-                try:
-                    #print "LAction"
-                    z = x._l_action_(y)
-                    _unregister_pair(x,y)
-                    #print "got", z
-                    return LAction(self, S)
-                except (NotImplementedError, TypeError, AttributeError, ValueError):
-                    _record_exception()
-
-            else:
-                try:
-                    #print "LeftModuleAction"
-                    action = LeftModuleAction(S, self) # this will test _rmul_
-                    _unregister_pair(x,y)
-                    #print "got", action
-                    return action
-                except (NotImplementedError, TypeError, AttributeError, ValueError), ex:
-                    _record_exception()
-
-                try:
-                    #print "RAction"
-                    z = x._r_action_(y)
-                    _unregister_pair(x,y)
-                    #print "got", z
-                    return RAction(self, S)
-                except (NotImplementedError, TypeError, AttributeError, ValueError):
-                    _record_exception()
-
-
             try:
-                # maybe there is a more clever way of detecting ZZ than importing here...
-                from sage.rings.integer_ring import ZZ
-                from sage.rings.ring import Ring
-                if S is ZZ and not self.has_coerce_map_from(ZZ):
-                    #print "IntegerMulAction"
-                    from sage.structure.coerce_actions import IntegerMulAction
-                    action = IntegerMulAction(S, self, not self_on_left)
-                    #print "got", action
-                    _unregister_pair(x,y)
-                    return action
-            except (NotImplementedError, TypeError, AttributeError, ValueError):
-                _record_exception()
+                _register_pair(x,y) # this is to avoid possible infinite loops
+                if self_on_left:
+                    try:
+                        #print "RightModuleAction", S, self
+                        return RightModuleAction(S, self) # this will test _lmul_
+                    except CoercionException:
+                        _record_exception()
 
-            _unregister_pair(x,y)
+                    if hasattr(x, '_l_action_'):
+                        try:
+                            #print "LAction"
+                            z = x._l_action_(y)
+                            #print "got", z
+                            return LAction(self, S)
+                        except CoercionException:
+                            _record_exception()
+
+                else:
+                    try:
+                        #print "LeftModuleAction"
+                        return LeftModuleAction(S, self) # this will test _rmul_
+                    except CoercionException:
+                        _record_exception()
+
+                    if hasattr(x, '_r_action_'):
+                        try:
+                            #print "RAction"
+                            z = x._r_action_(y)
+                            #print "got", z
+                            return RAction(self, S)
+                        except CoercionException:
+                            _record_exception()
+
+
+                try:
+                    # maybe there is a more clever way of detecting ZZ than importing here...
+                    from sage.rings.integer_ring import ZZ
+                    from sage.rings.ring import Ring
+                    if S is ZZ and not self.has_coerce_map_from(ZZ):
+                        #print "IntegerMulAction"
+                        from sage.structure.coerce_actions import IntegerMulAction
+                        action = IntegerMulAction(S, self, not self_on_left)
+                        #print "got", action
+                        return action
+                except (CoercionException, TypeError):
+                    _record_exception()
+
+            finally:
+                _unregister_pair(x,y)
 
             #print "found nothing"
 
@@ -1939,16 +1938,15 @@ cdef bint _register_pair(x, y) except -1:
         #print xp, yp
 #        if str(y) != "Complex Double Field":
 #            raise Exception, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
-        raise NotImplementedError, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
+        raise CoercionException, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
     _coerce_test_list.append(both)
     return 0
 
 cdef bint _unregister_pair(x, y) except -1:
     try:
         _coerce_test_list.remove(EltPair(x,y))
-    except (ValueError, NotImplementedError):
+    except (ValueError, CoercionException):
         pass
-
 
 empty_set = Set_generic()
 

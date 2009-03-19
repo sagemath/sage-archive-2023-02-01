@@ -86,6 +86,7 @@ import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
 from parent import Set_PythonType
+from coerce_exceptions import CoercionException
 
 import sys
 
@@ -354,7 +355,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: import traceback
             sage: cm.exception_stack()
-            [(<type 'exceptions.TypeError'>, TypeError("BUG: the base_extend method must be defined for 'Monoid of ideals of Integer Ring' (class '<class 'sage.rings.ideal_monoid.IdealMonoid_c'>')",), <traceback object at ...>), (<type 'exceptions.TypeError'>,  TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",),  <traceback object at ...>)]
+            [(<class 'sage.structure.coerce_exceptions.CoercionException'>, CoercionException("BUG: the base_extend method must be defined for 'Monoid of ideals of Integer Ring' (class '<class 'sage.rings.ideal_monoid.IdealMonoid_c'>')",), <traceback object at ...>), (<type 'exceptions.TypeError'>,  TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",),  <traceback object at ...>)]
             sage: print ''.join(sum([traceback.format_exception(*info) for info in cm.exception_stack()], []))
             Traceback (most recent call last):
             ...
@@ -711,29 +712,35 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             xy = self.canonical_coercion(x,y)
             return PyObject_CallObject(op, xy)
         except TypeError, err:
+            if xy is not None:
+                # The error was in calling, not coercing
+                raise
             self._record_exception()
 
         if op is mul or op is imul:
 
             # elements may also act on non-elements
             # (e.g. sequences or parents)
-            try:
-                return x._l_action(y)
-            except (AttributeError, TypeError), err:
-                self._record_exception()
-            try:
-                return y._r_action(x)
-            except (AttributeError, TypeError), err:
-                self._record_exception()
+            if hasattr(x, '_l_action'):
+                try:
+                    return x._l_action(y)
+                except CoercionException:
+                    pass
+            if hasattr(y, '_r_action'):
+                try:
+                    return y._r_action(x)
+                except CoercionException:
+                    pass
 
         if not isinstance(y, Element):
-            try:
-                op_name = op.__name__
-                if op_name[0] == 'i':
-                    op_name = op_name[1:]
-                return getattr(y, '__r%s__'%op_name)(x)
-            except (AttributeError, TypeError):
-                pass
+            op_name = op.__name__
+            if op_name[0] == 'i':
+                op_name = op_name[1:]
+            mul_method = getattr3(y, '__r%s__'%op_name, None)
+            if mul_method is not None:
+                res = mul_method(x)
+                if res is not None and res is not NotImplemented:
+                    return res
 
         # We should really include the underlying error.
         # This causes so much headache.
@@ -857,13 +864,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 self._record_exception()
 
         # See if the non-objects define a _sage_ method.
-        try:
-            if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+        if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+            try:
                 x = x._sage_()
                 y = y._sage_()
+            except AttributeError:
+                self._record_exception()
+            else:
                 return self.canonical_coercion(x, y)
-        except AttributeError:
-            self._record_exception()
 
         # Allow coercion of 0 even if no coercion from Z
         if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
@@ -1265,16 +1273,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
-        if PY_TYPE_CHECK(S, Parent):
-            action = (<Parent>S).get_action(R, op, False)
-            if action is not None:
-                #print "found1", action
-                return action
-
         if PY_TYPE_CHECK(R, Parent):
             action = (<Parent>R).get_action(S, op, True)
             if action is not None:
                 #print "found2", action
+                return action
+
+        if PY_TYPE_CHECK(S, Parent):
+            action = (<Parent>S).get_action(R, op, False)
+            if action is not None:
+                #print "found1", action
                 return action
 
         if PY_TYPE(R) == <void *>type:

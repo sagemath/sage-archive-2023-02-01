@@ -202,7 +202,7 @@ class Subsets_s(CombinatorialClass):
 
     def iterator(self):
         """
-        Iterate through the subsets of s.
+        Iterates through the subsets of s.
 
         EXAMPLES::
 
@@ -408,7 +408,7 @@ class Subsets_sk(CombinatorialClass):
 
     def iterator(self):
         """
-        Iterate through the subsets of s of size k.
+        Iterates through the subsets of s of size k.
 
         EXAMPLES::
 
@@ -580,7 +580,7 @@ class SubMultiset_s(CombinatorialClass):
 
     def iterator(self):
         """
-        Iterate through the subsets of the multiset ``self._s``.  Note
+        Iterates through the subsets of the multiset ``self._s``.  Note
         that each subset is represented by a list of its elements rather than
         a set since we can have multiplicities (no multiset data structure yet
         in sage).
@@ -610,9 +610,9 @@ class SubMultiset_s(CombinatorialClass):
 
 class SubMultiset_sk(SubMultiset_s):
     """
-    The combinatorial class of all of the subsets of size k of a multiset s.
-    Note that each subset is represented by a list of the elements rather than
-    a set since we can have multiplicities (no multiset data structure yet in
+    The combinatorial class of the subsets of size k of a multiset s.  Note
+    that each subset is represented by a list of the elements rather than a
+    set since we can have multiplicities (no multiset data structure yet in
     sage).
 
     EXAMPLES::
@@ -675,7 +675,7 @@ class SubMultiset_sk(SubMultiset_s):
 
     def iterator(self):
         """
-        Iterate through the subsets of size ``self._k`` of the multiset
+        Iterates through the subsets of size ``self._k`` of the multiset
         ``self._s``. Note that each subset is represented by a list of the
         elements rather than a set since we can have multiplicities (no
         multiset data structure yet in sage).

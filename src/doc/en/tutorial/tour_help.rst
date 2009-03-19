@@ -113,8 +113,8 @@ after the list of variable names. For example:
 ::
 
     sage: def is_even(n):
-    ...:      return n%2 == 0
-    ...:
+    ...       return n%2 == 0
+    ...
     sage: is_even(2)
     True
     sage: is_even(3)

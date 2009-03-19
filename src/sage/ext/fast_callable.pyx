@@ -16,7 +16,7 @@ transform such expressions into a form where they can be evaluated
 quickly.
 
 sage: f = sin(x) + 3*x^2
-sage: ff = fast_callable(f)
+sage: ff = fast_callable(f, vars=[x])
 sage: ff(3.5)
 36.3992167723104
 sage: ff(RIF(3.5))
@@ -33,14 +33,14 @@ sage: wilk = prod((x-i) for i in [1 .. 20]); wilk
 (x - 20)*(x - 19)*(x - 18)*(x - 17)*(x - 16)*(x - 15)*(x - 14)*(x - 13)*(x - 12)*(x - 11)*(x - 10)*(x - 9)*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1)
 sage: timeit('wilk.subs(x=30)') # random, long time
 625 loops, best of 3: 1.43 ms per loop
-sage: fc_wilk = fast_callable(wilk)
+sage: fc_wilk = fast_callable(wilk, vars=[x])
 sage: timeit('fc_wilk(30)') # random, long time
 625 loops, best of 3: 9.72 us per loop
 
 You can specify a particular domain for the evaluation using
 \code{domain=}:
 
-sage: fc_wilk_zz = fast_callable(wilk, domain=ZZ)
+sage: fc_wilk_zz = fast_callable(wilk, vars=[x], domain=ZZ)
 
 The meaning of domain=D is that each intermediate and final result
 is converted to type D.  For instance, the previous example of
@@ -68,7 +68,7 @@ operation will be floating-point, we can just execute the
 floating-point operations directly and skip all the Python object
 creations that you would get from actually using RDF objects.
 
-sage: fc_wilk_rdf = fast_callable(wilk, domain=RDF)
+sage: fc_wilk_rdf = fast_callable(wilk, vars=[x], domain=RDF)
 sage: timeit('fc_wilk_rdf(30.0)') # random, long time
 625 loops, best of 3: 7 us per loop
 
@@ -78,31 +78,45 @@ and domain=RDF; the only difference is that when domain=RDF is used,
 the return value is an RDF element, and when domain=float is used,
 the return value is a Python float.)
 
-sage: fc_wilk_float = fast_callable(wilk, domain=float)
+sage: fc_wilk_float = fast_callable(wilk, vars=[x], domain=float)
 sage: timeit('fc_wilk_float(30.0)') # random, long time
 625 loops, best of 3: 5.04 us per loop
 
 We also have support for RR:
 
-sage: fc_wilk_rr = fast_callable(wilk, domain=RR)
+sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=RR)
 sage: timeit('fc_wilk_rr(30.0)') # random, long time
 625 loops, best of 3: 13 us per loop
 
-By default, \function{fast_callable} uses the same variable names in the
-same order that the \method{__call__} method on its argument would use;
-for instance, on symbolic expressions, the variables are used in alphabetical
-order.
+Currently, \function{fast_callable} can accept two kinds of objects:
+polynomials (univariate and multivariate) and symbolic expressions
+(elements of the Symbolic Ring).  (This list is likely to grow
+significantly in the near future.)  For polynomials, you can omit the
+'vars' argument; the variables will default to the ring generators (in
+the order used when creating the ring).
+
+sage: K.<x,y,z> = QQ[]
+sage: p = 10*y + 100*z + x
+sage: fp = fast_callable(p)
+sage: fp(1,2,3)
+321
+
+But you can also specify the variable names to override the default
+ordering (you can include extra variable names here, too).
+
+sage: fp = fast_callable(p, vars=('x','w','z','y'))
+
+For symbolic expressions, you need to specify the variable names, so
+that \function{fast_callable} knows what order to use.
 
 sage: var('y,z,x')
 (y, z, x)
 sage: f = 10*y + 100*z + x
-sage: f(1,2,3)
-321
-sage: ff = fast_callable(f)
+sage: ff = fast_callable(f, vars=(x,y,z))
 sage: ff(1,2,3)
 321
 
-However, this can be overridden with \code{vars=}:
+You can also specify extra variable names:
 
 sage: ff = fast_callable(f, vars=('x','w','z','y'))
 sage: ff(1,2,3,4)
@@ -175,7 +189,7 @@ expression tree built up using the methods described above.
 EXAMPLES:
     sage: var('x')
     x
-    sage: f = fast_callable(sqrt(x^7+1), domain=float)
+    sage: f = fast_callable(sqrt(x^7+1), vars=[x], domain=float)
 
     sage: f(1)
     1.4142135623730951
@@ -280,14 +294,15 @@ from sage.rings.integer_ring import ZZ
 
 include "stdsage.pxi"
 
-def fast_callable(x, domain=None, vars=None):
+def fast_callable(x, domain=None, vars=None,
+                  _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False):
     r"""
     Given an expression x, compiles it into a form that can be quickly
     evaluated, given values for the variables in x.
 
-    x can be an expression object, or anything that has a .variables()
-    method and a ._fast_callable_() method (this includes SR, univariate
-    polynomials, and multivariate polynomials).
+    Currently, x can be an expression object, an element of SR, or a
+    (univariate or multivariate) polynomial; this list will probably
+    be extended soon.
 
     By default, x is evaluated the same way that a Python function
     would evaluate it -- addition maps to PyNumber_Add, etc.  However,
@@ -296,14 +311,15 @@ def fast_callable(x, domain=None, vars=None):
     have a special-purpose interpreter for that parent (like RDF or float),
     domain=... will trigger the use of that interpreter.
 
-    If vars is None, then we will attempt to determine the set of
-    variables from x; otherwise, we will use the given set.
+    If vars is None and x is a polynomial, then we will use the
+    generators of parent(x) as the variables; otherwise, vars must be
+    specified.
 
     EXAMPLES:
         sage: var('x')
         x
         sage: expr = sin(x) + 3*x^2
-        sage: f = fast_callable(expr)
+        sage: f = fast_callable(expr, vars=[x])
         sage: f(2)
         sin(2) + 12
         sage: f(2.0)
@@ -315,10 +331,10 @@ def fast_callable(x, domain=None, vars=None):
     the RDF interpreter; elements of RDF just don't display all
     their digits.
 
-        sage: f_float = fast_callable(expr, domain=float)
+        sage: f_float = fast_callable(expr, vars=[x], domain=float)
         sage: f_float(2)
         12.909297426825681
-        sage: f_rdf = fast_callable(expr, domain=RDF)
+        sage: f_rdf = fast_callable(expr, vars=[x], domain=RDF)
         sage: f_rdf(2)
         12.9092974268
         sage: f = fast_callable(expr, vars=('z','x','y'))
@@ -361,10 +377,12 @@ def fast_callable(x, domain=None, vars=None):
         vars = et._etb._vars
     else:
         if vars is None or len(vars) == 0:
+            from sage.calculus.calculus import SR
+            if x.parent() is SR and not _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
+                raise ValueError, "List of variables must be specified for symbolic expressions"
             vars = x.variables()
             # XXX This is pretty gross... there should be a "callable_variables"
             # method that does all this.
-            from sage.calculus.calculus import SR
             from sage.rings.all import is_PolynomialRing, is_MPolynomialRing
             if x.parent() is SR and x.number_of_arguments() > len(vars):
                 vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
@@ -1531,7 +1549,9 @@ cpdef generate_code(Expression expr, stream):
     TESTS:
         sage: def my_sin(x): return sin(x)
         sage: def my_norm(x, y): return x*x + y*y
-        sage: def my_sqrt(x): return sqrt(x, extend=False)
+        sage: def my_sqrt(x):
+        ...       if x < 0: raise ValueError, "sqrt of negative number"
+        ...       return sqrt(x, extend=False)
         sage: fc = fast_callable(expr, domain=RealField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842
@@ -1570,14 +1590,14 @@ cpdef generate_code(Expression expr, stream):
         sage: fc(-3)
         Traceback (most recent call last):
         ...
-        ValueError: math domain error
+        ValueError: sqrt of negative number
         sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RR)
         sage: fc(3)
         1.73205080756888
         sage: fc(-3)
         Traceback (most recent call last):
         ...
-        ValueError: negative number -3.00000000000000 does not have a square root in the real field
+        ValueError: sqrt of negative number
         sage: etb2 = ExpressionTreeBuilder(('y','z'))
         sage: y = etb2.var('y')
         sage: z = etb2.var('z')
@@ -2157,7 +2177,7 @@ cdef class Wrapper:
         (Probably only useful when writing doctests.)
 
         EXAMPLES:
-            sage: fast_callable(sin(x)/x, domain=RDF).get_orig_args()
+            sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
             {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 7, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
         """
         return self._orig_args
@@ -2167,7 +2187,7 @@ cdef class Wrapper:
         Return the list of instructions in this wrapper.
 
         EXAMPLES:
-            sage: fast_callable(cos(x)*x, domain=RDF).op_list()
+            sage: fast_callable(cos(x)*x, vars=[x], domain=RDF).op_list()
             [('load_arg', 0), 'cos', ('load_arg', 0), 'mul', 'return']
         """
         return op_list(self._orig_args, self._metadata)
@@ -2182,9 +2202,9 @@ cdef class Wrapper:
         this up by adding a new instruction to the interpreter.)
 
         EXAMPLES:
-            sage: fast_callable(abs(sin(x)), domain=RDF).python_calls()
+            sage: fast_callable(abs(sin(x)), vars=[x], domain=RDF).python_calls()
             []
-            sage: fast_callable(abs(sin(factorial(x)))).python_calls()
+            sage: fast_callable(abs(sin(factorial(x))), vars=[x]).python_calls()
             [factorial, sin]
         """
         ops = self.op_list()

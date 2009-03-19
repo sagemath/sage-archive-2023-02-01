@@ -1347,7 +1347,7 @@ def fast_float(f, *vars, old=None):
         if old:
             return f._fast_float_(*vars)
         else:
-            return fast_callable(f, vars=vars, domain=float)
+            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True)
     except AttributeError:
         pass
 

@@ -113,7 +113,8 @@ after the list of variable names. For example:
 ::
 
     sage: def is_even(n):
-    ...       return n%2 == 0
+    ...:      return n%2 == 0
+    ...:
     sage: is_even(2)
     True
     sage: is_even(3)
@@ -122,6 +123,8 @@ after the list of variable names. For example:
 Note: Depending on which version of the tutorial you are viewing, you
 may see three dots ``...`` on the second line of this example.  Do
 not type them; they are just to emphasize that the code is indented.
+Whenever this is the case, press [Return/Enter] once at the end of the block to
+insert a blank line and conclude the function definition.
 
 You do not specify the types of any of the input arguments. You can
 specify multiple inputs, each of which may have an optional default

@@ -49,6 +49,16 @@ The symbol ``I`` represents the square root of :math:`-1`; ``i`` is a synonym fo
     sage: i in QQ
     False
 
+Note: The above code won't work as expected if the variable ``i``
+has been assigned a different value, for example, if it was used
+as a loop variable. If this is a case, type
+
+::
+
+    sage: reset('i')
+
+to get the original complex value of ``i``.
+
 By the way, some other pre-defined Sage rings are the integers
 ``ZZ``, the real numbers ``RR``, and the complex numbers ``CC``. We
 discuss polynomial rings in :ref:`section-poly`.

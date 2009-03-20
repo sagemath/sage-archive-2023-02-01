@@ -450,12 +450,25 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         Basis matrix:
         [1 0]
         [0 1]
+
+    Fix trac 5575::
+
+        sage: V = QQ^3
+        sage: span([V.0, V.1])
+        Vector space of degree 3 and dimension 2 over Rational Field
+        Basis matrix:
+        [1 0 0]
+        [0 1 0]
     """
     if ring.is_Ring(gens):
         # we allow the old input format with first input the base_ring.
         base_ring, gens = gens, base_ring
 
-    R = self.base_ring() if base_ring is None else base_ring
+    if base_ring is None:
+        gens = Sequence(gens)
+        R = gens.universe().base_ring()
+    else:
+        R = base_ring
 
     if not isinstance(R, principal_ideal_domain.PrincipalIdealDomain):
         raise TypeError, "The base_ring (= %s) must be a principal ideal domain."%R

@@ -36,6 +36,9 @@ import user         # users
 
 from cgi import escape
 
+# latex macros
+from sage.misc.latex_macros import sage_jsmath_macros
+
 SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'r', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
 # We also record the system names without (optional) since they are
@@ -1756,6 +1759,10 @@ jsMath.styles = {
          jsMath.Extension.Require("moreArrows");
          jsMath.Extension.Require("AMSmath");
 </script>'''
+
+        # import latex macros
+        for m in sage_jsmath_macros:
+            head += '<script>' + m + '</script>\n'
 
         # Load the jquery and ui-jquery javascript library.
         # This is used for interact functionality in the notebook, and will be used

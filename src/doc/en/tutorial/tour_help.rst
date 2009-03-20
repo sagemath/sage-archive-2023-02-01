@@ -119,7 +119,7 @@ after the list of variable names. For example:
     sage: is_even(3)
     False
 
-Note: Depending on which version of the notebook you are viewing, you
+Note: Depending on which version of the tutorial you are viewing, you
 may see three dots ``...`` on the second line of this example.  Do
 not type them; they are just to emphasize that the code is indented.
 

@@ -888,16 +888,20 @@ class GroebnerFan(SageObject):
 
         EXAMPLES::
 
-            sage: R.<x,y> = PolynomialRing(QQ,2)
-            sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
-            sage: G.render()
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: G = R.ideal([y^3 - x^2, y^2 - 13*x,z]).groebner_fan()
+            sage: test_render = G.render()
 
         ::
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
-            sage: G.render(larger=True)
+            sage: test_render = G.render(larger=True)
         """
+        S = self.__ring
+        if S.ngens() < 3:
+            print "For 2-D fan rendering the polynomial ring must have 3 variables (or more, which are ignored)."
+            raise NotImplementedError
         cmd = 'render'
         if shift:
             cmd += ' --shiftVariables %s'%shift
@@ -1062,6 +1066,10 @@ class GroebnerFan(SageObject):
             sage: gf = R4.ideal([w^2-x,x^2-y,y^2-z,z^2-x]).groebner_fan()
             sage: three_d = gf.render3d()
         """
+        S = self.__ring
+        if S.ngens() != 4:
+            print "For 3-D fan rendering the polynomial ring must have 4 variables"
+            raise NotImplementedError
         g_cones = [q.groebner_cone() for q in self.reduced_groebner_bases()]
         g_cones_facets = [q.facets() for q in g_cones]
         g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]

@@ -2817,3 +2817,176 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError, "Ideal generator may not have either 2 or 3 variables."
 
 
+    def weil_restriction(self):
+        """
+        Compute the Weil restriction of this ideal over some extension
+        field.
+
+        A Weil restriction of scalars - denoted `Res_{L/k}` - is a
+        functor which, for any finite extension of fields `L/k` and
+        any algebraic variety `X` over `L`, produces another
+        corresponding variety `Res_{L/k}(X)`, defined over `k`. It is
+        useful for reducing questions about varieties over large
+        fields to questions about more complicated varieties over
+        smaller fields.
+
+        This function does not compute this Weil restriction directly
+        but computes on generating sets of polynomial ideals:
+
+        Let `d` be the degree of the field extension `L/k`, let `a` a
+        generator of `L/k` and `p` the minimal polynomial of
+        `L/k`. Denote this ideal by `I`.
+
+        Specifically, this function first maps each variable `x` to
+        its representation over `k`: `\sum_{i=0}^{d-1} a^i x_i`. Then
+        each generator of `I` is evaulated over these representations
+        and reduced modulo the minimal polynomial `p`. The result is
+        interpreted as a univariate polynomial in `a` and its
+        coefficients are the new generators of the returned ideal.
+
+        If the input and the output ideals are radical, this is
+        equivalent to the statement about algebraic varieties above.
+
+        EXAMPLE::
+
+            sage: k.<a> = GF(2^2)
+            sage: P.<x,y> = PolynomialRing(k,2)
+            sage: I = Ideal([x*y + 1, a*x + 1])
+            sage: I.variety()
+            [{y: a, x: a + 1}]
+            sage: J = I.weil_restriction()
+            sage: J
+            Ideal (x1*y0 + x0*y1 + x1*y1, x0*y0 + x1*y1 + 1, x0 + x1, x1 + 1) of
+            Multivariate Polynomial Ring in x0, x1, y0, y1 over Finite Field of size 2
+            sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
+            sage: J.variety()
+            [{y1: 1, x1: 1, x0: 1, y0: 0}]
+
+            sage: J.weil_restriction() # returns J
+            Ideal (x1*y0 + x0*y1 + x1*y1, x0*y0 + x1*y1 + 1, x0 + x1, x1 + 1, x0^2 + x0,
+                   x1^2 + x1, y0^2 + y0, y1^2 + y1)
+                   of Multivariate Polynomial Ring in x0, x1, y0, y1 over Finite Field of size 2
+
+            sage: k.<a> = GF(3^5)
+            sage: P.<x,y,z> = PolynomialRing(k)
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.dimension()
+            0
+            sage: I.variety()
+            [{y: 0, z: 0, x: 1}]
+
+            sage: J = I.weil_restriction(); J
+            Ideal (x4 - y4 - z4, x3 - y3 - z3, x2 - y2 - z2, x1 - y1 - z1, x0 - y0 - z0 - 1,
+                   x2^2 - x1*x3 - x0*x4 + x4^2 - y2^2 + y1*y3 + y0*y4 - y4^2 - z2^2 + z1*z3 + z0*z4 - z4^2 - x4,
+                   -x1*x2 - x0*x3 - x3*x4 - x4^2 + y1*y2 + y0*y3 + y3*y4 + y4^2 + z1*z2 + z0*z3 + z3*z4 + z4^2 - x3,
+                   x1^2 - x0*x2 + x3^2 - x2*x4 + x3*x4 - y1^2 + y0*y2 - y3^2 + y2*y4 - y3*y4 - z1^2 + z0*z2 - z3^2 + z2*z4 - z3*z4 - x2,
+                   -x0*x1 - x2*x3 - x3^2 - x1*x4 + x2*x4 + y0*y1 + y2*y3 + y3^2 + y1*y4 - y2*y4 + z0*z1 + z2*z3 + z3^2 + z1*z4 - z2*z4 - x1,
+                   x0^2 + x2*x3 + x1*x4 - y0^2 - y2*y3 - y1*y4 - z0^2 - z2*z3 - z1*z4 - x0,
+                   -x4*y0 - x3*y1 - x2*y2 - x1*y3 - x0*y4 - x4*y4 - y4*z0 - y3*z1 - y2*z2 - y1*z3 - y0*z4 - y4*z4 - y4,
+                   -x3*y0 - x2*y1 - x1*y2 - x0*y3 - x4*y3 - x3*y4 + x4*y4 - y3*z0 - y2*z1 - y1*z2 - y0*z3 - y4*z3 - y3*z4 + y4*z4 - y3,
+                   -x2*y0 - x1*y1 - x0*y2 - x4*y2 - x3*y3 + x4*y3 - x2*y4 + x3*y4 - y2*z0 - y1*z1 - y0*z2 - y4*z2 - y3*z3 + y4*z3 - y2*z4 + y3*z4 - y2,
+                   -x1*y0 - x0*y1 - x4*y1 - x3*y2 + x4*y2 - x2*y3 + x3*y3 - x1*y4 + x2*y4 - y1*z0 - y0*z1 - y4*z1 - y3*z2 + y4*z2 - y2*z3 + y3*z3 - y1*z4 + y2*z4 - y1,
+                   -x0*y0 + x4*y1 + x3*y2 + x2*y3 + x1*y4 - y0*z0 + y4*z1 + y3*z2 + y2*z3 + y1*z4 - y0) of Multivariate Polynomial Ring in
+                   x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4 over Finite Field of size 3
+            sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
+            sage: J.variety()
+            [{y1: 0, y4: 0, z2: 0, y2: 0, x0: 1, y0: 0, x2: 0, z4: 0, z3: 0, x4: 0, x1: 0, z1: 0, z0: 0, y3: 0, x3: 0}]
+
+
+        Weil restrictions are often used to study elliptic curves over
+        extension fields so we give a simple example involving those::
+
+            sage: K.<a> = QuadraticField(1/3)
+            sage: E = EllipticCurve(K,[1,2,3,4,5])
+
+        We pick a point on ``E``::
+
+            sage: p = E.lift_x(1); p
+            (1 : 2 : 1)
+
+            sage: I = E.defining_ideal(); I
+            Ideal (-x^3 - 2*x^2*z + x*y*z + y^2*z - 4*x*z^2 + 3*y*z^2 - 5*z^3)
+            of Multivariate Polynomial Ring in x, y, z over Number Field in a with defining polynomial x^2 - 1/3
+
+        Of course, the point ``p`` is a root of all generators of ``I``::
+
+            sage: [f.subs(x=1,y=2,z=1) for f in I.gens()]
+            [0]
+
+        ``I`` is also radical::
+
+            sage: I.radical() == I
+            True
+
+        So we compute its Weil restriction::
+
+            sage: J = I.weil_restriction()
+            sage: J
+            Ideal (-3*x0^2*x1 - 1/3*x1^3 - 4*x0*x1*z0 + x1*y0*z0 + x0*y1*z0 + 2*y0*y1*z0 - 4*x1*z0^2 + 3*y1*z0^2 - 2*x0^2*z1
+                    - 2/3*x1^2*z1 + x0*y0*z1 + y0^2*z1 + 1/3*x1*y1*z1 + 1/3*y1^2*z1 - 8*x0*z0*z1 + 6*y0*z0*z1 - 15*z0^2*z1 - 4/3*x1*z1^2 + y1*z1^2 - 5/3*z1^3,
+                   -x0^3 - x0*x1^2 - 2*x0^2*z0 - 2/3*x1^2*z0 + x0*y0*z0 + y0^2*z0 + 1/3*x1*y1*z0 + 1/3*y1^2*z0 - 4*x0*z0^2 + 3*y0*z0^2 - 5*z0^3 - 4/3*x0*x1*z1
+                    + 1/3*x1*y0*z1 + 1/3*x0*y1*z1 + 2/3*y0*y1*z1 - 8/3*x1*z0*z1 + 2*y1*z0*z1 - 4/3*x0*z1^2 + y0*z1^2 - 5*z0*z1^2)
+            of Multivariate Polynomial Ring in x0, x1, y0, y1, z0, z1 over Rational Field
+
+        We can check that the point ``p`` is still a root of all generators of ``J``::
+
+            sage: [f.subs(x0=1,y0=2,z0=1,x1=0,y1=0,z1=0) for f in J.gens()]
+            [0, 0]
+
+        .. note::
+
+           Based on a Singular implementation by Michael Brickenstein
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        R = self.ring()
+        nvars = R.ngens()
+        L = R.base_ring()
+        k = L.prime_subfield()
+
+        if L.degree() == 1:
+            return self
+
+        helper = PolynomialRing(L.prime_subfield(), nvars + 1, (L.variable_name(),) + R.variable_names(), order='lex')
+        myminpoly = L.polynomial().subs(helper.gen(0))
+
+        l = [helper(str(f))  for f in self.gens()]
+
+        r = myminpoly.degree()
+
+        intermediate_ring = PolynomialRing(k, nvars*r+1, 'x')
+
+        a = intermediate_ring.gen(0)
+
+        # map e.g. x -> a^2*x_2 + a*x_1 + x_0, where x_0,..,x_2
+        # represent the components of x if viewed as a vector in k^r
+        map_ideal = [a]
+
+        variables = iter(intermediate_ring.gens()[1:])
+        for _ in xrange(nvars):
+           map_ideal.append(sum([a**i * variables.next() for i in range(r)]))
+
+        myminpoly = myminpoly(*map_ideal)
+
+        l = [f(*map_ideal).reduce([myminpoly]) for f in l]
+
+        result = []
+        # split e.g. a^2*x0+a*x1+x2 to x0,x1,x2
+        for f in l:
+            for i in reversed(range(r)):
+               g = f.coefficient(a**i)
+               f =  f - a**i * g
+               result.append(g)
+
+        # eliminate parameter
+        new_var_names = [str(var)+"%d"%i for var in R.gens() for i in range(r)]
+
+        result_ring = PolynomialRing(k, nvars*r, new_var_names)
+
+        map_ideal = (0,) + result_ring.gens()
+        result = [f(*map_ideal) for f in result]
+
+        return result_ring.ideal(result)
+
+
+

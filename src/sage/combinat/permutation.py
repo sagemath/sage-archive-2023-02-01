@@ -3064,12 +3064,13 @@ def from_reduced_word(rw):
 
 def robinson_schensted_inverse(p, q):
     r"""
-    Returns the permutation corresponding to the pair of tableaux (p,q) using
-    the inverse of Robinson-Schensted algorithm.
+    Returns the permutation corresponding to the pair of tableaux `(p,q)`
+    using the inverse of Robinson-Schensted algorithm.
 
     INPUT:
 
-    -  a pair (p, q) of tableaux of the same shape and where q is standard.
+     - ``p``, ``q``: two tableaux of the same shape and where ``q`` is
+       standard.
 
     EXAMPLES::
 
@@ -3085,16 +3086,6 @@ def robinson_schensted_inverse(p, q):
         sage: robinson_schensted_inverse(t2, t1)
         [1, 5, 4, 2, 3]
 
-    If the first tableau is not standard, then it is not a bijection::
-
-        sage: p = Tableau([[1,3,2]]); q = Tableau([[1,2,3]])
-        sage: robinson_schensted_inverse(p, q)
-        [1, 3, 2]
-        sage: _.robinson_schensted()
-        [[[1, 2], [3]], [[1, 2], [3]]]
-        sage: robinson_schensted_inverse(*_)
-        [1, 3, 2]
-
     If the first tableau is semistandard::
 
         sage: p = Tableau([[1,2,2]]); q = Tableau([[1,2,3]])
@@ -3102,6 +3093,10 @@ def robinson_schensted_inverse(p, q):
         [1, 2, 2]
         sage: _.robinson_schensted()
         [[[1, 2, 2]], [[1, 2, 3]]]
+
+    Note that currently the constructor of ``Tableau`` accept as input lists
+    that are not even tableaux but only filling of a parition diagram. This
+    feature should not be used with ``robinson_schensted_inverse``.
 
     TESTS::
 

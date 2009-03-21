@@ -407,16 +407,33 @@ class EllipticCurve_number_field(EllipticCurve_field):
         This function handles the caching of local data.  It is called
         by local_data() which is the user interface and which parses
         the input parameters $P$ and proof.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve(K,[0,1,0,-160,308])
+            sage: p = K.ideal(i+1)
+            sage: E._get_local_data(p, False)
+            Local data at Fractional ideal (i + 1):
+            Reduction type: good
+            Local minimal model: Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + (-10)*x + (-10) over Number Field in i with defining polynomial x^2 + 1
+            Minimal discriminant valuation: 0
+            Conductor exponent: 0
+            Kodaira Symbol: I0
+            Tamagawa Number: 1
+
+        Verify that we cache based on the proof value.
+            sage: E._get_local_data(p, False) is E._get_local_data(p, True)
+            False
         """
         try:
-            return self._local_data[P]
+            return self._local_data[P, proof]
         except AttributeError:
             self._local_data = {}
         except KeyError:
             pass
         from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
-        self._local_data[P] = EllipticCurveLocalData(self, P, proof)
-        return self._local_data[P]
+        self._local_data[P, proof] = EllipticCurveLocalData(self, P, proof)
+        return self._local_data[P, proof]
 
     def local_minimal_model(self, P, proof = None):
         r"""

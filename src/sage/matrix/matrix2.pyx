@@ -816,6 +816,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.det() - B.det()
             0
         """
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+
         if self._nrows != self._ncols:
             raise ArithmeticError, "self must be a square matrix"
 
@@ -836,6 +838,11 @@ cdef class Matrix(matrix1.Matrix):
 
         n = self._ncols
         R = self._base_ring
+
+        # As of Sage 3.4, computing determinants directly in Z/nZ for
+        # n composite is too slow, so we lift to Z and compute there.
+        if is_IntegerModRing(R) and not R.characteristic().is_prime():
+            return R(self.lift().det())
 
         # For small matrices, you can't beat the naive formula
         if n <=  3:

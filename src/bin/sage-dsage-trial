@@ -18,7 +18,7 @@ if [ ! -d "$SAGE_TESTDIR/dsage-trial"  ]; then
 fi
 
 echo "This script will run the unit tests for DSage"
-trial --temp-directory="$SAGE_TESTDIR/dsage-trial"  sage.dsage
+python $(which trial) --temp-directory="$SAGE_TESTDIR/dsage-trial" sage.dsage
 
 if [ $? != 0 ]; then
     echo "However, an ERROR occurred in the Distributed Sage unit tests."

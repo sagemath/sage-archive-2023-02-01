@@ -1782,7 +1782,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
             sage: sr.round_polynomials(0, plaintext=p)
-            [w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1)]
+            (w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1))
         """
         r = self._r
         c = self._c
@@ -1843,7 +1843,7 @@ class SR_generic(MPolynomialSystemGenerator):
         ::
 
             sage: sr.key_schedule_polynomials(0)
-            [k000^2 + k000, k001^2 + k001, k002^2 + k002, k003^2 + k003]
+            (k000^2 + k000, k001^2 + k001, k002^2 + k002, k003^2 + k003)
 
         The 1-th subkey is derived from the user provided key according to
         the key schedule which is non-linear.
@@ -1851,7 +1851,7 @@ class SR_generic(MPolynomialSystemGenerator):
         ::
 
             sage: sr.key_schedule_polynomials(1)
-            [k100 + s000 + s002 + s003,
+            (k100 + s000 + s002 + s003,
              k101 + s000 + s001 + s003 + 1,
              k102 + s000 + s001 + s002 + 1,
              k103 + s001 + s002 + s003 + 1,
@@ -1868,7 +1868,7 @@ class SR_generic(MPolynomialSystemGenerator):
              s002*k000 + s000*k001 + s001*k001 + s003*k001 + s001*k002 + s000*k003 + s002*k003 + s001,
              s000*k000 + s001*k000 + s002*k000 + s002*k001 + s000*k002 + s001*k002 + s003*k002 + s001*k003 + s002,
              s001*k000 + s000*k001 + s002*k001 + s000*k002 + s001*k003 + s003*k003 + s003,
-             s002*k000 + s001*k001 + s000*k002 + s003*k003 + 1]
+             s002*k000 + s001*k001 + s000*k002 + s003*k003 + 1)
         """
         R = self.R
         r = self.r
@@ -2358,9 +2358,8 @@ class SR_gf2n(SR_generic):
         if l is None:
             l = r*c
 
-        fms = self.varformatstr(name, n, l, e)
-
-        return [self.R( fms%(i, rci, ei) + "**2 + " + fms%(i, rci, (ei+1)%e) )  for rci in range(l)  for ei in range(e) ]
+        _vars = self.vars(name, i, l, e)
+        return [_vars[e*j+i]**2 - _vars[e*j+(i+1)%e]   for j in range(l)  for i in range(e)]
 
 class SR_gf2(SR_generic):
     def __init__(self, n=1, r=1, c=1, e=4, star=False, **kwargs):
@@ -3095,11 +3094,10 @@ class SR_gf2(SR_generic):
         if l is None:
             l = r*c
 
-        fms = self.varformatstr(name, n, l, e)
-        if not self._polybori:
-            return [self.R( fms%(i, rci, ei) + "**2 + " + fms%(i, rci, ei) )  for rci in range(l)  for ei in range(e) ]
-        else:
+        if self._polybori:
             return []
+        _vars = self.vars(name, i, l, e)
+        return [_vars[e*j+i]**2 - _vars[e*j+i]   for j in range(l)  for i in range(e)]
 
 class SR_gf2_2(SR_gf2):
     """

@@ -63,6 +63,33 @@ include_dirs = ['%s/include'%SAGE_LOCAL, \
                 ## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
+
+#########################################################
+### Debian-related stuff
+#########################################################
+
+if os.environ.has_key('SAGE_DEBIAN'):
+    debian_include_dirs=["/usr/include",
+                         "/usr/include/cudd",
+                         "/usr/include/eclib",
+                         "/usr/include/FLINT",
+                         "/usr/include/fplll",
+                         "/usr/include/givaro",
+                         "/usr/include/gmp++",
+                         "/usr/include/gsl",
+                         "/usr/include/linbox",
+                         "/usr/include/NTL",
+                         "/usr/include/numpy",
+                         "/usr/include/pari",
+                         "/usr/include/polybori",
+                         "/usr/include/polybori/groebner",
+                         "/usr/include/qd",
+                         "/usr/include/singular",
+                         "/usr/include/singular/singular",
+                         "/usr/include/symmetrica",
+                         "/usr/include/zn_poly"]
+    include_dirs = include_dirs + debian_include_dirs
+
 extra_compile_args = [ ]
 
 # comment these four lines out to turn on warnings from gcc

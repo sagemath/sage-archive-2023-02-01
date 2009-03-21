@@ -65,6 +65,7 @@ from sage.categories.map cimport Map
 import sage.structure.factorization
 
 import sage.rings.real_mpfr
+import sage.rings.real_double
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -297,6 +298,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         5/2
         sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*golden_ratio)
         53/7
+        sage: QQ(float(1.5))
+        3/2
+        sage: QQ(RDF(1.2))
+        6/5
 
     Conversion from PARI::
 
@@ -486,6 +491,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif hasattr(x, 'rational_reconstruction'):
             temp_rational = x.rational_reconstruction()
             mpq_set(self.value, temp_rational.value)
+
+        elif isinstance(x, (float, sage.rings.real_double.RealDoubleElement)):
+            self.__set_value(sage.rings.real_mpfr.RealNumber(sage.rings.real_mpfr.RR, x), base)
 
         else:
 

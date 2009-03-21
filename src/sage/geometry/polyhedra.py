@@ -45,7 +45,7 @@ from sage.rings.real_mpfr import RR
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.plot.plot3d.shapes2 import point3d
+from sage.plot.plot3d.shapes2 import point3d, polygon3d
 from sage.plot.plot import line
 from sage.combinat.combinat import permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
@@ -923,6 +923,19 @@ class Polyhedron(SageObject):
         """
         if self.ambient_dim() != 3:
             raise TypeError, "render_solid currently only works on polytopes in 3D"
+        if self.dim() == 2:
+            # special casing polygons in 3D
+            q = self.vertex_adjacencies()
+            q.sort()
+            vert_list = [q[0][0]]
+            while len(vert_list) < self.n_vertices():
+                edge_vs = q[vert_list[-1]][1]
+                if not edge_vs[0] in vert_list:
+                    vert_list.append(q[vert_list[-1]][1][0])
+                else:
+                    vert_list.append(q[vert_list[-1]][1][1])
+            vert_list = [self.vertices()[i] for i in vert_list]
+            return polygon3d(vert_list, rgbcolor = rgbcolor, **kwds)
         tri_faces = self.triangulated_facial_incidences()
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         return IndexFaceSet([q[1] for q in tri_faces], self.vertices(), enclosed = True, rgbcolor = rgbcolor, **kwds)

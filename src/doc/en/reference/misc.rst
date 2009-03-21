@@ -18,4 +18,5 @@ Miscellaneous
    sage/misc/persist
    sage/misc/func_persist
    sage/misc/sage_eval
+   sage/misc/random_testing
    sage/rings/arith

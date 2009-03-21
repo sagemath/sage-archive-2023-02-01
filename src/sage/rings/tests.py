@@ -12,10 +12,10 @@ TESTS:
     RuntimeError: exponent must be at most 2147483647              # 32-bit
 """
 
-import random
-
+import sage.misc.prandom as random
 
 from sage.misc.all import get_memory_usage
+from sage.misc.random_testing import random_testing
 
 def prime_finite_field():
     """
@@ -208,17 +208,33 @@ def random_rings(level=MAX_LEVEL):
     while True:
         yield random.choice(v)[0]()
 
-def test_random_elements(level=MAX_LEVEL, trials=None):
+@random_testing
+def test_random_elements(level=MAX_LEVEL, trials=1):
     """
     Create random elements of random rings until a crash occurs, in
-    which case an exception is raised.  If trials is given, stop after
-    that many trials.
+    which case an exception is raised.  Defaults to running a single
+    trial, but more can be specified.  To run tests in an infinite
+    loop, you could use:
+        while True: test_random_elements(trials=100, print_seed=True)
 
     INPUT:
         level -- (default: MAX_LEVEL); controls the types of rings to use
-        trials -- None or a positive integer.
+        trials -- A positive integer (default 1); the number of trials
+                  to run.
+        seed -- the random seed to use; if not specified, uses a truly
+                random seed.
+        print_seed -- If True (default False), prints the random seed chosen.
 
     EXAMPLES:
+        sage: sage.rings.tests.test_random_elements(trials=2, seed=0)
+        survived 0 tests (memory usage = ...)
+        Rational Field
+        -1/2
+        ----
+        survived 1 tests (memory usage = ...)
+        Finite Field of size 49549
+        2214
+        ----
         sage: sage.rings.tests.test_random_elements(trials=10)
         survived 0 tests...
         sage: sage.rings.tests.test_random_elements(trials=1000)  # long time (5 seconds)
@@ -232,20 +248,36 @@ def test_random_elements(level=MAX_LEVEL, trials=None):
         print R
         print R.random_element()
         print "----"
-        if trials and i >= trials:
+        if i >= trials:
             return
 
-def test_random_arith(level=MAX_LEVEL, trials=None):
+@random_testing
+def test_random_arith(level=MAX_LEVEL, trials=1):
     """
     Create random elements of random rings and does some arithmetic
     with them, until a crash occurs, in which case an exception is
-    raised.  If trials is given, stop after that many trials.
+    raised.  Defaults to running a single trial, but more can be
+    specified.  To run tests in an infinite loop, you could use:
+        while True: test_random_arith(trials=100, print_seed=True)
 
     INPUT:
         level -- (default: MAX_LEVEL); controls the types of rings to use
-        trials -- None or a positive integer.
+        trials -- A positive integer (default 1); the number of trials
+                  to run.
+        seed -- the random seed to use; if not specified, uses a truly
+                random seed.
+        print_seed -- If True (default False), prints the random seed chosen.
 
     EXAMPLES:
+        sage: sage.rings.tests.test_random_arith(trials=2, seed=0)
+        survived 0 tests (memory usage = ...)
+        Rational Field
+        -1/2 -1/95
+        49/95
+        survived 1 tests (memory usage = ...)
+        Finite Field of size 49549
+        2214 16474
+        40662
         sage: sage.rings.tests.test_random_arith(trials=10)
         survived 0 tests...
         sage: sage.rings.tests.test_random_arith(trials=1000)   # long time (5 seconds?)
@@ -259,6 +291,6 @@ def test_random_arith(level=MAX_LEVEL, trials=None):
         a = x.random_element(); b = x.random_element()
         print a, b
         print a*b+a-b+1
-        if trials and i >= trials:
+        if i >= trials:
             return
 

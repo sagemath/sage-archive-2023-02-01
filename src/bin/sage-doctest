@@ -599,7 +599,7 @@ def test_file(file, library_code):
             sys.exit(4)
         elif e !=0:
             if not verbose:
-                print "A mysterious error (perphaps a memory error?) occurred, which may have crashed doctest."
+                print "A mysterious error (perhaps a memory error?) occurred, which may have crashed doctest."
             sys.exit(3)
         else:
             delete_tmpfiles()

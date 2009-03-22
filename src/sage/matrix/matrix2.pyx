@@ -815,6 +815,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = MatrixSpace(ZZ['x'], 5, 5)(A)
             sage: A.det() - B.det()
             0
+
+        We verify that trac 5569 is resolved (otherwise the following will hang for hours)::
+
+            sage: random_matrix(GF(next_prime(10^20)),50).det()
+            99948836770341340915
+            sage: random_matrix(Integers(10^50),50).det()
+            85156868105802629478300067956664763696173374766924
+
         """
         from sage.rings.integer_mod_ring import is_IntegerModRing
 
@@ -841,8 +849,10 @@ cdef class Matrix(matrix1.Matrix):
 
         # As of Sage 3.4, computing determinants directly in Z/nZ for
         # n composite is too slow, so we lift to Z and compute there.
-        if is_IntegerModRing(R) and not R.characteristic().is_prime():
-            return R(self.lift().det())
+        if is_IntegerModRing(R):
+            from matrix_modn_dense import Matrix_modn_dense
+            if not (isinstance(self, Matrix_modn_dense) and R.characteristic().is_prime()):
+                return R(self.lift().det())
 
         # For small matrices, you can't beat the naive formula
         if n <=  3:

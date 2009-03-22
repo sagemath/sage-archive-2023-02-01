@@ -2258,6 +2258,15 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
 
+    If you have separate lists of `x` values and `y` values which you
+    want to plot against each other, use the ``zip`` command to make a
+    single list whose entries are pairs of `(x,y)` values, and feed
+    the result into ``list_plot``::
+
+        sage: x_coords = [cos(t)^3 for t in srange(0, 2*pi, 0.02)]
+        sage: y_coords = [sin(t)^3 for t in srange(0, 2*pi, 0.02)]
+        sage: list_plot(zip(x_coords, y_coords))
+
     TESTS:
     We check to see that the x/y min/max data are set correctly.
 

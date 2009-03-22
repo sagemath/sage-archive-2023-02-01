@@ -290,7 +290,7 @@ from __future__ import with_statement
 
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, BooleanPolynomialRing_constructor as BooleanPolynomialRing
 
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import Matrix, random_matrix
@@ -1748,7 +1748,7 @@ class SR_generic(MPolynomialSystemGenerator):
         if reverse_variables:
             names +=  self.varstrs("k", 0, r*c, e)
 
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        #from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
         if self._gf2 and self._polybori:
             return BooleanPolynomialRing(2*n*r*c*e + (n+1)*r*c*e + n*r*e, names, order=self._order)
@@ -2798,8 +2798,8 @@ class SR_gf2(SR_generic):
             # make sure it prints like in the book.
             names = ["w%d" % i for i in reversed(range(e))] + ["x%d"%i for i in reversed(range(e))]
             P = PolynomialRing(GF(2), e*2, names, order='lex')
-            x = Matrix(P, e, 1, P.gens()[e:])
-            w = Matrix(P, e, 1, P.gens()[:e])
+            x = P.gens()[e:]
+            w = P.gens()[:e]
         else:
             if isinstance(x, (tuple, list)):
                 P = x[0].parent()
@@ -2808,14 +2808,14 @@ class SR_gf2(SR_generic):
             else:
                 raise TypeError, "x not understood"
 
-            if isinstance(x, (tuple, list)):
-                x = Matrix(P, e, 1, x)
-            if isinstance(w, (tuple, list)):
-                w = Matrix(P, e, 1, w)
+            if is_Matrix(x):
+                x = x.column(0).list()
+            if is_Matrix(w):
+                w = w.column(0).list()
 
         if e == 4:
-            w3,w2,w1,w0 = w.column(0).list()
-            x3,x2,x1,x0 = x.column(0).list()
+            w3,w2,w1,w0 = w
+            x3,x2,x1,x0 = x
 
             l = [w3*x3 + w3*x0 + w2*x1 + w1*x2 + w0*x3,
                  w3*x3 + w3*x2 + w2*x3 + w2*x0 + w1*x1 + w0*x2,
@@ -2844,8 +2844,8 @@ class SR_gf2(SR_generic):
             return l
 
         else:
-            w7,w6,w5,w4,w3,w2,w1,w0 = w.column(0).list()
-            x7,x6,x5,x4,x3,x2,x1,x0 = x.column(0).list()
+            w7,w6,w5,w4,w3,w2,w1,w0 = w
+            x7,x6,x5,x4,x3,x2,x1,x0 = x
 
             l = [w7*x7 + w7*x5 + w7*x4 + w7*x0 + w6*x6 + w6*x5 + w6*x1 + w5*x7 + w5*x6 + w5*x2 + w4*x7 + w4*x3 + w3*x4 + w2*x5 + w1*x6 + w0*x7,
                  w7*x6 + w7*x4 + w7*x3 + w6*x7 + w6*x5 + w6*x4 + w6*x0 + w5*x6 + w5*x5 + w5*x1 + w4*x7 + w4*x6 + w4*x2 + w3*x7 + w3*x3 + w2*x4 + w1*x5 + w0*x6,

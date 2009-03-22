@@ -839,7 +839,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: {P:1} # indirect doctest
             {Boolean PolynomialRing in a, b, c, d: 1}
         """
-        return hash(str(self))
+        cdef long _hash = hash(self.variable_names()) ^ 42
+        _hash ^= hash(self.term_order())
+        return _hash
 
     def ideal(self, *gens, **kwds):
         """

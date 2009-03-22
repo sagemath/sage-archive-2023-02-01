@@ -87,6 +87,8 @@ if os.environ.has_key('SAGE_DEBIAN'):
                          "/usr/include/singular",
                          "/usr/include/singular/singular",
                          "/usr/include/symmetrica",
+                         "/usr/share/python-support/cython/Cython/Includes/"
+                         "/usr/share/pyshared/Cython/Includes/"
                          "/usr/include/zn_poly"]
     include_dirs = include_dirs + debian_include_dirs
 

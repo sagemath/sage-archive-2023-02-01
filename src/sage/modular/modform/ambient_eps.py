@@ -76,8 +76,7 @@ TESTS::
 
 import sage.rings.all as rings
 
-import sage.modular.congroup as congroup
-import sage.modular.dims as dims
+import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
 
@@ -123,7 +122,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             character = character.change_ring(base_ring)
         if base_ring.characteristic() != 0:
             raise ValueError, "the base ring must have characteristic 0."
-        group = congroup.Gamma1(character.modulus())
+        group = arithgroup.Gamma1(character.modulus())
         base_ring = character.base_ring()
         ambient.ModularFormsAmbient.__init__(self, group, weight, base_ring, character)
 
@@ -280,8 +279,8 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         try:
             return self.__the_dim_cuspidal
         except AttributeError:
-            self.__the_dim_cuspidal = dims.dimension_cusp_forms_eps(
-                self.character(), self.weight())
+            self.__the_dim_cuspidal = self.group().dimension_cusp_forms(
+                self.weight(), eps=self.character())
         return self.__the_dim_cuspidal
 
     def _dim_eisenstein(self):
@@ -301,7 +300,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         try:
             return self.__the_dim_eisenstein
         except AttributeError:
-            self.__the_dim_eisenstein = dims.dimension_eis_eps(self.character(), self.weight())
+            self.__the_dim_eisenstein = self.group().dimension_eis(self.weight(), eps=self.character())
         return self.__the_dim_eisenstein
 
     def _dim_new_cuspidal(self):
@@ -321,8 +320,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         try:
             return self.__the_dim_new_cuspidal
         except AttributeError:
-            self.__the_dim_new_cuspidal = dims.dimension_new_cusp_forms(
-                self.character(), self.weight())
+            self.__the_dim_new_cuspidal = self.group().dimension_new_cusp_forms(self.weight(), eps=self.character())
         return self.__the_dim_new_cuspidal
 
     def _dim_new_eisenstein(self):

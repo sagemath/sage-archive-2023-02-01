@@ -84,12 +84,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from sage.modules.module      import Module
-
-from finite_subgroup            import FiniteSubgroup, TorsionPoint
-from sage.rings.all             import divisors, gcd, ZZ, prime_range
-from sage.sets.primes           import Primes
-from sage.modular.congroup      import is_Gamma0
+from sage.modules.module            import Module
+from finite_subgroup                import FiniteSubgroup, TorsionPoint
+from sage.rings.all                 import divisors, gcd, ZZ, prime_range
+from sage.sets.primes               import Primes
+from sage.modular.arithgroup.all    import is_Gamma0
 
 class RationalTorsionSubgroup(FiniteSubgroup):
     """

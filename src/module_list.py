@@ -730,8 +730,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.modular.congroup_pyx',
-              sources = ['sage/modular/congroup_pyx.pyx']),
+    Extension('sage.modular.arithgroup.congroup_pyx',
+              sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
 
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],

@@ -19,8 +19,7 @@ from sage.databases.cremona import cremona_letter_code
 from sage.rings.all  import QQ, ZZ
 
 from sage.modular.modform.element import Newform
-from sage.modular.congroup import is_Gamma0, is_Gamma1, is_GammaH
-from sage.modular.congroup import Gamma0, Gamma1, GammaH
+from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1, is_GammaH, Gamma0, Gamma1, GammaH
 
 
 from abvar import ModularAbelianVariety_modsym_abstract

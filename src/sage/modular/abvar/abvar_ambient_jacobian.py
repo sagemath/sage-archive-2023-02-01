@@ -16,7 +16,6 @@ from abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbe
                                simple_factorization_of_modsym_space, modsym_lattices,
                                ModularAbelianVariety_modsym)
 from sage.rings.all    import QQ
-from sage.modular.dims import dimension_cusp_forms
 
 from sage.modular.modsym.modsym import ModularSymbols
 import morphism
@@ -323,7 +322,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         try:
             return self._dimension
         except AttributeError:
-            d = dimension_cusp_forms(self.group(), k=2)
+            d = self.group().genus()
             self._dimension = d
             return d
 

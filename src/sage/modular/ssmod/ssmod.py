@@ -67,7 +67,6 @@ import math
 import sage.modular.hecke.all as hecke
 import sage.rings.all as rings
 from sage.matrix.matrix_space import MatrixSpace
-from sage.modular.dims import dimension_modular_forms
 from sage.modular.congroup import Gamma0, Gamma1
 from sage.databases.db_class_polynomials import HilbertClassPolynomialDatabase
 from sage.databases.db_modular_polynomials \
@@ -432,7 +431,7 @@ def Phi_polys(L, x, j):
 def dimension_supersingular_module(prime, level=1):
     r"""
     This function returns the dimension of the Supersingular module, which is
-    equal to the dimension of the space of cusp forms of weight $2$
+    equal to the dimension of the space of modular forms of weight $2$
     and conductor equal to prime times level.
 
     INPUT:
@@ -465,7 +464,7 @@ def dimension_supersingular_module(prime, level=1):
         raise ValueError, "%s is not a prime"%prime
 
     if level == 1:
-        return dimension_modular_forms(Gamma0(prime), 2)
+        return Gamma0(prime).dimension_modular_forms(2)
 
     #list of genus(X_0(level)) equal to zero
     #elif (level in [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 16, 18, 25]):
@@ -660,7 +659,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             pass
         if self.__level == 1:
             G = Gamma0(self.__prime)
-            self.__dimension = dimension_modular_forms(G, 2)
+            self.__dimension = G.dimension_modular_forms(2)
         else:
             raise NotImplementedError
         return self.__dimension

@@ -34,7 +34,7 @@ import sage.rings.arith as arith
 import sage.matrix.matrix_space as matrix_space
 from   sage.matrix.constructor import matrix
 
-import sage.modular.dims as dims
+from sage.modular.arithgroup.all import Gamma0 # for Sturm bound
 
 def is_AmbientHeckeModule(x):
     return isinstance(x, AmbientHeckeModule)
@@ -357,7 +357,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         `n` not coprime to the level.
         """
         misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
-        return dims.sturm_bound(self.level(), self.weight()) + 2*dims.dimension_eis(self.level(), self.weight()) + 5
+        return Gamma0(self.level()).sturm_bound(self.weight()) + 2*self.group().dimension_eis(self.weight()) + 5
 
     def hecke_module_of_level(self, level):
         raise NotImplementedError

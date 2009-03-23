@@ -17,7 +17,7 @@ TESTS:
 
 import sage.rings.all as rings
 
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 
 import ambient
 import cuspidal_submodule
@@ -39,7 +39,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             sage: type(m)
             <class 'sage.modular.modform.ambient_g0.ModularFormsAmbient_g0_Q'>
         """
-        ambient.ModularFormsAmbient.__init__(self, congroup.Gamma0(level), weight, rings.QQ)
+        ambient.ModularFormsAmbient.__init__(self, arithgroup.Gamma0(level), weight, rings.QQ)
 
     ####################################################################
     # Computation of Special Submodules

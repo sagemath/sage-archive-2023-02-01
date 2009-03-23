@@ -26,13 +26,14 @@ import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.misc as misc
-import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
 import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
+
+from sage.modular.arithgroup.all import Gamma0 # for Sturm bound given a character
 
 import hecke_operator
 
@@ -1497,8 +1498,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         r"""
         Returns the Sturm bound for this space of modular symbols.
 
-        Type ``sturm
-        bound?`` for more details.
+        Type ``sturm_bound?`` for more details.
 
         EXAMPLES::
 
@@ -1510,12 +1510,19 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             1
             sage: ModularSymbols(1,36).sturm_bound()
             3
+            sage: ModularSymbols(DirichletGroup(31).0^2).sturm_bound()
+            6
+            sage: ModularSymbols(Gamma1(31)).sturm_bound()
+            160
         """
         # For Gamma_0(N), n = \frac{k}{12}[\SL_2(\Z):\Gamma_0(N)]
         try:
             return self.__sturm_bound
         except:
-            self.__sturm_bound = dims.sturm_bound(self.level(), self.weight())
+            if self.character() is not None:
+                self.__sturm_bound = Gamma0(self.level()).sturm_bound(self.weight())
+            else:
+                self.__sturm_bound = self.group().sturm_bound(self.weight())
         return self.__sturm_bound
 
 

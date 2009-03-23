@@ -375,7 +375,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             coerce = True
             copy = False
         elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries) \
-             or isinstance(entries, sage.modular.congroup_element.CongruenceSubgroupElement):
+             or isinstance(entries, sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement):
             return self(entries.matrix(), copy=False)
 
         return self.matrix(entries, copy=copy, coerce=coerce, rows=rows)

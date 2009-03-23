@@ -13,7 +13,6 @@ The Victor Miller Basis
 import math
 
 from sage.matrix.all import MatrixSpace, Matrix
-from sage.modular.dims import dimension_cusp_forms_gamma0
 from sage.rings.all import QQ, ZZ, Integer, binomial, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
 from sage.libs.all import ntl

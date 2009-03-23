@@ -11,7 +11,7 @@ from sage.rings.all        import Integer, QQ, infinity
 from sage.misc.mrange      import cartesian_product_iterator
 from sage.misc.misc        import prod, verbose
 
-from sage.modular.congroup import Gamma0
+from sage.modular.arithgroup.all import Gamma0
 from constructor           import ModularForms
 
 def span_of_series(v, prec=None, basis=False):

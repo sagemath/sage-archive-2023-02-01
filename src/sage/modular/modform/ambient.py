@@ -69,9 +69,8 @@ import weakref
 
 # SAGE packages
 import sage.rings.all as rings
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 import sage.misc.db as db
-import sage.modular.dims as dims
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.misc.misc as misc
@@ -108,11 +107,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m.is_ambient()
             True
         """
-        if not congroup.is_CongruenceSubgroup(group):
+        if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError, 'group (=%s) must be a congruence subgroup'%group
         weight = rings.Integer(weight)
 
-        if character is None and congroup.is_Gamma0(group):
+        if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularFormsSpace.__init__(self, group, weight, character, base_ring)
@@ -586,7 +585,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         try:
             return self.__the_dim_cuspidal
         except AttributeError:
-            self.__the_dim_cuspidal = dims.dimension_cusp_forms(self.group(), self.weight())
+            self.__the_dim_cuspidal = self.group().dimension_cusp_forms(self.weight())
         return self.__the_dim_cuspidal
 
     def _dim_eisenstein(self):
@@ -607,7 +606,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             if self.weight() == 1:
                 self.__the_dim_eisenstein = len(self.eisenstein_params())
             else:
-                self.__the_dim_eisenstein = dims.dimension_eis(self.group(), self.weight())
+                self.__the_dim_eisenstein = self.group().dimension_eis(self.weight())
         return self.__the_dim_eisenstein
 
     def _dim_new_cuspidal(self):
@@ -623,8 +622,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         try:
             return self.__the_dim_new_cuspidal
         except AttributeError:
-            self.__the_dim_new_cuspidal = dims.dimension_new_cusp_forms_group(
-                self.group(), self.weight())
+            self.__the_dim_new_cuspidal = self.group().dimension_new_cusp_forms(self.weight())
         return self.__the_dim_new_cuspidal
 
     def _dim_new_eisenstein(self):
@@ -643,7 +641,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         try:
             return self.__the_dim_new_eisenstein
         except AttributeError:
-            if congroup.is_Gamma0(self.group()) and self.weight() == 2:
+            if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
                 if rings.is_prime(self.level()):
                     d = 1
                 else:
@@ -678,7 +676,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         except AttributeError:
             eps = self.character()
             if eps == None:
-                if congroup.is_Gamma1(self.group()):
+                if arithgroup.is_Gamma1(self.group()):
                     eps = self.level()
                 else:
                     raise NotImplementedError

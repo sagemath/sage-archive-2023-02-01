@@ -23,7 +23,6 @@ import weakref
 
 import sage.rings.arith as arith
 import sage.rings.infinity
-import sage.modular.dims as dims
 import sage.misc.latex as latex
 import sage.categories.all
 import module

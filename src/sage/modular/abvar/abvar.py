@@ -36,10 +36,9 @@ from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgrou
 from sage.rings.all             import (ZZ, QQ, QQbar, is_Ring, LCM,
                                         divisors, Integer, prime_range)
 from sage.modules.all           import is_FreeModule
-from sage.modular.congroup      import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
+from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
-from sage.modular.dims          import dimension_cusp_forms, sturm_bound
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
@@ -1601,12 +1600,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: JH(37,[2,3]).sturm_bound()
             7
             sage: J1(37).sturm_bound()
-            252
+            228
         """
         try:
             return self.__sturm_bound
         except AttributeError:
-            B = max([sturm_bound(G, 2) for G in self.groups()])
+            B = max([G.sturm_bound(2) for G in self.groups()])
             self.__sturm_bound = B
             return B
 
@@ -1951,7 +1950,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         try:
             return self.__ambient_dimension
         except AttributeError:
-            d = sum([dimension_cusp_forms(G,2) for G in self.groups()], Integer(0))
+            d = sum([G.dimension_cusp_forms(2) for G in self.groups()], Integer(0))
             self.__ambient_dimension = d
             return d
 

@@ -12,11 +12,7 @@ from dirichlet import (DirichletGroup, is_DirichletGroup, is_DirichletCharacter,
                        kronecker_character, kronecker_character_upside_down,
                        trivial_character)
 
-from congroup import (Gamma0_constructor as Gamma0,
-                      Gamma1_constructor as Gamma1,
-                      GammaH_constructor as GammaH,
-                      SL2Z,
-                      is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH, is_SL2Z)
+from arithgroup.all import (Gamma0, Gamma1, GammaH, Gamma, SL2Z, ArithmeticSubgroup_Permutation)
 
 from cusps import Cusp, Cusps
 

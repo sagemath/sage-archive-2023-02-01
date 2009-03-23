@@ -655,32 +655,34 @@ cdef class P1List:
         if t: return i
         return -1
 
-    def index_and_scalar(self, int u, int v):
-        """
-        Returns the index of the class of `(u,v)` in the fixed list
-        of representatives of
-        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
-
-        INPUT:
-
-
-        -  ``u, v`` - integers, with GCD(u,v,N)=1.
-
-
-        OUTPUT:
-
-
-        -  ``i`` - the index of `u`, `v`, in
-           the `P^1` list.
-
-        -  ``s`` - scalar that transforms normalized form to
-           u,v
-        """
-        cdef int uu, vv, ss
-        self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
-        t, i = search(self.__list, (uu,vv))
-        if t: return i, ss
-        return -1, ss
+# Removed by David Loeffler 2009-03-19 as it duplicates a cdef method
+#
+#    def index_and_scalar(self, int u, int v):
+#        """
+#        Returns the index of the class of `(u,v)` in the fixed list
+#        of representatives of
+#        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
+#
+#        INPUT:
+#
+#
+#        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+#
+#
+#        OUTPUT:
+#
+#
+#        -  ``i`` - the index of `u`, `v`, in
+#           the `P^1` list.
+#
+#        -  ``s`` - scalar that transforms normalized form to
+#           u,v
+#        """
+#        cdef int uu, vv, ss
+#        self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
+#        t, i = search(self.__list, (uu,vv))
+#        if t: return i, ss
+#        return -1, ss
 
     def list(self):
         return self.__list
@@ -740,6 +742,7 @@ def lift_to_sl2z_int(int c, int d, int N):
 
         ::
 
+            sage: from sage.modular.modsym.p1list import lift_to_sl2z_int
             sage: lift_to_sl2z_int(2,6,11)
             [1, 8, 2, 17]
             sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
@@ -754,7 +757,7 @@ def lift_to_sl2z_int(int c, int d, int N):
         cdef int z1, z2, g, m
 
         if c == 0 and d == 0:
-            raise AttributeError, "Element not in P1."
+            raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
         g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
         # We're lucky: z1*c + z2*d = 1.
@@ -799,6 +802,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
 
         ::
 
+            sage: from sage.modular.modsym.p1list import lift_to_sl2z_llong
             sage: lift_to_sl2z_llong(2,6,11)
             [1L, 8L, 2L, 17L]
             sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
@@ -813,7 +817,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         cdef llong z1, z2, g, m
 
         if c == 0 and d == 0:
-            raise AttributeError, "Element not in P1."
+            raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
         g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
         # We're lucky: z1*c + z2*d = 1.

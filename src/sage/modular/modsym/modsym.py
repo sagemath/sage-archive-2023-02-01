@@ -81,7 +81,7 @@ This test catches a tricky corner case for spaces with character::
 import weakref
 
 import ambient
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
 import sage.rings.all as rings
@@ -115,7 +115,7 @@ def canonical_parameters(group, weight, sign, base_ring):
         raise ValueError, "the weight must be at least 2"
 
     if isinstance(group, (int, rings.Integer)):
-        group = congroup.Gamma0(group)
+        group = arithgroup.Gamma0(group)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
         try:
@@ -293,7 +293,7 @@ def ModularSymbols(group  = 1,
     (group, weight, sign, base_ring) = key
 
     M = None
-    if congroup.is_Gamma0(group):
+    if arithgroup.is_Gamma0(group):
             if weight == 2:
                 M = ambient.ModularSymbolsAmbient_wt2_g0(
                     group.level(),sign, base_ring)
@@ -301,11 +301,11 @@ def ModularSymbols(group  = 1,
                 M = ambient.ModularSymbolsAmbient_wtk_g0(
                     group.level(), weight, sign, base_ring)
 
-    elif congroup.is_Gamma1(group):
+    elif arithgroup.is_Gamma1(group):
 
         M = ambient.ModularSymbolsAmbient_wtk_g1(group.level(), weight, sign, base_ring)
 
-    elif congroup.is_GammaH(group):
+    elif arithgroup.is_GammaH(group):
 
         M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group, weight, sign, base_ring)
 

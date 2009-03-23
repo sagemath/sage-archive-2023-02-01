@@ -75,6 +75,7 @@ Contents:
    schemes
    plane_curves
    coding
+   arithgroup
    hecke
    modsym
    modfrm

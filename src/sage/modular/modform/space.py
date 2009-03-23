@@ -56,7 +56,7 @@ An example in characteristic `7`::
 from sage.structure.all import Sequence
 
 import sage.modular.hecke.all as hecke
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 
 import sage.rings.all as rings
@@ -65,8 +65,6 @@ import defaults
 import element
 import hecke_operator_on_qexp
 import submodule
-
-import sage.modular.dims as dims
 
 import sage.modular.modform.constructor
 
@@ -125,7 +123,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if WARN:
             print "Modular forms -- under development -- do not trust yet."
             WARN=False
-        if not congroup.is_CongruenceSubgroup(group):
+        if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError, "group (=%s) must be a congruence subgroup"%group
         weight = int(weight)
         #if not isinstance(weight, int):
@@ -288,16 +286,15 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: CuspForms(Gamma1(113),2).group()
             Congruence Subgroup Gamma1(113)
 
-        Note that `\Gamma_1(1)` and
-        `\mathrm{SL}_2(\mathbb{Z})` are replaced by
-        `\Gamma_0(1)`.
+        Note that `\Gamma_1(1)` and `\Gamma_0(1)` are replaced by
+        `\mathrm{SL}_2(\mathbb{Z})`.
 
         ::
 
             sage: CuspForms(Gamma1(1),12).group()
-            Congruence Subgroup Gamma0(1)
+            Modular Group SL(2,Z)
             sage: CuspForms(SL2Z,12).group()
-            Congruence Subgroup Gamma0(1)
+            Modular Group SL(2,Z)
         """
         return self.__group
 
@@ -1280,7 +1277,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         levels.reverse()
         B = []; i = 0
         for M in levels:
-            n = dims.dimension_new_cusp_forms(eps.restrict(M), k)
+            if arithgroup.is_Gamma0(self.group()):
+                n = self.group().restrict(M).dimension_new_cusp_forms(k)
+            else:
+                n = self.group().restrict(M).dimension_new_cusp_forms(k, eps = eps.restrict(M))
             for t in rings.divisors(N/M):
                 basis = [V.gen(i+j) for j in range(n)]
                 if len(basis) > 0:
@@ -1557,7 +1557,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise NotImplementedError
         if self.__sturm_bound is None:
             # the +1 below is because O(q^prec) has precision prec.
-            self.__sturm_bound = dims.sturm_bound(self.group(), self.weight())+1
+            self.__sturm_bound = self.group().sturm_bound(self.weight())+1
         return self.__sturm_bound
 
     def character(self):

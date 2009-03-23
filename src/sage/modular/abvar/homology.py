@@ -215,7 +215,7 @@ class Homology_abvar(Homology):
             sage: J0(48).homology().hecke_bound()
             16
             sage: J1(15).homology().hecke_bound()
-            4
+            32
         """
         return self.__abvar.modular_symbols(sign=1).hecke_bound()
 

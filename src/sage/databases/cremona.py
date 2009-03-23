@@ -771,15 +771,15 @@ class LargeCremonaDatabase(sage.databases.db.Database):
 
         -  ``int`` - smallest cond
 
-        -  ``int`` - largest
+        -  ``int`` - largest conductor plus one
 
 
         EXAMPLES::
 
             sage: CremonaDatabase().conductor_range()     # random -- depends on database installed
-            (1, 9999)
+            (1, 10000)
         """
-        return 1, self.largest_conductor()
+        return 1, self.largest_conductor()+1
 
     def number_of_curves(self,  N=0, i=0):
         """

@@ -1,5 +1,6 @@
 from sage.libs.ntl.ntl_GF2_decl cimport GF2_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
+from sage.libs.ntl.ntl_vec_GF2_decl cimport vec_GF2_c
 
 cdef extern from "ntl_wrap.h":
     ctypedef struct GF2X_c "struct GF2X":
@@ -54,6 +55,8 @@ cdef extern from "ntl_wrap.h":
     long GF2X_weight "weight"(GF2X_c a)
     long GF2X_NumBits "NumBits" (GF2X_c a)
     long GF2X_NumBytes "NumBytes"(GF2X_c a)
+
+    void GF2X_MinPolySeq "MinPolySeq" (GF2X_c h, vec_GF2_c a, long m)
 
     #### GF2XFactoring
     long GF2X_IterIrredTest "IterIrredTest" (GF2X_c f)

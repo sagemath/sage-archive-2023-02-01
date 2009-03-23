@@ -31,13 +31,56 @@ from classical_cipher import (
 
 class HillCryptosystem(SymmetricKeyCryptosystem):
     """
-    Hill cryptosystem class
+    Create a Hill cryptosystem defined by the `m` x `m` matrix space
+    over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
+    the string monoid ``S``.
+
+    INPUT:
+
+    - ``S`` - a string monoid over some alphabet
+
+    - ``m`` - integer `> 0`; the block length of matrices that specify
+      block permutations
+
+    OUTPUT:
+
+    - A Hill cryptosystem of block length ``m`` over the alphabet ``S``.
+
+    EXAMPLES::
+
+        sage: S = AlphabeticStrings()
+        sage: E = HillCryptosystem(S,3)
+        sage: E
+        Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+        sage: R = IntegerModRing(26)
+        sage: M = MatrixSpace(R,3,3)
+        sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
+        sage: A
+        [1 0 1]
+        [0 1 1]
+        [2 2 3]
+        sage: e = E(A)
+        sage: e
+        [1 0 1]
+        [0 1 1]
+        [2 2 3]
+        sage: e(S("LAMAISONBLANCHE"))
+        JYVKSKQPELAYKPV
+
+    TESTS::
+
+        sage: S = AlphabeticStrings()
+        sage: E = HillCryptosystem(S,3)
+        sage: E == loads(dumps(E))
+        True
     """
 
     def __init__(self, S, m):
         """
-        Create a Hill cryptosystem defined by the m x m matrix space
-        over `\mathbb{Z} / N \mathbb{Z}`, where `N` is the alphabet size of
+        See ``HillCryptosystem`` for full documentation.
+
+        Create a Hill cryptosystem defined by the `m` x `m` matrix space
+        over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
         the string monoid ``S``.
 
         INPUT:
@@ -57,27 +100,6 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             sage: E = HillCryptosystem(S,3)
             sage: E
             Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
-            sage: R = IntegerModRing(26)
-            sage: M = MatrixSpace(R,3,3)
-            sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
-            sage: A
-            [1 0 1]
-            [0 1 1]
-            [2 2 3]
-            sage: e = E(A)
-            sage: e
-            [1 0 1]
-            [0 1 1]
-            [2 2 3]
-            sage: e(S("LAMAISONBLANCHE"))
-            JYVKSKQPELAYKPV
-
-        TESTS::
-
-            sage: S = AlphabeticStrings()
-            sage: E = HillCryptosystem(S,3)
-            sage: E == loads(dumps(E))
-            True
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -130,7 +152,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         """
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: H = HillCryptosystem(A, 3)
@@ -148,7 +170,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         permutation. Encryption and decryption keys of a Hill cipher are
         square matrices, i.e. the row and column dimensions of an encryption
         or decryption key are the same. This row/column dimension is referred
-        to as the block length.
+        to as the *block length*.
 
         OUTPUT:
 
@@ -167,18 +189,18 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
     def random_key(self):
         """
         A random key within the key space of this Hill cipher. That is,
-        generate a random m x m matrix to be used as a block
+        generate a random `m` x `m` matrix to be used as a block
         permutation, where `m` is the block length of this Hill cipher. If
-        `n` is the size of the cryptosystem alphabet, then there is a total
-        of `n^{m^2}` possible keys. However the number of valid keys,
-        i.e. invertible m x m square matrices, is smaller than
+        `n` is the size of the cryptosystem alphabet, then there are
+        `n^{m^2}` possible keys. However the number of valid keys,
+        i.e. invertible `m` x `m` square matrices, is smaller than
         `n^{m^2}`.
 
         OUTPUT:
 
         - A random key within the key space of this Hill cipher.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: n = 3
@@ -326,19 +348,40 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
 
 class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
     """
-    Substitution cryptosystem class
+    Create a substitution cryptosystem.
+
+    INPUT:
+
+    - ``S`` - a string monoid over some alphabet
+
+    OUTPUT:
+
+    - A substitution cryptosystem over the alphabet ``S``.
+
+    EXAMPLES::
+
+        sage: M = AlphabeticStrings()
+        sage: E = SubstitutionCryptosystem(M)
+        sage: E
+        Substitution cryptosystem on Free alphabetic string monoid on A-Z
+        sage: K = M([ 25-i for i in range(26) ])
+        sage: K
+        ZYXWVUTSRQPONMLKJIHGFEDCBA
+        sage: e = E(K)
+        sage: m = M("THECATINTHEHAT")
+        sage: e(m)
+        GSVXZGRMGSVSZG
+
+    TESTS::
+
+        sage: M = AlphabeticStrings()
+        sage: E = SubstitutionCryptosystem(M)
+        sage: E == loads(dumps(E))
+        True
     """
     def __init__(self, S):
         """
-        Create a substitution cryptosystem.
-
-        INPUT:
-
-        - ``S`` - a string monoid over some alphabet
-
-        OUTPUT:
-
-        - A substitution cryptosystem over the alphabet ``S``.
+        See ``SubstitutionCryptosystem`` for full documentation.
 
         EXAMPLES::
 
@@ -346,20 +389,6 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             sage: E = SubstitutionCryptosystem(M)
             sage: E
             Substitution cryptosystem on Free alphabetic string monoid on A-Z
-            sage: K = M([ 25-i for i in range(26) ])
-            sage: K
-            ZYXWVUTSRQPONMLKJIHGFEDCBA
-            sage: e = E(K)
-            sage: m = M("THECATINTHEHAT")
-            sage: e(m)
-            GSVXZGRMGSVSZG
-
-        TESTS::
-
-            sage: M = AlphabeticStrings()
-            sage: E = SubstitutionCryptosystem(M)
-            sage: E == loads(dumps(E))
-            True
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -397,7 +426,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
         """
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: S = SubstitutionCryptosystem(A)
@@ -412,14 +441,14 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
         """
         Generate a random key within the key space of this substitution
         cipher. The generated key is a permutation of the cryptosystem
-        alphabet. Let `n` be the length of the alphabet. Then there is a
-        total of `n!` possible keys in the key space.
+        alphabet. Let `n` be the length of the alphabet. Then there are
+        `n!` possible keys in the key space.
 
         OUTPUT:
 
         - A random key within the key space of this cryptosystem.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: S = SubstitutionCryptosystem(A)
@@ -552,22 +581,42 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
 
 class TranspositionCryptosystem(SymmetricKeyCryptosystem):
     """
-    Transposition cryptosystem class
+    Create a transposition cryptosystem of block length ``n``.
+
+    INPUT:
+
+    - ``S`` - a string monoid over some alphabet
+
+    - ``n`` - integer `> 0`; a block length of a block permutation
+
+    OUTPUT:
+
+    - A transposition cryptosystem of block length ``n`` over the
+      alphabet ``S``.
+
+    EXAMPLES::
+
+        sage: S = AlphabeticStrings()
+        sage: E = TranspositionCryptosystem(S,14)
+        sage: E
+        Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+        sage: K = [ 14-i for i in range(14) ]
+        sage: K
+        [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        sage: e = E(K)
+        sage: e(S("THECATINTHEHAT"))
+        TAHEHTNITACEHT
+
+    TESTS::
+
+        sage: S = AlphabeticStrings()
+        sage: E = TranspositionCryptosystem(S,14)
+        sage: E == loads(dumps(E))
+        True
     """
     def __init__(self, S, n):
         """
-        Create a transposition cryptosystem of block length ``n``.
-
-        INPUT:
-
-        - ``S`` - a string monoid over some alphabet
-
-        - ``n`` - integer `> 0`; a block length of a block permutation
-
-        OUTPUT:
-
-        - A transposition cryptosystem of block length ``n`` over the
-        alphabet ``S``.
+        See ``TranspositionCryptosystem`` for full documentation.
 
         EXAMPLES::
 
@@ -575,19 +624,6 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             sage: E = TranspositionCryptosystem(S,14)
             sage: E
             Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
-            sage: K = [ 14-i for i in range(14) ]
-            sage: K
-            [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-            sage: e = E(K)
-            sage: e(S("THECATINTHEHAT"))
-            TAHEHTNITACEHT
-
-        EXAMPLES::
-
-            sage: S = AlphabeticStrings()
-            sage: E = TranspositionCryptosystem(S,14)
-            sage: E == loads(dumps(E))
-            True
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -630,7 +666,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         """
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: T = TranspositionCryptosystem(A, 14)
@@ -646,13 +682,13 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         """
         Generate a random key within the key space of this transposition
         cryptosystem. Let `n > 0` be the block length of this cryptosystem.
-        Then there is a total of `n!` possible keys.
+        Then there are `n!` possible keys.
 
         OUTPUT:
 
         - A random key within the key space of this cryptosystem.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = AlphabeticStrings()
             sage: E = TranspositionCryptosystem(S, 14)
@@ -684,7 +720,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
 
         - The inverse key corresponding to ``K``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = AlphabeticStrings()
             sage: E = TranspositionCryptosystem(S, 14)
@@ -743,7 +779,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
         - ``K`` - a key belonging to the key space of this transposition
           cipher
 
-       - ``C`` - a string (possibly empty) over the string monoid of this
+        - ``C`` - a string (possibly empty) over the string monoid of this
           cryptosystem.
 
         OUTPUT:
@@ -790,23 +826,45 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
 
 class VigenereCryptosystem(SymmetricKeyCryptosystem):
     """
-    Vigenere cryptosystem class
+    Create a Vigenere cryptosystem of block length ``n``.
+
+    INPUT:
+
+    - ``S``-- a string monoid over some alphabet
+
+    - ``n`` - integer `> 0`; block length of an encryption/decryption key
+
+    OUTPUT:
+
+    - A Vigenere cryptosystem of block length ``n`` over the alphabet
+      ``S``.
+
+    EXAMPLES::
+
+        sage: S = AlphabeticStrings()
+        sage: E = VigenereCryptosystem(S,14)
+        sage: E
+        Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
+        sage: K = S('ABCDEFGHIJKLMN')
+        sage: K
+        ABCDEFGHIJKLMN
+        sage: e = E(K)
+        sage: e
+        ABCDEFGHIJKLMN
+        sage: e(S("THECATINTHEHAT"))
+        TIGFEYOUBQOSMG
+
+    TESTS::
+
+        sage: S = AlphabeticStrings()
+        sage: E = VigenereCryptosystem(S,14)
+        sage: E == loads(dumps(E))
+        True
     """
 
     def __init__(self, S, n):
         """
-        Create a Vigenere cryptosystem of block length ``n``.
-
-        INPUT:
-
-        - ``S``-- a string monoid over some alphabet
-
-        - ``n`` - integer `> 0`; block length of an encryption/decryption key
-
-        OUTPUT:
-
-        - A Vigenere cryptosystem of block length ``n`` over the alphabet
-          ``S``.
+        See ``VigenereCryptosystem`` for full documentation.
 
         EXAMPLES::
 
@@ -814,21 +872,6 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             sage: E = VigenereCryptosystem(S,14)
             sage: E
             Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
-            sage: K = S('ABCDEFGHIJKLMN')
-            sage: K
-            ABCDEFGHIJKLMN
-            sage: e = E(K)
-            sage: e
-            ABCDEFGHIJKLMN
-            sage: e(S("THECATINTHEHAT"))
-            TIGFEYOUBQOSMG
-
-        TESTS::
-
-            sage: S = AlphabeticStrings()
-            sage: E = VigenereCryptosystem(S,14)
-            sage: E == loads(dumps(E))
-            True
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -870,7 +913,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         """
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: V = VigenereCryptosystem(A, 14)
@@ -887,13 +930,13 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         Generate a random key within the key space of this Vigenere
         cryptosystem. Let `n > 0` be the length of the cryptosystem alphabet
         and let `m > 0` be the block length of this cryptosystem. Then there
-        is a total of `n^m` possible keys.
+        are `n^m` possible keys.
 
         OUTPUT:
 
         - A random key within the key space of this cryptosystem.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = AlphabeticStrings()
             sage: V = VigenereCryptosystem(A, 14)

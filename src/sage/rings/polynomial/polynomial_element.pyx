@@ -2564,10 +2564,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
         q = f//g
         return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
 
-    def is_primitive(self):
+    def is_primitive(self, n=None, n_prime_divs=None):
         """
-        Identifies whether a polynomial is primitive. A polynomial can only
-        be primitive if it is irreducible.
+	Returns True if this is a primitive polynomial over a finite field.
+
+        A polynomial of degree `m` over a finite field `\GF{q}` is
+        primitive if it is irreducible and its root in `\GF{q^m}`
+        generates the multiplicative group `\GF{q^m}^*`.
+
+        INPUTS:
+
+          - ``n`` (default: ``None``) - if provided, should equal
+            `q-1` where ``self.parent()`` is the field with `q`
+            elements;  otherwise it will be computed.
+
+          - ``n_prime_divs`` (default: ``None``) - if provided, should
+            be a list of the prime divisors of ``n``; otherwise it
+            will be computed.
+
+        .. note::
+
+          Computation of the prime divisors of ``n`` can dominate the running
+          time of this method, so performing this computation externally
+          (e.g. ``pdivs=n.prime_divisors()``) is a good idea for repeated calls
+          to is_primitive for polynomials of the same degree.
+
+          Results may be incorrect if the wrong ``n`` and/or factorization are
+          provided.
 
         EXAMPLES::
 
@@ -2592,16 +2615,63 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2-x+2
             sage: f.is_primitive()
             True
+
+        TESTS::
+
+            sage: R.<x> = GF(2)['x']
+            sage: f = x^4+x^3+x^2+x+1
+            sage: f.is_primitive(15)
+            False
+            sage: f.is_primitive(15, [3,5])
+            False
+            sage: f.is_primitive(n_prime_divs=[3,5])
+            False
+            sage: f = x^3+x+1
+            sage: f.is_primitive(7, [7])
+            True
+            sage: R.<x> = GF(3)[]
+            sage: f = x^3-x+1
+            sage: f.is_primitive(26, [2,13])
+            True
+            sage: f = x^2+1
+            sage: f.is_primitive(8, [2])
+            False
+            sage: R.<x> = GF(5)[]
+            sage: f = x^2+x+1
+            sage: f.is_primitive(24, [2,3])
+            False
+            sage: f = x^2-x+2
+            sage: f.is_primitive(24, [2,3])
+            True
+
+	    sage: x=polygen(QQ); f=x^2+1
+	    sage: f.is_primitive()
+	    Traceback (most recent call last):
+	    ...
+	    NotImplementedError: Currently, is_primitive() only applies to polynomials over finite fields.
+	    sage: x=polygen(Integers(100)); f=x^2+1
+	    sage: f.is_primitive()
+	    Traceback (most recent call last):
+	    ...
+	    NotImplementedError: Currently, is_primitive() only applies to polynomials over finite fields.
+	    sage: x=polygen(Integers(103)); f=x^2+1
+	    sage: f.is_primitive()
+	    False
         """
+        # sanity check, current implementation only applies to polynomials over finite fields
+        R = self.base_ring()
+        if not (R.is_field() and R.is_finite()):
+            raise NotImplementedError, "Currently, is_primitive() only applies to polynomials over finite fields."
+
+        # irreducibility check is generally fast (necessary but not sufficient)
         if not self.is_irreducible():
             return False
-        p = self.parent().characteristic()
-        n = p ** self.degree() - 1
         y = self.parent().quo(self).gen()
-        for d in n.prime_divisors():
-            if ( y ** (n//d) ) == 1:
-                return False
-        return True
+        if n is None:
+            q = self.base_ring().order()
+            n = q ** self.degree() - 1
+        from sage.groups.generic import order_from_multiple
+        return n == order_from_multiple(y, n, n_prime_divs, operation="*")
 
     def is_constant(self):
         """

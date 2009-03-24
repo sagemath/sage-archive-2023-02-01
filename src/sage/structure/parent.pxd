@@ -18,6 +18,12 @@ cdef class Parent(category_object.CategoryObject):
     cdef public _initial_coerce_list
     cdef public _initial_action_list
     cdef public _initial_convert_list
+    cdef readonly bint _coercions_used
+
+    cpdef register_coercion(self, mor)
+    cpdef register_action(self, action)
+    cpdef register_conversion(self, mor)
+    cpdef register_embedding(self, embedding)
 
     cpdef bint _richcmp_helper(left, right, int op) except -2
     cpdef bint is_exact(self) except -2

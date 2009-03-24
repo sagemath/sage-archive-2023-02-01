@@ -15,7 +15,58 @@ This came up in some subtle bug once.
 
     sage: gp(2) + gap(3)
     5
+
+
+A simple example of registering coercions::
+
+    sage: class A_class(Parent):
+    ...     def __init__(self, name):
+    ...         Parent.__init__(self, name=name)
+    ...         self._populate_coercion_lists_()
+    ...         self.rename(name)
+    ...     #
+    ...     def category(self):
+    ...         return Sets()
+    ...     #
+    ...     def _element_constructor_(self, i):
+    ...         assert(isinstance(i, (int, Integer)))
+    ...         return ElementWrapper(i, parent = self)
+    ...
+    ...
+    sage: A = A_class("A")
+    sage: B = A_class("B")
+    sage: C = A_class("C")
+
+    sage: def f(a):
+    ...     return B(a.value+1)
+    ...
+    sage: class MyMorphism(Morphism):
+    ...     def __init__(self, domain, codomain):
+    ...         Morphism.__init__(self, Hom(domain, codomain))
+    ...     #
+    ...     def _call_(self, x):
+    ...         return self.codomain()(x.value)
+    ...
+    sage: f = MyMorphism(A,B)
+    sage: f
+        Generic morphism:
+          From: A
+          To:   B
+    sage: B.register_coercion(f)
+    sage: C.register_coercion(MyMorphism(B,C))
+    sage: A(A(1)) == A(1)
+    True
+    sage: B(A(1)) == B(1)
+    True
+    sage: C(A(1)) == C(1)
+    True
+
+    sage: A(B(1))
+    Traceback (most recent call last):
+    ...
+    AssertionError
 """
+
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
@@ -759,47 +810,234 @@ cdef class Parent(category_object.CategoryObject):
             self._element_init_pass_parent = not init_no_parent
 
         for mor in coerce_list:
-            if PY_TYPE_CHECK(mor, map.Map):
-                if mor.codomain() is not self:
-                    raise ValueError, "Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
-                self._coerce_from_list.append(mor)
-                self._coerce_from_hash[mor.domain()] = mor
-            elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
-                P = mor
-                mor = self._generic_convert_map(mor)
-                self._coerce_from_list.append(mor)
-                self._coerce_from_hash[P] = mor
-            else:
-                raise TypeError, "entries in the coerce_list must be parents or maps (got %s)" % type(mor)
-
-        from sage.categories.action import Action
+            self.register_coercion(mor)
         for action in action_list:
-            if isinstance(action, Action):
-                if action.actor() is self:
-                    self._action_list.append(action)
-                    self._action_hash[action.domain(), action.operation(), action.is_left()] = action
-                elif action.domain() is self:
-                    self._action_list.append(action)
-                    self._action_hash[action.actor(), action.operation(), not action.is_left()] = action
-                else:
-                    raise ValueError, "Action must involve self"
-            else:
-                raise TypeError, "entries in the action_list must be actions"
-
+            self.register_action(action)
         for mor in convert_list:
-            if isinstance(mor, map.Map):
-                if mor.codomain() is not self:
-                    raise ValueError, "Map's codomain must be self"
-                self._convert_from_list.append(mor)
-                self._convert_from_hash[mor.domain()] = mor
-            elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
-                t = mor
-                mor = self._generic_convert_map(mor)
-                self._convert_from_list.append(mor)
-                self._convert_from_hash[t] = mor
-                self._convert_from_hash[mor.domain()] = mor
+            self.register_conversion(mor)
+        if embedding is not None:
+            self.register_embedding(embedding)
+
+
+    def _unset_coercions_used(self):
+        r"""
+        Pretend that this parent has never been interrogated by the coercion
+        model, so that it is possible to add coercions, conversions, and
+        actions.  Does not remove any existing embedding.
+
+        WARNING::
+
+            For internal use only!
+        """
+        self._coercions_used = False
+        import sage.structure.element
+        sage.structure.element.get_coercion_model().reset_cache()
+
+    def _unset_embedding(self):
+        r"""
+        Pretend that this parent has never been interrogated by the
+        coercion model, and remove any existing embedding.
+
+        WARNING::
+
+            This does *not* make it safe to add an entirely new embedding!  It
+            is possible that a `Parent` has cached information about the
+            existing embedding; that cached information *is not* removed by
+            this call.
+
+            For internal use only!
+        """
+        self._embedding = None
+        self._unset_coercions_used()
+
+    cpdef register_coercion(self, mor):
+        r"""
+        Update the coercion model to use `mor : P \to \text{self}` to coerce
+        from a parent ``P`` into ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = ZZ['a']
+            sage: L.<b> = ZZ['b']
+            sage: L_into_K = L.hom([-a]) # non-trivial automorphism
+            sage: K._unset_coercions_used()
+            sage: K.register_coercion(L_into_K)
+
+            sage: K(0) + b
+            -a
+            sage: a + b
+            0
+            sage: K(b) # check that convert calls coerce first; normally this is just a
+            -a
+
+            sage: L(0) + a in K # this goes through the coercion mechanism of K
+            True
+            sage: L(a) in L # this still goes through the convert mechanism of L
+            True
+        """
+        assert not self._coercions_used, "coercions must all be registered up before use"
+        if PY_TYPE_CHECK(mor, map.Map):
+            if mor.codomain() is not self:
+                raise ValueError, "Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
+            self._coerce_from_list.append(mor)
+            self._coerce_from_hash[mor.domain()] = mor
+        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+            P = mor
+            mor = self._generic_convert_map(mor)
+            self._coerce_from_list.append(mor)
+            self._coerce_from_hash[P] = mor
+        else:
+            raise TypeError, "coercions must be parents or maps (got %s)" % type(mor)
+
+    cpdef register_action(self, action):
+        r"""
+        Update the coercion model to use ``action`` to act on self.
+
+        ``action`` should be of type ``sage.categories.action.Action``.
+
+        EXAMPLES::
+
+            sage: import sage.categories.action
+            sage: import operator
+
+            sage: class SymmetricGroupAction(sage.categories.action.Action):
+            ...       "Act on a multivariate polynomial ring by permuting the generators."
+            ...       def __init__(self, G, M, is_left=True):
+            ...           sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
+            ...
+            ...       def _call_(self, g, a):
+            ...           if not self.is_left():
+            ...               g, a = a, g
+            ...           D = {}
+            ...           for k, v in a.dict().items():
+            ...               nk = [0]*len(k)
+            ...               for i in range(len(k)):
+            ...                   nk[g(i+1)-1] = k[i]
+            ...               D[tuple(nk)] = v
+            ...           return a.parent()(D)
+
+            sage: R.<x, y, z> = QQ['x, y, z']
+            sage: G = SymmetricGroup(3)
+            sage: act = SymmetricGroupAction(G, R)
+            sage: t = x + 2*y + 3*z
+
+            sage: act(G((1, 2)), t)
+            2*x + y + 3*z
+            sage: act(G((2, 3)), t)
+            x + 3*y + 2*z
+            sage: act(G((1, 2, 3)), t)
+            3*x + y + 2*z
+
+            sage: R._unset_coercions_used()
+            sage: R.register_action(act)
+            sage: G((1, 2)) * t
+            2*x + y + 3*z
+
+            This should fail, since we haven't defined a right action::
+
+            sage: t * G((1, 2, 3))
+            Traceback (most recent call last):
+            ...
+            AttributeError: ...
+
+            Now let's make it work::
+
+            sage: R._unset_coercions_used()
+            sage: R.register_action(SymmetricGroupAction(G, R, is_left=False))
+
+            sage: t * G((1, 2, 3))
+            3*x + y + 2*z
+        """
+        assert not self._coercions_used, "coercions must all be registered up before use"
+        from sage.categories.action import Action
+        if isinstance(action, Action):
+            if action.actor() is self:
+                self._action_list.append(action)
+                self._action_hash[action.domain(), action.operation(), action.is_left()] = action
+            elif action.domain() is self:
+                self._action_list.append(action)
+                self._action_hash[action.actor(), action.operation(), not action.is_left()] = action
             else:
-                raise TypeError, "entries in the convert_list must be parents or maps"
+                raise ValueError, "Action must involve self"
+        else:
+            raise TypeError, "actions must be actions"
+
+    cpdef register_conversion(self, mor):
+        r"""
+        Update the coercion model to use `\text{mor} : P \to \text{self}` to convert
+        from ``P`` into ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = ZZ['a']
+            sage: M.<c> = ZZ['c']
+            sage: M_into_K = M.hom([a]) # trivial automorphism
+            sage: K._unset_coercions_used()
+            sage: K.register_conversion(M_into_K)
+
+            sage: K(c)
+            a
+            sage: K(0) + c
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
+        """
+        assert not self._coercions_used, "coercions must all be registered up before use"
+        if isinstance(mor, map.Map):
+            if mor.codomain() is not self:
+                raise ValueError, "Map's codomain must be self"
+            self._convert_from_list.append(mor)
+            self._convert_from_hash[mor.domain()] = mor
+        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+            t = mor
+            mor = self._generic_convert_map(mor)
+            self._convert_from_list.append(mor)
+            self._convert_from_hash[t] = mor
+            self._convert_from_hash[mor.domain()] = mor
+        else:
+            raise TypeError, "conversions must be parents or maps"
+
+    cpdef register_embedding(self, embedding):
+        r"""
+        Update the coercion model to use `\text{embedding} : \text{self} \to
+        P` to embed ``self`` into the parent ``P``.
+
+        There can only be one embedding registered; it can only be registered
+        once; and it must be registered before using this parent in the
+        coercion model.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0
+            sage: t = abs(ZZ.random_element(10^6))
+            sage: K = NumberField(x^2 + 2*3*7*11, "a"+str(t))
+            sage: a = K.gen()
+            sage: K_into_MS = K.hom([a.matrix()])
+            sage: K._unset_coercions_used()
+            sage: K.register_embedding(K_into_MS)
+
+            sage: L = NumberField(x^2 + 2*3*7*11*19*31, "b"+str(abs(ZZ.random_element(10^6))))
+            sage: b = L.gen()
+            sage: L_into_MS = L.hom([b.matrix()])
+            sage: L._unset_coercions_used()
+            sage: L.register_embedding(L_into_MS)
+
+            sage: K.coerce_embedding()(a)
+            [   0    1]
+            [-462    0]
+            sage: L.coerce_embedding()(b)
+            [      0       1]
+            [-272118       0]
+
+            sage: a.matrix() * b
+            [-272118       0]
+            [      0    -462]
+            sage: a * b.matrix()
+            [-272118       0]
+            [      0    -462]
+        """
+        assert not self._coercions_used, "coercions must all be registered up before use"
+        assert self._embedding is None, "only one embedding allowed"
 
         if isinstance(embedding, map.Map):
             if embedding.domain() is not self:
@@ -969,6 +1207,7 @@ cdef class Parent(category_object.CategoryObject):
               From: Integer Ring
               To:   Rational Field
         """
+        self._coercions_used = True
         cdef map.Map mor
         if S is self:
             from sage.categories.homset import Hom

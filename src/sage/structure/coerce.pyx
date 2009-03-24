@@ -721,16 +721,34 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             # elements may also act on non-elements
             # (e.g. sequences or parents)
-            if hasattr(x, '_l_action'):
+            if not isinstance(y, Element) or not isinstance(x, Element):
                 try:
-                    return x._l_action(y)
+                    if hasattr(x, '_act_on_'):
+                        res = x._act_on_(y, True)
+                        if res is not None: return res
                 except CoercionException:
-                    pass
-            if hasattr(y, '_r_action'):
+                    self._record_exception()
+
                 try:
-                    return y._r_action(x)
+                    if hasattr(x, '_acted_upon_'):
+                        res = x._acted_upon_(y, True)
+                        if res is not None: return res
                 except CoercionException:
-                    pass
+                    self._record_exception()
+
+                try:
+                    if hasattr(y, '_act_on_'):
+                        res = y._act_on_(x, False)
+                        if res is not None: return res
+                except CoercionException:
+                    self._record_exception()
+
+                try:
+                    if hasattr(y, '_acted_upon_'):
+                        res = y._acted_upon_(x, False)
+                        if res is not None: return res
+                except CoercionException:
+                    self._record_exception()
 
         if not isinstance(y, Element):
             op_name = op.__name__

@@ -471,6 +471,24 @@ cdef class Element(sage_object.SageObject):
 
 
 
+    cpdef _act_on_(self, x, bint self_on_left):
+        """
+        Use this method to implement self acting on x.
+
+        Return None or raise a CoercionException if no
+        such action is defined here.
+        """
+        return None
+
+    cpdef _acted_upon_(self, x, bint self_on_left):
+        """
+        Use this method to implement self acted on by x.
+
+        Return None or raise a CoercionException if no
+        such action is defined here.
+        """
+        return None
+
 
     def __xor__(self, right):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\

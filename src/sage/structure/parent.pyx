@@ -1231,7 +1231,7 @@ cdef class Parent(category_object.CategoryObject):
             return self._generic_convert_map(S)
 
         try:
-            _register_pair(self, S)
+            _register_pair(self, S, "coerce")
             mor = self.discover_coerce_map_from(S)
             #if mor is not None:
             #    # Need to check that this morphism doesn't connect previously unconnected parts of the coercion diagram
@@ -1247,11 +1247,13 @@ cdef class Parent(category_object.CategoryObject):
                 # self._coerce_from_list.append(mor)
                 pass
             self._coerce_from_hash[S] = mor
-            _unregister_pair(self, S)
             return mor
-        except CoercionException:
+        except CoercionException, ex:
             _record_exception()
             return None
+        finally:
+            _unregister_pair(self, S, "coerce")
+
 
     cdef discover_coerce_map_from(self, S):
         """
@@ -1319,20 +1321,23 @@ cdef class Parent(category_object.CategoryObject):
         # Recurse.  Note that if S is the domain of one of the maps in self._coerce_from_list,
         # we will have stuck the map into _coerce_map_hash and thus returned it already.
         for mor in self._coerce_from_list:
+            if mor._domain is self:
+                continue
             if mor._domain is S:
                 if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
                     best_mor = mor
                 mor_found += 1
                 if mor_found  >= num_paths:
                     return best_mor
-            connecting = mor._domain.coerce_map_from(S)
-            if connecting is not None:
-                mor = mor * connecting
-                if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
-                    best_mor = mor
-                mor_found += 1
-                if mor_found  >= num_paths:
-                    return best_mor
+            else:
+                connecting = mor._domain.coerce_map_from(S)
+                if connecting is not None:
+                    mor = mor * connecting
+                    if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
+                        best_mor = mor
+                    mor_found += 1
+                    if mor_found  >= num_paths:
+                        return best_mor
 
         return best_mor
 
@@ -1468,12 +1473,11 @@ cdef class Parent(category_object.CategoryObject):
             elif op is operator.mul and isinstance(action, Parent):
                 try:
                     R = action
-                    _register_pair(x,y) # to kill circular recursion
+                    _register_pair(self, R, "action") # to kill circular recursion
                     if self_on_left:
                         action = LeftModuleAction(R, self) # self is acted on from right
                     else:
                         action = RightModuleAction(R, self) # self is acted on from left
-                    _unregister_pair(x,y)
                     ## The following two lines are disabled to prevent the following from working:
                     ## sage: x, y = var('x,y')
                     ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
@@ -1484,8 +1488,9 @@ cdef class Parent(category_object.CategoryObject):
                     #self._action_list[i] = action
                 except CoercionException:
                     _record_exception()
-                    _unregister_pair(x,y)
                     continue
+                finally:
+                    _unregister_pair(self, R, "action")
             else:
                 continue # only try mul if not specified
             if R is S:
@@ -1498,63 +1503,25 @@ cdef class Parent(category_object.CategoryObject):
                     else:
                         return PrecomposedAction(action, connecting, None)
 
-        # We didn't find an action in the list, but maybe the elements define
-        # _rmul_, _lmul_, _l_action_, or _r_action_.
+        # We didn't find an action in the list, but maybe the elements
+        # define special action methods
         if op is operator.mul and PY_TYPE_CHECK(S, Parent):
-            from coerce_actions import LeftModuleAction, RightModuleAction, LAction, RAction
-            # Actors define _l_action_ and _r_action_
-            # Acted-on elements define _lmul_ and _rmul_
-
             # TODO: if _xmul_/_x_action_ code does stuff like
             # if self == 0:
             #    return self
             # then an_element() == 0 could be very bad.
-            #
-
-            x = self.an_element()
-            y = (<Parent>S).an_element()
-            #print "looking for action ", self, "<--->", S
-            #print "looking for action ", x, "<--->", y
-
             try:
-                _register_pair(x,y) # this is to avoid possible infinite loops
-                if self_on_left:
-                    try:
-                        #print "RightModuleAction", S, self
-                        return RightModuleAction(S, self) # this will test _lmul_
-                    except CoercionException:
-                        _record_exception()
+                _register_pair(self, S, "action") # this is to avoid possible infinite loops
 
-                    if hasattr(x, '_l_action_'):
-                        try:
-                            #print "LAction"
-                            z = x._l_action_(y)
-                            #print "got", z
-                            return LAction(self, S)
-                        except CoercionException:
-                            _record_exception()
-
-                else:
-                    try:
-                        #print "LeftModuleAction"
-                        return LeftModuleAction(S, self) # this will test _rmul_
-                    except CoercionException:
-                        _record_exception()
-
-                    if hasattr(x, '_r_action_'):
-                        try:
-                            #print "RAction"
-                            z = x._r_action_(y)
-                            #print "got", z
-                            return RAction(self, S)
-                        except CoercionException:
-                            _record_exception()
-
+                # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
+                from coerce_actions import detect_element_action
+                action = detect_element_action(self, S, self_on_left)
+                if action is not None:
+                    return action
 
                 try:
                     # maybe there is a more clever way of detecting ZZ than importing here...
                     from sage.rings.integer_ring import ZZ
-                    from sage.rings.ring import Ring
                     if S is ZZ and not self.has_coerce_map_from(ZZ):
                         #print "IntegerMulAction"
                         from sage.structure.coerce_actions import IntegerMulAction
@@ -1565,9 +1532,7 @@ cdef class Parent(category_object.CategoryObject):
                     _record_exception()
 
             finally:
-                _unregister_pair(x,y)
-
-            #print "found nothing"
+                _unregister_pair(self, S, "action")
 
 
     cpdef _get_action_(self, S, op, bint self_on_left):
@@ -1907,22 +1872,30 @@ cdef class Set_PythonType_class(Set_generic):
         return Homset(self, domain, cat)
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
-# _l_action_, _r_action_ do not in turn call __mul__ on their
+# _act_on_, _acted_upon_ do not in turn call __mul__ on their
 # arguments, leading to an infinite loop.
 
 cdef object _coerce_test_list = []
 
-class EltPair:
-    def __init__(self, x, y):
+cdef class EltPair:
+    cdef x, y, tag
+    def __init__(self, x, y, tag):
         self.x = x
         self.y = y
-    def __eq__(self, other):
-        return type(self.x) is type(other.x) and self.x is other.x and type(self.y) is type(other.y) and self.y is other.y
+        self.tag = tag
+    def __richcmp__(EltPair self, EltPair other, int op):
+        cdef bint eq = self.x is other.x and self.y is other.y and self.tag is other.tag
+        if op in [Py_EQ, Py_GE, Py_LE]:
+            return eq
+        else:
+            return not eq
+    def short_repr(self):
+        return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)
     def __repr__(self):
-        return "%r (%r), %r (%r)" % (self.x, type(self.x), self.y, type(self.y))
+        return "%r: %r (%r), %r (%r)" % (self.tag, self.x, type(self.x), self.y, type(self.y))
 
-cdef bint _register_pair(x, y) except -1:
-    both = EltPair(x,y)
+cdef bint _register_pair(x, y, tag) except -1:
+    both = EltPair(x,y,tag)
 #    print _coerce_test_list, " + ", both
     if both in _coerce_test_list:
 #        print "Uh oh..."
@@ -1937,9 +1910,9 @@ cdef bint _register_pair(x, y) except -1:
     _coerce_test_list.append(both)
     return 0
 
-cdef bint _unregister_pair(x, y) except -1:
+cdef bint _unregister_pair(x, y, tag) except -1:
     try:
-        _coerce_test_list.remove(EltPair(x,y))
+        _coerce_test_list.remove(EltPair(x,y,tag))
     except (ValueError, CoercionException):
         pass
 

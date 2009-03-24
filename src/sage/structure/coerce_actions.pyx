@@ -23,6 +23,10 @@ cdef extern from *:
     ctypedef struct RefPyObject "PyObject":
         int ob_refcnt
 
+cdef _record_exception():
+    from element import get_coercion_model
+    get_coercion_model()._record_exception()
+
 
 cdef class LAction(Action):
     """Action calls _l_action of the actor."""
@@ -39,6 +43,143 @@ cdef class RAction(Action):
     cpdef Element _call_(self, a, g):
         return g._r_action(a)  # g * a
 
+
+# In the code below, I take the convention that g is acting on a.
+
+cdef class GenericAction(Action):
+
+    cdef Parent _codomain
+
+    def __init__(self, Parent G, Parent S, is_left, bint check=True):
+        """
+        TESTS::
+
+            sage: sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            Left action by Full MatrixSpace of 2 by 2 dense matrices over Integer Ring on Set P^1(QQ) of all cusps
+
+            sage: sage.structure.coerce_actions.GenericAction(QQ, Zmod(6), True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Action not implemented.
+
+        This will break if we tried to use it::
+
+            sage: sage.structure.coerce_actions.GenericAction(QQ, Zmod(6), True, check=False)
+            Left action by Rational Field on Ring of integers modulo 6
+
+        """
+        Action.__init__(self, G, S, is_left, operator.mul)
+        if check:
+            res = self.act(G.an_element(), S.an_element())
+            if res is None:
+                raise CoercionException
+            _codomain = (<Element?>res)._parent
+
+    def codomain(self):
+        """
+        Returns the "codomain" of this action, i.e. the Parent in which the
+        result elements live. Typically, this should be the same as the
+        acted upon set.
+
+        EXAMPLES::
+
+            sage: A = sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            sage: A.codomain()
+            Set P^1(QQ) of all cusps
+            sage: A = sage.structure.coerce_actions.ActOnAction(SymmetricGroup(3), QQ['x,y,z'], False)
+            sage: A.codomain()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+        """
+        if self._codomain is None:
+            self._codomain = (<Element?>self.act(self.G.an_element(), self.S.an_element()))._parent
+        return self._codomain
+
+
+cdef class ActOnAction(GenericAction):
+    """
+    Class for actions defined via the _act_on_ method.
+    """
+    cpdef Element _call_(self, a, b):
+        """
+        TESTS::
+
+            sage: G = SymmetricGroup(3)
+            sage: R.<x,y,z> = QQ[]
+            sage: A = sage.structure.coerce_actions.ActOnAction(G, R, False)
+            sage: A._call_(x^2 + y - z, G((1,2)))
+            y^2 + x - z
+            sage: A._call_(x+2*y+3*z, G((1,3,2)))
+            2*x + 3*y + z
+
+            sage: type(A)
+            <type 'sage.structure.coerce_actions.ActOnAction'>
+        """
+        if self._is_left:
+            return (<Element>a)._act_on_(b, True)
+        else:
+            return (<Element>b)._act_on_(a, False)
+
+cdef class ActedUponAction(GenericAction):
+    """
+    Class for actions defined via the _acted_upon_ method.
+    """
+    cpdef Element _call_(self, a, b):
+        """
+        TESTS::
+
+            sage: A = sage.structure.coerce_actions.ActedUponAction(MatrixSpace(ZZ, 2), Cusps, True)
+            sage: A.act(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
+            Infinity
+            sage: A._call_(matrix(ZZ, 2, [1,0,2,-1]), Cusp(1,2))
+            Infinity
+
+            sage: type(A)
+            <type 'sage.structure.coerce_actions.ActedUponAction'>
+        """
+        if self._is_left:
+            return (<Element>b)._acted_upon_(a, False)
+        else:
+            return (<Element>a)._acted_upon_(b, True)
+
+
+def detect_element_action(Parent X, Parent Y, bint X_on_left):
+    r"""
+    Returns an action of X on Y or Y on X as defined by elements X, if any.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce_actions import detect_element_action
+        sage: detect_element_action(ZZ['x'], ZZ, False)
+        Left scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+        sage: detect_element_action(ZZ['x'], QQ, True)
+        Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+        sage: detect_element_action(Cusps, MatrixSpace(ZZ, 2), False)
+        Left action by Full MatrixSpace of 2 by 2 dense matrices over Integer Ring on Set P^1(QQ) of all cusps
+        sage: detect_element_action(Cusps, MatrixSpace(ZZ, 2), True),
+        (None,)
+        sage: detect_element_action(ZZ, QQ, True),
+        (None,)
+    """
+    cdef Element x = X.an_element()
+    cdef Element y = Y.an_element()
+    if isinstance(x, ModuleElement) and isinstance(y, RingElement):
+        # Elements defining _lmul_ and _rmul_
+        try:
+            return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X)
+        except CoercionException:
+            _record_exception()
+    try:
+        # Elements defining _act_on_
+        if x._act_on_(y, X_on_left) is not None:
+            return ActOnAction(X, Y, X_on_left, False)
+    except CoercionException:
+        _record_exception()
+    try:
+        # Elements defining _acted_upon_
+        if x._acted_upon_(y, X_on_left) is not None:
+            return ActedUponAction(Y, X, not X_on_left, False)
+    except CoercionException:
+        _record_exception()
 
 
 cdef class ModuleAction(Action):
@@ -77,7 +218,7 @@ cdef class ModuleAction(Action):
         base = S.base()
         if base is S or base is None:
             # The right thing to do is a normal multiplication
-            raise CoercionException
+            raise CoercionException, "Best viewed as standard multiplication"
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the base ring
         if G is not base:
@@ -96,7 +237,7 @@ cdef class ModuleAction(Action):
                     if self.connecting is None:
                         # this may happen if G is, say, int rather than a parent
                         # TODO: let python types be valid actions
-                        raise CoercionException
+                        raise CoercionException, "Missing connecting morphism"
 
         # Don't waste time if our connecting morphisms happen to be the identity.
         if self.connecting is not None and self.connecting.codomain() is G:
@@ -113,12 +254,12 @@ cdef class ModuleAction(Action):
         g = G.an_element()
         a = S.an_element()
         if not isinstance(g, RingElement) or not isinstance(a, ModuleElement):
-            raise CoercionException
+            raise CoercionException, "Not a ring element acting on a module element."
         res = self.act(g, a)
 
         if parent_c(res) is not S and parent_c(res) is not self.extended_base:
             # In particular we will raise an error if res is None
-            raise CoercionException
+            raise CoercionException, "Result is None or has wrong parent."
 
 
     def _repr_name_(self):
@@ -293,7 +434,6 @@ cdef class IntegerMulAction(Action):
             nn = PyNumber_Int(nn)
             if not PyInt_CheckExact(nn):
                 return fast_mul(a, nn)
-
         return fast_mul_long(a, PyInt_AS_LONG(nn))
 
     def __invert__(self):

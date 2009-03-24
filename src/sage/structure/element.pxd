@@ -20,6 +20,9 @@ cdef class Element(sage_object.SageObject):
     cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
     cdef _rich_to_bool(self, int op, int r)
 
+    cpdef _act_on_(self, x, bint self_on_left)
+    cpdef _acted_upon_(self, x, bint self_on_left)
+
 
 cdef class ModuleElement(Element)       # forward declaration
 

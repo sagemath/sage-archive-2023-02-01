@@ -634,7 +634,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
 
     map_mc = map_monomial
 
-    def _l_action(self, x):
+    def _lmul_(self, x):
         """
         Returns the action of a scalar on self when self is on the left
         (and the scalar is on the right).
@@ -643,13 +643,14 @@ class CombinatorialFreeModuleElement(ModuleElement):
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: B = F.basis()
-            sage: B['a']*1/2
+            sage: B['a']*(1/2)
             1/2*B['a']
+            sage: B['a']/3
+            1/3*B['a']
         """
-        x = self.base_ring()(x)
         return self.map_coefficients(lambda c: c*x)
 
-    def _r_action(self, x):
+    def _rmul_(self, x):
         """
         Returns the action of a scalar on self when self is on the right
         (and the scalar is on the left).
@@ -661,8 +662,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: 1/2*B['a']
             1/2*B['a']
         """
-        x = self.base_ring()(x)
-        return self.map_coefficients(lambda c: x*c)
+        return self.map_coefficients(lambda c: c*x)
 
     def __div__(self, x):
         """

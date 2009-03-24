@@ -32,6 +32,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
+from sage.matrix.all import is_Matrix
 
 class Cusps_class(ParentWithBase):
     """
@@ -836,6 +837,43 @@ class Cusp(Element):
             if (v_tmp + v2)%N == 0 and (u_tmp + u1)%g == 0:
                 return True, -1
         return False, 0
+
+    def _acted_upon_(self, g, self_on_left):
+        r"""
+        Implements the left action of `SL_2(\ZZ)` on self.
+
+        EXAMPLES::
+
+            sage: g = matrix(ZZ, 2, [1,1,0,1]); g
+            [1 1]
+            [0 1]
+            sage: g * Cusp(2,5)
+            7/5
+            sage: Cusp(2,5) * g
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
+            sage: h = matrix(ZZ, 2, [12,3,-100,7])
+            sage: h * Cusp(2,5)
+            -13/55
+            sage: Cusp(2,5)._acted_upon_(h, False)
+            -13/55
+            sage: (h*g) * Cusp(3,7) == h * (g * Cusp(3,7))
+            True
+
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(MatrixSpace(ZZ, 2), Cusps)
+            Action discovered.
+                Left action by Full MatrixSpace of 2 by 2 dense matrices over Integer Ring on Set P^1(QQ) of all cusps
+            Result lives in Set P^1(QQ) of all cusps
+            Set P^1(QQ) of all cusps
+        """
+        if not self_on_left:
+            if (is_Matrix(g) and g.base_ring() is ZZ
+                    and g.ncols() == 2 and g.nrows() == 2):
+                a, b, c, d = g.list()
+                return Cusp(a*self.__a + b*self.__b, c*self.__a + d*self.__b)
+
 
     def apply(self, g):
         """

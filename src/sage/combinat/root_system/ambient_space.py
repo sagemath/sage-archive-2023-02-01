@@ -147,7 +147,7 @@ class AmbientSpace(CombinatorialFreeModule, WeightLatticeRealization):
         """
         # TODO: get rid of this as one can use the generic implementation
         # (i.e. scalar and associated coroot are implemented)
-        return lambda v: v-2*root.inner_product(v)/root.inner_product(root)*root
+        return lambda v: v - root.base_ring()(2*root.inner_product(v)/root.inner_product(root))*root
 
     def _term(self, i):
         """
@@ -234,5 +234,5 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealization
 
         """
         # FIXME: make it work over ZZ!
-        return self * (2/self.inner_product(self))
+        return self * self.base_ring()(2/self.inner_product(self))
 

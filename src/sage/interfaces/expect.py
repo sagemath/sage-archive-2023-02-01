@@ -1489,9 +1489,6 @@ class ExpectElement(RingElement):
     def _reduce(self):
         return repr(self)
 
-    def _r_action(self, x):   # used for coercion
-        raise AttributeError
-
     def __call__(self, *args):
         self._check_valid()
         P = self.parent()

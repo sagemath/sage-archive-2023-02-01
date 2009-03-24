@@ -333,23 +333,6 @@ cdef class Ring(ParentWithGens):
         else:
             return x.ideal(self)    # switched because this is Pyrex / extension class
 
-# This will never get called -- _r_action is supposed to be an attribute of
-# elements, not parents -- DL
-#
-#    def _r_action(self, x):
-#        r"""
-#        Return the ideal x * self.
-#
-#        TODO: For noncommutative rings, distinguish between ideals, right
-#        ideals, and left ideals.
-#
-#        EXAMPLE::
-#
-#            sage: ZZ._r_action(3)
-#
-#        """
-#        return self.ideal(x)
-
     def _ideal_class_(self):
         r"""
         Return a callable object that can be used to create ideals in this

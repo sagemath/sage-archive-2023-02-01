@@ -1366,31 +1366,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_neg(x.value, self.value)
         return x
 
-    def _r_action(self, s):
+    cpdef _act_on_(self, s, bint self_on_left):
         """
         EXAMPLES::
 
             sage: 8 * [0] #indirect doctest
             [0, 0, 0, 0, 0, 0, 0, 0]
-            sage: 8 * 'hi'
-            'hihihihihihihihi'
-        """
-        if isinstance(s, (str, list, tuple)):
-            return s*int(self)
-        raise CoercionException
-
-    def _l_action(self, s):
-        """
-        EXAMPLES::
-
-            sage: [0] * 8 #indirect doctest
-            [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 'hi' * 8
             'hihihihihihihihi'
         """
         if isinstance(s, (str, list, tuple)):
-            return int(self)*s
-        raise CoercionException
+            return s*int(self)
 
     cpdef RingElement _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers

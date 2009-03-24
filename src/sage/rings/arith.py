@@ -2478,6 +2478,12 @@ def binomial(x,m):
         P = type(x)
     if m < 0:
         return P(0)
+    # a (hopefully) temporary fix for #3309; eventually Pari should do
+    # this for us.
+    if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
+                      sage.rings.real_mpfr.RealLiteral)):
+        from sage.calculus.calculus import gamma
+        return gamma(x+1)/gamma(P(m+1))/gamma(x-m+1)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
 def multinomial(*ks):

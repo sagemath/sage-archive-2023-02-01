@@ -1558,7 +1558,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(10, 1, 2, 4)
             sage: sr.varstrs('x', 2)
-            ['x200', 'x201', 'x202', 'x203', 'x210', 'x211', 'x212', 'x213']
+            ('x200', 'x201', 'x202', 'x203', 'x210', 'x211', 'x212', 'x213')
 
         """
         if rc is None:
@@ -1571,7 +1571,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         format_string = self.varformatstr(name, n, rc, e)
 
-        return [format_string % (nr, rci, ei) for rci in range(rc) for ei in range(e)]
+        return tuple([format_string % (nr, rci, ei) for rci in range(rc) for ei in range(e)])
 
     def vars(self, name, nr, rc=None, e=None):
         """
@@ -1588,11 +1588,11 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(10, 1, 2, 4)
             sage: sr.vars('x', 2)
-            [x200, x201, x202, x203, x210, x211, x212, x213]
+            (x200, x201, x202, x203, x210, x211, x212, x213)
 
         """
         gd = self.variable_dict()
-        return [gd[e] for e in self.varstrs(name, nr, rc, e)]
+        return tuple([gd[e] for e in self.varstrs(name, nr, rc, e)])
 
     def variable_dict(self):
         """
@@ -1926,18 +1926,20 @@ class SR_generic(MPolynomialSystemGenerator):
                 lin += (ki + si).list()
             return MPolynomialRoundSystem(R, lin + sbox )
 
-    def polynomial_system(self, P=None, K=None):
+    def polynomial_system(self, P=None, K=None, C=None):
         """
         Return a polynomial system for this small scale AES variant for a
         given plaintext-key pair.
 
-        If neither ``P`` nor ``K`` are provided, a random pair will be
-        generated.
+        If neither ``P``, ``K`` nor ``C`` are provided, a random pair
+        (``P``, ``K``) will be generated. If ``P`` and ``C`` are
+        provided no ``K``needs to be provided.
 
         INPUT:
 
-        -  ``P`` - vector, list, or tuple (default: ``None``)
-        -  ``K`` - vector, list, or tuple (default: ``None``)
+        - ``P`` - vector, list, or tuple (default: ``None``)
+        - ``K`` - vector, list, or tuple (default: ``None``)
+        - ``C`` - vector, list, or tuple (default: ``None``)
 
         EXAMPLE::
 
@@ -1946,9 +1948,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: K = sr.vector([1, 0, 0, 1])
             sage: F, s = sr.polynomial_system(P, K)
 
-        This returns a polynomial system
-
-        ::
+        This returns a polynomial system::
 
             sage: F
             Polynomial System with 36 Polynomials in 20 Variables
@@ -1966,25 +1966,66 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: F.groebner_basis()[:4]
             [k003 + 1, k001, k000 + 1, s003 + k002]
 
-        In particular we have two solutions
-
-        ::
+        In particular we have two solutions::
 
             sage: len(F.ideal().variety())
             2
+
+
+        In the following example we provide ``C`` explicitly::
+
+           sage: C = sr(P,K)
+           sage: F,s = sr.polynomial_system(P=P, C=C)
+           sage: F
+           Polynomial System with 36 Polynomials in 20 Variables
+
+        Alternatively, we can use symbols for the ``P`` and
+        ``C``. First, we have to create a polynomial ring::
+
+            sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
+            sage: R = sr.R
+            sage: vn = sr.varstrs("P",0,1,4) + R.variable_names() + sr.varstrs("C",0,1,4)
+            sage: R = BooleanPolynomialRing(len(vn),vn)
+            sage: sr.R = R
+
+
+        Now, we can construct the purely symbolic equation system::
+
+            sage: C = sr.vars("C",0); C
+            (C000, C001, C002, C003)
+            sage: P = sr.vars("P",0)
+            sage: F,s = sr.polynomial_system(P=P,C=C)
+            sage: [(k,v) for k,v in sorted(s.iteritems())] # this can be ignored
+            [(k003, 1), (k002, 1), (k001, 0), (k000, 0)]
+            sage: F
+            Polynomial System with 36 Polynomials in 28 Variables
+            sage: F.round(0)
+            (P000 + w100 + k000, P001 + w101 + k001, P002 + w102 + k002, P003 + w103 + k003)
+            sage: F.round(-2)
+            (k100 + x100 + x102 + x103 + C000, k101 + x100 + x101 + x103 + C001 + 1, ...)
+
         """
         plaintext = P
         key = K
+        ciphertext = C
 
         system = []
         n = self._n
 
         data = []
 
-        for d in (plaintext, key):
+        R = self.R
+        r,c,e = self.r,self.c,self.e
+
+        for d in (plaintext, key, ciphertext):
             if d is None:
-                data.append(self.random_element("vector"))
+                data.append( None )
             elif isinstance(d, (tuple, list)):
+                if isinstance(d[0], (int,long)):
+                    d = map(GF(2),d)
+                if len(d) == r*c*e and (d[0].parent() is R or d[0].parent() == R):
+                    data.append( Matrix(R,r*c*e,1,d) )
+                    continue
                 try:
                     data.append( self.phi(self.state_array(d)) )
                 except ValueError: # GF2 vectors maybe?
@@ -1994,17 +2035,34 @@ class SR_generic(MPolynomialSystemGenerator):
             elif self.is_vector(d):
                 data.append( d )
             else:
-                raise TypeError, "type %s of %s not understood"%(type(d), d)
+                data.append( False )
 
-        plaintext, key = data
+        plaintext, key, ciphertext = data
 
-        ciphertext = self(plaintext, key)
+        if plaintext is False:
+            raise TypeError, "type %s of P not understood"%(type(plaintext))
+        elif plaintext is None:
+            plaintext = self.random_element("vector")
+
+        if key is None:
+            key = self.random_element("vector")
+        elif key is False and ciphertext is False:
+            raise TypeError, "type %s of K not understood"%(type(key))
+
+        if ciphertext is None:
+            ciphertext = self(plaintext, key)
+        elif ciphertext is False:
+            raise TypeError, "type %s of C not understood"%(type(ciphertext))
 
         for i in range(n+1):
             system.append( self.round_polynomials(i, plaintext, ciphertext) )
             system.append( self.key_schedule_polynomials(i) )
 
-        return MPolynomialSystem(self.R, system), dict(zip(self.vars("k", 0), key.list()))
+        if key is not None:
+            K = dict(zip(self.vars("k", 0), key.list()))
+        else:
+            K = None
+        return MPolynomialSystem(self.R, system), K
 
 
 class SR_gf2n(SR_generic):

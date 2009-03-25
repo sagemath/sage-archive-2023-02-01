@@ -67,7 +67,7 @@ import math
 import sage.modular.hecke.all as hecke
 import sage.rings.all as rings
 from sage.matrix.matrix_space import MatrixSpace
-from sage.modular.congroup import Gamma0, Gamma1
+from sage.modular.arithgroup.all import Gamma0, Gamma1
 from sage.databases.db_class_polynomials import HilbertClassPolynomialDatabase
 from sage.databases.db_modular_polynomials \
      import ClassicalModularPolynomialDatabase

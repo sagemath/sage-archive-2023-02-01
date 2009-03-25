@@ -459,7 +459,7 @@ class TateCurve(SageObject):
             sage: h = eq.padic_height(prec=10)
             sage: P=e.gens()[0]
             sage: h(P)
-            3*5^-1 + 3 + 2*5 + 2*5^2 + 5^3 + 4*5^4 + 4*5^5 + 5^6 + 3*5^7 + O(5^8)
+            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + O(5^8)
 
             #this is a quadratic function
             sage: h(3*P)-3^2*h(P)
@@ -484,7 +484,7 @@ class TateCurve(SageObject):
             si = self.__padic_sigma_square(uQ, prec=prec)
             nn = self._q.valuation()
             qEu = self._q/p**nn
-            return (log(si*self._Csquare()/cQ) + log(uQ)**2/log(qEu)) / n**2
+            return -(log(si*self._Csquare()/cQ) + log(uQ)**2/log(qEu)) / n**2
 
         return _height
 
@@ -499,8 +499,8 @@ class TateCurve(SageObject):
         EXAMPLES:
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.padic_regulator()
-            3*5^-1 + 3 + 2*5 + 2*5^2 + 5^3 + 4*5^4 + 4*5^5 + 5^6 + 3*5^7 + 4*5^8 + 5^9 +
-            5^10 + 4*5^11 + 5^12 + 4*5^14 + 5^15 + 2*5^16 + 4*5^17 + 5^18 + O(5^19)
+            2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + 3*5^9 + 3*5^10 + 3*5^12 + 4*5^13 + 3*5^15 + 2*5^16 + 3*5^18 + O(5^19)
+
         """
         if not self.is_split():
             raise NotImplementedError, "The curve must have split multiplicative reduction"

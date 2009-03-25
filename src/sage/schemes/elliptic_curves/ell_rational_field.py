@@ -1053,20 +1053,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, normalize=True):
+    def modular_symbol(self, sign=1, use_eclib = False, normalize = "L_ratio"):
         r"""
-        Return the modular symbol associated to this elliptic curve, with
-        given sign and base ring. This is the map that sends r/s to a fixed
-        multiple of 2\*pi\*I\*f(z)dz from oo to r/s, normalized so that all
-        values of this map take values in QQ.
+        Return the modular symbol associated to this elliptic curve,
+        with given sign and base ring.  This is the map that sends `r/s`
+        to a fixed multiple of the integral of `2 \pi I f(z) dz`
+        from `\infty` to `r/s`, normalized so that all values of this map take
+        values in `\QQ`.
 
-        If sign=1, the normalization is such that the p-adic L-function
-        associated to this modular symbol is correct. I.e., the
-        normalization is the same as for the integral period mapping
-        divided by 2.
+        The normalization is such that for sign +1,
+        the value at the cusp 0 is equal to the quotient of L(E,1)
+        by the least positive period of E (unlike in ``L_ratio``
+        of ``lseries()``, where the value is also divided by the
+        number of connected components of E(R)). In particular the
+        modular symbol depends on E and not only the isogeny class of E.
 
         INPUT:
-
 
         -  ``sign`` - -1, or 1
 
@@ -1080,6 +1082,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            modular symbol is much faster, though evaluation of it after
            computing it won't be any faster.
 
+         - ``use_eclib`` - (default: False); if True the computation is
+           done with John Cremona's implementation of modular
+           symbols in eclib. But this is only possible for
+           sign = +1.
+
+        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio', 'period', or 'none';
+           For 'L_ratio', the modular symbol is correctly normalized
+           as explained above by comparing it to L_ratio for the
+           curve and some small twists.
+           The normalization 'period' is only available if
+           use_eclib=False. It uses the integral_period_map for modular
+           symbols and is known to be equal to the above normalization
+           up to the sign and a possible power of 2.
+           For 'none', the modular symbol is almost certainly
+           not correctly normalized, i.e. all values will be a
+           fixed scalar multiple of what they should be.  But
+           the initial computation of the modular symbol is
+           much faster if use_eclib=False, though evaluation of
+           it after computing it won't be any faster.
+
 
         EXAMPLES::
 
@@ -1089,16 +1111,67 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: M(1/2)
             0
             sage: M(1/5)
-            1/2
+            1
+
+            sage: E=EllipticCurve('121b1')
+            sage: M=E.modular_symbol()
+            sage: M(1/7)
+            2
+
+            sage: E=EllipticCurve('11a1')
+            sage: E.modular_symbol()(0)
+            1/5
+            sage: E=EllipticCurve('11a2')
+            sage: E.modular_symbol()(0)
+            1
+            sage: E=EllipticCurve('11a3')
+            sage: E.modular_symbol()(0)
+            1/25
+
+            sage: E=EllipticCurve('11a2')
+            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            1
+            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            1/5
+            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
+            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            1
+            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            1
+            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            1
+
+            sage: E=EllipticCurve('11a3')
+            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            1/25
+            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            1/5
+            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
+            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            1/25
+            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            1
+            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            1/25
+
         """
-        typ = (sign, normalize)
+        typ = (sign, normalize, use_eclib)
         try:
             return self.__modular_symbol[typ]
         except AttributeError:
             self.__modular_symbol = {}
         except KeyError:
             pass
-        M = ell_modular_symbols.ModularSymbol(self, sign, normalize)
+        if use_eclib :
+            M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
+        else :
+            M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         self.__modular_symbol[typ] = M
         return M
 
@@ -3356,6 +3429,65 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
         """
         return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
+
+    def minimal_quadratic_twist(self):
+        r"""
+        Determines a quadratic twist with minimal conductor. Returns a global
+        minimal model of the twist and the fundamental discriminant of the
+        quadratic field over which they are isomorphic.
+
+        The implementation is not optimal at all. It factors the conductor `N` and tries to twist
+        by `(-1)^((p-1)/2) p` if `p^2` divides `N`. For 2 and 3 we try and check if it smaller.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('121d1')
+            sage: E.minimal_quadratic_twist()
+            (Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field, -11)
+            sage: Et, D = EllipticCurve('32a1').minimal_quadratic_twist()
+            sage: D
+            1
+
+            sage: E = EllipticCurve('11a1')
+            sage: Et, D = E.quadratic_twist(-24).minimal_quadratic_twist()
+            sage: E == Et
+            True
+            sage: D
+            -24
+
+        """
+        N = self.conductor()
+        D = 1
+        Nt = N
+        for (p,f) in factor(N):
+            if f > 1 and p > 3:
+                if p % 4 == 1:
+                    DD = p
+                else:
+                    DD = (-p)
+                Et = self.quadratic_twist(DD)
+                if Et.conductor() < Nt:
+                    Nt = Et.conductor()
+                    D *= DD
+        Et = self.quadratic_twist(D)
+        Nt = Et.conductor()
+        # try with -3
+        Ett = Et.quadratic_twist(-3)
+        if Ett.conductor() < Nt:
+            D *= (-3)
+            Et = Ett
+            Nt = Ett.conductor()
+        # try with -4, 8 or -8
+        DD = 1
+        for D2 in [-4,8,-8]:
+            Ett = Et.quadratic_twist(D2)
+            if Ett.conductor() < Nt :
+                Nt = Ett.conductor()
+                DD = D2
+        D *= DD
+        Et = self.quadratic_twist(D)
+        return Et, D
+
 
 
     ##########################################################
@@ -6158,11 +6290,11 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         ni[i0] += 1
         # The next lines are to prevent rounding error: (-P)+P behaves
         # badly for real points!
-	if all([n==0 for n in ni[0:i0+1]]):
+    if all([n==0 for n in ni[0:i0+1]]):
             RPi[i0] = ER0
-        else:
+    else:
             RPi[i0] += Rgens[i0]
-	for i in range(i0+1,r):
+    for i in range(i0+1,r):
             RPi[i] = RPi[i-1] + RgensN[i]
 
     return xs

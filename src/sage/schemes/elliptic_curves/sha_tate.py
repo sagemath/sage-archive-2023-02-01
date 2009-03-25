@@ -243,27 +243,28 @@ class Sha(SageObject):
             self.__an = Sha
             return Sha
 
-    def an_padic(self, p, prec=0):
+    def an_padic(self, p, prec=0,use_twists=True):
         r"""
-        Returns the conjectural order -- up to sign -- of Sha(E),
+        Returns the conjectural order of Sha(E),
         according to the $p$-adic analogue of the BSD conjecture.
 
         INPUT:
             p -- a prime > 3
             prec (optional) -- the precision used in the computation of the
             p-adic L-Series
+            use_twists (default = True) -- If true the algorithm may change
+            use a quadratic twist with minimal conductor to do the modular
+            symbol computations rather than using the modular symbols of the
+            curve itself. If False it forces the computation using the
+            modular symbols of the curve itself
 
         OUTPUT:
-            p-adic number -- that conjecturally equals $\#Sha(E)(p)$ or $-\#Sha(E)(p)$.
+            p-adic number -- that conjecturally equals $\#Sha(E)(p)$.
 
         NOTE:
             If prec is set to zero (default) then the precision is set so that
             at least the first p-adic digit of conjectural $\#Sha(E)(p)$ is
             determined.
-
-        BUG:
-            Currently for supersingular primes for curves of rank > 0, only the
-            first digit will be correct. More is hard to compute anyway.
 
         EXAMPLES:
 
@@ -277,18 +278,22 @@ class Sha(SageObject):
             1 + O(5^3)
             sage: EllipticCurve('858k2').sha().an_padic(7)  #rank 0, non trivial sha  (long time)
             7^2 + O(7^3)
+            sage: EllipticCurve('300b2').sha().an_padic(3)  # an example with 9 elements in sha
+            3^2 + O(3^3)
+            sage: EllipticCurve('300b2').sha().an_padic(7)
+            2 + 7 + O(7^4)
 
         Exceptional cases:
 
             sage: EllipticCurve('11a1').sha().an_padic(11) #rank 0
             1 + O(11)
 
-        The output maybe be only up to sign, as the following two examples illustrate:
+        The output has the correct sign :
 
-            sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time) -- random output (can be either 1 + O(41) or 40 + O(41)).
-            40 + O(41)
+            sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
+            1 + O(41)
             sage: EllipticCurve('817a1').sha().an_padic(43) #rank 2    (long time)
-            42 + O(43)
+            1 + O(43)
 
         Supersingular cases:
 
@@ -298,6 +303,17 @@ class Sha(SageObject):
             1 + O(7)
             sage: EllipticCurve('1483a1').sha().an_padic(5) # rank 2   (long time)
             1 + O(5)
+
+        Cases that use a twist to a lower conductor :
+
+            sage: EllipticCurve('99a1').sha().an_padic(5)
+            1 + O(5)
+            sage: EllipticCurve('240d3').sha().an_padic(5)  # sha has 4 elements here
+            4 + O(5)
+            sage: EllipticCurve('448c5').sha().an_padic(7,prec=4)  # long time
+            2 + 7 + O(7^3)
+
+
         """
         try:
             return self.__an_padic[(p,prec)]
@@ -306,30 +322,30 @@ class Sha(SageObject):
         except KeyError:
             pass
 
-        if self.E.has_cm():
-            raise NotImplementedError, "I don't know about curves with complex multiplication."
+        # there is no reason that the theorem should not hold for cm curves.
+        #if self.E.has_cm():
+        #    raise NotImplementedError, "I don't know about curves with complex multiplication."
 
         tam = self.E.tamagawa_product()
         tors = self.E.torsion_order()**2
         reg = self.E.padic_regulator(p)
+        # todo : here we should catch the rank computation
         r = self.E.rank()
 
-        #         shortcut to introduce later ::
-        #   ( also we could avoid the computation of the modular symbols altogether )
-        # if r == 0:
-        #    lstar = lp.modular_symbol(0) * lp._quotient_of_periods
-        #    sha = lstar/bsdp
-        #    sha = lstar/bsdp[0] in the supersingular case
-
-        lp = self.E.padic_lseries(p)
+        if use_twists :
+            Et, D = self.E.minimal_quadratic_twist()
+            lp = Et.padic_lseries(p)
+        else :
+            lp = self.E.padic_lseries(p)
+            D = 1
 
         if self.E.is_ordinary(p):
             K = reg.parent()
             lg = log(K(1+p))
 
             if (self.E.is_good(p) or self.E.ap(p) == -1):
-                eps = (1-1/lp.alpha())**2
-                # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series:
+                eps = (1-arith.kronecker_symbol(D,p)/lp.alpha())**2
+                # according to the p-adic BSD this should be equal to the leading term of the p-adic L-series divided by sha:
                 bsdp = tam * reg * eps/tors/lg**r
             else:
                 r += 1   # exceptional zero
@@ -337,7 +353,7 @@ class Sha(SageObject):
                 Li = eq.L_invariant()
 
                 # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
-                # this should be equal to the leading term of the p-adic L-series:
+                # this should be equal to the leading term of the p-adic L-series divided by sha:
                 bsdp = tam * reg * Li/tors/lg**r
 
 
@@ -346,7 +362,7 @@ class Sha(SageObject):
                 verbose("the prime is irregular.")
 
             # determine how much prec we need to prove at least the triviality of
-            # the p-primary part od Sha
+            # the p-primary part of Sha
 
             if prec == 0:
                 n = max(v,2)
@@ -360,7 +376,7 @@ class Sha(SageObject):
 
             not_yet_enough_prec = True
             while not_yet_enough_prec:
-                lps = lp.series(n,prec=r+1)
+                lps = lp.series(n,quadratic_twist=D,prec=r+1)
                 lstar = lps[r]
                 if (lstar != 0) or (prec != 0):
                     not_yet_enough_prec = False
@@ -392,7 +408,7 @@ class Sha(SageObject):
             verbose("...computing the p-adic L-series")
             not_yet_enough_prec = True
             while not_yet_enough_prec:
-                lps = lp.Dp_valued_series(n,prec=r+1)
+                lps = lp.Dp_valued_series(n,quadratic_twist=D,prec=r+1)
                 lstar = [lps[0][r],lps[1][r]]
                 verbose("the leading terms : %s"%lstar)
                 if (lstar[0] != 0 or lstar[1] != 0) or ( prec != 0):
@@ -414,7 +430,7 @@ class Sha(SageObject):
 
             # check consistency (the first two are only here to avoid a bug in the p-adic L-series
             # (namely the coefficients of zero-relative precision are treated as zero)
-            if shan0 != 0 and shan1 != 0 and (shan0 - shan1 != 0 and shan0 + shan1 != 0):
+            if shan0 != 0 and shan1 != 0 and shan0 - shan1 != 0:
                 raise RuntimeError, "There must be a bug in the supersingular routines for the p-adic BSD."
 
             #take the better
@@ -448,15 +464,35 @@ class Sha(SageObject):
             elliptic curves (and this is known in certain cases).
 
         EXAMPLES:
+            sage: e = EllipticCurve('11a3')
+            sage: e.sha().p_primary_bound(5)
+            0
+            sage: e.sha().p_primary_bound(7)
+            0
+            sage: e.sha().p_primary_bound(11)
+            0
+            sage: e.sha().p_primary_bound(13)
+            0
+
+            sage: e = EllipticCurve('389a1')
+            sage: e.sha().p_primary_bound(5)
+            0
+            sage: e.sha().p_primary_bound(7)
+            0
+            sage: e.sha().p_primary_bound(11)
+            0
+            sage: e.sha().p_primary_bound(13)
+            0
+
             sage: e = EllipticCurve('858k2')
             sage: e.sha().p_primary_bound(3)           # long time
             0
             sage: e.sha().p_primary_bound(7)           # long time
             2
-        """
+  """
 
         if self.E.is_ordinary(p) or self.E.is_good(p):
-            shan = self.an_padic(p,prec = 0)
+            shan = self.an_padic(p,prec = 0,use_twists=True)
             if shan == 0:
                 raise RuntimeError, "There is a bug in an_padic."
             S = shan.valuation()
@@ -654,12 +690,12 @@ class Sha(SageObject):
         Grigorov) imply that if p divides $\\#Sha(E)$ then $p$ is in
         the list.
 
-        If L(E,1) = 0, then Kato's theorem gives no information, so
-        this function returns False.
+        If L(E,1) = 0, then this function gives no information, so
+        it returns False.
 
         THEOREM (Kato): Suppose p >= 5 is a prime so the p-adic
-        representation rho_{E,p} is surjective.  Then $ord_p(\\#Sha(E))$
-        divides $ord_p(L(E,1)/Omega_E)$.
+        representation rho_{E,p} is surjective and L(E,1) != 0.
+        Then $ord_p(\\#Sha(E))$ divides $ord_p(L(E,1)/Omega_E)$.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)

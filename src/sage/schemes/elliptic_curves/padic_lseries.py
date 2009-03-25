@@ -3,7 +3,8 @@ p-adic L-functions of elliptic curves
 
 AUTHORS:
    -- William Stein (2007-01-01): first version
-   -- chris wuthrich (22/05/2007): changed minor issued and added supersingular things
+   -- chris wuthrich (22/05/2007): changed minor issues and added supersingular things
+                     (11/2008): added quadratic_twists
 """
 
 ######################################################################
@@ -29,7 +30,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation, binomial
+from sage.rings.arith import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
 
 from sage.structure.sage_object import SageObject
 
@@ -41,17 +42,19 @@ import sage.rings.arith as arith
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
 import monsky_washnitzer
-from sage.interfaces.all import gp
+# from sage.interfaces.all import gp
 from sage.misc.functional import log
 
 from sage.libs.cremona.newforms import ECModularSymbol
+from sage.calculus.calculus import sqrt
 
 class pAdicLseries(SageObject):
-    """
+    r"""
     The p-adic L-series of an elliptic curve.
 
     EXAMPLES:
-    An ordinary example:
+    An ordinary example::
+
         sage: e = EllipticCurve('389a')
         sage: L = e.padic_lseries(5)
         sage: L.series(0)
@@ -64,8 +67,12 @@ class pAdicLseries(SageObject):
         O(5^4) + O(5)*T + (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
         sage: L.series(3, prec=10)
         O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(5^2)*T^9 + O(T^10)
+        sage: L.series(2,quadratic_twist=-3)
+        2 + 4*5 + 4*5^2 + O(5^4) + O(5)*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + O(5)*T^4 + O(T^5)
 
-    A prime p such that E[p] is reducible:
+
+    A prime p such that E[p] is reducible::
+
         sage: L = EllipticCurve('11a').padic_lseries(5)
         sage: L.series(1)
         5 + O(5^2) + O(T)
@@ -73,41 +80,84 @@ class pAdicLseries(SageObject):
         5 + 4*5^2 + O(5^3) + O(5^0)*T + O(5^0)*T^2 + O(5^0)*T^3 + O(5^0)*T^4 + O(T^5)
         sage: L.series(3)
         5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
+
+    the load-dumps test::
+
+        sage: lp = EllipticCurve('11a').padic_lseries(5)
+        sage: lp == loads(dumps(lp))
+        True
     """
-    def __init__(self, E, p, normalize, use_eclib=False):
-        """
+    def __init__(self, E, p, use_eclib=False, normalize='L_ratio'):
+        r"""
         INPUT:
-            E -- an elliptic curve
-            p -- a prime of good reduction
-            normalize -- (bool, default: True); whether or not to correctly
-                 normalize the L-series, up to a power of -1 and 2.
-                 If False computations may be faster.
+
+        -  ``E`` - an elliptic curve
+        -  ``p`` - a prime of good reduction
+        -  ``use_eclib`` - bool (default:False); whether or not to use
+           John Cremona's eclib for the computation of modular
+           symbols
+        -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
+           this is describes the way the modular symbols
+           are normalized. See ``modular_symbol`` of
+           an elliptic curve over Q for more details.
+
         """
         self._E = E
         self._p = ZZ(p)
         self._normalize = normalize
+        self._use_eclib = use_eclib
         if not self._p.is_prime():
             raise ValueError, "p (=%s) must be a prime"%p
         if E.conductor() % (self._p)**2 == 0:
             raise NotImplementedError, "p (=%s) must be a prime of semi-stable reduction"%p
 
-        # this factor adjusts the p-adic L-series so that it is correct for any element of the isogeny class
-        crla = parse_cremona_label(E.label())
-        cr0 = Integer(crla[0]).str() + crla[1] + '1'
-        E0 = EllipticCurve(cr0)
-        q = E0.period_lattice().basis()[0]/E.period_lattice().basis()[0]*E0.real_components()/E.real_components()
-        self._quotient_of_periods = QQ(gp.bestappr(q,200))
+        try :
+            crla = E.label()
+        except RuntimeError :
+            print "Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !"
 
-        if use_eclib:
-            self._modular_symbol = ECModularSymbol(E)
+        self._modular_symbol = E.modular_symbol(sign=+1, use_eclib = use_eclib, normalize=normalize)
+
+    def __add_negative_space(self):
+        r"""
+        This function add the attribute ``_negative_modular_symbol`` to the class. This may take time
+        and will only be needed when twisting with negative fundamental discriminants.
+        """
+        if self._use_eclib:
+            verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
+            # once there is a eclib implementation of -1, this should be changed.
+            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
         else:
-            self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
+            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+
+    def __cmp__(self,other):
+        r"""
+        Compare self and other.
+
+        TESTS::
+            sage: lp1 = EllipticCurve('11a1').padic_lseries(5)
+            sage: lp2 = EllipticCurve('11a1').padic_lseries(7)
+            sage: lp3 = EllipticCurve('11a2').padic_lseries(5)
+            sage: lp1 == lp1
+            True
+            sage: lp1 == lp2
+            False
+            sage: lp1 == lp3
+            False
+
+        """
+        c = cmp(type(self), type(other))
+        if c:
+            return c
+        return cmp((self._E, self._p), (other._E, other._p))
+
 
     def elliptic_curve(self):
-        """
-        Return the elliptic curve to which this p-adic L-series is associated.
+        r"""
+        Return the elliptic curve to which this `p`-adic L-series is associated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.elliptic_curve()
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -115,8 +165,11 @@ class pAdicLseries(SageObject):
         return self._E
 
     def prime(self):
-        """
-        EXAMPLES:
+        r"""
+        Returns the prime `p` as in 'p-adic L-function'.
+
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.prime()
             5
@@ -124,58 +177,154 @@ class pAdicLseries(SageObject):
         return self._p
 
     def _repr_(self):
-        """
+        r"""
         Return print representation.
+
+        EXAMPLES::
 
             sage: e = EllipticCurve('37a')
             sage: e.padic_lseries(3)
             3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: e.padic_lseries(3,normalize=False)
+            sage: e.padic_lseries(3,normalize='none')
             3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field (not normalized)
-            sage: L = e.padic_lseries(3,normalize=False)
+            sage: L = e.padic_lseries(3,normalize='none')
             sage: L.rename('(factor)*L_3(T)')
             sage: L
             (factor)*L_3(T)
         """
         s = "%s-adic L-series of %s"%(self._p, self._E)
-        if not self._normalize:
+        if not self._normalize == 'L_ratio':
             s += ' (not normalized)'
         return s
 
-    def modular_symbol(self, r):
-        """
-        Return the modular symbol used to compute this p-adic
-        L-series evaluated at r.
-
-        EXAMPLES:
-            sage: L = EllipticCurve('11a').padic_lseries(5)
-            sage: [L.modular_symbol(r) for r in [0,1/5,oo,1/11]]
-            [1/5, 6/5, 0, 0]
-        """
-        return self._modular_symbol(r)
-
-    def measure(self, a, n, prec):
+    def modular_symbol(self, r, sign=+1, quadratic_twist= +1):
         r"""
-        Return the measure on $\ZZ_p^*$ defined by
-           $$
-             \mu_{E,\alpha}^+ ( a + p^n \ZZ_p  ) =
-                   \frac{1}{\alpha^n} \modsym{a}{p^n} - \frac{1}{\alpha^{n+1}} \modsym{a}{p^{n-1}}
-           $$
-        that is used to define this $p$-adic $L$-function.
+        Return the modular symbol evaluated at `r`.
+        This is used to compute this `p`-adic
+        L-series.
+
+        Note that the normalisation is not correct at this
+        stage: use ``_quotient_of periods_to_twist`` to correct.
+
+        Note also that this function does not check if the condition
+        on the quadratic_twist=D is satisfied. So the result will only
+        be correct if for each prime `\ell` dividing `D`, we have
+        `ord_{\ell(N)}<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
 
         INPUT:
-            a -- an integer
-            n -- a non-negative integer
-            prec -- an integer
 
-        EXAMPLES:
+        -  ``r`` - a cusp given as either a rational number or oo
+
+        -  ``sign`` - +1 (default) or -1 (only implemented without twists)
+
+        -  ``quadratic_twist`` - a fundamental discriminant of a quardratic field or +1 (default)
+
+        EXAMPLES::
+
+			sage: E = EllipticCurve('11a1')
+            sage: lp = E.padic_lseries(5)
+            sage: [lp.modular_symbol(r) for r in [0,1/5,oo,1/11]]
+            [1/5, 6/5, 0, 0]
+            sage: [lp.modular_symbol(r,sign=-1) for r in [0,1/3,oo,1/7]]
+            [0, 1, 0, -1]
+            sage: [lp.modular_symbol(r,quadratic_twist=-20) for r in [0,1/5,oo,1/11]]
+            [2, 2, 0, 1]
+
+			sage: lpt = E.quadratic_twist(-3).padic_lseries(5)
+			sage: et = E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
+			sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-3)/et
+			True
+
+        """
+        if quadratic_twist == +1 :
+            if sign == +1 :
+                return self._modular_symbol(r)
+            elif sign == -1:
+                try:
+                    m = self._negative_modular_symbol
+                except (KeyError, AttributeError):
+                    if not hasattr(self, '_modular_symbol_negative'):
+                        self.__add_negative_space()
+                        m = self._negative_modular_symbol
+                return m(r)
+        else :
+            D = quadratic_twist
+            if sign == -1:
+                raise NotImplementedError, "Quadratic twists for negative modular symbols are not yet implemented."
+            if D > 0:
+                m = self._modular_symbol
+                s = +1
+            else:
+                try:
+                    m = self._negative_modular_symbol
+                except (KeyError, AttributeError):
+                    if not hasattr(self, '_modular_symbol_negative'):
+                        self.__add_negative_space()
+                        m = self._negative_modular_symbol
+                s = -1
+            # without the ZZ here the u is treated as a 'int' and dividing by D gives 0
+            # this only happens when it is called from __init__ (?)
+            return s * sum([kronecker_symbol(D,u) * m(r+ZZ(u)/D) for u in range(1,abs(D))])
+
+
+    def measure(self, a, n, prec, quadratic_twist=+1 ):
+        r"""
+        Return the measure on `\ZZ_p^*` defined by
+           `
+             \mu_{E,\alpha}^+ ( a + p^n \ZZ_p  ) =
+                   \frac{1}{\alpha^n} \modsym{a}{p^n} - \frac{1}{\alpha^{n+1}} \modsym{a}{p^{n-1}}
+           `
+        that is used to define this `p`-adic L-function (at least when the reduction is good).
+
+        The optional argument quadratic_twist replaces E by the twist in the above formula,
+        but the twisted modular symbol is computed using a sum over modular symbols of `E`
+        rather then finding the modular symbols for the twist.
+
+        Note that the normalisation is not correct at this
+        stage: use  ``_quotient_of periods`` and ``_quotient_of periods_to_twist``
+        to correct.
+
+        Note also that this function does not check if the condition
+        on the ``quadratic_twist=D`` is satisfied. So the result will only
+        be correct if for each prime `\ell` dividing `D`, we have
+        `ord_{\ell}(N)<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
+
+        INPUT:
+
+        -  ``a`` - an integer
+
+        -  ``n`` - a non-negative integer
+
+        -  ``prec`` - an integer
+
+        -  ``quadratic_twist`` (default = 1) - a fundamental discriminant of a quadratic field,
+           should be coprime to the conductor of `E`
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: L = E.padic_lseries(5)
             sage: L.measure(1,2, prec=9)
-            1 + 4*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 4*5^8 + O(5^9)
+            2 + 3*5 + 4*5^3 + 2*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^8 + O(5^9)
+            sage: L.measure(1,2, quadratic_twist=8,prec=15)
+            O(5^15)
+            sage: L.measure(1,2, quadratic_twist=-4,prec=15)
+            4 + 4*5 + 4*5^2 + 3*5^3 + 2*5^4 + 5^5 + 3*5^6 + 5^8 + 2*5^9 + 3*5^12 + 2*5^13 + 4*5^14 + O(5^15)
+
+            sage: E = EllipticCurve('11a1')
+            sage: a = E.quadratic_twist(-3).padic_lseries(5).measure(1,2,prec=15)
+            sage: b = E.padic_lseries(5).measure(1,2, quadratic_twist=-3,prec=15)
+            sage: a == b/E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
+            True
+
         """
+
+        if quadratic_twist > 0:
+            s = +1
+        else:
+            s = -1
         try:
-            p, alpha, z, w, f = self.__measure_data[(n,prec)]
+            p, alpha, z, w, f = self.__measure_data[(n,prec,s)]
         except (KeyError, AttributeError):
             if not hasattr(self, '__measure_data'):
                 self.__measure_data = {}
@@ -183,41 +332,62 @@ class pAdicLseries(SageObject):
             alpha = self.alpha(prec=prec)
             z = 1/(alpha**n)
             w = p**(n-1)
-            f = self._modular_symbol
-            self.__measure_data[(n,prec)] = (p,alpha,z,w,f)
+            if s == +1 :
+                f = self._modular_symbol
+            else :
+                try :
+                    f = self._negative_modular_symbol
+                except (KeyError, AttributeError):
+                    if not hasattr(self, '_modular_symbol_negative'):
+                        self.__add_negative_space()
+                        f = self._negative_modular_symbol
+            self.__measure_data[(n,prec,s)] = (p,alpha,z,w,f)
 
-        if self._E.conductor() % p == 0:
-            return z * f(a/(p*w))
-        return z * f(a/(p*w)) - (z/alpha) * f(a/w)
+        if quadratic_twist == 1:
+            if self._E.conductor() % p == 0:
+                return z * f(a/(p*w))
+            return z * f(a/(p*w)) - (z/alpha) * f(a/w)
+        else:
+            D = quadratic_twist
+            chip = kronecker_symbol(D,p)
+            if self._E.conductor() % p == 0:
+                mu = chip**n * z * sum([kronecker_symbol(D,u) * f(a/(p*w)+ZZ(u)/D) for u in range(1,abs(D))])
+            else:
+                mu = chip**n * sum([kronecker_symbol(D,u) *(z * f(a/(p*w)+ZZ(u)/D) - chip *(z/alpha)* f(a/w+ZZ(u)/D)) for u in range(1,abs(D))])
+            return s*mu
 
     def alpha(self, prec=20):
         r"""
-        Return a p-adic root $\alpha$ of the polynomial $x^2 - a_p x
-        + p$ with $\ord_p(\alpha) < 1$.  In the ordinary case this is
+        Return a `p`-adic root `\alpha` of the polynomial `x^2 - a_p x
+        + p` with `ord_p(\alpha) < 1`.  In the ordinary case this is
         just the unit root.
 
         INPUT:
-            prec -- positive integer, the p-adic precision of the root.
+        -  ``prec`` - positive integer, the `p`-adic precision of the root.
 
         EXAMPLES:
-        Consider the elliptic curve 37a:
+        Consider the elliptic curve 37a::
+
             sage: E = EllipticCurve('37a')
 
-        An ordinary prime:
+        An ordinary prime::
+
             sage: L = E.padic_lseries(5)
             sage: alpha = L.alpha(10); alpha
             3 + 2*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + 2*5^7 + 5^8 + 5^9 + O(5^10)
             sage: alpha^2 - E.ap(5)*alpha + 5
             O(5^10)
 
-        A supersingular prime.
+        A supersingular prime::
+
             sage: L = E.padic_lseries(3)
             sage: alpha = L.alpha(10); alpha
             (1 + O(3^10))*alpha
             sage: alpha^2 - E.ap(3)*alpha + 3
             (O(3^10))*alpha^2 + (O(3^11))*alpha + (O(3^11))
 
-        A reducible prime:
+        A reducible prime::
+
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.alpha(5)
             1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + O(5^5)
@@ -254,21 +424,22 @@ class pAdicLseries(SageObject):
             return a
 
     def order_of_vanishing(self):
-        """
-        Return the order of vanishing of this $p$-adic $L$-series.
+        r"""
+        Return the order of vanishing of this `p`-adic L-series.
 
         The output of this function is provably correct, due to a
         theorem of Kato.  This function will terminate if and only if
-        the Mazur-Tate-Teitelbaum analogue of the BSD conjecture about
+        the Mazur-Tate-Teitelbaum analogue [MTT]_ of the BSD conjecture about
         the rank of the curve is true and the subgroup of elements of
-        p-power order in the Shafarevich-Tate group of this curve is
-        finite.  I.e., if this function terminates (with no errors!),
-        then you may conclude that the p-adic BSD rank conjecture is
-        true and that the p-part of Sha is finite.
+        `p`-power order in the Shafarevich-Tate group of this curve is
+        finite.  I.e. if this function terminates (with no errors!),
+        then you may conclude that the `p`-adic BSD rank conjecture is
+        true and that the `p`-part of Sha is finite.
 
-        NOTE: currently $p$ must be a prime of good ordinary reduction.
+        NOTE: currently `p` must be a prime of good ordinary reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(3)
             sage: L.order_of_vanishing()
             0
@@ -286,7 +457,8 @@ class pAdicLseries(SageObject):
             0
 
         We verify that Sha(E)(p) is finite for p=3,5,7 for the
-        first curve of rank 2:
+        first curve of rank 2::
+
             sage: e = EllipticCurve('389a')
             sage: for p in primes(3,10):
             ...    print p, e.padic_lseries(p).order_of_vanishing()
@@ -328,12 +500,15 @@ class pAdicLseries(SageObject):
         Return Teichmuller lifts to the given precision.
 
         INPUT:
-            prec -- a positive integer.
+
+        - ``prec`` - a positive integer.
 
         OUTPUT:
-            the cached Teichmuller lifts
 
-        EXAMPLES:
+        - a list of `p`-adic numbers, the cached Teichmuller lifts
+
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(7)
             sage: L.teichmuller(1)
             [0, 1, 2, 3, 4, 5, 6]
@@ -353,43 +528,108 @@ class pAdicLseries(SageObject):
         w = (1+T)**(p**n) - 1
         return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
-    def _get_series_from_cache(self, n, prec):
+    def _get_series_from_cache(self, n, prec, D):
         try:
-            return self.__series[(n,prec)]
+            return self.__series[(n,prec,D)]
         except AttributeError:
             self.__series = {}
         except KeyError:
-            for _n, _prec in self.__series.keys():
-                if _n == n and _prec <= prec:
-                    return self.__series[(_n,_prec)].add_bigoh(prec)
+            for _n, _prec, _D in self.__series.keys():
+                if _n == n and _D == D and _prec <= prec:
+                    return self.__series[(_n,_prec,_D)].add_bigoh(prec)
         return None
 
-    def _set_series_in_cache(self, n, prec, f):
-        self.__series[(n,prec)] = f
+    def _set_series_in_cache(self, n, prec, D, f):
+        self.__series[(n,prec,D)] = f
+
+
+    def _quotient_of_periods_to_twist(self,D):
+        r"""
+        For a fundamental discriminant `D` of a quadratic number field this computes the constant `\eta` such that
+        `\sqrt{D}\cdot\Omega_{E_D}^{+} =\eta\cdot \Omega_E^{sign(D)}`. As in [MTT]_ page 40.
+        This is either 1 or 2 unless the condition on the twist is not satisfied, e.g. if we are 'twisting back'
+        to a semi-stable curve.
+
+        .. [MTT] Mazur, Tate, Teitelbaum. `p`-adic BSD
+
+        No check on precision is made, so this may fail for huge `D`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37b1')
+            sage: lp = E.padic_lseries(3)
+            sage: lp._quotient_of_periods_to_twist(-20)
+            1
+            sage: lp._quotient_of_periods_to_twist(-4)
+            1
+            sage: lp._quotient_of_periods_to_twist(-3)
+            1
+            sage: lp._quotient_of_periods_to_twist(-8)
+            2
+            sage: lp._quotient_of_periods_to_twist(8)
+            2
+            sage: lp._quotient_of_periods_to_twist(5)
+            1
+            sage: lp._quotient_of_periods_to_twist(12)
+            1
+
+            sage: E = EllipticCurve('11a1')
+            sage: Et = E.quadratic_twist(-3)
+            sage: lpt = Et.padic_lseries(5)
+            sage: lpt._quotient_of_periods_to_twist(-3)
+            6
+
+        """
+        # This funciton does not depend on p and could be moved out of this file but it is needed only here
+
+        # Note that the number of real components does not change by twisting.
+        if D == 1:
+            return 1
+        if D > 1:
+            Et = self._E.quadratic_twist(D)
+            qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
+            qt *= sqrt(qt.parent()(D))
+        else:
+            Et = self._E.quadratic_twist(D)
+            qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[1].imag()
+            qt *= sqrt(qt.parent()(-D))
+        verbose('the real approximation is %s'%qt)
+        # we know from MTT that the result has a denominator 1
+        return QQ(int(round(8*qt)))/8
 
 
 class pAdicLseriesOrdinary(pAdicLseries):
-    def series(self, n=2, prec=5):
+    def series(self, n=2, quadratic_twist=+1, prec=5):
         r"""
-        Return the $n$-th approximation to the $p$-adic $L$-series as
-        a power series in $T$ (corresponding to $\gamma-1$ with
-        $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
-        coefficient is a $p$-adic number whose precision is provably
+        Return the `n`-th approximation to the `p`-adic L-series as
+        a power series in `T` (corresponding to `\gamma-1` with
+        `\gamma=1+p` as a generator of `1+p\mathbb{Z}_p`).  Each
+        coefficient is a `p`-adic number whose precision is provably
         correct.
 
-        INPUT:
-            n -- (default: 2) a positive integer
-            prec -- (default: 5) maxima number of terms of the series
-                    to compute; to compute as many as possible just
-                    give a very large number for prec; the result will
-                    still be correct.
+        Here the normalization of the `p`-adic L-series is chosen
+        such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
+        where `\alpha` is the unit root of the characteristic
+        polynomial of Frobenius on `T_pE` and `\Omega_E` is the
+        Neron period of `E`.
 
-        ALIAS:
-            power_series is identical to series.
+        INPUT:
+
+        -  ``n`` - (default: 2) a positive integer
+
+        -  ``quadratic_twist`` - (default: +1) a fundamental discriminant
+           of a qudratic field, coprime to the
+           conductor of the curve
+        -  ``prec`` - (default: 5) maxima number of terms of the series
+           to compute; to compute as many as possible just
+           give a very large number for prec; the result will
+           still be correct.
+
+        ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        We compute some $p$-adic $L$-functions associated to the elliptic
-        curve 11a.
+        We compute some `p`-adic L-functions associated to the elliptic
+        curve 11a::
 
             sage: E = EllipticCurve('11a')
             sage: p = 3
@@ -401,8 +641,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
         Another example at a prime of bad reduction, where the
-        $p$-adic $L$-function has an extra 0 (compared to the non
-        $p$-adic $L$-function).
+        `p`-adic L-function has an extra 0 (compared to the non
+        `p`-adic L-function)::
 
             sage: E = EllipticCurve('11a')
             sage: p = 11
@@ -412,7 +652,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(2)
             O(11^4) + (10 + O(11))*T + (6 + O(11))*T^2 + (2 + O(11))*T^3 + (5 + O(11))*T^4 + O(T^5)
 
-        We compute a $p$-adic $L$-function that vanishes to order $2$.
+        We compute a `p`-adic L-function that vanishes to order 2::
+
             sage: E = EllipticCurve('389a')
             sage: p = 3
             sage: E.is_ordinary(p)
@@ -424,13 +665,45 @@ class pAdicLseriesOrdinary(pAdicLseries):
             O(3^4) + O(3)*T + (2 + O(3))*T^2 + O(T^3)
             sage: L.series(3)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
+
+        Rather than computing the `p`-adic L-function for the curve '15523a1', one can
+        compute it as a quadratic_twist::
+
+            sage: E = EllipticCurve('43a1')
+            sage: lp = E.padic_lseries(3)
+            sage: lp.series(2,quadratic_twist=-19)
+            2 + 2*3 + 2*3^2 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
+            sage: E.quadratic_twist(-19).label()    #optional --- since the conductor is greater than 10000, this needs the optional package 'database_cremona_ellcurve-20071019'
+            '15523a1'
+
+        This proves that the rank of '15523a1' is zero, even if mwrank can not determine this.
+
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
+        # check if the conditions on quadratic_twist are satisfied
+        D = ZZ(quadratic_twist)
+        if D != 1:
+            if D % 4 == 0:
+                d = D//4
+                if not d.is_squarefree() or d % 4 == 1:
+                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+            else:
+                if not D.is_squarefree() or D % 4 != 1:
+                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+            if gcd(D,self._p) != 1:
+                raise ValueError, "quadratic twist (=%s) must be coprime to p (=%s) "%(D,self._p)
+            if gcd(D,self._E.conductor())!= 1:
+                for ell in prime_divisors(D):
+                    if valuation(self._E.conductor(),ell) > valuation(D,ell) :
+                        raise ValueError, "can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D)
+
 
         p = self._p
+        if p == 2 and self._normalize :
+            print 'Warning : For p=2 the normalization might not be correct !'
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
         bounds = self._prec_bounds(n,prec)
@@ -440,7 +713,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         res_series_prec = min(p**(n-1), prec)
         verbose("using series precision of %s"%res_series_prec)
 
-        ans = self._get_series_from_cache(n, res_series_prec)
+        ans = self._get_series_from_cache(n, res_series_prec,D)
         if not ans is None:
             verbose("found series in cache")
             return ans
@@ -465,11 +738,12 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += self.measure(b, n, padic_prec).lift()
+                s += self.measure(b, n, padic_prec,quadratic_twist=D).lift()
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
+        verbose("the series before adjusting the precision is %s"%L)
         # Now create series but with each coefficient truncated
         # so it is proven correct:
         K = Qp(p, padic_prec, print_mode='series')
@@ -478,20 +752,24 @@ class pAdicLseriesOrdinary(pAdicLseries):
         aj = L.list()
         if len(aj) > 0:
             aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
-        L = R(aj,res_series_prec ) * self._quotient_of_periods
+        L = R(aj,res_series_prec )
 
-        self._set_series_in_cache(n, res_series_prec, L)
+        L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+
+        self._set_series_in_cache(n, res_series_prec, D, L)
 
         return L
 
     power_series = series
 
+
     def is_ordinary(self):
         """
-        Return True if the elliptic that this $L$-function is attached
+        Return True if the elliptic that this L-function is attached
         to is ordinary.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.is_ordinary()
             True
@@ -503,7 +781,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
         Return True if the elliptic that this L function is attached
         to is supersingular.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.is_supersingular()
             False
@@ -535,26 +814,34 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
 class pAdicLseriesSupersingular(pAdicLseries):
-    def series(self, n=3, prec=5):
+    def series(self, n=3, quadratic_twist = +1, prec=5):
         r"""
-        Return the $n$-th approximation to the $p$-adic $L$-series as a
-        power series in $T$ (corresponding to $\gamma-1$ with
-        $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
-        coefficient is a $p$-adic number whose precision is probably
-        correct.
+        Return the `n`-th approximation to the `p`-adic L-series as a
+        power series in `T` (corresponding to `\gamma-1` with
+        `\gamma=1+p` as a generator of `1+p\mathbb{Z}_p`).  Each
+        coefficient is an element of a quadratic extension of the `p`-adic
+        number whose precision is probably correct.
+
+        Here the normalization of the `p`-adic L-series is chosen
+        such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
+        where `\alpha` is the unit root of the characteristic
+        polynomial of Frobenius on `T_pE` and `\Omega_E` is the
+        Neron period of `E`.
 
         INPUT:
-            n -- (default: 3) a positive integer
-            prec -- (default: 5) maxima number of terms of the series
-                    to compute; to compute as many as possible just
-                    give a very large number for prec; the result will
-                    still be correct.
 
-        ALIAS:
-            power_series is identical to series.
+        - ``n`` - (default: 3) a positive integer
+
+        - ``prec`` - (default: 5) maxima number of terms of the series
+          to compute; to compute as many as possible just
+          give a very large number for prec; the result will
+          still be correct.
+
+        ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        A superingular example, where we must compute to higher precision to see anything.
+        A superingular example, where we must compute to higher precision to see anything::
+
             sage: e = EllipticCurve('37a')
             sage: L = e.padic_lseries(3); L
             3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
@@ -569,13 +856,31 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
+#        if quadratic_twist != +1 :
+#            raise NotImplementedError, "twists are not implemented for supersingular primes, so far."
+
+        # check if the conditions on quadratic_twist are satisfied
+        D = quadratic_twist
+        if D != 1:
+            if D % 4 == 0:
+                d = D//4
+                if not d.is_squarefree() or d % 4 == 1:
+                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+            else:
+                if not D.is_squarefree() or D % 4 != 1:
+                    raise ValueError, "quadratic_twist (=%s) must be a fundamental discriminant of a quadratic field"%D
+            if gcd(D,self._p*self._E.conductor()) != 1:
+                raise ValueError, "quadratic twist (=%s) must be coprime to p (=%s) and the conductor of the curve (%s) "%(D,self._p,self._E.conductor())
 
         p = self._p
+        if p == 2 and self._normalize :
+            print 'Warning : for p == 2 the normalization might not be correct !'
+
         prec = min(p**(n-1), prec)
         bounds = self._prec_bounds(n,prec)
         padic_prec = max(sum(bounds[1:],[])) + 5
         verbose("using p-adic precision of %s"%padic_prec)
-        ans = self._get_series_from_cache(n, prec)
+        ans = self._get_series_from_cache(n, prec, quadratic_twist)
         if not ans is None:
             verbose("found series in cache")
             return ans
@@ -600,7 +905,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += self.measure(b, n, padic_prec)
+                s += self.measure(b, n, padic_prec,quadratic_twist=D)
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
@@ -613,8 +918,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
             bj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
             bj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
             L = R(bj, prec)
-        L = L * self._quotient_of_periods
-        self._set_series_in_cache(n, prec, L)
+        L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+        self._set_series_in_cache(n, prec, quadratic_twist, L)
         return L
 
     power_series = series
@@ -633,33 +938,33 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
 
 
-    def Dp_valued_series(self, n=3, prec=5):
+    def Dp_valued_series(self, n=3, quadratic_twist = +1, prec=5):
         r"""
         Returns a vector of two components which are p-adic power series.
         The answer v is such that
-            $$(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \varphi(\omega)$$
-        as an element of the Dieudonne module $D_p(E) = H^1_{dR}(E/\QQ_p)$ where
-        $\omega$ is the invariant differential and $\varphi$ is the Frobenius on $D_p(E)$.
-        According to the p-adic BSD this function has a zero of order
+            `(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \varphi(\omega)`
+        as an element of the Dieudonne module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
+        `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
+        According to the `p`-adic BSD this function has a zero of order
         rank(E(Q)) and it's leading term is
-        \begin{verbatim}
-           +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E).
-        \end{verbatim}
+        ``#Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E)``.
 
 
         INPUT:
-            n -- (default: 3) a positive integer
-            prec -- (default: 5) a positive integer
 
-        EXAMPLES:
+        -  ``n`` - (default: 3) a positive integer
+        -  ``prec`` - (default: 5) a positive integer
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(4)
-	    (4 + 4*5^2 + O(5^4) + (1 + O(5))*T + (4 + O(5))*T^2 + (1 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5), O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + (3 + O(5))*T^4 + O(T^5))
+            (1 + 4*5 + 4*5^3 + O(5^4) + (4 + O(5))*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + (2 + O(5))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p
-        lps = self.series(n, prec=prec)
+        lps = self.series(n, quadratic_twist=quadratic_twist, prec=prec)
 
         # now split up the series in two lps = G + H * alpha
         R = lps.base_ring().base_ring() # Qp
@@ -677,18 +982,19 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def frobenius(self, prec=20, method = "mw"):
         r"""
-        This returns a geometric Frobenius $\varphi$ on the Diedonne module $D_p(E)$
-        with respect to the basis $\omega$, the invariant differential and $\eta=x\omega$.
-        It satisfies  $phi^2 - a_p/p*phi + 1/p = 0$.
+        This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
+        with respect to the basis `\omega`, the invariant differential and `\eta=x\omega`.
+        It satisfies  `phi^2 - a_p/p phi + 1/p = 0`.
 
         INPUT:
-            prec -- (default: 20) a positive integer
-            method -- either "mw" (default) for Monsky-Washintzer
-                      or "approx" for the method describedby Bernardi and Perrin-Riou
-                      (much slower)
+        -  ``prec`` - (default: 20) a positive integer
+        -  ``method`` - either 'mw' (default) for Monsky-Washintzer
+           or 'approx' for the method described by Bernardi and Perrin-Riou
+           (much slower)
 
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: phi = L.frobenius(5)
@@ -738,9 +1044,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return 1/p*frn
 
 
-    # returns the phi using the definition of bernardi-perrin-riou on page 232.
 
     def __phi_bpr(self, prec=0):
+        """
+        Returns the phi using the definition of bernardi-perrin-riou on page 232.
+        """
         E = self._E
         p = self._p
         if prec > 10:
@@ -805,10 +1113,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def bernardi_sigma_function(self, prec=20):
         r"""
-        Return the  p-adic sigma function of Bernardi in terms of $z = log(t)$.
-        This is the same as padic_sigma with E2 = 0.
+        Return the  `p`-adic sigma function of Bernardi in terms of `z = log(t)`.
+        This is the same as ``padic_sigma`` with ``E2 = 0``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.bernardi_sigma_function(5) # Todo: some sort of consistency check!?
@@ -835,22 +1144,22 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_height(self,prec=20):
         r"""
-        Returns the canonical $p$-adic height with values in the Dieudonne module $D_p(E)$.
+        Returns the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
         It is defined to be
-            $$h_{\eta} \cdot \omega - h_{\omega} \cdot \eta$$
-        where $h_{\eta}$ is made out of the sigma function of Bernardi and
-        $h_{\omega}$ is $-log^2$.
-        The answer $v$ is given as $v[1]*omega + v[2]*eta$.
-        The coordinates of $v$ are dependent of the
+            `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
+        where `h_{\eta}` is made out of the sigma function of Bernardi and
+        `h_{\omega}` is `-log^2`.
+        The answer ``v`` is given as ``v[1]*omega + v[2]*eta``.
+        The coordinates of ``v`` are dependent of the
         Weierstrass equation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('53a')
             sage: L = E.padic_lseries(5)
             sage: h = L.Dp_valued_height(7)
             sage: h(E.gens()[0])
-            (2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
-            4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
+            (3*5 + 5^2 + 2*5^3 + 3*5^4 + 4*5^5 + 5^6 + 5^7 + O(5^8), 5^2 + 4*5^4 + 2*5^7 + 3*5^8 + O(5^9))
         """
         E = self._E
         p = self._p
@@ -870,7 +1179,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
             if P.is_finite_order():
                 return Qp(p,prec)(0)
             if check:
-                assert P.curve() == E, "the point P must lie on the curve from which the height function was created"
+                assert P.curve() == E, 'the point P must lie on the curve from which the height function was created'
+
             Q = n * P
             tt = - Q[0]/Q[1]
             R = Qp(p,prec+5)
@@ -885,29 +1195,29 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             R = Qp(p,prec)
 
-            return vector([R(heta),-R(homega)])
+            return vector([-R(heta),R(homega)])
 
         return height
 
 
 
     def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
-        """
-        Returns the canonical $p$-adic regulator with values in the Dieudonne module $D_p(E)$
-        as defined by Perrin-Riou using the $p$-adic height with values in $D_p(E)$.
-        The result is written in the basis $\omega$, $\varphi(\omega)$, and hence the
+        r"""
+        Returns the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
+        as defined by Perrin-Riou using the `p`-adic height with values in `D_p(E)`.
+        The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.
 
-        NOTE:
-            The definition here is corrected with repect to Perrin-Riou's article
-            'Arithm\'etique des courbes elliptiques \`a r\'eduction supersinguli\`ere en $p$'.
+        NOTE: The definition here is corrected with repect to Perrin-Riou's article [PR]_
+        .. [PR] Arithmétique des courbes elliptiques à réduction supersingulière en `p`'.
 
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('43a')
             sage: L = E.padic_lseries(7)
             sage: L.Dp_valued_regulator(7)
-            (2*7 + 2*7^3 + 2*7^4 + 5*7^5 + 6*7^6 + 2*7^7 + O(7^8), 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 2*7^7 + O(7^8))
+            (5*7 + 6*7^2 + 4*7^3 + 4*7^4 + 7^5 + 4*7^7 + O(7^8), 4*7^2 + 2*7^3 + 3*7^4 + 7^5 + 6*7^6 + 4*7^7 + O(7^8))
         """
 
         p = self._p

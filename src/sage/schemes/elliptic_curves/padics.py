@@ -52,21 +52,26 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def padic_lseries(self, p, normalize=True, use_eclib=False):
+def padic_lseries(self, p, normalize='L_ratio', use_eclib=False):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
     approximation to the true `p`-adic `L`-series to
-    any deesired precision.
+    any desired precision.
 
     INPUT:
 
 
     -  ``p`` - prime
 
-    -  ``normalize`` - (default: True); if True the p-adic
-       L-series is normalized correctly (up to multiplication by -1 and
-       2); otherwise it isn't, but computation of the series is quicker.
+    -  ``use_eclib`` - bool (default:False); whether or not to use
+       John Cremona's eclib for the computation of modular
+       symbols
+
+    -  ``normalize`` -  'L_ratio' (default), 'period' or 'none';
+       this is describes the way the modular symbols
+       are normalized. See modular_symbol for
+       more details.
 
 
     EXAMPLES::
@@ -118,21 +123,13 @@ def padic_lseries(self, p, normalize=True, use_eclib=False):
         sage: P(0)
         3 + 3^2 + 2*3^4 + 2*3^5 + O(3^6)
 
-    We can use eclib to compute the `L`-series. (but we don't
-    normalize the result yet)
-
-    ::
+    We can use eclib to compute the `L`-series::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(3,normalize=False,use_eclib=True)
-        sage: P1 = L.series(5,10)
-        sage: L = e.padic_lseries(3,normalize=False,use_eclib=False)
-        sage: P2 = L.series(5,10)
-        sage: P2*= P1(0) / P2(0)  #rescale P2 such that the constant term agrees with P1
-        sage: T = P1.parent().gen()
-        sage: Q = sum([O(3^5)*T^i for i in range(9)]) + O(T^9) #essentially zero
-        sage: Q == Q + (P1 - P2)                   #check that every term agrees up to O(3^4)
-        True
+        sage: L = e.padic_lseries(3,use_eclib=True)
+        sage: L.series(5,prec=10)
+        1 + 2*3^3 + 3^6 + O(3^7) + (2 + 2*3 + 3^2 + O(3^4))*T + (2 + 3 + 3^2 + 2*3^3 + O(3^4))*T^2 + (2*3 + 3^2 + O(3^3))*T^3 + (3 + 2*3^3 + O(3^4))*T^4 + (1 + 2*3 + 2*3^2 + O(3^4))*T^5 + (2 + 2*3^2 + O(3^3))*T^6 + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T^7 + (1 + 2*3 + 3^2 + 2*3^3 + O(3^4))*T^8 + (1 + 3 + O(3^2))*T^9 + O(T^10)
+
     """
     key = (p, normalize)
     try:
@@ -141,8 +138,6 @@ def padic_lseries(self, p, normalize=True, use_eclib=False):
         self._padic_lseries = {}
     except KeyError:
         pass
-    if use_eclib and normalize:
-        raise NotImplementedError, "Cannot compute normalized l-series for elliptic curves using eclib (yet)."
 
     if self.ap(p) % p != 0:
         Lp = plseries.pAdicLseriesOrdinary(self, p,
@@ -153,11 +148,11 @@ def padic_lseries(self, p, normalize=True, use_eclib=False):
     self._padic_lseries[key] = Lp
     return Lp
 
+
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
     Computes the cyclotomic p-adic regulator of this curve.
 
-    This curve must be in minimal weierstrass form.
 
     INPUT:
 
@@ -200,18 +195,18 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
 
         sage: E = EllipticCurve("37a")
         sage: E.padic_regulator(5, 10)
-        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + O(5^10)
 
     An anomalous case::
 
         sage: E.padic_regulator(53, 10)
-        27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + O(53^9)
+        26*53^-1 + 30 + 20*53 + 47*53^2 + 10*53^3 + 32*53^4 + 9*53^5 + 22*53^6 + 35*53^7 + 30*53^8 + O(53^9)
 
     An anomalous case where the precision drops some::
 
         sage: E = EllipticCurve("5077a")
         sage: E.padic_regulator(5, 10)
-        4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^8 + 3*5^9 + O(5^10)
+        5 + 5^2 + 4*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)
 
     Check that answers agree over a range of precisions::
 
@@ -225,7 +220,15 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
 
         sage: E = EllipticCurve([37,0])
         sage: E.padic_regulator(5,10)
-        3*5^2 + 2*5^3 + 3*5^4 + 3*5^5 + 4*5^7 + 5^8 + O(5^10)
+        2*5^2 + 2*5^3 + 5^4 + 5^5 + 4*5^6 + 3*5^8 + 4*5^9 + O(5^10)
+
+    The result is not dependend on the model for the curve::
+
+        sage: E = EllipticCurve([0,0,0,0,2^12*17])
+        sage: Em = E.minimal_model()
+        sage: E.padic_regulator(7) == Em.padic_regulator(7)
+        True
+
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -258,8 +261,6 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     this curve with respect to the basis self.gens() for the
     Mordell-Weil group for a given odd prime p of good ordinary
     reduction.
-
-    This curve must be in minimal weierstrass form.
 
     INPUT:
 
@@ -295,24 +296,25 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
 
         sage: E = EllipticCurve("37a")
         sage: E.padic_height_pairing_matrix(5, 10)
-        [4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)]
+        [5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + O(5^10)]
 
     A rank two example::
 
         sage: e =EllipticCurve('389a')
         sage: e._set_gens([e(-1, 1), e(1,0)])  # avoid platform dependent gens
         sage: e.padic_height_pairing_matrix(5,10)
-        [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^10)           4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + 2*5^9 + O(5^10)]
-        [          4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + 2*5^9 + O(5^10)             5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^6 + 4*5^9 + O(5^10)]
+        [                      3*5 + 2*5^2 + 5^4 + 5^5 + 5^7 + 4*5^9 + O(5^10) 5 + 4*5^2 + 5^3 + 2*5^4 + 3*5^5 + 4*5^6 + 5^7 + 5^8 + 2*5^9 + O(5^10)]
+        [5 + 4*5^2 + 5^3 + 2*5^4 + 3*5^5 + 4*5^6 + 5^7 + 5^8 + 2*5^9 + O(5^10)                         4*5 + 2*5^4 + 3*5^6 + 4*5^7 + 4*5^8 + O(5^10)]
 
     An anomalous rank 3 example::
 
         sage: e = EllipticCurve("5077a")
         sage: e._set_gens([e(-1,3), e(2,0), e(4,6)])
         sage: e.padic_height_pairing_matrix(5,4)
-        [                1 + 5 + O(5^4)       1 + 4*5 + 2*5^3 + O(5^4)           2*5 + 3*5^3 + O(5^4)]
-        [      1 + 4*5 + 2*5^3 + O(5^4)       2 + 5^2 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4)]
-        [          2*5 + 3*5^3 + O(5^4)     3 + 4*5^2 + 4*5^3 + O(5^4) 4 + 5 + 3*5^2 + 3*5^3 + O(5^4)]
+        [4 + 3*5 + 4*5^2 + 4*5^3 + O(5^4)       4 + 4*5^2 + 2*5^3 + O(5^4)       3*5 + 4*5^2 + 5^3 + O(5^4)]
+        [      4 + 4*5^2 + 2*5^3 + O(5^4)   3 + 4*5 + 3*5^2 + 5^3 + O(5^4)                 2 + 4*5 + O(5^4)]
+        [      3*5 + 4*5^2 + 5^3 + O(5^4)                 2 + 4*5 + O(5^4)     1 + 3*5 + 5^2 + 5^3 + O(5^4)]
+
     """
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
@@ -532,6 +534,11 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
       checking, and returns the p-adic height of that point to the
       desired precision.
 
+    - The normalization (sign and a factor 1/2 with respect to some other
+      normalizations that appear in the literature) is chosen in such a way
+      as to make the p-adic Birch Swinnerton-Dyer conjecture hold as stated
+      in [Mazur-Tate-Teitelbaum].
+
     AUTHORS:
 
     - Jennifer Balakrishnan: original code developed at the 2006 MSRI
@@ -555,23 +562,23 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: P = E.gens()[0]
         sage: h = E.padic_height(5, 10)
         sage: h(P)
-        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + O(5^10)
 
     An anomalous case::
 
         sage: h = E.padic_height(53, 10)
         sage: h(P)
-        27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
+        26*53^-1 + 30 + 20*53 + 47*53^2 + 10*53^3 + 32*53^4 + 9*53^5 + 22*53^6 + 35*53^7 + 30*53^8 + 17*53^9 + O(53^10)
 
     Boundary case::
 
         sage: E.padic_height(5, 3)(P)
-        4*5 + 3*5^2 + O(5^3)
+        5 + 5^2 + O(5^3)
 
     A case that works the division polynomial code a little harder::
 
         sage: E.padic_height(5, 10)(5*P)
-        4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 4*5^7 + 5^8 + O(5^10)
+        5^3 + 5^4 + 5^5 + 3*5^8 + 4*5^9 + O(5^10)
 
     Check that answers agree over a range of precisions::
 
@@ -587,11 +594,11 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         True
         sage: h = E.padic_height(3, 5)
         sage: h(E.gens()[0])
-        (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^7))
+        (3 + 3^3 + O(3^6), 2*3^2 + 3^3 + 3^4 + 3^5 + 2*3^6 + O(3^7))
         sage: E.padic_regulator(5)
-        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^20)
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + 5^10 + 3*5^11 + 3*5^12 + 5^13 + 4*5^14 + 5^15 + 2*5^16 + 5^17 + 2*5^18 + 4*5^19 + O(5^20)
         sage: E.padic_regulator(3, 5)
-        (2*3 + O(3^3), 2*3^2 + O(3^4))
+        (3 + 2*3^2 + O(3^3), 3^2 + 2*3^3 + O(3^4))
 
     A torsion point in both the good and supersingular cases::
 
@@ -604,6 +611,16 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: h = E.padic_height(5, 5)
         sage: h(P)
         0
+
+    The result is not dependend on the model for the curve:
+        sage: E = EllipticCurve([0,0,0,0,2^12*17])
+        sage: Em = E.minimal_model()
+        sage: P = E.gens()[0]
+        sage: Pm = Em.gens()[0]
+        sage: h = E.padic_height(7)
+        sage: hm = Em.padic_height(7)
+        sage: h(P) == hm(Pm)
+        True
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -669,7 +686,9 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
         L = Qp(p, prec=adjusted_prec)
         total = L(total.lift(), adjusted_prec)   # yuck... get rid of this lift!
-        answer = total.log() * 2 / n**2
+
+        # changed sign to make it correct for p-adic bsd
+        answer = -total.log() * 2 / n**2
 
         if check:
             assert answer.precision_absolute() >= prec, "we should have got an " \
@@ -713,6 +732,11 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
       checking, and returns the p-adic height of that point to the
       desired precision.
 
+    - The normalization (sign and a factor 1/2 with respect to some other
+      normalizations that appear in the literature) is chosen in such a way
+      as to make the p-adic Birch Swinnerton-Dyer conjecture hold as stated
+      in [Mazur-Tate-Teitelbaum].
+
     AUTHORS:
 
     - David Harvey (2008-01): based on the padic_height() function,
@@ -725,13 +749,13 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
         sage: P = E.gens()[0]
         sage: h = E.padic_height_via_multiply(5, 10)
         sage: h(P)
-        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + O(5^10)
 
     An anomalous case::
 
         sage: h = E.padic_height_via_multiply(53, 10)
         sage: h(P)
-        27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
+        26*53^-1 + 30 + 20*53 + 47*53^2 + 10*53^3 + 32*53^4 + 9*53^5 + 22*53^6 + 35*53^7 + 30*53^8 + 17*53^9 + O(53^10)
 
     Supply the value of E2 manually::
 
@@ -740,12 +764,12 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
         2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + O(5^8)
         sage: h = E.padic_height_via_multiply(5, 10, E2=E2)
         sage: h(P)
-        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + O(5^10)
 
     Boundary case::
 
         sage: E.padic_height_via_multiply(5, 3)(P)
-        4*5 + 3*5^2 + O(5^3)
+        5 + 5^2 + O(5^3)
 
     Check that answers agree over a range of precisions::
 
@@ -812,7 +836,9 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
 
         L = Qp(p, prec=adjusted_prec + 2*lamb)
         total = L(total.lift(), adjusted_prec + 2*lamb)
-        answer = total.log() * 2 / (n * p**lamb)**2
+
+        # changed sign to make it correct for p-adic bsd
+        answer = -total.log() * 2 / (n * p**lamb)**2
 
         if check:
             assert answer.precision_absolute() >= prec, "we should have got an " \

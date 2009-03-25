@@ -89,12 +89,11 @@ instances to recover all solutions to the system.::
     sage: P = [1]
     sage: F,s = sr.polynomial_system(P=P, K=K)
     sage: F.groebner_basis()
-    [k002 + 1, k001, k000,
-     s003 + k003 + 1, s002 + k003, s001 + k003,
-     s000 + 1, w103 + k003 + 1, w102 + 1, w101, w100,
-     x103 + k003, x102 + k003 + 1,
-     x101 + k003 + 1, x100 + 1, k103 + k003, k102,
-     k101 + 1, k100]
+    [k100, k101 + 1, k102, k103 + k003,
+     x100 + 1, x101 + k003 + 1, x102 + k003 + 1,
+     x103 + k003, w100, w101, w102 + 1, w103 + k003 + 1,
+     s000 + 1, s001 + k003, s002 + k003, s003 + k003 + 1,
+     k000, k001, k002 + 1]
 
 Note that the order of ``k000``, ``k001``, ``k002`` and ``k003`` is
 little endian. Thus the result ``k002 + 1, k001, k000`` indicates that
@@ -1963,8 +1962,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
         ::
 
-            sage: F.groebner_basis()[:4]
-            [k003 + 1, k001, k000 + 1, s003 + k002]
+            sage: F.groebner_basis()[-3:]
+            [k000 + 1, k001, k003 + 1]
 
         In particular we have two solutions::
 

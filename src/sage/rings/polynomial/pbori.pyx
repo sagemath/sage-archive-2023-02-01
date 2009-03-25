@@ -3,21 +3,18 @@ Boolean Polynomials.
 
 Elements of the quotient ring
 
-
 .. math::
 
     \GF{2}[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
 
-
-
-are called boolean polynomials. Boolean polynomials arise naturally
-in cryptography, coding theory, formal logic, chip design and other
+are called boolean polynomials. Boolean polynomials arise naturally in
+cryptography, coding theory, formal logic, chip design and other
 areas. This implementation is a thin wrapper around the PolyBoRi
 library by Michael Brickenstein and Alexander Dreyer.
 
 "Boolean polynomials can be modelled in a rather simple way, with
 both coefficients and degree per variable lying in
-`\{0, 1\}`. The ring of Boolean polynomials is, however,
+``{0, 1}``. The ring of Boolean polynomials is, however,
 not a polynomial ring, but rather the quotient ring of the
 polynomial ring over the field with two elements modulo the field
 equations `x^2=x` for each variable `x`. Therefore,
@@ -28,18 +25,18 @@ decision diagrams (ZDDs), which is capable of handling these
 polynomials more efficiently with respect to memory consumption and
 also computational speed. Furthermore, we concentrate on high-level
 algorithmic aspects, taking into account the new data structures as
-well as structural properties of Boolean polynomials." - [BD07]
+well as structural properties of Boolean polynomials." - [BD07]_
 
 AUTHORS:
 
--  Michael Brickenstein: PolyBoRi author
+- Michael Brickenstein: PolyBoRi author
 
--  Alexander Dreyer: PolyBoRi author
+- Alexander Dreyer: PolyBoRi author
 
--  Burcin Erocal <burcin@erocal.org>: main Sage wrapper author
+- Burcin Erocal <burcin@erocal.org>: main Sage wrapper author
 
--  Martin Albrecht <malb@informatik.uni-bremen.de>: some
-   contributions to the Sage wrapper
+- Martin Albrecht <malb@informatik.uni-bremen.de>: some
+  contributions to the Sage wrapper
 
 
 EXAMPLES:
@@ -53,14 +50,12 @@ Consider the ideal
 
 
 
-First, we compute the lexicographical Groebner basis in the
-polynomial ring
+First, we compute the lexicographical Groebner basis in the polynomial
+ring
 
 .. math::
 
     R = \GF{2}[a,b,c,d,e].
-
-
 
 ::
 
@@ -75,10 +70,9 @@ polynomial ring
     d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
 
 If one wants to solve this system over the algebraic closure of
-`\GF{2}` then this Groebner basis was the one to
-consider. If one wants solutions over `\GF{2}` only
-then one adds the field polynomials to the ideal to force the
-solutions in `\GF{2}`.
+`\GF{2}` then this Groebner basis was the one to consider. If one
+wants solutions over `\GF{2}` only then one adds the field polynomials
+to the ideal to force the solutions in `\GF{2}`.
 
 ::
 
@@ -96,14 +90,12 @@ So the solutions over `\GF{2}` are
 `\{e=0,
 d=0, c=1, b=1, a=1\}`.
 
-We can express the restriction to `\GF{2}` by
-considering the quotient ring. If `I` is an ideal in
-`\mathbb{F}[x_1, ..., x_n]` then the ideals in the
-quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
-one-to-one correspondence with the ideals of
-`\mathbb{F}[x_0, ..., x_n]` containing `I` (that
-is, the ideals `J` satisfying
-`I \subset J \subset P`).
+We can express the restriction to `\GF{2}` by considering the quotient
+ring. If `I` is an ideal in `\mathbb{F}[x_1, ..., x_n]` then the
+ideals in the quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
+one-to-one correspondence with the ideals of `\mathbb{F}[x_0, ...,
+x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
+\subset P`).
 
 ::
 
@@ -116,9 +108,7 @@ is, the ideals `J` satisfying
     cbar + 1
     ebar
 
-This quotient ring is exactly what PolyBoRi handles well.
-
-::
+This quotient ring is exactly what PolyBoRi handles well::
 
     sage: B.<a,b,c,d,e> = BooleanPolynomialRing(5, order='lex')
     sage: I2 = ideal([B(f) for f in I1.gens()])
@@ -129,24 +119,23 @@ This quotient ring is exactly what PolyBoRi handles well.
     c + 1
     e
 
-Note that `d^2 + d` is not representable in
-`B == Q`. Also note, that PolyBoRi cannot play out its
-strength in such small examples, i.e. working in the polynomial
-ring might be faster for small examples like this.
+Note that `d^2 + d` is not representable in `B == Q`. Also note, that
+PolyBoRi cannot play out its strength in such small examples,
+i.e. working in the polynomial ring might be faster for small examples
+like this.
 
 Implementation specific notes
 -----------------------------
 
 PolyBoRi comes with a Python wrapper. However this wrapper does not
-match Sage's style and is written using Boost. Thus Sage's wrapper
-is a reimplementation of Python bindings to PolyBoRi's C++ library.
-This interface is written in Cython like all of Sage's C/C++
-library interfaces. An interface in PolyBoRi style is also provided
-which is effectively a reimplementation of the official Boost
-wrapper in Cython. This means that some functionality of the
-official wrapper might be missing from this wrapper and this
-wrapper might have bugs not present in the official Python
-interface.
+match Sage's style and is written using Boost. Thus Sage's wrapper is
+a reimplementation of Python bindings to PolyBoRi's C++ library.  This
+interface is written in Cython like all of Sage's C/C++ library
+interfaces. An interface in PolyBoRi style is also provided which is
+effectively a reimplementation of the official Boost wrapper in
+Cython. This means that some functionality of the official wrapper
+might be missing from this wrapper and this wrapper might have bugs
+not present in the official Python interface.
 
 Access to the original PolyBoRi interface
 -----------------------------------------
@@ -169,23 +158,22 @@ For details on this interface see:
 
 http://polybori.sourceforge.net/doc/tutorial/tutorial.html.
 
-Note that due to this duality of this interface some functions do
-not obey Sage's naming convention. For instance,
-``f.zerosIn`` should be called
-``f.zeros_in`` by Sage's standards. However, PolyBoRi
-expects the function ``f.zerosIn``.
+Note that due to this duality of this interface some functions do not
+obey Sage's naming convention. For instance, ``f.zerosIn`` should be
+called ``f.zeros_in`` by Sage's standards. However, PolyBoRi expects
+the function ``f.zerosIn``.
 
 Also, the interface provides functions for compatibility with Sage
 accepting convenient Sage data types which are slower than their
 native PolyBoRi counterparts. For instance, sets of points can be
-represented as tuples of tuples (Sage) or as
-``BooleSet``\s (PolyBoRi) and naturally the second
-option is faster.
+represented as tuples of tuples (Sage) or as ``BooleSet``\s (PolyBoRi)
+and naturally the second option is faster.
 
 REFERENCES:
 
-- [BD07] Michael Brickenstein, Alexander Dreyer; 'PolyBoRi: A Groebner
-  basis framework for Boolean polynomials';
+.. [BD07] Michael Brickenstein, Alexander Dreyer\; *PolyBoRi: A
+  Groebner basis framework for Boolean polynomials*; pre-print
+  available at
   http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
 """
 
@@ -231,64 +219,61 @@ order_mapping = {'lp':   lp,
 cdef BooleanPolynomialRing cur_ring
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
+    """
+    Construct a boolean polynomial ring with the following
+    parameters:
+
+    INPUT:
+
+    -  ``n`` - number of variables (an integer > 1)
+    - ``names`` - names of ring variables, may be a string or
+       list/tuple
+    - ``order`` - term order (default: lex)
+
+    EXAMPLES::
+
+        sage: R.<x, y, z> = BooleanPolynomialRing()
+        sage: R
+        Boolean PolynomialRing in x, y, z
+
+    ::
+
+        sage: p = x*y + x*z + y*z
+        sage: x*p
+        x*y*z + x*y + x*z
+
+    ::
+
+        sage: R.term_order()
+        Lexicographic term order
+
+    ::
+
+        sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
+        sage: R.term_order()
+        deglex(3),deglex(2) term order
+
+    ::
+
+        sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
+        sage: R.term_order()
+        Degree reverse lexicographic term order
+
+    TESTS::
+
+        sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
+        sage: x > y
+        True
+
+    ::
+
+        sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
+        sage: x0 > x1
+        True
+        sage: x2 > x3
+        True
+    """
     def __init__(self, n=None, names=None, order='lex'):
-        """
-        Construct a boolean polynomial ring with the following parameters:
-
-        INPUT:
-
-
-        -  ``n`` - number of variables (an integer > 1)
-
-        -  ``names`` - names of ring variables, may be a string
-           or list/tuple
-
-        -  ``order`` - term order (default: lex)
-
-
-        EXAMPLES::
-
-            sage: R.<x, y, z> = BooleanPolynomialRing()
-            sage: R
-            Boolean PolynomialRing in x, y, z
-
-        ::
-
-            sage: p = x*y + x*z + y*z
-            sage: x*p
-            x*y*z + x*y + x*z
-
-        ::
-
-            sage: R.term_order()
-            Lexicographic term order
-
-        ::
-
-            sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
-            sage: R.term_order()
-            deglex(3),deglex(2) term order
-
-        ::
-
-            sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
-            sage: R.term_order()
-            Degree reverse lexicographic term order
-
-        TESTS::
-
-            sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
-            sage: x > y
-            True
-
-        ::
-
-            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
-            sage: x0 > x1
-            True
-            sage: x2 > x3
-            True
-        """
         cdef Py_ssize_t i, j, bstart, bsize
 
         if names is None:
@@ -1416,35 +1401,33 @@ def get_var_mapping(ring, other):
     return var_mapping
 
 class BooleanMonomialMonoid(Monoid_class):
+    """
+    Construct a boolean monomial monoid given a boolean polynomial
+    ring.
+
+    This object provides a parent for boolean monomials.
+
+    INPUT:
+
+    - ``polring`` - the polynomial ring our monomials lie in
+
+
+    EXAMPLES::
+
+        sage: from polybori import BooleanMonomialMonoid
+        sage: P.<x,y> = BooleanPolynomialRing(2)
+        sage: M = BooleanMonomialMonoid(P)
+        sage: M
+        MonomialMonoid of Boolean PolynomialRing in x, y
+
+    ::
+
+        sage: M.gens()
+        (x, y)
+        sage: type(M.gen(0))
+        <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
+    """
     def __init__(self, BooleanPolynomialRing polring):
-        """
-        Construct a boolean monomial monoid given a boolean polynomial
-        ring.
-
-        This object provides a parent for boolean monomials.
-
-        INPUT:
-
-
-        -  ``polring`` - the polynomial ring our monomials lie
-           in
-
-
-        EXAMPLES::
-
-            sage: from polybori import BooleanMonomialMonoid
-            sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M
-            MonomialMonoid of Boolean PolynomialRing in x, y
-
-        ::
-
-            sage: M.gens()
-            (x, y)
-            sage: type(M.gen(0))
-            <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
-        """
         cdef BooleanMonomial m
         self._ring = polring
         ParentWithGens.__init__(self, GF(2), polring._names)
@@ -1743,29 +1726,28 @@ class BooleanMonomialMonoid(Monoid_class):
         raise TypeError, "cannot convert to BooleanMonomialMonoid"
 
 cdef class BooleanMonomial(MonoidElement):
+    """
+    Construct a boolean monomial object.
+
+    INPUT:
+
+    - ``parent`` - parent monoid this element lies in
+
+
+    EXAMPLE::
+
+        sage: from polybori import BooleanMonomialMonoid, BooleanMonomial
+        sage: P.<x,y,z> = BooleanPolynomialRing(3)
+        sage: M = BooleanMonomialMonoid(P)
+        sage: BooleanMonomial(M)
+        1
+
+    .. note::
+
+       Use the ``__call__`` method of ``BooleanMonomialMonoid``
+       and not this constructor to construct these objects.
+    """
     def __init__(self, parent):
-        r"""
-        Construct a boolean monomial object.
-
-        INPUT:
-
-
-        -  ``parent`` - parent monoid this element lies in
-
-
-        EXAMPLE::
-
-            sage: from polybori import BooleanMonomialMonoid, BooleanMonomial
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: BooleanMonomial(M)
-            1
-
-        .. note::
-
-           Use the ``__call__`` method of ``BooleanMonomialMonoid``
-           and not this constructor to construct these objects.
-        """
         PBMonom_construct(&self._pbmonom)
         _parent = <ParentWithBase>parent
         self._ring = parent._ring
@@ -2306,29 +2288,28 @@ cdef inline BooleanMonomialIterator new_BMI_from_BooleanMonomial(BooleanMonomial
     return m
 
 cdef class BooleanPolynomial(MPolynomial):
+    """
+    Construct a boolean polynomial object in the given boolean
+    polynomial ring.
+
+    INPUT:
+
+    - ``parent`` - a boolean polynomial ring
+
+
+    TEST::
+
+        sage: from polybori import BooleanPolynomial
+        sage: B.<a,b,z> = BooleanPolynomialRing(3)
+        sage: BooleanPolynomial(B)
+        0
+
+    .. note::
+
+        Do not use this method to construct boolean polynomials, but
+        use the appropriate ``__call__`` method in the parent.
+    """
     def __init__(self, parent):
-        r"""
-        Construct a boolean polynomial object in the given boolean
-        polynomial ring.
-
-        INPUT:
-
-
-        -  ``parent`` - a boolean polynomial ring
-
-
-        TEST::
-
-            sage: from polybori import BooleanPolynomial
-            sage: B.<a,b,z> = BooleanPolynomialRing(3)
-            sage: BooleanPolynomial(B)
-            0
-
-        .. note::
-
-           Do not use this method to construct boolean polynomials,
-           but use the appropriate ``__call__`` method in the parent.
-        """
         PBPoly_construct(&self._pbpoly)
         self._parent = <ParentWithBase>parent
 
@@ -3813,8 +3794,8 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         -  ``gens`` - a list of generators
 
-        -  ``coerce`` - coerce all elements to the ring
-           ``ring`` (default: ``True``)
+        - ``coerce`` - coerce all elements to the ring ``ring``
+           (default: ``True``)
 
 
         EXAMPLES::
@@ -3832,56 +3813,52 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         INPUT:
 
+        - ``red_tail`` - tail reductions in intermediate polynomials,
+           this options affects mainly heuristics. The reducedness of
+           the output polynomials can only be guaranteed by the option
+           redsb (default: ``True``)
 
-        -  ``red_tail`` - tail reductions in intermediate
-           polynomials, this options affects mainly heuristics. The
-           reducedness of the output polynomials can only be guaranteed by the
-           option redsb (default: ``True``)
+        - ``minsb`` - return a minimal Groebner basis (default:
+          ``True``)
 
-        -  ``minsb`` - return a minimal Groebner basis
-           (default: ``True``)
+        - ``redsb`` - return a minimal Groebner basis and all tails
+          are reduced (default: ``True``)
 
-        -  ``redsb`` - return a minimal Groebner basis and all
-           tails are reduced (default: ``True``)
+        - ``deg_bound`` - only compute Groebner basis up to a given
+          degree bound (default: ``False``)
 
-        -  ``deg_bound`` - only compute Groebner basis up to a
-           given degree bound (default: ``False``)
+        - ``faugere`` - turn off or on the linear algebra (default:
+          ``False``)
 
-        -  ``faugere`` - turn off or on the linear algebra
-           (default: ``False``)
+        - ``linear_algebra_in_last_block`` - this affects the last
+          block of block orderings and degree orderings. If it is set
+          to ``True`` linear algebra takes affect in this
+          block. (default: ``True``)
 
-        -  ``linear_algebra_in_last_block`` - this affects
-           the last block of block orderings and degree orderings. If it is
-           set to ``True`` linear algebra takes affect in this
-           block.(default: True)
+        - ``selection_size`` - maximum number of polynomials for
+          parallel reductions (default: ``1000``)
 
-        -  ``selection_size`` - maximum number of polynomials
-           for parallel reductions (default: 1000)
+        - ``heuristic`` - Turn off heuristic by setting
+          ``heuristic=False`` (default: ``True``)
 
-        -  ``heuristic`` - Turn off heuristic by setting
-           ``heuristic=False`` (default: ``True``)
+        - ``lazy`` - (default: ``True``)
 
-        -  ``lazy`` - (default: ``True``)
+        - ``invert`` - setting ``invert=True`` input and output get a
+          transformation ``x+1`` for each variable ``x``, which shouldn't
+          effect the calculated GB, but the algorithm.
 
-        -  ``invert`` - setting ``invert=True``
-           input and output get a transformation `x+1` for each
-           variable `x`, which shouldn't effect the calculated GB, but
-           the algorithm.
+        - ``other_ordering_first`` - possible values are ``False`` or
+          an ordering code. In practice, many Boolean examples have
+          very few solutions and a very easy Groebner basis. So, a
+          complex walk algorithm (which cannot be implemented using
+          the data structures) seems unnecessary, as such Groebner
+          bases can be converted quite fast by the normal Buchberger
+          algorithm from one ordering into another
+          ordering. (default: ``False``)
 
-        -  ``other_ordering_first`` - possible values are
-           ``False`` or an ordering code. In practice, many
-           Boolean examples have very few solutions and a very easy Groebner
-           basis. So, a complex walk algorithm (which cannot be implemented
-           using the data structures) seems unnecessary, as such Groebner
-           bases can be converted quite fast by the normal Buchberger
-           algorithm from one ordering into another ordering. (default:
-           ``False``)
+        - ``prot`` - show protocol (default: ``False``)
 
-        -  ``prot`` - show protocol (default: False)
-
-        -  ``full_prot`` - show full protocol (default:
-           False)
-
+        - ``full_prot`` - show full protocol (default: ``False``)
 
         EXAMPLES::
 
@@ -3891,7 +3868,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             [x0*x1 + x0*x2 + x0, x0*x2*x3 + x0*x3]
         """
         try:
-            return Sequence(list(self.__gb), self.ring(), check=False, immutable=True)
+            return Sequence(sorted(self.__gb, reverse=True), self.ring(), check=False, immutable=True)
         except AttributeError:
             pass
         from polybori.gbcore import groebner_basis
@@ -3907,7 +3884,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 g.addAsYouWish(p)
             g.optRedTail=True
             self.__gb = g
-        return Sequence(gb, self.ring(), check=False, immutable=True)
+        return Sequence(sorted(gb,reverse=True), self.ring(), check=False, immutable=True)
 
     def reduce(self, f):
         """
@@ -3937,11 +3914,131 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         except AttributeError:
             self.groebner_basis()
             g = self.__gb
+        g.optRedTail=True
         p = g.nf(f)
         # Michael Brickenstein: For PolyBoRi >0.4 set
-        # strat.optRedTail=True
         #return red_tail(g, p)
         return p
+
+    def interreduced_basis(self):
+        """
+        If this ideal is spanned by ``(f_1, ..., f_n)`` this method
+        returns ``(g_1, ..., g_s)`` such that:
+
+        -  ``(f_1,...,f_n) = (g_1,...,g_s)``
+        -  ``LT(g_i) != LT(g_j)`` for all ``i != j```
+        - ``LT(g_i)`` does not divide ``m`` for all monomials ``m`` of
+          ``{g_1,...,g_{i-1},g_{i+1},...,g_s}``
+
+        EXAMPLE::
+
+            sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: I = F.ideal()
+            sage: I.interreduced_basis()
+            [k000*s000 + k002*s000 + k002*s001 + k002*s003 + k003*s001 + k003*s002 + k003*s003 + s001 + k001 + k003,
+             k000*s001 + k001*s003 + k002*s000 + k002*s001 + k002*s003 + k003*s000 + s001,
+             k000*s002 + k001*s000 + k001*s001 + k001*s003 + k002*s001 + k003*s000 + k003*s002 + s001,
+             k000*s003 + k001*s001 + k001*s002 + k001*s003 + k002*s001 + k003*s000 + k003*s001 + s001 + k001,
+             k001*s000 + k001*s003 + k002*s000 + k002*s001 + k003*s000 + k003*s002 + k003*s003 + s001 + 1,
+             k001*s001 + k001*s003 + k002*s000 + k002*s001 + k002*s003 + k003*s002 + k003*s003 + k003,
+             k001*s002 + k002*s000 + k002*s003 + k003*s001 + k003*s002 + s003 + 1,
+             k001*s003 + k002*s000 + k002*s001 + k002*s002 + s001 + k001 + k003 + 1,
+             k001*k000 + k002*k000 + k003*s002 + k003,
+             k002*s000 + k002*s002 + k003*s001 + k003*s002 + s001 + k000 + k001 + k002,
+             k002*s001 + k002*s003 + k003*s000 + k003*s001 + s003 + k000 + k001 + k003,
+             k002*s002 + k003*s003 + s000 + s001 + k000 + k001 + 1,
+             k002*s003 + k003*s000 + k003*s001 + k003*s002 + k003*s003 + s002 + s003 + k001,
+             k002*k000 + k000 + k002 + 1,
+             k002*k001 + k003*s002 + k003*k002 + k002 + k003,
+             k003*s001 + k003*s002 + k003*s003 + k001,
+             k003*k000 + s001 + 1,
+             k003*k001 + s001 + k000 + k003,
+             k003*k002 + s001 + k002 + 1,
+             k100 + x103 + s001 + s002 + 1,
+             k101 + x102 + x103 + s002,
+             k102 + x100 + x103 + s001 + s002 + s003,
+             k103 + x101 + x102 + x103,
+             x100 + x103 + s001 + s003 + 1,
+             x101 + x102 + x103 + s001 + s002 + s003 + 1,
+             x102 + x103 + s002 + s003 + 1,
+             x103 + s003 + 1,
+             w100 + k000 + 1,
+             w101,
+             w102 + k002 + 1,
+             w103 + k003 + 1,
+             s000 + s001,
+             s001 + k002 + k003 + 1,
+             s002 + k002 + k003 + 1,
+             s003 + k002 + 1,
+             k001]
+
+        """
+        R = self.ring()
+        set_cring(R)
+
+        l = [p for p in self.gens() if not p==0]
+        l_old = None
+        l = tuple(l)
+        while l_old != l:
+            l_old=l
+            l = sorted(l, key=BooleanPolynomial.lead)
+            g = GroebnerStrategy()
+            g.optRedTail=True
+            for p in l:
+                p=g.nf(p)
+                if not p.isZero():
+                    g.addGenerator(p)
+        l = tuple(sorted(g, reverse=True))
+        return Sequence(l, R, check=False, immutable=True)
+
+    def __cmp__(self, other):
+        """
+        EXAMPLE::
+            sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: I = F.ideal()
+            sage: J = Ideal(I.interreduced_basis())
+            sage: I == J
+            True
+            sage: J = Ideal(I.gens()[1:] + (I.gens()[0] + 1,))
+            sage: I == J
+            False
+        """
+        if not isinstance(other, BooleanPolynomialIdeal):
+            r = 1
+        elif self.ring() is not other.ring() or self.ring() != other.ring():
+            r = 1
+        else:
+            r = cmp(self.groebner_basis(),other.groebner_basis())
+        return r
+
+#     def __richcmp__(self, other, int op):
+#         """
+#         EXAMPLE::
+#             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
+#             sage: F,s = sr.polynomial_system()
+#             sage: I = F.ideal()
+#             sage: J = Ideal(I.interreduced_basis())
+#             sage: I == J
+#             True
+#             sage: J = Ideal(I.gens()[1:] + (I.gens()[0] + 1,))
+#             sage: I == J
+#             False
+#         """
+#         r = self.__cmp__(other)
+#         if op == 0:  #<
+#             return r  < 0
+#         elif op == 2: #==
+#             return r == 0
+#         elif op == 4: #>
+#             return r  > 0
+#         elif op == 1: #<=
+#             return r <= 0
+#         elif op == 3: #!=
+#             return r != 0
+#         elif op == 5: #>=
+#             return r >= 0
 
 ##
 #
@@ -4013,40 +4110,35 @@ cdef inline DD new_DD_from_PBDD(PBDD juice):
     return d
 
 cdef class BooleSet:
+    """
+    Return a new set of boolean monomials. This data type is also
+    implemented on the top of ZDDs and allows to see polynomials from
+    a different angle. Also, it makes high-level set operations
+    possible, which are in most cases faster than operations handling
+    individual terms, because the complexity of the algorithms depends
+    only on the structure of the diagrams.
+
+    ``BooleanPolynomials`` can easily be converted to ``BooleSets`` by
+    using the member function ``set()``.
+
+    INPUT:
+
+    - ``param`` - either a ``CCuddNavigator``, a ``BooleSet`` or ``None``.
+    - ``ring`` - a boolean polynomial ring.
+
+    EXAMPLE::
+
+        sage: from polybori import BooleSet
+        sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
+        sage: BS = BooleSet(B)
+        sage: BS
+        {}
+
+    .. note::
+
+      ``BooleSet`` prints as '{}' but are not Python dictionaries.
+    """
     def __init__(self, param=None, ring=None):
-        r"""
-        Return a new set of boolean monomials. This data type is also
-        implemented on the top of ZDDs and allows to see polynomials from a
-        different angle. Also, it makes high-level set operations possible,
-        which are in most cases faster than operations handling individual
-        terms, because the complexity of the algorithms depends only on the
-        structure of the diagrams.
-
-        ``BooleanPolynomials`` can easily be converted to
-        ``BooleSets`` by using the member function
-        ``set()``.
-
-        INPUT:
-
-
-        -  ``param`` - either a ``CCuddNavigator``,
-           a ``BooleSet`` or ``None``.
-
-        -  ``ring`` - a boolean polynomial ring.
-
-
-        EXAMPLE::
-
-            sage: from polybori import BooleSet
-            sage: B.<a,b,c,d> = BooleanPolynomialRing(4)
-            sage: BS = BooleSet(B)
-            sage: BS
-            {}
-
-        .. note::
-
-           ``BooleSet``s print as '{}' but are not Python dictionaries.
-        """
         if PY_TYPE_CHECK(param, CCuddNavigator):
             if ring is None:
                 raise TypeError, "BooleSet constructor requires parent ring argument"

@@ -68,6 +68,16 @@ cdef class FractionFieldElement(FieldElement):
         (x^3 + x)/(-x^19 + 17)
         sage: loads(f.dumps()) == f
         True
+
+    TESTS::
+
+    Test if #5451 is fixed.
+
+        sage: A = FiniteField(9,'theta')['t']
+        sage: K.<t> = FractionField(A)
+        sage: f= 2/(t^2+2*t); g =t^9/(t^18 + t^10 + t^2);f+g
+        (2*t^15 + 2*t^14 + 2*t^13 + 2*t^12 + 2*t^11 + 2*t^10 + 2*t^9 + t^7 + t^6 + t^5 + t^4 + t^3 + t^2 + t + 1)/(t^17 + t^9 + t)
+
     """
     cdef object __numerator
     cdef object __denominator

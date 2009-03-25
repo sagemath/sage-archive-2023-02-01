@@ -45,6 +45,7 @@ def delete_tmpfiles():
     except OSError:
         pass
 
+
 ######################################################
 # Set environment variables
 ######################################################
@@ -88,7 +89,7 @@ except:
 ######################################################
 # The Python binary
 ######################################################
-PYTHON = SAGE_ROOT + "/local/bin/python"
+PYTHON = "python"
 
 def test_code(filename):
     dict = { 'DIR'             : repr('%s/local/bin' % SAGE_ROOT),
@@ -273,12 +274,17 @@ def only_optional_include(s):
     return (len(v) > 0 and v.issubset(only_optional_tags))
 
 
-def extract_doc(file_name, module):
+def extract_doc(file_name, library_code=False):
+    """
+    INPUT:
+        file_name -- string; name of the file to extract the
+                     docstrings from.
+        library_code -- bool (default: False); if True, this file is
+                    Sage core library code, so we do not import it,
+                    and do doctest in a temporary directory.
+    """
     a = os.path.abspath(file_name)
     i = a.rfind("sage/")
-    #module_name = a[i:].replace("/",".")
-    #j = module_name.rfind(".")
-    #module_name = module_name[:j]
 
     F = open(file_name).readlines()
     # Put line numbers on every input line
@@ -342,6 +348,19 @@ def change_warning_output(file):
     import warnings
     warnings.showwarning = warning_function(file)
 """
+
+    if not library_code:
+        base, ext = os.path.splitext(file_name)
+        if ext == '.py':
+            s += "from %s import *\n\n"%(base)
+        elif ext in ['.pyx','.spyx']:
+            s += "cython(open('%s').read())\n\n"%file_name
+        elif ext == '.sage':
+            os.system('sage -preparse file_name')
+            s += "from %s import *\n\n"%(base)
+        else:
+            assert False
+
     while True:
         i = F.find('"""')
         if i == -1: break
@@ -494,22 +513,24 @@ def post_process(s, file, tmpname):
         s += "For whitespace errors, see the file %s"%tmpname
     return s
 
-def test_file(file):
+def test_file(file, library_code):
     if os.path.exists(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
-        s = extract_doc(file, name)
+        s = extract_doc(file, library_code=library_code)
         if len(s) == 0:
             sys.exit(0)
-        if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
-            os.environ['SAGE_TESTDIR'] = os.environ['SAGE_ROOT']+"/tmp"
-        f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
-        d = "%s/.doctest"%os.environ['SAGE_TESTDIR']
-        if not os.path.exists(d):
-            try:
-                os.makedirs(d)
-            except:
-                pass
+
+        if library_code:
+            if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
+                SAGE_TESTDIR = os.environ['SAGE_ROOT']+"/tmp"
+            else:
+                SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
+        else:
+            SAGE_TESTDIR = '.'
+
+        f = "%s/.doctest_%s.py"%(SAGE_TESTDIR,name)
+
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:
@@ -653,7 +674,14 @@ if __name__ ==  '__main__':
             TIMEOUT = TIMEOUT_VALGRIND
         if argv[1][0] == '-':
             usage()
+
+        library_code = True
+        ext = os.path.splitext(argv[1])[1]
+        if ext in ['.spyx', '.sage'] or \
+                 not (SAGE_ROOT.strip('/') + '/devel' in os.path.abspath(argv[1])):
+            library_code = False
+
         try:
-            test_file(argv[1])
+            test_file(argv[1], library_code = library_code)
         except KeyboardInterrupt:
             sys.exit(1)

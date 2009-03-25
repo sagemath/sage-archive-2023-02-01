@@ -97,7 +97,7 @@ def test_file(F):
         return 1
 
     base, ext = os.path.splitext(F)
-    if ext in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
+    if ext in ['.py', '.spyx', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
         return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not '/notes' in F:

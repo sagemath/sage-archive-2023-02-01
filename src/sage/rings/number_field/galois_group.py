@@ -29,8 +29,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.misc.cachefunc import cached_method
 from sage.libs.pari.gen import pari, PariError
 
-
-class GaloisGroupWrapper(SageObject):
+class GaloisGroup_v1(SageObject):
     r"""
     A wrapper around a class representing an abstract transitive group.
 
@@ -81,7 +80,7 @@ class GaloisGroupWrapper(SageObject):
             sage: G == G
             True
         """
-        if not isinstance(other, GaloisGroupWrapper):
+        if not isinstance(other, GaloisGroup_v1):
             return cmp(type(self), type(other))
         return cmp( (self.__number_field, self.__group),
                     (other.__number_field, other.__group) )
@@ -142,7 +141,7 @@ class GaloisGroupWrapper(SageObject):
         return self.__number_field
 
 
-class GaloisGroup(PermutationGroup_generic):
+class GaloisGroup_v2(PermutationGroup_generic):
 
     r"""
     The Galois group of an (absolute) number field.
@@ -464,7 +463,7 @@ class GaloisGroup(PermutationGroup_generic):
         if len(t) > 1: raise ValueError, "%s is ramified" % P
         return t[0]
 
-class GaloisGroup_subgroup(GaloisGroup):
+class GaloisGroup_subgroup(GaloisGroup_v2):
     r"""
     A subgroup of a Galois group, as returned by functions such as ``decomposition_group``.
     """
@@ -604,4 +603,8 @@ class GaloisGroupElement(PermutationGroupElement):
         return min(w)
 
 
+
+# For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.
+
+GaloisGroup = GaloisGroup_v1
 

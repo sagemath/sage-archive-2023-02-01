@@ -116,7 +116,6 @@ import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
 from class_group import ClassGroup
-#from galois_group import GaloisGroup
 #import order
 
 from sage.structure.element import is_Element
@@ -3026,11 +3025,11 @@ class NumberField_generic(number_field_base.NumberField):
 
         -  ``type`` - ``none``, ``gap``, or ``pari``. If None (the default),
            return an explicit group of automorphisms of self as a
-           ``GaloisGroup`` object.  Otherwise, return a ``GaloisGroupWrapper``
-           object based on a Pari or Gap transitive group object, which is
-           quicker to compute, but rather less useful (in particular, it can't
-           be made to act on self).  If type = 'gap', the database_gap package
-           should be installed.
+           ``GaloisGroup_v2`` object.  Otherwise, return a ``GaloisGroup_v1``
+           wrapper object based on a Pari or Gap transitive group object, which
+           is quicker to compute, but rather less useful (in particular, it
+           can't be made to act on self).  If type = 'gap', the database_gap
+           package should be installed.
 
         -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
            when the degree is >= 12 when 'kash' is tried.)
@@ -3123,15 +3122,15 @@ class NumberField_generic(number_field_base.NumberField):
         properly. (This method exists because the introspection machinery
         doesn't interact terribly well with the @cached_method decorator.)
         """
-        from galois_group import GaloisGroup, GaloisGroupWrapper
+        from galois_group import GaloisGroup_v1, GaloisGroup_v2
 
         if type is None:
-            return GaloisGroup(self, names)
+            return GaloisGroup_v2(self, names)
 
         elif type=="pari":
-            return GaloisGroupWrapper(self.absolute_polynomial().galois_group(pari_group = True, algorithm = algorithm), self)
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = True, algorithm = algorithm), self)
         elif type=="gap":
-            return GaloisGroupWrapper(self.absolute_polynomial().galois_group(pari_group = False, algorithm = algorithm), self)
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = False, algorithm = algorithm), self)
         else:
             raise ValueError, "Galois group type must be None, 'pari', or 'gap'."
 

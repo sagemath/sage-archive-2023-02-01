@@ -4,23 +4,22 @@ Number Fields: Galois Groups and Class Groups
 Galois Groups
 -------------
 
-We can compute the Galois group of the Galois closure as an abstract
-"Pari group" using the ``galois_group`` function, which by default
-calls Pari (http://pari.math.u-bordeaux.fr/). You do not have to worry
-about installing Pari, since *Pari is part of Sage*.  In fact, despite
-appearances much of the difficult algebraic number theory in Sage is
-actually done by the Pari C library (be sure to also cite Pari in
-papers that use Sage).
+We can compute the Galois group of a number field using the ``galois_group``
+function, which by default calls Pari (http://pari.math.u-bordeaux.fr/). You do
+not have to worry about installing Pari, since *Pari is part of Sage*.  In
+fact, despite appearances much of the difficult algebraic number theory in Sage
+is actually done by the Pari C library (be sure to also cite Pari in papers
+that use Sage).
 
 ::
 
-    sage: K.<alpha> = NumberField(x^3 - 2)
+    sage: K.<alpha> = NumberField(x^6 + 40*x^3 + 1372)
     sage: G = K.galois_group()
     sage: G
-    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the
-    Number Field in alpha with defining polynomial x^3 - 2
+    Galois group of Number Field in alpha with defining polynomial x^6 + 40*x^3 + 1372
 
-We can find out more about :math:`G`, too
+Internally G is represented as a group of permutations, but we can also apply
+any element of G to any element of the field:
 
 .. link
 
@@ -28,20 +27,51 @@ We can find out more about :math:`G`, too
 
     sage: G.order()
     6
+    sage: G.gens()
+    [(1,4,6)(2,5,3), (1,2)(3,4)(5,6)]
+    sage: f = G.0; f(alpha)
+    1/36*alpha^4 + 1/18*alpha
+
+Some more advanced number-theoretical tools are available via G:
+
+.. link
+
+::
+
+    sage: P = K.primes_above(2)[0]
+    sage: G.inertia_group(P)
+    Subgroup [(), (1,4,6)(2,5,3), (1,6,4)(2,3,5)] of Galois group of Number Field in alpha with defining polynomial x^6 + 40*x^3 + 1372
+    sage: [G.artin_symbol(Q) for Q in K.primes_above(5)]
+    [(1,5)(2,4)(3,6), (1,3)(2,6)(4,5), (1,2)(3,4)(5,6)]
+
+If the number field is not Galois over `\mathbb{Q}`, then the ``galois_group``
+command will construct its Galois closure and return the Galois group of that;
+you need to give it a variable name for the generator of the Galois closure:
+
+::
+
+    sage: K.<a> = NumberField(x^3 - 2)
+    sage: G = K.galois_group(names='b'); G
+    Galois group of Galois closure in b of Number Field in a with defining polynomial x^3 - 2
+    sage: G.order()
+    6
 
 
 Some more Galois groups
 -----------------------
 
-We compute two more Galois groups of degree :math:`5` extensions, and
-see that one has Galois group :math:`S_5`, so is not solvable by
-radicals::
+We compute two more Galois groups of degree :math:`5` extensions, and see that
+one has Galois group :math:`S_5`, so is not solvable by radicals. For these
+purposes we only want to know the structure of the Galois group as an abstract
+group, rather than as an explicit group of automorphisms of the splitting
+field; this is much quicker to calculate. PARI has a type for representing
+"abstract Galois groups", and Sage can use this.::
 
-    sage: NumberField(x^5 - 2, 'a').galois_group()
+    sage: NumberField(x^5 - 2, 'a').galois_group(type="pari")
     Galois group PARI group [20, -1, 3, "F(5) = 5:4"] of
     degree 5 of the Number Field in a with defining
     polynomial x^5 - 2
-    sage: NumberField(x^5 - x + 2, 'a').galois_group()
+    sage: NumberField(x^5 - x + 2, 'a').galois_group(type="pari")
     Galois group PARI group [120, -1, 5, "S5"] of degree 5 of
     the Number Field in a with defining polynomial x^5 - x + 2
 
@@ -49,79 +79,23 @@ radicals::
 Magma's Galois group command
 ----------------------------
 
-Recent versions of Magma have an algorithm for computing Galois
-groups that in theory applies when the input polynomial has any
-degree. There are no open source implementation of this algorithm
-(as far as I know). If you have Magma, you can use this algorithm
-from Sage by calling the ``galois_group`` function and giving the
-``algorithm='magma'`` option.
+Recent versions of Magma have an algorithm for computing Galois groups that in
+theory applies when the input polynomial has any degree. There are no open
+source implementation of this algorithm (as far as I know). If you have Magma,
+you can use this algorithm from Sage by calling the ``galois_group`` function
+and giving the ``algorithm='magma'`` option. The return value is one of the
+groups in the GAP transitive groups database.
 
 ::
 
     sage: K.<a> = NumberField(x^3 - 2)
-    sage: K.galois_group(algorithm='magma')    # optional
+    sage: K.galois_group(type="gap", algorithm='magma')    # optional
     verbose...
     Galois group Transitive group number 2 of degree 3 of
     the Number Field in a with defining polynomial x^3 - 2
 
 We emphasize that the above example should not work if you don't
 have Magma.
-
-
-Explicitly working with automorphisms
--------------------------------------
-
-It is also possible to work explicitly with the group of
-automorphisms of a field (though the link in Sage between abstract
-groups and automorphisms of fields is currently poor.
-
-.. note::
-
-  An excellent Sage development project would be to make it so Sage
-  supports finding the abstract group structure of automorphism groups
-  of fields; i.e., make the automorphism group more than just a
-  set.
-
-For example, here we first define :math:`\mathbb{Q}(\sqrt[3]{2})`,
-then compute its Galois closure, which we represent as
-:math:`\mathbb{Q}(b)`, where :math:`b^6 + 40b^3 + 1372 = 0`. Then we
-compute the automorphism group of the field :math:`L`, and explicitly
-list its elements.
-
-::
-
-    sage: K.<a> = NumberField(x^3 - 2)
-    sage: L.<b> = K.galois_closure()
-    sage: L
-    Number Field in b with defining polynomial x^6 + 40*x^3 + 1372
-    sage: G = Hom(L, L)
-    sage: G
-    Automorphism group of Number Field in b ...
-    sage: G.list()
-    [
-    Ring endomorphism of Number Field in b ...
-      Defn: b |--> b,
-    Ring endomorphism of Number Field in b ...
-      Defn: b |--> 1/36*b^4 + 1/18*b,
-    ...
-    Ring endomorphism of Number Field in b ...
-      Defn: b |--> -2/63*b^4 - 31/63*b
-    ]
-
-You can explicitly apply any of the automorphisms above to any
-elements of :math:`L`.
-
-.. link
-
-::
-
-    sage: phi = G.list()[1]
-    sage: phi
-    Ring endomorphism of Number Field in b ...
-      Defn: b |--> 1/36*b^4 + 1/18*b
-    sage: phi(b^2 + 2/3*b)
-    -1/36*b^5 + 1/54*b^4 - 19/18*b^2 + 1/27*b
-
 
 Computing complex embeddings
 ----------------------------

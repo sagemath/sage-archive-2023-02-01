@@ -1203,6 +1203,23 @@ class RelativeOrder(Order):
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
+        We test that trac #4193 is also fixed::
+
+            sage: K1.<a> = NumberField(x^3 - 2)
+            sage: R.<y> = PolynomialRing(K1)
+            sage: K2.<b> = K1.extension(y^2 - a)
+            sage: R = K2.order(b)
+            sage: b in R
+            True
+            sage: bb = R.gens()[1] # b by any other name
+            sage: bb == b
+            True
+            sage: bb.parent() is R
+            True
+            sage: bb in R # this used to return False
+            True
+            sage: R(bb) == bb # this used to raise an error
+            True
         """
 
         x = self._K(x)

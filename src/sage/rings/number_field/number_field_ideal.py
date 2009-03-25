@@ -955,8 +955,8 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Return the decomposition group of self, as a subset of the automorphism
         group of the number field of self. Raises an error if the field isn't
-        Galois. See the decomposition_group method of the GaloisGroup class for
-        further examples and doctests.
+        Galois. See the decomposition_group method of the GaloisGroup_v2 class
+        for further examples and doctests.
 
         EXAMPLE::
 
@@ -989,7 +989,7 @@ class NumberFieldIdeal(Ideal_generic):
         Galois group of the number field of self (which we assume is Galois)
         such that s acts trivially modulo self. This is the same as the 0th
         ramification group of self. See the inertia_group method of the
-        GaloisGroup class for further examples and doctests.
+        GaloisGroup_v2 class for further examples and doctests.
 
         EXAMPLE::
 
@@ -1005,7 +1005,7 @@ class NumberFieldIdeal(Ideal_generic):
         s(x) = x^p mod self where p is the residue characteristic of self.
         (Here self should be prime and unramified.)
 
-        See the artin_symbol method of the GaloisGroup class for further
+        See the artin_symbol method of the GaloisGroup_v2 class for further
         documentation and examples.
 
         EXAMPLE::

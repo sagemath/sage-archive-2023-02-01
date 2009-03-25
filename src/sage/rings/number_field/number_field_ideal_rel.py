@@ -596,7 +596,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I = Ideal(2, (a - 3*b + 2)/2)
             sage: J = K.ideal(a)
             sage: z = I.element_1_mod(J); z
-            -8*b*a + 24
+            -8*b*a + 24 # 64-bit
+            -21/2*b*a - 21/2 # 32-bit
             sage: z in I
             True
             sage: 1 - z in J

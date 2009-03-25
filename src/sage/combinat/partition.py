@@ -2278,6 +2278,12 @@ class PartitionsGreatestEQ_nk(PartitionsGreatestEQ):
 #########################
 def RestrictedPartitions(n, S, k=None):
     r"""
+    This function has been deprecated and will be removed in a
+    future version of Sage; use Partitions() with the ``parts_in``
+    keyword.
+
+    Original docstring follows.
+
     A restricted partition is, like an ordinary partition, an unordered
     sum `n = p_1+p_2+\ldots+p_k` of positive integers and is
     represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
@@ -2295,6 +2301,8 @@ def RestrictedPartitions(n, S, k=None):
     EXAMPLES::
 
         sage: RestrictedPartitions(5,[3,2,1])
+        doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+        doctest:2314: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
         Partitions of 5 restricted to the values [1, 2, 3]
         sage: RestrictedPartitions(5,[3,2,1]).list()
         [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
@@ -2303,17 +2311,31 @@ def RestrictedPartitions(n, S, k=None):
         sage: RestrictedPartitions(5,[3,2,1],4).list()
         [[2, 1, 1, 1]]
     """
+    import warnings
+    warnings.warn('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
+    from sage.misc.misc import deprecation
+    deprecation('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.')
     return RestrictedPartitions_nsk(n, S, k)
 
 class RestrictedPartitions_nsk(CombinatorialClass):
+    r"""
+    We are deprecating RestrictedPartitions, so this class should
+    be deprecated too.
+
+    """
     def __init__(self, n, S, k=None):
         """
         TESTS::
 
             sage: r = RestrictedPartitions(5,[3,2,1])
+            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             sage: r == loads(dumps(r))
             True
         """
+        import warnings
+        warnings.warn('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
+        from sage.misc.misc import deprecation
+        deprecation('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.')
         self.n = n
         self.S = S
         self.S.sort()
@@ -2325,6 +2347,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: [4,1] in RestrictedPartitions(5,[3,2,1])
+            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             False
             sage: [3,2] in RestrictedPartitions(5,[3,2,1])
             True
@@ -2341,6 +2364,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
+            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             'Partitions of 5 restricted to the values [1, 2, 3] '
             sage: RestrictedPartitions(5,[3,2,1],4).__repr__()
             'Partitions of 5 restricted to the values [1, 2, 3] of length 4'
@@ -2362,12 +2386,8 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
-            [[7, 1],
-            [5, 3],
-            [5, 1, 1, 1],
-            [3, 3, 1, 1],
-            [3, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1]]
+            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            [[7, 1], [5, 3], [5, 1, 1, 1], [3, 3, 1, 1], [3, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]]
             sage: RestrictedPartitions(8,[1,3,5,7],2).list()
             [[7, 1], [5, 3]]
         """
@@ -2390,6 +2410,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
+            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             6
             sage: RestrictedPartitions(8,[1,3,5,7],2).cardinality()
             2
@@ -2532,32 +2553,36 @@ class PartitionTuples_nk(CombinatorialClass):
 def Partitions(n=None, **kwargs):
     """
     Partitions(n, \*\*kwargs) returns the combinatorial class of
-    integer partitions of n, subject to the constraints given by the
+    integer partitions of `n`, subject to the constraints given by the
     keywords.
 
-    Valid keywords are: starting, ending, min_part, max_part,
-    max_length, min_length, length, max_slope, min_slope, inner,
-    outer. They have the following meanings:
+    Valid keywords are: ``starting``, ``ending``, ``min_part``,
+    ``max_part``, ``max_length``, ``min_length``, ``length``,
+    ``max_slope``, ``min_slope``, ``inner``, ``outer``, and
+    ``parts_in``. They have the following meanings:
 
-    - ``starting=p`` specifies that the partitions should all be = p in
-      reverse lex order.
+    - ``starting=p`` specifies that the partitions should all be greater
+      than or equal to `p` in reverse lex order.
 
     - ``length=k`` specifies that the partitions have
-      exactly k parts.
+      exactly `k` parts.
 
     - ``min_length=k`` specifies that the partitions have
-      at least k parts.
+      at least `k` parts.
 
     - ``min_part=k`` specifies that all parts of the
-      partitions are at least k.
+      partitions are at least `k`.
 
     - ``outer=p`` specifies that the partitions
-      be contained inside the partition p.
+      be contained inside the partition `p`.
 
-    - ``min_slope=k`` specifies that the partition have slope at least
-      k; the slope is the difference between successive parts.
+    - ``min_slope=k`` specifies that the partitions have slope at least
+      `k`; the slope is the difference between successive parts.
 
-    The ``max_*`` versions, along with 'inner' and 'ending', work
+    - ``parts_in=S`` specifies that the partitions have parts in the set
+      `S`, which can be any sequence of positive integers.
+
+    The ``max_*`` versions, along with ``inner`` and ``ending``, work
     analogously.
 
     EXAMPLES: If no arguments are passed, then the combinatorial class
@@ -2570,8 +2595,8 @@ def Partitions(n=None, **kwargs):
         sage: [2,1] in Partitions()
         True
 
-    If an integer n is passed, then the combinatorial class of integer
-    partitions of n is returned.
+    If an integer `n` is passed, then the combinatorial class of integer
+    partitions of `n` is returned.
 
     ::
 
@@ -2580,8 +2605,8 @@ def Partitions(n=None, **kwargs):
         sage: Partitions(3).list()
         [[3], [2, 1], [1, 1, 1]]
 
-    If starting is passed, then the combinatorial class of partitions
-    starting with starting in lexicographic order is returned.
+    If ``starting=p`` is passed, then the combinatorial class of partitions
+    greater than or equal to `p` in lexicographic order is returned.
 
     ::
 
@@ -2590,8 +2615,8 @@ def Partitions(n=None, **kwargs):
         sage: Partitions(3, starting=[2,1]).list()
         [[2, 1], [1, 1, 1]]
 
-    If ending is passed, then the combinatorial class of partitions
-    starting with ending in lexicographic order is returned.
+    If ``ending=p`` is passed, then the combinatorial class of
+    partitions at most `p` in lexicographic order is returned.
 
     ::
 
@@ -2599,6 +2624,20 @@ def Partitions(n=None, **kwargs):
         Partitions of the integer 3 ending with [2, 1]
         sage: Partitions(3, ending=[2,1]).list()
         [[3], [2, 1]]
+
+    Using ``max_slope=-1`` yields partitions into distinct parts -- each
+    part differs from the next by at least 1. Use a different
+    ``max_slope`` to get parts that differ by, say, 2.
+
+    ::
+
+        sage: Partitions(7, max_slope=-1).list()
+        [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
+        sage: Partitions(15, max_slope=-1).count()
+        27
+
+    Here are some more examples illustrating ``min_part``, ``max_part``,
+    and ``length``.
 
     ::
 

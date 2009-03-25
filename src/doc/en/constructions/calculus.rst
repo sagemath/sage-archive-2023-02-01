@@ -220,7 +220,7 @@ where :math:`f` is a piecewise defined function, can
     sage: f.riemann_sum_integral_approximation(6,mode="right")
     19/6
     sage: f.integral()
-    Piecewise defined function with 2 parts, [[(0, 1), x^3/3], [(1, 2), (15*x - x^3)/3 - 13/3]]
+    Piecewise defined function with 2 parts, [[(0, 1), x |--> x^3/3], [(1, 2), x |--> (15*x - x^3)/3 - 13/3]]
     sage: f.integral(definite=True)
     3
 

@@ -6290,11 +6290,11 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         ni[i0] += 1
         # The next lines are to prevent rounding error: (-P)+P behaves
         # badly for real points!
-    if all([n==0 for n in ni[0:i0+1]]):
+	if all([n==0 for n in ni[0:i0+1]]):
             RPi[i0] = ER0
-    else:
+        else:
             RPi[i0] += Rgens[i0]
-    for i in range(i0+1,r):
+	for i in range(i0+1,r):
             RPi[i] = RPi[i-1] + RgensN[i]
 
     return xs

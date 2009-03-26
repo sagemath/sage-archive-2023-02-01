@@ -1202,21 +1202,18 @@ class HG:
 import misc
 
 SAGE_ROOT = misc.SAGE_ROOT
-DEFAULT_SERVER = "http://www.sagemath.org/hg"
+DEFAULT_SERVER = "http://hg.sagemath.org"
 
 SAGE_INCOMING_SERVER = os.getenv("SAGE_INCOMING_SERVER")
-if SAGE_INCOMING_SERVER == None:
+if SAGE_INCOMING_SERVER is None:
     try:
-	SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/') + '/hg'
+	SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/')
     except KeyError:
-	try:
-	    SAGE_INCOMING_SERVER = os.environ['SAGE_SERVER'].strip('/') + '/hg'
-	except KeyError:
-	    print "Falling back to a hard coded sage server in misc/hg.py"
-	    SAGE_INCOMING_SERVER = DEFAULT_SERVER
+        #print "Falling back to a hard coded sage server in misc/hg.py"
+        SAGE_INCOMING_SERVER = DEFAULT_SERVER
 
 SAGE_OUTGOING_SERVER = os.getenv("SAGE_OUTGOING_SERVER")
-if SAGE_OUTGOING_SERVER == None:
+if SAGE_OUTGOING_SERVER is None:
     SAGE_OUTGOING_SERVER = SAGE_INCOMING_SERVER
 
 if (SAGE_INCOMING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
@@ -1241,26 +1238,26 @@ if (SAGE_INCOMING_SERVER != DEFAULT_SERVER) or (SAGE_OUTGOING_SERVER != DEFAULT_
 
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'Sage Library Source Code',
-                    pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_in_branch_name),
-                    push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_out_branch_name),
+                    pull_url='%s/sage-%s/'%(SAGE_INCOMING_SERVER, temp_in_branch_name),
+                    push_url='%s/sage-%s/'%(SAGE_OUTGOING_SERVER, temp_out_branch_name),
                 cloneable=True,
                 obj_name='sage')
 
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'Sage Scripts',
-                pull_url='%s/scripts-main'%SAGE_INCOMING_SERVER,
-                push_url='%s/scripts-main'%SAGE_OUTGOING_SERVER,
+                pull_url='%s/scripts-main/'%SAGE_INCOMING_SERVER,
+                push_url='%s/scripts-main/'%SAGE_OUTGOING_SERVER,
                 obj_name='scripts')
 
 hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'Sage External System Code (e.g., PARI, MAGMA, etc.)',
-                pull_url='%s/extcode-main'%SAGE_INCOMING_SERVER,
-                push_url='%s/extcode-main'%SAGE_OUTGOING_SERVER,
+                pull_url='%s/extcode-main/'%SAGE_INCOMING_SERVER,
+                push_url='%s/extcode-main/'%SAGE_OUTGOING_SERVER,
                 obj_name='extcode')
 
 
 hg_examples = HG('%s/data/examples'%SAGE_ROOT,
                  'Sage Examples',
-                 pull_url='%s/examples'%SAGE_INCOMING_SERVER,
-                 push_url='%s/examples'%SAGE_OUTGOING_SERVER,
+                 pull_url='%s/examples/'%SAGE_INCOMING_SERVER,
+                 push_url='%s/examples/'%SAGE_OUTGOING_SERVER,
                  obj_name='examples')

@@ -897,6 +897,19 @@ class GroebnerFan(SageObject):
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
             sage: test_render = G.render(larger=True)
+
+        TESTS:
+
+        Testing the case where the number of generators is < 3. Currently,
+        this should raise a ``NotImplementedError`` error.
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan().render()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         S = self.__ring
         if S.ngens() < 3:
@@ -1065,6 +1078,19 @@ class GroebnerFan(SageObject):
             sage: R4.<w,x,y,z> = PolynomialRing(QQ,4)
             sage: gf = R4.ideal([w^2-x,x^2-y,y^2-z,z^2-x]).groebner_fan()
             sage: three_d = gf.render3d()
+
+        TESTS:
+
+        Now test the case where the number of generators is not 4. Currently,
+        this should raise a ``NotImplementedError`` error.
+
+        ::
+
+            sage: P.<a,b,c> = PolynomialRing(QQ, 3, order="lex")
+            sage: sage.rings.ideal.Katsura(P, 3).groebner_fan().render3d()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         S = self.__ring
         if S.ngens() != 4:

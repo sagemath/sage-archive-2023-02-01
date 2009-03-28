@@ -57,6 +57,7 @@ from sage.rings.all import RDF
 
 from base import RenderParams
 from sage.ext.fast_eval cimport FastDoubleFunc
+from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_eval import fast_float
 
 
@@ -348,9 +349,9 @@ cdef class ParametricSurface(IndexFaceSet):
         elif PY_TYPE_CHECK(self.f, tuple):
 
                 fx, fy, fz = self.f
-                fast_x = PY_TYPE_CHECK(fx, FastDoubleFunc)
-                fast_y = PY_TYPE_CHECK(fy, FastDoubleFunc)
-                fast_z = PY_TYPE_CHECK(fz, FastDoubleFunc)
+                fast_x = PY_TYPE_CHECK(fx, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
+                fast_y = PY_TYPE_CHECK(fy, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
+                fast_z = PY_TYPE_CHECK(fz, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
 
                 if fast_x or fast_y or fast_z:
 
@@ -358,26 +359,46 @@ cdef class ParametricSurface(IndexFaceSet):
                     ulist = to_double_array(urange)
                     vlist = to_double_array(vrange)
 
-                    if fast_x:
+                    if PY_TYPE_CHECK(fx, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:
                                 uv[1] = vlist[j]
                                 self.vs[i*n+j].x = (<FastDoubleFunc>fx)._call_c(uv)
+                    elif fast_x: # must be Wrapper_rdf
+                        for i from 0 <= i < m:
+                            uv[0] = ulist[i]
+                            for j from 0 <= j < n:
+                                uv[1] = vlist[j]
+                                (<Wrapper_rdf>fx).call_c(uv, &self.vs[i*n+j].x)
 
-                    if fast_y:
+
+                    if PY_TYPE_CHECK(fy, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:
                                 uv[1] = vlist[j]
                                 self.vs[i*n+j].y = (<FastDoubleFunc>fy)._call_c(uv)
+                    elif fast_y: # must be Wrapper_rdf
+                        for i from 0 <= i < m:
+                            uv[0] = ulist[i]
+                            for j from 0 <= j < n:
+                                uv[1] = vlist[j]
+                                (<Wrapper_rdf>fy).call_c(uv, &self.vs[i*n+j].y)
 
-                    if fast_z:
+                    if PY_TYPE_CHECK(fz, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:
                                 uv[1] = vlist[j]
                                 self.vs[i*n+j].z = (<FastDoubleFunc>fz)._call_c(uv)
+                    elif fast_z: # must be Wrapper_rdf
+                        for i from 0 <= i < m:
+                            uv[0] = ulist[i]
+                            for j from 0 <= j < n:
+                                uv[1] = vlist[j]
+                                (<Wrapper_rdf>fz).call_c(uv, &self.vs[i*n+j].z)
+
 
                     sage_free(ulist)
                     sage_free(vlist)

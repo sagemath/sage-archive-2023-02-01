@@ -1078,6 +1078,20 @@ class MemoryChunk(object):
         """
         raise NotImplementedError
 
+    def pass_call_c_argument(self):
+        r"""
+        Returns the string to pass the argument corresponding to this
+        memory chunk to the interpreter, for use in the call_c method.
+        Almost always the same as pass_argument.
+
+        EXAMPLES:
+            sage: from sage.ext.gen_interpreters import *
+            sage: mc = MemoryChunkConstants('constants', ty_mpfr)
+            sage: mc.pass_call_c_argument()
+            'self._constants'
+        """
+        return self.pass_argument()
+
     def needs_cleanup_on_error(self):
         r"""
         In an interpreter that can terminate prematurely (due to an
@@ -1419,6 +1433,19 @@ class MemoryChunkRRRetval(MemoryChunk):
             u'&retval.value'
         """
         return je("""&{{ self.name }}.value""", self=self)
+
+    def pass_call_c_argument(self):
+        r"""
+        Returns the string to pass the argument corresponding to this
+        memory chunk to the interpreter, for use in the call_c method.
+
+        EXAMPLES:
+            sage: from sage.ext.gen_interpreters import *
+            sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
+            sage: mc.pass_call_c_argument()
+            'result'
+        """
+        return "result"
 
 class MemoryChunkPythonArguments(MemoryChunk):
     r"""
@@ -2057,11 +2084,15 @@ class StackInterpreter(InterpreterSpec):
         adjust_retval -- None, or a string naming a function to call
                          in the wrapper's __call__ to modify the return
                          value of the interpreter
+        implement_call_c -- True if the wrapper should have a fast cdef call_c
+                            method (that bypasses the Python call overhead)
+                            (default True)
 
         EXAMPLES:
             sage: from sage.ext.gen_interpreters import *
             sage: rdf = RDFInterpreter()
             sage: rr = RRInterpreter()
+            sage: el = ElementInterpreter()
             sage: rdf.mc_args
             {MC:args}
             sage: rdf.mc_constants
@@ -2074,6 +2105,10 @@ class StackInterpreter(InterpreterSpec):
             True
             sage: rdf.return_type.type
             'double'
+            sage: rdf.implement_call_c
+            True
+            sage: el.implement_call_c
+            False
         """
         InterpreterSpec.__init__(self)
         self.mc_args = MemoryChunkArguments('args', type)
@@ -2086,6 +2121,7 @@ class StackInterpreter(InterpreterSpec):
         self.mc_retval = mc_retval
         self.ipow_range = False
         self.adjust_retval = None
+        self.implement_call_c = True
 
 class RDFInterpreter(StackInterpreter):
     r"""
@@ -2579,6 +2615,10 @@ Py_DECREF(py_args);
         self._set_opcodes()
         # Always use ipow
         self.ipow_range = True
+        # We don't yet support call_c for Python-object interpreters
+        # (the default implementation doesn't work, because of
+        # object vs. PyObject* confusion)
+        self.implement_call_c = False
 
 class ElementInterpreter(PythonInterpreter):
     r"""
@@ -2959,6 +2999,16 @@ interp_{{ s.name }}({{ arg_ch.pass_argument() }}
 
 """, s=s, arg_ch=arg_ch)
 
+        the_call_c = je("""
+        {% if s.return_type %}result[0] = {% endif %}
+interp_{{ s.name }}(args
+{% for ch in s.chunks[1:] %}
+            , {{ ch.pass_call_c_argument() }}
+{% endfor %}
+            )
+
+""", s=s, arg_ch=arg_ch)
+
         w(je("""
 # Automatically generated.  Do not edit!
 
@@ -3034,6 +3084,26 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         return retval
 {% endif %}
 
+{% if s.implement_call_c %}
+    cdef bint call_c(self,
+                     {{ arg_ch.storage_type.c_ptr_type() }} args,
+                     {{ arg_ch.storage_type.c_ptr_type() }} result) except 0:
+{% if do_cleanup %}
+        try:
+{% print indent_lines(4, the_call_c) %}
+        except:
+{%   for ch in s.chunks %}
+{%     if ch.needs_cleanup_on_error() %}
+{%       print indent_lines(12, ch.handle_cleanup()) %}
+{%     endif %}
+{%   endfor %}
+            raise
+{% else %}
+{% print the_call_c %}
+{% endif %}
+        return 1
+{% endif %}
+
 from sage.ext.fast_callable import CompilerInstrSpec, InterpreterMetadata
 metadata = InterpreterMetadata(by_opname={
 {% for instr in s.instr_descs %}
@@ -3048,7 +3118,7 @@ metadata = InterpreterMetadata(by_opname={
 {% endfor %}
  ],
  ipow_range={{ s.ipow_range }})
-""", s=s, self=self, types=types, arg_ch=arg_ch, indent_lines=indent_lines, the_call=the_call, do_cleanup=do_cleanup))
+""", s=s, self=self, types=types, arg_ch=arg_ch, indent_lines=indent_lines, the_call=the_call, the_call_c=the_call_c, do_cleanup=do_cleanup))
 
     def write_pxd(self, write):
         r"""
@@ -3076,6 +3146,9 @@ metadata = InterpreterMetadata(by_opname={
         for ch in s.chunks:
             if ch.storage_type is not None:
                 types.add(ch.storage_type)
+        for ch in s.chunks:
+            if ch.name == 'args':
+                arg_ch = ch
 
         w(je("""
 # Automatically generated.  Do not edit!
@@ -3093,7 +3166,12 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 {% print ch.declare_class_members() %}
 {% endfor %}
 {% print indent_lines(4, s.extra_class_members) %}
-""", s=s, self=self, types=types, indent_lines=indent_lines))
+{% if s.implement_call_c %}
+    cdef bint call_c(self,
+                     {{ arg_ch.storage_type.c_ptr_type() }} args,
+                     {{ arg_ch.storage_type.c_ptr_type() }} result) except 0
+{% endif %}
+""", s=s, self=self, types=types, indent_lines=indent_lines, arg_ch=arg_ch))
 
     def get_interpreter(self):
         r"""
@@ -3431,6 +3509,42 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                         raise
             ...
 
+        Finally, we define a cdef call_c method, for quickly calling
+        this object from Cython.  (The method is omitted from
+        Python-object based interpreters.)
+            sage: print rdf_wrapper
+            # ...
+                cdef bint call_c(self,
+                                 double* args,
+                                 double* result) except 0:
+                    result[0] = interp_rdf(args
+                        , self._constants
+                        , self._py_constants
+                        , self._stack
+                        , self._code
+                        )
+                    return 1
+            ...
+
+        The method for the RR interpreter is slightly different, because
+        the interpreter takes a pointer to a result location instead of
+        returning the value.
+            sage: print rr_wrapper
+            # ...
+                cdef bint call_c(self,
+                                 mpfr_t* args,
+                                 mpfr_t* result) except 0:
+                    interp_rr(args
+                        , result
+                        , self._constants
+                        , self._py_constants
+                        , self._stack
+                        , self._code
+                        , <PyObject*>self._domain
+                        )
+                    return 1
+            ...
+
         That's it for the wrapper class.  The only thing remaining is
         the interpreter metadata.  This is the information necessary
         for the code generator to map instruction names to opcodes; it
@@ -3554,6 +3668,21 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                 cdef int _n_stack
                 cdef PyObject** _stack
             ...
+
+        Then, at the end of the wrapper class, we declare a cdef method
+        for quickly calling the wrapper object from Cython.  (This method
+        is omitted from Python-object based interpreters.)
+            sage: print rdf_pxd
+            # ...
+                cdef bint call_c(self,
+                                 double* args,
+                                 double* result) except 0
+            sage: print rr_pxd
+            # ...
+                cdef bint call_c(self,
+                                 mpfr_t* args,
+                                 mpfr_t* result) except 0
+
         """
         import cStringIO
         buff = cStringIO.StringIO()

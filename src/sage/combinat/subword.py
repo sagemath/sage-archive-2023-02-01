@@ -304,8 +304,15 @@ def smallest_positions(word, subword, pos = 0):
         False
         sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3],3)
         False
+
+    TEST::
+
+        sage: w = ["a", "b", "c", "d"]; ww = ["b", "d"]
+        sage: x = sage.combinat.subword.smallest_positions(w, ww); ww # Trac #5534
+        ['b', 'd']
     """
     pos -= 1
+    res = [None] * len(subword)
     for i in range(len(subword)):
         for j in range(pos+1, len(word)+1):
             if j == len(word):
@@ -315,7 +322,7 @@ def smallest_positions(word, subword, pos = 0):
                 break
         if pos != j:
             return False
-        subword[i] = pos
+        res[i] = pos
 
-    return subword
+    return res
 

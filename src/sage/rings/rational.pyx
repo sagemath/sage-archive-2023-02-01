@@ -37,6 +37,7 @@ TESTS::
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
+include "../libs/pari/decl.pxi"
 
 
 import sys
@@ -50,6 +51,8 @@ import sage.libs.pari.all
 
 cimport integer
 import integer
+
+from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 from integer_ring import ZZ
 
@@ -67,6 +70,13 @@ import  sage.rings.fast_arith
 
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
+
+cdef extern from "convert.h":
+    ctypedef long* GEN
+    void QQ_to_t_FRAC (GEN *g, mpq_t value)
+    void t_FRAC_to_QQ ( mpq_t value, GEN g )
+    void t_INT_to_ZZ ( mpz_t value, GEN g )
+
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -253,6 +263,17 @@ cdef class Rational(sage.structure.element.FieldElement):
             '-h/3ki'
             sage: b = 2/3; b._reduce_set('-h/3ki'); b
             -17/3730
+
+            sage: Rational(pari(-345/7687))
+            -345/7687
+            sage: Rational(pari(-345))
+            -345
+            sage: Rational(pari('Mod(2,3)'))
+            2
+            sage: Rational(pari('x'))
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce PARI x to an Integer.
         """
         mpq_set_str(self.value, s, 32)
 
@@ -323,14 +344,19 @@ cdef class Rational(sage.structure.element.FieldElement):
                 raise ValueError, "denominator must not be 0"
             mpq_canonicalize(self.value)
 
+        elif isinstance(x, sage.libs.pari.all.pari_gen):
+            if typ((<pari_gen>x).g) == t_FRAC:
+                t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
+            elif typ((<pari_gen>x).g) == t_INT:
+                t_INT_to_ZZ(mpq_numref(self.value), (<pari_gen>x).g)
+                mpz_set_si(mpq_denref(self.value), 1)
+            else:
+                a = integer.Integer(x)
+                mpz_set(mpq_numref(self.value), a.value)
+                mpz_set_si(mpq_denref(self.value), 1)
+
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)
-
-        elif isinstance(x, sage.libs.pari.all.pari_gen):
-            a = integer.Integer(x.numerator())
-            b = integer.Integer(x.denominator())
-            mpz_set(mpq_numref(self.value), a.value)
-            mpz_set(mpq_denref(self.value), b.value)
 
         elif hasattr(x, 'rational_reconstruction'):
             temp_rational = x.rational_reconstruction()
@@ -2478,16 +2504,20 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _pari_(self):
         """
-        Return this rational coerced into the PARI C library.
-
-        OUTPUT: pari gen
+        Returns the PARI version of this rational number.
 
         EXAMPLES::
 
-            sage: (-9/17)._pari_()
-            -9/17
+            sage: n = 9390823/17
+            sage: m = n._pari_(); m
+            9390823/17
+            sage: type(m)
+            <type 'sage.libs.pari.gen.gen'>
+            sage: m.type()
+            't_FRAC'
         """
-        return self.numerator()._pari_()/self.denominator()._pari_()
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        return P.new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self):
         """

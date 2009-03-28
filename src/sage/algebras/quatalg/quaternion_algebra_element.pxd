@@ -1,6 +1,6 @@
-include "../ext/cdefs.pxi"
-include "../libs/flint/fmpz.pxi"
-include "../libs/flint/fmpz_poly.pxi"
+include "../../ext/cdefs.pxi"
+include "../../libs/flint/fmpz.pxi"
+include "../../libs/flint/fmpz_poly.pxi"
 
 import sage.structure.element
 cimport sage.structure.element
@@ -8,6 +8,7 @@ from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, 
 from sage.categories.morphism cimport Morphism
 
 cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
+    cpdef bint is_constant(self)
     cdef _do_print(self, x,y,z,w)
     cpdef conjugate(self)
     cpdef reduced_norm(self)

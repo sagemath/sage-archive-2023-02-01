@@ -350,7 +350,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         return d
 
     def __setstate__(self, d):
-        if self._element_constructor is not None:
+        if d.has_key('_element_constructor'):
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__ = d

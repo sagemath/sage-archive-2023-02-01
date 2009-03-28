@@ -24,3 +24,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 cdef class MatrixWindow:
     cdef Matrix_rational_dense _matrix
     cdef int _row, _col, _nrows, _ncols
+
+################################################################
+# fast conversion to pari on the stack
+################################################################
+ctypedef long* GEN
+cdef GEN pari_GEN(Matrix_rational_dense B)

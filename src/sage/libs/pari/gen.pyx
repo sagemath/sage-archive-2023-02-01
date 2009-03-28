@@ -147,6 +147,7 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
+
 from sage.misc.misc_c import is_64_bit
 
 #include '../../ext/interrupt.pxi'
@@ -156,6 +157,7 @@ include '../../ext/stdsage.pxi'
 
 cdef extern from "convert.h":
     cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
+    cdef void QQ_to_t_FRAC( GEN *g, mpq_t value )
 
 # Make sure we don't use mpz_t_offset before initializing it by
 # putting in a value that's likely to provoke a segmentation fault,
@@ -164,11 +166,7 @@ cdef long mpz_t_offset = 1000000000
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
-#pari_instance = PariInstance(200000000, 500000)
-#pari_instance = PariInstance(100000000, 500000)
-#pari_instance = PariInstance(75000000, 500000)
-#pari_instance = PariInstance(50000000, 500000)
-pari_instance = PariInstance(8000000, 500000)
+pari_instance = PariInstance(16000000, 500000)
 P = pari_instance   # shorthand notation
 
 # so Galois groups are represented in a sane way
@@ -7821,8 +7819,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ONE = self.new_gen(gen_1)
         self.TWO = self.new_gen(gen_2)
 
-    #def __dealloc__(self):
-
     def _unsafe_deallocate_pari_stack(self):
         if bot:
             sage_free(<void*>bot)
@@ -7960,6 +7956,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         avma = mytop
         _sig_off
 
+    cdef void set_mytop_to_avma(self):
+        global mytop, avma
+        mytop = avma
+
     cdef gen new_gen_noclear(self, GEN x):
         """
         Create a new gen, but don't free any memory on the stack and don't
@@ -8000,6 +8000,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen_from_int(self, int value):
         _sig_on
         return self.new_gen(stoi(value))
+
+    cdef gen new_gen_from_mpq_t(self, mpq_t value):
+        """
+        EXAMPLES::
+            sage: pari(2/3)       # indirect doctest
+            2/3
+        """
+        cdef GEN z
+        _sig_on
+        QQ_to_t_FRAC(&z, value)
+        return self.new_gen(z)
 
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum):
         """
@@ -8222,6 +8233,72 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         t = str(s)
         _sig_str('evaluating PARI string')
         g = gp_read_str(t)
+        return self.new_gen(g)
+
+    cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        """
+        EXAMPLES::
+
+            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+
+        """
+        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                ZZ_to_t_INT(&x, B[i][j])
+                (<GEN>(A[j+1]))[i+1] = <long>x
+        return A
+
+    cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        cdef GEN x,  A = gtomat(zeromat(nc, nr))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                ZZ_to_t_INT(&x, B[i][nc-j-1])
+                (<GEN>(A[i+1]))[j+1] = <long>x
+        return A
+
+    cdef integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+        """
+        EXAMPLES::
+
+            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        _sig_on
+        cdef GEN g
+        if permute_for_hnf:
+            g = self.integer_matrix_permuted_for_hnf_GEN(B, nr, nc)
+        else:
+            g = self.integer_matrix_GEN(B, nr, nc)
+        return self.new_gen(g)
+
+    cdef GEN rational_matrix_GEN(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        """
+        EXAMPLES::
+
+            sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                QQ_to_t_FRAC(&x, B[i][j])
+                (<GEN>(A[j+1]))[i+1] = <long>x
+        return A
+
+    cdef rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+        """
+        EXAMPLES::
+
+            sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        _sig_on
+        cdef GEN g = self.rational_matrix_GEN(B, nr, nc)
         return self.new_gen(g)
 
     cdef _coerce_c_impl(self, x):
@@ -8706,17 +8783,21 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         matrix(long m, long n, entries=None): Create and return the m x n
         PARI matrix with given list of entries.
         """
-        cdef int i, j, k
+        cdef long i, j, k
         cdef gen A
+        cdef gen x
+
         _sig_on
-        A = self.new_gen(zeromat(m,n)).Mat()
-        if entries != None:
+        A = self.new_gen(gtomat(zeromat(m,n)))  # the gtomat is very important!!
+        if entries is not None:
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
             k = 0
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    A[i,j] = entries[k]
+                    x = pari(entries[k])
+                    A._refers_to[(i,j)] = x
+                    (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
                     k = k + 1
         return A
 
@@ -9093,4 +9174,5 @@ cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
         m[i,0] = w[i][0]
         m[i,1] = w[i][1]
     return m
+
 

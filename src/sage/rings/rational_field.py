@@ -228,7 +228,26 @@ class RationalField(_uniq, number_field_base.NumberField):
     def _latex_(self):
         return "\\mathbf{Q}"
 
+    def __reduce__(self):
+        """
+        Used for pickling QQ.
+
+        EXAMPLES::
+
+           sage: loads(dumps(QQ)) is QQ
+           True
+        """
+        return RationalField, tuple([])
+
     def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: len(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: len() of unsized object
+        """
         raise TypeError, 'len() of unsized object'
 
     def construction(self):
@@ -809,6 +828,13 @@ class RationalField(_uniq, number_field_base.NumberField):
 
             sage: magma(QQ)                       # optional - magma
             Rational Field
+
+        TESTS::
+
+        See trac 5521::
+
+            sage: loads(dumps(QQ)) == QQ          # optional - magma
+            True
         """
         return 'RationalField()'
 

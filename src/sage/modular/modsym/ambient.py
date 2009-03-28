@@ -29,8 +29,8 @@ factor `x`.
     (x - 9)^2 * (x^2 - 2*x - 2)^2
 """
 
-#*****************************************************************************
-#       SAGE: System for Algebra and Geometry Experimentation
+################################################################################
+#       SAGE: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -44,7 +44,7 @@ factor `x`.
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+################################################################################
 
 # SAGE packages
 from   sage.misc.search import search
@@ -1544,6 +1544,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if d != 1:
             W = W.scale(1/d)
         self.__integral_structure = W
+        assert W.rank() == self.rank(), "there is a bug in computing integral structure on modular symbols"
         return self.__integral_structure
 
     ######################################################################

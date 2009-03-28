@@ -3712,8 +3712,7 @@ class FreeModule_ambient(FreeModule_generic):
             c = cmp(self.rank(), other.rank())
             if c: return c
             c = cmp(self.base_ring(), other.base_ring())
-            if not c:
-                return c
+            if not c: return c
             try:
                 if self.base_ring().is_subring(other.base_ring()):
                     return -1
@@ -4628,6 +4627,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             True
             sage: M < V
             False
+
+        We test that trac 5525 is fixed::
+
+            sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ);
+            sage: A.intersection(B)
+            Free module of degree 1 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1]
+
         """
         if self is other:
             return 0
@@ -4637,20 +4645,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if c: return c
         c = cmp(self.dimension(), other.dimension())
         if c: return c
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
         return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
-
-##         if self.base_ring() == other.base_ring() and \
-##                self.echelonized_basis_matrix() == other.echelonized_basis_matrix():
-##             return 0
-##         try:
-##             if self.is_submodule(other):
-##                 return -1
-##             else:
-##                 return 1
-##         except NotImplementedError:
-##             return 1
 
     def _denominator(self, B):
         """

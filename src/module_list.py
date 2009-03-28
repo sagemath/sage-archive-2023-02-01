@@ -93,13 +93,18 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.algebras.quaternion_algebra_element',
-               sources = ['sage/algebras/quaternion_algebra_element.pyx'],
+    Extension('sage.algebras.quatalg.quaternion_algebra_element',
+               sources = ['sage/algebras/quatalg/quaternion_algebra_element.pyx'],
                extra_compile_args=["-std=c99", "-D_XPG6"],
                language='c++',
                libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++", "ntl"],
                include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
                depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
+    Extension('sage.algebras.quatalg.quaternion_algebra_cython',
+               sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
+               language='c++',
+               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++", "ntl"]),
 
     ################################
     ##

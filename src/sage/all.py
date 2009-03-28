@@ -273,8 +273,8 @@ def quit_sage(verbose=True):
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     sage.rings.integer.clear_mpz_globals()
-    import sage.algebras.quaternion_algebra_element
-    sage.algebras.quaternion_algebra_element._clear_globals()
+    import sage.algebras.quatalg.quaternion_algebra_element
+    sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
     from sage.libs.all import symmetrica
     symmetrica.end()

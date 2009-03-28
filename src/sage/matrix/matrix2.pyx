@@ -3733,7 +3733,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def _echelon_in_place_classical(self):
         """
-        Return the echelon form of self and set the pivots of self.
+        Transform self into echelon form and set the pivots of self.
 
         EXAMPLES::
 
@@ -3741,7 +3741,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: t._echelon_in_place_classical(); t
+            sage: E = t._echelon_in_place_classical(); t
             [ 1  0 -1]
             [ 0  1  2]
             [ 0  0  0]
@@ -3752,7 +3752,7 @@ cdef class Matrix(matrix1.Matrix):
             return
 
         self.check_mutability()
-        cdef Matrix A, d
+        cdef Matrix A
 
         nr = self._nrows
         nc = self._ncols
@@ -3777,10 +3777,8 @@ cdef class Matrix(matrix1.Matrix):
                     start_row = start_row + 1
                     break
         self.cache('pivots', pivots)
-        A.cache('pivots', pivots)
-        A.cache('in_echelon_form', True)
-        self.cache('echelon_form', A)
-
+        self.cache('in_echelon_form', True)
+        self.cache('echelon_form', self)
         verbose('done with gauss echelon form', tm)
 
     #####################################################################################

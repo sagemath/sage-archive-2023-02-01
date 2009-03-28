@@ -57,6 +57,31 @@ from sage.rings.arith import previous_prime
 from sage.structure.element import is_Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
+from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+
+#########################################################
+# PARI C library
+from sage.libs.pari.gen cimport gen, PariInstance
+from sage.libs.pari.gen import pari
+
+cdef extern from 'pari/pari.h':
+    GEN     zeromat(long m, long n)
+    GEN     mathnf0(GEN x,long flag)
+    GEN     det0(GEN a,long flag)
+    GEN     gcoeff(GEN,long,long)
+    GEN     gtomat(GEN x)
+    GEN     gel(GEN,long)
+    long    glength(GEN x)
+    GEN     ginv(GEN x)
+    long    rank(GEN x)
+
+cdef extern from "convert.h":
+    void ZZ_to_t_INT ( GEN *g, mpz_t value )
+    cdef void t_INT_to_ZZ( mpz_t value, long *g )
+
+#########################################################
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
@@ -476,13 +501,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         EXAMPLES::
 
-            sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long
-            sage: S == loads(dumps(S)) # long
+            sage: a = matrix(ZZ,2,3,[1,193,15,-2,3,0])
+            sage: a._pickle()
+            ('1 61 f -2 3 0', 0)
+
+            sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long time
+            sage: S == loads(dumps(S)) # long time
             True
         """
         return self._pickle_version0(), 0
 
     cdef _pickle_version0(self):
+        """
+        EXAMPLES::
+
+            sage: matrix(ZZ,1,3,[1,193,15])._pickle()   # indirect doctest
+            ('1 61 f', 0)
+
+        """
         return self._export_as_string(32)
 
     cpdef _export_as_string(self, int base=10):
@@ -1377,10 +1413,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return self.echelon_form(*args, **kwds)
 
-    def echelon_form(self, algorithm="padic", proof=None, include_zero_rows=True,
+    def echelon_form(self, algorithm="default", proof=None, include_zero_rows=True,
                      transformation=False, D=None):
         r"""
-        Return the echelon form of this matrix over the integers also known
+        Return the echelon form of this matrix over the integers, also known
         as the hermit normal form (HNF).
 
         INPUT:
@@ -1388,13 +1424,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm``
 
-          - ``'padic'`` - (default) a new fast p-adic modular
-            algorithm,
+          --``'default'`` - max 10 rows or columns: pari with flag 0
+                            max 75 rows or columns: pari with flag 1
+                            larger -- use padic algorithm
+
+          - ``'padic'`` - an asymptotically fast p-adic modular algorithm,
+                          If your matrix has large coefficients and is small,
+                          you may also want to try this.
 
           - ``'pari'`` - use PARI with flag 1
 
+          - ``'pari0'`` - use PARI with flag 0
+
+          - ``'pari4'`` - use PARI with flag 4 (use heuristic LLL)
+
           - ``'ntl'`` - use NTL (only works for square matrices of
-            full rank!)
+                         full rank!)
 
         -  ``proof`` - (default: True); if proof=False certain
            determinants are computed using a randomized hybrid p-adic
@@ -1488,6 +1533,40 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             []
             sage: a.echelon_form(include_zero_rows=True)
             [0 0 0]
+
+        Illustrate using various algorithms.::
+
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='pari')
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='pari0')
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='pari4')
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='padic')
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='default')
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+
+        The 'ntl' algorithm doesn't work on matrices that do not have full rank.::
+
+            sage: matrix(ZZ,3,[1..9]).hermite_form(algorithm='ntl')
+            Traceback (most recent call last):
+            ...
+            ValueError: ntl only computes HNF for square matrices of full rank.
+            sage: matrix(ZZ,3,[0] +[2..9]).hermite_form(algorithm='ntl')
+            [1 0 0]
+            [0 1 0]
+            [0 0 3]
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('pivots', [])
@@ -1499,6 +1578,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t nr, nc, n, i, j
         nr = self._nrows
         nc = self._ncols
+        n = nr if nr >= nc else nc
+        if algorithm is 'default':
+            if transformation: algorithm = 'padic'
+            else:
+                if n <= 10: algorithm = 'pari0'
+                elif n <= 75: algorithm = 'pari'
+                else: algorithm = 'padic'
+
+        cdef bint pari_big = 0
+        if algorithm.startswith('pari'):
+            if self.height().ndigits() > 10000 or n >= 50:
+                pari_big = 1
 
         cdef Matrix_integer_dense H_m
 
@@ -1518,37 +1609,29 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.cache('rank', len(pivots))
 
 
+        elif algorithm == 'pari0':
+            if transformation:
+                raise ValueError, "transformation matrix only available with p-adic algorithm"
+            if pari_big:
+                H_m = self._hnf_pari_big(0, include_zero_rows=include_zero_rows)
+            else:
+                H_m = self._hnf_pari(0, include_zero_rows=include_zero_rows)
+
         elif algorithm == 'pari':
             if transformation:
                 raise ValueError, "transformation matrix only available with p-adic algorithm"
-            # The following complicated sequence of column reversals
-            # and transposes is needed since PARI's Hermite Normal Form
-            # does column operations instead of row operations.
-            tm = verbose("pari hermite form")
-            n = nc
-            r = []
-            for i from 0 <= i < n:
-                r.append(n-i)
-            v = self._pari_()
-            v = v.vecextract(r) # this reverses the order of columns
-            v = v.mattranspose()
-            w = v.mathnf(1)
-            H = _convert_parimatrix(w[0])
-            # if H=[] may occur if we start with a column of zeroes
-            if nc == 1 and H!=[]:
-                H = [H]
-
-            # We do a 'fast' change of the above into a list of ints,
-            # since we know all entries are ints:
-            num_missing_rows = (nr*nc - len(H)) / nc
-            rank = nr - num_missing_rows
-
-            if include_zero_rows:
-                H = H + ['0']*(num_missing_rows*nc)
-                H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+            if pari_big:
+                H_m = self._hnf_pari_big(1, include_zero_rows=include_zero_rows)
             else:
-                H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
-            verbose("finished pari hermite form",tm)
+                H_m = self._hnf_pari(1, include_zero_rows=include_zero_rows)
+
+        elif algorithm == 'pari4':
+            if transformation:
+                raise ValueError, "transformation matrix only available with p-adic algorithm"
+            if pari_big:
+                H_m = self._hnf_pari_big(4, include_zero_rows=include_zero_rows)
+            else:
+                H_m = self._hnf_pari(4, include_zero_rows=include_zero_rows)
 
         elif algorithm == 'ntl':
             if transformation:
@@ -1581,7 +1664,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i from 0 <= i < w.nrows():
                 for j from 0 <= j < w.ncols():
                     H_m[i,j] = w[nr-i-1,nc-j-1]
-            H_m.set_immutable()
 
         else:
             raise TypeError, "algorithm '%s' not understood"%(algorithm)
@@ -2955,6 +3037,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         r = self.fetch('rank')
         if not r is None: return r
 
+        if self._nrows <= 6 and self._ncols <= 6 and self.height().ndigits() <= 10000:
+            r = self._rank_pari()
         # Can very quickly detect full rank by working modulo p.
         r = self._rank_modp()
         if r == self._nrows or r == self._ncols:
@@ -2982,7 +3066,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Determinant
 
-    def determinant(self, algorithm='padic', proof=None, stabilize=2):
+    def determinant(self, algorithm='default', proof=None, stabilize=2):
         r"""
         Return the determinant of this matrix.
 
@@ -2990,13 +3074,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm``
 
-          - ``'padic'`` - (the default) uses a p-adic / multimodular
+          - ``'default'`` -- use 'pari' when number of rows less than 50;
+                             otherwise, use 'padic'
+
+          - ``'padic'`` -  uses a p-adic / multimodular
             algorithm that relies on code in IML and linbox
 
           - ``'linbox'`` - calls linbox det (you *must* set
             proof=False to use this!)
 
           -  ``'ntl'`` - calls NTL's det function
+
+          - ``'pari'`` - uses PARI
 
         -  ``proof`` - bool or None; if None use
            proof.linear_algebra(); only relevant for the padic algorithm.
@@ -3076,6 +3165,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # use generic special cased code.
             return matrix_dense.Matrix_dense.determinant(self)
 
+        if algorithm == 'default':
+            if n <= 50 and self.height().ndigits() <= 100:
+                algorithm = 'pari'
+            else:
+                algorithm = 'padic'
+
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'padic':
@@ -3085,6 +3180,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if proof:
                 raise RuntimeError, "you must pass the proof=False option to the determinant command to use Linbox's det algorithm"
             d = self._det_linbox()
+        elif algorithm == 'pari':
+            d = self._det_pari()
         elif algorithm == 'ntl':
             d = self._det_ntl()
         else:
@@ -4407,6 +4504,188 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         [nr - t for t in reversed(row_divs)])
         return A
 
+    def _pari_(self):
+        """
+        Return PARI C-library version of this matrix.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ,2,2,[1,2,3,4])
+            sage: a._pari_()
+            [1, 2; 3, 4]
+            sage: pari(a)
+            [1, 2; 3, 4]
+            sage: type(pari(a))
+            <type 'sage.libs.pari.gen.gen'>
+        """
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        return P.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
+
+    def _det_pari(self, int flag=0):
+        """
+        Determinant of this matrix using Gauss-Bareiss. If (optional)
+        flag is set to 1, use classical gaussian elimination.
+
+        For efficiency purposes, this det is computed entirely on the
+        PARI stack then the PARI stack is cleared.  This function is
+        most useful for very small matrices.
+
+        EXAMPLES::
+
+            sage: matrix(ZZ,3,[1..9])._det_pari()
+            0
+            sage: matrix(ZZ,3,[1..9])._det_pari(1)
+            0
+        """
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        _sig_on
+        cdef GEN d = det0(pari_GEN(self), flag)
+        _sig_off
+        # now convert d to a Sage integer e
+        cdef Integer e = Integer()
+        t_INT_to_ZZ(e.value, d)
+        P.clear_stack()
+        return e
+
+    def _rank_pari(self):
+        """
+        Rank of this matrix, computed using PARI.  The computation is
+        done entirely on the PARI stack, then the PARI stack is
+        cleared.  This function is most useful for very small
+        matrices.
+
+        EXAMPLES::
+            sage: matrix(ZZ,3,[1..9])._rank_pari()
+            2
+        """
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        _sig_on
+        cdef long r = rank(pari_GEN(self))
+        _sig_off
+        P.clear_stack()
+        return r
+
+    def _hnf_pari(self, int flag=0, bint include_zero_rows=True):
+        """
+        Hermite form of this matrix, computed using PARI.  The
+        computation is done entirely on the PARI stack, then the PARI
+        stack is cleared.  This function is only useful for small
+        matrices, and can crash on large matrices (e.g., if the PARI
+        stack overflows).
+
+        INPUT:
+            flag -- 0 (default), 1, 3 or 4 (see docstring for gp.mathnf).
+            include_zero_rows -- if False, do not include any of the zero
+                  rows at the bottom of the matrix in the output.
+
+        NOTE: In no cases is the transformation matrix returned by
+        this function.
+
+        EXAMPLES::
+
+            sage: matrix(ZZ,3,[1..9])._hnf_pari()
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(1)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(3)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(4)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+        """
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef GEN x, A = gtomat(zeromat(self._ncols, self._nrows))
+        cdef Py_ssize_t i, j
+        # We make the matrix A got from self by reversing the order of
+        # the columns and transposing.  This is needed since PARI's
+        # hnf does column operations instead of row operations.
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                ZZ_to_t_INT(&x, self._matrix[i][self._ncols-j-1])
+                (<GEN>(A[i+1]))[j+1] = <long>x
+
+        # Actually compute the HNF using PARI.
+        _sig_on
+        cdef GEN H = mathnf0(A, flag)
+        _sig_off
+
+        B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
+        P.clear_stack()
+        return B
+
+
+    def _hnf_pari_big(self, int flag=0, bint include_zero_rows=True):
+        """
+        Hermite form of this matrix, computed using PARI.
+
+        INPUT:
+            flag -- 0 (default), 1, 3 or 4 (see docstring for gp.mathnf).
+            include_zero_rows -- if False, do not include any of the zero
+                  rows at the bottom of the matrix in the output.
+
+        NOTE: In no cases is the transformation matrix returned by
+        this function.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ,3,3,[1..9])
+            sage: a._hnf_pari_big(flag=1, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+        """
+        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        H = H.mathnf(flag)
+        return self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+
+    cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
+        # Throw away the transformation matrix (yes, we should later
+        # code this to keep track of it).
+        if flag > 0:
+            H = gel(H,1)
+
+        # Figure out how many columns we got back.
+        cdef Py_ssize_t H_nc = glength(H)  # number of columns
+        # Now get the resulting Hermite form matrix back to Sage, suitably re-arranged.
+        cdef Matrix_integer_dense B
+        if include_zero_rows:
+            B = self.new_matrix()
+        else:
+            B = self.new_matrix(nrows=H_nc)
+        for i in range(self._ncols):
+            for j in range(H_nc):
+                t_INT_to_ZZ(B._matrix[j][self._ncols-i-1], gcoeff(H, i+1, H_nc-j))
+        return B
+
+cdef GEN pari_GEN(Matrix_integer_dense B):
+    """
+    Create the PARI GEN object on the stack defined by the integer
+    matrix B. This is used internally by the function for conversion
+    of matrices to PARI.
+
+    EXAMPLES::
+
+        sage: matrix(ZZ,1,[1..4])._pari_()            # implicit doctest
+        Mat([1, 2, 3, 4])
+    """
+    cdef GEN x,  A = gtomat(zeromat(B._nrows, B._ncols))
+    cdef Py_ssize_t i, j
+    for i in range(B._nrows):
+        for j in range(B._ncols):
+            ZZ_to_t_INT(&x, B._matrix[i][j])
+            (<GEN>(A[j+1]))[i+1] = <long>x
+    return A
+
 
     #####################################################################################
 
@@ -4434,48 +4713,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
 
 ###############################################################
 
-###########################################
-# Helper code for Echelon form algorithm.
-###########################################
-def _parimatrix_to_strlist(A):
-    s = str(A)
-    s = s.replace('Mat(','').replace(')','')
-    # Deal correctly with an empty pari matrix [;]
-    if s=='[;]':
-        return []
-    s = s.replace(';',',').replace(' ','')
-    s = s.replace(",", "','")
-    s = s.replace("[", "['")
-    s = s.replace("]", "']")
-    return eval(s)
 
-def _parimatrix_to_reversed_strlist(A):
-    s = str(A)
-    if s.find('Mat') != -1:
-        return _parimatrix_to_strlist(A)
-    # Deal correctly with an empty pari matrix [;]
-    if s=='[;]':
-        return []
-    s = s.replace('[','').replace(']','').replace(' ','')
-    v = s.split(';')
-    v.reverse()
-    s = "['" + (','.join(v)) + "']"
-    s = s.replace(",", "','")
-    return eval(s)
-
-def _convert_parimatrix(z):
-    n = z.ncols();
-    r = []
-    for i from 0 <= i < n:
-        r.append(n-i)
-    z = z.vecextract(r)
-    z = z.mattranspose()
-    n = z.ncols();
-    r = []
-    for i from 0 <= i < n:
-        r.append(n-i)
-    z = z.vecextract(r)
-    return _parimatrix_to_strlist(z)
 
 
 

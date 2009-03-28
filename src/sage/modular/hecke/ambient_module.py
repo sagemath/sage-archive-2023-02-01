@@ -44,11 +44,27 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     Ambient Hecke module.
     """
     def __init__(self, base_ring, rank, level, weight):
-        rank = int(rank)
+        rank = sage.rings.all.Integer(rank)
         if rank < 0:
             raise ValueError, "rank (=%s) must be nonnegative"%rank
         self.__rank = rank
         module.HeckeModule_free_module.__init__(self, base_ring, level, weight)
+
+    def rank(self):
+        """
+        Return the rank of this ambient Hecke module.
+
+        OUTPUT:
+            Integer
+
+        EXAMPLES::
+
+            sage: M = sage.modular.hecke.ambient_module.AmbientHeckeModule(QQ, 3, 11, 2); M
+            Ambient Hecke module of rank Rational Field over 3
+            sage: M.rank()
+            3
+        """
+        return self.__rank
 
     def __add__(self, other):
         if not isinstance(other, module.HeckeModule_free_module):
@@ -56,9 +72,6 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         if other.ambient_hecke_module() == self:
             return self
         raise ArithmeticError, "Sum only defined for subspaces of a common ambient Hecke module."
-
-    def __call__(self, x):
-        raise NotImplementedError
 
     def _repr_(self):
         return "Ambient Hecke module of rank %s over %s"%(self.base_ring(), self.rank())

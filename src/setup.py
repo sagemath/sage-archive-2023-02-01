@@ -543,6 +543,7 @@ code = setup(name = 'sage',
       packages    = ['sage',
 
                      'sage.algebras',
+                     'sage.algebras.quatalg',
 
                      'sage.calculus',
 
@@ -618,6 +619,7 @@ code = setup(name = 'sage',
                      'sage.modular.hecke',
                      'sage.modular.modform',
                      'sage.modular.modsym',
+                     'sage.modular.quatalg',
                      'sage.modular.ssmod',
 
                      'sage.monoids',

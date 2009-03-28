@@ -41,6 +41,7 @@ from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.modular.dims          import dimension_cusp_forms, sturm_bound
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
+from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
 from sage.misc.misc             import prod
@@ -4070,6 +4071,316 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
             Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
         """
         return self.__modsym
+
+    def component_group_order(self, p):
+        """
+        Return the order of the component group of the special fiber
+        at p of the Neron model of self.
+
+        NOTE: For bad primes, this is only implemented when the group
+        if Gamma0 and p exactly divides the level.
+
+        NOTE: the input abelian variety must be simple
+
+        ALGORITHM: See "Component Groups of Quotients of J0(N)" by Kohel and Stein.  That
+        paper is about optimal quotients; however, section 4.1 of Conrad-Stein "Component
+        Groups of Purely Toric Quotients", one sees that the component group of an optimal
+        quotient is the same as the component group of its dual (which is the subvariety).
+
+        INPUT:
+            - p -- a prime number
+
+        OUTPUT:
+            - Integer
+
+        EXAMPLES::
+
+            sage: A = J0(37)[1]
+            sage: A.component_group_order(37)
+            3
+            sage: A = J0(43)[1]
+            sage: A.component_group_order(37)
+            1
+            sage: A.component_group_order(43)
+            7
+            sage: A = J0(23)[0]
+            sage: A.component_group_order(23)
+            11
+        """
+        if not self.is_simple():
+            raise ValueError, "self must be simple"
+        p = Integer(p)
+        if not p.is_prime(): raise ValueError, "p must be a prime integer"
+        try: return self.__component_group[p][0]
+        except AttributeError:
+            self.__component_group = {}
+        except KeyError: pass
+        # Easy special case -- a prime of good reduction
+        if self.level() % p != 0:
+            one = Integer(1)
+            self.__component_group[p] = (one,one,one)
+            return one
+        # Cases that we don't know how to handle yet.
+        if not is_Gamma0(self.group()):
+            raise NotImplementedError, "computation of component group not implemented when group isn't Gamma0"
+        if self.level() % (p*p) == 0:
+            raise NotImplementedError, "computation of component group not implemented when p^2 divides the level"
+
+        # Now we're on Gamma0(p*M) with gcd(p,M) = 1.
+        # 1. Compute factor of Brandt module space, and put integral structure on it.
+
+        # TODO -- in case self.level() is prime, should use
+        # supersingular module instead for massive speedup...  Of
+        # course, then one can just use Emertons theorem that the
+        # component group order equals the torsion order, and avoid
+        # all of this!
+        XI = self.brandt_module(p)
+        Y = XI.ambient_module()
+        n = Y.dimension()
+
+        # X_ZZ is the submodule of degree 0 divisors
+        M = ZZ**n
+        deg_zero = []
+        for k in range(1,n):
+            v = vector(ZZ, n)
+            v[0] = 1
+            v[k] = -1
+            deg_zero.append(v)
+        X_ZZ = M.span(deg_zero, ZZ)
+        XI_ZZ = XI.free_module().intersection(M)
+
+        # 2. Compute the map alpha: X --> Hom(X[I],Z) over ZZ
+        # todo -- this could be done more quickly with a clever matrix multiply
+        B = [XI(v) for v in XI_ZZ.basis()]
+        mat = []
+        for v in M.basis():
+            w = Y(v)
+            mat.append([w.monodromy_pairing(b) for b in B])
+        monodromy = matrix(ZZ, mat)
+        alpha = X_ZZ.basis_matrix().change_ring(ZZ) * monodromy
+
+        # 3. Compute invariants:
+        #        * Phi_X = #coker(alpha)
+        #        * m_X = #(alpha(X)/alpha(X[I]))
+        alphaX = alpha.row_module()
+        Phi_X_invariants = alphaX.basis_matrix().change_ring(ZZ).elementary_divisors()
+        Phi_X = prod(Phi_X_invariants + [Integer(1)])
+
+        W = alphaX.span([b*monodromy for b in XI_ZZ.basis()], ZZ)
+        m_X = Integer(W.index_in(alphaX))
+
+        # 4. Compute the modular degree
+        moddeg = self.modular_degree()
+
+        # 5. Obtain the component group order using Theorem 1 of [Kohel-Stein]
+        Phi = Phi_X * moddeg / m_X
+
+        # 6. Record the answer
+        self.__component_group[p] = (Phi, Phi_X_invariants, m_X)
+        return Phi
+
+    def _invariants_of_image_of_component_group_of_J0(self, p):
+        """
+        Return the elementary invariants of the image of the component
+        group of J0(N).  The API of this function is subject to
+        change, which is why it starts with an underscore.
+
+        INPUT:
+            - p -- integer
+        OUTPUT:
+            - list -- of elementary invariants
+
+        EXAMPLES::
+
+            sage: A = J0(62).new_subvariety()[1]; A
+            Simple abelian subvariety 62b(1,62) of dimension 2 of J0(62)
+            sage: A._invariants_of_image_of_component_group_of_J0(2)
+            [1, 6]
+            sage: A.component_group_order(2)
+            66
+        """
+        self.component_group_order(p)
+        return list(self.__component_group[p][1])   # make a copy
+
+    def tamagawa_number(self, p):
+        """
+        Return the Tamagawa number of this abelianv variety at p.
+
+        NOTE: For bad primes, this is only implemented when the group
+        if Gamma0 and p exactly divides the level and Atkin-Lehner
+        acts diagonally on this abelian variety (e.g., if this variety
+        is new and simple).  See the self.component_group command for
+        more information.
+
+        NOTE: the input abelian variety must be simple
+
+        In cases where this function doesn't work, consider using the
+        self.tamagawa_number_bounds functions.
+
+        INPUT:
+            - p -- a prime number
+
+        OUTPUT:
+            - Integer
+
+        EXAMPLES::
+
+            sage: A = J0(37)[1]
+            sage: A.tamagawa_number(37)
+            3
+            sage: A = J0(43)[1]
+            sage: A.tamagawa_number(37)
+            1
+            sage: A.tamagawa_number(43)
+            7
+            sage: A = J0(23)[0]
+            sage: A.tamagawa_number(23)
+            11
+        """
+        try: return self.__tamagawa_number[p]
+        except AttributeError: self.__tamagawa_number = {}
+        except KeyError: pass
+        if not self.is_simple():
+            raise ValueError, "self must be simple"
+        try:
+            g = self.component_group_order(p)
+        except NotImplementedError:
+            raise NotImplementedError, "Tamagawa number can't be determined using known algorithms, so consider using the tamagawa_number_bounds function instead"
+        div, mul, mul_primes = self.tamagawa_number_bounds(p)
+        if div == mul:
+            cp = div
+        else:
+            raise NotImplementedError, "the Tamagawa number at %s is a power of 2, but the exact power can't be determined using known algorithms.  Consider using the tamagawa_number_bounds function instead."%p
+        self.__tamagawa_number[p] = cp
+        return cp
+
+    def tamagawa_number_bounds(self, p):
+        """
+        Return a divisor and multiple of the Tamagawa number of self at p.
+
+        NOTE: the input abelian variety must be simple
+
+        INPUT:
+            - p -- a prime number
+
+        OUTPUT:
+            - div -- integer; divisor of Tamagawa number at p
+            - mul -- integer; multiple of Tamagawa number at p
+            - mul_primes -- tuple; in case mul==0, a list of all
+              primes that can possibly divide the Tamagawa number at p.
+
+        EXAMPLES::
+
+            sage: A = J0(63).new_subvariety()[1]; A
+            Simple abelian subvariety 63b(1,63) of dimension 2 of J0(63)
+            sage: A.tamagawa_number_bounds(7)
+            (3, 3, ())
+            sage: A.tamagawa_number_bounds(3)
+            (1, 0, (2, 3, 5))
+        """
+        try: return self.__tamagawa_number_bounds[p]
+        except AttributeError: self.__tamagawa_number_bounds = {}
+        except KeyError: pass
+        if not self.is_simple():
+            raise ValueError, "self must be simple"
+        N = self.level()
+        div = 1; mul = 0; mul_primes = []
+        if N % p != 0:
+            div = 1; mul = 1
+        elif N.valuation(p) == 1:
+            M = self.modular_symbols(sign=1)
+            if is_Gamma0(M.group()):
+                g = self.component_group_order(p)
+                W = M.atkin_lehner_operator(p).matrix()
+                cp = None
+                if W == -1:
+                    # Frob acts trivially
+                    div = g; mul = g
+                elif W == 1:
+                    # Frob acts by -1
+                    n = g.valuation(2)
+                    if n <= 1:
+                        div = 2**n
+                    else:
+                        phi_X_invs = self._invariants_of_image_of_component_group_of_J0(p)
+                        m = max(1, len([z for z in phi_X_invs if z%2==0]))
+                        div = 2**m
+                    mul = 2**n
+                else:
+                    raise NotImplementedError, "Atkin-Lehner at p must act as a scalar"
+        else:
+            mul_primes = list(sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)])))
+        div = Integer(div)
+        mul = Integer(mul)
+        mul_primes = tuple(mul_primes)
+        self.__tamagawa_number_bounds[p] = (div, mul, mul_primes)
+        return (div, mul, mul_primes)
+
+
+    def brandt_module(self, p):
+        """
+        Return the Brandt module at p that corresponds to self.  This
+        is the factor of the vector space on the ideal class set in an
+        order of level N in the quaternion algebra ramified at p and
+        infinity.
+
+        INPUT:
+            - p -- prime that exactly divides the level
+
+        OUTPUT:
+            - Brandt module space that corresponds to self.
+
+        EXAMPLES::
+
+            sage: J0(43)[1].brandt_module(43)
+            Subspace of dimension 2 of Brandt module of dimension 4 of level 43 of weight 2 over Rational Field
+            sage: J0(43)[1].brandt_module(43).basis()
+            ((1, 0, -1/2, -1/2), (0, 1, -1/2, -1/2))
+            sage: J0(43)[0].brandt_module(43).basis()
+            ((0, 0, 1, -1),)
+            sage: J0(35)[0].brandt_module(5).basis()
+            ((1, 0, -1, 0),)
+            sage: J0(35)[0].brandt_module(7).basis()
+            ((1, -1, 1, -1),)
+        """
+        try: return self.__brandt_module[p]
+        except AttributeError: self.__brandt_module = {}
+        except KeyError: pass
+        p = Integer(p)
+        if not is_Gamma0(self.group()):
+            raise NotImplementedError, "Brandt module only defined on Gamma0"
+        if not p.is_prime(): raise ValueError, "p must be a prime integer"
+        if self.level().valuation(p) != 1:
+            raise ValueError, "p must exactly divide the level"
+        M = self.level() / p
+        from sage.modular.all import BrandtModule
+        V = BrandtModule(p, M)
+        # now cut out version of self in B
+        S = self.modular_symbols(sign=1)
+        B = S.hecke_bound()
+        if self.dimension() <= 3:
+            q = 2
+            while V.dimension() > self.dimension() and q <= B:
+                f = S.hecke_polynomial(q)
+                V = f(V.hecke_operator(q)).kernel()
+                q = next_prime(q)
+            if V.dimension() > self.dimension():
+                raise RuntimeError, "unable to cut out Brandt module (got dimension %s instead of %s)"%(V.dimension(), self.dimension())
+        else:
+            D = V.decomposition()
+            D = [A for A in D if A.dimension() == self.dimension()]
+            # now figure out which element of D is isomorphic to self.
+            q = 2
+            while len(D) > 1 and q <= B:
+                f = S.hecke_polynomial(q)
+                D = [A for A in D if A.hecke_polynomial(q) == f]
+                q = next_prime(q)
+            if len(D) != 1:
+                raise RuntimeError, "unable to locate Brandt module (got %s candidates instead of 1)"%(len(D))
+            V = D[0]
+        self.__brandt_module[p] = V
+        return V
+
 
 def sqrt_poly(f):
     """

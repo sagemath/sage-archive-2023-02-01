@@ -83,19 +83,7 @@ cdef class Matrix(matrix0.Matrix):
             3
         """
         from sage.libs.pari.gen import pari
-
-        w = self.list()
-        cdef Py_ssize_t nr, nc, i, j
-        nr = self._nrows
-        nc = self._ncols
-        v = []
-        for i from 0 <= i < nr:
-            tmp = []
-            for j from 0 <= j < nc:
-                tmp.append(w[i*nc + j])
-            v.append(tmp)
-        return pari(v).Col().Mat()
-
+        return pari.matrix(self._nrows, self._ncols, self._list())
 
     def _gap_init_(self):
         """
@@ -604,18 +592,9 @@ cdef class Matrix(matrix0.Matrix):
         if not x is None:
             if copy: return list(x)
             return x
-
-        F = sage.modules.free_module.FreeModule(self._base_ring, self._nrows, sparse=False)
-        C = []
-        cdef Py_ssize_t i, j
-        cdef object v
-        for j from 0 <= j < self._ncols:
-            v = PyList_New(self._nrows)
-            for i from 0 <= i < self._nrows:
-                o = self.get_unsafe(i,j)
-                Py_INCREF(o)  # since we are about to set it, which doesn't increment the ref count.
-                PyList_SET_ITEM(v, i, o)
-            C.append(F(v, coerce=False,copy=False,check=False))
+        cdef Py_ssize_t i
+        A = self if self.is_dense() else self.dense_matrix()
+        C = [A.column(i) for i in range(self._ncols)]
         # cache result
         self.cache('dense_columns', C)
         if copy:
@@ -631,8 +610,9 @@ cdef class Matrix(matrix0.Matrix):
 
 
         -  ``copy`` - (default: True) if True, return a copy so
-           you can modify it safely
-
+                      you can modify it safely (note that the individual
+                      vectors in the copy should not be modified since
+                      they are mutable!)
 
         EXAMPLES::
 
@@ -655,18 +635,10 @@ cdef class Matrix(matrix0.Matrix):
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self._base_ring, self._ncols, sparse=False)
-        R = []
-        cdef Py_ssize_t i, j
-        cdef object o
-        cdef object v
-        for i from 0 <= i < self._nrows:
-            v = PyList_New(self._ncols)
-            for j from 0 <= j < self._ncols:
-                o = self.get_unsafe(i,j)
-                Py_INCREF(o)  # since we are about to set it.
-                PyList_SET_ITEM(v, j, o)
-            R.append(F(v, coerce=False,copy=False,check=False))
+        cdef Py_ssize_t i
+        A = self if self.is_dense() else self.dense_matrix()
+        R = [A.row(i) for i in range(self._nrows)]
+
         # cache result
         self.cache('dense_rows', R)
         if copy:
@@ -853,9 +825,7 @@ cdef class Matrix(matrix0.Matrix):
         cdef Py_ssize_t j
         V = sage.modules.free_module.FreeModule(self._base_ring,
                                      self._nrows, sparse=self.is_sparse())
-        tmp = []
-        for j from 0 <= j < self._nrows:
-            tmp.append(self.get_unsafe(j,i))
+        tmp = [self.get_unsafe(j,i) for j in range(self._nrows)]
         return V(tmp, coerce=False, copy=False, check=False)
 
     def row(self, Py_ssize_t i, from_list=False):
@@ -914,9 +884,7 @@ cdef class Matrix(matrix0.Matrix):
         cdef Py_ssize_t j
         V = sage.modules.free_module.FreeModule(self._base_ring,
                                       self._ncols, sparse=self.is_sparse())
-        tmp = []
-        for j from 0 <= j < self._ncols:
-            tmp.append(self.get_unsafe(i,j))
+        tmp = [self.get_unsafe(i,j) for j in range(self._ncols)]
         return V(tmp, coerce=False, copy=False, check=False)
 
 

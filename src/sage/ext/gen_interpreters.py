@@ -1974,6 +1974,8 @@ class InterpreterSpec(object):
 
         header -- a code snippet to go at the top of the C interpreter
                   source file
+        pxd_header -- a code snippet to go at the top of the wrapper
+                      class .pxd file
         pyx_header -- a code snippet to go at the top of the wrapper
                       class source file
         err_return -- a string indicating the value to be returned
@@ -1988,6 +1990,8 @@ class InterpreterSpec(object):
             sage: interp = RDFInterpreter()
             sage: interp.header
             '\n#include <gsl/gsl_math.h>\n'
+            sage: interp.pxd_header
+            ''
             sage: interp.pyx_header
             ''
             sage: interp.err_return
@@ -2001,6 +2005,7 @@ class InterpreterSpec(object):
             ''
         """
         self.header = ''
+        self.pxd_header = ''
         self.pyx_header = ''
         self.err_return = 'NULL'
         self.mc_code = MemoryChunkConstants('code', ty_int)
@@ -2239,11 +2244,7 @@ class CDFInterpreter(StackInterpreter):
 typedef double complex double_complex;
 
 """
-        self.pyx_header = """
-from sage.rings.complex_double cimport ComplexDoubleElement
-import sage.rings.complex_double
-cdef object CDF = sage.rings.complex_double.CDF
-
+        self.pxd_header = """
 # This is to work around a header ordering bug in Cython < 0.11
 # (Pari is included from sage.rings.complex_double.)
 cdef extern from "pari/paricfg.h":
@@ -2252,6 +2253,15 @@ cdef extern from "pari/pari.h":
     pass
 cdef extern from "pari/paripriv.h":
     pass
+
+# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
+cdef extern from "complex.h":
+    ctypedef double double_complex "double complex"
+"""
+        self.pyx_header = """
+from sage.rings.complex_double cimport ComplexDoubleElement
+import sage.rings.complex_double
+cdef object CDF = sage.rings.complex_double.CDF
 
 # Cython does not (yet) support complex numbers natively, so this is a bit hackish.
 cdef extern from "complex.h":
@@ -2366,7 +2376,6 @@ class RRInterpreter(StackInterpreter):
         this spec; in particular, rr_py_call_helper comes from:
 
             sage: print interp.pyx_header
-            from ...
             cdef public bint rr_py_call_helper(object domain, object fn,
                                                int n_args,
                                                mpfr_t* args, mpfr_t* retval) except 0:
@@ -2402,10 +2411,11 @@ class RRInterpreter(StackInterpreter):
 #include <mpfr.h>
 #include "wrapper_rr.h"
 """
-        self.pyx_header = """
+        self.pxd_header = """
 from sage.rings.real_mpfr cimport RealField, RealNumber
 from sage.libs.mpfr cimport *
-
+"""
+        self.pyx_header = """
 cdef public bint rr_py_call_helper(object domain, object fn,
                                    int n_args,
                                    mpfr_t* args, mpfr_t* retval) except 0:
@@ -2911,7 +2921,7 @@ error:
         Generate the code for the Cython wrapper.
         This function calls its write parameter successively with
         strings; when these strings are concatenated, the result is
-        the code for the interpreter.
+        the code for the wrapper.
 
         See the documentation for the get_wrapper method for more
         information.
@@ -2977,13 +2987,7 @@ cdef extern {{ self.func_header(cython=true) -}}
 {% endif %}
 
 cdef class Wrapper_{{ s.name }}(Wrapper):
-{% for ty in types %}
-{% print indent_lines(4, ty.class_member_declarations) %}
-{% endfor %}
-{% for ch in s.chunks %}
-{% print ch.declare_class_members() %}
-{% endfor %}
-{% print indent_lines(4, s.extra_class_members) %}
+    # attributes are declared in corresponding .pxd file
 
     def __init__(self, args):
         Wrapper.__init__(self, args, metadata)
@@ -3045,6 +3049,51 @@ metadata = InterpreterMetadata(by_opname={
  ],
  ipow_range={{ s.ipow_range }})
 """, s=s, self=self, types=types, arg_ch=arg_ch, indent_lines=indent_lines, the_call=the_call, do_cleanup=do_cleanup))
+
+    def write_pxd(self, write):
+        r"""
+        Generate the pxd file for the Cython wrapper.
+        This function calls its write parameter successively with
+        strings; when these strings are concatenated, the result is
+        the code for the pxd file.
+
+        See the documentation for the get_pxd method for more
+        information.
+
+        EXAMPLES:
+            sage: from sage.ext.gen_interpreters import *
+            sage: interp = RDFInterpreter()
+            sage: gen = InterpreterGenerator(interp)
+            sage: import cStringIO
+            sage: buff = cStringIO.StringIO()
+            sage: gen.write_pxd(buff.write)
+            sage: print buff.getvalue()
+            # Automatically generated.  Do not edit! ...
+        """
+        s = self._spec
+        w = write
+        types = set()
+        for ch in s.chunks:
+            if ch.storage_type is not None:
+                types.add(ch.storage_type)
+
+        w(je("""
+# Automatically generated.  Do not edit!
+
+from python_object cimport PyObject
+
+from sage.ext.fast_callable cimport Wrapper
+{% print s.pxd_header %}
+
+cdef class Wrapper_{{ s.name }}(Wrapper):
+{% for ty in types %}
+{% print indent_lines(4, ty.class_member_declarations) %}
+{% endfor %}
+{% for ch in s.chunks %}
+{% print ch.declare_class_members() %}
+{% endfor %}
+{% print indent_lines(4, s.extra_class_members) %}
+""", s=s, self=self, types=types, indent_lines=indent_lines))
 
     def get_interpreter(self):
         r"""
@@ -3221,34 +3270,13 @@ metadata = InterpreterMetadata(by_opname={
         legitimate return or an exception.  (Cython does this
         automatically.)
 
-        Next comes the actual wrapper class, which starts off with
-        a list of member declarations.
+        Next comes the actual wrapper class.  The member declarations
+        are in the corresponding pxd file; see the documentation for
+        get_pxd to see them.
             sage: print rdf_wrapper
             # ...
             cdef class Wrapper_rdf(Wrapper):
-                cdef int _n_args
-                cdef double* _args
-                cdef int _n_constants
-                cdef double* _constants
-                cdef object _list_py_constants
-                cdef int _n_py_constants
-                cdef PyObject** _py_constants
-                cdef int _n_stack
-                cdef double* _stack
-                cdef int _n_code
-                cdef int* _code
-            ...
-
-        Contrast the declaration of ``_stack`` here with the
-        ElementInterpreter version.  To simplify our handling of
-        reference counting and garbage collection, in a Python-object
-        based interpreter, we allocate arrays as Python lists,
-        and then pull the array out of the innards of the list.
-            sage: print el_wrapper
-            # ...
-                cdef object _list_stack
-                cdef int _n_stack
-                cdef PyObject** _stack
+                # attributes are declared in corresponding .pxd file
             ...
 
         Next is the __init__ method, which starts like this:
@@ -3313,8 +3341,9 @@ metadata = InterpreterMetadata(by_opname={
                         mpfr_set(self._constants[i], rn.value, GMP_RNDN)
             ...
 
-        And as we mentioned above, in Python-object based interpreters
-        we actually allocate the memory as a Python list.
+        And as described in the documentation for get_pxd, in
+        Python-object based interpreters we actually allocate the
+        memory as a Python list.
             sage: print el_wrapper
             # ...
                     val = args['constants']
@@ -3463,6 +3492,74 @@ metadata = InterpreterMetadata(by_opname={
         self.write_wrapper(buff.write)
         return buff.getvalue()
 
+    def get_pxd(self):
+        r"""
+        Returns the code for the Cython .pxd file.
+
+        EXAMPLES:
+
+        First we get the InterpreterSpec for several interpreters:
+            sage: from sage.ext.gen_interpreters import *
+            sage: rdf_spec = RDFInterpreter()
+            sage: rr_spec = RRInterpreter()
+            sage: el_spec = ElementInterpreter()
+
+        Then we get the corresponding .pxd:
+            sage: rdf_pxd = InterpreterGenerator(rdf_spec).get_pxd()
+            sage: rr_pxd = InterpreterGenerator(rr_spec).get_pxd()
+            sage: el_pxd = InterpreterGenerator(el_spec).get_pxd()
+
+        Now we can look through these pxd files.
+
+        Each .pxd starts with a file header; this can be
+        customized on a per-interpreter basis (some blank lines have been
+        elided below):
+            sage: print rdf_pxd
+            # Automatically generated.  Do not edit!
+            from python_object cimport PyObject
+            from sage.ext.fast_callable cimport Wrapper
+            ...
+            sage: print rr_pxd
+            # ...
+            from sage.rings.real_mpfr cimport RealField, RealNumber
+            from sage.libs.mpfr cimport *
+            ...
+
+        Next and last is the declaration of the wrapper class, which
+        starts off with a list of member declarations.
+            sage: print rdf_pxd
+            # ...
+            cdef class Wrapper_rdf(Wrapper):
+                cdef int _n_args
+                cdef double* _args
+                cdef int _n_constants
+                cdef double* _constants
+                cdef object _list_py_constants
+                cdef int _n_py_constants
+                cdef PyObject** _py_constants
+                cdef int _n_stack
+                cdef double* _stack
+                cdef int _n_code
+                cdef int* _code
+            ...
+
+        Contrast the declaration of ``_stack`` here with the
+        ElementInterpreter version.  To simplify our handling of
+        reference counting and garbage collection, in a Python-object
+        based interpreter, we allocate arrays as Python lists,
+        and then pull the array out of the innards of the list.
+            sage: print el_pxd
+            # ...
+                cdef object _list_stack
+                cdef int _n_stack
+                cdef PyObject** _stack
+            ...
+        """
+        import cStringIO
+        buff = cStringIO.StringIO()
+        self.write_pxd(buff.write)
+        return buff.getvalue()
+
 def write_if_changed(fn, value):
     r"""
     Writes value to the file named fn, if value is different than
@@ -3512,7 +3609,7 @@ def write_if_changed(fn, value):
 def build_interp(interp_spec, dir):
     r"""
     Given an InterpreterSpec, writes the C interpreter and the Cython
-    wrapper.
+    wrapper (generates a pyx and a pxd file).
 
     EXAMPLES:
         sage: from sage.ext.gen_interpreters import *
@@ -3526,10 +3623,13 @@ def build_interp(interp_spec, dir):
     ig = InterpreterGenerator(interp_spec)
     interp_fn = '%s/interp_%s.c' % (dir, interp_spec.name)
     wrapper_fn = '%s/wrapper_%s.pyx' % (dir, interp_spec.name)
+    pxd_fn = '%s/wrapper_%s.pxd' % (dir, interp_spec.name)
     interp = ig.get_interpreter()
     wrapper = ig.get_wrapper()
+    pxd = ig.get_pxd()
     write_if_changed(interp_fn, interp)
     write_if_changed(wrapper_fn, wrapper)
+    write_if_changed(pxd_fn, pxd)
 
 def rebuild(dir):
     r"""
@@ -3554,7 +3654,7 @@ def rebuild(dir):
     except OSError:
         pass
 
-    # This line will show up "sage -b" (once per upgrade, not every time
+    # This line will show up in "sage -b" (once per upgrade, not every time
     # you run it).
     print "Building interpreters for fast_callable"
 

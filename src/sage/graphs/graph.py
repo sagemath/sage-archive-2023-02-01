@@ -1396,9 +1396,13 @@ class GenericGraph(SageObject):
             loops += self.edge_boundary([v], [v], labels)
         return loops
 
-    def has_multiple_edges(self):
+    def has_multiple_edges(self, to_undirected=False):
         """
         Returns whether there are multiple edges in the (di)graph.
+
+        INPUT:
+            to_undirected -- (default: False) If True, runs the test on the undirected version of a DiGraph.
+                                Otherwise, treats DiGraph edges (u,v) and (v,u) as unique individual edges.
 
         EXAMPLES::
 
@@ -1437,18 +1441,31 @@ class GenericGraph(SageObject):
             False
             sage: D.edges()
             [(0, 1, None)]
+
+            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}})
+            sage: G.has_multiple_edges()
+            False
+            sage: G.has_multiple_edges(to_undirected=True)
+            True
+            sage: G.multiple_edges()
+            []
+            sage: G.multiple_edges(to_undirected=True)
+            [(1, 2, 'h'), (2, 1, 'g')]
         """
-        if self.allows_multiple_edges():
-            if self._directed:
+        if self.allows_multiple_edges() or to_undirected:
+            if self._directed and not to_undirected:
                 for v in self:
                     for u in self.predecessor_iterator(v):
                         edges = self.edge_boundary([u], [v])
                         if len(edges) > 1:
                             return True
             else:
+                to_undirected *= self._directed
                 for v in self:
                     for u in self.neighbor_iterator(v):
                         edges = self.edge_boundary([v], [u])
+                        if to_undirected:
+                            edges += self.edge_boundary([u],[v])
                         if len(edges) > 1:
                             return True
         return False
@@ -1545,7 +1562,7 @@ class GenericGraph(SageObject):
         """
         self._backend.multiple_edges(new)
 
-    def multiple_edges(self, new=None, labels=True):
+    def multiple_edges(self, new=None, to_undirected=False, labels=True):
         """
         Returns any multiple edges in the (di)graph.
 
@@ -1586,22 +1603,35 @@ class GenericGraph(SageObject):
             False
             sage: D.edges()
             [(0, 1, None)]
+
+            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}})
+            sage: G.has_multiple_edges()
+            False
+            sage: G.has_multiple_edges(to_undirected=True)
+            True
+            sage: G.multiple_edges()
+            []
+            sage: G.multiple_edges(to_undirected=True)
+            [(1, 2, 'h'), (2, 1, 'g')]
         """
         from sage.misc.misc import deprecation
         if new is not None:
             deprecation("The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
         multi_edges = []
-        if self._directed:
+        if self._directed and not to_undirected:
             for v in self:
                 for u in self.predecessor_iterator(v):
                     edges = self.edge_boundary([u], [v], labels)
                     if len(edges) > 1:
                         multi_edges += edges
         else:
+            to_undirected *= self._directed
             for v in self:
                 for u in self.neighbor_iterator(v):
                     if hash(u) >= hash(v):
                         edges = self.edge_boundary([v], [u], labels)
+                        if to_undirected:
+                            edges += self.edge_boundary([u],[v], labels)
                         if len(edges) > 1:
                             multi_edges += edges
         return multi_edges

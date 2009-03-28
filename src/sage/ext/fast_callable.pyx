@@ -88,6 +88,12 @@ sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=RR)
 sage: timeit('fc_wilk_rr(30.0)') # random, long time
 625 loops, best of 3: 13 us per loop
 
+And support for CDF:
+
+sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
+sage: timeit('fc_wilk_rr(30.0)') # random, long time
+625 loops, best of 3: 10.2 us per loop
+
 Currently, \function{fast_callable} can accept two kinds of objects:
 polynomials (univariate and multivariate) and symbolic expressions
 (elements of the Symbolic Ring).  (This list is likely to grow
@@ -287,7 +293,7 @@ import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField, RealNumber
 from sage.structure.element cimport Element
-from sage.rings.all import RDF
+from sage.rings.all import RDF, CDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -331,7 +337,7 @@ def fast_callable(x, domain=None, vars=None,
     (Actually it's the same interpreter; only the return type varies.)
     Note that the float interpreter is not actually more accurate than
     the RDF interpreter; elements of RDF just don't display all
-    their digits.
+    their digits. We have special fast interpreter for domain=CDF.
 
         sage: f_float = fast_callable(expr, vars=[x], domain=float)
         sage: f_float(2)
@@ -339,6 +345,11 @@ def fast_callable(x, domain=None, vars=None,
         sage: f_rdf = fast_callable(expr, vars=[x], domain=RDF)
         sage: f_rdf(2)
         12.9092974268
+        sage: f_cdf = fast_callable(expr, vars=[x], domain=CDF)
+        sage: f_cdf(2)
+        12.9092974268
+        sage: f_cdf(2+I)
+        10.4031192506 + 11.510943741*I
         sage: f = fast_callable(expr, vars=('z','x','y'))
         sage: f(1, 2, 3)
         sin(2) + 12
@@ -417,6 +428,12 @@ def fast_callable(x, domain=None, vars=None,
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
+                                len(vars),
+                                domain)
+    elif domain == CDF:
+        import sage.ext.interpreters.wrapper_cdf
+        builder = sage.ext.interpreters.wrapper_cdf.Wrapper_cdf
+        str = InstructionStream(sage.ext.interpreters.wrapper_cdf.metadata,
                                 len(vars),
                                 domain)
     elif domain is None:

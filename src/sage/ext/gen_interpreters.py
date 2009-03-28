@@ -568,6 +568,25 @@ class StorageTypeSimple(StorageTypeAssignable):
 ty_int = StorageTypeSimple('int')
 ty_double = StorageTypeSimple('double')
 
+class StorageTypeDoubleComplex(StorageTypeSimple):
+    r"""
+    This is specific to the complex double type. It behaves exactly
+    like a StorageTypeSimple in C, but needs a little help to do
+    conversions in Cython.
+
+    This uses functions defined in CDFInterpreter, and is for use in
+    that context.
+    """
+    def assign_c_from_py(self, c, py):
+        """
+        sage: from sage.ext.gen_interpreters import ty_double_complex
+        sage: ty_double_complex.assign_c_from_py('z_c', 'z_py')
+        u'z_c = CDE_to_dz(z_py)'
+        """
+        return je("{{ c }} = CDE_to_dz({{ py }})", c=c, py=py)
+
+ty_double_complex = StorageTypeDoubleComplex('double_complex')
+
 class StorageTypePython(StorageTypeAssignable):
     r"""
     StorageTypePython is a subtype of StorageTypeAssignable that deals
@@ -2169,6 +2188,136 @@ if (o0 == -1 && PyErr_Occurred()) {
         self.extra_members_initialize = "self._domain = args['domain']\n"
         self.adjust_retval = 'self._domain'
 
+
+class CDFInterpreter(StackInterpreter):
+    r"""
+    A subclass of StackInterpreter, specifying an interpreter over
+    complex machine-floating-point values (C doubles).
+    """
+
+    def __init__(self):
+        r"""
+        Initialize a CDFInterpreter.
+
+        EXAMPLES:
+            sage: from sage.ext.gen_interpreters import *
+            sage: interp = CDFInterpreter()
+            sage: interp.name
+            'cdf'
+            sage: interp.mc_py_constants
+            {MC:py_constants}
+            sage: interp.chunks
+            [{MC:args}, {MC:constants}, {MC:py_constants}, {MC:stack}, {MC:code}]
+            sage: interp.pg('A[D]', 'S')
+            ([({MC:args}, {MC:code}, None)], [({MC:stack}, None, None)])
+            sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
+            sage: instrs['add']
+            add: SS->S = 'o0 = i0 + i1;'
+            sage: instrs['sin']
+            sin: S->S = 'o0 = csin(i0);'
+            sage: instrs['py_call']
+            py_call: *->S = '\nif (!cdf_py_call_...goto error;\n}\n'
+        """
+
+        StackInterpreter.__init__(self, ty_double_complex)
+        self.name = 'cdf'
+        self.mc_py_constants = MemoryChunkConstants('py_constants', ty_python)
+        # See comment for RDFInterpreter
+        self.err_return = '-1094648119105371'
+        self.adjust_retval = "dz_to_CDE"
+        self.chunks = [self.mc_args, self.mc_constants, self.mc_py_constants,
+                       self.mc_stack,
+                       self.mc_code]
+        pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
+                        S=self.mc_stack, P=self.mc_py_constants)
+        self.pg = pg
+        self.header = """
+#include <stdlib.h>
+#include <complex.h>
+#include "wrapper_cdf.h"
+
+typedef double complex double_complex;
+
+"""
+        self.pyx_header = """
+from sage.rings.complex_double cimport ComplexDoubleElement
+import sage.rings.complex_double
+cdef object CDF = sage.rings.complex_double.CDF
+
+# This is to work around a header ordering bug in Cython < 0.11
+# (Pari is included from sage.rings.complex_double.)
+cdef extern from "pari/paricfg.h":
+    pass
+cdef extern from "pari/pari.h":
+    pass
+cdef extern from "pari/paripriv.h":
+    pass
+
+# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
+cdef extern from "complex.h":
+    ctypedef double double_complex "double complex"
+    cdef double creal(double_complex)
+    cdef double cimag(double_complex)
+    cdef double_complex _Complex_I
+
+cdef inline double_complex CDE_to_dz(zz):
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>(zz if isinstance(zz, ComplexDoubleElement) else CDF(zz))
+    return z._complex.dat[0] + _Complex_I * z._complex.dat[1]
+
+cdef inline ComplexDoubleElement dz_to_CDE(double_complex dz):
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    z._complex.dat[0] = creal(dz)
+    z._complex.dat[1] = cimag(dz)
+    return z
+
+cdef public bint cdf_py_call_helper(object fn,
+                                    int n_args,
+                                    double_complex* args, double_complex* retval) except 0:
+    py_args = []
+    cdef int i
+    for i from 0 <= i < n_args:
+        py_args.append(dz_to_CDE(args[i]))
+    py_result = fn(*py_args)
+    cdef ComplexDoubleElement result
+    if isinstance(py_result, ComplexDoubleElement):
+        result = <ComplexDoubleElement>py_result
+    else:
+        result = CDF(py_result)
+    retval[0] = CDE_to_dz(result)
+    return 1
+
+"""[1:]
+
+        instrs = [
+            InstrSpec('load_arg', pg('A[D]', 'S'),
+                       code='o0 = i0;'),
+            InstrSpec('load_const', pg('C[D]', 'S'),
+                       code='o0 = i0;'),
+            InstrSpec('return', pg('S', ''),
+                       code='return i0;'),
+            InstrSpec('py_call', pg('P[D]S@D', 'S'),
+                       uses_error_handler=True,
+                       code="""
+if (!cdf_py_call_helper(i0, n_i1, i1, &o0)) {
+  goto error;
+}
+""")
+            ]
+        for (name, op) in [('add', '+'), ('sub', '-'),
+                           ('mul', '*'), ('div', '/')]:
+            instrs.append(instr_infix(name, pg('SS', 'S'), op))
+        instrs.append(instr_funcall_2args('pow', pg('SS', 'S'), 'cpow'))
+        for (name, op) in [('neg', '-i0'), ('invert', '1/i0'),
+                           ('abs', 'cabs(i0)')]:
+            instrs.append(instr_unary(name, pg('S', 'S'), op))
+        for name in ['sqrt', 'sin', 'cos', 'tan',
+                     'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
+                     'asinh', 'acosh', 'atanh', 'exp', 'log']:
+            instrs.append(instr_unary(name, pg('S',  'S'), "c%s(i0)" % name))
+        self.instr_descs = instrs
+        self._set_opcodes()
+
+
 class RRInterpreter(StackInterpreter):
     r"""
     A subclass of StackInterpreter, specifying an interpreter over
@@ -3412,6 +3561,9 @@ def rebuild(dir):
     interp = RDFInterpreter()
     build_interp(interp, dir)
 
+    interp = CDFInterpreter()
+    build_interp(interp, dir)
+
     interp = RRInterpreter()
     build_interp(interp, dir)
 
@@ -3437,6 +3589,11 @@ modules = [
               sources = ['sage/ext/interpreters/wrapper_rdf.pyx',
                          'sage/ext/interpreters/interp_rdf.c'],
               libraries = ['gsl']),
+
+    Extension('sage.ext.interpreters.wrapper_cdf',
+              sources = ['sage/ext/interpreters/wrapper_cdf.pyx',
+                         'sage/ext/interpreters/interp_cdf.c'],
+              extra_compile_args=["-std=c99"]),
 
     Extension('sage.ext.interpreters.wrapper_rr',
               sources = ['sage/ext/interpreters/wrapper_rr.pyx',

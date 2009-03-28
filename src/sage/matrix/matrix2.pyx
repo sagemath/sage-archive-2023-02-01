@@ -818,10 +818,8 @@ cdef class Matrix(matrix1.Matrix):
 
         We verify that trac 5569 is resolved (otherwise the following will hang for hours)::
 
-            sage: random_matrix(GF(next_prime(10^20)),50).det()
-            99948836770341340915
-            sage: random_matrix(Integers(10^50),50).det()
-            85156868105802629478300067956664763696173374766924
+            sage: d = random_matrix(GF(next_prime(10^20)),50).det()
+            sage: d = random_matrix(Integers(10^50),50).det()
 
         """
         from sage.rings.integer_mod_ring import is_IntegerModRing

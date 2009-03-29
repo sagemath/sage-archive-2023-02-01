@@ -8788,7 +8788,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen x
 
         _sig_on
-        A = self.new_gen(gtomat(zeromat(m,n)))  # the gtomat is very important!!
+         # The gtomat is very important!!  Without sage/PARI will segfault.
+         # I do not know why. -- William Stein
+        A = self.new_gen(gtomat(zeromat(m,n)))
         if entries is not None:
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)

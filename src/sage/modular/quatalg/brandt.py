@@ -928,7 +928,7 @@ class BrandtModule_class(AmbientHeckeModule):
             sage: B = BrandtModule(1009)
             sage: Is = B.right_ideals()
             sage: n = len(Is)
-            sage: prod(not Is[i].is_equivalent(Is[j],0) for i in range(n) for j in range(i))
+            sage: prod(not Is[i].is_equivalent(Is[j]) for i in range(n) for j in range(i))
             1
         """
         try: return self.__right_ideals

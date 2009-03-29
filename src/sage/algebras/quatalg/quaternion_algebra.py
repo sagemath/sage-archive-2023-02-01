@@ -1594,13 +1594,15 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         R = self.quaternion_algebra()
         return R.ideal(basis, check=False)
 
-    def is_equivalent(I, J, B):
+    def is_equivalent(I, J, B=10):
         """
         Return True if I and J are equivalaent as right ideals.
 
         INPUT:
             - I -- a fractional quaternion ideal (self)
             - J -- a fractional quaternion ideal with same order as I
+            - B -- a bound to compute and compare theta series before
+                   doing the full equivalence test
 
         OUTPUT:
             -- bool
@@ -1608,13 +1610,13 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
             sage: R = BrandtModule(3,5).right_ideals(); len(R)
             2
-            sage: R[0].is_equivalent(R[1],10)
+            sage: R[0].is_equivalent(R[1])
             False
-            sage: R[0].is_equivalent(R[0],10)
+            sage: R[0].is_equivalent(R[0])
             True
             sage: OO = R[0].quaternion_order()
             sage: S = OO.right_ideal([3*a for a in R[0].basis()])
-            sage: R[0].is_equivalent(S,10)
+            sage: R[0].is_equivalent(S)
             True
         """
         if not isinstance(I, QuaternionFractionalIdeal_rational):

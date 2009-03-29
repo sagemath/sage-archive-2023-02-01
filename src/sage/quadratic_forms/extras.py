@@ -222,27 +222,34 @@ def random_int_upto(n):
 
 def quadratic_nonresidue(p):
     """
-    Returns the smalest positive integer quadratic non-residue in Z/pZ for primes p>2.
+    Returns the smallest positive integer quadratic non-residue in Z/pZ for primes p>2.
 
     EXAMPLES:
         sage: quadratic_nonresidue(5)
         2
+
+    TEST:
+        sage: quadratic_nonresidue(20)
+        Traceback (most recent call last):
+        ...
+        ValueError: Oops!  p must be a prime number > 2.
     """
     p1 = abs(p)
 
     ## Deal with the prime p = 2 and |p| <= 1.
     if p1 == 2:
-        raise TypeError, "Oops!  There are no quadratic non-residues in Z/2Z."
+        raise ValueError, "Oops!  There are no quadratic non-residues in Z/2Z."
     if p1 < 2:
-        raise TypeError, "Oops!  p must be a prime number > 2."
-
-    ## TO DO: Test that p is prime???
+        raise ValueError, "Oops!  p must be a prime number > 2."
 
     ## Find the smallest non-residue mod p
-    for r in range(2,p):
-        if legendre_symbol(r, p) == -1:
-            return r
+    try:
+        for r in range(2,p):
+            if legendre_symbol(r, p) == -1:
+                return r
 
+    except ValueError: # This happens if p is not prime
+        raise ValueError, "Oops!  p must be a prime number > 2."
 
 def IsPadicSquare(m, p):
     """

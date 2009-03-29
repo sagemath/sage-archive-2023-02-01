@@ -24,12 +24,14 @@ def math_parse(s):
     Do the following:
     \begin{verbatim}
        * Replace all $ text $'s by
-          <span class='math'> text </span>
+         <span class='math'> text </span>
        * Replace all $$ text $$'s by
-          <div class='math'> text </div>
-       * Replace all \$'s by $'.s  Note that in
+         <div class='math'> text </div>
+       * Replace all \$'s by $'s.  Note that in
          the above two cases nothing is done if the $
          is preceeded by a backslash.
+       * Replace all \[ text \]'s by
+         <div class='math'> text </div>
     \end{verbatim}
 
     EXAMPLES:
@@ -37,11 +39,28 @@ def math_parse(s):
         'This is <span class="math">2+2</span>.'
         sage: sage.misc.html.math_parse('This is $$2+2$$.')
         'This is <div class="math">2+2</div>.'
+        sage: sage.misc.html.math_parse('This is \\[2+2\\].')
+        'This is <div class="math">2+2</div>.'
+        sage: sage.misc.html.math_parse(r'This is \[2+2\].')
+        'This is <div class="math">2+2</div>.'
 
     TESTS:
         sage: sage.misc.html.math_parse(r'This \$\$is $2+2$.')
         'This $$is <span class="math">2+2</span>.'
     """
+    # first replace \\[ and \\] by <div class="math"> and </div>, respectively.
+    while True:
+        i = s.find('\\[')
+        if i == -1:
+            break
+        else:
+            s = s[:i] + '<div class="math">' + s[i+2:]
+            j = s.find('\\]')
+            if j == -1:  # missing right-hand delimiter, so add one
+                s = s + '</div>'
+            else:
+                s = s[:j] + '</div>' + s[j+2:]
+
     # Below t always has the "parsed so far" version of s, and s is
     # just the part of the original input s that hasn't been parsed.
     t = ''

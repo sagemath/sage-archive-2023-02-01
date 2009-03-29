@@ -174,13 +174,43 @@ class Spec(scheme.AffineScheme):
         """
         return self.__R
 
-    def dimension(self):
+    def is_noetherian(self):
+        """
+        Return True if this scheme is Noetherian.
+
+        EXAMPLES::
+
+            sage: Spec(ZZ).is_noetherian()
+            True
+        """
+        return self.__R.is_noetherian()
+
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_absolute()
+            1
+            sage: S.dimension()
+            1
+        """
+        return self.__R.krull_dimension()
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
         """
         Return the relative dimension of this scheme over its base.
-        """
-        if self.base_ring() == ZZ:
-            return self.__R.krull_dimension()
-        raise NotImplementedError
 
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_relative()
+            0
+        """
+        return self.__R.krull_dimension() - self.base_ring().krull_dimension()
 
 SpecZ = Spec(ZZ)

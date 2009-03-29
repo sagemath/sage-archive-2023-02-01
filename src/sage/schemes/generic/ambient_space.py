@@ -116,9 +116,41 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
 ##         """
 ##         self.coordinate_ring()._assign_names(names)
 
-    def dimension(self):
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        EXAMPLES::
+
+            sage: A2Q = AffineSpace(2, QQ)
+            sage: A2Q.dimension_absolute()
+            2
+            sage: A2Q.dimension()
+            2
+            sage: A2Z = AffineSpace(2, ZZ)
+            sage: A2Z.dimension_absolute()
+            3
+            sage: A2Z.dimension()
+            3
+        """
+        base = self.base_scheme()
+        if base.is_noetherian():
+            return self.dimension_relative() + base.dimension()
+        raise NotImplementedError, "Cannot compute the dimension of this scheme."
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
         """
         Return the relative dimension of this scheme over its base.
+
+        EXAMPLES::
+
+            sage: A2Q = AffineSpace(2, QQ)
+            sage: A2Q.dimension_relative()
+            2
+            sage: A2Z = AffineSpace(2, ZZ)
+            sage: A2Z.dimension_relative()
+            2
         """
         return self.__n
-

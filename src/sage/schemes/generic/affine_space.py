@@ -106,7 +106,7 @@ def AffineSpace(n, R=None, names='x'):
         R = ZZ  # default is the integers
     if names is None:
         if n == 0:
-            names = 'x'
+            names = ''
         else:
             raise TypeError, "You must specify the variables names of the coordinate ring."
     return AffineSpace_generic(n, R, names)
@@ -184,7 +184,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
         - David Kohel
         """
-        n = self.dimension()
+        n = self.dimension_relative()
         R = self.base_ring()
         zero = R(0)
         P = [ zero for _ in range(n) ]
@@ -204,7 +204,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                 i += 1
 
     def ngens(self):
-        return self.dimension()
+        return self.dimension_relative()
 
     def rational_points(self, F=None):
         if F == None:
@@ -231,8 +231,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         """
         if not isinstance(right, AffineSpace_generic):
             return -1
-        return cmp([self.dimension(), self.coordinate_ring()],
-                   [right.dimension(), right.coordinate_ring()])
+        return cmp([self.dimension_relative(), self.coordinate_ring()],
+                   [right.dimension_relative(), right.coordinate_ring()])
 
     def _latex_(self):
         r"""
@@ -241,7 +241,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: print latex(AffineSpace(1, ZZ, 'x'))
             \mathbf{A}_{\mathbf{Z}}^1
         """
-        return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
+        return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
     def _constructor(self, *args, **kwds):
         return AffineSpace(*args, **kwds)
@@ -253,7 +253,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         return morphism.SchemeMorphism_affine_coordinates(*args, **kwds)
 
     def _repr_(self):
-        return "Affine Space of dimension %s over %s"%(self.dimension(), self.base_ring())
+        return "Affine Space of dimension %s over %s"%(self.dimension_relative(), self.base_ring())
 
     def _repr_generic_point(self, polys=None):
         if polys is None:
@@ -276,7 +276,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         mm = int(m)
         if mm != m:
             raise ValueError, "m must be an integer"
-        return self._constructor(self.dimension() * mm, self._base_ring, names=self.variable_names() * mm)
+        return self._constructor(self.dimension_relative() * mm, self._base_ring, names=self.variable_names() * mm)
 
     def coordinate_ring(self):
         """
@@ -293,7 +293,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension(), names=self.variable_names())
+            self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension_relative(), names=self.variable_names())
             return self._coordinate_ring
 
     def projective_embedding(self, i=None, PP=None):
@@ -339,7 +339,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: pi(z)
             (3 : 4 : 1)
         """
-        n = self.dimension()
+        n = self.dimension_relative()
         if i is None:
             try:
                 i = self._default_embedding_index
@@ -357,7 +357,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             PP = projective_space.ProjectiveSpace(n, self.base_ring())
         R = self.coordinate_ring()
         v = list(R.gens())
-        if n < 0 or n >self.dimension():
+        if n < 0 or n >self.dimension_relative():
             raise ValueError, \
                   "Argument i (=%s) must be between 0 and %s, inclusive"%(i,n)
         v.insert(i, R(1))

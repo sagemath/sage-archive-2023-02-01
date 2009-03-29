@@ -187,7 +187,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         self._assign_names(names)
 
     def ngens(self):
-        return self.dimension() + 1
+        return self.dimension_relative() + 1
 
     def _check_satisfies_equations(self, v):
         """
@@ -220,7 +220,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             return self._coordinate_ring
         except AttributeError:
             self._coordinate_ring = PolynomialRing(self.base_ring(),
-                               self.variable_names(), self.dimension()+1)
+                               self.variable_names(), self.dimension_relative()+1)
             return self._coordinate_ring
 
     def _point_morphism_class(self, *args, **kwds):
@@ -229,12 +229,11 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
     def __cmp__(self, right):
         if not isinstance(right, ProjectiveSpace_ring):
             return -1
-        return cmp([self.dimension(), self.coordinate_ring()],
-                   [right.dimension(), right.coordinate_ring()])
+        return cmp([self.dimension_relative(), self.coordinate_ring()],
+                   [right.dimension_relative(), right.coordinate_ring()])
 
     def _latex_(self):
-        return "\\mathbf{P}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
-
+        return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
     def _constructor(self, *args, **kwds):
         return ProjectiveSpace(*args, **kwds)
@@ -246,7 +245,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         return morphism.SchemeMorphism_projective_coordinates_ring(*args, **kwds)
 
     def _repr_(self):
-        return "Projective Space of dimension %s over %s"%(self.dimension(), self.base_ring())
+        return "Projective Space of dimension %s over %s"%(self.dimension_relative(), self.base_ring())
 
     def _repr_generic_point(self, v=None):
         if v is None:
@@ -340,7 +339,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
                     (1 : x0 : x1 : x2 : x3 : x4)
         """
         i = int(i)   # implicit type checking
-        n = self.dimension()
+        n = self.dimension_relative()
         if i < 0 or i > n:
             raise ValueError, "Argument i (= %s) must be between 0 and %s."%(i, n)
         try:
@@ -408,7 +407,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         iter of point set over base field. Note that the point set does not
         know whether this is a projective space or subscheme.
         """
-        n = self.dimension()
+        n = self.dimension_relative()
         R = self.base_ring()
         zero = R(0)
         i = n
@@ -494,7 +493,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             raise ValueError, \
                   "Argument bound (= %s) must be a positive integer."
 
-        n = self.dimension()
+        n = self.dimension_relative()
 
 
         Q = [ k-bound for k in range(2*bound+1) ]      # the affine coordinates

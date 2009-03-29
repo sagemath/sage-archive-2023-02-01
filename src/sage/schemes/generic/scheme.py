@@ -394,7 +394,29 @@ class Scheme(ParentWithBase):
         except AttributeError:
             raise ValueError, "This scheme has no associated coordinated ring (defined)."
 
-    def dimension(self):
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = QQ[]
+            sage: I = (x^2 - y^2)*R
+            sage: X = Spec(R.quotient(I))
+            sage: X.dimension_absolute()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: X.dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError # override in derived class
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
         """
         Return the relative dimension of this scheme over its base.
 
@@ -403,7 +425,7 @@ class Scheme(ParentWithBase):
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: X = Spec(R.quotient(I))
-            sage: X.dimension()
+            sage: X.dimension_relative()
             Traceback (most recent call last):
             ...
             NotImplementedError

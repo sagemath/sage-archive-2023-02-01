@@ -32,9 +32,9 @@ class Spec(scheme.AffineScheme):
 
     .. note::
 
-       Calling ``Spec(R)`` twice produces two distinct
-       (but equal) schemes, which is important for gluing to construct
-       more general schemes.
+        Calling ``Spec(R)`` twice produces two distinct (but equal)
+        schemes, which is important for gluing to construct more
+        general schemes.
 
     EXAMPLES::
 
@@ -80,6 +80,12 @@ class Spec(scheme.AffineScheme):
         1
     """
     def __init__(self, R, S=None, check=True):
+        """
+        EXAMPLES::
+
+            sage: Spec(ZZ)
+            Spectrum of Integer Ring
+        """
         if not is_CommutativeRing(R):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         self.__R = R
@@ -94,8 +100,12 @@ class Spec(scheme.AffineScheme):
 
     def _cmp_(self, X):
         """
-        Anything that is not a Spec is less than X. Spec's are compared
-        with self using comparison of the underlying rings.
+        Return the result of the comparison of self and X.
+
+        Spec's are compared with self using comparison of the
+        underlying rings.  If X is not a Spec, then the result is
+        platform-dependent (either self < X or X < self, but never
+        self == X).
 
         EXAMPLES::
 
@@ -109,11 +119,41 @@ class Spec(scheme.AffineScheme):
             True
             sage: Spec(GF(7)) < Spec(GF(5))
             False
+
+        TESTS::
+
+            sage: Spec(QQ).__cmp__(Spec(ZZ))
+            1
         """
         return cmp(self.__R, X.coordinate_ring())
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))
+            Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+        TESTS::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))._repr_()
+            'Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field'
+        """
         return "Spectrum of %s"%self.__R
+
+    def _latex_(self):
+        """
+        LaTeX representation of this Spec.
+
+        EXAMPLES::
+
+            sage: S = Spec(PolynomialRing(ZZ, 2, 'x'))
+            sage: S
+            Spectrum of Multivariate Polynomial Ring in x0, x1 over Integer Ring
+            sage: S._latex_()
+            '\\mathrm{Spec}(\\mathbf{Z}[x_{0}, x_{1}])'
+        """
+        return "\\mathrm{Spec}(%s)" % self.__R._latex_()
 
     def __call__(self, x):
         """
@@ -129,7 +169,7 @@ class Spec(scheme.AffineScheme):
 
             sage: Spec(QQ).coordinate_ring()
             Rational Field
-            sage: Spec(PolynomialRing(QQ,3, 'x')).coordinate_ring()
+            sage: Spec(PolynomialRing(QQ, 3, 'x')).coordinate_ring()
             Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         """
         return self.__R

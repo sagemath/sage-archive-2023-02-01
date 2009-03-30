@@ -30,4 +30,5 @@ from buzzard import buzzard_tpslopes
 
 from etaproducts import *
 
+from overconvergent.all import *
 

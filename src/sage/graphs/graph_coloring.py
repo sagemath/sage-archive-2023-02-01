@@ -3,6 +3,7 @@ Graph Coloring Functions
 
 AUTHORS:
     -- Tom Boothby   (2008-02-21): Initial version
+    -- Carlo Hamalainen (2009-03-28): minor change: switch to C++ DLX solver
 """
 
 #*****************************************************************************
@@ -12,8 +13,7 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-from sage.combinat.dlx import DLXMatrix
+from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.all import Matrix, vector, QQ
 from sage.plot.plot import rainbow
 from chrompoly import chromatic_polynomial
@@ -76,6 +76,9 @@ def all_graph_colorings(G,n,count_only=False):
         G has 12 3-colorings.
     """
 
+    if n == 0: return
+    if n < 0: raise ValueError, "n must be non-negative."
+
     V = G.vertices()
     E = G.edges()
 
@@ -86,12 +89,12 @@ def all_graph_colorings(G,n,count_only=False):
     N = xrange(n)
     Vd= {}
     colormap = {}
-    k = 1
+    k = 0
     for i in range(nV):
         v = V[i]
         Vd[v] = i
         for c in N:
-            ones.append([k, [i+1]])
+            ones.append([k, [i]])
             colormap[k] = (v,c)
             k+=1
 
@@ -100,18 +103,20 @@ def all_graph_colorings(G,n,count_only=False):
         for c in N:
             v0 = n*Vd[e[0]]+c
             v1 = n*Vd[e[1]]+c
-            ones[v0][1].append(kk+c+1)
-            ones[v1][1].append(kk+c+1)
+            ones[v0][1].append(kk+c)
+            ones[v1][1].append(kk+c)
         kk+=n
 
     if n > 2:
         for i in range(n*nE):
-            ones.append([k+i, [nV+i+1]])
+            ones.append([k+i, [nV+i]])
 
     colors = rainbow(n)
 
+    for i in range(len(ones)): ones[i] = ones[i][1]
+
     try:
-        for a in DLXMatrix(ones):
+        for a in DLXCPP(ones):
             if count_only:
                 yield 1
                 continue

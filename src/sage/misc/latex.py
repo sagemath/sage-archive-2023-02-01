@@ -438,7 +438,7 @@ class JSMath:
     def __call__(self, x):
         return self.eval(x)
 
-    def eval(self, x, mode='display'):
+    def eval(self, x, globals=None, locals=None, mode='display'):
         try:
             # try to get a latex representation of the object
             x = x._latex_()

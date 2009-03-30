@@ -919,6 +919,11 @@ class MPolynomialIdeal_singular_repr:
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             1
+            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: I = R.ideal(0)
+            sage: I.dimension()
+            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            2
 
         ALGORITHM: Uses Singular, unless the characteristic is too large.
 
@@ -934,6 +939,8 @@ class MPolynomialIdeal_singular_repr:
                 v = self._groebner_basis_singular_raw()
                 self.__dimension = Integer(v.dim())
             except TypeError:
+                if not self.base_ring().is_field():
+                    raise NotImplementedError, "dimension() is implemented only over fields."
                 if self.ring().term_order().is_global():
                     verbose("Warning: falling back to very slow toy implementation.", level=0)
                     # See Chapter 9, Section 1 of Cox, Little, O'Shea's "Ideals, Varieties,
@@ -955,9 +962,9 @@ class MPolynomialIdeal_singular_repr:
                     # then through all subsets of order 2, etc...
                     # the way Sage currently operates
                     all_J = Set([each + 1 for each in range(n)]).subsets()
-                    min_dimension = 0
+                    min_dimension = -1
                     all_J = all_J.iterator()
-                    while min_dimension == 0:
+                    while min_dimension == -1:
                         try:
                             J = all_J.next()
                         except StopIteration:

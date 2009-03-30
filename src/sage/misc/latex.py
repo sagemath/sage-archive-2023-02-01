@@ -464,6 +464,12 @@ def jsmath(x, mode='display'):
     Tries to call ._latex_() on x. If that fails, it will render a string
     representation of x.
 
+    .. warning::
+
+        2009-04: This function is deprecated; use ``html`` instead:
+        replace ``jsmath('MATH', mode='display')`` with ``html('$$MATH$$')``,
+        and replace ``jsmath('MATH', mode='inline')`` with ``html('$MATH$')``.
+
     INPUT:
         x -- the object to render
         mode -- 'display' for displaymath or 'inline' for inline math
@@ -474,14 +480,17 @@ def jsmath(x, mode='display'):
 
     EXAMPLES::
 
+        sage: from sage.misc.latex import jsmath
         sage: f = maxima('1/(x^2+1)')
         sage: g = f.integrate()
         sage: jsmath(f)
-         <html><div class="math">\frac{1}{x^2+1}</div></html>
+        ... DeprecationWarning: The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.
+        # -*- coding: utf-8 -*-
+        <html><font color='black'><div class="math">{{1}\over{x^2+1}}</div></font></html>
         sage: jsmath(g, 'inline')
-         <html><span class="math">\tan^{-1} x</span></html>
+        <html><font color='black'><span class="math">\tan^{-1} x</span></font></html>
         sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
-         <html><div class="math">\int\frac{1}{x^2+1}\ dx=\tan^{-1} x</div></html>
+        <html><font color='black'><div class="math">\int{{1}\over{x^2+1}}\ dx=\tan^{-1} x</div></font></html>
 
     AUTHORS:
 
@@ -489,7 +498,22 @@ def jsmath(x, mode='display'):
 
     - Bobby Moretti (2006-10): improvements, comments, documentation
     '''
-    return jsmath.eval(x, mode)
+    from sage.misc.misc import deprecation
+    from sage.misc.html import html
+    deprecation("The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.")
+    if mode == 'display':
+        delimiter = '$$'
+    elif mode == 'inline':
+        delimiter = '$'
+    else:
+        raise ValueError, "mode must be either 'display' or 'inline'"
+    try:
+        # try to get a latex representation of the object
+        x = x._latex_()
+    except AttributeError:
+        # otherwise just get the string representation
+        x = str(x)
+    return html(delimiter + x + delimiter)
 
 def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
     r"""nodetex

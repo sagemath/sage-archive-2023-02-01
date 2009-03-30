@@ -71,7 +71,8 @@ There are several ways to create and build Cython code in Sage.
       ``distutils.extension.Extension`` class for more information on creating
       a new Cython extension.
 
-   #. Then, add the module name to the ``packages`` list in the file
+   #. Then, if you created a new directory for your .pyx file, add the module
+      name to the ``packages`` list in the file
       ``SAGE_ROOT/devel/sage/setup.py``.
 
    #. Run ``sage -b`` to rebuild Sage.
@@ -86,7 +87,8 @@ There are several ways to create and build Cython code in Sage.
               sources = ['sage/graphs/chrompoly.pyx']),
 
    in ``module_list.py``. In addition, ``sage.graphs`` is included in the
-   packages list under the Distutils section of ``setup.py``.
+   packages list under the Distutils section of ``setup.py`` since
+   chrompoly.pyx is contained in the directory 'sage/graphs'.
 
 
 Special Pragmas

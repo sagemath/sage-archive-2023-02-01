@@ -343,7 +343,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G.decomposition_group(P^2)
             Traceback (most recent call last):
             ...
-            ValueError: Fractional ideal (1/984*a^7 - 71/1968*a^5 + 29/984*a^3 + 527/328*a) is not prime
+            ValueError: Fractional ideal (...) is not prime
             sage: G.decomposition_group(17)
             Traceback (most recent call last):
             ...
@@ -445,7 +445,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G.artin_symbol(K.primes_above(2)[0])
             Traceback (most recent call last):
             ...
-            ValueError: Fractional ideal (-1/8364*b^7 + 1/492*b^6 - 11/16728*b^5 - 101/1968*b^4 + 209/2788*b^3 + 115/328*b^2 - 3139/8364*b + 251/984) is ramified
+            ValueError: Fractional ideal (...) is ramified
         """
         if not self.is_galois():
             raise TypeError, "Artin symbols only defined for Galois extensions"

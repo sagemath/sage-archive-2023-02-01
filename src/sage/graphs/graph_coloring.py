@@ -17,6 +17,7 @@ from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.all import Matrix, vector, QQ
 from sage.plot.plot import rainbow
 from chrompoly import chromatic_polynomial
+from graph_generators import GraphGenerators
 
 def all_graph_colorings(G,n,count_only=False):
     """
@@ -219,3 +220,60 @@ def chromatic_number(G):
         for C in all_graph_colorings(G,n):
             return n
 
+class Test:
+    """
+    This class performs randomized testing for all_graph_colorings.
+    Since everything else in this file is derived from
+    all_graph_colorings, this is a pretty good randomized tester for
+    the entire file.  Note that for a graph G, G.chromatic_polynomial()
+    uses an entirely different algorithm, so we provide a good,
+    independent test.
+    """
+
+    def random(self,tests = 1000):
+        """
+        Calls self.random_all_graph_colorings().  In the future, if
+        other methods are added, it should call them, too.
+
+        TESTS:
+            sage: from sage.graphs.graph_coloring import Test
+            sage: Test().random(1)
+        """
+        self.random_all_graph_colorings(tests)
+
+    def random_all_graph_colorings(self,tests = 1000):
+        """
+        Verifies the results of all_graph_colorings in three ways:
+            1) all colorings are unique
+            2) number of m-colorings is P(m) (where P is the chromatic
+               polynomial of the graph being tested)
+            3) colorings are valid -- that is, that no two vertices of
+               the same color share an edge.
+
+        TESTS:
+            sage: from sage.graphs.graph_coloring import Test
+            sage: Test().random_all_graph_colorings(1)
+        """
+        from sage.all import Set
+
+        G = GraphGenerators().RandomGNP(10,.5)
+        Q = G.chromatic_polynomial()
+        N = G.chromatic_number()
+        m = N
+
+        S = Set([])
+
+        for C in all_graph_colorings(G, m):
+            parts = [C[k] for k in C]
+            for P in parts:
+                l = len(P)
+                for i in range(l):
+                    for j in range(i+1,l):
+                        if G.has_edge(P[i],P[j]):
+                            raise RuntimeError, "Coloring Failed."
+
+            #make the dict into a set for quick uniqueness checking
+            S+= Set([Set([(k,tuple(C[k])) for k in C])])
+
+        if len(S) != Q(m):
+            raise RuntimeError, "Incorrect number of unique colorings!"

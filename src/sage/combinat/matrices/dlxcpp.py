@@ -77,6 +77,9 @@ def DLXCPP(rows):
         sage: print [ x for x in DLXCPP(rows) ]
         [[3, 0], [3, 1, 2]]
     """
+
+    if len(rows) == 0: return
+
     x = dlx_solver(rows)
 
     while x.search():

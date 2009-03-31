@@ -336,7 +336,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         EXAMPLE::
 
             sage: K.<a> = NumberField(x^4 - 2*x^2 + 2,'b').galois_closure()
-            sage: P = K.primes_above(17)[0]
+            sage: P = K.ideal([17, a^2])
             sage: G = K.galois_group()
             sage: G.decomposition_group(P)
             Subgroup [(), (1,8)(2,7)(3,6)(4,5)] of Galois group of Number Field in a with defining polynomial x^8 - 20*x^6 + 104*x^4 - 40*x^2 + 1156
@@ -601,6 +601,22 @@ class GaloisGroupElement(PermutationGroupElement):
         gens = self.parent().number_field().ring_of_integers().ring_generators()
         w = [ (self(g) - g).valuation(P) for g in gens]
         return min(w)
+
+    def __cmp__(self, other):
+        r"""Compare self to other. For some bizarre reason, if you just let it
+        inherit the cmp routine from PermutationGroupElement, cmp(x, y) works
+        but sorting lists doesn't.
+
+        TEST::
+
+            sage: K.<a> = NumberField(x^6 + 40*x^3 + 1372);G = K.galois_group()
+            sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
+            [(1,2)(3,4)(5,6), (1,3)(2,6)(4,5), (1,5)(2,4)(3,6)]
+        """
+        if not isinstance(other, GaloisGroupElement):
+            return cmp(type(self), type(other))
+        else:
+            return cmp(self.list(), other.list())
 
 
 

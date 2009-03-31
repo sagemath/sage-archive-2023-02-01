@@ -171,6 +171,7 @@ cdef inline print_coeff(y, i, bint atomic):
           print atomically
 
     EXAMPLES::
+
         sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-7, 13)
         sage: i._repr_()   # implicit doctest
         'i'
@@ -353,6 +354,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         Return string representation of this quaternion:
 
         EXAMPLES::
+
             sage: R.<x> = Frac(QQ['x']); Q.<i,j,k> = QuaternionAlgebra(R,-5*x,-2)
             sage: a = x + i*x^3 + j*x^2 + k*x
             sage: a._repr_()
@@ -396,8 +398,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
     cpdef conjugate(self):
         """
-        Return the conjugate of the quaternion: if theta = x + y*i + z*j + w*k, return
-        x - y*i - z*j - w*k = theta.reduced_trace() - theta.
+        Return the conjugate of the quaternion: if `\\theta = x + yi + zj + wk`,
+        return `x - yi - zj - wk`; that is, return theta.reduced_trace() - theta.
 
         EXAMPLES::
 
@@ -408,7 +410,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: a.conjugate()
             2 - 3*i + j
 
-        The ``universal'' test::
+        The "universal" test::
 
             sage: K.<x,y,z,w,a,b> = QQ[]
             sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
@@ -420,10 +422,11 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
     cpdef reduced_trace(self):
         """
-        Return the reduced trace of self: if theta = x + i*y + z*j + w*k, then theta has
-        reduced trace 2*x.
+        Return the reduced trace of self: if `\\theta = x + yi + zj +
+        wk`, then `\\theta` has reduced trace `2x`.
 
         EXAMPLES::
+
             sage: K.<x,y,z,w,a,b> = QQ[]
             sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
             sage: theta = x+y*i+z*j+w*k
@@ -434,10 +437,12 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
     cpdef reduced_norm(self):
         """
-        Return the reduced norm of self: if theta = x + i*y + z*j + w*k, then theta has
-        reduced norm x^2 - a*y^2 - b*z^2 + a*b*w^2.
+        Return the reduced norm of self: if `\\theta = x + yi + zj +
+        wk`, then `\\theta` has reduced norm `x^2 - ay^2 - bz^2 +
+        abw^2`.
 
         EXAMPLES::
+
             sage: K.<x,y,z,w,a,b> = QQ[]
             sage: Q.<i,j,k> = QuaternionAlgebra(a,b)
             sage: theta = x+y*i+z*j+w*k
@@ -491,6 +496,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         Return quotient of self by right.
 
         EXAMPLES::
+
             sage: K.<x> = QQ[]; Q.<i,j,k> = QuaternionAlgebra(x, 2*x);
             sage: theta = x + 2*x*i + 3*j + (x-2)*k
             sage: type(theta)
@@ -505,8 +511,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
     def reduced_characteristic_polynomial(self, var='x'):
         """
         Return the reduced characteristic polynomial of this
-        quaternion algebra element, which is X^2 - t*X + n, where t is
-        the reduced trace, and n is the reduced norm.
+        quaternion algebra element, which is `X^2 - tX + n`, where `t`
+        is the reduced trace and `n` is the reduced norm.
 
         INPUT:
             - var -- string (default: 'x'); indeterminate of characteristic polynomial
@@ -531,7 +537,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
 
 cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
     """
-    TESTS::
+    TESTS:
 
     We test pickling::
 
@@ -679,8 +685,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
 
 cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abstract):
     """
-
-    TESTS::
+    TESTS:
 
     We test pickling::
 
@@ -707,6 +712,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         Initialize C variables.
 
         EXAMPLES::
+
             sage: QuaternionAlgebra(QQ,-5,-2)([1/2,-1/3,2/3,4/5])  # implicit doctest
             1/2 - 1/3*i + 2/3*j + 4/5*k
         """
@@ -791,6 +797,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         of the other coefficients are compared.
 
         TESTS::
+
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-5,-2)
             sage: i < j
             False
@@ -1142,9 +1149,10 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
     cpdef reduced_norm(self):
         """
         Return the reduced norm of self. Given a quaternion
-        x+i*y+z*j+w, this is x^2 - y^2*a - z^2*b + w^2*a*b.
+        `x+yi+zj+wk`, this is `x^2 - ay^2 - bz^2 + abw^2`.
 
         EXAMPLES::
+
             sage: K.<i,j,k> = QuaternionAlgebra(QQ, -5, -2)
             sage: i.reduced_norm()
             5
@@ -1211,9 +1219,10 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
     cpdef reduced_trace(self):
         """
-        Return the reduced trace of self, which is 2*x if self is x+i*y+z*j+w.
+        Return the reduced trace of self, which is `2x` if self is `x+iy+zj+wk`.
 
         EXAMPLES::
+
             sage: K.<i,j,k> = QuaternionAlgebra(QQ, -5, -2)
             sage: i.reduced_trace()
             0
@@ -1235,8 +1244,8 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
     cdef inline canonicalize(self):
         """
         Put the representation of this quaternion element into
-        smallest form. For a = (1/d)*(x + yi + zj + wk) we
-        divide a, x, y, z, and w by the gcd of all of them.
+        smallest form. For `a = (1/d)(x + yi + zj + wk)` we
+        divide `a`, `x`, `y`, `z`, and `w` by the gcd of all of them.
 
         TESTS::
             sage: K.<i,j,k> = QuaternionAlgebra(QQ, -10, -7)
@@ -1274,6 +1283,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         of i, j and k for this quaternion.
 
         EXAMPLES::
+
             sage: A = QuaternionAlgebra(QQ, -1, -1)
             sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1, -1)
             sage: a = (1/2) + (1/5)*i + (5/12)*j + (1/13)*k
@@ -1296,8 +1306,8 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
     def denominator_and_integer_coefficient_tuple(self):
         """
         Return 5-tuple d, x, y, z, w, where this rational quaternion
-        is equal to (x + y*i + z*j + w*k)/d and x,y,z,w do not share a
-        common factor with d.
+        is equal to `(x + yi + zj + wk)/d` and x, y, z, w do not share
+        a common factor with d.
 
         OUTPUT:
             5-tuple of Integers
@@ -1485,7 +1495,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             sage: K.<a> = QQ[2^(1/3)]; Q.<i,j,k> = QuaternionAlgebra(K,-a,a+1)
             sage: Q([a,-2/3,a^2-1/2,a*2])           # implicit doctest
             a + (-2/3)*i + (a^2 - 1/2)*j + 2*a*k
-
         """
         self._parent = parent
         x, y, z, w = to_quaternion(parent._base, v)
@@ -1846,10 +1855,11 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
     cdef inline canonicalize(self):
         """
         Put the representation of this quaternion element into
-        smallest form. For a = (1/d)*(x + yi + zj + wk) we
-        divide a, x, y, z, and w by the gcd of all of them.
+        smallest form. For a = `(1/d)(x + yi + zj + wk)` we
+        divide `a`, `x`, `y`, `z`, and `w` by the gcd of all of them.
 
         TESTS::
+
             sage: F = QQ[3^(1/3)]
             sage: a = F.gen()
             sage: K.<i,j,k> = QuaternionAlgebra(F, -10 + a, -7 - a)

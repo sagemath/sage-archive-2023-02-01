@@ -75,6 +75,14 @@ def all_graph_colorings(G,n,count_only=False):
         ...       n+=1
         sage: print "G has %s 3-colorings."%n
         G has 12 3-colorings.
+
+    TESTS:
+        sage: G = Graph({0:[1,2,3],1:[2]})
+        sage: for C in all_graph_colorings(G,0): print C
+        sage: for C in all_graph_colorings(G,-1): print C
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be non-negative.
     """
 
     if n == 0: return

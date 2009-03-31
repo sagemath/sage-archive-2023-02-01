@@ -211,7 +211,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
 
     We draw a pretty picture of the polytype in 3-dimensional space::
 
-        sage: p.plot().show()
+        sage: p.plot3d().show()
 
     Now we add an extra point, which is in the interiour of the
     polytope...
@@ -1453,55 +1453,6 @@ class LatticePolytopeClass(SageObject):
         """
         return SetOfAllLatticePolytopes
 
-    def plot(self, camera_center=None):
-        """
-        Draw a 3d picture of the polytope.
-
-        INPUT:
-
-
-        -  ``self`` - polytope of dimension 3.
-
-        -  ``camera_center`` - (default: random) location of
-           center of the camera (i.e., viewer)
-
-
-        OUTPUT: a Tachyon 3d raytracer plot of the polytope
-
-        The face colors are random.
-
-        AUTHORS:
-
-        - William Stein and Tom Boothby
-
-        EXAMPLES::
-
-            sage: o = lattice_polytope.octahedron(3)
-            sage: o.plot().show()
-        """
-        if self.dim() != 3:
-            raise ValueError, "Polytope must have dimension 3!"
-        m = self._vertices
-        r = random.random
-        if camera_center is None:
-            x = max(m.list())
-            camera_center = [(1+r())*x,(1+r())*x,(1+r())*x]
-            for i in range(3):
-                if r() > 0.5:
-                    camera_center[i] *= -1
-        t = Tachyon(camera_center=camera_center)
-        t.light(tuple([2*v for v in camera_center]), .1, (1,1,1))
-
-        cols = m.columns()
-        n = len(cols)
-        for i in range(n):
-            for j in range(i,n):
-                for k in range(j,n):
-                    s = "T%010d%010d%010d"%(i,j,k)
-                    t.texture(s, color=hue(r()))
-                    t.triangle(cols[i],cols[j],cols[k], s)
-        return t
-
     def plot3d(self,
             show_facets=True, facet_opacity=0.5, facet_color=(0,1,0),
             show_edges=True, edge_thickness=3, edge_color=(0.5,0.5,0.5),
@@ -1606,18 +1557,18 @@ class LatticePolytopeClass(SageObject):
                 pplot += text3d(i, index_shift*self.point(i), rgbcolor=pindex_color)
         return pplot
 
-    def show(self, camera_center=None):
+    def show3d(self):
         """
-        Draw a 3d picture of the polytope.
+        Show a 3d picture of the polytope with default settings and without axes or frame.
 
-        See self.plot? for more details.
+        See self.plot3d? for more details.
 
         EXAMPLES::
 
             sage: o = lattice_polytope.octahedron(3)
-            sage: o.show()
+            sage: o.show3d()
         """
-        self.plot(camera_center=camera_center).show()
+        self.plot3d().show(axis=False, frame=False)
 
     def point(self, i):
         r"""

@@ -951,9 +951,9 @@ def rational_exact_root(r, d):
     num = r.numerator()
     den = r.denominator()
 
-    (num_rt, num_exact) = num.nth_root(d, report_exact=True)
+    (num_rt, num_exact) = num.nth_root(d, truncate_mode=1)
     if not num_exact: return None
-    (den_rt, den_exact) = den.nth_root(d, report_exact=True)
+    (den_rt, den_exact) = den.nth_root(d, truncate_mode=1)
     if not den_exact: return None
     return (num_rt / den_rt)
 

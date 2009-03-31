@@ -811,6 +811,47 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         PyMem_Free(s)
         return k
 
+    def ordinal_str(self):
+        """
+        Returns a string representation of the ordinal associated to self.
+
+        EXAMPLES::
+
+            sage: [ZZ(n).ordinal_str() for n in range(25)]
+            ['0th',
+            '1st',
+            '2nd',
+            '3rd',
+            '4th',
+            ...
+            '10th',
+            '11th',
+            '12th',
+            '13th',
+            '14th',
+            ...
+            '20th',
+            '21st',
+            '22nd',
+            '23rd',
+            '24th']
+
+            sage: ZZ(1001).ordinal_str()
+            '1001st'
+        """
+        if self<0:
+            raise ValueError, "Negative integers are not ordinals."
+        n = self.abs()
+        if (n!=11 and n%10==1):
+            th = 'st'
+        elif (n!=12 and n%10==2):
+            th = 'nd'
+        elif (n!=13 and n%10==3):
+            th = 'rd'
+        else:
+            th = 'th'
+        return n.str()+th
+
     def __hex__(self):
         r"""
         Return the hexadecimal digits of self in lower case.
@@ -1462,46 +1503,59 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return x
 
 
-    def nth_root(self, int n, int report_exact=0):
+    def nth_root(self, int n, bint truncate_mode=0):
         r"""
-        Returns the truncated nth root of self.
+        Returns the (possibly truncated) n'th root of self.
 
         INPUT:
 
 
-        -  ``n`` - integer >= 1 (must fit in C int type)
+        -  ``n`` - integer >= 1 (must fit in C int type).
 
-        -  ``report_exact`` - boolean, whether to report if
-           the root extraction was exact
+        -  ``truncate_mode`` - boolean, whether to allow truncation if
+           self is not an n'th power.
 
 
-        OUTPUT: If report_exact is 0 (default), then returns the
-        truncation of the nth root of self (i.e. rounded towards zero).
+        OUTPUT: If truncate_mode is 0 (default), then returns the
+        exact n'th root if self is an n'th power, or raises a
+        ValueError if it is not.
 
-        If report_exact is 1, then returns the nth root and a boolean
-        indicating whether the root extraction was exact.
+        If truncate_mode is 1, then if either n is odd or self is
+        positive, returns a pair (root, exact_flag) where root is the
+        truncated nth root (rounded towards zero) and exact_flag is a
+        boolean indicating whether the root extraction was exact;
+        otherwise raises a ValueError.
 
         AUTHORS:
 
         - David Harvey (2006-09-15)
+        - Interface changed by John Cremona (2009-04-04)
 
         EXAMPLES::
 
             sage: Integer(125).nth_root(3)
             5
             sage: Integer(124).nth_root(3)
-            4
-            sage: Integer(126).nth_root(3)
-            5
+            Traceback (most recent call last):
+            ...
+            ValueError: 124 is not a 3rd power
+            sage: Integer(124).nth_root(3, truncate_mode=1)
+            (4, False)
+            sage: Integer(125).nth_root(3, truncate_mode=1)
+            (5, True)
+            sage: Integer(126).nth_root(3, truncate_mode=1)
+            (5, False)
 
         ::
 
             sage: Integer(-125).nth_root(3)
             -5
-            sage: Integer(-124).nth_root(3)
-            -4
-            sage: Integer(-126).nth_root(3)
-            -5
+            sage: Integer(-125).nth_root(3,truncate_mode=1)
+            (-5, True)
+            sage: Integer(-124).nth_root(3,truncate_mode=1)
+            (-4, False)
+            sage: Integer(-126).nth_root(3,truncate_mode=1)
+            (-5, False)
 
         ::
 
@@ -1523,6 +1577,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ValueError: cannot take even root of negative number
+
+        ::
+
+            sage: a=9
+            sage: a.nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 9 is not a 3rd power
+
+            sage: a.nth_root(22)
+            Traceback (most recent call last):
+            ...
+            ValueError: 9 is not a 22nd power
+
+            sage: ZZ(2^20).nth_root(21)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1048576 is not a 21st power
+
+            sage: ZZ(2^20).nth_root(21, truncate_mode=1)
+            (1, False)
+
         """
         if n < 1:
             raise ValueError, "n (=%s) must be positive" % n
@@ -1535,10 +1611,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         is_exact = mpz_root(x.value, self.value, n)
         _sig_off
 
-        if report_exact:
+        if truncate_mode:
             return x, is_exact
         else:
-            return x
+            if is_exact:
+                return x
+            else:
+                raise ValueError, "%s is not a %s power"%(self,integer_ring.ZZ(n).ordinal_str())
 
     def exact_log(self, m):
         r"""

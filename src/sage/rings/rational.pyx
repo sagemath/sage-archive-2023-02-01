@@ -1035,6 +1035,43 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpz_neg(v.value, v.value)
         return (v, u)
 
+    def prime_to_S_part(self, S=[]):
+        r"""
+        Returns self with all powers of all primes in S removed.
+
+        INPUT:
+
+        -  ``S`` - list or tuple of primes.
+
+        OUTPUT: rational
+
+        .. note::  Primality of the entries in `S` is not checked.
+
+        EXAMPLES::
+
+            sage: QQ(3/4).prime_to_S_part()
+            3/4
+            sage: QQ(3/4).prime_to_S_part([2])
+            3
+            sage: QQ(-3/4).prime_to_S_part([3])
+            -1/4
+            sage: QQ(700/99).prime_to_S_part([2,3,5])
+            7/11
+            sage: QQ(-700/99).prime_to_S_part([2,3,5])
+            -7/11
+            sage: QQ(0).prime_to_S_part([2,3,5])
+            0
+            sage: QQ(-700/99).prime_to_S_part([])
+            -700/99
+
+        """
+        if self.is_zero():
+            return self
+        a = self
+        for p in S:
+            e, a = a.val_unit(p)
+        return a
+
     def sqrt(self, prec=None, extend=True, all=False):
         r"""
         The square root function.
@@ -1218,7 +1255,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (9/2).nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: not a perfect nth power
+            ValueError: not a perfect 2nd power
 
         ::
 
@@ -1242,17 +1279,61 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         num, exact = self.numerator().nth_root(n, 1)
         if not exact:
-            raise ValueError, "not a perfect nth power"
+            raise ValueError, "not a perfect %s power"%ZZ(n).ordinal_str()
 
         den, exact = self.denominator().nth_root(n, 1)
         if not exact:
-            raise ValueError, "not a perfect nth power"
+            raise ValueError, "not a perfect %s power"%ZZ(n).ordinal_str()
 
         if negative:
             return den / num
         else:
             return num / den
 
+
+    def is_nth_power(self, int n):
+        r"""
+        Returns True if self is an nth power, else False.
+
+        INPUT:
+
+        -  ``n`` - integer (must fit in C int type)
+
+        .. note::
+
+        Use this function when you nede test test if a rational number
+        is an n'th power, but do not need to know the value of its
+        n'th root.  If the value is needed, use nth_root().
+
+        AUTHORS:
+
+        - John Cremona (2009-04-04)
+
+        EXAMPLES::
+
+            sage: QQ(25/4).is_nth_power(2)
+            True
+            sage: QQ(125/8).is_nth_power(3)
+            True
+            sage: QQ(-125/8).is_nth_power(3)
+            True
+            sage: QQ(25/4).is_nth_power(-2)
+            True
+
+            sage: QQ(9/2).is_nth_power(2)
+            False
+            sage: QQ(-25).is_nth_power(2)
+            False
+
+        """
+        if n == 0:
+            raise ValueError, "n cannot be zero"
+        if n<0:
+            n = -n
+        if n%2==0 and self<0:
+            return False
+        return self.numerator().nth_root(n, 1)[1]\
+               and self.denominator().nth_root(n, 1)[1]
 
     def str(self, int base=10):
         """
@@ -2384,6 +2465,66 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+    def is_S_integral(self, S=[]):
+        r"""
+        Determine if the rational number is S-integral.
+
+	x is S-integral if x.valuation(p)>=0 for all p not in S, i.e.,
+	the denominator of x is divisible only by the primes in `S`.
+
+        INPUT:
+
+        -  ``S`` - list or tuple of primes.
+
+        OUTPUT: bool
+
+        .. note::  Primality of the entries in `S` is not checked.
+
+        EXAMPLES::
+
+            sage: QQ(1/2).is_S_integral()
+            False
+            sage: QQ(1/2).is_S_integral([2])
+            True
+            sage: [a for a in range(1,11) if QQ(101/a).is_S_integral([2,5])]
+            [1, 2, 4, 5, 8, 10]
+        """
+        if self.is_integral():
+            return True
+        return self.prime_to_S_part(S).is_integral()
+
+    def is_S_unit(self, S=None):
+        r"""
+        Determine if the rational number is an S-unit.
+
+	x is an S-unit if x.valuation(p)==0 for all p not in S, i.e.,
+	the numerator and denominator of x are divisible only by the
+	primes in `S`.
+
+        INPUT:
+
+        -  ``S`` - list or tuple of primes.
+
+        OUTPUT: bool
+
+        .. note::  Primality of the entries in `S` is not checked.
+
+        EXAMPLES::
+
+            sage: QQ(1/2).is_S_unit()
+            False
+            sage: QQ(1/2).is_S_unit([2])
+            True
+            sage: [a for a in range(1,11) if QQ(10/a).is_S_unit([2,5])]
+            [1, 2, 4, 5, 8, 10]
+        """
+        a = self.abs()
+        if a==1:
+            return True
+        if S is None:
+            return False
+        return a.prime_to_S_part(S) == 1
 
     cdef _lshift(self, long int exp):
         r"""

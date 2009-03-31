@@ -552,7 +552,7 @@ class Order(IntegralDomain):
             sage: O.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity in self.
+            ArithmeticError: There are no 3rd roots of unity in self.
         """
         roots_in_field = self.number_field().zeta(n, True)
         roots_in_self = [ self(x) for x in roots_in_field if x in self ]
@@ -560,15 +560,7 @@ class Order(IntegralDomain):
             if all:
                 return []
             else:
-                if n == 1:
-                    th = 'st'
-                elif n == 2:
-                    th = 'nd'
-                elif n == 3:
-                    th = 'rd'
-                else:
-                    th = 'th'
-                raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
+                raise ArithmeticError, "There are no %s roots of unity in self."%n.ordinal_str()
         if all:
             return roots_in_self
         else:

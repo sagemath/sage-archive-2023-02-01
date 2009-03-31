@@ -5895,28 +5895,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         #End Input-Check ######################################################
 
         #Internal functions ###################################################
-        def is_S_int(x):
-            """
-            Tests if the rational number x is S-integral.
-            """
-            fac_list_S=[]
-            xde = x.denominator()
-            fac_list_S = [p**(xde.valuation(p)) for p in S]
-            res_S = misc.prod(fac_list_S)
-            if res_S == xde:
-                return True
-            else:
-                return False
-            #other possibility using division
-            #tmp = xde
-            #for p in S:
-                #tmp = tmp / p**(tmp.valuation(p))
-            #if tmp = xde:
-                #return True
-            #else:
-                #return False
-    #<-------------------------------------------------------------------------
-    #>-------------------------------------------------------------------------
         def reduction_at(p):
             r"""
             Reducing the bound `H_q` at the finite place p in S via LLL
@@ -5990,7 +5968,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 """
                 if not P.is_zero():
                     xP = P[0]
-                    if is_S_int(xP):
+                    if xP.is_S_integral(S):
                         xs.add(xP)
 
             def test_with_T(R):
@@ -6126,7 +6104,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if (r==0):#only Torsionpoints to consider
             int_points = [P for P in tors_points if not P.is_zero()]
-            int_points = [P for P in int_points if is_S_int(P[0])]
+            int_points = [P for P in int_points if P[0].is_S_integral(S)]
             if not both_signs:
                 xlist = set([P[0] for P in int_points])
                 int_points = [E.lift_x(x) for x in xlist]
@@ -6368,7 +6346,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 P = E.lift_x(x)
                 for T in tors_points:
                     Q = P+T
-                    if not Q.is_zero() and is_S_int(Q[0]):
+                    if not Q.is_zero() and Q[0].is_S_integral(S):
                         x_S_int_points_t = x_S_int_points_t.union([Q[0]])
             x_S_int_points = x_S_int_points.union(x_S_int_points_t)
 

@@ -16,6 +16,7 @@ import sage.rings.all as rings
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
+from sage.misc.misc import verbose
 
 def is_ModularFormElement(x):
     """
@@ -833,6 +834,62 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             1 + q + (-14/73*zeta8^3 - 16/73*zeta8^2 + 13/73*zeta8 + 140/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 + 21/73*zeta8 + 243/73)*q^3 + (-81/73*zeta8^3 + 43/73*zeta8^2 - 3/73*zeta8 + 372/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 27/73*zeta8 + 521/73)*q^5 + O(q^6)
         """
         return ModularFormElement(self.parent(), self.element() + other.element())
+
+    def __mul__(self, other):
+        r"""
+        Calculate the product self * other.
+
+        An example with character::
+
+            sage: f = ModularForms(DirichletGroup(3).0, 3).0
+            sage: f * f
+            1 + 108*q^2 + 144*q^3 + 2916*q^4 + 8640*q^5 + O(q^6)
+            sage: (f*f).parent()
+            Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(3) of weight 6 over Rational Field
+            sage: (f*f*f).parent()
+            Modular Forms space of dimension 4, character [-1] and weight 9 over Rational Field
+
+        An example without::
+
+            sage: f = ModularForms(Gamma1(3), 5).0
+            sage: f*f
+            1 - 180*q^2 - 480*q^3 + 8100*q^4 + 35712*q^5 + O(q^6)
+            sage: (f*f).parent()
+            Modular Forms space of dimension 4 for Congruence Subgroup Gamma1(3) of weight 10 over Rational Field
+        """
+
+        # boring case: scalar multiplication
+        if not isinstance(other, ModularFormElement):
+            return HeckeModuleElement.__mul__(self, other)
+
+        # first ensure the levels are equal
+        if self.level() != other.level():
+            raise NotImplementedError, "Cannot multiply forms of different levels"
+
+        # find out about characters
+        try:
+            eps1 = self.character()
+            verbose("character of left is %s" % eps1)
+            eps2 = other.character()
+            verbose("character of right is %s" % eps2)
+            newchar = eps1 * eps2
+            verbose("character of product is %s" % newchar)
+        except NotImplementedError:
+            newchar = None
+            verbose("character of product not determined")
+
+        # now do the math
+        from constructor import ModularForms
+        if newchar is not None:
+            verbose("creating a parent with char")
+            newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())
+            verbose("parent is %s" % newparent)
+        else:
+            newparent = ModularForms(self.group(), self.weight() + other.weight(), base_ring = rings.ZZ)
+        m = newparent.sturm_bound()
+        newqexp = self.qexp(m) * other.qexp(m)
+
+        return newparent.base_extend(newqexp.base_ring())(newqexp)
 
     def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,

@@ -304,6 +304,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def __cmp__(self, other):
         """
+        Compare self to other. Note that this only gets called when the parents
+        of self and other are identical, via a canonical coercion map; this
+        means that characters of different moduli compare as unequal, even if
+        they define identical functions on ZZ.
+
         EXAMPLES::
 
             sage: e = DirichletGroup(16)([-1, 1])
@@ -313,7 +318,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: f == f
             True
             sage: e == f
-            True
+            False
             sage: k = DirichletGroup(7)([-1])
             sage: k == e
             False
@@ -357,6 +362,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
             [1, zeta4]
             sage: a*b
             [-1, zeta4]
+
+        Multiplying elements whose parents have different zeta orders works::
+
+            sage: a = DirichletGroup(3, QQ, zeta=1, zeta_order=1)(1)
+            sage: b = DirichletGroup(3, QQ, zeta=-1, zeta_order=2)([-1])
+            sage: a * b
+            [-1]
         """
         x = self.element() + other.element()
         return DirichletCharacter(self.parent(), x, check=False)
@@ -1602,6 +1614,28 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
                               zeta=zeta,
                               zeta_order=zeta_order)
 
+    def base_extend(self, R):
+        """
+        Returns the Dirichlet group over R obtained by extending scalars, with the same modulus and root of unity as self.
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(7,QQ); G
+            Group of Dirichlet characters of modulus 7 over Rational Field
+            sage: H = G.base_extend(CyclotomicField(6)); H
+            Group of Dirichlet characters of modulus 7 over Cyclotomic Field of order 6 and degree 2
+            sage: H.zeta()
+            -1
+            sage: G.base_extend(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: No coercion map from 'Rational Field' to 'Integer Ring' is defined.
+
+        """
+        if not R.has_coerce_map_from(self.base_ring()):
+            raise TypeError, "No coercion map from '%s' to '%s' is defined." % (self.base_ring(), R)
+        return DirichletGroup(self.modulus(), R, zeta=R(self.zeta()), zeta_order=self.zeta_order())
+
     def __call__(self, x):
         """
         Coerce x into this Dirichlet group.
@@ -1648,8 +1682,26 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         return self(a)
 
     def _coerce_impl(self, x):
-        if isinstance(x, DirichletCharacter) and x.modulus() % self.modulus() == 0 and \
-               self.base_ring().has_coerce_map_from(x.base_ring()):
+        r"""
+        Canonical coercion of x into self.
+
+        Note that although there is conversion between Dirichlet groups of
+        different moduli, there is never canonical coercion. The main result of
+        this is that Dirichlet characters of different moduli never compare as
+        equal.
+
+        TESTS::
+
+            sage: trivial_character(6) == trivial_character(3)
+            False
+            sage: trivial_character(3) == trivial_character(9)
+            False
+            sage: trivial_character(3) == DirichletGroup(3, QQ).0^2
+            True
+        """
+        if isinstance(x, DirichletCharacter) and self.modulus() == x.modulus() and \
+               self.base_ring().has_coerce_map_from(x.base_ring()) and \
+               self.zeta_order() % x.parent().zeta_order() == 0:
             return self._coerce_in_dirichlet_character(x)
         raise TypeError
 

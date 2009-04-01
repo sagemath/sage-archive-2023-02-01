@@ -142,7 +142,7 @@ def Permutation(l):
     -  a PermutationGroupElement
 
     -  a pair of two tableaux of the same shape, where the second one is
-       standard.
+       standard. This uses the inverse of Robinson Schensted algorithm.
 
 
     OUTPUT:
@@ -199,10 +199,19 @@ def Permutation(l):
     From a pair of tableaux of the same shape. This uses the inverse
     of Robinson Schensted algorithm::
 
-        sage: p = Tableau([[1, 4, 7], [2, 5], [3], [6]])
-        sage: q = Tableau([[1, 2, 5], [3, 6], [4], [7]])
+        sage: p = [[1, 4, 7], [2, 5], [3], [6]]
+        sage: q = [[1, 2, 5], [3, 6], [4], [7]]
+        sage: P = Tableau(p)
+        sage: Q = Tableau(q)
         sage: Permutation( (p, q) )
         [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( [p, q] )
+        [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( (P, Q) )
+        [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( [P, Q] )
+        [3, 6, 5, 2, 7, 4, 1]
+
 
     TESTS::
 
@@ -212,11 +221,19 @@ def Permutation(l):
         [1]
         sage: Permutation(())
         [1]
+
+    From a pair of empty tableaux ::
+
+        sage: Permutation( ([], []) )
+        []
+        sage: Permutation( [[], []] )
+        []
     """
     if isinstance(l, Permutation_class):
         return l
     elif isinstance(l, PermutationGroupElement):
         l = l.list()
+
     #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
         if l == "()":
@@ -228,10 +245,16 @@ def Permutation(l):
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
         return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
-    #if l is a pair of tableaux
+
+    #if l is a pair of tableaux or a pair of lists
     elif isinstance(l, (tuple, list)) and len(l) == 2 and \
-         all(map(lambda x: isinstance(x, tableau.Tableau_class), l)):
+        all(map(lambda x: isinstance(x, tableau.Tableau_class), l)):
         return robinson_schensted_inverse(*l)
+    elif isinstance(l, (tuple, list)) and len(l) == 2 and \
+        all(map(lambda x: isinstance(x, list), l)):
+        P,Q = map(tableau.Tableau, l)
+        return robinson_schensted_inverse(P, Q)
+
     # if it's a tuple or nonempty list of tuples, also assume cycle
     # notation
     elif isinstance(l, tuple) or \

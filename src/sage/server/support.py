@@ -179,7 +179,7 @@ def docstring(obj_name, globs, system='sage'):
 
     - William Stein: partly taken from IPython for use in Sage
 
-    - Nick Alexander: extensioins
+    - Nick Alexander: extensions
     """
     if system not in ['sage', 'python']:
         obj_name = system + '.' + obj_name

@@ -860,7 +860,7 @@ function handle_replacement_controls(cell_input, event) {
         return false;
     } else if(key_request_introspections(event)) {
         // instead of browsing through a list of options, here we are viewing
-        // the docstring on a funtion.
+        // the docstring on a function.
         if(sub_introspecting) {
             introspection_text = replacement_text;
             introspection_loaded = true;

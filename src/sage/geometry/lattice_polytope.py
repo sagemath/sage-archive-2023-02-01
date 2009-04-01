@@ -540,11 +540,11 @@ class LatticePolytopeClass(SageObject):
             False
             sage: c._face_split_points(f)
             sage: f._interior_points
-            [18]
+            [10]
             sage: f._boundary_points
-            [0, 1, 2, 3, 11, 15, 21, 25]
+            [0, 2, 4, 6, 8, 9, 11, 12]
             sage: f.points()
-            [0, 1, 2, 3, 11, 15, 18, 21, 25]
+            [0, 2, 4, 6, 8, 9, 10, 11, 12]
 
         Vertices don't have boundary::
 
@@ -720,7 +720,7 @@ class LatticePolytopeClass(SageObject):
             sage: o._read_faces(s)
             sage: o._faces
             [
-            [[5], [1], [0], [3], [4], [2]],
+            [[0], [1], [2], [3], [4], [5]],
             [[1, 5], [0, 5], [0, 1], [3, 5], [1, 3], [4, 5], [0, 4], [3, 4], [1, 2], [0, 2], [2, 3], [2, 4]],
             [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
             ]
@@ -765,6 +765,16 @@ class LatticePolytopeClass(SageObject):
         for i in range(len(v)):
             self._faces.append([_PolytopeFace(self, vertices, facets)
                                     for vertices, facets in zip(v[i], f[i])])
+        # Zero-dimensional faces (i.e. vertices) from poly.x can be in "random"
+        # order, so that the lists of corresponding facets are in increasing
+        # order.
+        # While this may be convenient for something, it is quite confusing to
+        # have p.faces(dim=0)[0].vertices() == [5], which means "the 5th vertex
+        # spans the 0th 0-dimensional face" and, on the polar side, "the 0th
+        # facet is described by the 5th equation."
+        # The next line sorts 0-dimensional faces to make these enumerations
+        # more transparent.
+        self._faces[0].sort(cmp = lambda x,y: cmp(x._vertices[0], y._vertices[0]))
         self._faces.set_immutable()
 
     def _read_nef_partitions(self, data):
@@ -976,7 +986,7 @@ class LatticePolytopeClass(SageObject):
             sage: o = lattice_polytope.octahedron(3)
             sage: o.faces()
             [
-            [[5], [1], [0], [3], [4], [2]],
+            [[0], [1], [2], [3], [4], [5]],
             [[1, 5], [0, 5], [0, 1], [3, 5], [1, 3], [4, 5], [0, 4], [3, 4], [1, 2], [0, 2], [2, 3], [2, 4]],
             [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
             ]
@@ -2126,7 +2136,7 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.octahedron(2)
             sage: o.faces()
             [
-            [[3], [0], [2], [1]],
+            [[0], [1], [2], [3]],
             [[0, 3], [2, 3], [0, 1], [1, 2]]
             ]
         """
@@ -2186,7 +2196,7 @@ class _PolytopeFace(SageObject):
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.boundary_points()
-            [0, 1, 2, 3, 11, 15, 21, 25]
+            [0, 2, 4, 6, 8, 9, 11, 12]
         """
         try:
             return self._boundary_points
@@ -2229,7 +2239,7 @@ class _PolytopeFace(SageObject):
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.interior_points()
-            [18]
+            [10]
         """
         try:
             return self._interior_points
@@ -2364,7 +2374,7 @@ class _PolytopeFace(SageObject):
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.points()
-            [0, 1, 2, 3, 11, 15, 18, 21, 25]
+            [0, 2, 4, 6, 8, 9, 10, 11, 12]
         """
         try:
             return self._points
@@ -2384,9 +2394,9 @@ class _PolytopeFace(SageObject):
             sage: c = lattice_polytope.octahedron(3).polar()
             sage: f = c.facets()[0]
             sage: f.vertices()
-            [0, 1, 2, 3]
+            [0, 2, 4, 6]
             sage: f.traverse_boundary()
-            [0, 2, 3, 1]
+            [0, 4, 6, 2]
         """
         if self not in self._polytope.faces(dim=2):
             raise ValueError, "Boundary can be traversed only for 2-faces!"
@@ -2419,7 +2429,7 @@ class _PolytopeFace(SageObject):
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.vertices()
-            [0, 1, 2, 3]
+            [0, 2, 4, 6]
         """
         return self._vertices
 
@@ -2606,7 +2616,7 @@ def all_cached_data(polytopes):
         sage: lattice_polytope.all_cached_data([o])
         sage: o.faces()
         [
-        [[5], [1], [0], [3], [4], [2]],
+        [[0], [1], [2], [3], [4], [5]],
         [[1, 5], [0, 5], [0, 1], [3, 5], [1, 3], [4, 5], [0, 4], [3, 4], [1, 2], [0, 2], [2, 3], [2, 4]],
         [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
         ]
@@ -2650,7 +2660,7 @@ def all_faces(polytopes):
         sage: lattice_polytope.all_faces([o])
         sage: o.faces()
         [
-        [[5], [1], [0], [3], [4], [2]],
+        [[0], [1], [2], [3], [4], [5]],
         [[1, 5], [0, 5], [0, 1], [3, 5], [1, 3], [4, 5], [0, 4], [3, 4], [1, 2], [0, 2], [2, 3], [2, 4]],
         [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
         ]

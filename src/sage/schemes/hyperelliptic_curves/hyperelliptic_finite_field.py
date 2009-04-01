@@ -24,47 +24,47 @@ from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 
 class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic):
 
-    def _frobenius_coefficient_bounds(self):
-        """
-        Computes bounds on coefficients of frobenius polynomial, from
-        Weil conjectures, via Kedlaya's paper:
-           | a_i | <= (2g choose i) * q**(i/2)
-
-        Return value is a list of integers [B_0, ..., B_2g] so that knowledge
-        of a_i mod B_i determines a_i uniquely.
-
-        AUTHORS::
-          -- Nick Alexander, massaged by David Harvey (2009-03)
-        """
-        q = self.base_ring().order()
-        sqrtq = RR(q).sqrt()
-        g = self.genus()
-        Bs = []
-        for i in range(2*g + 1):
-            B = 2 * binomial(2*g, i) * sqrtq**i
-            Bs.append(ZZ(B.ceil()))
-        Bs.reverse()
-        return Bs
-
-
     def _frobenius_coefficient_bound(self):
         """
         Computes bound on number of p-adic digits needed to recover
-        frobenius polynomial, i.e. returns B so that knowledge of a_i
-        modulo p^B determines a_i uniquely.
+        frobenius polynomial, i.e. returns B so that knowledge of
+        a_1, ..., a_g modulo p^B determine frobenius polynomial uniquely.
 
-        AUTHORS::
-          -- Nick Alexander, massaged by David Harvey (2009-03)
+        TESTS::
+            sage: R.<t> = PolynomialRing(GF(37))
+            sage: HyperellipticCurve(t^3 + t + 1)._frobenius_coefficient_bound()
+            1
+            sage: HyperellipticCurve(t^5 + t + 1)._frobenius_coefficient_bound()
+            2
+            sage: HyperellipticCurve(t^7 + t + 1)._frobenius_coefficient_bound()
+            3
+
+            sage: R.<t> = PolynomialRing(GF(next_prime(10^9)))
+            sage: HyperellipticCurve(t^3 + t + 1)._frobenius_coefficient_bound()
+            1
+            sage: HyperellipticCurve(t^5 + t + 1)._frobenius_coefficient_bound()
+            2
+            sage: HyperellipticCurve(t^7 + t + 1)._frobenius_coefficient_bound()
+            2
+            sage: HyperellipticCurve(t^9 + t + 1)._frobenius_coefficient_bound()
+            3
+            sage: HyperellipticCurve(t^11 + t + 1)._frobenius_coefficient_bound()
+            3
+            sage: HyperellipticCurve(t^13 + t + 1)._frobenius_coefficient_bound()
+            4
         """
         assert self.base_ring().is_finite()
         p = self.base_ring().characteristic()
+        q = self.base_ring().order()
+        sqrtq = RR(q).sqrt()
+        g = self.genus()
 
-        Bs = self._frobenius_coefficient_bounds()
-        M = ZZ(max(Bs))
-        B = M.exact_log(p)
+        # note: this bound is from Kedlaya's paper, but he tells me it's not
+        # the best possible
+        M = 2 * binomial(2*g, g) * sqrtq**g
+        B = ZZ(M.ceil()).exact_log(p)
         if p**B < M:
             B += 1
-        assert p**B >= M
         return B
 
 
@@ -77,8 +77,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Currently only implemented using hypellfrob, which means only works
         over GF(p^1), and must have p > (2g+1)(2N-1).
 
-        AUTHORS::
-          -- Nick Alexander, massaged by David Harvey (2009-03)
+        TESTS::
+            sage: R.<t> = PolynomialRing(GF(37))
+            sage: H = HyperellipticCurve(t^5 + t + 2)
+            sage: H._frobenius_matrix()
+            [1258 + O(37^2)  925 + O(37^2)  132 + O(37^2)  587 + O(37^2)]
+            [1147 + O(37^2)  814 + O(37^2)  241 + O(37^2) 1011 + O(37^2)]
+            [1258 + O(37^2) 1184 + O(37^2) 1105 + O(37^2)  482 + O(37^2)]
+            [1073 + O(37^2)  999 + O(37^2)  772 + O(37^2)  929 + O(37^2)]
+
         """
         p = self.base_ring().characteristic()
         f, h = self.hyperelliptic_polynomials()
@@ -112,22 +119,6 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         """
         Charpoly of frobenius, as an element of ZZ[x].
 
-        TODO::
-            -- use naive point counting for small problems
-            -- use BSGS on jacobian for some parameter ranges
-            -- currently only works for p > (2g-1)(2N-1), where N is the
-               working precision (requirement of hypellfrob)
-            -- doesn't work over non-prime fields yet
-            -- doesn't handle equations y^2 + yh = f for h != 0
-            -- depending on genus, can be faster to compute frobenius matrix
-               modulo a lower power of p, and then get rest of data via
-               group operations on jacobian. For example when g = 3, instead
-               of computing charpoly mod p^2, do it only mod p^1 and recover
-               remaining 1/2 digit via BSGS. When g = 4, instead of doing it
-               mod p^3, do it mod p^2 and then only finitely many candidates
-               to test. See Andrew Sutherland's papers for more ideas along
-               these lines.
-
         TESTS::
             sage: R.<t> = PolynomialRing(GF(37))
             sage: H = HyperellipticCurve(t^5 + t + 2)
@@ -139,18 +130,23 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^4 - x^3 - 52*x^2 - 37*x + 1369
 
-        AUTHORS::
-            -- David Harvey (2009-03)
         """
         p = self.base_ring().characteristic()
+        g = self.genus()
         N = self._frobenius_coefficient_bound()
         # compute chapoly over ZZ and then reduce back
         # (because charpoly of p-adic matrices sometimes loses precision)
         M = self._frobenius_matrix(N=N).change_ring(ZZ)
-        f = M.charpoly().list()
+
+        # get a_g, ..., a_0 in ZZ (i.e. with correct signs)
+        f = M.charpoly().list()[g:2*g+1]
         ppow = p**N
         f = [x % ppow for x in f]
         f = [x if 2*x < ppow else x - ppow for x in f]
+
+        # get a_{2g}, ..., a_{g+1}
+        f = [f[g-i] * p**(g-i) for i in range(g)] + f
+
         return ZZ['x'](f)
 
 

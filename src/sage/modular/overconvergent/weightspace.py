@@ -11,41 +11,99 @@ Dirichlet character modulo `p^m` for some `m` and an integer `k` (corresponding
 to the character `z \mapsto z^k \chi(z)`) and "non-classical points" which are
 determined by the data of an element of `(\mathbb{Z}/p\mathbb{Z})^\times` and
 an element `w \in \mathbb{C}_p` with `|w - 1| < 1`.
+
+EXAMPLES::
+
+    sage: W = pAdicWeightSpace(17)
+    sage: W
+    Space of 17-adic weight-characters defined over '17-adic Field with capped relative precision 20'
+    sage: L = Qp(17).extension(x^2 - 17, names='a'); L.rename('L')
+    sage: W.base_extend(L)
+    Space of 17-adic weight-characters defined over 'L'
+
+We create a simple element of `\mathcal{W}`: the algebraic character, `x \mapsto x^6`::
+
+    sage: kappa = W(6)
+    sage: kappa(5)
+    15625
+    sage: kappa(5) == 5^6
+    True
+
+A locally algebraic character, `x \mapsto x^6 \chi(x)` for `\chi` a Dirichlet
+character mod `p`::
+
+    sage: kappa2 = W(6, DirichletGroup(17, Qp(17)).0^8)
+    sage: kappa2(5) == -5^6
+    True
+    sage: kappa2(13) == 13^6
+    True
+
+A non-locally-algebraic character, sending the generator 18 of `1 + 17
+\mathbb{Z}_{17}` to 35 and acting as `\mu \mapsto \mu^4` on the group of 16th
+roots of unity::
+
+    sage: kappa3 = W(35 + O(17^20), 4, algebraic=False)
+    sage: kappa3(2)
+    16 + 8*17 + ... + O(17^20)
+
+AUTHORS:
+
+- David Loeffler (2008-9)
 """
 
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.structure.sage_object import SageObject
-from sage.structure.parent import Parent
+from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.modular.dirichlet import DirichletGroup, DirichletCharacter, trivial_character
-from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp
+from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
 from sage.misc.misc import sxrange
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 import weakref
 
 _wscache = {}
-def WeightSpace_constructor(p):
+def WeightSpace_constructor(p, base_ring=None):
     r"""
-    Construct the p-adic weight space for the given prime p.
+    Construct the p-adic weight space for the given prime p.  A `p`-adic weight
+    is a continuous character `\mathbb{Z}_p^\times \to \mathbb{C}_p^\times`.
+    These are the `\mathbb{C}_p`-points of a rigid space over `\mathbb{Q}_p`,
+    which is isomorphic to a disjoint union of copies (indexed by
+    `(\mathbb{Z}/p\mathbb{Z})^\times`) of the open unit `p`-adic disc.
+
+    Note that the "base ring" of a `p`-adic weight is the smallest ring
+    containing the image of `mathbb{Z}`; in particular, although the default base
+    ring is `\mathbb{Q}_p`, base ring `\mathbb{Q}` will also work.
 
     EXAMPLES::
 
-        sage: WeightSpace(3) # indirect doctest
-        Space of 3-adic weight-characters
-        sage: WeightSpace(10)
+        sage: pAdicWeightSpace(3) # indirect doctest
+        Space of 3-adic weight-characters defined over '3-adic Field with capped relative precision 20'
+        sage: pAdicWeightSpace(3, QQ)
+        Space of 3-adic weight-characters defined over 'Rational Field'
+        sage: pAdicWeightSpace(10)
         Traceback (most recent call last):
         ...
         ValueError: p must be prime
     """
-    if _wscache.has_key(p):
-        m = _wscache[p]()
+    if base_ring is None:
+        base_ring = Qp(p)
+    if _wscache.has_key((p, base_ring)):
+        m = _wscache[(p, base_ring)]()
         if m is not None:
             return m
-    m = WeightSpace_class(p)
-    _wscache[p] = weakref.ref(m)
+    m = WeightSpace_class(p, base_ring)
+    _wscache[(p, base_ring)] = weakref.ref(m)
     return m
 
-class WeightSpace_class(Parent):
+class WeightSpace_class(ParentWithBase):
     r"""
     The space of `p`-adic weight-characters `\mathcal{W} = {\rm
     Hom}(\mathbb{Z}_p^\times, \mathbb{C}_p^\times)`. This isomorphic to a
@@ -55,25 +113,26 @@ class WeightSpace_class(Parent):
 
     TESTS::
 
-        sage: W = WeightSpace(3)
+        sage: W = pAdicWeightSpace(3)
         sage: W is loads(dumps(W))
         True
     """
 
-    def __init__(self, p):
+    def __init__(self, p, base_ring):
         r"""
         Initialisation function.
 
         EXAMPLE::
 
-            sage: WeightSpace(17)
-            Space of 17-adic weight-characters
+            sage: pAdicWeightSpace(17)
+            Space of 17-adic weight-characters defined over '17-adic Field with capped relative precision 20'
         """
+        ParentWithBase.__init__(self, base=base_ring)
         p = ZZ(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
-        self.p = p
-        self.param = Qp(p)((p == 2 and 5) or (p + 1))
+        self._p = p
+        self._param = Qp(p)((p == 2 and 5) or (p + 1))
 
     def _repr_(self):
         r"""
@@ -81,10 +140,10 @@ class WeightSpace_class(Parent):
 
         EXAMPLE::
 
-            sage: WeightSpace(17)._repr_()
-            'Space of 17-adic weight-characters'
+            sage: pAdicWeightSpace(17)._repr_()
+            "Space of 17-adic weight-characters defined over '17-adic Field with capped relative precision 20'"
         """
-        return "Space of %s-adic weight-characters" % self.p
+        return "Space of %s-adic weight-characters defined over '%s'" % (self.prime(), self.base_ring())
 
     def __reduce__(self):
         r"""
@@ -92,10 +151,10 @@ class WeightSpace_class(Parent):
 
         EXAMPLE::
 
-            sage: WeightSpace(3).__reduce__()
-            (<function WeightSpace_constructor at ...>, (3,))
+            sage: pAdicWeightSpace(3).__reduce__()
+            (<function WeightSpace_constructor at ...>, (3, 3-adic Field with capped relative precision 20))
         """
-        return (WeightSpace_constructor, (self.p,))
+        return (WeightSpace_constructor, (self.prime(), self.base_ring()))
 
     def __call__(self, arg1, arg2 = None, algebraic=True):
         r"""
@@ -115,7 +174,7 @@ class WeightSpace_class(Parent):
 
         EXAMPLES::
 
-            sage: W = WeightSpace(17)
+            sage: W = pAdicWeightSpace(17)
             sage: W(4)
             4
             sage: W(4, DirichletGroup(17, Qp(17)).0)
@@ -125,16 +184,84 @@ class WeightSpace_class(Parent):
         """
 
         if isinstance(arg1, WeightCharacter):
-            if arg1.parent().p != self.p:
-                raise TypeError
-            else:
-                arg1._parent = self
+            if arg1.parent() is self:
                 return arg1
+            elif arg1.parent().prime() == self.prime():
+                return self._coerce_in_wtchar(arg1)
+            else:
+                raise TypeError, "Incompatible type!"
 
         if algebraic:
             return AlgebraicWeight(self, arg1, arg2)
         else:
             return ArbitraryWeight(self, arg1, arg2)
+
+    def prime(self):
+        r"""
+        Return the prime `p` such that this is a `p`-adic weight space.
+
+        EXAMPLE::
+
+            sage: pAdicWeightSpace(17).prime()
+            17
+        """
+        return self._p
+
+    def base_extend(self, R):
+        r"""
+        Extend scalars to the ring R. There must be a canonical coercion map
+        from the present base ring to R.
+
+        EXAMPLE::
+
+            sage: W = pAdicWeightSpace(3, QQ)
+            sage: W.base_extend(Qp(3))
+            Space of 3-adic weight-characters defined over '3-adic Field with capped relative precision 20'
+            sage: W.base_extend(IntegerModRing(12))
+            Traceback (most recent call last):
+            ...
+            TypeError: No coercion map from 'Rational Field' to 'Ring of integers modulo 12' is defined
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return WeightSpace_constructor(self.prime(), R)
+        else:
+            raise TypeError, "No coercion map from '%s' to '%s' is defined" % (self.base_ring(), R)
+
+    def _coerce_impl(self, x):
+        r"""
+        Canonical coercion of x into self.
+
+        TESTS::
+
+            sage: W1 = pAdicWeightSpace(23, QQ)
+            sage: W2 = W1.base_extend(Qp(23))
+            sage: w = W1(3)
+            sage: W2.coerce(w) # indirect doctest
+            3
+        """
+        if isinstance(x, WeightCharacter) \
+            and x.parent().prime() == self.prime() \
+            and self.base_ring().has_coerce_map_from(x.base_ring()):
+                return self._coerce_in_wtchar(x)
+        raise TypeError
+
+    def _coerce_in_wtchar(self, x):
+        r"""
+        Convert in a weight-character whose parent is different from self (with
+        has the prime, but possibly different base ring).
+
+        EXAMPLE::
+
+            sage: W1 = pAdicWeightSpace(23, Qp(3))
+            sage: W2 = pAdicWeightSpace(23, QQ)
+            sage: w = W1(3)
+            sage: W2._coerce_in_wtchar(w)
+            3
+        """
+        if isinstance(x, AlgebraicWeight):
+            return AlgebraicWeight(self, x.k(), x.chi().change_ring(self.base_ring()))
+        else:
+            return ArbitraryWeight(self, self.base_ring()(x.w()), x.teichmuller_type())
 
 class WeightCharacter(Element):
     r"""
@@ -152,12 +279,25 @@ class WeightCharacter(Element):
 
         EXAMPLE::
 
-            sage: WeightSpace(17)(0)
+            sage: pAdicWeightSpace(17)(0)
             0
         """
 
         Element.__init__(self, parent)
-        self.prime = self.parent().p
+        self._p = self.parent().prime()
+
+    def base_extend(self, R):
+        r"""
+        Extend scalars to the base ring R (which must have a canonical map from
+        the current base ring)
+
+        EXAMPLE::
+
+            sage: w = pAdicWeightSpace(17, QQ)(3)
+            sage: w.base_extend(Qp(17))
+            3
+        """
+        return self.parent().base_extend(R).coerce(self)
 
     def is_even(self):
         r"""
@@ -165,13 +305,13 @@ class WeightCharacter(Element):
 
         EXAMPLE::
 
-            sage: WeightSpace(17)(0).is_even()
+            sage: pAdicWeightSpace(17)(0).is_even()
             True
-            sage: WeightSpace(17)(11).is_even()
+            sage: pAdicWeightSpace(17)(11).is_even()
             False
-            sage: WeightSpace(17)(1 + 17 + O(17^20), 3, False).is_even()
+            sage: pAdicWeightSpace(17)(1 + 17 + O(17^20), 3, False).is_even()
             False
-            sage: WeightSpace(17)(1 + 17 + O(17^20), 4, False).is_even()
+            sage: pAdicWeightSpace(17)(1 + 17 + O(17^20), 4, False).is_even()
             True
         """
         if self(-1) == -1:
@@ -186,7 +326,7 @@ class WeightCharacter(Element):
 
         EXAMPLE::
 
-            sage: kappa = WeightSpace(3)(3, DirichletGroup(3,QQ).0)
+            sage: kappa = pAdicWeightSpace(3)(3, DirichletGroup(3,QQ).0)
             sage: kappa.pAdicEisensteinSeries(QQ[['q']], 20)
             1 - 9*q + 27*q^2 - 9*q^3 - 117*q^4 + 216*q^5 + 27*q^6 - 450*q^7 + 459*q^8 - 9*q^9 - 648*q^10 + 1080*q^11 - 117*q^12 - 1530*q^13 + 1350*q^14 + 216*q^15 - 1845*q^16 + 2592*q^17 + 27*q^18 - 3258*q^19 + O(q^20)
         """
@@ -207,7 +347,7 @@ class WeightCharacter(Element):
 
         EXAMPLES::
 
-            sage: W=WeightSpace(11); W(2).values_on_gens()
+            sage: W=pAdicWeightSpace(11); W(2).values_on_gens()
             (1 + 2*11 + 11^2 + O(11^20), 2)
             sage: W(2, DirichletGroup(11, QQ).0).values_on_gens()
             (1 + 2*11 + 11^2 + O(11^20), 7)
@@ -215,7 +355,7 @@ class WeightCharacter(Element):
             (1 + 2*11 + O(11^5), 4)
         """
 
-        return ( self(self.parent().param), self.teichmuller_type())
+        return ( self(self.parent()._param), self.teichmuller_type())
 
     def is_trivial(self):
         r"""
@@ -223,11 +363,11 @@ class WeightCharacter(Element):
 
         EXAMPLES::
 
-            sage: WeightSpace(11)(2).is_trivial()
+            sage: pAdicWeightSpace(11)(2).is_trivial()
             False
-            sage: WeightSpace(11)(2, DirichletGroup(11, QQ).0).is_trivial()
+            sage: pAdicWeightSpace(11)(2, DirichletGroup(11, QQ).0).is_trivial()
             False
-            sage: WeightSpace(11)(0).is_trivial()
+            sage: pAdicWeightSpace(11)(0).is_trivial()
             True
         """
         if self.values_on_gens() == (1, 0):
@@ -241,7 +381,7 @@ class WeightCharacter(Element):
 
         EXAMPLES::
 
-            sage: W=WeightSpace(11)
+            sage: W=pAdicWeightSpace(11)
             sage: W(2) == W(3)
             False
             sage: W(2, DirichletGroup(11, QQ).0) == W(2)
@@ -262,7 +402,7 @@ class WeightCharacter(Element):
 
         EXAMPLES::
 
-            sage: W = WeightSpace(11)
+            sage: W = pAdicWeightSpace(11)
             sage: sage.modular.overconvergent.weightspace.WeightCharacter(W).Lvalue()
             Traceback (most recent call last):
             ...
@@ -278,17 +418,21 @@ class WeightCharacter(Element):
 
         EXAMPLES::
 
-            sage: WeightSpace(11)(4).one_over_Lvalue()
+            sage: pAdicWeightSpace(11)(4).one_over_Lvalue()
             -12/133
-            sage: WeightSpace(11)(3, DirichletGroup(11, QQ).0).one_over_Lvalue()
+            sage: pAdicWeightSpace(11)(3, DirichletGroup(11, QQ).0).one_over_Lvalue()
             -1/6
-            sage: WeightSpace(11)(3).one_over_Lvalue()
+            sage: pAdicWeightSpace(11)(3).one_over_Lvalue()
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Rational division by zero
+            sage: pAdicWeightSpace(11)(0).one_over_Lvalue()
+            0
+            sage: type(_)
+            <type 'sage.rings.integer.Integer'>
         """
         if self.is_trivial():
-            return 0
+            return ZZ(0)
         else:
             return 1/self.Lvalue()
 
@@ -300,10 +444,10 @@ class AlgebraicWeight(WeightCharacter):
 
     TESTS::
 
-        sage: w = WeightSpace(23)(12, DirichletGroup(23, QQ).0) # exact
+        sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0) # exact
         sage: w == loads(dumps(w))
         True
-        sage: w = WeightSpace(23)(12, DirichletGroup(23, Qp(23)).0) # inexact
+        sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, Qp(23)).0) # inexact
         sage: w == loads(dumps(w))
         True
         sage: w is loads(dumps(w)) # elements are not globally unique
@@ -316,20 +460,20 @@ class AlgebraicWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: WeightSpace(29)(13, DirichletGroup(29, Qp(29)).0)
+            sage: pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0)
             (13, 29, [2 + 2*29 + ... + O(29^20)])
         """
         WeightCharacter.__init__(self, parent)
         k = ZZ(k)
-        self.k = k
+        self._k = k
         if chi is None:
-            chi = trivial_character(self.prime, QQ)
+            chi = trivial_character(self._p, QQ)
         n = ZZ(chi.conductor())
         if n == 1:
-            n = self.prime
-        if not n.is_power_of(self.prime):
+            n = self._p
+        if not n.is_power_of(self._p):
             raise ValueError, "Character must have %s-power conductor" % p
-        self.chi = DirichletGroup(n, chi.base_ring())(chi)
+        self._chi = DirichletGroup(n, chi.base_ring())(chi)
 
     def __call__(self, x):
         r"""
@@ -339,7 +483,7 @@ class AlgebraicWeight(WeightCharacter):
 
         Exact answers are returned when this is possible::
 
-            sage: kappa = WeightSpace(29)(13, DirichletGroup(29, QQ).0)
+            sage: kappa = pAdicWeightSpace(29)(13, DirichletGroup(29, QQ).0)
             sage: kappa(1)
             1
             sage: kappa(0)
@@ -353,7 +497,7 @@ class AlgebraicWeight(WeightCharacter):
 
         When the character chi is defined over a p-adic field, the results returned are inexact::
 
-            sage: kappa = WeightSpace(29)(13, DirichletGroup(29, Qp(29)).0^14)
+            sage: kappa = pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0^14)
             sage: kappa(1)
             1 + O(29^20)
             sage: kappa(0)
@@ -368,15 +512,41 @@ class AlgebraicWeight(WeightCharacter):
             9 + 21*29 + 27*29^2 + O(29^3)
         """
         if isinstance(x, pAdicGenericElement):
-            if x.parent().prime() != self.prime:
-                raise TypeError, "x must be an integer or a %s-adic integer" % self.prime
-            if self.prime**(x.precision_absolute()) < self.chi.conductor():
+            if x.parent().prime() != self._p:
+                raise TypeError, "x must be an integer or a %s-adic integer" % self._p
+            if self._p**(x.precision_absolute()) < self._chi.conductor():
                 raise Exception, "Precision too low"
             xint = x.lift()
         else:
             xint = x
-        if (xint % self.prime == 0): return 0
-        return self.chi(xint) * x**self.k
+        if (xint % self._p == 0): return 0
+        return self._chi(xint) * x**self._k
+
+    def k(self):
+        r"""
+        If this character is `x \mapsto x^k \chi(x)` for an integer `k` and a
+        Dirichlet character `\chi`, return `k`.
+
+        EXAMPLE::
+
+            sage: kappa = pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0^14)
+            sage: kappa.k()
+            13
+        """
+        return self._k
+
+    def chi(self):
+        r"""
+        If this character is `x \mapsto x^k \chi(x)` for an integer `k` and a
+        Dirichlet character `\chi`, return `\chi`.
+
+        EXAMPLE::
+
+            sage: kappa = pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0^14)
+            sage: kappa.chi()
+            [28 + 28*29 + 28*29^2 + ... + O(29^20)]
+        """
+        return self._chi
 
     def _repr_(self):
         r"""
@@ -384,17 +554,17 @@ class AlgebraicWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: WeightSpace(17)(2)._repr_()
+            sage: pAdicWeightSpace(17)(2)._repr_()
             '2'
-            sage: WeightSpace(17)(2, DirichletGroup(17, QQ).0)._repr_()
+            sage: pAdicWeightSpace(17)(2, DirichletGroup(17, QQ).0)._repr_()
             '(2, 17, [-1])'
-            sage: WeightSpace(17)(2, DirichletGroup(17, QQ).0^2)._repr_()
+            sage: pAdicWeightSpace(17)(2, DirichletGroup(17, QQ).0^2)._repr_()
             '2'
         """
-        if self.chi.is_trivial():
-            return "%s" % self.k
+        if self._chi.is_trivial():
+            return "%s" % self._k
         else:
-            return "(%s, %s, %s)" % (self.k, self.chi.modulus(), self.chi)
+            return "(%s, %s, %s)" % (self._k, self._chi.modulus(), self._chi)
 
     def teichmuller_type(self):
         r"""
@@ -408,25 +578,25 @@ class AlgebraicWeight(WeightCharacter):
 
         EXAMPLE::
 
-            sage: WeightSpace(11)(2, DirichletGroup(11,QQ).0).teichmuller_type()
+            sage: pAdicWeightSpace(11)(2, DirichletGroup(11,QQ).0).teichmuller_type()
             7
-            sage: WeightSpace(29)(13, DirichletGroup(29, Qp(29)).0).teichmuller_type()
+            sage: pAdicWeightSpace(29)(13, DirichletGroup(29, Qp(29)).0).teichmuller_type()
             14
-            sage: WeightSpace(2)(3, DirichletGroup(4,QQ).0).teichmuller_type()
+            sage: pAdicWeightSpace(2)(3, DirichletGroup(4,QQ).0).teichmuller_type()
             0
         """
         # Special case p == 2
-        if self.prime == 2:
+        if self._p == 2:
             if self.is_even():
                 return IntegerModRing(2)(0)
             else:
                 return IntegerModRing(2)(1)
-        m = IntegerModRing(self.prime).multiplicative_generator()
-        x = [y for y in IntegerModRing(self.chi.modulus()) if y == m and y**(self.prime - 1) == 1]
+        m = IntegerModRing(self._p).multiplicative_generator()
+        x = [y for y in IntegerModRing(self._chi.modulus()) if y == m and y**(self._p - 1) == 1]
         if len(x) != 1: raise ArithmeticError
         x = x[0]
-        f = IntegerModRing(self.prime)(self.chi(x)).log(m)
-        return IntegerModRing(self.prime - 1)(self.k + f)
+        f = IntegerModRing(self._p)(self._chi(x)).log(m)
+        return IntegerModRing(self._p - 1)(self._k + f)
 
     def Lvalue(self):
         r"""
@@ -446,15 +616,15 @@ class AlgebraicWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: WeightSpace(7)(4).Lvalue() == (1 - 7^3)*zeta__exact(-3)
+            sage: pAdicWeightSpace(7)(4).Lvalue() == (1 - 7^3)*zeta__exact(-3)
             True
-            sage: WeightSpace(7)(5, DirichletGroup(7, Qp(7)).0^4).Lvalue()
+            sage: pAdicWeightSpace(7)(5, DirichletGroup(7, Qp(7)).0^4).Lvalue()
             0
-            sage: WeightSpace(7)(6, DirichletGroup(7, Qp(7)).0^4).Lvalue()
+            sage: pAdicWeightSpace(7)(6, DirichletGroup(7, Qp(7)).0^4).Lvalue()
             1 + 2*7 + 7^2 + 3*7^3 + 3*7^5 + 4*7^6 + 2*7^7 + 5*7^8 + 2*7^9 + 3*7^10 + 6*7^11 + 2*7^12 + 3*7^13 + 5*7^14 + 6*7^15 + 5*7^16 + 3*7^17 + 6*7^18 + O(7^19)
         """
-        if self.k > 0:
-            return -self.chi.bernoulli(self.k)/self.k
+        if self._k > 0:
+            return -self._chi.bernoulli(self._k)/self._k
         if self.is_trivial():
             return Infinity
         else:
@@ -470,12 +640,12 @@ class ArbitraryWeight(WeightCharacter):
 
         EXAMPLE::
 
-            sage: WeightSpace(17)(1 + 17^2 + O(17^3), 11, False)
+            sage: pAdicWeightSpace(17)(1 + 17^2 + O(17^3), 11, False)
             [1 + 17^2 + O(17^3), 11]
         """
         WeightCharacter.__init__(self, parent)
 
-        self.t = ZZ(t) % (self.prime > 2 and (self.prime - 1) or 2)
+        self.t = ZZ(t) % (self._p > 2 and (self._p - 1) or 2)
 		# do we store w precisely?
         if (w - 1).valuation() <= 0:
             raise ValueError, "Must send generator to something nearer 1"
@@ -486,7 +656,7 @@ class ArbitraryWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: WeightSpace(97)(1 + 2*97 + O(97^20), 12, False)._repr_()
+            sage: pAdicWeightSpace(97)(1 + 2*97 + O(97^20), 12, False)._repr_()
             '[1 + 2*97 + O(97^20), 12]'
         """
         return "[%s, %s]" % (self.w, self.t)
@@ -497,7 +667,7 @@ class ArbitraryWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: kappa = WeightSpace(23)(1 + 23^2 + O(23^20), 4, False)
+            sage: kappa = pAdicWeightSpace(23)(1 + 23^2 + O(23^20), 4, False)
             sage: kappa(2)
             16 + 7*23 + 7*23^2 + 16*23^3 + 23^4 + 20*23^5 + 15*23^7 + 11*23^8 + 12*23^9 + 8*23^10 + 22*23^11 + 16*23^12 + 13*23^13 + 4*23^14 + 19*23^15 + 6*23^16 + 7*23^17 + 11*23^19 + O(23^20)
             sage: kappa(-1)
@@ -509,7 +679,7 @@ class ArbitraryWeight(WeightCharacter):
         """
 
         if not isinstance(x, pAdicGenericElement):
-            x = Qp(self.prime)(x)
+            x = Qp(self._p)(x)
         if x.valuation() != 0:
             return 0
 
@@ -519,7 +689,7 @@ class ArbitraryWeight(WeightCharacter):
             raise ArithmeticError
         verbose("Normalised element is %s" % xx)
 
-        e = xx.log() / self.parent().param.log()
+        e = xx.log() / self.parent()._param.log()
         verbose("Exponent is %s" % e)
 
         return teich**(self.t) * (self.w.log() * e).exp()
@@ -536,9 +706,9 @@ class ArbitraryWeight(WeightCharacter):
 
         EXAMPLES::
 
-            sage: WeightSpace(17)(1 + 3*17 + 2*17^2 + O(17^3), 8, False).teichmuller_type()
+            sage: pAdicWeightSpace(17)(1 + 3*17 + 2*17^2 + O(17^3), 8, False).teichmuller_type()
             8
-            sage: WeightSpace(2)(1 + 2 + O(2^2), 1, False).teichmuller_type()
+            sage: pAdicWeightSpace(2)(1 + 2 + O(2^2), 1, False).teichmuller_type()
             1
         """
         return self.t

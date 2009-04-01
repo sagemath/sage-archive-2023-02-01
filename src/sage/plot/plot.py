@@ -1642,7 +1642,7 @@ def xydata_from_point_list(points):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=None, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, __original_opts=True)
+         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -1679,6 +1679,9 @@ def plot(funcs, *args, **kwds):
     - ``color`` - an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
       such as '#aaff0b'.
+
+    - ``detect_poles`` - (Default: False) If set to True poles are detected.
+      If set to "show" vertical asymptotes are drawn.
 
     APPEARANCE OPTIONS:
 
@@ -1865,6 +1868,12 @@ def plot(funcs, *args, **kwds):
     To plot the negative real cube root, use something like the following::
 
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
+
+    We can detect the poles of a function::
+        sage: plot(gamma, (-3, 4), detect_poles = True).show(ymin = -5, ymax = 5)
+
+    We draw the Gamma-Function with its poles highlighted::
+        sage: plot(gamma, (-3, 4), detect_poles = 'show').show(ymin = -5, ymax = 5)
 
     The basic options for filling a plot::
 
@@ -2118,7 +2127,33 @@ def _plot(funcs, xrange, parametric=False,
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
     from sage.plot.all import line, text
-    G += line(data, **options)
+
+    detect_poles = options.pop('detect_poles', False)
+    if not (polar or parametric) and detect_poles != False:
+        from sage.rings.all import RDF
+        epsilon = 0.0001
+        startIndex = 0
+        pole_options = {}
+        pole_options['linestyle'] = '--'
+        pole_options['thickness'] = 1
+        pole_options['rgbcolor'] = '#ccc'
+        for i in range(len(data)-1):
+            x0, y0 = data[i]
+            x1, y1 = data[i+1]
+            if (y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0):
+                # calculate the slope of the line segment
+                dy = abs(y1-y0)
+                dx = x1 - x0
+                alpha = (RDF(dy)/RDF(dx)).arctan()
+                if alpha >= RDF(pi/2) - epsilon:
+                    G += line(data[startIndex:i], **options)
+                    if detect_poles == 'show':
+                        # draw a vertical asymptote
+                        G += line([(x0, y0), (x1, y1)], **pole_options)
+                    startIndex = i+2
+        G += line(data[startIndex:], **options)
+    else:
+        G += line(data, **options)
 
     # Label?
     if label:

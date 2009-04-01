@@ -62,12 +62,14 @@ book]].
      [0 1],
      [-1  0]
      [ 0 -1],
-     [-1 -1]
-     [ 2  1],
-     [ 1  0]
+     [ 1 -1]
+     [ 0  1],
+     [ 1 -1]
+     [ 2 -1],
+     [-1  1]
      [-2  1])
     sage: len(Gamma1(13).gens())
-    258
+    260
 
 As you can see above, the list of generators Sage computes is
 unfortunately large. Improving this would be an excellent Sage

@@ -51,9 +51,31 @@ Here is an example of computing the coset representatives of
     sage: G = Gamma0(11); G
     Congruence Subgroup Gamma0(11)
     sage: list(G.coset_reps())
-    [[1, 0, 0, 1], [0, -1, 1, 0], [0, -1, 1, 1], [0, -1, 1, 2],
-     [0, -1, 1, 3], [0, -1, 1, 4], [0, -1, 1, 5], [0, -1, 1, 6],
-     [0, -1, 1, 7], [0, -1, 1, 8], [0, -1, 1, 9], [0, -1, 1, 10]]
+    [[1 0]
+     [0 1],
+     [ 0 -1]
+     [ 1  0],
+     [1 0]
+     [1 1],
+     [ 0 -1]
+     [ 1  2],
+     [ 0 -1]
+     [ 1  3],
+     [ 0 -1]
+     [ 1  4],
+     [ 0 -1]
+     [ 1  5],
+     [ 0 -1]
+     [ 1  6],
+     [ 0 -1]
+     [ 1  7],
+     [ 0 -1]
+     [ 1  8],
+     [ 0 -1]
+     [ 1  9],
+     [ 0 -1]
+     [ 1 10]]
+
 
 .. index:: modular symbols, Hecke operators
 
@@ -110,11 +132,11 @@ and related curves. Here are some examples of the syntax:
 
 ::
 
-    sage: sage.modular.dims.g0(22)
+    sage: dimension_cusp_forms(Gamma0(22))
     2
-    sage: sage.modular.dims.g0(30)
+    sage: dimension_cusp_forms(Gamma0(30))
     3
-    sage: sage.modular.dims.g1(30)
+    sage: dimension_cusp_forms(Gamma1(30))
     9
 
 See the code for computing dimensions of spaces of modular forms

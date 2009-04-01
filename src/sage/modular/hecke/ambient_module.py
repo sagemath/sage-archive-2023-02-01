@@ -357,7 +357,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         `n` not coprime to the level.
         """
         misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
-        return Gamma0(self.level()).sturm_bound(self.weight()) + 2*self.group().dimension_eis(self.weight()) + 5
+        return Gamma0(self.level()).sturm_bound(self.weight()) + 2*Gamma0(self.level()).dimension_eis(self.weight()) + 5
 
     def hecke_module_of_level(self, level):
         raise NotImplementedError

@@ -872,8 +872,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Inverts the polynomial a with respect to m, or raises a ValueError
         if no such inverse exists. The parameter m may be either a single
-	polynomial or an ideal (for consistency with inverse_mod in other
-	rings).
+        polynomial or an ideal (for consistency with inverse_mod in other
+        rings).
 
         EXAMPLES::
 
@@ -2603,11 +2603,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_primitive(self, n=None, n_prime_divs=None):
         """
-	Returns True if this is a primitive polynomial over a finite field.
+        Returns ``True`` if the polynomial is primitive.  The semantics of
+        "primitive" depend on the polynomial coefficients.
 
-        A polynomial of degree `m` over a finite field `\GF{q}` is
-        primitive if it is irreducible and its root in `\GF{q^m}`
-        generates the multiplicative group `\GF{q^m}^*`.
+        - (field theory) A polynomial of degree `m` over a finite field
+          `\GF{q}` is primitive if it is irreducible and its root in
+          `\GF{q^m}` generates the multiplicative group `\GF{q^m}^*`.
+
+        - (ring theory) A polynomial over a ring is primitive if its
+          coefficients generate the unit ideal.
+
+        Calling `is_primitive` on a polynomial over an infinite field will
+        raise an error.
+
+        The additional inputs to this function are to speed up computation for
+        field semantics (see note).
 
         INPUTS:
 
@@ -2631,6 +2641,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
+          Field semantics examples.
+
+          ::
+
             sage: R.<x> = GF(2)['x']
             sage: f = x^4+x^3+x^2+x+1
             sage: f.is_irreducible(), f.is_primitive()
@@ -2652,6 +2666,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2-x+2
             sage: f.is_primitive()
             True
+            sage: x=polygen(QQ); f=x^2+1
+            sage: f.is_primitive()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_primitive() not defined for polynomials over infinite fields.
+
+          Ring semantics examples.
+
+          ::
+
+	    sage: x=polygen(ZZ)
+	    sage: f = 5*x^2+2
+	    sage: f.is_primitive()
+	    True
+	    sage: f = 5*x^2+5
+	    sage: f.is_primitive()
+	    False
+
+	    sage: K=NumberField(x^2+5,'a')
+	    sage: R=K.ring_of_integers()
+	    sage: a=R.gen(1)
+	    sage: a^2
+	    -5
+	    sage: f=a*x+2
+	    sage: f.is_primitive()
+	    True
+	    sage: f=(1+a)*x+2
+	    sage: f.is_primitive()
+	    False
+
+            sage: x=polygen(Integers(10));
+            sage: f=5*x^2+2
+            sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return True
+            sage: f=4*x^2+2
+            sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return False
 
         TESTS::
 
@@ -2680,35 +2729,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2-x+2
             sage: f.is_primitive(24, [2,3])
             True
-
-	    sage: x=polygen(QQ); f=x^2+1
-	    sage: f.is_primitive()
-	    Traceback (most recent call last):
-	    ...
-	    NotImplementedError: Currently, is_primitive() only applies to polynomials over finite fields.
-	    sage: x=polygen(Integers(100)); f=x^2+1
-	    sage: f.is_primitive()
-	    Traceback (most recent call last):
-	    ...
-	    NotImplementedError: Currently, is_primitive() only applies to polynomials over finite fields.
-	    sage: x=polygen(Integers(103)); f=x^2+1
-	    sage: f.is_primitive()
-	    False
+            sage: x=polygen(Integers(103)); f=x^2+1
+            sage: f.is_primitive()
+            False
         """
-        # sanity check, current implementation only applies to polynomials over finite fields
         R = self.base_ring()
-        if not (R.is_field() and R.is_finite()):
-            raise NotImplementedError, "Currently, is_primitive() only applies to polynomials over finite fields."
+        if R.is_field():
+            if not R.is_finite():
+                raise NotImplementedError, "is_primitive() not defined for polynomials over infinite fields."
 
-        # irreducibility check is generally fast (necessary but not sufficient)
-        if not self.is_irreducible():
-            return False
-        y = self.parent().quo(self).gen()
-        if n is None:
-            q = self.base_ring().order()
-            n = q ** self.degree() - 1
-        from sage.groups.generic import order_from_multiple
-        return n == order_from_multiple(y, n, n_prime_divs, operation="*")
+            if not self.is_irreducible():
+                return False
+            if n is None:
+                q = self.base_ring().order()
+                n = q ** self.degree() - 1
+            y = self.parent().quo(self).gen()
+            from sage.groups.generic import order_from_multiple
+            return n == order_from_multiple(y, n, n_prime_divs, operation="*")
+        else:
+            return R.ideal(self.coefficients())==R.ideal(1)
 
     def is_constant(self):
         """

@@ -224,15 +224,32 @@ def quadratic_nonresidue(p):
     """
     Returns the smallest positive integer quadratic non-residue in Z/pZ for primes p>2.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: quadratic_nonresidue(5)
         2
 
-    TEST:
+    TESTS:
+
+    Raises an error if input is a positive composite integer.
+
+    ::
+
         sage: quadratic_nonresidue(20)
         Traceback (most recent call last):
         ...
         ValueError: Oops!  p must be a prime number > 2.
+
+
+    Raises an error if input is 2. This is because every integer is a
+    quadratic residue modulo 2.
+
+    ::
+
+        sage: quadratic_nonresidue(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Oops!  There are no quadratic non-residues in Z/2Z.
     """
     p1 = abs(p)
 

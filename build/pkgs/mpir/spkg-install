@@ -58,7 +58,7 @@ build()
 
     export ABI CFLAGS CXXFLAGS
 
-    ./configure --prefix=$SAGE_LOCAL --enable-cxx=yes  $SAGE_CONF_OPTS
+    ./configure --prefix=$SAGE_LOCAL --enable-gmplink --enable-cxx=yes  $SAGE_CONF_OPTS
     if [ $? -ne 0 ]; then
         echo "Failed to configure."
 	exit 1

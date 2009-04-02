@@ -220,7 +220,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import QQ, ZZ, Integer
 from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.misc.sage_eval import sage_eval
@@ -952,9 +952,10 @@ class CombinatorialClass(SageObject):
             sage: C().count() #indirect doctest
             3
         """
-        c = 0
+        c = Integer(0)
+        one = Integer(1)
         for _ in self:
-            c += 1
+            c += one
         return c
     count = __count_from_iterator
 

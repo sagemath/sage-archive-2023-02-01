@@ -18,6 +18,10 @@ from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetric
 
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 
+# Integer lists lex
+
+from integer_list import IntegerListsLex
+
 #Compositions
 from composition import Composition, Compositions
 from composition_signed import SignedCompositions

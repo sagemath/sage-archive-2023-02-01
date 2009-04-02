@@ -3569,7 +3569,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              [0 0 0 2 0 0]
              [0 0 0 2 0 0])
 
-        See http://modular.ucsd.edu/Tables/nature/ for more interesting
+        See http://math.harvard.edu/~elkies/nature.html for more interesting
         examples of isogeny structures.
         """
         if algorithm == "mwrank":

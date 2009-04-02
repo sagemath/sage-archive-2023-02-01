@@ -89,6 +89,10 @@ if ! [ $? -eq 0 ]; then
     exit 1
 fi
 
+# delete dead links to libgmp.a and libgmpxx.a
+rm $SAGE_LOCAL/lib/libgmp.a
+rm $SAGE_LOCAL/lib/libgmpxx.a
+
 #uncomment the line below to avoid running the test suite.
 #this should be done in all final releases
 #exit 0

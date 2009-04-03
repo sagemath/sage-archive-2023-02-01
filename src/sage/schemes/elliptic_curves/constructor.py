@@ -31,7 +31,7 @@ from sage.structure.element import parent
 from sage.calculus.calculus import SR, SymbolicEquation
 
 
-def EllipticCurve(x, y=None):
+def EllipticCurve(x=None, y=None, j=None):
     r"""
     There are several ways to construct an elliptic curve:
 
@@ -58,7 +58,8 @@ def EllipticCurve(x, y=None):
 
 
     - EllipticCurve(j): Return an elliptic curve with j-invariant
-      `j`.  Warning: this is deprecated.  Use ``EllipticCurve_from_j(j)`` instead.
+      `j`.  Warning: this is deprecated.  Use ``EllipticCurve_from_j(j)``
+      or ``EllipticCurve(j=j)`` instead.
 
 
     EXAMPLES: We illustrate creating elliptic curves.
@@ -102,6 +103,18 @@ def EllipticCurve(x, y=None):
         sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
         Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
 
+    We can explicitly specify the `j`-invariant::
+
+        sage: E = EllipticCurve(j=1728); E; E.j_invariant(); E.label()
+        Elliptic Curve defined by y^2 = x^3 - x over Rational Field
+        1728
+        '32a2'
+
+        sage: E = EllipticCurve(j=GF(5)(2)); E; E.j_invariant()
+        Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
+        2
+
+
     TESTS::
 
         sage: R = ZZ['u', 'v']
@@ -116,6 +129,10 @@ def EllipticCurve(x, y=None):
         (0 : 1 : 0)
     """
     import ell_generic, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
+
+    if j is not None:
+        return EllipticCurve_from_j(j)
+    assert x is not None
 
     if isinstance(x, SymbolicEquation):
         x = x.left() - x.right()
@@ -180,12 +197,11 @@ def EllipticCurve(x, y=None):
 
     if rings.is_RingElement(x) and y is None:
         from sage.misc.misc import deprecation
-        deprecation("'EllipticCurve(j)' is deprecated; use 'EllipticCurve_from_j(j)' instead.")
+        deprecation("'EllipticCurve(j)' is deprecated; use 'EllipticCurve_from_j(j)' or 'EllipticCurve(j=j)' instead.")
         # Fixed for all characteristics and cases by John Cremona
         j=x
         F=j.parent().fraction_field()
         char=F.characteristic()
-        print "constructin an elliptic curve from j = ",j
         if char==2:
             if j==0:
                 return EllipticCurve(F, [ 0, 0, 1, 0, 0 ])

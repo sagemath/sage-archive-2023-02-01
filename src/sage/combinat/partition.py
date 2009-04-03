@@ -2196,6 +2196,13 @@ class PartitionsGreatestLE(IntegerListsLex):
 # For unpickling PartitionsGreatestLE objects created with sage <= 3.4.1
 class PartitionsGreatestLE_nk(PartitionsGreatestLE):
     def __setstate__(self, data):
+        """
+        TESTS::
+
+            sage: p = loads('x\x9c\x85\x8e\xbd\xaa\xc2@\x10\x85\x89\xff.>\xc4\x94\xda\x04\x15|\x04\xb1\xb1\x90\x0b[\x87I\x18\x935\xc9\xae\xb33\xda\t\xd7\xc2\xf76"biw\x0e\x9c\x9f\xef\xbfW\x08\x96\x94\x16\xa1\xcd\x9dGM\xcf\x18\xd5\xa9\x0b\xde\x1c>Jv\x91PIt\xbf\xcd|m8Y\xdc\xb9w\xe3\xfe\xdc&\xf5\xbb\x1d\x9d/%u^\xa9\xa4hZ\xac)\xfb\x18\x1e\xd8d\xfd\xf8\xe3\xa1\x1df\x1e[\xe2\x91\xdd|\x97!\x1ca\xb5\x84\n\xaf\xdd\x02\xbc\xbe\x05\x1a\x12\x01\xad\xd0C\x88@|\xc1\x064\xc0\x9a\xc7v\x16\xf2\x13\x15\x9a\x15\r\x8a\xf0\xe47\xf9;ixj\x13_u \xd8\x81\x98K\x9e>\x01\x13iVH')
+            sage: p == PartitionsGreatestLE(10,2)
+            True
+        """
         self.__class__ = PartitionsGreatestLE
         self.__init__(data['n'], data['k'])
 
@@ -2250,6 +2257,13 @@ class PartitionsGreatestEQ(IntegerListsLex):
 # For unpickling PartitionsGreatestLE objects created with sage <= 3.4.1
 class PartitionsGreatestEQ_nk(PartitionsGreatestEQ):
     def __setstate__(self, data):
+        """
+        TESTS::
+
+        sage: p = loads('x\x9c\x85\x8e\xbd\x0e\x820\x14\x85\x03\x8a?\x8d\x0f\xd1Q\x97\x06y\x07\xe3\xaa&\x9d\xc9\xa5\xb9\x96\n\xb4^Z\xdcLt\xf0\xbd\xc5 qt;\'9?\xdf#V\x1e4\n\xe5\x9a\xc2X\x08\xe2\nm0\xc18\xcb\x0e\xa3\xf2\xfb\x16!\xa0\x0f\xbbcn+F\xd1\xe6I\xf1\x9d&k\x19UC\xbb5V{al@\x8d-k\xa0\xc2|44\x95Q\xf6:Q"\x93\xdcB\x834\x93\xe9o\x99\xbb3\xdf\xa6\xbc\x84[\xbf\xc0\xf5\xf7\x87\x7f 8R\x075\x0f\x8eg4\x97+W\\P\x85\\\xd5\xe0=-\xfeC\x0fIFK\x19\xd9\xb2g\x80\x9e\x81u\x85x\x03w\x0eT\xb1')
+        sage: p == PartitionsGreatestEQ(10,2)
+        True
+    """
         self.__class__ = PartitionsGreatestEQ
         self.__init__(data['n'], data['k'])
 
@@ -2717,6 +2731,28 @@ def Partitions(n=None, **kwargs):
                     del kwargs['inner']
                 return IntegerListsLex(n, **kwargs)
 #                return Partitions_constraints(n, **kwargs)
+
+
+# Allows to pickle old constrained Partitions_constraints objects.
+class Partitions_constraints(IntegerListsLex):
+    def __setstate__(self, data):
+        """
+        TESTS::
+
+            sage: dmp = 'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\x8a\xe3\x93\x81DIQbf^I1W!\xa3fc!Sm!\xb3F(7\x92x!Km!k(GnbE<\xc8\x88B6\x88\xb9E\x99y\xe9\xc5z@\x05\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3QkP!Gq(c^\x06\x90c\x0c\xe4p\x96&\xe9\x01\x00\xc2\xe53\xfd'
+            sage: sp = loads(dmp); sp
+            Integer lists of sum 3 satisfying certain constraints
+            sage: sp.list()
+            [[2, 1], [1, 1, 1]]
+        """
+        n = data['n']
+        self.__class__ = IntegerListsLex
+        constraints = {'max_slope' : 0,
+                       'min_part' : 1,
+                       'element_constructor' : Partition_class}
+        constraints.update(data['constraints'])
+        self.__init__(n, **constraints)
+
 
 class Partitions_all(CombinatorialClass):
     def __init__(self):

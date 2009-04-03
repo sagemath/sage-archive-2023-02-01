@@ -1044,29 +1044,27 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             else:
                 plot_type='step'
 
+        coords = self.list()
+
         if plot_type == 'arrow' or plot_type == 'point':
-            dimension = len(self)
+            dimension = len(coords)
             if dimension == 3:
-                from sage.plot.plot3d.shapes import arrow3d, Sphere
-                # Sphere complains if the radius is given twice,
-                # so we have to delete it from kwds if it is given.
-                radius = kwds.pop('radius', .02)
+                from sage.plot.plot3d.shapes2 import line3d, point3d
 
                 if plot_type == 'arrow':
-                    return arrow3d((0,0,0), self, radius=radius, **kwds)
+                    return line3d([(0,0,0), coords], arrow_head=True, **kwds)
                 else:
-                    return Sphere(radius, **kwds).translate(self.list())
+                    return point3d(coords, **kwds)
             elif dimension < 3:
-                vectorlist = self.list()
                 if dimension < 2:
                     # pad to make 2-dimensional
-                    vectorlist.extend([0]*(2-dimension))
+                    coords.extend([0]*(2-dimension))
 
                 from sage.plot.all import arrow, point
                 if plot_type == 'arrow':
-                    return arrow((0,0), vectorlist, **kwds)
+                    return arrow((0,0), coords, **kwds)
                 else:
-                    return point(vectorlist, **kwds)
+                    return point(coords, **kwds)
             else:
                 raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
 

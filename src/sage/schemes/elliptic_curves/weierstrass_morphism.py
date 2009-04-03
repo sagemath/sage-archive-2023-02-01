@@ -211,13 +211,13 @@ def isomorphisms(E,F,JustOne=False):
 
     EXAMPLES:
     sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-    sage: isomorphisms(EllipticCurve(0),EllipticCurve('36a1'))
-    [(-1, 0, 0, 0), (1, 0, 0, 0)]
-    sage: isomorphisms(EllipticCurve(0),EllipticCurve('36a1'),JustOne=True)
+    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'))
+    [(-1, 0, 0, -1), (1, 0, 0, 0)]
+    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'),JustOne=True)
     (1, 0, 0, 0)
-    sage: isomorphisms(EllipticCurve(0),EllipticCurve('36a2'))
+    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'))
     []
-    sage: isomorphisms(EllipticCurve(0),EllipticCurve('36a2'),JustOne=True)
+    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'),JustOne=True)
     """
     from ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E) or not is_EllipticCurve(F):
@@ -417,7 +417,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         sage: w1==w2
         False
 
-        sage: E=EllipticCurve(GF(7)(0))
+        sage: E=EllipticCurve_from_j(GF(7)(0))
         sage: F=E.change_weierstrass_model(2,3,4,5)
         sage: a=E.isomorphisms(F)
         sage: b=[w*a[0] for w in F.automorphisms()]

@@ -32,7 +32,7 @@ from math import ceil, floor, sqrt
 
 from ell_generic import Hasse_bounds
 from ell_field import EllipticCurve_field
-from constructor import EllipticCurve
+from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
@@ -830,11 +830,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
 
         # recursive call which will do all the real work:
-        Ej = EllipticCurve(jkj)
+        Ej = EllipticCurve_from_j(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
 
         # if curve ia a (quadratic) twist of the "standard" one:
-        if not self.is_isomorphic(EllipticCurve(j)): N=2*(q+1)-N
+        if not self.is_isomorphic(EllipticCurve_from_j(j)): N=2*(q+1)-N
 
         self._order = N
         return self._order

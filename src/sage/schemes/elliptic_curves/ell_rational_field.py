@@ -3437,12 +3437,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def minimal_quadratic_twist(self):
         r"""
-        Determines a quadratic twist with minimal conductor. Returns a global
-        minimal model of the twist and the fundamental discriminant of the
-        quadratic field over which they are isomorphic.
+        Determines a quadratic twist with minimal conductor. Returns a
+        global minimal model of the twist and the fundamental
+        discriminant of the quadratic field over which they are
+        isomorphic.
 
-        The implementation is not optimal at all. It factors the conductor `N` and tries to twist
-        by `(-1)^((p-1)/2) p` if `p^2` divides `N`. For 2 and 3 we try and check if it smaller.
 
         EXAMPLES::
 
@@ -3460,39 +3459,45 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: D
             -24
 
-        """
-        N = self.conductor()
-        D = 1
-        Nt = N
-        for (p,f) in factor(N):
-            if f > 1 and p > 3:
-                if p % 4 == 1:
-                    DD = p
-                else:
-                    DD = (-p)
-                Et = self.quadratic_twist(DD)
-                if Et.conductor() < Nt:
-                    Nt = Et.conductor()
-                    D *= DD
-        Et = self.quadratic_twist(D)
-        Nt = Et.conductor()
-        # try with -3
-        Ett = Et.quadratic_twist(-3)
-        if Ett.conductor() < Nt:
-            D *= (-3)
-            Et = Ett
-            Nt = Ett.conductor()
-        # try with -4, 8 or -8
-        DD = 1
-        for D2 in [-4,8,-8]:
-            Ett = Et.quadratic_twist(D2)
-            if Ett.conductor() < Nt :
-                Nt = Ett.conductor()
-                DD = D2
-        D *= DD
-        Et = self.quadratic_twist(D)
-        return Et, D
+            sage: E = EllipticCurve([0,0,0,0,1000])
+            sage: E.minimal_quadratic_twist()
+            (Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field, 40)
+            sage: E = EllipticCurve([0,0,0,1600,0])
+            sage: E.minimal_quadratic_twist()
+            (Elliptic Curve defined by y^2 = x^3 + 4*x over Rational Field, 5)
 
+
+        """
+        j = self.j_invariant()
+        if j!=0 and j!=1728:
+            # the constructor from j will give the minimal twist
+            Et = constructor.EllipticCurve_from_j(j)
+        else:
+            if j==0:
+                c = -2*self.c6()
+                for p in c.support():
+                    e = c.valuation(p)//3
+                    c /= p**(3*e)
+                E1 = constructor.EllipticCurve([0,0,0,0,c])
+            elif j==1728:
+                c = -3*self.c4()
+                for p in c.support():
+                    e = c.valuation(p)//2
+                    c /= p**(2*e)
+                E1 = constructor.EllipticCurve([0,0,0,c,0])
+            tw = [-1,2,-2,3,-3,6,-6]
+            Elist = [E1] + [E1.quadratic_twist(t) for t in tw]
+            crv_cmp = lambda E,F: cmp(E.conductor(),F.conductor())
+            Elist.sort(cmp=crv_cmp)
+            Et = Elist[0]
+
+        Et = Et.minimal_model()
+
+        D = self.is_quadratic_twist(Et) # 1 or square-free
+        if D % 4 != 1:
+            D *= 4
+
+        return Et, D
 
 
     ##########################################################

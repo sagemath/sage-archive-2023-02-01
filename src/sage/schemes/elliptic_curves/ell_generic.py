@@ -1369,7 +1369,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: E=EllipticCurve(GF(13)(1728)); E
+            sage: E=EllipticCurve_from_j(GF(13)(1728)); E
             Elliptic Curve defined by y^2  = x^3 + x over Finite Field of size 13
             sage: E1=E.quartic_twist(2); E1
             Elliptic Curve defined by y^2  = x^3 + 5*x over Finite Field of size 13
@@ -1407,7 +1407,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: E=EllipticCurve(GF(13)(0)); E
+            sage: E=EllipticCurve_from_j(GF(13)(0)); E
             Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 13
             sage: E1=E.sextic_twist(2); E1
             Elliptic Curve defined by y^2 = x^3 + 11 over Finite Field of size 13
@@ -1437,6 +1437,280 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         # E is isomorphic to  [0,0,0,0,-54*c6]
         assert c4==0
         return EllipticCurve(K,[0,0,0,0,-54*c6*D])
+
+    def is_quadratic_twist(self, other):
+        """
+        returns D if self is a quadratic twist of other by D, else 0.
+
+        INPUT:
+
+            -  E,F - elliptic curves with the same base field
+
+        OUTPUT:
+
+            - 0 if the curves are not quadratic twists
+            - D if F is E.quadratic_twist(E) (up to isomorphism)
+                (including D=1 if E and F are isomorphic)
+
+        .. note::
+
+        Not fully implemented in characteristic 2, or in
+        characteristic 3 when both `j`-invariants are 0.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Et = E.quadratic_twist(-24)
+            sage: E.is_quadratic_twist(Et)
+            -6
+
+            sage: E1=EllipticCurve([0,0,1,0,0])
+            sage: E1.j_invariant()
+            0
+            sage: E2=EllipticCurve([0,0,0,0,2])
+            sage: E1.is_quadratic_twist(E2)
+            2
+
+            sage: E1=EllipticCurve([0,0,0,1,0])
+            sage: E1.j_invariant()
+            1728
+            sage: E2=EllipticCurve([0,0,0,2,0])
+            sage: E1.is_quadratic_twist(E2)
+            0
+            sage: E2=EllipticCurve([0,0,0,25,0])
+            sage: E1.is_quadratic_twist(E2)
+            5
+
+            sage: F = GF(101)
+            sage: E1 = EllipticCurve(F,[4,7])
+            sage: E2 = E1.quadratic_twist()
+            sage: D = E1.is_quadratic_twist(E2); D!=0
+            True
+            sage: F = GF(101)
+            sage: E1 = EllipticCurve(F,[4,7])
+            sage: E2 = E1.quadratic_twist()
+            sage: D = E1.is_quadratic_twist(E2)
+            sage: E1.quadratic_twist(D).is_isomorphic(E2)
+            True
+            sage: E1.is_isomorphic(E2)
+            False
+            sage: F2 = GF(101^2,'a')
+            sage: E1.change_ring(F2).is_isomorphic(E2.change_ring(F2))
+            True
+
+            # Characteristic 3 example:
+            sage: F = GF(3^5,'a')
+            sage: E1 = EllipticCurve_from_j(F(1))
+            sage: E2 = E1.quadratic_twist(-1)
+            sage: D = E1.is_quadratic_twist(E2); D!=0
+            True
+            sage: E1.quadratic_twist(D).is_isomorphic(E2)
+            True
+
+            sage: E1 = EllipticCurve_from_j(F(0))
+            sage: E2 = E1.quadratic_twist()
+            sage: D = E1.is_quadratic_twist(E2); D
+            1
+            sage: E1.is_isomorphic(E2)
+            True
+
+        """
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        E = self
+        F = other
+        if not is_EllipticCurve(E) or not is_EllipticCurve(F):
+            raise ValueError, "arguments are not elliptic curves"
+        K = E.base_ring()
+        zero = K.zero_element()
+        if not K == F.base_ring():
+            return zero
+        j=E.j_invariant()
+        if  j != F.j_invariant():
+            return zero
+
+        if E.is_isomorphic(F):
+            return K.one_element()
+
+        char=K.characteristic()
+
+        if char==2:
+            raise NotImplementedError, "not implemented in characteristic 2"
+        elif char==3:
+            if j==0:
+                raise NotImplementedError, "not implemented in characteristic 3 for curves of j-invariant 0"
+            D = E.b2()/F.b2()
+
+        else:
+            # now char!=2,3:
+            c4E,c6E = E.c_invariants()
+            c4F,c6F = F.c_invariants()
+
+            if j==0:
+                um = c6E/c6F
+                x=polygen(K)
+                ulist=(x**3-um).roots(multiplicities=False)
+                if len(ulist)==0:
+                    D = zero
+                else:
+                    D = ulist[0]
+            elif j==1728:
+                um=c4E/c4F
+                x=polygen(K)
+                ulist=(x**2-um).roots(multiplicities=False)
+                if len(ulist)==0:
+                    D = zero
+                else:
+                    D = ulist[0]
+            else:
+                D = (c6E*c4F)/(c6F*c4E)
+
+        # Normalization of output:
+
+        if D.is_zero():
+            return D
+
+        if K is rings.QQ:
+            D = D.squarefree_part()
+
+        assert E.quadratic_twist(D).is_isomorphic(F)
+
+        return D
+
+    def is_quartic_twist(self, other):
+        """
+        returns D if self is a quartic twist of other by D, else 0.
+
+        INPUT:
+
+            - E,F - elliptic curves with the same base field, whose
+               characteristic must not be 2 or 3.
+
+        OUTPUT:
+
+            - 0 if the curves are not quartic twists
+            - D if F is E.quartic_twist(E) (up to isomorphism)
+                (including D=1 if E and F are isomorphic)
+
+        .. note::
+
+        Not fully implemented in characteristics 2 or 3.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve_from_j(GF(13)(1728))
+            sage: E1 = E.quartic_twist(2)
+            sage: D = E.is_quartic_twist(E1); D!=0
+            True
+            sage: E.quartic_twist(D).is_isomorphic(E1)
+            True
+
+            sage: E = EllipticCurve_from_j(1728)
+            sage: E1 = E.quartic_twist(12345)
+            sage: D = E.is_quartic_twist(E1); D
+            15999120
+            sage: (D/12345).is_perfect_power(4)
+            True
+        """
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        E = self
+        F = other
+        if not is_EllipticCurve(E) or not is_EllipticCurve(F):
+            raise ValueError, "arguments are not elliptic curves"
+        K = E.base_ring()
+        zero = K.zero_element()
+        if not K == F.base_ring():
+            return zero
+        j=E.j_invariant()
+        if  j != F.j_invariant() or j!=K(1728):
+            return zero
+
+        if E.is_isomorphic(F):
+            return K.one_element()
+
+        char=K.characteristic()
+
+        if char==2:
+            raise NotImplementedError, "not implemented in characteristic 2"
+        elif char==3:
+            raise NotImplementedError, "not implemented in characteristic 3"
+        else:
+            # now char!=2,3:
+            D = F.c4()/E.c4()
+
+        if D.is_zero():
+            return D
+
+        assert E.quartic_twist(D).is_isomorphic(F)
+
+        return D
+
+    def is_sextic_twist(self, other):
+        """
+        returns D if self is a sextic twist of other by D, else 0.
+
+        INPUT:
+
+            - E,F - elliptic curves with the same base field, whose
+               characteristic must not be 2 or 3.
+
+        OUTPUT:
+
+            - 0 if the curves are not sextic twists
+            - D if F is E.sextic_twist(E) (up to isomorphism)
+                (including D=1 if E and F are isomorphic)
+
+        .. note::
+
+        Not fully implemented in characteristics 2 or 3.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve_from_j(GF(13)(0))
+            sage: E1 = E.sextic_twist(2)
+            sage: D = E.is_sextic_twist(E1); D!=0
+            True
+            sage: E.sextic_twist(D).is_isomorphic(E1)
+            True
+
+            sage: E = EllipticCurve_from_j(0)
+            sage: E1 = E.sextic_twist(12345)
+            sage: D = E.is_sextic_twist(E1); D
+            575968320
+            sage: (D/12345).is_perfect_power(6)
+            True
+        """
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        E = self
+        F = other
+        if not is_EllipticCurve(E) or not is_EllipticCurve(F):
+            raise ValueError, "arguments are not elliptic curves"
+        K = E.base_ring()
+        zero = K.zero_element()
+        if not K == F.base_ring():
+            return zero
+        j=E.j_invariant()
+        if  j != F.j_invariant() or not j.is_zero():
+            return zero
+
+        if E.is_isomorphic(F):
+            return K.one_element()
+
+        char=K.characteristic()
+
+        if char==2:
+            raise NotImplementedError, "not implemented in characteristic 2"
+        elif char==3:
+            raise NotImplementedError, "not implemented in characteristic 3"
+        else:
+            # now char!=2,3:
+            D = F.c6()/E.c6()
+
+        if D.is_zero():
+            return D
+
+        assert E.sextic_twist(D).is_isomorphic(F)
+
+        return D
 
     def rst_transform(self, r, s, t):
         """
@@ -2503,25 +2777,25 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(QQ(0)) # a curve with j=0 over QQ
+            sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
             sage: E.automorphisms();
-            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, 0), Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
         We can also find automorphisms defined over extension fields::
 
             sage: K.<a> = NumberField(x^2+3) # adjoin roots of unity
             sage: E.automorphisms(K)
-            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in a with defining polynomial x^2 + 3
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
             Via:  (u,r,s,t) = (1, 0, 0, 0),
             ...
-            Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in a with defining polynomial x^2 + 3
+            Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
             Via:  (u,r,s,t) = (-1/2*a - 1/2, 0, 0, 0)]
 
         ::
 
-            sage: [ len(EllipticCurve(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
+            sage: [ len(EllipticCurve_from_j(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
             [2, 24, 2, 12, 2, 6, 6, 6]
         """
         if field==None:
@@ -2537,15 +2811,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(QQ(0)) # a curve with j=0 over QQ
-            sage: F = EllipticCurve('36a1') # should be the same one
+            sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
+            sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F);
             [Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, 0), Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
+            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
         We can also find istomorphisms defined over extension fields::

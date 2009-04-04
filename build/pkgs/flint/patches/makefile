@@ -142,8 +142,7 @@ libflint.dll: $(FLINTOBJ)
 	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
 
 libflint.so: $(FLINTOBJ)
-	$(CC) -fPIC -shared -Wl,-soname,lib`cat DIRNAME`.so -o lib`cat DIRNAME`.so $(FLINTOBJ) $(LIBS)
-	ln -s lib`cat DIRNAME`.so libflint.so
+	$(CC) -fPIC -shared -o libflint.so $(FLINTOBJ) $(LIBS)
 
 ##### zn_poly object files
 
@@ -328,52 +327,52 @@ NTL-interface-test.o: NTL-interface-test.cpp
 ####### test program targets
 
 mpn_extras-test: mpn_extras-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) mpn_extras-test.o test-support.o -o mpn_extras-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) mpn_extras-test.o test-support.o -o mpn_extras-test $(FLINTOBJ) $(LIBS)
 
 fmpz_poly-test: fmpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) fmpz_poly-test.o test-support.o -o fmpz_poly-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) fmpz_poly-test.o test-support.o -o fmpz_poly-test $(FLINTOBJ) $(LIBS)
 
 fmpz-test: fmpz-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) fmpz-test.o test-support.o -o fmpz-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) fmpz-test.o test-support.o -o fmpz-test $(FLINTOBJ) $(LIBS)
 
 F_mpz-test: F_mpz-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) F_mpz-test.o test-support.o -o F_mpz-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) F_mpz-test.o test-support.o -o F_mpz-test $(FLINTOBJ) $(LIBS)
 
 ZmodF-test: ZmodF-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) ZmodF-test.o test-support.o -o ZmodF-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) ZmodF-test.o test-support.o -o ZmodF-test $(FLINTOBJ) $(LIBS)
 
 ZmodF_poly-test: ZmodF_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) ZmodF_poly-test.o test-support.o -o ZmodF_poly-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) ZmodF_poly-test.o test-support.o -o ZmodF_poly-test $(FLINTOBJ) $(LIBS)
 
 mpz_poly-test: mpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) mpz_poly-test.o test-support.o -o mpz_poly-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) mpz_poly-test.o test-support.o -o mpz_poly-test $(FLINTOBJ) $(LIBS)
 
 F_mpz_mat-test: F_mpz_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) F_mpz_mat-test.o test-support.o -o F_mpz_mat-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) F_mpz_mat-test.o test-support.o -o F_mpz_mat-test $(FLINTOBJ) $(LIBS)
 
 F_mpz_LLL_fast_d-test: F_mpz_LLL_fast_d-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) F_mpz_LLL_fast_d-test.o test-support.o -o F_mpz_LLL_fast_d-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) F_mpz_LLL_fast_d-test.o test-support.o -o F_mpz_LLL_fast_d-test $(FLINTOBJ) $(LIBS)
 
 ZmodF_mul-test: ZmodF_mul-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) ZmodF_mul-test.o test-support.o -o ZmodF_mul-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) ZmodF_mul-test.o test-support.o -o ZmodF_mul-test $(FLINTOBJ) $(LIBS)
 
 long_extras-test: long_extras.o long_extras-test.o test-support.o memory-manager.o
-	$(CC) $(CFLAGS) long_extras.o long_extras-test.o test-support.o memory-manager.o -o long_extras-test $(LIBS)
+	$(CPP) $(CFLAGS) long_extras.o long_extras-test.o test-support.o memory-manager.o -o long_extras-test $(LIBS)
 
 packed_vec-test: packed_vec-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) packed_vec-test.o test-support.o -o packed_vec-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) packed_vec-test.o test-support.o -o packed_vec-test $(FLINTOBJ) $(LIBS)
 
 zmod_poly-test: zmod_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
 
 zmod_mat-test: zmod_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) zmod_mat-test.o test-support.o -o zmod_mat-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) zmod_mat-test.o test-support.o -o zmod_mat-test $(FLINTOBJ) $(LIBS)
 
 F_zmod_mat-test: F_zmod_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) F_zmod_mat-test.o test-support.o -o F_zmod_mat-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) F_zmod_mat-test.o test-support.o -o F_zmod_mat-test $(FLINTOBJ) $(LIBS)
 
 F_mpz_poly-test: F_mpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
-	$(CC) $(CFLAGS) F_mpz_poly-test.o test-support.o -o F_mpz_poly-test $(FLINTOBJ) $(LIBS)
+	$(CPP) $(CFLAGS) F_mpz_poly-test.o test-support.o -o F_mpz_poly-test $(FLINTOBJ) $(LIBS)
 
 NTL-interface-test: NTL-interface.o NTL-interface-test.o test-support.o $(FLINTOBJ) $(HEADERS)
 	$(CPP) $(CFLAGS) NTL-interface-test.o test-support.o $(FLINTOBJ) -o NTL-interface-test $(LIBS2)

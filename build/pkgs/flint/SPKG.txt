@@ -32,20 +32,28 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
-=== flint-1.2.2 (Burcin Erocal, March 31, 2009) ===
+=== flint-1.2.4 (Michael Abshoff, April 3rd, 2009) ===
+ * Upgraded to newest stable version
+ * remove soname hack on Linux
+ * build all tests with CPP since otherwise linker failures due to the NTL interface happen on OSX
+
+=== flint-1.2.3 (Michael Abshoff, April 2nd, 2009) ===
  * Upgraded to newest stable version
 
-=== flint-1.2.1 (Burcin Erocal, March 15, 2009) ===
+=== flint-1.2.2 (Burcin Erocal, March 31st, 2009) ===
+ * Upgraded to newest stable version
+
+=== flint-1.2.1 (Burcin Erocal, March 15th, 2009) ===
  * Upgraded to newest stable version
  * delay deleting library in local/lib until build is complete
  * added zmod_mat-test and NTL-interface-test to spkg-check
  * spkg-check now exits on error
  * enabled tests
 
-=== flint-1.1.2 (William Stein, March 1, 2009) ===
+=== flint-1.1.2 (William Stein, March 1st, 2009) ===
  * Upgraded to newest stable version
 
-=== flint-1.1.1 (William Stein, February 28, 2009) ===
+=== flint-1.1.1 (William Stein, February 28th, 2009) ===
  * Upgraded to newest stable version
 
 === flint-1.0.21.0 (Michael Abshoff, January 2nd, 2009) ===

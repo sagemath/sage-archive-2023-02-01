@@ -60,7 +60,6 @@ export FLINT_NTL_LIB_DIR
 FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
-cp patches/DIRNAME src/
 cp patches/makefile src/
 cd src
 

@@ -27,6 +27,12 @@ elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
 elif [ "`uname -m`" = "ia64" ]; then
    # -funroll-loops crashes the build on itanium under GCC-4.2.1, as reported by
    # Kate Minola.
+   echo "Turning off loop unrolling on Linux/Itanium"
+   FLINT_TUNE=" -fPIC "
+elif [ "`uname`" = "SunOS" -a "`uname -p`" = "sparc" ]; then
+   # -funroll-loops crashes the build on an US IIIi under GCC-4.3.2, as reported by
+   # Michael Abshoff
+   echo "Turning off loop unrolling on Solaris/Sparc"
    FLINT_TUNE=" -fPIC "
 else
    FLINT_TUNE=" -fPIC -funroll-loops  "

@@ -279,7 +279,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         sage: K is L
         True
 
-    Having different defining polynomials makes them fields different::
+    Having different defining polynomials makes the fields different::
 
         sage: x = polygen(QQ, 'x'); y = polygen(QQ, 'y')
         sage: k.<a> = NumberField(x^2 + 3)
@@ -290,7 +290,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         Number Field in a with defining polynomial y^2 + 3
 
     One can also define number fields with specified embeddings, may be
-    used for arithmatic and deduce relations with other number fields
+    used for arithmetic and deduce relations with other number fields
     which would not be valid for an abstract number field::
 
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
@@ -589,7 +589,7 @@ def QuadraticField(D, names, check=True, embedding=True):
 
     -  ``D`` - a rational number
 
-    -  ``name`` - variable name
+    -  ``names`` - variable name
 
     -  ``check`` - bool (default: True)
 
@@ -6871,7 +6871,7 @@ class NumberField_quadratic(NumberField_absolute):
                 self.__class_number = ZZ(pari("qfbclassno(%s)"%D))
             return self.__class_number
 
-    def hilbert_class_field_defining_polynomial(self):
+    def hilbert_class_field_defining_polynomial(self, name='x'):
         r"""
         Returns a polynomial over `\mathbb{Q}` whose roots generate
         Hilbert class field of this quadratic field as an extension of
@@ -6898,11 +6898,11 @@ class NumberField_quadratic(NumberField_absolute):
             sage: K.<a> = QuadraticField(-431)
             sage: K.class_number()
             21
-            sage: K.hilbert_class_field_defining_polynomial()
-            x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
+            sage: K.hilbert_class_field_defining_polynomial(name='z')
+            z^21 + z^20 - 13*z^19 - 50*z^18 + 592*z^17 - 2403*z^16 + 5969*z^15 - 10327*z^14 + 13253*z^13 - 12977*z^12 + 9066*z^11 - 2248*z^10 - 5523*z^9 + 11541*z^8 - 13570*z^7 + 11315*z^6 - 6750*z^5 + 2688*z^4 - 577*z^3 + 9*z^2 + 15*z + 1
         """
         f = pari('quadhilbert(%s))'%self.discriminant())
-        return QQ['x'](f)
+        return QQ[name](f)
 
     def hilbert_class_field(self, names):
         r"""
@@ -6926,6 +6926,60 @@ class NumberField_quadratic(NumberField_absolute):
         """
         f = self.hilbert_class_field_defining_polynomial()
         return self.extension(f, names)
+
+    def hilbert_class_polynomial(self, name='x'):
+	r"""
+	Compute the Hilbert class polynomial of this quadratic field.
+
+        Right now, this is only implemented for imaginary quadratic
+        fields.
+
+	EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.hilbert_class_polynomial()
+            x
+
+            sage: K.<a> = QuadraticField(-31)
+            sage: K.hilbert_class_polynomial(name='z')
+            z^3 + 39491307*z^2 - 58682638134*z + 1566028350940383
+	"""
+	D = self.discriminant()
+
+        if D > 0:
+            raise NotImplementedError, "Hilbert class polynomial is not implemented for real quadratic fields."
+
+	# get all reduced quadratic forms
+        from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
+	rqf = BinaryQF_reduced_representatives(D)
+
+	# compute needed  precision
+	# (according to [http://arxiv.org/abs/0802.0979v1])
+	N = (D.abs()//3).isqrt()+1
+	h = len(rqf)
+	a_s = [1/qf.a for qf in rqf]
+        from sage.rings.all import RR
+	prec = RR(sum(a_s, 0)*5.1416*D.abs().isqrt()+h*2.48).floor()+1
+	prec = max(prec, 71)
+
+	# set appropriate precision for further computing
+        from sage.rings.all import ComplexField
+	__CC = ComplexField(prec)
+
+        Dsqrt = D.sqrt(prec=prec)
+	R = __CC['t']
+        t = R.gen()
+	pol = R(1)
+        for qf in rqf:
+            tau = (qf.b+Dsqrt)/(qf.a<<1)
+            jinv = pari(tau).ellj()
+            pol = pol * (t - __CC(jinv))
+
+	coeffs = [cof.real().round() for cof in pol.coeffs()]
+        R = ZZ[name]
+	return R(coeffs)
+
+
 
 def is_fundamental_discriminant(D):
     r"""

@@ -173,6 +173,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f = x + y
             sage: f^2
             x^2 + 2*x*y + y^2
+            sage: f^(-1)
+            1/(x + y)
         """
         cdef LaurentPolynomial_mpair ans
         if n < 0:
@@ -180,7 +182,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             if len(E) == 0:
                 raise ZeroDivisionError
             elif len(E) > 1:
-                return self.parent()._R.fraction_field(self)**n
+                return self.parent()._R.fraction_field()(self)**n
             else:
                 ans = self._new_c()
                 ans._poly = self._poly.parent().change_ring(self.parent().base_ring().fraction_field())(self._poly.coefficients()[0]**n)

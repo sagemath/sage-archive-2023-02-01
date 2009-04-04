@@ -70,6 +70,10 @@ build()
         exit 1
     fi
 
+    echo "Removing old headers and libraries"
+    rm -f $SAGE_LOCAL/include/mpir*.h $SAGE_LOCAL/include/gmp*.h
+    rm -f $SAGE_LOCAL/lib/libmpir* $SAGE_LOCAL/lib/libgmp*
+
     $MAKE install
     if [ $? -ne 0 ]; then
         if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.

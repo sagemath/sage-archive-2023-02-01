@@ -1847,11 +1847,12 @@ class Worksheet:
         filename = '%s/%s.bz2'%(path, basename)
         if E is None:
             E = self.edit_text()
-        if open('%s/worksheet.txt'%self.__dir).read() == E:
+        worksheet_txt = '%s/worksheet.txt'%self.__dir
+        if os.path.exists(worksheet_txt) and open(worksheet_txt).read() == E:
             # we already wrote it out...
             return
         open(filename, 'w').write(bz2.compress(E))
-        open('%s/worksheet.txt'%self.__dir, 'w').write(E)
+        open(worksheet_txt, 'w').write(E)
         try:
             X = self.__saved_by_info
         except AttributeError:

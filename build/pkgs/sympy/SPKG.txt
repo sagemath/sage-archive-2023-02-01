@@ -28,6 +28,9 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 == Changelog ==
 
+=== sympy-0.6.4 (Ondrej Certik, April 5th, 2008) ===
+ * new upstream release
+
 === sympy-0.6.3.p0 (Michael Abshoff, November 22nd, 2008) ===
  * Clean up SPKG.txt and spkg-install
 
@@ -60,4 +63,3 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 === sympy-0.5.3 (William Stein) ===
  * initial version of the packaging
-

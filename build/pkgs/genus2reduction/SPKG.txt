@@ -9,6 +9,9 @@ the place to fix it.
 
 == Releases ==
 
+=== genus2reduction-0.3.p5 (William Stein, April 5, 2009) ===
+ * trac 5573: "mod --> Mod" change.
+
 === genus2reduction-0.3.p4 (William Stein, December 8th, 2008) ===
  * change genus2reduction to include GPL copyright file and email from liu making the program GPL'd (#4743)
 

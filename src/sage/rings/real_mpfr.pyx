@@ -661,6 +661,12 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        # This docs for mpfr_free_cache say "Free the cache used by
+        # the functions computing constants if needed (currently
+        # mpfr_const_log2, mpfr_const_pi and mpfr_const_euler)", so
+        # this isn't a seriously bad thing to do.  This prevents trac
+        # #5689.  This is needed for all constants, despite what the docs say.
+        mpfr_free_cache()
         mpfr_const_pi(x.value, self.rnd)
         _sig_off
         return x
@@ -679,6 +685,7 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        mpfr_free_cache()
         mpfr_const_euler(x.value, self.rnd)
         _sig_off
         return x
@@ -696,6 +703,7 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        mpfr_free_cache()
         mpfr_const_catalan(x.value, self.rnd)
         _sig_off
         return x
@@ -715,6 +723,8 @@ cdef class RealField(sage.rings.ring.Field):
         """
         cdef RealNumber x = self._new()
         _sig_on
+        # This docs for mpfr_free_cache say "Free the cache used by the functions computing constants if needed (currently mpfr_const_log2, mpfr_const_pi and mpfr_const_euler)", so this isn't a seriously bad thing to do.  This prevents trac #5689.
+        mpfr_free_cache()
         mpfr_const_log2(x.value, self.rnd)
         _sig_off
         return x

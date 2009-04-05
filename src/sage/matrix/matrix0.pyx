@@ -3625,14 +3625,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             [                              1  422550200076076467165567735125]
             [1267650600228229401496703205375  422550200076076467165567735126]
 
-        This matrix isn't invertible.::
+        This matrix isn't invertible::
+
             sage: m = matrix(Zmod(9),2,[2,1,3,3])
             sage: ~m
             Traceback (most recent call last):
             ...
             ZeroDivisionError: self is not invertible
-
-
         """
         if not self.base_ring().is_field():
             try:

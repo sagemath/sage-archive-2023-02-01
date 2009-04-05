@@ -43,6 +43,7 @@ from   sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
+from sage.rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 
@@ -3605,9 +3606,50 @@ cdef class Matrix(sage.structure.element.Matrix):
             True
             sage: M.inverse() == M
             True
+
+        Matrices over the integers modulo a composite modulus::
+
+            sage: m = matrix(Zmod(49),2,[2,1,3,3])
+            sage: type(m)
+            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+            sage: ~m
+            [ 1 16]
+            [48 17]
+            sage: m = matrix(Zmod(2^100),2,[2,1,3,3])
+            sage: type(m)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: (~m)*m
+            [1 0]
+            [0 1]
+            sage: ~m
+            [                              1  422550200076076467165567735125]
+            [1267650600228229401496703205375  422550200076076467165567735126]
+
+        This matrix isn't invertible.::
+            sage: m = matrix(Zmod(9),2,[2,1,3,3])
+            sage: ~m
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: self is not invertible
+
+
         """
         if not self.base_ring().is_field():
-            return ~self.matrix_over_field()
+            try:
+                return ~self.matrix_over_field()
+            except TypeError:
+                # There is one easy special case -- the integers modulo N.
+                if is_IntegerModRing(self.base_ring()):
+                    # This is "easy" in that we either get an error or
+                    # the right answer.  Note that of course there
+                    # could be a much faster algorithm, e.g., using
+                    # CRT or p-adic lifting.
+                    try:
+                        return (~self.lift()).change_ring(self.base_ring())
+                    except (TypeError, ZeroDivisionError):
+                        raise ZeroDivisionError, "self is not invertible"
+                raise
+
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self.nrows()==0:

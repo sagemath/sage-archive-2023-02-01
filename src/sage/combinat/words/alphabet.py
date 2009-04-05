@@ -109,16 +109,16 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         """
         return "Ordered Alphabet " + str(self._alphabet)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: type(OrderedAlphabet_Finite("abc").iterator())
+            sage: type(iter(OrderedAlphabet_Finite("abc")))
             <type 'generator'>
-            sage: list(OrderedAlphabet_Finite("abc").iterator())
+            sage: list(OrderedAlphabet_Finite("abc"))       # indirect doctest
             ['a', 'b', 'c']
-            sage: list(OrderedAlphabet_Finite([10, 17, 3]).iterator())
+            sage: list(OrderedAlphabet_Finite([10, 17, 3])) # indirect doctest
             [10, 17, 3]
         """
         for a in self._alphabet:
@@ -301,7 +301,7 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         """
         raise NotImplementedError
 
-    def count(self):
+    def cardinality(self):
         r"""
         Return the number of elements in self.
 
@@ -310,7 +310,7 @@ class OrderedAlphabet_Infinite(OrderedAlphabet_class):
         EXAMPLES::
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
-            sage: OrderedAlphabet_Infinite().count()
+            sage: OrderedAlphabet_Infinite().cardinality()
             +Infinity
         """
         return Infinity
@@ -351,12 +351,12 @@ class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
         """
         return "Ordered Alphabet of Natural Numbers"
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: it = OrderedAlphabet_NaturalNumbers().iterator()
+            sage: it = iter(OrderedAlphabet_NaturalNumbers())
             sage: type(it)
             <type 'generator'>
             sage: it.next()
@@ -533,12 +533,12 @@ class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
         """
         return "Ordered Alphabet of Positive Integers"
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: it = OrderedAlphabet_PositiveIntegers().iterator()
+            sage: it = iter(OrderedAlphabet_PositiveIntegers())
             sage: type(it)
             <type 'generator'>
             sage: it.next()

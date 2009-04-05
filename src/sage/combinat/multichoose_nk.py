@@ -31,20 +31,20 @@ class MultichooseNK(CombinatorialClass):
         self._n = n
         self._k = k
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of multichoices of k things from a list of n
         things.
 
         EXAMPLES::
 
-            sage: MultichooseNK(3,2).count()
+            sage: MultichooseNK(3,2).cardinality()
             6
         """
         n,k = self._n, self._k
         return binomial(n+k-1,k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all multichoices of k things from range(n).
 

@@ -28,13 +28,13 @@ class GenericBacktracker(object):
         self._initial_data = initial_data
         self._initial_state = initial_state
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.permutation import PatternAvoider
             sage: p = PatternAvoider(4, [[1,3,2]])
-            sage: len(list(p.iterator()))
+            sage: len(list(p))
             14
         """
         #Initialize the stack of generators with the initial data.
@@ -64,6 +64,5 @@ class GenericBacktracker(object):
             if state is not None:
                 stack.append( self._rec(obj, state) )
 
-    __iter__ = iterator
 
 

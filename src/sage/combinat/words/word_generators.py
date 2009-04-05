@@ -48,14 +48,14 @@ def _build_tab(sym, tab, W):
         return res
     if sym == 1:
         res += tab
-        res[1] = (res[1] % len(W.alphabet())) + 1
+        res[1] = (res[1] % W.size_of_alphabet()) + 1
         return res
     w = W([sym]).delta_inv(W, tab[0])
     w = w[1:]
-    res.append((w[-1] % len(W.alphabet())) + 1)
+    res.append((w[-1] % W.size_of_alphabet()) + 1)
     for i in xrange(1, len(tab)):
         w = w.delta_inv(W, tab[i])
-        res.append((w[-1] % len(W.alphabet())) + 1)
+        res.append((w[-1] % W.size_of_alphabet()) + 1)
     return res
 
 class WordGenerator(object):

@@ -93,7 +93,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         ::
 
-            sage: F.isotypes(['a','b','c']).count()
+            sage: F.isotypes(['a','b','c']).cardinality()
             4
             sage: [s.canonical_label() for s in S]
             [{}*{'a', 'b', 'c'},

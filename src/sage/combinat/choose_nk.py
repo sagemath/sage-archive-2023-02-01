@@ -21,6 +21,27 @@ from sage.misc.misc import uniq
 from combinat import CombinatorialClass
 
 class ChooseNK(CombinatorialClass):
+    """
+    Low level combinatorial class of all possible choices of k elements out of
+    range(n) without repetitions.
+
+    This is a low-level combinatorial class, with a simplistic interface by
+    design. It aim at speed. It's element are returned as plain list of python
+    int.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.choose_nk import ChooseNK
+        sage: c = ChooseNK(4,2)
+        sage: c.first()
+        [0, 1]
+        sage: c.list()
+        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+        sage: type(c.list()[1])
+        <type 'list'>
+        sage: type(c.list()[1][1])
+        <type 'int'>
+    """
     def __init__(self, n, k):
         """
         TESTS::
@@ -55,21 +76,21 @@ class ChooseNK(CombinatorialClass):
         return all(i in r for i in x) and len(uniq(x)) == self._k
 
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of choices of k things from a list of n things.
 
         EXAMPLES::
 
             sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(3,2).count()
+            sage: ChooseNK(3,2).cardinality()
             3
-            sage: ChooseNK(5,2).count()
+            sage: ChooseNK(5,2).cardinality()
             10
         """
         return binomial(self._n, self._k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all choices of k things from range(n).
 
@@ -144,11 +165,11 @@ class ChooseNK(CombinatorialClass):
 
             sage: from sage.combinat.choose_nk import ChooseNK
             sage: c52 = ChooseNK(5,2)
-            sage: c52.list() == map(c52.unrank, range(c52.count()))
+            sage: c52.list() == map(c52.unrank, range(c52.cardinality()))
             True
         """
-        if r < 0 or r >= self.count():
-            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.count()-1)
+        if r < 0 or r >= self.cardinality():
+            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.cardinality()-1)
         return from_rank(r, self._n, self._k)
 
     def rank(self, x):
@@ -157,7 +178,7 @@ class ChooseNK(CombinatorialClass):
 
             sage: from sage.combinat.choose_nk import ChooseNK
             sage: c52 = ChooseNK(5,2)
-            sage: range(c52.count()) == map(c52.rank, c52)
+            sage: range(c52.cardinality()) == map(c52.rank, c52)
             True
         """
         if len(x) != self._k:

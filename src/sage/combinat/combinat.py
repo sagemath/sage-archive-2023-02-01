@@ -14,6 +14,8 @@ AUTHORS:
 
 - David Joyner (2007-11): changed permutations, added hadamard_matrix
 
+- Florent Hivert (2009-02): combinatorial class cleanup
+
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant
 docstrings.
@@ -228,6 +230,7 @@ from sage.libs.all import pari
 from sage.misc.prandom import randint
 from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
+from sage.misc.misc import deprecation
 ######### combinatorial sequences
 
 def hadamard_matrix(n):
@@ -847,17 +850,42 @@ class CombinatorialObject(SageObject):
         """
         return self._list.index(key)
 
+
+
 class CombinatorialClass(SageObject):
     def __len__(self):
         """
-        Returns the number of elements in the combinatorial class.
+        __len__ has been removed ! to get the number of element in a
+        combinatorial class, use .cardinality instead.
 
-        EXAMPLES::
+
+        TEST::
 
             sage: len(Partitions(5))
-            7
+            Traceback (most recent call last):
+            ...
+            AttributeError: __len__ has been removed; use .cardinality() instead
         """
-        return self.count()
+        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
+
+    def count(self):
+        """
+        Deprecated ! Please use ``.cardinality`` instead.
+
+
+        TEST::
+
+            sage: class C(CombinatorialClass):
+            ...     def __iter__(self):
+            ...          return iter([1,2,3])
+            ...
+            sage: C().count() #indirect doctest
+            doctest:1: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
+            3
+        """
+        deprecation("The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
+        return self.cardinality()
+
 
     def __getitem__(self, i):
         """
@@ -938,9 +966,9 @@ class CombinatorialClass(SageObject):
         """
         return cmp(repr(self), repr(x))
 
-    def __count_from_iterator(self):
+    def __cardinality_from_iterator(self):
         """
-        Default implementation of count which just goes through the iterator
+        Default implementation of cardinality which just goes through the iterator
         of the combinatorial class to count the number of objects.
 
         EXAMPLES::
@@ -949,7 +977,7 @@ class CombinatorialClass(SageObject):
             ...     def __iter__(self):
             ...          return iter([1,2,3])
             ...
-            sage: C().count() #indirect doctest
+            sage: C().cardinality() #indirect doctest
             3
         """
         c = Integer(0)
@@ -957,7 +985,7 @@ class CombinatorialClass(SageObject):
         for _ in self:
             c += one
         return c
-    count = __count_from_iterator
+    cardinality = __cardinality_from_iterator
 
     def __call__(self, x):
         """
@@ -1107,6 +1135,24 @@ class CombinatorialClass(SageObject):
         for x in self.list():
             yield x
 
+    def iterator(self):
+        """
+        Iterator is deprecated for combinatorial classes.
+
+        EXAMPLES::
+
+            sage: p5 = Partitions(3)
+            sage: it = p5.iterator()
+            doctest:1: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
+            sage: [i for i in it]
+            [[3], [2, 1], [1, 1, 1]]
+            sage: [i for i in p5]
+            [[3], [2, 1], [1, 1, 1]]
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
+        return self.__iter__()
+
     def __iter__(self):
         """
         Allows the combinatorial class to be treated as an iterator. Default
@@ -1123,12 +1169,6 @@ class CombinatorialClass(SageObject):
             ...
             NotImplementedError: iterator called but not implemented
         """
-
-        if hasattr(self, 'iterator'):
-#            Prepare the deprecated bomb to be activated :-)
-#            from sage.misc.misc import deprecation
-#            deprecation("The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
-            return self.iterator()
         #Check to see if .first() and .next() are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
@@ -1179,7 +1219,7 @@ class CombinatorialClass(SageObject):
             sage: C.random_element()
             1
         """
-        c = self.count()
+        c = self.cardinality()
         r = randint(0, c-1)
         return self.unrank(r)
 
@@ -1334,7 +1374,7 @@ class CombinatorialClass(SageObject):
 
             sage: R = Permutations(3).map(attrcall('reduced_word')); R
             Image of Standard permutations of 3 by *.reduced_word()
-            sage: R.count()
+            sage: R.cardinality()
             6
             sage: R.list()
             [[], [2], [1], [1, 2], [2, 1], [2, 1, 2]]
@@ -1404,12 +1444,12 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         return x in self.combinatorial_class and self.f(x)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
-            sage: P.count()
+            sage: P.cardinality()
             1
         """
         c = 0
@@ -1474,15 +1514,15 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         return x in self.left_cc or x in self.right_cc
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: P = Permutations(3).union(Permutations(2))
-            sage: P.count()
+            sage: P.cardinality()
             8
         """
-        return self.left_cc.count() + self.right_cc.count()
+        return self.left_cc.cardinality() + self.right_cc.cardinality()
 
     def list(self):
         """
@@ -1555,7 +1595,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         try:
             return self.left_cc.rank(x)
         except (TypeError, ValueError):
-            return self.left_cc.count() + self.right_cc.rank(x)
+            return self.left_cc.cardinality() + self.right_cc.rank(x)
 
     def unrank(self, x):
         """
@@ -1570,7 +1610,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         try:
             return self.left_cc.unrank(x)
         except (TypeError, ValueError):
-            return self.right_cc.unrank(x - self.left_cc.count())
+            return self.right_cc.unrank(x - self.left_cc.cardinality())
 
 
 ##############################################################################
@@ -1598,17 +1638,17 @@ class MapCombinatorialClass(CombinatorialClass):
         else:
             return "Image of %s by %s"%(self.cc, self.f)
 
-    def count(self):
+    def cardinality(self):
         """
-        Counts the elements of this combinatorial class
+        Returns the cardinality of this combinatorial class
 
         EXAMPLES:
             sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.count()
+            sage: R.cardinality()
             3628800
 
         """
-        return self.cc.count()
+        return self.cc.cardinality()
 
     def __iter__(self):
         """
@@ -1616,11 +1656,78 @@ class MapCombinatorialClass(CombinatorialClass):
 
         EXAMPLES:
             sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.count()
+            sage: R.cardinality()
             3628800
         """
         for x in self.cc:
             yield self.f(x)
+
+##############################################################################
+from sage.rings.all import infinity
+class InfiniteAbstractCombinatorialClass(CombinatorialClass):
+    r"""
+
+    This is an internal Class this should not be used directly.  A class wich
+    inerits from InfiniteAbstractCombinatorialClass inherits the standard
+    methods list and count.
+
+    If self._infinite_cclass_slice exists then self.__iter__ returns an
+    iterator for self, otherwise raise NotImplementedError. The method
+    self._infinite_cclass_slice is supposed to accept any integer as an
+    argument and return something which is iterable.
+    """
+    def cardinality(self):
+        """
+        Counts the elements of the combinatorial class.
+
+        EXAMPLES:
+            sage: R = InfiniteAbstractCombinatorialClass()
+            sage: R.cardinality()
+            +Infinity
+        """
+        return infinity
+
+    def list(self):
+        """
+        Returns an error since self is an infinite combinatorial class.
+
+        EXAMPLES:
+            sage: R = InfiniteAbstractCombinatorialClass()
+            sage: R.list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite list
+        """
+        raise NotImplementedError, "infinite list"
+
+    def __iter__(self):
+        """
+        Returns an interator for the infinite combinatorial class self if
+        possible or raise a NotImplementedError.
+
+        EXAMPLES:
+            sage: R = InfiniteAbstractCombinatorialClass()
+            sage: iter(R).next()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            sage: c = iter(Compositions()) # indirect doctest
+            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            ([], [1], [1, 1], [2], [1, 1, 1], [1, 2])
+            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            ([2, 1], [3], [1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3])
+        """
+        try:
+            finite = self._infinite_cclass_slice
+        except AttributeError:
+            raise NotImplementedError
+        i = 0
+        while True:
+            for c in finite(i):
+                yield c
+            i+=1
+
 
 
 def hurwitz_zeta(s,x,N):
@@ -2100,7 +2207,7 @@ def number_of_permutations(mset):
 
     use
 
-    Permutations(mset).count().
+    Permutations(mset).cardinality().
 
     If you insist on using this now:
 

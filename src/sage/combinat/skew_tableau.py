@@ -16,7 +16,7 @@ Skew Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, factorial, infinity
+from sage.rings.all import Integer, factorial
 from sage.misc.misc import uniq
 import partition
 import sage.combinat.tableau
@@ -27,7 +27,7 @@ from sage.misc.all import prod
 import exceptions
 import random
 import copy
-from combinat import CombinatorialObject, CombinatorialClass
+from combinat import CombinatorialObject, CombinatorialClass, InfiniteAbstractCombinatorialClass
 from sage.graphs.graph import DiGraph
 import ribbon_tableau
 from integer_vector import IntegerVectors
@@ -676,7 +676,7 @@ def StandardSkewTableaux(skp=None):
     else:
         raise TypeError
 
-class StandardSkewTableaux_all(CombinatorialClass):
+class StandardSkewTableaux_all(InfiniteAbstractCombinatorialClass):
     def __repr__(self):
         """
         EXAMPLES::
@@ -709,26 +709,20 @@ class StandardSkewTableaux_all(CombinatorialClass):
 
         return x.is_standard()
 
-
-    def count(self):
+    def _infinite_cclass_slice(self, n):
         """
-        EXAMPLES::
+        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
 
-            sage: StandardSkewTableaux().count()
-            +Infinity
-        """
-        return infinity
+        TESTS::
 
-    def iterator(self):
+            sage: StandardSkewTableaux()._infinite_cclass_slice(4) == StandardSkewTableaux(4)
+            True
+            sage: it = iter(StandardSkewTableaux())    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [[1]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2]], [[1], [2], [3]], [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]], [[None, 2], [None, 3], [1]]]
         """
-        EXAMPLES::
+        return StandardSkewTableaux_n(n)
 
-            sage: StandardSkewTableaux().list() #indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
 class StandardSkewTableaux_n(CombinatorialClass):
     def __init__(self, n):
@@ -750,25 +744,25 @@ class StandardSkewTableaux_n(CombinatorialClass):
         """
         return "Standard skew tableaux of size %s"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: StandardSkewTableaux(1).count()
+            sage: StandardSkewTableaux(1).cardinality()
             1
-            sage: StandardSkewTableaux(2).count()
+            sage: StandardSkewTableaux(2).cardinality()
             4
-            sage: StandardSkewTableaux(3).count()
+            sage: StandardSkewTableaux(3).cardinality()
             24
-            sage: StandardSkewTableaux(4).count()
+            sage: StandardSkewTableaux(4).cardinality()
             194
         """
         count = 0
         for skp in skew_partition.SkewPartitions(self.n):
-            count += StandardSkewTableaux_skewpartition(skp).count()
+            count += StandardSkewTableaux_skewpartition(skp).cardinality()
         return count
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -811,20 +805,20 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
         """
         return [st for st in self]
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of standard skew tableaux with shape of the skew
         partition skp.
 
         EXAMPLES::
 
-            sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).count()
+            sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).cardinality()
             8
         """
 
         return sum([1 for st in self])
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all the standard skew tableau with shape of the
         skew partition skp. The standard skew tableaux are ordered
@@ -933,19 +927,19 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
         """
         return "Semistandard skew tableaux of size %s"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardSkewTableaux(2).count()
+            sage: SemistandardSkewTableaux(2).cardinality()
             8
         """
         count = 0
         for p in skew_partition.SkewPartitions(self.n):
-            count += SemistandardSkewTableaux_p(p).count()
+            count += SemistandardSkewTableaux_p(p).cardinality()
         return count
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -984,19 +978,19 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
         """
         return "Semistandard skew tableaux of size %s and weight %s"%(self.n,self.mu)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardSkewTableaux(2,[1,1]).count()
+            sage: SemistandardSkewTableaux(2,[1,1]).cardinality()
             4
         """
         count = 0
         for p in skew_partition.SkewPartitions(self.n):
-            count += SemistandardSkewTableaux_pmu(p, self.mu).count()
+            count += SemistandardSkewTableaux_pmu(p, self.mu).cardinality()
         return count
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -1027,19 +1021,19 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
         """
         return "Semistandard skew tableaux of shape %s"%self.p
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardSkewTableaux([[2,1],[]]).count()
+            sage: SemistandardSkewTableaux([[2,1],[]]).cardinality()
             8
         """
         count = 0
         for mu in IntegerVectors(self.p.size(), self.p.size()):
-            count += SemistandardSkewTableaux_pmu(self.p, mu).count()
+            count += SemistandardSkewTableaux_pmu(self.p, mu).cardinality()
         return count
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 

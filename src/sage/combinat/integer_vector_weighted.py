@@ -35,7 +35,7 @@ def WeightedIntegerVectors(n, weight):
         [0, 0, 4]
         sage: WeightedIntegerVectors(8, [1,1,2]).last()
         [8, 0, 0]
-        sage: WeightedIntegerVectors(8, [1,1,2]).count()
+        sage: WeightedIntegerVectors(8, [1,1,2]).cardinality()
         25
         sage: WeightedIntegerVectors(8, [1,1,2]).random_element()
         [1, 1, 3]
@@ -146,7 +146,7 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
         ::
 
             sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
-            sage: all( [ i.count() == len(i.list()) for i in ivw] )
+            sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
             True
         """
         if len(self.weight) == 0:

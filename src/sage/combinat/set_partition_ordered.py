@@ -16,7 +16,7 @@ EXAMPLES: There are 13 ordered set partitions of {1,2,3}.
 
 ::
 
-    sage: OrderedSetPartitions(3).count()
+    sage: OrderedSetPartitions(3).cardinality()
     13
 
 Here is the list of them::
@@ -97,7 +97,7 @@ def OrderedSetPartitions(s, c=None):
 
         sage: OS = OrderedSetPartitions([1,2,3,4]); OS
         Ordered set partitions of {1, 2, 3, 4}
-        sage: OS.count()
+        sage: OS.cardinality()
         75
         sage: OS.first()
         [{1}, {2}, {3}, {4}]
@@ -110,7 +110,7 @@ def OrderedSetPartitions(s, c=None):
 
         sage: OS = OrderedSetPartitions([1,2,3,4], [2,2]); OS
         Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 2]
-        sage: OS.count()
+        sage: OS.cardinality()
         6
         sage: OS.first()
         [{1, 2}, {3, 4}]
@@ -215,23 +215,23 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
         return True
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: OrderedSetPartitions(0).count()
+            sage: OrderedSetPartitions(0).cardinality()
             1
-            sage: OrderedSetPartitions(1).count()
+            sage: OrderedSetPartitions(1).cardinality()
             1
-            sage: OrderedSetPartitions(2).count()
+            sage: OrderedSetPartitions(2).cardinality()
             3
-            sage: OrderedSetPartitions(3).count()
+            sage: OrderedSetPartitions(3).cardinality()
             13
-            sage: OrderedSetPartitions([1,2,3]).count()
+            sage: OrderedSetPartitions([1,2,3]).cardinality()
             13
-            sage: OrderedSetPartitions(4).count()
+            sage: OrderedSetPartitions(4).cardinality()
             75
-            sage: OrderedSetPartitions(5).count()
+            sage: OrderedSetPartitions(5).cardinality()
             541
         """
         set = self.s
@@ -239,11 +239,11 @@ class OrderedSetPartitions_s(CombinatorialClass):
 
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: OrderedSetPartitions([1,2,3]).list() # indirect doctest
+            sage: [ p for p in OrderedSetPartitions([1,2,3]) ]
             [[{1}, {2}, {3}],
              [{1}, {3}, {2}],
              [{2}, {1}, {3}],
@@ -282,7 +282,7 @@ class OrderedSetPartitions_sn(CombinatorialClass):
             sage: OS = OrderedSetPartitions([1,2,3,4], 2)
             sage: all([sp in OS for sp in OS])
             True
-            sage: OS.count()
+            sage: OS.cardinality()
             14
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             14
@@ -298,24 +298,24 @@ class OrderedSetPartitions_sn(CombinatorialClass):
         """
         return "Ordered set partitions of %s into %s parts"%(self.s,self.n)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: OrderedSetPartitions(4,2).count()
+            sage: OrderedSetPartitions(4,2).cardinality()
             14
-            sage: OrderedSetPartitions(4,1).count()
+            sage: OrderedSetPartitions(4,1).cardinality()
             1
         """
         set = self.s
         n   = self.n
         return factorial(n)*stirling_number2(len(set),n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: OrderedSetPartitions([1,2,3,4], 2).list() # indirect doctest
+            sage: [ p for p in OrderedSetPartitions([1,2,3,4], 2) ]
             [[{1}, {2, 3, 4}],
              [{2}, {1, 3, 4}],
              [{3}, {1, 2, 4}],
@@ -363,35 +363,35 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
             sage: OS = OrderedSetPartitions([1,2,3,4], [2,1,1])
             sage: all([ sp in OS for sp in OS])
             True
-            sage: OS.count()
+            sage: OS.cardinality()
             12
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             12
         """
         return x in OrderedSetPartitions_s(self.s) and map(len, x) == self.c
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: OrderedSetPartitions(5,[2,3]).count()
+            sage: OrderedSetPartitions(5,[2,3]).cardinality()
             10
-            sage: OrderedSetPartitions(0, []).count()
+            sage: OrderedSetPartitions(0, []).cardinality()
             1
-            sage: OrderedSetPartitions(0, [0]).count()
+            sage: OrderedSetPartitions(0, [0]).cardinality()
             1
-            sage: OrderedSetPartitions(0, [0,0]).count()
+            sage: OrderedSetPartitions(0, [0,0]).cardinality()
             1
-            sage: OrderedSetPartitions(5, [2,0,3]).count()
+            sage: OrderedSetPartitions(5, [2,0,3]).cardinality()
             10
         """
         return factorial(len(self.s))/prod([factorial(i) for i in self.c])
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
-            sage: OrderedSetPartitions([1,2,3,4], [2,1,1]).list() # indirect doctest
+            sage: [ p for p in OrderedSetPartitions([1,2,3,4], [2,1,1]) ]
             [[{1, 2}, {3}, {4}],
              [{1, 2}, {4}, {3}],
              [{1, 3}, {2}, {4}],

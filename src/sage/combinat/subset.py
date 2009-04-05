@@ -56,7 +56,7 @@ def Subsets(s, k=None, submultiset=False):
 
         sage: S = Subsets([1, 2, 3]); S
         Subsets of {1, 2, 3}
-        sage: S.count()
+        sage: S.cardinality()
         8
         sage: S.first()
         {}
@@ -154,7 +154,7 @@ class Subsets_s(CombinatorialClass):
                 return False
         return True
 
-    def count(self):
+    def cardinality(self):
         r"""
         Returns the number of subsets of the set s.
 
@@ -162,11 +162,11 @@ class Subsets_s(CombinatorialClass):
 
         EXAMPLES::
 
-            sage: Subsets(Set([1,2,3])).count()
+            sage: Subsets(Set([1,2,3])).cardinality()
             8
-            sage: Subsets([1,2,3,3]).count()
+            sage: Subsets([1,2,3,3]).cardinality()
             8
-            sage: Subsets(3).count()
+            sage: Subsets(3).cardinality()
             8
         """
         return 2**len(self.s)
@@ -200,7 +200,7 @@ class Subsets_s(CombinatorialClass):
         return self.s
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         Iterates through the subsets of s.
 
@@ -285,7 +285,7 @@ class Subsets_s(CombinatorialClass):
         lset = __builtin__.list(self.s)
         n = len(lset)
 
-        if r >= self.count() or r < 0:
+        if r >= self.cardinality() or r < 0:
             return None
         else:
             for k in range(n+1):
@@ -336,25 +336,25 @@ class Subsets_sk(CombinatorialClass):
                 return False
         return True
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Subsets(Set([1,2,3]), 2).count()
+            sage: Subsets(Set([1,2,3]), 2).cardinality()
             3
-            sage: Subsets([1,2,3,3], 2).count()
+            sage: Subsets([1,2,3,3], 2).cardinality()
             3
-            sage: Subsets([1,2,3], 1).count()
+            sage: Subsets([1,2,3], 1).cardinality()
             3
-            sage: Subsets([1,2,3], 3).count()
+            sage: Subsets([1,2,3], 3).cardinality()
             1
-            sage: Subsets([1,2,3], 0).count()
+            sage: Subsets([1,2,3], 0).cardinality()
             1
-            sage: Subsets([1,2,3], 4).count()
+            sage: Subsets([1,2,3], 4).cardinality()
             0
-            sage: Subsets(3,2).count()
+            sage: Subsets(3,2).cardinality()
             3
-            sage: Subsets(3,4).count()
+            sage: Subsets(3,4).cardinality()
             0
         """
         if self.k not in range(len(self.s)+1):
@@ -406,7 +406,7 @@ class Subsets_sk(CombinatorialClass):
 
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         Iterates through the subsets of s of size k.
 
@@ -501,7 +501,7 @@ class Subsets_sk(CombinatorialClass):
 
         if self.k not in range(len(self.s)+1):
             return None
-        elif r >= self.count() or r < 0:
+        elif r >= self.cardinality() or r < 0:
             return None
         else:
             return Set([lset[i] for i in choose_nk.from_rank(r, n, self.k)])
@@ -526,7 +526,7 @@ class SubMultiset_s(CombinatorialClass):
 
         sage: S._multiplicities
         [1, 2, 1]
-        sage: Subsets([1,2,3,3], submultiset=True).count()
+        sage: Subsets([1,2,3,3], submultiset=True).cardinality()
         12
         sage: S == loads(dumps(S))
         True
@@ -538,7 +538,7 @@ class SubMultiset_s(CombinatorialClass):
         EXAMPLES::
 
             sage: S = Subsets([1,2,2,3], submultiset=True)
-            sage: Subsets([1,2,3,3], submultiset=True).count()
+            sage: Subsets([1,2,3,3], submultiset=True).cardinality()
             12
         """
         s = list(s)
@@ -578,7 +578,7 @@ class SubMultiset_s(CombinatorialClass):
         """
         return sorted(s) in subword.Subwords(self._s)
 
-    def iterator(self):
+    def __iter__(self):
         """
         Iterates through the subsets of the multiset ``self._s``.  Note
         that each subset is represented by a list of its elements rather than
@@ -620,7 +620,7 @@ class SubMultiset_sk(SubMultiset_s):
         sage: S = Subsets([1,2,3,3],2, submultiset=True)
         sage: S._k
         2
-        sage: S.count()
+        sage: S.cardinality()
         4
         sage: S.first()
         [1, 2]
@@ -673,7 +673,7 @@ class SubMultiset_sk(SubMultiset_s):
         """
         return sorted(s) in subword.Subwords(self._s, self._k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         Iterates through the subsets of size ``self._k`` of the multiset
         ``self._s``. Note that each subset is represented by a list of the

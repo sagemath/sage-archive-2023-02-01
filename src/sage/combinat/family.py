@@ -18,6 +18,7 @@ Families
 #*****************************************************************************
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.finite_class import FiniteCombinatorialClass_l
+from sage.rings.all import ZZ
 
 def Family(indices, function = None, name = None, hidden_keys = [], hidden_function = None):
     r"""
@@ -78,7 +79,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         14
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
         sage: len(f)
         3
@@ -96,10 +97,8 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         14
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
-        sage: len(f)
-        3
 
     This allows in particular for modeling infinite families::
 
@@ -112,9 +111,18 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         2
         sage: f[-5]
         -10
-        sage: i = f.__iter__()
+        sage: i = iter(f)
         sage: i.next(), i.next(), i.next(), i.next(), i.next()
         (0, 2, -2, 4, -4)
+
+    Beware that for those kind of families len(f) is not supposed to
+    work. As a replacement, use the .cardinality() method::
+
+       sage: f = LazyFamily(Permutations(3), lambda i: (i.to_lehmer_code()))
+       sage: list(f)
+       [[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 0], [2, 0, 0], [2, 1, 0]]
+       sage: f.cardinality()
+       6
 
     Caveat: Only certain families with lazy behavior can be pickled. In
     particular, only functions that work with Sage's pickle_function
@@ -140,7 +148,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         4
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
         sage: len(f)
         3
@@ -170,7 +178,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         4
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
         sage: len(f)
         3
@@ -191,7 +199,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         6
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
         sage: len(f)
         3
@@ -217,7 +225,7 @@ def Family(indices, function = None, name = None, hidden_keys = [], hidden_funct
         14
         sage: list(f)
         [6, 8, 14]
-        sage: [ x for x in f]
+        sage: [x for x in f]
         [6, 8, 14]
         sage: len(f)
         3
@@ -376,19 +384,31 @@ class FiniteFamily(AbstractFamily):
         """
         return x in self.values()
 
-    def count(self):
+    def __len__(self):
         """
         Returns the number of elements in self.
 
         EXAMPLES::
 
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
-            sage: f.count()
+            sage: len(f)
             3
         """
         return len(self.dictionary)
 
-    def iterator(self):
+    def cardinality(self):
+        """
+        Returns the number of elements in self.
+
+        EXAMPLES::
+
+            sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
+            sage: f.cardinality()
+            3
+        """
+        return ZZ(len(self.dictionary))
+
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -576,7 +596,22 @@ class LazyFamily(AbstractFamily):
         """
         return self.set
 
-    def iterator(self):
+    def cardinality(self):
+        """
+        Return the number of elements in self.
+
+        EXAMPLES::
+
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: f.cardinality()
+            3
+        """
+        try:
+            return ZZ(len(self.set))
+        except AttributeError:
+            return self.set.cardinality()
+
+    def __iter__(self):
         """
         EXAMPLES::
 

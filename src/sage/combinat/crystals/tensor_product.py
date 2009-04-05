@@ -215,7 +215,7 @@ It has `8` elements
     sage: C = CrystalOfTableaux(['A',3], shape=[1,1,0])
     sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
     sage: T = TensorProductOfCrystals(C,D, generators=[[C(rows=[[1], [2]]), D(rows=[[1]])], [C(rows=[[2], [3]]), D(rows=[[1]])]])
-    sage: T.count()
+    sage: T.cardinality()
     24
     sage: T.check()
     True
@@ -231,7 +231,7 @@ product::
     sage: T=TensorProductOfCrystals(C,C)
     sage: T.list()
     [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
-    sage: T.count()
+    sage: T.cardinality()
     9
 
 For a tensor product of crystals without module generators, the
@@ -327,13 +327,13 @@ class FullTensorProductOfCrystals(Crystal):
         self.cartesian_product = CartesianProduct(*self.crystals)
         self.module_generators = self
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
             sage: C = CrystalOfLetters(['A',2])
             sage: T = TensorProductOfCrystals(C,C)
-            sage: list(T.iterator())
+            sage: list(T)
             [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
             sage: _[0].parent()
             Full tensor product of the crystals [The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
@@ -341,20 +341,18 @@ class FullTensorProductOfCrystals(Crystal):
         for x in self.cartesian_product:
             yield self(*x)
 
-    __iter__ = iterator
-
     list = CombinatorialClass._CombinatorialClass__list_from_iterator
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: C = CrystalOfLetters(['A',2])
             sage: T = TensorProductOfCrystals(C,C)
-            sage: T.count()
+            sage: T.cardinality()
             9
         """
-        return self.cartesian_product.count()
+        return self.cartesian_product.cardinality()
 
     def __call__(self, *crystalElements):
         """
@@ -648,7 +646,7 @@ class CrystalOfTableaux(TensorProductOfCrystalsWithGenerators, ClassicalCrystal)
     negative::
 
         sage: C = CrystalOfTableaux(['D',4],shape=[1,1,1,-1])
-        sage: C.count()
+        sage: C.cardinality()
         35
         sage: C.check()
         True

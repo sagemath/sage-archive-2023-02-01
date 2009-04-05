@@ -641,7 +641,7 @@ class IntegerListsLex(CombinatorialClass):
         sage: C = IntegerListsLex(2, length=3)
         sage: C
         Integer lists of sum 2 satisfying certain constraints
-        sage: C.count()
+        sage: C.cardinality()
         6
         sage: [p for p in C]
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
@@ -873,7 +873,7 @@ class IntegerListsLex(CombinatorialClass):
             True
             sage: C is loads(dumps(C)) # todo: not implemented
             True
-            sage: C.count().parent() is ZZ
+            sage: C.cardinality().parent() is ZZ
             True
         """
         if floor is None:

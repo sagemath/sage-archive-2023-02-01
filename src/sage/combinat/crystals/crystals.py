@@ -55,7 +55,7 @@ It has a single highest weight element::
 A crystal is a CombinatorialClass; and we can count and list its
 elements in the usual way::
 
-    sage: C.count()
+    sage: C.cardinality()
     6
     sage: C.list()
     [1, 2, 3, 4, 5, 6]
@@ -226,7 +226,7 @@ class Crystal(CombinatorialClass, Parent):
         return len(set1) == len(list1) \
                and len(set2) == len(list2) \
                and len(set3) == len(list3) \
-               and len(set1) == self.count() \
+               and len(set1) == self.cardinality() \
                and set1 == set2 \
                and set2 == set3
 
@@ -472,7 +472,7 @@ class Crystal(CombinatorialClass, Parent):
             word = [1,2,1]
         else:
             raise NotImplementedError
-        size = self.count()
+        size = self.cardinality()
         string_data = []
         for i in range(size):
             turtle = self.list()[i]
@@ -542,7 +542,7 @@ class Crystal(CombinatorialClass, Parent):
                         [a1,a2,a3,a4] = string_data[i]
                         outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d %d\n"%(i,dest,col,a1,a2,a3,a4)
         outstring += "\npickup pencircle scaled 3;\n\n"
-        for i in range(self.count()):
+        for i in range(self.cardinality()):
             if labels:
                 if self.cartan_type[0] == 'A':
                     outstring = outstring+"pickup pencircle scaled 15;\nfill z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\npickup pencircle scaled .5;\ndraw z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle;\n"%(i,i,i,i,string_data[i][2],i,string_data[i][1],i,string_data[i][0],i,i,i,i,i)
@@ -885,7 +885,7 @@ class ClassicalCrystal(Crystal):
             sage: E = CrystalOfSpinsMinus(['D',4])
             sage: T=TensorProductOfCrystals(D,E,generators=[[D.list()[0],E.list()[0]]])
             sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E.list()[0]]])
-            sage: len(T)
+            sage: T.cardinality()
             56
             sage: T.check()
             True
@@ -923,9 +923,8 @@ class ClassicalCrystal(Crystal):
             #sage: fb4(1,1,1,1).check() # expensive: the crystal is of size 297297
             #True
         """
-        return CrystalBacktracker(self).iterator()
+        return iter(CrystalBacktracker(self))
 
-    iterator = __iter__
 
     def highest_weight_vectors(self):
         r"""
@@ -971,7 +970,7 @@ class ClassicalCrystal(Crystal):
         else:
             raise RuntimeError("The crystal does not have exactly one highest weight vector")
 
-    def count(self):
+    def cardinality(self):
         r"""
         Returns the number of elements of the crystal, using Weyl's
         dimension formula on each connected component
@@ -980,7 +979,7 @@ class ClassicalCrystal(Crystal):
 
             sage: from sage.combinat.crystals.crystals import ClassicalCrystal
             sage: C = CrystalOfLetters(['A', 5])
-            sage: ClassicalCrystal.count(C)
+            sage: ClassicalCrystal.cardinality(C)
             6
         """
         return sum(self.weight_lattice_realization().weyl_dimension(x.weight())

@@ -21,8 +21,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinat import CombinatorialClass, CombinatorialObject, catalan_number
+from combinat import CombinatorialClass, CombinatorialObject, catalan_number, InfiniteAbstractCombinatorialClass
 from backtrack import GenericBacktracker
+from sage.rings.all import infinity
 
 open_symbol = 1
 close_symbol = 0
@@ -554,9 +555,9 @@ def DyckWords(k1=None, k2=None):
         [1, 0, 1, 0]
         sage: DW2.last()
         [1, 1, 0, 0]
-        sage: DW2.count()
+        sage: DW2.cardinality()
         2
-        sage: DyckWords(100).count() == catalan_number(100)
+        sage: DyckWords(100).cardinality() == catalan_number(100)
         True
 
     If k2 is specified in addition to k1, then it returns the
@@ -586,7 +587,7 @@ def DyckWords(k1=None, k2=None):
         else:
             return DyckWords_size(k1, k2)
 
-class DyckWords_all(CombinatorialClass):
+class DyckWords_all(InfiniteAbstractCombinatorialClass):
     def __init__(self):
         """
         TESTS::
@@ -630,16 +631,19 @@ class DyckWords_all(CombinatorialClass):
 
         return is_a(x)
 
-    def list(self):
+    def _infinite_cclass_slice(self, n):
         """
+        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+
         TESTS::
 
-            sage: DyckWords().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
+            sage: DyckWords()._infinite_cclass_slice(4) == DyckWords(4)
+            True
+            sage: it = iter(DyckWords())    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [1, 0], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 0, 1, 0], [1, 0, 1, 1, 0, 0], [1, 1, 0, 0, 1, 0], [1, 1, 0, 1, 0, 0], [1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 1, 0]]
+         """
+        return DyckWords_size(n, n)
 
 
 class DyckWordBacktracker(GenericBacktracker):
@@ -742,18 +746,18 @@ class DyckWords_size(CombinatorialClass):
         """
         return "Dyck words with %s opening parentheses and %s closing parentheses"%(self.k1, self.k2)
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of Dyck words of size n, i.e. the n-th Catalan
         number.
 
         EXAMPLES::
 
-            sage: DyckWords(4).count()
+            sage: DyckWords(4).cardinality()
             14
             sage: ns = range(9)
             sage: dws = [DyckWords(n) for n in ns]
-            sage: all([ dw.count() == len(dw.list()) for dw in dws])
+            sage: all([ dw.cardinality() == len(dw.list()) for dw in dws])
             True
         """
         if self.k2 == self.k1:
@@ -800,9 +804,9 @@ class DyckWords_size(CombinatorialClass):
             sage: DyckWords(2).list()
             [[1, 0, 1, 0], [1, 1, 0, 0]]
         """
-        return list(self.iterator())
+        return list(self)
 
-    def iterator(self):
+    def __iter__(self):
         """
         Returns an iterator for Dyck words with k1 opening and k2 closing
         parentheses.

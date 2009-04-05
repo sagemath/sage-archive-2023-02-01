@@ -58,25 +58,25 @@ class FastCrystal(ClassicalCrystal):
     TESTS::
 
         sage: C = FastCrystal(['A',2],shape=[4,1])
-        sage: C.count()
+        sage: C.cardinality()
         24
         sage: C.check()
         True
         sage: C = FastCrystal(['B',2],shape=[4,1])
-        sage: C.count()
+        sage: C.cardinality()
         154
         sage: C.check()
         True
         sage: C = FastCrystal(['B',2],shape=[3/2,1/2])
-        sage: C.count()
+        sage: C.cardinality()
         16
         sage: C.check()
         True
         sage: C = FastCrystal(['C',2],shape=[2,1])
-        sage: C.count()
+        sage: C.cardinality()
         16
         sage: C = FastCrystal(['C',2],shape=[3,1])
-        sage: C.count()
+        sage: C.cardinality()
         35
         sage: C.check()
         True

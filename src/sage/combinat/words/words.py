@@ -21,7 +21,7 @@ from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import OrderedAlphabet, OrderedAlphabet_class
 from sage.combinat.words.word_content import is_WordContent, BuildWordContent
 from sage.combinat.words.utils import *
-from sage.combinat.combinat import CombinatorialClass
+from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.rings.all import Infinity
 from sage.misc.mrange import xmrange
 
@@ -101,7 +101,22 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
                 return FiniteWords_length_k_over_OrderedAlphabet(alphabet, length)
     raise ValueError, "do not know how to make a combinatorial class of words from your input"
 
-class Words_all(CombinatorialClass):
+class Words_all(InfiniteAbstractCombinatorialClass):
+    """
+    TESTS::
+
+        sage: from sage.combinat.words.words import Words_all
+        sage: list(Words_all())
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+        sage: Words_all().list()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: infinite list
+        sage: Words_all().cardinality()
+        +Infinity
+    """
     def __repr__(self):
         """
         EXAMPLES::
@@ -111,16 +126,6 @@ class Words_all(CombinatorialClass):
             'Words'
         """
         return "Words"
-
-    def count(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.words import Words_all
-            sage: Words_all().count()
-            +Infinity
-        """
-        return Infinity
 
     def __contains__(self, x):
         """
@@ -139,17 +144,7 @@ class Words_all(CombinatorialClass):
         from sage.combinat.words.word import is_Word
         return is_Word(x)
 
-    def iterator(self):
-        """
-        EXAMPLES::
 
-            sage: from sage.combinat.words.words import Words_all
-            sage: Words_all().list() #indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
 class Words_n(Words_all):
     def __init__(self, n):
@@ -337,7 +332,7 @@ class Words_over_Alphabet(Words_all):
             sage: Words('').size_of_alphabet()
             0
         """
-        return self.alphabet().count()
+        return self.alphabet().cardinality()
 
     def __lt__(self, other):
         r"""
@@ -471,7 +466,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         for w in xmrange([self.size_of_alphabet()]*l):
             yield self(map(lambda x: self.alphabet().unrank(x), w))
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         Returns an iterator over all the words of self. The iterator
         outputs the words in lexicographic order, based on the order of the
@@ -740,39 +735,39 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         """
         return "Finite Words over %s of length %s"%(self.alphabet(), self._length)
 
-    def count(self):
+    def cardinality(self):
         r"""
         Returns the number of words of length n from alphabet.
 
         EXAMPLES::
 
-            sage: Words(['a','b','c'], 4).count()
+            sage: Words(['a','b','c'], 4).cardinality()
             81
-            sage: Words(3, 4).count()
+            sage: Words(3, 4).cardinality()
             81
-            sage: Words(0,0).count()
+            sage: Words(0,0).cardinality()
             1
-            sage: Words(5,0).count()
+            sage: Words(5,0).cardinality()
             1
-            sage: Words(['a','b','c'],0).count()
+            sage: Words(['a','b','c'],0).cardinality()
             1
-            sage: Words(0,1).count()
+            sage: Words(0,1).cardinality()
             0
-            sage: Words(5,1).count()
+            sage: Words(5,1).cardinality()
             5
-            sage: Words(['a','b','c'],1).count()
+            sage: Words(['a','b','c'],1).cardinality()
             3
-            sage: Words(7,13).count()
+            sage: Words(7,13).cardinality()
             96889010407L               # 32-bit
             96889010407                # 64-bit
-            sage: Words(['a','b','c','d','e','f','g'],13).count()
+            sage: Words(['a','b','c','d','e','f','g'],13).cardinality()
             96889010407L               # 32-bit
             96889010407                # 64-bit
         """
-        n = len(self.alphabet())
+        n = self.size_of_alphabet()
         return n**self._length
 
-    def iterator(self):
+    def __iter__(self):
         """
         Returns an iterator for all of the words of length k from
         self.alphabet(). The iterator outputs the words in lexicographic
@@ -806,6 +801,6 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             []
         """
         if length == self._length:
-            return self.iterator()
+            return iter(self)
         else:
             return iter([])

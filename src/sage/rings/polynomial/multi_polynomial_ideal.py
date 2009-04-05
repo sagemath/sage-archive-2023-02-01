@@ -963,7 +963,7 @@ class MPolynomialIdeal_singular_repr:
                     # the way Sage currently operates
                     all_J = Set([each + 1 for each in range(n)]).subsets()
                     min_dimension = -1
-                    all_J = all_J.iterator()
+                    all_J = iter(all_J)
                     while min_dimension == -1:
                         try:
                             J = all_J.next()

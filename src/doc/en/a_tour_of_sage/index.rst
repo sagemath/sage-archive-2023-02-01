@@ -129,7 +129,7 @@ partition one hundred million as a sum of positive integers.
 
 ::
 
-    sage: z = Partitions(10^8).count() #about 4.5 seconds
+    sage: z = Partitions(10^8).cardinality() #about 4.5 seconds
     sage: str(z)[:40]
     '1760517045946249141360373894679135204009'
 

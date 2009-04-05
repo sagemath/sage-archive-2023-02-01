@@ -131,11 +131,11 @@ class Subwords_w(CombinatorialClass):
             return True
         return False
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Subwords([1,2,3]).count()
+            sage: Subwords([1,2,3]).cardinality()
             8
         """
         return 2**len(self.w)
@@ -158,7 +158,7 @@ class Subwords_w(CombinatorialClass):
         """
         return self.w
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         EXAMPLES::
 
@@ -213,13 +213,13 @@ class Subwords_wk(CombinatorialClass):
             return True
         return False
 
-    def count(self):
+    def cardinality(self):
         r"""
         Returns the number of subwords of w of length k.
 
         EXAMPLES::
 
-            sage: Subwords([1,2,3], 2).count()
+            sage: Subwords([1,2,3], 2).cardinality()
             3
         """
         w = self.w
@@ -250,7 +250,7 @@ class Subwords_wk(CombinatorialClass):
 
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -266,7 +266,7 @@ class Subwords_wk(CombinatorialClass):
             return itertools.repeat([],1)
 
         #Case 2: build a generator for the subwords of length k
-        gen = combination.Combinations(range(len(w)), k).iterator()
+        gen = iter(combination.Combinations(range(len(w)), k))
         return itertools.imap(lambda subword: [w[x] for x in subword], gen)
 
 

@@ -85,7 +85,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
                 return False
         return len(wx) == 0
 
-    def count(self):
+    def cardinality(self):
         """
          Returns the number of words in the shuffle product of w1 and w2.
 
@@ -96,7 +96,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
              sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
              sage: w, u = map(Words("abcd"), ["ab", "cd"])
              sage: S = ShuffleProduct_w1w2(w,u)
-             sage: S.count()
+             sage: S.cardinality()
              6
          """
         return binomial(len(self._w1)+len(self._w2), len(self._w1))
@@ -125,7 +125,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
                 res.append(self._w2[i2])
         return self._w1.parent()(res)
 
-    def iterator(self):
+    def __iter__(self):
         """
         Returns an iterator for the words in the shuffle product of w1 and
         w2.
@@ -194,7 +194,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         """
         return "Overlapping shuffle product of %s and %s with %s overlaps"%(self._w1, self._w2, self.r)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -270,7 +270,7 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         """
         return "Overlapping shuffle product of %s and %s"%(self._w1, self._w2)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 

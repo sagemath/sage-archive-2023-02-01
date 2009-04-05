@@ -67,7 +67,7 @@ EXAMPLES: There are 9 skew partitions of size 3.
 
 ::
 
-    sage: SkewPartitions(3).count()
+    sage: SkewPartitions(3).cardinality()
     9
     sage: SkewPartitions(3).list()
     [[[1, 1, 1], []],
@@ -84,7 +84,7 @@ There are 4 connected skew partitions of size 3.
 
 ::
 
-    sage: SkewPartitions(3, overlap=1).count()
+    sage: SkewPartitions(3, overlap=1).cardinality()
     4
     sage: SkewPartitions(3, overlap=1).list()
     [[[1, 1, 1], []], [[2, 2], [1]], [[2, 1], []], [[3], []]]
@@ -611,7 +611,7 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
 
         sage: SkewPartitions(4)
         Skew partitions of 4
-        sage: SkewPartitions(4).count()
+        sage: SkewPartitions(4).cardinality()
         28
         sage: SkewPartitions(row_lengths=[2,1,2])
         Skew partitions with row lengths [2, 1, 2]
@@ -825,24 +825,24 @@ class SkewPartitions_n(CombinatorialClass):
 
         return result
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of skew partitions of the integer n.
 
         EXAMPLES::
 
-            sage: SkewPartitions(0).count()
+            sage: SkewPartitions(0).cardinality()
             1
-            sage: SkewPartitions(4).count()
+            sage: SkewPartitions(4).cardinality()
             28
-            sage: SkewPartitions(5).count()
+            sage: SkewPartitions(5).cardinality()
             87
-            sage: SkewPartitions(4, overlap=1).count()
+            sage: SkewPartitions(4, overlap=1).cardinality()
             9
-            sage: SkewPartitions(5, overlap=1).count()
+            sage: SkewPartitions(5, overlap=1).cardinality()
             20
             sage: s = SkewPartitions(5, overlap=-1)
-            sage: s.count() == len(s.list())
+            sage: s.cardinality() == len(s.list())
             True
         """
         n = self.n

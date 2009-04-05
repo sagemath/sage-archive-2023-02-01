@@ -4005,7 +4005,7 @@ class A000041(SloaneSequence):
             sage: [sloane.A000041._eval(n) for n in range(1,11)]
             [1, 2, 3, 5, 7, 11, 15, 22, 30, 42]
         """
-        return partition.Partitions(n).count()
+        return partition.Partitions(n).cardinality()
 
 
 

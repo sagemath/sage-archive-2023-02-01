@@ -73,7 +73,7 @@ class Tuples_sk(CombinatorialClass):
         """
         return "Tuples of %s of length %s"%(self.S, self.k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -104,15 +104,15 @@ class Tuples_sk(CombinatorialClass):
                 y.append(s)
                 yield y
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: S = [1,2,3,4,5]
-            sage: Tuples(S,2).count()
+            sage: Tuples(S,2).cardinality()
             25
             sage: S = [1,1,2,3,4,5]
-            sage: Tuples(S,2).count()
+            sage: Tuples(S,2).cardinality()
             25
         """
         ans=gap.eval("NrTuples(%s,%s)"%(self._index_list,ZZ(self.k)))
@@ -175,12 +175,12 @@ class UnorderedTuples_sk(CombinatorialClass):
         ans=gap.eval("UnorderedTuples(%s,%s)"%(self._index_list,ZZ(self.k)))
         return map(lambda l: map(lambda i: self.S[i], l), eval(ans))
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: S = [1,2,3,4,5]
-            sage: UnorderedTuples(S,2).count()
+            sage: UnorderedTuples(S,2).cardinality()
             15
         """
         ans=gap.eval("NrUnorderedTuples(%s,%s)"%(self._index_list,ZZ(self.k)))

@@ -26,7 +26,7 @@ import copy
 import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
 import __builtin__
 from sage.combinat.words.words import Words
 
@@ -1548,11 +1548,11 @@ class Tableaux_all(CombinatorialClass):
         """
         raise NotImplementedError
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
-            sage: Tableaux().iterator()
+            sage: iter(Tableaux())
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -1603,11 +1603,11 @@ class Tableaux_n(CombinatorialClass):
         """
         raise NotImplementedError
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
-            sage: Tableaux(3).iterator()
+            sage: iter(Tableaux(3))
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -1629,7 +1629,7 @@ def StandardTableaux(n=None):
         [[1, 2, 3]]
         sage: ST.last()
         [[1], [2], [3]]
-        sage: ST.count()
+        sage: ST.cardinality()
         4
         sage: ST.list()
         [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
@@ -1642,7 +1642,7 @@ def StandardTableaux(n=None):
         [[1, 3], [2, 4]]
         sage: ST.last()
         [[1, 2], [3, 4]]
-        sage: ST.count()
+        sage: ST.cardinality()
         2
         sage: ST.list()
         [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
@@ -1654,7 +1654,7 @@ def StandardTableaux(n=None):
     else:
         return StandardTableaux_n(n)
 
-class StandardTableaux_all(CombinatorialClass):
+class StandardTableaux_all(InfiniteAbstractCombinatorialClass):
     def __init__(self):
         """
         TESTS::
@@ -1713,16 +1713,19 @@ class StandardTableaux_all(CombinatorialClass):
         """
         return "Standard tableaux"
 
-    def list(self):
+    def _infinite_cclass_slice(self, n):
         """
+        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+
         TESTS::
 
-            sage: StandardTableaux().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: StandardTableaux()._infinite_cclass_slice(4) == StandardTableaux(4)
+            True
+            sage: it = iter(StandardTableaux())    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [[1]], [[1, 2]], [[1], [2]], [[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]], [[1, 2, 3, 4]], [[1, 3, 4], [2]]]
         """
-        raise NotImplementedError
+        return StandardTableaux_n(n)
 
 
 class StandardTableaux_n(CombinatorialClass):
@@ -1760,17 +1763,17 @@ class StandardTableaux_n(CombinatorialClass):
         """
         return x in StandardTableaux() and sum(map(len, x)) == self.n
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: StandardTableaux(1).list()
+            sage: [ t for t in StandardTableaux(1) ]
             [[[1]]]
-            sage: StandardTableaux(2).list()
+            sage: [ t for t in StandardTableaux(2) ]
             [[[1, 2]], [[1], [2]]]
-            sage: StandardTableaux(3).list()
+            sage: [ t for t in StandardTableaux(3) ]
             [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
-            sage: StandardTableaux(4).list()
+            sage: [ t for t in StandardTableaux(4) ]
             [[[1, 2, 3, 4]],
              [[1, 3, 4], [2]],
              [[1, 2, 4], [3]],
@@ -1786,20 +1789,20 @@ class StandardTableaux_n(CombinatorialClass):
             for st in StandardTableaux(p):
                 yield st
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: StandardTableaux(3).count()
+            sage: StandardTableaux(3).cardinality()
             4
             sage: ns = [1,2,3,4,5,6]
             sage: sts = [StandardTableaux(n) for n in ns]
-            sage: all([st.count() == len(st.list()) for st in sts])
+            sage: all([st.cardinality() == len(st.list()) for st in sts])
             True
         """
         c = 0
         for p in partition.Partitions(self.n):
-            c += StandardTableaux(p).count()
+            c += StandardTableaux(p).cardinality()
         return c
 
 
@@ -1823,7 +1826,7 @@ class StandardTableaux_partition(CombinatorialClass):
             True
             sage: len(filter(lambda x: x in ST, StandardTableaux(4)))
             3
-            sage: ST.count()
+            sage: ST.cardinality()
             3
         """
         return x in StandardTableaux() and map(len,x) == self.p
@@ -1837,7 +1840,7 @@ class StandardTableaux_partition(CombinatorialClass):
         """
         return "Standard tableaux of shape %s"%str(self.p)
 
-    def count(self):
+    def cardinality(self):
         r"""
         Returns the number of standard Young tableaux associated with a
         partition pi
@@ -1866,13 +1869,13 @@ class StandardTableaux_partition(CombinatorialClass):
 
         EXAMPLES::
 
-            sage: StandardTableaux([3,2,1]).count()
+            sage: StandardTableaux([3,2,1]).cardinality()
             16
-            sage: StandardTableaux([2,2]).count()
+            sage: StandardTableaux([2,2]).cardinality()
             2
-            sage: StandardTableaux([5]).count()
+            sage: StandardTableaux([5]).cardinality()
             1
-            sage: StandardTableaux([6,5,5,3]).count()
+            sage: StandardTableaux([6,5,5,3]).cardinality()
             6651216
 
         REFERENCES:
@@ -1891,16 +1894,16 @@ class StandardTableaux_partition(CombinatorialClass):
 
         return number
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         An iterator for the standard Young tableaux associated to the
         partition pi.
 
         EXAMPLES::
 
-            sage: [p for p in StandardTableaux([2,2])]
+            sage: [t for t in StandardTableaux([2,2])]
             [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
-            sage: [p for p in StandardTableaux([3,2])]
+            sage: [t for t in StandardTableaux([3,2])]
             [[[1, 3, 5], [2, 4]],
              [[1, 2, 5], [3, 4]],
              [[1, 3, 4], [2, 5]],
@@ -1927,7 +1930,7 @@ class StandardTableaux_partition(CombinatorialClass):
 
         yield Tableau(tableau)
 
-        if self.count() == 1:
+        if self.cardinality() == 1:
             last_tableau = True
         else:
             last_tableau = False
@@ -2271,31 +2274,31 @@ class SemistandardTableaux_n(CombinatorialClass):
 
     object_class = Tableau_class
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux(3).count()
+            sage: SemistandardTableaux(3).cardinality()
             19
-            sage: SemistandardTableaux(4).count()
+            sage: SemistandardTableaux(4).cardinality()
             116
             sage: ns = range(1, 6)
             sage: ssts = [ SemistandardTableaux(n) for n in ns ]
-            sage: all([sst.count() == len(sst.list()) for sst in ssts])
+            sage: all([sst.cardinality() == len(sst.list()) for sst in ssts])
             True
         """
         c = 0
         for part in partition.Partitions(self.n):
-            c += SemistandardTableaux(part).count()
+            c += SemistandardTableaux(part).cardinality()
         return c
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux(2).list()
+            sage: [ t for t in SemistandardTableaux(2) ]
             [[[1, 1]], [[1, 2]], [[2, 2]], [[1], [2]]]
-            sage: SemistandardTableaux(3).list()
+            sage: [ t for t in SemistandardTableaux(3) ]
             [[[1, 1, 1]],
              [[1, 1, 2]],
              [[1, 1, 3]],
@@ -2352,7 +2355,7 @@ class SemistandardTableaux_pmu(CombinatorialClass):
             True
             sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
             1
-            sage: SST.count()
+            sage: SST.cardinality()
             1
         """
         if not x in SemistandardTableaux(self.p):
@@ -2377,17 +2380,17 @@ class SemistandardTableaux_pmu(CombinatorialClass):
         return True
 
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux([2,2], [2, 1, 1]).count()
+            sage: SemistandardTableaux([2,2], [2, 1, 1]).cardinality()
             1
-            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).count()
+            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).cardinality()
             1
-            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).count()
+            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).cardinality()
             1
-            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).count()
+            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).cardinality()
             2
         """
         return symmetrica.kostka_number(self.p,self.mu)
@@ -2431,7 +2434,7 @@ class SemistandardTableaux_p(CombinatorialClass):
             True
             sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
             8
-            sage: SST.count()
+            sage: SST.cardinality()
             8
         """
         return x in SemistandardTableaux_all() and map(len, x) == self.p
@@ -2445,34 +2448,34 @@ class SemistandardTableaux_p(CombinatorialClass):
         """
         return "Semistandard tableaux of shape %s" % str(self.p)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux([2,1]).count()
+            sage: SemistandardTableaux([2,1]).cardinality()
             8
-            sage: SemistandardTableaux([2,2,1]).count()
+            sage: SemistandardTableaux([2,2,1]).cardinality()
             75
             sage: s = SFASchur(QQ)
             sage: s([2,2,1]).expand(5)(1,1,1,1,1)
             75
-            sage: SemistandardTableaux([5]).count()
+            sage: SemistandardTableaux([5]).cardinality()
             126
-            sage: SemistandardTableaux([3,2,1]).count()
+            sage: SemistandardTableaux([3,2,1]).cardinality()
             896
         """
         c = 0
         for comp in IntegerVectors(sum(self.p), sum(self.p)):
-            c += SemistandardTableaux_pmu(self.p, comp).count()
+            c += SemistandardTableaux_pmu(self.p, comp).cardinality()
         return c
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for the semistandard partitions of shape p.
 
         EXAMPLES::
 
-            sage: SemistandardTableaux([3]).list()
+            sage: [ t for t in SemistandardTableaux([3]) ]
             [[[1, 1, 1]],
              [[1, 1, 2]],
              [[1, 1, 3]],
@@ -2483,7 +2486,7 @@ class SemistandardTableaux_p(CombinatorialClass):
              [[2, 2, 3]],
              [[2, 3, 3]],
              [[3, 3, 3]]]
-            sage: SemistandardTableaux([2,1]).list()
+            sage: [ t for t in SemistandardTableaux([2,1]) ]
             [[[1, 1], [2]],
              [[1, 1], [3]],
              [[1, 2], [2]],
@@ -2492,7 +2495,7 @@ class SemistandardTableaux_p(CombinatorialClass):
              [[1, 3], [3]],
              [[2, 2], [3]],
              [[2, 3], [3]]]
-            sage: SemistandardTableaux([1,1,1]).list()
+            sage: [ t for t in SemistandardTableaux([1,1,1]) ]
             [[[1], [2], [3]]]
         """
         for c in IntegerVectors(sum(self.p), sum(self.p)):
@@ -2520,31 +2523,31 @@ class SemistandardTableaux_nmu(CombinatorialClass):
         """
         return "Semistandard tableaux of size %s and evaluation %s"%(self.n, self.mu)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux(3, [2,1]).list()
+            sage: [ t for t in SemistandardTableaux(3, [2,1]) ]
             [[[1, 1, 2]], [[1, 1], [2]]]
-            sage: SemistandardTableaux(4, [2,2]).list()
+            sage: [ t for t in SemistandardTableaux(4, [2,2]) ]
             [[[1, 1, 2, 2]], [[1, 1, 2], [2]], [[1, 1], [2, 2]]]
         """
         for p in partition.Partitions(self.n):
             for sst in SemistandardTableaux_pmu(p, self.mu):
                 yield sst
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SemistandardTableaux(3, [2,1]).count()
+            sage: SemistandardTableaux(3, [2,1]).cardinality()
             2
-            sage: SemistandardTableaux(4, [2,2]).count()
+            sage: SemistandardTableaux(4, [2,2]).cardinality()
             3
         """
         c = 0
         for p in partition.Partitions(self.n):
-            c += SemistandardTableaux_pmu(p, self.mu).count()
+            c += SemistandardTableaux_pmu(p, self.mu).cardinality()
         return c
 
     def __contains__(self, x):

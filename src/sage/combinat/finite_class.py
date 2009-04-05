@@ -26,7 +26,7 @@ def FiniteCombinatorialClass(l):
         sage: F = FiniteCombinatorialClass([1,2,3])
         sage: F.list()
         [1, 2, 3]
-        sage: F.count()
+        sage: F.cardinality()
         3
         sage: F.random_element()
         1
@@ -96,12 +96,12 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
         """
         return self.l
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
-            sage: F.count()
+            sage: F.cardinality()
             3
         """
         return len(self.l)

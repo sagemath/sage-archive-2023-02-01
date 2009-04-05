@@ -90,23 +90,26 @@ class CartesianProduct_iters(CombinatorialClass):
         """
         return "Cartesian product of " + ", ".join(map(str, self.iters))
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of elements in the cartesian product of
         everything in \*iters.
 
         EXAMPLES::
 
-            sage: CartesianProduct(range(2), range(3)).count()
+            sage: CartesianProduct(range(2), range(3)).cardinality()
             6
-            sage: CartesianProduct(range(2), xrange(3)).count()
+            sage: CartesianProduct(range(2), xrange(3)).cardinality()
             6
-            sage: CartesianProduct(range(2), xrange(3), xrange(4)).count()
+            sage: CartesianProduct(range(2), xrange(3), xrange(4)).cardinality()
             24
         """
         total = 1
         for it in self.iters:
-            total *= len(it)
+            try:
+                total *= len(it) # may not work when it is a CClass.
+            except AttributeError:
+                total *= it.cardinality()
         return total
 
 
@@ -129,10 +132,10 @@ class CartesianProduct_iters(CombinatorialClass):
              ['g', 'a'],
              ['g', 't']]
         """
-        return [e for e in self.iterator()]
+        return [e for e in self]
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for the elements in the cartesian product of the
         iterables \*iters.

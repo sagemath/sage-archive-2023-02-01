@@ -72,7 +72,7 @@ class SplitNK_nk(CombinatorialClass):
         """
         return "Splits of {0, ..., %s} into a set of size %s and one of size %s"%(self._n-1, self._k, self._n-self._k)
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of choices of set partitions of range(n) into a
         set of size k and a set of size n-k.
@@ -80,12 +80,12 @@ class SplitNK_nk(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.split_nk import SplitNK
-            sage: SplitNK(5,2).count()
+            sage: SplitNK(5,2).cardinality()
             10
         """
         return binomial(self._n,self._k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all set partitions of range(n) into a set of size k
         and a set of size n-k in lexicographic order.

@@ -147,7 +147,7 @@
       </td>
 
       <td class="worksheet_link">
-	<a title="{{ worksheet.name() | escape }}" id="name/{{ name }}" class="worksheetname" href="/home/{{ name }}">
+	<a title="{{ worksheet.name() | escape }}" id="name/{{ name }}" class="worksheetname" target="_blank" href="/home/{{ name }}">
 	{% if worksheet.compute_process_has_been_started() %}(running) {% endif %}
 	{{ worksheet.truncated_name(35) | escape}}
 	</a>

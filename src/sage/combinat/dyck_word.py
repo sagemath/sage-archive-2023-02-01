@@ -6,6 +6,8 @@ AUTHORS:
 - Mike Hansen
 
 - Dan Drake (2008-05-30): DyckWordBacktracker support
+
+- Florent Hivert (2009-02-01): Bijections with NonDecreasingParkingFunctions
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -230,6 +232,8 @@ class DyckWord_class(CombinatorialObject):
 
         EXAMPLES::
 
+            sage: DyckWord([]).to_noncrossing_partition()
+            []
             sage: DyckWord([1, 0]).to_noncrossing_partition()
             [[1]]
             sage: DyckWord([1, 1, 0, 0]).to_noncrossing_partition()
@@ -296,6 +300,83 @@ class DyckWord_class(CombinatorialObject):
             NotImplementedError: TODO
         """
         raise NotImplementedError, "TODO"
+
+    def to_non_decreasing_parking_function(self):
+        """
+        Bijection to :class:`non decreasing parking
+        functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`. See
+        there the method
+        :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
+        for more informations.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).to_non_decreasing_parking_function()
+            []
+            sage: DyckWord([1,0]).to_non_decreasing_parking_function()
+            [1]
+            sage: DyckWord([1,1,0,0]).to_non_decreasing_parking_function()
+            [1, 1]
+            sage: DyckWord([1,0,1,0]).to_non_decreasing_parking_function()
+            [1, 2]
+            sage: DyckWord([1,0,1,1,0,1,0,0,1,0]).to_non_decreasing_parking_function()
+            [1, 2, 2, 3, 5]
+
+        TESTS::
+
+            sage: ld=DyckWords(5);
+            sage: list(ld) == [dw.to_non_decreasing_parking_function().to_dyck_word() for dw in ld]
+            True
+        """
+        from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
+        return NonDecreasingParkingFunction.from_dyck_word(self)
+
+    @classmethod
+    def from_non_decreasing_parking_function(cls, pf):
+        """
+        Bijection from :class:`non decreasing parking
+        functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`. See
+        there the method
+        :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
+        for more informations.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.dyck_word import DyckWord_class
+        sage: DyckWord_class.from_non_decreasing_parking_function([])
+        []
+        sage: DyckWord_class.from_non_decreasing_parking_function([1])
+        [1, 0]
+        sage: DyckWord_class.from_non_decreasing_parking_function([1,1])
+        [1, 1, 0, 0]
+        sage: DyckWord_class.from_non_decreasing_parking_function([1,2])
+        [1, 0, 1, 0]
+        sage: DyckWord_class.from_non_decreasing_parking_function([1,1,1])
+        [1, 1, 1, 0, 0, 0]
+        sage: DyckWord_class.from_non_decreasing_parking_function([1,2,3])
+        [1, 0, 1, 0, 1, 0]
+        sage: DyckWord_class.from_non_decreasing_parking_function([1,1,3,3,4,6,6])
+        [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
+
+    TESTS::
+
+        sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([]))
+        []
+        sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([1,1,3,3,4,6,6]))
+        [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
+        """
+        from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
+        if isinstance(pf, NonDecreasingParkingFunction):
+            pf = pf._list[:]
+        else:
+            pf = pf[:]
+        pf.append(len(pf)+1)
+        res = []
+        for i in range(len(pf)-1):
+            res.extend([1]+([0]*(pf[i+1]-pf[i])))
+        return cls(res)
+
+
 
     def peaks(self):
         r"""
@@ -832,8 +913,6 @@ class DyckWords_size(CombinatorialClass):
 
 
 
-
-
 def is_a_prefix(obj, k1 = None, k2 = None):
     """
     If k1 is specified, then the object must have exactly k1 open
@@ -961,3 +1040,4 @@ def from_ordered_tree(tree):
         NotImplementedError: TODO
     """
     raise NotImplementedError, "TODO"
+

@@ -25,6 +25,7 @@ Combinatorics
    ../sage/combinat/matrices/latin
    ../sage/combinat/lyndon_word
    ../sage/combinat/necklace
+   ../sage/combinat/non_decreasing_parking_function
    ../sage/combinat/partition
    ../sage/combinat/permutation
    ../sage/combinat/q_analogues

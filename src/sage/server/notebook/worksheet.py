@@ -1847,6 +1847,9 @@ class Worksheet:
         filename = '%s/%s.bz2'%(path, basename)
         if E is None:
             E = self.edit_text()
+        if open('%s/worksheet.txt'%self.__dir).read() == E:
+            # we already wrote it out...
+            return
         open(filename, 'w').write(bz2.compress(E))
         open('%s/worksheet.txt'%self.__dir, 'w').write(E)
         try:
@@ -1874,11 +1877,7 @@ class Worksheet:
         t = time.time()
         if t - last >= self.user_autosave_interval(username):
             self.__last_autosave = t
-            current = self.edit_text()
-            filename = '%s/worksheet.txt'%(self.__dir)
-            old = open(filename).read()
-            if not current == old:
-                self.save_snapshot(username, current)
+            self.save_snapshot(username, current)
 
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()

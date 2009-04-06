@@ -95,9 +95,12 @@ fi
 
 if [ "$UNAME" != "Darwin" ]; then
     echo "Working around a MPIR 1.0.0.rc7 buglet"
+    CUR=`pwd`
+    cd "$SAGE_LOCAL/lib"
     ln -s libmpirxx.so libgmpxx.so
     ln -s libmpirxx.so.3 libgmpxx.so.3
     ln -s libmpirxx.so.3.1.1 libgmpxx.so.3.1.1
+    cd "$CUR"
 fi
 
 #uncomment the line below to avoid running the test suite.

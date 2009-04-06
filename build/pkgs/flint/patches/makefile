@@ -133,10 +133,10 @@ all: QS tune test profile examples
 library: $(FLINT_LIB)
 
 libflint.dylib: $(FLINTOBJ)
-	$(CC) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
+	$(CPP) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
 
 libflint.dylib64: $(FLINTOBJ)
-	$(CC) -m64 -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
+	$(CPP) -m64 -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
 
 libflint.dll: $(FLINTOBJ)
 	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)

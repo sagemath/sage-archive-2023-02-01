@@ -103,7 +103,7 @@ SYMBOLIC FUNCTIONAL NOTATION:
 
 This involves an =-, but should still be turned into a symbolic expression:
     sage: preparse('a(x) =- 5')
-    '_ = var("x"); a = symbolic_expression(- Integer(5)).function(x)'
+    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -619,7 +619,7 @@ def preparse_calculus(code):
     Support for calculus-like function assignment, the line
     "f(x,y,z) = sin(x^3 - 4*y) + y^x"
     gets turnd into
-    '_ = var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
+    '__tmp__=var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
 
     AUTHORS:
         -- Bobby Moretti: initial version - 02/2007
@@ -628,22 +628,22 @@ def preparse_calculus(code):
 
     EXAMPLES:
         sage: preparse("f(x) = x^3-x")
-        '_ = var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '_ = var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
         sage: preparse("f(x) =-5")
-        '_ = var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '_ = var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end with a semicolon.
         sage: from sage.misc.preparser import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
-        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
-        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
     """
     new_code = []
     last_end = 0
@@ -652,7 +652,7 @@ def preparse_calculus(code):
         ident, func, vars, expr = m.groups()
         vars = ','.join(v.strip() for v in vars.split(','))
         new_code.append(code[last_end:m.start()])
-        new_code.append(';%s_ = var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
+        new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
         last_end = m.end()
 
     if last_end == 0:

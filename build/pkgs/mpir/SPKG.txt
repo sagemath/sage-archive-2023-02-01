@@ -26,7 +26,10 @@ MPIR is a fork of GMP. See www.mpir.org
 
 == Changelog ==
 
-=== gmp-mpir-1.0.rc4 (Michael Abshoff, April 1st, 2009)
+=== gmp-mpir-1.0.rc7 (Michael Abshoff, April 5th, 2009) ===
+ * Update to the latest MPIR 1.0 release candidate
+
+=== gmp-mpir-1.0.rc4 (Michael Abshoff, April 1st, 2009) ===
  * Update to the latest MPIR 1.0 release candidate
  * remove some 1.0.rc4 workaround again since it was fixed upstream
 

@@ -758,11 +758,9 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             sage: Words(['a','b','c'],1).cardinality()
             3
             sage: Words(7,13).cardinality()
-            96889010407L               # 32-bit
-            96889010407                # 64-bit
+            96889010407
             sage: Words(['a','b','c','d','e','f','g'],13).cardinality()
-            96889010407L               # 32-bit
-            96889010407                # 64-bit
+            96889010407
         """
         n = self.size_of_alphabet()
         return n**self._length

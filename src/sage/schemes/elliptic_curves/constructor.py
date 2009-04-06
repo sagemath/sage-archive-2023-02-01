@@ -366,20 +366,36 @@ def EllipticCurve_from_j(j):
 
 def EllipticCurve_from_cubic(F, P):
     r"""
-    Given a nonsingular homogenous cubic polynomial F over
-    `\QQ` in three variables x, y, z and a projective solution
-    P=[a,b,c] to F(P)=0, find the minimal Weierstrass equation of the
-    elliptic curve over `\QQ` that is isomorphic to the curve
-    defined by `F=0`.
+    Construct an elliptic curve from a ternary cubic with a rational point.
+
+    INPUT:
+
+    - ``F`` -- a homogeneous cubic in three variables with rational
+      coefficients (either as a polynomial ring element or as a
+      string) defining a smooth plane cubic curve.
+
+    - ``P`` -- a 3-tuple `(x,y,z)` defining a projective point on the
+      curve `F=0`.
+
+    OUTPUT:
+
+    (elliptic curve) An elliptic curve (in minimal Weierstrass form)
+    isomorphic to the curve `F=0`.
 
     .. note::
 
        USES MAGMA - This function will not work on computers that
-       do not have magma installed. (HELP WANTED - somebody implement this
-       independent of MAGMA.)
+       do not have magma installed.
 
-    EXAMPLES: First we find that the Fermat cubic is isomorphic to the
-    curve with Cremona label 27a1::
+    TO DO: implement this without using MAGMA.
+
+    For a more general version, see the function
+    ``EllipticCurve_from_plane_curve()``.
+
+    EXAMPLES:
+
+    First we find that the Fermat cubic is isomorphic to the curve
+    with Cremona label 27a1::
 
         sage: E = EllipticCurve_from_cubic('x^3 + y^3 + z^3', [1,-1,0])  # optional - magma
         sage: E         # optional - magma
@@ -392,16 +408,82 @@ def EllipticCurve_from_cubic(F, P):
 
     ::
 
-        sage: E = EllipticCurve_from_cubic('x^3 + y^3 + 60*z^3', [1,-1,0])   # optional - magma
+        sage: E = EllipticCurve_from_cubic('u^3 + v^3 + 60*w^3', [1,-1,0])   # optional - magma
         sage: E                # optional - magma
         Elliptic Curve defined by y^2  = x^3 - 24300 over Rational Field
         sage: E.conductor()    # optional - magma
         24300
     """
     from sage.interfaces.all import magma
-    magma.eval("P<x,y,z> := ProjectivePlane(RationalField());")
+    cmd = "P<%s,%s,%s> := ProjectivePlane(RationalField());"%SR(F).variables()
+    magma.eval(cmd)
     cmd = 'aInvariants(MinimalModel(EllipticCurve(Curve(Scheme(P, %s)),P!%s)));'%(F, P)
     s = magma.eval(cmd)
+    return EllipticCurve(rings.RationalField(), eval(s))
+
+def EllipticCurve_from_plane_curve(C, P):
+    r"""
+    Construct an elliptic curve from a smooth plane cubic with a rational point.
+
+    INPUT:
+
+    - ``C`` -- a plane curve of genus one.
+
+    - ``P`` -- a 3-tuple `(x,y,z)` defining a projective point on the
+      curve ``C``.
+
+    OUTPUT:
+
+    (elliptic curve) An elliptic curve (in minimal Weierstrass form)
+    isomorphic to ``C``.
+
+
+    .. note::
+
+       USES MAGMA - This function will not work on computers that
+       do not have magma installed.
+
+    TO DO: implement this without using MAGMA.
+
+    EXAMPLES:
+
+    First we check that the Fermat cubic is isomorphic to the curve
+    with Cremona label '27a1'::
+
+        sage: x,y,z=PolynomialRing(QQ,3,'xyz').gens() # optional - magma
+        sage: C=Curve(x^3+y^3+z^3) # optional - magma
+        sage: P=C(1,-1,0) # optional - magma
+        sage: E=EllipticCurve_from_plane_curve(C,P) # optional - magma
+        sage: E # optional - magma
+        Elliptic Curve defined by y^2 + y = x^3 - 7 over Rational Field
+        sage: E.label() # optional - magma
+        '27a1'
+
+    Now we try a quartic example::
+
+        sage: u,v,w=PolynomialRing(QQ,3,'uvw').gens() # optional - magma
+        sage: C=Curve(u^4+u^2*v^2-w^4) # optional - magma
+        sage: P=C(1,0,1) # optional - magma
+        sage: E=EllipticCurve_from_plane_curve(C,P) # optional - magma
+        sage: E # optional - magma
+        Elliptic Curve defined by y^2  = x^3 + 4*x over Rational Field
+        sage: E.label() # optional - magma
+        '32a1'
+
+	"""
+    from sage.interfaces.all import magma
+    if C.genus()!=1:
+        raise TypeError, "The curve C must have genus 1"
+    elif P.parent()!=C.point_set(C.base_ring()):
+        raise TypeError, "The point P must be on the curve C"
+    dp=C.defining_polynomial()
+    x,y,z = dp.parent().variable_names()
+    cmd = "PR<%s,%s,%s>:=ProjectivePlane(RationalField());"%(x,y,z)
+    magma.eval(cmd)
+    cmd = 'CC:=Curve(PR, %s);'%(dp)
+    magma.eval(cmd)
+    cmd='aInvariants(MinimalModel(EllipticCurve(CC,CC!%s)));'%([P[0],P[1],P[2]])
+    s=magma.eval(cmd)
     return EllipticCurve(rings.RationalField(), eval(s))
 
 def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False):
@@ -448,7 +530,8 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         sage: ', '.join([e.label() for e in elist])
         '32a1, 32a2, 32a3, 32a4, 64a1, 64a2, 64a3, 64a4, 128a1, 128a2, 128b1, 128b2, 128c1, 128c2, 128d1, 128d2, 256a1, 256a2, 256b1, 256b2, 256c1, 256c2, 256d1, 256d2'
 
-    # Without the "Proof=False", this example gives two warnings:
+    Without the "Proof=False", this example gives two warnings::
+
         sage: elist = EllipticCurves_with_good_reduction_outside_S([11],proof=False)
         sage: len(elist)
         12

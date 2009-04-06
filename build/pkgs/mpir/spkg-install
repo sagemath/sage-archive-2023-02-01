@@ -58,7 +58,7 @@ build()
 
     export ABI CFLAGS CXXFLAGS
 
-    ./configure --prefix=$SAGE_LOCAL --enable-gmplink --enable-cxx=yes  $SAGE_CONF_OPTS
+    ./configure --prefix="$SAGE_LOCAL" --enable-gmplink --enable-cxx=yes  $SAGE_CONF_OPTS
     if [ $? -ne 0 ]; then
         echo "Failed to configure."
 	exit 1
@@ -71,8 +71,8 @@ build()
     fi
 
     echo "Removing old headers and libraries"
-    rm -f $SAGE_LOCAL/include/mpir*.h $SAGE_LOCAL/include/gmp*.h
-    rm -f $SAGE_LOCAL/lib/libmpir* $SAGE_LOCAL/lib/libgmp*
+    rm -f "$SAGE_LOCAL"/include/mpir*.h "$SAGE_LOCAL"/include/gmp*.h
+    rm -f "$SAGE_LOCAL"/lib/libmpir* "$SAGE_LOCAL"/lib/libgmp*
 
     $MAKE install
     if [ $? -ne 0 ]; then
@@ -91,6 +91,13 @@ build
 if ! [ $? -eq 0 ]; then
     echo "Failed to build shared GMP library."
     exit 1
+fi
+
+if [ "$UNAME" != "Darwin" ]; then
+    echo "Working around a MPIR 1.0.0.rc7 buglet"
+    ln -s libmpirxx.so libgmpxx.so
+    ln -s libmpirxx.so.3 libgmpxx.so.3
+    ln -s libmpirxx.so.3.1.1 libgmpxx.so.3.1.1
 fi
 
 #uncomment the line below to avoid running the test suite.

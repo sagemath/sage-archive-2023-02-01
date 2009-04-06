@@ -1209,7 +1209,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         coordinates of the result are independent of the chosen Weierstrass equation.
 
         NOTE: The definition here is corrected with repect to Perrin-Riou's article [PR]_
-        .. [PR] Arithmétique des courbes elliptiques à réduction supersingulière en `p`'.
+        .. [PR] Arithmetique des courbes elliptiques a reduction supersinguliere en `p`'.
 
 
         EXAMPLES::

@@ -385,3 +385,106 @@ def EllipticCurve_from_cubic(F, P):
     s = magma.eval(cmd)
     return EllipticCurve(rings.RationalField(), eval(s))
 
+def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False):
+    r"""
+    Returns a sorted list of all elliptic curves defined over `Q`
+    with good reduction outside the set `S` of primes.
+
+    INPUT:
+
+        -  ``S`` - list of primes (default: empty list).
+
+        - ``proof`` - True/False (default True): the MW basis for
+          auxiliary curves will be computed with this proof flag.
+
+        - ``verbose`` - True/False (default False): if True, some
+          details of the computation will be output.
+
+    .. note::
+
+        Proof flag: The algorithm used requires determining all
+        S-integral points on several auxiliary curves, which in turn
+        requires the computation of their generators.  This is not
+        always possible (even in theory) using current knowledge.
+
+        The value of this flag is passed to the function which
+        computes generators of various auxiliary elliptic curves, in
+        order to find their S-integral points.  Set to False if the
+        default (True) causes warning messages, but note that you can
+        then not rely on the set of curves returned being
+        complete.
+
+    EXAMPLES::
+
+        sage: EllipticCurves_with_good_reduction_outside_S([])
+        []
+        sage: elist = EllipticCurves_with_good_reduction_outside_S([2])
+        sage: elist
+        [Elliptic Curve defined by y^2 = x^3 + 4*x over Rational Field,
+        Elliptic Curve defined by y^2 = x^3 - x over Rational Field,
+        ...
+        Elliptic Curve defined by y^2 = x^3 - x^2 - 13*x + 21 over Rational Field]
+        sage: len(elist)
+        24
+        sage: ', '.join([e.label() for e in elist])
+        '32a1, 32a2, 32a3, 32a4, 64a1, 64a2, 64a3, 64a4, 128a1, 128a2, 128b1, 128b2, 128c1, 128c2, 128d1, 128d2, 256a1, 256a2, 256b1, 256b2, 256c1, 256c2, 256d1, 256d2'
+
+    # Without the "Proof=False", this example gives two warnings:
+        sage: elist = EllipticCurves_with_good_reduction_outside_S([11],proof=False)
+        sage: len(elist)
+        12
+        sage: ', '.join([e.label() for e in elist])
+        '11a1, 11a2, 11a3, 121a1, 121a2, 121b1, 121b2, 121c1, 121c2, 121d1, 121d2, 121d3'
+
+        sage: elist = EllipticCurves_with_good_reduction_outside_S([2,3]) # long time (~35s)
+        sage: len(elist) # long time
+        752
+        sage: max([e.conductor() for e in elist]) # long time
+        62208
+        sage: [N.factor() for N in Set([e.conductor() for e in elist])] # long time
+        [2^7,
+        2^8,
+        2^3 * 3^4,
+        2^2 * 3^3,
+        2^8 * 3^4,
+        2^4 * 3^4,
+        2^3 * 3,
+        2^7 * 3,
+        2^3 * 3^5,
+        3^3,
+        2^8 * 3,
+        2^5 * 3^4,
+        2^4 * 3,
+        2 * 3^4,
+        2^2 * 3^2,
+        2^6 * 3^4,
+        2^6,
+        2^7 * 3^2,
+        2^4 * 3^5,
+        2^4 * 3^3,
+        2 * 3^3,
+        2^6 * 3^3,
+        2^6 * 3,
+        2^5,
+        2^2 * 3^4,
+        2^3 * 3^2,
+        2^5 * 3,
+        2^7 * 3^4,
+        2^2 * 3^5,
+        2^8 * 3^2,
+        2^5 * 3^2,
+        2^7 * 3^5,
+        2^8 * 3^5,
+        2^3 * 3^3,
+        2^8 * 3^3,
+        2^5 * 3^5,
+        2^4 * 3^2,
+        2 * 3^5,
+        2^5 * 3^3,
+        2^6 * 3^5,
+        2^7 * 3^3,
+        3^5,
+        2^6 * 3^2]
+    """
+    from ell_egros import (egros_from_jlist, egros_get_j)
+    return egros_from_jlist(egros_get_j(S, proof=proof, verbose=verbose), S)

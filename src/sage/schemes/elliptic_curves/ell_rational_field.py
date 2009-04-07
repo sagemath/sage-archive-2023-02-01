@@ -2768,6 +2768,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             return 1
 
+    def has_good_reduction_outside_S(self,S=[]):
+        r"""
+        Tests if this elliptic curve has good reduction outside `S`.
+
+        INPUT:
+
+            -  S - list of primes (default: empty list).
+
+        .. notes::
+
+            Primality of elements of S is not checked, and the output
+            is undefined if S is not a list or contains non-primes.
+
+            This only tests the given model, so should only be applied to
+            minimal models.
+
+        EXAMPLES::
+            sage: EllipticCurve('11a1').has_good_reduction_outside_S([11])
+            True
+            sage: EllipticCurve('11a1').has_good_reduction_outside_S([2])
+            False
+            sage: EllipticCurve('2310a1').has_good_reduction_outside_S([2,3,5,7])
+            False
+            sage: EllipticCurve('2310a1').has_good_reduction_outside_S([2,3,5,7,11])
+            True
+        """
+        return self.discriminant().is_S_unit(S)
+
     def period_lattice(self, embedding=None):
         r"""
         Returns the period lattice of the elliptic curve.

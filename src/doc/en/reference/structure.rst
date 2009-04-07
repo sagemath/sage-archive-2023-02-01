@@ -14,6 +14,7 @@ Basic Structures
 
    sage/sets/set
    sage/sets/primes
+   sage/sets/family
 
    sage/structure/parent
    sage/structure/coerce

@@ -409,6 +409,11 @@ ext_modules = [
               sources = ["sage/libs/pari/gen.pyx"],
               libraries = ['pari', 'gmp']),
 
+    Extension('sage.libs.ratpoints',
+              sources = ["sage/libs/ratpoints.pyx"],
+              #depends = [SAGE_ROOT + 'local/include/ratpoints.h'],
+              libraries = ["ratpoints", "gmp"]),
+
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],

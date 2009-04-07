@@ -3997,7 +3997,7 @@ def extract_first_compute_cell(text):
         output = ''
     else:
         input = text[i:i+k].strip()
-        output = text[i+k+4:j].strip()
+        output = text[i+k+4:j]
 
     return meta, input.strip(), output, j+4
 

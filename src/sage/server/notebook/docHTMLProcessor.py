@@ -137,7 +137,6 @@ class SphinxHTMLProcessor(SGMLParser):
             output_flag = False
             piece = '{{{id=%s|\n'%self.get_cellcount()
             for p in pieces:
-                p = p.lstrip()
 
                 if p[:5] == 'sage:' and not output_flag:
                     piece += p[5:].lstrip() + '\n'
@@ -152,15 +151,21 @@ class SphinxHTMLProcessor(SGMLParser):
                 elif p[:3] == '...':
                     piece += p[3:] + '\n'
                 else:
+                    # in an output string. replace escaped html
+                    # strings so they don't get converted twice.
+                    p = p.replace('&lt;', '<')
+                    p = p.replace('&gt;', '>')
+                    p = p.replace('&amp;', '&')
+                    p = p.replace('&#39;', "'")
                     # first occurrence of an output string
                     # write /// denoting output
                     if output_flag == False:
                         piece += '///\n'
-                        piece += p.lstrip() + '\n'
+                        piece += p + '\n'
                         output_flag = True
                     # multiple output lines exist, don't need /// repeated
                     else:
-                        piece += p.lstrip() + '\n'
+                        piece += p + '\n'
             piece += '}}}\n'
         return piece
 

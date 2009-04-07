@@ -9,6 +9,8 @@ from sage.rings.infinity import infinity
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 cdef class MPolynomial(CommutativeRingElement):
 
     ####################
@@ -620,7 +622,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 i = V.index(var)
                 return self._homogenize(i)
             except ValueError:
-                P = P.__class__(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
+                P = PolynomialRing(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
                 return P(self)._homogenize(len(V))
 
         elif PY_TYPE_CHECK(var, MPolynomial) and \

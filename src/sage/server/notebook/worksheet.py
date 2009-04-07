@@ -1878,7 +1878,7 @@ class Worksheet:
         t = time.time()
         if t - last >= self.user_autosave_interval(username):
             self.__last_autosave = t
-            self.save_snapshot(username, current)
+            self.save_snapshot(username)
 
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()

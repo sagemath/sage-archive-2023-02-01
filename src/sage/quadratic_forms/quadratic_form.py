@@ -34,7 +34,6 @@ from sage.rings.ring import Ring
 from sage.misc.functional import ideal, denominator, is_even, is_field
 from sage.rings.arith import GCD, LCM, valuation, kronecker_symbol
 from sage.rings.fraction_field import FractionField
-from sage.quadratic_forms.extras import IsPadicSquare
 from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.ring import is_Ring
 from sage.matrix.matrix import is_Matrix

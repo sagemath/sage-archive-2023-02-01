@@ -3,33 +3,12 @@ from random import random
 from sage.calculus.calculus import floor
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.rings.arith import valuation, kronecker_symbol, legendre_symbol, hilbert_symbol, is_prime
+from sage.rings.arith import legendre_symbol
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.calculus.calculus import sqrt
 from sage.misc.functional import squarefree_part
-
-
-
-def hilbert_symbol_rational(a, b, p):
-    """
-    Extend the usual Hilbert symbol to allow rational entries a and b.
-
-    TO DO: This should really be incorporated into the hilbert_symbol()
-    routine.
-
-    EXAMPLES:
-        sage: hilbert_symbol_rational(-1, -1, 2) == -1
-        True
-        sage: hilbert_symbol_rational(QQ(-1)/QQ(4), -1, 2) == -1
-        True
-        sage: hilbert_symbol_rational(QQ(-1)/QQ(4), -1, 3) == 1
-        True
-    """
-    return hilbert_symbol(squarefree_part(a), squarefree_part(b), p)
-
-
 
 def sgn(x):
     """
@@ -55,16 +34,7 @@ def sgn(x):
         sage: sgn(-3) == -1
         True
     """
-    if x > 0:
-        return ZZ(1)
-    elif x == 0:
-        return ZZ(0)
-    elif x < 0:
-        return ZZ(-1)
-    else:
-        raise RuntimeError, "Oops!  We should not be here! =o"
-
-
+    return ZZ(cmp(x,0))
 
 def is_triangular_number(n):
     """
@@ -202,32 +172,16 @@ def extend_to_primitive(A_input):
     else:
         return D
 
-
-
-
-def random_int_upto(n):
-    """
-    Returns a random integer x satisfying 0 <= x < n.
-
-    EXAMPLES:
-        sage: x = random_int_upto(10)
-        sage: x >= 0
-        True
-        sage: x < 10
-        True
-    """
-    return floor(n * random())
-
-
-
-def quadratic_nonresidue(p):
+def least_quadratic_nonresidue(p):
     """
     Returns the smallest positive integer quadratic non-residue in Z/pZ for primes p>2.
 
     EXAMPLES::
 
-        sage: quadratic_nonresidue(5)
+        sage: least_quadratic_nonresidue(5)
         2
+        sage: [least_quadratic_nonresidue(p) for p in prime_range(3,100)]
+        [2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 3, 2, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
 
     TESTS:
 
@@ -235,7 +189,7 @@ def quadratic_nonresidue(p):
 
     ::
 
-        sage: quadratic_nonresidue(20)
+        sage: least_quadratic_nonresidue(20)
         Traceback (most recent call last):
         ...
         ValueError: Oops!  p must be a prime number > 2.
@@ -246,7 +200,7 @@ def quadratic_nonresidue(p):
 
     ::
 
-        sage: quadratic_nonresidue(2)
+        sage: least_quadratic_nonresidue(2)
         Traceback (most recent call last):
         ...
         ValueError: Oops!  There are no quadratic non-residues in Z/2Z.
@@ -260,58 +214,18 @@ def quadratic_nonresidue(p):
         raise ValueError, "Oops!  p must be a prime number > 2."
 
     ## Find the smallest non-residue mod p
-    try:
-        for r in range(2,p):
-            if legendre_symbol(r, p) == -1:
-                return r
-
-    except ValueError: # This happens if p is not prime
+    ## For 7/8 of primes the answer is 2, 3 or 5:
+    if p%8 in (3,5):
+        return ZZ(2)
+    if p%12 in (5,7):
+        return ZZ(3)
+    if p%5 in (2,3):
+        return ZZ(5)
+    ## default case (first needed for p=71):
+    if not p.is_prime():
         raise ValueError, "Oops!  p must be a prime number > 2."
+    from sage.misc.misc import xsrange
+    for r in xsrange(7,p):
+        if legendre_symbol(r, p) == -1:
+            return ZZ(r)
 
-def IsPadicSquare(m, p):
-    """
-    Determines whether the (non-zero) rational number m is a square in Q_p.
-    When p = infinity this returns the answer for the real numbers.
-
-    EXAMPLES:
-        sage: IsPadicSquare(2, 7)
-        True
-        sage: IsPadicSquare(98, 7)
-        True
-        sage: IsPadicSquare(2, 5)
-        False
-    """
-    ## Make sure m is non-zero
-    if m == 0:
-        raise TypeError, "Oops!  We're not allowed to ask about zero right now..."
-
-    ## Deal with p = infinity (i.e. the real numbers)
-    if p == infinity:
-        return (m > 0)
-
-    ## Check that p is prime
-    try:
-        is_prime(p)
-    except:
-        raise TypeError, 'Oops!  p must be "infinity" or a positive prime number.'
-
-
-    ## Deal with finite primes
-    v1 = valuation(QQ(m).numer(), p)
-    v2 = valuation(QQ(m).denom(), p)
-    v = v1 - v2
-    other = m / (p**v)
-
-    #print "p =", p
-    #print "m =", m
-    #print "val(m,p) =", v
-
-    if ((v % 2) == 0):
-
-        if ((p == 2) and ((other % 8) == 1)):
-            return True
-
-        if ((p > 2) and (kronecker_symbol(other, p) == 1)):
-            return True
-
-    return False

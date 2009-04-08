@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.arith import prime_divisors, valuation, is_square
-from sage.quadratic_forms.extras import quadratic_nonresidue, IsPadicSquare
+from sage.quadratic_forms.extras import least_quadratic_nonresidue
 from sage.rings.infinity import infinity
 from sage.misc.functional import numerator, denominator
 from sage.rings.rational_field import QQ
@@ -286,7 +286,7 @@ class QuadraticFormLocalRepresentationConditions():
         elif p == 2:
             return [1, 3, 5, 7, 2, 6, 10, 14]
         else:
-            r = quadratic_nonresidue(p)
+            r = least_quadratic_nonresidue(p)
             return [1, r, p, p*r]
 
 
@@ -326,7 +326,7 @@ class QuadraticFormLocalRepresentationConditions():
             sqclass = self.squareclass_vector(p)
 
             for i in range(len(sq_class)):
-                if IsPadicSquare(self.coeff / sqclass[i], p):    ## Note:This should happen only once!
+                if (self.coeff / sqclass[i]).is_padic_square(p):    ## Note:This should happen only once!
                     nu = valuation(self.coeff / sqclass[i], p) / 2
                 else:
                     v[i+1] = infinity
@@ -480,7 +480,7 @@ class QuadraticFormLocalRepresentationConditions():
             if p == infinity:
                 return (m1 > 0)
             else:
-                return (valuation(m1, p) >= 0) and IsPadicSquare(m1, p)
+                return (valuation(m1, p) >= 0) and m1.is_padic_square(p)
 
         ## >= 2-dim'l forms
         local_vec = self.local_conditions_vector_for_prime(p)
@@ -498,7 +498,7 @@ class QuadraticFormLocalRepresentationConditions():
         sqclass = self.squareclass_vector(p)
         for s in sqclass:
             #print "m =", m, "   s =", s, "   m/s =", (QQ(m)/s)
-            if IsPadicSquare(QQ(m)/s, p):
+            if (QQ(m)/s).is_padic_square(p):
                 nu = valuation(m/s, p)
                 return local_vec[sqclass.index(s) + 1] <= (nu / 2)
 

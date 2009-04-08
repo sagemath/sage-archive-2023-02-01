@@ -969,6 +969,48 @@ cdef class Rational(sage.structure.element.FieldElement):
                    2*(mpz_sizeinbase(mpq_denref(self.value), 2)+2))
         return self.sqrt(prec=prec, all=all)
 
+    def is_padic_square(self, p):
+        """
+        Determines whether this rational number is a square in Q_p (or in
+        R when p = infinity).
+
+        INPUT:
+
+        -  ``p`` - a prime number, or infinity
+
+        EXAMPLES:
+            sage: QQ(2).is_padic_square(7)
+            True
+            sage: QQ(98).is_padic_square(7)
+            True
+            sage: QQ(2).is_padic_square(5)
+            False
+        """
+        ## Special case when self is zero
+        if self.is_zero():
+            return True
+
+        ## Deal with p = infinity (i.e. the real numbers)
+        import sage.rings.infinity
+        if p == sage.rings.infinity.infinity:
+            return (self > 0)
+
+        ## Check that p is prime
+        if not p.is_prime():
+            raise ValueError, 'p must be "infinity" or a positive prime number.'
+
+        ## Deal with finite primes
+        e, m = self.val_unit(p)
+
+        if e % 2 == 1:
+            return False
+
+        if p == 2:
+            return ((m % 8) == 1)
+
+        from sage.rings.arith import kronecker_symbol
+        return (kronecker_symbol(m, p) == 1)
+
     def val_unit(self, p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit

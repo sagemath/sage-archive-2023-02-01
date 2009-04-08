@@ -1,6 +1,5 @@
 
 from sage.modules.free_module_element import vector
-from sage.quadratic_forms.extras import random_int_upto
 from sage.rings.integer_ring import ZZ
 from copy import deepcopy
 from sage.quadratic_forms.extras import extend_to_primitive
@@ -43,14 +42,14 @@ def find_primitive_p_divisible_vector__random(self, p):
 
     """
     n = self.dim()
-    v = vector([ZZ(random_int_upto(p))  for i in range(n)])
+    v = vector([ZZ.random_element(p)  for i in range(n)])
 
     ## Repeatedly choose random vectors, and evaluate until the value is p-divisible.
     while True:
         if (self(v) % p == 0) and (v != 0):
             return v
         else:
-            v[random_int_upto(n)] = ZZ(random_int_upto(p))      ## Replace a random entry and try again.
+            v[ZZ.random_element(n)] = ZZ.random_element(p)      ## Replace a random entry and try again.
 
 
 

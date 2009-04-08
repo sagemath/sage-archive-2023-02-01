@@ -15,7 +15,7 @@ import sage.misc.misc as misc
 import sage.misc.search
 from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
 
-import sage.rings.rational_field
+from sage.rings.rational_field import QQ
 import sage.rings.rational
 import sage.rings.complex_field
 import sage.rings.complex_number
@@ -3174,12 +3174,11 @@ def convergent(v, n):
     """
     if hasattr(v, 'convergent'):
         return v.convergent(n)
-    Q = sage.rings.rational_field.RationalField()
     i = int(n)
-    x = Q(v[i])
+    x = QQ(v[i])
     i -= 1
     while i >= 0:
-        x = Q(v[i]) + 1/x
+        x = QQ(v[i]) + 1/x
         i -= 1
     return x
 
@@ -3215,7 +3214,6 @@ def convergents(v):
     """
     if hasattr(v, 'convergents'):
         return v.convergents()
-    Q = sage.rings.rational_field.RationalField()
     if not isinstance(v, list):
         v = pari(v).contfrac()
     w = [(0,1), (1,0)]
@@ -3223,7 +3221,7 @@ def convergents(v):
         pn = w[n+1][0]*v[n] + w[n][0]
         qn = w[n+1][1]*v[n] + w[n][1]
         w.append((pn, qn))
-    return [Q(x) for x in w[2:]]
+    return [QQ(x) for x in w[2:]]
 
 
 ## def continuant(v, n=None):
@@ -3366,6 +3364,11 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         sage: hilbert_symbol (3, -1, 2, algorithm='all')
         -1
 
+        sage: hilbert_symbol(QQ(-1)/QQ(4), -1, 2) == -1
+        True
+        sage: hilbert_symbol(QQ(-1)/QQ(4), -1, 3) == 1
+        True
+
     AUTHORS:
 
     - William Stein and David Kohel (2006-01-05)
@@ -3373,8 +3376,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     p = ZZ(p)
     if p != -1 and not p.is_prime():
         raise ValueError, "p must be prime or -1"
-    a = ZZ(a)
-    b = ZZ(b)
+    a = QQ(a).squarefree_part()
+    b = QQ(b).squarefree_part()
 
     if algorithm == "pari":
         return ZZ(pari(a).hilbert(b,p))
@@ -3489,7 +3492,7 @@ def hilbert_conductor_inverse(d):
     TESTS::
 
         sage: for i in xrange(100):
-        ...     d = random_int_upto(2**32).squarefree_part()
+        ...     d = ZZ.random_element(2**32).squarefree_part()
         ...     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ...         print "hilbert_conductor_inverse failed for d =", d
     """

@@ -28,7 +28,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_rqdf import RR
 from sage.rings.arith import prime_divisors, valuation, hilbert_symbol
-from sage.quadratic_forms.extras import IsPadicSquare, sgn
+from sage.quadratic_forms.extras import sgn
 from sage.rings.fraction_field import FractionField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.arith import GCD
@@ -279,10 +279,10 @@ def is_hyperbolic(self, p):
         return (self.signature() == 0)
 
     elif p == 2:
-        return IsPadicSquare(self.det() * (-1)**m, p) and (self.hasse_invariant(p) == (-1)**m)    ## Actually, this -1 is the Hilbert symbol (-1,-1)_p
+        return QQ(self.det() * (-1)**m).is_padic_square(p) and (self.hasse_invariant(p) == (-1)**m)    ## Actually, this -1 is the Hilbert symbol (-1,-1)_p
 
     else:
-        return IsPadicSquare(self.det() * (-1)**m, p) and (self.hasse_invariant(p) == 1)
+        return QQ(self.det() * (-1)**m).is_padic_square(p) and (self.hasse_invariant(p) == 1)
 
 
 
@@ -299,13 +299,13 @@ def is_anisotropic(self, p):
         return False;
 
     if (n == 4):
-        return (IsPadicSquare(D, p) and (self.hasse_invariant(p) == - hilbert_symbol(-1,-1,p)) )
+        return ( QQ(D).is_padic_square(p) and (self.hasse_invariant(p) == - hilbert_symbol(-1,-1,p)) )
 
     if (n == 3):
         return (self.hasse_invariant(p) != hilbert_symbol(-1, -D, p))
 
     if (n == 2):
-        return (not IsPadicSquare(-D, p))
+        return (not QQ(-D).is_padic_square(p))
 
     if (n == 1):
         return (self[0,0] != 0)

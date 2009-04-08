@@ -301,7 +301,7 @@ TESTS: We test an automatic coercion::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re
+import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -354,7 +354,7 @@ class Singular(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=1000)
+                        eval_using_file_cutoff=100 if os.uname()[0]=="SunOS" else 1000)
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.

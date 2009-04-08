@@ -880,10 +880,10 @@ class CombinatorialClass(SageObject):
             ...          return iter([1,2,3])
             ...
             sage: C().count() #indirect doctest
-            doctest:1: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
+            doctest:1: DeprecationWarning: The usage of count for combinatorial classes is deprecated. Please use cardinality
             3
         """
-        deprecation("The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
+        deprecation("The usage of count for combinatorial classes is deprecated. Please use cardinality")
         return self.cardinality()
 
 

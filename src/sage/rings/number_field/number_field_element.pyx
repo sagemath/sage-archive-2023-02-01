@@ -982,7 +982,8 @@ cdef class NumberFieldElement(FieldElement):
         _sig_on
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
-        if ZZX_is_monic( &self.__fld_numerator.x ):
+
+        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
             ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, self.__fld_numerator.x)
         else:
@@ -1044,7 +1045,7 @@ cdef class NumberFieldElement(FieldElement):
         x = self._new()
         _sig_on
         _right._invert_c_(&inv_num, &inv_den)
-        if ZZX_is_monic( &self.__fld_numerator.x ):
+        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
             ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
         else:

@@ -4,8 +4,6 @@ Quotient Ring Elements
 AUTHORS:
 
 - William Stein
-
-TODO: This implementation is very basic.
 """
 
 #*****************************************************************************
@@ -83,24 +81,73 @@ class QuotientRingElement(ring_element.RingElement):
             self._reduce_()
 
     def _reduce_(self):
+        """
+        This has nothing to do with pickling.  This replaces the
+        cached representative by one in reduced form.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a._reduce_()
+            sage: a._QuotientRingElement__rep
+            x
+        """
         I = self.parent().defining_ideal()
         self.__rep = I.reduce(self.__rep)
 
-    def copy(self):
-        return QutientRingElement(self.parent(), self.__rep)
-
     def lift(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.lift()
+            x
+        """
         return self.__rep
 
     def __nonzero__(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.__nonzero__()
+            True
+            sage: S(0).__nonzero__()
+            False
+            sage: (a-a).__nonzero__()
+            False
+        """
         return self.__rep not in self.parent().defining_ideal()
 
     def is_unit(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.is_unit()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: S(1).is_unit()
+            True
+        """
         if self.__rep.is_unit():
             return True
         raise NotImplementedError
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a-2*a*b)._repr_()
+            '-2*a*b + a'
+        """
         from sage.structure.parent_gens import localvars
         P = self.parent()
         R = P.cover_ring()
@@ -111,57 +158,202 @@ class QuotientRingElement(ring_element.RingElement):
             return str(self.__rep)
 
     def _add_(self, right):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a._add_(b)
+            a + b
+        """
         return QuotientRingElement(self.parent(), self.__rep + right.__rep)
 
     def _sub_(self, right):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a._sub_(b)
+            a - b
+        """
         return QuotientRingElement(self.parent(), self.__rep - right.__rep)
 
     def _mul_(self, right):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a._mul_(b)
+            a*b
+            sage: a._mul_(a)
+            -b^2
+        """
         return QuotientRingElement(self.parent(), self.__rep * right.__rep)
 
     def _div_(self, right):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a._div_(b)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: a._div_(S(2))
+            1/2*a
+            sage: S(2).is_unit()
+            True
+            sage: a.is_unit()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         if not right.is_unit():
             raise ZeroDivisionError
-        raise NotImplementedError
+        return self._mul_(right.__invert__())
 
     def __int__(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: S(-3).__int__()
+            -3
+            sage: type(S(-3).__int__())
+            <type 'int'>
+            sage: a.__int__()
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
         return int(self.lift())
 
     def _integer_(self, Z=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: S(-3)._integer_()
+            -3
+            sage: type(S(-3)._integer_())
+            <type 'sage.rings.integer.Integer'>
+        """
         try:
             return self.lift()._integer_(Z)
         except AttributeError:
             raise NotImplementedError
 
     def _rational_(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: S(-2/3)._rational_()
+            -2/3
+            sage: type(S(-2/3)._rational_())
+            <type 'sage.rings.rational.Rational'>
+        """
         try:
             return self.lift()._rational_()
         except AttributeError:
             raise NotImplementedError
 
     def __long__(self):
-        return int(self.lift())
+        """
+        EXAMPLES::
 
-    def __rdiv__(self, left):
-        return self.parent()(left)/self
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: S(-3).__long__()
+            -3L
+        """
+        return long(self.lift())
 
     def __neg__(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.__neg__()
+            -a
+            sage: (a+b).__neg__()
+            -a - b
+        """
         return QuotientRingElement(self.parent(), -self.__rep)
 
     def __pos__(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a+b).__pos__()
+            a + b
+            sage: c = a+b; c.__pos__() is c
+            True
+        """
         return self
 
     def __invert__(self):
-        inv = self.__rep.inverse_mod(self.parent().defining_ideal())
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.__invert__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: S(2/3).__invert__()
+            3/2
+        """
+        try:
+            inv = self.__rep.inverse_mod(self.parent().defining_ideal())
+        except NotImplementedError:
+            if self.__rep.is_unit():
+                inv = self.__rep.__invert__()
+            else:
+                raise
         return QuotientRingElement(self.parent(), inv)
 
     def __float__(self):
+        """
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: S(2/3).__float__()
+            0.66666666666666663
+            sage: a.__float__()
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
         return float(self.lift())
 
     def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.__cmp__(b)
+            1
+            sage: b.__cmp__(a)
+            -1
+            sage: a.__cmp__(a)
+            0
+            sage: a.__cmp__(a+1-1)
+            0
+        """
         if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
             return 0
-        return -1
+        return cmp(self.__rep, other.__rep)
 
     def lt(self):
         """
@@ -175,6 +367,11 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = Q( z*y + 2*x )
             sage: f.lt()
             2*xbar
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a+3*a*b+b).lt()
+            3*a*b
         """
         return QuotientRingElement(self.parent(),self.__rep.lt())
 
@@ -190,6 +387,12 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = Q( z*y + 2*x )
             sage: f.lm()
             xbar
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a+3*a*b+b).lm()
+            a*b
+
         """
         return QuotientRingElement(self.parent(),self.__rep.lm())
 
@@ -205,13 +408,44 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = Q( z*y + 2*x )
             sage: f.lc()
             2
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a+3*a*b+b).lc()
+            3
         """
         return self.__rep.lc()
 
     def variables(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.variables()
+            [a]
+            sage: b.variables()
+            [b]
+            sage: s = a^2 + b^2 + 1; s
+            1
+            sage: s.variables()
+            []
+            sage: (a+b).variables()
+            [a, b]
+        """
         return [QuotientRingElement(self.parent(),v) for v in self.__rep.variables()]
 
     def monomials(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a.monomials()
+            [a]
+            sage: (a+a*b).monomials()
+            [a*b, a]
+        """
         return [QuotientRingElement(self.parent(),m) for m in self.__rep.monomials()]
 
     def _singular_(self, singular=singular_default):
@@ -245,6 +479,15 @@ class QuotientRingElement(ring_element.RingElement):
             x
             sage: Q(xbar._singular_()) # a round-trip
             xbar
+
+        Another example::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: (a-2/3*b)._singular_()
+            x-2/3*y
+            sage: S((a-2/3*b)._singular_())
+            a - 2/3*b
         """
         return self.__rep._singular_(singular)
 

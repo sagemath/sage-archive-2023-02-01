@@ -26,3 +26,4 @@ Modular Forms
    sage/modular/etaproducts
    sage/modular/overconvergent/weightspace
    sage/modular/overconvergent/genus0
+   sage/modular/ssmod/ssmod

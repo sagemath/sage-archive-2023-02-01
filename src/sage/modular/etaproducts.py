@@ -85,9 +85,9 @@ class EtaGroup_class(AbelianGroup):
         positive integer.
 
         EXAMPLES:
-            sage: G = EtaGroup(12); G # implicit doctest
+            sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
-            sage: G == loads(dumps(G))
+            sage: G is loads(dumps(G))
             True
         """
         try:
@@ -97,6 +97,17 @@ class EtaGroup_class(AbelianGroup):
         if (level < 1):
             raise ValueError, "Level (=%s) must be a positive integer" % level
         self._N = level
+
+    def __reduce__(self):
+        r"""
+        Return the data used to construct self. Used for pickling.
+
+        EXAMPLE::
+
+            sage: EtaGroup(13).__reduce__()
+            (<function EtaGroup at ...>, (13,))
+        """
+        return (EtaGroup, (self.level(),))
 
     def __cmp__(self, other):
         r"""
@@ -341,6 +352,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
             sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
+            sage: g = _; g == loads(dumps(g))
+            True
         """
         MultiplicativeGroupElement.__init__(self, parent)
 
@@ -391,7 +404,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: eta1, eta2 = EtaGroup(4).basis() # implicit doctest
+            sage: eta1, eta2 = EtaGroup(4).basis() # indirect doctest
             sage: eta1 * eta2
             Eta product of level 4 : (eta_2)^24 (eta_4)^-24
         """
@@ -407,7 +420,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: eta1, eta2 = EtaGroup(4).basis()
-            sage: eta1 / eta2
+            sage: eta1 / eta2 # indirect doctest
             Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
             sage: (eta1 / eta2) * eta2 == eta1
             True

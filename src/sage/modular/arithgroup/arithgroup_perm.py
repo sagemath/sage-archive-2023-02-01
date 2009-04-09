@@ -73,9 +73,24 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
         1
         sage: G.genus()
         0
+
+    We test unpickling::
+
+        sage: G == loads(dumps(G))
+        True
+        sage: G is loads(dumps(G))
+        False
     """
 
     def __init__(self, L, R):
+        r"""
+        Create an arithmetic subgroup given two permutations.
+
+            sage: w = SymmetricGroup(2)([2,1])
+            sage: ArithmeticSubgroup_Permutation(w, w) # indirect doctest
+            Arithmetic subgroup corresponding to permutations L=(1,2), R=(1,2)
+        """
+
         from sage.groups.perm_gps.all import PermutationGroup
         self.L = L
         self.R = R
@@ -88,6 +103,18 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
                 raise ValueError, "Permutations are not transitive"
         else:
             raise ValueError, "Permutations do not satisfy defining relation"
+
+    def __reduce__(self):
+        r"""
+        Return the data used to construct self. Used in pickling.
+
+        EXAMPLE::
+
+            sage: w = SymmetricGroup(2)([2,1])
+            sage: ArithmeticSubgroup_Permutation(w, w).__reduce__()
+            (<class 'sage.modular.arithgroup.arithgroup_perm.ArithmeticSubgroup_Permutation'>, ((1,2), (1,2)))
+        """
+        return (ArithmeticSubgroup_Permutation, (self.L, self.R))
 
     def perm_group(self):
         r"""
@@ -164,6 +191,25 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
             return g
         else:
             raise TypeError, "Not in group"
+
+    def __cmp__(self, other):
+        r"""
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: G = ArithmeticSubgroup_Permutation(SymmetricGroup(2)([2,1]), SymmetricGroup(2)([2,1]))
+            sage: cmp(G, 1)
+            -1
+            sage: cmp(G, Gamma0(8))
+            1
+            sage: cmp(G, G)
+            0
+        """
+        if not isinstance(other, ArithmeticSubgroup_Permutation):
+            return cmp(type(self), type(other))
+        else:
+            return cmp( (self.L, self.R), (other.L, other.R) )
 
     def is_congruence(self):
         r"""
@@ -364,6 +410,12 @@ def eval_word(B):
 def HsuExample10():
     r"""
     An example of an index 10 arithmetic subgroup studied by Tim Hsu.
+
+    EXAMPLE::
+
+        sage: import sage.modular.arithgroup.arithgroup_perm as ap
+        sage: ap.HsuExample10()
+        Arithmetic subgroup corresponding to permutations L=(1,4)(2,5,9,10,8)(3,7,6), R=(1,7,9,10,6)(2,3)(4,5,8)
     """
     from sage.groups.perm_gps.all import SymmetricGroup
     return ArithmeticSubgroup_Permutation(SymmetricGroup(10)("(1,4)(2,5,9,10,8)(3,7,6)"), SymmetricGroup(10)("(1,7,9,10,6)(2,3)(4,5,8)"))
@@ -371,6 +423,12 @@ def HsuExample10():
 def HsuExample18():
     r"""
     An example of an index 18 arithmetic subgroup studied by Tim Hsu.
+
+    EXAMPLE::
+
+        sage: import sage.modular.arithgroup.arithgroup_perm as ap
+        sage: ap.HsuExample18()
+        Arithmetic subgroup corresponding to permutations L=(1,2)(3,4)(5,6,7)(8,9,10)(11,12,13,14,15,16,17,18), R=(1,12,18)(2,6,13,9,4,8,17,7)(3,16,14)(5,11)(10,15)
     """
     from sage.groups.perm_gps.all import SymmetricGroup
     return ArithmeticSubgroup_Permutation(SymmetricGroup(18)("(1,2)(3,4)(5,6,7)(8,9,10)(11,12,13,14,15,16,17,18)"), SymmetricGroup(18)("(1,12,18)(2,6,13,9,4,8,17,7)(3,16,14)(5,11)(10,15)"))

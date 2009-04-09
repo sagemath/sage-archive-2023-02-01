@@ -393,20 +393,20 @@ class AnInfinity:
         EXAMPLES::
 
             sage: RDF(infinity)
-            inf
+            +infinity
             sage: float(infinity) # random
-            inf
+            +infinity
             sage: CDF(infinity)
-            inf
+            +infinity
             sage: infinity.__float__() # random
-            inf
+            +infinity
 
             sage: RDF(-infinity)
-            -inf
+            -infinity
             sage: float(-infinity) # random
             -inf
             sage: CDF(-infinity)
-            -inf
+            -infinity
             sage: (-infinity).__float__() # random
             -inf
 

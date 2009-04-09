@@ -3940,7 +3940,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: bigc = 2^1500
             sage: CDF(bigc)
-            inf
+            +infinity
             sage: CC(bigc)
             3.50746621104340e451
 

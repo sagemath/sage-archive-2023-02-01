@@ -1173,7 +1173,7 @@ class NotANumber(Constant):
         EXAMPLES::
 
             sage: RDF(NaN)
-            nan
+            NaN
         """
         return R.NaN()
 

@@ -2211,7 +2211,7 @@ cdef class Wrapper:
 
         EXAMPLES:
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
-            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 7, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 8, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
         """
         return self._orig_args
 

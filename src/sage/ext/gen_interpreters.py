@@ -2158,6 +2158,20 @@ class RDFInterpreter(StackInterpreter):
             add: SS->S = 'o0 = i0 + i1;'
             sage: instrs['py_call']
             py_call: *->S = ' \nPyObject *py_arg...goto error;\n}\n'
+
+        Make sure that pow behaves reasonably::
+
+            sage: var('x,y')
+            (x, y)
+            sage: ff = fast_callable(x^y, vars=[x,y], domain=RDF)
+            sage: ff(1.5, 3)
+            3.375
+            sage: ff(-2, 3)
+            -8.0
+            sage: ff(-2, 1/3)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number to a fractional power not real
         """
 
         StackInterpreter.__init__(self, ty_double)
@@ -2207,12 +2221,24 @@ Py_DECREF(result);
 if (o0 == -1 && PyErr_Occurred()) {
   goto error;
 }
+"""),
+            InstrSpec('pow', pg('SS', 'S'),
+                       uses_error_handler=True,
+                       code="""
+/* See python's pow in floatobject.c */
+if (i0 == 0) o0 = 1.0;
+else {
+    if (i0 < 0 && i1 != floor(i1)) {
+        PyErr_SetString(PyExc_ValueError, "negative number to a fractional power not real");
+        goto error;
+    }
+    o0 = pow(i0, i1);
+}
 """)
             ]
         for (name, op) in [('add', '+'), ('sub', '-'),
                            ('mul', '*'), ('div', '/')]:
             instrs.append(instr_infix(name, pg('SS', 'S'), op))
-        instrs.append(instr_funcall_2args('pow', pg('SS', 'S'), 'pow'))
         instrs.append(instr_funcall_2args('ipow', pg('SD', 'S'), 'gsl_pow_int'))
         for (name, op) in [('neg', '-i0'), ('invert', '1/i0'),
                            ('abs', 'fabs(i0)')]:
@@ -2744,7 +2770,7 @@ class InterpreterGenerator(object):
             sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
             sage: gen.gen_code(instrs['div'], buff.write)
             sage: print buff.getvalue()
-                case 7: /* div */
+                case 8: /* div */
                   {
                     double i1 = *--stack;
                     double i0 = *--stack;
@@ -3572,8 +3598,10 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
               (CompilerInstrSpec(1, 0, []), 2),
               'py_call':
               (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3),
-              'add':
+              'pow':
               (CompilerInstrSpec(2, 1, []), 4),
+              'add':
+              (CompilerInstrSpec(2, 1, []), 5),
             ...
              }, ...)
 
@@ -3587,6 +3615,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                CompilerInstrSpec(1, 0, [])),
               ('py_call',
                CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])),
+              ('pow',
+               CompilerInstrSpec(2, 1, [])),
               ('add',
                CompilerInstrSpec(2, 1, [])),
             ...

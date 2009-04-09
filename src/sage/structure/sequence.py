@@ -57,6 +57,13 @@ substantial coercions.  It can be greatly sped up by explicitly
 specifying the universe of the sequence::
 
     sage: v = Sequence(range(10000), universe=ZZ)
+
+TESTS::
+
+    sage: v = Sequence([1..5])
+    sage: loads(dumps(v)) == v
+    True
+
 """
 
 
@@ -170,29 +177,25 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         ...
         ValueError: object is immutable; please change a copy instead.
 
-    Sequences are hashable (unlike Python lists), though the hashing
-    is potentially slow, since it first involves conversion of the
-    sequence to a tuple, and returning the hash of that.  The hash
-    is cached, and is only recomputed if the sequence is changed
-    (which has a small performance penalty for assignment).
+    Only immutable sequences are hashable (unlike Python lists),
+    though the hashing is potentially slow, since it first involves
+    conversion of the sequence to a tuple, and returning the hash of
+    that.
 
     ::
 
-        sage: v = Sequence(range(10), ZZ); v[3] = 5
+        sage: v = Sequence(range(10), ZZ, immutable=True)
         sage: hash(v)
-        2083920238            # 32-bit
-        -8049699692026128018  # 64-bit
-        sage: v[0] = 10
-        sage: hash(v)
-        -377547984            # 32-bit
-        -2271601447248391376  # 64-bit
+        1591723448             # 32-bit
+        -4181190870548101704   # 64-bit
+
 
     If you really know what you are doing, you can circumvent the type
     checking (for an efficiency gain)::
 
         sage: list.__setitem__(v, int(1), 2/3)        # bad circumvention
         sage: v
-        [10, 2/3, 2, 5, 4, 5, 6, 7, 8, 9]
+        [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
         sage: list.__setitem__(v, int(1), int(2))     # not so bad circumvention
 
     You can make a sequence with a new universe from an old sequence.
@@ -201,12 +204,12 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
         sage: w = Sequence(v, QQ)
         sage: w
-        [10, 2, 2, 5, 4, 5, 6, 7, 8, 9]
+        [0, 2, 2, 3, 4, 5, 6, 7, 8, 9]
         sage: w.universe()
         Rational Field
         sage: w[1] = 2/3
         sage: w
-        [10, 2/3, 2, 5, 4, 5, 6, 7, 8, 9]
+        [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
 
     Sequences themselves live in a category, the category of all sequences
     in the given universe.
@@ -242,6 +245,28 @@ class Sequence(sage.structure.sage_object.SageObject, list):
     """
     def __init__(self, x, universe=None, check=True, immutable=False,
                  cr=False, cr_str=None, use_sage_types=False):
+        """
+        Create a sequence.
+
+        EXAMPLES::
+
+            sage: Sequence([1..5])
+            [1, 2, 3, 4, 5]
+            sage: a = Sequence([1..3], universe=QQ, check=False, immutable=True, cr=True, cr_str=False, use_sage_types=True)
+            sage: a
+            [
+            1,
+            2,
+            3
+            ]
+            sage: a = Sequence([1..5], universe=QQ, check=False, immutable=True, cr_str=True, use_sage_types=True)
+            sage: a
+            [1, 2, 3, 4, 5]
+            sage: a._Sequence__cr_str
+            True
+            sage: a.__str__()
+            '[\n1,\n2,\n3,\n4,\n5\n]'
+        """
         if not isinstance(x, (list, tuple)):
             x = list(x)
             #raise TypeError, "x must be a list or tuple"
@@ -313,6 +338,21 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         list.reverse(self)
 
     def __setitem__(self, n, x):
+        """
+        EXAMPLES::
+
+            sage: a = Sequence([1..5])
+            sage: a[2] = 19
+            sage: a
+            [1, 2, 19, 4, 5]
+            sage: a[2] = 'hello'
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=hello) to an integer
+            sage: a[2] = '5'
+            sage: a
+            [1, 2, 5, 4, 5]
+        """
         self._require_mutable()
         y = self.__universe(x)
         list.__setitem__(self, n, y)
@@ -458,11 +498,42 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         list.sort(self, cmp=cmp, key=key, reverse=reverse)
 
     def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: a = Sequence([1..5])
+            sage: a.__hash__()
+            Traceback (most recent call last):
+            ...
+            ValueError: immutable sequences are unhashable
+            sage: a[0] = 10
+            sage: a.set_immutable()
+            sage: a.__hash__()
+            -123014399  # 32-bit
+            -5823618793256324351  # 64-bit
+            sage: hash(a)
+            -123014399  # 32-bit
+            -5823618793256324351  # 64-bit
+        """
+        if not self._is_immutable:
+            raise ValueError, "immutable sequences are unhashable"
         if self.__hash is None:
             self.__hash = hash(tuple(self))
         return self.__hash
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: Sequence([1,2/3,-2/5])._repr_()
+            '[1, 2/3, -2/5]'
+            sage: print Sequence([1,2/3,-2/5], cr=True)._repr_()
+            [
+            1,
+            2/3,
+            -2/5
+            ]
+        """
         if self.__cr:
             return '[\n' + ',\n'.join([repr(x) for x in self]) + '\n]'
         else:
@@ -489,16 +560,48 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return list.__str__(self)
 
     def category(self):
+        """
+        EXAMPLES::
+
+            sage: Sequence([1,2/3,-2/5]).category()
+            Category of sequences in Rational Field
+        """
         import sage.categories.all
         return sage.categories.all.Sequences(self.universe())
 
     def parent(self):
+        """
+
+        EXAMPLES::
+
+            sage: Sequence([1,2/3,-2/5]).parent()
+            Category of sequences in Rational Field
+        """
         return self.category()
 
     def universe(self):
+        """
+        EXAMPLES::
+
+            sage: Sequence([1,2/3,-2/5]).universe()
+            Rational Field
+            sage: Sequence([1,2/3,'-2/5']).universe()
+            Category of objects
+        """
         return self.__universe
 
     def _require_mutable(self):
+        """
+        EXAMPLES::
+
+            sage: a = Sequence([1,2/3,'-2/5'])
+            sage: a._require_mutable()
+            sage: a.set_immutable()
+            sage: a._require_mutable()
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+        """
         if self._is_immutable:
             raise ValueError, "object is immutable; please change a copy instead."%self
 
@@ -545,6 +648,23 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return False
 
     def is_mutable(self):
+        """
+        EXAMPLES::
+
+            sage: a = Sequence([1,2/3,-2/5])
+            sage: a.is_mutable()
+            True
+            sage: a[0] = 100
+            sage: type(a[0])
+            <type 'sage.rings.rational.Rational'>
+            sage: a.set_immutable()
+            sage: a[0] = 50
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: a.is_mutable()
+            False
+        """
         try:
             return not self._is_immutable
         except AttributeError:

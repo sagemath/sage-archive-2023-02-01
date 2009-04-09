@@ -17,6 +17,7 @@
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.misc import options, rename_keyword, rgbcolor, get_cmap
 from sage.misc.misc import verbose, xsrange
+import operator
 
 class ContourPlot(GraphicPrimitive):
     """
@@ -159,7 +160,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(contours=(0,0), fill=False)
+@options(plot_points=50, contours=(0,0), fill=False)
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     \code{implicit_plot} takes a function of two variables, $f(x,y)$
@@ -168,12 +169,15 @@ def implicit_plot(f, xrange, yrange, **options):
 
       implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)
 
+      implicit_plot(f, (x, xmin, xmax), (y, ymin, ymax), ...)
+
     INPUT:
-        f -- a function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values
-        (ymin, ymax) -- 2-tuple, the range of y values
+        f -- a function of two variables or equation in two variables
+        (xmin, xmax) -- 2-tuple, the range of x values or (x,xmin,xmax)
+        (ymin, ymax) -- 2-tuple, the range of y values or (y,ymin,ymax)
+
     The following inputs must all be passed in as named parameters:
-        plot_points  -- integer (default: 25); number of points to plot
+        plot_points  -- integer (default: 50); number of points to plot
                         in each direction of the grid
         fill         -- boolean (default: False); if True, fill the region $f(x,y)<0$.
 
@@ -184,6 +188,11 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: var("x y")
         (x, y)
         sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+
+    You can also plot an equation:
+        sage: var("x y")
+        (x, y)
+        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
 
     We can define a level-$n$ approximation of the boundary of the
     Mandelbrot set.
@@ -208,6 +217,11 @@ def implicit_plot(f, xrange, yrange, **options):
     (plot_points=200 looks even better, but it's about 16 times slower.)
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
+    from sage.calculus.equations import is_SymbolicEquation
+    if is_SymbolicEquation(f):
+        if f.operator() != operator.eq:
+            raise ValueError, "input to implicit plot must be function or equation"
+        f = f.lhs() - f.rhs()
     return contour_plot(f, xrange, yrange, **options)
 
 @options(plot_points=25, incol='blue', outcol='white', bordercol=None)

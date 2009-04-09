@@ -140,7 +140,6 @@ class FastCrystal(ClassicalCrystal):
             l1_str = "%d/2"%int(2*l1)
             l2_str = "%d/2"%int(2*l2)
         self._name = "The fast crystal for %s2 with shape [%s,%s]"%(ct[0],l1_str,l2_str)
-        self.index_set = self.cartan_type.index_set()
         self.module_generators = [self(0)]
         self._list = ClassicalCrystal.list(self)
         self._digraph = ClassicalCrystal.digraph(self)

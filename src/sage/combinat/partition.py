@@ -1393,8 +1393,12 @@ class Partition_class(CombinatorialObject):
             [[0, 2], [2, 0]]
             sage: Partition([6,3,3,1,1,1]).outside_corners()
             [[0, 6], [1, 3], [3, 1], [6, 0]]
+	    sage: Partition([]).outside_corners()
+	    [[0, 0]]
         """
         p = self
+	if p == Partition([]):
+	    return [[0,0]]
         res = [ [0, p[0]] ]
         for i in range(1, len(p)):
             if p[i-1] != p[i]:

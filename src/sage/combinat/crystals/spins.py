@@ -196,7 +196,6 @@ class GenericCrystalOfSpins(ClassicalCrystal):
         else:
             self._name = "The minus crystal of spins for type %s"%ct
 
-        self.index_set = self.cartan_type.index_set()
         self.element_class = element_class
         if case == "minus":
             generator = [1]*(ct[1]-1)

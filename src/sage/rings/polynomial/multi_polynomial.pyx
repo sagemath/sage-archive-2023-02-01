@@ -610,6 +610,13 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: (x + x^2).homogenize(y).parent()
             Multivariate Polynomial Ring in x, y over Finite Field of size 3
 
+        TESTS:
+            sage: R = PolynomialRing(QQ, 'x', 5)
+            sage: p = R.random_element()
+            sage: q1 = p.homogenize()
+            sage: q2 = p.homogenize()
+            sage: q1.parent() is q2.parent()
+            True
         """
         P = self.parent()
 

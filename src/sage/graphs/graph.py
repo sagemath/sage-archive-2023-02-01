@@ -6412,10 +6412,17 @@ class GenericGraph(SageObject):
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
 
+        ::
+
             sage: S = SupersingularModule(389)
             sage: H = S.hecke_matrix(2)
             sage: D = DiGraph(H)
             sage: P = D.plot()
+
+        ::
+
+            sage: G=Graph({'a':['a','b','b','b','e'],'b':['c','d','e'],'c':['c','d','d','d'],'d':['e']})
+            sage: G.show(pos={'a':[0,1],'b':[1,1],'c':[2,0],'d':[1,0],'e':[0,0]})
 
         """
         from sage.graphs.graph_plot import GraphPlot

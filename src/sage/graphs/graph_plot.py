@@ -458,8 +458,8 @@ class GraphPlot(SageObject):
                     else:
                         odd_x = lambda d : M[0]
                         even_x = odd_x
-                        odd_y = M[1] + d
-                        even_y = M[1] - d
+                        odd_y = lambda d : M[1] + d
+                        even_y = lambda d : M[1] - d
 
                     # We now have the control points for each bezier curve
                     # in terms of distance parameter d.

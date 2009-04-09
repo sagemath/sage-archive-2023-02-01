@@ -417,17 +417,50 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 1 1]
             [0 0 0]
+            sage: block_matrix([B, 1, 0, B])
+            [0 1 0|1 0 0]
+            [0 1 1|0 1 0]
+            [0 0 0|0 0 1]
+            [-----+-----]
+            [0 0 0|0 1 0]
+            [0 0 0|0 1 1]
+            [0 0 0|0 0 0]
         """
         if self._nrows ==0 or self._ncols == 0:
             return "[]"
-        cdef int i,j
-        s = []
+
+        cdef int i,j, last_i
+        cdef list s = []
+        empty_row = " "*(self._ncols*2-1)
+        cdef char *row_s
+        cdef char *div_s
+
+        cdef list row_div, col_div
+        if self.subdivisions is not None:
+            row_s = empty_row
+            div_s = row_divider = "[%s]" % ("-" * (self._ncols*2-1))
+            row_div, col_div = self.get_subdivisions()
+            last_i = 0
+            for i in col_div:
+                if i == last_i or i == self._ncols:
+                    # Adjacent column divisions messy, use generic code
+                    return matrix_dense.Matrix_dense.str(self)
+                row_s[2*i-1] = '|'
+                div_s[2*i] = '+'
+                last_i = i
+
         for i from 0 <= i < self._nrows:
-            rl = []
+            row_s = row = "[%s]" % empty_row
             for j from 0 <= j < self._ncols:
-                rl.append(str(mzd_read_bit(self._entries,i,j)))
-            s.append( " ".join(rl) )
-        return "[" + "]\n[".join(s) + "]"
+                row_s[1+2*j] = c'0' + mzd_read_bit(self._entries,i,j)
+            s.append(row)
+
+        if self.subdivisions is not None:
+            for i in reversed(row_div):
+                s.insert(i, row_divider)
+
+        return "\n".join(s)
+
 
     ########################################################################
     # LEVEL 2 functionality

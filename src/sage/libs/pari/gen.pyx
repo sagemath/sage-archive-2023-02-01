@@ -9141,10 +9141,17 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     """
     TESTS::
 
-        sage: v = pari.listcreate(2^62 if is_64_bit else 2^30)
+    We only run this test on Linux, since on some machine this will
+    allocate insane amounts of RAM and lead to segfaults (e.g., on
+    FreeBSD and Solaris).
+
+        sage: if os.uname()[0]=="Linux":
+        ...       pari.listcreate(2^62 if is_64_bit else 2^30)
+        ... else:
+        ...       raise MemoryError
         Traceback (most recent call last):
         ...
-        MemoryError: Unable to allocate ... bytes memory for PARI.
+        MemoryError...
     """
     _sig_off
     if retries > 100:

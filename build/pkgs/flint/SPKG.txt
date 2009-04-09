@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.2.4.p1 (William Stein, April 8, 2009) ===
+ * Disable znpoly.
+
 === flint-1.2.4.p0 (Michael Abshoff, April 5th, 2009) ===
  * Build the OSX dylibs with CPP instead of CC
 

@@ -275,8 +275,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       // TODO: maybe program around Python's braindead L suffix? PyLong_Check(s.v._pyobject) 
       o = PyObject_Repr(s.v._pyobject);
       if (!o) {
-	// TODO: get proper exception.
-	os << "(exception printing python object)";
+	throw(std::runtime_error("operator<<(ostream, Number_T): exception printing python object"));
       } else {
 	os << PyString_AsString(o);
 	Py_DECREF(o);
@@ -1482,67 +1481,17 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 	  if (latex) {
 		  c.s<<py_latex(to_pyobject());
 		  return;
-	  }
-    // TODO: This is stupid.  Should make it so value.real() and value.imag() are defined. 
-    Number_T r = real().value, i = imag().value;
-    
-    // TODO: all the calls to Number_T below may be very expensive?
-    if (i.is_zero()) {
-
-      // case 1, real:  x  or  -x
-      if ((precedence() <= level) && (!this->is_nonneg_integer())) {
-	c.s << par_open;
-	print_real_number(c, r);
-	c.s << par_close;
-      } else {
-	print_real_number(c, r);
-      }
-
-    } else {
-      if (r.is_zero()) {
-
-	// case 2, imaginary:  y*I  or  -y*I
-	if (i == Number_T(1))
-	  c.s << imag_sym;
-	else {
-	  if (precedence()<=level)
-	    c.s << par_open;
-	  if (i == Number_T(-1))
-	    c.s << "-" << imag_sym;
-	  else {
-	    print_real_number(c, i);
-	    c.s << mul_sym << imag_sym;
-	  }
-	  if (precedence()<=level)
-	    c.s << par_close;
-	}
-
-      } else {
-
-	// case 3, complex:  x+y*I  or  x-y*I  or  -x+y*I  or  -x-y*I
-	if (precedence() <= level)
-	  c.s << par_open;
-	print_real_number(c, r);
-	if (i < Number_T(0)) {
-	  if (i == Number_T(-1)) {
-	    c.s << " - " << imag_sym;
 	  } else {
-	    print_real_number(c, i);
-	    c.s << mul_sym << imag_sym;
+
+		  PyObject* res = PyObject_Repr(to_pyobject());
+		  if (!res) {
+			  throw(std::runtime_error("numeric::print_numeric(): exception printing python object"));
+
+		  } else {
+			  c.s << PyString_AsString(res);
+			  Py_DECREF(res);
+		  }
 	  }
-	} else {
-	  if (i == Number_T(1)) {
-	    c.s << " + " << imag_sym;
-	  } else {
-	    c.s << " + ";
-	    print_real_number(c, i);
-	    c.s << mul_sym << imag_sym;
-	  }
-	}
-	if (precedence() <= level)
-	  c.s << par_close;
-      }
-    }
   }
 
   void numeric::do_print(const print_context & c, unsigned level) const

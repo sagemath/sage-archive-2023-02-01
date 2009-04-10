@@ -34,6 +34,18 @@ cdef extern from "ginac_wrap.h":
     ctypedef struct GExMap "exmap":
         void insert(GExPair e)
 
+    # forward declaration of GEx
+    ctypedef struct GEx "ex"
+
+    ctypedef struct GExListIter "GiNaC::lst::const_iterator":
+        void inc "operator++" ()
+        GEx obj "operator*" ()
+        bint is_not_equal "operator!=" (GExListIter i)
+
+    ctypedef struct GExList "GiNaC::lst":
+        GExListIter begin()
+        GExListIter end()
+
     ctypedef struct GEx "ex":
         unsigned int gethash()        except +
         int compare(GEx other)        except +
@@ -43,6 +55,7 @@ cdef extern from "ginac_wrap.h":
         GEx series(GEx s, int order, unsigned options) except +
         bint is_zero()                except +
         bint match(GEx pattern)       except +
+        bint find(GEx pattern, GExList s) except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map) except +

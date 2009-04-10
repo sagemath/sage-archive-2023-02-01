@@ -6547,7 +6547,19 @@ class GenericGraph(SageObject):
             sage: for i in range(len(edges)):
             ...       edge_colors[R[i]] = [edges[i]]
             sage: P.plot3d(engine='tachyon', edge_colors=edge_colors).show() # long time
+
+
+        ::
+
+            sage: G=Graph({'a':['a','b','b','b','e'],'b':['c','d','e'],'c':['c','d','d','d'],'d':['e']})
+            sage: G.show3d()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: 3D plotting of multiple edges or loops not implemented.
+
         """
+        if self.has_multiple_edges() or self.has_loops():
+            raise NotImplementedError("3D plotting of multiple edges or loops not implemented.")
         if engine == 'jmol':
             from sage.plot.plot3d.all import sphere, line3d, arrow3d
             kwds.setdefault('aspect_ratio', [1,1,1])

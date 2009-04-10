@@ -82,10 +82,10 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _reduce_(self):
         """
-        This has nothing to do with pickling.  This replaces the
-        cached representative by one in reduced form.
+        This has nothing to do with pickling.  This internal method
+        replaces the cached representative by one in reduced form.
 
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -164,10 +164,15 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _add_(self, right):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a + b
+            a + b
+
+        TESTS::
+
             sage: a._add_(b)
             a + b
         """
@@ -175,10 +180,15 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _sub_(self, right):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a - b
+            a - b
+
+        TESTS::
+
             sage: a._sub_(b)
             a - b
         """
@@ -186,10 +196,15 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _mul_(self, right):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a * b
+            a*b
+
+        TESTS::
+
             sage: a._mul_(b)
             a*b
             sage: a._mul_(a)
@@ -199,10 +214,15 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _div_(self, right):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a / S(2)
+            1/2*a
+
+        TESTS::
+
             sage: a._div_(b)
             Traceback (most recent call last):
             ...

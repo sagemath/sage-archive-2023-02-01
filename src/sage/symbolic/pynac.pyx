@@ -277,23 +277,100 @@ cdef public object py_lcm(object n, object k):
 # Real Part
 #################################################################
 cdef public object py_real(object x):
+    """
+    Returns the real part of x.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_real_for_doctests as py_real
+        sage: py_real(I)
+        0.0
+        sage: py_real(CC(1,5))
+        1.00000000000000
+        sage: py_real(CC(1))
+        1.00000000000000
+        sage: py_real(RR(1))
+        1.00000000000000
+
+        sage: py_real(Mod(2,7))
+        2
+
+        sage: py_real(QQ['x'].gen())
+        x
+    """
     try:
         return x.real()
     except AttributeError:
-        if isinstance(x, complex):
-            return x.real
-        return x  # assume is real
+        pass
+    if isinstance(x, complex):
+        return x.real
+    from sage.misc.functional import real
+    try:
+        return real(x)
+    except TypeError:
+        return x # assume x is real
+
+def py_real_for_doctests(x):
+    """
+    Used for doctesting py_real.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_real_for_doctests
+        sage: py_real_for_doctests(I)
+        0.0
+    """
+    return py_real(x)
 
 #################################################################
 # Imaginary Part
 #################################################################
 cdef public object py_imag(object x):
+    """
+    Return the imaginary part of x.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_imag_for_doctests as py_imag
+        sage: py_imag(I)
+        1.0
+        sage: py_imag(CC(1,5))
+        5.00000000000000
+        sage: py_imag(CC(1))
+        0.000000000000000
+        sage: py_imag(RR(1))
+        0.0
+
+        sage: py_imag(Mod(2,7))
+        0.0
+
+        sage: py_imag(QQ['x'].gen())
+        0
+    """
     try:
         return x.imag()
     except AttributeError:
-        if isinstance(x, complex):
-            return x.imag
-        return 0 # assume is real since it isn't of type complex and doesn't have an imag attribute.
+        pass
+
+    if isinstance(x, complex):
+        return x.imag
+    from sage.misc.functional import imag
+    try:
+        return imag(x)
+    except TypeError:
+        return 0 # assume x is real
+
+def py_imag_for_doctests(x):
+    """
+    Used for doctesting py_imag.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_imag_for_doctests
+        sage: py_imag_for_doctests(I)
+        1.0
+    """
+    return py_imag(x)
 
 
 #################################################################

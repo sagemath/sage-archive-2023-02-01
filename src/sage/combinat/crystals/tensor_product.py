@@ -206,14 +206,18 @@ def TensorProductOfCrystals(*crystals, **options):
         sage: C = CrystalOfLetters(['A',2])
         sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)]])
 
-    It has `8` elements
-
-    ::
+    It has `8` elements::
 
         sage: T.list()
 	[[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
 
-    ::
+    One can also check the Cartan type of the crystal::
+
+        sage: T.cartan_type()
+	['A', 2]
+
+    Other examples include crystals of tableaux (which internally are represented as tensor products
+    obtained by reading the tableaux columnwise)::
 
         sage: C = CrystalOfTableaux(['A',3], shape=[1,1,0])
 	sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
@@ -304,13 +308,12 @@ class TensorProductOfCrystalsWithGenerators(CrystalOfWords):
         self._name = "The tensor product of the crystals %s"%crystals
         self.crystals = crystals
         if options.has_key('cartan_type'):
-            self.cartan_type = CartanType(options['cartan_type'])
+            self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
                 raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
             else:
-                self.cartan_type = crystals[0].cartan_type
-#        self.index_set = self.cartan_type.index_set()
+                self._cartan_type = crystals[0].cartan_type()
         self.module_generators = [ self(*x) for x in options['generators']]
 
 
@@ -334,12 +337,12 @@ class FullTensorProductOfCrystals(CrystalOfWords):
         self._name = "Full tensor product of the crystals %s"%crystals
         self.crystals = crystals
         if options.has_key('cartan_type'):
-            self.cartan_type = CartanType(options['cartan_type'])
+            self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
                 raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
             else:
-                self.cartan_type = crystals[0].cartan_type
+                self._cartan_type = crystals[0].cartan_type()
         self.cartesian_product = CartesianProduct(*self.crystals)
         self.module_generators = self
 
@@ -676,7 +679,6 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
             True
         """
         self.letters = CrystalOfLetters(type)
-	self.cartan_type = self.letters.cartan_type
 	if shape is not None:
 	    assert shapes is None
 	    shapes = (shape,)
@@ -685,6 +687,17 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
 	module_generators = tuple(self.module_generator(la) for la in shapes)
         self.module_generators = module_generators
         self._name = "The crystal of tableaux of type %s and shape(s) %s"%(type, str(shapes))
+
+    def cartan_type(self):
+	"""
+	Returns the Cartan type of the associated crystal
+
+	EXAMPLES::
+	    sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
+	    sage: T.cartan_type()
+	    ['A', 3]
+        """
+	return self.letters.cartan_type()
 
     def module_generator(self, shape):
 	"""
@@ -697,7 +710,7 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
 	    sage: T.module_generator([1,1])
 	    [[1], [2]]
 	"""
-	type = self.cartan_type
+	type = self.cartan_type()
 	if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
 	    invert = True
 	    shape[type[1]-1]=-shape[type[1]-1]

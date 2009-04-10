@@ -158,22 +158,20 @@ class Crystal(CombinatorialClass, Parent):
     r"""
     The abstract class of crystals
 
-    Instances of this class should have the following methods:
+    Derived subclasses should implement the following:
 
-    -  cartan_type
+    -  either a method cartan_type or an attribute _cartan_type
 
-    -  index_set the index set of the cartan type
-
-    -  module_generators a list (or container) of distinct elements
+    -  module_generators: a list (or container) of distinct elements
        which generate the crystal using `f_i`
 
-    -  weight_lattice_realization
     """
 
     def weight_lattice_realization(self):
         """
         Returns the weight lattice realization for the root system
-        associated to self.
+        associated to self. This default implementation uses the
+        ambient space of the root system.
 
         EXAMPLES::
 
@@ -181,7 +179,18 @@ class Crystal(CombinatorialClass, Parent):
             sage: C.weight_lattice_realization()
             Ambient space of the Root system of type ['A', 5]
         """
-        return self.cartan_type.root_system().ambient_space()
+        return self.cartan_type().root_system().ambient_space()
+
+    def cartan_type(self):
+	"""
+	Returns the Cartan type of the associated crystal
+
+	EXAMPLES::
+            sage: C = CrystalOfLetters(['A',2])
+ 	    sage: C.cartan_type()
+	    ['A', 2]
+        """
+	return self._cartan_type
 
     def index_set(self):
 	"""
@@ -192,7 +201,7 @@ class Crystal(CombinatorialClass, Parent):
 	    sage: C.index_set()
 	    [1, 2, 3, 4, 5]
         """
-	return self.cartan_type.index_set()
+	return self.cartan_type().index_set()
 
     def Lambda(self):
         """
@@ -297,14 +306,14 @@ class Crystal(CombinatorialClass, Parent):
 
             sage: C = CrystalOfLetters(['A',2])
             sage: T = TensorProductOfCrystals(C, C)
-            sage: A2 = WeylCharacterRing(C.cartan_type); A2
+            sage: A2 = WeylCharacterRing(C.cartan_type()); A2
             The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
             sage: chi = T.character(A2); chi
             A2(1,1,0) + A2(2,0,0)
             sage: chi.check(verbose = true)
             [9, 9]
         """
-        if not R.cartan_type == self.cartan_type:
+        if not R.cartan_type == self.cartan_type():
             raise ValueError, "ring does not have the right Cartan type"
         hlist = {}
         mlist = {}
@@ -473,11 +482,13 @@ class Crystal(CombinatorialClass, Parent):
             ...
             NotImplementedError
         """
-        if self.cartan_type[0] == 'B' and self.cartan_type[1] == 2:
+        # FIXME: those tests are not robust
+        # Should use instead self.cartan_type() == CartanType(['B',2])
+        if self.cartan_type()[0] == 'B' and self.cartan_type()[1] == 2:
             word = [2,1,2,1]
-        elif self.cartan_type[0] == 'C' and self.cartan_type[1] == 2:
+        elif self.cartan_type()[0] == 'C' and self.cartan_type()[1] == 2:
             word = [2,1,2,1]
-        elif self.cartan_type[0] == 'A' and self.cartan_type[1] == 2:
+        elif self.cartan_type()[0] == 'A' and self.cartan_type()[1] == 2:
             word = [1,2,1]
         else:
             raise NotImplementedError
@@ -494,7 +505,7 @@ class Crystal(CombinatorialClass, Parent):
                 string_datum.append(turtlewalk)
             string_data.append(string_datum)
 
-        if self.cartan_type[0] == 'A':
+        if self.cartan_type()[0] == 'A':
             if labels:
                 c0 = int(55*scaling_factor)
                 c1 = int(-25*scaling_factor)
@@ -514,13 +525,13 @@ class Crystal(CombinatorialClass, Parent):
             else:
                 outstring = "beginfig(-1);\n\nsx := %d;\nsy := %d;\n\nz1000=(2*sx,0);\nz1001=(-sx,sy);\nz1002=(-5,-5);\n\nz1003=(10,10);\n\n"%(int(scaling_factor*35),int(tallness*scaling_factor*35))
         for i in range(size):
-            if self.cartan_type[0] == 'A':
+            if self.cartan_type()[0] == 'A':
                 [a1,a2,a3] = string_data[i]
             else:
                 [a1,a2,a3,a4] = string_data[i]
             shift = 0
             for j in range(i):
-                if self.cartan_type[0] == 'A':
+                if self.cartan_type()[0] == 'A':
                     [b1,b2,b3] = string_data[j]
                     if b1+b3 == a1+a3 and b2 == a2:
                         shift += 1
@@ -528,7 +539,7 @@ class Crystal(CombinatorialClass, Parent):
                     [b1,b2,b3,b4] = string_data[j]
                     if b1+b3 == a1+a3 and b2+b4 == a2+a4:
                         shift += 1
-            if self.cartan_type[0] == 'A':
+            if self.cartan_type()[0] == 'A':
                 outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2,shift)
             else:
                 outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2+a4,shift)
@@ -544,7 +555,7 @@ class Crystal(CombinatorialClass, Parent):
                         col = "red;"
                     else:
                         col = "green;  "
-                    if self.cartan_type[0] == 'A':
+                    if self.cartan_type()[0] == 'A':
                         [a1,a2,a3] = string_data[i] # included to facilitate hand editing of the .mp file
                         outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d\n"%(i,dest,col,a1,a2,a3)
                     else:
@@ -553,7 +564,7 @@ class Crystal(CombinatorialClass, Parent):
         outstring += "\npickup pencircle scaled 3;\n\n"
         for i in range(self.cardinality()):
             if labels:
-                if self.cartan_type[0] == 'A':
+                if self.cartan_type()[0] == 'A':
                     outstring = outstring+"pickup pencircle scaled 15;\nfill z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\npickup pencircle scaled .5;\ndraw z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle;\n"%(i,i,i,i,string_data[i][2],i,string_data[i][1],i,string_data[i][0],i,i,i,i,i)
                 else:
                     outstring = outstring+"%%%d %d %d %d\npickup pencircle scaled 1;\nfill z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\nlabel(btex %d etex, z%d+z2004);\npickup pencircle scaled .5;\ndraw z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle;\n\n"%(string_data[i][0],string_data[i][1],string_data[i][2],string_data[i][3],i,i,i,i,string_data[i][0],i,string_data[i][1],i,string_data[i][2],i,string_data[i][3],i,i,i,i,i)
@@ -614,8 +625,7 @@ class CrystalElement(Element):
     r"""
     The abstract class of crystal elements
 
-    Sub classes should implement:
-
+    Sub classes should implement at least:
 
     -  x.e(i) (returning `e_i(x)`)
 
@@ -632,7 +642,18 @@ class CrystalElement(Element):
             sage: C(1).index_set()
             [1, 2, 3, 4, 5]
         """
-        return self._parent.index_set()
+        return self.parent().index_set()
+
+    def cartan_type(self):
+	"""
+	Returns the cartan type associated to self
+
+	EXAMPLES::
+	    sage: C = CrystalOfLetters(['A', 5])
+	    sage: C(1).cartan_type()
+	    ['A', 5]
+        """
+	return self.parent().cartan_type()
 
     def weight(self):
         """
@@ -728,7 +749,8 @@ class CrystalElement(Element):
             sage: C(2).Epsilon()
             (1, 0, 0, 0, 0, 0)
         """
-	return sum(self.epsilon(i) * self._parent.Lambda()[i] for i in self.index_set())
+        Lambda = self.parent().Lambda()
+	return sum(self.epsilon(i) * Lambda[i] for i in self.index_set())
 
     def Phi(self):
         """
@@ -742,7 +764,8 @@ class CrystalElement(Element):
             sage: C(2).Phi()
             (1, 1, 0, 0, 0, 0)
         """
-	return sum(self.phi(i) * self._parent.Lambda()[i] for i in self.index_set())
+        Lambda = self.parent().Lambda()
+	return sum(self.phi(i) * Lambda[i] for i in self.index_set())
 
     def s(self, i):
 	r"""
@@ -965,7 +988,7 @@ class ClassicalCrystal(Crystal):
     def highest_weight_vector(self):
         r"""
         Returns the highest weight vector if there is a single one;
-        otherwise, raise an error.
+        otherwise, raises an error.
 
         EXAMPLES::
 

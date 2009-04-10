@@ -53,6 +53,8 @@ def CrystalOfLetters(cartan_type):
         sage: C = CrystalOfLetters(['A',5])
         sage: C.list()
         [1, 2, 3, 4, 5, 6]
+	sage: C.cartan_type()
+	['A', 5]
     """
     ct = CartanType(cartan_type)
     if ct[0] == 'A':
@@ -99,7 +101,7 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
             sage: C == loads(dumps(C))
             True
         """
-        self.cartan_type = CartanType(cartan_type)
+        self._cartan_type = CartanType(cartan_type)
         self._name = "The crystal of letters for type %s"%cartan_type
         self.element_class = element_class
         self.module_generators = [self(1)]
@@ -385,7 +387,7 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
             sage: [v.weight() for v in CrystalOfLetters(['A',3])]
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
-        return self._parent.weight_lattice_realization()._term(self.value-1)
+        return self.parent().weight_lattice_realization()._term(self.value-1)
 
     def e(self, i):
         r"""
@@ -399,7 +401,7 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
         """
         assert i in self.index_set()
         if self.value == i+1:
-            return self._parent(self.value-1)
+            return self.parent()(self.value-1)
         else:
             return None
 
@@ -415,7 +417,7 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
         """
         assert i in self.index_set()
         if self.value == i:
-            return self._parent(self.value+1)
+            return self.parent()(self.value+1)
         else:
             return None
 
@@ -450,11 +452,11 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
              (-1, 0, 0)]
         """
         if self.value > 0:
-            return self._parent.weight_lattice_realization()._term(self.value-1)
+            return self.parent().weight_lattice_realization()._term(self.value-1)
         elif self.value < 0:
-            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+            return -self.parent().weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()(0)
+            return self.parent().weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -475,14 +477,14 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         """
         assert i in self.index_set()
         if self.value == i+1:
-            return self._parent(i)
-        elif self.value == 0 and i == self._parent.cartan_type.n:
-            return self._parent(self._parent.cartan_type.n)
+            return self.parent()(i)
+        elif self.value == 0 and i == self.parent().cartan_type().n:
+            return self.parent()(self.parent().cartan_type().n)
         elif self.value == -i:
-            if i == self._parent.cartan_type.n:
-                return self._parent(0)
+            if i == self.parent().cartan_type().n:
+                return self.parent()(0)
             else:
-                return self._parent(-i-1)
+                return self.parent()(-i-1)
         else:
             return None
 
@@ -505,14 +507,14 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         """
         assert i in self.index_set()
         if self.value == i:
-            if i < self._parent.cartan_type.n:
-                return self._parent(i+1)
+            if i < self.parent().cartan_type().n:
+                return self.parent()(i+1)
             else:
-                return self._parent(0)
-        elif self.value == 0 and i == self._parent.cartan_type.n:
-            return self._parent(-self._parent.cartan_type.n)
+                return self.parent()(0)
+        elif self.value == 0 and i == self.parent().cartan_type().n:
+            return self.parent()(-self.parent().cartan_type().n)
         elif self.value == -i-1:
-            return(self._parent(-i))
+            return(self.parent()(-i))
         else:
             return None
 
@@ -550,11 +552,11 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0), (-1, 0, 0)]
         """
         if self.value > 0:
-            return self._parent.weight_lattice_realization()._term(self.value-1)
+            return self.parent().weight_lattice_realization()._term(self.value-1)
         elif self.value < 0:
-            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+            return -self.parent().weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()(0)
+            return self.parent().weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -573,10 +575,10 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
              [-4, 4, 4]]
         """
         assert i in self.index_set()
-        if self.value == -self._parent.cartan_type.n and self.value == -i:
-            return self._parent(-self.value)
+        if self.value == -self.parent().cartan_type().n and self.value == -i:
+            return self.parent()(-self.value)
         elif self.value == i+1 or self.value == -i:
-            return self._parent(self.value-1)
+            return self.parent()(self.value-1)
         else:
             return None
 
@@ -597,10 +599,10 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
              [4, 4, -4]]
         """
         assert i in self.index_set()
-        if self.value == self._parent.cartan_type.n and self.value == i:
-            return  self._parent(-self.value)
+        if self.value == self.parent().cartan_type().n and self.value == i:
+            return  self.parent()(-self.value)
         elif self.value == i or self.value == -i-1:
-            return self._parent(self.value+1)
+            return self.parent()(self.value+1)
         else:
             return None
 
@@ -638,11 +640,11 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
              (-1, 0, 0, 0)]
         """
         if self.value > 0:
-            return self._parent.weight_lattice_realization()._term(self.value-1)
+            return self.parent().weight_lattice_realization()._term(self.value-1)
         elif self.value < 0:
-            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+            return -self.parent().weight_lattice_realization()._term(-self.value-1)
         else:
-            return self._parent.weight_lattice_realization()(0)
+            return self.parent().weight_lattice_realization()(0)
 
     def e(self, i):
         r"""
@@ -664,17 +666,17 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
              [-4, 5, 5]]
         """
         assert i in self.index_set()
-        if i == self._parent.cartan_type.n:
+        if i == self.parent().cartan_type().n:
             if self.value == -i:
-                return self._parent(i-1)
+                return self.parent()(i-1)
             elif self.value == -(i-1):
-                return self._parent(i)
+                return self.parent()(i)
             else:
                 return None
         elif self.value == i+1:
-            return self._parent(i)
+            return self.parent()(i)
         elif self.value == -i:
-            return self._parent(-(i+1))
+            return self.parent()(-(i+1))
         else:
             return None
 
@@ -699,14 +701,14 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
         """
         assert i in self.index_set()
         if i == self.value:
-            if i == self._parent.cartan_type.n:
-                return self._parent(-(i-1))
+            if i == self.parent().cartan_type().n:
+                return self.parent()(-(i-1))
             else:
-                return self._parent(i+1)
+                return self.parent()(i+1)
         elif self.value == -(i+1):
-            return self._parent(-i)
-        elif self.value == self._parent.cartan_type.n-1 and i == self.value+1:
-            return self._parent(-i)
+            return self.parent()(-i)
+        elif self.value == self.parent().cartan_type().n-1 and i == self.value+1:
+            return self.parent()(-i)
         else:
             return None
 
@@ -737,19 +739,19 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
             [(1, 0, -1), (1, -1, 0), (0, 1, -1), (0, 0, 0), (0, -1, 1), (-1, 1, 0), (-1, 0, 1)]
         """
         if self.value == 1:
-            return self._parent.weight_lattice_realization()((1, 0, -1))
+            return self.parent().weight_lattice_realization()((1, 0, -1))
         elif self.value == 2:
-            return self._parent.weight_lattice_realization()((1, -1, 0))
+            return self.parent().weight_lattice_realization()((1, -1, 0))
         elif self.value == 3:
-            return self._parent.weight_lattice_realization()((0, 1, -1))
+            return self.parent().weight_lattice_realization()((0, 1, -1))
         elif self.value == 0:
-            return self._parent.weight_lattice_realization()((0, 0, 0))
+            return self.parent().weight_lattice_realization()((0, 0, 0))
         elif self.value == -3:
-            return self._parent.weight_lattice_realization()((0, -1, 1))
+            return self.parent().weight_lattice_realization()((0, -1, 1))
         elif self.value == -2:
-            return self._parent.weight_lattice_realization()((-1, 1, 0))
+            return self.parent().weight_lattice_realization()((-1, 1, 0))
         elif self.value == -1:
-            return self._parent.weight_lattice_realization()((-1, 0, 1))
+            return self.parent().weight_lattice_realization()((-1, 0, 1))
         else:
             raise RuntimeError, "G2 crystal of letters element %d not valid"%self.value
 
@@ -771,20 +773,20 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
         assert i in self.index_set()
         if i == 1:
             if self.value == 2:
-                return self._parent(1)
+                return self.parent()(1)
             elif self.value == 0:
-                return self._parent(3)
+                return self.parent()(3)
             elif self.value == -3:
-                return self._parent(0)
+                return self.parent()(0)
             elif self.value == -1:
-                return self._parent(-2)
+                return self.parent()(-2)
             else:
                 return None
         else:
             if self.value == 3:
-                return self._parent(2)
+                return self.parent()(2)
             elif self.value == -2:
-                return self._parent(-3)
+                return self.parent()(-3)
             else:
                 return None
 
@@ -806,20 +808,20 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
         assert i in self.index_set()
         if i == 1:
             if self.value == 1:
-                return self._parent(2)
+                return self.parent()(2)
             elif self.value == 3:
-                return self._parent(0)
+                return self.parent()(0)
             elif self.value == 0:
-                return self._parent(-3)
+                return self.parent()(-3)
             elif self.value == -2:
-                return self._parent(-1)
+                return self.parent()(-1)
             else:
                 return None
         else:
             if self.value == 2:
-                return self._parent(3)
+                return self.parent()(3)
             elif self.value == -3:
-                return self._parent(-2)
+                return self.parent()(-2)
             else:
                 return None
 

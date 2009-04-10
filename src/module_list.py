@@ -800,6 +800,10 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.plot.complex_plot',
+              sources = ['sage/plot/complex_plot.pyx'],
+              include_dirs = numpy_include_dirs),
+
     Extension('sage.plot.plot3d.base',
               sources = ['sage/plot/plot3d/base.pyx']),
 

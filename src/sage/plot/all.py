@@ -19,6 +19,7 @@ from polygon import polygon, polygon2d
 from circle import circle
 from contour_plot import contour_plot, implicit_plot, region_plot
 from density_plot import density_plot
+from complex_plot import complex_plot
 
 from animate import Animation as animate
 

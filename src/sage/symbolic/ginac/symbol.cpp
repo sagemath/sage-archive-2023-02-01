@@ -32,6 +32,8 @@
 #include "utils.h"
 #include "inifcns.h"
 
+extern "C" char* py_latex_variable(const char* o);
+
 namespace GiNaC {
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(symbol, basic,
@@ -187,7 +189,9 @@ void symbol::do_print(const print_context & c, unsigned level) const
 
 void symbol::do_print_latex(const print_latex & c, unsigned level) const
 {
-	c.s << TeX_name;
+	char* lstr = py_latex_variable(TeX_name.c_str());
+	c.s << lstr;
+	free(lstr);
 }
 
 void symbol::do_print_tree(const print_tree & c, unsigned level) const

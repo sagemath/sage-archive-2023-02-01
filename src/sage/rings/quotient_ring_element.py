@@ -113,8 +113,13 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
+            sage: bool(S(0))
+            False
+
+        TESTS::
+
             sage: S(0).__nonzero__()
             False
             sage: (a-a).__nonzero__()
@@ -141,7 +146,7 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _repr_(self):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -159,7 +164,7 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _add_(self, right):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -170,7 +175,7 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _sub_(self, right):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -181,7 +186,7 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _mul_(self, right):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -194,7 +199,7 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _div_(self, right):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -221,11 +226,11 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: S(-3).__int__()
+            sage: int(S(-3))                # indirect doctest
             -3
-            sage: type(S(-3).__int__())
+            sage: type(int(S(-3)))
             <type 'int'>
-            sage: a.__int__()
+            sage: int(a)
             Traceback (most recent call last):
             ...
             TypeError
@@ -238,8 +243,11 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: S(-3)._integer_()
+            sage: ZZ(S(-3))
             -3
+
+        TESTS::
+
             sage: type(S(-3)._integer_())
             <type 'sage.rings.integer.Integer'>
         """
@@ -254,8 +262,11 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: S(-2/3)._rational_()
+            sage: QQ(S(-2/3))
             -2/3
+
+        TESTS::
+
             sage: type(S(-2/3)._rational_())
             <type 'sage.rings.rational.Rational'>
         """
@@ -270,7 +281,7 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: S(-3).__long__()
+            sage: long(S(-3))            # indirect doctest
             -3L
         """
         return long(self.lift())
@@ -281,16 +292,16 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: a.__neg__()
+            sage: -a                     # indirect doctest
             -a
-            sage: (a+b).__neg__()
+            sage: -(a+b)
             -a - b
         """
         return QuotientRingElement(self.parent(), -self.__rep)
 
     def __pos__(self):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -307,12 +318,17 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: ~S(2/3)
+            3/2
+
+        TESTS::
+
+            sage: S(2/3).__invert__()
+            3/2
             sage: a.__invert__()
             Traceback (most recent call last):
             ...
             NotImplementedError
-            sage: S(2/3).__invert__()
-            3/2
         """
         try:
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())
@@ -325,11 +341,13 @@ class QuotientRingElement(ring_element.RingElement):
 
     def __float__(self):
         """
+        EXAMPLES::
+
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: S(2/3).__float__()
+            sage: float(S(2/3))
             0.66666666666666663
-            sage: a.__float__()
+            sage: float(a)
             Traceback (most recent call last):
             ...
             TypeError
@@ -342,14 +360,19 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
-            sage: a.__cmp__(b)
-            1
-            sage: b.__cmp__(a)
-            -1
-            sage: a.__cmp__(a)
-            0
+            sage: a > b
+            True
+            sage: b > a
+            False
+            sage: a == a
+            True
+
+        TESTS::
+
             sage: a.__cmp__(a+1-1)
             0
+            sage: a.__cmp__(b)
+            1
         """
         if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
             return 0
@@ -367,6 +390,8 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = Q( z*y + 2*x )
             sage: f.lt()
             2*xbar
+
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -388,6 +413,8 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f.lm()
             xbar
 
+        TESTS::
+
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
             sage: (a+3*a*b+b).lm()
@@ -408,6 +435,8 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = Q( z*y + 2*x )
             sage: f.lc()
             2
+
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
@@ -454,10 +483,8 @@ class QuotientRingElement(ring_element.RingElement):
 
         INPUT:
 
-
         -  ``singular`` - a non-standard interpreter may be
            provided
-
 
         EXAMPLE::
 
@@ -480,7 +507,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: Q(xbar._singular_()) # a round-trip
             xbar
 
-        Another example::
+        TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>

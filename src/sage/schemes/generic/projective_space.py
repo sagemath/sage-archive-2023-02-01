@@ -433,9 +433,6 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         """
         return algebraic_scheme.AlgebraicScheme_subscheme_projective(self, X)
 
-    def subscheme_complement(self, X, Y):
-        return algebraic_scheme.AlgebraicScheme_quasi(self, X, Y)
-
     def affine_patch(self, i):
         r"""
         Return the `i^{th}` affine patch of this projective space.

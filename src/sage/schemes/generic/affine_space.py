@@ -55,8 +55,7 @@ def is_AffineSpace(x):
 
 def AffineSpace(n, R=None, names='x'):
     r"""
-    Return affine space of dimension `n` over the ring
-    `R`.
+    Return affine space of dimension `n` over the ring `R`.
 
     EXAMPLES: The dimension and ring can be given in either order.
 
@@ -85,7 +84,7 @@ def AffineSpace(n, R=None, names='x'):
         sage: AffineSpace(5, names='x')
         Affine Space of dimension 5 over Integer Ring
 
-    There is also an affine space associated each polynomial ring.
+    There is also an affine space associated to each polynomial ring.
 
     ::
 
@@ -158,6 +157,12 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         Affine Space of dimension 0 over Integer Ring
     """
     def __init__(self, n, R, names):
+        """
+        EXAMPLES::
+
+            sage: AffineSpace(3, Zp(5), 'y')
+            Affine Space of dimension 3 over 5-adic Ring with capped relative precision 20
+        """
         names = normalize_names(n, names)
         ambient_space.AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
@@ -204,16 +209,53 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                 i += 1
 
     def ngens(self):
+        """
+        Return the number of generators of self, i.e. the number of
+        variables in the coordinate ring of self.
+
+        EXAMPLES::
+
+            sage: AffineSpace(3, QQ).ngens()
+            3
+            sage: AffineSpace(7, ZZ).ngens()
+            7
+        """
         return self.dimension_relative()
 
     def rational_points(self, F=None):
+        """
+        Return the list of `F`-rational points on the affine space self,
+        where `F` is a given finite field, or the base ring of self.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(1, GF(3))
+            sage: A.rational_points()
+            [(0), (1), (2)]
+            sage: A.rational_points(GF(3^2, 'b'))
+            [(0), (2*b), (b + 1), (b + 2), (2), (b), (2*b + 2), (2*b + 1), (1)]
+
+            sage: AffineSpace(2, ZZ).rational_points(GF(2))
+            [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        TESTS::
+
+            sage: AffineSpace(2, QQ).rational_points()
+            Traceback (most recent call last):
+            ...
+            TypeError: Base ring (= Rational Field) must be a finite field.
+            sage: AffineSpace(1, GF(3)).rational_points(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: Second argument (= Integer Ring) must be a finite field.
+        """
         if F == None:
             if not is_FiniteField(self.base_ring()):
                 raise TypeError, "Base ring (= %s) must be a finite field."%self.base_ring()
             return [ P for P in self ]
         elif not is_FiniteField(F):
             raise TypeError, "Second argument (= %s) must be a finite field."%F
-        return [ P for P in self(F) ]
+        return [ P for P in self.base_extend(F) ]
 
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_affine_space(*args, **kwds)
@@ -236,10 +278,17 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def _latex_(self):
         r"""
+        Return a LaTeX representation of this affine space.
+
         EXAMPLES::
 
             sage: print latex(AffineSpace(1, ZZ, 'x'))
             \mathbf{A}_{\mathbf{Z}}^1
+
+        TESTS::
+
+            sage: AffineSpace(3, Zp(5), 'y')._latex_()
+            '\\mathbf{A}_{\\mathbf{Z}_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -253,14 +302,57 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         return morphism.SchemeMorphism_affine_coordinates(*args, **kwds)
 
     def _repr_(self):
+        """
+        Return a string representation of this affine space.
+
+        EXAMPLES::
+
+            sage: AffineSpace(1, ZZ, 'x')
+            Affine Space of dimension 1 over Integer Ring
+
+        TESTS::
+
+            sage: AffineSpace(3, Zp(5), 'y')._repr_()
+            'Affine Space of dimension 3 over 5-adic Ring with capped relative precision 20'
+        """
         return "Affine Space of dimension %s over %s"%(self.dimension_relative(), self.base_ring())
 
     def _repr_generic_point(self, polys=None):
+        """
+        Return a string representation of the generic point
+        corresponding to the list of polys on this affine space.
+
+        If polys is None, the representation of the generic point of
+        the affine space is returned.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, ZZ)
+            sage: A._repr_generic_point([y-x^2])
+            '(-x^2 + y)'
+            sage: A._repr_generic_point()
+            '(x, y)'
+        """
         if polys is None:
             polys = self.gens()
         return '(%s)'%(", ".join([str(f) for f in polys]))
 
     def _latex_generic_point(self, v=None):
+        """
+        Return a LaTeX representation of the generic point
+        corresponding to the list of polys on this affine space.
+
+        If polys is None, the representation of the generic point of
+        the affine space is returned.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, ZZ)
+            sage: A._latex_generic_point([y-x^2])
+            '\\left(- x^{2} + y\\right)'
+            sage: A._latex_generic_point()
+            '\\left(x, y\\right)'
+        """
         if v is None:
             v = self.gens()
         return '\\left(%s\\right)'%(", ".join([str(latex(f)) for f in v]))
@@ -318,8 +410,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
     def coordinate_ring(self):
         """
-        Return the coordinate ring of this scheme, if defined. Otherwise
-        raise a ValueError.
+        Return the coordinate ring of this scheme, if defined.
 
         EXAMPLES::
 
@@ -448,8 +539,3 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             0
         """
         return algebraic_scheme.AlgebraicScheme_subscheme_affine(self, X)
-
-    def subscheme_complement(self, X, Y):
-        X = self.subscheme(X)
-        Y = self.subscheme(Y)
-        return algebraic_scheme.AlgebraicScheme_quasi(X, Y)

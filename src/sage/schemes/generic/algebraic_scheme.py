@@ -195,7 +195,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
     """
     An algebraic scheme presented as a closed subscheme is defined by
     explicit polynomial equations. This is as opposed to a general
-    scheme, which could, e.g., by the Neron model of some object, and
+    scheme, which could, e.g., be the Neron model of some object, and
     for which we do not want to give explicit equations.
 
     INPUT:
@@ -427,11 +427,33 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
         return A.subscheme(self.defining_ideal() + other.defining_ideal())
 
-    def exclude(self, other):
-        """
-        Return the scheme-theoretic complement self - other.
 
-        EXAMPLES: HERE
+    def complement(self, other):
+        """
+        Return the scheme-theoretic complement self - other, where
+        self and other are both closed algebraic subschemes of the
+        same ambient space.
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: X = A.subscheme([x+y-z])
+            sage: Y = A.subscheme([x-y+z])
+            sage: X.complement(Y)
+            Quasi-affine scheme X - Y, where:
+              X: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+              x + y - z
+              Y: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+              x - y + z
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+            sage: X = P.subscheme([x^2+y^2+z^2])
+            sage: Y = P.subscheme([x*y+y*z+z*x])
+            sage: X.complement(Y)
+            Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 + y^2 + z^2
+              Y: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x*y + x*z + y*z
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
             raise TypeError, \
@@ -439,8 +461,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         A = self.ambient_space()
         if other.ambient_space() != A:
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
-        return A.subscheme_complement(
-            self.defining_ideal(), self.defining_ideal() + other.defining_ideal())
+        return AlgebraicScheme_quasi(self, other)
 
     def rational_points(self, F=None, bound=0):
         """

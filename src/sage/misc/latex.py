@@ -243,6 +243,9 @@ class Latex:
            work.
 
         """
+        from sage.misc.latex_macros import sage_latex_macros
+        MACROS="\n" + "\n".join(sage_latex_macros) + "\n"
+
         if density is None:
             density = self.__density
         if filename is None:
@@ -259,9 +262,11 @@ class Latex:
         O = open('%s/%s.tex'%(base,filename),'w')
         if self.__slide:
             O.write(SLIDE_HEADER)
+            O.write(MACROS)
             O.write('\\begin{document}\n\n')
         else:
             O.write(LATEX_HEADER)
+            O.write(MACROS)
             O.write('\\begin{document}\n')
 
         O.write(x)
@@ -364,10 +369,13 @@ def _latex_file_(objects, title='SAGE', debug=False, \
 
         sage: from sage.misc.latex import _latex_file_
         sage: _latex_file_(3, title="The number three")
-        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
+        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\newcommand{\\ZZ}{\\mathbf{Z}}\n\\newcommand{\\RR}{\\mathbf{R}}\n\\newcommand{\\CC}{\\mathbf{C}}\n\\newcommand{\\QQ}{\\mathbf{Q}}\n\\newcommand{\\QQbar}{\\overline{\\mathbf{Q}}}\n\\newcommand{\\GF}[1]{\\mathbf{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\mathbf{Z}_{#1}}\n\\newcommand{\\Qp}[1]{\\mathbf{Q}_{#1}}\n\\newcommand{\\Zmod}[1]{\\mathbf{Z}/#1\\mathbf{Z}}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\mathbf{C}}\n\\newcommand{\\CLF}{\\mathbf{C}}\n\\newcommand{\\RDF}{\\mathbf{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\mathbf{R}}\n\\newcommand{\\RQDF}{\\mathbf{R}}\n\\newcommand{\\CFF}{\\mathbf{CFF}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
         sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
-        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
+        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\newcommand{\\ZZ}{\\mathbf{Z}}\n\\newcommand{\\RR}{\\mathbf{R}}\n\\newcommand{\\CC}{\\mathbf{C}}\n\\newcommand{\\QQ}{\\mathbf{Q}}\n\\newcommand{\\QQbar}{\\overline{\\mathbf{Q}}}\n\\newcommand{\\GF}[1]{\\mathbf{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\mathbf{Z}_{#1}}\n\\newcommand{\\Qp}[1]{\\mathbf{Q}_{#1}}\n\\newcommand{\\Zmod}[1]{\\mathbf{Z}/#1\\mathbf{Z}}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\mathbf{C}}\n\\newcommand{\\CLF}{\\mathbf{C}}\n\\newcommand{\\RDF}{\\mathbf{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\mathbf{R}}\n\\newcommand{\\RQDF}{\\mathbf{R}}\n\\newcommand{\\CFF}{\\mathbf{CFF}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
+    from sage.misc.latex_macros import sage_latex_macros
+    MACROS="\n" + "\n".join(sage_latex_macros) + "\n"
+
     process = True
     if hasattr(objects, '_latex_'):
         objects = [objects]
@@ -385,7 +393,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = LATEX_HEADER
+    s = LATEX_HEADER + '\n' + MACROS
     s += '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
         extra_preamble, title, size)
 

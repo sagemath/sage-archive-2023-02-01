@@ -110,13 +110,13 @@ DEFAULT_ARCHIVING(ncmul)
 
 void ncmul::do_print(const print_context & c, unsigned level) const
 {
-	printseq(c, '(', '*', ')', precedence(), level);
+	printseq(c, "(", '*', ")", precedence(), level);
 }
 
 void ncmul::do_print_csrc(const print_context & c, unsigned level) const
 {
 	c.s << class_name();
-	printseq(c, '(', ',', ')', precedence(), precedence());
+	printseq(c, "(", ',', ")", precedence(), precedence());
 }
 
 bool ncmul::info(unsigned inf) const

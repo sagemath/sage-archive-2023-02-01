@@ -202,7 +202,7 @@ static ex abs_eval(const ex & arg)
 
 static void abs_print_latex(const ex & arg, const print_context & c)
 {
-	c.s << "{|"; arg.print(c); c.s << "|}";
+	c.s << "{\\left|"; arg.print(c); c.s << "\\right|}";
 }
 
 static void abs_print_csrc_float(const ex & arg, const print_context & c)
@@ -718,7 +718,7 @@ static void factorial_print_dflt_latex(const ex & x, const print_context & c)
 		is_exactly_a<function>(x)) {
 		x.print(c); c.s << "!";
 	} else {
-		c.s << "("; x.print(c); c.s << ")!";
+		c.s << "\\left("; x.print(c); c.s << "\\right)!";
 	}
 }
 

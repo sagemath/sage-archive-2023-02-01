@@ -111,7 +111,7 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 		c.s << *i++ << ",";
 	}
 	c.s << *i << "](" << registered_functions()[serial].name << ")";
-	printseq(c, '(', ',', ')', exprseq::precedence(), function::precedence());
+	printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
 }
 
 void fderivative::do_print_csrc(const print_csrc & c, unsigned level) const
@@ -122,7 +122,7 @@ void fderivative::do_print_csrc(const print_csrc & c, unsigned level) const
 	while (i != end)
 		c.s << *i++ << "_";
 	c.s << *i << "_" << registered_functions()[serial].name;
-	printseq(c, '(', ',', ')', exprseq::precedence(), function::precedence());
+	printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
 }
 
 void fderivative::do_print_tree(const print_tree & c, unsigned level) const

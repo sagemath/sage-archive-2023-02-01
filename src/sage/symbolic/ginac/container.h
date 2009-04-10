@@ -140,8 +140,8 @@ protected:
 	// helpers
 	static tinfo_t get_tinfo() { return NULL; }
 	static unsigned get_default_flags() { return 0; }
-	static char get_open_delim() { return '('; }
-	static char get_close_delim() { return ')'; }
+	static char* get_open_delim() { return "("; }
+	static char* get_close_delim() { return ")"; }
 
 	// constructors
 public:
@@ -429,8 +429,8 @@ protected:
 	 *  deleted). Must be overridden by derived classes. */
 	virtual ex thiscontainer(std::auto_ptr<STLT> vp) const { return container(vp); }
 
-	virtual void printseq(const print_context & c, char openbracket, char delim,
-	                      char closebracket, unsigned this_precedence,
+	virtual void printseq(const print_context & c, char* openbracket, char delim,
+	                      char* closebracket, unsigned this_precedence,
 	                      unsigned upper_precedence = 0) const;
 
 	// non-virtual functions in this class
@@ -542,14 +542,14 @@ void container<C>::do_print_tree(const print_tree & c, unsigned level) const
 template <template <class T, class = std::allocator<T> > class C>
 void container<C>::do_print_python(const print_python & c, unsigned level) const
 {
-	printseq(c, '[', ',', ']', precedence(), precedence()+1);
+	printseq(c, "[", ',', "]", precedence(), precedence()+1);
 }
 
 template <template <class T, class = std::allocator<T> > class C>
 void container<C>::do_print_python_repr(const print_python_repr & c, unsigned level) const
 {
 	c.s << class_name();
-	printseq(c, '(', ',', ')', precedence(), precedence()+1);
+	printseq(c, "(", ',', ")", precedence(), precedence()+1);
 }
 
 template <template <class T, class = std::allocator<T> > class C>
@@ -702,8 +702,8 @@ container<C> & container<C>::unique()
 
 /** Print sequence of contained elements. */
 template <template <class T, class = std::allocator<T> > class C>
-void container<C>::printseq(const print_context & c, char openbracket, char delim,
-                            char closebracket, unsigned this_precedence,
+void container<C>::printseq(const print_context & c, char* openbracket, char delim,
+                            char* closebracket, unsigned this_precedence,
                             unsigned upper_precedence) const
 {
 	if (this_precedence <= upper_precedence)

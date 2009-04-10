@@ -38,10 +38,10 @@ template<> inline tinfo_t lst::get_tinfo() { return &lst::tinfo_static; }
 template<> inline unsigned lst::get_default_flags() { return status_flags::not_shareable; }
 
 /** Specialization of container::get_open_delim() for lst. */
-template<> inline char lst::get_open_delim() { return '{'; }
+template<> inline char* lst::get_open_delim() { return "{"; }
 
 /** Specialization of container::get_close_delim() for lst. */
-template<> inline char lst::get_close_delim() { return '}'; }
+template<> inline char* lst::get_close_delim() { return "}"; }
 
 // defined in lst.cpp
 template<> bool lst::info(unsigned inf) const;

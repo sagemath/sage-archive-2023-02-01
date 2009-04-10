@@ -155,12 +155,24 @@ void mul::print_overall_coeff(const print_context & c,
 		//(coeffstr.find('^') != std::string::npos));
 	if (!coeff.is_equal(*_num1_p) &&
 		(!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
-		if (paranthesis)
-			c.s << '(';
+		if (paranthesis) {
+			if (latex)
+				c.s << "\\left(";
+			else
+				c.s << '(';
+		}
 		c.s<<coeffstr;
-		if (paranthesis)
-			c.s << ')';
-		c.s << mul_sym;
+		if (paranthesis) {
+			if (latex)
+				c.s << "\\right)";
+			else
+				c.s << ')';
+		}
+		if (latex) {
+			c.s << " \\, ";
+		} else {
+			c.s << mul_sym;
+		}
 	}
 }
 

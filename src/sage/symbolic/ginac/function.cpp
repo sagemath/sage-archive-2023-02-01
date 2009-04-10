@@ -1160,14 +1160,14 @@ next_context:
 			for (size_t i=0; i<num; i++)
 				lname[i] = tolower(lname[i]);
 			c.s << lname;
-			printseq(c, '(', ',', ')', exprseq::precedence(), function::precedence());
+			printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
 
 		} else if (is_a<print_latex>(c)) {
 			c.s << opt.TeX_name;
-			printseq(c, '(', ',', ')', exprseq::precedence(), function::precedence());
+			printseq(c, "\\left(", ',', "\\right)", exprseq::precedence(), function::precedence());
 		} else {
 			c.s << opt.name;
-			printseq(c, '(', ',', ')', exprseq::precedence(), function::precedence());
+			printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
 		}
 
 	} else {

@@ -199,8 +199,8 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
         EXAMPLES::
 
             sage: G = ArithmeticSubgroup_Permutation(SymmetricGroup(2)([2,1]), SymmetricGroup(2)([2,1]))
-            sage: cmp(G, 1)
-            -1
+            sage: cmp(G, 1) in [1,-1]
+            True
             sage: cmp(G, Gamma0(8))
             1
             sage: cmp(G, G)

@@ -211,7 +211,7 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
       power seris (default: []); if given, we assume the given pairs (k,f) are
       q-expansions of modular form of the given weight, and start creating
       modular forms generators using them.
-    - start_weight -- an integer (default: 2)
+    - ``start_weight`` -- an integer (default: 2)
 
     OUTPUT:
         a list of pairs (k, f), where f is the q-expansion

@@ -54,6 +54,7 @@ cdef extern from "ginac_wrap.h":
         GEx diff(GSymbol s, int d)    except +
         GEx series(GEx s, int order, unsigned options) except +
         bint is_zero()                except +
+        bint is_polynomial(GEx vars)  except +
         bint match(GEx pattern)       except +
         bint find(GEx pattern, GExList s) except +
         bint has(GEx pattern)         except +

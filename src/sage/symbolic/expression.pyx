@@ -371,6 +371,35 @@ cdef class Expression(CommutativeRingElement):
             e = g_ge(l._gobj, r._gobj)
         return new_Expression_from_GEx(e)
 
+    cpdef bint is_polynomial(self, var):
+        """
+        Return True if self is a polynomial in the given variable.
+
+        EXAMPLES::
+
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: t = x^2 + y; t
+            x^2 + y
+            sage: t.is_polynomial(x)
+            True
+            sage: t.is_polynomial(y)
+            True
+            sage: t.is_polynomial(z)
+            True
+
+            sage: t = sin(x) + y; t
+            y + sin(x)
+            sage: t.is_polynomial(x)
+            False
+            sage: t.is_polynomial(y)
+            True
+            sage: t.is_polynomial(sin(x))
+            True
+        """
+        cdef Expression symbol0 = self.coerce_in(var)
+        return self._gobj.is_polynomial(symbol0._gobj)
+
     cpdef bint is_relational(self):
         """
         Return True if self is a relational expression.

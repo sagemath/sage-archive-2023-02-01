@@ -37,6 +37,9 @@ This spkg provides dependencies for
 
 == Changelog ==
 
+=== libpng-1.2.35 (Michael Abshoff, April 10th, 2009) ===
+ * update to latest upstream due to security issue in libpng (#5696)
+
 === libpng-1.2.34 (Michael Abshoff, February 15th, 2009) ===
  * update to latest upstream release (security related)
  * delete SAGE_LOCAL/lib/libpng.* to avoid OSX specific issues. This required a set of other fixes.

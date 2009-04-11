@@ -363,6 +363,7 @@ def format_search_as_html(what, r, search):
 
     EXAMPLES::
 
+        sage: from sage.misc.sagedoc import format_search_as_html
         sage: format_search_as_html('Source', 'algebras/steenrod_algebra_element.py:        an antihomomorphism: if we call the antipode `c`, then', 'antipode antihomomorphism')
         '<html><font color="black"><h2>Search Source: antipode antihomomorphism</h2></font><font color="darkpurple"><ol><li><a href="/src/algebras/steenrod_algebra_element.py"><tt>algebras/steenrod_algebra_element.py</tt></a>\n</ol></font></html>'
         sage: format_search_as_html('Other', 'html/en/reference/sage/algebras/steenrod_algebra_element.html:an antihomomorphism: if we call the antipode <span class="math">c</span>, then', 'antipode antihomomorphism')

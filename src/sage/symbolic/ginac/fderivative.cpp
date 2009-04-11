@@ -27,6 +27,15 @@
 #include "archive.h"
 #include "utils.h"
 
+extern "C" {
+	char* py_print_fderivative(unsigned id, PyObject* params,
+		PyObject* args);
+	char* py_latex_fderivative(unsigned id, PyObject* params,
+		PyObject* args);
+	PyObject* paramset_to_PyTuple(const GiNaC::paramset &s);
+	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
+}
+
 namespace GiNaC {
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(fderivative, function,
@@ -104,6 +113,24 @@ void fderivative::print(const print_context & c, unsigned level) const
 
 void fderivative::do_print(const print_context & c, unsigned level) const
 {
+	//convert paramset to a python list
+	PyObject* params = paramset_to_PyTuple(parameter_set);
+	//convert arguments to a PyTuple of Expressions
+	PyObject* args = exvector_to_PyTuple(seq);
+	//check if latex mode
+	//call python function
+	char* out;
+	if (is_a<print_latex>(c)) {
+		out = py_latex_fderivative(serial, params, args);
+	} else {
+		out = py_print_fderivative(serial, params, args);
+	}
+	c.s<<out;
+	free(out);
+	Py_DECREF(params);
+	Py_DECREF(args);
+	
+	/*
 	c.s << "D[";
 	paramset::const_iterator i = parameter_set.begin(), end = parameter_set.end();
 	--end;
@@ -112,6 +139,7 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 	}
 	c.s << *i << "](" << registered_functions()[serial].name << ")";
 	printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
+	*/
 }
 
 void fderivative::do_print_csrc(const print_csrc & c, unsigned level) const

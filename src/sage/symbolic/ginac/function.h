@@ -566,6 +566,8 @@ public:
 
 	void set_python_func() { python_func = true; }
 
+	void set_print_latex_func(PyObject* f);
+	void set_print_dflt_func(PyObject* f);
 protected:
 	bool has_derivative() const { return derivative_f != NULL; }
 	bool has_power() const { return power_f != NULL; }

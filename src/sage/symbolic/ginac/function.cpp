@@ -49,6 +49,9 @@ extern "C" {
 	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
 	GiNaC::ex pyExpression_to_ex(PyObject* s);
 	PyObject* ex_to_pyExpression(GiNaC::ex e);
+	char* py_print_function(unsigned id, PyObject* args);
+	char* py_latex_function(unsigned id, PyObject* args);
+	int py_get_ginac_serial();
 }
 namespace GiNaC {
 
@@ -952,6 +955,22 @@ void function_options::set_print_func(unsigned id, print_funcp f)
 	print_dispatch_table[id] = f;
 }
 
+void function_options::set_print_latex_func(PyObject* f)
+{
+	unsigned id = print_latex::get_class_info_static().options.get_id();
+	if (id >= print_dispatch_table.size())
+		print_dispatch_table.resize(id + 1);
+	print_dispatch_table[id] = print_funcp(f);
+}
+
+void function_options::set_print_dflt_func(PyObject* f)
+{
+	unsigned id = print_dflt::get_class_info_static().options.get_id();
+	if (id >= print_dispatch_table.size())
+		print_dispatch_table.resize(id + 1);
+	print_dispatch_table[id] = print_funcp(f);
+}
+
 /** This can be used as a hook for external applications. */
 unsigned function::current_serial = 0;
 
@@ -1122,11 +1141,28 @@ void function::archive(archive_node &n) const
 void function::print(const print_context & c, unsigned level) const
 {
 	GINAC_ASSERT(serial<registered_functions().size());
-	const function_options &opt = registered_functions()[serial];
-	const std::vector<print_funcp> &pdt = opt.print_dispatch_table;
-
 	// Dynamically dispatch on print_context type
 	const print_context_class_info *pc_info = &c.get_class_info();
+	if (serial >= py_get_ginac_serial()) {
+		//convert arguments to a PyTuple of Expressions
+		PyObject* args = exvector_to_PyTuple(seq);
+
+		char* ostr;
+		if (is_a<print_latex>(c)) {
+			ostr = py_latex_function(serial, args);
+		} else if (is_a<print_dflt>(c)) {
+			ostr = py_print_function(serial, args);
+		} else {
+			throw(std::runtime_error("print context must be either latex or dflt"));
+		}
+		c.s<<ostr;
+		free(ostr);
+		Py_DECREF(args);
+	} else {
+
+		const function_options &opt = registered_functions()[serial];
+		const std::vector<print_funcp> &pdt = opt.print_dispatch_table;
+
 
 next_context:
 	unsigned id = pc_info->options.get_id();
@@ -1225,6 +1261,7 @@ next_context:
 		default:
 			throw(std::logic_error("function::print(): invalid nparams"));
 		}
+	}
 	}
 }
 

@@ -95,7 +95,7 @@ ext_modules = [
 
     Extension('sage.algebras.quatalg.quaternion_algebra_element',
                sources = ['sage/algebras/quatalg/quaternion_algebra_element.pyx'],
-               extra_compile_args=["-std=c99", "-D_XPG6"],
+               extra_compile_args=["-std=c99"],
                language='c++',
                libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++", "ntl"],
                include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
@@ -857,6 +857,7 @@ ext_modules = [
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
+              extra_compile_args=["-std=c99",  "-D_XPG6"],
               libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp']),
 
     Extension('sage.rings.complex_interval',

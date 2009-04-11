@@ -2325,6 +2325,8 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
 cdef object CDF = sage.rings.complex_double.CDF
 
+cdef extern from "solaris_fixes.h": pass
+
 # Cython does not (yet) support complex numbers natively, so this is a bit hackish.
 cdef extern from "complex.h":
     ctypedef double double_complex "double complex"
@@ -3851,8 +3853,8 @@ modules = [
 
     Extension('sage.ext.interpreters.wrapper_cdf',
               sources = ['sage/ext/interpreters/wrapper_cdf.pyx',
-                         'sage/ext/interpreters/interp_cdf.c'],
-              extra_compile_args=["-std=c99"]),
+                         'sage/ext/interpreters/interp_cdf.c']
+              ),
 
     Extension('sage.ext.interpreters.wrapper_rr',
               sources = ['sage/ext/interpreters/wrapper_rr.pyx',

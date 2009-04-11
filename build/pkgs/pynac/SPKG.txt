@@ -31,6 +31,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.4 (Burcin Erocal, April 11th, 2009) ===
+ * Add support for arithmetic with infinity.
+ * Use python repr function for printing numeric objects.
+ * Print paranthesis in latex mode with \left and \right.
+ * Call python for latex names of symbols.
+ * Support calling user specified python functions to print function instances.
+ * Call python for printing function and fderivative.
+
 === pynac-0.1.3 (Burcin Erocal, February 26th, 2009) ===
  * Fix serious bug in expairseq::compare_same_type which resulted in wrong
  simplifications.

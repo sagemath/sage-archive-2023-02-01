@@ -77,7 +77,7 @@ def check_processor_flags():
     if not os.path.exists(flags_file): return
     # We check that the processor flags of the original build are a
     # subset of the new machine.  If not, we print a massive warning.
-    X = set(open(flags_file).read().split())
+    X = set(open(flags_file).read().split()).intersection(FLAGS)
     Y = set(get_flags_info().split())
     if not X.issubset(Y):
         print ""

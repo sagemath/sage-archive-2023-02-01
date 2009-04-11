@@ -109,7 +109,7 @@ def skip(F):
     filenm = os.path.split(F)[1]
     if filenm == "all.py" or filenm == "__init__.py" \
           or filenm[0] == '.' or '/.' in G.lstrip('/.') or \
-          'nodoctest' in open(G).read():
+          'nodoctest' in open(G).read()[:50]:
         return True
     if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']):
         return True

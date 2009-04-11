@@ -265,6 +265,44 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             v = self.gens()
         return '\\left(%s\\right)'%(", ".join([str(latex(f)) for f in v]))
 
+    def _check_satisfies_equations(self, v):
+        """
+        Return True if `v` defines a point on the scheme self; raise a
+        TypeError otherwise.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(3, ZZ)
+            sage: A._check_satisfies_equations([1, 1, 0])
+            True
+            sage: A._check_satisfies_equations((0, 1, 0))
+            True
+            sage: A._check_satisfies_equations([0, 0, 0])
+            True
+            sage: A._check_satisfies_equations([1, 2, 3, 4, 5])
+            Traceback (most recent call last):
+            ...
+            TypeError: The list v=[1, 2, 3, 4, 5] must have 3 components
+            sage: A._check_satisfies_equations([1/2, 1, 1])
+            Traceback (most recent call last):
+            ...
+            TypeError: The components of v=[1/2, 1, 1] must be elements of Integer Ring
+            sage: A._check_satisfies_equations(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: The argument v=5 must be a list or tuple
+        """
+        if not isinstance(v, (list, tuple)):
+            raise TypeError, 'The argument v=%s must be a list or tuple'%v
+        n = self.ngens()
+        if not len(v) == n:
+            raise TypeError, 'The list v=%s must have %s components'%(v, n)
+        R = self.base_ring()
+        from sage.structure.sequence import Sequence
+        if not Sequence(v).universe() == R:
+            raise TypeError, 'The components of v=%s must be elements of %s'%(v, R)
+        return True
+
     def __pow__(self, m):
         """
         EXAMPLES::

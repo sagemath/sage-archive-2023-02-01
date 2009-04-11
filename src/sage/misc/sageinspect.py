@@ -3,104 +3,112 @@ Inspect Python, Sage, and Cython objects.
 
 This module extends parts of Python's inspect module to Cython objects.
 
-AUTHOR:
-   -- originally taken from Fernando Perez's IPython
-   -- modified extensively by William Stein
-   -- extended by Nick Alexander
-   -- testing by Nick Alexander
+AUTHORS:
 
-EXAMPLES:
+- originally taken from Fernando Perez's IPython
+- William Stein (extensive modifications)
+- Nick Alexander (extensions)
+- Nick Alexander (testing)
+
+EXAMPLES::
+
     sage: from sage.misc.sageinspect import *
 
 Test introspection of modules defined in Python and Cython files:
 
-    Cython modules:
-        sage: sage_getfile(sage.rings.rational)
-        '.../rational.pyx'
+Cython modules::
 
-        sage: sage_getdoc(sage.rings.rational).lstrip()
-        'Rational Numbers...'
+    sage: sage_getfile(sage.rings.rational)
+    '.../rational.pyx'
 
-        sage: sage_getsource(sage.rings.rational)[5:]
-        'Rational Numbers...'
+    sage: sage_getdoc(sage.rings.rational).lstrip()
+    'Rational Numbers...'
 
-    Python modules:
-        sage: sage_getfile(sage.misc.sageinspect)
-        '.../sageinspect.py'
+    sage: sage_getsource(sage.rings.rational)[5:]
+    'Rational Numbers...'
 
-        sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
-        Inspect Python, Sage, and Cython objects
+Python modules::
 
-        sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
-        'Inspect Python, Sage, and Cython objects...'
+    sage: sage_getfile(sage.misc.sageinspect)
+    '.../sageinspect.py'
+
+    sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
+    Inspect Python, Sage, and Cython objects
+
+    sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
+    'Inspect Python, Sage, and Cython objects...'
 
 Test introspection of classes defined in Python and Cython files:
 
-    Cython classes:
-        sage: sage_getfile(sage.rings.rational.Rational)
-        '.../rational.pyx'
+Cython classes::
 
-        sage: sage_getdoc(sage.rings.rational.Rational).lstrip()
-        'A Rational number...'
+    sage: sage_getfile(sage.rings.rational.Rational)
+    '.../rational.pyx'
 
-        sage: sage_getsource(sage.rings.rational.Rational)
-        'cdef class Rational...'
+    sage: sage_getdoc(sage.rings.rational.Rational).lstrip()
+    'A Rational number...'
 
-    Python classes:
-        sage: sage_getfile(sage.misc.attach.Attach)
-        '.../attach.py'
+    sage: sage_getsource(sage.rings.rational.Rational)
+    'cdef class Rational...'
 
-        sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
-        "Attach a file to a running instance of Sage..."
+Python classes::
 
-        sage: sage_getsource(sage.misc.attach.Attach)
-        'class Attach:...'
+    sage: sage_getfile(sage.misc.attach.Attach)
+    '.../attach.py'
 
-    Python classes with no docstring, but an __init__ docstring:
-        sage: class Foo:
-        ...     def __init__(self):
-        ...         'docstring'
-        ...         pass
-        ...
-        sage: sage_getdoc(Foo)
-        'docstring'
+    sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
+    "Attach a file to a running instance of Sage..."
+
+    sage: sage_getsource(sage.misc.attach.Attach)
+    'class Attach:...'
+
+Python classes with no docstring, but an __init__ docstring::
+
+    sage: class Foo:
+    ...     def __init__(self):
+    ...         'docstring'
+    ...         pass
+    ...
+    sage: sage_getdoc(Foo)
+    'docstring'
 
 Test introspection of functions defined in Python and Cython files:
 
-    Cython functions:
-        sage: sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
-        'mr(s)'
+Cython functions::
 
-        sage: sage_getfile(sage.rings.rational.make_rational)
-        '.../rational.pyx'
+    sage: sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
+    'mr(s)'
 
-        sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
-        "Make a rational number ...
+    sage: sage_getfile(sage.rings.rational.make_rational)
+    '.../rational.pyx'
 
-        sage: sage_getsource(sage.rings.rational.make_rational, True)
-        'def make_rational(s):...'
+    sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
+    "Make a rational number ...
 
-    Python functions:
-        sage: sage_getdef(sage.misc.sageinspect.sage_getfile, obj_name='sage_getfile')
-        'sage_getfile(obj)'
+    sage: sage_getsource(sage.rings.rational.make_rational, True)[4:]
+    'make_rational(s):...'
 
-        sage: sage_getfile(sage.misc.sageinspect.sage_getfile)
-        '.../sageinspect.py'
+Python functions::
 
-        sage: sage_getdoc(sage.misc.sageinspect.sage_getfile).lstrip()
-        'Get the full file name associated to obj as a string...'
+    sage: sage_getdef(sage.misc.sageinspect.sage_getfile, obj_name='sage_getfile')
+    'sage_getfile(obj)'
 
-        sage: sage_getsource(sage.misc.sageinspect.sage_getfile)
-        'def sage_getfile(obj):...'
+    sage: sage_getfile(sage.misc.sageinspect.sage_getfile)
+    '.../sageinspect.py'
 
-    Unfortunately, there is no argspec extractable from builtins:
-        sage: sage_getdef(''.find, 'find')
-        'find( [noargspec] )'
+    sage: sage_getdoc(sage.misc.sageinspect.sage_getfile).lstrip()
+    "Get the full file name associated to ``obj`` as a string..."
 
-        sage: sage_getdef(str.find, 'find')
-        'find( [noargspec] )'
+    sage: sage_getsource(sage.misc.sageinspect.sage_getfile)[4:]
+    'sage_getfile(obj):...'
 
+Unfortunately, there is no argspec extractable from builtins::
 
+    sage: sage_getdef(''.find, 'find')
+    'find( [noargspec] )'
+
+    sage: sage_getdef(str.find, 'find')
+    'find( [noargspec] )'
 """
 
 import inspect
@@ -109,6 +117,18 @@ import os
 def isclassinstance(obj):
     r"""
     Checks if argument is instance of non built-in class
+
+    INPUT: ``obj`` - object
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import isclassinstance
+        sage: isclassinstance(int)
+        False
+        sage: isclassinstance(FreeModule)
+        True
+        sage: isclassinstance(SteenrodAlgebra)
+        True
     """
     return (hasattr(obj, '__class__') and \
             hasattr(obj.__class__, '__module__') and \
@@ -131,7 +151,17 @@ File:\ (?P<FILENAME>.*?)                    # match File: then filename
 
 def _extract_embedded_position(docstring):
     r"""
-    If docstring has a Cython embedded position, return a tuple (original_docstring, filename, line).  If not, return None.
+    If docstring has a Cython embedded position, return a tuple
+    (original_docstring, filename, line).  If not, return None.
+
+    INPUT: ``docstring`` (string)
+
+    EXAMPLES::
+
+       sage: from sage.misc.sageinspect import _extract_embedded_position
+       sage: import inspect
+       sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
+       'sage/calculus/var.pyx'
 
     AUTHOR:
         -- William Stein
@@ -153,6 +183,18 @@ def _extract_source(lines, lineno):
     Given a list of lines or a multiline string and a starting lineno,
     _extract_source returns [source_lines].  [source_lines] is the smallest
     indentation block starting at lineno.
+
+    INPUT:
+
+    - ``lines`` - string or list of strings
+    - ``lineno`` - positive integer
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _extract_source
+        sage: s2 = "#hello\n\n  class f():\n    pass\n\n#goodbye"
+        sage: _extract_source(s2, 3)
+        ['  class f():\n', '    pass\n']
     """
     if lineno < 1:
         raise ValueError, "Line numbering starts at 1! (tried to extract line %s)" % lineno
@@ -168,10 +210,26 @@ def _extract_source(lines, lineno):
 
 def _sage_getargspec_cython(source):
     r"""
-    inspect.getargspec from source code.
+    inspect.getargspec from source code.  That is, get the names and
+    default values of a function's arguments.
+
+    INPUT: ``source`` - a string of Cython code
+
+    OUTPUT: a tuple (``args``, None, None, ``argdefs``), where
+    ``args`` is the list of arguments and ``argdefs`` is their default
+    values.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _sage_getargspec_cython
+        sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
+        (['self', 'x', 'base'], None, None, ('None', '0'))
+        sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
+        (['self', 'x', 'base'], None, None, ('None', '0'))
 
     AUTHOR:
-        -- Nick Alexander
+
+    - Nick Alexander
     """
     try:
         defpos = source.find('def ')
@@ -222,10 +280,20 @@ def _sage_getargspec_cython(source):
 
 def sage_getfile(obj):
     r"""
-    Get the full file name associated to obj as a string.
+    Get the full file name associated to ``obj`` as a string.
+
+    INPUT: ``obj``, a Sage object, module, etc.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getfile
+        sage: sage_getfile(sage.rings.rational)[-23:]
+        'sage/rings/rational.pyx'
+        sage: sage_getfile(Sq)[-41:]
+        'sage/algebras/steenrod_algebra_element.py'
 
     AUTHOR:
-        -- Nick Alexander
+    - Nick Alexander
     """
     # We try to extract from docstrings, because Python's inspect
     # will happily report compiled .so files
@@ -245,16 +313,27 @@ def sage_getargspec(obj):
     r"""
     Return the names and default values of a function's arguments.
 
-    A tuple of four things is returned: (args, varargs, varkw,
-    defaults).  'args' is a list of the argument names (it may contain
-    nested lists).  'varargs' and 'varkw' are the names of the * and
-    ** arguments or None.  'defaults' is an n-tuple of the default
+    INPUT: ``obj``, a function
+
+    OUTPUT: A tuple of four things is returned: ``(args, varargs, varkw,
+    defaults)``.  ``args`` is a list of the argument names (it may contain
+    nested lists).  ``varargs`` and ``varkw`` are the names of the * and
+    ** arguments or None.  ``defaults`` is an n-tuple of the default
     values of the last n arguments.
 
-    AUTHOR:
-        -- William Stein: a modified version of inspect.getargspec from the
-        Python Standard Library, which was taken from IPython for use in SAGE.
-        -- Extensions by Nick Alexander
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getargspec
+        sage: sage_getargspec(identity_matrix)
+        (['ring', 'n', 'sparse'], None, None)
+        sage: sage_getargspec(Poset)
+        (['data', 'element_labels', 'cover_relations'], None, None)
+
+    AUTHORS:
+
+    - William Stein: a modified version of inspect.getargspec from the
+      Python Standard Library, which was taken from IPython for use in SAGE.
+    - Extensions by Nick Alexander
     """
     if not callable(obj):
         raise TypeError, "obj is not a code object"
@@ -290,12 +369,28 @@ def sage_getdef(obj, obj_name=''):
     r"""
     Return the definition header for any callable object.
 
+    INPUT:
+
+    - ``obj`` - function
+    - ``obj_name`` - string (optional, default '')
+
+    ``obj_name`` is prepended to the output.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdef
+        sage: sage_getdef(identity_matrix)
+        '(ring, n, sparse)'
+        sage: sage_getdef(identity_matrix, 'identity_matrix')
+        'identity_matrix(ring, n, sparse)'
+
     If an exception is generated, None is returned instead and the
     exception is suppressed.
 
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
+    AUTHORS:
+
+    - William Stein
+    - extensions by Nick Alexander
     """
     try:
         spec = sage_getargspec(obj)
@@ -310,14 +405,23 @@ def sage_getdef(obj, obj_name=''):
 
 def sage_getdoc(obj, obj_name=''):
     r"""
-    Return the docstring associated to obj as a string.
+    Return the docstring associated to ``obj`` as a string.
 
-    If obj is a Cython object with an embedded position in its docstring,
-    the embedded position is stripped.
+    INPUT: ``obj``, a function, module, etc.: something with a docstring.
 
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
+    If ``obj`` is a Cython object with an embedded position in its
+    docstring, the embedded position is stripped.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdoc
+        sage: sage_getdoc(identity_matrix)[5:43]
+        'Return the `n times n` identity matrix'
+
+    AUTHORS:
+
+    - William Stein
+    - extensions by Nick Alexander
     """
     if obj is None: return ''
     import sage.misc.sagedoc
@@ -354,9 +458,23 @@ def sage_getsource(obj, is_binary=False):
     r"""
     Return the source code associated to obj as a string, or None.
 
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
+    INPUT:
+
+    - ``obj`` - function, etc.
+    - ``is_binary`` - boolean, ignored
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: sage_getsource(identity_matrix, True)[4:45]
+        'identity_matrix(ring, n=0, sparse=False):'
+        sage: sage_getsource(identity_matrix, False)[4:45]
+        'identity_matrix(ring, n=0, sparse=False):'
+
+    AUTHORS:
+
+    - William Stein
+    - extensions by Nick Alexander
     """
     #First we should check if the object has a _sage_src_
     #method.  If it does, we just return the output from
@@ -379,11 +497,28 @@ def sage_getsourcelines(obj, is_binary=False):
     Return a pair ([source_lines], starting line number) of the source
     code associated to obj, or None.
 
-    At this time we ignore is_binary in favour of a 'do our best' strategy.
+    INPUT:
 
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
+    - ``obj`` - function, etc.
+    - ``is_binary`` - boolean, ignored
+
+    OUTPUT: (source_lines, lineno) or None: ``source_lines`` is a list
+    of strings, and ``lineno`` is an integer.
+
+    At this time we ignore ``is_binary`` in favour of a 'do our best' strategy.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getsourcelines
+        sage: sage_getsourcelines(matrix, True)[1]
+        33
+        sage: sage_getsourcelines(matrix, False)[0][0][4:]
+        'matrix(*args, **kwds):\n'
+
+    AUTHORS:
+
+    - William Stein
+    - Extensions by Nick Alexander
     """
     # Check if we deal with instance
     if isclassinstance(obj):
@@ -426,21 +561,26 @@ def __internal_tests():
     r"""
     Test internals of the sageinspect module.
 
-    sage: from sage.misc.sageinspect import *
-    sage: from sage.misc.sageinspect import _extract_source, _extract_embedded_position, _sage_getargspec_cython, __internal_teststring
+    EXAMPLES::
 
-    If docstring is None, nothing bad happens:
+        sage: from sage.misc.sageinspect import *
+        sage: from sage.misc.sageinspect import _extract_source, _extract_embedded_position, _sage_getargspec_cython, __internal_teststring
+
+    If docstring is None, nothing bad happens::
+
         sage: sage_getdoc(None)
         ''
 
         sage: sage_getsource(sage)
         "...all..."
 
-    A cython function with default arguments:
+    A cython function with default arguments::
+
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof='True', limit='None')"
 
-    A cython method without an embedded position can lead to surprising errors:
+    A cython method without an embedded position can lead to surprising errors::
+
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
         Traceback (most recent call last):
         ...
@@ -450,7 +590,7 @@ def __internal_tests():
         '__init__( [noargspec] )'
 
     Test _extract_source with some likely configurations, including no trailing
-    newline at the end of the file:
+    newline at the end of the file::
 
         sage: s = __internal_teststring.strip()
         sage: es = lambda ls, l: ''.join(_extract_source(ls, l)).rstrip()
@@ -470,7 +610,8 @@ def __internal_tests():
                   a=2):                            # 13
             pass # EOF                             # 14
 
-    Test _sage_getargspec_cython with multiple default arguments and a type:
+    Test _sage_getargspec_cython with multiple default arguments and a type::
+
         sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
         (['self', 'x', 'base'], None, None, ('None', '0'))
         sage: _sage_getargspec_cython("def __init__(self, x=None, base=0):")
@@ -479,28 +620,33 @@ def __internal_tests():
         (['self', 'x', 'base'], None, None, ('None', '0'))
 
     Test _extract_embedded_position:
-        We cannot test the filename since it depends on SAGE_ROOT.
 
-        Make sure things work with no trailing newline:
-            >>> _extract_embedded_position('File: sage/rings/rational.pyx (starting at line 1080)')
-            ('', '.../rational.pyx', 1080)
+    We cannot test the filename since it depends on SAGE_ROOT.
 
-        And with a trailing newline:
-            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\n'
-            >>> _extract_embedded_position(s)
-            ('', '.../rational.pyx', 1080)
+    Make sure things work with no trailing newline::
 
-        And with an original docstring:
-            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\noriginal'
-            >>> _extract_embedded_position(s)
-            ('original', '.../rational.pyx', 1080)
+        sage: _extract_embedded_position('File: sage/rings/rational.pyx (starting at line 1080)')
+        ('', '.../rational.pyx', 1080)
 
-        And with a complicated original docstring:
-            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\n\n\noriginal test\noriginal'
-            >>> _extract_embedded_position(s)
-            ('\n\noriginal test\noriginal', ..., 1080)
+    And with a trailing newline::
 
-            >>> s = 'no embedded position'
-            >>> _extract_embedded_position(s) is None
-            True
+        sage: s = 'File: sage/rings/rational.pyx (starting at line 1080)\n'
+        sage: _extract_embedded_position(s)
+        ('', '.../rational.pyx', 1080)
+
+    And with an original docstring::
+
+        sage: s = 'File: sage/rings/rational.pyx (starting at line 1080)\noriginal'
+        sage: _extract_embedded_position(s)
+        ('original', '.../rational.pyx', 1080)
+
+    And with a complicated original docstring::
+
+        sage: s = 'File: sage/rings/rational.pyx (starting at line 1080)\n\n\noriginal test\noriginal'
+        sage: _extract_embedded_position(s)
+        ('\n\noriginal test\noriginal', ..., 1080)
+
+        sage: s = 'no embedded position'
+        sage: _extract_embedded_position(s) is None
+        True
     """

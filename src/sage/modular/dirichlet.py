@@ -982,6 +982,90 @@ class DirichletCharacter(MultiplicativeGroupElement):
         else:
             return 0
 
+    def kloosterman_sum(self, a=1,b=0):
+        r"""
+        Return the "twisted" Kloosterman sum associated to this Dirichlet character.
+        This includes Gauss sums, classical Kloosterman sums, Salie sums, etc.
+
+        The Kloosterman sum associated to $\chi$ and the integers a,b is
+        $$
+        K(a,b,\chi) = \sum_{r \in (\Z/m\Z)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
+        $$
+        where $m$ is the modulus of $\chi$ and $\zeta$ is a primitive
+        $m$th root of unity, i.e., $\zeta$ is
+        \code{self.parent().zeta()}. This reduces to to the Gauss sum if b=0.
+
+        CACHING: Computed Kloosterman sums are \emph{not} cached with this
+        character.
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(3)
+ 	    sage: e = G([-1])
+ 	    sage: e.kloosterman_sum(3,5)
+ 	    -2*zeta6 + 1
+ 	    sage: G = DirichletGroup(20)
+ 	    sage: e = G([1 for  u in G.unit_gens()])
+ 	    sage: e.kloosterman_sum(7,17)
+ 	    -2*zeta20^6 + 2*zeta20^4 + 4
+
+        """
+        G = self.parent()
+        K = G.base_ring()
+        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+            raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
+        g = 0
+        m = G.modulus()
+        L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
+        zeta = L.gen(0)
+        n = zeta.multiplicative_order()
+        zeta = zeta ** (n // m)
+        for c in range(1,m):
+            if arith.gcd(c,m)==1:
+                e = rings.Mod(c,m)
+                z = zeta ** (a*e + b*(e**(-1)))
+                g += self.__call__(c)*z
+        return g
+
+    def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
+        r"""
+ 	Return the Kloosterman sum associated to this Dirichlet character as
+ 	an approximate complex number with prec bits of precision.
+
+ 	INPUT:
+ 	-  prec -- integer (deafault: 53), *bits* of precision
+ 	-  a -- integer, as for kloosterman_sum
+ 	-  b -- integer, as for kloosterman_sum.
+
+ 	EXAMPLES::
+
+ 	    sage: G = DirichletGroup(3)
+ 	    sage: e = G.0
+ 	    sage: e.kloosterman_sum_numerical()
+ 	    7.21644966006e-16 + 1.73205080757*I
+ 	    sage: G = DirichletGroup(20)
+ 	    sage: e = G.1
+ 	    sage: e.kloosterman_sum_numerical(53,3,11)
+ 	    3.80422606518 - 3.80422606518*I
+
+ 	"""
+ 	G = self.parent()
+ 	K = G.base_ring()
+ 	if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
+            raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
+        phi = K.complex_embedding(prec)
+        CC = phi.codomain()
+        g = 0
+        m = G.modulus()
+        zeta = CC.zeta(m)
+
+ 	for c in range(1,m):
+            if arith.gcd(c,m)==1:
+                e = rings.Mod(c,m)
+                z = zeta ** (a*e + b*(e**(-1)))
+                g += phi(self.__call__(c))*z
+        return g
+
     def is_even(self):
         r"""
         Return ``True`` if and only if `\varepsilon(-1) = 1`.

@@ -324,7 +324,7 @@ class Worksheet:
             '[Cell 0; in=, out=]'
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: W.__repr__()
-            '[Cell 0; in=2+3, out=5, Cell 10; in=2+8, out=10]'
+            '[Cell 0; in=2+3, out=\n5, Cell 10; in=2+8, out=\n10]'
         """
         return str(self.cell_list())
 
@@ -2086,7 +2086,9 @@ class Worksheet:
 
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: W
-            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            [Cell 0; in=2+3, out=
+            5, Cell 1; in=2+8, out=
+            10]
             sage: W.name()
             'Sage'
         """
@@ -2507,9 +2509,12 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: v = W.cell_list(); v
-            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            [Cell 0; in=2+3, out=
+            5, Cell 1; in=2+8, out=
+            10]
             sage: v[0]
-            Cell 0; in=2+3, out=5
+            Cell 0; in=2+3, out=
+            5
         """
         try:
             return self.__cells
@@ -3861,7 +3866,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         ::
 
             sage: W.cell_list()
-            [Cell 0; in=2+3, out=5]
+            [Cell 0; in=2+3, out=
+            5]
 
         We now delete the output, observe that it is gone.
 

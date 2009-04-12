@@ -404,7 +404,8 @@ class Cell(Cell_generic):
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
             sage: C
-            Cell 0; in=2+3, out=20
+            Cell 0; in=2+3, out=
+            20
 
         We re-evaluate that input cell::
 

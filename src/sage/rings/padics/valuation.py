@@ -10,9 +10,9 @@ SignError = sage.rings.infinity.SignError
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 HaltingError = sage.rings.padics.precision_error.HaltingError
 PrecisionLimitError = sage.rings.padics.precision_error.PrecisionLimitError
-QQe = sage.rings.extended_rational_field.ExtendedRationalField
-infinity = QQe.gen(1)
-minfinity = QQe.gen(2)
+from sage.rings.infinity import infinity
+infinity
+minfinity = -infinity
 CRE = sage.rings.commutative_ring_element.CommutativeRingElement
 
 class Valuation(CRE):

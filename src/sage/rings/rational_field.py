@@ -133,17 +133,6 @@ class RationalField(_uniq, number_field_base.NumberField):
         0.200000000000000
         sage: QQ(RealField(45)(t))
         1/5
-
-    Elements from the extended rational field can be forced back into
-    the rational field.
-
-    ::
-
-        sage: E = ExtendedRationalField
-        sage: QQ(E(2))
-        2
-        sage: type(_)
-        <type 'sage.rings.rational.Rational'>
     """
 
     def __init__(self):

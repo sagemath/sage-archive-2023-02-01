@@ -1,10 +1,6 @@
 r"""
-List of Elements of `P^1(\mathbb{Z}/N\mathbb{Z})`
+List of Elements of `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`
 """
-
-# TODO:
-# Precompute table of xgcd's with N.  This would likely greatly speed
-# things up, and probably be easy to compute!!!
 
 from sage.misc.search import search
 
@@ -31,7 +27,33 @@ cdef int c_p1_normalize_int(int N, int u, int v,
                             int* uu, int* vv, int* ss,
                             int compute_s) except -1:
     """
-    Do not compute s if compute_s == 0.
+    Computes the canonical representative of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
+    `(u,v)` along with a transforming scalar.
+
+    INPUT:
+
+
+    -  ``N`` - an integer
+
+    -  ``u`` - an integer
+
+    -  ``v`` - an integer
+
+
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+
+
+    -  ``uu`` - an integer
+
+    -  ``vv`` - an integer
+
+    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is congruent to
+       `(u,v)` (mod `N`);
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    If ``compute_s`` is 0, ``s`` is not computed.
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     if N == 1:
@@ -98,8 +120,6 @@ cdef int c_p1_normalize_int(int N, int u, int v,
 
 def p1_normalize_int(N, u, v):
     r"""
-    p1_normalize_int(N, u, v):
-
     Computes the canonical representative of
     `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
     `(u,v)` along with a transforming scalar.
@@ -121,8 +141,21 @@ def p1_normalize_int(N, u, v):
 
     -  ``vv`` - an integer
 
-    -  ``ss`` - an integer such that (ss\*uu, ss\*vv) is
-       equivalent to (u,v) mod N and if gcd(u,v,N) != 1, returns 0, 0, 0
+    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is congruent to `(u,v)` (mod `N`);
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1_normalize_int
+        sage: p1_normalize_int(90,7,77)
+        (1, 11, 7)
+        sage: p1_normalize_int(90,7,78)
+        (1, 24, 7)
+        sage: (7*24-78*1) % 90
+        0
+        sage: (7*24) % 90
+        78
     """
     cdef int uu, vv, ss
     c_p1_normalize_int(N, u%N, v%N, &uu, &vv, &ss, 1)
@@ -130,10 +163,45 @@ def p1_normalize_int(N, u, v):
 
 def p1list_int(int N):
     r"""
-    p1list_int(int N):
-
-    Make a list of the normalized elements of
+    Returns a list of the normalized elements of
     `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
+
+    INPUT:
+
+
+    -  ``N`` - integer (the level or modulus).
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1list_int
+        sage: p1list_int(6)
+        [(0, 1),
+        (1, 0),
+        (1, 1),
+        (1, 2),
+        (1, 3),
+        (1, 4),
+        (1, 5),
+        (2, 1),
+        (2, 3),
+        (2, 5),
+        (3, 1),
+        (3, 2)]
+
+    ::
+
+        sage: p1list_int(120)
+        [(0, 1),
+        (1, 0),
+        (1, 1),
+        (1, 2),
+        (1, 3),
+        ...
+        (30, 7),
+        (40, 1),
+        (40, 3),
+        (40, 11),
+        (60, 1)]
     """
     cdef int g, u, v, s, c, d
     cdef object lst
@@ -175,8 +243,47 @@ def p1list_int(int N):
 cdef int c_p1_normalize_llong(int N, int u, int v,
                               int* uu, int* vv, int* ss,
                               int compute_s) except -1:
-    """
-    Do not compute s if compute_s == 0.
+    r"""
+    c_p1_normalize_llong(N, u, v):
+
+    Computes the canonical representative of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to `(u,v)` along
+    with a transforming scalar 's' (if compute_s is 1).
+
+    INPUT:
+
+
+    -  ``N`` - an integer (the modulus or level)
+
+    -  ``u`` - an integer (the first coordinate of (u:v))
+
+    -  ``v`` - an integer (the second coordinate of (u:v))
+
+    -  ``compute_s`` - a boolean (int)
+
+
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+
+
+    -  ``uu`` - an integer
+
+    -  ``vv`` - an integer
+
+    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is equivalent to `(u,v)` mod `N`;
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1_normalize_int
+        sage: p1_normalize_int(90,7,77)
+        (1, 11, 7)
+        sage: p1_normalize_int(90,7,78)
+        (1, 24, 7)
+        sage: (7*24-78*1) % 90
+        0
+        sage: (7*24) % 90
+        78
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     cdef llong ll_s, ll_t, ll_N
@@ -250,8 +357,6 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
 
 def p1_normalize_llong(N, u, v):
     r"""
-    p1_normalize_llong(N, u, v):
-
     Computes the canonical representative of
     `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
     `(u,v)` along with a transforming scalar.
@@ -273,8 +378,21 @@ def p1_normalize_llong(N, u, v):
 
     -  ``vv`` - an integer
 
-    -  ``ss`` - an integer such that (ss\*uu, ss\*vv) is
-       equivalent to (u,v) mod N and if gcd(u,v,N) != 1, returns 0, 0, 0
+    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is equivalent to `(u,v)` mod `N`;
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1_normalize_llong
+        sage: p1_normalize_llong(90000,7,77)
+        (1, 11, 7)
+        sage: p1_normalize_llong(90000,7,78)
+        (1, 77154, 7)
+        sage: (7*77154-78*1) % 90000
+        0
+        sage: (7*77154) % 90000
+        78
     """
     cdef int uu, vv, ss
     c_p1_normalize_llong(N, u%N, v%N, &uu, &vv, &ss, 1)
@@ -282,10 +400,26 @@ def p1_normalize_llong(N, u, v):
 
 def p1list_llong(int N):
     r"""
-    p1list_llong(int N):
+    Returns a list of the normalized elements of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`, as a plain list of
+    2-tuples.
 
-    Make a list of the normalized elements of
-    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
+    INPUT:
+
+
+    -  ``N`` - integer (the level or modulus).
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1list_llong
+        sage: N = 50000
+        sage: L = p1list_llong(50000)
+        sage: len(L) == N*prod([1+1/p for p,e in N.factor()])
+        True
+        sage: L[0]
+        (0, 1)
+        sage: L[len(L)-1]
+        (25000, 1)
     """
     cdef int g, u, v, s, c, d
     if N==1: return [(0,0)]
@@ -310,6 +444,31 @@ def p1list_llong(int N):
     return lst
 
 def p1list(N):
+    """
+    Returns the elements of the projective line modulo `N`,
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`, as a plain list of 2-tuples.
+
+    INPUT:
+
+    - N (integer) - a positive integer (less than 2^31).
+
+    OUTPUT:
+
+    A list of the elements of the projective line
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`, as plain 2-tuples.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1list
+        sage: list(p1list(7))
+        [(0, 1), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6)]
+        sage: N=23456
+        sage: len(p1list(N)) == N*prod([1+1/p for p,e in N.factor()])
+        True
+
+    """
+    if N <= 0:
+        raise ValueError, "N must be a positive integer"
     if N <= 46340:
         return p1list_int(N)
     if N <= 2147483647:
@@ -318,6 +477,56 @@ def p1list(N):
         raise OverflowError, "p1list not defined for such large N."
 
 def p1_normalize(int N, int u, int v):
+    r"""
+    Computes the canonical representative of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})` equivalent to
+    `(u,v)` along with a transforming scalar.
+
+    INPUT:
+
+
+    -  ``N`` - an integer
+
+    -  ``u`` - an integer
+
+    -  ``v`` - an integer
+
+
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+
+
+    -  ``uu`` - an integer
+
+    -  ``vv`` - an integer
+
+    -  ``ss`` - an integer such that `(ss*uu, ss*vv)` is equivalent to `(u,v)` mod `N`;
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import p1_normalize
+        sage: p1_normalize(90,7,77)
+        (1, 11, 7)
+        sage: p1_normalize(90,7,78)
+        (1, 24, 7)
+        sage: (7*24-78*1) % 90
+        0
+        sage: (7*24) % 90
+        78
+
+    ::
+
+        sage: from sage.modular.modsym.p1list import p1_normalize
+        sage: p1_normalize(50001,12345,54322)
+        (3, 4667, 4115)
+        sage: (12345*4667-54321*3) % 50001
+        3
+        sage: 4115*3 % 50001
+        12345
+        sage: 4115*4667 % 50001 == 54322 % 50001
+        True
+    """
     if N <= 46340:
         return p1_normalize_int(N, u, v)
     if N <= 2147483647:
@@ -344,8 +553,7 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
     OUTPUT:
 
 
-    -  ``uu, vv, ss`` - reduced rep and scalar that changes
-       to it.
+    -  ``uu, vv, ss`` - reduced representative and normalizing scalar.
     """
     cdef int d, k, g, s, t, min_v, min_t, Ng, vNg
     if N == 1:
@@ -416,6 +624,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
 
 cdef class P1List:
     """
+    The class for `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`, the projective line modulo `N`.
+
     EXAMPLES::
 
         sage: P = P1List(12); P
@@ -431,6 +641,25 @@ cdef class P1List:
         True
     """
     def __init__(self, int N):
+        """
+        The constructor for the class P1List.
+
+        INPUT:
+
+
+        -  ``N`` - positive integer (the modulus or level).
+
+
+        OUTPUT:
+
+        A P1List object representing `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
+
+        EXAMPLES::
+
+            sage: L = P1List(120) # indirect doctest
+            sage: L
+            The projective line over the integers modulo 120
+        """
         self.__N = N
         if N <= 46340:
             self.__list = p1list_int(N)
@@ -466,12 +695,36 @@ cdef class P1List:
                 self.t[i] = <int>(ll_t % ll_N)
 
     def  __dealloc__(self):
+        """
+        Deallocates memory for an object of the class P1List.
+        """
         if self.g: sage_free(self.g)
         if self.s: sage_free(self.s)
         if self.t: sage_free(self.t)
 
 
     def __cmp__(self, other):
+        """
+        Comparison function for objects of the class P1List.
+
+        The order is the same as for the underlying modulus.
+
+        EXAMPLES::
+
+            sage: P1List(10) < P1List(11)
+            True
+            sage: P1List(12) > P1List(11)
+            True
+            sage: P1List(11) == P1List(11)
+            True
+
+            sage: t = [P1List(N) for N in [100,23,45]]
+            sage: [L.N() for L in t]
+            [100, 23, 45]
+            sage: t.sort()
+            sage: [L.N() for L in t]
+            [23, 45, 100]
+        """
         if not isinstance(other, P1List):
             return -1
         cdef P1List O
@@ -483,44 +736,94 @@ cdef class P1List:
         return 0
 
     def __reduce__(self):
+        """
+        Helper function used in pickling.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: L.__reduce__()
+            (<built-in function _make_p1list>, (8,))
+        """
         import sage.modular.modsym.p1list
         return sage.modular.modsym.p1list._make_p1list, (self.__N, )
 
     def __getitem__(self, n):
+        """
+        Standard indexing function for the class P1List.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: list(L) # indirect doctest
+            [(0, 1),
+            (1, 0),
+            ...
+            (2, 3),
+            (4, 1)]
+        """
         return self.__list[n]
 
     def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
+        """
+        Standard slicing function for the class P1List.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: L[4:8] # indirect doctest
+            [(1, 3), (1, 4), (1, 5), (1, 6)]
+        """
         return self.__list[n:m]
 
     def __len__(self):
+        """
+        Returns the length of this P1List.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: len(L) # indirect doctest
+            12
+        """
         return len(self.__list)
 
     def __repr__(self):
+        """
+        Returns the string representation of this P1List.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: str(L)            # indirect doctest
+            'The projective line over the integers modulo 8'
+
+        """
         return "The projective line over the integers modulo %s"%self.__N
 
     def lift_to_sl2z(self, int i):
         """
-        Lift an element of P1 to an element of SL(2,Z)
+        Lift the `i`'th element of this P1list to an element of
+        `SL(2,\mathbb{Z})`.
 
-        If the ith P1 element is (c,d), this function computes and returns
-        a list [a,b, c',d'] that defines a 2x2 matrix with determinant 1
-        and integer entries, such that c=c'(mod N) and d=d'(mod N).
+        If the `i`'th element is `(c,d)`, this function computes and
+        returns a list `[a,b, c',d']` that defines a 2x2 matrix
+        with determinant 1 and integer entries, such that `c=c'` (mod
+        `N`) and `d=d'` (mod `N`).
 
-        EXAMPLES
+        INPUT:
 
-        ::
 
-            sage: p=P1List(11)
+        -  ``i`` - integer (the index of the element to lift).
 
-        ::
+        EXAMPLES::
 
+            sage: p = P1List(11)
             sage: p.list()[3]
-             (1, 2)
-
-        ::
+            (1, 2)
 
             sage: p.lift_to_sl2z(3)
-             [0, -1, 1, 2]
+            [0, -1, 1, 2]
 
         AUTHORS:
 
@@ -542,6 +845,36 @@ cdef class P1List:
             raise OverflowError, "N too large"
 
     def apply_I(self, int i):
+        r"""
+        Return the index of the result of applying the matrix
+        `I=[-1,0;0,1]` to the `i`'th element of this P1List.
+
+        INPUT:
+
+
+        -  ``i`` - integer (the index of the element to act on).
+
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L[10]
+            (1, 9)
+            sage: L.apply_I(10)
+            112
+            sage: L[112]
+            (1, 111)
+            sage: L.normalize(-1,9)
+            (1, 111)
+
+        ::
+
+            This operation is an involution:
+
+            sage: all([L.apply_I(L.apply_I(i))==i for i in xrange(len(L))])
+            True
+
+        """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, -u, v, &uu, &vv, &ss, 0)
@@ -549,6 +882,35 @@ cdef class P1List:
         return j
 
     def apply_S(self, int i):
+        r"""
+        Return the index of the result of applying the matrix
+        `S=[-0,1;1,0]` to the `i`'th element of this P1List.
+
+        INPUT:
+
+
+        -  ``i`` - integer (the index of the element to act on).
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L[10]
+            (1, 9)
+            sage: L.apply_S(10)
+            159
+            sage: L[159]
+            (3, 13)
+            sage: L.normalize(-9,1)
+            (3, 13)
+
+        ::
+
+            This operation is an involution:
+
+            sage: all([L.apply_S(L.apply_S(i))==i for i in xrange(len(L))])
+            True
+
+        """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, -v, u, &uu, &vv, &ss, 0)
@@ -556,6 +918,35 @@ cdef class P1List:
         return j
 
     def apply_T(self, int i):
+        r"""
+        Return the index of the result of applying the matrix
+        `T=[0,1;-1,-1]` to the `i`'th element of this P1List.
+
+        INPUT:
+
+
+        -  ``i`` - integer (the index of the element to act on).
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L[10]
+            (1, 9)
+            sage: L.apply_T(10)
+            157
+            sage: L[157]
+            (3, 10)
+            sage: L.normalize(9,-10)
+            (3, 10)
+
+        ::
+
+            This operation has order three:
+
+            sage: all([L.apply_T(L.apply_T(L.apply_T(i)))==i for i in xrange(len(L))])
+            True
+
+        """
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, v, -u-v, &uu, &vv, &ss, 0)
@@ -571,14 +962,23 @@ cdef class P1List:
         INPUT:
 
 
-        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+        -  ``u, v`` - integers, with `\gcd(u,v,N)=1`.
 
 
         OUTPUT:
 
 
-        -  ``i`` - the index of `u`, `v`, in
-           the `P^1` list.
+        -  ``i`` - the index of `u`, `v`, in the P1list.
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L[100]
+            (1, 99)
+            sage: L.index(1,99)
+            100
+            sage: all([L.index(L[i][0],L[i][1])==i for i in range(len(L))])
+            True
         """
         cdef int uu, vv, ss
         p1_normalize_xgcdtable(self.__N, u, v, 0, self.g, self.s, self.t, &uu, &vv, &ss)
@@ -602,17 +1002,15 @@ cdef class P1List:
         INPUT:
 
 
-        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+        -  ``u, v`` - integers, with `\gcd(u,v,N)=1`.
 
 
         OUTPUT:
 
 
-        -  ``i`` - the index of `u`, `v`, in
-           the `P^1` list.
+        -  ``i`` - the index of `u`, `v`, in the P1list.
 
-        -  ``s`` - scalar that we multiply by to get to
-           normalized
+        -  ``s`` - normalizing scalar.
         """
         cdef int uu, vv, ss
         p1_normalize_xgcdtable(self.__N, u, v, 1, self.g, self.s, self.t, &uu, &vv, s)
@@ -641,80 +1039,118 @@ cdef class P1List:
         INPUT:
 
 
-        -  ``u, v`` - integers, with GCD(u,v,N)=1 normalized so
-           they lie in the list.
+        - ``u, v`` - integers, with `\gcd(u,v,N)=1`, normalized so they lie in the list.
 
 
         OUTPUT:
 
 
-        -  ``i`` - the index of `u`, `v`, in
-           the `P^1` list.
+        -  ``i`` - the index of `(u:v)`, in the P1list.
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L[100]
+            (1, 99)
+            sage: L.index_of_normalized_pair(1,99)
+            100
+            sage: all([L.index_of_normalized_pair(L[i][0],L[i][1])==i for i in range(len(L))])
+            True
         """
         t, i = search(self.__list, (u,v))
         if t: return i
         return -1
 
-# Removed by David Loeffler 2009-03-19 as it duplicates a cdef method
-#
-#    def index_and_scalar(self, int u, int v):
-#        """
-#        Returns the index of the class of `(u,v)` in the fixed list
-#        of representatives of
-#        `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
-#
-#        INPUT:
-#
-#
-#        -  ``u, v`` - integers, with GCD(u,v,N)=1.
-#
-#
-#        OUTPUT:
-#
-#
-#        -  ``i`` - the index of `u`, `v`, in
-#           the `P^1` list.
-#
-#        -  ``s`` - scalar that transforms normalized form to
-#           u,v
-#        """
-#        cdef int uu, vv, ss
-#        self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
-#        t, i = search(self.__list, (uu,vv))
-#        if t: return i, ss
-#        return -1, ss
 
     def list(self):
+        r"""
+        Returns the underlyng list of this P1List object.
+
+        EXAMPLES::
+
+            sage: L = P1List(8)
+            sage: type(L)
+            <type 'sage.modular.modsym.p1list.P1List'>
+            sage: type(L.list())
+            <type 'list'>
+        """
         return self.__list
 
     def normalize(self, int u, int v):
+        r"""
+        Returns a normalised element of `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`.
+
+        INPUT:
+
+
+        -  ``u, v`` - integers, with `\gcd(u,v,N)=1`.
+
+
+        OUTPUT:
+
+        - a 2-tuple ``(uu,vv)`` where `(uu:vv)` is a *normalized*
+          representative of `(u:v)`.
+
+        NOTE: See also normalize_with_scalar() which also returns the
+        normalizing scalar.
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: (u,v) = (555555555,7777)
+            sage: uu,vv = L.normalize(555555555,7777)
+            sage: (uu,vv)
+            (15, 13)
+            sage: (uu*v-vv*u) % L.N() == 0
+            True
+        """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
         return (uu,vv)
 
     def normalize_with_scalar(self, int u, int v):
-        """
-        normalize_with_scalar(self, int u, int v)
+        r"""
+        Returns a normalised element of `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`, together with
+        the normalizing scalar.
 
         INPUT:
 
 
-        -  ``u, v`` - integers, with GCD(u,v,N)=1.
+        -  ``u, v`` - integers, with `\gcd(u,v,N)=1`.
 
 
         OUTPUT:
 
+        - a 3-tuple ``(uu,vv,ss)`` where `(uu:vv)` is a *normalized*
+          representative of `(u:v)`, and `ss` is a scalar such that
+          `(ss*uu, ss*vv) = (u,v)` (mod `N`).
 
-        -  ``uu, vv`` - integers of *normalized* rep
+        EXAMPLES::
 
-        -  ``ss`` - scalar such that (ss\*uu, ss\*vv) = (u,v)
-           mod N
+            sage: L = P1List(120)
+            sage: (u,v) = (555555555,7777)
+            sage: uu,vv,ss = L.normalize_with_scalar(555555555,7777)
+            sage: (uu,vv)
+            (15, 13)
+            sage: ((ss*uu-u)%L.N(), (ss*vv-v)%L.N())
+            (0, 0)
+            sage: (uu*v-vv*u) % L.N() == 0
+            True
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 1)
         return (uu,vv,ss)
 
     def N(self):
+        """
+        Returns the level or modulus of this P1List.
+
+        EXAMPLES::
+
+            sage: L = P1List(120)
+            sage: L.N()
+            120
+        """
         return self.__N
 
 
@@ -730,130 +1166,143 @@ cdef class export:
         return c_p1_normalize_llong(N, u, v, uu, vv, ss, compute_s)
 
 def lift_to_sl2z_int(int c, int d, int N):
-        """
-        Lift a pair (c, d) to an element of SL(2, Z)
+    """
+    Lift a pair `(c, d)` to an element of `SL(2, \mathbb{Z})`.
 
-        (c,d) is assumed to be an element of P1(Z/NZ). This function
-        computes and returns a list [a, b, c', d'] that defines a 2x2
-        matrix, with determinant 1 and integer entries, such that c=c'(mod
-        N) and d=d'(mod N).
+    `(c,d)` is assumed to be an element of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`. This function computes
+    and returns a list `[a, b, c', d']` that defines a 2x2
+    matrix, with determinant 1 and integer entries, such that
+    `c=c'` (mod `N`) and `d=d'` (mod `N`).
 
-        EXAMPLES
+    INPUT:
 
-        ::
 
-            sage: from sage.modular.modsym.p1list import lift_to_sl2z_int
-            sage: lift_to_sl2z_int(2,6,11)
-            [1, 8, 2, 17]
-            sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
-            sage: m
-            [ 1  8]
-            [ 2 17]
+    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
 
-        AUTHOR:
+    EXAMPLES::
 
-        - Justin Walker
-        """
-        cdef int z1, z2, g, m
+        sage: from sage.modular.modsym.p1list import lift_to_sl2z_int
+        sage: lift_to_sl2z_int(2,6,11)
+        [1, 8, 2, 17]
+        sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
+        sage: m
+        [ 1  8]
+        [ 2 17]
 
-        if c == 0 and d == 0:
-            raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
-        g = arith_int.c_xgcd_int(c, d, &z1, &z2)
+    AUTHOR:
 
-        # We're lucky: z1*c + z2*d = 1.
-        if g==1:
-            return [z2, -z1, c, d]
+    - Justin Walker
+    """
+    cdef int z1, z2, g, m
 
-        # Have to try harder.
-        if c == 0:
-            c = c + N;
-        if d == 0:
-            d = d + N;
-        m = c;
+    if c == 0 and d == 0:
+        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+    g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
-        # compute prime-to-d part of m.
-        while True:
-            g = arith_int.c_gcd_int(m,d)
-            if g == 1:
-                break
-            m = m / g
-
-        # compute prime-to-N part of m.
-        while True:
-            g = arith_int.c_gcd_int(m,N)
-            if g == 1:
-                break
-            m = m / g
-        d = d + N*m
-        g = arith_int.c_xgcd_int(c, d, &z1, &z2)
-#        assert g==1
+    # We're lucky: z1*c + z2*d = 1.
+    if g==1:
         return [z2, -z1, c, d]
+
+    # Have to try harder.
+    if c == 0:
+        c = c + N;
+    if d == 0:
+        d = d + N;
+    m = c;
+
+    # compute prime-to-d part of m.
+    while True:
+        g = arith_int.c_gcd_int(m,d)
+        if g == 1:
+            break
+        m = m / g
+
+    # compute prime-to-N part of m.
+    while True:
+        g = arith_int.c_gcd_int(m,N)
+        if g == 1:
+            break
+        m = m / g
+    d = d + N*m
+    g = arith_int.c_xgcd_int(c, d, &z1, &z2)
+    # assert g==1
+    return [z2, -z1, c, d]
 
 def lift_to_sl2z_llong(llong c, llong d, int N):
-        """
-        Lift a pair (c, d) to an element of SL(2, Z)
+    r"""
+    Lift a pair `(c, d)` (modulo `N`) to an element of `SL(2, \mathbb{Z})`.
 
-        (c,d) is assumed to be an element of P1(Z/NZ). This function
-        computes and returns a list [a, b, c', d'] that defines a 2x2
-        matrix, with determinant 1 and integer entries, such that c=c'(mod
-        N) and d=d'(mod N).
+    `(c,d)` is assumed to be an element of
+    `\mathbb{P}^1(\mathbb{Z}/N\mathbb{Z})`. This function computes and
+    returns a list `[a, b, c', d']` that defines a 2x2 matrix,
+    with determinant 1 and integer entries, such that `c=c'` (mod `N`)
+    and `d=d'` (mod `N`).
 
-        EXAMPLES
+    INPUT:
 
-        ::
 
-            sage: from sage.modular.modsym.p1list import lift_to_sl2z_llong
-            sage: lift_to_sl2z_llong(2,6,11)
-            [1L, 8L, 2L, 17L]
-            sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
-            sage: m
-            [ 1  8]
-            [ 2 17]
+    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
 
-        AUTHOR:
+    EXAMPLES::
 
-        - Justin Walker
-        """
-        cdef llong z1, z2, g, m
+        sage: from sage.modular.modsym.p1list import lift_to_sl2z_llong
+        sage: lift_to_sl2z_llong(2,6,11)
+        [1L, 8L, 2L, 17L]
+        sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
+        sage: m
+        [ 1  8]
+        [ 2 17]
 
-        if c == 0 and d == 0:
-            raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
-        g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
+    AUTHOR:
 
-        # We're lucky: z1*c + z2*d = 1.
-        if g==1:
-            return [z2, -z1, c, d]
+    - Justin Walker
+    """
+    cdef llong z1, z2, g, m
 
-        # Have to try harder.
-        if c == 0:
-            c = c + N;
-        if d == 0:
-            d = d + N;
-        m = c;
+    if c == 0 and d == 0:
+        raise AttributeError, "Element (%s, %s) not in P1." % (c,d)
+    g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
-        # compute prime-to-d part of m.
-        while True:
-            g = arith_llong.c_gcd_longlong(m,d)
-            if g == 1:
-                break
-            m = m / g
-
-        # compute prime-to-N part of m.
-        while True:
-            g = arith_llong.c_gcd_longlong(m,N)
-            if g == 1:
-                break
-            m = m / g
-        d = d + N*m
-        g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
-#        assert g==1
+    # We're lucky: z1*c + z2*d = 1.
+    if g==1:
         return [z2, -z1, c, d]
 
+    # Have to try harder.
+    if c == 0:
+        c = c + N;
+    if d == 0:
+        d = d + N;
+    m = c;
+
+    # compute prime-to-d part of m.
+    while True:
+        g = arith_llong.c_gcd_longlong(m,d)
+        if g == 1:
+            break
+        m = m / g
+
+    # compute prime-to-N part of m.
+    while True:
+        g = arith_llong.c_gcd_longlong(m,N)
+        if g == 1:
+            break
+        m = m / g
+    d = d + N*m
+    g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
+    # assert g==1
+    return [z2, -z1, c, d]
+
 def lift_to_sl2z(c, d, N):
-    """
-    Return a list of Python ints [a,b,c',d'] that are the entries of a
+    r"""
+    Return a list of Python ints `[a,b,c',d']` that are the entries of a
     2x2 matrix with determinant 1 and lower two entries congruent to
-    c,d modulo N.
+    `c,d` modulo `N`.
+
+    INPUT:
+
+
+    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
 
     EXAMPLES::
 
@@ -873,4 +1322,16 @@ def lift_to_sl2z(c, d, N):
 
 
 def _make_p1list(n):
+    """
+    Helper function used in pickling.
+
+    Not intended for end-users.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modsym.p1list import _make_p1list
+        sage: _make_p1list(3)
+        The projective line over the integers modulo 3
+
+    """
     return P1List(n)

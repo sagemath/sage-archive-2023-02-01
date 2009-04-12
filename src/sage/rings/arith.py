@@ -2452,6 +2452,12 @@ def binomial(x,m):
         sage: k, i = var('k,i',ns=1)
         sage: binomial(k,i)
         binomial(k,i)
+
+    TESTS::
+
+    We test that certain binomials are very fast (this should be instant) -- see trac 3309:
+
+        sage: a = binomial(RR(1140000.78), 42000000)
     """
     if not isinstance(m, (int, long, integer.Integer)):
         try:

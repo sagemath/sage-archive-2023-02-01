@@ -249,7 +249,7 @@ unsigned constant::next_serial = 0;
 //////////
 
 /**  Pi. (3.14159...) Calls python function py_eval_pi() for evalf(). */
-const constant Pi("Pi", PiEvalf, "\\pi", domain::positive);
+const constant Pi("pi", PiEvalf, "\\pi", domain::positive);
 
 /** Euler's constant. (0.57721...)  Sometimes called Euler-Mascheroni constant.
  *  Calls python function py_eval_euler_gamma for evalf(). */

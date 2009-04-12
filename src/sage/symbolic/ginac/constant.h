@@ -29,7 +29,7 @@
 
 namespace GiNaC {
 
-typedef ex (*evalffunctype)(int prec);
+typedef ex (*evalffunctype)(unsigned serial, int prec);
 	
 /** This class holds constants, symbols with specific numerical value. Each
  *  object of this class must either provide their own function to evaluate it
@@ -54,6 +54,8 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
+	unsigned get_serial() const {return serial;}
+
 protected:
 	ex derivative(const symbol & s) const;
 	bool is_equal_same_type(const basic & other) const;

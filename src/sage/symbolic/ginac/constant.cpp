@@ -155,7 +155,7 @@ bool constant::info(unsigned inf) const
 ex constant::evalf(int level, int prec) const
 {
 	if (ef!=0) {
-		return ef(prec);
+        return ef(serial, prec);
 	} else {
 		return number.evalf(level, prec);
 	}
@@ -248,16 +248,16 @@ unsigned constant::next_serial = 0;
 // global constants
 //////////
 
-/**  Pi. (3.14159...) Calls python function py_eval_pi() for evalf(). */
-const constant Pi("pi", PiEvalf, "\\pi", domain::positive);
+/**  Pi. (3.14159...) Calls python function py_eval_constant() for evalf(). */
+const constant Pi("pi", ConstantEvalf, "\\pi", domain::positive);
 
 /** Euler's constant. (0.57721...)  Sometimes called Euler-Mascheroni constant.
- *  Calls python function py_eval_euler_gamma for evalf(). */
-const constant Euler("Euler", EulerEvalf, "\\gamma_E", domain::positive);
+ *  Calls python function py_eval_consant for evalf(). */
+const constant Euler("Euler", ConstantEvalf, "\\gamma_E", domain::positive);
 
 /** Catalan's constant. (0.91597...)  
- *  Calls python function py_eval_catalan for evalf(). */
-const constant Catalan("Catalan", CatalanEvalf, "G", domain::positive);
+ *  Calls python function py_eval_constant for evalf(). */
+const constant Catalan("Catalan", ConstantEvalf, "G", domain::positive);
 
 /** UnsignedInfinity. E.g., return value of gamma(-1).
  *  Calls python function py_eval_unsigned_infinity for evalf(). */

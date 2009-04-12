@@ -61,6 +61,7 @@ namespace math {
 }
 
 #include "numeric.h"
+#include "constant.h"
 #include "ex.h"
 #include "operators.h"
 #include "archive.h"
@@ -124,9 +125,7 @@ extern "C" {
 	PyObject* py_iquo2(PyObject* n, PyObject* b);
 	int       py_int_length(PyObject* x);
 
-	PyObject* py_eval_pi(long ndigits);
-	PyObject* py_eval_euler_gamma(long ndigits);
-	PyObject* py_eval_catalan(long ndigits);
+	PyObject* py_eval_constant(unsigned serial, long ndigits);
 	PyObject* py_eval_unsigned_infinity();
 	PyObject* py_eval_infinity();
 	PyObject* py_eval_neg_infinity();
@@ -2629,46 +2628,27 @@ void Number_T::archive(archive_node &n) const {
     return x.value.isqrt();
   }
 
-
-  /** Floating point evaluation of Archimedes' constant Pi. */
-  ex PiEvalf(int prec)
+  /** Floating point evaluation of Sage's constants. */
+  ex ConstantEvalf(unsigned serial, int prec)
   { 
-    PyObject* x = py_eval_pi(prec);
-    if (!x) py_error("error getting digits of pi");
+    PyObject* x = py_eval_constant(serial, prec);
+    if (!x) py_error("error getting digits of constant");
     return x;
   }
 
-
-  /** Floating point evaluation of Euler's constant gamma. */
-  ex EulerEvalf(int prec)
-  { 
-    PyObject* x = py_eval_euler_gamma(prec);
-    if (!x) py_error("error getting digits of euler gamma");
-    return x;
-  }
-
-
-  /** Floating point evaluation of Catalan's constant. */
-  ex CatalanEvalf(int prec)
-  {
-    PyObject* x = py_eval_catalan(prec);
-    if (!x) py_error("error getting digits of catalan constant");
-    return x;
-  }
-
-	ex UnsignedInfinityEvalf(int prec)
+    ex UnsignedInfinityEvalf(unsigned serial, int prec)
 	{
 		PyObject* x = py_eval_unsigned_infinity();
 		return x;
 	}
 
-	ex InfinityEvalf(int prec)
+    ex InfinityEvalf(unsigned serial, int prec)
 	{
 		PyObject* x = py_eval_infinity();
 		return x;
 	}
 
-	ex NegInfinityEvalf(int prec)
+    ex NegInfinityEvalf(unsigned serial, int prec)
 	{
 		PyObject* x = py_eval_neg_infinity();
 		return x;

@@ -46,6 +46,7 @@
 #define __GINAC_NUMERIC_H__
 
 #include "basic.h"
+#include "constant.h"
 #include "ex.h"
 
 #include <stdexcept>
@@ -442,12 +443,10 @@ namespace GiNaC {
 
   // numeric evaluation functions for class constant objects:
 
-  ex PiEvalf(int prec=0);
-  ex EulerEvalf(int prec=0);
-  ex CatalanEvalf(int prec=0);
-  ex UnsignedInfinityEvalf(int prec=0);
-  ex InfinityEvalf(int prec=0);
-  ex NegInfinityEvalf(int prec=0);
+  ex ConstantEvalf(unsigned serial, int prec=0);
+  ex UnsignedInfinityEvalf(unsigned serial, int prec=0);
+  ex InfinityEvalf(unsigned serial, int prec=0);
+  ex NegInfinityEvalf(unsigned serial, int prec=0);
 
 
 } // namespace GiNaC

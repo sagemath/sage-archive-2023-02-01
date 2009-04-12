@@ -1217,27 +1217,41 @@ def repr_lincomb(symbols, coeffs):
         '-t\\text{a} + \\left(t - 2\\right)\\text{s} + \\left(t^{12} + 2\\right)\\text{}'
         sage: repr_lincomb(['a', 'b'], [1,1])
         '\\text{a} + \\text{b}'
+
+    Verify that a certain corner case works (see trac 5707 and 5766)::
+
+        sage: repr_lincomb([1,5,-3],[2,8/9,7])
+        '2\\cdot 1 + \\frac{8}{9}\\cdot 5 + 7\\cdot -3'
     """
     s = ""
     first = True
     i = 0
 
-    all_atomic = True
+    from sage.rings.all import CC
+
     for c in coeffs:
-        b = latex(symbols[i])
+        bv = symbols[i]
+        b = latex(bv)
         if c != 0:
             if c == 1:
-                if not first:
-                    s += " + " + b
-                else:
+                if first:
                     s += b
+                else:
+                    s += " + %s"%b
             else:
                 coeff = coeff_repr(c)
-                if not first:
-                    coeff = " + %s"%coeff
+                if first:
+                    coeff = str(coeff)
                 else:
-                    coeff = "%s"%coeff
-                s += "%s%s"%(coeff, b)
+                    coeff = " + %s"%coeff
+                # this is a hack: i want to say that if the symbol
+                # happens to be a number, then we should put a
+                # multiplication sign in
+                try:
+                    if bv in CC:
+                        s += "%s\cdot %s"%(coeff, b)
+                except:
+                    s += "%s%s"%(coeff, b)
             first = False
         i += 1
     if first:

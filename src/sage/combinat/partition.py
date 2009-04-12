@@ -2307,8 +2307,8 @@ def RestrictedPartitions(n, S, k=None):
     EXAMPLES::
 
         sage: RestrictedPartitions(5,[3,2,1])
-        doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-        doctest:2320: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
+        doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+        doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
         Partitions of 5 restricted to the values [1, 2, 3]
         sage: RestrictedPartitions(5,[3,2,1]).list()
         [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
@@ -2334,7 +2334,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         TESTS::
 
             sage: r = RestrictedPartitions(5,[3,2,1])
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             sage: r == loads(dumps(r))
             True
         """
@@ -2353,7 +2353,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: [4,1] in RestrictedPartitions(5,[3,2,1])
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             False
             sage: [3,2] in RestrictedPartitions(5,[3,2,1])
             True
@@ -2370,7 +2370,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             'Partitions of 5 restricted to the values [1, 2, 3] '
             sage: RestrictedPartitions(5,[3,2,1],4).__repr__()
             'Partitions of 5 restricted to the values [1, 2, 3] of length 4'
@@ -2392,7 +2392,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             [[7, 1], [5, 3], [5, 1, 1, 1], [3, 3, 1, 1], [3, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]]
             sage: RestrictedPartitions(8,[1,3,5,7],2).list()
             [[7, 1], [5, 3]]
@@ -2416,7 +2416,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             6
             sage: RestrictedPartitions(8,[1,3,5,7],2).cardinality()
             2

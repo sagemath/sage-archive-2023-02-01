@@ -714,7 +714,7 @@ def unpickle_all(dir, debug=False):
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
         sage: sage.structure.sage_object.unpickle_all(std)
         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
-        Successfully unpickled 487 objects.
+        Successfully unpickled 483 objects.
         Failed to unpickle 0 objects.
     """
     i = 0

@@ -376,7 +376,7 @@ class UploadWorksheet(resource.PostableResource):
 
             except ValueError, msg:
                 s = "Error uploading worksheet '%s'."%msg
-                return HTMLRespone(stream = message(s, '/'))
+                return HTMLResponse(stream = message(s, '/'))
 
             # If the user requested in the form a specific title for
             # the worksheet set it.

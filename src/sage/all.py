@@ -108,6 +108,8 @@ from sage.lfunctions.all import *
 
 from sage.geometry.all   import *
 
+from sage.homology.all   import *
+
 from sage.quadratic_forms.all import *
 
 from sage.gsl.all        import *

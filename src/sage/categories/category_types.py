@@ -350,6 +350,27 @@ class GSets(uniq1, Category):
 
 
 #############################################################
+# SimplicialComplex
+#############################################################
+class SimplicialComplexes(Category_uniq):
+    """
+    The category of simplicial complexes.
+
+    EXAMPLES::
+
+        sage: SimplicialComplexes()
+        Category of simplicial complexes
+    """
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: C = SimplicialComplexes()
+            sage: loads(C.dumps()) == C
+            True
+        """
+        return SimplicialComplexes, tuple([])
+
+#############################################################
 # Semigroup
 #############################################################
 
@@ -1098,6 +1119,31 @@ class CommutativeAlgebraIdeals(Category_ideal):
         """
         return CommutativeAlgebraIdeals, (self.algebra(),)
 
+#############################################################
+# ChainComplex
+#############################################################
+class ChainComplexes(Category_module):
+    """
+    The category of all chain complexes over a base ring.
+
+    EXAMPLES::
+
+        sage: ChainComplexes(RationalField())
+        Category of chain complexes over Rational Field
+
+        sage: ChainComplexes(Integers(9))
+        Category of chain complexes over Ring of integers modulo 9
+    """
+
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: C = ChainComplexes(ZZ)
+            sage: loads(C.dumps()) == C
+            True
+        """
+        return ChainComplexes, (self.base(), )
 
 #############################################################
 # Schemes over a given base scheme.

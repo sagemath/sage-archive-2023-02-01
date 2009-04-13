@@ -1275,3 +1275,72 @@ class FinitePoset(ParentWithBase):
             True
         """
         return map(self._vertex_to_element,self.hasse_diagram().open_interval(x,y))
+
+    def _all_maximal_chains(self, partial=None):
+        """
+        Returns list of the maximal chains of this poset.  Each chain
+        is listed in increasing order.
+
+        INPUT:
+
+
+        -  ``partial`` - list (optional).  If present, find all maximal
+           chains starting with the elements in partial.
+
+        Returns list of the maximal chains of this poset.
+
+        This is used in constructing the order complex for the poset.
+
+        EXAMPLES::
+
+            sage: P = BooleanLattice(3)
+            sage: P._all_maximal_chains()
+            [[0, 1, 3, 7], [0, 1, 5, 7], [0, 2, 3, 7], [0, 2, 6, 7], [0, 4, 5, 7], [0, 4, 6, 7]]
+            sage: P._all_maximal_chains(partial=[0,2])
+            [[0, 2, 3, 7], [0, 2, 6, 7]]
+            sage: Q = ChainPoset(6)
+            sage: Q._all_maximal_chains()
+            [[0, 1, 2, 3, 4, 5]]
+        """
+        chains = []
+        if partial is None or len(partial) == 0:
+            start = self.minimal_elements()
+            partial = []
+        else:
+            start = self.upper_covers(partial[-1])
+        if len(start) == 0:
+            return [partial]
+        if len(start) == 1:
+            return self._all_maximal_chains(partial=partial + start)
+        parts = [partial + [x] for x in start]
+        answer = []
+        for new in parts:
+            answer += self._all_maximal_chains(partial=new)
+        return answer
+
+    def order_complex(self):
+        """
+        Returns the order complex associated to this poset.
+
+        The order complex is the simplical complex with vertices equal
+        to the elements of the poset, and faces given by the chains.
+
+        EXAMPLES::
+
+            sage: P = BooleanLattice(3)
+            sage: S = P.order_complex(); S
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 6 facets
+            sage: S.f_vector()
+            [1, 8, 19, 18, 6]
+            sage: S.homology()      # S is contractible
+            {0: 0, 1: 0, 2: 0, 3: 0}
+            sage: Q = P.subposet([1,2,3,4,5,6])
+            sage: Q.order_complex().homology()    # a circle
+            {0: 0, 1: Z}
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        vertices = [a.element for a in self.list()]
+        facets = []
+        for f in self._all_maximal_chains():
+            facets.append([a.element for a in f])
+        return SimplicialComplex(vertices, facets)

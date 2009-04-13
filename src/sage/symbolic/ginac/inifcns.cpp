@@ -43,7 +43,7 @@ namespace GiNaC {
 // complex conjugate
 //////////
 
-static ex conjugate_evalf(const ex & arg)
+static ex conjugate_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg)) {
 		return ex_to<numeric>(arg).conjugate();
@@ -88,7 +88,7 @@ REGISTER_FUNCTION(conjugate_function, eval_func(conjugate_eval).
 // real part
 //////////
 
-static ex real_part_evalf(const ex & arg)
+static ex real_part_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg)) {
 		return ex_to<numeric>(arg).real();
@@ -133,7 +133,7 @@ REGISTER_FUNCTION(real_part_function, eval_func(real_part_eval).
 // imag part
 //////////
 
-static ex imag_part_evalf(const ex & arg)
+static ex imag_part_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg)) {
 		return ex_to<numeric>(arg).imag();
@@ -178,7 +178,7 @@ REGISTER_FUNCTION(imag_part_function, eval_func(imag_part_eval).
 // absolute value
 //////////
 
-static ex abs_evalf(const ex & arg)
+static ex abs_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg))
 		return abs(ex_to<numeric>(arg));
@@ -247,7 +247,7 @@ REGISTER_FUNCTION(abs, eval_func(abs_eval).
 // Step function
 //////////
 
-static ex step_evalf(const ex & arg)
+static ex step_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg))
 		return step(ex_to<numeric>(arg));
@@ -326,7 +326,7 @@ REGISTER_FUNCTION(step, eval_func(step_eval).
 // Complex sign
 //////////
 
-static ex csgn_evalf(const ex & arg)
+static ex csgn_evalf(const ex & arg, int prec)
 {
 	if (is_exactly_a<numeric>(arg))
 		return csgn(ex_to<numeric>(arg));
@@ -421,7 +421,7 @@ REGISTER_FUNCTION(csgn, eval_func(csgn_eval).
 // in modern literature: K(z) == (z-log(exp(z)))/(2*Pi*I).
 //////////
 
-static ex eta_evalf(const ex &x, const ex &y)
+static ex eta_evalf(const ex &x, const ex &y, int prec)
 {
 	// It seems like we basically have to replicate the eval function here,
 	// since the expression might not be fully evaluated yet.
@@ -439,7 +439,7 @@ static ex eta_evalf(const ex &x, const ex &y)
 			cut -= 4;
 		if (nxy.is_real() && nxy.is_negative())
 			cut += 4;
-		return evalf(I/4*Pi)*((csgn(-imag(nx))+1)*(csgn(-imag(ny))+1)*(csgn(imag(nxy))+1)-
+		return evalf(I/4*Pi, 0, prec)*((csgn(-imag(nx))+1)*(csgn(-imag(ny))+1)*(csgn(imag(nxy))+1)-
 		                      (csgn(imag(nx))+1)*(csgn(imag(ny))+1)*(csgn(-imag(nxy))+1)+cut);
 	}
 
@@ -516,7 +516,7 @@ REGISTER_FUNCTION(eta, eval_func(eta_eval).
 // dilogarithm
 //////////
 
-static ex Li2_evalf(const ex & x)
+static ex Li2_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return Li2(ex_to<numeric>(x));
@@ -546,8 +546,11 @@ static ex Li2_eval(const ex & x)
 		if (x.is_equal(-I))
 			return power(Pi,_ex2)/_ex_48 - Catalan*I;
 		// Li2(float)
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return Li2(ex_to<numeric>(x));
+		*/
 	}
 	
 	return Li2(x).hold();
@@ -698,7 +701,7 @@ REGISTER_FUNCTION(zetaderiv, eval_func(zetaderiv_eval).
 // factorial
 //////////
 
-static ex factorial_evalf(const ex & x)
+static ex factorial_evalf(const ex & x, int prec)
 {
 	return factorial(x).hold();
 }
@@ -749,7 +752,7 @@ REGISTER_FUNCTION(factorial, eval_func(factorial_eval).
 // binomial
 //////////
 
-static ex binomial_evalf(const ex & x, const ex & y)
+static ex binomial_evalf(const ex & x, const ex & y, int prec)
 {
 	return binomial(x, y).hold();
 }
@@ -962,7 +965,8 @@ ex lsolve(const ex &eqns, const ex &symbols, unsigned options)
 //////////
 
 const numeric
-fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2)
+fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2,
+		int prec)
 {
 	if (!x1.is_real() || !x2.is_real()) {
 		throw std::runtime_error("fsolve(): interval not bounded by real numbers");
@@ -981,8 +985,8 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2)
 	} else {
 		f = f_in;
 	}
-	const ex fx_[2] = { f.subs(x==xx[0]).evalf(),
-	                    f.subs(x==xx[1]).evalf() };
+	const ex fx_[2] = { f.subs(x==xx[0]).evalf(0, prec),
+	                    f.subs(x==xx[1]).evalf(0, prec) };
 	if (!is_a<numeric>(fx_[0]) || !is_a<numeric>(fx_[1])) {
 		throw std::runtime_error("fsolve(): function does not evaluate numerically");
 	}
@@ -1004,8 +1008,8 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2)
 	do {
 		xxprev = xx[side];
 		fxprev = fx[side];
-		xx[side] += ex_to<numeric>(ff.subs(x==xx[side]).evalf());
-		fx[side] = ex_to<numeric>(f.subs(x==xx[side]).evalf());
+		xx[side] += ex_to<numeric>(ff.subs(x==xx[side]).evalf(0, prec));
+		fx[side] = ex_to<numeric>(f.subs(x==xx[side]).evalf(0, prec));
 		if ((side==0 && xx[0]<xxprev) || (side==1 && xx[1]>xxprev) || xx[0]>xx[1]) {
 			// Oops, Newton-Raphson method shot out of the interval.
 			// Restore, and try again with the other side instead!
@@ -1014,8 +1018,8 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2)
 			side = !side;
 			xxprev = xx[side];
 			fxprev = fx[side];
-			xx[side] += ex_to<numeric>(ff.subs(x==xx[side]).evalf());
-			fx[side] = ex_to<numeric>(f.subs(x==xx[side]).evalf());
+			xx[side] += ex_to<numeric>(ff.subs(x==xx[side]).evalf(0, prec));
+			fx[side] = ex_to<numeric>(f.subs(x==xx[side]).evalf(0, prec));
 		}
 		if ((fx[side]<0 && fx[!side]<0) || (fx[side]>0 && fx[!side]>0)) {
 			// Oops, the root isn't bracketed any more.
@@ -1039,7 +1043,7 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2)
 			static const double secant_weight = 0.984375;  // == 63/64 < 1
 			numeric xxmid = (1-secant_weight)*0.5*(xx[0]+xx[1])
 			    + secant_weight*(xx[0]+fx[0]*(xx[0]-xx[1])/(fx[1]-fx[0]));
-			numeric fxmid = ex_to<numeric>(f.subs(x==xxmid).evalf());
+			numeric fxmid = ex_to<numeric>(f.subs(x==xxmid).evalf(0, prec));
 			if (fxmid.is_zero()) {
 				// Luck strikes...
 				return xxmid;

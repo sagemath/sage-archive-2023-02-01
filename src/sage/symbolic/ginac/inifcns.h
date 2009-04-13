@@ -197,7 +197,7 @@ ex lsolve(const ex &eqns, const ex &symbols, unsigned options = solve_algo::auto
  *  @param x1  lower interval limit
  *  @param x2  upper interval limit
  *  @exception runtime_error (if interval is invalid). */
-const numeric fsolve(const ex& f, const symbol& x, const numeric& x1, const numeric& x2);
+const numeric fsolve(const ex& f, const symbol& x, const numeric& x1, const numeric& x2, int prec);
 
 /** Check whether a function is the Order (O(n)) function. */
 inline bool is_order_function(const ex & e)

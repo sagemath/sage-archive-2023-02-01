@@ -29,7 +29,7 @@
 
 namespace GiNaC {
 
-typedef ex (*evalffunctype)();
+typedef ex (*evalffunctype)(int prec);
 	
 /** This class holds constants, symbols with specific numerical value. Each
  *  object of this class must either provide their own function to evaluate it
@@ -49,7 +49,7 @@ public:
 	// functions overriding virtual functions from base classes
 public:
 	bool info(unsigned inf) const;
-	ex evalf(int level = 0) const;
+	ex evalf(int level = 0, int prec = 0) const;
 	bool is_polynomial(const ex & var) const;
 	ex conjugate() const;
 	ex real_part() const;

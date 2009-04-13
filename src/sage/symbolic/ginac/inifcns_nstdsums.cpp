@@ -1031,7 +1031,7 @@ ex G_numeric(const lst& x, const lst& s, const ex& y)
 		need_trafo = true;
 	}
 	if (depth == 1 && x.nops() == 2 && !need_trafo) {
-		return -Li(x.nops(), y / x.op(x.nops()-1)).evalf();
+		return -Li(x.nops(), y / x.op(x.nops()-1)).evalf(0, prec);
 	}
 	
 	// do acceleration transformation (hoelder convolution [BBB])
@@ -1156,7 +1156,7 @@ ex G_numeric(const lst& x, const lst& s, const ex& y)
 		ex result = G_transform(pendint, a, scale);
 		// replace dummy symbols with their values
 		result = result.eval().expand();
-		result = result.subs(subslst).evalf();
+		result = result.subs(subslst).evalf(0, prec);
 		
 		return result;
 	}
@@ -1217,7 +1217,7 @@ ex mLi_numeric(const lst& m, const lst& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex G2_evalf(const ex& x_, const ex& y)
+static ex G2_evalf(const ex& x_, const ex& y, int prec)
 {
   /*
 	if (!y.info(info_flags::positive)) {
@@ -1302,7 +1302,7 @@ unsigned G2_SERIAL::serial = function::register_new(function_options("G", 2).
 //                                print_func<print_latex>(G2_print_latex).
 
 
-static ex G3_evalf(const ex& x_, const ex& s_, const ex& y)
+static ex G3_evalf(const ex& x_, const ex& s_, const ex& y, int prec)
 {
   /*
 	if (!y.info(info_flags::positive)) {
@@ -1418,7 +1418,7 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 //////////////////////////////////////////////////////////////////////
 
 
-static ex Li_evalf(const ex& m_, const ex& x_)
+static ex Li_evalf(const ex& m_, const ex& x_, int prec)
 {
   /*
 	// classical polylogs
@@ -1427,7 +1427,7 @@ static ex Li_evalf(const ex& m_, const ex& x_)
 			return Lin_numeric(ex_to<numeric>(m_).to_int(), ex_to<numeric>(x_));
 		} else {
 			// try to numerically evaluate second argument
-			ex x_val = x_.evalf();
+			ex x_val = x_.evalf(0, prec);
 			if (x_val.info(info_flags::numeric)) {
 				return Lin_numeric(ex_to<numeric>(m_).to_int(), ex_to<numeric>(x_val));
 			}
@@ -2037,14 +2037,14 @@ numeric S_num(int n, int p, const numeric& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex S_evalf(const ex& n, const ex& p, const ex& x)
+static ex S_evalf(const ex& n, const ex& p, const ex& x, int prec)
 {
   /*
 	if (n.info(info_flags::posint) && p.info(info_flags::posint)) {
 		if (is_a<numeric>(x)) {
 			return S_num(ex_to<numeric>(n).to_int(), ex_to<numeric>(p).to_int(), ex_to<numeric>(x));
 		} else {
-			ex x_val = x.evalf();
+			ex x_val = x.evalf(0, prec);
 			if (is_a<numeric>(x_val)) {
 				return S_num(ex_to<numeric>(n).to_int(), ex_to<numeric>(p).to_int(), ex_to<numeric>(x_val));
 			}
@@ -3089,7 +3089,7 @@ Number_T H_do_sum(const std::vector<int>& m, const Number_T& x)
 //////////////////////////////////////////////////////////////////////
 
 
-static ex H_evalf(const ex& x1, const ex& x2)
+static ex H_evalf(const ex& x1, const ex& x2, int prec)
 {
 // 	if (is_a<lst>(x1)) {
 		
@@ -3097,7 +3097,7 @@ static ex H_evalf(const ex& x1, const ex& x2)
 // 		if (is_a<numeric>(x2)) {
 // 			x = ex_to<numeric>(x2).to_cl_N();
 // 		} else {
-// 			ex x2_val = x2.evalf();
+// 			ex x2_val = x2.evalf(0, prec);
 // 			if (is_a<numeric>(x2_val)) {
 // 				x = ex_to<numeric>(x2_val).to_cl_N();
 // 			}
@@ -3117,7 +3117,7 @@ static ex H_evalf(const ex& x1, const ex& x2)
 // 		if (*(--morg.end()) == 0) {
 // 			symbol xtemp("xtemp");
 // 			map_trafo_H_reduce_trailing_zeros filter;
-// 			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf();
+// 			return filter(H(x1, xtemp).hold()).subs(xtemp==x2).evalf(0, prec);
 // 		}
 // 		// ... and expand parameter notation
 // 		bool has_minus_one = false;
@@ -3159,7 +3159,7 @@ static ex H_evalf(const ex& x1, const ex& x2)
 // 				// only positive parameters
 // 				//TODO
 // 				if (m_lst.nops() == 1) {
-// 					return Li(m_lst.op(0), x2).evalf();
+// 					return Li(m_lst.op(0), x2).evalf(0, prec);
 // 				}
 // 				std::vector<int> m_int;
 // 				for (lst::const_iterator it = m_lst.begin(); it != m_lst.end(); it++) {
@@ -3192,7 +3192,7 @@ static ex H_evalf(const ex& x1, const ex& x2)
 // 			} else {
 // 				res = res.subs(H_polesign == I*Pi);
 // 			}
-// 			return res.subs(xtemp == numeric(x)).evalf();
+// 			return res.subs(xtemp == numeric(x)).evalf(0, prec);
 // 		}
 		
 // 		// check transformations for 0.95 <= |x| < 2.0
@@ -3206,13 +3206,13 @@ static ex H_evalf(const ex& x1, const ex& x2)
 // 			// x -> 1-x
 // 			if (has_minus_one) {
 // 				map_trafo_H_convert_to_Li filter;
-// 				return filter(H(m, numeric(x)).hold()).evalf();
+// 				return filter(H(m, numeric(x)).hold()).evalf(0, prec);
 // 			}
 // 			map_trafo_H_1mx trafo;
 // 			res *= trafo(H(m, xtemp));
 // 		}
 
-// 		return res.subs(xtemp == numeric(x)).evalf();
+// 		return res.subs(xtemp == numeric(x)).evalf(0, prec);
 // 	}
 
 // 	return H(x1,x2).hold();
@@ -3784,7 +3784,7 @@ Number_T zeta_do_Hoelder_convolution(const std::vector<int>& m_, const std::vect
 //////////////////////////////////////////////////////////////////////
 
 
-static ex zeta1_evalf(const ex& x)
+static ex zeta1_evalf(const ex& x, int prec)
 {
 	if (is_exactly_a<lst>(x) && (x.nops()>1)) {
 
@@ -3812,7 +3812,7 @@ static ex zeta1_evalf(const ex& x)
 
 		// decide on summation algorithm
 		// this is still a bit clumsy
-		int limit = (Digits>17) ? 10 : 6;
+		int limit = ((prec/3)>17) ? 10 : 6;
 		if ((r[0] < limit) || ((count > 3) && (r[1] < limit/2))) {
 			return numeric(zeta_do_sum_Crandall(r));
 		} else {
@@ -3821,9 +3821,11 @@ static ex zeta1_evalf(const ex& x)
 	}
 
 	// single zeta value
-	if (is_exactly_a<numeric>(x) && (x != 1)) {
+	if (x == 1) {
+		return UnsignedInfinity;
+	} else	if (is_exactly_a<numeric>(x)) {
 		try {
-			return zeta(ex_to<numeric>(x));
+			return zeta(ex_to<numeric>(x.evalf(0, prec)));
 		} catch (const dunno &e) { }
 	}
 
@@ -3865,9 +3867,12 @@ static ex zeta1_eval(const ex& m)
 			}
 		}
 		// zeta(float)
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (y.info(info_flags::numeric) && !y.info(info_flags::crational)) {
 			return zeta1_evalf(m);
 		}
+		*/
 	}
 	return zeta(m).hold();
 }
@@ -3922,7 +3927,7 @@ unsigned zeta1_SERIAL::serial = function::register_new(function_options("zeta", 
 //////////////////////////////////////////////////////////////////////
 
 
-static ex zeta2_evalf(const ex& x, const ex& s)
+static ex zeta2_evalf(const ex& x, const ex& s, int prec)
 {
 	if (is_exactly_a<lst>(x)) {
 

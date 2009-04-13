@@ -64,7 +64,7 @@ static void atanh_print_dflt(const ex & arg, const print_context & c)
 // exponential function
 //////////
 
-static ex exp_evalf(const ex & x)
+static ex exp_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return exp(ex_to<numeric>(x));
@@ -98,8 +98,11 @@ static ex exp_eval(const ex & x)
 		return x.op(0);
 	
 	// exp(float) -> float
+	/* delay numeric evaluation to evalf,
+	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return exp(ex_to<numeric>(x));
+	*/
 	
 	return exp(x).hold();
 }
@@ -170,7 +173,7 @@ REGISTER_FUNCTION(exp, eval_func(exp_eval).
 // natural logarithm
 //////////
 
-static ex log_evalf(const ex & x)
+static ex log_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return log(ex_to<numeric>(x));
@@ -193,8 +196,11 @@ static ex log_eval(const ex & x)
 			return (Pi*I*_ex_1_2);
 
 		// log(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return log(ex_to<numeric>(x));
+		*/
 	}
 
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):
@@ -330,7 +336,7 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
 // sine (trigonometric function)
 //////////
 
-static ex sin_evalf(const ex & x)
+static ex sin_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return sin(ex_to<numeric>(x));
@@ -391,8 +397,11 @@ static ex sin_eval(const ex & x)
 	}
 	
 	// sin(float) -> float
+	/* delay numeric evaluation to evalf,
+	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return sin(ex_to<numeric>(x));
+	*/
 
 	// sin() is odd
 	if (x.info(info_flags::negative))
@@ -430,7 +439,7 @@ REGISTER_FUNCTION(sin, eval_func(sin_eval).
 // cosine (trigonometric function)
 //////////
 
-static ex cos_evalf(const ex & x)
+static ex cos_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return cos(ex_to<numeric>(x));
@@ -491,8 +500,11 @@ static ex cos_eval(const ex & x)
 	}
 	
 	// cos(float) -> float
+	/* delay numeric evaluation to evalf,
+	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return cos(ex_to<numeric>(x));
+	*/
 	
 	// cos() is even
 	if (x.info(info_flags::negative))
@@ -530,7 +542,7 @@ REGISTER_FUNCTION(cos, eval_func(cos_eval).
 // tangent (trigonometric function)
 //////////
 
-static ex tan_evalf(const ex & x)
+static ex tan_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return tan(ex_to<numeric>(x));
@@ -587,9 +599,12 @@ static ex tan_eval(const ex & x)
 	}
 	
 	// tan(float) -> float
+	/* delay numeric evaluation to evalf,
+	 * where precision can be specified
 	if (x.info(info_flags::numeric) && !x.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x));
 	}
+	*/
 	
 	// tan() is odd
 	if (x.info(info_flags::negative))
@@ -648,7 +663,7 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 // inverse sine (arc sine)
 //////////
 
-static ex asin_evalf(const ex & x)
+static ex asin_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return asin(ex_to<numeric>(x));
@@ -681,8 +696,11 @@ static ex asin_eval(const ex & x)
 			return _ex_1_2*Pi;
 
 		// asin(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return asin(ex_to<numeric>(x));
+		*/
 
 		// asin() is odd
 		if (x.info(info_flags::negative))
@@ -710,7 +728,7 @@ REGISTER_FUNCTION(asin, eval_func(asin_eval).
 // inverse cosine (arc cosine)
 //////////
 
-static ex acos_evalf(const ex & x)
+static ex acos_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return acos(ex_to<numeric>(x));
@@ -743,8 +761,11 @@ static ex acos_eval(const ex & x)
 			return Pi;
 
 		// acos(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return acos(ex_to<numeric>(x));
+		*/
 
 		// acos(-x) -> Pi-acos(x)
 		if (x.info(info_flags::negative))
@@ -774,7 +795,7 @@ REGISTER_FUNCTION(acos, eval_func(acos_eval).
 // inverse tangent (arc tangent)
 //////////
 
-static ex atan_evalf(const ex & x)
+static ex atan_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return atan(ex_to<numeric>(x));
@@ -802,8 +823,11 @@ static ex atan_eval(const ex & x)
 			throw (pole_error("atan_eval(): logarithmic pole",0));
 
 		// atan(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return atan(ex_to<numeric>(x));
+		*/
 
 		// atan() is odd
 		if (x.info(info_flags::negative))
@@ -875,7 +899,7 @@ REGISTER_FUNCTION(atan, eval_func(atan_eval).
 // inverse tangent (atan2(y,x))
 //////////
 
-static ex atan2_evalf(const ex &y, const ex &x)
+static ex atan2_evalf(const ex &y, const ex &x, int prec)
 {
 	if (is_exactly_a<numeric>(y) && is_exactly_a<numeric>(x))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
@@ -934,9 +958,12 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan(float, float) -> float
+	/* delay numeric evaluation to evalf,
+	 * where precision can be specified
 	if (is_a<numeric>(y) && !y.info(info_flags::crational) &&
 	    is_a<numeric>(x) && !x.info(info_flags::crational))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
+	*/
 
 	// atan(real, real) -> atan(y/x) +/- Pi
 	if (y.info(info_flags::real) && x.info(info_flags::real)) {
@@ -972,7 +999,7 @@ REGISTER_FUNCTION(atan2, eval_func(atan2_eval).
 // hyperbolic sine (trigonometric function)
 //////////
 
-static ex sinh_evalf(const ex & x)
+static ex sinh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return sinh(ex_to<numeric>(x));
@@ -989,8 +1016,11 @@ static ex sinh_eval(const ex & x)
 			return _ex0;        
 
 		// sinh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return sinh(ex_to<numeric>(x));
+		*/
 
 		// sinh() is odd
 		if (x.info(info_flags::negative))
@@ -1049,7 +1079,7 @@ REGISTER_FUNCTION(sinh, eval_func(sinh_eval).
 // hyperbolic cosine (trigonometric function)
 //////////
 
-static ex cosh_evalf(const ex & x)
+static ex cosh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return cosh(ex_to<numeric>(x));
@@ -1066,8 +1096,11 @@ static ex cosh_eval(const ex & x)
 			return _ex1;
 
 		// cosh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return cosh(ex_to<numeric>(x));
+		*/
 
 		// cosh() is even
 		if (x.info(info_flags::negative))
@@ -1126,7 +1159,7 @@ REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
 // hyperbolic tangent (trigonometric function)
 //////////
 
-static ex tanh_evalf(const ex & x)
+static ex tanh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return tanh(ex_to<numeric>(x));
@@ -1143,8 +1176,11 @@ static ex tanh_eval(const ex & x)
 			return _ex0;
 
 		// tanh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return tanh(ex_to<numeric>(x));
+		*/
 
 		// tanh() is odd
 		if (x.info(info_flags::negative))
@@ -1224,7 +1260,7 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
 // inverse hyperbolic sine (trigonometric function)
 //////////
 
-static ex asinh_evalf(const ex & x)
+static ex asinh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return asinh(ex_to<numeric>(x));
@@ -1241,8 +1277,11 @@ static ex asinh_eval(const ex & x)
 			return _ex0;
 
 		// asinh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return asinh(ex_to<numeric>(x));
+		*/
 
 		// asinh() is odd
 		if (x.info(info_flags::negative))
@@ -1269,7 +1308,7 @@ REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
 // inverse hyperbolic cosine (trigonometric function)
 //////////
 
-static ex acosh_evalf(const ex & x)
+static ex acosh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return acosh(ex_to<numeric>(x));
@@ -1294,8 +1333,11 @@ static ex acosh_eval(const ex & x)
 			return Pi*I;
 
 		// acosh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return acosh(ex_to<numeric>(x));
+		*/
 
 		// acosh(-x) -> Pi*I-acosh(x)
 		if (x.info(info_flags::negative))
@@ -1322,7 +1364,7 @@ REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
 // inverse hyperbolic tangent (trigonometric function)
 //////////
 
-static ex atanh_evalf(const ex & x)
+static ex atanh_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x))
 		return atanh(ex_to<numeric>(x));
@@ -1343,8 +1385,11 @@ static ex atanh_eval(const ex & x)
 			throw (pole_error("atanh_eval(): logarithmic pole",0));
 
 		// atanh(float) -> float
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!x.info(info_flags::crational))
 			return atanh(ex_to<numeric>(x));
+		*/
 
 		// atanh() is odd
 		if (x.info(info_flags::negative))

@@ -41,7 +41,7 @@ namespace GiNaC {
 // Logarithm of Gamma function
 //////////
 
-static ex lgamma_evalf(const ex & x)
+static ex lgamma_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -122,7 +122,7 @@ REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
 // true Gamma function
 //////////
 
-static ex tgamma_evalf(const ex & x)
+static ex tgamma_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -168,8 +168,11 @@ static ex tgamma_eval(const ex & x)
 				return (pow(*_num_2_p, n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p))))*sqrt(Pi);
 			}
 		}
+		/* delay numeric evaluation to evalf,
+		 * where precision can be specified
 		if (!ex_to<numeric>(x).is_rational())
 			return tgamma(ex_to<numeric>(x));
+		*/
 	}
 	
 	return tgamma(x).hold();
@@ -224,7 +227,7 @@ REGISTER_FUNCTION(tgamma, eval_func(tgamma_eval).
 // beta-function
 //////////
 
-static ex beta_evalf(const ex & x, const ex & y)
+static ex beta_evalf(const ex & x, const ex & y, int prec)
 {
 	if (is_exactly_a<numeric>(x) && is_exactly_a<numeric>(y)) {
 		try {
@@ -342,7 +345,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
 // Psi-function (aka digamma-function)
 //////////
 
-static ex psi1_evalf(const ex & x)
+static ex psi1_evalf(const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
@@ -443,7 +446,7 @@ unsigned psi1_SERIAL::serial =
 // Psi-functions (aka polygamma-functions)  psi(0,x)==psi(x)
 //////////
 
-static ex psi2_evalf(const ex & n, const ex & x)
+static ex psi2_evalf(const ex & n, const ex & x, int prec)
 {
 	if (is_exactly_a<numeric>(n) && is_exactly_a<numeric>(x)) {
 		try {

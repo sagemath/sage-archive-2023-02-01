@@ -59,7 +59,7 @@ public:
 	int ldegree(const ex & s) const;
 	ex coeff(const ex & s, int n = 1) const;
 	ex eval(int level=0) const;
-	ex evalf(int level=0) const;
+	ex evalf(int level=0, int prec=0) const;
 	ex evalm() const;
 	ex series(const relational & s, int order, unsigned options = 0) const;
 	ex subs(const exmap & m, unsigned options = 0) const;

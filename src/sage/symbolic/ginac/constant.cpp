@@ -152,12 +152,12 @@ bool constant::info(unsigned inf) const
 		return inherited::info(inf);
 }
 
-ex constant::evalf(int level) const
+ex constant::evalf(int level, int prec) const
 {
 	if (ef!=0) {
-		return ef();
+		return ef(prec);
 	} else {
-		return number.evalf();
+		return number.evalf(level, prec);
 	}
 	return *this;
 }

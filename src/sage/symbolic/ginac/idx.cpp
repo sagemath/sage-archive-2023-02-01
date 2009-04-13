@@ -367,7 +367,7 @@ unsigned idx::calchash() const
 
 /** By default, basic::evalf would evaluate the index value but we don't want
  *  a.1 to become a.(1.0). */
-ex idx::evalf(int level) const
+ex idx::evalf(int level, int prec) const
 {
 	return *this;
 }

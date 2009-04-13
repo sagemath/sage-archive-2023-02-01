@@ -160,7 +160,7 @@ namespace GiNaC {
     Number_T factorial() const;
     Number_T doublefactorial() const;
     Number_T fibonacci() const;
-    Number_T evalf() const;
+    Number_T evalf(int prec) const;
     Number_T step() const;
     Number_T isqrt() const;
     Number_T sqrt() const;
@@ -182,39 +182,6 @@ namespace GiNaC {
 
   std::ostream& operator << (std::ostream& os, const Number_T& s);
   Number_T pow(const Number_T& base, const Number_T& exp);
-
-  /** Function pointer to implement callbacks in the case 'Digits' gets changed.
-   *  Main purpose of such callbacks is to adjust look-up tables of certain
-   *  functions to the new precision. Parameter contains the signed difference
-   *  between new Digits and old Digits. */
-  typedef void (* digits_changed_callback)(long);
-
-  /** This class is used to instantiate a global singleton object Digits
-   *  which behaves just like Maple's Digits.  We need an object rather 
-   *  than a dumber basic type since as a side-effect we let it change
-   *  cl_default_float_format when it gets changed.  The only other
-   *  meaningful thing to do with it is converting it to an unsigned,
-   *  for temprary storing its value e.g.  The user must not create an
-   *  own working object of this class!  Since C++ forces us to make the
-   *  class definition visible in order to use an object we put in a
-   *  flag which prevents other objects of that class to be created. */
-  class _numeric_digits
-  {
-    // member functions
-  public:
-    _numeric_digits();
-    _numeric_digits& operator=(long prec);
-    operator long();
-    void print(std::ostream& os) const;
-    void add_callback(digits_changed_callback callback);
-    // member variables
-  private:
-    long digits;                        ///< Number of decimal digits
-    static bool too_late;               ///< Already one object present
-    // Holds a list of functions that get called when digits is changed.
-    std::vector<digits_changed_callback> callbacklist;
-  };
-
 
   /** Exception class thrown when a singularity is encountered. */
   class pole_error : public std::domain_error {
@@ -256,7 +223,7 @@ namespace GiNaC {
     ex coeff(const ex & s, int n = 1) const;
     bool has(const ex &other, unsigned options = 0) const;
     ex eval(int level = 0) const;
-    ex evalf(int level = 0) const;
+    ex evalf(int level = 0, int prec=0) const;
     ex subs(const exmap & m, unsigned options = 0) const { return subs_one_level(m, options); } // overwrites basic::subs() for performance reasons
     ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;
     ex to_rational(exmap & repl) const;
@@ -354,7 +321,6 @@ namespace GiNaC {
   // global constants
 
   extern numeric I;
-  extern _numeric_digits Digits;
 
   // global functions
 
@@ -470,12 +436,12 @@ namespace GiNaC {
 
   // numeric evaluation functions for class constant objects:
 
-  ex PiEvalf();
-  ex EulerEvalf();
-  ex CatalanEvalf();
-  ex UnsignedInfinityEvalf();
-  ex InfinityEvalf();
-  ex NegInfinityEvalf();
+  ex PiEvalf(int prec=0);
+  ex EulerEvalf(int prec=0);
+  ex CatalanEvalf(int prec=0);
+  ex UnsignedInfinityEvalf(int prec=0);
+  ex InfinityEvalf(int prec=0);
+  ex NegInfinityEvalf(int prec=0);
 
 
 } // namespace GiNaC

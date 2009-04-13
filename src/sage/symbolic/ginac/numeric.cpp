@@ -83,7 +83,7 @@ extern "C" PyObject* py_int(PyObject* n);
 extern "C" PyObject* py_integer_from_long(long int x);
 extern "C" PyObject* py_integer_from_python_obj(PyObject* x);
 
-extern "C" PyObject* py_float(PyObject* a);
+extern "C" PyObject* py_float(PyObject* a, int prec);
 extern "C" PyObject* py_RDF_from_double(double x);
 
 extern "C" PyObject* py_factorial(PyObject* a);
@@ -1164,8 +1164,14 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     PY_RETURN(py_conjugate);
   }
   
-  Number_T Number_T::evalf() const {
-    PY_RETURN(py_float);
+  Number_T Number_T::evalf(int prec) const {
+	  PyObject *a = Number_T_to_pyobject(*this);
+	  PyObject *ans = py_float(a, prec);
+	  Py_DECREF(a);
+	  if (!ans)
+		  throw(std::runtime_error("numeric::evalf(): error calling py_float()"));
+
+	  return ans; 
   }
 
   Number_T Number_T::step() const {
@@ -1643,9 +1649,9 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
    *
    *  @param level  ignored, only needed for overriding basic::evalf.
    *  @return  an ex-handle to a numeric. */
-  ex numeric::evalf(int level) const
+  ex numeric::evalf(int level, int prec) const
   {
-     return (numeric)(value.evalf());
+     return (numeric)(value.evalf(prec));
   }
 
   ex numeric::conjugate() const
@@ -2558,103 +2564,48 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
 
   /** Floating point evaluation of Archimedes' constant Pi. */
-  ex PiEvalf()
+  ex PiEvalf(int prec)
   { 
-    PyObject* x = py_eval_pi(Digits);
+    PyObject* x = py_eval_pi(prec);
     if (!x) py_error("error getting digits of pi");
     return x;
   }
 
 
   /** Floating point evaluation of Euler's constant gamma. */
-  ex EulerEvalf()
+  ex EulerEvalf(int prec)
   { 
-    PyObject* x = py_eval_euler_gamma(Digits);
+    PyObject* x = py_eval_euler_gamma(prec);
     if (!x) py_error("error getting digits of euler gamma");
     return x;
   }
 
 
   /** Floating point evaluation of Catalan's constant. */
-  ex CatalanEvalf()
+  ex CatalanEvalf(int prec)
   {
-    PyObject* x = py_eval_catalan(Digits);
+    PyObject* x = py_eval_catalan(prec);
     if (!x) py_error("error getting digits of catalan constant");
     return x;
   }
 
-	ex UnsignedInfinityEvalf()
+	ex UnsignedInfinityEvalf(int prec)
 	{
 		PyObject* x = py_eval_unsigned_infinity();
 		return x;
 	}
 
-	ex InfinityEvalf()
+	ex InfinityEvalf(int prec)
 	{
 		PyObject* x = py_eval_infinity();
 		return x;
 	}
 
-	ex NegInfinityEvalf()
+	ex NegInfinityEvalf(int prec)
 	{
 		PyObject* x = py_eval_neg_infinity();
 		return x;
 	}
 
-
-  /** _numeric_digits default constructor, checking for singleton invariance. */
-  _numeric_digits::_numeric_digits()
-    : digits(17)
-  {
-  }
-
-
-  /** Assign a native long to global Digits object. */
-  _numeric_digits& _numeric_digits::operator=(long prec)
-  {
-    return *this;
-  }
-
-
-  /** Convert global Digits object to native type long. */
-  _numeric_digits::operator long()
-  {
-    // BTW, this is approx. unsigned(cln::default_float_format*0.301)-1
-    return (long)digits;
-  }
-
-
-  /** Append global Digits object to ostream. */
-  void _numeric_digits::print(std::ostream &os) const
-  {
-    os << digits;
-  }
-
-
-  /** Add a new callback function. */
-  void _numeric_digits::add_callback(digits_changed_callback callback)
-  {
-    callbacklist.push_back(callback);
-  }
-
-
-  std::ostream& operator<<(std::ostream &os, const _numeric_digits &e)
-  {
-    e.print(os);
-    return os;
-  }
-
-  //////////
-  // static member variables
-  //////////
-
-  // private
-
-  bool _numeric_digits::too_late = false;
-
-
-  /** Accuracy in decimal digits.  Only object of this type!  Can be set using
-   *  assignment from C++ unsigned ints and evaluated like any built-in type. */
-  _numeric_digits Digits;
 
 } // namespace GiNaC

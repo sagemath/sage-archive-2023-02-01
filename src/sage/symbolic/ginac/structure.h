@@ -131,7 +131,8 @@ public:
 public:
 	// evaluation
 	ex eval(int level = 0) const { return hold(); }
-	ex evalf(int level = 0) const { return inherited::evalf(level); }
+	ex evalf(int level = 0, int prec = 0) const {
+		return inherited::evalf(level, prec); }
 	ex evalm() const { return inherited::evalm(); }
 protected:
 	ex eval_ncmul(const exvector & v) const { return hold_ncmul(v); }

@@ -683,7 +683,7 @@ ex power::eval(int level) const
 	                                               status_flags::evaluated);
 }
 
-ex power::evalf(int level) const
+ex power::evalf(int level, int prec) const
 {
 	ex ebasis;
 	ex eexponent;
@@ -694,9 +694,9 @@ ex power::evalf(int level) const
 	} else if (level == -max_recursion_level) {
 		throw(std::runtime_error("max recursion level reached"));
 	} else {
-		ebasis = basis.evalf(level-1);
+		ebasis = basis.evalf(level-1, prec);
 		if (!is_exactly_a<numeric>(exponent))
-			eexponent = exponent.evalf(level-1);
+			eexponent = exponent.evalf(level-1, prec);
 		else
 			eexponent = exponent;
 	}

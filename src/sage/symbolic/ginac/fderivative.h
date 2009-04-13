@@ -62,7 +62,7 @@ public:
 public:
 	void print(const print_context & c, unsigned level = 0) const;
 	ex eval(int level = 0) const;
-	ex evalf(int level = 0) const;
+	ex evalf(int level = 0, int prec = 0) const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;
 	ex thiscontainer(std::auto_ptr<exvector> vp) const;

@@ -147,7 +147,7 @@ class function;
 class symmetry;
 
 typedef ex (* eval_funcp)();
-typedef ex (* evalf_funcp)();
+typedef ex (* evalf_funcp)(int prec);
 typedef ex (* conjugate_funcp)();
 typedef ex (* real_part_funcp)();
 typedef ex (* imag_part_funcp)();
@@ -172,20 +172,20 @@ typedef ex (* eval_funcp_12)(const ex &, const ex &, const ex &, const ex &, con
 typedef ex (* eval_funcp_13)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
 typedef ex (* eval_funcp_14)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
 
-typedef ex (* evalf_funcp_1)(const ex &);
-typedef ex (* evalf_funcp_2)(const ex &, const ex &);
-typedef ex (* evalf_funcp_3)(const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_4)(const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_5)(const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_7)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_8)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_9)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_10)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_11)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_12)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_13)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
-typedef ex (* evalf_funcp_14)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &);
+typedef ex (* evalf_funcp_1)(const ex &, int prec);
+typedef ex (* evalf_funcp_2)(const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_3)(const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_4)(const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_5)(const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_7)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_8)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_9)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_10)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_11)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_12)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_13)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
+typedef ex (* evalf_funcp_14)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, int prec);
 
 typedef ex (* conjugate_funcp_1)(const ex &);
 typedef ex (* conjugate_funcp_2)(const ex &, const ex &);
@@ -297,7 +297,7 @@ typedef void (* print_funcp_14)(const ex &, const ex &, const ex &, const ex &, 
 // Alternatively, an exvector may be passed into the static function, instead
 // of individual ex objects.  Then, the number of arguments is not limited.
 typedef ex (* eval_funcp_exvector)(const exvector &);
-typedef ex (* evalf_funcp_exvector)(const exvector &);
+typedef ex (* evalf_funcp_exvector)(const exvector &, int prec);
 typedef ex (* conjugate_funcp_exvector)(const exvector &);
 typedef ex (* real_part_funcp_exvector)(const exvector &);
 typedef ex (* imag_part_funcp_exvector)(const exvector &);
@@ -670,7 +670,7 @@ public:
 	unsigned precedence() const {return 70;}
 	ex expand(unsigned options=0) const;
 	ex eval(int level=0) const;
-	ex evalf(int level=0) const;
+	ex evalf(int level=0, int prec=0) const;
 	unsigned calchash() const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;

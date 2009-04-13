@@ -190,9 +190,9 @@ ex fderivative::eval(int level) const
 
 /** Numeric evaluation falls back to evaluation of arguments.
  *  @see basic::evalf */
-ex fderivative::evalf(int level) const
+ex fderivative::evalf(int level, int prec) const
 {
-	return basic::evalf(level);
+	return basic::evalf(level, prec);
 }
 
 /** The series expansion of derivatives falls back to Taylor expansion.

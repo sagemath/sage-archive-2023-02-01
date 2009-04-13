@@ -55,7 +55,7 @@ public:
 	ex coeff(const ex & s, int n = 1) const;
 	bool has(const ex & other, unsigned options = 0) const;
 	ex eval(int level=0) const;
-	ex evalf(int level=0) const;
+	ex evalf(int level=0, int prec=0) const;
 	ex real_part() const;
 	ex imag_part() const;
 	ex evalm() const;

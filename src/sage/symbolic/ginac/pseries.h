@@ -50,7 +50,7 @@ public:
 	ex coeff(const ex &s, int n = 1) const;
 	ex collect(const ex &s, bool distributed = false) const;
 	ex eval(int level=0) const;
-	ex evalf(int level=0) const;
+	ex evalf(int level=0, int prec=0) const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
 	ex subs(const exmap & m, unsigned options = 0) const;
 	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const;

@@ -86,11 +86,13 @@ class AmbientSpace(CombinatorialFreeModule, WeightLatticeRealization):
             sage: R = RootSystem(['A',4]).ambient_lattice()
             sage: R([1,2,3,4,5])
             (1, 2, 3, 4, 5)
+            sage: len(R([1,0,0,0,0]).monomial_coefficients())
+            1
         """
         # This adds coercion from a list
         if isinstance(v, (list, tuple)):
             K = self.base_ring()
-            return self._from_dict(dict([(i,K(v[i])) for i in range(len(v))]))
+            return self._from_dict(dict((i,K(c)) for i,c in enumerate(v) if c))
         else:
             return CombinatorialFreeModule.__call__(self, v)
 
@@ -175,6 +177,17 @@ class AmbientSpace(CombinatorialFreeModule, WeightLatticeRealization):
         return 0
 
 class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationElement):
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: e = RootSystem(['A',2]).ambient_space()
+            sage: hash(e.simple_root(0))
+            -4601450286177489034          # 64-bit
+            549810038                     # 32-bit
+        """
+        return hash(tuple(sorted([(m,c) for m,c in self._monomial_coefficients.iteritems()])))
+
     # For backward compatibility
     def __repr__(self):
         """
@@ -197,9 +210,15 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealization
             sage: a.inner_product(a)
             2
         """
-        assert(lambdacheck.parent() == self.parent())
-        return sum((c*self[t] for (t,c) in lambdacheck),
-                   self.parent().base_ring().zero_element())
+        self_mc = self._monomial_coefficients
+        lambdacheck_mc = lambdacheck._monomial_coefficients
+
+        result = self.parent().base_ring().zero_element()
+        for t,c in lambdacheck_mc.iteritems():
+            if t not in self_mc:
+                continue
+            result += c*self_mc[t]
+        return result
 
     scalar = inner_product
     dot_product = inner_product

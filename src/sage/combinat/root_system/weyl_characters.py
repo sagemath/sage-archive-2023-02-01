@@ -687,32 +687,37 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     rho = L.rho()
     mdict = {}
     current_layer = {hwv:1}
+
+    simple_roots = L.simple_roots()
+    positive_roots = L.positive_roots()
+
     while len(current_layer) > 0:
         next_layer = {}
         for mu in current_layer:
-            if not current_layer[mu] == 0:
+            if current_layer[mu] != 0:
                 mdict[mu] = current_layer[mu]
-                for alpha in L.simple_roots():
+                for alpha in simple_roots:
                     next_layer[mu-alpha] = None
         if debug:
             print next_layer
+
         for mu in next_layer:
-            if next_layer[mu] == None:
-                if debug:
-                    print "  mu:", mu
+            if next_layer[mu] is None:
                 accum = 0
-                for alpha in L.positive_roots():
-                    i = 1
-                    while mu+i*alpha in mdict:
-                        if debug:
-                            print "    ", mu+i*alpha,
-                            print mdict[mu + i*alpha]*(mu + i*alpha).inner_product(alpha)
-                        accum += mdict[mu + i*alpha]*(mu + i*alpha).inner_product(alpha)
-                        i += 1
+                for alpha in positive_roots:
+                    mu_plus_i_alpha = mu + alpha
+                    while mu_plus_i_alpha in mdict:
+                        accum += mdict[mu_plus_i_alpha]*(mu_plus_i_alpha).inner_product(alpha)
+                        mu_plus_i_alpha += alpha
+
                 if accum == 0:
                     next_layer[mu] = 0
                 else:
-                    next_layer[mu] = QQ(2*accum)/QQ((hwv+rho).inner_product(hwv+rho)-(mu+rho).inner_product(mu+rho))
+                    hwv_plus_rho = hwv + rho
+                    mu_plus_rho  = mu  + rho
+                    next_layer[mu] = QQ(2*accum)/QQ((hwv_plus_rho).inner_product(hwv_plus_rho)-
+                                                    (mu_plus_rho).inner_product(mu_plus_rho))
+
         current_layer = next_layer
     return mdict
 
@@ -1262,7 +1267,7 @@ class WeightRingElement(AlgebraElement):
             sage: sum(g2(fw2).weyl_group_action(w) for w in L.weyl_group())
             2*g2(-2,1,1) + 2*g2(-1,-1,2) + 2*g2(-1,2,-1) + 2*g2(1,-2,1) + 2*g2(1,1,-2) + 2*g2(2,-1,-1)
         """
-        return WeightRingElement(self._parent, dict([[w.action(x),self._mdict[x]] for x in self._mdict.keys()]))
+        return WeightRingElement(self._parent, dict([[w.action(x),m] for x,m in self._mdict.iteritems()]))
 
     def character(self):
         """
@@ -1360,7 +1365,7 @@ class WeightRing(Algebra):
         """
         self._parent = A
         self.cartan_type = self._parent.cartan_type
-        if prefix == None:
+        if prefix is None:
             if self._parent._prefix.isupper():
                 prefix = self._parent._prefix.lower()
             elif self._parent._prefix.islower():

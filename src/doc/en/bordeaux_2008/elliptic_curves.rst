@@ -104,7 +104,7 @@ compute its cardinality, which behind the scenes uses SEA.
 
 ::
 
-    sage: E = EllipticCurve(k.random_element())
+    sage: E = EllipticCurve_from_j(k.random_element())
     sage: E.cardinality()                   # less than a second
     99999999999371984255
 

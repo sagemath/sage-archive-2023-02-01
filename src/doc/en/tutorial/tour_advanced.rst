@@ -133,8 +133,8 @@ We illustrate each of these constructors:
     sage: EllipticCurve('37a')
     Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-    sage: EllipticCurve(1)
-    Elliptic Curve defined by y^2  = x^3 + 5181*x - 5965058 over Rational Field
+    sage: EllipticCurve_from_j(1)
+    Elliptic Curve defined by y^2 + x*y = x^3 + 36*x + 3455 over Rational Field
 
     sage: EllipticCurve(GF(5), [0,0,1,-1,0])
     Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
@@ -168,8 +168,8 @@ follows:
 
 ::
 
-    sage: E = EllipticCurve([0,0,1,-1,0]); E
-    Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+    sage: E = EllipticCurve([0,0,0,-4,2]); E
+    Elliptic Curve defined by y^2 = x^3 - 4*x + 2 over Rational Field
     sage: E.j_invariant()
     110592/37
 
@@ -180,9 +180,9 @@ conductors are different.
 
 ::
 
-    sage: F = EllipticCurve(110592/37)
-    sage: factor(F.conductor())
-     2^6 * 3^2 * 37^2
+    sage: F = EllipticCurve_from_j(110592/37)
+    sage: F.conductor()
+    37
 
 However, the twist of :math:`F` by 2 gives an isomorphic curve.
 
@@ -190,10 +190,10 @@ However, the twist of :math:`F` by 2 gives an isomorphic curve.
 
 ::
 
-    sage: G = F.quadratic_twist(-6*37); G
-    Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+    sage: G = F.quadratic_twist(2); G
+    Elliptic Curve defined by y^2 = x^3 - 4*x + 2 over Rational Field
     sage: G.conductor()
-    37
+    2368
     sage: G.j_invariant()
     110592/37
 

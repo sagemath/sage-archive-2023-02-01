@@ -23,7 +23,5 @@ Modular Forms
    sage/modular/modform/vm_basis
    sage/modular/modform/ambient
    sage/modular/modform/half_integral
-   sage/modular/etaproducts
-   sage/modular/overconvergent/weightspace
-   sage/modular/overconvergent/genus0
-   sage/modular/ssmod/ssmod
+   sage/modular/modform/find_generators
+

@@ -113,6 +113,25 @@ class Homology_abvar(Homology):
             self, base, abvar.level(), weight=2)
         self.__abvar = abvar
 
+    def __cmp__(self, other):
+        r"""
+        Compare self to other.
+
+        EXAMPLE::
+
+            sage: J0(37).integral_homology() == J0(41).integral_homology()
+            False
+            sage: J0(37).integral_homology() == J0(37).rational_homology()
+            False
+            sage: J0(37).integral_homology() == loads(dumps(J0(37).integral_homology()))
+            True
+        """
+
+        if not isinstance(other, Homology_abvar):
+            return cmp(type(self), type(other))
+        else:
+            return cmp((self.abelian_variety(), self.base_ring()), (other.abelian_variety(), other.base_ring()))
+
     def _repr_(self):
         """
         Return string representation of self. This must be defined in the
@@ -585,6 +604,26 @@ class Homology_submodule(Homology):
             'Submodule of rank 1 of Integral Homology of Abelian variety J0(37) of dimension 2'
         """
         return "Submodule of rank %s of %s"%(self.rank(), self.__ambient)
+
+    def __cmp__(self, other):
+        r"""
+        Compare self to other.
+
+        EXAMPLE::
+
+            sage: J0(37).homology().decomposition() # indirect doctest
+            [
+            Submodule of rank 2 of Integral Homology of Abelian variety J0(37) of dimension 2,
+            Submodule of rank 2 of Integral Homology of Abelian variety J0(37) of dimension 2
+            ]
+        """
+
+        if not isinstance(other, Homology_submodule):
+            return cmp(type(self), type(other))
+        c = cmp(self.__ambient, other.__ambient)
+        if c: return c
+        return cmp(self.__submodule, other.__submodule)
+
 
     def ambient_hecke_module(self):
         """

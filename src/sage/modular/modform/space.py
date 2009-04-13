@@ -1222,7 +1222,19 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Traceback (most recent call last):
             ...
             NotImplementedError
+            sage: M.__contains__(M.0)
+            True
+            sage: M.__contains__(N.0)
+            False
         """
+        from sage.modular.modform.element import is_ModularFormElement
+        if is_ModularFormElement(x):
+            try:
+                self(x)
+                return True
+            except TypeError:
+                return False
+
         from sage.modular.modform.constructor import canonical_parameters as params
         if self.is_ambient() and x.is_ambient():
             return params(self.character(), self.level(),

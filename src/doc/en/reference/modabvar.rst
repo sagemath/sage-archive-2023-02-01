@@ -15,3 +15,5 @@ Modular Abelian Varieties
    sage/modular/abvar/homology
    sage/modular/abvar/homspace
    sage/modular/abvar/morphism
+   sage/modular/abvar/abvar_newform
+   sage/modular/abvar/lseries

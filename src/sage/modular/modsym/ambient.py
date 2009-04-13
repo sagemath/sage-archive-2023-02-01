@@ -563,7 +563,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def _compute_hecke_matrix_prime(self, p, rows=None):
         """
-        Compute and return the matrix of the p-th Hecke operator.
+        Compute and return the matrix of the p-th Hecke operator. Note that p
+        doesn't have to be prime, despite the name.
 
         EXAMPLES: We first compute some examples for Gamma0(N)::
 
@@ -2153,8 +2154,8 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return m * self.group().dimension_new_cusp_forms(self.weight())
 
 
-    def _compute_hecke_matrix_prime_power(self, n, p, r):
-        return self._compute_hecke_matrix_prime(n)
+    def _compute_hecke_matrix_prime_power(self, p, r):
+        return self._compute_hecke_matrix_prime(p**r)
 
 ##     def _xxx_degeneracy_raising_matrix(self, M):
 ##         R = arithgroup.degeneracy_coset_representatives_gamma1(M.level(), self.level(), 1)

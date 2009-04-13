@@ -341,6 +341,12 @@ class BoundarySpace(hecke.HeckeModule_generic):
         self._is_zero = []
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
+    def __cmp__(self, other):
+        if type(self) != type(other):
+            return cmp(type(self), type(other))
+        else:
+            return cmp( (self.group(), self.character()), (other.group(), other.character()) )
+
     def _known_cusps(self):
         """
         Return the list of cusps found so far.

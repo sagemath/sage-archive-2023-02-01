@@ -28,28 +28,51 @@ import sage.categories.all
 import module
 import hecke_operator
 import sage.rings.commutative_algebra
+from sage.misc.misc import verbose
+from sage.matrix.constructor import matrix
 
 def is_HeckeAlgebra(x):
     return isinstance(x, HeckeAlgebra_base)
 
+# The basis_matrix stuff here is a workaround for a subtle bug discovered by
+# me (David Loeffler) 2009-04-13. The problem is that if one creates two
+# subspaces of a Hecke module which are equal as subspaces but have different
+# bases, then the caching machinery needs to distinguish between them.
+
+# The AttributeError occurs in two distinct ways: if M is not a free module
+# over its base ring, it might not have a basis_matrix method; and for
+# SupersingularModule objects, the basis_matrix method exists but raises an
+# error -- this is a known bug (#4306).
+
+# See the doctest for the __call__ method below, which tests that this caching
+# is working as it should.
+
 _anemic_cache = {}
 def AnemicHeckeAlgebra(M):
-    if _anemic_cache.has_key(M):
-        T = _anemic_cache[M]()
+    try:
+        k = (M, M.basis_matrix())
+    except AttributeError:
+        k = M
+    if _anemic_cache.has_key(k):
+        T = _anemic_cache[k]()
         if not (T is None):
             return T
     T = HeckeAlgebra_anemic(M)
-    _anemic_cache[M] = weakref.ref(T)
+    _anemic_cache[k] = weakref.ref(T)
     return T
 
 _cache = {}
 def HeckeAlgebra(M):
-    if _cache.has_key(M):
-        T = _cache[M]()
+    try:
+        k = (M, M.basis_matrix())
+    except AttributeError:
+        k = M
+    if _cache.has_key(k):
+        T = _cache[k]()
         if not (T is None):
             return T
     T = HeckeAlgebra_full(M)
-    _cache[M] = weakref.ref(T)
+    _cache[k] = weakref.ref(T)
     return T
 
 
@@ -73,13 +96,57 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         return "Hecke algebra acting on %s"%self.__M
 
     def __call__(self, x):
-        if x in self:
-            return x
+        r"""
+        Convert x into an element of this Hecke algebra.
+
+        TESTS:
+
+        We test that coercion is OK between the Hecke algebras associated to two submodules which are equal but have different bases::
+
+            sage: M = CuspForms(Gamma0(57))
+            sage: f1,f2,f3 = M.newforms()
+            sage: N1 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), f2.element().element()]))
+            sage: N2 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), (f1.element() + f2.element()).element()]))
+            sage: N1.hecke_operator(5).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+            sage: N2.hecke_operator(5).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [-4  1]
+            sage: N1.hecke_algebra()(N2.hecke_operator(5)).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+            sage: N1.hecke_algebra()(N2.hecke_operator(5).matrix_form())
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+        """
         try:
-            A = self.__matrix_space()(x)
+            if x.parent() is self:
+                return x
+            elif hecke_operator.is_HeckeOperator(x):
+                if x.parent() == self:
+                    return hecke_operator.HeckeOperator(self, x.index())
+                else:
+                    raise TypeError
+            elif hecke_operator.is_HeckeAlgebraElement(x):
+                if x.parent() == self:
+                    if x.parent().module().basis_matrix() == self.module().basis_matrix():
+                        return hecke_operator.HeckeAlgebraElement_matrix(self, x.matrix())
+                    else:
+                        A = matrix([self.module().coordinate_vector(x.parent().module().gen(i)) \
+                            for i in xrange(x.parent().module().rank())])
+                        return hecke_operator.HeckeAlgebraElement_matrix(self, ~A * x.matrix() * A)
+                else:
+                    raise TypeError
+            else:
+                return hecke_operator.HeckeAlgebraElement_matrix(self, self.__matrix_space()(x))
+
         except TypeError:
             raise TypeError, "coercion of %s into Hecke algebra not defined."%x
-        return hecke_operator.HeckeAlgebraElement_matrix(self, A)
 
     def _coerce_impl(self, x):
         return self._coerce_try(x, self.__matrix_space())

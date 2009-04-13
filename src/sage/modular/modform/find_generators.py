@@ -136,7 +136,8 @@ def multiply_forms_to_weight(forms, weight, stop_dim=None):
                     the series so far span a space of at least this dimension,
                     then stop multiplying more forms together.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.modular.modform.find_generators as f
         sage: forms = [(4, 240*eisenstein_series_qexp(4,5)), (6,504*eisenstein_series_qexp(6,5))]
         sage: f.multiply_forms_to_weight(forms, 12)
@@ -197,10 +198,10 @@ def basis_for_modform_space(gens, group, weight):
 
 def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weight=2):
     r"""
-    Find modular forms in `M_k(group)` for `k\leq ` maxweight (with all `k`
-    having the same parity, such that these forms generate -- as an algebra --
-    all forms on group of weight up to maxweight, where all forms are computed
-    as `q`-expansions to precision prec.
+    Find modular forms in `M_k(group)` for `k \leq maxweight`, such that these
+    forms generate -- as an algebra -- all forms on group of weight up to
+    maxweight, where all forms are computed as `q`-expansions to precision
+    prec.
 
     INPUT:
 
@@ -312,7 +313,6 @@ class ModularFormsRing(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.find_generators import ModularFormsRing
         sage: ModularFormsRing(Gamma1(13))
         Ring of modular forms for Congruence Subgroup Gamma1(13) of weights 0 and at least 2
         sage: m = ModularFormsRing(4); m
@@ -360,7 +360,6 @@ class ModularFormsRing(SageObject):
 
         EXAMPLE::
 
-            sage: from sage.modular.modform.find_generators import ModularFormsRing
             sage: ModularFormsRing(3) == 3
             False
             sage: ModularFormsRing(Gamma0(3)) == ModularFormsRing(Gamma0(7))

@@ -2,21 +2,26 @@ r"""
 Brandt Modules
 
 AUTHORS:
-    - Jon Bober
-    - Alia Hamieh
-    - Victoria de Quehen
-    - William Stein
-    - Gonzalo Tornaria
+
+- Jon Bober
+
+- Alia Hamieh
+
+- Victoria de Quehen
+
+- William Stein
+
+- Gonzalo Tornaria
 
 Introduction
 ============
 
 This tutorial outlines the construction of Brandt modules in SAGE. The
 importance of this construction is that it provides us with a method
-to compute modular forms on '\Gamma_0(N)' as outlined in Pizer's paper
+to compute modular forms on `\Gamma_0(N)` as outlined in Pizer's paper
 [Pi]. In fact there exists a non-canonical Hecke algebra isomorphism
 between the Brandt modules and a certain subspace of
-'\S_{2}(\Gamma_0(pM))' which contains all the newforms.
+`S_{2}(\Gamma_0(pM))` which contains all the newforms.
 
 The Brandt module is the free abelian group on right ideal classes of
 a quaternion order together with a natural Hecke action determined by
@@ -25,43 +30,43 @@ Brandt matrices.
 Quaternion Algebras
 -------------------
 
-A quaternion algebra over '\QQ' is a central simple algebra of
-dimension 4 over '\QQ'. Such an algebra 'A' is said to be
-ramified at a place 'v' of '\QQ' if and only if 'A_v=A\otimes
-\QQ_v' is a division algebra. Otherwise 'A' is said to be split
-at 'v'.
+A quaternion algebra over `\QQ` is a central simple algebra of
+dimension 4 over `\QQ`. Such an algebra `A` is said to be
+ramified at a place `v` of `\QQ` if and only if `A_v=A\otimes
+\QQ_v` is a division algebra. Otherwise `A` is said to be split
+at `v`.
 
-A = QuaternionAlgebra(p) returns the quaternion algebra 'A' over
-'\QQ' ramified precisely at the places 'p' and '\infty'.
+``A = QuaternionAlgebra(p)`` returns the quaternion algebra `A` over
+`\QQ` ramified precisely at the places `p` and `\infty`.
 
-A = QuaternionAlgebra(k,a,b) returns a quaternion algebra with basis
-'\{1,i,j,j\}' over '\mathbb{K}' such that 'i^2=a', 'j^2=b' and 'ij=k.'
+``A = QuaternionAlgebra(k,a,b)`` returns a quaternion algebra with basis
+`\{1,i,j,j\}` over `\mathbb{K}` such that `i^2=a`, `j^2=b` and `ij=k.`
 
-An order 'R' in a quaternion algebra is a 4-dimensional lattice on 'A'
+An order `R` in a quaternion algebra is a 4-dimensional lattice on `A`
 which is also a subring containing the identity.
 
-R = A.maximal_order() returns a maximal order 'R' in the quaternion
-algebra 'A.'
+``R = A.maximal_order()`` returns a maximal order `R` in the quaternion
+algebra `A.`
 
-An Eichler order '\mathcal{O}' in a quaternion algebra is the
-intersection of two maximal orders. The level of '\mathcal{O}' is its
+An Eichler order `\mathcal{O}` in a quaternion algebra is the
+intersection of two maximal orders. The level of `\mathcal{O}` is its
 index in any maximal order containing it.
 
-O = A.order_of_level_N returns an Eichler order '\mathcal{O}' in 'A'
-of level 'N' where 'p' does not divide 'N'.
+``O = A.order_of_level_N`` returns an Eichler order `\mathcal{O}` in `A`
+of level `N` where `p` does not divide `N`.
 
 
-A right '\mathcal{O}'-ideal 'I' is a lattice on 'A' such that
-'I_p=a_p\mathcal{O}' (for some 'a_p\in A_p^*') for all 'p<\infty'. Two
-right '\mathcal{O}'-ideals 'I' and 'J' are said to belong to the same
-class if 'I=aJ' for some 'a \in A^*'. (Left '\mathcal{O}'-ideals are
+A right `\mathcal{O}`-ideal `I` is a lattice on `A` such that
+`I_p=a_p\mathcal{O}` (for some `a_p\in A_p^*`) for all `p<\infty`. Two
+right `\mathcal{O}`-ideals `I` and `J` are said to belong to the same
+class if `I=aJ` for some `a \in A^*`. (Left `\mathcal{O}`-ideals are
 defined in a similar fashion.)
 
-The right order of 'I' is defined to be the set of elements in 'A'
-which fix 'I' under right multiplication.
+The right order of `I` is defined to be the set of elements in `A`
+which fix `I` under right multiplication.
 
-right_order (R, basis) returns the right ideal of 'I' in 'R' given a
-basis for the right ideal 'I' contained in the maximal order 'R.'
+right_order (R, basis) returns the right ideal of `I` in `R` given a
+basis for the right ideal `I` contained in the maximal order `R.`
 
 ideal_classes(self) returns a tuple of all right ideal classes in self
 which, for the purpose of constructing the Brandt module B(p,M), is
@@ -74,39 +79,39 @@ following action
 
 .. math:
 
-        T_n[I]=\sum_{\phi} [J]
+    T_n[I]=\sum_{\phi} [J]
 
-where '(n,pM)=1' and the sum is over cyclic '\mathcal{O}'-module
-homomorphisms '\phi :I\rightarrow J ' of degree 'n' up to isomorphism
-of 'J'. Equivalently one can sum over the inclusions of the submodules
-'J \rightarrow n^{-1}I'. The rough idea is to start with the trivial
-ideal class containing the order '\mathcal{O}' itself. Using the
-method cyclic_submodules(self, I, p) one computes 'T_p([\mathcal{O}])'
+where `(n,pM)=1` and the sum is over cyclic `\mathcal{O}`-module
+homomorphisms `\phi :I\rightarrow J ` of degree `n` up to isomorphism
+of `J`. Equivalently one can sum over the inclusions of the submodules
+`J \rightarrow n^{-1}I`. The rough idea is to start with the trivial
+ideal class containing the order `\mathcal{O}` itself. Using the
+method cyclic_submodules(self, I, p) one computes `T_p([\mathcal{O}])`
 for some prime integer $p$ not dividing the level of the order
-'\mathcal{O}'. Apply this method repeatedly and test for equivalence
+`\mathcal{O}`. Apply this method repeatedly and test for equivalence
 among resulting ideals. A theorem of Serre asserts that one gets a
 complete set of ideal class representatives after a finite number of
 repetitions.
 
-One can prove that two ideals 'I' and 'J' are equivalent if and only
-if there exists an element '\alpha \in I \overline{J}' such
-'N(\alpha)=N(I)N(J)'.
+One can prove that two ideals `I` and `J` are equivalent if and only
+if there exists an element `\alpha \in I \overline{J}` such
+`N(\alpha)=N(I)N(J)`.
 
-is_equivalent(I,J) returns true if 'I' and 'J' are equivalent. This
-method first compares the theta series of 'I' and 'J'. If they are the
-same, it computes the theta series of the lattice 'I\overline(J)'. It
-returns true if the 'n^{th}' coefficient of this series is nonzero
-where 'n=N(J)N(I)'.
+is_equivalent(I,J) returns true if `I` and `J` are equivalent. This
+method first compares the theta series of `I` and `J`. If they are the
+same, it computes the theta series of the lattice `I\overline(J)`. It
+returns true if the `n^{th}` coefficient of this series is nonzero
+where `n=N(J)N(I)`.
 
-The theta series of a lattice 'L' over the quaternion algebra 'A' is
+The theta series of a lattice `L` over the quaternion algebra `A` is
 defined as
 
 .. math:
 
-        \theta_L(q)=\sum_{x \in L} q^{\frac{N(x)}{N(L)}}
+    \theta_L(q)=\sum_{x \in L} q^{\frac{N(x)}{N(L)}}
 
-L.theta_series(T,q) returns a power series representing '\theta_L(q)'
-up to a precision of '\mathcal{O}(q^{T+1})'.
+L.theta_series(T,q) returns a power series representing `\theta_L(q)`
+up to a precision of `\mathcal{O}(q^{T+1})`.
 
 
 Hecke Structure
@@ -117,16 +122,16 @@ Brandt matrices which can be computed using the definition of the
 Hecke operators given earlier.
 
 hecke_matrix_from_defn (self,n) returns the matrix of the nth Hecke
-operator 'B_{0}(n)' acting on self, computed directly from the
+operator `B_{0}(n)` acting on self, computed directly from the
 definition.
 
 However, one can efficiently compute Brandt matrices using theta
-series. In fact, let {'I_{1},.....,I_{h}'} be a set of right
-'\mathcal{O}'-ideal class representatives. The (i,j) entry in the
-Brandt matrix 'B_{0}(n)' is the product of the 'n^{th}' coefficient in
-the theta series of the lattice 'I_{i}\overline{I_{j}}' and the first
+series. In fact, let {`I_{1},.....,I_{h}`} be a set of right
+`\mathcal{O}`-ideal class representatives. The (i,j) entry in the
+Brandt matrix `B_{0}(n)` is the product of the `n^{th}` coefficient in
+the theta series of the lattice `I_{i}\overline{I_{j}}` and the first
 coefficient in the theta series of the lattice
-'I_{i}\overline{I_{i}}'.
+`I_{i}\overline{I_{i}}`.
 
 compute_hecke_matrix_brandt(self,n) returns the nth Hecke matrix,
 computed using theta series.
@@ -159,8 +164,9 @@ Example
 References
 ----------
 
--[Pi] Arnold Pizer, '\textit{An Algorithm for Computing Modular Forms on '\Gamma_{0}(N)}'
--[Ko] David Kohel, '\textit{Hecke Module Structure of Quaternions}'
+- [Pi] Arnold Pizer, *An Algorithm for Computing Modular Forms on* `\Gamma_{0}(N)`
+
+- [Ko] David Kohel, *Hecke Module Structure of Quaternions*
 
 
 Further Examples
@@ -547,6 +553,25 @@ class BrandtModule_class(AmbientHeckeModule):
         return "Brandt module of dimension %s of level %s%s of weight %s over %s"%(
             self.rank(), self.__N, aux, self.weight(), self.base_ring())
 
+
+    def __cmp__(self, other):
+        r"""
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: BrandtModule(37, 5, 2, ZZ) == BrandtModule(37, 5, 2, QQ)
+            False
+            sage: BrandtModule(37, 5, 2, ZZ) == BrandtModule(37, 5, 2, ZZ)
+            True
+            sage: BrandtModule(37, 5, 2, ZZ) == loads(dumps(BrandtModule(37, 5, 2, ZZ)))
+            True
+        """
+        if not isinstance(other, BrandtModule_class):
+            return cmp(type(self), type(other))
+        else:
+            return cmp( (self.__M, self.__N, self.weight(), self.base_ring()), (other.__M, other.__N, other.weight(), other.base_ring()))
+
     def quaternion_algebra(self):
         """
         Return the quaternion algebra A over QQ ramified precisely at
@@ -639,6 +664,7 @@ class BrandtModule_class(AmbientHeckeModule):
             such that J/I is GF(p) x GF(p).
 
         EXAMPLES::
+
             sage: B = BrandtModule(11)
             sage: I = B.order_of_level_N().unit_ideal()
             sage: B.cyclic_supermodules(I, 2)
@@ -918,6 +944,7 @@ class BrandtModule_class(AmbientHeckeModule):
             - sorted tuple of fractional ideals
 
         EXAMPLES::
+
             sage: B = BrandtModule(23)
             sage: B.right_ideals()
             (Fractional ideal (2 + 2*j, 2*i + 2*k, 4*j, 4*k),
@@ -925,6 +952,7 @@ class BrandtModule_class(AmbientHeckeModule):
              Fractional ideal (2 + 10*j + 8*k, 2*i + 8*j + 6*k, 16*j, 16*k))
 
         TEST::
+
             sage: B = BrandtModule(1009)
             sage: Is = B.right_ideals()
             sage: n = len(Is)
@@ -1009,7 +1037,7 @@ class BrandtModule_class(AmbientHeckeModule):
         L = self.right_ideals()
         n = len(L)
         if n == 0:
-            return matrix(self.base_ring()[['q']],0)
+            return matrix(self.base_ring()[[`q`]],0)
 
         # 1. Compute the theta series
         P = []
@@ -1076,17 +1104,18 @@ class BrandtModule_class(AmbientHeckeModule):
         r"""
         Return matrix of power series `\sum T_n q^n` to the given
         precision.  Note that the Hecke operators in this series are
-        always over `\QQ`, even if the base ring of this Brandt module
-        is not `\QQ`.
+        always over `mathbb{Q}`, even if the base ring of this Brandt module
+        is not `mathbb{Q}`.
 
         INPUT:
             - prec -- positive intege
-            - var -- string (default: 'q')
+            - var -- string (default: `q`)
 
         OUTPUT:
-            matrix of power series with coefficients in `\QQ`
+            matrix of power series with coefficients in `mathbb{Q}`
 
         EXAMPLES::
+
             sage: B = BrandtModule(11)
             sage: B.brandt_series(2)
             [1/4 + q + O(q^2)     1/4 + O(q^2)]
@@ -1155,7 +1184,7 @@ class BrandtModule_class(AmbientHeckeModule):
         fixed choice of basis. The weight of an ideal class `[I]` is
         half the number of units of the right order `I`.
 
-        NOTE: The base ring must be `\QQ` or `\ZZ`.
+        NOTE: The base ring must be `mathbb{Q}` or `mathbb{Z}`.
 
         EXAMPLES::
 
@@ -1195,6 +1224,7 @@ def quaternion_order_with_given_level(A, level):
                  ramifies in this quaternion algebra.
 
     EXAMPLES::
+
         sage: from sage.modular.quatalg.brandt import quaternion_order_with_given_level, maximal_order
         sage: A.<i,j,k> = QuaternionAlgebra(5)
         sage: level = 2 * 5 * 17
@@ -1356,6 +1386,7 @@ def benchmark_magma(levels, silent=False):
           CPU time in seconds to compute T2 using Magma
 
     EXAMPLES::
+
         sage: a = sage.modular.quatalg.brandt.benchmark_magma([(11,1), (37,1), (43,1), (97,1)])  # optional - magma
         ('magma', 11, 1, ...)
         ('magma', 37, 1, ...)
@@ -1389,6 +1420,7 @@ def benchmark_sage(levels, silent=False):
           CPU time in seconds to compute T2 using Sage
 
     EXAMPLES::
+
         sage: a = sage.modular.quatalg.brandt.benchmark_sage([(11,1), (37,1), (43,1), (97,1)])
         ('sage', 11, 1, ...)
         ('sage', 37, 1, ...)

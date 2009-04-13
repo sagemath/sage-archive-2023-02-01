@@ -37,18 +37,45 @@ import hecke_operator
 from sage.modules.all import FreeModule
 
 def is_HeckeModule(x):
+    r"""
+    Return True if x is a Hecke module.
+
+    EXAMPLES::
+
+        sage: from sage.modular.hecke.module import is_HeckeModule
+        sage: is_HeckeModule(ModularForms(Gamma0(7), 4))
+        True
+        sage: is_HeckeModule(QQ^3)
+        False
+        sage: is_HeckeModule(J0(37).homology())
+        True
+    """
     return isinstance(x, HeckeModule_generic)
 
 class HeckeModule_generic(sage.modules.module.Module):
-    """
-    A very general Hecke module.
+    r"""
+    A very general base class for Hecke modules.
 
-    All Hecke module classes derive from this class--spaces of modular
-    symbols (free modules), modular forms (finite-rank free modules),
-    modular abelian varieties (infinitely divisible groups), torsion
-    submodules of abelian varieties (finite groups), etc.
+    We define a Hecke module of weight `k` to be a module over a commutative
+    ring equipped with an action of operators T_m for all positive integers m
+    coprime to some integer n (the level), which satisfy `T_r T_s = T_{rs}` for
+    r,s coprime, and for powers of a prime p, `T_{p^r} = T_{p} T_{p^{r-1}} -
+    \varepsilon(p) p^{k-1} T_{p^{r-2}}`, where `\varepsilon(p)` is some
+    endomorphism of the module which commutes with the `T_m`.
+
+    We distinguish between *full* Hecke modules, which also have an action of
+    operators `T_m` for `m` not assumed to be coprime to the level, and
+    *anemic* Hecke modules, for which this does not hold.
     """
     def __init__(self, base_ring, level):
+        r"""
+        Create a Hecke module. Not intended to be called directly.
+
+        EXAMPLE::
+
+            sage: CuspForms(Gamma0(17),2) # indirect doctest
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(17) of weight 2 over Rational Field
+        """
         if not sage.rings.all.is_CommutativeRing(base_ring):
             raise TypeError, "base_ring must be commutative ring"
         ParentWithGens.__init__(self, base_ring)
@@ -60,16 +87,47 @@ class HeckeModule_generic(sage.modules.module.Module):
         self._hecke_matrices = {}
 
     def __hash__(self):
+        r"""
+        Return a hash value for self.
+
+        EXAMPLE::
+
+            sage: CuspForms(Gamma0(17),2).__hash__() # random
+            -1797992588
+        """
         return hash((self.base_ring(), self.__level))
 
     def __cmp__(self, other):
-        if not isinstance(other, HeckeModule_generic):
-            return -1
-        return cmp((self.__level, self.base_ring()), (other.__level, other.base_ring()))
+        r"""
+        Compare self to other. This must be overridden in all subclasses.
 
-    def _compute_hecke_matrix_prime_power(self, n, p, r):
+        EXAMPLE::
+
+            sage: M = ModularForms(Gamma0(3))
+            sage: sage.modular.hecke.module.HeckeModule_generic.__cmp__(M, M)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+        """
+        raise NotImplementedError, "Derived class %s should implement __cmp__" % type(self)
+
+    def _compute_hecke_matrix_prime_power(self, p, r):
+        r"""
+        Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that
+        `T_p` is known. This is carried out by recursion.
+
+        All derived classes must override either this function or self.character().
+
+        EXAMPLE::
+
+            sage: M = ModularForms(SL2Z, 24)
+            sage: M._compute_hecke_matrix_prime_power(3, 3)
+            [                -4112503986561480              53074162446443642880                                 0]
+            [                    2592937954080                 -1312130996155080                                 0]
+            [                                0                                 0 834385168339943471891603972970040]
+        """
         # convert input arguments to int's.
-        (n,p,r) = (int(n), int(p), int(r))
+        (p,r) = (int(p), int(r))
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be a prime"
         # T_{p^r} := T_p * T_{p^{r-1}} - eps(p)p^{k-1} T_{p^{r-2}}.
@@ -84,13 +142,24 @@ class HeckeModule_generic(sage.modules.module.Module):
         Tpr1 = self._hecke_matrices[pow]
         eps = self.character()
         if eps is None:
-            raise NotImplementedError, "_compute_hecke_matrix_prime_power must be overloaded in a derived class"
+            raise NotImplementedError, "either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class"
         k = self.weight()
         Tpr2 = self._hecke_matrices[pow/p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
 
-    def _compute_hecke_matrix_general_product(self, n, F):
-        n = int(n)
+    def _compute_hecke_matrix_general_product(self, F):
+        r"""
+        Compute the matrix of a general Hecke operator acting on this space, by
+        factorising n into prime powers and multiplying together the Hecke
+        operators for each of these.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(Gamma0(3), 4)
+            sage: M._compute_hecke_matrix_general_product(factor(10))
+            [1134    0]
+            [   0 1134]
+        """
         prod = None
         for p, r in F:
             pow = int(p**r)
@@ -103,9 +172,29 @@ class HeckeModule_generic(sage.modules.module.Module):
         return prod
 
     def _compute_dual_hecke_matrix(self, n):
+        r"""
+        Compute the matrix of the Hecke operator T_n acting on the dual of self.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(Gamma0(3), 4)
+            sage: M._compute_dual_hecke_matrix(10)
+            [1134    0]
+            [   0 1134]
+        """
         return self.hecke_matrix(n).transpose()
 
     def _compute_hecke_matrix(self, n):
+        r"""
+        Compute the matrix of the Hecke operator T_n acting on self.
+
+        EXAMPLE::
+
+            sage: M = EisensteinForms(DirichletGroup(3).0, 3)
+            sage: M._compute_hecke_matrix(16)
+            [205   0]
+            [  0 205]
+        """
         n = int(n)
         if n<1:
             raise ValueError, "Hecke operator T_%s is not defined."%n
@@ -118,16 +207,26 @@ class HeckeModule_generic(sage.modules.module.Module):
 
         F = arith.factor(n)
         if len(F) == 1:  # nontrivial prime power case
-            return self._compute_hecke_matrix_prime_power(n, F[0][0],F[0][1])
+            return self._compute_hecke_matrix_prime_power(F[0][0],F[0][1])
 
         else:
-            return self._compute_hecke_matrix_general_product(n, F)
+            return self._compute_hecke_matrix_general_product(F)
 
     def _compute_hecke_matrix_prime(self, p):
         """
-        Compute and return the matrix of the p-th Hecke operator.
+        Compute and return the matrix of the p-th Hecke operator for p prime.
+        Derived classes should overload this function, and they will inherit
+        the machinery for calculating general Hecke operators.
+
+        EXAMPLE::
+
+            sage: M = EisensteinForms(DirichletGroup(3).0, 3)
+            sage: sage.modular.hecke.module.HeckeModule_generic._compute_hecke_matrix_prime(M, 3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: All subclasses must implement _compute_hecke_matrix_prime
         """
-        raise NotImplementedError
+        raise NotImplementedError, "All subclasses must implement _compute_hecke_matrix_prime"
 
     def _hecke_operator_class(self):
         """
@@ -164,16 +263,40 @@ class HeckeModule_generic(sage.modules.module.Module):
             self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
             return self.__anemic_hecke_algebra
 
-    def basis_matrix(self):
-        return self.free_module().basis_matrix()
-
     def category(self):
+        r"""
+        Return the category to which this module belongs, i.e. the category of
+        Hecke modules over the given base ring.
+
+        EXAMPLE::
+
+            sage: ModularForms(3, 3).category()
+            Category of Hecke modules over Rational Field
+        """
         return sage.categories.all.HeckeModules(self.base_ring())
 
     def character(self):
+        r"""
+        The character of this space. As this is an abstract base class, return None.
+
+        EXAMPLE::
+
+            sage: sage.modular.hecke.module.HeckeModule_generic(QQ, 10).character() is None
+            True
+        """
         return None
 
     def dimension(self):
+        r"""
+        Synonym for rank.
+
+        EXAMPLE::
+
+            sage: M = sage.modular.hecke.module.HeckeModule_generic(QQ, 10).dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derived subclasses must implement rank
+        """
         return self.rank()
 
     def hecke_algebra(self):
@@ -222,11 +345,16 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         Return True if this space is invariant under all Hecke operators.
 
-        Since self is guaranteed to be an anemic Hecke module, the
-        significance of this function is that it also ensures invariance
-        under Hecke operators of index that divide the level.
+        Since self is guaranteed to be an anemic Hecke module, the significance
+        of this function is that it also ensures invariance under Hecke
+        operators of index that divide the level.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: M = ModularSymbols(22); M.is_full_hecke_module()
+            True
+            sage: M.submodule(M.free_module().span([M.0.list()]), check=False).is_full_hecke_module()
+            False
         """
         try:
             return self._is_full_hecke_module
@@ -304,33 +432,80 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         return self.__level
 
+    def rank(self):
+        r"""
+        Return the rank of this module over its base ring. Returns
+        NotImplementedError, since this is an abstract base class.
+
+        EXAMPLES::
+
+            sage: sage.modular.hecke.module.HeckeModule_generic(QQ, 10).rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derived subclasses must implement rank
+        """
+        raise NotImplementedError, "Derived subclasses must implement rank"
+
     def submodule(self, X):
-        raise NotImplementedError
+        r"""
+        Return the submodule of self corresponding to X. As this is an abstract
+        base class, this raises a NotImplementedError.
+
+        EXAMPLES::
+
+            sage: sage.modular.hecke.module.HeckeModule_generic(QQ, 10).submodule(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derived subclasses should implement submodule
+        """
+        raise NotImplementedError, "Derived subclasses should implement submodule"
 
 
 class HeckeModule_free_module(HeckeModule_generic):
     """
-    A Hecke module modeled on a free module over a ring.
+    A Hecke module modeled on a free module over a commutative ring.
     """
     def __init__(self, base_ring, level, weight):
+        r"""
+        Initialise a module.
+
+        EXAMPLE::
+
+            sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4)
+            <class 'sage.modular.hecke.module.HeckeModule_free_module'>
+        """
         HeckeModule_generic.__init__(self, base_ring, level)
         self.__weight = weight
 
-    def __cmp__(self, other):
-        if not isinstance(other, HeckeModule_free_module):
-            return -1
-        c = HeckeModule_generic.__cmp__(self, other)
-        if c: return c
-        return cmp(self.__weight, other.__weight)
+#    def __cmp__(self, other):
+#        if not isinstance(other, HeckeModule_free_module):
+#            return -1
+#        c = HeckeModule_generic.__cmp__(self, other)
+#        if c: return c
+#        return cmp(self.__weight, other.__weight)
 
-    def __contains__(self, x):
-        if not element.is_HeckeModuleElement(x):
-            return False
-        if x.parent() == self:  # easy
-            return True
-        return x.element() in self.free_module()
+#    def __contains__(self, x):
+#        r"""
+#        Return True if x is an element of self.
+#
+#        This shouldn't be getting called, ever (?)
+#        """
+#        if not element.is_HeckeModuleElement(x):
+#            return False
+#        if x.parent() == self:  # easy case
+#            return True
+#        return x.element() in self.free_module()
 
     def __getitem__(self, n):
+        r"""
+        Return the nth term in the decomposition of self. See the docstring for
+        ``decomposition`` for further information.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(22)[0]
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
+        """
         n = int(n)
         D = self.decomposition()
         if n < 0 or n >= len(D):
@@ -338,9 +513,25 @@ class HeckeModule_free_module(HeckeModule_generic):
         return D[n]
 
     def __hash__(self):
-        return hash((self.__weight, self.level(), self.base_ring(), str(self)))
+        r"""
+        Return a hash of self.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(22).__hash__() # random
+            1471905187
+        """
+        return hash((self.__weight, self.level(), self.base_ring()))
 
     def __len__(self):
+        r"""
+        The number of factors in the decomposition of self.
+
+        EXAMPLES::
+
+            sage: len(ModularSymbols(22))
+            2
+        """
         return len(self.decomposition())
 
     def _eigen_nonzero(self):
@@ -389,6 +580,13 @@ class HeckeModule_free_module(HeckeModule_generic):
         symbol such that the image of `x` is nonzero under the dual
         projection map associated to this space, and `T_n` is the
         `n`-th Hecke operator.
+
+        Used in the dual_eigenvector and eigenvalue methods.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(22)._eigen_nonzero_element(3)
+            4*(1,0) + (2,21) - (11,1) + (11,2)
         """
         if self.rank() == 0:
             raise ArithmeticError, "the rank of self must be positive"
@@ -400,11 +598,27 @@ class HeckeModule_free_module(HeckeModule_generic):
         r"""
         Return `T_n(e_i)`, where `e_i` is the
         `i`th basis vector of the ambient space.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(Gamma0(3))._hecke_image_of_ith_basis_vector(4, 0)
+            7*(1,0)
+            sage: ModularForms(Gamma0(3))._hecke_image_of_ith_basis_vector(4, 0)
+            7 + 84*q + 252*q^2 + 84*q^3 + 588*q^4 + 504*q^5 + O(q^6)
         """
         T = self.hecke_operator(n)
         return T.apply_sparse(self.gen(i))
 
     def _element_eigenvalue(self, x, name='alpha'):
+        r"""
+        Return the dot product of self with the eigenvector returned by dual_eigenvector.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(11)[0]
+            sage: M._element_eigenvalue(M.0)
+            1
+        """
         if not element.is_HeckeModuleElement(x):
             raise TypeError, "x must be a Hecke module element."
         if not x in self.ambient_hecke_module():
@@ -447,13 +661,56 @@ class HeckeModule_free_module(HeckeModule_generic):
         return True
 
     def _set_factor_number(self, i):
+        r"""
+        For internal use. If this Hecke module was computed via a decomposition of another
+        Hecke module, this method stores the index of this space in that decomposition.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(Gamma0(3))[0].factor_number() # indirect doctest
+            0
+        """
         self.__factor_number = i
 
     def ambient(self):
+        r"""
+        Synonym for ambient_hecke_module. Return the ambient module associated to this module.
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 12).ambient()
+            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+        """
         return self.ambient_hecke_module()
 
     def ambient_module(self):
+        r"""
+        Synonym for ambient_hecke_module. Return the ambient module associated to this module.
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 12).ambient_module()
+            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 10, 3).ambient_module()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         return self.ambient_hecke_module()
+
+    def ambient_hecke_module(self):
+        r"""
+        Return the ambient module associated to this module. As this is an
+        abstract base class, return NotImplementedError.
+
+        EXAMPLE::
+
+            sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 10, 3).ambient_hecke_module()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
 
     def atkin_lehner_operator(self, d=None):
         """
@@ -545,6 +802,18 @@ class HeckeModule_free_module(HeckeModule_generic):
         except AttributeError:
             self.__basis = self.gens()
         return self.__basis
+
+    def basis_matrix(self):
+        r"""
+        Return the matrix of the basis vectors of self (as vectors in some
+        ambient module)
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 12).basis_matrix()
+            [1 0]
+        """
+        return self.free_module().basis_matrix()
 
     def coordinate_vector(self, x):
         """
@@ -696,6 +965,15 @@ class HeckeModule_free_module(HeckeModule_generic):
         return self.__decomposition[key]
 
     def degree(self):
+        r"""
+        The degree of this Hecke module (i.e. the rank of the ambient free
+        module)
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 12).degree()
+            2
+        """
         return self.free_module().degree()
 
     def dual_eigenvector(self, names='alpha', lift=True, nz=None):
@@ -742,6 +1020,11 @@ class HeckeModule_free_module(HeckeModule_generic):
               modular symbols to a field. This functional phi is an
               eigenvector for the dual action of Hecke operators on
               functionals.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(14).cuspidal_subspace().simple_factors()[1].dual_eigenvector()
+            (0, 1, 0, 0, 0)
         """
         # TODO -- optimize by computing the answer for i not None in terms
         # of the answer for a given i if known !!
@@ -829,6 +1112,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         The matrix of the `n`-th Hecke operator acting on the dual
         embedded representation of self.
+
+        EXAMPLE::
+
+            sage: CuspForms(1, 24).dual_hecke_matrix(5)
+            [     44656110        -15040]
+            [-307849789440      28412910]
         """
         n = int(n)
         try:
@@ -908,7 +1197,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         if (arith.is_prime(n) or n==1):
             Tn_e = self._eigen_nonzero_element(n)
             an = self._element_eigenvalue(Tn_e, name=name)
-            dict_set(ev, n, name, an)
+            _dict_set(ev, n, name, an)
             return an
 
         # Now use the Hecke eigenvalue recurrence, since arithmetic in
@@ -928,7 +1217,7 @@ class HeckeModule_free_module(HeckeModule_generic):
                 eps = self.character()
                 if eps is None:
                     Tn_e = self._eigen_nonzero_element(pow)
-                    dict_set(ev, pow, name, self._element_eigenvalue(Tn_e, name=name))
+                    _dict_set(ev, pow, name, self._element_eigenvalue(Tn_e, name=name))
                 else:
                     # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
                     apr1 = self.eigenvalue(pow//p, name=name)
@@ -936,12 +1225,12 @@ class HeckeModule_free_module(HeckeModule_generic):
                     k = self.weight()
                     apr2 = self.eigenvalue(pow//(p*p), name=name)
                     apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
-                    dict_set(ev, pow, name, apow)
+                    _dict_set(ev, pow, name, apow)
             if prod is None:
                 prod = ev[pow][name]
             else:
                 prod *= ev[pow][name]
-        dict_set(ev, n, name, prod)
+        _dict_set(ev, n, name, prod)
         return prod
 
     def factor_number(self):
@@ -949,6 +1238,13 @@ class HeckeModule_free_module(HeckeModule_generic):
         If this Hecke module was computed via a decomposition of another
         Hecke module, this is the corresponding number. Otherwise return
         -1.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(23)[0].factor_number()
+            0
+            sage: ModularSymbols(23).factor_number()
+            -1
         """
         try:
             return self.__factor_number
@@ -956,12 +1252,26 @@ class HeckeModule_free_module(HeckeModule_generic):
             return -1
 
     def gen(self, n):
+        r"""
+        Return the nth basis vector of the space.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(23).gen(1)
+            (1,17)
+        """
         return self(self.free_module().gen(n))
 
     def hecke_matrix(self, n):
         """
         The matrix of the `n`-th Hecke operator acting on given
         basis.
+
+        EXAMPLE::
+
+            sage: C = CuspForms(1, 16)
+            sage: C.hecke_matrix(3)
+            [-3348]
         """
         n = int(n)
         if n <= 0:
@@ -1011,6 +1321,12 @@ class HeckeModule_free_module(HeckeModule_generic):
         r"""
         Returns the `n^{th}` Hecke operator `T_n`. This
         function is a synonym for :meth:`.hecke_operator`.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(11,2)
+            sage: M.T(3)
+            Hecke operator T_3 on Modular Symbols ...
         """
         return self.hecke_operator(n)
 
@@ -1026,23 +1342,63 @@ class HeckeModule_free_module(HeckeModule_generic):
 
 
         OUTPUT: a polynomial
+
+        EXAMPLE::
+
+            sage: ModularSymbols(11,2).hecke_polynomial(3)
+            x^3 - 2*x^2 - 7*x - 4
         """
         return self.hecke_operator(n).charpoly(var)
 
     def is_simple(self):
+        r"""
+        Return True if this space is simple as a module for the corresponding
+        Hecke algebra. Raises NotImplementedError, as this is an abstract base
+        class.
+
+        EXAMPLE::
+
+            sage: sage.modular.hecke.module.HeckeModule_free_module(QQ, 10, 3).is_simple()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def is_splittable(self):
         """
         Returns True if and only if only it is possible to split off a
-        nontrivial generalized eigenspace of self as the kernel of some
-        Hecke operator.
+        nontrivial generalized eigenspace of self as the kernel of some Hecke
+        operator (not necessarily prime to the level). Note that the direct sum
+        of several copies of the same simple module is not splittable in this
+        sense.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(Gamma0(64)).cuspidal_subspace()
+            sage: M.is_splittable()
+            True
+            sage: M.simple_factors()[0].is_splittable()
+            False
         """
         if not hasattr(self, "__is_splittable"):
             self.decomposition(anemic=False)
         return self.__is_splittable
 
     def is_submodule(self, other):
+        r"""
+        Return True if self is a submodule of other.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma0(64))
+            sage: M[0].is_submodule(M)
+            True
+            sage: CuspForms(1, 24).is_submodule(ModularForms(1, 24))
+            True
+            sage: CuspForms(1, 12).is_submodule(CuspForms(3, 12))
+            False
+        """
         if not isinstance(other, HeckeModule_free_module):
             return False
         return self.ambient_free_module() == other.ambient_free_module() and \
@@ -1052,13 +1408,31 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         Returns true if and only if only it is possible to split off a
         nontrivial generalized eigenspace of self as the kernel of some
-        Hecke operator of index coprime to the level.
+        Hecke operator of index coprime to the level. Note that the direct sum
+        of several copies of the same simple module is not splittable in this
+        sense.
+
+           EXAMPLE::
+
+            sage: M = ModularSymbols(Gamma0(64)).cuspidal_subspace()
+            sage: M.is_splittable_anemic()
+            True
+            sage: M.simple_factors()[0].is_splittable_anemic()
+            False
         """
         if not hasattr(self,"__is_splittable_anemic"):
             self.decomposition(anemic=True)
         return self.__is_splittable_anemic
 
     def ngens(self):
+        r"""
+        Number of generators of self (equal to the rank).
+
+        EXAMPLE::
+
+            sage: ModularForms(1, 12).ngens()
+            2
+        """
         return self.rank()
 
     def projection(self):
@@ -1135,6 +1509,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             pi = H(C, "Projection"%self)
             self.__projection = pi
             return self.__projection
+
+
 
     def system_of_eigenvalues(self, n, name='alpha'):
         r"""
@@ -1234,8 +1610,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         return self.__weight
 
-
-
     def zero_submodule(self):
         """
         Return the zero submodule of self.
@@ -1249,8 +1623,20 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         return self.submodule(self.free_module().zero_submodule(), check=False)
 
+def _dict_set(v, n, key, val):
+    r"""
+    Rough-and-ready implementation of a two-layer-deep dictionary.
 
-def dict_set(v, n, key, val):
+    EXAMPLE::
+
+        sage: from sage.modular.hecke.module import _dict_set
+        sage: v = {}
+        sage: _dict_set(v, 1, 2, 3)
+        sage: v
+        {1: {2: 3}}
+        sage: _dict_set(v, 1, 3, 4); v
+        {1: {2: 3, 3: 4}}
+    """
     if v.has_key(n):
         v[n][key] = val
     else:

@@ -20,40 +20,42 @@ We verify the statement proved in Serre's "A Course in Arithmetic"
 that :math:`E_4` and :math:`E_6` generate the space of level
 one modular forms.
 
-.. skip
-
 ::
 
-    sage: from sage.modular.modform.find_generators import modform_generators
-    sage: modform_generators(1)
+    sage: ModularFormsRing(SL2Z).generators(prec=4)
     [(4, 1 + 240*q + 2160*q^2 + 6720*q^3 + O(q^4)),
      (6, 1 - 504*q - 16632*q^2 - 122976*q^3 + O(q^4))]
 
-Have you ever wondered which forms generate the ring
-:math:`M(\Gamma_0(2))`? it turns out a form of weight 2 and two
-forms of weight 4 together generate.
-
-.. skip
+Have you ever wondered which forms generate the ring :math:`M(\Gamma_0(2))`? It
+turns out that one form of weight 2 and one form of weight 4 suffice.
 
 ::
 
-    sage: modform_generators(2)
-    [(2, 1 + 24*q + 24*q^2 + ... + 288*q^11 + O(q^12)),
-     (4, 1 + 240*q^2 + .. + 30240*q^10 + O(q^12)),
-     (4, q + 8*q^2 + .. + 1332*q^11 + O(q^12))]
+    sage: ModularFormsRing(Gamma0(2)).generators(prec=12)
+    [(2, 1 + 24*q + 24*q^2 + 96*q^3 + 24*q^4 + 144*q^5 + 96*q^6 + 192*q^7 + 24*q^8 + 312*q^9 + 144*q^10 + 288*q^11 + O(q^12)),
+    (4, 1 + 240*q^2 + 2160*q^4 + 6720*q^6 + 17520*q^8 + 30240*q^10 + O(q^12))]
 
 Here's generators for :math:`M(\Gamma_0(3))`. Notice that
 elements of weight :math:`6` are now required, in addition to
 weights :math:`2` and :math:`4`.
 
-.. skip
+::
+
+    sage: ModularFormsRing(Gamma0(3)).generators()
+    [(2, 1 + 12*q + 36*q^2 + 12*q^3 + 84*q^4 + 72*q^5 + 36*q^6 + 96*q^7 + 180*q^8 + 12*q^9 + O(q^10)),
+    (4, 1 + 240*q^3 + 2160*q^6 + 6720*q^9 + O(q^10)),
+    (6, q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 - 54*q^6 - 40*q^7 + 168*q^8 + 81*q^9 + O(q^10))]
+
+We can also handle rings of modular forms for odd congruence subgroups, but
+with the usual caveat that we can't calculate forms of weight 1. So these are
+elements generating the graded ring of forms of weight 0 or :math:`\ge 2`.
 
 ::
 
-    sage: modform_generators(3)
-    [(2, 1 + 12*q + 36*q^2 + .. + 168*q^13 + O(q^14)),
-     (4, 1 + 240*q^3 + 2160*q^6 + 6720*q^9 + 17520*q^12 + O(q^14)),
-     (4, q + 9*q^2 + 27*q^3 + 73*q^4 + .. + O(q^14)),
-     (6, q - 6*q^2 + 9*q^3 + 4*q^4 + .. + O(q^14)),
-     (6, 1 - 504*q^3 - 16632*q^6 .. + O(q^14)),
-     (6, q + 33*q^2 + 243*q^3 + .. + O(q^14))]
+    sage: ModularFormsRing(Gamma1(3)).generators()
+    [(2, 1 + 12*q + 36*q^2 + 12*q^3 + 84*q^4 + 72*q^5 + 36*q^6 + 96*q^7 + 180*q^8 + 12*q^9 + O(q^10)),
+    (3, 1 + 54*q^2 + 72*q^3 + 432*q^5 + 270*q^6 + 918*q^8 + 720*q^9 + O(q^10)),
+    (3, q + 3*q^2 + 9*q^3 + 13*q^4 + 24*q^5 + 27*q^6 + 50*q^7 + 51*q^8 + 81*q^9 + O(q^10)),
+    (4, 1 + 240*q^3 + 2160*q^6 + 6720*q^9 + O(q^10))]
+
+

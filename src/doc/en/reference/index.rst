@@ -83,6 +83,7 @@ Enjoy Sage!
    modsym
    modfrm
    modabvar
+   modmisc
 
    history_and_license
 

@@ -35,21 +35,78 @@ import morphism
 
 
 def is_HeckeOperator(x):
+    r"""
+    Return True if x is of type HeckeOperator.
+
+    EXAMPLES::
+
+        sage: from sage.modular.hecke.hecke_operator import is_HeckeOperator
+        sage: M = ModularSymbols(Gamma0(7), 4)
+        sage: is_HeckeOperator(M.T(3))
+        True
+        sage: is_HeckeOperator(M.T(3) + M.T(5))
+        False
+    """
     return isinstance(x, HeckeOperator)
 
 def is_HeckeAlgebraElement(x):
+    r"""
+    Return True if x is of type HeckeAlgebraElement.
+
+    EXAMPLES::
+
+        sage: from sage.modular.hecke.hecke_operator import is_HeckeAlgebraElement
+        sage: M = ModularSymbols(Gamma0(7), 4)
+        sage: is_HeckeAlgebraElement(M.T(3))
+        True
+        sage: is_HeckeAlgebraElement(M.T(3) + M.T(5))
+        True
+    """
     return isinstance(x, HeckeAlgebraElement)
 
 class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
+    r"""
+    Base class for elements of Hecke algebras.
+    """
     def __init__(self, parent):
+        r"""
+        Create an element of a Hecke algebra.
+
+        EXAMPLES::
+
+            sage: R = ModularForms(Gamma0(7), 4).hecke_algebra()
+            sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement(R) # please don't do this!
+            Generic element of a structure
+        """
         if not algebra.is_HeckeAlgebra(parent):
             raise TypeError, "parent (=%s) must be a Hecke algebra"%parent
         sage.algebras.algebra_element.AlgebraElement.__init__(self, parent)
 
     def domain(self):
+        r"""
+        The domain of this operator. This is the Hecke module associated to the
+        parent Hecke algebra.
+
+        EXAMPLE::
+
+            sage: R = ModularForms(Gamma0(7), 4).hecke_algebra()
+            sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement(R).domain()
+             Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field
+        """
+
         return self.parent().module()
 
     def codomain(self):
+        r"""
+        The codomain of this operator. This is the Hecke module associated to the
+        parent Hecke algebra.
+
+        EXAMPLE::
+
+            sage: R = ModularForms(Gamma0(7), 4).hecke_algebra()
+            sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement(R).codomain()
+            Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field
+        """
         return self.parent().module()
 
     def hecke_module_morphism(self):
@@ -68,7 +125,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             (not printing 15 x 15 matrix)
             Domain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
             Codomain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
-        """
+            """
         try:
             return self.__hecke_module_morphism
         except AttributeError:
@@ -82,18 +139,17 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             self.__hecke_module_morphism = morphism.HeckeModuleMorphism_matrix(H, T, name)
             return self.__hecke_module_morphism
 
-    def __is_compatible(self, other):
-        return isinstance(other, HeckeAlgebraElement) and self.parent() == other.parent()
-
     def _add_(self, other):
         """
+        Add self to other.
+
         EXAMPLES::
 
             sage: M = ModularSymbols(11)
             sage: t = M.hecke_operator(2)
             sage: t
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
-            sage: t + t
+            sage: t + t # indirect doctest
             Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
             [ 6  0 -2]
             [ 0 -4  0]
@@ -103,9 +159,14 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
-            sage: t2 - t3
+            sage: t2 + t3
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
-            (not printing 6 x 6 matrix)
+            [   35     0     0  -8/7  24/7 -16/7]
+            [    4    28     0  19/7 -57/7  38/7]
+            [   18     0     9 -40/7  22/7  18/7]
+            [    0    18     4 -22/7 -18/7  54/7]
+            [    0    18     4  13/7 -53/7  54/7]
+            [    0    18     4  13/7 -18/7  19/7]
             sage: (t2 - t3).charpoly('x')
             x^6 + 36*x^5 + 104*x^4 - 3778*x^3 + 7095*x^2 - 3458*x
         """
@@ -147,15 +208,21 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
     def _sub_(self, other):
         """
-        Compute the difference of self and other.
+        Compute the difference of self and other, where other has already been
+        coerced into the parent of self.
 
         EXAMPLES::
 
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
-            sage: t2 - t3
+            sage: t2 - t3 # indirect doctest
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
-            (not printing 6 x 6 matrix)
+            [  -19     0     0   4/7 -12/7   8/7]
+            [    4   -26     0 -17/7  51/7 -34/7]
+            [  -18     0     7 -12/7  -6/7  18/7]
+            [    0   -18     4 -16/7  34/7 -18/7]
+            [    0   -18     4 -23/7  41/7 -18/7]
+            [    0   -18     4 -23/7  34/7 -11/7]
         """
         return self.parent()(self.matrix() - other.matrix())
 
@@ -329,30 +396,95 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
 
 
 class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
+    r"""
+    An element of the Hecke algebra represented by a matrix.
+    """
     def __init__(self, parent, A):
+        r"""
+        Initialise an element from a matrix. This *must* be over the base ring
+        of self and have the right size.
+
+        This is a bit overkill as similar checks will be performed by the call
+        and coerce methods of the parent of self, but it can't hurt to be
+        paranoid. Any fancy coercion / base_extension / etc happens there, not
+        here.
+
+        TESTS::
+
+            sage: T = ModularForms(Gamma0(7), 4).hecke_algebra()
+            sage: M = sage.modular.hecke.hecke_operator.HeckeAlgebraElement_matrix(T, matrix(QQ,3,[2,3,0,1,2,3,7,8,9])); M
+            Hecke operator on Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field defined by:
+            [2 3 0]
+            [1 2 3]
+            [7 8 9]
+            sage: loads(dumps(M)) == M
+            True
+            sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement_matrix(T, matrix(Integers(2),3,[2,3,0,1,2,3,7,8,9]))
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of matrix (Ring of integers modulo 2) does not match base ring of space (Rational Field)
+            sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement_matrix(T, matrix(QQ,2,[2,3,0,1]))
+            Traceback (most recent call last):
+            ...
+            TypeError: A must be a square matrix of rank 3
+        """
         HeckeAlgebraElement.__init__(self, parent)
         if not sage.matrix.all.is_Matrix(A):
             raise TypeError, "A must be a matrix"
+        if not A.base_ring() == self.parent().base_ring():
+            raise TypeError, "base ring of matrix (%s) does not match base ring of space (%s)" % (A.base_ring(), self.parent().base_ring())
+        if not A.nrows() == A.ncols() == self.parent().module().rank():
+            raise TypeError, "A must be a square matrix of rank %s" % self.parent().module().rank()
         self.__matrix = A
 
     def __cmp__(self, other):
+        r"""
+        Compare self to other, where the coercion model has already ensured
+        that other has the same parent as self.
+
+        EXAMPLES::
+
+            sage: T = ModularForms(SL2Z, 12).hecke_algebra()
+            sage: m = T(matrix(QQ, 2, [1,2,0,1])); n = T.hecke_operator(14)
+            sage: m == n
+            False
+            sage: m == n.matrix_form()
+            False
+            sage: n.matrix_form() == T(matrix(QQ, 2, [401856, 0, 0, 4051542498456]))
+            True
+        """
         if not isinstance(other, HeckeAlgebraElement_matrix):
             if isinstance(other, HeckeOperator):
                 return cmp(self, other.matrix_form())
-            return sage.rings.coerce.cmp(self, other)
-        c = cmp(self.parent(), other.parent())
-        if c: return c
+            else:
+                raise RuntimeError, "Bug in coercion code" # can't get here.
         return cmp(self.__matrix, other.__matrix)
 
     def _repr_(self):
-        if max(self.__matrix.nrows(),self.__matrix.ncols()) > 5:
-            mat = "(not printing %s x %s matrix)"%(self.__matrix.nrows(), self.__matrix.ncols())
-        else:
-            mat = str(self.__matrix)
-        return "Hecke operator on %s defined by:\n%s"%(self.parent().module(), mat)
+        r"""
+        String representation of self.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(1,12)
+            sage: M.hecke_operator(2).matrix_form()._repr_()
+            'Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field defined by:\n[ -24    0    0]\n[   0  -24    0]\n[4860    0 2049]'
+            sage: ModularForms(Gamma0(100)).hecke_operator(4).matrix_form()._repr_()
+            'Hecke operator on Modular Forms space of dimension 24 for Congruence Subgroup Gamma0(100) of weight 2 over Rational Field defined by:\n24 x 24 dense matrix over Rational Field'
+        """
+        return "Hecke operator on %s defined by:\n%s"%(self.parent().module(), self.__matrix)
 
     def _latex_(self):
-        return latex(self.__matrix)
+        r"""
+        Latex representation of self (just prints the matrix)
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(1,12)
+            sage: M.hecke_operator(2).matrix_form()._latex_()
+            '\\left(\\begin{array}{rrr}\n-24 & 0 & 0 \\\\\n0 & -24 & 0 \\\\\n4860 & 0 & 2049\n\\end{array}\\right)'
+        """
+        return self.__matrix._latex_()
 
     def matrix(self):
         """
@@ -370,18 +502,38 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         return self.__matrix
 
     def _mul_(self, other):
+        r"""
+        Multiply self by other (which has already been coerced into an element
+        of the parent of self).
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(1,12)
+            sage: T = M.hecke_operator(2).matrix_form()
+            sage: T * T # indirect doctest
+            Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field defined by:
+            [    576       0       0]
+            [      0     576       0]
+            [9841500       0 4198401]
+        """
         return self.parent()(other.matrix() * self.matrix())
 
 
 
 class HeckeOperator(HeckeAlgebraElement):
+    r"""
+    The Hecke operator `T_n` for some `n` (which need not be coprime to the
+    level). The matrix is not computed until it is needed.
+    """
     def __init__(self, parent, n):
         """
         EXAMPLES::
 
             sage: M = ModularSymbols(11)
-            sage: M.hecke_operator(2005)
+            sage: H = M.hecke_operator(2005); H
             Hecke operator T_2005 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            sage: H == loads(dumps(H))
+            True
 
         We create a Hecke operator of large index (greater than 32 bits)::
 
@@ -395,24 +547,72 @@ class HeckeOperator(HeckeAlgebraElement):
         self.__n = int(n)
 
     def __cmp__(self, other):
+        r"""
+        Compare self and other (where the coercion model has already ensured
+        that self and other have the same parent). Hecke operators on the same
+        space compare as equal if and only if their matrices are equal, so we
+        check if the indices are the same and if not we compute the matrices
+        (which is potentially expensive).
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma0(7), 4)
+            sage: m = M.hecke_operator(3)
+            sage: m == m
+            True
+            sage: m == 2*m
+            False
+            sage: m == M.hecke_operator(5)
+            False
+
+        These last two tests involve a coercion::
+
+            sage: m == m.matrix_form()
+            True
+            sage: m == m.matrix()
+            True
+        """
+
         if not isinstance(other, HeckeOperator):
             if isinstance(other, HeckeAlgebraElement_matrix):
                 return cmp(self.matrix_form(), other)
-            return sage.rings.coerce.cmp(self, other)
-        c = cmp(self.parent(), other.parent())
-        if c: return c
+            else:
+                raise RuntimeError, "Bug in coercion code" # can't get here
+
         if self.__n == other.__n:
             return 0
         return cmp(self.matrix(), other.matrix())
 
     def _repr_(self):
+        r"""
+        String representation of self
+
+        EXAMPLE::
+
+            sage: ModularSymbols(Gamma0(7), 4).hecke_operator(6)._repr_()
+            'Hecke operator T_6 on Modular Symbols space of dimension 4 for Gamma_0(7) of weight 4 with sign 0 over Rational Field'
+        """
         return "Hecke operator T_%s on %s"%(self.__n, self.domain())
 
     def _latex_(self):
+        r"""
+        LaTeX representation of self
+
+        EXAMPLE::
+
+            sage: ModularSymbols(Gamma0(7), 4).hecke_operator(6)._latex_()
+            'T_{6}'
+        """
         return "T_{%s}"%self.__n
 
-    def __mul__(self, other):
+    def _mul_(self, other):
         """
+        Multiply this Hecke operator by another element of the same algebra. If
+        the other element is of the form `T_m` for some m, we check whether the
+        product is equal to `T_{mn}` and return that; if the product is not
+        (easily seen to be) of the form `T_{mn}`, then we calculate the product
+        of the two matrices and return a Hecke algebra element defined by that.
+
         EXAMPLES: We create the space of modular symbols of level
         `11` and weight `2`, then compute `T_2`
         and `T_3` on it, along with their composition.
@@ -421,7 +621,7 @@ class HeckeOperator(HeckeAlgebraElement):
 
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
-            sage: t2*t3
+            sage: t2*t3 # indirect doctest
             Hecke operator T_6 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             sage: t3.matrix() * t2.matrix()
             [12  0 -2]
@@ -432,7 +632,7 @@ class HeckeOperator(HeckeAlgebraElement):
             [ 0  2  0]
             [ 0  0  2]
 
-        When we compute `T_2^2` the result is not (easily seen to
+        When we compute `T_2^5` the result is not (easily seen to
         be) a Hecke operator of the form `T_n`, so it is returned
         as a Hecke module homomorphism defined as a matrix::
 
@@ -505,5 +705,4 @@ class HeckeOperator(HeckeAlgebraElement):
         except AttributeError:
             self.__matrix_form = self.parent()(self.matrix())
             return self.__matrix_form
-
 

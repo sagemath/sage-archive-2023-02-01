@@ -336,18 +336,9 @@ class WeylCharacter(AlgebraElement):
         EXAMPLES::
 
             sage: B3 = WeylCharacterRing(['B',3])
-            sage: B3(1/2,1/2,1/2).mlist()
-            [[(1/2, -1/2, -1/2), 1], [(-1/2, 1/2, -1/2), 1], [(1/2, 1/2, 1/2), 1], [(1/2, 1/2, -1/2), 1], [(-1/2, -1/2, 1/2), 1], [(-1/2, -1/2, -1/2), 1], [(1/2, -1/2, 1/2), 1], [(-1/2, 1/2, 1/2), 1]]
+            sage: sorted(B3(1/2,1/2,1/2).mlist())
+            [[(-1/2, -1/2, -1/2), 1],  [(-1/2, -1/2, 1/2), 1],  [(-1/2, 1/2, -1/2), 1],  [(-1/2, 1/2, 1/2), 1],  [(1/2, -1/2, -1/2), 1],  [(1/2, -1/2, 1/2), 1],  [(1/2, 1/2, -1/2), 1],  [(1/2, 1/2, 1/2), 1]]
         """
-# Why did the test not pass with the following indentation?
-#             [[( 1/2, -1/2, -1/2), 1],
-#              [(-1/2,  1/2, -1/2), 1],
-#              [( 1/2,  1/2,  1/2), 1],
-#              [( 1/2,  1/2, -1/2), 1],
-#              [(-1/2, -1/2,  1/2), 1],
-#              [(-1/2, -1/2, -1/2), 1],
-#              [( 1/2, -1/2,  1/2), 1],
-#              [(-1/2,  1/2,  1/2), 1]]
         return [[k,m] for k,m in self._mdict.iteritems()]
 
     def parent(self):
@@ -443,14 +434,8 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
     EXAMPLES::
 
         sage: R = WeylCharacterRing(['A',2], prefix = R)
-        sage: R([2,1,0]).mlist()
-        [[(1, 0, 2), 1],
-         [(1, 1, 1), 2],
-         [(2, 1, 0), 1],
-         [(1, 2, 0), 1],
-         [(2, 0, 1), 1],
-         [(0, 1, 2), 1],
-         [(0, 2, 1), 1]]
+        sage: sorted(R([2,1,0]).mlist())
+        [[(1, 1, 1), 2],  [(1, 2, 0), 1],  [(1, 0, 2), 1],  [(2, 1, 0), 1],  [(2, 0, 1), 1],  [(0, 1, 2), 1],  [(0, 2, 1), 1]]
     """
     ct = cartan_type.CartanType(ct)
     return cache_wcr(ct, base_ring=base_ring, prefix=prefix, cache=cache)
@@ -1259,13 +1244,8 @@ class WeightRingElement(AlgebraElement):
             sage: G2 = WeylCharacterRing(['G',2])
             sage: g2 = WeightRing(G2)
             sage: pr = sum(g2(a) for a in g2.lattice().positive_roots())
-            sage: pr.mlist()
-            [[(1, -2,  1), 1],
-             [(1, -1,  0), 1],
-             [(1,  0, -1), 1],
-             [(2, -1, -1), 1],
-             [(0,  1, -1), 1],
-             [(1,  1, -2), 1]]
+            sage: sorted(pr.mlist())
+            [[(1, -2, 1), 1],  [(1, -1, 0), 1],  [(1, 1, -2), 1],  [(1, 0, -1), 1],  [(2, -1, -1), 1],  [(0, 1, -1), 1]]
         """
         return [[k,m] for k,m in self._mdict.iteritems()]
 

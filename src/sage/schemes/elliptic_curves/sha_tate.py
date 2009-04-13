@@ -334,6 +334,12 @@ class Sha(SageObject):
 
         if use_twists :
             Et, D = self.E.minimal_quadratic_twist()
+            # We cannot use a non-trivial twist of the same conductor!
+            # e.g. the minimal quadratic twist of '300b2' is '300a2'
+            # (since that comes earlier in the database)
+            if Et.conductor() == self.E.conductor():
+                Et = self.E
+                D = 1
             lp = Et.padic_lseries(p)
         else :
             lp = self.E.padic_lseries(p)

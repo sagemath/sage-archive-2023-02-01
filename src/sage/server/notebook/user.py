@@ -84,11 +84,11 @@ class User:
             sage: config = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin').conf(); config
             Configuration: {}
             sage: config['max_history_length']
-            500
+            1000
             sage: config['default_system']
             'sage'
             sage: config['autosave_interval']
-            180
+            3600
             sage: config['default_pretty_print']
             False
         """

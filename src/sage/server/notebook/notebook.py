@@ -559,11 +559,11 @@ class Notebook(SageObject):
             Creating default users.
             sage: config = nb.user_conf('admin')
             sage: config['max_history_length']
-            500
+            1000
             sage: config['default_system']
             'sage'
             sage: config['autosave_interval']
-            180
+            3600
             sage: config['default_pretty_print']
             False
         """

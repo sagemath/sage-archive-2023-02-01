@@ -1675,12 +1675,16 @@ class StandardTableaux_all(InfiniteAbstractCombinatorialClass):
             True
             sage: [[1,3],[2,4]] in StandardTableaux()
             True
+            sage: [] in StandardTableaux()
+            True
         """
         if x not in Tableaux():
             return False
         else:
             t = Tableau(x)
 
+        if len(t) == 0:
+            return True
         #Check to make sure the first position is 1
         fillings = []
         for row in t:

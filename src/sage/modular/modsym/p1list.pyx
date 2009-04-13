@@ -884,7 +884,7 @@ cdef class P1List:
     def apply_S(self, int i):
         r"""
         Return the index of the result of applying the matrix
-        `S=[-0,1;1,0]` to the `i`'th element of this P1List.
+        `S=[0,-1;1,0]` to the `i`'th element of this P1List.
 
         INPUT:
 

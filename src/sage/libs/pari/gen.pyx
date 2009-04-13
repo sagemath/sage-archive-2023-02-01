@@ -6745,6 +6745,52 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(galois(self.g, prec))
 
+    def nfgaloisconj(self):
+        r"""
+        Edited from the pari documentation:
+
+        nfgaloisconj(nf): list of conjugates of a root of the
+        polynomial x=nf.pol in the same number field.
+
+        Uses a combination of Allombert's algorithm and nfroots.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0; nf = pari(x^2 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [-x, x]~
+            sage: nf = pari(x^3 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [x]~
+            sage: nf = pari(x^4 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [-x, x]~
+        """
+        _sig_on
+        return self.new_gen(galoisconj(self.g))
+
+    def nfroots(self, poly):
+        r"""
+        Return the roots of `poly` in the number field self without
+        multiplicity.
+
+        EXAMPLES::
+
+            sage: y = QQ['yy'].0; _ = pari(y) # pari has variable ordering rules
+            sage: x = QQ['zz'].0; nf = pari(x^2 + 2).nfinit()
+            sage: nf.nfroots(y^2 + 2)
+            [-zz, zz]
+            sage: nf = pari(x^3 + 2).nfinit()
+            sage: nf.nfroots(y^3 + 2)
+            [zz]
+            sage: nf = pari(x^4 + 2).nfinit()
+            sage: nf.nfroots(y^4 + 2)
+            [-zz, zz]
+        """
+        t0GEN(poly)
+        _sig_on
+        return self.new_gen(nfroots(self.g, t0))
+
     def polhensellift(self, y, p, long e):
         """
         self.polhensellift(y, p, e): lift the factorization y of self

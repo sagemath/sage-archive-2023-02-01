@@ -5064,6 +5064,52 @@ class NumberField_absolute(NumberField_generic):
         else:
             return L
 
+    def automorphisms(self):
+        r"""
+        Compute all Galois automorphisms of self.
+
+        This uses PARI's \code{nfgaloisconj} and is much faster than root
+        finding for many fields.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 10000)
+            sage: K.automorphisms()
+            [
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 10000
+              Defn: a |--> a,
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 10000
+              Defn: a |--> -a
+            ]
+
+            Here's a larger example, that would take some time if we found
+            roots instead of using PARI's specialized machinery:
+
+            sage: K = NumberField(x^6 - x^4 - 2*x^2 + 1, 'a')
+            sage: len(K.automorphisms())
+            2
+
+            `L` is the Galois closure of `K`:
+
+            sage: L = NumberField(x^24 - 84*x^22 + 2814*x^20 - 15880*x^18 - 409563*x^16 - 8543892*x^14 + 25518202*x^12 + 32831026956*x^10 - 672691027218*x^8 - 4985379093428*x^6 + 320854419319140*x^4 + 817662865724712*x^2 + 513191437605441, 'a')
+            sage: len(L.automorphisms())
+            24
+        """
+        try:
+            # this should be concordant with embeddings
+            return self.__embeddings[self]
+        except AttributeError:
+            self.__embeddings = {}
+        except KeyError:
+            pass
+        embs = map(self, self.pari_nf().nfgaloisconj())
+        embs.sort()
+        v = [ self.hom([ e ], check=False) for e in embs ]
+        put_natural_embedding_first(v)
+        self.__embeddings[self] = Sequence(v, cr = (v != []), immutable=True,
+                                        check=False, universe=self.Hom(self))
+        return self.__embeddings[self]
+
     def embeddings(self, K):
         """
         Compute all field embeddings of self into the field K (which need
@@ -5128,11 +5174,15 @@ class NumberField_absolute(NumberField_generic):
             ]
         """
         try:
+            # this should be concordant with automorphisms
             return self.__embeddings[K]
         except AttributeError:
             self.__embeddings = {}
         except KeyError:
             pass
+        if K is self:
+            return self.automorphisms()
+
         f = K['x'](self.defining_polynomial())
         r = f.roots(); r.sort()
         v = [self.hom([e[0]], check=False) for e in r]
@@ -7069,15 +7119,22 @@ def put_natural_embedding_first(v):
 
         sage: K.<a> = CyclotomicField(7)
         sage: embs = K.embeddings(K)
-        sage: [e(a) for e in embs] # already sorted
+        sage: [e(a) for e in embs] # random - there is no natural sort order
         [a, a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1]
-        sage: permuted_embs = [embs[i] for i in [1,2,3,4,5,0]]
-        sage: [e(a) for e in permuted_embs] # natural map is not first
+        sage: id = [ e for e in embs if e(a) == a ][0]; id
+        Ring endomorphism of Cyclotomic Field of order 7 and degree 6
+          Defn: a |--> a
+        sage: permuted_embs = list(embs); permuted_embs.remove(id); permuted_embs.append(id)
+        sage: [e(a) for e in permuted_embs] # random - but natural map is not first
         [a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a]
+        sage: permuted_embs[0] != a
+        True
         sage: from sage.rings.number_field.number_field import put_natural_embedding_first
         sage: put_natural_embedding_first(permuted_embs)
-        sage: [e(a) for e in permuted_embs] # now natural map is first
+        sage: [e(a) for e in permuted_embs] # random - but natural map is first
         [a, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a^2]
+        sage: permuted_embs[0] == id
+        True
     """
     for i in range(len(v)):
         phi = v[i]

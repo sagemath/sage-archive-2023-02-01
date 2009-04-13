@@ -1491,6 +1491,7 @@ class NumberField_relative(NumberField_generic):
             -0.62996052494743693 - 0.091123635971721295*I
         """
         try:
+            # this should be concordant with automorphisms
             return self.__embeddings[K]
         except AttributeError:
             self.__embeddings = {}
@@ -1506,6 +1507,66 @@ class NumberField_relative(NumberField_generic):
 
         self.__embeddings[K] = Sequence(v, cr=v!=[], immutable=True, check=False, universe=self.Hom(K))
         return self.__embeddings[K]
+
+    def automorphisms(self):
+        r"""
+        Compute all Galois automorphisms of self over the base field.  This is
+        different than computing the embeddings of self into self; there,
+        automorphisms that do not fix the base field are considered.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^2 + 10000, x^2 + x + 50]); K
+            Number Field in a with defining polynomial x^2 + 10000 over its base field
+            sage: K.automorphisms()
+            [
+            Relative number field endomorphism of Number Field in a with defining polynomial x^2 + 10000 over its base field
+              Defn: a |--> a
+                    b |--> b,
+            Relative number field endomorphism of Number Field in a with defining polynomial x^2 + 10000 over its base field
+              Defn: a |--> -a
+                    b |--> b
+            ]
+            sage: rho, tau = K.automorphisms()
+            sage: tau(a)
+            -a
+            sage: tau(b) == b
+            True
+
+            sage: L.<b, a> = NumberField([x^2 + x + 50, x^2 + 10000, ]); L
+            Number Field in b with defining polynomial x^2 + x + 50 over its base field
+            sage: L.automorphisms()
+            [
+            Relative number field endomorphism of Number Field in b with defining polynomial x^2 + x + 50 over its base field
+              Defn: b |--> b
+                    a |--> a,
+            Relative number field endomorphism of Number Field in b with defining polynomial x^2 + x + 50 over its base field
+              Defn: b |--> -b - 1
+                    a |--> a
+            ]
+            sage: rho, tau = L.automorphisms()
+            sage: tau(a) == a
+            True
+            sage: tau(b)
+            -b - 1
+        """
+        try:
+            return self.__automorphisms
+        except AttributeError:
+            pass
+
+        L = self.absolute_field('a')
+        L_into_self, self_into_L = L.structure()
+        aas = L.automorphisms() # absolute automorphisms
+
+        a = self_into_L(self.gen())
+        b = self_into_L(self.base_field().gen())
+        v = [ self.hom([ L_into_self(aa(a)) ]) for aa in aas if aa(b) == b ]
+        v.sort()
+        put_natural_embedding_first(v)
+        self.__automorphisms = Sequence(v, cr = (v != []), immutable=True,
+                                        check=False, universe=self.Hom(self))
+        return self.__automorphisms
 
     def absolute_different(self):
         r"""

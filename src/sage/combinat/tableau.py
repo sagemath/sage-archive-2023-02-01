@@ -1432,6 +1432,11 @@ def StandardTableau(t):
         [3, 2]
         sage: t.is_standard()
         True
+
+        sage: t = StandardTableau([[1,2,3],[4,4]])
+        Traceback (most recent call last):
+        ...
+        ValueError: not a standard tableau
     """
     if isinstance(t, StandardTableau_class):
         return t
@@ -1447,16 +1452,22 @@ class StandardTableau_class(Tableau_class):
         ``k`` appears in row `r` and column `c` of the tableau then we
         return `c-r`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: StandardTableau([[1,2],[3,4]]).content(3)
             -1
+
+            sage: StandardTableau([[1,2],[3,4]]).content(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 does not appear in tableau
 
         """
         for r in range(len(self)):
           try:
             c=self[r].index(k)
             return c-r
-          except:
+          except ValueError:
             pass
         raise ValueError, '%d does not appear in tableau'%k
 

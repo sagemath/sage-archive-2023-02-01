@@ -31,6 +31,11 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.5 (Burcin Erocal, April 13th, 2009) ===
+ * Change printing of pi (Pi -> pi)
+ * Delay evaluation of special functions until .evalf() is called
+ * Add precision parameter to .evalf()
+
 === pynac-0.1.4 (Burcin Erocal, April 11th, 2009) ===
  * Add support for arithmetic with infinity.
  * Use python repr function for printing numeric objects.

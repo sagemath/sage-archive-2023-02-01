@@ -1394,6 +1394,16 @@ class Graphics(SageObject):
             xmax = max(d['xmax'] for d in minmax_data)
             ymin = min(d['ymin'] for d in minmax_data)
             ymax = max(d['ymax'] for d in minmax_data)
+            # check for NaN's: weird thing -- only way I know to check if a float
+            # is a NaN is to check if it is not equal to itself.
+            if xmin!=xmin:
+                xmin=0; sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+            if xmax!=xmax:
+                xmax=0; sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+            if ymin!=ymin:
+                ymin=0; sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+            if ymax!=ymax:
+                ymax=0; sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 
@@ -1833,7 +1843,9 @@ def plot(funcs, *args, **kwds):
 
     ::
 
+        sage: set_verbose(-1)
         sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
+        sage: set_verbose(0)
 
     This prints out a warning and plots where it can (we turn off the
     warning by setting the verbose mode temporarily to -1.)

@@ -38,6 +38,7 @@ from cgi import escape
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
 from twisted.web2.filter import gzip
+import zipfile
 
 import css, js, keyboards
 
@@ -361,9 +362,30 @@ class UploadWorksheet(resource.PostableResource):
         #We make a callback so that we can download a file remotely
         #while allowing the server to still serve requests.
         def callback(result):
+
+            if ctx.args.has_key('nameField'):
+                new_name = ctx.args['nameField'][0].strip()
+            else:
+                new_name = None
+
             try:
                 try:
-                    W = notebook.import_worksheet(filename, self.username)
+
+                    if filename.endswith('.zip'):
+                        # Extract all the .sws files from a zip file.
+                        zip_file = zipfile.ZipFile(filename)
+                        sws_file = "%s/%s" % (dir, "tmp.sws")
+                        for sws in zip_file.namelist():
+                            if sws.endswith('.sws'):
+                                open(sws_file, 'w').write(zip_file.read(sws)) # 2.6 zip_file.extract(sws, sws_file)
+                                W = notebook.import_worksheet(sws_file, self.username)
+                                if new_name:
+                                    W.set_name("%s - %s" % (new_name, W.name()))
+                        return http.RedirectResponse('/')
+
+                    else:
+                        W = notebook.import_worksheet(filename, self.username)
+
                 except IOError, msg:
                     print msg
                     raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
@@ -380,10 +402,8 @@ class UploadWorksheet(resource.PostableResource):
 
             # If the user requested in the form a specific title for
             # the worksheet set it.
-            if ctx.args.has_key('nameField'):
-                new_name = ctx.args['nameField'][0].strip()
-                if new_name:
-                    W.set_name(new_name)
+            if new_name:
+                W.set_name(new_name)
 
             return http.RedirectResponse('/home/'+W.filename())
 
@@ -1298,6 +1318,31 @@ class Worksheet_download(WorksheetResource, resource.Resource):
         os.unlink(filename)
         return static.Data(r, 'application/sage')
         #return static.File(filename)
+
+class DownloadAll(resource.Resource):
+
+    def __init__(self, username):
+        self.username = username
+
+    def render(self, ctx):
+        worksheet_names = set()
+        worksheets = notebook.worksheet_list_for_user(self.username)
+        zip_filename = tmp_filename() + ".zip"
+        zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
+        for worksheet in worksheets:
+            sws_filename = tmp_filename() + '.sws'
+            notebook.export_worksheet(worksheet.filename(), sws_filename)
+            entry_name = worksheet.name()
+            if entry_name in worksheet_names:
+                i = 2
+                while ("%s_%s" % (entry_name, i)) in worksheet_names:
+                    i += 1
+                entry_name = "%s_%s" % (entry_name, i)
+            zip.write(sws_filename, entry_name + ".sws")
+        zip.close()
+        r = open(zip_filename, 'rb').read()
+        os.unlink(zip_filename)
+        return static.Data(r, 'application/zip')
 
 class Worksheet_rename(WorksheetResource, resource.PostableResource):
     def render(self, ctx):
@@ -2306,6 +2351,7 @@ class UserToplevel(Toplevel):
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
     userchild_upload = Upload
+    userchild_all_worksheets = DownloadAll
 
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive

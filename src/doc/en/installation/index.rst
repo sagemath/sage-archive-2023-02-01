@@ -10,6 +10,12 @@ is installed, you can easily upgrade to a more recent version using
 ``sage -upgrade`` (or type ``sage -h`` for more options regarding
 the installation of Sage packages.)
 
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/
+
+
 Contents:
 
 .. toctree::

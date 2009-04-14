@@ -38,8 +38,9 @@ class WeightLatticeRealization(RootLatticeRealization):
         """
         if not hasattr(self,"_fundamental_weights"):
             self._fundamental_weights = Family(self.index_set(),
-                                               self.fundamental_weight,
-                                               name = "Lambda")
+                                               self.fundamental_weight)
+            # self._fundamental_weights.rename("Lambda")
+            # break some doctests.
         return self._fundamental_weights
 
     def rho(self):

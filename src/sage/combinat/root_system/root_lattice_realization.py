@@ -183,10 +183,11 @@ class RootLatticeRealization(object):
             sage: alpha = RootSystem(["A",3]).root_lattice().simple_roots()
             sage: [alpha[i] for i in [1,2,3]]
             [alpha[1], alpha[2], alpha[3]]
-
         """
         if not hasattr(self,"_simple_roots"):
-            self._simple_roots = Family(self.index_set(), self.simple_root, name = "alpha")
+            self._simple_roots = Family(self.index_set(), self.simple_root)
+            # self._simple_roots.rename("alpha")
+            # break some doctests
         return self._simple_roots
 
     def alpha(self):
@@ -257,9 +258,13 @@ class RootLatticeRealization(object):
             sage: [alphacheck[i] for i in [1, 2, 3]]
             [alphacheck[1], alphacheck[2], alphacheck[3]]
 
+        TEST:
+            sage: alphacheck
+            alphacheck
         """
         if not hasattr(self,"cache_simple_coroots"):
-            self.cache_simple_coroots = Family(self.index_set(), self.simple_coroot, name = "alphacheck")
+            self.cache_simple_coroots = Family(self.index_set(), self.simple_coroot)
+            self.cache_simple_coroots.rename("alphacheck")
         return self.cache_simple_coroots
 
     def alphacheck(self):
@@ -353,8 +358,13 @@ class RootLatticeRealization(object):
             sage: s[1]( r.simple_root(1) )
             -alpha[1]
 
+        TEST:
+            sage: s
+            simple reflections
         """
-        return self.alpha().zip(self.reflection, self.alphacheck(), name = "s")
+        res =  self.alpha().zip(self.reflection, self.alphacheck())
+        res.rename("simple reflections")
+        return res
 
     s = simple_reflections
 
@@ -429,8 +439,13 @@ class RootLatticeRealization(object):
             sage: pi[1](x[2])
             -Lambda[1] + 2*Lambda[2]
 
+        TESTS:
+            sage: pi
+            pi
         """
-        return self.alpha().zip(self.projection, self.alphacheck(), name = "pi")
+        res = self.alpha().zip(self.projection, self.alphacheck())
+        res.rename("pi")
+        return res
 
     pi = simple_projections
 

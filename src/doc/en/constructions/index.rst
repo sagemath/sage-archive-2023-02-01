@@ -12,6 +12,11 @@ Python code, it is hoped that this will provide the casual user
 with some basic examples on how to start using Sage in a useful
 way.
 
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/
+
 Please send suggestions, additions, corrections to the ``sage-devel``
 Google group!
 

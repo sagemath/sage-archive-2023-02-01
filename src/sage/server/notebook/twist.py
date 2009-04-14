@@ -1319,14 +1319,19 @@ class Worksheet_download(WorksheetResource, resource.Resource):
         return static.Data(r, 'application/sage')
         #return static.File(filename)
 
-class DownloadAll(resource.Resource):
+class DownloadWorksheets(resource.Resource):
 
     def __init__(self, username):
         self.username = username
 
     def render(self, ctx):
+        print type(ctx)
         worksheet_names = set()
-        worksheets = notebook.worksheet_list_for_user(self.username)
+        if ctx.args.has_key('filenames'):
+            sep = ctx.args['sep'][0]
+            worksheets = [notebook.get_worksheet_with_filename(x.strip()) for x in ctx.args['filenames'][0].split(sep) if len(x.strip()) > 0]
+        else:
+            worksheets = notebook.worksheet_list_for_user(self.username)
         zip_filename = tmp_filename() + ".zip"
         zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
         for worksheet in worksheets:
@@ -1339,6 +1344,7 @@ class DownloadAll(resource.Resource):
                     i += 1
                 entry_name = "%s_%s" % (entry_name, i)
             zip.write(sws_filename, entry_name + ".sws")
+            os.unlink(sws_filename)
         zip.close()
         r = open(zip_filename, 'rb').read()
         os.unlink(zip_filename)
@@ -2351,7 +2357,7 @@ class UserToplevel(Toplevel):
     userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
     userchild_upload = Upload
-    userchild_all_worksheets = DownloadAll
+    userchild_download_worksheets = DownloadWorksheets
 
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive

@@ -1093,6 +1093,35 @@ function set_worksheet_list_checks() {
     }
 }
 
+function checked_worksheet_filenames() {
+    /*
+    For each filename listed in worksheet_filenames, look up the
+    corresponding input check box, see if it is checked, and if so,
+    add it to the list.
+
+    GLOBAL INPUT:
+        worksheet_filenames -- list of strings
+        SEP -- separator string used when encoding tuples of data to send
+               back to the server.
+    OUTPUT:
+        string of worksheet filenames that are checked, separated by SEP
+    */
+    var i, id, X, filenames;
+    filenames = "";
+
+    // Concatenate the list of all worksheet filenames that are checked
+    // together separated by the separator string.
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        if (X.checked) {
+            filenames = filenames + worksheet_filenames[i] + SEP;
+            X.checked = 0;
+        }
+    }
+    return filenames;
+}
+
 function worksheet_list_button(action) {
     /*
     For each filename listed in worksheet_filenames, look up the
@@ -1109,23 +1138,10 @@ function worksheet_list_button(action) {
         calls the server and requests an action be performened on all the
         listed worksheets
     */
-    var i, id, X, filenames;
-    filenames = "";
-
-    // Concatenate the list of all worksheet filenames that are checked
-    // together separated by the separator string.
-    for(i=0; i<worksheet_filenames.length; i++) {
-        id = worksheet_filenames[i];
-        X  = get_element(id);
-        if (X.checked) {
-            filenames = filenames + worksheet_filenames[i] + SEP;
-            X.checked = 0;
-        }
-    }
     // Send the list of worksheet names and requested action back to
     // the server.
     async_request(action, worksheet_list_button_callback,
-                  {filenames: filenames, sep: SEP});
+                  {filenames: checked_worksheet_filenames(), sep: SEP});
 }
 
 function worksheet_list_button_callback(status, response_text) {
@@ -1176,6 +1192,13 @@ function stop_worksheets_button() {
     Saves and then quits sage process for each checked worksheet.
     */
     worksheet_list_button("/send_to_stop");
+}
+
+function download_worksheets_button() {
+    /*
+    Downloads the set of checked worksheets as a zip file.
+    */
+    window.location.replace("/download_worksheets?filenames=" + checked_worksheet_filenames() + "&sep=" + SEP);
 }
 
 function history_window() {

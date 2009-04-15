@@ -1,5 +1,5 @@
 """
-Submodule of a Hecke module.
+Submodules of Hecke modules
 """
 
 #*****************************************************************************
@@ -31,6 +31,16 @@ import ambient_module
 from sage.rings.polynomial.polynomial_ring import polygen
 
 def is_HeckeSubmodule(x):
+    r"""
+    Return True if x is of type HeckeSubmodule.
+
+    EXAMPLES::
+
+        sage: sage.modular.hecke.submodule.is_HeckeSubmodule(ModularForms(1, 12))
+        False
+        sage: sage.modular.hecke.submodule.is_HeckeSubmodule(CuspForms(1, 12))
+        True
+    """
     return isinstance(x, HeckeSubmodule)
 
 class HeckeSubmodule(module.HeckeModule_free_module):
@@ -38,6 +48,23 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     Submodule of a Hecke module.
     """
     def __init__(self, ambient, submodule, dual_free_module=None, check=True):
+        r"""
+        Initialise a submodule of an ambient Hecke module.
+
+        INPUT:
+
+        - ``ambient`` - an ambient Hecke module
+
+        - ``submodule`` - a free module over the base ring which is a submodule
+          of the free module attached to the ambient Hecke module. This should
+          be invariant under all Hecke operators.
+
+        - ``dual_free_module`` - the submodule of the dual of the ambient
+          module corresponding to this submodule (or None).
+
+        - ``check`` - whether or not to explicitly check that the submodule is
+          Hecke equivariant.
+        """
         if not isinstance(ambient, ambient_module.AmbientHeckeModule):
             raise TypeError, "ambient must be an ambient Hecke module"
         if not sage.modules.all.is_FreeModule(submodule):
@@ -62,10 +89,16 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
 
     def _repr_(self):
+        r"""
+        String representation of self.
+        """
         return "Rank %s submodule of a Hecke module of level %s"%(
                       self.rank(), self.level())
 
     def __add__(self, other):
+        r"""
+        Sum of self and other (as submodules of a common ambient module).
+        """
         if not isinstance(other, module.HeckeModule_free_module):
             raise TypeError, "other (=%s) must be a Hecke module."%other
         if self.ambient() != other.ambient():
@@ -114,6 +147,24 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return A.restrict(self.dual_free_module(), check=check)
 
     def _compute_hecke_matrix(self, n):
+        r"""
+        Compute the matrix of the nth Hecke operator acting on this space, by
+        calling the corresponding function for the ambient space and
+        restricting. If n is not coprime to the level, we check that the
+        restriction is well-defined.
+
+        EXAMPLE::
+            sage: R.<q> = QQ[[]]
+            sage: M = ModularForms(2, 12)
+            sage: f = M(q^2 - 24*q^4 + O(q^6))
+            sage: A = M.submodule(M.free_module().span([f.element()]),check=False)
+            sage: sage.modular.hecke.submodule.HeckeSubmodule._compute_hecke_matrix(A, 3)
+            [252]
+            sage: sage.modular.hecke.submodule.HeckeSubmodule._compute_hecke_matrix(A, 4)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: subspace is not invariant under matrix
+        """
         A = self.ambient_hecke_module().hecke_matrix(n)
         check = arith.gcd(self.level(), n) != 1
         return A.restrict(self.free_module(), check=check)
@@ -133,10 +184,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         """
         INPUT:
 
-
-        -  ``V`` - submodule of ambient free module of the same
-           rank as the rank of self.
-
+        - ``V`` - submodule of ambient free module of the same rank as the rank
+          of self.
 
         OUTPUT: Hecke submodule of self
         """
@@ -153,9 +202,25 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     ################################
 
     def ambient_hecke_module(self):
+        r"""
+        Return the ambient Hecke module of which this is a submodule.
+
+        EXAMPLES::
+
+            sage: CuspForms(2, 12).ambient_hecke_module()
+            Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(2) of weight 12 over Rational Field
+        """
         return self.__ambient
 
     def ambient(self):
+        r"""
+        Synonym for ambient_hecke_module.
+
+        EXAMPLES::
+
+            sage: CuspForms(2, 12).ambient()
+            Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(2) of weight 12 over Rational Field
+        """
         return self.__ambient
 
     def complement(self, bound=None):
@@ -635,10 +700,21 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return os
 
     def rank(self):
+        r"""
+        Return the rank of self as a free module over the base ring.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(6, 4).cuspidal_subspace().rank()
+            2
+            sage: ModularSymbols(6, 4).cuspidal_subspace().dimension()
+            2
+        """
         return self.__submodule.rank()
 
-    def dimension(self):
-        return self.rank()
+# dimension is an alias for rank in the parent class
+#    def dimension(self):
+#        return self.rank()
 
     def submodule(self, M, Mdual=None, check=True):
         """

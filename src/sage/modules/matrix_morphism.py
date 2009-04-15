@@ -259,7 +259,7 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             sage: phi*psi
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 4 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 3 dense matrices over Rational Field'
+            TypeError: Incompatible composition of morphisms: domain of left morphism must be codomain of right.
             sage: phi.matrix()*psi.matrix()
             [ 20  23  26  29]
             [ 56  68  80  92]
@@ -268,6 +268,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         if not isinstance(right, MatrixMorphism):
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
+        if self.domain() != right.codomain():
+            raise TypeError, "Incompatible composition of morphisms: domain of left morphism must be codomain of right."
         M = right.matrix() * self.matrix()
         return right.domain().Hom(self.codomain())(M)
 

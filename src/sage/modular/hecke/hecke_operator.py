@@ -122,7 +122,21 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             Hecke operator T_2 on Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Rational Field
             sage: t.hecke_module_morphism()
             Hecke module morphism T_2 defined by the matrix
-            (not printing 15 x 15 matrix)
+            [ 2  1  0  0  0  0  0  0  0  0  0  0  0  0 -1]
+            [ 0  2  0  1  0  0  0 -1  0  0  0  0  0  0  0]
+            [ 0  0  2  0  0  1 -1  1  0 -1  0  1 -1  0  0]
+            [ 0  0  0  2  1  0  1  0  0  0  1 -1  0  0  0]
+            [ 0  0  1  0  2  0  0  0  0  1 -1  0  0  0  1]
+            [ 1  0  0  0  0  2  0  0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  0  1 -1  1 -1  0 -1  1  1]
+            [ 0  0  0  0  0  0  0 -1  1  1  0  0 -1  1  0]
+            [ 0  0  0  0  0  0 -1 -1  0  1 -1 -1  1  0 -1]
+            [ 0  0  0  0  0  0 -2  0  2 -2  0  2 -2  1 -1]
+            [ 0  0  0  0  0  0  0  0  2 -1  1  0  0  1 -1]
+            [ 0  0  0  0  0  0 -1  1  2 -1  1  0 -2  2  0]
+            [ 0  0  0  0  0  0  0  0  1  1  0 -1  0  0  0]
+            [ 0  0  0  0  0  0 -1  1  1  0  1  1 -1  0  0]
+            [ 0  0  0  0  0  0  2  0  0  0  2 -1  0  1 -1]
             Domain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
             Codomain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
             """
@@ -170,7 +184,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: (t2 - t3).charpoly('x')
             x^6 + 36*x^5 + 104*x^4 - 3778*x^3 + 7095*x^2 - 3458*x
         """
-        return self.parent()(self.matrix() + other.matrix())
+        return self.parent()(self.matrix() + other.matrix(), check=False)
 
     def __call__(self, x):
         """
@@ -224,7 +238,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             [    0   -18     4 -23/7  41/7 -18/7]
             [    0   -18     4 -23/7  34/7 -11/7]
         """
-        return self.parent()(self.matrix() - other.matrix())
+        return self.parent()(self.matrix() - other.matrix(), check=False)
 
     def apply_sparse(self, x):
         """
@@ -445,12 +459,12 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         EXAMPLES::
 
             sage: T = ModularForms(SL2Z, 12).hecke_algebra()
-            sage: m = T(matrix(QQ, 2, [1,2,0,1])); n = T.hecke_operator(14)
+            sage: m = T(matrix(QQ, 2, [1,2,0,1]), check=False); n = T.hecke_operator(14)
             sage: m == n
             False
             sage: m == n.matrix_form()
             False
-            sage: n.matrix_form() == T(matrix(QQ, 2, [401856, 0, 0, 4051542498456]))
+            sage: n.matrix_form() == T(matrix(QQ, 2, [401856, 0, 0, 4051542498456]), check=False)
             True
         """
         if not isinstance(other, HeckeAlgebraElement_matrix):
@@ -516,7 +530,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             [      0     576       0]
             [9841500       0 4198401]
         """
-        return self.parent()(other.matrix() * self.matrix())
+        return self.parent()(other.matrix() * self.matrix(), check=False)
 
 
 
@@ -570,7 +584,7 @@ class HeckeOperator(HeckeAlgebraElement):
             sage: m == m.matrix_form()
             True
             sage: m == m.matrix()
-            True
+            False
         """
 
         if not isinstance(other, HeckeOperator):
@@ -703,6 +717,6 @@ class HeckeOperator(HeckeAlgebraElement):
         try:
             return self.__matrix_form
         except AttributeError:
-            self.__matrix_form = self.parent()(self.matrix())
+            self.__matrix_form = self.parent()(self.matrix(), check=False)
             return self.__matrix_form
 

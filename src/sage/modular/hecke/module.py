@@ -742,7 +742,12 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: S = M.cuspidal_submodule()
             sage: S.atkin_lehner_operator()
             Hecke module morphism Atkin-Lehner operator W_33 defined by the matrix
-            (not printing 6 x 6 matrix)
+            [ 0 -1  0  1 -1  0]
+            [ 0 -1  0  0  0  0]
+            [ 0 -1  0  0 -1  1]
+            [ 1 -1  0  0 -1  0]
+            [ 0  0  0  0 -1  0]
+            [ 0 -1  1  0 -1  0]
             Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
             Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
 
@@ -750,7 +755,12 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: S.atkin_lehner_operator(3)
             Hecke module morphism Atkin-Lehner operator W_3 defined by the matrix
-            (not printing 6 x 6 matrix)
+            [ 0  1  0 -1  1  0]
+            [ 0  1  0  0  0  0]
+            [ 0  1  0  0  1 -1]
+            [-1  1  0  0  1  0]
+            [ 0  0  0  0  1  0]
+            [ 0  1 -1  0  1  0]
             Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
             Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
 

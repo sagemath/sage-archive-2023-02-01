@@ -678,6 +678,18 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             self.__level, self.__prime, self.base_ring())
 
     def __cmp__(self, other):
+        r"""
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: SupersingularModule(37) == ModularForms(37, 2)
+            False
+            sage: SupersingularModule(37) == SupersingularModule(37, base_ring=Qp(7))
+            False
+            sage: SupersingularModule(37) == SupersingularModule(37)
+            True
+        """
         if not isinstance(other, SupersingularModule):
             return cmp(type(self), type(other))
         else:

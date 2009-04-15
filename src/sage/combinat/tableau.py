@@ -1417,6 +1417,48 @@ class Tableau_class(CombinatorialObject):
             lres[i] = ll[i] - ll[i-1]
         return lres
 
+def StandardTableau(t):
+    """
+    Returns the standard tableau object corresponding to t.
+
+    Note that Sage uses the English convention for partitions and
+    tableaux.
+
+    EXAMPLES::
+
+        sage: t = StandardTableau([[1,2,3],[4,5]]); t
+        [[1, 2, 3], [4, 5]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.is_standard()
+        True
+    """
+    if isinstance(t, StandardTableau_class):
+        return t
+    elif t in StandardTableaux_all():
+        return StandardTableau_class(t)
+    raise ValueError, "not a standard tableau"
+
+class StandardTableau_class(Tableau_class):
+
+    def content(self, k):
+        """
+        Returns the content of ``k`` in a standard tableau. That is, if
+        ``k`` appears in row `r` and column `c` of the tableau then we
+        return `c-r`.
+
+        EXAMPLES:
+            sage: StandardTableau([[1,2],[3,4]]).content(3)
+            -1
+
+        """
+        for r in range(len(self)):
+          try:
+            c=self[r].index(k)
+            return c-r
+          except:
+            pass
+        raise ValueError, '%d does not appear in tableau'%k
 
 def from_chain(chain):
     """

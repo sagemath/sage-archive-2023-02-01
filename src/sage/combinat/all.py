@@ -43,7 +43,7 @@ from skew_partition import SkewPartition, SkewPartitions
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
 #Tableaux
-from tableau import Tableau, Tableaux, StandardTableaux, SemistandardTableaux
+from tableau import Tableau, StandardTableau, Tableaux, StandardTableaux, SemistandardTableaux
 from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
 from ribbon import Ribbon, StandardRibbons
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux

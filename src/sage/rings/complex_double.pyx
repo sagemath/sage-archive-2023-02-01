@@ -2139,9 +2139,12 @@ cdef double_to_str(double x):
         return str(x)
     if isnan(x):
         return "NaN"
-    if isinf(x) < 0:
+    # C99 only guarantees that isinf() returns a nonzero value (actually: 1) if x is an
+    # infinity (positive or negative). Modern Linux distros return -1 or +1 depending
+    # on the sign of infinity, but that is not the case on OSX or Solaris
+    if isinf(x) != 0 and x < 0:
         return '-infinity'
-    elif isinf(x) > 0:
+    elif isinf(x) != 0 and x > 0:
         return '+infinity'
 
 #####

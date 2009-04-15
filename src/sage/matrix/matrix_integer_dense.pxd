@@ -22,6 +22,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _pickle_version0(self)
     cdef _unpickle_version0(self, data)
     cpdef _export_as_string(self, int base=?)
+    cdef _det_4x4_unsafe(self)
 
     cdef _init_linbox(self)
     cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus)
@@ -32,8 +33,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
                                    Py_ssize_t nrows, Py_ssize_t ncols) except NULL
     cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
+
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
 
+cdef void four_dim_det(mpz_t, mpz_t *)
 
 ################################################################
 # fast conversion to pari on the stack

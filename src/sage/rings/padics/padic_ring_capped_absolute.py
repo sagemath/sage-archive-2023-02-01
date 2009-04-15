@@ -141,7 +141,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         if par.prime() != self.prime():
             return False
         if par.is_capped_absolute() or par.is_capped_relative() or par.is_lazy():
-            if par.is_capped_absolute() and par.precision_cap() < self.precision_cap():
+            if par.is_capped_absolute() and par.precision_cap() > self.precision_cap():
                 return False
             return True
         return False

@@ -34,16 +34,41 @@ def O(x):
         O(7^6)
         sage: 1/3 + O(7^6)
         5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + O(7^6)
+
+    It behaves well with respect to adding negative powers of p:
+        sage: a = O(11^-32); a
+        O(11^-32)
+        sage: a.parent()
+        11-adic Field with capped relative precision 20
+
+    There are problems if you add a rational with very negative valuation to a big_oh.
+        sage: 11^-12 + O(11^15)
+        11^-12 + O(11^8)
+
+    The reason that this fails is that the O function doesn't know the right precision cap to use.  If you cast explicitly or use other means of element creation, you can get around this issue.
+        sage: K = Qp(11, 30)
+        sage: K(11^-12) + O(11^15)
+        11^-12 + O(11^15)
+        sage: 11^-12 + K(O(11^15))
+        11^-12 + O(11^15)
+        sage: K(11^-12, absprec = 15)
+        11^-12 + O(11^15)
+        sage: K(11^-12, 15)
+        11^-12 + O(11^15)
+
     """
     if isinstance(x, power_series_ring_element.PowerSeries):
         return x.parent()(0, x.degree())
 
     elif isinstance(x, Polynomial):
+        if x.parent().ngens() != 1:
+            raise NotImplementedError, "completion only currently defined for univariate polynomials"
+        if not x.is_monomial():
+            raise NotImplementedError, "completion only currently defined for the maximal ideal (x)"
         return x.parent().completion(x.parent().gen())(0, x.degree())
 
     elif isinstance(x, laurent_series_ring_element.LaurentSeries):
-        return laurent_series_ring_element.LaurentSeries(x.parent(), x.valuation_zero_part(),
-                             x.valuation()).add_bigoh(x.degree())
+        return laurent_series_ring_element.LaurentSeries(x.parent(), 0).add_bigoh(x.valuation())
 
     elif isinstance(x, (int,long,integer.Integer,rational.Rational)):  # p-adic number
         if x <= 0:
@@ -52,7 +77,10 @@ def O(x):
         if len(F) != 1:
             raise ArithmeticError, "x must be prime power"
         p, r = F[0]
-        return padics_factory.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
+        if r >= 0:
+            return padics_factory.Zp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r)
+        else:
+            return padics_factory.Qp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r)
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
          return x.parent()(0, absprec = x.valuation())

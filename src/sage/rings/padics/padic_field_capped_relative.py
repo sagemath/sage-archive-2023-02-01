@@ -153,7 +153,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         if par.prime() != self.prime():
             return False
         if par.is_capped_relative() or par.is_capped_absolute() or par.is_lazy():
-            if par.is_capped_relative() and par.is_field() and par.precision_cap() < self.precision_cap():
+            if par.is_capped_relative() and par.is_field() and par.precision_cap() > self.precision_cap():
                 return False
             return True
         return False

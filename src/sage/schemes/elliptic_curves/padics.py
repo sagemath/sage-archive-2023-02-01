@@ -598,7 +598,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: E.padic_regulator(5)
         5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + 5^10 + 3*5^11 + 3*5^12 + 5^13 + 4*5^14 + 5^15 + 2*5^16 + 5^17 + 2*5^18 + 4*5^19 + O(5^20)
         sage: E.padic_regulator(3, 5)
-        (3 + 2*3^2 + O(3^3), 3^2 + 2*3^3 + O(3^4))
+        (3 + 2*3^2 + 3^3 + O(3^4), 3^2 + 2*3^3 + 3^4 + O(3^5))
 
     A torsion point in both the good and supersingular cases::
 

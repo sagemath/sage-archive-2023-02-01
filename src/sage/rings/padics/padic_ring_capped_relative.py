@@ -148,7 +148,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             return False
         if x.parent().is_field():
             return False
-        if x.parent().is_capped_relative() and x.parent().precision_cap() >= self.precision_cap():
+        if x.parent().is_capped_relative() and x.parent().precision_cap() <= self.precision_cap():
             return True
         if x.parent().is_lazy():
             return True

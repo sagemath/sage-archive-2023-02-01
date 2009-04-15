@@ -1100,8 +1100,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
                     raise RuntimeError,  "Bug: no delta or gamma can exist"
 
         # end of approximation of delta and gamma
-        delta = Qp(p,dpr)(delta)
-        gamma = Qp(p,dga)(gamma)
+        R = Qp(p,max(dpr,dga)+1)
+        delta = R(delta,absprec=dpr)
+        gamma = R(gamma,absprec=dga)
         verbose("result delta = %s\n      gamma = %s\n check : %s"%(delta,gamma, [Qp(3,k)(delta * cs[k] - gamma * ds[k] - cs[k-1]) for k in range(1,prec+1)] ))
         a = delta
         c = -gamma

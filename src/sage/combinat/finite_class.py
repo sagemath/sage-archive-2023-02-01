@@ -123,3 +123,7 @@ class FiniteCombinatorialClass(CombinatorialClass):
             [0, 1, 2]
         """
         return range(len(self.l))
+
+# Backward compatibility pointer
+# Needed for unpickling.
+FiniteCombinatorialClass_l = FiniteCombinatorialClass

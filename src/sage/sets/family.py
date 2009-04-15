@@ -1,5 +1,18 @@
 """
 Families
+
+A Family is an associative container which models a family
+`(f_i)_{i \in I}`. Then, ``f[i]`` returns the element of the family indexed by
+``i``. Whenever available, set and combinatorial class operations (counting,
+iteration, listing) on the family are induced from those of the index
+set. Families should be created through the :func:`Family` function.
+
+AUTHORS:
+
+- Nicolas Thiery (2008-02): initial release
+
+- Florent Hivert (2008-04): various fixes, cleanups and improvements.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -292,6 +305,7 @@ def Family(indices, function = None, hidden_keys = [], hidden_function = None, l
 
     The factory ``Family`` is supposed to be idempotent. We test this feature here::
 
+        sage: from sage.sets.family import FiniteFamily, LazyFamily, TrivialFamily
         sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
         sage: g = Family(f)
         sage: f == g
@@ -417,6 +431,7 @@ class FiniteFamily(AbstractFamily):
 
     ::
 
+        sage: from sage.sets.family import FiniteFamily
         sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
 
     Individual elements are accessible as in a usual dictionary::
@@ -443,6 +458,7 @@ class FiniteFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f == loads(dumps(f))
             True
@@ -464,6 +480,7 @@ class FiniteFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: FiniteFamily({3: 'a'})
             Finite family {3: 'a'}
         """
@@ -473,6 +490,7 @@ class FiniteFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: 'a' in f
             True
@@ -487,6 +505,7 @@ class FiniteFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: len(f)
             3
@@ -499,6 +518,7 @@ class FiniteFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f.cardinality()
             3
@@ -509,6 +529,7 @@ class FiniteFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: i = iter(f)
             sage: i.next()
@@ -525,6 +546,7 @@ class FiniteFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: f[3]
             'a'
@@ -536,6 +558,7 @@ class FiniteFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__getstate__()
             {'dictionary': {3: 'a'}}
@@ -546,6 +569,7 @@ class FiniteFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__setstate__({'dictionary': {4:'b'}})
             sage: f
@@ -666,6 +690,7 @@ class LazyFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i); f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
             sage: f == loads(dumps(f))
@@ -690,6 +715,7 @@ class LazyFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: def fun(i): 2*i
             sage: f = LazyFamily([3,4,7], fun); f
             Lazy family (fun(i))_{i in [3, 4, 7]}
@@ -719,6 +745,7 @@ class LazyFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f.keys()
             [3, 4, 7]
@@ -731,6 +758,7 @@ class LazyFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f.cardinality()
             3
@@ -744,6 +772,7 @@ class LazyFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: [i for i in f]
             [6, 8, 14]
@@ -755,6 +784,7 @@ class LazyFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
             sage: f[3]
             6
@@ -770,6 +800,7 @@ class LazyFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
             sage: d = f.__getstate__()
             sage: d['set']
@@ -797,6 +828,7 @@ class LazyFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2r*i)
             sage: d = f.__getstate__()
             sage: f = LazyFamily([4,5,6], lambda i: 2r*i)
@@ -828,6 +860,7 @@ class TrivialFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily((3,4,7)); f
             Family (3, 4, 7)
             sage: f = TrivialFamily([3,4,7]); f
@@ -841,6 +874,7 @@ class TrivialFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7]); f
             Family (3, 4, 7)
         """
@@ -852,6 +886,7 @@ class TrivialFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: f.keys()
             [0, 1, 2]
@@ -864,6 +899,7 @@ class TrivialFamily(AbstractFamily):
 
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: f.cardinality()
             3
@@ -874,6 +910,7 @@ class TrivialFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: [i for i in f]
             [3, 4, 7]
@@ -884,6 +921,7 @@ class TrivialFamily(AbstractFamily):
         """
         EXAMPLES::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: f[1]
             4
@@ -894,6 +932,7 @@ class TrivialFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: f.__getstate__()
             {'_enumeration': (3, 4, 7)}
@@ -904,6 +943,7 @@ class TrivialFamily(AbstractFamily):
         """
         TESTS::
 
+            sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily([3,4,7])
             sage: f.__setstate__({'_enumeration': (2, 4, 8)})
             sage: f

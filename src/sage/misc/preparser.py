@@ -50,8 +50,8 @@ preparser doesn't get confused by the internal quotes):
 
 
 A hex literal:
-    sage: preparse('0x2a3')
-    'Integer(0x2a3)'
+    sage: preparse('0x2e3')
+    'Integer(0x2e3)'
     sage: 0xA
     10
 
@@ -508,6 +508,12 @@ def preparse_numeric_literals(code, extract=False):
         "Integer('100', 8)"
         sage: preparse_numeric_literals('0b111001')
         "Integer('111001', 2)"
+        sage: preparse_numeric_literals('0xe')
+        'Integer(0xe)'
+        sage: preparse_numeric_literals('0xEAR')
+        '0xEA'
+        sage: preparse_numeric_literals('0x1012Fae')
+        'Integer(0x1012Fae)'
     """
     literals = {}
     last = 0
@@ -522,7 +528,7 @@ def preparse_numeric_literals(code, extract=False):
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
         float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (float_num, dec_num, hex_num, oct_num, bin_num)
+        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
@@ -558,7 +564,17 @@ def preparse_numeric_literals(code, extract=False):
                     end += 1
                     num += '.'
 
-            if '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
+
+            if len(num)>2 and num[1] in 'oObBxX':
+                # Py3 oct and bin support
+                num_name = numeric_literal_prefix + num
+                if num[1] in 'bB':
+                    num_make = "Integer('%s', 2)" % num[2:]
+                elif num[1] in 'oO':
+                    num_make = "Integer('%s', 8)" % num[2:]
+                else:
+                    num_make = "Integer(%s)" % num
+            elif '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
                 num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
                 if 'J' in postfix:
                     num_make = "ComplexNumber(0, '%s')" % num
@@ -567,16 +583,7 @@ def preparse_numeric_literals(code, extract=False):
                     num_make = "RealNumber('%s')" % num
             else:
                 num_name = numeric_literal_prefix + num
-                if len(num) > 3:
-                    # Py3 oct and bin support
-                    if num[1] in 'bB':
-                        num_make = "Integer('%s', 2)" % num[2:]
-                    elif num[1] in 'oO':
-                        num_make = "Integer('%s', 8)" % num[2:]
-                    else:
-                        num_make = "Integer(%s)" % num
-                else:
-                    num_make = "Integer(%s)" % num
+                num_make = "Integer(%s)" % num
 
             literals[num_name] = num_make
 

@@ -161,7 +161,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
     def _repr_(self, do_latex=False):
         return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
 
-    def integer_ring(self):
+    def integer_ring(self, print_mode=None):
         r"""
         Returns the integer ring of self, i.e. an appropriate implementation of $\Z_p$.
 
@@ -171,7 +171,14 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             the p-adic ring that is the integer ring of this field
         """
         from sage.rings.padics.factory import Zp
-        return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
+        if print_mode is None:
+            print_mode = {}
+        elif isinstance(print_mode, str):
+            print_mode = {'mode': print_mode}
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+            if not print_mode.has_key(option):
+                print_mode[option] = self._printer.dict()[option]
+        return Zp(self.prime(), self.precision_cap(), print_mode=print_mode)
 
     def construction(self):
         """

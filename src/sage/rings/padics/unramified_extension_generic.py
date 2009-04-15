@@ -25,7 +25,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     An unramified extension of Qp or Zp.
     """
     def __init__(self, poly, prec, print_mode, names, element_class):
-        base = poly.base_ring()
+        #base = poly.base_ring()
         #if base.is_field():
         #    self._PQR = pqr.PolynomialQuotientRing_field(poly.parent(), poly, name = names)
         #else:

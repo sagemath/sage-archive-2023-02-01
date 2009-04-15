@@ -48,7 +48,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             raise NotImplementedError
 
     def f(self, K=None):
-        return self.intertia_degree(K)
+        return self.inertia_degree(K)
 
     def residue_class_degree(self, K=None):
         return self.inertia_degree(K)

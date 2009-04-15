@@ -153,9 +153,12 @@ class pAdicFieldGeneric(padic_generic.pAdicGeneric, sage.rings.ring.Field):
     def _latex_(self):
         return "\\mathbf{Q}_{%s}" % self.prime()
 
-    def fraction_field(self):
+    def fraction_field(self, print_mode=None):
         r"""
-        Returns the fraction field of self, i.e. self
+        Returns the fraction field of self, with given print_mode (defaults to the print_mode of self).
+
+        INPUT:
+        print_mode - a dictionary with print options.
         """
         return self
 

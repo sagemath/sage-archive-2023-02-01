@@ -90,26 +90,41 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             raise TypeError, "no canonical coercion of %s of type %s into %s"%(x, type(x), self)
 
     def __cmp__(self, other):
-        if isinstance(other, type(self)):
-            if self.prime() < other.prime():
+        """
+        Returns 0 if self == other, and 1 or -1 otherwise.
+
+        We consider two p-adic rings or fields to be equal if they are equal mathematically, and also have the same precision cap and printing parameters.
+
+        EXAMPLES:
+        sage: R = Qp(7)
+        sage: S = Qp(7,print_mode='val-unit')
+        sage: R == S
+        False
+        sage: S = Qp(7,type='capped-rel')
+        sage: R == S
+        True
+        sage: R is S
+        True
+        """
+        c = cmp(type(self), type(other))
+        if c != 0:
+            return c
+        if self.prime() < other.prime():
+            return -1
+        elif self.prime() > other.prime():
+            return 1
+        try:
+            if self.halting_parameter() < other.halting_parameter():
                 return -1
-            elif self.prime() > other.prime():
+            elif self.halting_parameter() > other.halting_parameter():
                 return 1
-            try:
-                if self.halting_parameter() < other.halting_parameter():
-                    return -1
-                elif self.halting_parameter() > other.halting_parameter():
-                    return 1
-            except AttributeError:
-                pass
-            if self.precision_cap() < other.precision_cap():
-                return -1
-            elif self.precision_cap() > other.precision_cap():
-                return 1
-            else:
-                return 0
-        else:
-            return cmp(type(self), type(other))
+        except AttributeError:
+            pass
+        if self.precision_cap() < other.precision_cap():
+            return -1
+        elif self.precision_cap() > other.precision_cap():
+            return 1
+        return self._printer.cmp_modes(other._printer)
 
     def ngens(self):
         return 1
@@ -508,7 +523,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         else:
             return self.prime() - 1
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, **kwds):
         """
         Create an extension of this p-adic ring.
 
@@ -524,11 +539,34 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
         """
         from sage.rings.padics.factory import ExtensionFactory
-        return ExtensionFactory(self, modulus, prec, print_mode, halt, names, check = True)
+        if print_mode is None:
+            print_mode = {}
+        elif isinstance(print_mode, str):
+            print_mode = {'print_mode': print_mode}
+        else:
+            if not isinstance(print_mode, dict):
+                print_mode = dict(print_mode)
+            for option in ['mode', 'pos', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+                if print_mode.has_key(option):
+                    print_mode["print_" + option] = print_mode[option]
+                    del print_mode[option]
+                elif not print_mode.has_key("print_" + option):
+                    if kwds.has_key("print_" + option):
+                        print_mode["print_" + option] = kwds["print_" + option]
+                    else:
+                        print_mode["print_" + option] = self._printer.dict()[option]
+            for option in ['ram_name', 'unram_name', 'var_name']:
+                if not print_mode.has_key(option):
+                    if kwds.has_key(option):
+                        print_mode[option] = kwds[option]
+                    else:
+                        print_mode[option] = self._printer.dict()[option]
+        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, **print_mode)
 
-    ext = extension
+    def ext(self, modulus, prec = None, names = None, print_mode=None, halt=None, **kwds):
+        return self.extension(modulus, prec, names, print_mode, halt, **kwds)
 
-def local_print_mode(obj, print_mode, pos = None, uniformizer_name = None):
+def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""
     Context manager for safely temporarily changing the print_mode
     of a p-adic ring/field.
@@ -544,8 +582,15 @@ def local_print_mode(obj, print_mode, pos = None, uniformizer_name = None):
 
     NOTES:  For more documentation see localvars in parent_gens.pyx
     """
-    if pos is None:
-        pos = obj._printer._pos()
-    if uniformizer_name is None:
-        uniformizer_name = obj._printer._uniformizer_name()
-    return pAdicPrinter(obj, print_mode, pos, uniformizer_name)
+    if isinstance(print_options, str):
+        print_options = {'mode': print_options}
+    elif not isinstance(print_options, dict):
+        raise TypeError, "print_options must be a dictionary or a string"
+    if pos is not None:
+        print_options['pos'] = pos
+    if ram_name is not None:
+        print_options['ram_name'] = ram_name
+    for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+        if not print_options.has_key(option):
+            print_options[option] = obj._printer.dict()[option]
+    return pAdicPrinter(obj, print_options)

@@ -1,11 +1,60 @@
-"""
+r"""
 Points on elliptic curves
 
-EXAMPLES:
-    sage: K = Qp(5)
-    sage: E = EllipticCurve([K(1), K(1)])
+The base class ``EllipticCurvePoint_field``, derived from
+``AdditiveGroupElement``, provides support for points on elliptic
+curves defined over general fields.  The derived classes
+``EllipticCurvePoint_number_field`` and
+``EllipticCurvePoint_finite_field`` provide further support for point
+on curves defined over number fields (including the rational field
+`\QQ`) and over finite fields.  Although there is no special
+class for points over `\QQ`, there is currently greater
+functionality implemented over `\QQ` than over other number
+fields.
 
-Arithmetic with a point over an extension of a finite field:
+The class ``EllipticCurvePoint``, which is based on
+``SchemeMorphism_projective_coordinates_ring``, currently has little
+extra functionality.
+
+EXAMPLES:
+
+An example over `\QQ`::
+
+    sage: E = EllipticCurve('389a1')
+    sage: P = E(-1,1); P
+    (-1 : 1 : 1)
+    sage: Q = E(0,-1); Q
+    (0 : -1 : 1)
+    sage: P+Q
+    (4 : 8 : 1)
+    sage: P-Q
+    (1 : 0 : 1)
+    sage: 3*P-5*Q
+    (328/361 : -2800/6859 : 1)
+
+An example over a number field::
+
+    sage: K.<i> = QuadraticField(-1)
+    sage: E = EllipticCurve(K,[1,0,0,0,-1])
+    sage: P = E(0,i); P
+    (0 : i : 1)
+    sage: P.order()
+    +Infinity
+    sage: 101*P-100*P==P
+    True
+
+An example over a finite field::
+
+    sage: K.<a> = GF(101^3)
+    sage: E = EllipticCurve(K,[1,0,0,0,-1])
+    sage: P = E(40*a^2 + 69*a + 84 , 58*a^2 + 73*a + 45)
+    sage: P.order()
+    1032210
+    sage: E.cardinality()
+    1032210
+
+Arithmetic with a point over an extension of a finite field::
+
     sage: k.<a> = GF(5^2)
     sage: E = EllipticCurve(k,[1,0]); E
     Elliptic Curve defined by y^2 = x^3 + x over Finite Field in a of size 5^2
@@ -17,6 +66,7 @@ Arithmetic with a point over an extension of a finite field:
     sage: P + P + P + P + P
     (2*a + 3 : 2*a : 1)
 
+::
 
     sage: F = Zmod(3)
     sage: E = EllipticCurve(F,[1,0]);
@@ -26,14 +76,16 @@ Arithmetic with a point over an extension of a finite field:
     sage: P*(n+1)-P*n == P
     True
 
+
 AUTHORS:
-   * William Stein (2005) -- Initial version
-   * Robert Bradshaw et al....
-   * John Cremona (Feb 2008) -- Point counting and group structure for
-     non-prime fields, Frobenius endomorphism and order, elliptic logs
-   * John Cremona (Aug 2008) -- Introduced EllipticCurvePoint_number_field class
-   * Tobias Nagel, Michael Mardaus, John Cremona (Dec 2008) -- p-adic elliptic logarithm over Q
-   * David Hansen (Jan 2009) -- Added a weil_pairing function to EllipticCurvePoint_finite_field class
+
+- William Stein (2005) -- Initial version
+- Robert Bradshaw et al....
+- John Cremona (Feb 2008) -- Point counting and group structure for
+   non-prime fields, Frobenius endomorphism and order, elliptic logs
+- John Cremona (Aug 2008) -- Introduced ``EllipticCurvePoint_number_field`` class
+- Tobias Nagel, Michael Mardaus, John Cremona (Dec 2008) -- `p`-adic elliptic logarithm over `\QQ`
+- David Hansen (Jan 2009) -- Added ``weil_pairing`` function to ``EllipticCurvePoint_finite_field`` class
 """
 
 #*****************************************************************************
@@ -107,7 +159,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
     A point on an elliptic curve over a field.  The point has coordinates
     in the base field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: E = EllipticCurve('37a')
         sage: E([0,0])
         (0 : 0 : 1)
@@ -125,6 +178,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         TypeError: coordinates [1, 0, 0] do not define a point on
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
+    ::
+
         sage: E = EllipticCurve([0,0,1,-1,0])
         sage: S = E(QQ); S
         Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
@@ -138,6 +193,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: 2*P==2*Q
         False
 
+    ::
+
         sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
         sage: E=EllipticCurve([0,0,0,0,t^2])
         sage: P=E(0,t)
@@ -145,7 +202,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         ((0 : t : 1), (0 : -t : 1), (0 : 1 : 0))
 
 
-    TESTS:
+    TESTS::
+
         sage: loads(S.dumps()) == S
         True
         sage: E = EllipticCurve('37a')
@@ -157,7 +215,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: loads(T.dumps()) == T
         True
 
-    Test pickling an elliptic curve that has known points on it.
+    Test pickling an elliptic curve that has known points on it::
+
         sage: e = EllipticCurve([0, 0, 1, -1, 0]); g = e.gens(); loads(dumps(e)) == e
         True
     """
@@ -166,18 +225,20 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         Constructor for a point on an elliptic curve.
 
         INPUT:
-            curve -- an elliptic curve
-            v -- data determining a point (another point, the integer
+
+        - curve -- an elliptic curve
+        - v -- data determining a point (another point, the integer
                  0, or a tuple of coordinates)
 
-        EXAMPLE:
-        sage: E = EllipticCurve('43a')
-        sage: P = E([2, -4, 2]); P
-        (1 : -2 : 1)
-        sage: P = E(0); P
-        (0 : 1 : 0)
-        sage: P=E(2, -4, 2); P
-        (1 : -2 : 1)
+        EXAMPLE::
+
+            sage: E = EllipticCurve('43a')
+            sage: P = E([2, -4, 2]); P
+            (1 : -2 : 1)
+            sage: P = E(0); P
+            (0 : 1 : 0)
+            sage: P=E(2, -4, 2); P
+            (1 : -2 : 1)
         """
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
@@ -220,11 +281,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return a string representation of this point.
 
-        EXAMPLE:
-        sage: E = EllipticCurve('39a')
-        sage: P = E([-2, 1, 1])
-        sage: P._repr_()
-        '(-2 : 1 : 1)'
+        EXAMPLE::
+
+            sage: E = EllipticCurve('39a')
+            sage: P = E([-2, 1, 1])
+            sage: P._repr_()
+            '(-2 : 1 : 1)'
         """
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
@@ -232,11 +294,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return a LaTeX representation of this point.
 
-        EXAMPLE:
-        sage: E = EllipticCurve('40a')
-        sage: P = E([3, 0])
-        sage: P._latex_()
-        '\\left(3 : 0 : 1\\right)'
+        EXAMPLE::
+
+            sage: E = EllipticCurve('40a')
+            sage: P = E([3, 0])
+            sage: P._latex_()
+            '\\left(3 : 0 : 1\\right)'
         """
         return self.codomain().ambient_space()._latex_generic_point(self._coords)
 
@@ -244,11 +307,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return the n'th coordinate of this point.
 
-        EXAMPLE:
-        sage: E = EllipticCurve('42a')
-        sage: P = E([-17, -51, 17])
-        sage: [P[i] for i in [2,1,0]]
-        [1, -3, -1]
+        EXAMPLE::
+
+            sage: E = EllipticCurve('42a')
+            sage: P = E([-17, -51, 17])
+            sage: [P[i] for i in [2,1,0]]
+            [1, -3, -1]
         """
         return self._coords[n]
 
@@ -256,7 +320,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return the coordinates of this point as a list.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: E = EllipticCurve('37a')
             sage: list(E([0,0]))
             [0, 0, 1]
@@ -267,11 +332,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return the coordinates of this point as a tuple.
 
-        EXAMPLE:
-        sage: E = EllipticCurve('44a')
-        sage: P = E([1, -2, 1])
-        sage: P.__tuple__()
-        (1, -2, 1)
+        EXAMPLE::
+
+            sage: E = EllipticCurve('44a')
+            sage: P = E([1, -2, 1])
+            sage: P.__tuple__()
+            (1, -2, 1)
         """
         return tuple(self._coords) # Warning: _coords is a list!
 
@@ -279,13 +345,14 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Comparison function for points to allow sorting and equality testing.
 
-        EXAMPLES:
-        sage: E = EllipticCurve('45a')
-        sage: P = E([2, -1, 1])
-        sage: P == E(0)
-        False
-        sage: P+P == E(0)
-        True
+        EXAMPLES::
+
+            sage: E = EllipticCurve('45a')
+            sage: P = E([2, -1, 1])
+            sage: P == E(0)
+            False
+            sage: P+P == E(0)
+            True
         """
         if not isinstance(other, EllipticCurvePoint_field):
             try:
@@ -300,7 +367,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         This is synonymous with curve() which is perhaps more
         intuitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E=EllipticCurve(QQ,[1,1])
             sage: P=E(0,1)
             sage: P.scheme()
@@ -326,10 +394,11 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def domain(self):
         """
-        Return the domain of this point, which is Spec(F) where F is
+        Return the domain of this point, which is `Spec(F)` where `F` is
         the field of definition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E=EllipticCurve(QQ,[1,1])
             sage: P=E(0,1)
             sage: P.domain()
@@ -346,7 +415,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         Return the codomain of this point, which is the curve it is
         on.  Synonymous with curve() which is perhaps more intuitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E=EllipticCurve(QQ,[1,1])
             sage: P=E(0,1)
             sage: P.domain()
@@ -361,7 +431,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         return self.parent().codomain()
 
     def order(self):
-        """
+        r"""
         Return the order of this point on the elliptic curve.
 
         If the point is zero, returns 1, otherwise raise a
@@ -369,7 +439,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         For curves over number fields and finite fields, see below.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
             sage: E=EllipticCurve([0,0,0,-t^2,0])
             sage: P=E(t,0)
@@ -379,6 +450,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             NotImplementedError: Computation of order of a point not implemented over general fields.
             sage: E(0).order() == 1
             True
+
         """
         if self.is_zero():
             return rings.Integer(1)
@@ -388,7 +460,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return the curve that this point is on.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.curve()
@@ -400,7 +473,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return True if this is not the zero point on the curve.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: P = E(0); P
             (0 : 1 : 0)
@@ -420,7 +494,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         For fields other than number fields and finite fields, this is
         NotImplemented unless self.is_zero().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
             sage: E=EllipticCurve([0,0,0,-t^2,0])
             sage: P = E(0)
@@ -447,7 +522,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         For fields other than number fields and finite fields, this is
         NotImplemented unless self.is_zero().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
             sage: E=EllipticCurve([0,0,0,-t^2,0])
             sage: P = E(0)
@@ -469,10 +545,12 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         Plot this point on an elliptic curve.
 
         INPUT:
-            **args -- all arguments get passed directly onto the point
-              plotting function.
 
-        EXAMPLES:
+        - ``**args`` -- all arguments get passed directly onto the point
+          plotting function.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
@@ -487,7 +565,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Add self to right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1]); Q = E([0,0])
             sage: P + Q
@@ -495,7 +574,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P._add_(Q) == P + Q
             True
 
-        Example to show that bug \#4820 is fixed:
+        Example to show that bug \#4820 is fixed::
+
             sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
             [<type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>,
@@ -531,7 +611,10 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def _sub_(self, right):
         """
-        EXAMPLES:
+        Subtract right from  self.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1]); Q = E([0,0])
             sage: P - Q
@@ -549,7 +632,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         Return the additive inverse of this point.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: Q = -P; Q
@@ -557,7 +641,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: Q + P
             (0 : 1 : 0)
 
-        Example to show that bug \#4820 is fixed:
+        Example to show that bug \#4820 is fixed::
+
             sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
             [<type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>,
@@ -571,10 +656,11 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def xy(self):
         """
-        Return the x and y coordinates of this point, as a 2-tuple.
+        Return the `x` and `y` coordinates of this point, as a 2-tuple.
         If this is the point at infinity a ZeroDivisionError is raised.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.xy()
@@ -593,15 +679,19 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def is_divisible_by(self, m):
         """
-        Return True if there exists a point Q defined over the same
-        field as self such that m*Q == self.
+        Return True if there exists a point `Q` defined over the same
+        field as self such that `mQ` == self.
 
         INPUT:
-            m -- a positive integer
-        OUTPUT:
-            bool
 
-        EXAMPLES:
+        - ``m`` -- a positive integer.
+
+        OUTPUT:
+
+        (bool) -- True if there is a solution, else False.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: Q = 5*E(0,0); Q
             (-2739/1444 : -77033/54872 : 1)
@@ -614,20 +704,25 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         return len(g.roots(multiplicities=False)) > 0
 
     def division_points(self, m, poly_only=False):
-        """
-        Return *all* points Q in the base field on the elliptic curve
-        that contains self such that m*Q == self.
+        r"""
+        Return a list of all points `Q` such that `mQ=P` where `P` = self.
+
+        Only points on the elliptic curve containing self and defined
+        over the base field are included.
 
         INPUT:
-            m -- a positive integer
-            poly_only -- bool (default: False); if True return polynomial
-                         whose roots give all possible x-coordinates of
-                         m-th roots of self.
+
+        - ``m`` -- a positive integer
+        - ``poly_only`` -- bool (default: False); if True return polynomial whose roots give all possible `x`-coordinates of `m`-th roots of self.
+
         OUTPUT:
-            a (possibly empty) list
+
+        (list) -- a (possibly empty) list of solutions `Q` to `mQ=P`,  where `P` = self.
 
         EXAMPLES:
-        We find the five 5-torsion points on an elliptic curve.
+
+        We find the five 5-torsion points on an elliptic curve::
+
             sage: E = EllipticCurve('11a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: P = E(0); P
@@ -635,16 +730,17 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P.division_points(5)
             [(0 : 1 : 0), (5 : -6 : 1), (5 : 5 : 1), (16 : -61 : 1), (16 : 60 : 1)]
 
-
         Note above that 0 is included since [5]*0 = 0.
 
-        We create a curve of rank 1 with no torsion and do a consistency check:
+        We create a curve of rank 1 with no torsion and do a consistency check::
+
             sage: E = EllipticCurve('11a').quadratic_twist(-7)
             sage: Q = E([44,-270])
             sage: (4*Q).division_points(4)
             [(44 : -270 : 1)]
 
-        We create a curve over a non-prime finite field with group of order $18$:
+        We create a curve over a non-prime finite field with group of order `18`::
+
             sage: k.<a> = GF(25)
             sage: E = EllipticCurve(k, [1,2+a,3,4*a,2])
             sage: P = E([3,3*a+4])
@@ -653,20 +749,24 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P.order()
             9
 
-        We find the $1$-division points as a consistency check -- there
-        is just 1 of course:
+        We find the `1`-division points as a consistency check -- there
+        is just one, of course::
+
             sage: P.division_points(1)
             [(3 : 3*a + 4 : 1)]
 
-        The point $P$ has order coprime to $2$ but divisible by $3$ so:
+        The point `P` has order coprime to 2 but divisible by 3, so::
+
             sage: P.division_points(2)
             [(2*a + 1 : 3*a + 4 : 1), (3*a + 1 : a : 1)]
 
-        We check that each of the $2$ division points works as claimed:
+        We check that each of the 2-division points works as claimed::
+
             sage: [2*Q for Q in P.division_points(2)]
             [(3 : 3*a + 4 : 1), (3 : 3*a + 4 : 1)]
 
-        Some other checks:
+        Some other checks::
+
             sage: P.division_points(3)
             []
             sage: P.division_points(4)
@@ -674,18 +774,19 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P.division_points(5)
             [(1 : 1 : 1)]
 
-        An example over a number field (see trac #3383):
-        sage: E = EllipticCurve('19a1')
-        sage: K.<t> = NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
-        sage: EK = E.base_extend(K)
-        sage: E(0).division_points(3)
-        [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
-        sage: EK(0).division_points(3)
-        [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1)]
-        sage: E(0).division_points(9)
-        [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
-        sage: EK(0).division_points(9)
-        [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1)]
+        An example over a number field (see trac #3383)::
+
+            sage: E = EllipticCurve('19a1')
+            sage: K.<t> = NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
+            sage: EK = E.base_extend(K)
+            sage: E(0).division_points(3)
+            [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
+            sage: EK(0).division_points(3)
+            [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1)]
+            sage: E(0).division_points(9)
+            [(0 : 1 : 0), (5 : -10 : 1), (5 : 9 : 1)]
+            sage: EK(0).division_points(9)
+            [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1)]
 
         """
         # Coerce the input m to an integer
@@ -774,20 +875,24 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         return ans
 
     def _divide_out(self,p):
-        """
-        Return (Q,k) where p^k*Q==self and Q cannot be divided by p.
+        r"""
+        Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        WARNING: It is up to the caller to make sure that this does
-        not loop endlessly.  It is used in
-        EllipticCurve_generic._p_primary_torsion_basis(), when self
-        will always have (finite) order which is a power of p, so that
-        the order of Q increases by a factor of p at each stage.
+        ..WARNING:
+
+        It is up to the caller to make sure that this does not loop
+        endlessly.  It is used in
+        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+        self will always have (finite) order which is a power of `p`,
+        so that the order of `Q` increases by a factor of `p` at each
+        stage.
 
         Since it will clearly be in danger of looping when
         self.is_zero(), this case is caught, but otherwise caveat
         user.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a1')
             sage: P = E([0, 0])
             sage: R = 12*P
@@ -822,16 +927,18 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def _line_(self,R,Q):
         r"""
-        Computes a straight line through points self and R evaluated in point Q.
+        Computes the value at `Q` of a straight line through points self and `R`.
 
         INPUT:
-            R -- a point on self.curve()
-            Q -- a point on self.curve()
+
+        - ``R, Q`` -- points on self.curve()
 
         OUTPUT:
-            An element in the base field self.curve().base_field()
 
-        EXAMPLE:
+        An element of the base field self.curve().base_field()
+
+        EXAMPLES::
+
             sage: F.<a>=GF(2^5)
             sage: E=EllipticCurve(F,[0,0,1,1,1])
             sage: P = E(a^4 + 1, a^3)
@@ -850,12 +957,13 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P._line_(P,Q) == a^4 + a^3 + a^2 + 1
             True
 
-        NOTES:
-            Cover all posible point combination cases.
-            The function is used in _miller_ algorithm.
+        ..NOTES:
+
+            This function is used in _miller_ algorithm.
 
         AUTHOR:
-            - David Hansen (2009-01-25)
+
+        - David Hansen (2009-01-25)
         """
         if self.is_zero() or R.is_zero():
             if self == R:
@@ -882,16 +990,20 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def _miller_(self,Q,n):
         r"""
-        Compute the value of the rational function $f_{n,P}(Q)$, where divisor $div(f_{n,P})=n[P]-n[O]$.
+        Compute the value at `Q` of the rational function `f_{n,P}`, where the divisor of `f_{n,P}` is `n[P]-n[O]`.
 
         INPUT:
-            Q -- a point on self.curve()
-            n -- an integer such that n*self = n*Q = (0:1:0)
+
+        - ``Q`` -- a point on self.curve().
+
+        - ``n`` -- an integer such that `n*P = n*Q = (0:1:0)` where `P`=self.
 
         OUTPUT:
-            t -- An element in the base field self.curve().base_field()
 
-        EXAMPLE:
+        An element in the base field self.curve().base_field()
+
+        EXAMPLES::
+
             sage: F.<a>=GF(2^5)
             sage: E=EllipticCurve(F,[0,0,1,1,1])
             sage: P = E(a^4 + 1, a^3)
@@ -905,7 +1017,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: Qx._miller_(Px,41) == b^13 + b^10 + b^8 + b^7 + b^6 + b^5
             True
 
-        Example on even order n
+        An example of even order::
+
             sage: F.<a> = GF(19^4)
             sage: E = EllipticCurve(F,[-1,0])
             sage: P = E(15*a^3 + 17*a^2 + 14*a + 13,16*a^3 + 7*a^2 + a + 18)
@@ -914,20 +1027,24 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: x^360 == F(1)
             True
 
-        You can use the _miller_ function on lin dep points, but with the risk of a dividing with zero.
+        You can use the _miller_ function on linearly dependent points, but with the risk of a dividing with zero::
+
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: division by zero in finite field.
 
-        NOTES:
-            Implemented with double-and-add.
-            The function requires access to the _line_ function.
-            REFERENCES:
-                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
+        ALGORITHM:
+
+            Double-and-add.
+
+        REFERENCES:
+
+        - [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
         AUTHOR:
-            - David Hansen (2009-01-25)
+
+        - David Hansen (2009-01-25)
 
         """
         t = self.curve().base_field().one_element()
@@ -948,16 +1065,20 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def weil_pairing(self, Q, n):
         r"""
-        Compute the Weil pairing of self and Q using Miller's algorithm.
+        Compute the Weil pairing of self and `Q` using Miller's algorithm.
 
         INPUT:
-            Q -- a point on self.curve()
-            n -- an integer such that n*self = n*Q = (0:1:0)
+
+        - ``Q`` -- a point on self.curve().
+
+        - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)` where `P` = self.
 
         OUTPUT:
-            An n'th root of unity in the base field self.curve().base_field()
 
-        EXAMPLE:
+        An `n`'th root of unity in the base field self.curve().base_field()
+
+        EXAMPLES::
+
             sage: F.<a>=GF(2^5)
             sage: E=EllipticCurve(F,[0,0,1,1,1])
             sage: P = E(a^4 + 1, a^3)
@@ -974,13 +1095,15 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: Px.weil_pairing(O,41) == Fx(1)
             True
 
-        An error is raised if either point is not $n$-torsion:
+        An error is raised if either point is not n-torsion::
+
             sage: Px.weil_pairing(O,40)
             Traceback (most recent call last):
             ...
             ValueError: points must both be n-torsion
 
-        A larger example (see trac \#4964:
+        A larger example (see trac \#4964)::
+
             sage: P,Q = EllipticCurve(GF(19^4,'a'),[-1,0]).gens()
             sage: P.order(), Q.order()
             (360, 360)
@@ -988,7 +1111,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: z.multiplicative_order()
             360
 
-        An example over a number field:
+        An example over a number field::
+
             sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
             sage: (P.order(),Q.order())
             (5, 5)
@@ -997,16 +1121,22 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: Q.weil_pairing(P,5)
             zeta5^3
 
-        NOTES:
-            Implemented using proposition 8 in [Mil04].
-            The function requires access to the _miller_ function.
-            In the case where lin. dep. input leads to division with zero, the error is catched and the 1 is returned.
-            Use try-catch instead of doing discrete log test for linear dependence, since this is much to slow for large n.
-            REFERENCES:
-                [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
+        ALGORITHM:
+
+        Implemented using Proposition 8 in [Mil04].  The value 1 is
+        returned for linearly dependent input points.  This condition
+        is caught via a DivisionByZeroError, since the use of a
+        discrete logarithm test for linear dependence, is much to slow
+        for large `n`.
+
+        REFERENCES:
+
+        [Mil04] Victor S. Miller, "The Weil pairing, and its efficient
+        calculation", J. Cryptol., 17(4):235-261, 2004
 
         AUTHOR:
-            - David Hansen (2009-01-25)
+
+        - David Hansen (2009-01-25)
         """
         P = self
         E = P.curve()
@@ -1056,10 +1186,12 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     A point on an elliptic curve over a number field.
 
     Most of the functionality is derived from the parent class
-    EllipticCurvePoint_field.  In addition we have support for the
-    order of a point, and heights (currently only implemented over QQ).
+    ``EllipticCurvePoint_field``.  In addition we have support for the
+    order of a point, and heights (currently only implemented over
+    `\QQ`).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: E = EllipticCurve('37a')
         sage: E([0,0])
         (0 : 0 : 1)
@@ -1077,11 +1209,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         TypeError: coordinates [1, 0, 0] do not define a point on
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
+    ::
+
         sage: E = EllipticCurve([0,0,1,-1,0])
         sage: S = E(QQ); S
         Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-    TESTS:
+    TESTS::
+
         sage: loads(S.dumps()) == S
         True
         sage: P = E(0,0); P
@@ -1092,30 +1227,35 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         sage: loads(T.dumps()) == T
         True
 
-    Test pickling an elliptic curve that has known points on it.
+    Test pickling an elliptic curve that has known points on it::
+
         sage: e = EllipticCurve([0, 0, 1, -1, 0]); g = e.gens(); loads(dumps(e)) == e
         True
     """
 
     def order(self):
-        """
+        r"""
         Return the order of this point on the elliptic curve.
 
         If the point has infinite order, returns +Infinity.  For
-        curves defined over Q, we call pari.  For curves over other
-        number fields we implement this here.
+        curves defined over `\QQ`, we call pari; over other
+        number fields we implement the function here.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: E = EllipticCurve([0,0,1,-1,0])
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
             +Infinity
 
+        ::
+
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
             sage: P.order()
             2
+
         """
         try:
             return self._order
@@ -1161,12 +1301,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         """
         Return True iff this point has finite order on the elliptic curve.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: E = EllipticCurve([0,0,1,-1,0])
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.has_finite_order()
             False
+
+        ::
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
@@ -1177,15 +1320,18 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return self.order() != oo
 
     def has_infinite_order(self):
-        """
+        r"""
         Return True iff this point has infinite order on the elliptic curve.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: E = EllipticCurve([0,0,1,-1,0])
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.has_infinite_order()
             True
+
+        ::
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
@@ -1196,37 +1342,42 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return self.order() == oo
 
     def is_on_identity_component(self, embedding=None):
-        """
+        r"""
         Returns True iff this point is on the identity component of
         its curve with respect to a given (real or complex) embedding.
 
         INPUT:
-            self -- a point on a curve over any ordered field (e.g. QQ)
 
-            embedding -- an embedding from the base_field of the
-                         point's curve into RR or CC; if None (the
-                         default) it uses the first embedding of the
-                         base_field into RR if any, else the first
-                         embedding into CC.
+        - ``self`` -- a point on a curve over any ordered field (e.g. `\QQ`)
+
+        - ``embedding`` -- an embedding from the base_field of the
+          point's curve into `\RR` or `\CC`; if None (the
+          default) it uses the first embedding of the base_field into
+          `\RR` if any, else the first embedding into `\CC`.
 
         OUTPUT:
-            True iff the point is on the identity component of the
-            curve.  (If the point is zero then the result is True.)
+
+        (bool) -- True iff the point is on the identity component of
+        the curve.  (If the point is zero then the result is True.)
 
         EXAMPLES:
-        For K=QQ there is no need to specify an embedding:
+
+        For `K=\QQ` there is no need to specify an embedding::
+
             sage: E=EllipticCurve('5077a1')
             sage: [E.lift_x(x).is_on_identity_component() for x in range(-3,5)]
             [False, False, False, False, False, True, True, True]
 
-        An example over a field with two real embeddings:
+        An example over a field with two real embeddings::
+
             sage: L.<a> = QuadraticField(2)
             sage: E=EllipticCurve(L,[0,1,0,a,a])
             sage: P=E(-1,0)
             sage: [P.is_on_identity_component(e) for e in L.embeddings(RR)]
             [False, True]
 
-        We can check this as follows:
+        We can check this as follows::
+
             sage: [e(E.discriminant())>0 for e in L.embeddings(RR)]
             [True, False]
             sage: e = L.embeddings(RR)[0]
@@ -1234,6 +1385,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: e1,e2,e3 = E1.two_division_polynomial().roots(RR,multiplicities=False)
             sage: e1 < e2 < e3 and e(P[0]) < e3
             True
+
         """
         if self.is_zero():       # trivial case
             return True
@@ -1266,21 +1418,23 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return ( e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
 
     def has_good_reduction(self, P=None):
-        """
+        r"""
         Returns True iff this point has good reduction modulo a prime.
 
         INPUT:
 
-            P -- a prime of the base_field of the point's curve, or
-                 None (default)
+        - ``P`` -- a prime of the base_field of the point's curve, or
+          None (default)
 
         OUTPUT:
-           If a prime $P$ of the base field is specified, returns True if
-           the point has good reduction at $P$; otherwise, return true if
-           the point has god reduction at all primes in the support of
-           the discriminant of this model.
 
-        EXAMPLES:
+        (bool) If a prime `P` of the base field is specified, returns
+        True iff the point has good reduction at `P`; otherwise,
+        return true if the point has god reduction at all primes in
+        the support of the discriminant of this model.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('990e1')
             sage: P = E.gen(0); P
             (15 : 51 : 1)
@@ -1298,6 +1452,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             True
             sage: (3*P).has_good_reduction()
             False
+
+        ::
 
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve(K,[0,1,0,-160,308])
@@ -1358,20 +1514,22 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         """
         The Neron-Tate canonical height of the point.
 
-        Currently only implemented for curves defined over QQ (using
+        Currently only implemented for curves defined over `\QQ` (using
         pari); and for points of finite order.
 
         INPUT:
-            self -- a point on a curve over QQ
 
-            precision -- int or None (default: None): the precision
-                         in bits of the result (default real precision
-                         if None)
+        - ``self`` -- a point on a curve over `\QQ`
+
+        - ``precision`` -- (int or None (default)): the precision in
+          bits of the result (default real precision if None)
 
         OUTPUT:
-            the rational number 0 or a nonzero real field element
 
-        EXAMPLES:
+        The rational number 0, or a nonzero real field element
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('11a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: P = E([5,5]); P
@@ -1381,6 +1539,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q = 5*P
             sage: Q.height()
             0
+
+        ::
 
             sage: E = EllipticCurve('37a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
@@ -1392,6 +1552,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.regulator()      # slightly random output
             0.051111408239968840
 
+        ::
+
             sage: E = EllipticCurve('4602a1'); E
             Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 - 37746035*x - 89296920339 over Rational Field
             sage: x = 77985922458974949246858229195945103471590
@@ -1399,6 +1561,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: d = 2254020761884782243
             sage: E([ x / d^2,  y / d^3 ]).height()
             86.7406561381275
+
+        ::
 
             sage: E = EllipticCurve([17, -60, -120, 0, 0]); E
             Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field
@@ -1415,7 +1579,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: _.parent()
             Real Field with 100 bits of precision
 
-        An example to show that the bug at \#5252 is fixed:
+        An example to show that the bug at \#5252 is fixed::
+
             sage: E = EllipticCurve([1, -1, 1, -2063758701246626370773726978, 32838647793306133075103747085833809114881])
             sage: P = E([-30987785091199, 258909576181697016447])
             sage: P.height()
@@ -1428,7 +1593,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             25.8603170675461907438688407407351103230988729038444162155771710417835725129551130570889813281792157278507639909972112856019190236125362914195452321720
 
 
-        Unfortunately, canonical height isn't implemented in general.
+        Unfortunately, canonical height is not yet implemented in general::
+
             sage: E = EllipticCurve('5077a1').change_ring(QuadraticField(-3,'a'))
             sage: P = E([-2,3,1])
             sage: P.height()
@@ -1449,32 +1615,39 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             raise NotImplementedError, "canonical height not yet implemented over general number fields."
 
     def elliptic_logarithm(self, embedding=None, precision=100, algorithm='pari'):
-        """
+        r"""
         Returns the elliptic logarithm of this elliptic curve point.
 
-        An embedding of the base field into RR (with any precision)
-        may be given; otherwise the first real embedding is used (with
-        the specified precision), if there are any; otherwise a
-        NotImplementedError is raised, since we have not yet
-        implemented the complex elliptic logarithm.
+        An embedding of the base field into `\RR` (with arbitrary
+        precision) may be given; otherwise the first real embedding is
+        used (with the specified precision), if there are any;
+        otherwise a NotImplementedError is raised, since we have not
+        yet implemented the complex elliptic logarithm.
 
         INPUT:
-            embedding: an embedding of the base field into RR
-            precision: a positive integer (default 100) setting the
-                       number of bits of precision for the computation
-            algorithm: either 'pari' (default) to use Pari's
-                       ellpointtoz, or 'sage' for a native
-                       implementation (currently not very accurate)
 
-        ALGORITHM: See -[Co2] Cohen H., A Course in Computational
-                        Algebraic Number Theory GTM 138, Springer 1996
+        - ``embedding``: an embedding of the base field into RR
+
+        - ``precision``: a positive integer (default 100) setting the
+          number of bits of precision for the computation
+
+        - ``algorithm``: either 'pari' (default) to use Pari's
+          ``ellpointtoz{}``, or 'sage' for a native implementation
+          (currently not very accurate)
+
+        ALGORITHM:
+
+        See [Co2] Cohen H., A Course in Computational Algebraic
+        Number Theory GTM 138, Springer 1996.
 
         AUTHORS:
-            - Michael Mardaus (2008-07) }
-            - Tobias Nagel (2008-07)    } original version from [Co2]
-            - John Cremona (2008-07)    revision following eclib code
 
-        EXAMPLES:
+        - Michael Mardaus (2008-07),
+        - Tobias Nagel (2008-07) -- original version from [Co2].
+        - John Cremona (2008-07) -- revision following eclib code.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('389a')
             sage: E.discriminant() > 0
             True
@@ -1489,7 +1662,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.elliptic_logarithm (precision=96)
             1.931128271542559442488585220
 
-        An example with negative discriminant, and a torsion point:
+        An example with negative discriminant, and a torsion point::
+
             sage: E = EllipticCurve('11a1')
             sage: E.discriminant() < 0
             True
@@ -1500,18 +1674,21 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             5.000000000000000000000000000
 
         A larger example.  The default algorithm uses Pari and makes
-        sure the result has the requested precision.
+        sure the result has the requested precision::
+
             sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
             sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
             sage: P.elliptic_logarithm()  # 100 bits
             0.27656204014107061464076203097
 
         However, the native algorithm 'sage' has trouble with
-        precision in this example:
+        precision in this example::
+
             sage: P.elliptic_logarithm(algorithm='sage')  # 100 bits
             0.2765620401410710087007...
 
-        This shows that the bug reported at \#4901 has been fixed:
+        This shows that the bug reported at \#4901 has been fixed::
+
             sage: E = EllipticCurve("4390c2")
             sage: P = E(683762969925/44944,-565388972095220019/9528128)
             sage: P.elliptic_logarithm()
@@ -1700,29 +1877,39 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
     def padic_elliptic_logarithm(self, p, absprec=20):
         r"""
-        Computes the p-adic elliptic logarithm of self.
+        Computes the `p`-adic elliptic logarithm of this point.
 
         INPUT:
-            p - integer: a prime
-            absprec - integer (default: 20): the initial p-adic
-                      absolute precision of the computation
+
+        ``p`` - integer: a prime ``absprec`` - integer (default: 20):
+        the initial `p`-adic absolute precision of the computation
 
         OUTPUT:
-            p-adic elliptic logarithm of self
 
-        AUTHORS: Tobias Nagel, Michael Mardaus, John Cremona
+        The `p`-adic elliptic logarithm of self, with precision ``absprec``.
 
-        METHOD: For points in the formal group (i.e. not integral at
-            p) we take the log() function from the formal groups
-            module and evaluate it at -x/y.  Otherwise we first
-            multiply the point to get into the formal group, and
-            divide the result afterwards.
+        AUTHORS:
 
-        TODO: See comments at trac \#4805.  Currently the absolute
-        precision of the result may be less than the given value of
-        absprec, and error-handling is imperfect..
+        - Tobias Nagel
+        - Michael Mardaus
+        - John Cremona
 
-        EXAMPLES:
+        ALGORITHM:
+
+        For points in the formal group (i.e. not integral at `p`) we
+        take the ``log()`` function from the formal groups module and
+        evaluate it at `-x/y`.  Otherwise we first multiply the point
+        to get into the formal group, and divide the result
+        afterwards.
+
+        TODO:
+
+        See comments at trac \#4805.  Currently the absolute precision
+        of the result may be less than the given value of absprec, and
+        error-handling is imperfect.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve([0,1,1,-2,0])
             sage: E(0).padic_elliptic_logarithm(3)
             0
@@ -1739,15 +1926,16 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
             [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
 
-        An example which arose during reviewing #4741:
-        sage: E = EllipticCurve('794a1')
-        sage: P = E(-1,2)
-        sage: P.padic_elliptic_logarithm(2) # default precision=20
-        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^16)
-        sage: P.padic_elliptic_logarithm(2, absprec=30)
-        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + O(2^26)
-        sage: P.padic_elliptic_logarithm(2, absprec=40)
-        2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + 2^28 + 2^29 + 2^31 + 2^34 + O(2^35)
+        An example which arose during reviewing #4741::
+
+            sage: E = EllipticCurve('794a1')
+            sage: P = E(-1,2)
+            sage: P.padic_elliptic_logarithm(2) # default precision=20
+            2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + O(2^16)
+            sage: P.padic_elliptic_logarithm(2, absprec=30)
+            2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + O(2^26)
+            sage: P.padic_elliptic_logarithm(2, absprec=40)
+            2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + 2^28 + 2^29 + 2^31 + 2^34 + O(2^35)
         """
         if not p.is_prime():
             raise ValueError,'p must be prime'
@@ -1819,42 +2007,61 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
 
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
-
+    r"""
+    Class for elliptic curve points over finite fields.
+    """
     def _magma_init_(self, magma):
         """
-        Return a string representation of self that MAGMA can
-        understand.
+        Return a string representation of self that ``MAGMA`` can
+        use for input.
 
-        EXAMPLE:
-        sage: E = EllipticCurve(GF(17), [1,-1])
-        sage: P = E([13, 4])
-        sage: P._magma_init_(magma)                               # optional - magma
-        'EllipticCurve([_sage_ref...|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
+        EXAMPLE::
+
+            sage: E = EllipticCurve(GF(17), [1,-1])
+            sage: P = E([13, 4])
+            sage: P._magma_init_(magma)                               # optional - magma
+            'EllipticCurve([_sage_ref...|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
         """
         E = self.curve()._magma_init_(magma)
         x,y = self.xy()
         return "%s![%s,%s]"%(E,x,y)
 
     def discrete_log(self, Q, ord=None):
-        """
-        Returns discrete log of Q with respect to self, i.e., an
-        integer m with 0<=m<order(self) such that m*self==Q, if one
-        exists; otherwise raise an error.  The order of self is
-        computed if not supplied
+        r"""
+        Returns discrete log of `Q` with respect to `P` =self.
 
-        AUTHOR: John Cremona. Adapted to use generic functions 2008-04-05
+        INPUT:
 
-        EXAMPLE:
-        sage: F=GF(3^6,'a')
-        sage: a=F.gen()
-        sage: E= EllipticCurve([0,1,1,a,a])
-        sage: E.cardinality()
-        762
-        sage: A,G=E.abelian_group() ## set since this E is cyclic
-        sage: P=G[0]
-        sage: Q=400*P
-        sage: P.discrete_log(Q)
-        400
+        - ``Q`` (point) -- another point on the same curve as self.
+
+        - ``ord`` (integer or None (default)) -- the order of self.
+
+        OUTPUT:
+
+        (integer) -- The discrete log of `Q` with respect to `P`, which is an
+        integer `m` with `0\le m<o(P)` such that `mP=Q`, if one
+        exists. A ValueError is raised if there is no solution.
+
+        .. note::
+
+           The order of self is computed if not supplied.
+
+        AUTHOR:
+
+        - John Cremona. Adapted to use generic functions 2008-04-05.
+
+        EXAMPLE::
+
+            sage: F=GF(3^6,'a')
+            sage: a=F.gen()
+            sage: E= EllipticCurve([0,1,1,a,a])
+            sage: E.cardinality()
+            762
+            sage: A,G=E.abelian_group() ## set since this E is cyclic
+            sage: P=G[0]
+            sage: Q=400*P
+            sage: P.discrete_log(Q)
+            400
         """
         if ord==None: ord=self.order()
         try:
@@ -1864,10 +2071,28 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
 
     def order(self):
-        """
+        r"""
         Return the order of this point on the elliptic curve.
 
-        EXAMPLES:
+        ALGORITHM:
+
+        Use generic functions from ``sage.groups.generic``.  If the
+        group order is known, use ``order_from_multiple()``, otherwise
+        use ``order_from_bounds()`` with the Hasse bounds for the base
+        field.  In the latter case, we might find that we have a
+        generator for the group, in which case it is cached.
+
+        We do not cause the group order to be calculated when not
+        known, since this function is used in determining the group
+        order via computation of several random points and their
+        orders.
+
+        AUTHOR:
+
+        - John Cremona, 2008-02-10, adapted 2008-04-05 to use generic functions.
+
+        EXAMPLES::
+
             sage: k.<a> = GF(5^5)
             sage: E = EllipticCurve(k,[2,4]); E
             Elliptic Curve defined by y^2 = x^3 + 2*x + 4 over Finite Field in a of size 5^5
@@ -1878,8 +2103,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: Q.order()
             7
 
-            In the next example, the cardinality of E will be computed
-            (using SEA) and cached:
+        In the next example, the cardinality of E will be computed (using SEA) and cached::
 
             sage: p=next_prime(2^150)
             sage: E=EllipticCurve(GF(p),[1,1])
@@ -1889,20 +2113,6 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P.order()==E.cardinality()
             True
 
-
-        ALGORITHM: Use generic functions.  If the group order is
-        known, use order_from_multiple(), otherwise use
-        order_from_bounds() with the Hasse bounds.  In the latter case
-        we might find that we have a generator, in which case it is
-        cached.
-
-        We do not cause the group order to be calculated when not
-        known, since this function is used in determining the group
-        order via computation of several random points and their
-        orders.
-
-        AUTHOR: John Cremona, 2008-02-10, adapted 2008-04-05 to use
-        generic functions
 
         """
         try:

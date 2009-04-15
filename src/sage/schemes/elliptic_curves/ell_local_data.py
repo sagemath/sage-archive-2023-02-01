@@ -1,9 +1,10 @@
 r"""
-Local data for elliptic curves over number fields (including Q) at primes.
+Local data for elliptic curves over number fields (including `\QQ`) at primes.
 
 AUTHORS:
-    -- John Cremona: First version 2008-09-21 (refactoring code from
-       ell_number_field.py and ell_rational_field.py)
+
+- John Cremona: First version 2008-09-21 (refactoring code from
+  ``ell_number_field.py`` and ``ell_rational_field.py``)
 """
 
 #*****************************************************************************
@@ -31,35 +32,43 @@ from constructor import EllipticCurve
 from kodaira_symbol import KodairaSymbol
 
 class EllipticCurveLocalData(SageObject):
-    """
+    r"""
     The class for the local reduction data of an elliptic curve.
 
-    Currently supported are elliptic curves defined over Q, and
+    Currently supported are elliptic curves defined over `\QQ`, and
     elliptic curves defined over a number field, at an arbitrary prime
     or prime ideal.
     """
 
     def __init__(self, E, P, proof=None, algorithm="pari"):
-        """
-        Initializes the reduction data for the elliptic curve E at the prime P.
+        r"""
+        Initializes the reduction data for the elliptic curve `E` at the prime `P`.
 
         INPUT:
-            E -- an elliptic curve defined over a number field (or QQ)
-            P -- a prime ideal of the field
-                 (or a prime integer if the field is QQ)
-            proof -- whether to only use provably correct methods
-                     (default controlled by global proof module).  Note
-                     that the proof module is number_field, not
-                     elliptic_curves, since the functions that
-                     actually need the flag are in number fields.
-            algorithm -- str, (default: "pari")
-                   (ignored unless E.base_field() is QQ)
-                   "pari"   -- use the PARI C-library ellglobalred
-                               implementation of Tate's algorithm over QQ.
-                   "generic" -- use the general number field implementation.
 
-        EXAMPLES:
-            This function is not normally called directly by the user.
+        - ``E`` -- an elliptic curve defined over a number field, or `\QQ`.
+
+        - ``P`` -- a prime ideal of the field, or a prime integer if the field is `\QQ`.
+
+        - ``proof`` (bool)-- if True, only use provably correct
+          methods (default controlled by global proof module).  Note
+          that the proof module is number_field, not elliptic_curves,
+          since the functions that actually need the flag are in
+          number fields.
+
+        - algorithm (string, default: "pari") -- Ignored unless the
+          base field is `\QQ`.  If "pari", use the PARI C-library
+          ``ellglobalred`` implementation of Tate's algorithm over
+          `\QQ`. If "generic", use the general number field
+          implementation.
+
+        .. note::
+
+           This function is not normally called directly by users, who
+           may access the data via methods of the EllipticCurve
+           classes.
+
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve('14a1')
@@ -72,6 +81,8 @@ class EllipticCurveLocalData(SageObject):
             Kodaira Symbol: I6
             Tamagawa Number: 2
 
+        ::
+
             sage: EllipticCurveLocalData(E,2,algorithm="generic")
             Local data at Principal ideal (2) of Integer Ring:
             Reduction type: bad non-split multiplicative
@@ -80,6 +91,8 @@ class EllipticCurveLocalData(SageObject):
             Conductor exponent: 1
             Kodaira Symbol: I6
             Tamagawa Number: 2
+
+        ::
 
             sage: EllipticCurveLocalData(E,2,algorithm="pari")
             Local data at Principal ideal (2) of Integer Ring:
@@ -90,10 +103,14 @@ class EllipticCurveLocalData(SageObject):
             Kodaira Symbol: I6
             Tamagawa Number: 2
 
+        ::
+
             sage: EllipticCurveLocalData(E,2,algorithm="unknown")
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be one of 'pari', 'generic'
+
+        ::
 
             sage: EllipticCurveLocalData(E,3)
             Local data at Principal ideal (3) of Integer Ring:
@@ -103,6 +120,8 @@ class EllipticCurveLocalData(SageObject):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+
+        ::
 
             sage: EllipticCurveLocalData(E,7)
             Local data at Principal ideal (7) of Integer Ring:
@@ -147,10 +166,11 @@ class EllipticCurveLocalData(SageObject):
                     self._reduction_type = -1
 
     def __repr__(self):
-        """
+        r"""
         Returns the string representation of this reduction data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve('14a1')
             sage: EllipticCurveLocalData(E,2).__repr__()
@@ -169,7 +189,8 @@ class EllipticCurveLocalData(SageObject):
         """
         Return the (local) minimal model from this local reduction data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
             Elliptic Curve defined by y^2  = x^3 + 64 over Rational Field
@@ -185,7 +206,8 @@ class EllipticCurveLocalData(SageObject):
         """
         Return the prime ideal associated with this local reduction data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
             Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
@@ -199,7 +221,8 @@ class EllipticCurveLocalData(SageObject):
         """
         Return the valuation of the conductor from this local reduction data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
             Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
@@ -210,10 +233,11 @@ class EllipticCurveLocalData(SageObject):
         return self._fp
 
     def kodaira_symbol(self):
-        """
+        r"""
         Return the Kodaira symbol from this local reduction data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
             Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
@@ -227,9 +251,10 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return the Tamagawa number from this local reduction data.
 
-        This is the index $[E(K_v):E^0(K_v)]$.
+        This is the index `[E(K_v):E^0(K_v)]`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve([0,0,0,0,64]); E
             Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
@@ -243,10 +268,11 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return the Tamagawa index from this local reduction data.
 
-        This is the exponent of $E(K_v)/E^0(K_v)$; in most cases it is
+        This is the exponent of `E(K_v)/E^0(K_v)`; in most cases it is
         the same as the Tamagawa index.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
             sage: E = EllipticCurve('816a1')
             sage: data = EllipticCurveLocalData(E,2)
@@ -276,15 +302,19 @@ class EllipticCurveLocalData(SageObject):
 
     def bad_reduction_type(self):
         r"""
-        Return the type of bad reduction.
+        Return the type of bad reduction of this reduction data.
 
         OUTPUT:
-            +1 for split multiplicative reduction
-            -1 for non-split multiplicative reduction
-            0  for additive reduction
-            None for good reduction
 
-        EXAMPLES:
+        (int or ``None``):
+
+        - +1 for split multiplicative reduction
+        - -1 for non-split multiplicative reduction
+        - 0  for additive reduction
+        - ``None`` for good reduction
+
+        EXAMPLES::
+
             sage: E=EllipticCurve('14a1')
             sage: [(p,E.local_data(p).bad_reduction_type()) for p in prime_range(15)]
             [(2, -1), (3, None), (5, None), (7, 1), (11, None), (13, None)]
@@ -301,7 +331,8 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return True if there is good reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_good_reduction()) for p in prime_range(15)]
             [(2, False), (3, True), (5, True), (7, False), (11, True), (13, True)]
@@ -319,10 +350,13 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return True if there is bad reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_bad_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
@@ -337,13 +371,18 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return True if there is multiplicative reduction.
 
-        See also has_split_multiplicative_reduction() and
-                 has_nonsplit_multiplicative_reduction().
+        .. note::
 
-        EXAMPLES:
+           See also ``has_split_multiplicative_reduction()`` and
+           ``has_nonsplit_multiplicative_reduction()``.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_multiplicative_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
@@ -355,12 +394,15 @@ class EllipticCurveLocalData(SageObject):
 
     def has_split_multiplicative_reduction(self):
         r"""
-        Return True if there is split multiplicative  reduction.
+        Return True if there is split multiplicative reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_split_multiplicative_reduction()) for p in prime_range(15)]
             [(2, False), (3, False), (5, False), (7, True), (11, False), (13, False)]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
@@ -373,12 +415,15 @@ class EllipticCurveLocalData(SageObject):
 
     def has_nonsplit_multiplicative_reduction(self):
         r"""
-        Return True if there is non-split multiplicative  reduction.
+        Return True if there is non-split multiplicative reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('14a1')
             sage: [(p,E.local_data(p).has_nonsplit_multiplicative_reduction()) for p in prime_range(15)]
             [(2, True), (3, False), (5, False), (7, False), (11, False), (13, False)]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
@@ -392,10 +437,13 @@ class EllipticCurveLocalData(SageObject):
         r"""
         Return True if there is additive reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('27a1')
             sage: [(p,E.local_data(p).has_additive_reduction()) for p in prime_range(15)]
             [(2, False), (3, True), (5, False), (7, False), (11, False), (13, False)]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: P17a, P17b = [P for P,e in K.factor(17)]
@@ -407,27 +455,32 @@ class EllipticCurveLocalData(SageObject):
         return self._reduction_type == 0
 
     def _tate(self, proof = None):
-        """
-        Tate's algorithm for an elliptic curve over a number field:
-        computes local reduction data at a prime ideal and a local
-        minimal model.
+        r"""
+        Tate's algorithm for an elliptic curve over a number field.
 
-        The model is not required to be integral on input.  If P is
+        Computes both local reduction data at a prime ideal and a
+        local minimal model.
+
+        The model is not required to be integral on input.  If `P` is
         principal, uses a generator as uniformizer, so it will not
-        affect integrality or minimality at other primes.  If P is not
+        affect integrality or minimality at other primes.  If `P` is not
         principal, the minimal model returned will preserve
         integrality at other primes, but not minimality.
 
-        INPUT:
-            Called only by the EllipticCurveLocalData.__init__()
+        .. note::
+
+           Called only by ``EllipticCurveLocalData.__init__()``.
 
         OUTPUT:
-            Emin -- a model (integral and) minimal at P
-            p    -- the residue characteristic
-            val_disc  -- the valuation of the local minimal discriminant
-            fp   -- valuation of the conductor
-            KS   -- Kodaira symbol
-            cp   -- Tamagawa number
+
+        (tuple) ``(Emin, p, val_disc, fp, KS, cp)`` where:
+
+        - ``Emin`` (EllipticCurve) is a model (integral and) minimal at P
+        - ``p`` (int) is the residue characteristic
+        - ``val_disc`` (int) is the valuation of the local minimal discriminant
+        - ``fp`` (int) is the valuation of the conductor
+        - ``KS`` (string) is the Kodaira symbol
+        - ``cp`` (int) is the Tamagawa number
 
         """
         E = self._curve
@@ -453,7 +506,7 @@ class EllipticCurveLocalData(SageObject):
 
         def _pquadroots(a, b, c):
             r"""
-            Local function returning True iff $ax^2 + bx + c$ has roots modulo P
+            Local function returning True iff `ax^2 + bx + c` has roots modulo `P`
             """
             (a, b, c) = (F(a), F(b), F(c))
             if a == 0:
@@ -464,8 +517,8 @@ class EllipticCurveLocalData(SageObject):
                 return (b**2 - 4*a*c).is_square()
         def _pcubicroots(b, c, d):
             r"""
-            Local function returning the number of roots of $x^3 +
-            b*x^2 + c*x + d$ modulo P, counting multiplicities
+            Local function returning the number of roots of `x^3 +
+            b*x^2 + c*x + d` modulo `P`, counting multiplicities
             """
             return sum([rr[1] for rr in PolynomialRing(F, 'x')([d, c, b, 1]).roots()],0)
 
@@ -752,19 +805,27 @@ class EllipticCurveLocalData(SageObject):
 
 
 def check_prime(K,P):
-    """
-    Function to check that P determines a prime of K, and return that ideal.
+    r"""
+    Function to check that `P` determines a prime of `K`, and return that ideal.
 
     INPUT:
-        K -- a number field (including QQ)
-        P -- an element of K or a (fractional) ideal of K
+
+    - ``K`` -- a number field (including `\QQ`).
+
+    - ``P`` -- an element of ``K`` or a (fractional) ideal of ``K``.
 
     OUTPUT:
-        If K is QQ: the prime integer equal to or which generates P.
-        If K is not QQ: the prime ideal equal to or generated by P.
-        If P is not a prime and does not generate a prime, an error is raised.
 
-    EXAMPLES:
+    - If ``K`` is `\QQ`: the prime integer equal to or which generates `P`.
+
+    - If ``K`` is not `\QQ``: the prime ideal equal to or generated by `P`.
+
+    .. note::
+
+       If `P` is not a prime and does not generate a prime, a TypeError is raised.
+
+    EXAMPLES::
+
         sage: from sage.schemes.elliptic_curves.ell_local_data import check_prime
         sage: check_prime(QQ,3)
         3

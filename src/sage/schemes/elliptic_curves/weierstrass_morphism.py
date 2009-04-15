@@ -1,10 +1,11 @@
-"""
+r"""
 Isomorphisms between Weierstrass models of elliptic curves
 
 AUTHORS:
-   * Robert Bradshaw (2007): initial version
-   * John Cremona (Jan 2008): isomorphisms, automorphisms and twists
-                              in all characteristics
+
+- Robert Bradshaw (2007): initial version
+- John Cremona (Jan 2008): isomorphisms, automorphisms and twists
+  in all characteristics
 """
 
 #*****************************************************************************
@@ -28,19 +29,20 @@ from constructor import EllipticCurve
 from sage.categories.homset import Hom
 
 class baseWI:
-    r""" This class implements the basic arithmetic of isomorphisms
-    between Weierstrass models of elliptic curves.  These are
-    specified by lists of the form [u,r,s,t] (with u!=0) which
-    specifies a transformation $(x,y) \mapsto (x',y')$ where
+    r"""
+    This class implements the basic arithmetic of isomorphisms between
+    Weierstrass models of elliptic curves.  These are specified by
+    lists of the form `[u,r,s,t]` (with `u\not=0`) which specifies a
+    transformation `(x,y) \mapsto (x',y')` where
 
-            $$ (x,y) = (u^2x'+r , u^3y' + su^2x' + t) $$
-    """
+            `(x,y) = (u^2x'+r , u^3y' + su^2x' + t).`
 
-    def __init__(self, u=1, r=0, s=0, t=0):
-        r"""
-        Constructor: check for valid parameters (defaults to identity)
+    INPUT:
 
-        EXAMPLES:
+    - ``u,r,s,t`` (default (1,0,0,0)) -- standard parameters of an isomorphism between Weierstrass models.
+
+    EXAMPLES::
+
         sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
         sage: baseWI()
         (1, 0, 0, 0)
@@ -48,6 +50,25 @@ class baseWI:
         (2, 3, 4, 5)
         sage: R.<u,r,s,t>=QQ[]; baseWI(u,r,s,t)
         (u, r, s, t)
+    """
+
+    def __init__(self, u=1, r=0, s=0, t=0):
+        r"""
+        Constructor: check for valid parameters (defaults to identity)
+
+        INPUT:
+
+        - ``u,r,s,t`` (default (1,0,0,0)) -- standard parameters of an isomorphism between Weierstrass models.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: baseWI()
+            (1, 0, 0, 0)
+            sage: baseWI(2,3,4,5)
+            (2, 3, 4, 5)
+            sage: R.<u,r,s,t>=QQ[]; baseWI(u,r,s,t)
+            (u, r, s, t)
         """
         if u==0:
             raise ValueError, "u!=0 required for baseWI"
@@ -55,24 +76,30 @@ class baseWI:
 
     def __cmp__(self, other):
         """
-        The ordering is just lexicographic on the tuple (u,r,s,t)
+        Standard comparison function.
 
-        NB In a list of automprhisms there's no guarantee that the
-        identity will be first!
+        The ordering is just lexicographic on the tuple `(u,r,s,t)`.
 
-        EXAMPLE:
+        .. note::
 
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: baseWI(1,2,3,4)==baseWI(1,2,3,4)
-        True
-        sage: baseWI(1,2,3,4)<baseWI(1,2,3,5)
-        True
-        sage: baseWI(1,2,3,4)>baseWI(1,2,3,4)
-        False
+           In a list of automprhisms, there is no guarantee that the
+           identity will be first!
 
-        It will never return equaity if other is of another type:
-        sage: baseWI() == 1
-        False
+        EXAMPLE::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: baseWI(1,2,3,4)==baseWI(1,2,3,4)
+            True
+            sage: baseWI(1,2,3,4)<baseWI(1,2,3,5)
+            True
+            sage: baseWI(1,2,3,4)>baseWI(1,2,3,4)
+            False
+
+        ::
+
+        It will never return equality if other is of another type:
+            sage: baseWI() == 1
+            False
 
         """
         if not isinstance(other, baseWI):
@@ -81,29 +108,30 @@ class baseWI:
 
     def tuple(self):
         r"""
-        Returns the parameters u,r,s,t as a tuple
+        Returns the parameters `u,r,s,t` as a tuple.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: u,r,s,t=baseWI(2,3,4,5).tuple()
-        sage: w=baseWI(2,3,4,5)
-        sage: u,r,s,t=w.tuple()
-        sage: u
-        2
+        EXAMPLES::
 
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: u,r,s,t=baseWI(2,3,4,5).tuple()
+            sage: w=baseWI(2,3,4,5)
+            sage: u,r,s,t=w.tuple()
+            sage: u
+            2
         """
         return (self.u,self.r,self.s,self.t)
 
     def __mul__(self, other):
         r"""
-        Composition of isomorphisms
+        Returns the Composition of this isomorphism and another.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: baseWI(1,2,3,4)*baseWI(5,6,7,8)
-        (5, 56, 22, 858)
-        sage: baseWI()*baseWI(1,2,3,4)*baseWI()
-        (1, 2, 3, 4)
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: baseWI(1,2,3,4)*baseWI(5,6,7,8)
+            (5, 56, 22, 858)
+            sage: baseWI()*baseWI(1,2,3,4)*baseWI()
+            (1, 2, 3, 4)
         """
         u1,r1,s1,t1=other.tuple()
         u2,r2,s2,t2=self.tuple()
@@ -111,68 +139,82 @@ class baseWI:
 
     def __invert__(self):
         r"""
-        Inverse of an isomporphism
+        Returns the inverse of this isomporphism.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: w=baseWI(2,3,4,5)
-        sage: ~w
-        (1/2, -3/4, -2, 7/8)
-        sage: w*~w
-        (1, 0, 0, 0)
-        sage: ~w*w
-        (1, 0, 0, 0)
-        sage: R.<u,r,s,t>=QQ[]; w=baseWI(u,r,s,t)
-        sage: ~w
-        (1/u, (-r)/u^2, (-s)/u, (r*s - t)/u^3)
-        sage: ~w*w
-        (1, 0, 0, 0)
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: w=baseWI(2,3,4,5)
+            sage: ~w
+            (1/2, -3/4, -2, 7/8)
+            sage: w*~w
+            (1, 0, 0, 0)
+            sage: ~w*w
+            (1, 0, 0, 0)
+            sage: R.<u,r,s,t>=QQ[]; w=baseWI(u,r,s,t)
+            sage: ~w
+            (1/u, (-r)/u^2, (-s)/u, (r*s - t)/u^3)
+            sage: ~w*w
+            (1, 0, 0, 0)
         """
         u,r,s,t=self.tuple()
         return baseWI(1/u,-r/(u**2),-s/u,(r*s-t)/(u**3))
 
     def __repr__(self):
         r"""
-        String representation
+        Returns the string representation  of this isomorphism.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: baseWI(2,3,4,5)
-        (2, 3, 4, 5)
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: baseWI(2,3,4,5)
+            (2, 3, 4, 5)
         """
         return self.tuple().__repr__()
 
     def is_identity(self):
         r"""
-        Tests for identity
+        Returns True if this is the identity isomorphism.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: w=baseWI(); w.is_identity()
-        True
-        sage: w=baseWI(2,3,4,5); w.is_identity()
-        False
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: w=baseWI(); w.is_identity()
+            True
+            sage: w=baseWI(2,3,4,5); w.is_identity()
+            False
         """
         return self.tuple()==(1,0,0,0)
 
     def __call__(self, EorP):
-        r""" Base application of isomorphisms to curves and points: a baseWI w
-        may be applied to a list [a1,a2,a3,a4,a6] representing the
-        a-invariants of an elliptic curve E, returning the
-        a-invariants of w(E); or to P=[x,y] or P=[x,y,z] represeting a
-        point in A^2 or P^2, returning the transformed point.
+        r"""
+        Base application of isomorphisms to curves and points: a
+        baseWI `w` may be applied to a list `[a1,a2,a3,a4,a6]`
+        representing the `a`-invariants of an elliptic curve `E`,
+        returning the `a`-invariants of `w(E)`; or to `P=[x,y]` or
+        `P=[x,y,z]` represeting a point in `\mathbb{A}^2` or
+        `\mathbb{P}^2`, returning the transformed point.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: E=EllipticCurve([0,0,1,-7,6])
-        sage: w=baseWI(2,3,4,5);
-        sage: w(E.ainvs())
-        [4, -7/4, 11/8, -3/2, -9/32]
-        sage: P=E(-2,3)
-        sage: w(P.xy())
-        [-5/4, 9/4]
-        sage: EllipticCurve(w(E.ainvs()))(w(P.xy()))
-        (-5/4 : 9/4 : 1)
+        INPUT:
+
+        - ``EorP`` -- either an elliptic curve, or a point on an elliptic curve.
+
+        OUTPUT:
+
+        The transformed curve or point.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: E=EllipticCurve([0,0,1,-7,6])
+            sage: w=baseWI(2,3,4,5);
+            sage: w(E.ainvs())
+            [4, -7/4, 11/8, -3/2, -9/32]
+            sage: P=E(-2,3)
+            sage: w(P.xy())
+            [-5/4, 9/4]
+            sage: EllipticCurve(w(E.ainvs()))(w(P.xy()))
+            (-5/4 : 9/4 : 1)
         """
         u,r,s,t=self.tuple()
         if len(EorP)==5:
@@ -196,28 +238,37 @@ class baseWI:
         raise ValueError, "baseWI(a) only for a=(x,y), (x:y:z) or (a1,a2,a3,a4,a6)"
 
 def isomorphisms(E,F,JustOne=False):
-    r""" function to find one or all isomorphisms between two elliptic
-    curves, as simple (u,r,s,t) tuples.
+    r"""
+    Returns one or all isomorphisms between two elliptic curves.
 
-    if JustOne==False it returns a list of these, which is empty
-    iff the curves are not isomorphic.  The length of the list is
-    very often 0 or 2.
+    INPUT:
 
-    if JustOne==True it returns one isomorphism, or None if the
-    curves are not isomorphic.
+    - ``E``, ``F`` (EllipticCurve) -- Two elliptic curves.
 
-    This function is not intended for users, who should use the
-    interface provided by ell_generic.
+    - ``JustOne`` (bool) If True, returns one isomorphism, or None if
+      the curves are not isomorphic.  If False, returns a (possibly
+      empty) list of isomorphisms.
 
-    EXAMPLES:
-    sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'))
-    [(-1, 0, 0, -1), (1, 0, 0, 0)]
-    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'),JustOne=True)
-    (1, 0, 0, 0)
-    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'))
-    []
-    sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'),JustOne=True)
+    OUTPUT:
+
+    Either None, or a 4-tuple `(u,r,s,t)` representing an isomorphism,
+    or a list of these.
+
+    .. note::
+
+       This function is not intended for users, who should use the
+       interface provided by ``ell_generic``.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+        sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'))
+        [(-1, 0, 0, -1), (1, 0, 0, 0)]
+        sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a3'),JustOne=True)
+        (1, 0, 0, 0)
+        sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'))
+        []
+        sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'),JustOne=True)
     """
     from ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E) or not is_EllipticCurve(F):
@@ -318,39 +369,54 @@ def isomorphisms(E,F,JustOne=False):
     return ans
 
 class WeierstrassIsomorphism(baseWI,Morphism):
-
+    r"""
+    Class representing a Weierstrass isomorphism between two elliptic curves.
+    """
     def __init__(self, E=None, urst=None, F=None):
         r"""
-        Given two Weierstrass models $E$ and $F$ of elliptic curves, and
-        a transformation urst from E to F, construct an isomorphism
-        from $E$ to $F$.  An exception is raised if urst(E)!=F.
-        At most one of E, F, urst can be None.  If F==None then it
-        constructed as urst(E).  If E==None then it is constructed as
-        urst^-1(F).  (This is needed surprisingly often).  If
-        urst==None then an isomorphism from E to F is constructed, and
-        an exception is raised if they are not isomorphic.  Otherwise
-        urst can be a tuple of length 4 or a baseWI.
+        Constructor for WeierstrassIsomorphism class,
+
+        INPUT:
+
+        - ``E`` -- an EllipticCurve, or None (see below).
+
+        - ``urst`` -- a 4-tuple `(u,r,s,t)`, or None (see below).
+
+        - ``F`` -- an EllipticCurve, or None (see below).
+
+        Given two Elliptic Curves ``E`` and ``F`` (represented by
+        Weierstrass models as uaual), and a transformation ``urst``
+        from ``E`` to ``F``, construct an isomorphism from ``E`` to
+        ``F``.  An exception is raised if ``urst(E)!=F``.  At most one
+        of ``E``, ``F``, ``urst`` can be None.  If ``F==None`` then
+        ``F`` is constructed as ``urst(E)``.  If ``E==None`` then
+        ``E`` is constructed as ``urst^-1(F)``.  If ``urst==None``
+        then an isomorphism from ``E`` to ``F`` is constructed if
+        possible, and an exception is raised if they are not
+        isomorphic.  Otherwise ``urst`` can be a tuple of length 4 or
+        a object of type ``baseWI``.
 
         Users will not usually need to use this class directly, but instead use
-        methods such as \code{isomorphism} of elliptic curves.
+        methods such as ``isomorphism`` of elliptic curves.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: WeierstrassIsomorphism(EllipticCurve([0,1,2,3,4]),(-1,2,3,4))
-        Generic morphism:
-        From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
-        To:   Abelian group of points on Elliptic Curve defined by y^2 - 6*x*y - 10*y = x^3 - 2*x^2 - 11*x - 2 over Rational Field
-        Via:  (u,r,s,t) = (-1, 2, 3, 4)
-        sage: E=EllipticCurve([0,1,2,3,4])
-        sage: F=EllipticCurve(E.cremona_label())
-        sage: WeierstrassIsomorphism(E,None,F)
-        Generic morphism:
-        From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
-        To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
-        Via:  (u,r,s,t) = (1, 0, 0, -1)
-        sage: w=WeierstrassIsomorphism(None,(1,0,0,-1),F)
-        sage: w._domain_curve==E
-        True
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: WeierstrassIsomorphism(EllipticCurve([0,1,2,3,4]),(-1,2,3,4))
+            Generic morphism:
+            From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2 - 6*x*y - 10*y = x^3 - 2*x^2 - 11*x - 2 over Rational Field
+            Via:  (u,r,s,t) = (-1, 2, 3, 4)
+            sage: E=EllipticCurve([0,1,2,3,4])
+            sage: F=EllipticCurve(E.cremona_label())
+            sage: WeierstrassIsomorphism(E,None,F)
+            Generic morphism:
+            From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
+            Via:  (u,r,s,t) = (1, 0, 0, -1)
+            sage: w=WeierstrassIsomorphism(None,(1,0,0,-1),F)
+            sage: w._domain_curve==E
+            True
         """
         from ell_generic import is_EllipticCurve
 
@@ -405,8 +471,11 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         return
 
     def __cmp__(self, other):
-        """
-        EXAMPLE:
+        r"""
+        Standard comparison function for the WeierstrassIsomorphism class.
+
+        EXAMPLE::
+
         sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
         sage: E=EllipticCurve('389a1')
         sage: F=E.change_weierstrass_model(1,2,3,4)
@@ -416,6 +485,8 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         sage: w2 = F.automorphisms()[0] *w1
         sage: w1==w2
         False
+
+    ::
 
         sage: E=EllipticCurve_from_j(GF(7)(0))
         sage: F=E.change_weierstrass_model(2,3,4,5)
@@ -438,21 +509,27 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         return baseWI.__cmp__(self,other)
 
     def __call__(self, P):
-        r""" Allow a WeierstrassIsomorphism to be called as a function on
-        points of the domain curve to points of the codomain
+        r"""
+        Call function for WeierstrassIsomorphism class.
 
-        EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: E=EllipticCurve('37a1')
-        sage: w=WeierstrassIsomorphism(E,(2,3,4,5))
-        sage: P=E(0,-1)
-        sage: w(P)
-        (-3/4 : 3/4 : 1)
-        sage: w(P).codomain()==E.change_weierstrass_model((2,3,4,5))
-        True
+        INPUT:
 
-        In the last example, note that the curve a point lies on is
-        the "codomain" of the point since points are schemes...
+        - ``P`` (Point) -- a point on the domain curve.
+
+        OUTPUT:
+
+        (Point) the transformed point on the codomain curve.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: E=EllipticCurve('37a1')
+            sage: w=WeierstrassIsomorphism(E,(2,3,4,5))
+            sage: P=E(0,-1)
+            sage: w(P)
+            (-3/4 : 3/4 : 1)
+            sage: w(P).curve()==E.change_weierstrass_model((2,3,4,5))
+            True
         """
         if P[2] == 0:
             return self._codomain_curve(0)
@@ -460,8 +537,11 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             return self._codomain_curve(baseWI.__call__(self,P.xy()))
 
     def __invert__(self):
-        """
-        EXAMPLES:
+        r"""
+        Returns the inverse of this WeierstrassIsomorphism.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('5077')
             sage: F = E.change_weierstrass_model([2,3,4,5]); F
             Elliptic Curve defined by y^2 + 4*x*y + 11/8*y = x^3 - 7/4*x^2 - 3/2*x - 9/32 over Rational Field
@@ -483,11 +563,15 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         return WeierstrassIsomorphism(self._codomain_curve, winv, self._domain_curve)
 
     def __mul__(self,other):
-        """
-        WeierstrassMorphisms can be composed using * if the codomain &
-        domain match: (w1*w2)()=w1(w2()) so require domain(w1)==codomain(w2)
+        r"""
+        Returns the compsition of this WeierstrassIsomorphism and the other,
 
-        EXAMPLES:
+        WeierstrassMorphisms can be composed using ``*`` if the
+        codomain & domain match: `(w1*w2)(X)=w1(w2(X))`, so we require
+        ``w1.domain()==w2.codomain()``.
+
+        EXAMPLES::
+
             sage: E1 = EllipticCurve('5077')
             sage: E2 = E1.change_weierstrass_model([2,3,4,5])
             sage: w1 = E1.isomorphism_to(E2)
@@ -504,10 +588,16 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             raise ValueError, "Domain of first argument must equal codomain of second"
 
     def __repr__(self):
-        """
-        Output of WeierstrassMorphisms outputs the underlying Morphism
-        with an extra line showing the (u,r,s,t) parameters
-        EXAMPLES:
+        r"""
+        Returns the string representation of this WeierstrassIsomorphism.
+
+        OUTPUT:
+
+        (string) The underlying morphism, together with an extra line
+        showing the `(u,r,s,t)` parameters.
+
+        EXAMPLES::
+
             sage: E1 = EllipticCurve('5077')
             sage: E2 = E1.change_weierstrass_model([2,3,4,5])
             sage: E1.isomorphism_to(E2)

@@ -1,3 +1,7 @@
+r"""
+Period lattices of elliptic curves and related functions.
+"""
+
 from sage.modules.free_module import FreeModule_generic_pid
 from sage.rings.all import ZZ, QQ, RealField, ComplexField
 
@@ -8,42 +12,49 @@ class PeriodLattice(FreeModule_generic_pid):
     pass
 
 class PeriodLattice_ell(PeriodLattice):
-    """
+    r"""
     The class for the period lattice of an elliptic curve.
 
-    Currently supported are elliptic curves defined over Q, and
-    elliptic curves defined over a number field with a real embedding,
-    where the lattice constructed depends on that embedding.
-    Extending this support to complex embeddings is not possible using
-    pari library functions, but could be implemented using the complex
-    AGM.
+    Currently supported are elliptic curves defined over `\QQ`,
+    and elliptic curves defined over a number field with a real
+    embedding, where the lattice constructed depends on that
+    embedding.  Extending this support to complex embeddings is not
+    possible using pari library functions, but could be implemented
+    using the complex AGM.
     """
 
     def __init__(self, E, real_embedding=None):
-        """
+        r"""
         Initializes the period lattice by storing the elliptic curve.
 
         INPUT:
-            E -- an elliptic curve
-            real_embedding -- an embedding of the base field K of E
-                              into a real field.  If None (the
-                              default) uses the first embedding given
-                              by K.embeddings(RealField()), except
-                              that when K=Q, the built-in coercion is
-                              used instead.
 
-        NOTE: No periods are computed on creation of the lattice; see
-        the functions basis() and real_period() for precision matters.
+        - ``E`` -- an elliptic curve
+
+        - ``real_embedding`` (defult: ``None``) -- an embedding of the
+          base field `K` of ``E`` into a real field.  If ``None``, use
+          the first embedding given by ``K.embeddings(RealField())``,
+          except that when `K=\QQ`, the built-in coercion is
+          used instead.
+
+        .. note::
+
+           No periods are computed on creation of the lattice; see the
+           functions ``basis()`` and ``real_period()`` for precision
+           setting.
 
         EXAMPLES:
-            This function is not normally called directly, but will be
-            called by the period_lattice() function of classes
-            ell_number_field and ell_rational_field.
+
+        This function is not normally called directly, but will be
+        called by the period_lattice() function of classes
+        ell_number_field and ell_rational_field::
 
             sage: from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
             sage: E = EllipticCurve('37a')
             sage: PeriodLattice_ell(E)
             Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -75,10 +86,13 @@ class PeriodLattice_ell(PeriodLattice):
         """
         Returns the string representation of this period lattice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice()
             Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -98,34 +112,40 @@ class PeriodLattice_ell(PeriodLattice):
         r"""
         Return a basis for this period lattice as a 2-tuple.
 
-        The basis has the form $[\omega_1, \omega_2]$, where
-        $\Im(\omega_1/\omega_2) > 0$ and $\omega_1$ is real.
-
         INPUT:
-            prec -- real precision in bits (default real precision if None)
+
+        - ``prec`` (default: ``None``) -- real precision in bits
+          (default real precision if ``None``).
 
         OUTPUT:
-            omega_1 -- complex number
-            omega_2 -- complex number
 
-        EXAMPLES:
+        (tuple of Complex) `(\omega_1,\omega_2)` where the lattice has
+        the form `\ZZ\omega_1 + \ZZ\omega_2` where
+        `\Im(\omega_1/\omega_2) > 0` and `\omega_1` is real.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis()
             (2.99345864623196, 2.45138938198679*I)
 
-        This shows that the issue reported at trac \#3954 is fixed:
+        This shows that the issue reported at trac \#3954 is fixed::
+
             sage: E = EllipticCurve('37a')
             sage: b1 = E.period_lattice().basis(prec=30)
             sage: b2 = E.period_lattice().basis(prec=30)
             sage: b1 == b2
             True
 
-        This shows that the issue reported at trac \#4064 is fixed:
+        This shows that the issue reported at trac \#4064 is fixed::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
             Real Field with 30 bits of precision
             sage: E.period_lattice().basis(prec=100)[0].parent()
             Real Field with 100 bits of precision
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -154,16 +174,18 @@ class PeriodLattice_ell(PeriodLattice):
 
     def is_rectangular(self):
         r"""
-        Return True precisely if the period lattice of self
-        is rectangular.
+        Return True if this period lattice is rectangular.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = EllipticCurve('11a')
             sage: f.period_lattice().basis()
             (1.26920930427955, 0.634604652139777 + 1.45881661693850*I)
-
             sage: f.period_lattice().is_rectangular()
             False
+
+        ::
+
             sage: f = EllipticCurve('37b')
             sage: f.period_lattice().basis()
             (1.08852159290423, 1.76761067023379*I)
@@ -171,9 +193,10 @@ class PeriodLattice_ell(PeriodLattice):
             True
 
         ALGORITHM:
-            The period lattice is rectangular precisely if the
-            discriminant of the Weierstrass equation is positive, or
-            equivalently if the number of real components is 2.
+
+        The period lattice is rectangular precisely if the
+        discriminant of the Weierstrass equation is positive, or
+        equivalently if the number of real components is 2.
         """
         return self.n_components == 2
 
@@ -182,12 +205,17 @@ class PeriodLattice_ell(PeriodLattice):
         Returns the real period of this period lattice.
 
         INPUT:
-            prec -- real precision in bits (default real precision if None)
 
-        EXAMPLES:
+        - ``prec`` (dfault ``None``) -- real precision in bits (default
+          real precision if ``None``)
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().real_period()
             2.99345864623196
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -199,32 +227,41 @@ class PeriodLattice_ell(PeriodLattice):
         return self.basis(prec)[0]
 
     def omega(self, prec = None):
-        """
+        r"""
         Returns the real period of this period lattice, scaled by the number of real compnents.
 
-        If self is given by a \emph{minimal Weierstrass equation} then
-        this is the correct period in the BSD conjecture, i.e., it is
-        the least real period * 2 when the period lattice is
-        rectangular.
-
         INPUT:
-            prec -- real precision in bits (default real precision if None)
 
-        EXAMPLES:
+        - ``prec`` (default ``None``) -- real precision in bits
+          (default real precision if ``None``)
+
+        .. note::
+
+           If the curve is defined over `\QQ` and is given by a
+           *minimal* Weierstrass equation, then this is the correct
+           period in the BSD conjecture, i.e., it is the least real
+           period * 2 when the period lattice is rectangular.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().omega()
             5.98691729246392
 
-        This is not a minimal model.
+        This is not a minimal model::
+
             sage: E = EllipticCurve([0,-432*6^2])
             sage: E.period_lattice().omega()
             0.486109385710056
 
         If you were to plug the above omega into the BSD conjecture, you
-        would get nonsense.   The following works though:
+        would get nonsense.   The following works though::
+
             sage: F = E.minimal_model()
             sage: F.period_lattice().omega()
             0.972218771420113
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -240,17 +277,23 @@ class PeriodLattice_ell(PeriodLattice):
         Return the basis matrix of this period lattice.
 
         INPUT:
-            prec -- real precision in bits (default real precision if None)
+
+        - ``prec`` (default ``None``) -- real precision in bits
+          (default real precision if ``None``).
 
         OUTPUT:
-            A $2\times2$ real matrix whose rows are the lattice basis
-            vectors after identifying $\C$ with $\R^2$.
 
-        EXAMPLES:
+        A 2x2 real matrix whose rows are the lattice basis vectors,
+        after identifying `\CC` with `\RR^2`.
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis_matrix()
             [ 2.99345864623196 0.000000000000000]
             [0.000000000000000  2.45138938198679]
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -260,14 +303,14 @@ class PeriodLattice_ell(PeriodLattice):
             [ 3.81452977217854509 0.000000000000000000]
             [-1.90726488608927255  1.34047785962440202]
 
-            See \#4388:
+        See \#4388::
+
             sage: EllipticCurve('11a1').period_lattice().basis_matrix()
             [ 1.26920930427955 0.000000000000000]
             [0.634604652139777  1.45881661693850]
-           sage: EllipticCurve('389a1').period_lattice().basis_matrix()
-           [ 2.49021256085505 0.000000000000000]
-           [0.000000000000000  1.97173770155165]
-
+            sage: EllipticCurve('389a1').period_lattice().basis_matrix()
+            [ 2.49021256085505 0.000000000000000]
+            [0.000000000000000  1.97173770155165]
         """
         w1,w2 = self.basis(prec)
         from sage.matrix.all import Matrix
@@ -279,12 +322,17 @@ class PeriodLattice_ell(PeriodLattice):
         of the elliptic curve.
 
         INPUT:
-            prec -- real precision in bits (default real precision if None)
 
-        EXAMPLES:
+        - ``prec`` (deafult: ``None``) -- real precision in bits
+          (default real precision if ``None``).
+
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().complex_area()
             7.33813274078958
+
+        ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: emb = K.embeddings(RealField())[0]
@@ -297,25 +345,32 @@ class PeriodLattice_ell(PeriodLattice):
         return (w1*w2.imag()).real()
 
     def sigma(self, z, prec = None, flag=0):
-        """
-        Returns the value of the Weierstrass sigma function of the lattice
-        associated to this elliptic curve E.
+        r"""
+        Returns the value of the Weierstrass sigma function for this elliptic curve  period lattice.
 
         INPUT:
-            z -- a complex number
-            prec -- real precision in bits (default real precision if None)
-            flag -- 0 - default ???
-                    1 - computes an arbitrary determination of log(sigma(z))
-                    2, 3 - same using the product expansion instead of theta series.
-                           ???
-        OUTPUT:
-            a complex number
 
-        NOTE: The reason for the ???'s above, is that the PARI documentation for
-              ellsigma is very vague.  Also this is only implemented for curves
-              defined over Q.
+        - ``z`` -- a complex number
 
-        EXAMPLES:
+        - ``prec`` (default: ``None``) -- real precision in bits
+            (default real precision if None).
+
+        - ``flag`` --
+
+            0: (default) ???;
+
+            1: computes an arbitrary determination of log(sigma(z))
+
+            2, 3: same using the product expansion instead of theta series. ???
+
+        .. note::
+
+           The reason for the ???'s above, is that the PARI
+           documentation for ellsigma is very vague.  Also this is
+           only implemented for curves defined over `\QQ`.
+
+        EXAMPLES::
+
             sage: EllipticCurve('389a1').period_lattice().sigma(CC(2,1))
             2.60912163570108 - 0.200865080824587*I
         """

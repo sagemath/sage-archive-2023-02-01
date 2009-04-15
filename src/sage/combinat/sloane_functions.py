@@ -108,7 +108,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
 import sage.calculus.all as calculus
-from sage.functions.transcendental import prime_pi
+from sage.functions.all import prime_pi
 import partition
 from sage.rings.integer import Integer as Integer_class
 

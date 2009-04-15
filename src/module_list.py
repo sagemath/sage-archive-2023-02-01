@@ -205,6 +205,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.functions
+    ##
+    ################################
+
+    Extension('sage.functions.prime_pi',
+        sources = ['sage/functions/prime_pi.pyx']),
+
+    ################################
+    ##
     ## sage.graphs
     ##
     ################################

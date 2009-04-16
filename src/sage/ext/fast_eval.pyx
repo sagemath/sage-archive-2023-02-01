@@ -45,7 +45,7 @@ EXAMPLES:
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
-    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)']
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
 
     To interpret that last line, we load argument 0 ('x' in this case) onto
     the stack, push the constant 2.0 onto the stack, call the pow function
@@ -56,7 +56,7 @@ Here we take sin of the first argument and add it to f:
     sage: from sage.ext.fast_eval import fast_float_arg
     sage: g = fast_float_arg(0).sin()
     sage: (f+g).op_list()
-    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
 
 TESTS:
 This used to segfault because of an assumption that assigning None to a
@@ -160,6 +160,7 @@ cdef enum:
     NEG
     ABS
     INVERT
+    POW
 
 # basic comparison
     LT
@@ -191,6 +192,7 @@ op_names = {
     NEG: 'neg',
     ABS: 'abs',
     INVERT: 'invert',
+    POW: 'pow',
 
 
     LT: 'lt',
@@ -377,6 +379,12 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
     elif op.type == INVERT:
         stack[top] = 1/stack[top]
         return top
+
+    elif op.type == POW:
+        if stack[top-1] < 0 and stack[top] != floor(stack[top]):
+            raise ValueError, "negative number to a fractional power not real"
+        stack[top-1] = pow(stack[top-1], stack[top])
+        return top-1
 
     elif op.type == LT:
         stack[top-1] = 1.0 if stack[top-1] < stack[top] else 0.0
@@ -782,6 +790,19 @@ cdef class FastDoubleFunc:
             sage: f = FastDoubleFunc('arg', 0)^FastDoubleFunc('arg', 1)
             sage: f(5,3)
             125.0
+
+        TESTS:
+            sage: var('a,b')
+            (a, b)
+            sage: ff = (a^b)._fast_float_(a,b)
+            sage: ff(2, 9)
+            512.0
+            sage: ff(-2, 9)
+            -512.0
+            sage: ff(-2, 9.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number to a fractional power not real
         """
         if isinstance(right, FastDoubleFunc) and right.nargs == 0:
             right = float(right)
@@ -798,8 +819,7 @@ cdef class FastDoubleFunc:
                 elif right < 0:
                     return (~left)**(-right)
             right = FastDoubleFunc('const', right)
-        cdef FastDoubleFunc feval = binop(left, right, TWO_ARG_FUNC)
-        feval.ops[feval.nops-1].params.func = &pow
+        cdef FastDoubleFunc feval = binop(left, right, POW)
         return feval
 
     def __neg__(FastDoubleFunc self):

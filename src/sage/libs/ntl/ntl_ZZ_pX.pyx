@@ -252,7 +252,7 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         self.setitem_from_int(i, value)
 
-    def __getitem__(self, unsigned int i):
+    def __getitem__(self, long i):
         r"""
         Returns the ith entry of self.
 
@@ -265,9 +265,12 @@ cdef class ntl_ZZ_pX:
         r = PY_NEW(ntl_ZZ_p)
         r.c = self.c
         self.c.restore_c()
-        _sig_on
-        r.x = ZZ_pX_coeff( self.x, i)
-        _sig_off
+        if i < 0:
+            r.set_from_int(0)
+        else:
+            _sig_on
+            r.x = ZZ_pX_coeff( self.x, i)
+            _sig_off
         return r
 
     cdef int getitem_as_int(ntl_ZZ_pX self, long i):

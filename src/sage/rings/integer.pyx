@@ -4374,7 +4374,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # Now s*m + t*n = 1, so the answer is x + (y-x)*s*m, where x=self.
         return (self + (_y-self)*s*_m) % (_m*_n)
 
-    def test_bit(self, index):
+    def test_bit(self, long index):
         r"""
         Return the bit at ``index``.
 
@@ -4388,11 +4388,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: w.test_bit(-1)
             0
         """
-        cdef unsigned long int i
-        i = index
-        cdef Integer x
-        x = Integer(self)
-        return mpz_tstbit(x.value, i)
+        if index < 0:
+            return 0
+        else:
+            return mpz_tstbit(self.value, index)
 
     def conjugate(self):
         """

@@ -1537,7 +1537,22 @@ cdef class RealDoubleElement(FieldElement):
             return self.__pow__(float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
-        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
+        """
+        TESTS:
+
+              sage: RDF(0)^.5
+              0.0
+              sage: RDF(0)^(1/2)
+              0.0
+              sage: RDF(0)^RDF(0)
+              1.0
+        """
+        if exponent == 0:
+            return self._new_c(1)
+        elif self._value == 0 or self._value == 1:
+            return self
+        else:
+            return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
 
     cdef RealDoubleElement __pow_int(self, int exponent):
         return self._new_c(gsl_pow_int(self._value, exponent))

@@ -587,7 +587,7 @@ def PS_represent(partition=[[6],[3,4,8,7],[1,9,5],[0,2]], splits=[6,1,8,2]):
     i = PS_first_smallest(PS, b)
     print "Minimal element is %d, bitset is:"%i
     print bitset_string(b)
-    bitset_clear(b)
+    bitset_free(b)
     print "Deallocating PartitionStacks."
     PS_dealloc(PS)
     PS_dealloc(PS2)

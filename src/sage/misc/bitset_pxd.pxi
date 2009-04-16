@@ -29,10 +29,13 @@ cdef extern from *:
     int index_shift "(sizeof(unsigned long)==8 ? 6 : 5)"
     unsigned long offset_mask "(sizeof(unsigned long)==8 ? 0x3F : 0x1F)"
 
+    # Given an element index n in a set, (n >> index_shift) gives the
+    # corresponding limb number, while (n & offset_mask) gives the bit
+    # number inside of the limb.
+
 cdef struct bitset_s:
     long size
     long limbs
     unsigned long *bits
 
 ctypedef bitset_s bitset_t[1]
-

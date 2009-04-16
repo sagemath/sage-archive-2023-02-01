@@ -135,10 +135,10 @@ def weight_dist(M):
         else:
             j ^= (1 << k)
             bitset_xor(word, word, &basis[k])
-    bitset_clear(word)
+    bitset_free(word)
     L = [int(LL[i]) for i from 0 <= i < deg+1]
     for i from 0 <= i < dim:
-        bitset_clear(&basis[i])
+        bitset_free(&basis[i])
     sage_free(LL)
     sage_free(basis)
     return L

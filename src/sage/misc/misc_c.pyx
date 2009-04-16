@@ -292,20 +292,24 @@ def test_bitset(py_a, py_b, long n):
         a.size 5
         a.limbs 1
         b 01110
-        a.check(n)   True
-        a.set(n)     00101
-        a.unset(n)   00100
+        a.in(n)   True
+        a.not_in(n)   False
+        a.add(n)     00101
+        a.discard(n)   00100
         a.set_to(n)  00101
         a.flip(n)    00100
-        a.is_zero()  False
+        a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     1
+        a.issubset(b) False
+        a.issuperset(b) False
         a.copy()     00101
-        r.zero()     00000
-        not a        11010
-        a and b      00100
-        a or b       01111
-        a xor b      01011
+        r.clear()     00000
+        complement a        11010
+        a intersect b      00100
+        a union b       01111
+        a minus b      00001
+        a symmetric_difference b      01011
         a.rshift(n)  10000
         a.lshift(n)  00000
         a.first()           2
@@ -315,27 +319,62 @@ def test_bitset(py_a, py_b, long n):
         a.hamming_weight()  2
         a.hamming_weight_sparse()  2
 
+        sage: test_bitset('11101', '11001', 2)
+        a 11101
+        a.size 5
+        a.limbs 1
+        b 11001
+        a.in(n)   True
+        a.not_in(n)   False
+        a.add(n)     11101
+        a.discard(n)   11001
+        a.set_to(n)  11101
+        a.flip(n)    11001
+        a.isempty()  False
+        a.eq(b)      False
+        a.cmp(b)     1
+        a.issubset(b) False
+        a.issuperset(b) True
+        a.copy()     11101
+        r.clear()     00000
+        complement a        00010
+        a intersect b      11001
+        a union b       11101
+        a minus b      00100
+        a symmetric_difference b      00100
+        a.rshift(n)  10100
+        a.lshift(n)  00111
+        a.first()           0
+        a.next(n)           2
+        a.first_diff(b)     2
+        a.next_diff(b, n)   2
+        a.hamming_weight()  4
+        a.hamming_weight_sparse()  4
+
     Large enough to span multiple limbs:
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
         a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.size 150
-        a.limbs 5 # 32-bit
-        a.limbs 3 # 64-bit
+        a.limbs 5
         b 000100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000000011011100000111001101000100101001000000100100111
-        a.check(n)   False
-        a.set(n)     111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
-        a.unset(n)   111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.in(n)   False
+        a.not_in(n)   True
+        a.add(n)     111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.discard(n)   111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.set_to(n)  111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.flip(n)    111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
-        a.is_zero()  False
+        a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     -1
+        a.issubset(b) False
+        a.issuperset(b) False
         a.copy()     111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
-        r.zero()     000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-        not a        000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110
-        a and b      000000100001111000110001010001000000001001010001100001000000100000001001100001001000010000010001000000011001100000111001101000100001001000000000100001
-        a or b       111101111001111111111101111001111101111011111001111001111111111111111001111011111101111101111111111001111011111001111001111001111101111001111101111111
-        a xor b      111101011000000111001100101000111101110010101000011000111111011111110000011010110101101101101110111001100010011001000000010001011100110001111101011110
+        r.clear()     000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        complement a        000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110
+        a intersect b      000000100001111000110001010001000000001001010001100001000000100000001001100001001000010000010001000000011001100000111001101000100001001000000000100001
+        a union b       111101111001111111111101111001111101111011111001111001111111111111111001111011111101111101111111111001111011111001111001111001111101111001111101111111
+        a minus b      111001011000000001001000101000111001110000101000011000111001011001110000011000110001101001101000111001100000011001000000010001011000110001111001011000
+        a symmetric_difference b      111101011000000111001100101000111101110010101000011000111111011111110000011010110101101101101110111001100010011001000000010001011100110001111101011110
         a.rshift(n)  001111001111001111001111001111001111001111001111001111001111001111001111001111001000000000000000000000000000000000000000000000000000000000000000000000
         a.lshift(n)  000000000000000000000000000000000000000000000000000000000000000000000111001111001111001111001111001111001111001111001111001111001111001111001111001111
         a.first()           0
@@ -346,13 +385,13 @@ def test_bitset(py_a, py_b, long n):
         a.hamming_weight_sparse()  100
         rshifts add  True
         lshifts add  True
-        and commutes True
-        or commutes  True
+        intersection commutes True
+        union commutes  True
         not not = id True
         flipped bit  69
-        set bit      69
-        unset bit    69
-        lshift set unset ok True
+        add bit      69
+        discard bit    69
+        lshift add unset ok True
         rshift set unset ok True
     """
     cdef bint bit = True
@@ -368,12 +407,13 @@ def test_bitset(py_a, py_b, long n):
     print "a.size", a.size
     print "a.limbs", a.limbs
     print "b", bitset_string(b)
-    print "a.check(n)  ", bitset_check(a, n)
-    bitset_set(a, n)
-    print "a.set(n)    ", bitset_string(a)
+    print "a.in(n)  ", bitset_in(a, n)
+    print "a.not_in(n)  ", bitset_not_in(a, n)
+    bitset_add(a, n)
+    print "a.add(n)    ", bitset_string(a)
     bitset_from_str(a, py_a)
-    bitset_unset(a, n)
-    print "a.unset(n)  ", bitset_string(a)
+    bitset_discard(a, n)
+    print "a.discard(n)  ", bitset_string(a)
     bitset_from_str(a, py_a)
     bitset_set_to(a, n, bit)
     print "a.set_to(n) ", bitset_string(a)
@@ -383,9 +423,11 @@ def test_bitset(py_a, py_b, long n):
 
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
-    print "a.is_zero() ", bitset_is_zero(a)
+    print "a.isempty() ", bitset_isempty(a)
     print "a.eq(b)     ", bitset_eq(a, b)
     print "a.cmp(b)    ", bitset_cmp(a, b)
+    print "a.issubset(b)", bitset_issubset(a,b)
+    print "a.issuperset(b)", bitset_issuperset(a,b)
 
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
@@ -393,16 +435,18 @@ def test_bitset(py_a, py_b, long n):
     bitset_init(r, a.size)
     bitset_copy(r, a)
     print "a.copy()    ", bitset_string(r)
-    bitset_zero(r)
-    print "r.zero()    ", bitset_string(r)
-    bitset_not(r, a)
-    print "not a       ", bitset_string(r)
-    bitset_and(r, a, b)
-    print "a and b     ", bitset_string(r)
-    bitset_or(r, a, b)
-    print "a or b      ", bitset_string(r)
-    bitset_xor(r, a, b)
-    print "a xor b     ", bitset_string(r)
+    bitset_clear(r)
+    print "r.clear()    ", bitset_string(r)
+    bitset_complement(r, a)
+    print "complement a       ", bitset_string(r)
+    bitset_intersection(r, a, b)
+    print "a intersect b     ", bitset_string(r)
+    bitset_union(r, a, b)
+    print "a union b      ", bitset_string(r)
+    bitset_difference(r, a, b)
+    print "a minus b     ", bitset_string(r)
+    bitset_symmetric_difference(r, a, b)
+    print "a symmetric_difference b     ", bitset_string(r)
 
     bitset_rshift(r, a, n)
     print "a.rshift(n) ", bitset_string(r)
@@ -432,48 +476,101 @@ def test_bitset(py_a, py_b, long n):
         bitset_lshift(s, b, 75)
         print "lshifts add ", bitset_eq(s, r)
 
-        bitset_and(r, a, b)
-        bitset_and(s, b, a)
-        print "and commutes", bitset_eq(s, r)
+        bitset_intersection(r, a, b)
+        bitset_intersection(s, b, a)
+        print "intersection commutes", bitset_eq(s, r)
 
-        bitset_or(r, a, b)
-        bitset_or(s, b, a)
-        print "or commutes ", bitset_eq(s, r)
+        bitset_union(r, a, b)
+        bitset_union(s, b, a)
+        print "union commutes ", bitset_eq(s, r)
 
-        bitset_not(r, b)
-        bitset_not(s, r)
+        bitset_complement(r, b)
+        bitset_complement(s, r)
         print "not not = id", bitset_eq(s, b)
 
         bitset_copy(r, b)
         bitset_flip(r, n)
         print "flipped bit ", bitset_first_diff(b, r)
 
-        bitset_zero(r)
-        bitset_set(r, n)
-        print "set bit     ", bitset_first(r)
+        bitset_clear(r)
+        bitset_add(r, n)
+        print "add bit     ", bitset_first(r)
 
-        bitset_zero(r)
-        bitset_not(r, r)
-        bitset_unset(r, n)
-        bitset_not(r, r)
-        print "unset bit   ", bitset_first(r)
+        bitset_clear(r)
+        bitset_complement(r, r)
+        bitset_discard(r, n)
+        bitset_complement(r, r)
+        print "discard bit   ", bitset_first(r)
 
-        bitset_zero(r)
-        bitset_set(r, 10)
+        bitset_clear(r)
+        bitset_add(r, 10)
         bitset_lshift(r, r, 68)
         bitset_flip(r, 78)
-        print "lshift set unset ok", bitset_is_zero(r)
+        print "lshift add unset ok", bitset_isempty(r)
 
-        bitset_zero(r)
-        bitset_set(r, 19)
+        bitset_clear(r)
+        bitset_add(r, 19)
         bitset_rshift(r, r, 8)
-        bitset_unset(r, 11)
-        print "rshift set unset ok", bitset_is_zero(r)
+        bitset_discard(r, 11)
+        print "rshift set unset ok", bitset_isempty(r)
 
-    bitset_clear(a)
-    bitset_clear(b)
-    bitset_clear(r)
-    bitset_clear(s)
+    bitset_free(a)
+    bitset_free(b)
+    bitset_free(r)
+    bitset_free(s)
+
+
+def test_bitset_remove(py_a, long n):
+    """
+    Tests for the bitset_remove function.
+
+    TESTS:
+        sage: from sage.misc.misc_c import test_bitset_remove
+        sage: test_bitset_remove('01', 0)
+        Traceback (most recent call last):
+        ...
+        KeyError: 0L
+        sage: test_bitset_remove('01', 1)
+        a 01
+        a.size 2
+        a.limbs 1
+        n 1
+        a.remove(n)   00
+    """
+    cdef bitset_t a
+    bitset_from_str(a, py_a)
+
+    print "a", bitset_string(a)
+    print "a.size", a.size
+    print "a.limbs", a.limbs
+    print "n", n
+
+    bitset_remove(a, n)
+    print "a.remove(n)  ", bitset_string(a)
+
+    bitset_free(a)
+
+
+def test_bitset_pop(py_a):
+    """
+    Tests for the bitset_pop function.
+
+    TESTS:
+        sage: from sage.misc.misc_c import test_bitset_pop
+        sage: test_bitset_pop('0101')
+        a.pop()   1
+        sage: test_bitset_pop('0000')
+        Traceback (most recent call last):
+        ...
+        KeyError: 'pop from an empty set'
+    """
+    cdef bitset_t a
+    bitset_from_str(a, py_a)
+    i=bitset_pop(a)
+    print "a.pop()  ", i
+    bitset_free(a)
+
+
 #################################################################
 # 32/64-bit computer?
 #################################################################

@@ -60,7 +60,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             try: bitset_init(&self.basis[i], self.degree)
             except MemoryError:
                 for j from 0 <= j < i:
-                    bitset_clear(&self.basis[j])
+                    bitset_free(&self.basis[j])
                 memerr = 1
                 break
         if not memerr:
@@ -68,18 +68,18 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
                 try: bitset_init(&self.scratch_bitsets[i], self.degree)
                 except MemoryError:
                     for j from 0 <= j < i:
-                        bitset_clear(&self.scratch_bitsets[j])
+                        bitset_free(&self.scratch_bitsets[j])
                     for j from 0 <= j < self.dimension:
-                        bitset_clear(&self.basis[j])
+                        bitset_free(&self.basis[j])
                     memerr = 1
                     break
         if not memerr:
             try: bitset_init(self.alpha_is_wd, self.nwords + self.degree)
             except MemoryError:
                 for j from 0 <= j < 2*self.dimension+2:
-                    bitset_clear(&self.scratch_bitsets[j])
+                    bitset_free(&self.scratch_bitsets[j])
                 for j from 0 <= j < self.dimension:
-                    bitset_clear(&self.basis[j])
+                    bitset_free(&self.basis[j])
                 memerr = 1
         if memerr:
             sage_free(self.basis); sage_free(self.scratch_bitsets)
@@ -351,11 +351,11 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
     def __dealloc__(self):
         cdef int j
-        bitset_clear(self.alpha_is_wd)
+        bitset_free(self.alpha_is_wd)
         for j from 0 <= j < 2*self.dimension+2:
-            bitset_clear(&self.scratch_bitsets[j])
+            bitset_free(&self.scratch_bitsets[j])
         for j from 0 <= j < self.dimension:
-            bitset_clear(&self.basis[j])
+            bitset_free(&self.basis[j])
         sage_free(self.basis); sage_free(self.scratch_bitsets)
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
@@ -410,7 +410,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             try: bitset_init(&self.words[i], self.degree)
             except MemoryError:
                 for j from 0 <= j < i:
-                    bitset_clear(&self.words[j])
+                    bitset_free(&self.words[j])
                 memerr = 1
                 break
         if not memerr:
@@ -418,26 +418,26 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
                 try: bitset_init(&self.scratch_bitsets[i], self.degree)
                 except MemoryError:
                     for j from 0 <= j < i:
-                        bitset_clear(&self.scratch_bitsets[j])
+                        bitset_free(&self.scratch_bitsets[j])
                     for j from 0 <= j < self.nwords:
-                        bitset_clear(&self.words[j])
+                        bitset_free(&self.words[j])
                     memerr = 1
                     break
         if not memerr:
             try: bitset_init(&self.scratch_bitsets[4*self.nwords], self.nwords)
             except MemoryError:
                 for j from 0 <= j < 4*self.nwords:
-                    bitset_clear(&self.scratch_bitsets[j])
+                    bitset_free(&self.scratch_bitsets[j])
                 for j from 0 <= j < self.nwords:
-                    bitset_clear(&self.words[j])
+                    bitset_free(&self.words[j])
                 memerr = 1
         if not memerr:
             try: bitset_init(self.alpha_is_wd, self.nwords + self.degree)
             except MemoryError:
                 for j from 0 <= j < 4*self.nwords + 1:
-                    bitset_clear(&self.scratch_bitsets[j])
+                    bitset_free(&self.scratch_bitsets[j])
                 for j from 0 <= j < self.nwords:
-                    bitset_clear(&self.words[j])
+                    bitset_free(&self.words[j])
                 memerr = 1
         if memerr:
             sage_free(self.words); sage_free(self.scratch_bitsets)
@@ -458,11 +458,11 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
     def __dealloc__(self):
         cdef int j
-        bitset_clear(self.alpha_is_wd)
+        bitset_free(self.alpha_is_wd)
         for j from 0 <= j < 4*self.nwords + 1:
-            bitset_clear(&self.scratch_bitsets[j])
+            bitset_free(&self.scratch_bitsets[j])
         for j from 0 <= j < self.nwords:
-            bitset_clear(&self.words[j])
+            bitset_free(&self.words[j])
         sage_free(self.words); sage_free(self.scratch_bitsets)
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
@@ -991,8 +991,8 @@ cdef inline int word_degree(PartitionStack *word_ps, BinaryCodeStruct BCS, int e
     BCS.ith_word(BCS, entry, word)
     bitset_and(cell, word, cell)
     h = bitset_hamming_weight(cell)
-    bitset_clear(cell)
-    bitset_clear(word)
+    bitset_free(cell)
+    bitset_free(word)
     return h
 
 cdef inline int col_degree(PartitionStack *col_ps, BinaryCodeStruct BCS, int entry, int cell_index, PartitionStack *word_ps):
@@ -1018,7 +1018,7 @@ cdef inline int col_degree(PartitionStack *col_ps, BinaryCodeStruct BCS, int ent
         if not word_ps.levels[cell_index] > col_ps.depth:
             break
         cell_index += 1
-    bitset_clear(word)
+    bitset_free(word)
     return degree
 
 cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees, int *counts, int *output, int count_max):

@@ -726,7 +726,7 @@ cdef class RealDoubleElement(FieldElement):
             RDF(3.1415926535897931)
             sage: sage_input(RDF(-e), verify=True, preparse=False)
             # Verified
-            -RDF(2.7182818284590451)
+            -RDF(2.718281828459045...)
             sage: sage_input(RDF(pi)*polygen(RDF), verify=True, preparse=None)
             # Verified
             R = RDF['x']

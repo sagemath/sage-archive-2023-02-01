@@ -503,7 +503,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector(ZZ, [42, 389])._sage_input_(SageInputBuilder(), False)
             {call: {atomic:vector}({atomic:ZZ}, {list: ({atomic:42}, {atomic:389})})}
             sage: vector(RDF, {1:pi, 1000:e})._sage_input_(SageInputBuilder(), False)
-            {call: {atomic:vector}({atomic:RDF}, {dict: {{atomic:1}:{atomic:3.1415926535897931}, {atomic:1000}:{atomic:2.7182818284590451}}})}
+            {call: {atomic:vector}({atomic:RDF}, {dict: {{atomic:1}:{atomic:3.1415926535897931}, {atomic:1000}:{atomic:2.718281828459045...}}})}
         """
         # Not a lot of room for prettiness here.
         # We always specify the ring, because that lets us use coerced=2

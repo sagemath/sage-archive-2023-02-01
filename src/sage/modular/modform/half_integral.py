@@ -89,6 +89,17 @@ def half_integral_weight_modform_basis(chi, k, prec):
          q^4 - 2*q^5 - 2*q^6 + 4*q^7 + 4*q^9 + O(q^10),
          q^5 - 2*q^7 - 2*q^9 + O(q^10)]
 
+    This example once raised an error (see trac #5792).
+
+    ::
+
+        sage: half_integral_weight_modform_basis(trivial_character(16),9,10)
+        [q - 2*q^2 + 4*q^3 - 8*q^4 + 4*q^6 - 16*q^7 + 48*q^8 - 15*q^9 + O(q^10),
+         q^2 - 2*q^3 + 4*q^4 - 2*q^6 + 8*q^7 - 24*q^8 + O(q^10),
+         q^3 - 2*q^4 - 4*q^7 + 12*q^8 + O(q^10),
+         q^4 - 6*q^8 + O(q^10)]
+
+
     ALGORITHM: Basmaji (page 55 of his Essen thesis, "Ein Algorithmus
     zur Berechnung von Hecke-Operatoren und Anwendungen auf modulare
     Kurven", http://wstein.org/scans/papers/basmaji/).

@@ -88,7 +88,7 @@ def trivial_character(N, base_ring=rings.RationalField()):
         sage: trivial_character(7, Integers(3))(1).parent()
         Ring of integers modulo 3
     """
-    return DirichletGroup(N, base_ring, zeta=base_ring(1), zeta_order=1)(1)
+    return DirichletGroup(N, base_ring)(1)
 
 TrivialCharacter = trivial_character
 
@@ -326,7 +326,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.change_ring(QQ)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce zeta12 to a rational
+            ValueError: cannot coerce element of order 12 into self
         """
         if self.base_ring() is R:
             return self
@@ -1875,10 +1875,16 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             Traceback (most recent call last):
             ...
             TypeError: conductor must divide modulus
+            sage: H = DirichletGroup(16, QQ); H._coerce_in_dirichlet_character(DirichletGroup(16).1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot coerce element of order 4 into self
         """
 
         if self.modulus() % x.conductor() != 0:
             raise TypeError, "conductor must divide modulus"
+        elif not x.order().divides(self._zeta_order):
+            raise ValueError, "cannot coerce element of order %s into self"%x.order()
         a = []
         R = self.base_ring()
         for u in self.unit_gens():

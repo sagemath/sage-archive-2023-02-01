@@ -261,7 +261,10 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     Since it doesn't look very good, let's increase plot_points:
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1) #long time
 
-    Here is anoher plot:
+    The first quadrant of the unit circle:
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (-1.1, 1.1), (-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
+
+    Here is another plot:
         sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
     If we want to keep only the region where x is positive:
@@ -274,8 +277,13 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     if not isinstance(f, (list, tuple)):
         f = [f]
-    f = map(equify, f)
+
+    variables = reduce(lambda g1, g2: g1.union(g2), [set(g.variables()) for g in f], set([]))
+
+    f = [equify(g, variables) for g in f]
+
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid(f, xrange, yrange, plot_points)
+
     xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
                                              for y in xsrange(yrange[0], yrange[1], ystep)], g)
 
@@ -300,24 +308,36 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     return g
 
-def equify(f):
+def equify(f, variables = None):
     """
-    Returns the equation rewritten to give negative values when True,
+    Returns the equation rewritten as a symbolic function to give negative values when True,
     positive when False.
 
     EXAMPLES:
         sage: from sage.plot.contour_plot import equify
+        sage: var('x, y')
+        (x, y)
         sage: equify(x^2 < 2)
-        x^2 - 2
+        x |--> x^2 - 2
         sage: equify(x^2 > 2)
-        2 - x^2
+        x |--> 2 - x^2
+        sage: equify(x*y > 1)
+        (x, y) |--> 1 - x*y
+        sage: equify(y > 0, (x,y))
+        (x, y) |--> -y
     """
     import operator
+    from sage.calculus.all import symbolic_expression
     op = f.operator()
+    if variables == None:
+        variables = f.variables()
+
     if op is operator.gt or op is operator.ge:
-        return f.rhs() - f.lhs()
+        s = symbolic_expression(f.rhs() - f.lhs()).function(*variables)
+        return s
     else:
-        return f.lhs() - f.rhs()
+        s = symbolic_expression(f.lhs() - f.rhs()).function(*variables)
+        return s
 
 def mangle_neg(vals):
     """

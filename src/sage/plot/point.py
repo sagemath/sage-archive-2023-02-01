@@ -264,11 +264,12 @@ class Point(GraphicPrimitive_xydata):
         c = rgb2hex(to_mpl_color(options['rgbcolor']))
 
         a = float(options['alpha'])
+        z = int(options.pop('zorder', 0))
         s = int(options['pointsize'])
         faceted = options['faceted'] #faceted=True colors the edge of point
         scatteroptions={}
         if not faceted: scatteroptions['edgecolors'] = 'none'
-        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, **scatteroptions)
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z, **scatteroptions)
 
 
 def point(points, **kwds):

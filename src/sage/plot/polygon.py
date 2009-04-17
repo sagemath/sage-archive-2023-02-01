@@ -233,10 +233,12 @@ class Polygon(GraphicPrimitive_xydata):
         p = patches.Polygon([(self.xdata[i],self.ydata[i]) for i in xrange(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
         a = float(options['alpha'])
+        z = int(options.pop('zorder', 1))
         p.set_alpha(a)
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
+        p.set_zorder(z)
         subplot.add_patch(p)
 
 def polygon(points, **options):

@@ -376,7 +376,7 @@ def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
     .. warning::
 
-    THIS FUNCTION IS DEPRECATED!
+       THIS FUNCTION IS DEPRECATED!
 
     Please use IntegersListsLex(...) instead
 
@@ -775,7 +775,8 @@ class IntegerListsLex(CombinatorialClass):
 
     TODO: integrate all remaining tests from http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
 
-    TESTS:
+    TESTS::
+
         sage: g = lambda x: lambda i: x
         sage: list(IntegerListsLex(0, floor = g(1), min_slope = 0))
         [[]]

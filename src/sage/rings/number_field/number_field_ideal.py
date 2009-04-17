@@ -1736,26 +1736,24 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         of the number field K, and `O_K` is the ring of integers of K.
 
         INPUT:
-            flag -- when flag=2, it also computes the generators of the group
-                    `(O_K/I)^*`, which takes more time. By default flag=1 (no
-                    generators are computed). In both cases the special pari
-                    structure ``bid`` is computed as well.
-                    If flag=0 (deprecated) it computes only the group structure
-                    of `(O_K/I)^*` (with generators) and not the special
-                    ``bid`` structure.
-        OUTPUT:
-            The finite abelian group `(O_K/I)^*`.
 
-        NOTES:
+        - flag -- when flag=2, it also computes the generators of the
+          group `(O_K/I)^*`, which takes more time. By default flag=1
+          (no generators are computed). In both cases the special pari
+          structure ``bid`` is computed as well.  If flag=0
+          (deprecated) it computes only the group structure of
+          `(O_K/I)^*` (with generators) and not the special ``bid``
+          structure.  OUTPUT: The finite abelian group `(O_K/I)^*`.
+
+        .. note::
+
             Uses the pari function ``idealstar``. The pari function outputs
             a special ``bid`` structure which is stored in the internal
             field ``_bid`` of the ideal (when flag=1,2). The special structure
             ``bid`` is used in the pari function ``ideallog``
             to compute discrete logarithms.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: k.<a> = NumberField(x^3 - 11)
             sage: A = k.ideal(5)
@@ -2081,7 +2079,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         defined on the whole valuation ring, i.e. the subring of the
         number field consisting of elements with non-negative
         valuation.  This shows that the issue raised in trac \#1951
-        has been fixed.
+        has been fixed::
+
             sage: K.<i> = NumberField(x^2 + 1)
             sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
             (Fractional ideal (-i - 2), Fractional ideal (2*i + 1))

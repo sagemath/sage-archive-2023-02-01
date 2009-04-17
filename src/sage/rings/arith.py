@@ -2453,9 +2453,10 @@ def binomial(x,m):
         sage: binomial(k,i)
         binomial(k,i)
 
-    TESTS::
+    TESTS:
 
-    We test that certain binomials are very fast (this should be instant) -- see trac 3309:
+    We test that certain binomials are very fast (this should be
+    instant) -- see trac 3309::
 
         sage: a = binomial(RR(1140000.78), 42000000)
     """
@@ -3457,12 +3458,13 @@ def hilbert_conductor_inverse(d):
     The quaternion algebra (a,b) over Q will have (reduced) discriminant d.
 
     INPUT:
-        d -- square-free positive integer
 
-    OUTPUT:
-        pair of integers
+    - d -- square-free positive integer
 
-    EXAMPLES:
+    OUTPUT: pair of integers
+
+    EXAMPLES::
+
         sage: hilbert_conductor_inverse(2)
         (-1, -1)
         sage: hilbert_conductor_inverse(3)
@@ -3481,9 +3483,11 @@ def hilbert_conductor_inverse(d):
         ValueError: d needs to be positive
 
     AUTHOR:
-        -- Gonzalo Tornaria (2009-03-02)
 
-    TEST:
+    - Gonzalo Tornaria (2009-03-02)
+
+    TESTS::
+
         sage: for i in xrange(100):
         ...     d = random_int_upto(2**32).squarefree_part()
         ...     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:

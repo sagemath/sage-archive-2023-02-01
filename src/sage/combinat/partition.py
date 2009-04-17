@@ -13,9 +13,10 @@ The coordinate system related to a partition applies from the top
 to the bottom and from left to right. So, the corners of the
 partition are [[0,4], [1,2], [2,0]].
 
-AUTHORS::
+AUTHORS:
 
 - Mike Hansen (2007): initial version
+
 - Dan Drake (2009-03-28): deprecate RestrictedPartitions and implement
   Partitions_parts_in
 
@@ -46,8 +47,8 @@ When we are at the last partition, None will be returned.
     sage: Partitions(4).next([1,1,1,1]) is None
     True
 
- We can use ``iter`` to get an object which iterates over the partitions one
- by one to save memory.  Note that when we do something like
+We can use ``iter`` to get an object which iterates over the partitions one
+by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background.
 
 ::
@@ -2538,16 +2539,16 @@ class PartitionTuples_nk(CombinatorialClass):
         Now we compare that with the result of the following GAP
         computation::
 
-                        gap> S8:=Group((1,2,3,4,5,6,7,8),(1,2));
-                        Group([ (1,2,3,4,5,6,7,8), (1,2) ])
-                        gap> C2:=Group((1,2));
-                        Group([ (1,2) ])
-                        gap> W:=WreathProduct(C2,S8);
-                        <permutation group of size 10321920 with 10 generators>
-                        gap> Size(W);
-                        10321920     ## = 2^8*Factorial(8), which is good:-)
-                        gap> Size(ConjugacyClasses(W));
-                        185
+            gap> S8:=Group((1,2,3,4,5,6,7,8),(1,2));
+            Group([ (1,2,3,4,5,6,7,8), (1,2) ])
+            gap> C2:=Group((1,2));
+            Group([ (1,2) ])
+            gap> W:=WreathProduct(C2,S8);
+            <permutation group of size 10321920 with 10 generators>
+            gap> Size(W);
+            10321920     ## = 2^8*Factorial(8), which is good:-)
+            gap> Size(ConjugacyClasses(W));
+            185
         """
         return ZZ(gp.eval('polcoeff(1/eta(x)^%s, %s, x)'%(self.k, self.n)))
 
@@ -3151,15 +3152,17 @@ class Partitions_parts_in(CombinatorialClass):
             sage: Partitions(15, parts_in=[2,3,7]).cardinality()
             5
 
-        If you can use all parts 1 through `n`, we'd better get `p(n)`:
+        If you can use all parts 1 through `n`, we'd better get `p(n)`::
 
             sage: Partitions(20, parts_in=[1..20]).cardinality() == Partitions(20).cardinality()
             True
 
-        TESTS::
+        TESTS:
 
         Let's check the consistency of GAP's function and our own
         algorithm that actually generates the partitions.
+
+        ::
 
             sage: ps = Partitions(15, parts_in=[1,2,3])
             sage: ps.cardinality() == len(ps.list())

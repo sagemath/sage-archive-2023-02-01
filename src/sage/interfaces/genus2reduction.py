@@ -376,10 +376,10 @@ class Genus2reduction(SageObject):
 
         Verify that we fix trac 5573::
 
-        sage: genus2reduction(x^3 + x^2 + x,-2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2)
-        Reduction data about this proper smooth genus 2 curve:
-                y^2 + (x^3 + x^2 + x)*y = -2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2
-        ...
+            sage: genus2reduction(x^3 + x^2 + x,-2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2)
+            Reduction data about this proper smooth genus 2 curve:
+            y^2 + (x^3 + x^2 + x)*y = -2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2
+            ...
         """
         from sage.rings.all import QQ
         R = QQ['x']

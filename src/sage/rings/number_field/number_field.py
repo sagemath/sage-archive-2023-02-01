@@ -4079,20 +4079,20 @@ class NumberField_generic(number_field_base.NumberField):
         -  ``n`` - positive integer
 
         - ``all`` - bool.  If False (default), return a primitive
-        `n`-th root of unity in this field, or raise an
-        ArithmeticError exception if there are none.  If True, return
-        a list of all primitive `n`-th roots of unity in this field
-        (possibly empty).
+          `n`-th root of unity in this field, or raise an
+          ArithmeticError exception if there are none.  If True,
+          return a list of all primitive `n`-th roots of unity in this
+          field (possibly empty).
 
         .. note::
 
-        To obtain the maximal order of a root of unity in this field,
-        use self.number_of_roots_of_unity().
+           To obtain the maximal order of a root of unity in this field,
+           use self.number_of_roots_of_unity().
 
         .. note::
 
-        We do not create the full unit group since that can be
-        expensive, but we do use it if it is already known.
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -4169,8 +4169,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         .. note::
 
-        We do not create the full unit group since that can be
-        expensive, but we do use it if it is already known.
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -4200,8 +4200,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         .. note::
 
-        We do not create the full unit group since that can be
-        expensive, but we do use it if it is already known.
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -6965,6 +6965,8 @@ class NumberField_quadratic(NumberField_absolute):
            extension, see the ``hilbert_class_field_defining_polynomial``
            command, which is vastly faster than this command, since it doesn't
            construct a relative extension.
+
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23)
             sage: L = K.hilbert_class_field('b'); L

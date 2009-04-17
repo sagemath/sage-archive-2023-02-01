@@ -69,9 +69,9 @@ cdef class FractionFieldElement(FieldElement):
         sage: loads(f.dumps()) == f
         True
 
-    TESTS::
+    TESTS:
 
-    Test if #5451 is fixed.
+    Test if #5451 is fixed::
 
         sage: A = FiniteField(9,'theta')['t']
         sage: K.<t> = FractionField(A)

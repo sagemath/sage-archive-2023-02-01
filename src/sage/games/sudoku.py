@@ -52,7 +52,7 @@ def sudoku(A):
 
     Now we perturb `A` slightly to make the `(3,5)` entry impossible to complete.
 
-    ..link::
+    ::
 
         sage: A[1,4], A[2,4] = 7, 9
         sage: A[3,6], A[3,7], A[3,8] = 3, 4, 6
@@ -165,8 +165,6 @@ def solve_recursive(A, i, j):
 
     EXAMPLES:
 
-    ::
-
     This puzzle has only 17 non-empty squares (hints) and has a unique solution.
     At this writing (2009/04/11) there are no known 16-hint Sudoku puzzles
     with a unique solution.  It is number 3000 in Gordon Royle's database of 17-hint
@@ -174,6 +172,8 @@ def solve_recursive(A, i, j):
 
     Here we just test finding a possible completion if
     we started midway through the bottom row.
+
+    ::
 
         sage: from sage.games.sudoku import solve_recursive
         sage: B = matrix(ZZ, 9, 9, [ [0,0,0,0,1,0,9,0,0], [8,0,0,4,0,0,0,0,0], [2,0,0,0,0,0,0,0,0], [0,7,0,0,3,0,0,0,0], [0,0,0,0,0,0,2,0,4], [0,0,0,0,0,0,0,5,8], [0,6,0,0,0,0,1,3,0], [7,0,0,2,0,0,0,0,0], [0,0,0,8,0,0,0,0,0] ])
@@ -201,7 +201,7 @@ def solve_recursive(A, i, j):
     Now we perturb `B` to make the (8,7) square impossible to complete.
     And we start at an empty square a little further back up the matrix.
 
-    .. link::
+    ::
 
         sage: B[0,7], B[1,7], B[2,7] = 2, 6, 7
         sage: B[8,0], B[8, 1] = 4, 9

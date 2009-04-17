@@ -2177,7 +2177,7 @@ class Permutation_class(CombinatorialObject):
             sage: p.robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
 
-        TESTS::
+        TESTS:
 
         The empty permutation::
 
@@ -3121,7 +3121,7 @@ def robinson_schensted_inverse(p, q):
     that are not even tableaux but only filling of a parition diagram. This
     feature should not be used with ``robinson_schensted_inverse``.
 
-    TESTS::
+    TESTS:
 
     From empty tableaux::
 

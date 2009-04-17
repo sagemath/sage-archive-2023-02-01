@@ -1045,7 +1045,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT: rational
 
-        .. note::  Primality of the entries in `S` is not checked.
+        .. note::
+
+           Primality of the entries in `S` is not checked.
 
         EXAMPLES::
 
@@ -1301,9 +1303,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         .. note::
 
-        Use this function when you nede test test if a rational number
-        is an n'th power, but do not need to know the value of its
-        n'th root.  If the value is needed, use nth_root().
+           Use this function when you nede test test if a rational
+           number is an n'th power, but do not need to know the value
+           of its n'th root.  If the value is needed, use nth_root().
 
         AUTHORS:
 
@@ -2479,7 +2481,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT: bool
 
-        .. note::  Primality of the entries in `S` is not checked.
+        .. note::
+
+           Primality of the entries in `S` is not checked.
 
         EXAMPLES::
 
@@ -2508,7 +2512,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT: bool
 
-        .. note::  Primality of the entries in `S` is not checked.
+        .. note::
+
+           Primality of the entries in `S` is not checked.
 
         EXAMPLES::
 

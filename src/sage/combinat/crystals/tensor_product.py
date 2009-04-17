@@ -560,10 +560,10 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
     convention, the tensor product of crystals is the same as the
     monoid operation on tableaux and hence the plactic monoid.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We create the crystal of tableaux for type `A_2`, with
-    highest weight given by the partition [2,1,1].
+    highest weight given by the partition [2,1,1]::
 
         sage: Tab = CrystalOfTableaux(['A',3], shape = [2,1,1])
 

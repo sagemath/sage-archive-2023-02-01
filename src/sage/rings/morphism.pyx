@@ -653,10 +653,10 @@ cdef class RingHomomorphism(RingMap):
         Return whether or not this morphism is injective, or raise
         a NotImplementedError.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Note that currently this is not implemented in most
-        interesting cases.::
+        interesting cases::
 
             sage: f = ZZ.hom(QQ)
             sage: f.is_injective()
@@ -731,7 +731,7 @@ cdef class RingHomomorphism(RingMap):
         Return the inverse image of the ideal `I` under this ring
         homomorphism.
 
-        EXAMPLES::
+        EXAMPLES:
 
         This is not implemented in any generality yet::
 

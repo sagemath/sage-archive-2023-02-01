@@ -1,7 +1,9 @@
 """
 Dense matrices over the rational field.
 
-EXAMPLES: We create a 3x3 matrix with rational entries and do some
+EXAMPLES:
+
+We create a 3x3 matrix with rational entries and do some
 operations with it.
 
 ::
@@ -533,7 +535,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Use the standard `O(n^3)` matrix multiplication algorithm.
         This is never used by default, since it is slow.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 3
             sage: a = matrix(QQ,n,range(n^2))/3
@@ -658,10 +660,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         -  ``check_invertible`` - default: True (whether to
            check that matrix is invertible)
 
-        - ``algorithm`` - default: "default"
-              - "default" -- use special cased code or
-                             pari up to 25 rows, then use iml
+        - ``algorithm``
+
+              - default: "default" -- use special cased code or
+                pari up to 25 rows, then use iml
+
               - "pari" -- use pari
+
               - "iml" -- use an iml-based algorithm
 
 
@@ -768,8 +773,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
            proof.linear_algebra(); only relevant for the padic algorithm.
 
         - ``algorithm``:
+
              "default" -- use PARI for up to 7 rows, then use integer
+
              "pari" -- use PARI
+
              "integer" -- clear denominators and call det on integer matrix
 
         .. note::
@@ -903,7 +911,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         -  ``var`` - 'x' (string)
 
-        -  ``algorithm`` - 'linbox' (default) 'generic'
+        -  ``algorithm`` - 'linbox' (default) or 'generic'
 
 
         OUTPUT: a polynomial over the rational numbers.
@@ -944,7 +952,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         -  ``var`` - 'x' (string)
 
-        -  ``algorithm`` - 'linbox' (default) 'generic'
+        -  ``algorithm`` - 'linbox' (default) or 'generic'
 
 
         OUTPUT: a polynomial over the rational numbers.
@@ -1004,6 +1012,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         those matrices.
 
         EXAMPLES::
+
             sage: a = matrix(3,[[1,2,3],[1/5,2/3,-1/3],[-4,5,6]])   # indirect test
             sage: a*a
             [ -53/5   55/3   61/3]
@@ -1029,9 +1038,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         -  ``right`` - matrix over QQ
 
-        -  ``algorithm`` - 'default': use whatever is the
-           defalt for A\*B when A, B are over ZZ. 'multimodular': use a
-           multimodular algorithm
+        -  ``algorithm``
+
+           - 'default': use whatever is the defalt for A\*B when A, B
+             are over ZZ.
+
+           - 'multimodular': use a multimodular algorithm
 
 
         EXAMPLES::
@@ -1292,11 +1304,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         INPUT:
 
 
-        -  ``algorithm`` - 'default' (default): use heuristic choice
-           'padic': an algorithm based on the IML p-adic solver.
-           'multimodular': uses a multimodular algorithm the uses linbox
-           modulo many primes.
-            'classical': just clear each column using Gauss elimination
+        -  ``algorithm``
+
+          - 'default' (default): use heuristic choice
+
+          - 'padic': an algorithm based on the IML p-adic solver.
+
+          - 'multimodular': uses a multimodular algorithm the uses
+            linbox modulo many primes.
+
+          -  'classical': just clear each column using Gauss elimination
 
         -  ``height_guess, **kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
@@ -1368,11 +1385,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         INPUT:
 
-        -  ``algorithm`` - 'default' (default): use heuristic choice
-            'padic': an algorithm based on the IML p-adic solver.
-            'multimodular': uses a multimodular algorithm the uses linbox
-             modulo many primes.
-            'classical': just clear each column using Gauss elimination
+        -  ``algorithm``
+
+           - 'default' (default): use heuristic choice
+
+           - 'padic': an algorithm based on the IML p-adic solver.
+
+           - 'multimodular': uses a multimodular algorithm the uses linbox modulo many primes.
+
+           - 'classical': just clear each column using Gauss elimination
 
         -  ``height_guess, **kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
@@ -1678,9 +1699,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         -  ``dual`` - whether to also return decompositions for
            the dual
 
-        -  ``algorithm`` - 'default': use default algorithm for
-           computing Echelon forms, 'multimodular': much better if the answers
-           factors have small height
+        -  ``algorithm``
+
+           - 'default': use default algorithm for computing Echelon
+             forms
+
+           - 'multimodular': much better if the answers
+             factors have small height
 
         -  ``height_guess`` - positive integer; only used by
            the multimodular algorithm
@@ -2083,13 +2108,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         numerators and denominators bounded by x and y and have density 1.
 
         INPUT:
-            - density -- number between 0 and 1 (default: 1)
-            - num_bound -- numerator bound (default: 2)
-            - den_bound -- denominator bound (default: 2)
-            - distribution -- None or '1/n' (default: None); if '1/n' then
-                        num_bound, den_bound are ignored and numbers are
-                        chosen using the GMP function
-                        mpq_randomize_entry_recip_uniform
+
+        - density -- number between 0 and 1 (default: 1)
+
+        - num_bound -- numerator bound (default: 2)
+
+        - den_bound -- denominator bound (default: 2)
+
+        - distribution -- None or '1/n' (default: None); if '1/n' then
+          num_bound, den_bound are ignored and numbers are chosen
+          using the GMP function mpq_randomize_entry_recip_uniform
 
         EXAMPLES::
 

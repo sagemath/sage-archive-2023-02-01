@@ -2945,9 +2945,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         OUTPUT:
 
-        (list) A list of ``WeierstrassIsomorphism``s consisting of all
-        the isomorphisms from the curve ``self`` to itself defined
-        over ``field``.
+        (list) A list of ``WeierstrassIsomorphism`` objects
+        consisting of all the isomorphisms from the curve ``self`` to
+        itself defined over ``field``.
 
         EXAMPLES::
 
@@ -2993,7 +2993,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         OUTPUT:
 
-        (list) A list of ``WeierstrassIsomorphism``s consisting of all
+        (list) A list of ``WeierstrassIsomorphism`` objects consisting of all
         the isomorphisms from the curve ``self`` to the curve
         ``other`` defined over ``field``.
 

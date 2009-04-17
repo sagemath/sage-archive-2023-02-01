@@ -201,6 +201,18 @@ class WeylCharacter(AlgebraElement):
         """
         return self._add_(y._neg_())
 
+    def cartan_type(self):
+        """
+        Returns the Cartan Type.
+
+        EXAMPLES::
+
+            sage: A2=WeylCharacterRing("A2")
+            sage: A2([1,0,0]).cartan_type()
+            ['A', 2]
+        """
+        return self._parent._cartan_type
+
     def degree(self):
         """
         The degree of the character, that is, the dimension of module.
@@ -453,9 +465,9 @@ class WeylCharacterRing_class(Algebra):
         """
         sage.structure.parent_base.ParentWithBase.__init__(self, base_ring)
 
-        self.cartan_type = ct
+        self._cartan_type = ct
         self._base_ring = base_ring
-        self._lattice = RootSystem(self.cartan_type).ambient_space()
+        self._lattice = RootSystem(self._cartan_type).ambient_space()
         self._origin = self._lattice.zero()
         if prefix == None:
             prefix = ct[0]+str(ct[1])
@@ -529,7 +541,7 @@ class WeylCharacterRing_class(Algebra):
 
         alphacheck = self._lattice.simple_coroots()
         vp = [x.inner_product(alphacheck[i])
-              for i in self.cartan_type.index_set()]
+              for i in self._cartan_type.index_set()]
         if not all(v in ZZ for v in vp):
             raise ValueError, "not in weight lattice"
         if not all(v >= 0 for v in vp):
@@ -550,7 +562,7 @@ class WeylCharacterRing_class(Algebra):
             sage: WeylCharacterRing(['A',3])
             The Weyl Character Ring of Type [A,3] with Integer Ring coefficients
         """
-        return "The Weyl Character Ring of Type [%s,%d] with %s coefficients"%(self.cartan_type[0], self.cartan_type[1], self._base_ring.__repr__())
+        return "The Weyl Character Ring of Type [%s,%d] with %s coefficients"%(self._cartan_type[0], self._cartan_type[1], self._base_ring.__repr__())
 
     def __cmp__(self, x):
         """
@@ -575,6 +587,17 @@ class WeylCharacterRing_class(Algebra):
             Complex Field with 53 bits of precision
         """
         return self._base_ring
+
+    def cartan_type(self):
+        """
+        Returns the Cartan Type.
+
+        EXAMPLES::
+
+            sage: WeylCharacterRing("A2").cartan_type()
+            ['A', 2]
+        """
+        return self._cartan_type
 
     def _coerce_impl(self, x):
         """
@@ -956,95 +979,95 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A3(1,1,0,0).branch(C2, rule) == C2(0,0) + C2(1,1)
         True
     """
-    r = R.cartan_type[1]
-    s = S.cartan_type[1]
+    r = R._cartan_type[1]
+    s = S._cartan_type[1]
     # Each rule takes a tuple or list and returns a list
     if rule == "levi":
         if not s == r-1:
             raise ValueError, "Rank is wrong"
-        if R.cartan_type[0] == 'A':
-            if S.cartan_type[0] == 'A':
+        if R._cartan_type[0] == 'A':
+            if S._cartan_type[0] == 'A':
                 rule = lambda x : list(x)[:r]
             else:
                 raise ValueError, "Rule not found"
-        elif R.cartan_type[0] in ['B', 'C', 'D']:
-            if S.cartan_type[0] == 'A':
+        elif R._cartan_type[0] in ['B', 'C', 'D']:
+            if S._cartan_type[0] == 'A':
                 rule = lambda x : x
-            elif S.cartan_type[0] == R.cartan_type[0]:
+            elif S._cartan_type[0] == R._cartan_type[0]:
                 rule = lambda x : list(x)[1:]
             else:
                 raise ValueError, "Rule not found"
-        elif S.cartan_type[0] == 'E' and R.cartan_type[0] in ['A','D','E']:
+        elif S._cartan_type[0] == 'E' and R._cartan_type[0] in ['A','D','E']:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        elif S.cartan_type[0] == 'F' and R.cartan_type[0] in ['B','C']:
+        elif S._cartan_type[0] == 'F' and R._cartan_type[0] in ['B','C']:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        elif S.cartan_type[0] == 'G' and R.cartan_type[0] == 'A':
+        elif S._cartan_type[0] == 'G' and R._cartan_type[0] == 'A':
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         else:
             raise ValueError, "Rule not found"
     elif rule == "automorphic":
-        if not R.cartan_type == S.cartan_type:
+        if not R._cartan_type == S._cartan_type:
             raise ValueError, "Cartan types must agree for automorphic branching rule"
-        elif R.cartan_type[0] == 'E' and R.cartan_type[1] == 6:
+        elif R._cartan_type[0] == 'E' and R._cartan_type[1] == 6:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        elif R.cartan_type[0] == 'A':
+        elif R._cartan_type[0] == 'A':
             def rule(x) : y = [-i for i in x]; y.reverse(); return y
-        elif R.cartan_type[0] == 'D':
+        elif R._cartan_type[0] == 'D':
             def rule(x) : x[len(x)-1] = -x[len(x)-1]; return x
-        elif R.cartan_type[0] == 'E' and R.cartan_type[1] == 6:
+        elif R._cartan_type[0] == 'E' and R._cartan_type[1] == 6:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         else:
             raise ValueError, "No automorphism found"
     elif rule == "triality":
-        if not R.cartan_type == S.cartan_type:
+        if not R._cartan_type == S._cartan_type:
             raise ValueError, "Triality is an automorphic type (for D4 only)"
-        elif not R.cartan_type[0] == 'D' and r == 4:
+        elif not R._cartan_type[0] == 'D' and r == 4:
             raise ValueError, "Triality is for D4 only"
         else:
             def rule(x):
                 [x1,x2,x3,x4] = x
                 return [(x1+x2+x3+x4)/2,(x1+x2-x3-x4)/2,(x1-x2+x3-x4)/2,(-x1+x2+x3-x4)/2]
     elif rule == "symmetric":
-        if R.cartan_type[0] == 'A':
-            if (S.cartan_type[0] == 'C' or S.cartan_type[0] == 'D' and r == 2*s-1) or (S.cartan_type[0] == 'B' and r == 2*s):
+        if R._cartan_type[0] == 'A':
+            if (S._cartan_type[0] == 'C' or S._cartan_type[0] == 'D' and r == 2*s-1) or (S._cartan_type[0] == 'B' and r == 2*s):
                 def rule(x):
                     return [x[i]-x[r-i] for i in range(s)]
             else:
-                print S.cartan_type, r, s
+                print S._cartan_type, r, s
                 raise ValueError, "Rule not found"
 
-        elif R.cartan_type[0] == 'D' and S.cartan_type[0] == 'B' and s == r-1:
+        elif R._cartan_type[0] == 'D' and S._cartan_type[0] == 'B' and s == r-1:
             rule = lambda x : x[:s]
 
-        elif R.cartan_type[0] == 'E' and S.cartan_type[0] == '6':
+        elif R._cartan_type[0] == 'E' and S._cartan_type[0] == '6':
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         else:
             raise ValueError, "Rule not found"
     elif rule == "extended":
-        if R.cartan_type[0] == 'B' and S.cartan_type[0] == 'D' and s == r:
+        if R._cartan_type[0] == 'B' and S._cartan_type[0] == 'D' and s == r:
             rule = lambda x : x
-        elif R.cartan_type[0] == 'G' and S.cartan_type[0] == 'A' and s == r:
+        elif R._cartan_type[0] == 'G' and S._cartan_type[0] == 'A' and s == r:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        elif R.cartan_type[0] == 'F' and S.cartan_type[0] == 'B' and s == r:
+        elif R._cartan_type[0] == 'F' and S._cartan_type[0] == 'B' and s == r:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        elif R.cartan_type[0] == 'E' and S.cartan_type[0] == 'E' and s == r and r >= 7:
+        elif R._cartan_type[0] == 'E' and S._cartan_type[0] == 'E' and s == r and r >= 7:
             raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         else:
             raise ValueError, "Rule not found"
     elif rule == "isomorphic":
-        if R.cartan_type[0] == 'B' and S.cartan_type[0] == 'C' and s == 2 and r == 2:
+        if R._cartan_type[0] == 'B' and S._cartan_type[0] == 'C' and s == 2 and r == 2:
             def rule(x):
                 [x1, x2] = x
                 return [x1+x2, x1-x2]
-        elif R.cartan_type[0] == 'C' and S.cartan_type[0] == 'B' and s == 2 and r == 2:
+        elif R._cartan_type[0] == 'C' and S._cartan_type[0] == 'B' and s == 2 and r == 2:
             def rule(x):
                 [x1, x2] = x
                 return [(x1+x2)/2, (x1-x2)/2]
-        elif R.cartan_type[0] == 'A' and S.cartan_type[0] == 'D' and s == 3 and r == 3:
+        elif R._cartan_type[0] == 'A' and S._cartan_type[0] == 'D' and s == 3 and r == 3:
             def rule(x):
                 [x1, x2, x3, x4] = x
                 return [(x1+x2-x3-x4)/2, (x1-x2+x3-x4)/2, (x1-x2-x3+x4)/2]
-        elif R.cartan_type[0] == 'D' and S.cartan_type[0] == 'A' and s == 3 and r == 3:
+        elif R._cartan_type[0] == 'D' and S._cartan_type[0] == 'A' and s == 3 and r == 3:
             def rule(x):
                 [t1, t2, t3] = x
                 return [(t1+t2+t3)/2, (t1-t2-t3)/2, (-t1+t2-t3)/2, (-t1-t2+t3)/2]
@@ -1240,6 +1263,19 @@ class WeightRingElement(AlgebraElement):
             z *= self
         return z
 
+    def cartan_type(self):
+        """
+        Returns the Cartan Type.
+
+        EXAMPLES::
+
+            sage: A2=WeylCharacterRing("A2")
+            sage: a2 = WeightRing(A2)
+            sage: a2([0,1,0]).cartan_type()
+            ['A', 2]
+        """
+        return self._parent._cartan_type
+
     def mlist(self):
         """
         Returns a list of weights in self with their multiplicities.
@@ -1364,14 +1400,14 @@ class WeightRing(Algebra):
             True
         """
         self._parent = A
-        self.cartan_type = self._parent.cartan_type
+        self._cartan_type = self._parent._cartan_type
         if prefix is None:
             if self._parent._prefix.isupper():
                 prefix = self._parent._prefix.lower()
             elif self._parent._prefix.islower():
                 prefix = self._parent._prefix.upper()
             else:
-                prefix = (self.cartan_type[0].lower()+str(self.cartan_type[1]))
+                prefix = (self._cartan_type[0].lower()+str(self._cartan_type[1]))
         self._base_ring = self._parent._base_ring
         self._lattice = self._parent._lattice
         self._origin = self._parent._origin
@@ -1470,6 +1506,18 @@ class WeightRing(Algebra):
             False
         """
         return cmp(repr(self), repr(x))
+
+    def cartan_type(self):
+        """
+        Returns the Cartan Type.
+
+        EXAMPLES::
+
+            sage: A2 = WeylCharacterRing("A2")
+            sage: WeightRing(A2).cartan_type()
+            ['A', 2]
+        """
+        return self._cartan_type
 
     def lattice(self):
         """

@@ -313,7 +313,7 @@ class Crystal(CombinatorialClass, Parent):
             sage: chi.check(verbose = true)
             [9, 9]
         """
-        if not R.cartan_type == self.cartan_type():
+        if not R.cartan_type() == self.cartan_type():
             raise ValueError, "ring does not have the right Cartan type"
         hlist = {}
         mlist = {}

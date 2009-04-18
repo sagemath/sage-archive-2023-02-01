@@ -17,6 +17,7 @@ Schemes
    sage/schemes/generic/affine_space
    sage/schemes/generic/projective_space
    sage/schemes/generic/algebraic_scheme
+   sage/schemes/generic/hypersurface
 
    sage/schemes/generic/homset
    sage/schemes/generic/morphism

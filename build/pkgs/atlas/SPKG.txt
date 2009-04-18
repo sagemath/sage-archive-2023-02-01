@@ -30,6 +30,11 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p1 (Michael Abshoff, April 17th, 2009) ===
+ * Introduce SAGE_SIMD_MODE. If set to SSE2 only use SSE1 and SSE2 instructions (#5219)
+ * Detect Atom CPUs as Core2 (#5741)
+ * unbreak parallel make on system with "real" sh (#5742)
+
 === atlas-3.8.3.p0 (William Stein, February 20, 2009) ===
  * implement up to 5 auto-restarts with random timeouts.
 

@@ -38,8 +38,16 @@ config()
 	# -Si cputhrchk 0: Ignore/heed CPU throttle probe
 	# -Fa alg -fPIC: set flags so we can build dynamic libraries
 	# -t 0: disable threading for now.
+        # -A: select arch where 21 is Hammer
+        # -V: select SIMD extensions, i.e. 24 is SSE1 + SSE2
+	if [ "$SAGE_SIMD_MODE" = "SSE2" ]; then
+           echo "Building SSE2 only Hammer binary"
+           SIMD_FLAGS="-V 24 -A 21"; export SIMD_FLAGS
+        else
+           SIMD_FLAGS=""; export SIMD_FLAGS
+        fi
 	../src/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
-	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
+	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth $SIMD_FLAGS
 }
 
 

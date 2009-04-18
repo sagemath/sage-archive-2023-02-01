@@ -1041,8 +1041,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
  	    sage: G = DirichletGroup(3)
  	    sage: e = G.0
- 	    sage: e.kloosterman_sum_numerical()
- 	    7.21644966006e-16 + 1.73205080757*I
+
+        The real component of the numerical value of e is near zero::
+
+            sage: v=e.kloosterman_sum_numerical()
+            sage: v.real() < 1.0e15
+            True
+            sage: v.imag()
+            1.73205080757
  	    sage: G = DirichletGroup(20)
  	    sage: e = G.1
  	    sage: e.kloosterman_sum_numerical(53,3,11)

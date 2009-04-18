@@ -121,6 +121,9 @@ if len(files) == 0:
     print "     -only-optional=list,of,tags -- only run doctests with "
     print "                       #optional <nonempty subset of tags>"
     print "      if the list of tags is omitted, run all optional doctests"
+    print "     -rand          -- if given, randomize *order* of tests"
+    print "     -rand=seed     -- use seed to get same random order"
+
     sys.exit(1)
 
 files.sort()

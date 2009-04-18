@@ -301,6 +301,7 @@ enum MACHTYPE Chip2Mach(enum CHIP chip, int model, int x8664)
          break;
       case 15:
       case 23:
+      case 28:
       case 29:
          iret = IntCore2;
          break;

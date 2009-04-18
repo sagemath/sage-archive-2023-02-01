@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ###########################################
 ## ATLAS
@@ -6,7 +6,7 @@
 
 
 # we need to disable parallel builds
-MAKE=make
+MAKE=make; export MAKE
 
 FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
 bitwidth=`python ./bitwidth.py`

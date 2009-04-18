@@ -82,6 +82,15 @@ build()
         fi
     fi
 
+    # to install the gmpcompat bits fully we need to run a second install target
+    $MAKE install-gmpcompat
+    if [ $? -ne 0 ]; then
+        if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.
+            echo "Error installing GMP."
+            exit 1
+        fi
+    fi
+
 }
 
 cd src

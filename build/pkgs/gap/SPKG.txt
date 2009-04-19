@@ -1,5 +1,31 @@
 = gap =
 
+== Description ==
+
+This is a stripped-down version of GAP.  The databases, which are arch
+independent, are in a separate package and doc and tests are removed.
+
+== SPKG Maintainers ==
+
+ * William Stein
+ * Michael Abshoff
+ * Robert Miller
+ * David Joyner
+
+== Upstream Contact ==
+
+David Joyner, wdjoyner@gmail.com (on the GAP team, but
+Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
+
+== Dependencies ==
+
+GAP does not depend on any spkg's to build.
+
+== Change log ==
+
+=== gap-4.4.10.p11 (Michael Abshoff, September 20th, 2008) ===
+ * Delete all old GAP installs due to a downgrade from GAP 4.4.12 (#5697)
+
 === gap-4.4.10.p10 (Michael Abshoff, September 20th, 2008) ===
  * unset CXX in spkg-install (work around for #4161)
 

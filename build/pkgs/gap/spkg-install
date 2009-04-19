@@ -99,8 +99,8 @@ build()
 build
 
 if [ $? -eq 0 ]; then
-    # Delete the old version if it is still there.
-    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.9
+    # Delete all old versions of GAP 4.4.x
+    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.*
     exit 0
 else
     echo "Something went wrong when building GAP."

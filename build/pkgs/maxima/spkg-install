@@ -21,15 +21,6 @@ check_error() {
     fi
 }
 
-# The extra --with-clisp option should work if the SAGE install
-# directory moves, so the correct clisp runtime environment
-# is selected.   Unfortunately, it fails in the install at the end after build
-# because of a weird bug in the config scripts (i.e., probably
-# nobody has tried this before :-( ).
-#./configure --prefix=$SAGE_LOCAL --with-clisp="clisp -B\"$SAGE_ROOT/local/lib/clisp\""
-
-
-
 if [ `uname` = "Darwin" ]; then
     ./configure --prefix=$SAGE_LOCAL --with-clisp=clisp.bin 1>"$CUR"/output.log 2>"$CUR"/error.log
     echo "Ignoring errors during configure on Darwin"
@@ -53,6 +44,12 @@ check_error "Failed to make Maxima."
 
 make install
 check_error "Failed to install Maxima."
+
+echo "creating wrapper script with disabled readline"
+echo '#!/bin/sh' > "$SAGE_LOCAL"/bin/maxima-noreadline
+echo 'SAGE_CLISP_DISABLE_READLINE_HACK="yes"; export SAGE_CLISP_DISABLE_READLINE_HACK' >> "$SAGE_LOCAL"/bin/maxima-noreadline
+echo 'maxima "$@"' >> "$SAGE_LOCAL"/bin/maxima-noreadline
+chmod 755 "$SAGE_LOCAL"/bin/maxima-noreadline
 
 if [ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]; then
    echo "Deleting Maxima commandlist cache. It will be recreated at the next start of Sage"

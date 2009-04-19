@@ -2,6 +2,9 @@
 
 == Releases ==
 
+=== maxima-5.16.3.p0 (Michael Abshoff, April 18th, 2009) ===
+ * create maxima-noreadline script for matching dynamically readline disabling clisp (#5662)
+
 === maxima-5.16.3 (Michael Abshoff, September 27th, 2008) ===
  * Upgrade to upstream
 

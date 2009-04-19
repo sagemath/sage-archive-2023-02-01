@@ -31,6 +31,7 @@ from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
+from sage.modular.modsym.p1list import lift_to_sl2z_llong
 
 class Cusps_class(ParentWithBase):
     """
@@ -166,7 +167,7 @@ class Cusp(Element):
         True
     """
 
-    def __init__(self, a, b=None, parent=None):
+    def __init__(self, a, b=None, parent=None, check=True):
         r"""
         Create the cusp a/b in `\mathbb{P}^1(\mathbb{Q})`, where if b=0
         this is the cusp at infinity.
@@ -192,6 +193,10 @@ class Cusp(Element):
             3/2
             sage: Cusp(int(7))
             7
+            sage: Cusp(1, 2, check=False)
+            1/2
+            sage: Cusp('sage', 2.5, check=False)          # don't do this!
+            sage/2.50000000000000
 
         ::
 
@@ -254,6 +259,10 @@ class Cusp(Element):
         if parent is None:
             parent = Cusps
         Element.__init__(self, parent)
+
+        if not check:
+            self.__a = a; self.__b = b
+            return
 
         if b is None:
             if isinstance(a, Integer):
@@ -442,7 +451,7 @@ class Cusp(Element):
             sage: Cusp(0,1).is_infinity()
             False
         """
-        return self.__b == 0
+        return not self.__b
 
     def numerator(self):
         """
@@ -844,4 +853,91 @@ class Cusp(Element):
         """
         return Cusp(g[0]*self.__a + g[1]*self.__b, g[2]*self.__a + g[3]*self.__b)
 
+    def galois_action(self, t, N):
+        r"""
+        Suppose this cusp is `\alpha`, `G` is a congruence subgroup of
+        level `N`, and `\sigma` is the automorphism in the Galois
+        group of `\QQ(\zeta_N)/\QQ` that sends `\zeta_N` to
+        `\zeta_N^t`.  Then this function computes a cusp `\beta` such
+        that `\sigma([\alpha]) = [\beta]`, where `[\alpha]` is the
+        equivalence class of `\alpha` modulo `G`.
 
+        INPUT:
+
+           - `t` -- integer that is coprime to N
+
+           - `N` -- positive integer (level)
+
+        OUTPUT:
+
+           - a cusp
+
+        EXAMPLES::
+
+            sage: Cusp(1/10).galois_action(3, 50)
+            1/170
+            sage: Cusp(oo).galois_action(3, 50)
+            Infinity
+            sage: Cusp(0).galois_action(3, 50)
+            0
+
+        Here we compute explicitly the permutations of the action for
+        t=3 on cusps for Gamma0(50)::
+
+            sage: N = 50; t=3; G = Gamma0(N); C = G.cusps()
+            sage: cl = lambda z: exists(C, lambda y:y.is_gamma0_equiv(z, N))[1]
+            sage: for i in range(5): print i, t^i, [cl(alpha.galois_action(t^i,N)) for alpha in C]
+            0 1 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+            1 3 [0, 1/25, 7/10, 2/5, 1/10, 4/5, 1/2, 1/5, 9/10, 3/5, 3/10, Infinity]
+            2 9 [0, 1/25, 9/10, 4/5, 7/10, 3/5, 1/2, 2/5, 3/10, 1/5, 1/10, Infinity]
+            3 27 [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
+            4 81 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
+
+        REFERENCES:
+
+            - Section 1.3 of Glenn Stevens, "Arithmetic on Modular Curves"
+
+            - There is a long comment about our algorithm in the source code for this function.
+
+        WARNING: In some cases `N` must fit in a long long, i.e., there
+                 are cases where this algorithm isn't fully implemented.
+
+        AUTHORS:
+
+            - William Stein, 2009-04-18
+
+        """
+        if self.is_infinity() or not self.__a: return self
+        if not isinstance(t, Integer): t = Integer(t)
+
+        # Our algorithm for computing the Galois action works as
+        # follows (see Section 1.3 of Glenn Stevens "Arithmetic on
+        # Modular Curves" for a proof that the action given below is
+        # correct).  We alternatively view the set of cusps as the
+        # Gamma-equivalence classes of column vectors [a;b] with
+        # gcd(a,b,N)=1, and the left action of Gamma by matrix
+        # multiplication.  The action of t is induced by [a;b] |-->
+        # [a;t'*b], where t' is an inverse mod N of t.  For [a;t'*b]
+        # with gcd(a,t'*b)==1, the cusp corresponding to [a;t'*b] is
+        # just the rational number a/(t'*b).  Thus in this case, to
+        # compute the action of t we just do a/b <--> [a;b] |--->
+        # [a;t'*b] <--> a/(t'*b).  IN the other case when we get
+        # [a;t'*b] with gcd(a,t'*b) != 1, which can and does happen,
+        # we have to work a bit harder.  We need to find [c;d] such
+        # that [c;d] is congruent to [a;t'*b] modulo N, and
+        # gcd(c,d)=1.  There is a standard lifting algorithm that is
+        # implemented for working with P^1(Z/NZ) [it is needed for
+        # modular symbols algorithms], so we just apply it to lift
+        # [a,t'*b] to a matrix [A,B;c,d] in SL_2(Z) with lower two
+        # entries congruent to [a,t'*b] modulo N.  This exactly solves
+        # our problem, since gcd(c,d)=1.
+
+        a = self.__a
+        b = self.__b * t.inverse_mod(N)
+        if b.gcd(a) != 1:
+            _,_,a,b = lift_to_sl2z_llong(a,b,N)
+            a = Integer(a); b = Integer(b)
+
+        # Now that we've computed the Galois action, we efficiently
+        # construct the corresponding cusp as a Cusp object.
+        return Cusp(a,b,check=False)

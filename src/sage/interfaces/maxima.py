@@ -505,7 +505,7 @@ class Maxima(Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = 'maxima -p "%s"'%STARTUP,
+                        command = 'maxima-noreadline -p "%s"'%STARTUP,
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

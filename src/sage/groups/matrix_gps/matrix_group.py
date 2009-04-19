@@ -80,7 +80,6 @@ from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.groups.class_function import ClassFunction
-from sage.misc.randstate import current_randstate
 
 #################################################################
 

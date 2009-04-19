@@ -130,7 +130,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.randstate import current_randstate
 
 def load_hap():
      """
@@ -1342,15 +1341,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         - David Joyner and William Stein (2006-01-04)
 
-        .. note::
-
-           The ordering of the columns of the character table of a group
-           corresponds to the ordering of the list. However, in general
-           there is no way to canonically list (or index) the conjugacy
-           classes of a group. Therefore the ordering of the columns of the
-           character table of a group is somewhat random.
         """
-        current_randstate().set_seed_gap()
         G    = self._gap_()
         cl   = G.ConjugacyClasses()
         n    = Integer(cl.Length())

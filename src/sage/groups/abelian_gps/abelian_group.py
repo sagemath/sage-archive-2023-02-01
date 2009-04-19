@@ -20,8 +20,6 @@ AUTHORS:
 
 - David Joyner (2008-03) fixed bug in trivial group case
 
-- David Joyner (2009-02): fixed bug related to 4.4.10->4.4.12 upgrade.
-
 
 TODO:
 
@@ -165,7 +163,6 @@ from sage.misc.mrange import mrange
 import sage.groups.group as group
 from sage.rings.integer_ring import IntegerRing
 ZZ = IntegerRing()
-from sage.misc.randstate import current_randstate
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -239,7 +236,6 @@ def word_problem(words, g, verbose = False):
           GAP's 'EpimorphismFromFreeGroup' and
           'PreImagesRepresentative') and may be faster.
     """
-    current_randstate().set_seed_gap()
     from sage.interfaces.all import gap
     G = g.parent()
     invs = G.invariants()

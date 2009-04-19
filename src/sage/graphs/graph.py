@@ -7326,8 +7326,8 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
-            sage: abs(Integer(M.determinant()))
-            712483534798848
+            sage: M.determinant()
+            -712483534798848
             sage: G.order()
             384
 

@@ -1470,26 +1470,28 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: DodecAut.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
         [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
         [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
         [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
+
         sage: DodecAut2 = PermutationGroup([perm_group_elt(cc) for cc in c])
         sage: DodecAut2.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
-        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
-        [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                   0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
-        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                   0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
-        [                     4                      0                      1                      0                     -1                     -1                   1                     -1                     -1                      4]
-        [                     4                      0                      1                      0                      1                     -1                  -1                     -1                      1                     -4]
-        [                     5                      1                     -1                      1                      0                      0                  -1                      0                      0                      5]
-        [                     5                     -1                     -1                      1                      0                      0                   1                      0                      0                     -5]
+        [                     3                     -1                      0                     -1  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1     -zeta5^3 - zeta5^2                      3]
+        [                     3                      1                      0                     -1      zeta5^3 + zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2 -zeta5^3 - zeta5^2 - 1                     -3]
+        [                     3                      1                      0                     -1 -zeta5^3 - zeta5^2 - 1     -zeta5^3 - zeta5^2                      0  zeta5^3 + zeta5^2 + 1      zeta5^3 + zeta5^2                     -3]
+        [                     4                      0                      1                      0                     -1                     -1                      1                     -1                     -1                      4]
+        [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
+        [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
+        [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
+
 
     ::
 

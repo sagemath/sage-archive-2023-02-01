@@ -350,7 +350,7 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             sage: y.word_problem([x,y])
             [[y, 1]]
             sage: (y*x).word_problem([x,y])
-            [[y, 1], [x, 1]]
+            [[x, 1], [y, 1]]
         """
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)

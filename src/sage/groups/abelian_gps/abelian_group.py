@@ -203,12 +203,12 @@ def word_problem(words, g, verbose = False):
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: word_problem([a*b,a*c], b*c)
-        [[a*c, 1], [a*b, 1]]
+        [[a*b, 1], [a*c, 1]]
         sage: word_problem([a*c,c],a)
-        [[c, -1], [a*c, 1]]
+        [[a*c, 1], [c, -1]]
         sage: word_problem([a*c,c],a,verbose=True)
-        a = (c)^-1*(a*c)^1
-        [[c, -1], [a*c, 1]]
+        a = (a*c)^1*(c)^-1
+        [[a*c, 1], [c, -1]]
 
     ::
 
@@ -219,7 +219,7 @@ def word_problem(words, g, verbose = False):
         sage: b4 = a^3*b^2*c^2*d^3*e^5
         sage: b5 = a^2*b^4*c^2*d^4*e^5
         sage: word_problem([b1,b2,b3,b4,b5],e)
-        [[a^2*b^4*c^2*d^4*e^5, 1], [a^3*b^3*d^4*e^4, 3], [a^2*b*c^2*d^3*e^3, 1], [a^3*b*c*d^2*e^5, 1]]
+        [[a^3*b*c*d^2*e^5, 1], [a^2*b*c^2*d^3*e^3, 1], [a^3*b^3*d^4*e^4, 3], [a^2*b^4*c^2*d^4*e^5, 1]]
         sage: word_problem([a,b,c,d,e],e)
         [[e, 1]]
         sage: word_problem([a,b,c,d,e],b)

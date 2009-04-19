@@ -406,8 +406,11 @@ def change_warning_output(file):
             doc = F[i:j+3]
         if len(doc):
             doc = '""">>> set_random_seed(0L)\n\n' + '>>> change_warning_output(sys.stdout)\n\n' + doc[3:]
-            n_padded = pad_zeros(new_index(n),10)
-            s += "def %s_%s():"%(name,n_padded)
+            if random_order:
+                n_str = pad_zeros(new_index(n),10)
+            else:
+                n_str = str(n)
+            s += "def %s_%s():"%(name,n_str)
             n += 1
             s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
@@ -681,15 +684,19 @@ def parse_only_opt():
     return False, []
 
 def parse_rand():
+    """
+    Randomize seed and return True if we randomize doctest order.
+    Otherwise we leave doctests in the "traditional order" and return False.
+    """
     for j, X in enumerate(argv):
         Z = X.lstrip('-')
-        if Z.startswith('rand'):
+        if Z.startswith('randorder'):
             del argv[j]
             i = Z.find('=')
             if i != -1:
                 random.seed(Z[i+1:])
             return True
-    return False, []
+    return False
 
 def usage():
     print "\n\nUsage: sage-doctest [same options as sage -t] filenames"

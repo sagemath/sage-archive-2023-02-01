@@ -17,7 +17,7 @@ usage() {
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "        options to '-t':   --verbose, --gdb, --long, --optional,"
     echo "                  --valgrind, --memcheck, --massif, --cachegrind,"
-    echo "                  --callgrind, --omega, --rand[=seed]"
+    echo "                  --callgrind, --omega, --randorder[=seed]"
     echo "  -upgrade [url]  -- download, build and install standard packages from "
     echo "                   given url (if not given, uses SAGE_SERVER)"
     echo "  -advanced     -- list more options"

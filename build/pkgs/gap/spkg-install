@@ -24,7 +24,7 @@ build()
 {
     CUR=`pwd`
     INSTALL_DIR=$SAGE_LOCAL/lib/$TARGET
-    rm -rf $INSTALL_DIR
+    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.*
     if [ $? -ne 0 ]; then
         echo "Couldn't remove old dir."
         exit 1
@@ -97,13 +97,4 @@ build()
 }
 
 build
-
-if [ $? -eq 0 ]; then
-    # Delete all old versions of GAP 4.4.x
-    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.*
-    exit 0
-else
-    echo "Something went wrong when building GAP."
-    exit 1
-fi
 

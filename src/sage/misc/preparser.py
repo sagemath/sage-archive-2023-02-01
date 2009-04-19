@@ -237,7 +237,8 @@ def strip_string_literals(code, state=None):
     labels and a dict of labels for re-subsitution. This makes
     parsing much easier.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.preparser import strip_string_literals
         sage: s, literals, state = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
@@ -249,25 +250,36 @@ def strip_string_literals(code, state=None):
         sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]
         -%(L1)s-%(L2)s-
 
-    Triple-quotes are handled as well.
+    Triple-quotes are handled as well::
+
         sage: s, literals, state = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
         [a, '''b''', c, '']
 
-    Comments are subsituted too:
+    Comments are subsituted too::
+
         sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
 
     A state is returned so one can break strings across multiple calls to
-    this function:
+    this function::
+
         sage: s, literals, state = strip_string_literals('s = "some'); s
         's = %(L1)s'
         sage: s, literals, state = strip_string_literals('thing" * 5', state); s
         '%(L1)s * 5'
+
+    TESTS:
+
+    Even for raw strings, a backslash can escape a following quote::
+
+        sage: s, literals, state = strip_string_literals(r"r'somethin\' funny'"); s
+        'r%(L1)s'
+        sage: dep_regex = r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))' # Ticket 5821
     """
     new_code = []
     literals = {}
@@ -304,7 +316,7 @@ def strip_string_literals(code, state=None):
                 new_code.append(code[start:].replace('%','%%'))
             break
         elif in_quote:
-            if not raw and code[q-1] == '\\':
+            if code[q-1] == '\\':
                 k = 2
                 while code[q-k] == '\\':
                     k += 1

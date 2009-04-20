@@ -324,7 +324,7 @@ from sage.structure.sage_object import SageObject
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
-import sage.misc.misc
+from sage.misc.html import html
 
 from misc import rgbcolor, Color, options, rename_keyword, to_mpl_color
 
@@ -1278,12 +1278,15 @@ class Graphics(SageObject):
                       hgridlinesstyle=hgridlinesstyle)
             return
         if EMBEDDED_MODE:
+            if filename is None:
+                filename = sage.misc.misc.graphics_filename()
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
                       dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
                       aspect_ratio=aspect_ratio, gridlines=gridlines,
                       gridlinesstyle=gridlinesstyle,
                       vgridlinesstyle=vgridlinesstyle,
                       hgridlinesstyle=hgridlinesstyle)
+            html("<img src='cell://%s'>"%filename)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'

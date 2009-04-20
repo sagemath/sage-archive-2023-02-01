@@ -1750,6 +1750,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
             <BLANKLINE>
             )
             sage: C.files()
@@ -1776,6 +1777,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
             <BLANKLINE>
             )
             sage: C.files()

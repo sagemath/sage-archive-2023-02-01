@@ -48,7 +48,7 @@ check_error "Failed to install Maxima."
 echo "creating wrapper script with disabled readline"
 echo '#!/bin/sh' > "$SAGE_LOCAL"/bin/maxima-noreadline
 echo 'SAGE_CLISP_DISABLE_READLINE_HACK="yes"; export SAGE_CLISP_DISABLE_READLINE_HACK' >> "$SAGE_LOCAL"/bin/maxima-noreadline
-echo 'maxima "$@"' >> "$SAGE_LOCAL"/bin/maxima-noreadline
+echo 'exec "$SAGE_LOCAL"/bin/maxima "$@"' >> "$SAGE_LOCAL"/bin/maxima-noreadline
 chmod 755 "$SAGE_LOCAL"/bin/maxima-noreadline
 
 if [ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]; then

@@ -1,5 +1,7 @@
-r"""
+r"""nodoctest
+
 Format SAGE documentation for viewing with IPython
+
 """
 
 #*****************************************************************************

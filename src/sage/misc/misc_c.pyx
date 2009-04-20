@@ -290,6 +290,7 @@ def test_bitset(py_a, py_b, long n):
         sage: test_bitset('00101', '01110', 4)
         a 00101
         a.size 5
+        len(a) 2
         a.limbs 1
         b 01110
         a.in(n)   True
@@ -322,6 +323,7 @@ def test_bitset(py_a, py_b, long n):
         sage: test_bitset('11101', '11001', 2)
         a 11101
         a.size 5
+        len(a) 4
         a.limbs 1
         b 11001
         a.in(n)   True
@@ -355,6 +357,7 @@ def test_bitset(py_a, py_b, long n):
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
         a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.size 150
+        len(a) 100
         a.limbs 5
         b 000100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000000011011100000111001101000100101001000000100100111
         a.in(n)   False
@@ -405,6 +408,7 @@ def test_bitset(py_a, py_b, long n):
 
     print "a", bitset_string(a)
     print "a.size", a.size
+    print "len(a)" , bitset_len(a)
     print "a.limbs", a.limbs
     print "b", bitset_string(b)
     print "a.in(n)  ", bitset_in(a, n)
@@ -559,6 +563,7 @@ def test_bitset_pop(py_a):
         sage: from sage.misc.misc_c import test_bitset_pop
         sage: test_bitset_pop('0101')
         a.pop()   1
+        new set:  0001
         sage: test_bitset_pop('0000')
         Traceback (most recent call last):
         ...
@@ -568,6 +573,7 @@ def test_bitset_pop(py_a):
     bitset_from_str(a, py_a)
     i=bitset_pop(a)
     print "a.pop()  ", i
+    print "new set: ", bitset_string(a)
     bitset_free(a)
 
 

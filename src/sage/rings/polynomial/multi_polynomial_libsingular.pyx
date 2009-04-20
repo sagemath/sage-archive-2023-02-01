@@ -356,17 +356,38 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         self._zero_element = <MPolynomial_libsingular>co.new_MP(self,NULL)
 
     def __dealloc__(self):
+        r"""
+        Carefully deallocate the ring, without changing "currRing"
+        (since this method can be at unpredictable times due to garbage
+        collection).
+
+        TESTS:
+        This example caused a segmentation fault with a previous version
+        of this method:
+            sage: import gc
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R1 = MPolynomialRing_libsingular(GF(5), 2, ('x', 'y'), TermOrder('degrevlex', 2))
+            sage: R2 = MPolynomialRing_libsingular(GF(11), 2, ('x', 'y'), TermOrder('degrevlex', 2))
+            sage: R3 = MPolynomialRing_libsingular(GF(13), 2, ('x', 'y'), TermOrder('degrevlex', 2))
+            sage: _ = gc.collect()
+            sage: foo = R1.gen(0)
+            sage: del foo
+            sage: del R1
+            sage: _ = gc.collect()
+            sage: del R2
+            sage: _ = gc.collect()
+            sage: del R3
+            sage: _ = gc.collect()
+        """
         cdef ring *oldRing = NULL
         if currRing != self._ring:
-            rChangeCurrRing(currRing)
             oldRing = currRing
             rChangeCurrRing(self._ring)
             rDelete(self._ring)
+            rChangeCurrRing(oldRing)
         else:
             (&currRing)[0] = NULL
             rDelete(self._ring)
-        if oldRing != NULL:
-            rChangeCurrRing(oldRing)
 
     cdef _coerce_c_impl(self, element):
         """

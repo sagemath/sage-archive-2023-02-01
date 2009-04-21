@@ -13,12 +13,12 @@ AUTHORS:
 
 .. note::
 
-   Unlike in PARI/GP, class group computations *in Sage* do *not*
-   by default assume the Generalized Riemann Hypothesis. To do class
-   groups computations not provably correctly you must often pass the
-   flag proof=False to functions or call the function
-   ``proof.number_field(False)``. It can easily take 1000's of times
-   longer to do computations with ``proof=True`` (the default).
+   Unlike in PARI/GP, class group computations *in Sage* do *not* by default
+   assume the Generalized Riemann Hypothesis. To do class groups computations
+   not provably correctly you must often pass the flag ``proof=False`` to
+   functions or call the function ``proof.number_field(False)``. It can easily
+   take 1000's of times longer to do computations with ``proof=True`` (the
+   default).
 
 This example follows one in the Magma reference manual::
 
@@ -117,7 +117,6 @@ from sage.misc.latex import latex_variable_name, latex_varify
 
 from unit_group import UnitGroup
 from class_group import ClassGroup
-#import order
 
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
@@ -1771,12 +1770,20 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.fractional_ideal([1/a])
             Fractional ideal (1/2*a^2)
 
-        One can also input in a number field ideal itself.
+        One can also input a number field ideal itself,
+        or, more usefully, for a tower of number fields an ideal
+        in one of the fields lower down the tower.
 
         ::
 
             sage: K.fractional_ideal(K.ideal(a))
             Fractional ideal (a)
+            sage: L.<b> = K.extension(x^2 - 3, x^2 + 1)
+            sage: M.<c> = L.extension(x^2 + 1)
+            sage: L.ideal(K.ideal(2, a))
+            Fractional ideal (a)
+            sage: M.ideal(K.ideal(2, a)) == M.ideal(a*(b - c)/2)
+            True
 
         The zero ideal is not a fractional ideal!
 
@@ -1789,7 +1796,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        if len(gens) == 1 and isinstance(gens[0],self._fractional_ideal_class_()):
+        if len(gens) == 1 and isinstance(gens[0], NumberFieldFractionalIdeal):
             I = gens[0]
             if I.number_field() is self:
                 return I
@@ -1848,11 +1855,10 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (9, 1/2*a + 7/2)
             10
         """
-        from sage.rings.number_field.number_field_ideal import convert_from_zk_basis
         hnf_ideals = pari('ideallist(%s, %d)'%(self.pari_nf(),bound))
         d = {}
         for i in xrange(bound):
-            d[i+1] = [self.ideal([ self(generator) for generator in convert_from_zk_basis(self, hnf_I) ]) for hnf_I in hnf_ideals[i]]
+            d[i+1] = [self.ideal(map(self, convert_from_zk_basis(self, hnf_I))) for hnf_I in hnf_ideals[i]]
         return d
 
     def primes_above(self, x, degree=None):
@@ -1934,28 +1940,24 @@ class NumberField_generic(number_field_base.NumberField):
             sage: PF.<Y> = F[]
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = F.ideal(a + 2*b)
-            sage: K.primes_above(I)
-            [Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1),
-             Fractional ideal (5, (5/2*b + 7/2)*a + 2*b + 10)]
-            sage: K.primes_above(I, degree=1)
-            [Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1)]
-            sage: K.primes_above(I, degree=4)
-            [Fractional ideal (5, (5/2*b + 7/2)*a + 2*b + 10)]
+            sage: P, Q = K.primes_above(I)
+            sage: K.ideal(I) == P^4*Q
+            True
+            sage: K.primes_above(I, degree=1) == [P]
+            True
+            sage: K.primes_above(I, degree=4) == [Q]
+            True
 
-        TESTS:
+        It doesn't make sense to factor the ideal (0), so this raises an error::
 
-        It doesn't make sense to factor the ideal (0)::
-
-            sage: F.primes_above(0)
+            sage: F.prime_above(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
-
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'prime_factors'
         """
         if degree is not None:
             degree = ZZ(degree)
-        ideal = self.ideal(x)
-        facs = [ (id.residue_class_degree(), id) for id, _ in ideal.factor() ]
+        facs = [ (id.residue_class_degree(), id) for id in self.prime_factors(x) ]
         facs.sort() # sorts on residue_class_degree(), lowest first
         if degree is None:
             return [ id for d, id in facs ]
@@ -1980,11 +1982,6 @@ class NumberField_generic(number_field_base.NumberField):
 
         OUTPUT: A prime ideal of self lying over x. If degree is specified
         and no such ideal exists, raises a ValueError.
-
-        .. warning::
-
-           At this time we factor the ideal x, which may not be
-           supported for relative number fields.
 
         EXAMPLES::
 
@@ -2045,16 +2042,14 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: G = F.extension(x^2 - 11, 'b')
             sage: G.prime_above(7)
-            Fractional ideal (7, (3*t^2 + 2*t + 9)*b - t^2 - 31*t - 10)
-
-        TESTS:
+            Fractional ideal (b + 2)
 
         It doesn't make sense to factor the ideal (0)::
 
             sage: F.prime_above(0)
             Traceback (most recent call last):
             ...
-            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'prime_factors'
 
         """
         ids = self.primes_above(x, degree)
@@ -2412,15 +2407,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.<a> = NumberField(x^2 + 20072)
             sage: G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
-            sage: G.gens()
-            [Fractional ideal class (41, a + 10), Fractional ideal class (2, -1/2*a)]
-            sage: G.0
+            sage: G.0 # random
             Fractional ideal class (41, a + 10)
-            sage: G.0^20
-            Fractional ideal class (43, a + 3)
             sage: G.0^38
             Trivial principal fractional ideal class
-            sage: G.1
+            sage: G.1 # random
             Fractional ideal class (2, -1/2*a)
             sage: G.1^2
             Trivial principal fractional ideal class
@@ -2430,11 +2421,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f = ModularForms(97, 2).T(2).charpoly()
             sage: f.factor()
             (x - 3) * (x^3 + 4*x^2 + 3*x - 1) * (x^4 - 3*x^3 - x^2 + 6*x - 1)
-            sage: for g,_ in f.factor(): print NumberField(g,'a').class_group().order()
-            ...
-            1
-            1
-            1
+            sage: [NumberField(g,'a').class_group().order() for g,_ in f.factor()]
+            [1, 1, 1]
         """
         proof = proof_flag(proof)
         try:
@@ -2448,12 +2436,11 @@ class NumberField_generic(number_field_base.NumberField):
 
         # First gens is a pari list of pari gens
         gens = k.getattr('clgp.gen')
-        R    = self.polynomial_ring()
 
         # Next gens is a list of ideals.
-        gens = [self.ideal([self(R(convert_from_zk_basis(self, y))) for y in x]) for x in gens]
+        gens = [self.ideal([self(convert_from_zk_basis(self, y)) for y in x]) for x in gens]
 
-        G    = ClassGroup(cycle_structure, names, self, gens)
+        G = ClassGroup(cycle_structure, names, self, gens)
         self.__class_group[proof,names] = G
         return G
 
@@ -2652,7 +2639,7 @@ class NumberField_generic(number_field_base.NumberField):
         f = self.pari_polynomial()
         g = other.pari_polynomial()
 
-        R = self.polynomial().parent()
+        R = self.absolute_polynomial().parent()
         name = sage.structure.parent_gens.normalize_names(1, names)[0]
 
         # should we try to preserve embeddings?
@@ -2667,8 +2654,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         if not both_maps and not subfields_have_embeddings:
             # short cut!
-            C = f.polcompositum(g)
-            C = [ R(h) for h in C ]
+            C = map(R, f.polcompositum(g))
             return [ NumberField(C[i], name + str(i)) for i in range(len(C)) ]
 
         # If flag = 1, outputs a vector of 4-component vectors [R, a, b,
@@ -2780,8 +2766,8 @@ class NumberField_generic(number_field_base.NumberField):
             diff = self.pari_nf().getattr('diff')
             zk_basis = self.pari_nf().getattr('zk')
             basis_elts = zk_basis * diff
-            R = self.polynomial().parent()
-            self.__different = self.ideal([ self(R(x)) for x in basis_elts ])
+            self.__different = self.ideal(map(self, basis_elts))
+
             return self.__different
 
     def discriminant(self, v=None):
@@ -2856,8 +2842,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
-        R = self.polynomial().parent()
-        return [self(QQ['x'](R(g))) for g in B]
+        return map(self, B)
 
     def extension(self, poly, name=None, names=None, check=True, embedding=None):
         """
@@ -2912,8 +2897,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def factor(self, n):
         r"""
-        Ideal factorization of the principal ideal of the ring of integers
-        generated by `n`.
+        Ideal factorization of the principal ideal generated by `n`.
 
         EXAMPLE: Here we show how to factor gaussian integers. First we
         form a number field defined by `x^2 + 1`::
@@ -2941,7 +2925,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: zi*zj
             13
 
-        One can also factor elements of the number field::
+        One can also factor elements or ideals of the number field::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: K.factor(1/3)
@@ -2951,11 +2935,45 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.factor(1+a/5)
             (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (2*a + 1))^-1
 
+        The slightly odd syntax in the next example is to ensure
+        the same result with both 32- and 64-bit systems.
+
+        ::
+
+            sage: L.<b> = K.extension(x^2 - 7)
+            sage: list(L.factor(a + 1)) == [(L.ideal((a + b + 2)/2), 1), (L.ideal((a - b - 2)/2), 1)]
+            True
+
+        It doesn't make sense to factor the ideal (0), so this raises an error::
+
+            sage: L.factor(0)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
+
         AUTHORS:
 
-        - Alex Clemesha (2006-05-20): examples
+        - Alex Clemesha (2006-05-20), Francis Clarke (2009-04-21): examples
         """
         return self.ideal(n).factor()
+
+    def prime_factors(self, x):
+        """
+        Return a list of the prime ideals of self which divide
+        the ideal generated by `x`.
+
+        OUTPUT: list of prime ideals (a new list is returned each time this
+        function is called)
+
+        EXAMPLES::
+
+            sage: K.<w> = NumberField(x^2 + 23)
+            sage: K.prime_factors(w + 1)
+            [Fractional ideal (2, 1/2*w - 1/2),
+            Fractional ideal (2, 1/2*w + 1/2),
+            Fractional ideal (3, -1/2*w - 1/2)]
+        """
+        return self.ideal(x).prime_factors()
 
     def gen(self, n=0):
         """
@@ -3152,7 +3170,7 @@ class NumberField_generic(number_field_base.NumberField):
             v = []
         elif not isinstance(v, (list, tuple)):
             v = [v]
-        return tuple([ZZ(x) for x in v])
+        return tuple(map(ZZ, v))
 
     def power_basis(self):
         r"""
@@ -3268,8 +3286,7 @@ class NumberField_generic(number_field_base.NumberField):
                     m[i,1] = d.valuation(p)
                 B = f.nfbasis(p = m)
 
-            R = self.polynomial().parent()
-            basis = [ self(R(g)) for g in B]
+            basis = map(self, B)
             self._integral_basis_dict[v] = basis
             return basis
 
@@ -3311,6 +3328,8 @@ class NumberField_generic(number_field_base.NumberField):
             [1/2*t^5 + 1/2*t^4 + 1/2*t^2 + 1/2, t, t^2, t^3, t^4, t^5]
             sage: F.reduced_basis()
             [-1, -1/2*t^5 + 1/2*t^4 + 3*t^3 - 3/2*t^2 - 4*t - 1/2, t, 1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2, 1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2, 1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
+            sage: CyclotomicField(12).reduced_basis()
+            [1, zeta12^2, zeta12, zeta12^3]
 
         ::
 
@@ -3354,7 +3373,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
             T = pari(M).qflll().python()
-            self.__reduced_basis = [ self(v) for v in T.columns() ]
+            self.__reduced_basis = [ self(v.list()) for v in T.columns() ]
             if prec is None:
                 ## this is the default choice for Minkowski_embedding
                 self.__reduced_basis_prec = 53
@@ -3549,6 +3568,10 @@ class NumberField_generic(number_field_base.NumberField):
             Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
             sage: Z(-1)
             0.0333333333333333
+            sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
+            sage: Z = L.zeta_function()
+            sage: Z(5)
+            1.00199015670185
         """
         from sage.lfunctions.all import Dokchitser
         key = (prec, max_imaginary_part, max_asymp_coeffs)
@@ -3556,13 +3579,13 @@ class NumberField_generic(number_field_base.NumberField):
         r2 = self.signature()[1]
         zero = [0]
         one = [1]
-        Z = Dokchitser(conductor = abs(self.discriminant()),
+        Z = Dokchitser(conductor = abs(self.absolute_discriminant()),
                        gammaV = (r1+r2)*zero + r2*one,
                        weight = 1,
                        eps = 1,
                        poles = [1],
                        prec = prec)
-        s = 'nf = nfinit(%s);'%self.polynomial()
+        s = 'nf = nfinit(%s);'%self.absolute_polynomial()
         s += 'dzk = dirzetak(nf,cflength());'
         Z.init_coeffs('dzk[k]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
@@ -3992,14 +4015,13 @@ class NumberField_generic(number_field_base.NumberField):
 
         # get Pari to compute the units
         B = self.pari_bnf(proof).bnfunit()
-        R = self.polynomial().parent()
         if proof:
             # cache the provable results and return them
-            self.__units = [self(R(g)) for g in B]
+            self.__units = map(self, B)
             return self.__units
         else:
             # cache the conjectural results and return them
-            self.__units_no_proof = [self(R(g)) for g in B]
+            self.__units_no_proof = map(self, B)
             return self.__units_no_proof
 
     def unit_group(self, proof=None):
@@ -4088,10 +4110,10 @@ class NumberField_generic(number_field_base.NumberField):
         -  ``n`` - positive integer
 
         - ``all`` - bool.  If False (default), return a primitive
-          `n`-th root of unity in this field, or raise an
-          ArithmeticError exception if there are none.  If True,
-          return a list of all primitive `n`-th roots of unity in this
-          field (possibly empty).
+          `n`-th root of unity in this field, or raise a ValueError
+          exception if there are none.  If True, return a list of
+          all primitive `n`-th roots of unity in this field
+          (possibly empty).
 
         .. note::
 
@@ -4119,7 +4141,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ValueError: n (=4) does not divide order of generator
+            ValueError: There are no 4th roots of unity in self.
 
         ::
 
@@ -4132,7 +4154,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ValueError: n (=3) does not divide order of generator
+            ValueError: There are no 3rd roots of unity in self.
             sage: K.zeta(3,all=True)
             []
         """
@@ -4170,7 +4192,7 @@ class NumberField_generic(number_field_base.NumberField):
             if all:
                 return []
             else:
-                raise ValueError, "n (=%s) does not divide order of generator"%n
+                raise ValueError, "There are no %s roots of unity in self."%n.ordinal_str()
 
     def zeta_order(self):
         r"""
@@ -4575,7 +4597,7 @@ class NumberField_absolute(NumberField_generic):
     def optimized_subfields(self, degree=0, name=None, both_maps=True):
         """
         Return optimized representations of many (but *not* necessarily
-        all!) subfields of self of degree 0, or of all possible degrees if
+        all!) subfields of self of the given degree, or of all possible degrees if
         degree is 0.
 
         EXAMPLES::
@@ -4656,6 +4678,11 @@ class NumberField_absolute(NumberField_generic):
 
     def subfields(self, degree=0, name=None):
         """
+        Return all subfields of self of the given degree,
+        or of all possible degrees if degree is 0.  The subfields are returned as
+        absolute fields together with an embedding into self.  For the case of the
+        field itself, the reverse isomorphism is also provided.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField( [x^3 - 2, x^2 + x + 1] )
@@ -4681,6 +4708,8 @@ class NumberField_absolute(NumberField_generic):
                From: Number Field in c1 with defining polynomial t^3 - 3*t + 1
                To:   Number Field in c with defining polynomial t^3 - 3*t + 1
                Defn: c1 |--> c]
+            sage: L.subfields(2)
+            []
         """
         return self._subfields_helper(degree=degree, name=name,
                                       both_maps=True, optimize=False)
@@ -4724,10 +4753,12 @@ class NumberField_absolute(NumberField_generic):
         f = pari(self.polynomial())
         if optimize:
             v = f.polred(2)
-            elts = v[0]; polys = v[1]
+            elts = v[0]
+            polys = v[1]
         else:
             v = f.nfsubfields(degree)
-            elts = [x[1] for x in v]; polys = [x[0] for x in v]
+            elts = [x[1] for x in v]
+            polys = [x[0] for x in v]
 
         R = self.polynomial_ring()
 
@@ -4737,7 +4768,7 @@ class NumberField_absolute(NumberField_generic):
             f = R(polys[i])
             if not (degree == 0 or f.degree() == degree):
                 continue
-            a = self(R(elts[i]))
+            a = self(elts[i])
             if self.coerce_embedding() is not None:
                 embedding = self.coerce_embedding()(a)
             K = NumberField(f, names=name + str(i), embedding=embedding)
@@ -4756,7 +4787,7 @@ class NumberField_absolute(NumberField_generic):
             else:
                 to_K = None
             ans.append((K, from_K, to_K))
-        ans = Sequence(ans, immutable=True, cr=True)
+        ans = Sequence(ans, immutable=True, cr=ans!=[])
         self.__subfields[name, degree, both_maps, optimize] = ans
         return ans
 
@@ -4885,7 +4916,7 @@ class NumberField_absolute(NumberField_generic):
             return NumberField_generic.order(self)
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        gens = [self(x) for x in gens]
+        gens = map(self, gens)
         import sage.rings.number_field.order as order
         return order.absolute_order_from_ring_generators(gens, **kwds)
 

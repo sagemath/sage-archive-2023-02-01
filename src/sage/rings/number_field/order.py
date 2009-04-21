@@ -1265,7 +1265,7 @@ class RelativeOrder(Order):
 
             sage: k.<a,b> = NumberFieldTower([x^2 - 3, x^2 + 1])
             sage: k.maximal_order() # indirect doctest
-            Relative Order in Number Field in a with defining polynomial x^2 - 3 over its base field
+            Maximal Relative Order in Number Field in a with defining polynomial x^2 - 3 over its base field
         """
         Order.__init__(self, K, is_maximal=is_maximal)
         self._absolute_order = absolute_order
@@ -1287,7 +1287,7 @@ class RelativeOrder(Order):
         The following used to fail; see trac #5276::
 
             sage: S.<y> = OK[]; S
-            Univariate Polynomial Ring in y over Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
+            Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
         We test that trac #4193 is also fixed::
 

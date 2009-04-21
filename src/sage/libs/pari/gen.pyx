@@ -6156,6 +6156,11 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(idealadd(self.g, t0, t1))
 
+    def idealaddtoone(self, x, y):
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        return self.new_gen(idealaddtoone0(self.g, t0, t1))
+
     def idealappr(self, x, long flag=0):
         t0GEN(x)
         _sig_on

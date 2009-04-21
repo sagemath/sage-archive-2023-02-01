@@ -58,6 +58,7 @@ from sage.misc.mrange import xmrange_iter
 from sage.structure.element import generic_power
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
+from sage.structure.proof.proof import get_flag
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
@@ -123,8 +124,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: latex(K.ideal([2, 1/2*a - 1/2]))
             \left(2, \frac{1}{2} a - \frac{1}{2}\right)
         """
-        return '\\left(%s\\right)'%(", ".join([latex.latex(g) for g in \
-                                                 self.gens_reduced()]))
+        return '\\left(%s\\right)'%(", ".join(map(latex.latex, self.gens_reduced())))
 
     def __cmp__(self, other):
         """
@@ -197,7 +197,7 @@ class NumberFieldIdeal(Ideal_generic):
             M = self.__basis_matrix_inverse
         except AttributeError:
             from sage.matrix.constructor import Matrix
-            self.__basis_matrix_inverse = Matrix([to_V(b) for b in self.integral_basis()]).inverse()
+            self.__basis_matrix_inverse = Matrix(map(to_V, self.integral_basis())).inverse()
             M = self.__basis_matrix_inverse
         return to_V(K(x))*M
 
@@ -262,9 +262,7 @@ class NumberFieldIdeal(Ideal_generic):
             [1/17, 1/17*a, a^2 - 8/17*a - 13/17]
         """
         K = self.number_field()
-        nf = K.pari_nf()
-        R = K.polynomial().parent()
-        return [ K(R(x)) for x in convert_from_zk_basis(K, hnf) ]
+        return map(K, convert_from_zk_basis(K, hnf))
 
     def __repr__(self):
         """
@@ -312,8 +310,8 @@ class NumberFieldIdeal(Ideal_generic):
         #NOTE -- we will *have* to not reduce the gens soon, since this
         # makes things insanely slow in general.
         # When I fix this, I *have* to also change the _latex_ method.
-        return '(%s)'%(', '.join([str(x) for x in self.gens_reduced()]))
-#        return '(%s)'%(', '.join([str(x) for x in self.gens()]))
+        return '(%s)'%(', '.join(map(str, self.gens_reduced())))
+#         return '(%s)'%(', '.join(map(str, self.gens())))
 
     def _pari_(self):
         """
@@ -563,7 +561,6 @@ class NumberFieldIdeal(Ideal_generic):
             sage: all(j.parent() is K for j in J.gens_reduced())
             True
         """
-        from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "number_field")
         try:
             ## Compute the single generator, if it exists
@@ -572,13 +569,12 @@ class NumberFieldIdeal(Ideal_generic):
         except AttributeError:
             K = self.number_field()
             nf = K.pari_nf()
-            R = K.polynomial().parent()
             if self.is_prime():
                 a = self.smallest_integer()
                 alpha = nf.idealtwoelt(self.pari_hnf(), a)
             else:
                 a, alpha = nf.idealtwoelt(self.pari_hnf())
-            gens = [ K(a), K(R(nf.getattr('zk')*alpha)) ]
+            gens = [ K(a), K(nf.getattr('zk')*alpha) ]
             if gens[1] in K.ideal(gens[0]):
                 gens = gens[:1]
             elif gens[0] in K.ideal(gens[1]):
@@ -715,16 +711,20 @@ class NumberFieldIdeal(Ideal_generic):
 
         EXAMPLES:
 
-        We create equal ideals in two different ways, and note that
-        they are both actually principal ideals.::
-
             sage: K = QuadraticField(-119,'a')
+            sage: P = K.factor(2)[1][0]
+            sage: P.is_principal()
+            False
+            sage: I = P^5
+            sage: I.is_principal()
+            True
+            sage: I # random
+            Fractional ideal (-1/2*a + 3/2)
             sage: P = K.ideal([2]).factor()[1][0]
             sage: I = P^5
             sage: I.is_principal()
             True
         """
-        from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "number_field")
         try:
             return self.__is_principal
@@ -738,8 +738,7 @@ class NumberFieldIdeal(Ideal_generic):
             self.__is_principal = not any(v[0])
             if self.__is_principal:
                 K = self.number_field()
-                R = K.polynomial().parent()
-                g = K(R(bnf.getattr('zk') * v[1]))
+                g = K(bnf.getattr('zk') * v[1])
                 self.__reduced_generators = tuple([g])
             return self.__is_principal
 
@@ -1350,7 +1349,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self.basis()])
+        M = MatrixSpace(ZZ,n)(map(R.coordinates, self.basis()))
 
         D, U, V = M.smith_form()
         d = [D[i,i] for i in range(n)]
@@ -1490,7 +1489,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         M = diagonal_matrix(ZZ, invs)
         if subgp_gens:
-            Units = Matrix(ZZ,[self.ideallog(u) for u in subgp_gens])
+            Units = Matrix(ZZ, map(self.ideallog, subgp_gens))
             M = M.stack(Units)
 
         A, U, V = M.smith_form()
@@ -1793,7 +1792,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         AG = AbelianGroup(len(inv), inv)
         if flag == 2 or flag == 0:
             g = G.getattr('gen')
-            AG._gens = tuple(k(f) for f in g)
+            AG._gens = tuple(map(k, g))
         return AG
 
     def ideallog(self, x):
@@ -1837,7 +1836,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        return [ZZ(l) for l in k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2))]
+        return map(ZZ, k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2)))
 
     def element_1_mod(self, other):
         r"""
@@ -1855,7 +1854,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         An element `r` of the ideal self such that `1-r` is in the ideal other
 
-        AUTHOR: Maite Aranes
+        AUTHOR: Maite Aranes (modified to use PARI's idealaddtoone by Francis Clarke)
 
         EXAMPLES::
 
@@ -1889,46 +1888,24 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             Fractional ideal (1/2*a^2)
             sage: A.element_1_mod(B)
             Traceback (most recent call last):
-            TypeError: element_1_mod only defined for integral ideals
+            ...
+            TypeError: Fractional ideal (1/2*a^2) is not an integral ideal
         """
+        if not self.is_integral():
+            raise TypeError, "%s is not an integral ideal"%self
+
         # Catch invalid inputs by making sure that we can make an ideal out of other.
-        k = self.number_field()
-        other = k.ideal(other)
+        K = self.number_field()
+        other = K.ideal(other)
+        if not other.is_integral():
+            raise TypeError, "%s is not an integral ideal"%other
 
-        #we want a basis for the ring of integers with first element=1
-        R = k.unit_ideal()
-        Rbasis = R.basis()
-        assert Rbasis[0]==1  # true in 3.2.2
-
-        n = len(Rbasis)
-
-        #matrices for self and other in terms of basis chosen for R
-        self_b = self.basis()
-        other_b = other.basis()
-
-        from sage.matrix.all import MatrixSpace
-
-        try:
-            M_self = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self_b])
-            M_other = MatrixSpace(ZZ,n)([R.coordinates(y) for y in other_b])
-        except TypeError:
-            raise TypeError, "element_1_mod only defined for integral ideals"
-
-        #hnf for matrix representing C = self+other:
-        C = M_self.stack(M_other)
-        Chnf, U = C.hermite_form(transformation=True)
-
-        #we make sure the ideals self and other are coprime
-        if Chnf[0][0]!=1 or not (Chnf.submatrix(0,1,1)).is_zero():
+        if not self.is_coprime(other):
             raise TypeError, "%s, %s are not coprime ideals"%(self, other)
 
-        #element r in self such that 1 - r in other
-        from sage.modules.free_module_element import vector
-        r = vector([U[0][i] for i in range(n)])*M_self
-        r = sum([r[i]*Rbasis[i] for i in range(n)])
-
-        return r
-
+        bnf = K.pari_bnf()
+        r = bnf.idealaddtoone(self.pari_hnf(), other.pari_hnf())[0]
+        return K(bnf.getattr('zk')*r)
 
     def euler_phi(self):
         r"""

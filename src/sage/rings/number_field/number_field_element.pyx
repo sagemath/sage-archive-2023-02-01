@@ -1487,6 +1487,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: z6=CyclotomicField(6).gen(0)
             sage: (2*z6).conjugate()
             -2*zeta6 + 2
+            sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
+            sage: j.conjugate()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
 
         ::
 
@@ -1496,7 +1501,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
         """
-        coeffs = self.number_field().polynomial().list()
+        coeffs = self.number_field().absolute_polynomial().list()
         if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
             # polynomial looks like x^2+d
             # i.e. we live in a quadratic extension of QQ
@@ -2738,6 +2743,29 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             x^2 + 1000*x + 1
         """
         return self.absolute_charpoly(var, algorithm).radical()
+
+    def valuation(self, P):
+        """
+        Returns the valuation of self at a given prime ideal P.
+
+        INPUT:
+
+
+        -  ``P`` - a prime ideal of relative number field which is the parent of self
+
+
+        EXAMPLES::
+
+            sage: K.<a, b, c> = NumberField([x^2 - 2, x^2 - 3, x^2 - 5])
+            sage: P = K.prime_factors(5)[0]
+            sage: (2*a + b - c).valuation(P)
+            1
+        """
+        P_abs = P.absolute_ideal()
+        abs = P_abs.number_field()
+        to_abs = abs.structure()[1]
+        return to_abs(self).valuation(P_abs)
+
 
 cdef class OrderElement_absolute(NumberFieldElement_absolute):
     """

@@ -16,7 +16,7 @@ EXAMPLES::
     sage: G = [from_A(z) for z in I.gens()]; G
     [3, (-2*b - 1)*a + b - 1]
     sage: K.fractional_ideal(G)
-    Fractional ideal ((-b + 1)*a - b - 2)
+    Fractional ideal ((b - 1)*a)
     sage: K.fractional_ideal(G).absolute_norm().factor()
     3^2
 """
@@ -38,6 +38,7 @@ EXAMPLES::
 
 from number_field_ideal import NumberFieldFractionalIdeal, convert_from_zk_basis
 from sage.structure.factorization import Factorization
+from sage.structure.proof.proof import get_flag
 
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
@@ -185,9 +186,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: L.<a, b> = QQ.extension([x^2 + 71, x^3 + 2*x + 1])
             sage: (2*a + b).norm()
             22584817
-            sage: J = L.ideal(2*a + b); J
-            Fractional ideal (22584817, a - b - 120132)
-            sage: (2*a + b) in J
+            sage: J = L.ideal(2*a + b)
+            sage: 2*a + b in J
             True
             sage: J.absolute_norm()
             22584817
@@ -202,27 +202,28 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         L = self.number_field()
         K = L.absolute_field('a')
         to_L = K.structure()[0]
-        return L.ideal([to_L(g) for g in id.gens()])
+        return L.ideal(map(to_L, id.gens()))
 
     def free_module(self):
         return self.absolute_ideal().free_module()
 
     def gens_reduced(self):
         try:
+            ## Compute the single generator, if it exists
+            dummy = self.is_principal()
             return self.__reduced_generators
         except AttributeError:
             L = self.number_field()
             K = L.base_field()
             R = L.relative_polynomial().parent()
-            S = L['x']
             gens = L.pari_rnf().rnfidealtwoelt(self.pari_rhnf())
             gens = [ L(R(x.lift().lift())) for x in gens ]
 
             # pari always returns two elements, even if only one is needed!
-            if gens[1] in L.ideal([ gens[0] ]):
-                gens = [ gens[0] ]
-            elif gens[0] in L.ideal([ gens[1] ]):
-                gens = [ gens[1] ]
+            if gens[1] in L.ideal(gens[0]):
+                gens = gens[:1]
+            elif gens[0] in L.ideal(gens[1]):
+                gens = gens[1:]
             self.__reduced_generators = tuple(gens)
             return self.__reduced_generators
 
@@ -243,8 +244,31 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             raise ZeroDivisionError
         return self._from_absolute_ideal( self.absolute_ideal().__invert__() )
 
-    def is_principal(self):
-        return self.absolute_ideal().is_principal()
+    def is_principal(self, proof=None):
+        """
+        Return True if this ideal is principal.  If so, set
+        self.__reduced_generators, with length one.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^2 - 23, x^2 + 1])
+            sage: I = K.ideal([7, (-1/2*b - 3/2)*a + 3/2*b + 9/2])
+            sage: I.is_principal()
+            True
+            sage: I # random
+            Fractional ideal ((1/2*b + 1/2)*a - 3/2*b - 3/2)
+        """
+        proof = get_flag(proof, "number_field")
+        try:
+            return self.__is_principal
+        except AttributeError:
+            self.__is_principal = self.absolute_ideal().is_principal(proof=proof)
+            if self.__is_principal:
+                abs_ideal = self.absolute_ideal()
+                from_abs = abs_ideal.number_field().structure()[0]
+                g = from_abs(abs_ideal.gens_reduced()[0])
+                self.__reduced_generators = tuple([g])
+            return self.__is_principal
 
     def is_zero(self):
         zero = self.number_field().pari_rnf().rnfidealhnf(0)
@@ -299,9 +323,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K = L.base_field()
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
-        R = K_abs.polynomial().parent()
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
-        return K.ideal([ to_K(K_abs(R(x))) for x in convert_from_zk_basis(K, hnf) ])
+        return K.ideal(map(to_K, map(K_abs, convert_from_zk_basis(K, hnf))))
 
     def norm(self):
         """
@@ -391,7 +414,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (-b*a + 3)
+            Fractional ideal (-b)
             sage: J.number_field() == F
             True
         """
@@ -399,9 +422,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K = L.base_field()
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
-        R = K_abs.polynomial().parent()
         hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
-        return K.ideal([ to_K(K_abs(R(x))) for x in convert_from_zk_basis(K, hnf) ])
+        return K.ideal(map(to_K, map(K_abs, convert_from_zk_basis(K, hnf))))
 
     def factor(self):
         """
@@ -423,15 +445,20 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
             sage: PF.<Y> = F[]
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
-            sage: K.ideal(c)
-            Fractional ideal (6, -2*c + (171/2*b + 291/2)*a + 117*b + 216)
-            sage: K.ideal(c).factor()
-            (Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1))^2 * (Fractional ideal (3, c))
+            sage: I = K.ideal(c)
+            sage: P = K.ideal((b*a - b - 1)*c/2 + a - 1)
+            sage: Q = K.ideal((b*a - b - 1)*c/2)
+            sage: list(I.factor()) == [(P, 2), (Q, 1)]
+            True
+            sage: I == P^2*Q
+            True
+            sage: [p.is_prime() for p in [P, Q]]
+            [True, True]
         """
         F = self.number_field()
         abs_ideal = self.absolute_ideal()
         to_F = abs_ideal.number_field().structure()[0]
-        factor_list = [(F.ideal([to_F(g) for g in p.gens()]), e) for p, e in abs_ideal.factor()]
+        factor_list = [(F.ideal(map(to_F, p.gens())), e) for p, e in abs_ideal.factor()]
         # sorting and simplification will already have been done
         return Factorization(factor_list, sort=False, simplify=False)
 
@@ -540,8 +567,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I.relative_ramification_index()
             2
             sage: I.ideal_below()
-            Fractional ideal (-b*a + 3)
-            sage: K.ideal(-b*a + 3) == I^2
+            Fractional ideal (-b)
+            sage: K.ideal(-b) == I^2
             True
         """
         if self.is_prime():
@@ -620,9 +647,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<a, b> = NumberFieldTower([x^2 - 23, x^2 + 1])
             sage: I = Ideal(2, (a - 3*b + 2)/2)
             sage: J = K.ideal(a)
-            sage: z = I.element_1_mod(J); z
-            -8*b*a + 24 # 64-bit
-            -21/2*b*a - 21/2 # 32-bit
+            sage: z = I.element_1_mod(J)
             sage: z in I
             True
             sage: 1 - z in J

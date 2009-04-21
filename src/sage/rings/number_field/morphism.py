@@ -332,23 +332,26 @@ class CyclotomicFieldHomset(NumberFieldHomset):
               Defn: zeta12 |--> -b^2*a
             sage: list(Hom(CyclotomicField(5), K))
             []
+            sage: Hom(CyclotomicField(11), L).list()
+            []
         """
         try:
             return self.__list
         except AttributeError:
             pass
-        try:
-            D = self.domain()
-            C = self.codomain()
-            z = D.gen()
-            n = z.multiplicative_order()
+
+        D = self.domain()
+        C = self.codomain()
+        z = D.gen()
+        n = z.multiplicative_order()
+        if not n.divides(C.zeta_order()):
+            v =[]
+        else:
             if D == C:
                 w = z
             else:
                 w = C.zeta(n)
             v = [self([w**k]) for k in Zmod(n) if k.is_unit()]
-        except ValueError:
-            v =[]
         v = Sequence(v, immutable=True, cr=v!=[])
         self.__list = v
         return v

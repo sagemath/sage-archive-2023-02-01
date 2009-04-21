@@ -535,7 +535,7 @@ class pAdicLseries(SageObject):
             self.__series = {}
         except KeyError:
             for _n, _prec, _D in self.__series.keys():
-                if _n == n and _D == D and _prec <= prec:
+                if _n == n and _D == D and _prec >= prec:
                     return self.__series[(_n,_prec,_D)].add_bigoh(prec)
         return None
 
@@ -665,6 +665,13 @@ class pAdicLseriesOrdinary(pAdicLseries):
             O(3^4) + O(3)*T + (2 + O(3))*T^2 + O(T^3)
             sage: L.series(3)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
+
+        Checks if the precision can be changed (trac 5846)::
+
+            sage: L.series(3,prec=4)
+	    O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
+            sage: L.series(3,prec=6)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + (1 + O(3^2))*T^5 + O(T^6)
 
         Rather than computing the `p`-adic L-function for the curve '15523a1', one can
         compute it as a quadratic_twist::

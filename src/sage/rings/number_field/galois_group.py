@@ -425,7 +425,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
     def artin_symbol(self, P):
         r"""
         Return the Artin symbol `\left(\frac{K /
-        \mathbb{Q}}{\mathfrak{P}}\right)`, where K is the number field of self,
+        \QQ}{\mathfrak{P}}\right)`, where K is the number field of self,
         and `\mathfrak{P}` is an unramified prime ideal. This is the unique
         element s of the decomposition group of `\mathfrak{P}` such that `s(x) = x^p \bmod
         \mathfrak{P}`, where p is the residue characteristic of `\mathfrak{P}`.

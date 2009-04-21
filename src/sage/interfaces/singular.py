@@ -186,7 +186,7 @@ Computing the Genus
 -------------------
 
 We compute the projective genus of ideals that define curves over
-`\mathbb{Q}`. It is *very important* to load the
+`\QQ`. It is *very important* to load the
 ``normal.lib`` library before calling the
 ``genus`` command, or you'll get an error message.
 
@@ -827,7 +827,7 @@ class Singular(Expect):
            without getting errors, and it sets printing of elements
            for this range to short (i.e., with \*'s and carets).
 
-        EXAMPLES: We first declare `\mathbb{Q}[x,y,z]` with degree reverse
+        EXAMPLES: We first declare `\QQ[x,y,z]` with degree reverse
         lexicographic ordering.
 
         ::
@@ -851,7 +851,7 @@ class Singular(Expect):
             sage: R3 = singular.ring(7, '(x(1..10))', 'ds')
 
         This is a polynomial ring over the transcendental extension
-        `\mathbb{Q}(a)` of `\mathbb{Q}`::
+        `\QQ(a)` of `\QQ`::
 
             sage: R4 = singular.ring('(0,a)', '(mu,nu)', 'lp')
 

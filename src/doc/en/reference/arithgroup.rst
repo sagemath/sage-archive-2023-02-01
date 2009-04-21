@@ -1,10 +1,10 @@
 .. _ch:arithgroup:
 
-Arithmetic Subgroups of `{\rm SL}_2(\mathbb{Z})`
+Arithmetic Subgroups of `{\rm SL}_2(\ZZ)`
 ================================================
 
 This chapter describes the basic functionality for finite index subgroups of
-the modular group `{\rm SL}_2(\mathbb{Z})`.
+the modular group `{\rm SL}_2(\ZZ)`.
 
 .. toctree::
    :maxdepth: 2

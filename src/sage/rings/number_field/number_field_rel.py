@@ -546,7 +546,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
             sage: K.extension(t^2+t+a, 'b')._latex_()
-            '( \\mathbf{Q}[a]/(a^{3} - 2) )[b]/(b^{2} + b + a)'
+            '( \\Bold{Q}[a]/(a^{3} - 2) )[b]/(b^{2} + b + a)'
         """
         return "( %s )[%s]/(%s)"%(latex(self.base_field()), self.latex_variable_name(),
                               self.relative_polynomial()._latex_(self.latex_variable_name()))
@@ -992,7 +992,7 @@ class NumberField_relative(NumberField_generic):
 
     def is_galois_absolute(self):
         r"""
-        Return True if for this relative extension L/K, L is a Galois extension of `\mathbb{Q}`.
+        Return True if for this relative extension L/K, L is a Galois extension of `\QQ`.
 
         EXAMPLE::
             sage: K.<a> = NumberField(x^3 - 2)

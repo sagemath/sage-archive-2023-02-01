@@ -3,7 +3,7 @@ Théorie des nombres
 
 Sage possède des fonctionnalités de théorie des nombres étendues.
 Par exemple, on peut faire de l'arithmétique dans
-:math:`\mathbb{Z}/N\mathbb{Z}` comme suit :
+:math:`\ZZ/N\ZZ` comme suit :
 
 ::
 

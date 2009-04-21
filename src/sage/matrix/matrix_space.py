@@ -547,7 +547,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
             sage: MS3 = MatrixSpace(QQ,6,6,true)
             sage: latex(MS3)
-            \mathrm{Mat}_{6\times 6}(\mathbf{Q})
+            \mathrm{Mat}_{6\times 6}(\Bold{Q})
         """
         return "\\mathrm{Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))

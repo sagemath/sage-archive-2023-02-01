@@ -838,13 +838,13 @@ class FreeQuadraticModule_ambient(
 
         EXAMPLES:
             sage: latex(QQ^3) # indirect doctest
-            \mathbf{Q}^{3}
+            \Bold{Q}^{3}
 
             sage: A = GF(5)^20; latex(A)
-            \mathbf{F}_{5}^{20}
+            \Bold{F}_{5}^{20}
 
             sage: A = PolynomialRing(QQ,3,'x')^20; latex(A)
-            (\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}
+            (\Bold{Q}[x_{0}, x_{1}, x_{2}])^{20}
 
             sage: V = QuadraticSpace(QQ,3,inner_product_matrix=[[2,1,0],[1,4,1],[0,1,8]])
             sage: latex(V)
@@ -1262,7 +1262,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M._latex_()
-            '\\mathrm{RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1 & 2 & 3 \\\\\n4 & 5 & 6\n\\end{array}\\right)'
+            '\\mathrm{RowSpan}_{\\Bold{Z}}\\left(\\begin{array}{rrr}\n1 & 2 & 3 \\\\\n4 & 5 & 6\n\\end{array}\\right)'
         """
         return "\\mathrm{RowSpan}_{%s}%s"%(latex.latex(self.base_ring()), latex.latex(self.basis_matrix()))
 

@@ -171,7 +171,7 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
 
             sage: G = SO(3,GF(5))
             sage: latex(G)
-            \text{SO}_{3}(\mathbf{F}_{5}, 0)
+            \text{SO}_{3}(\Bold{F}_{5}, 0)
         """
         return "\\text{SO}_{%s}(%s, %s)"%(self.degree(), self.base_ring()._latex_(), self.invariant_form())
 

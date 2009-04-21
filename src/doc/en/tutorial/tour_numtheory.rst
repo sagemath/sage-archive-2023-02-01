@@ -2,7 +2,7 @@ Number Theory
 =============
 
 Sage has extensive functionality for number theory. For example, we
-can do arithmetic in :math:`\mathbb{Z}/N\mathbb{Z}` as follows:
+can do arithmetic in :math:`\ZZ/N\ZZ` as follows:
 
 ::
 

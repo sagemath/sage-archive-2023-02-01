@@ -104,7 +104,7 @@ comme suit :
     sage: R, t = objgen(QQ['t'])
     sage: t    = gen(QQ['t'])
 
-Finalement, on peut faire de l'arithmétique dans  :math:`\mathbb{Q}[t]`.
+Finalement, on peut faire de l'arithmétique dans  :math:`\QQ[t]`.
 
 ::
 
@@ -192,9 +192,9 @@ avec la même variable ``x`` ne renvoie pas de nouvel anneau.
 
 Sage permet aussi de travailler dans des anneaux de séries formelles et
 de séries de Laurent sur un anneau de base quelconque. Dans l'exemple
-suivant, nous créons un élément de  :math:`\mathbb{F}_7[[T]]` et
+suivant, nous créons un élément de  :math:`\GF{7}[[T]]` et
 effectuons une division pour obtenir un élément de
-:math:`\mathbb{F}_7((T))`.
+:math:`\GF{7}((T))`.
 
 ::
 

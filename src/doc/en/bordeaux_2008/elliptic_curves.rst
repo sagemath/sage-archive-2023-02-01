@@ -66,8 +66,8 @@ using the Cremona label 37a. Then we define an interactive function
 decorator. Because the default for :math:`p` is primes(2,500),
 the Sage notebook constructs a slider that varies over the primes
 up to :math:`500`. When you drag the slider and let go, a plot is
-drawn of the affine :math:`\mathbb{F}_p` points on the curve
-:math:`E_{\mathbb{F}_p}`. Of course, one should never plot curves over
+drawn of the affine :math:`\GF{p}` points on the curve
+:math:`E_{\GF{p}}`. Of course, one should never plot curves over
 finite fields, which makes this even more fun.
 
 ::
@@ -86,9 +86,9 @@ Schoof-Elkies-Atkin Point Counting
 
 Sage includes sea.gp, which is a fast implementation of the SEA
 (Schoff-Elkies-Atkin) algorithm for counting the number of points on
-an elliptic curve over :math:`\mathbb{F}_p`.
+an elliptic curve over :math:`\GF{p}`.
 
-We create the finite field :math:`k=\mathbb{F}_{p}`, where :math:`p` is the
+We create the finite field :math:`k=\GF{p}`, where :math:`p` is the
 next prime after :math:`10^{20}`. The next prime command uses Pari's
 nextprime function, but proves primality of the result (unlike Pari
 which gives only the next probable prime after a number). Sage also
@@ -120,7 +120,7 @@ of elliptic curves, thanks to work of David Harvey and Robert
 Bradshaw. The :math:`p`-adic regulator of an elliptic curve :math:`E`
 at a good ordinary prime :math:`p` is the determinant of the global
 :math:`p`-adic height pairing matrix on the Mordell-Weil group
-:math:`E(\mathbb{Q})`. (This has nothing to do with local or
+:math:`E(\QQ)`. (This has nothing to do with local or
 archimedean heights.) This is the analogue of the regulator in the
 Mazur-Tate-Teitelbaum :math:`p`-adic analogue of the Birch and
 Swinnerton-Dyer conjecture.
@@ -260,7 +260,7 @@ number fields.
 
 
 Sage has the world's fastest implementation of computation of all
-integral points on an elliptic curve over :math:`\mathbb{Q}`, due
+integral points on an elliptic curve over :math:`\QQ`, due
 to work of Cremona, Michael Mardaus, and Tobias Nagel. This is also
 the only free open source implementation available.
 

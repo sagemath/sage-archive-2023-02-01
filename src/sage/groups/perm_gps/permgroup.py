@@ -1086,8 +1086,8 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def cohomology(self, n, p = 0):
         r"""
-        Computes the group cohomology `H^n(G, F)`, where `F = \mathbb{Z}`
-        if `p=0` and `F = \mathbb{Z} / p \mathbb{Z}` if `p > 0` is a prime.
+        Computes the group cohomology `H^n(G, F)`, where `F = \ZZ`
+        if `p=0` and `F = \ZZ / p \ZZ` if `p > 0` is a prime.
         Wraps HAP's ``GroupHomology`` function, written by Graham Ellis.
 
         REQUIRES: GAP package HAP (in gap_packages-\*.spkg).
@@ -1109,8 +1109,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             ValueError: p must be 0 or prime
 
-        This computes `H^4(S_3, \mathbb{Z})` and
-        `H^4(S_3, \mathbb{Z} / 2 \mathbb{Z})`, respectively.
+        This computes `H^4(S_3, \ZZ)` and
+        `H^4(S_3, \ZZ / 2 \ZZ)`, respectively.
 
         AUTHORS:
 
@@ -1140,7 +1140,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def cohomology_part(self, n, p = 0):
         """
         Computes the p-part of the group cohomology `H^n(G, F)`,
-        where `F = \mathbb{Z}` if `p=0` and `F = \mathbb{Z} / p \mathbb{Z}` if
+        where `F = \ZZ` if `p=0` and `F = \ZZ / p \ZZ` if
         `p > 0` is a prime. Wraps HAP's Homology function, written
         by Graham Ellis, applied to the `p`-Sylow subgroup of
         `G`.
@@ -1178,7 +1178,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def homology(self, n, p = 0):
         r"""
         Computes the group homology `H_n(G, F)`, where
-        `F = \mathbb{Z}` if `p=0` and `F = \mathbb{Z} / p \mathbb{Z}` if
+        `F = \ZZ` if `p=0` and `F = \ZZ / p \ZZ` if
         `p > 0` is a prime. Wraps HAP's ``GroupHomology`` function,
         written by Graham Ellis.
 
@@ -1188,11 +1188,11 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         - David Joyner and Graham Ellis
 
-        The example below computes `H_7(S_5, \mathbb{Z})`,
-        `H_7(S_5, \mathbb{Z} / 2 \mathbb{Z})`,
-        `H_7(S_5, \mathbb{Z} / 3 \mathbb{Z})`, and
-        `H_7(S_5, \mathbb{Z} / 5 \mathbb{Z})`, respectively. To compute the
-        `2`-part of `H_7(S_5, \mathbb{Z})`, use the ``homology_part``
+        The example below computes `H_7(S_5, \ZZ)`,
+        `H_7(S_5, \ZZ / 2 \ZZ)`,
+        `H_7(S_5, \ZZ / 3 \ZZ)`, and
+        `H_7(S_5, \ZZ / 5 \ZZ)`, respectively. To compute the
+        `2`-part of `H_7(S_5, \ZZ)`, use the ``homology_part``
         function.
 
         EXAMPLES::
@@ -1231,8 +1231,8 @@ class PermutationGroup_generic(group.FiniteGroup):
     def homology_part(self, n, p = 0):
         r"""
         Computes the `p`-part of the group homology
-        `H_n(G, F)`, where `F = \mathbb{Z}` if `p=0` and
-        `F = \mathbb{Z} / p \mathbb{Z}` if `p > 0` is a prime. Wraps HAP's
+        `H_n(G, F)`, where `F = \ZZ` if `p=0` and
+        `F = \ZZ / p \ZZ` if `p > 0` is a prime. Wraps HAP's
         ``Homology`` function, written by Graham Ellis, applied to the
         `p`-Sylow subgroup of `G`.
 
@@ -2036,7 +2036,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         group `G`, a prime `p`, and a positive integer `n`, it returns a
         quotient of polynomials `f(x) = P(x) / Q(x)` whose coefficient of
         `x^k` equals the rank of the vector space
-        `H_k(G, \mathbb{Z} / p \mathbb{Z})`, for all `k` in the
+        `H_k(G, \ZZ / p \ZZ)`, for all `k` in the
         range `1 \leq k \leq n`.
 
         REQUIRES: GAP package HAP (in gap_packages-\*.spkg).

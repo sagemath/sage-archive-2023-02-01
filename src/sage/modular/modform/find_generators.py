@@ -308,7 +308,7 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
 class ModularFormsRing(SageObject):
     r"""
     The ring of modular forms (of weights 0 or at least 2) for a congruence
-    subgroup of `{\rm SL}_2(\mathbb{Z})`.
+    subgroup of `{\rm SL}_2(\ZZ)`.
 
     EXAMPLES::
 

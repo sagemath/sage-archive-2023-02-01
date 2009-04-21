@@ -151,7 +151,7 @@ class pAdicFieldGeneric(padic_generic.pAdicGeneric, sage.rings.ring.Field):
         return "Generic %s-adic Field"%(self.prime())
 
     def _latex_(self):
-        return "\\mathbf{Q}_{%s}" % self.prime()
+        return "\\QQ_{%s}" % self.prime()
 
     def fraction_field(self, print_mode=None):
         r"""

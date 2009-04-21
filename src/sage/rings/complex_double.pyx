@@ -1282,7 +1282,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
     def is_square(self):
         """
-        This function always returns true as `\mathbb{C}` is algebraically
+        This function always returns true as `\CC` is algebraically
         closed.
 
         EXAMPLES::
@@ -1750,7 +1750,7 @@ cdef class ComplexDoubleElement(FieldElement):
     def eta(self, int omit_frac=0):
         r"""
         Return the value of the Dedekind `\eta` function on self,
-        intelligently computed using `\mathbb{SL}(2,\mathbb{Z})`
+        intelligently computed using `\mathbb{SL}(2,\ZZ)`
         transformations.
 
         INPUT:

@@ -1,8 +1,8 @@
 r"""
-Ring `\mathbb{Z}` of Integers
+Ring `\ZZ` of Integers
 
 The class ``IntegerRing`` represents the ring
-`\mathbb{Z}` of (arbitrary precision) integers. Each
+`\ZZ` of (arbitrary precision) integers. Each
 integer is an instance of the class ``Integer``, which
 is defined in a Pyrex extension module that wraps GMP integers (the
 ``mpz_t`` type in GMP).
@@ -105,7 +105,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
     The ring of integers.
 
-    In order to introduce the ring `\mathbb{Z}` of integers, we
+    In order to introduce the ring `\ZZ` of integers, we
     illustrate creation, calling a few functions, and working with its
     elements.
 
@@ -118,7 +118,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: Z.is_field()
         False
 
-    We next illustrate basic arithmetic in `\mathbb{Z}`::
+    We next illustrate basic arithmetic in `\ZZ`::
 
         sage: a = Z(1234); b = Z(5678); print a, b
         1234 5678
@@ -657,7 +657,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def quotient(self, I, names=None):
         r"""
-        Return the quotient of `\mathbb{Z}` by the ideal
+        Return the quotient of `\ZZ` by the ideal
         `I` or integer `I`.
 
         EXAMPLES::
@@ -688,7 +688,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     def residue_field(self, prime, check = True):
         """
         Return the residue field of the integers modulo the given prime, ie
-        `\mathbb{Z}/p\mathbb{Z}`.
+        `\ZZ/p\ZZ`.
 
         INPUT:
 

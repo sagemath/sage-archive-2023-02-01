@@ -23,15 +23,15 @@ in the live documentation (and also in the notebook).
 Any macro defined here may be used in docstrings or in the tutorial
 (or other pieces of documentation).  In a docstring, for example,
 "\ZZ" in backquotes (demarking math mode) will appear as "ZZ" in
-interactive help, but will be typeset as "\\mathbf{Z}" in the
+interactive help, but will be typeset as "\\Bold{Z}" in the
 reference manual.
 
 More details on the list ``macros``: the entries are lists or tuples
 of the form ``[name]`` or ``[name, arguments]``, where ``name`` is a
 string and ``arguments`` consists of valid arguments for the Sage
 object named ``name``.  For example, ``["ZZ"]`` and ``["GF", 2]``
-produce the LaTeX macros '\\newcommand{\\ZZ}{\\mathbf{Z}}' and
-'\\newcommand{\\GF}[1]{\\mathbf{F}_{#1}}', respectively.  (For the
+produce the LaTeX macros '\\newcommand{\\ZZ}{\\Bold{Z}}' and
+'\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}', respectively.  (For the
 second of these, ``latex(GF(2))`` is called and the string '2' gets
 replaced by '#1', so ``["GF", 17]`` would have worked just as well.
 ``["GF", p]`` would have raised an error, though, because ``p`` is not

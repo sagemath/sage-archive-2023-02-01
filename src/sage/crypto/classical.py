@@ -32,7 +32,7 @@ from classical_cipher import (
 class HillCryptosystem(SymmetricKeyCryptosystem):
     """
     Create a Hill cryptosystem defined by the `m` x `m` matrix space
-    over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
+    over `\ZZ / N \ZZ`, where `N` is the alphabet size of
     the string monoid ``S``.
 
     INPUT:
@@ -80,7 +80,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         See ``HillCryptosystem`` for full documentation.
 
         Create a Hill cryptosystem defined by the `m` x `m` matrix space
-        over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
+        over `\ZZ / N \ZZ`, where `N` is the alphabet size of
         the string monoid ``S``.
 
         INPUT:

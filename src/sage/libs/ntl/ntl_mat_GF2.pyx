@@ -1,5 +1,5 @@
 """
-Matrices over the $\mathbb{F}_2$ via NTL
+Matrices over the $\GF{2}$ via NTL
 
 This class is only provided to have a complete NTL interface and for
 comparison purposes. Sage's native matrices over $F_2$ are much faster

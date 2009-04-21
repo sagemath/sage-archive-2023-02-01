@@ -39,16 +39,16 @@ _gammaH_cache = {}
 def GammaH_constructor(level, H):
     r"""
     Return the congruence subgroup `\Gamma_H(N)`, which is the subgroup of
-    `SL_2(\mathbb{Z})` consisting of matrices of the form `\begin{pmatrix} a & b \\
+    `SL_2(\ZZ)` consisting of matrices of the form `\begin{pmatrix} a & b \\
     c & d \end{pmatrix}` with `N | c` and `a, b \in H`, for `H` a specified
-    subgroup of `(\mathbb{Z}/N\mathbb{Z})^\times`.
+    subgroup of `(\ZZ/N\ZZ)^\times`.
 
     INPUT:
 
     - level -- an integer
     - H -- either 0, 1, or a list
         * If H is a list, return `\Gamma_H(N)`, where `H`
-          is the subgroup of `(\mathbb{Z}/N\mathbb{Z})^*` **generated** by the
+          is the subgroup of `(\ZZ/N\ZZ)^*` **generated** by the
           elements of the list.
         * If H = 0, returns `\Gamma_0(N)`.
         * If H = 1, returns `\Gamma_1(N)`.
@@ -128,8 +128,8 @@ class GammaH_class(CongruenceSubgroup):
 
     r"""
     The congruence subgroup `\Gamma_H(N)` for some subgroup `H \trianglelefteq
-    (\mathbb{Z} / N\mathbb{Z})^\times`, which is the subgroup of `{\rm
-    SL}_2(\mathbb{Z})` consisting of matrices of the form `\begin{pmatrix} a &
+    (\ZZ / N\ZZ)^\times`, which is the subgroup of `{\rm
+    SL}_2(\ZZ)` consisting of matrices of the form `\begin{pmatrix} a &
     b \\ c & d \end{pmatrix}` with `N \mid c` and `a, b \in H`.
 
     TESTS:
@@ -767,7 +767,7 @@ class GammaH_class(CongruenceSubgroup):
         r"""
         Return an ordered list of inequivalent cusps for self, i.e. a
         set of representatives for the orbits of self on
-        `\mathbf{P}^1(\mathbf{Q})`.  These are returned in a reduced
+        `\mathbf{P}^1(\QQ)`.  These are returned in a reduced
         form; see self.reduce_cusp for the definition of reduced.
 
         ALGORITHM:

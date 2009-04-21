@@ -603,7 +603,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         r"""
         Return the `n`-th approximation to the `p`-adic L-series as
         a power series in `T` (corresponding to `\gamma-1` with
-        `\gamma=1+p` as a generator of `1+p\mathbb{Z}_p`).  Each
+        `\gamma=1+p` as a generator of `1+p\ZZ_p`).  Each
         coefficient is a `p`-adic number whose precision is provably
         correct.
 
@@ -818,7 +818,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         r"""
         Return the `n`-th approximation to the `p`-adic L-series as a
         power series in `T` (corresponding to `\gamma-1` with
-        `\gamma=1+p` as a generator of `1+p\mathbb{Z}_p`).  Each
+        `\gamma=1+p` as a generator of `1+p\ZZ_p`).  Each
         coefficient is an element of a quadratic extension of the `p`-adic
         number whose precision is probably correct.
 

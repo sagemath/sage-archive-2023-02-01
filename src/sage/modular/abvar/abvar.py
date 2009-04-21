@@ -169,7 +169,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         This must be defined in each derived class.
 
-        OUTPUT: a free module over `\mathbb{Z}`
+        OUTPUT: a free module over `\ZZ`
 
         EXAMPLES::
 
@@ -186,7 +186,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         r"""
         Synonym for ``self.lattice()``.
 
-        OUTPUT: a free module over `\mathbb{Z}`
+        OUTPUT: a free module over `\ZZ`
 
         EXAMPLES::
 
@@ -204,7 +204,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         r"""
         Return vector space corresponding to the modular abelian variety.
 
-        This is the lattice tensored with `\mathbb{Q}`.
+        This is the lattice tensored with `\QQ`.
 
         EXAMPLES::
 
@@ -2290,7 +2290,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _rational_hecke_matrix(self, n):
         r"""
         Return the matrix of the Hecke operator `T_n` acting on
-        the rational homology `H_1(A,\mathbb{Q})` of this modular
+        the rational homology `H_1(A,\QQ)` of this modular
         abelian variety, if this action is defined. Otherwise, raise an
         ArithmeticError.
 
@@ -2328,7 +2328,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: T.field_of_definition()
             Rational Field
 
-        On the other hand, T is a module over `\mathbb{Z}`.
+        On the other hand, T is a module over `\ZZ`.
 
         ::
 
@@ -3182,7 +3182,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES: We compute the dual of the elliptic curve newform abelian
         variety of level `33`, and find the kernel of the modular
-        map, which has structure `(\mathbb{Z}/3)^2`.
+        map, which has structure `(\ZZ/3)^2`.
 
         ::
 
@@ -3421,13 +3421,13 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
 
         -  ``groups`` - a tuple of congruence subgroups
 
-        -  ``lattice`` - (default: `\mathbb{Z}^n`) a
-           full lattice in `\mathbb{Z}^n`, where `n` is the
+        -  ``lattice`` - (default: `\ZZ^n`) a
+           full lattice in `\ZZ^n`, where `n` is the
            sum of the dimensions of the spaces of cuspidal modular symbols
            corresponding to each `\Gamma \in` groups
 
         -  ``base_field`` - a field (default:
-           `\mathbb{Q}`)
+           `\QQ`)
 
 
         EXAMPLES::
@@ -3566,8 +3566,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         Return the lattice the defines this modular symbols modular abelian
         variety.
 
-        OUTPUT: a free `\mathbb{Z}`-module embedded in an ambient
-        `\mathbb{Q}`-vector space
+        OUTPUT: a free `\ZZ`-module embedded in an ambient
+        `\QQ`-vector space
 
         EXAMPLES::
 

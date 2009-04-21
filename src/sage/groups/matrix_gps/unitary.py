@@ -151,7 +151,7 @@ class GeneralUnitaryGroup_finite_field(UnitaryGroup_finite_field):
             sage: G = GU(3,GF(7)); G
             General Unitary Group of degree 3 over Finite Field of size 7
             sage: latex(G)
-            \text{GU}_{3}(\mathbf{F}_{7^{2}})
+            \text{GU}_{3}(\Bold{F}_{7^{2}})
         """
         return "\\text{GU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
@@ -214,7 +214,7 @@ class SpecialUnitaryGroup_finite_field(UnitaryGroup_finite_field):
 
             sage: G = SU(3,GF(5))
             sage: latex(G)
-            \text{SU}_{3}(\mathbf{F}_{5^{2}})
+            \text{SU}_{3}(\Bold{F}_{5^{2}})
         """
         return "\\text{SU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 

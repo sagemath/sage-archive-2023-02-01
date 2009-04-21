@@ -1,5 +1,5 @@
 """
-Elements of the ring `\mathbb{Z}` of integers
+Elements of the ring `\ZZ` of integers
 
 AUTHORS:
 

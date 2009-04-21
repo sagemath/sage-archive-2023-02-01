@@ -466,7 +466,7 @@ class QQbarTorsionSubgroup(Module):
         INPUT:
 
 
-        -  ``x`` - vector in `\mathbb{Q}^{2d}`
+        -  ``x`` - vector in `\QQ^{2d}`
 
 
         OUTPUT: torsion point

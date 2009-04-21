@@ -1140,7 +1140,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def eta(self, omit_frac=False):
         r"""
         Return the value of the Dedekind `\eta` function on self,
-        intelligently computed using `\mathbb{SL}(2,\mathbb{Z})`
+        intelligently computed using `\mathbb{SL}(2,\ZZ)`
         transformations.
 
         INPUT:
@@ -1692,7 +1692,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def is_square(self):
         """
-        This function always returns true as `\mathbb{C}` is
+        This function always returns true as `\CC` is
         algebraically closed.
 
         EXAMPLES::
@@ -1701,7 +1701,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.is_square()
             True
 
-        `\mathbb{C}` is algebraically closed, hence every element
+        `\CC` is algebraically closed, hence every element
         is a square::
 
             sage: b = ComplexNumber(5)

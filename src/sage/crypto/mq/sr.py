@@ -2,7 +2,7 @@ r"""
 Small Scale Variants of the AES (SR) Polynomial System Generator.
 
 Sage supports polynomial system generation for small scale (and full
-scale) AES variants over `\mathbb{F}_2` and `\mathbb{F}_{2^e}`. Also, Sage supports
+scale) AES variants over `\GF{2}` and `\GF{2^e}`. Also, Sage supports
 both the specification of SR as given in the papers [CMR05]_ and
 [CMR06]_ and a variant of SR* which is equivalent to AES.
 
@@ -321,10 +321,10 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     - ``aes_mode`` - as the SR key schedule specification differs
       slightly from the AES key schedule, this parameter controls
       which schedule to use (default: ``True``)
-    - ``gf2`` - generate polynomial systems over `\mathbb{F}_2` rather than
-      over `\mathbb{F}_{2^e}` (default: ``False``)
+    - ``gf2`` - generate polynomial systems over `\GF{2}` rather than
+      over `\GF{2^e}` (default: ``False``)
     - ``polybori`` - use the ``BooleanPolynomialRing`` as polynomial
-      representation (default: ``False``, `\mathbb{F}_2` only)
+      representation (default: ``False``, `\GF{2}` only)
     - ``order`` - a string to specify the term ordering of the
       variables
     - ``postfix`` - a string which is appended after the variable name
@@ -332,9 +332,9 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     - ``allow_zero_inversions`` - a boolean to control whether zero
       inversions raise an exception (default: ``False``)
     - ``correct_only`` - only include correct inversion polynomials
-      (default: ``False``, `\mathbb{F}_2` only)
+      (default: ``False``, `\GF{2}` only)
     - ``biaffine_only`` - only include bilinear and biaffine inversion
-      polynomials (default: ``True``, `\mathbb{F}_2` only)
+      polynomials (default: ``True``, `\GF{2}` only)
 
 
     EXAMPLES::
@@ -665,7 +665,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
 
-        The S-Box table for `\mathbb{F}_{2^4}`::
+        The S-Box table for `\GF{2^4}`::
 
             sage: sr = mq.SR(1, 1, 1, 4, allow_zero_inversions=True)
             sage: for e in sr.base_ring():
@@ -756,7 +756,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         INPUT:
 
-        - ``inversion_only`` - do not include the `\mathbb{F}_2` affine map when
+        - ``inversion_only`` - do not include the `\GF{2}` affine map when
           computing the S-Box (default: ``False``)
 
         EXAMPLE::
@@ -1692,7 +1692,7 @@ class SR_generic(MPolynomialSystemGenerator):
         in the state array and that the bits are ordered in little
         endian ordering.
 
-        For example, if `x_{0,1,0}` is a variable over `\mathbb{F}_2` for
+        For example, if `x_{0,1,0}` is a variable over `\GF{2}` for
         `r=2` and `c=2` then refers to the *most* significant bit of
         the entry in the position (1,0) in the state array matrix.
 
@@ -2010,7 +2010,7 @@ class SR_generic(MPolynomialSystemGenerator):
 class SR_gf2n(SR_generic):
     r"""
     Small Scale Variants of the AES polynomial system constructor over
-    `\mathbb{F}_{2^n}`.
+    `\GF{2^n}`.
     """
     def vector(self, d=None):
         """
@@ -2366,7 +2366,7 @@ class SR_gf2(SR_generic):
     def __init__(self, n=1, r=1, c=1, e=4, star=False, **kwargs):
         r"""
         Small Scale Variants of the AES polynomial system constructor over
-        `\mathbb{F}_2`. See help for SR.
+        `\GF{2}`. See help for SR.
 
         EXAMPLE::
 
@@ -2456,15 +2456,15 @@ class SR_gf2(SR_generic):
         r"""
         The operation `\phi` from [MR02]_
 
-        Given a list/matrix of elements in `\mathbb{F}_{2^e}`, return a
-        matching list/matrix of elements in `\mathbb{F}_2`.
+        Given a list/matrix of elements in `\GF{2^e}`, return a
+        matching list/matrix of elements in `\GF{2}`.
 
         INPUT:
 
         -  ``l`` - element to perform `\phi` on.
         - ``diffusion_matrix`` - if ``True``, the given matrix ``l`` is
           transformed to a matrix which performs the same operation
-          over `\mathbb{F}_2` as ``l`` over `\mathbb{F}_{2^n}` (default: ``False``).
+          over `\GF{2}` as ``l`` over `\GF{2^n}` (default: ``False``).
 
         EXAMPLE::
 
@@ -2670,7 +2670,7 @@ class SR_gf2(SR_generic):
         r"""
         Given an element `x` in self.base_ring(), return a matrix
         which performs the same operation on a when interpreted over
-        `\mathbb{F}_{2^e}` as `x` over `\mathbb{F}_{2^e}`.
+        `\GF{2^e}` as `x` over `\GF{2^e}`.
 
         INPUT:
 
@@ -3221,7 +3221,7 @@ def test_consistency(max_n=2, **kwargs):
     r"""
     Test all combinations of ``r``, ``c``, ``e`` and ``n`` in ``(1,
     2)`` for consistency of random encryptions and their polynomial
-    systems. `\mathbb{F}_2` and `\mathbb{F}_{2^e}` systems are tested. This test takes
+    systems. `\GF{2}` and `\GF{2^e}` systems are tested. This test takes
     a while.
 
     INPUT:

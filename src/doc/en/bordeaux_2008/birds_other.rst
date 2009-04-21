@@ -6,10 +6,10 @@ Sage has a highly optimized implementation of the Harvey-Kedlaya
 algorithm for computing the matrix of Frobenius associated to a curve
 over a finite field. This is an implementation by David Harvey, which
 is GPL'd and depends only on NTL and zn_poly (a C library in Sage for
-fast arithmetic :math:`(\mathbb{Z}/n\mathbb{Z})[x]`).
+fast arithmetic :math:`(\ZZ/n\ZZ)[x]`).
 
 We import the hypellfrob function and call it on a polynomial over
-:math:`\mathbb{Z}`.
+:math:`\ZZ`.
 
 ::
 
@@ -22,9 +22,9 @@ We import the hypellfrob function and call it on a polynomial over
     [ 0 + O(101)  0 + O(101) 65 + O(101) 42 + O(101)]
     [ 0 + O(101)  0 + O(101) 89 + O(101) 29 + O(101)]
 
-e do the same calculation but in :math:`\mathbb{Z}/101^4\mathbb{Z}`,
+e do the same calculation but in :math:`\ZZ/101^4\ZZ`,
 which gives enough precision to recognize the exact characteristic
-polynomial in :math:`\mathbb{Z}[x]` of Frobenius as an element of the
+polynomial in :math:`\ZZ[x]` of Frobenius as an element of the
 endomorphism ring. This computation is still very fast, taking only a
 fraction of a second.
 
@@ -220,7 +220,7 @@ FLINT: Univariate Polynomial Arithmetic
 ---------------------------------------
 
 Sage uses Bill Hart and David Harvey's GPL'd Flint C library for
-arithmetic in :math:`\mathbb{Z}[x]`. Its main claim to fame is that it
+arithmetic in :math:`\ZZ[x]`. Its main claim to fame is that it
 is the world's fastest for polynomial multiplication, e.g., in the
 benchmark below it is 3 times faster than NTL and twice as fast as
 Magma. Behind the scenes it contains some carefully tuned discrete

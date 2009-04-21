@@ -77,7 +77,7 @@ def AffineSpace(n, R=None, names='x'):
         sage: AffineSpace(5, names='x')/GF(17)
         Affine Space of dimension 5 over Finite Field of size 17
 
-    The default base ring is `\mathbb{Z}`.
+    The default base ring is `\ZZ`.
 
     ::
 
@@ -283,12 +283,12 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         EXAMPLES::
 
             sage: print latex(AffineSpace(1, ZZ, 'x'))
-            \mathbf{A}_{\mathbf{Z}}^1
+            \mathbf{A}_{\Bold{Z}}^1
 
         TESTS::
 
             sage: AffineSpace(3, Zp(5), 'y')._latex_()
-            '\\mathbf{A}_{\\mathbf{Z}_{5}}^3'
+            '\\mathbf{A}_{\\ZZ_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 

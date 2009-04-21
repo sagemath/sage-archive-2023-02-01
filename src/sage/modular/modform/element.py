@@ -962,7 +962,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
                         max_asymp_coeffs=40):
         r"""
         Return the L-series of the weight `k` modular form
-        `f` on `\mathrm{SL}_2(\mathbb{Z})`.
+        `f` on `\mathrm{SL}_2(\ZZ)`.
 
         This actually returns an interface to Tim Dokchitser's program
         for computing with the L-series of the modular form.

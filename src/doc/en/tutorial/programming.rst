@@ -708,10 +708,10 @@ use ``is``. For example:
     True
 
 In the following two lines, the first equality is ``False`` because
-there is no canonical morphism :math:`\mathbb{Q}\to \mathbb{F}_5`, hence no
-canonical way to compare the :math:`1` in :math:`\mathbb{F}_5` to the
-:math:`1 \in \mathbb{Q}`. In contrast, there is a canonical map
-:math:`\mathbb{Z} \to \mathbb{F}_5`, hence the second comparison is ``True``. Note
+there is no canonical morphism :math:`\QQ\to \GF{5}`, hence no
+canonical way to compare the :math:`1` in :math:`\GF{5}` to the
+:math:`1 \in \QQ`. In contrast, there is a canonical map
+:math:`\ZZ \to \GF{5}`, hence the second comparison is ``True``. Note
 also that the order doesn't matter.
 
 ::
@@ -726,7 +726,7 @@ also that the order doesn't matter.
     True
 
 WARNING: Comparison in Sage is more restrictive than in Magma, which
-declares the :math:`1 \in \mathbb{F}_5` equal to :math:`1 \in \mathbb{Q}`.
+declares the :math:`1 \in \GF{5}` equal to :math:`1 \in \QQ`.
 
 ::
 

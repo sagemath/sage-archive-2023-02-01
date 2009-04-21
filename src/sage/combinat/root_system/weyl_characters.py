@@ -377,7 +377,7 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring`` -  (default: `\mathbb{Z}`)
+    - ``base_ring`` -  (default: `\ZZ`)
 
     - ``prefix`` (default an automatically generated prefix
       based on Cartan type)
@@ -869,7 +869,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     and the double cover of SO(7) induces a cover of GL(3) that is
     trivial over SL(3) but not over the center of GL(3). The weight
     lattice for this GL(3) consists of triples (a,b,c) of half integers
-    such that a-b and b-c are in `\mathbb{Z}`, and this is reflected in the last
+    such that a-b and b-c are in `\ZZ`, and this is reflected in the last
     decomposition.
 
     ::

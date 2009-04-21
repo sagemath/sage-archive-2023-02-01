@@ -3,9 +3,9 @@ Lattice and reflexive polytopes
 
 This module provides tools for work with lattice and reflexive
 polytopes. A *convex polytope* is the convex hull of finitely many
-points in `\mathbb{R}^n`. The dimension `n` of a
+points in `\RR^n`. The dimension `n` of a
 polytope is the smallest `n` such that the polytope can be
-embedded in `\mathbb{R}^n`.
+embedded in `\RR^n`.
 
 A *lattice polytope* is a polytope whose vertices all have integer
 coordinates.
@@ -15,7 +15,7 @@ If `L` is a lattice polytope, the dual polytope of
 
 .. math::
 
-       \{y \in \mathbb{Z}^n :   x\cdot y \geq -1 \text{ all } x \in L\}
+       \{y \in \ZZ^n :   x\cdot y \geq -1 \text{ all } x \in L\}
 
 
 A *reflexive polytope* is a lattice polytope, such that its polar

@@ -1250,7 +1250,7 @@ def frobenius_expansion_by_series(Q, p, M):
 
     -  ``Q`` - cubic polynomial of the form
        `Q(x) = x^3 + ax + b`, whose coefficient ring is a
-       `\mathbb{Z}/(p^M)\mathbb{Z}` -algebra
+       `\ZZ/(p^M)\ZZ` -algebra
 
     -  ``p`` - residue characteristic of the p-adic field
 
@@ -1362,7 +1362,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
   -  ``Q`` - cubic polynomial
      `Q(x) = x^3 + ax + b` defining an elliptic curve E by
      `y^2 = Q(x)`. The coefficient ring of Q should be a
-     `\mathbb{Z}/(p^M)\mathbb{Z}`-algebra in which the matrix of
+     `\ZZ/(p^M)\ZZ`-algebra in which the matrix of
      frobenius will be constructed.
 
   -  ``p`` - prime = 5 for which E has good reduction

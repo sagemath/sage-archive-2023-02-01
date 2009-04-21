@@ -2409,7 +2409,7 @@ def binomial(x,m):
                 x (x-1) \cdots (x-m+1) / m!
 
 
-    which is defined for `m \in \mathbb{Z}` and any
+    which is defined for `m \in \ZZ` and any
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
 

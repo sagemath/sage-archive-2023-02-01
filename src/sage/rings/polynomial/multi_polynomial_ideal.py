@@ -61,7 +61,7 @@ benchmark and test ideal.
     sage: len(B)
     45
 
-We compute in a quotient of a polynomial ring over `\mathbb{Z}/17\mathbb{Z}`::
+We compute in a quotient of a polynomial ring over `\ZZ/17\ZZ`::
 
     sage: R.<x,y> = ZZ[]
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))     # optional -- macaulay2
@@ -80,7 +80,7 @@ We compute in a quotient of a polynomial ring over `\mathbb{Z}/17\mathbb{Z}`::
     sage: S(17) == 0                                # optional -- macaulay2
     True
 
-Working with a polynomial ring over `\mathbb{Z}`::
+Working with a polynomial ring over `\ZZ`::
 
     sage: R.<x,y,z,w> = ZZ['x,y,z,w']
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
@@ -133,14 +133,14 @@ Two examples from the Mathematica documentation (done in Sage):
         [1]
 
 The next example shows how we can use Groebner bases over
-`\mathbb{Z}` to find the primes modulo which a system of
+`\ZZ` to find the primes modulo which a system of
 equations has a solution, when the system has no solutions over the
 rationals.
 
     We first form a certain ideal `I` in
-    `\mathbb{Z}[x, y, z]`, and note that the Groebner basis of
-    `I` over `\mathbb{Q}` contains 1, so there are no
-    solutions over `\mathbb{Q}` or an algebraic closure of it
+    `\ZZ[x, y, z]`, and note that the Groebner basis of
+    `I` over `\QQ` contains 1, so there are no
+    solutions over `\QQ` or an algebraic closure of it
     (this is not surprising as there are 4 equations in 3 unknowns).
 
     ::
@@ -553,12 +553,12 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `Q` is a primary ideal of the ring `R`, then the
         radical ideal `P` of `Q`, i.e.
         `P = \{a \in R, a^n \in Q\}` for some
-        `n \in \mathbb{Z}`, is called the
+        `n \in \ZZ`, is called the
         *associated prime* of `Q`.
 
         If `I` is a proper ideal of the ring `R` then there
@@ -660,7 +660,7 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
@@ -722,12 +722,12 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `Q` is a primary ideal of the ring `R`, then the
         radical ideal `P` of `Q`, i.e.
         `P = \{a \in R, a^n \in Q\}` for some
-        `n \in \mathbb{Z}`, is called the
+        `n \in \ZZ`, is called the
         *associated prime* of `Q`.
 
         If `I` is a proper ideal of the ring `R` then there
@@ -1173,7 +1173,7 @@ class MPolynomialIdeal_singular_repr:
 
         EXAMPLE: Consider the hyperelliptic curve
         `y^2 = 4x^5 - 30x^3 + 45x - 22` over
-        `\mathbb{Q}`, it has genus 2::
+        `\QQ`, it has genus 2::
 
             sage: P, x = PolynomialRing(QQ,"x").objgen()
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -2067,7 +2067,7 @@ class MPolynomialIdeal_macaulay2_repr:
             [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
         The Groebner basis can be used to compute in
-        `\mathbb{Z}/n\mathbb{Z}[x,\ldots]`.
+        `\ZZ/n\ZZ[x,\ldots]`.
 
         ::
 
@@ -2205,8 +2205,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         r"""
         Return the Groebner fan of this ideal.
 
-        The base ring must be `\mathbb{Q}` or a finite field
-        `\mathbb{F}_p` of with `p <= 32749`.
+        The base ring must be `\QQ` or a finite field
+        `\GF{p}` of with `p <= 32749`.
 
         EXAMPLES::
 
@@ -2397,7 +2397,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        Groebner bases over `\mathbb{Z}` can be computed. However,
+        Groebner bases over `\ZZ` can be computed. However,
         the native implementation is very slow. If available Macaulay2 is
         used, which is an optional Sage package.
 

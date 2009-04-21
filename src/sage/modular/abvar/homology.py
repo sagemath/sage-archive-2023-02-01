@@ -207,7 +207,7 @@ class Homology_abvar(Homology):
     def hecke_bound(self):
         r"""
         Return bound on the number of Hecke operators needed to generate
-        the Hecke algebra as a `\mathbb{Z}`-module acting on this
+        the Hecke algebra as a `\ZZ`-module acting on this
         space.
 
         EXAMPLES::
@@ -296,7 +296,7 @@ class Homology_abvar(Homology):
         object defined is a homology group or is invariant under the Hecke
         operators. For example, the fairly random `M` that we just
         defined is not invariant under the Hecke operators, so it is not a
-        Hecke submodule - it is only a `\mathbb{Z}`-submodule.
+        Hecke submodule - it is only a `\ZZ`-submodule.
 
         ::
 
@@ -310,7 +310,7 @@ class Homology_abvar(Homology):
 
 class IntegralHomology(Homology_abvar):
     r"""
-    The integral homology `H_1(A,\mathbb{Z})` of a modular
+    The integral homology `H_1(A,\ZZ)` of a modular
     abelian variety.
     """
     def __init__(self, abvar):
@@ -387,7 +387,7 @@ class IntegralHomology(Homology_abvar):
 
 class RationalHomology(Homology_abvar):
     r"""
-    The rational homology `H_1(A,\mathbb{Q})` of a modular
+    The rational homology `H_1(A,\QQ)` of a modular
     abelian variety.
     """
     def __init__(self, abvar):
@@ -472,13 +472,13 @@ class RationalHomology(Homology_abvar):
 class Homology_over_base(Homology_abvar):
     r"""
     The homology over a modular abelian variety over an arbitrary base
-    commutative ring (not `\mathbb{Z}` or
-    `\mathbb{Q}`).
+    commutative ring (not `\ZZ` or
+    `\QQ`).
     """
     def __init__(self, abvar, base_ring):
         r"""
         Called when creating homology with coefficients not
-        `\mathbb{Z}` or `\mathbb{Q}`.
+        `\ZZ` or `\QQ`.
 
         INPUT:
 

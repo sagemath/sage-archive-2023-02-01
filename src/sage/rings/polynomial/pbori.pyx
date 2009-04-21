@@ -6,7 +6,7 @@ Elements of the quotient ring
 
 .. math::
 
-    \mathbb{F}_2[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
+    \GF{2}[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
 
 
 
@@ -58,7 +58,7 @@ polynomial ring
 
 .. math::
 
-    R = \mathbb{F}_2[a,b,c,d,e].
+    R = \GF{2}[a,b,c,d,e].
 
 
 
@@ -75,10 +75,10 @@ polynomial ring
     d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
 
 If one wants to solve this system over the algebraic closure of
-`\mathbb{F}_2` then this Groebner basis was the one to
-consider. If one wants solutions over `\mathbb{F}_2` only
+`\GF{2}` then this Groebner basis was the one to
+consider. If one wants solutions over `\GF{2}` only
 then one adds the field polynomials to the ideal to force the
-solutions in `\mathbb{F}_2`.
+solutions in `\GF{2}`.
 
 ::
 
@@ -91,12 +91,12 @@ solutions in `\mathbb{F}_2`.
     d^2 + d
     e
 
-So the solutions over `\mathbb{F}_2` are
+So the solutions over `\GF{2}` are
 `\{e=0, d=1, c=1, b=1, a=0\}` and
 `\{e=0,
 d=0, c=1, b=1, a=1\}`.
 
-We can express the restriction to `\mathbb{F}_2` by
+We can express the restriction to `\GF{2}` by
 considering the quotient ring. If `I` is an ideal in
 `\mathbb{F}[x_1, ..., x_n]` then the ideals in the
 quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
@@ -1074,7 +1074,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def cover_ring(self):
         r"""
-        Return `R = \mathbb{F}_2[vars]` if `vars` is the
+        Return `R = \GF{2}[vars]` if `vars` is the
         ordered list of variable names of this ring. `R` also has
         the same term ordering as this ring.
 
@@ -1105,7 +1105,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def defining_ideal(self):
         r"""
         Return `I = <x_i^2 + x_i> \subset R` where
-        `R = \mathbb{F}_2[vars]`, `vars` the ordered list
+        `R = \GF{2}[vars]`, `vars` the ordered list
         of variables/variable names of this ring and `x_i` any
         element in `vars`.
 

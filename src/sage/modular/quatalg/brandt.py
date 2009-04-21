@@ -25,14 +25,14 @@ Brandt matrices.
 Quaternion Algebras
 -------------------
 
-A quaternion algebra over '\mathbb{Q}' is a central simple algebra of
-dimension 4 over '\mathbb{Q}'. Such an algebra 'A' is said to be
-ramified at a place 'v' of '\mathbb{Q}' if and only if 'A_v=A\otimes
-\mathbb{Q}_v' is a division algebra. Otherwise 'A' is said to be split
+A quaternion algebra over '\QQ' is a central simple algebra of
+dimension 4 over '\QQ'. Such an algebra 'A' is said to be
+ramified at a place 'v' of '\QQ' if and only if 'A_v=A\otimes
+\QQ_v' is a division algebra. Otherwise 'A' is said to be split
 at 'v'.
 
 A = QuaternionAlgebra(p) returns the quaternion algebra 'A' over
-'\mathbb{Q}' ramified precisely at the places 'p' and '\infty'.
+'\QQ' ramified precisely at the places 'p' and '\infty'.
 
 A = QuaternionAlgebra(k,a,b) returns a quaternion algebra with basis
 '\{1,i,j,j\}' over '\mathbb{K}' such that 'i^2=a', 'j^2=b' and 'ij=k.'

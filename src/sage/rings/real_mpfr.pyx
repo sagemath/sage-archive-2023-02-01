@@ -309,7 +309,7 @@ cdef class RealField(sage.rings.ring.Field):
         return s
 
     def _latex_(self):
-        return "\\mathbf{R}"
+        return "\\Bold{R}"
 
     def _sage_input_(self, sib, coerce):
         r"""

@@ -136,7 +136,7 @@ cdef class RealDoubleField_class(Field):
         return False
 
     def _latex_(self):
-        return "\\mathbf{R}"
+        return "\\Bold{R}"
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -1824,7 +1824,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Specifically, it is the unique `x \in (-\pi, \pi]` such
         that ```self`` = x + 2\pi n` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         EXAMPLES::
 

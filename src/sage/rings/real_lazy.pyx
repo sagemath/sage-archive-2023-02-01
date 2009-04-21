@@ -123,7 +123,7 @@ cdef class RealLazyField_class(LazyField):
 
     It's primary use is to connect the exact rings (such as number fields) to
     fixed precision real numbers. For example, to specify an embedding of a
-    number field $K$ into $\mathbb{R}$ one can map into this field and the
+    number field $K$ into $\RR$ one can map into this field and the
     coercion will then be able to carry the mapping to real fields of any
     precision.
 
@@ -201,9 +201,9 @@ cdef class RealLazyField_class(LazyField):
         r"""
         EXAMPLES:
             sage: latex(RLF)
-            \mathbf{R}
+            \Bold{R}
         """
-        return "\\mathbf{R}"
+        return "\\Bold{R}"
 
     def gen(self, i=0):
         """
@@ -340,9 +340,9 @@ cdef class ComplexLazyField_class(LazyField):
         r"""
         EXAMPLES:
             sage: latex(CLF)
-            \mathbf{C}
+            \Bold{C}
         """
-        return "\\mathbf{C}"
+        return "\\Bold{C}"
 
     def __repr__(self):
         """

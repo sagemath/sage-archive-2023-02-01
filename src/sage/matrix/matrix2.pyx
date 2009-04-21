@@ -165,7 +165,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A*x == v
             True
 
-        Same example but over `\mathbb{Z}`::
+        Same example but over `\ZZ`::
 
             sage: A = matrix(ZZ,2,3, [1,2,3,2,4,6]); v = vector([-1,-2])
             sage: A \ v
@@ -799,7 +799,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.determinant()
             -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
-        We create a matrix over `\mathbb{Z}[x,y]` and compute its
+        We create a matrix over `\ZZ[x,y]` and compute its
         determinant.
 
         ::
@@ -1046,7 +1046,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        First a matrix over `\mathbb{Z}`::
+        First a matrix over `\ZZ`::
 
             sage: A = MatrixSpace(ZZ,2)( [1,2,  3,4] )
             sage: f = A.charpoly('x')
@@ -1058,7 +1058,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        An example over `\mathbb{Q}`::
+        An example over `\QQ`::
 
             sage: A = MatrixSpace(QQ,3)(range(9))
             sage: A.charpoly('x')
@@ -1069,7 +1069,7 @@ cdef class Matrix(matrix1.Matrix):
             0
 
         We compute the characteristic polynomial of a matrix over the
-        polynomial ring `\mathbb{Z}[a]`::
+        polynomial ring `\ZZ[a]`::
 
             sage: R.<a> = PolynomialRing(ZZ)
             sage: M = MatrixSpace(R,2)([a,1,  a,a+1]); M
@@ -1085,7 +1085,7 @@ cdef class Matrix(matrix1.Matrix):
             a^2
 
         We compute the characteristic polynomial of a matrix over the
-        multi-variate polynomial ring `\mathbb{Z}[x,y]`::
+        multi-variate polynomial ring `\ZZ[x,y]`::
 
             sage: R.<x,y> = PolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
@@ -1251,7 +1251,7 @@ cdef class Matrix(matrix1.Matrix):
             TypeError: denominator not defined for elements of the base ring
 
         We can even compute the denominator of matrix over the fraction
-        field of `\mathbb{Z}[x]`.
+        field of `\ZZ[x]`.
 
         ::
 
@@ -1632,7 +1632,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A kernel of dimension one over `\mathbb{Q}`::
+        A kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.kernel()
@@ -1797,7 +1797,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A right kernel of dimension one over `\mathbb{Q}`::
+        A right kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.right_kernel()
@@ -1902,7 +1902,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A left kernel of dimension one over `\mathbb{Q}`::
+        A left kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.left_kernel()

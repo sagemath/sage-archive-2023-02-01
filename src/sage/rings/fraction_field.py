@@ -312,7 +312,7 @@ class FractionField_generic(field.Field):
         EXAMPLES::
 
             sage: latex(Frac(GF(7)['x,y,z']))
-            \mathrm{Frac}(\mathbf{F}_{7}[x, y, z])
+            \mathrm{Frac}(\Bold{F}_{7}[x, y, z])
         """
         return "\\mathrm{Frac}(%s)"%latex.latex(self.__R)
 

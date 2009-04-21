@@ -15,13 +15,13 @@ This module provided some upper and lower bounds for the parameters
 of codes.
 
 Let `F` be a finite field (we denote the finite field with
-`q` elements `GF(q)` by `\mathbb{F}F_q`).
+`q` elements by `\GF{q}`).
 A subset `C` of `V=F^n` is called a code of
 length `n`. A subspace of `V` (with the standard
 basis) is called a linear code of length `n`. If its
 dimension is denoted `k` then we typically store a basis of
 `C` as a `k\times n` matrix (the rows are the basis
-vectors). If `F=\mathbb{F}F_2` then `C` is
+vectors). If `F=\GF{2}` then `C` is
 called a binary code. If `F` has `q` elements
 then `C` is called a `q`-ary code. The elements
 of a code `C` are called codewords. The information rate
@@ -46,7 +46,7 @@ where `\vert C\vert` denotes the number of elements of
 
 to be the Hamming distance between `{\bf v}` and
 `{\bf w}`. The function
-`d:V\times V\rightarrow \mathbf{N}` is called the Hamming
+`d:V\times V\rightarrow \Bold{N}` is called the Hamming
 metric. The weight of a vector (in the Hamming metric) is
 `d({\bf v},{\bf 0})`. The minimum distance of a linear
 code is the smallest non-zero weight of a codeword in `C`.
@@ -117,7 +117,7 @@ This module implements:
 
 -  gilbert_lower_bound(n,q,d), a lower bound for number of
    elements in the largest code of min distance d in
-   `\mathbb{F}F_q^n`.
+   `\GF{q}^n`.
 
 -  gv_info_rate(n,delta,q), `log_q(GLB)/n`, where GLB is
    the Gilbert lower bound and delta = d/n.
@@ -219,7 +219,7 @@ def dimension_upper_bound(n,d,q):
 def volume_hamming(n,q,r):
     r"""
     Returns number of elements in a Hamming ball of radius r in
-    `\mathbb{F}F_q^n`.
+    `\GF{q}^n`.
 
     EXAMPLES::
 
@@ -232,7 +232,7 @@ def volume_hamming(n,q,r):
 def gilbert_lower_bound(n,q,d):
     r"""
     Returns lower bound for number of elements in the largest code of
-    minimum distance d in `\mathbb{F}F_q^n`.
+    minimum distance d in `\GF{q}^n`.
 
     EXAMPLES::
 
@@ -245,7 +245,7 @@ def gilbert_lower_bound(n,q,d):
 def plotkin_upper_bound(n,q,d):
     r"""
     Returns Plotkin upper bound for number of elements in the largest
-    code of minimum distance d in `\mathbb{F}F_q^n`. Wraps
+    code of minimum distance d in `\GF{q}^n`. Wraps
     GAP's UpperBoundPlotkin.
 
     EXAMPLES::
@@ -260,7 +260,7 @@ def plotkin_upper_bound(n,q,d):
 def griesmer_upper_bound(n,q,d):
     r"""
     Returns the Griesmer upper bound for number of elements in the
-    largest code of minimum distance d in `\mathbb{F}F_q^n`.
+    largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundGriesmer.
 
     EXAMPLES::
@@ -275,7 +275,7 @@ def griesmer_upper_bound(n,q,d):
 def elias_upper_bound(n,q,d):
     r"""
     Returns the Elias upper bound for number of elements in the largest
-    code of minimum distance d in `\mathbb{F}F_q^n`. Wraps
+    code of minimum distance d in `\GF{q}^n`. Wraps
     GAP's UpperBoundElias.
 
     EXAMPLES::
@@ -290,14 +290,14 @@ def elias_upper_bound(n,q,d):
 def hamming_upper_bound(n,q,d):
     r"""
     Returns the Hamming upper bound for number of elements in the
-    largest code of minimum distance d in `\mathbb{F}F_q^n`.
+    largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundHamming.
 
     The Hamming bound (also known as the sphere packing bound) returns
     an upper bound on the size of a code of length n, minimum distance
     d, over a field of size q. The Hamming bound is obtained by
     dividing the contents of the entire space
-    `\mathbb{F}F_q^n` by the contents of a ball with radius
+    `\GF{q}^n` by the contents of a ball with radius
     floor((d-1)/2). As all these balls are disjoint, they can never
     contain more than the whole vector space.
 
@@ -325,7 +325,7 @@ def hamming_upper_bound(n,q,d):
 def singleton_upper_bound(n,q,d):
     r"""
     Returns the Singleton upper bound for number of elements in the
-    largest code of minimum distance d in `\mathbb{F}F_q^n`.
+    largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundSingleton.
 
     This bound is based on the shortening of codes. By shortening an

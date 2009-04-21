@@ -4,7 +4,7 @@ Linear Codes
 VERSION: 1.1
 
 Let `F` be a finite field (we denote the finite field with
-`q` elements `GF(q)` by `\mathbb{F}_q`).
+`q` elements by `\GF{q}`).
 A subspace of `F^n` (with the standard basis) is called a
 linear code of length `n`. If its dimension is denoted
 `k` then we typically store a basis of `C` as a
@@ -20,8 +20,8 @@ matrix of `C` are a basis for the code,
 
 called the dual space of `C`.
 
-If `F=\mathbb{F}_2` then `C` is called a binary
-code. If `F = \mathbb{F}_q` then `C` is called a
+If `F=\GF{2}` then `C` is called a binary
+code. If `F = \GF{q}` then `C` is called a
 `q`-ary code. The elements of a code `C` are
 called codewords.
 

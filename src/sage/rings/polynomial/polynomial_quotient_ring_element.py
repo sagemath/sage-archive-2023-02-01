@@ -2,7 +2,7 @@ r"""
 Elements of Quotients of Univariate Polynomial Rings
 
 EXAMPLES: We create a quotient of a univariate polynomial ring over
-`\mathbb{Z}`.
+`\ZZ`.
 
 ::
 
@@ -12,7 +12,7 @@ EXAMPLES: We create a quotient of a univariate polynomial ring over
     -6*a + 2
 
 Next we make a univeriate polynomial ring over
-`\mathbb{Z}[x]/(x^3+3x-1)`.
+`\ZZ[x]/(x^3+3x-1)`.
 
 ::
 

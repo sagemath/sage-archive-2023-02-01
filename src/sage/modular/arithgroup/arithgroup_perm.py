@@ -43,7 +43,7 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
 
         L = \begin{pmatrix} 1 & 1 \\ 0 & 1\end{pmatrix},\quad R = \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}
 
-    by right multiplication on the coset representatives `\Gamma \backslash {\rm SL}_2(\mathbb{Z})`.
+    by right multiplication on the coset representatives `\Gamma \backslash {\rm SL}_2(\ZZ)`.
 
 
     EXAMPLES:
@@ -65,7 +65,7 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
         sage: Gamma0(12).as_permutation_group()
         Arithmetic subgroup corresponding to permutations L=(2,3,4,5,6,7,8,9,10,11,12,13)(14,15,16)(17,19,20,18)(21,23,22), R=(1,3,14,17,21,7,24,9,23,20,16,13)(4,18,12)(5,22,11,15)(6,10,19)
 
-    The following is the unique index 2 even subgroup of `{\rm SL}_2(\mathbb{Z})`::
+    The following is the unique index 2 even subgroup of `{\rm SL}_2(\ZZ)`::
 
         sage: w = SymmetricGroup(2)([2,1])
         sage: G = ArithmeticSubgroup_Permutation(w, w)
@@ -154,7 +154,7 @@ class ArithmeticSubgroup_Permutation(ArithmeticSubgroup):
 
     def permutation_action(self, x):
         r"""
-        Given an element x of `{\rm SL}_2(\mathbb{Z})`, compute the
+        Given an element x of `{\rm SL}_2(\ZZ)`, compute the
         permutation of the cosets of self given by right multiplication by x.
 
         EXAMPLE::

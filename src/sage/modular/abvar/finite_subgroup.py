@@ -3,8 +3,8 @@ Finite subgroups of modular abelian varieties
 
 Sage can compute with fairly general finite subgroups of modular
 abelian varieties. Elements of finite order are represented by
-equivalence classes of elements in `H_1(A,\mathbb{Q})`
-modulo `H_1(A,\mathbb{Z})`. A finite subgroup can be
+equivalence classes of elements in `H_1(A,\QQ)`
+modulo `H_1(A,\ZZ)`. A finite subgroup can be
 defined by giving generators and via various other constructions.
 Given a finite subgroup, one can compute generators, as well as the
 structure as an abstract group. Arithmetic on subgroups is also
@@ -588,7 +588,7 @@ class FiniteSubgroup(Module):
 
         This works when the abelian varieties that contains x and self are
         the same, or if `x` is coercible into the rational homology
-        (viewed as an abstract `\mathbb{Q}`-vector space).
+        (viewed as an abstract `\QQ`-vector space).
 
         EXAMPLES: We first construct the `11`-torsion subgroup of
         `J_0(23)`::
@@ -739,7 +739,7 @@ class FiniteSubgroup(Module):
         `n_i`, `1 \leq i \leq k`, with `n_i`
         dividing `n_{i+1}`, and such that this group is abstractly
         isomorphic to
-        `\mathbb{Z}/n_1\mathbb{Z} \times\cdots\times \mathbb{Z}/n_k\mathbb{Z}.`
+        `\ZZ/n_1\ZZ \times\cdots\times \ZZ/n_k\ZZ.`
 
         EXAMPLES::
 

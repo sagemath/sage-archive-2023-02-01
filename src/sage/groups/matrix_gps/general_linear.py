@@ -105,7 +105,7 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
 
             sage: G = GL(6,GF(5))
             sage: latex(G)
-            \text{GL}_{6}(\mathbf{F}_{5})
+            \text{GL}_{6}(\Bold{F}_{5})
         """
         return "\\text{GL}_{%s}(%s)"%(self.degree(), self.base_ring()._latex_())
 

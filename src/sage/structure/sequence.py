@@ -21,7 +21,7 @@ have a list `v` and type
     sage: w.universe()
     Rational Field
 
-then since ``w.universe()`` is `\mathbb{Q}`, you're guaranteed that all
+then since ``w.universe()`` is `\QQ`, you're guaranteed that all
 elements of `w` are rationals:
 
     sage: v[0].parent()

@@ -151,7 +151,7 @@ class Spec(scheme.AffineScheme):
             sage: S
             Spectrum of Multivariate Polynomial Ring in x0, x1 over Integer Ring
             sage: S._latex_()
-            '\\mathrm{Spec}(\\mathbf{Z}[x_{0}, x_{1}])'
+            '\\mathrm{Spec}(\\Bold{Z}[x_{0}, x_{1}])'
         """
         return "\\mathrm{Spec}(%s)" % self.__R._latex_()
 

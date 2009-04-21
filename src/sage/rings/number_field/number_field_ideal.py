@@ -586,7 +586,7 @@ class NumberFieldIdeal(Ideal_generic):
 
     def integral_basis(self):
         r"""
-        Return a list of generators for this ideal as a `\mathbb{Z}`-module.
+        Return a list of generators for this ideal as a `\ZZ`-module.
 
         EXAMPLES::
 
@@ -850,7 +850,7 @@ class NumberFieldIdeal(Ideal_generic):
 
     def smallest_integer(self):
         r"""
-        Return the smallest non-negative integer in `I \cap \mathbb{Z}`,
+        Return the smallest non-negative integer in `I \cap \ZZ`,
         where `I` is this ideal.  If `I = 0`, returns 0.
 
         EXAMPLES::
@@ -1278,7 +1278,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         assuming it is prime.  Otherwise, raise a ValueError.
 
         The ramification index is the power of this prime appearing in
-        the factorization of the prime in `\mathbb{Z}` that this prime lies
+        the factorization of the prime in `\ZZ` that this prime lies
         over.
 
         EXAMPLES::

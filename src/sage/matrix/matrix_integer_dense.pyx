@@ -1692,10 +1692,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Return a saturation matrix of self, which is a matrix whose rows
         span the saturation of the row span of self. This is not unique.
 
-        The saturation of a `\mathbb{Z}` module `M`
-        embedded in `\mathbb{Z}^n` is the a module `S` that
+        The saturation of a `\ZZ` module `M`
+        embedded in `\ZZ^n` is the a module `S` that
         contains `M` with finite index such that
-        `\mathbb{Z}^n/S` is torsion free. This function takes the
+        `\ZZ^n/S` is torsion free. This function takes the
         row span `M` of self, and finds another matrix of full rank
         with row span the saturation of `M`.
 
@@ -1704,7 +1704,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         -  ``p`` - (default: 0); if nonzero given, saturate
            only at the prime `p`, i.e., return a matrix whose row span
-           is a `\mathbb{Z}`-module `S` that contains self and
+           is a `\ZZ`-module `S` that contains self and
            such that the index of `S` in its saturation is coprime to
            `p`. If `p` is None, return full saturation of
            self.
@@ -3335,7 +3335,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            verify that in fact the rank is full.
 
 
-        OUTPUT: a matrix or vector over `\mathbb{Q}`
+        OUTPUT: a matrix or vector over `\QQ`
 
         EXAMPLES::
 
@@ -3345,7 +3345,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             (3, -2)
 
         Note that the output vector or matrix is always over
-        `\mathbb{Q}`.
+        `\QQ`.
 
         ::
 

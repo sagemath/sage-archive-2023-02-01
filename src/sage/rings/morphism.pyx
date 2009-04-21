@@ -4,7 +4,7 @@ Homomorphisms of rings
 We give a large number of examples of ring homomorphisms.
 
 EXAMPLE: Natural inclusion
-`\mathbb{Z} \hookrightarrow \mathbb{Q}`.
+`\ZZ \hookrightarrow \QQ`.
 
 ::
 
@@ -187,7 +187,7 @@ GF(2).
     sage: a.parent()
     Finite Field in a of size 2^2
 
-EXAMPLE: Inclusion from `\mathbb{Q}` to the 3-adic field.
+EXAMPLE: Inclusion from `\QQ` to the 3-adic field.
 
 ::
 
@@ -687,7 +687,7 @@ cdef class RingHomomorphism(RingMap):
             sage: f.is_zero()
             False
 
-        Next we make the zero ring as `\mathbb{Z}/1\mathbb{Z}`.
+        Next we make the zero ring as `\ZZ/1\ZZ`.
 
         ::
 

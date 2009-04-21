@@ -1192,7 +1192,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
     def minpoly(self, var='x'):
         r"""
         Return the minimal polynomial of self, which is the smallest
-        degree polynomial $f \in \mathbf{F}_{2}[x]$ such that
+        degree polynomial $f \in \GF{2}[x]$ such that
         $f(self) = 0$.
 
         INPUT:

@@ -475,7 +475,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def partition(self, f):
         """
-        Partition the faces of self based on a map $f: \mathbb{R}^3 \leftarrow \mathbb{Z}$
+        Partition the faces of self based on a map $f: \RR^3 \leftarrow \ZZ$
         applied to the center of each face.
         """
         cdef Py_ssize_t i, j, ix, face_ix

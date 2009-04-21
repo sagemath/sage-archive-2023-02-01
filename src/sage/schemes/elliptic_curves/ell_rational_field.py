@@ -795,7 +795,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def sea(self, p, early_abort=False):
         r"""
         Return the number of points on `E` over
-        `\mathbb{F}_p` computed using the SEA algorithm, as
+        `\GF{p}` computed using the SEA algorithm, as
         implemented in PARI by Christophe Doche and Sylvain Duquesne.
 
         INPUT:
@@ -1378,7 +1378,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return a list of pairs `(p, L)` where `p` is a
         prime and `L` is a list of the elliptic curves over
-        `\mathbb{Q}` that are `p`-isogenous to this
+        `\QQ` that are `p`-isogenous to this
         elliptic curve.
 
         INPUT:
@@ -2366,7 +2366,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def two_torsion_rank(self):
         r"""
         Return the dimension of the 2-torsion subgroup of
-        `E(\mathbb{Q})`.
+        `E(\QQ)`.
 
         This will be 0, 1 or 2.
 
@@ -2630,7 +2630,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         The Tamagawa number of the elliptic curve at `p`.
 
         This is the order of the component group
-        `E(\mathbb{Q}_p)/E^0(\mathbb{Q}_p)`.
+        `E(\QQ_p)/E^0(\QQ_p)`.
 
         EXAMPLES::
 
@@ -2648,7 +2648,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         The Tamagawa number of the elliptic curve at `p`.
 
         This is the order of the component group
-        `E(\mathbb{Q}_p)/E^0(\mathbb{Q}_p)`.
+        `E(\QQ_p)/E^0(\QQ_p)`.
 
         EXAMPLES::
 
@@ -2672,7 +2672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         The Tamagawa index of the elliptic curve at `p`.
 
         This is the index of the component group
-        `E(\mathbb{Q}_p)/E^0(\mathbb{Q}_p)`. It equals the
+        `E(\QQ_p)/E^0(\QQ_p)`. It equals the
         Tamagawa number (as the component group is cyclic) except for types
         `I_m^*` (`m` even) when the group can be
         `C_2 \times C_2`.
@@ -2947,7 +2947,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def integral_short_weierstrass_model(self):
         r"""
         Return a model of the form `y^2 = x^3 + a*x + b` for this
-        curve with `a,b\in\mathbb{Z}`.
+        curve with `a,b\in\ZZ`.
 
         EXAMPLES::
 
@@ -2967,7 +2967,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def integral_weierstrass_model(self):
         r"""
         Return a model of the form `y^2 = x^3 + a*x + b` for this
-        curve with `a,b\in\mathbb{Z}`.
+        curve with `a,b\in\ZZ`.
 
         Note that this function is deprecated, and that you should use
         integral_short_weierstrass_model instead as this will be
@@ -3138,9 +3138,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Let `X` be the subspace of `S_2(\Gamma_0(N))` spanned by the newform
         associated with this elliptic curve, and `Y` be orthogonal compliment
         of `X` under the Petersson inner product. Let `S_X` and `S_Y` be the
-        intersections of `X` and `Y` with `S_2(\Gamma_0(N)m \mathbb{Z})`. The congruence
-        number is defined to be `[S_X \oplus S_Y : S_2(\Gamma_0(N),\mathbb{Z})]`.
-        It measures congruences between `f` and elements of `S_2(\Gamma_0(N),\mathbb{Z})`
+        intersections of `X` and `Y` with `S_2(\Gamma_0(N)m \ZZ)`. The congruence
+        number is defined to be `[S_X \oplus S_Y : S_2(\Gamma_0(N),\ZZ)]`.
+        It measures congruences between `f` and elements of `S_2(\Gamma_0(N),\ZZ)`
         orthogonal to `f`.
 
         EXAMPLES::
@@ -3623,7 +3623,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     ##########################################################
     def isogeny_class(self, algorithm="mwrank", verbose=False):
         r"""
-        Return all curves over `\mathbb{Q}` in the isogeny class of
+        Return all curves over `\QQ` in the isogeny class of
         this elliptic curve.
 
         WARNING: The result is \emph{not} provably correct, in the
@@ -3786,7 +3786,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Returns a graph representing the isogeny class of this elliptic
         curve, where the vertices are isogenous curves over
-        `\mathbb{Q}` and the edges are prime degree isogenies
+        `\QQ` and the edges are prime degree isogenies
 
         .. warning::
 
@@ -4693,7 +4693,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            If ``min_p`` is bigger than 2 then the index can be off by
            any prime less than ``min_p``. This function returns the
            index divided by `2` exactly when
-           `E(\mathbb{Q})_{/tor}` has index `2` in
+           `E(\QQ)_{/tor}` has index `2` in
            `E(K)_{/tor}`.
 
         INPUT:
@@ -4744,7 +4744,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
 
         The curve 681b returns an interval that contains `3/2`.
-        This is because `E(\mathbb{Q})` is not saturated in
+        This is because `E(\QQ)` is not saturated in
         `E(K)`. The true index is `3`::
 
             sage: E = EllipticCurve('681b')
@@ -5242,9 +5242,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This Tate curve a `p`-adic curve with split multiplicative
         reduction of the form `y^2+xy=x^3+s_4 x+s_6` which is
         isomorphic to the given curve over the algebraic closure of
-        `\mathbb{Q}_p`. Its points over `\mathbb{Q}_p`
-        are isomorphic to `\mathbb{Q}_p^{\times}/q^{\mathbb{Z}}`
-        for a certain parameter `q\in\mathbb{Z}_p`.
+        `\QQ_p`. Its points over `\QQ_p`
+        are isomorphic to `\QQ_p^{\times}/q^{\ZZ}`
+        for a certain parameter `q\in\ZZ_p`.
 
         INPUT:
 

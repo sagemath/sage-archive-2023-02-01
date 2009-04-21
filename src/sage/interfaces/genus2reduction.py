@@ -119,7 +119,7 @@ class ReductionData(SageObject):
        [2I_0-(m+1)].
 
     #. The second datum is the GROUP OF CONNECTED COMPONENTS (over an
-       ALGEBRAIC CLOSURE (!) of `\mathbb{F}_p`) of the Neron
+       ALGEBRAIC CLOSURE (!) of `\GF{p}`) of the Neron
        model of J(C). The symbol (n) means the cyclic group with n
        elements. When n=0, (0) is the trivial group (1).
        ``Hn`` is isomorphic to (2)x(2) if n is even and to (4)
@@ -146,7 +146,7 @@ class ReductionData(SageObject):
        2", Compositio Math. 94 (1994) 51-79, Theoreme 2) is valid only if
        the residual field is algebraically closed as stated in the paper.
        So this equality does not hold in general over
-       `\mathbb{Q}_p`. The fact is that the minimal discriminant
+       `\QQ_p`. The fact is that the minimal discriminant
        may change after unramified extension. One can show however that,
        at worst, the change will stabilize after a quadratic unramified
        extension (Q. Liu : "Modeles entiers de courbes hyperelliptiques

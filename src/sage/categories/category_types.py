@@ -85,7 +85,7 @@ class Elements(uniq1, Category):
             sage: V = VectorSpace(QQ,3)
             sage: x = V.0
             sage: latex(x.category())
-            \mathbf{Elt}_{\mathbf{Q}^{3}}
+            \mathbf{Elt}_{\Bold{Q}^{3}}
         """
         return "\\mathbf{Elt}_{%s}"%latex(self.__object)
 
@@ -140,7 +140,7 @@ class Sequences(uniq1, Category):
         EXAMPLES:
             sage: v = Sequence([1,2,3])
             sage: latex(v.category())
-            \mathbf{Seq}_{\mathbf{Z}}
+            \mathbf{Seq}_{\Bold{Z}}
         """
 
         return "\\mathbf{Seq}_{%s}"%latex(self.__object)

@@ -199,7 +199,7 @@ class EtaGroup_class(AbelianGroup):
         and one congruence modulo 2 for every prime divisor of N. We beef
         up the congruences modulo 2 to congruences modulo 24 by multiplying
         by 12. To calculate the kernel of the ensuing map
-        `\mathbb{Z}^m \to (\mathbb{Z}/24\mathbb{Z})^n`
+        `\ZZ^m \to (\ZZ/24\ZZ)^n`
         we lift it arbitrarily to an integer matrix and calculate its Smith
         normal form. This gives a basis for the lattice.
 
@@ -262,7 +262,7 @@ class EtaGroup_class(AbelianGroup):
 
         ALGORITHM: We define the norm of an eta-product to be the
         `L^2` norm of its divisor (as an element of the free
-        `\mathbb{Z}`-module with the cusps as basis and the
+        `\ZZ`-module with the cusps as basis and the
         standard inner product). Applying LLL-reduction to this gives a
         basis of hopefully more tractable elements. Of course we'd like to
         use the `L^1` norm as this is just twice the degree, which
@@ -505,7 +505,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         OUTPUT:
 
 
-        -  a power series over `\mathbb{Z}` in
+        -  a power series over `\ZZ` in
            the variable `q`, with a *relative* precision of
            `1 + O(q^n)`.
 
@@ -695,7 +695,7 @@ class CuspFamily(SageObject):
         r"""
         Create the cusp of width d on X_0(N) corresponding to the family
         of Tate curves
-        `(\mathbb{C}_p/q^d, \langle \zeta q\rangle)`. Here
+        `(\CC_p/q^d, \langle \zeta q\rangle)`. Here
         `\zeta` is a primitive root of unity of order `r`
         with `\mathrm{lcm}(r,d) = N`. The cusp doesn't store zeta,
         so we store an arbitrary label instead.
@@ -751,7 +751,7 @@ class CuspFamily(SageObject):
     def sage_cusp(self):
         """
         Return the corresponding element of
-        `\mathbb{P}^1(\mathbb{Q})`.
+        `\mathbb{P}^1(\QQ)`.
 
         EXAMPLE::
 

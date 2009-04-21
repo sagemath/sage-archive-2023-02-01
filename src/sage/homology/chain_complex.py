@@ -20,7 +20,7 @@ with `d_n : C_n \rightarrow C_{n-1}` for each `n`. Indeed, the
 differentials may change dimension by any fixed integer.
 
 Also, the modules may be indexed over an abelian group other than the
-integers, e.g., `\mathbf{Z}^{m}` for some integer `m \geq 1`, in which
+integers, e.g., `\ZZ^{m}` for some integer `m \geq 1`, in which
 case the differentials may change the grading by any element of that
 grading group.
 
@@ -248,11 +248,11 @@ def _latex_module(R, m):
 
         sage: from sage.homology.chain_complex import _latex_module
         sage: _latex_module(ZZ, 3)
-        '\\mathbf{Z}^{3}'
+        '\\Bold{Z}^{3}'
         sage: _latex_module(ZZ, 0)
         '0'
         sage: _latex_module(GF(3), 1)
-        '\\mathbf{F}_{3}^{1}'
+        '\\Bold{F}_{3}^{1}'
     """
     if m == 0:
         return str(latex(0))
@@ -899,7 +899,7 @@ class ChainComplex(SageObject):
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C._latex_()
-            '\\mathbf{Z}^{3} \\xrightarrow{d_{0}} \\mathbf{Z}^{2}'
+            '\\Bold{Z}^{3} \\xrightarrow{d_{0}} \\Bold{Z}^{2}'
         """
 #         Warning: this is likely to screw up if, for example, the
 #         degree of the differential is 2 and there are nonzero terms
@@ -1025,7 +1025,7 @@ class HomologyGroup_class(AbelianGroup_class):
             sage: H._latex_()
             'C_{4}^{5} \\times C_{7} \\times C_{7}'
             sage: latex(HomologyGroup(6))
-            \mathbf{Z}^{6}
+            \ZZ^{6}
         """
         eldv = self.invariants()
         if len(eldv) == 0:
@@ -1033,9 +1033,9 @@ class HomologyGroup_class(AbelianGroup_class):
         rank = len(filter(lambda x: x == 0, eldv))
         torsion = sorted(filter(lambda x: x, eldv))
         if rank > 4:
-            g = ["\\mathbf{Z}^{%s}" % rank]
+            g = ["\\ZZ^{%s}" % rank]
         else:
-            g = ["\\mathbf{Z}"] * rank
+            g = ["\\ZZ"] * rank
         if len(torsion) != 0:
             printed = []
             for t in torsion:

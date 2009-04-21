@@ -1410,7 +1410,7 @@ cdef class CommutativeRingElement(RingElement):
 
         When little is implemented about a given ring, then mod may
         return simply return `f`.  For example, reduction is not
-        implemented for `\mathbb{Z}[x]` yet. (TODO!)
+        implemented for `\ZZ[x]` yet. (TODO!)
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1

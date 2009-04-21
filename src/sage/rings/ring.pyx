@@ -1145,7 +1145,7 @@ cdef class DedekindDomain(IntegralDomain):
         Return True since Dedekind domains are noetherian.
 
         EXAMPLES:
-        The integers, $\mathbb{Z}$, and rings of integers of number
+        The integers, $\ZZ$, and rings of integers of number
         fields are Dedekind domains:
             sage: ZZ.is_noetherian()
             True
@@ -1527,9 +1527,7 @@ cdef class FiniteField(Field):
 
     def _latex_(self):
         r"""
-        Returns a string denoting the name of the field in LaTeX. Finite fields
-        are typically typeset in the blackboard bold font given by the LaTeX
-        command \code{\mathbb}.
+        Returns a string denoting the name of the field in LaTeX.
 
         The \code(misc.latex.latex) funciton calls the \code{_latex_} attribute
         when available.
@@ -1537,13 +1535,13 @@ cdef class FiniteField(Field):
         EXAMPLES:
         The \code(latex) command parses the string
             sage: GF(81, 'a')._latex_()
-            '\\mathbf{F}_{3^{4}}'
+            '\\Bold{F}_{3^{4}}'
             sage: latex(GF(81, 'a'))
-            \mathbf{F}_{3^{4}}
+            \Bold{F}_{3^{4}}
             sage: GF(3)._latex_()
-            '\\mathbf{F}_{3}'
+            '\\Bold{F}_{3}'
             sage: latex(GF(3))
-            \mathbf{F}_{3}
+            \Bold{F}_{3}
         """
         if self.degree() > 1:
             e = "^{%s}"%self.degree()
@@ -1908,7 +1906,7 @@ cdef class FiniteField(Field):
         The minimal polynomial of an element $a$ in a field is the unique
         irreducible polynomial of smallest degree with coefficients in the
         base field that has $a$ as a root. In finite field extensions,
-        $\mathbb{F}_{p^n}$, the base field is $\mathbb{F}_p$. Here are several
+        $\GF{p^n}$, the base field is $\GF{p}$. Here are several
         examples:
             sage: F.<a> = GF(7^2, 'a'); F
             Finite Field in a of size 7^2

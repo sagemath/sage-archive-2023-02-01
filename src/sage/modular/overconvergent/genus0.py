@@ -48,7 +48,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
     Create a space of overconvergent `p`-adic modular forms of level
     `\Gamma_0(p)`, over the given base ring. The base ring need not be a
     `p`-adic ring (the spaces we compute with typically have bases over
-    `\mathbb{Q}`).
+    `\QQ`).
 
     INPUT:
 
@@ -62,7 +62,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
     - ``radius`` - a rational number in the interval `\left( 0, \frac{p}{p+1}
       \right)`, the radius of overconvergence.
 
-    - ``base_ring`` (default: `\mathbb{Q}`), a ring over which to compute. This
+    - ``base_ring`` (default: `\QQ`), a ring over which to compute. This
       need not be a `p`-adic ring.
 
     - ``prec`` - an integer (default: 20), the number of `q`-expansion terms to
@@ -134,7 +134,7 @@ class OverconvergentModularFormsSpace(Module):
         Create a space of overconvergent `p`-adic modular forms of level
         `\Gamma_0(p)`, over the given base ring. The base ring need not be a
         `p`-adic ring (the spaces we compute with typically have bases over
-        `\mathbb{Q}`).
+        `\QQ`).
 
         EXAMPLES::
 
@@ -1393,7 +1393,7 @@ class OverconvergentModularFormElement(ModuleElement):
         Return the Pari object corresponding to self, which is just the
         q-expansion of self as a formal power series. At present conversion of
         power series to Pari is only implemented if the base ring is
-        `\mathbb{Q}`.
+        `\QQ`.
 
         (At present, in 3.4.1.alpha0, if the base ring isn't QQ then a silly
         error message comes up because of a trivial typo in

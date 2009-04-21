@@ -5,7 +5,7 @@ Algebraic Geometry
 ------------------
 
 You can define arbitrary algebraic varieties in Sage, but sometimes
-nontrivial functionality is limited to rings over :math:`\mathbb{Q}` or
+nontrivial functionality is limited to rings over :math:`\QQ` or
 finite fields. For example, we compute the union of two affine
 plane curves, then recover the curves as the irreducible components
 of the union.
@@ -83,7 +83,7 @@ functionality of PARI, access to the data in Cremona's online
 tables (this requires an optional database package), the
 functionality of mwrank, i.e., 2-descents with computation of the
 full Mordell-Weil group, the SEA algorithm, computation of all
-isogenies, much new code for curves over :math:`\mathbb{Q}`, and some of Denis
+isogenies, much new code for curves over :math:`\QQ`, and some of Denis
 Simon's algebraic descent software.
 
 The command ``EllipticCurve`` for creating an elliptic curve has many
@@ -97,8 +97,8 @@ forms:
 
 
    where the :math:`a_i`'s are coerced into the parent of
-   :math:`a_1`. If all the :math:`a_i` have parent :math:`\mathbb{Z}`, they are
-   coerced into :math:`\mathbb{Q}`.
+   :math:`a_1`. If all the :math:`a_i` have parent :math:`\ZZ`, they are
+   coerced into :math:`\QQ`.
 
 -  EllipticCurve([:math:`a_4`, :math:`a_6`]): Same as above, but
    :math:`a_1=a_2=a_3=0`.
@@ -269,8 +269,8 @@ Dirichlet Characters
 --------------------
 
 A *Dirichlet character* is the extension of a homomorphism
-:math:`(\mathbb{Z}/N\mathbb{Z})^* \to R^*`, for some ring :math:`R`, to the map
-:math:`\mathbb{Z} \to R` obtained by sending those integers :math:`x`
+:math:`(\ZZ/N\ZZ)^* \to R^*`, for some ring :math:`R`, to the map
+:math:`\ZZ \to R` obtained by sending those integers :math:`x`
 with :math:`\gcd(N,x)>1` to 0.
 
 ::
@@ -309,7 +309,7 @@ with it.
     -zeta6 + 1
 
 It is also possible to compute the action of the Galois group
-:math:`\text{Gal}(\mathbb{Q}(\zeta_N)/\mathbb{Q})` on these characters, as well
+:math:`\text{Gal}(\QQ(\zeta_N)/\QQ)` on these characters, as well
 as the direct product decomposition corresponding to the
 factorization of the modulus.
 
@@ -338,7 +338,7 @@ factorization of the modulus.
     ]
 
 Next, we construct the group of Dirichlet characters mod 20, but
-with values in :math:`\mathbb{Q}(i)`:
+with values in :math:`\QQ(i)`:
 
 ::
 

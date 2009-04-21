@@ -1,16 +1,16 @@
 r"""
 The space of `p`-adic weights
 
-A `p`-adic weight is a continuous character `\mathbb{Z}_p^\times \to
-\mathbb{C}_p^\times`. These are the `\mathbb{C}_p`-points of a rigid space over
-`\mathbb{Q}_p`, which is isomorphic to a disjoint union of copies (indexed by
-`(\mathbb{Z}/p\mathbb{Z})^\times`) of the open unit `p`-adic disc.
+A `p`-adic weight is a continuous character `\ZZ_p^\times \to
+\CC_p^\times`. These are the `\CC_p`-points of a rigid space over
+`\QQ_p`, which is isomorphic to a disjoint union of copies (indexed by
+`(\ZZ/p\ZZ)^\times`) of the open unit `p`-adic disc.
 
 Sage supports both "classical points", which are determined by the data of a
 Dirichlet character modulo `p^m` for some `m` and an integer `k` (corresponding
 to the character `z \mapsto z^k \chi(z)`) and "non-classical points" which are
-determined by the data of an element of `(\mathbb{Z}/p\mathbb{Z})^\times` and
-an element `w \in \mathbb{C}_p` with `|w - 1| < 1`.
+determined by the data of an element of `(\ZZ/p\ZZ)^\times` and
+an element `w \in \CC_p` with `|w - 1| < 1`.
 
 EXAMPLES::
 
@@ -39,7 +39,7 @@ character mod `p`::
     True
 
 A non-locally-algebraic character, sending the generator 18 of `1 + 17
-\mathbb{Z}_{17}` to 35 and acting as `\mu \mapsto \mu^4` on the group of 16th
+\ZZ_{17}` to 35 and acting as `\mu \mapsto \mu^4` on the group of 16th
 roots of unity::
 
     sage: kappa3 = W(35 + O(17^20), 4, algebraic=False)
@@ -73,14 +73,14 @@ _wscache = {}
 def WeightSpace_constructor(p, base_ring=None):
     r"""
     Construct the p-adic weight space for the given prime p.  A `p`-adic weight
-    is a continuous character `\mathbb{Z}_p^\times \to \mathbb{C}_p^\times`.
-    These are the `\mathbb{C}_p`-points of a rigid space over `\mathbb{Q}_p`,
+    is a continuous character `\ZZ_p^\times \to \CC_p^\times`.
+    These are the `\CC_p`-points of a rigid space over `\QQ_p`,
     which is isomorphic to a disjoint union of copies (indexed by
-    `(\mathbb{Z}/p\mathbb{Z})^\times`) of the open unit `p`-adic disc.
+    `(\ZZ/p\ZZ)^\times`) of the open unit `p`-adic disc.
 
     Note that the "base ring" of a `p`-adic weight is the smallest ring
-    containing the image of `mathbb{Z}`; in particular, although the default base
-    ring is `\mathbb{Q}_p`, base ring `\mathbb{Q}` will also work.
+    containing the image of `\ZZ`; in particular, although the default base
+    ring is `\QQ_p`, base ring `\QQ` will also work.
 
     EXAMPLES::
 
@@ -106,7 +106,7 @@ def WeightSpace_constructor(p, base_ring=None):
 class WeightSpace_class(ParentWithBase):
     r"""
     The space of `p`-adic weight-characters `\mathcal{W} = {\rm
-    Hom}(\mathbb{Z}_p^\times, \mathbb{C}_p^\times)`. This isomorphic to a
+    Hom}(\ZZ_p^\times, \CC_p^\times)`. This isomorphic to a
     disjoint union of `(p-1)` open discs of radius 1 (or 2 such discs if `p =
     2`), with the parameter on the open disc corresponding to the image of `1 +
     p` (or 5 if `p = 2`)
@@ -161,14 +161,14 @@ class WeightSpace_class(ParentWithBase):
         Create an element of this space.
 
         If ``algebraic = True`` (the default), create a locally algebraic
-        character. The arguments should be `(k, \chi)` with `k \in \mathbb{Z}`
+        character. The arguments should be `(k, \chi)` with `k \in \ZZ`
         and `\chi` a Dirichlet character of `p`-power conductor defined over a
         `p`-adic field; this corresponds to the weight-character `x \mapsto x^k
         \chi(x)`. If `\chi` is omitted, it defaults to the trivial character.
 
         If ``algebraic = False``, create a general character. The arguments are
-        now (t, w) where `t \in \mathbb{Z}/(p-1)\mathbb{Z}` and `w \in
-        \mathbb{C}_p` with `|w - 1| < 1`. This corresponds to the character
+        now (t, w) where `t \in \ZZ/(p-1)\ZZ` and `w \in
+        \CC_p` with `|w - 1| < 1`. This corresponds to the character
         `\kappa` satisfying `\kappa(\mu) = \mu^t` where `\mu` is a `(p-1)`-st
         root of unity, and `\kappa(1 + p) = w`.
 
@@ -266,7 +266,7 @@ class WeightSpace_class(ParentWithBase):
 class WeightCharacter(Element):
     r"""
     Abstract base class representing an element of the p-adic weight space
-    `Hom(\mathbb{Z}_p^\times, \mathbb{C}_p^\times)`.
+    `Hom(\ZZ_p^\times, \CC_p^\times)`.
     """
 
     # This should probably derive from Morphism or even from
@@ -340,7 +340,7 @@ class WeightCharacter(Element):
         r"""
         If `\kappa` is this character, calculate the values `(\kappa(r), t)`
         where `r` is `1 + p` (or 5 if `p = 2`) and `t` is the unique element of
-        `\mathbb{Z}/(p-1)\mathbb{Z}` such that `\kappa(\mu) = \mu^t` for `\mu`
+        `\ZZ/(p-1)\ZZ` such that `\kappa(\mu) = \mu^t` for `\mu`
         a (p-1)st root of unity. (If `p = 2`, we take `t` to be 0 or 1
         according to whether `\kappa` is odd or even.) These two values
         uniquely determine the character `\kappa`.
@@ -396,7 +396,7 @@ class WeightCharacter(Element):
 
     def Lvalue(self):
         r"""
-        Return the value of the p-adic L-function of `\mathbb{Q}`, which can be
+        Return the value of the p-adic L-function of `\QQ`, which can be
         regarded as a rigid-analytic function on weight space, evaluated at
         this character.
 
@@ -477,7 +477,7 @@ class AlgebraicWeight(WeightCharacter):
 
     def __call__(self, x):
         r"""
-        Evaluate this character at an element of `\mathbb{Z}_p^\times`.
+        Evaluate this character at an element of `\ZZ_p^\times`.
 
         EXAMPLES:
 
@@ -569,7 +569,7 @@ class AlgebraicWeight(WeightCharacter):
     def teichmuller_type(self):
         r"""
         Return the Teichmuller type of this weight-character `\kappa`, which is
-        the unique `t \in \mathbb{Z}/(p-1)\mathbb{Z}` such that `\kappa(\mu) =
+        the unique `t \in \ZZ/(p-1)\ZZ` such that `\kappa(\mu) =
         \mu^t` for \mu a `(p-1)`-st root of 1.
 
         For `p = 2` this doesn't make sense, but we still want the Teichmuller
@@ -600,7 +600,7 @@ class AlgebraicWeight(WeightCharacter):
 
     def Lvalue(self):
         r"""
-        Return the value of the p-adic L-function of `\mathbb{Q}` evaluated at
+        Return the value of the p-adic L-function of `\QQ` evaluated at
         this weight-character. If the character is `x \mapsto x^k \chi(x)`
         where `k > 0` and `\chi` has conductor a power of `p`, this is an
         element of the number field generated by the values of `\chi`, equal to
@@ -663,7 +663,7 @@ class ArbitraryWeight(WeightCharacter):
 
     def __call__(self, x):
         r"""
-        Evaluate this character at an element of `\mathbb{Z}_p^\times`.
+        Evaluate this character at an element of `\ZZ_p^\times`.
 
         EXAMPLES::
 
@@ -697,7 +697,7 @@ class ArbitraryWeight(WeightCharacter):
     def teichmuller_type(self):
         r"""
         Return the Teichmuller type of this weight-character `\kappa`, which is
-        the unique `t \in \mathbb{Z}/(p-1)\mathbb{Z}` such that `\kappa(\mu) =
+        the unique `t \in \ZZ/(p-1)\ZZ` such that `\kappa(\mu) =
         \mu^t` for \mu a `(p-1)`-st root of 1.
 
         For `p = 2` this doesn't make sense, but we still want the Teichmuller

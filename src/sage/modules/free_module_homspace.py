@@ -1,7 +1,7 @@
 r"""
 Homspaces between free modules
 
-EXAMPLES: We create `\mathrm{End}(\mathbb{Z}^2)` and compute a
+EXAMPLES: We create `\mathrm{End}(\ZZ^2)` and compute a
 basis.
 
 ::
@@ -18,7 +18,7 @@ basis.
     Domain: Ambient free module of rank 2 over the principal ideal domain ...
     Codomain: Ambient free module of rank 2 over the principal ideal domain ...
 
-We create `\mathrm{Hom}(\mathbb{Q}^3, \mathbb{Q}^2)` and
+We create `\mathrm{Hom}(\QQ^3, \QQ^2)` and
 compute a basis.
 
 ::

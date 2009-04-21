@@ -1,5 +1,5 @@
 r"""
-The set `\mathbb{P}^1(\mathbb{Q})` of cusps
+The set `\mathbb{P}^1(\QQ)` of cusps
 
 EXAMPLES::
 
@@ -46,7 +46,7 @@ class Cusps_class(ParentWithBase):
     """
     def __init__(self):
         r"""
-        The set of cusps, i.e. `\mathbb{P}^1(\mathbb{Q})`.
+        The set of cusps, i.e. `\mathbb{P}^1(\QQ)`.
 
         EXAMPLES::
 
@@ -96,11 +96,11 @@ class Cusps_class(ParentWithBase):
         EXAMPLES::
 
             sage: latex(Cusps)
-            \mathbf{P}^1(\mathbf{Q})
+            \mathbf{P}^1(\QQ)
             sage: latex(Cusps) == Cusps._latex_()
             True
         """
-        return "\\mathbf{P}^1(\\mathbf{Q})"
+        return "\\mathbf{P}^1(\\QQ)"
 
     def __call__(self, x):
         """
@@ -169,7 +169,7 @@ class Cusp(Element):
 
     def __init__(self, a, b=None, parent=None, check=True):
         r"""
-        Create the cusp a/b in `\mathbb{P}^1(\mathbb{Q})`, where if b=0
+        Create the cusp a/b in `\mathbb{P}^1(\QQ)`, where if b=0
         this is the cusp at infinity.
 
         When present, b must either be Infinity or coercible to an

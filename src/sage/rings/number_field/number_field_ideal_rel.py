@@ -620,7 +620,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
     def smallest_integer(self):
         r"""
-        Return the smallest non-negative integer in $I \cap \mathbb{Z}$,
+        Return the smallest non-negative integer in $I \cap \ZZ$,
         where $I$ is this ideal.  If $I = 0$, returns $0$.
 
         EXAMPLES:

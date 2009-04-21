@@ -4,7 +4,7 @@ Introduction to Number Fields
 =============================
 
 In Sage, we can create the number field
-:math:`\mathbb{Q}(\sqrt[3]{2})` as follows.
+:math:`\QQ(\sqrt[3]{2})` as follows.
 
 ::
 
@@ -12,7 +12,7 @@ In Sage, we can create the number field
 
 The above creates *two* Sage objects, :math:`K` and
 :math:`\alpha`. Here :math:`K` "is" (isomorphic to) the number
-field :math:`\mathbb{Q}(\sqrt[3]{2})`, as we confirm below::
+field :math:`\QQ(\sqrt[3]{2})`, as we confirm below::
 
     sage: K
     Number Field in alpha with defining polynomial x^3 - 2
@@ -20,7 +20,7 @@ field :math:`\mathbb{Q}(\sqrt[3]{2})`, as we confirm below::
 and :math:`\alpha` is a root of :math:`x^3 - 2`, so
 :math:`\alpha` is an abstract choice of :math:`\sqrt[3]{2}` (no
 specific embedding of the number field :math:`K` into
-:math:`\mathbb{C}` is chosen by default in Sage-3.1.2)::
+:math:`\CC` is chosen by default in Sage-3.1.2)::
 
     sage: alpha^3
     2
@@ -184,7 +184,7 @@ Adjoining a symbolic expression
 
 Given any symbolic expression for which Sage can computes its
 minimal polynomial, you can construct the number field obtained by
-adjoining that expression to :math:`\mathbb{Q}`. The notation is
+adjoining that expression to :math:`\QQ`. The notation is
 quite simple - just type ``QQ[a]`` where ``a`` is the symbolic expression.
 
 ::
@@ -204,7 +204,7 @@ quite simple - just type ``QQ[a]`` where ``a`` is the symbolic expression.
 Coercion: QQ[a] versus QQ(a)
 ----------------------------
 
-You can't create the number field :math:`\mathbb{Q}(a)` in Sage by
+You can't create the number field :math:`\QQ(a)` in Sage by
 typing ``QQ(a)``, which has a *very different* meaning in Sage. It
 means "try to create a rational number from :math:`a`." Thus ``QQ(a)``
 in Sage is the analogue of ``QQ!a`` in Magma (Pari has no notion of
@@ -297,7 +297,7 @@ Adjoining a root of the cubic
 -----------------------------
 
 Next, we construct the number field obtained by adjoining the solution
-``a`` to :math:`\mathbb{Q}`. Notice that the minimal polynomial of the
+``a`` to :math:`\QQ`. Notice that the minimal polynomial of the
 root is :math:`x^6 + 10x^3 - 2x^2 + 25`.
 
 .. warning::

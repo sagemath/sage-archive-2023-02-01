@@ -1,5 +1,5 @@
 r"""
-Elements of `\mathbb{Z}/n\mathbb{Z}`
+Elements of `\ZZ/n\ZZ`
 
 An element of the integers modulo `n`.
 
@@ -97,7 +97,7 @@ cdef Integer one_Z = Integer(1)
 def Mod(n, m, parent=None):
     """
     Return the equivalence class of `n` modulo `m` as
-    an element of `\mathbb{Z}/m\mathbb{Z}`.
+    an element of `\ZZ/m\ZZ`.
 
     EXAMPLES::
 
@@ -307,7 +307,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             True
 
         ALGORITHM: Let `m \geq  \log_2(n)`, where `n` is
-        the modulus. Then `x \in \mathbb{Z}/n\mathbb{Z}` is
+        the modulus. Then `x \in \ZZ/n\ZZ` is
         nilpotent if and only if `x^m = 0`.
 
         PROOF: This is clear if you reduce to the prime power case, which
@@ -1156,7 +1156,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     """
-    Elements of `\mathbb{Z}/n\mathbb{Z}` for n not small enough
+    Elements of `\ZZ/n\ZZ` for n not small enough
     to be operated on in word size.
 
     AUTHORS:
@@ -1492,7 +1492,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __rshift__(IntegerMod_gmp self, int right):
         r"""
         Return ``self`` shifted right by ``right``
-        bits. (In `\mathbb{Z}/n\mathbb{Z}`, this is nothing like
+        bits. (In `\ZZ/n\ZZ`, this is nothing like
         division.)
 
         EXAMPLES::
@@ -1577,7 +1577,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     """
-    Elements of `\mathbb{Z}/n\mathbb{Z}` for n small enough to
+    Elements of `\ZZ/n\ZZ` for n small enough to
     be operated on in 32 bits
 
     AUTHORS:
@@ -2342,7 +2342,7 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
     """
-    Elements of `\mathbb{Z}/n\mathbb{Z}` for n small enough to
+    Elements of `\ZZ/n\ZZ` for n small enough to
     be operated on in 64 bits
 
     AUTHORS:
@@ -2997,7 +2997,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
        `\zeta = (2a)^{(p-5)/8}`, `i=\sqrt{-1}`.
 
     -  `p \bmod 16 = 9`: Similar, work in a bi-quadratic
-       extension of `\mathbb{F}_p` for small `p`, Tonelli
+       extension of `\GF{p}` for small `p`, Tonelli
        and Shanks for large `p`.
 
     -  `p \bmod 16 = 1`: Tonelli and Shanks.
@@ -3209,7 +3209,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
 
 cdef class Integer_to_IntegerMod(IntegerMod_hom):
     r"""
-    Fast `\mathbb{Z} \rightarrow \mathbb{Z}/n\mathbb{Z}`
+    Fast `\ZZ \rightarrow \ZZ/n\ZZ`
     morphism.
 
     EXAMPLES:

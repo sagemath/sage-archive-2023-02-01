@@ -348,9 +348,9 @@ def EllipticCurve_from_j(j):
 def EllipticCurve_from_cubic(F, P):
     r"""
     Given a nonsingular homogenous cubic polynomial F over
-    `\mathbb{Q}` in three variables x, y, z and a projective solution
+    `\QQ` in three variables x, y, z and a projective solution
     P=[a,b,c] to F(P)=0, find the minimal Weierstrass equation of the
-    elliptic curve over `\mathbb{Q}` that is isomorphic to the curve
+    elliptic curve over `\QQ` that is isomorphic to the curve
     defined by `F=0`.
 
     .. note::

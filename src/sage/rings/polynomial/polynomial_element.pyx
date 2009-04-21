@@ -1167,8 +1167,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        If we do the same over `\mathbb{Z}` the result is in the
-        polynomial ring over `\mathbb{Q}`.
+        If we do the same over `\ZZ` the result is in the
+        polynomial ring over `\QQ`.
 
         ::
 
@@ -1358,7 +1358,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
 
-        A fairly simple example over `\mathbb{Q}`.
+        A fairly simple example over `\QQ`.
 
         ::
 
@@ -1625,10 +1625,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Advantages:
 
 
-        -  Faster than Karatsuba over `\mathbb{Q}` and
-           `\mathbb{Z}` (but much slower still than calling NTL's
+        -  Faster than Karatsuba over `\QQ` and
+           `\ZZ` (but much slower still than calling NTL's
            optimized C++ implementation, which is the default over
-           `\mathbb{Z}`)
+           `\ZZ`)
 
         -  Potentially less complicated.
 
@@ -2145,7 +2145,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the factorization of self over the base ring of this
         polynomial. Factoring polynomials over
-        `\mathbb{Z}/n\mathbb{Z}` for `n` composite is at
+        `\ZZ/n\ZZ` for `n` composite is at
         the moment not implemented.
 
         INPUT: a polynomial
@@ -2162,7 +2162,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
 
-        We factor some polynomials over `\mathbb{Q}`.
+        We factor some polynomials over `\QQ`.
 
         ::
 
@@ -2171,7 +2171,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (x - 1)^2 * (x^2 + x + 1)^2
 
-        Notice that over the field `\mathbb{Q}` the irreducible
+        Notice that over the field `\QQ` the irreducible
         factors are monic.
 
         ::
@@ -2183,7 +2183,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (10) * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
 
-        Over `\mathbb{Z}` the irreducible factors need not be
+        Over `\ZZ` the irreducible factors need not be
         monic::
 
             sage: x = ZZ['x'].0
@@ -2341,7 +2341,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (x^3 + x + a) * (x^5 + x + zeta3)
 
-        Factoring polynomials over `\mathbb{Z}/n\mathbb{Z}` for
+        Factoring polynomials over `\ZZ/n\ZZ` for
         composite `n` is not implemented::
 
             sage: R.<x> = PolynomialRing(Integers(35))
@@ -4532,7 +4532,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return True precisely if this polynomial is irreducible over its
         base ring. Testing irreducibility over
-        `\mathbb{Z}/n\mathbb{Z}` for composite `n` is not
+        `\ZZ/n\ZZ` for composite `n` is not
         implemented.
 
         The function returns False for polynomials which are units,

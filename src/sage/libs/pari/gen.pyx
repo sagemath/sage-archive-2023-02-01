@@ -3553,7 +3553,7 @@ cdef class gen(sage.structure.element.RingElement):
     def acos(gen x, long precision=0):
         r"""
         The principal branch of `\cos^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
+        `\RR e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
         is real and `|x| > 1`, then `\mathrm{acos}(x)` is complex.
 
         If `x` is an exact argument, it is first converted to a
@@ -3652,7 +3652,7 @@ cdef class gen(sage.structure.element.RingElement):
     def asin(gen x, precision=0):
         r"""
         The principal branch of `\sin^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
+        `\RR e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
         `x` is real and `|x| > 1` then `\mathrm{asin}(x)`
         is complex.
 
@@ -3695,7 +3695,7 @@ cdef class gen(sage.structure.element.RingElement):
     def atan(gen x, precision=0):
         r"""
         The principal branch of `\tan^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
+        `\RR e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
 
         If `x` is an exact argument, it is first converted to a
         real or complex number using the optional parameter precision (in
@@ -4117,7 +4117,7 @@ cdef class gen(sage.structure.element.RingElement):
         x.eta(flag=0): if flag=0, `\eta` function without the
         `q^{1/24}`; otherwise `\eta` of the complex number
         `x` in the upper half plane intelligently computed using
-        `\mathrm{SL}(2,\mathbb{Z})` transformations.
+        `\mathrm{SL}(2,\ZZ)` transformations.
 
         DETAILS: This functions computes the following. If the input
         `x` is a complex number with positive imaginary part, the
@@ -4285,7 +4285,7 @@ cdef class gen(sage.structure.element.RingElement):
         of `x`, i.e., the branch such that
         `\Im(\log(x)) \in ]-\pi, \pi].` The result is
         complex (with imaginary part equal to `\pi`) if
-        `x\in \mathbb{R}` and `x<0`. In general, the algorithm uses
+        `x\in \RR` and `x<0`. In general, the algorithm uses
         the formula
 
         .. math::
@@ -5349,7 +5349,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+        -  ``e`` - elliptic curve over `\QQ`,
            assumed to be in a standard minimal integral model (as given by
            ellminimalmodel)
 
@@ -5399,7 +5399,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+        -  ``e`` - elliptic curve over `\QQ`,
            assumed to be in a standard minimal integral model (as given by
            ellminimalmodel)
 
@@ -5457,8 +5457,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve with coefficients in
-           `\mathbb{Z}`
+        -  ``e`` - elliptic curve with coefficients in `\ZZ`
 
         -  ``p`` - prime number
 
@@ -5613,8 +5612,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve defined over
-           `\mathbb{Q}`
+        -  ``e`` - elliptic curve defined over `\QQ`
 
         -  ``s`` - complex number
 
@@ -5691,8 +5689,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve defined over
-           `\mathbb{Q}`
+        -  ``e`` - elliptic curve defined over `\QQ`
 
         -  ``x`` - point on e
 
@@ -5821,7 +5818,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`
+        -  ``e`` - elliptic curve over `\QQ`
 
         -  ``p (default = 1)`` - 1 or a prime number
 
@@ -5898,7 +5895,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`
+        -  ``e`` - elliptic curve over `\QQ`
 
         -  ``flag (optional)`` - specify which algorithm to
            use:
@@ -7431,7 +7428,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return a primitive root modulo self, whenever it exists.
 
-        This is a generator of the group `(\mathbb{Z}/n\mathbb{Z})^*`, whenever
+        This is a generator of the group `(\ZZ/n\ZZ)^*`, whenever
         this group is cyclic, i.e. if `n=4` or `n=p^k` or
         `n=2p^k`, where `p` is an odd prime and `k`
         is a natural number.
@@ -8768,7 +8765,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         polsubcyclo(n, d, v=x): return the pari list of polynomial(s)
         defining the sub-abelian extensions of degree `d` of the
-        cyclotomic field `\mathbb{Q}(\zeta_n)`, where `d`
+        cyclotomic field `\QQ(\zeta_n)`, where `d`
         divides `\phi(n)`.
 
         EXAMPLES::

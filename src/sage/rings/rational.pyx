@@ -2455,7 +2455,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def is_integral(self):
         r"""
         Determine if a rational number is integral (i.e is in
-        `\mathbb{Z}`).
+        `\ZZ`).
 
         OUTPUT: bool
 

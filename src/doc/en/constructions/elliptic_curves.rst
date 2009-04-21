@@ -7,7 +7,7 @@ Elliptic curves
 Conductor
 =========
 How do you compute the conductor of an elliptic curve (over
-:math:`\mathbb{Q}`) in Sage?
+:math:`\QQ`) in Sage?
 
 Once you define an elliptic curve :math:`E` in Sage, using the
 ``EllipticCurve`` command, the conductor is one of several "methods"
@@ -78,7 +78,7 @@ can compute its set of :math:`\mathbb{F}`-rational points
 .. index::
    pair: modular form; elliptic curve
 
-Modular form associated to an elliptic curve over :math:`\mathbb{Q}`
+Modular form associated to an elliptic curve over :math:`\QQ`
 ========================================================================
 
 Let :math:`E` be a "nice" elliptic curve whose equation has

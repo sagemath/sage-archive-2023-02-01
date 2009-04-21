@@ -164,7 +164,7 @@ class WordGenerator(object):
         integers, over the given two-letter alphabet.
 
         The *Christoffel word of slope `p/q`* is obtained from the
-        Cayley graph of `\mathbb{Z}/(p+q)\mathbb{Z}` with generator
+        Cayley graph of `\ZZ/(p+q)\ZZ` with generator
         `q` as follows. If `u \rightarrow v` is an edge in
         the Cayley graph, then `v = u + p \mod{p+q}`. Label the
         edge `u \rightarrow v` by alphabet[1] if `u < v`
@@ -850,7 +850,7 @@ class ChristoffelWord_Lower(FiniteWord_over_OrderedAlphabet):
         integers, over the given two-letter alphabet.
 
         The *Christoffel word of slope `p/q`* is obtained from the
-        Cayley graph of `\mathbb{Z}/(p+q)\mathbb{Z}` with generator
+        Cayley graph of `\ZZ/(p+q)\ZZ` with generator
         `q` as follows. If `u \rightarrow v` is an edge in
         the Cayley graph, then `v = u + p \mod{p+q}`. Label the
         edge `u \rightarrow v` by alphabet[1] if `u < v`

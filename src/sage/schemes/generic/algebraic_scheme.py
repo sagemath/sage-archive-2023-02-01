@@ -283,7 +283,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         EXAMPLES:
 
         We define what is clearly a union of four hypersurfaces in
-        `\P^4_{\mathbb{Q}}` then find the irreducible components.
+        `\P^4_{\QQ}` then find the irreducible components.
 
         ::
 
@@ -320,7 +320,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         scheme.
 
         EXAMPLES: First we construct the union of a doubled and triplled
-        line in the affine plane over `\mathbb{Q}`.
+        line in the affine plane over `\QQ`.
 
         ::
 

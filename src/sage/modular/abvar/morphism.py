@@ -270,7 +270,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         ALGORITHM: We compute a subgroup `G` of `B` so that
         the composition `h: A\to B \to B/G` has kernel that
         contains `A[n]` and component group isomorphic to
-        `(\mathbb{Z}/n\mathbb{Z})^{2d}`, where `d` is the
+        `(\ZZ/n\ZZ)^{2d}`, where `d` is the
         dimension of `A`. Then `h` factors through
         multiplication by `n`, so there is a morphism
         `g: A\to B/G` such that `g \circ [n] = h`. Then
@@ -899,7 +899,7 @@ class HeckeOperator(Morphism):
         """
         Return the matrix of self acting on the homology
         `H_1(A, ZZ)` of this abelian variety with coefficients in
-        `\mathbb{Z}`.
+        `\ZZ`.
 
         EXAMPLES::
 

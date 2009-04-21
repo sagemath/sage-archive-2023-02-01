@@ -21,7 +21,7 @@ from the definition.
 
 There are much better ways to compute :math:`\Delta`, which
 amount to just a few polynomial multiplactions over
-:math:`\mathbb{Z}`.
+:math:`\ZZ`.
 
 ::
 
@@ -40,7 +40,7 @@ amount to just a few polynomial multiplactions over
 The Victor Miller Basis
 -----------------------
 The Victor Miller basis for
-:math:`M_k(\mathrm{SL}_2(\mathbb{Z}))` is the reduced row echelon
+:math:`M_k(\mathrm{SL}_2(\ZZ))` is the reduced row echelon
 basis. It's a lemma that it has all integer coefficients, and a
 rather nice diagonal shape.
 

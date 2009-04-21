@@ -598,8 +598,8 @@ def QuadraticField(D, names, check=True, embedding=True):
 
 
     OUTPUT: A number field defined by a quadratic polynomial. Unless
-    otherwise specified, it has an embedding into `\mathbb{R}` or
-    `\mathbb{C}` by sending the generator to the positive
+    otherwise specified, it has an embedding into `\RR` or
+    `\CC` by sending the generator to the positive
     root.
 
     EXAMPLES::
@@ -707,7 +707,7 @@ def CyclotomicField(n, names=None, embedding=True):
 
 
     EXAMPLES: We create the `7`\th cyclotomic field
-    `\mathbb{Q}(\zeta_7)` with the default generator name.
+    `\QQ(\zeta_7)` with the default generator name.
 
     ::
 
@@ -764,7 +764,7 @@ def CyclotomicField(n, names=None, embedding=True):
         sage: CyclotomicField(1)
         Cyclotomic Field of order 1 and degree 1
 
-    Due to their default embedding into `\mathbb{C}`,
+    Due to their default embedding into `\CC`,
     cyclotomic number fields are all compatable.
 
     ::
@@ -1078,7 +1078,7 @@ class NumberField_generic(number_field_base.NumberField):
     def primitive_element(self):
         r"""
         Return a primitive element for this field, i.e., an element that
-        generates it over `\mathbb{Q}`.
+        generates it over `\QQ`.
 
         EXAMPLES::
 
@@ -1575,15 +1575,15 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
             sage: k._latex_()
-            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
+            '\\Bold{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
+            \Bold{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
 
         Numbered variables are often correctly typeset::
 
             sage: k.<theta25> = NumberField(x^25+x+1)
             sage: print k._latex_()
-            \mathbf{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
+            \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
@@ -2709,7 +2709,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def absolute_degree(self):
         """
-        Return the degree of self over `\mathbb{Q}`.
+        Return the degree of self over `\QQ`.
 
         EXAMPLES::
 
@@ -2936,7 +2936,7 @@ class NumberField_generic(number_field_base.NumberField):
             3*I - 2
 
         We recover the integer that was factored in
-        `\mathbb{Z}[i]`
+        `\ZZ[i]`
 
         ::
 
@@ -3007,7 +3007,7 @@ class NumberField_generic(number_field_base.NumberField):
     def is_galois(self):
         r"""
         Return True if this number field is a Galois extension of
-        `\mathbb{Q}`.
+        `\QQ`.
 
         EXAMPLES::
 
@@ -3043,7 +3043,7 @@ class NumberField_generic(number_field_base.NumberField):
         faster than computing them as explicit automorphism groups (but of
         course you get less information out!) For more (important!)
         documentation, so the documentation for Galois groups of polynomials
-        over `\mathbb{Q}`, e.g., by typing ``K.polynomial().galois_group?``,
+        over `\QQ`, e.g., by typing ``K.polynomial().galois_group?``,
         where `K` is a number field.
 
         To obtain actual field homomorphisms from the number field to its
@@ -3383,8 +3383,8 @@ class NumberField_generic(number_field_base.NumberField):
         OUTPUT: The Gram matrix `[<x_i,x_j>]` of an LLL reduced
         basis for the maximal order of self, where the integral basis for
         self is given by `\{x_0, \dots, x_{n-1}\}`. Here < , > is the
-        usual inner product on `\mathbb{R}^n`, and self is embedded in
-        `\mathbb{R}^n` by the Minkowski embedding. See the docstring for
+        usual inner product on `\RR^n`, and self is embedded in
+        `\RR^n` by the Minkowski embedding. See the docstring for
         :meth:`Minkowski_embedding` for more information.
 
         .. note::
@@ -4870,7 +4870,7 @@ class NumberField_absolute(NumberField_generic):
             ValueError: each generator must be integral
 
         Alternatively, an order can be constructed by adjoining elements to
-        `\mathbb{Z}`:
+        `\ZZ`:
         """
         if len(gens) == 0:
             return NumberField_generic.order(self)
@@ -4924,7 +4924,7 @@ class NumberField_absolute(NumberField_generic):
 
     def absolute_vector_space(self):
         r"""
-        Return vector space over `\mathbb{Q}` corresponding to this
+        Return vector space over `\QQ` corresponding to this
         number field, along with maps from that space to this number field
         and in the other direction.
 
@@ -5198,16 +5198,16 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Return an nxn matrix over RDF whose columns are the images of the
         basis `\{1, \alpha, \dots, \alpha^{n-1}\}` of self over
-        `\mathbb{Q}` (as vector spaces), where here
+        `\QQ` (as vector spaces), where here
         `\alpha` is the generator of self over
-        `\mathbb{Q}`, i.e. self.gen(0). If B is not None, return
+        `\QQ`, i.e. self.gen(0). If B is not None, return
         the images of the vectors in B as the columns instead. If prec is
         not None, use RealField(prec) instead of RDF.
 
         This embedding is the so-called "Minkowski embedding" of a number
-        field in `\mathbb{R}^n`: given the `n` embeddings
+        field in `\RR^n`: given the `n` embeddings
         `\sigma_1, \dots, \sigma_n` of self in
-        `\mathbb{C}`, write `\sigma_1, \dots, \sigma_r`
+        `\CC`, write `\sigma_1, \dots, \sigma_r`
         for the real embeddings, and
         `\sigma_{r+1}, \dots, \sigma_{r+s}` for choices of one of
         each pair of complex conjugate embeddings (in our case, we simply
@@ -5223,8 +5223,8 @@ class NumberField_absolute(NumberField_generic):
                      \sqrt{2}\Re(\sigma_{r+s}(x)),
                      \sqrt{2}\Im(\sigma_{r+s}(x)))
 
-        Equivalently, this is an embedding of self in `\mathbb{R}^n` so
-        that the usual norm on `\mathbb{R}^n` coincides with
+        Equivalently, this is an embedding of self in `\RR^n` so
+        that the usual norm on `\RR^n` coincides with
         `|x| = \sum_i |\sigma_i(x)|^2` on self.
 
         TODO: This could be much improved by implementing homomorphisms
@@ -5399,7 +5399,7 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Given an element in self or an embedding of a subfield into self,
         return a relative number field `K` isomorphic to self that is relative
-        over the absolute field `\mathbb{Q}(\alpha)` or the domain of `alpha`, along
+        over the absolute field `\QQ(\alpha)` or the domain of `alpha`, along
         with isomorphisms from `K` to self and from self to `K`.
 
         INPUT:
@@ -5842,10 +5842,10 @@ class NumberField_cyclotomic(NumberField_absolute):
         r"""
         Return string representation of this cyclotomic field.
 
-        The "order" of the cyclotomic field `\mathbb{Q}(\zeta_n)`
+        The "order" of the cyclotomic field `\QQ(\zeta_n)`
         in the string output refers to the order of the `\zeta_n`,
         i.e., it is the integer `n`. The degree is the degree of
-        the field as an extension of `\mathbb{Q}`.
+        the field as an extension of `\QQ`.
 
         EXAMPLES::
 
@@ -5880,7 +5880,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: Z.gen()
             zeta4
             sage: latex(Z)
-            \mathbf{Q}(\zeta_{4})
+            \Bold{Q}(\zeta_{4})
 
         Latex printing respects the generator name.
 
@@ -5888,7 +5888,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: k.<a> = CyclotomicField(4)
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{2} + 1)
+            \Bold{Q}[a]/(a^{2} + 1)
             sage: k
             Cyclotomic Field of order 4 and degree 2
             sage: k.gen()
@@ -6885,14 +6885,14 @@ class NumberField_quadratic(NumberField_absolute):
             3
 
         These are all the primes so that the class number of
-        `\mathbb{Q}(\sqrt{-p})` is `1`::
+        `\QQ(\sqrt{-p})` is `1`::
 
             sage: [d for d in prime_range(2,300) if not is_square(d) and QuadraticField(-d,'a').class_number() == 1]
             [2, 3, 7, 11, 19, 43, 67, 163]
 
         It is an open problem to *prove* that there are infinity many
         positive square-free `d` such that
-        `\mathbb{Q}(\sqrt{d})` has class number `1`:n
+        `\QQ(\sqrt{d})` has class number `1`:n
 
         ::
 
@@ -6923,7 +6923,7 @@ class NumberField_quadratic(NumberField_absolute):
 
     def hilbert_class_field_defining_polynomial(self, name='x'):
         r"""
-        Returns a polynomial over `\mathbb{Q}` whose roots generate
+        Returns a polynomial over `\QQ` whose roots generate
         Hilbert class field of this quadratic field as an extension of
         this quadratic field.
 

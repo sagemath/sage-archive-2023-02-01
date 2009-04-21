@@ -40,11 +40,11 @@ Coset representatives
 
 The explicit representation of fundamental domains of arithmetic
 quotients :math:`H/\Gamma` can be determined from the cosets of
-:math:`\Gamma` in :math:`SL_2(\mathbb{Z})`. How are these cosets
+:math:`\Gamma` in :math:`SL_2(\ZZ)`. How are these cosets
 computed in Sage?
 
 Here is an example of computing the coset representatives of
-:math:`SL_2(\mathbb{Z})/\Gamma_0(11)`:
+:math:`SL_2(\ZZ)/\Gamma_0(11)`:
 
 ::
 
@@ -101,7 +101,7 @@ modular symbols of level 1 and weight 12.
 Here ``t2`` represents the Hecke operator :math:`T_2` on the space
 of Full Modular Symbols for :math:`\Gamma_0(1)` of weight
 :math:`12` with sign :math:`0` and dimension :math:`3` over
-:math:`\mathbb{Q}`.
+:math:`\QQ`.
 
 ::
 

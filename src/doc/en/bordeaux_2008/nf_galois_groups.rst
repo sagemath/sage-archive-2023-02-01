@@ -44,7 +44,7 @@ Some more advanced number-theoretical tools are available via G:
     sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)]) # (order is platform-dependent)
     [(1,2)(3,4)(5,6), (1,3)(2,6)(4,5), (1,5)(2,4)(3,6)]
 
-If the number field is not Galois over `\mathbb{Q}`, then the ``galois_group``
+If the number field is not Galois over `\QQ`, then the ``galois_group``
 command will construct its Galois closure and return the Galois group of that;
 you need to give it a variable name for the generator of the Galois closure:
 
@@ -127,7 +127,7 @@ of fractional ideals of the maximal order :math:`R` of :math:`K`
 modulo the subgroup of principal fractional ideals. One of the main
 theorems of algebraic number theory asserts that :math:`C_K` is a
 finite group. For example, the quadratic number field
-:math:`\mathbb{Q}(\sqrt{-23})` has class number :math:`3`, as we see
+:math:`\QQ(\sqrt{-23})` has class number :math:`3`, as we see
 using the Sage ``class number`` command.
 
 ::
@@ -141,7 +141,7 @@ Quadratic imaginary fields with class number 1
 ----------------------------------------------
 
 There are only 9 quadratic imaginary field
-:math:`\mathbb{Q}(\sqrt{D})` that have class number :math:`1`:
+:math:`\QQ(\sqrt{D})` that have class number :math:`1`:
 
 .. math::
 
@@ -195,7 +195,7 @@ field).
     [-3, -4, -7, -8, -11, -15, -19, -20, ..., -195, -199]
 
 Finally, we make the list of :math:`D` in our list :math:`v` such that
-the quadratic number field :math:`\mathbb{Q}(\sqrt{D})` has class
+the quadratic number field :math:`\QQ(\sqrt{D})` has class
 number :math:`1`. Notice that ``QuadraticField(D)`` is a shorthand for
 ``NumberField(x^2 - D)``.
 
@@ -207,7 +207,7 @@ number :math:`1`. Notice that ``QuadraticField(D)`` is a shorthand for
     [-3, -4, -7, -8, -11, -19, -43, -67, -163]
 
 Of course, we have *not* proved that this is the list of all
-negative :math:`D` so that :math:`\mathbb{Q}(\sqrt{D})` has
+negative :math:`D` so that :math:`\QQ(\sqrt{D})` has
 class number :math:`1`.
 
 
@@ -241,7 +241,7 @@ Class numbers of cyclotomic fields
 
 Sage can also compute class numbers of extensions of higher degree,
 within reason. Here we use the shorthand ``CyclotomicField(n)`` to
-create the number field :math:`\mathbb{Q}(\zeta_n)`.
+create the number field :math:`\QQ(\zeta_n)`.
 
 ::
 
@@ -273,7 +273,7 @@ more permissive and allow Pari to assume conjectures, either just for
 this one call or henceforth for all number field functions. For
 example, with ``proof=False`` it takes only a few seconds to verify,
 modulo the conjectures assumed by Pari, that the class number of
-:math:`\mathbb{Q}(\zeta_{23})` is :math:`3`.
+:math:`\QQ(\zeta_{23})` is :math:`3`.
 
 ::
 
@@ -284,7 +284,7 @@ modulo the conjectures assumed by Pari, that the class number of
 .. note::
 
   Exercise: What is the smallest :math:`n` such that
-  :math:`\mathbb{Q}(\zeta_n)` has class number bigger than :math:`1`?
+  :math:`\QQ(\zeta_n)` has class number bigger than :math:`1`?
 
 
 Class group structure
@@ -292,8 +292,8 @@ Class group structure
 
 In addition to computing class numbers, Sage can also compute the
 group structure and generators for class groups. For example, the
-quadratic field :math:`\mathbb{Q}(\sqrt{-30})` has class group
-:math:`C = (\mathbb{Z}/2\mathbb{Z})^{\oplus 2}`, with generators the
+quadratic field :math:`\QQ(\sqrt{-30})` has class group
+:math:`C = (\ZZ/2\ZZ)^{\oplus 2}`, with generators the
 ideal classes containing :math:`(5,\sqrt{-30})` and
 :math:`(3,\sqrt{-30})`.
 

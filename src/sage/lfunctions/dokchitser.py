@@ -54,7 +54,7 @@ class Dokchitser(SageObject):
       Riemann zeta, [0,1] for ell.curves, (see examples).
 
     - ``weight`` - positive real number, usually an integer e.g. 1 for
-      Riemann zeta, 2 for `H^1` of curves/`\mathbb{Q}`
+      Riemann zeta, 2 for `H^1` of curves/`\QQ`
 
     - ``eps`` - complex number; sign in functional equation
 

@@ -391,7 +391,7 @@ class Homspace(HomsetWithBase):
     def free_module(self):
         r"""
         Return this endomorphism ring as a free submodule of a big
-        `\mathbb{Z}^{4nm}`, where `n` is the dimension of
+        `\ZZ^{4nm}`, where `n` is the dimension of
         the domain abelian variety and `m` the dimension of the
         codomain.
 

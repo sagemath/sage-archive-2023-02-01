@@ -95,7 +95,7 @@ is discarded by the list.
     sage: F[1]
     (x - 2, 1)
 
-In the ring `\mathbb{Z}[x]`, the integer `-5` is not a unit, so the
+In the ring `\ZZ[x]`, the integer `-5` is not a unit, so the
 factorization has three factors::
 
     sage: x = ZZ['x'].0
@@ -115,7 +115,7 @@ factorization has three factors::
     sage: len(F)
     3
 
-On the other hand, -1 is a unit in `\mathbb{Z}`, so it is included in the unit.
+On the other hand, -1 is a unit in `\ZZ`, so it is included in the unit.
 
 ::
 

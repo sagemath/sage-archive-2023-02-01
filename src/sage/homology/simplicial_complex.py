@@ -1193,7 +1193,7 @@ class SimplicialComplex(SageObject):
             sage: circle.chain_complex()
             Chain complex with at most 2 nonzero terms over Integer Ring.
             sage: circle.chain_complex()._latex_()
-            '\\mathbf{Z}^{3} \\xrightarrow{d_{1}} \\mathbf{Z}^{3}'
+            '\\Bold{Z}^{3} \\xrightarrow{d_{1}} \\Bold{Z}^{3}'
             sage: circle.chain_complex(base_ring=QQ, augmented=True)
             Chain complex with at most 3 nonzero terms over Rational Field.
         """

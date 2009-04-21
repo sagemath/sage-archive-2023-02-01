@@ -26,7 +26,7 @@ We create the `2\times 3` matrix
         \left(\begin{matrix} 1&2&3\\4&5&6 \end{matrix}\right)
 
 
-as an element of a matrix space over `\mathbb{Q}`::
+as an element of a matrix space over `\QQ`::
 
     sage: M = MatrixSpace(QQ,2,3)
     sage: A = M([1,2,3, 4,5,6]); A

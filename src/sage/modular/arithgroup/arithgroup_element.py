@@ -25,7 +25,7 @@ M2Z = matrix.MatrixSpace(ZZ,2)
 
 class ArithmeticSubgroupElement(MultiplicativeGroupElement):
     r"""
-    An element of an arithmetic subgroup of `{\rm SL}_2(\mathbb{Z})`.
+    An element of an arithmetic subgroup of `{\rm SL}_2(\ZZ)`.
     """
 
     def __init__(self, parent, x, check=True):

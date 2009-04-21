@@ -341,7 +341,7 @@ class Gamma0_class(GammaH_class):
     def coset_reps(self):
         r"""
         Return representatives for the right cosets of this congruence
-        subgroup in `{\rm SL}_2(\mathbb{Z})` as a generator object.
+        subgroup in `{\rm SL}_2(\ZZ)` as a generator object.
 
         Use ``list(self.coset_reps())`` to obtain coset reps as a
         list.
@@ -463,7 +463,7 @@ class Gamma0_class(GammaH_class):
         r"""
         Return an ordered list of inequivalent cusps for self, i.e. a
         set of representatives for the orbits of self on
-        `\mathbb{P}^1(\mathbb{Q})`.  These are returned in a reduced
+        `\mathbb{P}^1(\QQ)`.  These are returned in a reduced
         form; see self.reduce_cusp for the definition of reduced.
 
         ALGORITHM:

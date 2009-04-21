@@ -486,8 +486,8 @@ class Scheme(ParentWithBase):
     def count_points(self, n):
         r"""
         Count points over
-        `\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}` on a scheme over
-        a finite field `\mathbf{F}_q`.
+        `\GF{q}, \ldots, \GF{q^n}` on a scheme over
+        a finite field `\GF{q}`.
 
         .. note::
 
@@ -591,9 +591,9 @@ class AffineScheme(Scheme):
         If Y is not given, try to determine from context.
 
         EXAMPLES: We construct the inclusion from
-        `\mathrm{Spec}(\mathbb{Q})` into `\mathrm{Spec}(\mathbb{Z})`
-        induced by the inclusion from `\mathbb{Z}` into
-        `\mathbb{Q}`.
+        `\mathrm{Spec}(\QQ)` into `\mathrm{Spec}(\ZZ)`
+        induced by the inclusion from `\ZZ` into
+        `\QQ`.
 
         ::
 

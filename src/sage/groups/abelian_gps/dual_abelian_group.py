@@ -13,7 +13,7 @@ TODO:
 
 The basic idea is very simple. Let G be an abelian group and
 `G^*` its dual (i.e., the group of homomorphisms from G to
-`\mathbb{C}^\times`). Let `g_j`,
+`\CC^\times`). Let `g_j`,
 `j=1,..,n`, denote generators of `G` - say
 `g_j` is of order `m_j>1`. There are generators
 `X_j`, `j=1,..,n`, of `G^*` for which

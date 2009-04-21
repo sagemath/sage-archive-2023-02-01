@@ -122,7 +122,7 @@ def MatrixGroup(gens):
         [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
 
     In the second example, the generators are a matrix over
-    `\mathbb{Z}`, a matrix over a finite field, and the integer
+    `\ZZ`, a matrix over a finite field, and the integer
     `2`. Sage determines that they both canonically map to
     matrices over the finite field, so creates that matrix group
     there.

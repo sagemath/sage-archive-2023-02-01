@@ -656,7 +656,7 @@ cdef class NumberFieldElement(FieldElement):
     def coordinates_in_terms_of_powers(self):
         r"""
         Let `\alpha` be self. Return a Python function that takes
-        any element of the parent of self in `\mathbb{Q}(\alpha)`
+        any element of the parent of self in `\QQ(\alpha)`
         and writes it in terms of the powers of `\alpha`:
         `1, \alpha, \alpha^2, ...`.
 
@@ -1418,7 +1418,7 @@ cdef class NumberFieldElement(FieldElement):
             True
 
         There is only one Galois conjugate of `\sqrt[3]{2}` in
-        `\mathbb{Q}(\sqrt[3]{2})`.
+        `\QQ(\sqrt[3]{2})`.
 
         ::
 
@@ -1426,7 +1426,7 @@ cdef class NumberFieldElement(FieldElement):
             [a]
 
         Galois conjugates of `\sqrt[3]{2}` in the field
-        `\mathbb{Q}(\zeta_3,\sqrt[3]{2})`::
+        `\QQ(\zeta_3,\sqrt[3]{2})`::
 
             sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
             sage: a.galois_conjugates(L)
@@ -2271,7 +2271,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
     def absolute_minpoly(self, var='x', algorithm=None):
         r"""
         Return the minimal polynomial of this element over
-        `\mathbb{Q}`.
+        `\QQ`.
 
         For the meaning of the optional argument algorithm, see :meth:`charpoly`.
 
@@ -2302,8 +2302,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
     def charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element, over
-        `\mathbb{Q}` if self is an element of a field, and over
-        `\mathbb{Z}` is self is an element of an order.
+        `\QQ` if self is an element of a field, and over
+        `\ZZ` is self is an element of an order.
 
         This is the same as ``self.absolute_charpoly`` since
         this is an element of an absolute extension.
@@ -2619,10 +2619,10 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     def absolute_charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element over
-        `\mathbb{Q}`.
+        `\QQ`.
 
         We construct a relative extension and find the characteristic
-        polynomial over `\mathbb{Q}`.
+        polynomial over `\QQ`.
 
         The optional argument algorithm controls how the
         characteristic polynomial is computed: 'pari' uses Pari,
@@ -2674,7 +2674,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def absolute_minpoly(self, var='x', algorithm=None):
         r"""
-        Return the minimal polynomial over `\mathbb{Q}` of this element.
+        Return the minimal polynomial over `\QQ` of this element.
 
         For the meaning of the optional argument algorithm, see :meth:`absolute_charpoly`.
 

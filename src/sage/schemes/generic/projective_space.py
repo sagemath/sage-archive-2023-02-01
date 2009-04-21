@@ -9,7 +9,7 @@ The simplest projective space::
     sage: ProjectiveSpace(0)
     Projective Space of dimension 0 over Integer Ring
 
-A slightly bigger projective space over `\mathbb{Q}`::
+A slightly bigger projective space over `\QQ`::
 
     sage: X = ProjectiveSpace(1000, QQ); X
     Projective Space of dimension 1000 over Rational Field
@@ -127,7 +127,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: ProjectiveSpace(5)/GF(17)
         Projective Space of dimension 5 over Finite Field of size 17
 
-    The default base ring is `\mathbb{Z}`.
+    The default base ring is `\ZZ`.
 
     ::
 
@@ -317,12 +317,12 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         EXAMPLES::
 
             sage: print latex(ProjectiveSpace(1, ZZ, 'x'))
-            {\mathbf P}_{\mathbf{Z}}^1
+            {\mathbf P}_{\Bold{Z}}^1
 
         TESTS::
 
             sage: ProjectiveSpace(3, Zp(5), 'y')._latex_()
-            '{\\mathbf P}_{\\mathbf{Z}_{5}}^3'
+            '{\\mathbf P}_{\\ZZ_{5}}^3'
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -583,7 +583,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self,bound=0):
         r"""
         Returns the projective points `(x_0:\cdots:x_n)` over
-        `\mathbb{Q}` with `|x_i| \leq` bound.
+        `\QQ` with `|x_i| \leq` bound.
 
         INPUT:
 

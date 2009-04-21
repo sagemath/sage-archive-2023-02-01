@@ -1,5 +1,5 @@
 r"""
-The modular group `{\rm SL}_2(\mathbb{Z})`
+The modular group `{\rm SL}_2(\ZZ)`
 """
 
 ################################################################################
@@ -22,7 +22,7 @@ from sage.modular.modsym.p1list import lift_to_sl2z
 
 def is_SL2Z(x):
     r"""
-    Return True if x is the modular group `{\rm SL}_2(\mathbb{Z})`.
+    Return True if x is the modular group `{\rm SL}_2(\ZZ)`.
 
     EXAMPLES::
 
@@ -36,7 +36,7 @@ def is_SL2Z(x):
 
 class SL2Z_class(Gamma0_class):
     r"""
-    The full modular group `{\rm SL}_2(\mathbb{Z})`, regarded as a congruence
+    The full modular group `{\rm SL}_2(\ZZ)`, regarded as a congruence
     subgroup of itself.
     """
 
@@ -59,7 +59,7 @@ class SL2Z_class(Gamma0_class):
             [1 1]
             [0 1]
             sage: latex(G)
-            \mbox{\rm SL}_2(\mathbf{Z})
+            \mbox{\rm SL}_2(\Bold{Z})
             sage: G([1,-1,0,1])
             [ 1 -1]
             [ 0  1]
@@ -105,9 +105,9 @@ class SL2Z_class(Gamma0_class):
         EXAMPLES::
 
             sage: SL2Z._latex_()
-            '\\mbox{\\rm SL}_2(\\mathbf{Z})'
+            '\\mbox{\\rm SL}_2(\\Bold{Z})'
             sage: latex(SL2Z)
-            \mbox{\rm SL}_2(\mathbf{Z})
+            \mbox{\rm SL}_2(\Bold{Z})
         """
         return "\\mbox{\\rm SL}_2(%s)"%(ZZ._latex_())
 
@@ -141,12 +141,12 @@ class SL2Z_class(Gamma0_class):
 
     def random_element(self, bound=100):
         r"""
-        Return a random element of `{\rm SL}_2(\mathbb{Z})` with entries whose
+        Return a random element of `{\rm SL}_2(\ZZ)` with entries whose
         absolute value is strictly less than bound (default 100).
 
         (Algorithm: Generate a random pair of integers at most bound. If they
         are not coprime, throw them away and start again. If they are, find an
-        element of `{\rm SL}_2(\mathbb{Z})` whose bottom row is that, and
+        element of `{\rm SL}_2(\ZZ)` whose bottom row is that, and
         left-multiply it by `\begin{pmatrix} 1 & w \\ 0 & 1\end{pmatrix}` for
         an integer `w` randomly chosen from a small enough range that the
         answer still has entries at most bound.)

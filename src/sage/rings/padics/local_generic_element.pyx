@@ -18,20 +18,20 @@ cdef class LocalGenericElement(CommutativeRingElement):
         r"""
         Returns the quotient of self by right.
 
-	INPUT:
-	    self -- a p-adic element.
+        INPUT:
+            self -- a p-adic element.
             right -- a p-adic element distinguishable from zero.
                      In a fixed-modulus ring, this element must be a unit.
 
         EXAMPLES:
             sage: R = Zp(7, 4, 'capped-rel', 'series'); R(3)/R(5)
             2 + 4*7 + 5*7^2 + 2*7^3 + O(7^4)
-	    sage: R(2/3) / R(1/3)
-	    2 + O(7^4)
-	    sage: R(49) / R(7)
-	    7 + O(7^5)
-	    sage: R = Zp(7, 4, 'capped-abs', 'series'); 1/R(7)
-	    7^-1 + O(7^2)
+            sage: R(2/3) / R(1/3)
+            2 + O(7^4)
+            sage: R(49) / R(7)
+            7 + O(7^5)
+            sage: R = Zp(7, 4, 'capped-abs', 'series'); 1/R(7)
+            7^-1 + O(7^2)
             sage: R = Zp(7, 4, 'fixed-mod'); 1/R(7)
             Traceback (most recent call last):
             ...
@@ -134,13 +134,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
         OUTPUT:
             integer -- the additive order of self
 
-	EXAMPLES:
-		sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
-		1
-		sage: a.additive_order(4)
-		+Infinity
-		sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
-		1
+        EXAMPLES:
+                sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
+                1
+                sage: a.additive_order(4)
+                +Infinity
+                sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
+                1
         """
         if self.is_zero(prec):
             return sage.rings.integer.Integer(1)
@@ -261,14 +261,14 @@ cdef class LocalGenericElement(CommutativeRingElement):
         OUTPUT:
             local ring element -- the square root of self
 
-	EXAMPLES:
-	    sage: R = Zp(13, 10, 'capped-rel', 'series')
-	    sage: a = sqrt(R(-1)); a * a
-	    12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
-	    sage: sqrt(R(4))
-	    2 + O(13^10)
-	    sage: sqrt(R(4/9)) * 3
-	    2 + O(13^10)
+        EXAMPLES:
+            sage: R = Zp(13, 10, 'capped-rel', 'series')
+            sage: a = sqrt(R(-1)); a * a
+            12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
+            sage: sqrt(R(4))
+            2 + O(13^10)
+            sage: sqrt(R(4/9)) * 3
+            2 + O(13^10)
 
         """
         return self.square_root(extend, all)

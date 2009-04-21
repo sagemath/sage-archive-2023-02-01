@@ -270,8 +270,8 @@ class WeightCharacter(Element):
     """
 
     # This should probably derive from Morphism or even from
-	# AbelianGroupMorphism; but SAGE doesn't know about the abelian group
-	# Z_p^*, so Hom(Z_p^*, C_p^*) is a bit beyond it!
+        # AbelianGroupMorphism; but SAGE doesn't know about the abelian group
+        # Z_p^*, so Hom(Z_p^*, C_p^*) is a bit beyond it!
 
     def __init__(self, parent):
         r"""
@@ -646,7 +646,7 @@ class ArbitraryWeight(WeightCharacter):
         WeightCharacter.__init__(self, parent)
 
         self.t = ZZ(t) % (self._p > 2 and (self._p - 1) or 2)
-		# do we store w precisely?
+                # do we store w precisely?
         if (w - 1).valuation() <= 0:
             raise ValueError, "Must send generator to something nearer 1"
         self.w = w

@@ -359,9 +359,9 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             ...
             NameError: name 'b' is not defined
 
-	    sage: R.<x>=GF(2)[]
-	    sage: k(1+x+x^10+x^55)
-	    a^19 + a^17 + a^16 + a^15 + a^12 + a^11 + a^8 + a^6 + a^4 + a^2 + 1
+            sage: R.<x>=GF(2)[]
+            sage: k(1+x+x^10+x^55)
+            a^19 + a^17 + a^16 + a^15 + a^12 + a^11 + a^8 + a^6 + a^4 + a^2 + 1
 
             sage: V = k.vector_space()
             sage: v = V.random_element(); v

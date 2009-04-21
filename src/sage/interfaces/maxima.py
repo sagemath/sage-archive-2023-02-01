@@ -697,7 +697,7 @@ class Maxima(Expect):
         self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
-	    # This implicitly uses the set method, then displays the result of the thing that was set.
+            # This implicitly uses the set method, then displays the result of the thing that was set.
             # This only works when the input line is an expression.   But this is our only choice, since
             # batchmode doesn't display expressions to screen.
             a = self(line)

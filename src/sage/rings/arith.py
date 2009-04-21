@@ -2518,8 +2518,8 @@ def multinomial(*ks):
     """
     s, c = 0, 1
     for k in ks:
-	s += k
-	c *= binomial(s, k)
+        s += k
+        c *= binomial(s, k)
     return c
 
 def binomial_coefficients(n):

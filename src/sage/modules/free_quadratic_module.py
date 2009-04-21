@@ -379,29 +379,29 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         the ambient space), and B the basis matrix.
 
         EXAMPLES:
-	    sage: V = VectorSpace(QQ,4)
-	    sage: u = V([1/2,1/2,1/2,1/2])
-	    sage: v = V([0,1,1,0])
-	    sage: w = V([0,0,1,1])
-	    sage: M = span([u,v,w], ZZ)
-	    sage: M.inner_product_matrix() == V.inner_product_matrix()
-	    True
-	    sage: L = M.submodule_with_basis([u,v,w])
-	    sage: L.inner_product_matrix() == M.inner_product_matrix()
-	    True
-	    sage: L.gram_matrix()
-	    [1 1 1]
-	    [1 2 1]
-	    [1 1 2]
+            sage: V = VectorSpace(QQ,4)
+            sage: u = V([1/2,1/2,1/2,1/2])
+            sage: v = V([0,1,1,0])
+            sage: w = V([0,0,1,1])
+            sage: M = span([u,v,w], ZZ)
+            sage: M.inner_product_matrix() == V.inner_product_matrix()
+            True
+            sage: L = M.submodule_with_basis([u,v,w])
+            sage: L.inner_product_matrix() == M.inner_product_matrix()
+            True
+            sage: L.gram_matrix()
+            [1 1 1]
+            [1 2 1]
+            [1 1 2]
 
         """
         if self.is_ambient():
- 	    return self.inner_product_matrix()
+            return self.inner_product_matrix()
         else:
-	    if self._gram_matrix is None:
-	        A = self.inner_product_matrix()
+            if self._gram_matrix is None:
+                A = self.inner_product_matrix()
                 B = self.basis_matrix()
-	        self._gram_matrix = B*A*B.transpose()
+                self._gram_matrix = B*A*B.transpose()
             return self._gram_matrix
 
     def inner_product_matrix(self):
@@ -423,33 +423,33 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             [0 1 0]
             [0 0 1]
 
-	The inner product does not have to be symmetric or definite.
+        The inner product does not have to be symmetric or definite.
 
             sage: N = FreeModule(ZZ,2,inner_product_matrix=[[1,-1],[2,5]])
             sage: N.inner_product_matrix()
             [ 1 -1]
             [ 2  5]
-	    sage: u, v = N.basis()
-	    sage: u.inner_product(v)
-	    -1
-	    sage: v.inner_product(u)
-	    2
+            sage: u, v = N.basis()
+            sage: u.inner_product(v)
+            -1
+            sage: v.inner_product(u)
+            2
 
-	The inner product matrix is defined with respect to the ambient space.
+        The inner product matrix is defined with respect to the ambient space.
 
-	    sage: V = QQ^3
-	    sage: u = V([1/2,1,1])
-	    sage: v = V([1,1,1/2])
-	    sage: M = span([u,v], ZZ)
-	    sage: M.inner_product_matrix()
+            sage: V = QQ^3
+            sage: u = V([1/2,1,1])
+            sage: v = V([1,1,1/2])
+            sage: M = span([u,v], ZZ)
+            sage: M.inner_product_matrix()
             [1 0 0]
             [0 1 0]
             [0 0 1]
-	    sage: M.inner_product_matrix() == V.inner_product_matrix()
-	    True
-	    sage: M.gram_matrix()
-	    [ 1/2 -3/4]
-	    [-3/4 13/4]
+            sage: M.inner_product_matrix() == V.inner_product_matrix()
+            True
+            sage: M.gram_matrix()
+            [ 1/2 -3/4]
+            [-3/4 13/4]
 
         """
         return self._inner_product_matrix

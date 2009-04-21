@@ -89,10 +89,10 @@ def __lagrange_bounds_phc(n, m, a, tmpfile=None):
         sage: __lagrange_bounds_phc(3,5,[8,1,2,0,1]) # optional
         []
         sage: x, y = __lagrange_bounds_phc(3,2,[8,1,2,0,1]) # optional
-	sage: x # optional
+        sage: x # optional
         -1.3333333333333299
-	sage: y < 0.00000001 # optional
-	True
+        sage: y < 0.00000001 # optional
+        True
         sage: __lagrange_bounds_phc(3,1,[8,1,2,0,1]) # optional
         []
     """

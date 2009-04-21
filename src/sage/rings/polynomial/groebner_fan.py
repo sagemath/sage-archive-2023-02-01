@@ -1075,11 +1075,11 @@ class GroebnerFan(SageObject):
         g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]
         # Now the cones are intersected with a plane:
         cone_info = [ieq_to_vert(q,linearities=[[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
-	if verbose:
-	    for x in cone_info:
-		print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
-		print x.linearities()
-		print ""
+        if verbose:
+            for x in cone_info:
+                print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
+                print x.linearities()
+                print ""
         cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], linearities = x.linearities()) for x in cone_info]
         all_lines = []
         for cone_data in cone_info:
@@ -1255,19 +1255,19 @@ class GroebnerFan(SageObject):
         self[0].interactive(*args, **kwds)
 
     def tropical_intersection(self, ideal_arg = False, *args, **kwds):
-	"""
-	Returns information about the tropical intersection of the
-	polynomials defining the ideal.
+        """
+        Returns information about the tropical intersection of the
+        polynomials defining the ideal.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: R.<x,y,z> = PolynomialRing(QQ,3)
-	    sage: i1 = ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
-	    sage: gf = i1.groebner_fan()
-	    sage: pf = gf.tropical_intersection()
-	    sage: pf.rays()
-	    [[-1, 0, 0]]
-	"""
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: i1 = ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
+            sage: gf = i1.groebner_fan()
+            sage: pf = gf.tropical_intersection()
+            sage: pf.rays()
+            [[-1, 0, 0]]
+        """
         try:
             return self.__tropical_intersection
         except AttributeError:

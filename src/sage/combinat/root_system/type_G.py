@@ -28,7 +28,7 @@ class ambient_space(AmbientSpace):
         """
         EXAMPLES:
             sage: CartanType(['G',2]).root_system().ambient_space().simple_roots()
-	    Finite family {1: (0, 1, -1), 2: (1, -2, 1)}
+            Finite family {1: (0, 1, -1), 2: (1, -2, 1)}
          """
         return self._term(1)-self._term(2) if i == 1 else self._term(0)-2*self._term(1)+self._term(2)
 

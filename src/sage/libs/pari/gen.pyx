@@ -7554,13 +7554,13 @@ cdef class gen(sage.structure.element.RingElement):
             't_POL'
         """
         # The following original code leaks memory:
- 	#        return str(type_name(typ(self.g)))
- 	#
- 	# This code is the usual workaround:
- 	#        cdef char* s= <char*>type_name(typ(self.g))
- 	#        t=str(s)
- 	#        free(s)
- 	#        return(t)
+        #        return str(type_name(typ(self.g)))
+        #
+        # This code is the usual workaround:
+        #        cdef char* s= <char*>type_name(typ(self.g))
+        #        t=str(s)
+        #        free(s)
+        #        return(t)
         # However, it causes segfaults with t_INTs on some
         # machines, and errors about freeing non-aligned
         # pointers on others. So we settle for the following

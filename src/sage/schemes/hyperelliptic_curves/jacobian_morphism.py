@@ -622,7 +622,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             sage: P1 - P1 == 0 # indirect doctest
             True
         """
-	return self.__polys[0] != 1
+        return self.__polys[0] != 1
 
     def __neg__(self):
         r"""

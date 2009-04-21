@@ -389,19 +389,19 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         return H(MS(ims))
 
         #D  = self.domain()
-	#C  = self.codomain()
-	#M  = self.matrix()
-	#Mr = M.restrict_domain(sub)
-	#return sub.Hom(C)(Mr)
+        #C  = self.codomain()
+        #M  = self.matrix()
+        #Mr = M.restrict_domain(sub)
+        #return sub.Hom(C)(Mr)
 
     def restrict_codomain(self, sub):
         """
-	Restrict this matrix morphism to a subspace sub of the codomain.
+        Restrict this matrix morphism to a subspace sub of the codomain.
 
-	The resulting morphism has the same domain as before, but a new
-	codomain.
-	"""
-	A = self.matrix().restrict_codomain(sub.free_module())
+        The resulting morphism has the same domain as before, but a new
+        codomain.
+        """
+        A = self.matrix().restrict_codomain(sub.free_module())
         H = sage.categories.homset.Hom(self.domain(), sub, self.domain().category())
         return H(A)
 

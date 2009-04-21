@@ -143,7 +143,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             if not print_mode.has_key(option):
                 print_mode[option] = self._printer.dict()[option]
         K = self.ground_ring().fraction_field(print_mode)
-	if self.is_lazy():
+        if self.is_lazy():
             return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = print_mode, halt = self.halting_parameter(), names = self.variable_name())
         else:
             return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = print_mode, names = self.variable_name())

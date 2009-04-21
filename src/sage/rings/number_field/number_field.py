@@ -6980,13 +6980,13 @@ class NumberField_quadratic(NumberField_absolute):
         return self.extension(f, names)
 
     def hilbert_class_polynomial(self, name='x'):
-	r"""
-	Compute the Hilbert class polynomial of this quadratic field.
+        r"""
+        Compute the Hilbert class polynomial of this quadratic field.
 
         Right now, this is only implemented for imaginary quadratic
         fields.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-3)
             sage: K.hilbert_class_polynomial()
@@ -6995,41 +6995,41 @@ class NumberField_quadratic(NumberField_absolute):
             sage: K.<a> = QuadraticField(-31)
             sage: K.hilbert_class_polynomial(name='z')
             z^3 + 39491307*z^2 - 58682638134*z + 1566028350940383
-	"""
-	D = self.discriminant()
+        """
+        D = self.discriminant()
 
         if D > 0:
             raise NotImplementedError, "Hilbert class polynomial is not implemented for real quadratic fields."
 
-	# get all reduced quadratic forms
+        # get all reduced quadratic forms
         from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-	rqf = BinaryQF_reduced_representatives(D)
+        rqf = BinaryQF_reduced_representatives(D)
 
-	# compute needed  precision
-	# (according to [http://arxiv.org/abs/0802.0979v1])
-	N = (D.abs()//3).isqrt()+1
-	h = len(rqf)
-	a_s = [1/qf.a for qf in rqf]
+        # compute needed  precision
+        # (according to [http://arxiv.org/abs/0802.0979v1])
+        N = (D.abs()//3).isqrt()+1
+        h = len(rqf)
+        a_s = [1/qf.a for qf in rqf]
         from sage.rings.all import RR
-	prec = RR(sum(a_s, 0)*5.1416*D.abs().isqrt()+h*2.48).floor()+1
-	prec = max(prec, 71)
+        prec = RR(sum(a_s, 0)*5.1416*D.abs().isqrt()+h*2.48).floor()+1
+        prec = max(prec, 71)
 
-	# set appropriate precision for further computing
+        # set appropriate precision for further computing
         from sage.rings.all import ComplexField
-	__CC = ComplexField(prec)
+        __CC = ComplexField(prec)
 
         Dsqrt = D.sqrt(prec=prec)
-	R = __CC['t']
+        R = __CC['t']
         t = R.gen()
-	pol = R(1)
+        pol = R(1)
         for qf in rqf:
             tau = (qf.b+Dsqrt)/(qf.a<<1)
             jinv = pari(tau).ellj()
             pol = pol * (t - __CC(jinv))
 
-	coeffs = [cof.real().round() for cof in pol.coeffs()]
+        coeffs = [cof.real().round() for cof in pol.coeffs()]
         R = ZZ[name]
-	return R(coeffs)
+        return R(coeffs)
 
 
 

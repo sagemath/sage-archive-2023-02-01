@@ -478,11 +478,11 @@ class FinitePoset(ParentWithBase):
         """
         if label_elements and element_labels is None:
             element_labels = self._elements
-	return self.hasse_diagram().plot(label_elements=label_elements,
-			element_labels=element_labels,
-			label_font_size=label_font_size,
-			label_font_color=label_font_color,
-			vertex_size=vertex_size,vertex_colors=vertex_colors,**kwds)
+        return self.hasse_diagram().plot(label_elements=label_elements,
+                        element_labels=element_labels,
+                        label_font_size=label_font_size,
+                        label_font_color=label_font_color,
+                        vertex_size=vertex_size,vertex_colors=vertex_colors,**kwds)
 
     def show(self, label_elements=True, element_labels=None,
             label_font_size=12,label_font_color='black',

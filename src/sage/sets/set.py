@@ -1180,8 +1180,8 @@ class Set_object_difference(Set_object):
             False
             sage: sqrt(2) in X     # since sqrt(2) is not a numerical approx
             False
-	    sage: sqrt(RR(2)) in X # since sqrt(RR(2)) is a numerical approx
-	    True
+            sage: sqrt(RR(2)) in X # since sqrt(RR(2)) is a numerical approx
+            True
             sage: 5/2 in X
             True
         """

@@ -1006,7 +1006,7 @@ class GenericGraph(SageObject):
         Note that any additional keywords will be pased on to either
         the adjacency_matrix or weighted_adjacency_matrix method.
 
-	AUTHORS:
+        AUTHORS:
 
         - Tom Boothby
 

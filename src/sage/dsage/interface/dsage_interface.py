@@ -992,7 +992,7 @@ class BlockingJobWrapper(JobWrapper):
         """
         Resubmits the current job.
         """
-	from twisted.internet import reactor
+        from twisted.internet import reactor
         self.job_id = blockingCallFromThread(reactor,
                                              self._remoteobj.callRemote,
                                              'submit_job', self._jdict)

@@ -2676,25 +2676,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
           ::
 
-	    sage: x=polygen(ZZ)
-	    sage: f = 5*x^2+2
-	    sage: f.is_primitive()
-	    True
-	    sage: f = 5*x^2+5
-	    sage: f.is_primitive()
-	    False
+            sage: x=polygen(ZZ)
+            sage: f = 5*x^2+2
+            sage: f.is_primitive()
+            True
+            sage: f = 5*x^2+5
+            sage: f.is_primitive()
+            False
 
-	    sage: K=NumberField(x^2+5,'a')
-	    sage: R=K.ring_of_integers()
-	    sage: a=R.gen(1)
-	    sage: a^2
-	    -5
-	    sage: f=a*x+2
-	    sage: f.is_primitive()
-	    True
-	    sage: f=(1+a)*x+2
-	    sage: f.is_primitive()
-	    False
+            sage: K=NumberField(x^2+5,'a')
+            sage: R=K.ring_of_integers()
+            sage: a=R.gen(1)
+            sage: a^2
+            -5
+            sage: f=a*x+2
+            sage: f.is_primitive()
+            True
+            sage: f=(1+a)*x+2
+            sage: f.is_primitive()
+            False
 
             sage: x=polygen(Integers(10));
             sage: f=5*x^2+2

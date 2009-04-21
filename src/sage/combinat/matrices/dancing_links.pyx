@@ -121,7 +121,7 @@ cdef class dancing_linksWrapper:
         initialised using the same row list.
 
         TESTS:
-	    sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
             sage: Z = dlx_solver(rows)

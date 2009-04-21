@@ -174,16 +174,16 @@ class SphinxHTMLProcessor(SGMLParser):
     ## These just append their HTML to
     ## self.temp_pieces.
 
-    def	unknown_starttag(self, tag, attrs):
+    def unknown_starttag(self, tag, attrs):
         if self.bodyQ:
             strattrs = "".join([' %s="%s"' % (key, value) for key, value in attrs])
             self.temp_pieces.append("<%(tag)s%(strattrs)s>" % locals())
 
-    def	unknown_endtag(self, tag):
+    def unknown_endtag(self, tag):
         if self.bodyQ:
             self.temp_pieces.append("</%(tag)s>" % locals())
 
-    def	handle_data(self, data):
+    def handle_data(self, data):
         if self.bodyQ:
             self.temp_pieces.append(data)
 
@@ -197,7 +197,7 @@ class SphinxHTMLProcessor(SGMLParser):
             if entitydefs.has_key(ref):
                 self.temp_pieces.append(';')
 
-    def	handle_comment(self, data):
+    def handle_comment(self, data):
         if self.bodyQ:
             self.temp_pieces.append("<!--%(data)s-->" % locals())
 

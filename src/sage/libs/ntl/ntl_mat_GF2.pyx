@@ -569,7 +569,7 @@ cdef class ntl_mat_GF2:
 
     def __invert__(self):
         """
-	Return $X = A^{-1}$; an error is raised if A is singular.
+        Return $X = A^{-1}$; an error is raised if A is singular.
 
         EXAMPLES:
             sage: l = [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, \

@@ -286,7 +286,7 @@ def SymmetricGroupWeakOrderPoset(n,labels="permutations"):
         element_labels = dict([[s,"".join(map(str,s.reduced_word_lexmin()))] for s in Permutations(n)])
     def weak_covers(s):
         return [v for v in s.bruhat_succ() if
-        	s.length() + (s.inverse()*v).length() == v.length()]
+                s.length() + (s.inverse()*v).length() == v.length()]
     return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
 
 #def PosetExamples(n,uc=None):

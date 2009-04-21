@@ -1286,26 +1286,26 @@ class SingularElement(ExpectElement):
         return P.eval('%s == 0'%self.name()) == '0'
 
     def sage_polystring(self):
-	r"""
-	If this Singular element is a polynomial, return a string
-	representation of this polynomial that is suitable for evaluation
-	in Python. Thus \* is used for multiplication and \*\* for
-	exponentiation. This function is primarily used internally.
+        r"""
+        If this Singular element is a polynomial, return a string
+        representation of this polynomial that is suitable for evaluation
+        in Python. Thus \* is used for multiplication and \*\* for
+        exponentiation. This function is primarily used internally.
 
-	The short=0 option *must* be set for the parent ring or this
-	function will not work as expected. This option is set by default
-	for rings created using ``singular.ring`` or set using
-	``ring_name.set_ring()``.
+        The short=0 option *must* be set for the parent ring or this
+        function will not work as expected. This option is set by default
+        for rings created using ``singular.ring`` or set using
+        ``ring_name.set_ring()``.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: R = singular.ring(0,'(x,y)')
-	    sage: f = singular('x^3 + 3*y^11 + 5')
-	    sage: f
-	    x^3+3*y^11+5
-	    sage: f.sage_polystring()
-	    'x**3+3*y**11+5'
-	"""
+            sage: R = singular.ring(0,'(x,y)')
+            sage: f = singular('x^3 + 3*y^11 + 5')
+            sage: f
+            x^3+3*y^11+5
+            sage: f.sage_polystring()
+            'x**3+3*y**11+5'
+        """
         return str(self).replace('^','**')
 
 

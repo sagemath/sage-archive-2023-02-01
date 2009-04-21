@@ -41,7 +41,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
             return
-	elif is_gen:
+        elif is_gen:
             self._poly = PolynomialRing(ZZ, parent.variable_name()).gen()
             self._valbase = 0
             self._valaddeds = [infinity, 0]
@@ -1011,7 +1011,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         # This will eventually be improved.
         if self == 0:
             raise ValueError, "Factorization of the zero polynomial not defined"
-	from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.padics.factory import ZpCA
         base = self.base_ring()
         #print self.list()

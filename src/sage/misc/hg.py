@@ -168,8 +168,8 @@ class HG:
         if self.__name == "SAGE Library Source Code":
             b = branch_current_hg()
             if b == '': b='main'
-	    elif b[-1] == '/':
-	        b = b[:-1]
+            elif b[-1] == '/':
+                b = b[:-1]
             print("Branch: %s"%b)
 
 
@@ -1207,7 +1207,7 @@ DEFAULT_SERVER = "http://hg.sagemath.org"
 SAGE_INCOMING_SERVER = os.getenv("SAGE_INCOMING_SERVER")
 if SAGE_INCOMING_SERVER is None:
     try:
-	SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/')
+        SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/')
     except KeyError:
         #print "Falling back to a hard coded sage server in misc/hg.py"
         SAGE_INCOMING_SERVER = DEFAULT_SERVER

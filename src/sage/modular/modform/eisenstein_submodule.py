@@ -394,7 +394,7 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
     """
     # TODO
     #def _compute_q_expansion_basis(self, prec):
-	#B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
+        #B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
         #raise NotImplementedError, "must restrict scalars down correctly."
 
 

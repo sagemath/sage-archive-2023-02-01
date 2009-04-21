@@ -550,7 +550,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             right -- Matrix
             k -- parameter $k$ for the Gray Code table size. If $k=0$ a
                  suitable value is chosen by the function.
-		 ($0<= k <= 16$, default: 0)
+                 ($0<= k <= 16$, default: 0)
 
         EXAMPLE:
               sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
@@ -590,7 +590,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         multiplication as implemented in the M4RI library.
 
         REFERENCES:
-	    [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
+            [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
                      Matrix Multiplication and Related Operations.'
                      The Design and Analysis of Computer
                      Algorithms. Addison-Wesley, 1974.
@@ -1381,8 +1381,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def submatrix(self, lowr, lowc, nrows , ncols):
         """
-	Return submatrix from the index lowr,lowc (inclusive) with
-	dimension nrows x ncols.
+        Return submatrix from the index lowr,lowc (inclusive) with
+        dimension nrows x ncols.
 
         INPUT:
             lowr -- index of start row
@@ -1405,7 +1405,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              True
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
-	"""
+        """
         cdef Matrix_mod2_dense A
 
         cdef int highr, highc

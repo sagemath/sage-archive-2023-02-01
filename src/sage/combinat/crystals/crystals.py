@@ -182,26 +182,26 @@ class Crystal(CombinatorialClass, Parent):
         return self.cartan_type().root_system().ambient_space()
 
     def cartan_type(self):
-	"""
-	Returns the Cartan type of the associated crystal
-
-	EXAMPLES::
-            sage: C = CrystalOfLetters(['A',2])
- 	    sage: C.cartan_type()
-	    ['A', 2]
         """
-	return self._cartan_type
+        Returns the Cartan type of the associated crystal
+
+        EXAMPLES::
+            sage: C = CrystalOfLetters(['A',2])
+            sage: C.cartan_type()
+            ['A', 2]
+        """
+        return self._cartan_type
 
     def index_set(self):
-	"""
-	Returns the index set of the Dynkin diagram underlying the given crystal
-
-	EXAMPLES:
-	    sage: C = CrystalOfLetters(['A', 5])
-	    sage: C.index_set()
-	    [1, 2, 3, 4, 5]
         """
-	return self.cartan_type().index_set()
+        Returns the index set of the Dynkin diagram underlying the given crystal
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.index_set()
+            [1, 2, 3, 4, 5]
+        """
+        return self.cartan_type().index_set()
 
     def Lambda(self):
         """
@@ -318,7 +318,7 @@ class Crystal(CombinatorialClass, Parent):
         hlist = {}
         mlist = {}
 
-	for x in self.highest_weight_vectors():
+        for x in self.highest_weight_vectors():
             k = x.weight()
             if k in hlist:
                 hlist[k] += 1
@@ -645,15 +645,15 @@ class CrystalElement(Element):
         return self.parent().index_set()
 
     def cartan_type(self):
-	"""
-	Returns the cartan type associated to self
-
-	EXAMPLES::
-	    sage: C = CrystalOfLetters(['A', 5])
-	    sage: C(1).cartan_type()
-	    ['A', 5]
         """
-	return self.parent().cartan_type()
+        Returns the cartan type associated to self
+
+        EXAMPLES::
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C(1).cartan_type()
+            ['A', 5]
+        """
+        return self.parent().cartan_type()
 
     def weight(self):
         """
@@ -663,7 +663,7 @@ class CrystalElement(Element):
             sage: C(1).weight()
             (1, 0, 0, 0, 0, 0)
         """
-	return self.Phi() - self.Epsilon()
+        return self.Phi() - self.Epsilon()
 
     def e(self, i):
         r"""
@@ -750,7 +750,7 @@ class CrystalElement(Element):
             (1, 0, 0, 0, 0, 0)
         """
         Lambda = self.parent().Lambda()
-	return sum(self.epsilon(i) * Lambda[i] for i in self.index_set())
+        return sum(self.epsilon(i) * Lambda[i] for i in self.index_set())
 
     def Phi(self):
         """
@@ -765,49 +765,49 @@ class CrystalElement(Element):
             (1, 1, 0, 0, 0, 0)
         """
         Lambda = self.parent().Lambda()
-	return sum(self.phi(i) * Lambda[i] for i in self.index_set())
+        return sum(self.phi(i) * Lambda[i] for i in self.index_set())
 
     def s(self, i):
-	r"""
-	Returns the reflection of self along its `i`-string
+        r"""
+        Returns the reflection of self along its `i`-string
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
-	    sage: b=C(rows=[[1,1],[3]])
-	    sage: b.s(1)
-	    [[2, 2], [3]]
-	    sage: b=C(rows=[[1,2],[3]])
-	    sage: b.s(2)
-	    [[1, 2], [3]]
-	    sage: T=CrystalOfTableaux(['A',2],shape=[4])
-	    sage: t=T(rows=[[1,2,2,2]])
-	    sage: t.s(1)
-	    [[1, 1, 1, 2]]
-	"""
+            sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: b=C(rows=[[1,1],[3]])
+            sage: b.s(1)
+            [[2, 2], [3]]
+            sage: b=C(rows=[[1,2],[3]])
+            sage: b.s(2)
+            [[1, 2], [3]]
+            sage: T=CrystalOfTableaux(['A',2],shape=[4])
+            sage: t=T(rows=[[1,2,2,2]])
+            sage: t.s(1)
+            [[1, 1, 1, 2]]
+        """
         d = self.phi(i)-self.epsilon(i)
-	b = self
-	if d > 0:
-	    for j in range(d):
-		b = b.f(i)
-    	else:
-	    for j in range(-d):
-		b = b.e(i)
-	return b
+        b = self
+        if d > 0:
+            for j in range(d):
+                b = b.f(i)
+        else:
+            for j in range(-d):
+                b = b.e(i)
+        return b
 
     def is_highest_weight(self):
-	r"""
-	Returns True if self is a highest weight.
+        r"""
+        Returns True if self is a highest weight.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: C = CrystalOfLetters(['A',5])
-	    sage: C(1).is_highest_weight()
-	    True
-	    sage: C(2).is_highest_weight()
-	    False
-	"""
-	return all(self.e(i) == None for i in self.index_set())
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).is_highest_weight()
+            True
+            sage: C(2).is_highest_weight()
+            False
+        """
+        return all(self.e(i) == None for i in self.index_set())
 
 class CrystalBacktracker(GenericBacktracker):
     def __init__(self, crystal):

@@ -2430,8 +2430,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.is_one():
             return integer.Integer(1)
         elif mpz_cmpabs(mpq_numref(self.value),mpq_denref(self.value))==0:
-	    # if the numerator and the denominator are equal in absolute value,
-	    # then the rational number is -1
+            # if the numerator and the denominator are equal in absolute value,
+            # then the rational number is -1
             return integer.Integer(2)
         else:
             return sage.rings.infinity.infinity
@@ -2472,8 +2472,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         r"""
         Determine if the rational number is S-integral.
 
-	x is S-integral if x.valuation(p)>=0 for all p not in S, i.e.,
-	the denominator of x is divisible only by the primes in `S`.
+        x is S-integral if x.valuation(p)>=0 for all p not in S, i.e.,
+        the denominator of x is divisible only by the primes in `S`.
 
         INPUT:
 
@@ -2502,9 +2502,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         r"""
         Determine if the rational number is an S-unit.
 
-	x is an S-unit if x.valuation(p)==0 for all p not in S, i.e.,
-	the numerator and denominator of x are divisible only by the
-	primes in `S`.
+        x is an S-unit if x.valuation(p)==0 for all p not in S, i.e.,
+        the numerator and denominator of x are divisible only by the
+        primes in `S`.
 
         INPUT:
 

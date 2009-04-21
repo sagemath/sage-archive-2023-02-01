@@ -408,13 +408,13 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             ValueError: polynomial must be irreducible
 
 
-	R = self.parent()
-	x = R.gen()
+        R = self.parent()
+        x = R.gen()
 
         F = R.modulus().root_field(names)
         alpha = F.gen()
 
-	f = R.hom([alpha], F, check=False)
+        f = R.hom([alpha], F, check=False)
 
         if number_field_rel.is_RelativeNumberField(F):
 

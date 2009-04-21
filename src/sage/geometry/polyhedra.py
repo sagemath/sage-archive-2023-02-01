@@ -75,7 +75,7 @@ def mink_sum(polyhedra_list, verbose = False):
     answer._vertices = temp_vertex_list
     answer._remove_redundant_vertices()
     if verbose:
-	print 'Another pair of polytopes computed, sum has ' + str(len(answer._vertices)) + ' vertices'
+        print 'Another pair of polytopes computed, sum has ' + str(len(answer._vertices)) + ' vertices'
     if len(polyhedra_list) == 2:
         return answer
     else:
@@ -96,23 +96,23 @@ class Polyhedron(SageObject):
             [[1, -1], [1, 1], [-1, 1], [-1, -1]]
             sage: square_from_vertices.ieqs()
             [[1, 0, 1], [1, 1, 0], [1, 0, -1], [1, -1, 0]]
-	    sage: p = Polyhedron(vertices = [[1.1, 2.2], [3.3, 4.4]], cdd_type = 'real')
-	    sage: len(p.ieqs())
-	    2
+            sage: p = Polyhedron(vertices = [[1.1, 2.2], [3.3, 4.4]], cdd_type = 'real')
+            sage: len(p.ieqs())
+            2
 
         NOTE:
              Although the option cdd_type = 'real' allows numerical data to be used, its use is
         discouraged - the results can depend upon the tolerance setting of cddlib, whose
         default is rather large since cddlib was designed with rational and integer data in mind.
         """
-	self._cdd_type = cdd_type
+        self._cdd_type = cdd_type
         self._vertices = vertices
         self._ieqs = ieqs
         self._linearities = linearities
         self._rays = rays
         self._verbose = verbose
-	if self._vertices != []:
-	    self._remove_redundant_vertices(cdd_type = self._cdd_type)
+        if self._vertices != []:
+            self._remove_redundant_vertices(cdd_type = self._cdd_type)
         else:
             if self._ieqs != []:
                 vertices = [x for x in self.vertices()]
@@ -343,7 +343,7 @@ class Polyhedron(SageObject):
             sage: oct = polytopes.cross_polytope(3)
             sage: cube_oct = cube.intersection(oct*2)
             sage: cube_oct
-	    A Polyhedron with 12 vertices with 14 supporting hyperplanes.
+            A Polyhedron with 12 vertices with 14 supporting hyperplanes.
             sage: len(cube_oct.vertices())
             12
             sage: cube_oct
@@ -363,13 +363,13 @@ class Polyhedron(SageObject):
             A Polyhedron object, truncated as described above.
 
         EXAMPLES:
-	Truncating a cube:
-	    sage: cube = polytopes.n_cube(3)
-	    sage: trunc_cube = cube.edge_truncation()
-	    sage: trunc_cube.n_vertices()
-	    24
-	    sage: trunc_cube.n_facets()
-	    14
+        Truncating a cube:
+            sage: cube = polytopes.n_cube(3)
+            sage: trunc_cube = cube.edge_truncation()
+            sage: trunc_cube.n_vertices()
+            24
+            sage: trunc_cube.n_facets()
+            14
         """
         new_verts = []
         old_verts = [vector(x) for x in self.vertices()]
@@ -743,8 +743,8 @@ class Polyhedron(SageObject):
             sage: Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]]).triangulated_facial_incidences()
             [[0, [0, 2, 3]], [1, [0, 1, 2]], [2, [1, 2, 3]], [3, [0, 1, 3]]]
 
- 	    Otherwise some faces get split up to triangles
- 	    sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],[1,1,0],[0,0,1]]).triangulated_facial_incidences()
+            Otherwise some faces get split up to triangles
+            sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],[1,1,0],[0,0,1]]).triangulated_facial_incidences()
             [[0, [0, 1, 5]], [1, [0, 4, 5]], [2, [2, 4, 5]], [3, [2, 3, 5]], [4, [1, 3, 5]], [5, [0, 4, 1]], [5, [4, 1, 2]], [5, [1, 2, 3]]]
 
         """
@@ -774,8 +774,8 @@ class Polyhedron(SageObject):
                             t_fac_incs.append([a_face[0], [self.vertices().index(q) for q in proj_verts]])
                 else:
                     vs = a_face[1]
- 		    adj = dict([a[0], filter(lambda p: p in a_face[1], a[1])] for a in filter(lambda va: va[0] in a_face[1], self.vertex_adjacencies()))
- 		    t = vs[0]
+                    adj = dict([a[0], filter(lambda p: p in a_face[1], a[1])] for a in filter(lambda va: va[0] in a_face[1], self.vertex_adjacencies()))
+                    t = vs[0]
                     vs.remove(t)
                     ts = adj[t]
                     for v in ts:
@@ -1222,16 +1222,16 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
     in_length = len(in_list[0])
     in_str = 'H-representation\n'
     if linearities != []:
-	in_str += 'linearity ' + str(len(linearities)) + ' '
+        in_str += 'linearity ' + str(len(linearities)) + ' '
         for index in range(len(linearities)):
-	    in_str += str(index+1) + ' '
+            in_str += str(index+1) + ' '
     in_str += '\n'
     in_str += 'begin\n'
     in_str += str(len(in_list)+len(linearities)) + ' ' + str(in_length) + ' ' + cdd_type + '\n'
     if linearities != []:
         for lin in linearities:
-    	    for numb in lin:
-    	        in_str += str(numb) + ' '
+            for numb in lin:
+                in_str += str(numb) + ' '
             in_str += '\n'
     for ieq in in_list:
         for numb in ieq:
@@ -1443,10 +1443,10 @@ class Polytopes():
         rational, so a rational approximation of the golden ratio
         is used.
 
-	EXAMPLES:
-	    sage: d12 = polytopes.dodecahedron()
-	    sage: d12.n_facets()
-	    12
+        EXAMPLES:
+            sage: d12 = polytopes.dodecahedron()
+            sage: d12.n_facets()
+            12
         """
         return self.icosahedron().polar()
 
@@ -1454,12 +1454,12 @@ class Polytopes():
         """
         An Archimedean solid with 24 vertices and 26 faces.
 
-	EXAMPLES:
-	    sage: sr = polytopes.small_rhombicuboctahedron()
-	    sage: sr.n_vertices()
-	    24
-	    sage: sr.n_facets()
-	    26
+        EXAMPLES:
+            sage: sr = polytopes.small_rhombicuboctahedron()
+            sage: sr.n_vertices()
+            24
+            sage: sr.n_facets()
+            26
         """
         verts = [[-3/2, -1/2, -1/2], [-3/2, -1/2, 1/2], [-3/2, 1/2, -1/2], [-3/2, 1/2,
 1/2], [-1/2, -3/2, -1/2], [-1/2, -3/2, 1/2], [-1/2, -1/2, -3/2], [-1/2,
@@ -1474,12 +1474,12 @@ class Polytopes():
         """
         An Archimedean solid with 48 vertices and 26 faces.
 
-	EXAMPLES:
-	    sage: gr = polytopes.great_rhombicuboctahedron()
-	    sage: gr.n_vertices()
-	    48
-	    sage: gr.n_facets()
-	    26
+        EXAMPLES:
+            sage: gr = polytopes.great_rhombicuboctahedron()
+            sage: gr.n_vertices()
+            48
+            sage: gr.n_facets()
+            26
         """
         sqr2 = 77171371357/54568400000 #sqrt(2) approximation
         verts = [[1, 131739771357/54568400000, 104455571357/27284200000], [1, 104455571357/27284200000, 131739771357/54568400000], [131739771357/54568400000, 1, 104455571357/27284200000], [131739771357/54568400000, 104455571357/27284200000, 1], [104455571357/27284200000, 1, 131739771357/54568400000], [104455571357/27284200000, 131739771357/54568400000, 1]]
@@ -1493,14 +1493,14 @@ class Polytopes():
         This face-regular, vertex-uniform polytope is dual to the
         cuboctahedron. It has 14 vertices and 12 faces.
 
-	EXAMPLES:
-	    sage: rd = polytopes.rhombic_dodecahedron()
-	    sage: rd.n_vertices()
-	    14
-	    sage: rd.n_facets()
-	    12
+        EXAMPLES:
+            sage: rd = polytopes.rhombic_dodecahedron()
+            sage: rd.n_vertices()
+            14
+            sage: rd.n_facets()
+            12
         """
-	return Polyhedron(vertices = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1], [0, 0, 2], [0, 2, 0], [2, 0, 0], [0, 0, -2], [0, -2, 0], [-2, 0, 0]])
+        return Polyhedron(vertices = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1], [0, 0, 2], [0, 2, 0], [2, 0, 0], [0, 0, -2], [0, -2, 0], [-2, 0, 0]])
         #return self.n_cube(3).union(2*self.cross_polytope(3))
 
     def cuboctahedron(self):
@@ -1508,12 +1508,12 @@ class Polytopes():
         An Archimedean solid with 12 vertices and 14 faces.  Dual to
         the rhombic dodecahedron.
 
-	EXAMPLES:
-	    sage: co = polytopes.cuboctahedron()
-	    sage: co.n_vertices()
-	    12
-	    sage: len(co.facial_incidences())
-	    14
+        EXAMPLES:
+            sage: co = polytopes.cuboctahedron()
+            sage: co.n_vertices()
+            12
+            sage: len(co.facial_incidences())
+            14
         """
         one = Integer(1)
         verts = [[0, -one/2, -one/2], [0, one/2, -one/2], [one/2, -one/2, 0], [one/2, one/2, 0], [one/2, 0, one/2], [one/2, 0, -one/2], [0, one/2, one/2], [0, -one/2, one/2], [-one/2, 0, one/2], [-one/2, one/2, 0], [-one/2, 0, -one/2], [-one/2, -one/2, 0]]
@@ -1524,16 +1524,16 @@ class Polytopes():
         Also known as the truncated icosahedron, an Archimedean solid.
         It has 32 faces and 60 vertices.
 
-	EXAMPLES:
-	    sage: bb = polytopes.buckyball()
-	    sage: bb.n_vertices()
-	    60
-	    sage: bb.n_facets()
-	    32
+        EXAMPLES:
+            sage: bb = polytopes.buckyball()
+            sage: bb.n_vertices()
+            60
+            sage: bb.n_facets()
+            32
         """
         approx =  self.icosahedron().edge_truncation()
         # the approximate version has some facets broken, which we can fix:
-	approx_ieqs = approx.ieqs()
+        approx_ieqs = approx.ieqs()
         buck_ieqs = [x for x in approx_ieqs if QQ(912022)/618033 != x[0]]
         return Polyhedron(ieqs = buck_ieqs)
 
@@ -1542,12 +1542,12 @@ class Polytopes():
         This face-regular, vertex-uniform polytope is dual to the
         truncated icosahedron.  It has 60 faces and 32 vertices.
 
-	EXAMPLES:
-	    sage: pd = polytopes.pentakis_dodecahedron()
-	    sage: pd.n_vertices()
-	    32
-	    sage: pd.n_facets()
-	    60
+        EXAMPLES:
+            sage: pd = polytopes.pentakis_dodecahedron()
+            sage: pd.n_vertices()
+            32
+            sage: pd.n_facets()
+            60
         """
         return self.buckyball().polar()
 

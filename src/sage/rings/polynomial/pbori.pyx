@@ -793,8 +793,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         BooleanPolynomialRings are equal if they have the same
 
           - number of variables
-	  - variable names
-	  - order type
+          - variable names
+          - order type
 
         EXAMPLES::
 
@@ -1634,7 +1634,7 @@ class BooleanMonomialMonoid(Monoid_class):
 
         -  ``other`` - element to convert,
            - if ``None`` a BooleanMonomial representing 1 is returned
-	   - only ``BooleanPolynomials`` with the same parent ring
+           - only ``BooleanPolynomials`` with the same parent ring
              as ``self`` which have a single monomial is converted
 
 

@@ -209,37 +209,37 @@ def TensorProductOfCrystals(*crystals, **options):
     It has `8` elements::
 
         sage: T.list()
-	[[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
+        [[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
 
     One can also check the Cartan type of the crystal::
 
         sage: T.cartan_type()
-	['A', 2]
+        ['A', 2]
 
     Other examples include crystals of tableaux (which internally are represented as tensor products
     obtained by reading the tableaux columnwise)::
 
         sage: C = CrystalOfTableaux(['A',3], shape=[1,1,0])
-	sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
-	sage: T = TensorProductOfCrystals(C,D, generators=[[C(rows=[[1], [2]]), D(rows=[[1]])], [C(rows=[[2], [3]]), D(rows=[[1]])]])
-	sage: T.cardinality()
-	24
-	sage: T.check()
-	True
-	sage: T.module_generators
-	[[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
-	sage: [x.weight() for x in T.module_generators]
-	[(2, 1, 0, 0), (1, 1, 1, 0)]
+        sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
+        sage: T = TensorProductOfCrystals(C,D, generators=[[C(rows=[[1], [2]]), D(rows=[[1]])], [C(rows=[[2], [3]]), D(rows=[[1]])]])
+        sage: T.cardinality()
+        24
+        sage: T.check()
+        True
+        sage: T.module_generators
+        [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
+        sage: [x.weight() for x in T.module_generators]
+        [(2, 1, 0, 0), (1, 1, 1, 0)]
 
     If no module generators are specified, we obtain the full tensor
     product::
 
         sage: C=CrystalOfLetters(['A',2])
-	sage: T=TensorProductOfCrystals(C,C)
-	sage: T.list()
-	[[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
-	sage: T.cardinality()
-	9
+        sage: T=TensorProductOfCrystals(C,C)
+        sage: T.list()
+        [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+        sage: T.cardinality()
+        9
 
     For a tensor product of crystals without module generators, the
     default implementation of module_generators contains all elements
@@ -248,15 +248,15 @@ def TensorProductOfCrystals(*crystals, **options):
     this needs to be implemented for the specific crystal separately::
 
         sage: T.module_generators.list()
-	[[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+        [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
 
     For classical highest weight crystals, it is also possible to list
     all highest weight elements::
 
         sage: C = CrystalOfLetters(['A',2])
-	sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
-	sage: T.highest_weight_vectors()
-	[[2, 1, 1], [1, 2, 1]]
+        sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+        sage: T.highest_weight_vectors()
+        [[2, 1, 1], [1, 2, 1]]
     """
     if options.has_key('generators'):
         if all(isinstance(crystal,ClassicalCrystal) for crystal in crystals):
@@ -304,7 +304,7 @@ class TensorProductOfCrystalsWithGenerators(CrystalOfWords):
             sage: T == loads(dumps(T))
             True
         """
-	crystals = [ crystal for crystal in crystals]
+        crystals = [ crystal for crystal in crystals]
         self._name = "The tensor product of the crystals %s"%crystals
         self.crystals = crystals
         if options.has_key('cartan_type'):
@@ -624,14 +624,14 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
         True
         sage: T.list()
         [[[1]], [[2]], [[-2]], [[-1]]]
-	sage: T = CrystalOfTableaux(['A',2], shapes = [[],[1],[2]])
-	sage: T.list()
-	[[], [[1]], [[2]], [[3]], [[1, 1]], [[1, 2]], [[2, 2]], [[1, 3]], [[2, 3]], [[3, 3]]]
-	sage: T.module_generators
-	([], [[1]], [[1, 1]])
-	sage: T = CrystalOfTableaux(['B',2],shape=[3])
-	sage: T(rows=[[1,1,0]])
-	[[1, 1, 0]]
+        sage: T = CrystalOfTableaux(['A',2], shapes = [[],[1],[2]])
+        sage: T.list()
+        [[], [[1]], [[2]], [[3]], [[1, 1]], [[1, 2]], [[2, 2]], [[1, 3]], [[2, 3]], [[3, 3]]]
+        sage: T.module_generators
+        ([], [[1]], [[1, 1]])
+        sage: T = CrystalOfTableaux(['B',2],shape=[3])
+        sage: T(rows=[[1,1,0]])
+        [[1, 1, 0]]
 
 
     Input tests::
@@ -663,12 +663,12 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
     The next example checks whether a given tableau is in fact a valid type C tableau or not:
 
         sage: T = CrystalOfTableaux(['C',3], shape = [2,2,2])
-	sage: t = T(rows=[[1,3],[2,-3],[3,-1]])
-	sage: t in T.list()
-	True
-	sage: t = T(rows=[[2,3],[3,-3],[-3,-2]])
-	sage: t in T.list()
-	False
+        sage: t = T(rows=[[1,3],[2,-3],[3,-1]])
+        sage: t in T.list()
+        True
+        sage: t = T(rows=[[2,3],[3,-3],[-3,-2]])
+        sage: t in T.list()
+        False
     """
     def __init__(self, type, shape = None, shapes = None):
         """
@@ -679,51 +679,51 @@ class CrystalOfTableaux(CrystalOfWords, ClassicalCrystal):
             True
         """
         self.letters = CrystalOfLetters(type)
-	if shape is not None:
-	    assert shapes is None
-	    shapes = (shape,)
-	assert shapes is not None
-	CrystalOfWords.__init__(self)
-	module_generators = tuple(self.module_generator(la) for la in shapes)
+        if shape is not None:
+            assert shapes is None
+            shapes = (shape,)
+        assert shapes is not None
+        CrystalOfWords.__init__(self)
+        module_generators = tuple(self.module_generator(la) for la in shapes)
         self.module_generators = module_generators
         self._name = "The crystal of tableaux of type %s and shape(s) %s"%(type, str(shapes))
 
     def cartan_type(self):
-	"""
-	Returns the Cartan type of the associated crystal
-
-	EXAMPLES::
-	    sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
-	    sage: T.cartan_type()
-	    ['A', 3]
         """
-	return self.letters.cartan_type()
+        Returns the Cartan type of the associated crystal
+
+        EXAMPLES::
+            sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
+            sage: T.cartan_type()
+            ['A', 3]
+        """
+        return self.letters.cartan_type()
 
     def module_generator(self, shape):
-	"""
-	This yields the module generator (or highest weight element) of a classical
-	crystal of given shape. The module generator is the unique tableau with equal
-	shape and content.
+        """
+        This yields the module generator (or highest weight element) of a classical
+        crystal of given shape. The module generator is the unique tableau with equal
+        shape and content.
 
-	EXAMPLE:
-	    sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
-	    sage: T.module_generator([1,1])
-	    [[1], [2]]
-	"""
-	type = self.cartan_type()
-	if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
-	    invert = True
-	    shape[type[1]-1]=-shape[type[1]-1]
-	else:
-	    invert = False
-	p = Partition(shape).conjugate()
-	# The column canonical tableau, read by columns
-	module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
-	if invert:
-	    for i in range(type[1]):
-		if module_generator[i] == type[1]:
-		    module_generator[i] = -type[1]
-	return self(*[self.letters(x) for x in module_generator])
+        EXAMPLE:
+            sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
+            sage: T.module_generator([1,1])
+            [[1], [2]]
+        """
+        type = self.cartan_type()
+        if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
+            invert = True
+            shape[type[1]-1]=-shape[type[1]-1]
+        else:
+            invert = False
+        p = Partition(shape).conjugate()
+        # The column canonical tableau, read by columns
+        module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
+        if invert:
+            for i in range(type[1]):
+                if module_generator[i] == type[1]:
+                    module_generator[i] = -type[1]
+        return self(*[self.letters(x) for x in module_generator])
 
     def __call__(self, *args, **options):
         """
@@ -750,23 +750,23 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             True
         """
         if len(args) == 1:
-	    if isinstance(args[0], CrystalOfTableauxElement):
-		if args[0].parent() == parent:
-		    return args[0]
-		else:
-		    raise ValueError, "Inconsistent parent"
-	    elif isinstance(args[0], Tableau_class):
-		options['rows'] = args[0]
-	if options.has_key('list'):
-	    list = options['list']
+            if isinstance(args[0], CrystalOfTableauxElement):
+                if args[0].parent() == parent:
+                    return args[0]
+                else:
+                    raise ValueError, "Inconsistent parent"
+            elif isinstance(args[0], Tableau_class):
+                options['rows'] = args[0]
+        if options.has_key('list'):
+            list = options['list']
         elif options.has_key('rows'):
             rows=options['rows']
 #            list=Tableau(rows).to_word_by_column()
-	    rows=Tableau(rows).conjugate()
-	    list=[]
-	    for col in rows:
-		col.reverse()
-		list+=col
+            rows=Tableau(rows).conjugate()
+            list=[]
+            for col in rows:
+                col.reverse()
+                list+=col
         elif options.has_key('columns'):
             columns=options['columns']
             list=[]
@@ -822,21 +822,21 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             <class 'sage.combinat.tableau.Tableau_class'>
             sage: type(t[0][0])
             <type 'sage.rings.integer.Integer'>
-	    sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
-	    sage: t=T(rows=[[-3],[3]]).to_tableau(); t
-	    [[-3], [3]]
-	    sage: t=T(rows=[[3],[-3]]).to_tableau(); t
-	    [[3], [-3]]
+            sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
+            sage: t=T(rows=[[-3],[3]]).to_tableau(); t
+            [[-3], [3]]
+            sage: t=T(rows=[[3],[-3]]).to_tableau(); t
+            [[3], [-3]]
         """
-	if self._list == []:
-	    return Tableau([])
-	tab = [ [self[0].value] ]
-	for i in range(1,len(self)):
-	    if self[i-1] <= self[i]:
-		tab.append([self[i].value])
-	    else:
-		l = len(tab)-1
-		tab[l].append(self[i].value)
-	for x in tab:
-	    x.reverse()
-	return Tableau(tab).conjugate()
+        if self._list == []:
+            return Tableau([])
+        tab = [ [self[0].value] ]
+        for i in range(1,len(self)):
+            if self[i-1] <= self[i]:
+                tab.append([self[i].value])
+            else:
+                l = len(tab)-1
+                tab[l].append(self[i].value)
+        for x in tab:
+            x.reverse()
+        return Tableau(tab).conjugate()

@@ -437,8 +437,8 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-	    sage: k(x^2)
-	    a + 3
+            sage: k(x^2)
+            a + 3
             sage: R.<x> = GF(5)[]
             sage: k(x^3-2*x+1)
             2*a + 4
@@ -463,7 +463,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-	    ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field.
 
 
             PARI elements are interpreted as finite field elements; this PARI flexibility
@@ -933,7 +933,7 @@ cdef class FiniteField_givaro(FiniteField):
         """
         Return integer representation of e.
 
-	Elements of this field are represented as ints in as follows:
+        Elements of this field are represented as ints in as follows:
         for $e \in \FF_p[x]$ with $e = a_0 + a_1x + a_2x^2 + \cdots $, $e$ is
         represented as: $n= a_0 + a_1  p + a_2  p^2 + \cdots$.
 

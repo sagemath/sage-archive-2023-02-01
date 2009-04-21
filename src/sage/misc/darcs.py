@@ -102,7 +102,7 @@ class Darcs:
         Run 'darcs cmd' where cmd is an arbitrary string
         in the darcs repository.
         """
-	darcs_ensure_installed()
+        darcs_ensure_installed()
         if check_initialized and not self.__initialized:
             self.initialize()
         darcs_ensure_installed()

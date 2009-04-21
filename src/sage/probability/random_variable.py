@@ -53,16 +53,16 @@ class RandomVariable_generic(ParentWithBase):
         self._codomain = RR
 
     def probability_space(self):
-	return self.base()
+        return self.base()
 
     def domain(self):
-	return self.base()
+        return self.base()
 
     def codomain(self):
-	return self._codomain
+        return self._codomain
 
     def field(self):
-	return self._codomain
+        return self._codomain
 
 class DiscreteRandomVariable(RandomVariable_generic):
     """
@@ -77,12 +77,12 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         if not is_DiscreteProbabilitySpace(X):
             raise TypeError, "Argument X (= %s) must be a discrete probability space" % X
-	if check:
-	    raise NotImplementedError, "Not implemented"
+        if check:
+            raise NotImplementedError, "Not implemented"
         if codomain is None:
-	    RR = RealField()
-	else:
-	    RR = codomain
+            RR = RealField()
+        else:
+            RR = codomain
         RandomVariable_generic.__init__(self, X, RR)
         self._function = f
 
@@ -90,22 +90,22 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         Return the value of the random variable at x.
         """
-	RR = self.field()
+        RR = self.field()
         try:
             return RR(self._function[x])
         except KeyError:
-	    # Need some condition for x being a valid domain element:
-	    #    raise IndexError, "Argument x (= %s) is not a valid domain element." % x
+            # Need some condition for x being a valid domain element:
+            #    raise IndexError, "Argument x (= %s) is not a valid domain element." % x
             return RR(0)
 
     def __repr__(self):
-	return "Discrete random variable defined by %s" % self._function
+        return "Discrete random variable defined by %s" % self._function
 
     def function(self):
-	"""
-	The function defining the random variable.
-	"""
-	return self._function
+        """
+        The function defining the random variable.
+        """
+        return self._function
 
     def expectation(self):
         r"""
@@ -146,7 +146,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         Omega = self.probability_space()
         mu = self.expectation()
-	var = 0
+        var = 0
         for x in self._function.keys():
             var += Omega(x) * (self(x) - mu)**2
         return var
@@ -166,8 +166,8 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         Omega = self.probability_space()
         mu = self.translation_expectation(map)
-	var = 0
-	for x in Omega._function.keys():
+        var = 0
+        for x in Omega._function.keys():
             var += Omega(x) * (self(map(x)) - mu)**2
         return var
 
@@ -185,13 +185,13 @@ class DiscreteRandomVariable(RandomVariable_generic):
                      \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
-	if Omega != other.probability_space():
-	    raise ValueError, \
-		 "Argument other (= %s) must be defined on the same probability space." % other
+        if Omega != other.probability_space():
+            raise ValueError, \
+                 "Argument other (= %s) must be defined on the same probability space." % other
         muX = self.expectation()
         muY = other.expectation()
-	cov = 0
-	for x in self._function.keys():
+        cov = 0
+        for x in self._function.keys():
             cov += Omega(x)*(self(x) - muX)*(other(x) - muY)
         return cov
 
@@ -209,13 +209,13 @@ class DiscreteRandomVariable(RandomVariable_generic):
                      \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
-	if Omega != other.probability_space():
-	    raise ValueError, \
-		 "Argument other (= %s) must be defined on the same probability space." % other
+        if Omega != other.probability_space():
+            raise ValueError, \
+                 "Argument other (= %s) must be defined on the same probability space." % other
         muX = self.expectation()
         muY = other.translation_expectation(map)
-	cov = 0
-	for x in Omega._function.keys():
+        cov = 0
+        for x in Omega._function.keys():
             cov += Omega(x)*(self(x) - muX)*(other(map(x)) - muY)
         return cov
 
@@ -255,26 +255,26 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         The correlation of the probability space X = self with Y = other.
         """
-	cov = self.covariance(other)
-	sigX = self.standard_deviation()
-	sigY = other.standard_deviation()
-	if sigX == 0 or sigY == 0:
-	    raise ValueError, \
-	        "Correlation not defined if standard deviations are not both nonzero."
-	return cov/(sigX*sigY)
+        cov = self.covariance(other)
+        sigX = self.standard_deviation()
+        sigY = other.standard_deviation()
+        if sigX == 0 or sigY == 0:
+            raise ValueError, \
+                "Correlation not defined if standard deviations are not both nonzero."
+        return cov/(sigX*sigY)
 
     def translation_correlation(self, other, map):
         """
         The correlation of the probability space X = self with image of Y =
         other under map.
         """
-	cov = self.translation_covariance(other, map)
-	sigX = self.standard_deviation()
-	sigY = other.translation_standard_deviation(map)
-	if sigX == 0 or sigY == 0:
-	    raise ValueError, \
-	        "Correlation not defined if standard deviations are not both nonzero."
-	return cov/(sigX*sigY)
+        cov = self.translation_covariance(other, map)
+        sigX = self.standard_deviation()
+        sigY = other.translation_standard_deviation(map)
+        if sigX == 0 or sigY == 0:
+            raise ValueError, \
+                "Correlation not defined if standard deviations are not both nonzero."
+        return cov/(sigX*sigY)
 
 ################################################################################
 ################################################################################
@@ -284,16 +284,16 @@ class ProbabilitySpace_generic(RandomVariable_generic):
     A probability space.
     """
     def __init__(self, domain, RR):
-	"""
-	A generic probability space on given domain space and codomain
-	ring.
-	"""
-	if isinstance(domain, list):
-	    domain = tuple(domain)
-	if not isinstance(domain, tuple):
-	    raise TypeError, \
+        """
+        A generic probability space on given domain space and codomain
+        ring.
+        """
+        if isinstance(domain, list):
+            domain = tuple(domain)
+        if not isinstance(domain, tuple):
+            raise TypeError, \
                 "Argument domain (= %s) must be a list, tuple, or set containing." % domain
-	self._domain = domain
+        self._domain = domain
         RandomVariable_generic.__init__(self, self, RR)
 
     def domain(self):
@@ -305,71 +305,71 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
     """
     def __init__(self, X, P, codomain = None, check = False):
         r"""
-	Create the discrete probability space with probabilities on the
-	space X given by the dictionary P with values in the field
-	real_field.
+        Create the discrete probability space with probabilities on the
+        space X given by the dictionary P with values in the field
+        real_field.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: S = [ i for i in range(16) ]
-	    sage: P = {}
-	           sage: for i in range(15): P[i] = 2^(-i-1)
-	    sage: P[15] = 2^-16
-	    sage: X = DiscreteProbabilitySpace(S,P)
-	    sage: X.domain()
-	    (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
-	    sage: X.set()
-	    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
-	    sage: X.entropy()
-	           1.9997253418
+            sage: S = [ i for i in range(16) ]
+            sage: P = {}
+                   sage: for i in range(15): P[i] = 2^(-i-1)
+            sage: P[15] = 2^-16
+            sage: X = DiscreteProbabilitySpace(S,P)
+            sage: X.domain()
+            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+            sage: X.set()
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+            sage: X.entropy()
+                   1.9997253418
 
-	A probability space can be defined on any list of elements.
+        A probability space can be defined on any list of elements.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	    sage: S = [ AZ[i] for i in range(26) ]
-	    sage: P = { 'A':1/2, 'B':1/4, 'C':1/4 }
-	    sage: X = DiscreteProbabilitySpace(S,P)
-	    sage: X
-	    Discrete probability space defined by {'A': 1/2, 'C': 1/4, 'B': 1/4}
-	    sage: X.entropy()
-	           1.5
-	"""
+            sage: AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            sage: S = [ AZ[i] for i in range(26) ]
+            sage: P = { 'A':1/2, 'B':1/4, 'C':1/4 }
+            sage: X = DiscreteProbabilitySpace(S,P)
+            sage: X
+            Discrete probability space defined by {'A': 1/2, 'C': 1/4, 'B': 1/4}
+            sage: X.entropy()
+                   1.5
+        """
         if codomain is None:
-	    codomain = RealField()
-	if not is_RealField(codomain) and not is_RationalField(codomain):
-	    raise TypeError, "Argument codomain (= %s) must be the reals or rationals" % codomain
-	if check:
-	    one = sum([ P[x] for x in P.keys() ])
-	    if is_RationalField(codomain):
-	    	if not one == 1:
-   	            raise TypeError, "Argument P (= %s) does not define a probability function"
-	    else:
-	    	if not Abs(one-1) < 2^(-codomain.precision()+1):
-   	            raise TypeError, "Argument P (= %s) does not define a probability function"
+            codomain = RealField()
+        if not is_RealField(codomain) and not is_RationalField(codomain):
+            raise TypeError, "Argument codomain (= %s) must be the reals or rationals" % codomain
+        if check:
+            one = sum([ P[x] for x in P.keys() ])
+            if is_RationalField(codomain):
+                if not one == 1:
+                    raise TypeError, "Argument P (= %s) does not define a probability function"
+            else:
+                if not Abs(one-1) < 2^(-codomain.precision()+1):
+                    raise TypeError, "Argument P (= %s) does not define a probability function"
         ProbabilitySpace_generic.__init__(self, X, codomain)
         DiscreteRandomVariable.__init__(self, self, P, codomain, check)
 
     def __repr__(self):
-	return "Discrete probability space defined by %s" % self.function()
+        return "Discrete probability space defined by %s" % self.function()
 
     def set(self):
         r"""
         The set of values of the probability space taking possibly nonzero
         probability (a subset of the domain).
         """
-	return Set(self.function().keys())
+        return Set(self.function().keys())
 
     def entropy(self):
         """
         The entropy of the probability space.
         """
-	def neg_xlog2x(p):
-	    if p == 0:
-	        return 0
-    	    else:
-	        return -p*log(p,2)
-	p = self.function()
-	return sum([ neg_xlog2x(p[x]) for x in p.keys() ])
+        def neg_xlog2x(p):
+            if p == 0:
+                return 0
+            else:
+                return -p*log(p,2)
+        p = self.function()
+        return sum([ neg_xlog2x(p[x]) for x in p.keys() ])
 

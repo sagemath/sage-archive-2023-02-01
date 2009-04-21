@@ -103,8 +103,8 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
-	R = IntegerModRing(S.ngens())
-	M = MatrixSpace(R,m,m)
+        R = IntegerModRing(S.ngens())
+        M = MatrixSpace(R,m,m)
         SymmetricKeyCryptosystem.__init__(self, S, S, M, block_length = m)
 
     def __call__(self, A):
@@ -214,13 +214,13 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         M = self.key_space()
-	R = M.base_ring()
+        R = M.base_ring()
         m = M.nrows()
         N = Integer(self.cipher_domain().ngens())
-	while True:
-	    A = M([ randint(0,N-1) for i in range(m**2) ])
-	    if N.gcd(A.det()) == 1:
-	        break
+        while True:
+            A = M([ randint(0,N-1) for i in range(m**2) ])
+            if N.gcd(A.det()) == 1:
+                break
         return A
 
     def inverse_key(self, A):
@@ -247,17 +247,17 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             sage: c(e(M))
             LAMAISONBLANCHE
         """
-	S = self.plaintext_space()
-	M = self.key_space()
-	if not A in M:
-	    raise TypeError, "A (= %s) must be a matrix in the key space of %s." % (A, self)
-	m = self.block_length()
-	MatZZ = MatrixSpace(ZZ,m)
-	AZ = MatZZ([ [ A[i,j].lift() for j in range(m) ] for i in range(m) ])
-	AZ_adj = AZ.adjoint()
-	u, r, s = xgcd(A.det().lift(),S.ngens())
-	if u != 1:
-	    raise ValueError, "Argument:\n\n%s\n\nis not invertible."%(A)
+        S = self.plaintext_space()
+        M = self.key_space()
+        if not A in M:
+            raise TypeError, "A (= %s) must be a matrix in the key space of %s." % (A, self)
+        m = self.block_length()
+        MatZZ = MatrixSpace(ZZ,m)
+        AZ = MatZZ([ [ A[i,j].lift() for j in range(m) ] for i in range(m) ])
+        AZ_adj = AZ.adjoint()
+        u, r, s = xgcd(A.det().lift(),S.ngens())
+        if u != 1:
+            raise ValueError, "Argument:\n\n%s\n\nis not invertible."%(A)
         return r * A.parent()(AZ_adj)
 
     def encoding(self, M):

@@ -160,5 +160,5 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             c -= lval * F[i][1]
         if c != 0:
             F.append((self.parent()(self.base_ring().prime_pow(c)), 1))
-	    u = u.add_big_oh(absprec - c)
+            u = u.add_big_oh(absprec - c)
         return Factorization(F, u)

@@ -6545,7 +6545,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             return z
 
     def is_field(self):
-	    """
+        """
         Returns True, since the callable symbolic expression ring is (for
         the most part) a field.
 
@@ -6555,7 +6555,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             sage: g.parent().is_field()
             True
         """
-	    return True
+        return True
 
     def _an_element_impl(self):
         """

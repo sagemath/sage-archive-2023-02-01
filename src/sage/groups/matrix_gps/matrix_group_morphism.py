@@ -27,7 +27,7 @@ class MatrixGroupMap(Morphism):
     A set-theoretic map between matrix groups.
     """
     def __init__(self, parent):
-	Morphism.__init__(self, parent)
+        Morphism.__init__(self, parent)
 
     def _repr_type(self):
         return "MatrixGroup"
@@ -69,17 +69,17 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
         G = homset.domain()
         H = homset.codomain()
-    	gaplist_gens = [gap(x) for x in G.gens()]
-    	gaplist_imgs = [gap(x) for x in imgsH]
+        gaplist_gens = [gap(x) for x in G.gens()]
+        gaplist_imgs = [gap(x) for x in imgsH]
         genss = '[%s]'%(','.join(str(v) for v in gaplist_gens))
         imgss = '[%s]'%(','.join(str(v) for v in gaplist_imgs))
         args = '%s, %s, %s, %s'%(G._gap_init_(), H._gap_init_(), genss, imgss)
         self._gap_str = 'GroupHomomorphismByImages(%s)'%args
         self._gap_hom_string = 'phi := %s'%self._gap_str
-    	phi0 = gap.eval(self._gap_hom_string)
-    	if phi0=="fail":
+        phi0 = gap.eval(self._gap_hom_string)
+        if phi0=="fail":
             raise ValueError,"The map "+str(gensG)+"-->"+str(imgsH)+" isn't a homomorphism."
-    	self.hom = gap.eval("phi")
+        self.hom = gap.eval("phi")
 
     def _gap_init_(self):
         return self._gap_str
@@ -168,41 +168,41 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
     def __call__( self, g ):
         """
-    	Some python code for wrapping GAP's Images function for a matrix
-    	group G. Returns an error if g is not in G.
+        Some python code for wrapping GAP's Images function for a matrix
+        group G. Returns an error if g is not in G.
 
-    	EXAMPLES::
+        EXAMPLES::
 
-    	    sage: F = GF(5); MS = MatrixSpace(F,2,2)
-    	    sage: g = MS([1,1,0,1])
-    	    sage: G = MatrixGroup([g])
-    	    sage: phi = G.hom(G.gens())
-    	    sage: phi(G.0)
-    	    [1 1]
-    	    [0 1]
-    	    sage: phi(G(g^2))
-    	    [1 2]
-    	    [0 1]
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: g = MS([1,1,0,1])
+            sage: G = MatrixGroup([g])
+            sage: phi = G.hom(G.gens())
+            sage: phi(G.0)
+            [1 1]
+            [0 1]
+            sage: phi(G(g^2))
+            [1 2]
+            [0 1]
 
-    	::
+        ::
 
-    	    sage: F = GF(5); MS = MatrixSpace(F,2,2)
-    	    sage: gens = [MS([1,2,  -1,1]),MS([1,1,  0,1])]
-    	    sage: G = MatrixGroup(gens)
-    	    sage: phi = G.hom(G.gens())
-    	    sage: phi(G.0)
-    	    [1 2]
-    	    [4 1]
-    	    sage: phi(G.1)
-    	    [1 1]
-    	    [0 1]
-    	"""
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([1,2,  -1,1]),MS([1,1,  0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: phi = G.hom(G.gens())
+            sage: phi(G.0)
+            [1 2]
+            [4 1]
+            sage: phi(G.1)
+            [1 1]
+            [0 1]
+        """
         cmd = self._gap_hom_string
         gap.eval(cmd)
         G = self.domain()
         F = G.base_ring()
         h = gap(g)
-    	return gap('Image(phi, %s)'%h.name())._matrix_(F)
+        return gap('Image(phi, %s)'%h.name())._matrix_(F)
 
 
 

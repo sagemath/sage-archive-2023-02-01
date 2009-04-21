@@ -1026,7 +1026,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         ``other`` must be coprime to the modulus of
         ``self``.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: a = mod(3,5)
             sage: b = mod(2,7)
@@ -1730,7 +1730,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         to other. The modulus of other must be coprime to the modulus of
         self.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: a = mod(3,5)
             sage: b = mod(2,7)
@@ -2482,7 +2482,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         to other. The modulus of other must be coprime to the modulus of
         self.
 
-	EXAMPLES::
+        EXAMPLES::
 
             sage: a = mod(3,5^10)
             sage: b = mod(2,7)

@@ -1483,9 +1483,9 @@ class FreeModule_generic(module.Module):
         if self.is_ambient():
             return sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree(), sparse=True)(1)
         else:
-	    if self._gram_matrix is None:
+            if self._gram_matrix is None:
                 B = self.basis_matrix()
-	        self._gram_matrix = B*B.transpose()
+                self._gram_matrix = B*B.transpose()
             return self._gram_matrix
 
     def has_user_basis(self):
@@ -3539,7 +3539,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         quo = quomap.codomain()
         liftmap = quo.Hom(self)(L)
 
-	return quomap.codomain(), quomap, liftmap
+        return quomap.codomain(), quomap, liftmap
 
 ###############################################################################
 #

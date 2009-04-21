@@ -1140,15 +1140,15 @@ class LinearCode(module.Module):
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
             (2, 0, 0, 2, 1, 0)
- 	    sage: F = GF(4,"a")
- 	    sage: C = HammingCode(2,F)
- 	    sage: v = vector(F, [1,0,0,a,1])
- 	    sage: C.decode(v)
- 	    (1, 0, 0, 1, 1)
- 	    sage: C.decode(v, method="nearest neighbor")
- 	    (1, 0, 0, 1, 1)
- 	    sage: C.decode(v, method="guava")
- 	    (1, 0, 0, 1, 1)
+            sage: F = GF(4,"a")
+            sage: C = HammingCode(2,F)
+            sage: v = vector(F, [1,0,0,a,1])
+            sage: C.decode(v)
+            (1, 0, 0, 1, 1)
+            sage: C.decode(v, method="nearest neighbor")
+            (1, 0, 0, 1, 1)
+            sage: C.decode(v, method="guava")
+            (1, 0, 0, 1, 1)
 
         Does not work for very long codes since the syndrome table grows
         too large.
@@ -2003,7 +2003,7 @@ class LinearCode(module.Module):
             else:
                 c0 = QQ((n-d)*C.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
         if i==3 or i==4:
-	    if d>d0:
+            if d>d0:
                 c0 = rising_factorial(d-d0,d0+1)*C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
                 c0 = C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))

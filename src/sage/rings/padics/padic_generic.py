@@ -476,10 +476,10 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         OUTPUT:
             boolean -- whether self has primitive $n^{\mbox{th}}$ root of unity
         """
-	if (self.prime() == 2):
-	    return n.divides(2)
+        if (self.prime() == 2):
+            return n.divides(2)
         else:
-	    return n.divides(self.prime() - 1)
+            return n.divides(self.prime() - 1)
 
     def hasGNB(self):
         r"""

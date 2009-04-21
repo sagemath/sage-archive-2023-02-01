@@ -65,11 +65,15 @@ sage-support group]].
 
 == Changelog ==
 
+=== sagetex-2.0.2 (Dan Drake, 21 Apr 2008) ===
+
+ * Update source, improve spkg-check.
+
 === sagetex-2.0.p0 (Dan Drake, 9 Jan 2008) ===
 
  * Proper SPKG.txt, spkg-check, md5sums
  * Split repos, get directory structure right
 
-=== sagetext-2.0 (Dan Drake, 18 Dec 2008) ===
+=== sagetex-2.0 (Dan Drake, 18 Dec 2008) ===
 
  * Initial release

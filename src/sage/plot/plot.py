@@ -1076,7 +1076,7 @@ class Graphics(SageObject):
              dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
              fontsize=None, aspect_ratio=None,
              gridlines=None, gridlinesstyle=None,
-             vgridlinesstyle=None, hgridlinesstyle=None):
+             vgridlinesstyle=None, hgridlinesstyle=None, linkmode = False):
         """
         Show this graphics image with the default image viewer.
 
@@ -1137,6 +1137,9 @@ class Graphics(SageObject):
           (default: None) a dictionary of MATPLOTLIB options for the
           rendering of the grid lines, the horizontal grid lines or the
           vertical grid lines, respectively.
+
+        - ``linkmode`` - (default: False) If True a string containing a link
+            to the produced file is returned.
 
         EXAMPLES::
 
@@ -1286,8 +1289,11 @@ class Graphics(SageObject):
                       gridlinesstyle=gridlinesstyle,
                       vgridlinesstyle=vgridlinesstyle,
                       hgridlinesstyle=hgridlinesstyle)
-            html("<img src='cell://%s'>"%filename)
-            return
+            if linkmode == True:
+                return "<img src='cell://%s'>"%filename
+            else:
+                html("<img src='cell://%s'>"%filename)
+                return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,

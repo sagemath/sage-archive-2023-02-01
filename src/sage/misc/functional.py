@@ -914,8 +914,14 @@ def quotient(x, y, *args, **kwds):
 quo = quotient
 
 def show(x, *args, **kwds):
-    """
+    r"""
     Show a graphics object x.
+
+    For additional ways to show objects in the notebook, look
+    at the methods on the html object.  For example,
+    html.table will produce an HTML table from a nested
+    list.
+
 
     OPTIONAL INPUT:
 

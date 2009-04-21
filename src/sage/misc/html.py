@@ -118,12 +118,12 @@ class HTML:
             sage: html('<hr>')
             <html><font color='black'><hr></font></html>
         """
-        return HTMLExpr(self.eval(s, globals, locals))
+        return HTMLExpr(self._eval(s, globals, locals))
 
-    def eval(self, s, globals=None, locals=None):
+    def _eval(self, s, globals=None, locals=None):
         """
         EXAMPLES:
-            sage: html.eval('<hr>')
+            sage: html._eval('<hr>')
             <html><font color='black'><hr></font></html>
             ''
         """
@@ -148,5 +148,118 @@ class HTML:
             s = s[j+7:]
         print "<html><font color='black'>%s</font></html>"%t
         return ''
+
+    def table(self, x, header = False):
+        r"""
+        Print a nested list as a HTML table.
+
+        EXAMPLES:
+            sage: html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
+            <html>
+            <div class="notruncate">
+            <table class="table_form">
+            <tbody>
+            <tr class ="row-a">
+            <td><span class="math">0</span></td>
+            <td><span class="math">0</span></td>
+            <td><span class="math">True</span></td>
+            </tr>
+            <tr class ="row-b">
+            <td><span class="math">0</span></td>
+            <td><span class="math">1</span></td>
+            <td><span class="math">False</span></td>
+            </tr>
+            <tr class ="row-a">
+            <td><span class="math">1</span></td>
+            <td><span class="math">0</span></td>
+            <td><span class="math">False</span></td>
+            </tr>
+            <tr class ="row-b">
+            <td><span class="math">1</span></td>
+            <td><span class="math">1</span></td>
+            <td><span class="math">True</span></td>
+            </tr>
+            </tbody>
+            </table>
+            </div>
+            </html>
+
+            sage: html.table(["Functions", sin(x), cos(x)], header = True)
+            <html>
+            <div class="notruncate">
+            <table class="table_form">
+            <tbody>
+            <tr>
+            <th>Functions</th>
+            </tr>
+            <tr class ="row-a">
+            <td><span class="math">\sin \left( x \right)</span></td>
+            </tr>
+            <tr class ="row-b">
+            <td><span class="math">\cos \left( x \right)</span></td>
+            </tr>
+            </tbody>
+            </table>
+            </div>
+            </html>
+        """
+        import types
+        from sage.misc.all import latex
+        from itertools import cycle
+        if isinstance(x, types.GeneratorType):
+            x = list(x)
+        if isinstance(x, (list, tuple)):
+            rows = len(x)
+            if rows > 0:
+                # if the table has less then 100 rows, don't truncate the output in the notebook
+                if rows <= 100:
+                    print "<html>\n<div class=\"notruncate\">\n<table class=\"table_form\">\n<tbody>"
+                else:
+                    print "<html>\n<div class=\"truncate\">\n<table class=\"table_form\">\n<tbody>"
+
+                if header == True:
+                    print "<tr>"
+                    self._table_columns(x[0], True)
+                    print "</tr>"
+                    x = x[1:]
+
+                for row_class, row in zip(cycle(["row-a", "row-b"]), x):
+                    print "<tr class =\"%s\">" % row_class
+                    self._table_columns(row, False)
+                    print "</tr>"
+                print "</tbody>\n</table>\n</div>\n</html>"
+
+    def _table_columns(self, row, header = False):
+        r"""
+        Print the items of a list as the columns of a HTML table.
+
+        TESTS:
+            sage: html._table_columns(["a",1, sin(x)])
+            <td>a</td>
+            <td><span class="math">1</span></td>
+            <td><span class="math">\sin \left( x \right)</span></td>
+
+            sage: html._table_columns("a", header = True)
+            <th>a</th>
+        """
+        if header == False:
+            column_tag = "<td>%s</td>"
+        else:
+            column_tag = "<th>%s</th>"
+
+        from sage.plot.plot import Graphics
+        import types
+        if isinstance(row, types.GeneratorType):
+            row = list(row)
+        elif not isinstance(row, (list, tuple)):
+            row = [row]
+
+        for column in xrange(len(row)):
+            if isinstance(row[column], Graphics):
+                print column_tag % row[column].show(linkmode = True)
+            elif isinstance(row[column], str):
+                print column_tag % row[column]
+            else:
+                print column_tag % ('<span class="math">' + latex(row[column]) + '</span>')
 
 html = HTML()

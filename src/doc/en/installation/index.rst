@@ -16,8 +16,6 @@ This work is licensed under a `Creative Commons Attribution-Share Alike
 __ http://creativecommons.org/licenses/by-sa/3.0/
 
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

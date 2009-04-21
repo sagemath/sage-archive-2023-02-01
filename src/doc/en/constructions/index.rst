@@ -25,8 +25,6 @@ information. Moreover, all these can be tested in the Sage notebook
 interface http://www.sagenb.org/ on the web.
 
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

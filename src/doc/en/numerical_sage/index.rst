@@ -25,9 +25,6 @@ to be comprehensive. Instead the goal is to be a road map and orient
 the reader to the packages relevant to numerical computation and to
 where they can find more information.
 
-
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

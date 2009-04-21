@@ -12,7 +12,7 @@ exactly like with matrices, since we'll have to define a bunch of
 special purpose implementations of vectors easily and
 systematically.
 
-EXAMPLES: We create a vector space over `\mathbb{Q}` and a
+EXAMPLES: We create a vector space over `\QQ` and a
 subspace of this space.
 
 ::
@@ -35,7 +35,7 @@ not from `V` to `W`.
     sage: W.0 - V.0
     (-1, 1, 0, 0, 0)
 
-Next we define modules over `\mathbb{Z}` and a finite
+Next we define modules over `\ZZ` and a finite
 field.
 
 ::
@@ -43,10 +43,10 @@ field.
     sage: K = ZZ^5
     sage: M = GF(7)^5
 
-Arithmetic between the `\mathbb{Q}` and
-`\mathbb{Z}` modules is defined, and the result is always
-over `\mathbb{Q}`, since there is a canonical coercion map
-to `\mathbb{Q}`.
+Arithmetic between the `\QQ` and
+`\ZZ` modules is defined, and the result is always
+over `\QQ`, since there is a canonical coercion map
+to `\QQ`.
 
 ::
 
@@ -56,14 +56,14 @@ to `\mathbb{Q}`.
     Vector space of dimension 5 over Rational Field
 
 Since there is no canonical coercion map to the finite field from
-`\mathbb{Q}` the following arithmetic is not defined::
+`\QQ` the following arithmetic is not defined::
 
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
-However, there is a map from `\mathbb{Z}` to the finite
+However, there is a map from `\ZZ` to the finite
 field, so the following is defined, and the result is in the finite
 field.
 
@@ -202,7 +202,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: free_module_element([1/3, -4/5])
         (1/3, -4/5)
 
-    Make a vector mod 3 out of a vector over `\mathbb{Z}`::
+    Make a vector mod 3 out of a vector over `\ZZ`::
 
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
@@ -329,52 +329,6 @@ def prepare_dict(w, R):
     for key, value in Z:
         X[key] = value
     return prepare(X, R)
-
-vector_delimiters = ['(', ')']
-
-def set_vector_latex_delimiters(left='(', right=')'):
-    r"""
-    Change the left and right delimiters for the LaTeX representation
-    of vectors
-
-    INPUT:
-
-    - ``left``, ``right`` - strings (default '(' and ')', respectively)
-
-    Good choices for ``left`` and ``right`` are any delimiters which
-    LaTeX understands and knows how to resize; some examples are:
-
-    - parentheses: '(', ')'
-    - brackets: '[', ']'
-    - braces: '\\{', '\\}'
-    - vertical lines: '|'
-    - angle brackets: '\\langle', '\\rangle'
-
-    .. note::
-
-       Putting aside aesthetics, you may combine these in any way
-       imaginable; for example, you could set ``left`` to be a
-       right-hand bracket ']' and ``right`` to be a right-hand brace
-       '\\}', and it will be typeset correctly.
-
-    EXAMPLES::
-
-        sage: a = vector(QQ, [1,2,3])
-        sage: latex(a)
-        \left(1,2,3\right)
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters("[", "]")
-        sage: latex(a)
-        \left[1,2,3\right]
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters("\\{", "\\}")
-        sage: latex(a)
-        \left\{1,2,3\right\}
-
-    Reset to default::
-
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters()
-    """
-    global vector_delimiters
-    vector_delimiters = [left, right]
 
 cdef class FreeModuleElement(element_Vector):   # abstract base class
     """
@@ -1445,9 +1399,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _latex_(self):
         """
-        Return a latex representation of self. For example, if self is the
-        free module element (1,2,3,4), then following latex is generated:
-        "(1,2,3,4)" (without the quotes).
+        Return a latex representation of self. For example, if self is
+        the free module element (1,2,3,4), then following latex is
+        generated: "(1,2,3,4)" (without the quotes).  The vector is
+        enclosed in parentheses by default, but the delimiters can be
+        changed using the command ``latex.vector_delimiters(...)``.
 
         EXAMPLES::
 
@@ -1455,9 +1411,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: latex(v)
             \left(1,2,3\right)
         """
+        latex = sage.misc.latex.latex
+        vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
         for a in self.list():
-            s = s + sage.misc.latex.latex(a) + ','
+            s = s + latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right' + vector_delimiters[1]

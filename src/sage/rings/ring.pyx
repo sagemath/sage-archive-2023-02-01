@@ -1549,7 +1549,7 @@ cdef class FiniteField(Field):
             e = "^{%s}"%self.degree()
         else:
             e = ""
-        return "\\mathbf{F}_{%s%s}"%(self.characteristic(), e)
+        return "\\Bold{F}_{%s%s}"%(self.characteristic(), e)
 
     def _gap_init_(self):
         """

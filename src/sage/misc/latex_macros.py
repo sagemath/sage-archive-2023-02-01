@@ -58,7 +58,7 @@ def produce_latex_macro(name, *sample_args):
 
         sage: from sage.misc.latex_macros import produce_latex_macro
         sage: produce_latex_macro('ZZ')
-        '\\newcommand{\\ZZ}{\\mathbf{Z}}'
+        '\\newcommand{\\ZZ}{\\Bold{Z}}'
 
     If the Sage object takes arguments, then the LaTeX macro will
     accept arguments as well. You must pass valid arguments, which
@@ -67,13 +67,13 @@ def produce_latex_macro(name, *sample_args):
     example::
 
          sage: produce_latex_macro('GF', 37)
-         '\\newcommand{\\GF}[1]{\\mathbf{F}_{#1}}'
+         '\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}'
 
     If the Sage object is not in the global name space, describe it
     like so::
 
          sage: produce_latex_macro('sage.rings.finite_field.FiniteField', 3)
-         '\\newcommand{\\FiniteField}[1]{\\mathbf{F}_{#1}}'
+         '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
     from sage.misc.latex import latex
     names_split = name.rsplit('.', 1)
@@ -117,10 +117,10 @@ def convert_latex_macro_to_jsmath(macro):
     EXAMPLES::
 
         sage: from sage.misc.latex_macros import convert_latex_macro_to_jsmath
-        sage: convert_latex_macro_to_jsmath('\\newcommand{\\ZZ}{\\mathbf{Z}}')
-        "jsMath.Macro('ZZ','\\\\mathbf{Z}')"
-        sage: convert_latex_macro_to_jsmath('\\newcommand{\\GF}[1]{\\mathbf{F}_{#1}}')
-        "jsMath.Macro('GF','\\\\mathbf{F}_{#1}',1)"
+        sage: convert_latex_macro_to_jsmath('\\newcommand{\\ZZ}{\\Bold{Z}}')
+        "jsMath.Macro('ZZ','\\\\Bold{Z}')"
+        sage: convert_latex_macro_to_jsmath('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
+        "jsMath.Macro('GF','\\\\Bold{F}_{#1}',1)"
     """
     left_bracket = macro.find('[')
     right_bracket = macro.find('[')
@@ -171,4 +171,10 @@ macros = [["ZZ"],
           ]
 
 sage_latex_macros = [produce_latex_macro(*x) for x in macros]
+# The following is to allow customization of typesetting of rings:
+# mathbf vs mathbb.  See latex.py for more information.
+sage_configurable_latex_macros = ["\\newcommand{\\Bold}[1]{\\mathbf{#1}}"]
+
+sage_latex_macros += sage_configurable_latex_macros
+
 sage_jsmath_macros = [convert_latex_macro_to_jsmath(m) for m in sage_latex_macros]

@@ -235,7 +235,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return "Integer Ring"
 
     def _latex_(self):
-        return "\\mathbf{Z}"
+        return "\\Bold{Z}"
 
     def __len__(self):
         raise TypeError, 'len() of unsized object'

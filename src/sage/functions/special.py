@@ -1096,6 +1096,50 @@ def spherical_harmonic(m,n,x,y):
 
 ####### elliptic functions and integrals
 
+def elliptic_j(z):
+   r"""
+   Returns the elliptic modular `j`-function evaluated at `z`.
+
+   INPUT:
+
+   - ``z`` (complex) -- a complex number with positive imaginary part.
+
+   OUTPUT:
+
+   (complex) The value of `j(z)`.
+
+   ALGORITHM:
+
+   Calls the ``pari`` function ``ellj()``.
+
+   AUTHOR:
+
+   John Cremona
+
+   EXAMPLES::
+
+       sage: elliptic_j(CC(i))
+       1728.00000000000
+       sage: elliptic_j(sqrt(-2.0))
+       8000.00000000000
+       sage: z = ComplexField(100)(1,sqrt(11))/2
+       sage: elliptic_j(z)
+       -32768.000...
+       sage: elliptic_j(z).real().round()
+       -32768
+
+   """
+   CC = z.parent()
+   from sage.rings.complex_field import is_ComplexField
+   if not is_ComplexField(CC):
+      CC = ComplexField()
+      try:
+         z = CC(z)
+      except ValueError:
+         raise ValueError, "elliptic_j only defined for complex arguments."
+   from sage.libs.all import pari
+   return CC(pari(z).ellj())
+
 def jacobi(sym,x,m):
     r"""
     Here sym = "pq", where p,q in c,d,n,s. This returns the value of

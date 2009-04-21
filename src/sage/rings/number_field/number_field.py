@@ -7060,12 +7060,14 @@ class NumberField_quadratic(NumberField_absolute):
             sage: K.hilbert_class_field_defining_polynomial()
             x^3 + x^2 - 1
 
-        Note that this polynomial is not the actual Hilbert class polynomial.
+        Note that this polynomial is not the actual Hilbert class polynomial: see ``hilbert_class_polynomial``.
 
         ::
 
-            sage: magma(K.discriminant()).HilbertClassPolynomial()       # optional - magma
-            $.1^3 + 3491750*$.1^2 - 5151296875*$.1 + 12771880859375
+            sage: K.hilbert_class_polynomial()
+            x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
+
+        ::
 
             sage: K.<a> = QuadraticField(-431)
             sage: K.class_number()
@@ -7123,37 +7125,8 @@ class NumberField_quadratic(NumberField_absolute):
         if D > 0:
             raise NotImplementedError, "Hilbert class polynomial is not implemented for real quadratic fields."
 
-        # get all reduced quadratic forms
-        from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-        rqf = BinaryQF_reduced_representatives(D)
-
-        # compute needed  precision
-        # (according to [http://arxiv.org/abs/0802.0979v1])
-        N = (D.abs()//3).isqrt()+1
-        h = len(rqf)
-        a_s = [1/qf.a for qf in rqf]
-        from sage.rings.all import RR
-        prec = RR(sum(a_s, 0)*5.1416*D.abs().isqrt()+h*2.48).floor()+1
-        prec = max(prec, 71)
-
-        # set appropriate precision for further computing
-        from sage.rings.all import ComplexField
-        __CC = ComplexField(prec)
-
-        Dsqrt = D.sqrt(prec=prec)
-        R = __CC['t']
-        t = R.gen()
-        pol = R(1)
-        for qf in rqf:
-            tau = (qf.b+Dsqrt)/(qf.a<<1)
-            jinv = pari(tau).ellj()
-            pol = pol * (t - __CC(jinv))
-
-        coeffs = [cof.real().round() for cof in pol.coeffs()]
-        R = ZZ[name]
-        return R(coeffs)
-
-
+        from sage.schemes.elliptic_curves.all import hilbert_class_polynomial as HCP
+        return QQ[name](HCP(D))
 
 def is_fundamental_discriminant(D):
     r"""

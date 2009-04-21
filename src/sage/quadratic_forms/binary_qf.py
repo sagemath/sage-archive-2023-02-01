@@ -267,6 +267,48 @@ class BinaryQF(SageObject):
         """
         return is_fundamental_discriminant(self.discriminant())
 
+    def is_primitive(self):
+        """
+        Checks if the form $ax^2 + bxy + cy^2$  satisfies
+        $\gcd(a,b,c)=1$, i.e., is primitive.
+
+        EXAMPLES:
+            sage: Q = BinaryQF([6,3,9])
+            sage: Q.is_primitive()
+            False
+
+            sage: Q = BinaryQF([1,1,1])
+            sage: Q.is_primitive()
+            True
+
+            sage: Q = BinaryQF([2,2,2])
+            sage: Q.is_primitive()
+            False
+
+            sage: rqf = BinaryQF_reduced_representatives(-23*9)
+            sage: [qf.is_primitive() for qf in rqf]
+            [True, True, True, False, True, True, False, False, True]
+            sage: rqf
+            [x^2 + x*y + 52*y^2,
+            2*x^2 - x*y + 26*y^2,
+            2*x^2 + x*y + 26*y^2,
+            3*x^2 + 3*x*y + 18*y^2,
+            4*x^2 - x*y + 13*y^2,
+            4*x^2 + x*y + 13*y^2,
+            6*x^2 - 3*x*y + 9*y^2,
+            6*x^2 + 3*x*y + 9*y^2,
+            8*x^2 + 7*x*y + 8*y^2]
+            sage: [qf for qf in rqf if qf.is_primitive()]
+            [x^2 + x*y + 52*y^2,
+            2*x^2 - x*y + 26*y^2,
+            2*x^2 + x*y + 26*y^2,
+            4*x^2 - x*y + 13*y^2,
+            4*x^2 + x*y + 13*y^2,
+            8*x^2 + 7*x*y + 8*y^2]
+        """
+        from sage.rings.arith import gcd
+        return gcd(list(self))==1
+
     def is_weakly_reduced(self):
         """
         Checks if the form $ax^2 + bxy + cy^2$  satisfies
@@ -286,7 +328,7 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for nagative discriminants"
+            raise NotImplementedError, "only implemented for negative discriminants"
         return (abs(self.b) <= self.a) and (self.a <= self.c)
 
     def reduced_form(self):
@@ -379,19 +421,28 @@ class BinaryQF(SageObject):
         return [z  for z in Q1.complex_roots()  if z.imag() > 0][0]
 
 
-def BinaryQF_reduced_representatives(D):
-    """
-    Returns a list of inequivalent reduced representatives for the equivalence
-    classes of positive definite binary forms of discriminant D.
+def BinaryQF_reduced_representatives(D, primitive_only=False):
+    r"""
+    Returns a list of inequivalent reduced representatives for the
+    equivalence classes of positive definite binary forms of
+    discriminant D.
 
-    NOTE: A form $a x^2 + b xy + c y^2$ is reduced if $|b| \le a \le c$
-    and if $b \ge 0$ unless $|b| < a < c$. The list of representatives is
-    ordered lexicographically.
+    INPUT:
 
-    WARNING: The representatives are not necessarily primitive, unless the
-    discriminant is fundamental!
+    - ``D`` (int) -- A negative discriminant.
 
-    EXAMPLES:
+    - ``primitive_only`` (bool, default False) -- flag controlling whether only primitive forms are included.
+
+    OUTPUT:
+
+    (list) A ordered Lexicographically list of inequivalent reduced
+    representatives for the equivalence classes of positive definite
+    binary forms of discriminant `D`.  If ``primitive_only`` is
+    ``True`` then imprimitive forms (which only exist when `D` is not
+    fundamental) are omitted; otherwise they are included.
+
+    EXAMPLES::
+
         sage: BinaryQF_reduced_representatives(-4)
         [x^2 + y^2]
 
@@ -421,14 +472,38 @@ def BinaryQF_reduced_representatives(D):
         689
         sage: QuadraticField(-p, 'a').class_number()
         689
+
+        sage: BinaryQF_reduced_representatives(-23*9)
+        [x^2 + x*y + 52*y^2,
+        2*x^2 - x*y + 26*y^2,
+        2*x^2 + x*y + 26*y^2,
+        3*x^2 + 3*x*y + 18*y^2,
+        4*x^2 - x*y + 13*y^2,
+        4*x^2 + x*y + 13*y^2,
+        6*x^2 - 3*x*y + 9*y^2,
+        6*x^2 + 3*x*y + 9*y^2,
+        8*x^2 + 7*x*y + 8*y^2]
+        sage: BinaryQF_reduced_representatives(-23*9, primitive_only=True)
+        [x^2 + x*y + 52*y^2,
+        2*x^2 - x*y + 26*y^2,
+        2*x^2 + x*y + 26*y^2,
+        4*x^2 - x*y + 13*y^2,
+        4*x^2 + x*y + 13*y^2,
+        8*x^2 + 7*x*y + 8*y^2]
     """
     D = ZZ(D)
     if not ( D < 0 and (D % 4 in [0,1])):
         raise ValueError, "discriminant is not valid and positive definite"
 
+    # For a fundamental discriminant all forms are primitive so we need not check:
+    if primitive_only:
+        primitive_only = not is_fundamental_discriminant(D)
+
     form_list = []
 
     from sage.misc.all import xsrange
+    from sage.rings.arith import gcd
+
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2
     for a in xsrange(1,1+((-D)//3).isqrt()):
@@ -440,9 +515,10 @@ def BinaryQF_reduced_representatives(D):
             t = b*b-D
             if t % a4 == 0:
                 c = t // a4
-                if b>0 and a>b and c>a:
-                    form_list.append(BinaryQF([a,-b,c]))
-                form_list.append(BinaryQF([a,b,c]))
+                if (not primitive_only) or gcd([a,b,c])==1:
+                    if b>0 and a>b and c>a:
+                        form_list.append(BinaryQF([a,-b,c]))
+                    form_list.append(BinaryQF([a,b,c]))
 
     form_list.sort()
     return form_list

@@ -37,7 +37,7 @@ from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
                      inverse_jacobi,
                      lngamma, exp_int, error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
-                     elliptic_kc, elliptic_pi,
+                     elliptic_kc, elliptic_pi, elliptic_j,
                      airy_ai, airy_bi)
 
 from orthogonal_polys import (chebyshev_T,

@@ -620,7 +620,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             False
         """
         item = PermutationGroupElement(item, self, check=False)
-        return item in self.list()
+        return item in self
 
     def __iter__(self):
         """

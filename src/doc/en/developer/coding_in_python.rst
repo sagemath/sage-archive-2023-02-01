@@ -1,3 +1,5 @@
+.. _chapter-python:
+
 =========================
 Coding in Python for Sage
 =========================

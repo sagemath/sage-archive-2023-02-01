@@ -354,12 +354,43 @@ You are strongly encouraged to:
 
    .. note::
 
-      Note that in ReST documentation, you use backticks `` \` `` to
-      mark LaTeX code to be typeset.
+      In ReST documentation, you use backticks \` to mark LaTeX code
+      to be typeset.
 
-   .. warning::
+      LaTeX style: typeset standard rings and fields like the integers
+      and the real numbers using the locally-defined macro ``\\Bold``,
+      as in ``\\Bold{Z}`` for the integers. This macro is defined to be
+      ordinary bold-face ``\\mathbf`` by default, but users can switch to
+      blackboard-bold ``\\mathbb`` and back on-the-fly by using
+      ``latex.blackboard_bold(True)`` and
+      ``latex.blackboard_bold(False)``.
 
-      Currently, non-standard LaTeX macros are note supported.
+      The docstring will be available interactively (for the "def
+      point..." example above, by typing "point?" at the "sage:"
+      prompt) and also in the reference manual. When viewed
+      interactively, LaTeX code has the backslashes stripped from it,
+      so "\\cos" will appear as "cos".
+
+      Because of the dual role of the docstring, you need to strike a
+      balance between readability (for interactive help) and using
+      perfect LaTeX code (for the reference manual).  For instance,
+      instead of using "\\frac{a}{b}", use "a/b" or maybe "a b^{-1}".
+      Also keep in mind that some users of Sage are not familiar with
+      LaTeX; this is another reason to avoid complicated LaTeX
+      expressions in docstrings, if at all possible: "\\frac{a}{b}"
+      will be obscure to someone who doesn't know any LaTeX.
+
+      Finally, a few non-standard LaTeX macros are available to help
+      achieve this balance, including "\\ZZ", "\\RR", "\\CC", and
+      "\\QQ".  These are names of Sage rings, and they are typeset
+      using a single boldface character; they allow the use of "\\ZZ"
+      in a docstring, for example, which will appear interactively as
+      "ZZ" while being typeset as "\\Bold{Z}" in the reference
+      manual.  Other examples are "\\GF" and "\\Zmod", each of which
+      takes an argument: "\\GF{q}" is typeset as "\\Bold{F}_{q}" and
+      "\\Zmod{n}" is typeset as "\\Bold{Z}/n\\Bold{Z}".  See the
+      file ``$SAGE_ROOT/devel/sage/sage/misc/latex_macros.py`` for a
+      full list and for details about how to add more macros.
 
 -  Liberally describe what the examples do. Note that there must be
    a blank line after the example code and before the explanatory text
@@ -374,6 +405,60 @@ You are strongly encouraged to:
    break something else might not go seen until much later when
    someone uses the system, which is unacceptable. Note that new
    functions without doctests will not be accepted for inclusion in Sage.
+
+.. warning::
+
+   Functions whose names start with an underscore do not currently
+   appear in the reference manual, so avoid putting crucial
+   documentation in their docstrings. In particular, if you are
+   defining a class, you might put a long informative docstring after
+   the class definition, not for the ``__init__`` method. For example,
+   from the file ``SAGE_ROOT/devel/sage/sage/crypto/classical.py``:
+
+   ::
+
+    class HillCryptosystem(SymmetricKeyCryptosystem):
+        """
+        Create a Hill cryptosystem defined by the `m` x `m` matrix space
+        over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
+        the string monoid ``S``.
+
+        INPUT:
+
+        - ``S`` - a string monoid over some alphabet
+
+        - ``m`` - integer `> 0`; the block length of matrices that specify
+          block permutations
+
+        OUTPUT:
+
+        - A Hill cryptosystem of block length ``m`` over the alphabet ``S``.
+
+        EXAMPLES::
+
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: E
+            Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+	"""
+
+   and so on, while the ``__init__`` method starts like this::
+
+        def __init__(self, S, m):
+            """
+            See ``HillCryptosystem`` for full documentation.
+
+	    EXAMPLES::
+	    ...
+	    """
+
+   Note also that the first docstring is printed if users type
+   "HillCryptosystem?" at the "sage:" prompt.
+
+   (Before Sage 3.4, the reference manual used to include methods
+   starting with underscores, so you will probably find many examples
+   in the code which don't follow this advice...)
+
 
 Automatic Testing
 -----------------

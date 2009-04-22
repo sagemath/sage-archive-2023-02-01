@@ -1,5 +1,9 @@
-"""
+r"""
 Elliptic curves over a general field
+
+This module defines the class ``EllipticCurve_field``, based on
+``EllipticCurve_generic``, for elliptic curves over general fields.
+
 """
 
 #*****************************************************************************
@@ -14,10 +18,22 @@ import ell_generic
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     def _check_satisfies_equations(self, v):
-        """
-        Verify that the coordinates of v = [a,b,c] define a point on this
-        scheme, or raise a TypeError. Note that c is assumed to equal
-        either 0 or 1.
+        r"""
+        Verify that a coordinate triple satisfies the equations of
+        this elliptic curve.
+
+        INPUT:
+
+        - ``v`` (list or tuple) -- homogeneous coordinates of a point in `\mathbb{P}^2`.
+
+        .. warning::
+
+           ``v[2]`` must be 0 or 1.
+
+        OUTPUT:
+
+        Nothing if the equations are satisfied; a TypeError is raised
+        if not.
 
         EXAMPLES::
 
@@ -29,12 +45,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             ...
             TypeError: coordinates [0, 0, 0] do not define a point on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         """
-        if v[2] == 0:
-            if not (v[0] == 0 and v[1] != 0):
+        x, y, z = v
+        if z == 0:
+            if not (x == 0 and y != 0):
                 self._error_bad_coords(v)
             return
-        x, y, a = v[0], v[1], self.ainvs()
-        if y**2 + a[0]*x*y + a[2]*y != x**3 + a[1]*x**2 + a[3]*x + a[4]:
+        a1, a2, a3, a4, a6 = self.ainvs()
+        if y**2 + (a1*x + a3)*y != x*(x*(x+a2)+a4)+a6:
+#        if y**2 + (a[0]*x + a[2])*y != x*(x*(x+a[1])+a[3])+a[4]:
             self._error_bad_coords(v)
 
 

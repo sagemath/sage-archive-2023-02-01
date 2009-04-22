@@ -4000,3 +4000,30 @@ def fundamental_discriminant(D):
     if D%4 == 1:
         return D
     return 4*D
+
+def squarefree_divisors(x):
+    """
+    Iterator over the squarefree divisors (up to units) of the element x.
+
+    Depends on the output of the prime_divisors function.
+
+    INPUT::
+
+        x -- an element of any ring for which the prime_divisors
+             function works.
+
+    EXAMPLES::
+
+        sage: list(squarefree_divisors(7))
+        [1, 7]
+        sage: list(squarefree_divisors(6))
+        [1, 2, 3, 6]
+        sage: list(squarefree_divisors(12))
+        [1, 2, 3, 6]
+
+    """
+    p_list = prime_divisors(x)
+    from sage.misc.misc import powerset
+    for a in powerset(p_list):
+        yield prod(a,1)
+

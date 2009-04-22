@@ -619,7 +619,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.has_element(h)
             False
         """
-        item = PermutationGroupElement(item, self, check=False)
         return item in self
 
     def __iter__(self):
@@ -1839,7 +1838,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         gens = self.gens()
         for i in range(len(gens)):
             x = gens[i]
-            if not (G.has_element(x)):
+            if not (x in G):
                 return False
         return True
 

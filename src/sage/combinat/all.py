@@ -14,6 +14,8 @@ from combinatorial_algebra import CombinatorialAlgebra
 
 from schubert_polynomial import SchubertPolynomialRing, is_SchubertPolynomial
 from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
+from symmetric_group_representations import SymmetricGroupRepresentation, SymmetricGroupRepresentations
+from yang_baxter_graph import YangBaxterGraph
 #from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition

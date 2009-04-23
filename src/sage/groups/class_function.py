@@ -135,10 +135,14 @@ class ClassFunction(SageObject):
             sage: g = G.conjugacy_class_representatives()[6]
             sage: chi(g)
             zeta8^3 + zeta8
+
+            sage: G = SymmetricGroup(3)
+            sage: h = G((2,3))
+            sage: triv = G.trivial_character()
+            sage: triv(h)
+            1
         """
-        rep = self._group._gap_().ConjugacyClass(g).Representative()
-        reps = [x.Representative() for x in gap(self._group).ConjugacyClasses()]
-        return self._base_ring(self._gap_classfunction[reps.index(rep)+1])
+        return self._base_ring(gap(g)._operation("^", self._gap_classfunction))
 
     def __add__(self, other):
         r"""

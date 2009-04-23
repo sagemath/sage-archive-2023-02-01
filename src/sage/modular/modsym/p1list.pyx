@@ -203,27 +203,36 @@ def p1list_int(int N):
         (40, 11),
         (60, 1)]
     """
-    cdef int g, u, v, s, c, d
+    cdef int g, u, v, s, c, d, h, d1, cmax
     cdef object lst
 
     if N==1: return [(0,0)]
 
     _sig_on
-    lst = [(0,1), (1,0)]
-    for c from 1 <= c < N:
-        lst.append((1,c))
-        g = arith_int.c_gcd_int(c,N)
-        if g > 1:
-            c_p1_normalize_int(N, c, 1, &u, &v, &s, 0)
-            lst.append((u,v))
-            if g==c:  # is a divisor
-                for d from 2 <= d < N:
-                    if arith_int.c_gcd_int(d,N)>1 and arith_int.c_gcd_int(d,c)==1:
-                        c_p1_normalize_int(N, c, d, &u, &v, &s, 0)
-                        lst.append((u,v))
+    lst = [(0,1)]
+    c = 1
+    for d from 0 <= d < N:
+        lst.append((c,d))
+
+    cmax = N/2
+    if N%2:   # N odd, max divisor is <= N/3
+        if N%3:  # N not a multiple of 3 either, max is N/5
+            cmax = N/5
+        else:
+            cmax = N/3
+
+    for c from 2 <= c <= cmax:
+        if N%c == 0:  # c is a proper divisor
+            h = N/c
+            g = arith_int.c_gcd_int(c,h)
+            for d from 1 <= d <= h:
+                if arith_int.c_gcd_int(d,g)==1:
+                    d1 = d
+                    while arith_int.c_gcd_int(d1,c)!=1:
+                        d1 += h
+                    c_p1_normalize_int(N, c, d1, &u, &v, &s, 0)
+                    lst.append((u,v))
     _sig_off
-    # delete duplicate entries
-    lst = list(set(lst))
     lst.sort()
     return lst
 
@@ -421,25 +430,34 @@ def p1list_llong(int N):
         sage: L[len(L)-1]
         (25000, 1)
     """
-    cdef int g, u, v, s, c, d
+    cdef int g, u, v, s, c, d, h, d1, cmax
     if N==1: return [(0,0)]
 
-    lst = [(0,1), (1,0)]
+    lst = [(0,1)]
     _sig_on
-    for c from 1 <= c < N:
-        lst.append((1,c))
-        g = arith_int.c_gcd_int(c,N)
-        if g > 1:
-            c_p1_normalize_llong(N, c, 1, &u, &v, &s, 0)
-            lst.append((u,v))
-            if g==c:  # is a divisor
-                for d from 2 <= d < N:
-                    if arith_int.c_gcd_int(d,N)>1 and arith_llong.c_gcd_longlong(d,c)==1:
-                        c_p1_normalize_llong(N, c, d, &u, &v, &s, 0)
-                        lst.append((u,v))
+    c = 1
+    for d from 0 <= d < N:
+        lst.append((c,d))
+
+    cmax = N/2
+    if N%2:   # N odd, max divisor is <= N/3
+        if N%5:  # N not a multiple of 3 either, max is N/5
+            cmax = N/5
+        else:
+            cmax = N/3
+
+    for c from 2 <= c <= cmax:
+        if N%c == 0:  # c is a proper divisor
+            h = N/c
+            g = arith_int.c_gcd_int(c,h)
+            for d from 1 <= d <= h:
+                if arith_int.c_gcd_int(d,g)==1:
+                    d1 = d
+                    while arith_int.c_gcd_int(d1,c)!=1:
+                        d1 += h
+                    c_p1_normalize_llong(N, c, d1, &u, &v, &s, 0)
+                    lst.append((u,v))
     _sig_off
-    # delete duplicate entries
-    lst = list(set(lst))
     lst.sort()
     return lst
 

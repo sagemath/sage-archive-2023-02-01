@@ -25,9 +25,18 @@ def coverage_all(directory):
 
     print ''.join(s)
 
-    print "Overall weighted coverage score:  %.1f%%"%(float(scr) / total)
+    score = (float(scr) / total)
+    print "Overall weighted coverage score:  %.1f%%"%score
     print "Total number of functions: ", total
 
+    # Print up to 3 doctest coverage goals.
+    i = 0
+    for goal in [68, 70, 75, 80, 85, 90, 95, 99]:
+        if score < goal:
+            i += 1
+            if i > 3: break
+            need = int((goal*total - scr)/100.0)
+            print "We need %4s more function to get to %s%% coverage."%(need,goal)
 
 if len(sys.argv) == 1:
     coverage_all('%s/devel/sage/sage/'%os.environ["SAGE_ROOT"])

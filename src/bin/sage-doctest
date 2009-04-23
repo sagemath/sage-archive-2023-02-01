@@ -15,7 +15,7 @@ TIMEOUT_LONG = 30 * 60
 TIMEOUT_VALGRIND = 1024*1024
 
 # System imports
-import os, re, sys, signal, time, shutil, tempfile
+import os, re, sys, signal, time, shutil, tempfile, random
 
 
 long_time          = False
@@ -23,6 +23,7 @@ only_optional      = False
 only_optional_tags = set([])
 optional           = False
 verbose            = False
+random_order       = False         # default is that tests aren't run in random order
 
 argv = sys.argv
 
@@ -88,7 +89,39 @@ except:
 ######################################################
 # The Python binary
 ######################################################
-PYTHON = SAGE_ROOT + "/local/bin/python"
+PYTHON = "python"
+
+
+def pad_zeros(s, size):
+    """
+    INPUT:
+       - `s` -- something coercible to string
+       - `size` -- integer
+
+    Return s as a string with 0's padded on the left so the string has
+    length exactly size.
+    """
+    s = str(s)
+    return "0"*(size-len(s)) + s
+
+index_cache = set([])
+def new_index(n):
+    """
+    Return n-th example number.  If random_order is set, this is a randomly
+    chosen number that we haven't returned before.  If random_order is not
+    set, this just returns n.
+
+    INPUT:
+       - `n` -- integer
+    """
+    if random_order:
+        while True:
+            a = random.randint(0,2**32)
+            if a not in index_cache:
+                index_cache.add(a)
+                return a
+    else:
+        return n
 
 def test_code(filename):
     dict = { 'DIR'             : repr('%s/local/bin' % SAGE_ROOT),
@@ -273,12 +306,17 @@ def only_optional_include(s):
     return (len(v) > 0 and v.issubset(only_optional_tags))
 
 
-def extract_doc(file_name, module):
+def extract_doc(file_name, library_code=False):
+    """
+    INPUT:
+        file_name -- string; name of the file to extract the
+                     docstrings from.
+        library_code -- bool (default: False); if True, this file is
+                    Sage core library code, so we do not import it,
+                    and do doctest in a temporary directory.
+    """
     a = os.path.abspath(file_name)
     i = a.rfind("sage/")
-    #module_name = a[i:].replace("/",".")
-    #j = module_name.rfind(".")
-    #module_name = module_name[:j]
 
     F = open(file_name).readlines()
     # Put line numbers on every input line
@@ -342,6 +380,19 @@ def change_warning_output(file):
     import warnings
     warnings.showwarning = warning_function(file)
 """
+
+    if not library_code:
+        base, ext = os.path.splitext(file_name)
+        if ext == '.py':
+            s += "from %s import *\n\n"%(base)
+        elif ext in ['.pyx','.spyx']:
+            s += "cython(open('%s').read())\n\n"%file_name
+        elif ext == '.sage':
+            os.system('sage -preparse file_name')
+            s += "from %s import *\n\n"%(base)
+        else:
+            assert False
+
     while True:
         i = F.find('"""')
         if i == -1: break
@@ -355,7 +406,11 @@ def change_warning_output(file):
             doc = F[i:j+3]
         if len(doc):
             doc = '""">>> set_random_seed(0L)\n\n' + '>>> change_warning_output(sys.stdout)\n\n' + doc[3:]
-            s += "def %s_%s():"%(name,n)
+            if random_order:
+                n_str = pad_zeros(new_index(n),10)
+            else:
+                n_str = str(n)
+            s += "def %s_%s():"%(name,n_str)
             n += 1
             s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
@@ -494,22 +549,24 @@ def post_process(s, file, tmpname):
         s += "For whitespace errors, see the file %s"%tmpname
     return s
 
-def test_file(file):
+def test_file(file, library_code):
     if os.path.exists(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
-        s = extract_doc(file, name)
+        s = extract_doc(file, library_code=library_code)
         if len(s) == 0:
             sys.exit(0)
-        if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
-            os.environ['SAGE_TESTDIR'] = os.environ['SAGE_ROOT']+"/tmp"
-        f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
-        d = "%s/.doctest"%os.environ['SAGE_TESTDIR']
-        if not os.path.exists(d):
-            try:
-                os.makedirs(d)
-            except:
-                pass
+
+        if library_code:
+            if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
+                SAGE_TESTDIR = os.environ['SAGE_ROOT']+"/tmp"
+            else:
+                SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
+        else:
+            SAGE_TESTDIR = '.'
+
+        f = "%s/.doctest_%s.py"%(SAGE_TESTDIR,name)
+
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:
@@ -578,7 +635,7 @@ def test_file(file):
             sys.exit(4)
         elif e !=0:
             if not verbose:
-                print "A mysterious error (perphaps a memory error?) occurred, which may have crashed doctest."
+                print "A mysterious error (perhaps a memory error?) occurred, which may have crashed doctest."
             sys.exit(3)
         else:
             delete_tmpfiles()
@@ -626,6 +683,21 @@ def parse_only_opt():
             return True, set([])
     return False, []
 
+def parse_rand():
+    """
+    Randomize seed and return True if we randomize doctest order.
+    Otherwise we leave doctests in the "traditional order" and return False.
+    """
+    for j, X in enumerate(argv):
+        Z = X.lstrip('-')
+        if Z.startswith('randorder'):
+            del argv[j]
+            i = Z.find('=')
+            if i != -1:
+                random.seed(Z[i+1:])
+            return True
+    return False
+
 def usage():
     print "\n\nUsage: sage-doctest [same options as sage -t] filenames"
     sys.exit(1)
@@ -646,6 +718,7 @@ if __name__ ==  '__main__':
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
         omega      = has_opt('omega')
+        random_order = parse_rand()
         only_optional, only_optional_tags = parse_only_opt()
         if long_time:
             TIMEOUT = TIMEOUT_LONG
@@ -653,7 +726,14 @@ if __name__ ==  '__main__':
             TIMEOUT = TIMEOUT_VALGRIND
         if argv[1][0] == '-':
             usage()
+
+        library_code = True
+        ext = os.path.splitext(argv[1])[1]
+        if ext in ['.spyx', '.sage'] or \
+                 not (SAGE_ROOT.strip('/') + '/devel' in os.path.abspath(argv[1])):
+            library_code = False
+
         try:
-            test_file(argv[1])
+            test_file(argv[1], library_code = library_code)
         except KeyboardInterrupt:
             sys.exit(1)

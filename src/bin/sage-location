@@ -33,6 +33,18 @@ def install_moved():
     return False, ''
 
 
+# The flags we care about recording in the local/lib/sage-flags.txt file
+# In SSE2 only mode remove pni and ssse3 flags
+try:
+    SAGE_SIMD_MODE = os.environ['SAGE_SIMD_MODE']
+except:
+    SAGE_SIMD_MODE = ""
+
+if SAGE_SIMD_MODE == "SSE2":
+    FLAGS = ['sse', 'sse2', '3d', 'mmx', 'cmov']
+else:
+    FLAGS = ['sse', 'sse2', 'ssse3', '3d', 'mmx', 'pni', 'cmov']
+
 def get_flags_info():
     """
     Return a space-separated string that lists the flags supported by
@@ -46,10 +58,11 @@ def get_flags_info():
         r = r[i+1:]
         i = r.find('\n')
         r = r[:i]
+
         # This line restricts the flags to just ones that start with sse, 3d or mmx.
         # We do not want *all* flags, since some like "up" are not relevant (up = uniprocessor).
-        r = ' '.join(x for x in r.split() if x.startswith('sse') or x.startswith('3d') or x.startswith('mmx') or x.startswith('pni') or x.startswith('cmov'))
-        return r
+        return ' '.join(set(x for x in r.split() if x in FLAGS))
+
     except IOError:
         # On a system without /proc/cpuinfo, so don't bother In
         # particular, for non Linux systems I have no clue how to get
@@ -73,7 +86,7 @@ def check_processor_flags():
     if not os.path.exists(flags_file): return
     # We check that the processor flags of the original build are a
     # subset of the new machine.  If not, we print a massive warning.
-    X = set(open(flags_file).read().split())
+    X = set(open(flags_file).read().split()).intersection(FLAGS)
     Y = set(get_flags_info().split())
     if not X.issubset(Y):
         print ""

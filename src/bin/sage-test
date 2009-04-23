@@ -62,7 +62,7 @@ def skip(F):
         return True
 
     if G == "all.py" or "__init__.py" in G \
-          or 'nodoctest' in open(G).read():
+          or 'nodoctest' in open(G).read()[:50]:
         return True
 
     sys.stdout.write("%-60s"%sage_test_command(F)+"\n")
@@ -97,7 +97,7 @@ def test_file(F):
         return 1
 
     base, ext = os.path.splitext(F)
-    if ext in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
+    if ext in ['.py', '.spyx', '.pyx', '.tex', '.pxi', '.sage', '.rst']:
         return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not '/notes' in F:
@@ -121,6 +121,9 @@ if len(files) == 0:
     print "     -only-optional=list,of,tags -- only run doctests with "
     print "                       #optional <nonempty subset of tags>"
     print "      if the list of tags is omitted, run all optional doctests"
+    print "     -randorder     -- if given, randomize *order* of tests"
+    print "     -randorder=seed-- use seed to get same random order"
+
     sys.exit(1)
 
 files.sort()

@@ -3179,13 +3179,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E=EllipticCurve([1,2,3,4,5]);
+            sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: E.conductor()
-            10351
+            234446
             sage: E.cremona_label()
             Traceback (most recent call last):
             ...
-            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field.
+            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 79*x + 289 over Rational Field.
         """
         try:
             if not space:
@@ -4938,7 +4938,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: K = QuadraticField(-7,'a')
             sage: G = E.change_ring(K)
             sage: phi = F.change_ring(K).isomorphism_to(G)
-            sage: P = G(E.0) + G(E.1) + G(phi(F.0)); P
+            sage: P = G(E(-1,1)) + G((0,-1)) + G(phi(F(14,25))); P
             (-867/3872*a - 3615/3872 : -18003/170368*a - 374575/170368 : 1)
             sage: P.division_points(2)
             [(1/8*a + 5/8 : -5/16*a - 9/16 : 1)]

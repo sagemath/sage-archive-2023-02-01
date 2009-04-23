@@ -275,7 +275,6 @@ class Worksheet:
         self.__dir = '%s/%s'%(notebook_worksheet_directory, filename)
 
         self.clear()
-        self.save_snapshot(owner)
 
     def __cmp__(self, other):
         """
@@ -1870,6 +1869,7 @@ class Worksheet:
         return self.notebook().user(username)['autosave_interval']
 
     def autosave(self, username):
+        return
         try:
             last = self.__last_autosave
         except AttributeError:
@@ -3894,7 +3894,6 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         """
         if not self.user_can_edit(username):
             raise ValueError, "user '%s' not allowed to edit this worksheet"%username
-        self.save_snapshot(username)
         for C in self.cell_list():
             C.delete_output()
 

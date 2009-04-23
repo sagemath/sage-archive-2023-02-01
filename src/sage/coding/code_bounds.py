@@ -179,7 +179,7 @@ REFERENCES:
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
-from sage.misc.functional import log, sqrt
+from sage.calculus.all import log, sqrt
 
 def codesize_upper_bound(n,d,q):
     r"""
@@ -358,7 +358,7 @@ def gv_info_rate(n,delta,q):
 
     EXAMPLES::
 
-        sage: gv_info_rate(100,1/4,3)
+        sage: RDF(gv_info_rate(100,1/4,3))
         0.367049926083
     """
     q = ZZ(q)

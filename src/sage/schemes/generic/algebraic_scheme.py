@@ -82,12 +82,31 @@ class AlgebraicScheme(scheme.Scheme):
     An algebraic scheme presented as a subscheme in an ambient space.
     """
     def __init__(self, A):
+        """
+        TESTS::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
+            sage: P = ProjectiveSpace(3, ZZ)
+            sage: S = AlgebraicScheme(P); S
+            Subscheme of Projective Space of dimension 3 over Integer Ring
+        """
         if not ambient_space.is_AmbientSpace(A):
             raise TypeError, "A (=%s) must be an ambient space"
         self.__A = A
-        self.__divisor_groups = {}
+        self.__divisor_group = {}
 
     def coordinate_ring(self):
+        """
+        Return the coordinate ring of this algebraic scheme.  The
+        result is cached.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([x-y, x-z])
+            sage: S.coordinate_ring()
+            Quotient of Multivariate Polynomial Ring in x, y, z over Integer Ring by the ideal (x - y, x - z)
+        """
         try:
             return self._coordinate_ring
         except AttributeError:
@@ -98,12 +117,55 @@ class AlgebraicScheme(scheme.Scheme):
             return Q
 
     def ambient_space(self):
+        """
+        Return the ambient space of this algebraic scheme.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, GF(5))
+            sage: S = A.subscheme([])
+            sage: S.ambient_space()
+            Affine Space of dimension 2 over Finite Field of size 5
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([x-y, x-z])
+            sage: S.ambient_space() is P
+            True
+        """
         return self.__A
 
     def ngens(self):
+        """
+        Return the number of generators of the ambient space of this
+        algebraic scheme.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, GF(5))
+            sage: S = A.subscheme([])
+            sage: S.ngens()
+            2
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([x-y, x-z])
+            sage: P.ngens()
+            3
+        """
         return self.__A.ngens()
 
     def _repr_(self):
+        """
+        Return a string representation of this algebraic scheme.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
+            sage: P = ProjectiveSpace(3, ZZ)
+            sage: S = AlgebraicScheme(P); S
+            Subscheme of Projective Space of dimension 3 over Integer Ring
+            sage: S._repr_()
+            'Subscheme of Projective Space of dimension 3 over Integer Ring'
+        """
         return "Subscheme of %s"%self.__A
 
     def _homset_class(self, *args, **kwds):
@@ -115,11 +177,32 @@ class AlgebraicScheme(scheme.Scheme):
 
 class AlgebraicScheme_quasi(AlgebraicScheme):
     """
-    The quasi-affine or quasi-projective scheme X - Y, where X and Y
+    The quasi-affine or quasi-projective scheme `X - Y`, where `X` and `Y`
     are both closed subschemes of a common ambient affine or projective
     space.
     """
     def __init__(self, X, Y):
+        """
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_quasi
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: T.complement(S)
+            Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              (no equations)
+              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              x - y
+
+            sage: AlgebraicScheme_quasi(S, T)
+            Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              (no equations)
+              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              x - y
+        """
         self.__X = X
         self.__Y = Y
         if not isinstance(X, AlgebraicScheme_subscheme):
@@ -133,6 +216,25 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         AlgebraicScheme.__init__(self, A)
 
     def _repr_(self):
+        """
+        Return a string representation of this algebraic scheme.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_quasi
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: U = AlgebraicScheme_quasi(S, T); U
+            Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              (no equations)
+              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              x - y
+
+            sage: U._repr_()
+            'Quasi-projective scheme X - Y, where:\n  X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:\n  (no equations)\n  Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:\n  x - y\n'
+        """
         if affine_space.is_AffineSpace(self.ambient_space()):
             t = "affine"
         else:
@@ -143,29 +245,118 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         return s
 
     def X(self):
+        """
+        Return the scheme `X` such that self is represented as `X - Y`.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: U = T.complement(S)
+            sage: U.X() is S
+            True
+        """
         return self.__X
 
     def Y(self):
-        return self.__Y
+        """
+        Return the scheme `Y` such that self is represented as `X - Y`.
 
-    def _error_bad_coords(self, v):
-        raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: U = T.complement(S)
+            sage: U.Y() is T
+            True
+        """
+        return self.__Y
 
     def _check_satisfies_equations(self, v):
         """
         Verify that the coordinates of v define a point on this scheme, or
         raise a TypeError.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([])
+            sage: T = P.subscheme([x-y])
+            sage: U = T.complement(S)
+            sage: U._check_satisfies_equations([1, 2, 0])
+            True
+            sage: U._check_satisfies_equations([1, 1, 0])
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 1, 0] do not define a point on Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              (no equations)
+              Y: Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
+              x - y
+
+            sage: U._check_satisfies_equations([1, 4])
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match number of variables in parent
+
+
+            sage: A.<x, y> = AffineSpace(2, GF(7))
+            sage: S = A.subscheme([x^2-y])
+            sage: T = A.subscheme([x-y])
+            sage: U = T.complement(S)
+            sage: U._check_satisfies_equations([2, 4])
+            True
+            sage: U._check_satisfies_equations([1, 1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 1] do not define a point on Quasi-affine scheme X - Y, where:
+              X: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+              x^2 - y
+              Y: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+              x - y
+            sage: U._check_satisfies_equations([1, 0])
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 0] do not define a point on Quasi-affine scheme X - Y, where:
+              X: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+              x^2 - y
+              Y: Closed subscheme of Affine Space of dimension 2 over Finite Field of size 7 defined by:
+              x - y
         """
         for f in self.__X.defining_polynomials():
             if f(v) != 0:
-                self._error_bad_coords(v)
+                raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
         for f in self.__Y.defining_polynomials():
             if f(v) == 0:
-                self._error_bad_coords(v)
+                raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+        return True
 
     def rational_points(self, F=None, bound=0):
         """
-        Return the set of rational points over its base ring.
+        Return the set of rational points on this algebraic scheme
+        over the field `F`.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, GF(7))
+            sage: S = A.subscheme([x^2-y])
+            sage: T = A.subscheme([x-y])
+            sage: U = T.complement(S)
+            sage: U.rational_points()
+            [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1)]
+            sage: U.rational_points(GF(7^2, 'b'))
+            [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1), (b, b + 4), (b + 1, 3*b + 5), (b + 2, 5*b + 1),
+            (b + 3, 6), (b + 4, 2*b + 6), (b + 5, 4*b + 1), (b + 6, 6*b + 5), (2*b, 4*b + 2),
+            (2*b + 1, b + 3), (2*b + 2, 5*b + 6), (2*b + 3, 2*b + 4), (2*b + 4, 6*b + 4),
+            (2*b + 5, 3*b + 6), (2*b + 6, 3), (3*b, 2*b + 1), (3*b + 1, b + 2), (3*b + 2, 5),
+            (3*b + 3, 6*b + 3), (3*b + 4, 5*b + 3), (3*b + 5, 4*b + 5), (3*b + 6, 3*b + 2),
+            (4*b, 2*b + 1), (4*b + 1, 3*b + 2), (4*b + 2, 4*b + 5), (4*b + 3, 5*b + 3),
+            (4*b + 4, 6*b + 3), (4*b + 5, 5), (4*b + 6, b + 2), (5*b, 4*b + 2), (5*b + 1, 3),
+            (5*b + 2, 3*b + 6), (5*b + 3, 6*b + 4), (5*b + 4, 2*b + 4), (5*b + 5, 5*b + 6),
+            (5*b + 6, b + 3), (6*b, b + 4), (6*b + 1, 6*b + 5), (6*b + 2, 4*b + 1), (6*b + 3, 2*b + 6),
+            (6*b + 4, 6), (6*b + 5, 5*b + 1), (6*b + 6, 3*b + 5)]
         """
         if F is None:
             F = self.base_ring()
@@ -176,18 +367,13 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             if not is_FiniteField(F):
                 raise TypeError, "Argument F (= %s) must be a finite field."%F
         pts = []
-        polys = self.__X.defining_polynomials()
-        qolys = self.__Y.defining_polynomials()
         for P in self.ambient_space().rational_points(F):
-            bool = True
-            for f in polys:
-                if f(list(P)) != 0:
-                    bool = False
-            for g in qolys:
-                if g(list(P)) == 0:
-                    bool = False
-            if bool:
-                pts.append(P)
+            try:
+                if self._check_satisfies_equations(list(P)):
+                    pts.append(P)
+            except TypeError:
+                pass
+        pts.sort()
         return pts
 
 
@@ -204,47 +390,96 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
     -  ``A`` - ambient space (affine or projective n-space
        over a ring)
 
-    -  ``G`` - ideal or tuple of defining polynomials
+    -  ``polys`` - ideal or tuple of defining polynomials
     """
-    def __init__(self, A, G):
+    def __init__(self, A, polys):
+        """
+        TESTS::
+
+            sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+            sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+            sage: P.subscheme([x^2-y*z])
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y*z
+            sage: AlgebraicScheme_subscheme(P, [x^2-y*z])
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y*z
+        """
         AlgebraicScheme.__init__(self, A)
         self._base_ring = A.base_ring()
-        if is_Ideal(G):
-            self.__I = G
-            G = G.gens()
-        if not isinstance(G, (list, tuple)):
-            G = (G, )
+        if is_Ideal(polys):
+            self.__I = polys
+            polys = polys.gens()
+        if not isinstance(polys, (list, tuple)):
+            polys = (polys, )
         else:
-            G = tuple(G)
-        if len(G) > 0:
-            G = self._validate(G)
-        R = A.coordinate_ring()
-        self.__G = tuple([R(g) for g in G])  # now G is a tuple of defining polynomials.
-
-    def _validate(self, G):
-        G = Sequence(G)  # make sure they have a common parent
-        if not is_MPolynomialRing(G.universe()):
-            raise TypeError, "each generator must be a multivariate polynomial"
-        return tuple(G)
-
-    def _error_bad_coords(self, v):
-        raise TypeError, "coordinates %s do not define a point on %s"%(list(v),self)
+            polys = tuple(polys)
+        self.__polys = A._validate(polys)  # now polys is a tuple of defining polynomials.
 
     def _check_satisfies_equations(self, v):
         """
         Verify that the coordinates of v define a point on this scheme, or
         raise a TypeError.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+            sage: S = P.subscheme([x^2-y*z])
+            sage: S._check_satisfies_equations([1, 1, 1])
+            True
+            sage: S._check_satisfies_equations([1, 0, 1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 0, 1] do not define a point on Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y*z
+            sage: S._check_satisfies_equations([0, 0, 0])
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [0, 0, 0] do not define a point on Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x^2 - y*z
         """
         for f in self.defining_polynomials():
             if f(v) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
                             # because of p-adic base rings.
-                self._error_bad_coords(v)
+                raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),self)
+        try:
+            return self.ambient_space()._check_satisfies_equations(v)
+        except TypeError:
+            raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),self)
 
     def base_extend(self, R):
+        """
+        Return the base change to the ring `R` of this scheme.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, GF(11))
+            sage: S = P.subscheme([x^2-y*z])
+            sage: S.base_extend(GF(11^2, 'b'))
+            Closed subscheme of Projective Space of dimension 2 over Finite Field in b of size 11^2 defined by:
+              x^2 - y*z
+            sage: S.base_extend(ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: No natural map from the base ring (=Finite Field of size 11) to S (=Integer Ring)
+        """
         A = self.ambient_space().base_extend(R)
-        return A.subscheme(self.__G)
+        return A.subscheme(self.__polys)
 
     def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, QQ)
+            sage: X = A.subscheme([x*y, z])
+            sage: X == A.subscheme([z, x*y])
+            True
+            sage: X == A.subscheme([x*y, z^2])
+            False
+            sage: B.<u, v, t> = AffineSpace(3, QQ)
+            sage: X == B.subscheme([u*v, t])
+            False
+        """
         if not isinstance(other, AlgebraicScheme_subscheme):
             return -1
         A = self.ambient_space()
@@ -253,6 +488,19 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return cmp(self.defining_ideal(), other.defining_ideal())
 
     def _repr_(self):
+        """
+        Return a string representation of this scheme.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, GF(11))
+            sage: S = P.subscheme([x^2-y*z])
+            sage: S
+            Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:
+              x^2 - y*z
+            sage: S._repr_()
+            'Closed subscheme of Projective Space of dimension 2 over Finite Field of size 11 defined by:\n  x^2 - y*z'
+        """
         polys = '\n  '.join([str(f) for f in self.defining_polynomials()])
         if polys == '':
             polys = '(no equations)'
@@ -260,9 +508,31 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                                                            polys)
 
     def defining_polynomials(self):
-        return self.__G
+        """
+        Return the polynomials that define this scheme as a subscheme
+        of its ambient space.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([x^2-y*z, x^3+z^3])
+            sage: S.defining_polynomials()
+            (x^2 - y*z, x^3 + z^3)
+        """
+        return self.__polys
 
     def defining_ideal(self):
+        """
+        Return the ideal that defines this scheme as a subscheme
+        of its ambient space.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: S = P.subscheme([x^2-y*z, x^3+z^3])
+            sage: S.defining_ideal()
+            Ideal (x^2 - y*z, x^3 + z^3) of Multivariate Polynomial Ring in x, y, z over Integer Ring
+        """
         try:
             return self.__I
         except AttributeError:
@@ -418,7 +688,15 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the scheme-theoretic intersection of self and other in their
         common ambient space.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: A.<x, y> = AffineSpace(2, ZZ)
+            sage: X = A.subscheme([x^2-y])
+            sage: Y = A.subscheme([y])
+            sage: X.intersection(Y)
+            Closed subscheme of Affine Space of dimension 2 over Integer Ring defined by:
+              x^2 - y
+              y
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
             raise TypeError, "other (=%s) must be a closed algebraic subscheme of an ambient space"%other
@@ -428,40 +706,61 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return A.subscheme(self.defining_ideal() + other.defining_ideal())
 
 
-    def complement(self, other):
+    def complement(self, other=None):
         """
-        Return the scheme-theoretic complement self - other, where
+        Return the scheme-theoretic complement other - self, where
         self and other are both closed algebraic subschemes of the
         same ambient space.
+
+        If other is unspecified, it is taken to be the ambient space
+        of self.
+
         EXAMPLES::
 
             sage: A.<x, y, z> = AffineSpace(3, ZZ)
             sage: X = A.subscheme([x+y-z])
             sage: Y = A.subscheme([x-y+z])
-            sage: X.complement(Y)
+            sage: Y.complement(X)
             Quasi-affine scheme X - Y, where:
               X: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
               x + y - z
+              Y: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+              x - y + z
+            sage: Y.complement()
+            Quasi-affine scheme X - Y, where:
+              X: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+              (no equations)
               Y: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
               x - y + z
 
             sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
             sage: X = P.subscheme([x^2+y^2+z^2])
             sage: Y = P.subscheme([x*y+y*z+z*x])
-            sage: X.complement(Y)
+            sage: Y.complement(X)
             Quasi-projective scheme X - Y, where:
               X: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x^2 + y^2 + z^2
               Y: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x*y + x*z + y*z
+            sage: Y.complement(P)
+            Quasi-projective scheme X - Y, where:
+              X: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              (no equations)
+              Y: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x*y + x*z + y*z
         """
-        if not isinstance(other, AlgebraicScheme_subscheme):
-            raise TypeError, \
-                  "Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other
         A = self.ambient_space()
+        if other is None:
+            other = A.subscheme([])
+        elif not isinstance(other, AlgebraicScheme_subscheme):
+            if other == A:
+                other = A.subscheme([])
+            else:
+                raise TypeError, \
+                      "Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other
         if other.ambient_space() != A:
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
-        return AlgebraicScheme_quasi(self, other)
+        return AlgebraicScheme_quasi(other, self)
 
     def rational_points(self, F=None, bound=0):
         """
@@ -589,10 +888,21 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         -  ``X`` - (default: None) projective scheme, i.e., codomain of
            morphism; this is constructed if it is not given.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: S = A.subscheme([x*y-z])
+            sage: S.projective_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 3 over Integer Ring defined by:
+              x*y - z
+              To:   Closed subscheme of Projective Space of dimension 3 over Integer Ring defined by:
+              x0*x1 - x2*x3
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x : y : z : 1)
         """
         AA = self.ambient_space()
-        n = AA.dimension()
+        n = AA.dimension_relative()
         if i is None:
             try:
                 i = self._default_embedding_index
@@ -602,7 +912,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             i = int(i)
         if i < 0 or i > n:
             raise ValueError, \
-                  "Argument n (=%s) must be between 0 and %s, inclusive"%(i, n)
+                  "Argument i (=%s) must be between 0 and %s, inclusive"%(i, n)
         try:
             return self.__projective_embedding[i]
         except AttributeError:
@@ -627,14 +937,6 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_projective_space(*args, **kwds)
-
-    def _validate(self, G):
-        G = AlgebraicScheme_subscheme._validate(self, G)
-        for f in G:
-            if not f.is_homogeneous():
-                raise TypeError, \
-                      "defining polynomials (= %s) must be homogeneous"%G
-        return G
 
     def dimension(self):
         """

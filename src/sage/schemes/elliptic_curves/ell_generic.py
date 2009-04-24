@@ -528,7 +528,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E([0,0])
             Traceback (most recent call last):
             ...
-            TypeError: coordinates [0, 0, 1] do not define a point on Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+            TypeError: Coordinates [0, 0, 1] do not define a point on Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
 
         We create a point on an elliptic curve over a number field.
 

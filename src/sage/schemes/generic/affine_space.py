@@ -425,6 +425,28 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             self._coordinate_ring = PolynomialRing(self.base_ring(), self.dimension_relative(), names=self.variable_names())
             return self._coordinate_ring
 
+    def _validate(self, v):
+        """
+        Return a valid tuple of polynomial functions on self given by
+        `v`.  Raise an error if `v` does not consist of valid
+        functions.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: A._validate([x*y-z, 1])
+            (x*y - z, 1)
+            sage: A._validate([x, y, 1/3*z])
+            Traceback (most recent call last):
+            ...
+            ValueError: The arguments [x, y, 1/3*z] are not valid polynomial functions on this affine space
+        """
+        R = self.coordinate_ring()
+        try:
+            return tuple([ R(g) for g in v ])
+        except:
+            raise ValueError, "The arguments %s are not valid polynomial functions on this affine space"%v
+
     def projective_embedding(self, i=None, PP=None):
         """
         Returns a morphism from this space into an ambient projective space

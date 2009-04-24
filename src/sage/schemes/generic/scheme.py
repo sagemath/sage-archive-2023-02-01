@@ -367,7 +367,7 @@ class Scheme(ParentWithBase):
     def category(self):
         """
         Return the category to which this scheme belongs. This is the
-        category of all schemes of the base scheme of self.
+        category of all schemes over the base scheme of self.
 
         EXAMPLES::
 

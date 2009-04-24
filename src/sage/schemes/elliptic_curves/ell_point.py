@@ -175,7 +175,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: E(1,0,0)
         Traceback (most recent call last):
         ...
-        TypeError: coordinates [1, 0, 0] do not define a point on
+        TypeError: Coordinates [1, 0, 0] do not define a point on
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
     ::
@@ -1206,7 +1206,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         sage: E(1,0,0)
         Traceback (most recent call last):
         ...
-        TypeError: coordinates [1, 0, 0] do not define a point on
+        TypeError: Coordinates [1, 0, 0] do not define a point on
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
     ::

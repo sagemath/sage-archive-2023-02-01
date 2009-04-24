@@ -1,9 +1,34 @@
-"""
-Tate's parametrisation of p-adic curves with multiplicative reduction
+r"""
+Tate's parametrisation of `p`-adic curves with multiplicative reduction
+
+Let `E` be an elliptic curve defined over the `p`-adic numbers `\QQ_p`.
+Suppose that `E` has multiplicative reduction, i.e. that the `j`-invariant
+of `E` has negative valuation, say `n`. Then there exists a parameter
+`q` in `\ZZ_p` of valuation `n` such that the points of `E` defined over
+the algebraic closure `\bar{\QQ}_p` are in bijection with
+`\bar{\QQ}_p^{\times}\,/\, q^{\ZZ}`. More precisely there exists
+the series `s_4(q)` and `s_6(q)` such that the
+`y^2+x y = x^3 + s_4(q) x+s_6(q)` curve is isomorphic to `E` over
+`\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative). There is `p`-adic analytic map from
+`\bar{\QQ}^{\times}_p` to this curve with kernel `q^{\ZZ}`.
+Points of good reduction correspond to points of valuation
+`0` in `\bar{\QQ}^{\times}_p`.
+See chapter V of [Sil2] for more details.
+
+REFERENCES :
+
+- [Sil2] Silverman Joseph, Advanced Topics in the Arithmetic of Elliptic Curves,
+   GTM 151, Springer 1994.
+
 
 AUTHORS:
-   -- chris wuthrich (23/05/2007): first version
-   -- William Stein (2007-05-29): added some examples; editing.
+
+- chris wuthrich (23/05/2007): first version
+
+- William Stein (2007-05-29): added some examples; editing.
+
+- chris wuthrich (04/09): reformated docstrings.
+
 """
 
 ######################################################################
@@ -34,31 +59,42 @@ import sage.matrix.all as matrix
 
 class TateCurve(SageObject):
     r"""
-    Tate's $p$-adic uniformisation of an elliptic curve with
-    multiplicative reduction.  Reference : Silverman. Advanced Topics
-    in the Arithmetic of Elliptic Curves.
+    Tate's `p`-adic uniformisation of an elliptic curve with
+    multiplicative reduction.
 
-    NOTE : Some of the methods of this Tate curve only work when the
-    reduction is split multiplicative over $\QQ_p$.
+    .. note::
 
-    EXAMPLES:
+       Some of the methods of this Tate curve only work when the
+       reduction is split multiplicative over `\QQ_p`.
+
+    EXAMPLES::
+
         sage: e = EllipticCurve('130a1')
         sage: eq = e.tate_curve(5); eq
         5-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
         sage: eq == loads(dumps(eq))
         True
+
+    REFERENCES :
+
+    - [Sil2] Silverman Joseph, Advanced Topics in the Arithmetic of Elliptic Curves,
+      GTM 151, Springer 1994.
+
     """
     def __init__(self,E,p):
-        """
+        r"""
         INPUT:
-            E -- an elliptic curve
-            p -- a prime where E has multiplicative reduction,
-                 i.e., such that j(E) has negative valuation
 
-        EXAMPLES:
-        sage: e = EllipticCurve('130a1')
-        sage: eq = e.tate_curve(2); eq
-        2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+        - ``E`` - an elliptic curve over the rational numbers
+
+        - ``p`` - a prime where `E` has multiplicative reduction,
+                 i.e., such that `j(E)` has negative valuation.
+
+        EXAMPLES::
+
+            sage: e = EllipticCurve('130a1')
+            sage: eq = e.tate_curve(2); eq
+            2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
         """
         self._p = ZZ(p)
         self._E = E
@@ -69,10 +105,11 @@ class TateCurve(SageObject):
             raise ValueError, "The elliptic curve must have multiplicative reduction at %s"%p
 
     def __cmp__(self, other):
-        """
+        r"""
         Compare self and other.
 
-        TESTS:
+        TESTS::
+
             sage: E = EllipticCurve('35a')
             sage: eq5 = E.tate_curve(5)
             sage: eq7 = E.tate_curve(7)
@@ -87,23 +124,25 @@ class TateCurve(SageObject):
 
 
     def _repr_(self):
-        """
+        r"""
         Return print representation.
 
-        EXAMPLES:
-        sage: e = EllipticCurve('130a1')
-        sage: eq = e.tate_curve(2)
-        sage: eq._repr_()
-        '2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field'
+        EXAMPLES::
+
+            sage: e = EllipticCurve('130a1')
+            sage: eq = e.tate_curve(2)
+            sage: eq._repr_()
+            '2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field'
         """
         s = "%s-adic Tate curve associated to the %s"%(self._p, self._E)
         return s
 
     def original_curve(self):
-        """
+        r"""
         Returns the elliptic curve the Tate curve was constructed from.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.original_curve()
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
@@ -111,10 +150,11 @@ class TateCurve(SageObject):
         return self._E
 
     def prime(self):
-        """
-        Returns the residual characteristic.
+        r"""
+        Returns the residual characteristic `p`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.original_curve()
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
@@ -126,10 +166,16 @@ class TateCurve(SageObject):
 
     def parameter(self,prec=20):
         r"""
-        Returns the Tate parameter $q$ such that the curve is isomorphic over the algebraic closure of $\QQ_p$ to the curve
-        $\QQ_p^{\times}/q^{\ZZ}$.
+        Returns the Tate parameter `q` such that the curve is isomorphic
+        over the algebraic closure of `\QQ_p` to the curve
+        `\QQ_p^{\times}/q^{\ZZ}`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
@@ -157,12 +203,17 @@ class TateCurve(SageObject):
     __delta = lambda e,prec: e._q* prod([(1-e._q**n)**24 for n in range(1,prec+1) ] )
 
     def curve(self,prec=20):
-        """
-        Returns the p-adic elliptic curve of the form $y^2+x y = x^3 + s_4 x+s_6$.
+        r"""
+        Returns the `p`-adic elliptic curve of the form `y^2+x y = x^3 + s_4 x+s_6`.
         This curve with split multiplicative reduction is isomorphic to the given curve
-        over the algebraic closure of $\QQ_p$.
+        over the algebraic closure of `\QQ_p`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.curve(prec=5)
             Elliptic Curve defined by y^2 + (1+O(5^5))*x*y  = x^3 +
@@ -189,13 +240,18 @@ class TateCurve(SageObject):
         return Eq
 
     def _Csquare(self,prec=20):
-        """
-        Returns the square of the constant C such that the canonical Neron differential $\omega$
-        and the canonical differential $\frac{du}{u}$ on $\QQ^{\times}/q^{\ZZ}$ are linked by
-        $\omega = C \frac{du}{u}$. This constant is only a square in $\QQ_p$ if the curve has split
+        r"""
+        Returns the square of the constant `C` such that the canonical Neron differential `\omega`
+        and the canonical differential `\frac{du}{u}` on `\QQ^{\times}/q^{\ZZ}` are linked by
+        `\omega = C \frac{du}{u}`. This constant is only a square in `\QQ_p` if the curve has split
         multiplicative reduction.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq._Csquare(prec=5)
             4 + 2*5^2 + 2*5^4 + O(5^5)
@@ -213,11 +269,16 @@ class TateCurve(SageObject):
         return tateCsquare
 
     def E2(self,prec=20):
-        """
-        Returns value of the $p$-adic Eisenstein series of weight 2 evaluated on the elliptic
+        r"""
+        Returns the value of the `p`-adic Eisenstein series of weight 2 evaluated on the elliptic
         curve having split multiplicative reduction.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.E2(prec=10)
             4 + 2*5^2 + 2*5^3 + 5^4 + 2*5^5 + 5^7 + 5^8 + 2*5^9 + O(5^10)
@@ -235,10 +296,11 @@ class TateCurve(SageObject):
 
 
     def is_split(self):
-        """
+        r"""
         Returns True if the given elliptic curve has split multiplicative reduction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.is_split()
             True
@@ -250,11 +312,19 @@ class TateCurve(SageObject):
         return self._Csquare().is_square()
 
     def parametrisation_onto_tate_curve(self,u,prec=20):
-        """
-        Given an element $u$ in $\QQ_p^{\times}$, this computes its image on the Tate curve
-        under the $p$-adic uniformisation of E.
+        r"""
+        Given an element `u` in `\QQ_p^{\times}`, this computes its image on the Tate curve
+        under the `p`-adic uniformisation of `E`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``u`` - a non-zero `p`-adic number.
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10))
             (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) :
@@ -282,13 +352,27 @@ class TateCurve(SageObject):
 
     def L_invariant(self,prec=20):
         r"""
-        Returns the ``mysterious'' $\mathcal{L}$-invariant associated
+        Returns the *mysterious* `\mathcal{L}`-invariant associated
         to an elliptic curve with split multiplicative reduction. One
         instance where this constant appears is in the exceptional
-        case of the $p$-adic Birch and Swinnerton-Dyer conjecture as
-        formulated by Mazur-Tate-Teitelbaum (Invent. Math. 84, 1986).
+        case of the `p`-adic Birch and Swinnerton-Dyer conjecture as
+        formulated in [MTT]. See [Col] for a detailed discussion.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        REFERENCES:
+
+        - [MTT] B. Mazur, J. Tate, and J. Teitelbaum,
+          On `p`-adic analogues of the conjectures of Birch and
+          Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+
+        - [Col] Pierre Colmez, Invariant `\mathcal{L}` et derivees de
+          valeurs propores de Frobenius, preprint, 2004.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.L_invariant(prec=10)
             5^3 + 4*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 3*5^8 + 5^9 + O(5^10)
@@ -303,16 +387,21 @@ class TateCurve(SageObject):
 
 
     def _isomorphism(self,prec=20):
-        """
-        Returns the isomorphism between self.curve() and the given curve in the
-        form of a vector $[u,r,s,t]$ of $p$-adic numbers. For this to exist
-        the given curve has to have split multiplicative reduction over Q_p.
+        r"""
+        Returns the isomorphism between ``self.curve()`` and the given curve in the
+        form of a list ``[u,r,s,t]`` of `p`-adic numbers. For this to exist
+        the given curve has to have split multiplicative reduction over `\QQ_p`.
 
-        More precisely, if $E$ has coordinates $x$ and $y$ and the Tate curve
-        has coordinates $X$, $Y$ with $Y^2 + XY = X^3 + s_4 X +s_6$ then
-        $X = u^2 x +r$ and $Y = u^3 y +s u^2 x +t$.
+        More precisely, if `E` has coordinates `x` and `y` and the Tate curve
+        has coordinates `X`, `Y` with `Y^2 + XY = X^3 + s_4 X +s_6` then
+        `X = u^2 x +r` and `Y = u^3 y +s u^2 x +t`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq._isomorphism(prec=5)
             [2 + 3*5^2 + 2*5^3 + 4*5^4 + O(5^5), 4 + 3*5 + 4*5^2 + 2*5^3 + O(5^5),
@@ -332,16 +421,21 @@ class TateCurve(SageObject):
         return [C,r,s,t]
 
     def _inverse_isomorphism(self,prec=20):
-        """
-        Returns the isomorphism between the given curve and self.curve() in the
-        form of a vector $[u,r,s,t]$ of $p$-adic numbers. For this to exist
-        the given curve has to have split multiplicative reduction over Q_p.
+        r"""
+        Returns the isomorphism between the given curve and ``self.curve()`` in the
+        form of a list ``[u,r,s,t]`` of `p`-adic numbers. For this to exist
+        the given curve has to have split multiplicative reduction over `\QQ_p`.
 
-        More precisely, if $E$ has coordinates $x$ and $y$ and the Tate curve
-        has coordinates $X$, $Y$ with $Y^2 + XY = X^3 + s_4 X +s_6$ then
-        $x = u^2 X +r$ and $y = u^3 Y +s u^2 X +t$.
+        More precisely, if `E` has coordinates `x` and `y` and the Tate curve
+        has coordinates `X`, `Y` with `Y^2 + XY = X^3 + s_4 X +s_6` then
+        `x = u^2 X +r` and `y = u^3 Y +s u^2 X +t`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq._inverse_isomorphism(prec=5)
             [3 + 2*5 + 3*5^3 + O(5^5), 4 + 2*5 + 4*5^3 + 3*5^4 + O(5^5),
@@ -353,19 +447,27 @@ class TateCurve(SageObject):
         return [1/vec[0],-vec[1]/vec[0]**2,-vec[2]/vec[0],(vec[1]*vec[2]-vec[3])/vec[0]**3]
 
     def lift(self,P, prec = 20):
-        """
-        Given a point $P$ in the formal group of the elliptic curve $E$ with split multiplicative reduction,
-        this produces an element $u$ in $\QQ_p^{\times}$ mapped to the point $P$ by the Tate parametrisation.
-        The algorithm return the unique such element in $1+p\ZZ_p$.
+        r"""
+        Given a point `P` in the formal group of the elliptic curve `E` with split multiplicative reduction,
+        this produces an element `u` in `\QQ_p^{\times}` mapped to the point `P` by the Tate parametrisation.
+        The algorithm return the unique such element in `1+p\ZZ_p`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``P`` - a point on the elliptic curve.
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: e = EllipticCurve('130a1')
             sage: eq = e.tate_curve(5)
             sage: P = e([-6,10])
             sage: l = eq.lift(12*P, prec=10); l
             1 + 4*5 + 5^3 + 5^4 + 4*5^5 + 5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)
 
-        Now we map the lift l back and check that it is indeed right.
+        Now we map the lift l back and check that it is indeed right.::
+
             sage: eq.parametrisation_onto_original_curve(l)
             (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^20))
             sage: e5 = e.change_ring(Qp(5,9))
@@ -408,23 +510,30 @@ class TateCurve(SageObject):
         return u
 
     def parametrisation_onto_original_curve(self,u,prec=20):
-        """
-        Given an element $u$ in $\QQ_p^{\times}$, this computes its image on the original curve
-        under the $p$-adic uniformisation of E.
+        r"""
+        Given an element `u` in `\QQ_p^{\times}`, this computes its image on the original curve
+        under the `p`-adic uniformisation of `E`.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``u`` - a non-zero `p`-adic number.
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.parametrisation_onto_original_curve(1+5+5^2+O(5^10))
             (4*5^-2 + 4*5^-1 + 4 + 2*5^3 + 3*5^4 + 2*5^6 + O(5^7) :
             3*5^-3 + 5^-2 + 4*5^-1 + 1 + 4*5 + 5^2 + 3*5^5 + O(5^6) : 1 + O(5^20))
 
-            # here is how one gets a 4-torsion point on $E$ over $\QQ_5$
+        Here is how one gets a 4-torsion point on `E` over `\QQ_5`::
+
             sage: R = Qp(5,10)
             sage: i = R(-1).sqrt()
             sage: T = eq.parametrisation_onto_original_curve(i); T
             (2 + 3*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + 2*5^7 + 5^8 + 5^9 + O(5^10) :
             3*5 + 5^2 + 5^4 + 3*5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10) : 1 + O(5^20))
-
             sage: 4*T
             (0 : 1 + O(5^20) : 0)
         """
@@ -450,10 +559,19 @@ class TateCurve(SageObject):
     # we use the same names as for elliptic curves over rationals.
 
     def padic_height(self,prec=20):
-        """
-        Returns the canonical $p$-adic height function on the original curve.
+        r"""
+        Returns the canonical `p`-adic height function on the original curve.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        OUTPUT:
+
+        - A function that can be evaluated on rational points of `E`.
+
+        EXAMPLES::
+
             sage: e = EllipticCurve('130a1')
             sage: eq = e.tate_curve(5)
             sage: h = eq.padic_height(prec=10)
@@ -461,7 +579,8 @@ class TateCurve(SageObject):
             sage: h(P)
             2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + O(5^8)
 
-            #this is a quadratic function
+        Check that it is a quadratic function::
+
             sage: h(3*P)-3^2*h(P)
             O(5^8)
         """
@@ -490,13 +609,31 @@ class TateCurve(SageObject):
 
 
     def padic_regulator(self,prec=20):
-        """
-        Computes the canonical p-adic regulator on the extended Mordell-Weil group as in MTT.
-        (with the correction of Annette Werner.) The $p$-adic Birch and Swinnerton-Dyer conjecture
+        r"""
+        Computes the canonical `p`-adic regulator on the extended Mordell-Weil group as in [MTT]
+        (with the correction of [Wer] and sign convention in [SW].)
+        The `p`-adic Birch and Swinnerton-Dyer conjecture
         predicts that this value appears in the formula for the leading term of the
-        $p$-adic $L$-function.
+        `p`-adic L-function.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``prec`` - the `p`-adic precision, default is 20.
+
+        REFERENCES:
+
+        - [MTT] B. Mazur, J. Tate, and J. Teitelbaum,
+          On `p`-adic analogues of the conjectures of Birch and
+          Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+
+        - [Wer] Annette Werner, Local heights on abelian varieties and rigid analytic unifomization,
+          Doc. Math. 3 (1998), 301-319.
+
+        - [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups
+          using Iwasawa theory, preprint 2009.
+
+        EXAMPLES::
+
             sage: eq = EllipticCurve('130a1').tate_curve(5)
             sage: eq.padic_regulator()
             2*5^-1 + 1 + 2*5 + 2*5^2 + 3*5^3 + 3*5^6 + 5^7 + 3*5^9 + 3*5^10 + 3*5^12 + 4*5^13 + 3*5^15 + 2*5^16 + 3*5^18 + 4*5^19 + O(5^20)

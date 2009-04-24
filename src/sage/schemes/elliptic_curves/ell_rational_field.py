@@ -23,6 +23,7 @@ AUTHORS:
 - Tobias Nagel and Michael Mardaus (2008-07): added integral_points
 
 - John Cremona (2008-07): further work on integral_points
+
 """
 
 #*****************************************************************************
@@ -1132,16 +1133,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
-        to a fixed multiple of the integral of `2 \pi I f(z) dz`
+        to a fixed multiple of the integral of `2 \pi i f(z) dz`
         from `\infty` to `r/s`, normalized so that all values of this map take
         values in `\QQ`.
 
         The normalization is such that for sign +1,
-        the value at the cusp 0 is equal to the quotient of L(E,1)
-        by the least positive period of E (unlike in ``L_ratio``
+        the value at the cusp 0 is equal to the quotient of `L(E,1)`
+        by the least positive period of `E` (unlike in ``L_ratio``
         of ``lseries()``, where the value is also divided by the
-        number of connected components of E(R)). In particular the
-        modular symbol depends on E and not only the isogeny class of E.
+        number of connected components of `E(\RR)`). In particular the
+        modular symbol depends on `E` and not only the isogeny class of `E`.
 
         INPUT:
 
@@ -1157,24 +1158,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            modular symbol is much faster, though evaluation of it after
            computing it won't be any faster.
 
-         - ``use_eclib`` - (default: False); if True the computation is
+        -  ``use_eclib`` - (default: False); if True the computation is
            done with John Cremona's implementation of modular
-           symbols in eclib. But this is only possible for
-           sign = +1.
+           symbols in ``eclib``. But this is only possible for
+           ``sign`` = +1.
 
         -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio', 'period', or 'none';
            For 'L_ratio', the modular symbol is correctly normalized
-           as explained above by comparing it to L_ratio for the
+           as explained above by comparing it to ``L_ratio`` for the
            curve and some small twists.
            The normalization 'period' is only available if
-           use_eclib=False. It uses the integral_period_map for modular
+           ``use_eclib=False``. It uses the ``integral_period_map`` for modular
            symbols and is known to be equal to the above normalization
            up to the sign and a possible power of 2.
            For 'none', the modular symbol is almost certainly
            not correctly normalized, i.e. all values will be a
            fixed scalar multiple of what they should be.  But
            the initial computation of the modular symbol is
-           much faster if use_eclib=False, though evaluation of
+           much faster if ``use_eclib=False``, though evaluation of
            it after computing it won't be any faster.
 
 
@@ -5275,7 +5276,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: T.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
 
-        We compute the `L`-invariant of the curve::
+        We compute the `\mathcal{L}`-invariant of the curve::
 
             sage: T.L_invariant(prec=10)
             5^3 + 4*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 3*5^8 + 5^9 + O(5^10)

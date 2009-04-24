@@ -1,10 +1,51 @@
-"""
+r"""
 p-adic L-functions of elliptic curves
 
+To an elliptic curve `E` over the rational numbers and a prime `p`, one
+can associate a `p`-adic L-function; at least if `E` does not have additive
+reduction at `p`.
+This function is defined by interpolation of L-values of `E` at twists. Through
+the main conjecture of Iwasawa theory it should also be equal to a characteristic
+series of a certain Selmer group.
+
+If `E` is ordinary, then it is an element of `\ZZ_p[\![T]\!]` and according to the
+`p`-adic version of the Birch and Swinnerton-Dyer conjecture [MTT], the order of
+vanishing at `T=0` is just the rank of `E(\QQ)` or this rank plus one if the reduction
+at `p` is split multiplicative.
+
+If `E` is supersingular, the series will have coefficients in a quadratic
+extension of `\ZZ_p`. We have also implemented the `p`-adic L-series
+as formulated by Perrin-Riou [BP], which has coefficients in the
+Dieudonne `D_pE = H^1_{dR}(E/\QQ_p)` module of `E`. There is a different description by Pollack [Po]
+which is not available here.
+
+See [SW] for more details.
+
+REFERENCES:
+
+- [MTT] B. Mazur, J. Tate, and J. Teitelbaum,
+  On `p`-adic analogues of the conjectures of Birch and
+  Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+
+- [BP] Dominique Bernardi and Bernadette Perrin-Riou,
+  Variante `p`-adique de la conjecture de Birch et
+  Swinnerton-Dyer (le cas supersingulier), C. R. Acad. Sci. Paris,
+  Ser I. Math, 317 (1993), no 3, 227-232.
+
+- [Po] Robert Pollack, On the `p`-adic L-function of a modular form
+  at supersingular prime, Duke Math. J. 118 (2003), no 3, 523-558.
+
+- [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups
+  using Iwasawa theory, preprint 2009.
+
 AUTHORS:
-   -- William Stein (2007-01-01): first version
-   -- chris wuthrich (22/05/2007): changed minor issues and added supersingular things
-                     (11/2008): added quadratic_twists
+
+- William Stein (2007-01-01): first version
+
+- chris wuthrich (22/05/2007): changed minor issues and added supersingular things
+
+- chris wuthrich (11/2008): added quadratic_twists
+
 """
 
 ######################################################################
@@ -50,7 +91,7 @@ from sage.calculus.calculus import sqrt
 
 class pAdicLseries(SageObject):
     r"""
-    The p-adic L-series of an elliptic curve.
+    The `p`-adic L-series of an elliptic curve.
 
     EXAMPLES:
     An ordinary example::
@@ -94,7 +135,7 @@ class pAdicLseries(SageObject):
         -  ``E`` - an elliptic curve
         -  ``p`` - a prime of good reduction
         -  ``use_eclib`` - bool (default:False); whether or not to use
-           John Cremona's eclib for the computation of modular
+           John Cremona's ``eclib`` for the computation of modular
            symbols
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
            this is describes the way the modular symbols
@@ -269,14 +310,16 @@ class pAdicLseries(SageObject):
 
     def measure(self, a, n, prec, quadratic_twist=+1 ):
         r"""
-        Return the measure on `\ZZ_p^*` defined by
-           `
-             \mu_{E,\alpha}^+ ( a + p^n \ZZ_p  ) =
-                   \frac{1}{\alpha^n} \modsym{a}{p^n} - \frac{1}{\alpha^{n+1}} \modsym{a}{p^{n-1}}
-           `
-        that is used to define this `p`-adic L-function (at least when the reduction is good).
+        Return the measure on `\ZZ_p^{\times}` defined by
 
-        The optional argument quadratic_twist replaces E by the twist in the above formula,
+           `\mu_{E,\alpha}^+ ( a + p^n \ZZ_p  ) =
+           \frac{1}{\alpha^n} \left [\frac{a}{p^n}\right]^{+} -
+           \frac{1}{\alpha^{n+1}} \left[\frac{a}{p^{n-1}}\right]^{+}`
+
+        where `[\cdot]^{+}` is the modular symbol. This is used to define
+        this `p`-adic L-function (at least when the reduction is good).
+
+        The optional argument ``quadratic_twist`` replaces `E` by the twist in the above formula,
         but the twisted modular symbol is computed using a sum over modular symbols of `E`
         rather then finding the modular symbols for the twist.
 
@@ -428,8 +471,8 @@ class pAdicLseries(SageObject):
         Return the order of vanishing of this `p`-adic L-series.
 
         The output of this function is provably correct, due to a
-        theorem of Kato.  This function will terminate if and only if
-        the Mazur-Tate-Teitelbaum analogue [MTT]_ of the BSD conjecture about
+        theorem of Kato [Ka].  This function will terminate if and only if
+        the Mazur-Tate-Teitelbaum analogue [MTT] of the BSD conjecture about
         the rank of the curve is true and the subgroup of elements of
         `p`-power order in the Shafarevich-Tate group of this curve is
         finite.  I.e. if this function terminates (with no errors!),
@@ -437,6 +480,16 @@ class pAdicLseries(SageObject):
         true and that the `p`-part of Sha is finite.
 
         NOTE: currently `p` must be a prime of good ordinary reduction.
+
+        REFERENCES:
+
+        - [MTT] B. Mazur, J. Tate, and J. Teitelbaum,
+          On `p`-adic analogues of the conjectures of Birch and
+          Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+
+        - [Ka] Kayuza Kato, `p`-adic Hodge theory and values of zeta functions of modular
+          forms, Cohomologies `p`-adiques et applications arithmetiques III,
+          Asterisque vol 295, SMF, Paris, 2004.
 
         EXAMPLES::
 
@@ -550,9 +603,13 @@ class pAdicLseries(SageObject):
         This is either 1 or 2 unless the condition on the twist is not satisfied, e.g. if we are 'twisting back'
         to a semi-stable curve.
 
-        .. [MTT] Mazur, Tate, Teitelbaum. `p`-adic BSD
+        REFERENCES:
 
-        No check on precision is made, so this may fail for huge `D`.
+        - [MTT] B. Mazur, J. Tate, and J. Teitelbaum,
+          On `p`-adic analogues of the conjectures of Birch and
+          Swinnerton-Dyer, Invertiones mathematicae 84, (1986), 1-48.
+
+        .. note: No check on precision is made, so this may fail for huge `D`.
 
         EXAMPLES::
 
@@ -601,7 +658,7 @@ class pAdicLseries(SageObject):
 class pAdicLseriesOrdinary(pAdicLseries):
     def series(self, n=2, quadratic_twist=+1, prec=5):
         r"""
-        Return the `n`-th approximation to the `p`-adic L-series as
+        Returns the `n`-th approximation to the `p`-adic L-series as
         a power series in `T` (corresponding to `\gamma-1` with
         `\gamma=1+p` as a generator of `1+p\ZZ_p`).  Each
         coefficient is a `p`-adic number whose precision is provably
@@ -616,13 +673,12 @@ class pAdicLseriesOrdinary(pAdicLseries):
         INPUT:
 
         -  ``n`` - (default: 2) a positive integer
-
         -  ``quadratic_twist`` - (default: +1) a fundamental discriminant
            of a qudratic field, coprime to the
            conductor of the curve
-        -  ``prec`` - (default: 5) maxima number of terms of the series
+        -  ``prec`` - (default: 5) maximal number of terms of the series
            to compute; to compute as many as possible just
-           give a very large number for prec; the result will
+           give a very large number for ``prec``; the result will
            still be correct.
 
         ALIAS: power_series is identical to series.
@@ -680,10 +736,10 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: lp = E.padic_lseries(3)
             sage: lp.series(2,quadratic_twist=-19)
             2 + 2*3 + 2*3^2 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
-            sage: E.quadratic_twist(-19).label()    #optional --- since the conductor is greater than 10000, this needs the optional package 'database_cremona_ellcurve-20071019'
+            sage: E.quadratic_twist(-19).label()    #optional --- conductor is greater than 10000
             '15523a1'
 
-        This proves that the rank of '15523a1' is zero, even if mwrank can not determine this.
+        This proves that the rank of '15523a1' is zero, even if ``mwrank`` can not determine this.
 
         """
         n = ZZ(n)
@@ -771,7 +827,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
     def is_ordinary(self):
-        """
+        r"""
         Return True if the elliptic that this L-function is attached
         to is ordinary.
 
@@ -784,7 +840,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         return True
 
     def is_supersingular(self):
-        """
+        r"""
         Return True if the elliptic that this L function is attached
         to is supersingular.
 
@@ -949,18 +1005,28 @@ class pAdicLseriesSupersingular(pAdicLseries):
         r"""
         Returns a vector of two components which are p-adic power series.
         The answer v is such that
-            `(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \varphi(\omega)`
+
+            `(1-\varphi)^{-2}\cdot L_p(E,T) =` ``v[1]`` `\cdot \omega +` ``v[2]`` `\cdot \varphi(\omega)`
+
         as an element of the Dieudonne module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
         `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
-        According to the `p`-adic BSD this function has a zero of order
-        rank(E(Q)) and it's leading term is
-        ``#Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E)``.
-
+        According to the `p`-adic Birch and Swinnerton-Dyer
+        conjecture [BP] this function has a zero of order
+        rank of `E(\QQ)` and it's leading term is contains the order of
+        the Tate-Shafarevich group, the Tamagawa numbers, the order of the
+        torsion subgroup and the `D_p`-valued `p`-adic regulator.
 
         INPUT:
 
         -  ``n`` - (default: 3) a positive integer
         -  ``prec`` - (default: 5) a positive integer
+
+        REFERENCE:
+
+        - [BP] Dominique Bernardi and Bernadette Perrin-Riou,
+          Variante `p`-adique de la conjecture de Birch et
+          Swinnerton-Dyer (le cas supersingulier), C. R. Acad. Sci. Paris,
+          Ser I. Math, 317 (1993), no 3, 227-232.
 
         EXAMPLES::
 
@@ -990,14 +1056,16 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def frobenius(self, prec=20, method = "mw"):
         r"""
         This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
-        with respect to the basis `\omega`, the invariant differential and `\eta=x\omega`.
-        It satisfies  `phi^2 - a_p/p phi + 1/p = 0`.
+        with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
+        It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         INPUT:
-        -  ``prec`` - (default: 20) a positive integer
-        -  ``method`` - either 'mw' (default) for Monsky-Washintzer
-           or 'approx' for the method described by Bernardi and Perrin-Riou
-           (much slower)
+
+        - ``prec`` - (default: 20) a positive integer
+
+        - ``method`` - either 'mw' (default) for Monsky-Washintzer
+          or 'approx' for the method described by Bernardi and Perrin-Riou
+          (much slower)
 
 
         EXAMPLES::
@@ -1053,7 +1121,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
 
     def __phi_bpr(self, prec=0):
-        """
+        r"""
         Returns the phi using the definition of bernardi-perrin-riou on page 232.
         """
         E = self._E
@@ -1154,9 +1222,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
         r"""
         Returns the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
         It is defined to be
+
             `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
+
         where `h_{\eta}` is made out of the sigma function of Bernardi and
-        `h_{\omega}` is `-log^2`.
+        `h_{\omega}` is `log_E^2`.
         The answer ``v`` is given as ``v[1]*omega + v[2]*eta``.
         The coordinates of ``v`` are dependent of the
         Weierstrass equation.
@@ -1216,9 +1286,17 @@ class pAdicLseriesSupersingular(pAdicLseries):
         The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.
 
-        NOTE: The definition here is corrected with repect to Perrin-Riou's article [PR]_
-        .. [PR] Arithmetique des courbes elliptiques a reduction supersinguliere en `p`'.
+        NOTE: The definition here is corrected with repect to Perrin-Riou's article [PR]. See
+        [SW].
 
+
+        REFERENCES:
+
+        - [PR] Perrin Riou, Arithmetique des courbes elliptiques a reduction supersinguliere en `p`,
+          Experiment. Math. 12 (2003), no. 2, 155-186.
+
+        - [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups
+          using Iwasawa theory, preprint 2009.
 
         EXAMPLES::
 

@@ -199,7 +199,7 @@ cdef class Matrix(matrix0.Matrix):
             Full Matrix Algebra of degree 3 over Rational Field
 
         We coerce a non-square matrix over
-        `\mathbb{Z}/8\mathbb{Z}`.
+        `\ZZ/8\ZZ`.
 
         ::
 

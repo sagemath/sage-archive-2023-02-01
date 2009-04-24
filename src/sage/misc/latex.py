@@ -28,11 +28,13 @@ __doc_exclude = ['_latex_file_', 'list_function', 'tuple_function', \
 
 EMBEDDED_MODE = False
 
-LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+
+LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
+
+SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.1\\textwidth\\textheight=2\\textheight\n'
 
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
-SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n\\textwidth=1.1\\textwidth\\textheight=2\\textheight'
-
 
 import os, shutil
 
@@ -224,7 +226,7 @@ class Latex:
                 We have $2006 = Sage{factor(2006)}$.
 
 
-    in an input cell to get a typeset version (care of slitex). Use
+    in an input cell to get a typeset version. Use
     ``%latex_debug`` to get debugging output.
 
     Use ``latex(...)`` to typeset a Sage object.
@@ -604,9 +606,9 @@ def _latex_file_(objects, title='SAGE', debug=False, \
 
         sage: from sage.misc.latex import _latex_file_
         sage: _latex_file_(3, title="The number three")
-        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
+        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
         sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
-        '\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
+        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
     from sage.misc.latex_macros import sage_latex_macros
     MACROS="\n" + "\n".join(sage_latex_macros) + "\n"

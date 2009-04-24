@@ -207,6 +207,8 @@ class _Latex_prefs_object(SageObject):
         self._option["blackboard_bold"] = bb
         self._option["matrix_delimiters"] = list(delimiters)
         self._option["vector_delimiters"] = list(delimiters)
+        self._option["macros"] = ""
+        self._option["preamble"] = ""
 
 _Latex_prefs = _Latex_prefs_object()
 
@@ -214,6 +216,27 @@ _Latex_prefs = _Latex_prefs_object()
 # The Latex class is used to make slides and latex output in
 # the SAGE Notebook
 #########################################
+
+def latex_extra_preamble():
+    r"""
+    Return the string containing the user-configured preamble,
+    ``sage_latex_macros``, and any user-configured macros.  This is
+    used in the ``eval`` method for the ``Latex`` class, and in
+    ``_latex_file``; it follows either ``LATEX_HEADER`` or
+    ``SLIDE_HEADER`` (defined at the top of this file) which is a
+    string containing the documentclass and standard usepackage
+    commands.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import latex_extra_preamble
+        sage: latex_extra_preamble()
+        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
+    """
+    from sage.misc.latex_macros import sage_latex_macros
+    return (_Latex_prefs._option['preamble'] + "\n"
+                + "\n".join(sage_latex_macros) + "\n"
+                + _Latex_prefs._option['macros'])
 
 class Latex:
     r"""nodetex
@@ -313,8 +336,7 @@ class Latex:
            your operating system, or this command won't work.
 
         """
-        from sage.misc.latex_macros import sage_latex_macros
-        MACROS="\n" + "\n".join(sage_latex_macros) + "\n"
+        MACROS = latex_extra_preamble()
 
         if density is None:
             density = self.__density
@@ -536,6 +558,110 @@ class Latex:
             if right is not None:
                 _Latex_prefs._option['vector_delimiters'][1] = right
 
+    def extra_macros(self, macros=None):
+        """
+        String containing extra LaTeX macros to use with %latex,
+        %html, and %jsmath.
+
+        INPUT: ``macros`` - string
+
+        If ``macros`` is None, return the current string.  Otherwise,
+        set it to ``macros``.  If you want to *append* to the string
+        of macros instead of replacing it, using ``latex.add_macro``.
+
+        EXAMPLES::
+
+            sage: latex.extra_macros("\\newcommand{\\foo}{bar}")
+            sage: latex.extra_macros()
+            '\\newcommand{\\foo}{bar}'
+            sage: latex.extra_macros("")
+            sage: latex.extra_macros()
+            ''
+        """
+        if macros is None:
+            return _Latex_prefs._option['macros']
+        else:
+            _Latex_prefs._option['macros'] = macros
+
+    def add_macro(self, macro):
+        """
+        Append to the string of extra LaTeX macros, for use with
+        %latex, %html, and %jsmath.
+
+        INPUT: ``macro`` - string
+
+        EXAMPLES::
+            sage: latex.extra_macros()
+            ''
+            sage: latex.add_macro("\\newcommand{\\foo}{bar}")
+            sage: latex.extra_macros()
+            '\\newcommand{\\foo}{bar}'
+            sage: latex.extra_macros("")  # restore to default
+        """
+        _Latex_prefs._option['macros'] += macro
+
+    def extra_preamble(self, s=None):
+        """
+        String containing extra preamble to be used with %latex.
+        Anything in this string won't be processed by %jsmath.
+
+        INPUT: ``s`` - string or ``None``
+
+        If ``s`` is None, return the current preamble.  Otherwise, set
+        it to ``s``.  If you want to *append* to the current extra
+        preamble instead of replacing it, using
+        ``latex.add_to_preamble``.
+
+        EXAMPLES::
+
+            sage: latex.extra_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
+            sage: latex.extra_preamble()
+            '\\DeclareMathOperator{\\Ext}{Ext}'
+            sage: latex.extra_preamble("")
+            sage: latex.extra_preamble()
+            ''
+        """
+        if s is None:
+            return _Latex_prefs._option['preamble']
+        else:
+            _Latex_prefs._option['preamble'] = s
+
+    def add_to_preamble(self, s):
+        r"""nodetex
+        Append to the string of extra LaTeX macros, for use with
+        %latex.  Anything in this string won't be processed by
+        %jsmath.
+
+        EXAMPLES::
+
+            sage: latex.extra_preamble()
+            ''
+            sage: latex.add_to_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
+
+        At this point, a notebook cell containing "%latex" on the
+        first line followed on the next line by
+        "$\Ext_A^*(\GF{2}, \GF{2}) \Rightarrow \pi_*^s*(S^0)$"
+        will be typeset correctly.
+
+        ::
+
+            sage: latex.add_to_preamble("\\usepackage{xypic}")
+            sage: latex.extra_preamble()
+            '\\DeclareMathOperator{\\Ext}{Ext}\\usepackage{xypic}'
+
+        Now one can put various xypic diagrams into a %latex cell, such as
+        "\[ \xymatrix{ \circ \ar `r[d]^{a} `[rr]^{b} `/4pt[rr]^{c} `[rrr]^{d}
+        `_dl[drrr]^{e} [drrr]^{f} & \circ & \circ & \circ \\ \circ & \circ &
+        \circ & \circ } \]"
+
+        ::
+
+            sage: latex.extra_preamble('')
+            sage: latex.extra_preamble()
+            ''
+        """
+        _Latex_prefs._option['preamble'] += s
+
 # Note: latex used to be a separate function, which by default was
 # only loaded in command-line mode: in the notebook, all_notebook.py
 # defined (and still defines) latex by 'latex = Latex(density=130)'.
@@ -610,8 +736,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
         '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
-    from sage.misc.latex_macros import sage_latex_macros
-    MACROS="\n" + "\n".join(sage_latex_macros) + "\n"
+    MACROS = latex_extra_preamble()
 
     process = True
     if hasattr(objects, '_latex_'):
@@ -696,10 +821,12 @@ class JSMath:
         if 'display' == mode:
             return JSMathExpr('<html><div class="math">'
                               + ''.join(sage_configurable_latex_macros)
+                              + _Latex_prefs._option['macros']
                               + '%s</div></html>'%x)
         elif 'inline' == mode:
             return JSMathExpr('<html><span class="math">'
                               + ''.join(sage_configurable_latex_macros)
+                              + _Latex_prefs._option['macros']
                               + '%s</span></html>'%x)
         else:
             # what happened here?

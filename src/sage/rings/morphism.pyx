@@ -786,6 +786,9 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
+
+            sage: f == loads(dumps(f))
+            True
         """
         RingHomomorphism.__init__(self, parent)
         # putting in check allows us to define subclasses of RingHomomorphism_coercion that implement _coerce_map_from
@@ -805,6 +808,35 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             'Ring Coercion'
         """
         return "Ring Coercion"
+
+    def __cmp__(self, other):
+        """
+        Compare a ring coercion morphism self to other.  Ring coercion
+        morphisms never compare equal to any other data type.  If
+        other is a ring coercion morphism, the parents of self and
+        other are compared.
+
+        EXAMPLES::
+
+            sage: f = ZZ.hom(QQ)
+            sage: g = ZZ.hom(ZZ)
+            sage: f == g
+            False
+            sage: f > g
+            True
+            sage: f < g
+            False
+            sage: h = Zmod(6).lift()
+            sage: f == h
+            False
+        """
+        if not PY_TYPE_CHECK(other, RingHomomorphism_coercion):
+            return cmp(type(self), type(other))
+
+        # Since they are coercion morphisms they are determined by
+        # their parents, i.e., by the domain and codomain, so we just
+        # compare those.
+        return cmp(self.parent(), other.parent())
 
     cpdef Element _call_(self, x):
         """

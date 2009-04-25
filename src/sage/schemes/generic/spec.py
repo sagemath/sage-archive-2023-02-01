@@ -157,9 +157,29 @@ class Spec(scheme.AffineScheme):
 
     def __call__(self, x):
         """
-        Create a point of this scheme.
+        Create a point of this Spec.  The argument `x` can be a prime
+        ideal of the coordinate ring, or an element (or list of
+        elements) of the coordinate ring which generates a prime
+        ideal.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: P = S(3); P
+            Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
+            sage: type(P)
+            <class 'sage.schemes.generic.point.SchemeTopologicalPoint_prime_ideal'>
+            sage: S(ZZ.ideal(next_prime(1000000)))
+            Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
+
+        ::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: S = Spec(R)
+            sage: P = S(R.ideal(x, y, z)); P
+            Point on Spectrum of Multivariate Polynomial Ring in x, y, z over Rational Field defined by the Ideal (x, y, z) of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
-        return point.SchemePoint_spec(self, x)
+        return point.SchemeTopologicalPoint_prime_ideal(self, x)
 
     def coordinate_ring(self):
         """

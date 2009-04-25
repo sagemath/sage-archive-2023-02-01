@@ -2123,7 +2123,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             return rings.Integer(1)
         E = self.curve()
         K = E.base_ring()
-        bounds = ell_generic.Hasse_bounds(K.order())
+        from sage.schemes.plane_curves.projective_curve import Hasse_bounds
+        bounds = Hasse_bounds(K.order())
 
         try:
             M = E._order

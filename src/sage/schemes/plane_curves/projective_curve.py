@@ -474,3 +474,32 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
 
             raise ValueError, "No algorithm '%s' known"%algorithm
 
+def Hasse_bounds(q, genus=1):
+    r"""
+    Return the Hasse-Weil bounds for the cardinality of a nonsingular
+    curve defined over `\GF{q}` of given ``genus``.
+
+    INPUT:
+
+    - ``q`` (int) -- a prime power
+
+    - ``genus`` (int, default 1) -- a non-negative integer,
+
+    OUTPUT:
+
+    (tuple)  The Hasse bounds (lb,ub) for the cardinality of a curve of
+    genus ``genus`` defined over `\GF{q}`.
+
+    EXAMPLES::
+
+        sage: Hasse_bounds(2)
+        (1, 5)
+        sage: Hasse_bounds(next_prime(10^30))
+        (999999999999998000000000000058, 1000000000000002000000000000058)
+    """
+    if genus==1:
+        rq = (4*q).isqrt()
+    else:
+        rq = (4*(genus**2)*q).isqrt()
+    return (q+1-rq,q+1+rq)
+

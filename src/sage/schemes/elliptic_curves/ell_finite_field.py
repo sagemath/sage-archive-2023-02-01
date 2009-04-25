@@ -30,7 +30,7 @@ from sage.misc.randstate import current_randstate
 import sys
 from math import ceil, floor, sqrt
 
-from ell_generic import Hasse_bounds
+from sage.schemes.plane_curves.projective_curve import Hasse_bounds
 from ell_field import EllipticCurve_field
 from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field

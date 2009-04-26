@@ -2777,7 +2777,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             -  S - list of primes (default: empty list).
 
-        .. notes::
+        .. note::
 
             Primality of elements of S is not checked, and the output
             is undefined if S is not a list or contains non-primes.
@@ -2786,6 +2786,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             minimal models.
 
         EXAMPLES::
+
             sage: EllipticCurve('11a1').has_good_reduction_outside_S([11])
             True
             sage: EllipticCurve('11a1').has_good_reduction_outside_S([2])

@@ -275,6 +275,7 @@ class Worksheet:
         self.__dir = '%s/%s'%(notebook_worksheet_directory, filename)
 
         self.clear()
+        self.save_snapshot(owner)
 
     def __cmp__(self, other):
         """

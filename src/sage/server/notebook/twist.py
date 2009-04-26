@@ -1620,7 +1620,7 @@ class SendWorksheetToActive(SendWorksheetToFolder):
 # duplication.
 class SendWorksheetToStop(SendWorksheetToFolder):
     """
-    Saves and quits each selected worksheet.
+    Quits each selected worksheet.
     """
     def action(self, W):
         W.quit()

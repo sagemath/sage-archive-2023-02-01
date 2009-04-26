@@ -47,6 +47,14 @@ class PlotField(GraphicPrimitive):
             masked_array(data = [0.0 0.707106781187 0.707106781187 0.894427191],
                   mask = [False False False False],
                   fill_value=1e+20)
+
+        TESTS:
+
+        We test dumping and loading a plot::
+
+            sage: x,y = var('x,y')
+            sage: P = plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+            sage: Q = loads(dumps(P))
         """
         self.xpos_array = xpos_array
         self.ypos_array = ypos_array
@@ -117,15 +125,16 @@ class PlotField(GraphicPrimitive):
 @options(plot_points=20)
 def plot_vector_field((f, g), xrange, yrange, **options):
     r"""
-
-    ``plot_vector_field}`` takes two functions of two variables xvar and yvar
+    ``plot_vector_field`` takes two functions of two variables xvar and yvar
     (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
     and plots vector arrows of the function over the specified ranges, with
-    xrange being of xvar between xmin and xmax and yrange similarly (see below).
+    xrange being of xvar between xmin and xmax, and yrange similarly (see below).
 
     plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
 
-    EXAMPLES: Plot some vector fields involving sin and cos::
+    EXAMPLES:
+
+    Plot some vector fields involving sin and cos::
 
         sage: x,y = var('x y')
         sage: plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
@@ -164,7 +173,6 @@ def plot_vector_field((f, g), xrange, yrange, **options):
 
 def plot_slope_field(f, xrange, yrange, **kwds):
     r"""
-
     ``plot_slope_field`` takes a function of two variables xvar and yvar
     (for instance, if the variables are `x` and `y`, take `f(x,y)`), and at
     representative points `(x_i,y_i)` between xmin, xmax, and ymin, ymax
@@ -172,7 +180,9 @@ def plot_slope_field(f, xrange, yrange, **kwds):
 
     plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))
 
-    EXAMPLES: A logistic function modeling population growth::
+    EXAMPLES:
+
+    A logistic function modeling population growth::
 
         sage: x,y = var('x y')
         sage: capacity = 3 # thousand

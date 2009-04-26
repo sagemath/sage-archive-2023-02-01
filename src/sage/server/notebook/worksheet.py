@@ -31,6 +31,7 @@ import re
 import string
 import traceback
 import time
+import calendar
 import crypt
 import bz2
 import re
@@ -1853,6 +1854,7 @@ class Worksheet:
             return
         open(filename, 'w').write(bz2.compress(E))
         open(worksheet_txt, 'w').write(E)
+        self.limit_snapshots()
         try:
             X = self.__saved_by_info
         except AttributeError:
@@ -1924,6 +1926,30 @@ class Worksheet:
             os.makedirs(path)
         return path
 
+    def limit_snapshots(self):
+        r"""
+        This routine will limit the number of snapshots of a worksheet,
+        as specified by a hard-cioded value below.
+
+        Prior behavior was to allow unlimited numbers of snapshots and
+        so this routine will not delete files created prior to this change.
+
+        This assumes snapshot names correspond to the ``time.time()``
+        method used to create base filenames in seconds in UTC time,
+        and that there are no other extraneous files in the directory.
+        """
+
+        # This should be user-configurable with an option like 'max_snapshots'
+        max_snaps = 30
+        amnesty = int(calendar.timegm(time.strptime("01 May 2009", "%d %b %Y")))
+
+        path = self.snapshot_directory()
+        snapshots = os.listdir(path)
+        snapshots.sort()
+        for i in range(len(snapshots) - max_snaps):
+            creation = int(os.path.splitext(snapshots[i])[0])
+            if creation > amnesty:
+                os.remove(os.path.join(path, snapshots[i]))
 
     ##########################################################
     # Stuff to customize how pickling works slightly.

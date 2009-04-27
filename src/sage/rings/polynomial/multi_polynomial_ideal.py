@@ -344,6 +344,14 @@ def redSB(func):
     """
     Decorator to force a reduced Singular groebner basis.
 
+    TESTS::
+
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "buchberger" in sage_getsource(J.interreduced_basis)
+        True
+
     .. note::
 
        This decorator is used automatically internally so the user
@@ -355,6 +363,9 @@ def redSB(func):
         """
         with RedSBContext():
             return func(*args, **kwds)
+
+    from sage.misc.sageinspect import sage_getsource
+    wrapper._sage_src_ = lambda: sage_getsource(func)
     wrapper.__doc__=func.__doc__
     return wrapper
 

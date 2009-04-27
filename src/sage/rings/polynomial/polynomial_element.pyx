@@ -597,7 +597,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: list(f._fast_float_())
             ['load 0', 'push 30.0', 'add', 'load 0', 'mul', 'push 300.0', 'add', 'load 0', 'mul', 'push 1000.0', 'add']
 
-        TEST::
+        TESTS::
 
             sage: f = t + 2 - t
             sage: ff = f._fast_float_()
@@ -651,6 +651,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -t^6 - 12*t^5 + 1/2*t^4 - 1/95*t^3 - 1/2*t^2 - 4
             sage: v._fast_callable_(etb)
             add(mul(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2), v_0), v_0), -4)
+
+        TESTS::
+
+            sage: R(2)._fast_callable_(etb)
+            2
+            sage: R(0)._fast_callable_(etb)
+            0
+            sage: fast_callable(R(2))(3)
+            2
         """
         x = etb.var(self.variable_name())
         expr = x
@@ -664,6 +673,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             # There may be variables in our coefficients...
             coeff_maker = etb.make
+        if d <= 0:
+            return coeff_maker(coeff)
         if coeff != 1:
             expr *= coeff_maker(coeff)
         for i from d > i >= 0:

@@ -15,8 +15,12 @@ Polynomial Rings
    sage/rings/polynomial/term_order
    sage/rings/polynomial/multi_polynomial_ring
    sage/rings/polynomial/multi_polynomial_element
+   sage/rings/polynomial/infinite_polynomial_ring
+   sage/rings/polynomial/infinite_polynomial_element
 
    sage/rings/polynomial/multi_polynomial_ideal
+   sage/rings/polynomial/symmetric_ideal
+   sage/rings/polynomial/symmetric_reduction
    sage/rings/polynomial/toy_variety
 
    sage/rings/polynomial/pbori

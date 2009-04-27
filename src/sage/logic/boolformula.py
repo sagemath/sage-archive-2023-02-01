@@ -149,6 +149,13 @@ import logicparser
 import boolopt
 from types import *
 
+latex_operators = [('&', '\\wedge '),
+                   ('|', '\\vee '),
+                   ('~', '\\neg '),
+                   ('^', '\\oplus '),
+                   ('<->', '\\leftrightarrow '),
+                   ('->', '\\rightarrow ')]
+
 class BooleanFormula:
     __expression = ""
     __tree = []
@@ -215,14 +222,19 @@ class BooleanFormula:
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("man->monkey&human")
             sage: latex(s)
-            \\man->monkey\&human
+            man\rightarrow monkey\wedge human
+
+            sage: f = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
+            sage: latex(f)
+            a\wedge ((\neg b\vee c)\oplus a\rightarrow c)\leftrightarrow \neg b
         """
-        strlst = [r'\\']
-        for c in self.__expression:
-            if c in '&^~':
-                strlst.append('\\')
-            strlst.append(c)
-        return ''.join(strlst)
+        latex_expression = self.__expression
+        for old, new in latex_operators:
+            latex_expression = latex_expression.replace(old, new)
+        return latex_expression
+
+    def tree(self):
+        return self.__tree
 
     def __or__(self, other):
         r"""

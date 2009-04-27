@@ -84,7 +84,7 @@ r"""
         True   True   False  True
         True   True   True   True
 
-    Or determine if an epression is satisfiable, a contradiction, or a tautology.
+    Or determine if an expression is satisfiable, a contradiction, or a tautology.
         sage: f = propcalc.formula("a|b")
         sage: f.is_satisfiable()
         True
@@ -97,7 +97,7 @@ r"""
         sage: f.is_tautology()
         True
 
-    The equlaity operator compares semantic equivlance.
+    The equality operator compares semantic equivalance.
         sage: f = propcalc.formula("(a|b)&c")
         sage: g = propcalc.formula("c&(b|a)")
         sage: f == g
@@ -163,7 +163,7 @@ def formula(s):
 	sage: f&g|f
 	((a&~b|c)&(a^c<->b))|(a&~b|c)
 
-    There are a nuber of possible errors.
+    There are a number of possible errors.
         sage: propcalc.formula("((a&b)")
         Traceback (most recent call last):
         ...

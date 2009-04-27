@@ -19,7 +19,7 @@ class InlineFortran:
     def __call__(self, *args, **kwds):
         return self.eval(*args, **kwds)
 
-    def eval(self,x):
+    def eval(self,x,globals=None, locals=None):
         """
         EXAMPLES:
             sage: from sage.misc.inline_fortran import InlineFortran

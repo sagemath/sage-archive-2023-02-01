@@ -19,12 +19,12 @@ une liste de générateurs, comme dans l'exemple suivant.
     120
     sage: G.is_abelian()
     False
-    sage: G.derived_series()           # random-ish output
+    sage: G.derived_series()           # sortie plus ou moins aléatoire (random)
     [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
      Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
     sage: G.center()
     Permutation Group with generators [()]
-    sage: G.random_element()           # random output
+    sage: G.random_element()           # sortie aléatoire (random)
     (1,5,3)(2,4)
     sage: print latex(G)
     \langle (3,4), (1,2,3)(4,5) \rangle

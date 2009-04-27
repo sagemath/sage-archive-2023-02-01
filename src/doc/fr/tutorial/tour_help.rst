@@ -155,7 +155,7 @@ peuvent apparaître dans n'importe quel ordre :
 En Python, contrairement à de nombreux autres langages, les blocs de
 code ne sont pas délimités par des accolades ou des mots-clés de début
 et de fin de bloc. Au lieu de cela, la structure des blocs est donnée
-par l'identation, qui doit être la même dans tout le bloc. Par exemple,
+par l'indentation, qui doit être la même dans tout le bloc. Par exemple,
 le code suivant déclenche une erreur de syntaxe parce que l'instruction
 ``return`` n'est pas au même niveau d'indentation que les lignes
 précédentes.

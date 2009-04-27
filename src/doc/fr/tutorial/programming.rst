@@ -45,7 +45,7 @@ L'effet de cette commande est que si nous modifions maintenant
 ``entrée``), le contenu de ``example.sage`` sera automatiquement
 rechargé dans Sage.
 
-Avec ``attach``, le fichier est rechargé automatiquement à chaque
+Avec ``attach``, le fichier est rechargé automatiquement
 dans Sage à chaque modification, ce qui est pratique pour déboguer du
 code ; tandis qu'avec ``load`` il n'est chargé qu'une fois.
 
@@ -71,8 +71,8 @@ exclusif et ``**`` l'exponentiation).
 ``sage/misc/interpreter.py``.)
 
 On peut coller dans Sage des blocs de code de plusieurs lignes avec des
-indentations pourvu que les nouveaux blocs soient délimités par des
-passages à la ligne??? (cela n'est pas nécessaire quand le code est dans
+indentations pourvu que les blocs soient délimités par des
+retours à la ligne (cela n'est pas nécessaire quand le code est dans
 un fichier). Cependant, la meilleure façon d'entrer ce genre de code
 dans Sage est de l'enregistrer dans un fichier et d'utiliser la commande
 ``attach`` comme décrit ci-dessus.
@@ -127,11 +127,11 @@ commandes suivantes :
     CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
     Wall time: 0.03
 
-Le suffixe L ci-dessus dénote un entier long Python (voir
+Le suffixe ``L`` ci-dessus dénote un entier long Python (voir
 :ref:`section-mathannoy`).
 
 Notez que si vous quittez et relancez Sage, ``factorial.spyx`` sera
-recompilé. La bibliothèque d'objets partagés compilés (???) se trouve
+recompilé. La bibliothèque d'objets partagés compilés se trouve
 dans ``$HOME/.sage/temp/hostname/pid/spyx``. Ces fichiers sont supprimés
 lorsque vous quittez Sage.
 
@@ -263,7 +263,7 @@ fonctions sont attachés au type (ou classe) de l'objet et appelées avec
 une syntaxe « orientée objet » comme en Java ou en C++, par exemple
 ``V.foo(...)``. Cela évite de polluer l'espace de noms global avec des
 dizaines de milliers de fonctions, et cela permet d'avoir plusieurs
-fonctions appelées foo, avec des comportements différents, sans devoir
+fonctions appelées ``foo``, avec des comportements différents, sans devoir
 se reposer sur le type des arguments (ni sur des instructions case) pour
 décider laquelle appeler. De plus, une fonction dont vous réutilisez le
 nom demeure disponible : par exemple, si vous appelez quelque chose
@@ -510,7 +510,7 @@ programmation fréquent :
     sage: [a*b for a, b in d.iteritems()]
     [8, 27, 64]
 
-Comme le montre la dernière sortie ci-dessus???, un dictionnaire stocke ses
+Comme le montre la dernière sortie ci-dessus, un dictionnaire stocke ses
 éléments sans ordre particulier.
 
 Ensembles
@@ -760,7 +760,7 @@ considère :math:`1 \in \GF{5}` comme égal à :math:`1 \in \QQ`.
 Profilage (profiling)
 =====================
 
-Auteur de la section: Martin Albrecht (malb@informatik.uni-bremen.de)
+Auteur de la section : Martin Albrecht (malb@informatik.uni-bremen.de)
 
     "Premature optimization is the root of all evil." - Donald Knuth
     (« L'optimisation prématurée est la source de tous les maux. »)

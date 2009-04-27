@@ -63,8 +63,8 @@ du clavier). Les variables GLOBALES suivantes existent toujours (ne les
 
 ::
 
-      _: dernière entrée (shell et notebook)
-      __: avant-dernière entrée (shell uniquement)
+      _ : dernière entrée (shell et notebook)
+      __ : avant-dernière entrée (shell uniquement)
       _oh : liste de toutes les entrées précédentes (shell uniquement)
 
 Voici un exemple :
@@ -145,7 +145,7 @@ renvoie la liste des fichiers du répertoire courant.
 
 Dans ce contexte, le ``PATH`` commence par le répertoire des binaires
 de Sage, de sorte que les commandes ``gp``, ``gap``, ``singular``,
-``maxima``, etc. appelent les versions inclues dans Sage.
+``maxima``, etc. appellent les versions inclues dans Sage.
 
 .. skip
 
@@ -423,7 +423,7 @@ pile d'exécution. Par exemple :
     ipdb>
 
 Pour obtenir une liste des commandes disponibles dans le débogueur,
-tapez ``?`` à l'invite ``ipdb>`` :
+tapez ``?`` à l'invite ``ipdb>`` :
 
 ::
 
@@ -654,7 +654,7 @@ Enregistrer et charger des objets individuellement
 ==================================================
 
 Imaginons que nous calculions une matrice, ou pire, un espace compliqué
-de symboles modulaires???, et que nous souhaitions les sauvegarder pour
+de symboles modulaires, et que nous souhaitions les sauvegarder pour
 un usage futur. Les systèmes de calcul formel ont différentes approches
 pour permettre cela.
 
@@ -679,7 +679,7 @@ de relecture des objets ne nécessite (dans la plupart des cas) aucune
 programmation supplémentaire : il s'agit simplement une fonctionnalité de
 Python fournie par le langage depuis la base.
 
-Quasiment n'importe quel objet Sage x peut être enregistré sur le
+Quasiment n'importe quel objet Sage ``x'' peut être enregistré sur le
 disque, dans un format compressé, avec ``save(x, nom_de_fichier)`` (ou
 dans bien des cas ``x.save(nom_de_fichier)``). Pour recharger les
 objets, on utilise ``load(nom_de_fichier)``.
@@ -777,7 +777,7 @@ le résultat. Bien souvent, un objet peut même être rechargé avec une
 version de Sage différente de celle utilisée pour le sauver, pourvu que
 le code qui gère cet objet n'ait pas trop changé d'une version sur
 l'autre. Sauver un objet enregistre tous ses attributs ainsi que la
-classe à laquelle il appartient (mais pas son code source)???. Si cette
+classe à laquelle il appartient (mais pas son code source). Si cette
 classe n'existe plus dans une version ultérieure de Sage, l'objet ne
 peut pas y être rechargé. Mais il demeure possible de le charger dans
 l'ancienne version pour récupérer son dictionnaire (avec
@@ -935,13 +935,13 @@ créez une nouvelle feuille de travail, les données correspondantes sont
 stockées dans un répertoire de la forme
 ``worksheets/utilisateur/numéro``. Dans chacun de ces répertoires se trouve un
 fichier texte brut ``worksheet.txt`` qui contient tout ce qu'il faut
-pour reconstituer la feuille de travail s'il lui arrive à quelque
+pour reconstituer la feuille de travail s'il lui arrive quelque
 chose, si Sage rencontre un problème, ou quoi que ce soit de ce genre.
 
 Dans Sage, vous pouvez taper ``notebook?`` pour beaucoup plus
 d'informations sur comment démarrer un serveur.
 
-Le schéma suivant présente l'architecture du *Notebbok* Sage :
+Le schéma suivant présente l'architecture du *Notebook* Sage :
 
 ::
 

@@ -1,7 +1,7 @@
 Algèbre de base et calcul infinitésimal
 =======================================
 
-Sage peut accomplir divers calculs d'algèbre et d'analyse de base : par
+Sage peut accomplir divers calculs d'algèbre et d'analyse de base : par
 exemple, trouver les solutions d'équations, dériver, intégrer, calculer
 des transformées de Laplace. Voir la documentation *Sage Constructions*
 pour plus d'exemples.
@@ -10,7 +10,7 @@ Résolution d'équations
 ----------------------
 
 La fonction ``solve`` résout des équations. Pour l'utiliser, il convient
-de  spécifier d'abord les variables. Les arguments de ``solve`` sont
+de spécifier d'abord les variables. Les arguments de ``solve`` sont
 alors une équation (ou un système d'équations) suivie des variables à
 résoudre.
 
@@ -38,7 +38,7 @@ On peut également résoudre un système à plusieurs variables :
     [[x == 5, y == 1]]
 
 L'exemple suivant, qui utilise Sage pour la résolution d'un système
-d'équations non-linéaires, a été proposé par Jason Grout. D'abord, ou
+d'équations non-linéaires, a été proposé par Jason Grout. D'abord, on
 résout le système de façon symbolique :
 
 ::
@@ -63,7 +63,7 @@ Pour une résolution numérique, on peut utiliser à la place :
     [[1.0000000, 8.0000000, -4.8830369, -0.13962039],
      [1.0000000, 8.0000000, 3.5497035, -1.1937129]]
 
-(La fonction ``n`` affiche une approximation numérique ; son argument
+(La fonction ``n`` affiche une approximation numérique ; son argument
 indique le nombre de bits de précision.)
 
 Dérivation, intégration, etc.
@@ -124,12 +124,12 @@ Résolution des équations différentielles
 ----------------------------------------
 
 On peut utiliser Sage pour étudier les équations différentielles
-ordinaires. Pour résoudre l'équation :math:`x'+x-1=0`:
+ordinaires. Pour résoudre l'équation :math:`x'+x-1=0` :
 
 ::
 
-    sage: t = var('t')    # define a variable t
-    sage: function('x',t)   # define x to be a function of that variable
+    sage: t = var('t')    # on définit une variable t
+    sage: function('x',t)   # on déclare x fonction de cette variable
     x(t)
     sage: DE = lambda y: diff(y,t) + y - 1
     sage: desolve(DE(x(t)), [x(t),t])
@@ -155,8 +155,8 @@ d'équilibre de ressorts couplés attachés à gauche à un mur
 
 ::
 
-    |------\/\/\/\/\---|mass1|----\/\/\/\/\/----|mass2|
-             spring1               spring2
+    |------\/\/\/\/\---|masse1|----\/\/\/\/\/----|masse2|
+            ressort1                ressort2
 
 est modélisée par le système d'équations différentielles d'ordre 2
 
@@ -170,12 +170,12 @@ où :math:`m_{i}` est la masse de l'objet *i*, :math:`x_{i}` est
 l'élongation à partir du point d'équilibre de la masse  *i*, et
 :math:`k_{i}` est la constante de raideur du ressort *i*.
 
-**Exemple:** Utiliser Sage pour résoudre le problème ci-dessus
+**Exemple :** Utiliser Sage pour résoudre le problème ci-dessus
 avec :math:`m_{1}=2`, :math:`m_{2}=1`, :math:`k_{1}=4`, :math:`k_{2}=2`,
 :math:`x_{1}(0)=3`, :math:`x_{1}'(0)=0`, :math:`x_{2}(0)=3`,
 :math:`x_{2}'(0)=0`.
 
-Solution: Considérons la transformée de Laplace de la première équation
+Solution : Considérons la transformée de Laplace de la première équation
 (avec les notations :math:`x=x_{1}`, :math:`y=x_{2}`):
 
 ::
@@ -188,9 +188,10 @@ La réponse n'est pas très lisible, mais elle signifie que
 
 .. math:: -2x'(0) + 2s^2*X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
 
-(où la transformée de Laplace d'une fonction en minuscule telle que
-:math:`x(t)` est notée en majuscule :math:`X(s)`). Considérons la
-transformée de Laplace de la seconde équation :
+(où la transformée de Laplace d'une fonction notée par une lettre
+minuscule telle que :math:`x(t)` est désignée par la majuscule
+correspondante  :math:`X(s)`). Considérons la transformée de Laplace de
+la seconde équation :
 
 ::
 
@@ -252,7 +253,7 @@ Les coordonnées individuelles peuvent être tracées en utilisant
 
 (Pour plus d'information sur le tracé de graphe, voir :ref:`section-plot`.)
 
-REFERENCES: Nagle, Saff, Snider, Fundamentals of Differential
+RÉFÉRENCES : Nagle, Saff, Snider, Fundamentals of Differential
 Equations, 6th ed, Addison-Wesley, 2004. (see § 5.5).
 
 Méthode d'Euler pour les systèmes d'équations différentielles
@@ -269,7 +270,7 @@ Etant donné un problème donné avec une valeur initiale sous la forme
 
 
 nous cherchons une valeur approchée de la solution au point
-:math:`x=b` with :math:`b>a`.
+:math:`x=b` avec :math:`b>a`.
 
 Rappelons que par définition de la dérivée
 
@@ -317,8 +318,7 @@ L'idée est la même pour les systèmes d'équations différentielles.
 :math:`t=1` en utilisant 4 étapes de la méthode d'Euler, où
 :math:`z''+tz'+z=0`, :math:`z(0)=1`, :math:`z'(0)=0`.
 
-Il nous faut réduire l'équation différentielle d'ordre 2 à un système de
-de deux équations différentielles d'ordre 1 (en posant :math:`x=z`,
+Il nous faut réduire l'équation différentielle d'ordre 2 à un système de deux équations différentielles d'ordre 1 (en posant :math:`x=z`,
 :math:`y=z'`) et appliquer la méthode d'Euler :
 
 ::
@@ -337,8 +337,8 @@ On en déduit :math:`z(1)\approx 0.75`.
 
 On peut également tracer le graphe des points :math:`(x,y)` pour obtenir
 une image approchée de la courbe. La fonction ``eulers_method_2x2_plot``
-réalise cela ; pour l'utiliser, il faut définir les fonctions  *f* et
-*g* qui prennent un argument à trois coordonnées : (*t*, *x*, *y*).
+réalise cela ; pour l'utiliser, il faut définir les fonctions  *f* et
+*g* qui prennent un argument à trois coordonnées : (*t*, *x*, *y*).
 
 ::
 
@@ -346,7 +346,7 @@ réalise cela ; pour l'utiliser, il faut définir les fonctions  *f* et
     sage: g = lambda z: -sin(z[1])  # g(t,x,y) = -sin(x)
     sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
 
-Arrivé à ce point, ``P`` conserve en mémoire deux graphiques : ``P[0]``,
+Arrivé à ce point, ``P`` conserve en mémoire deux graphiques : ``P[0]``,
 le graphe de  *x* en fonction de *t*, et ``P[1]``, le graphique de *y*
 par rapport à *t*. On peut tracer les deux graphiques simultanément par
 :
@@ -377,8 +377,8 @@ et *Special functions*, respectively) du manuel de référence de Sage
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
     sage: bessel_I(1,1)
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-    0.16708949925104899
+    sage: bessel_I(2,1.1,"maxima")  # les quelques derniers chiffres sont aléatoires
+    0.167089499251049...
 
 Pour l'instant, ces fonctions n'ont été adaptées à Sage que pour une
 utilisation numérique. Pour faire du calcul formel, il faut utiliser

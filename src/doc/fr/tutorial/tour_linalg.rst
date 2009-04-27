@@ -214,5 +214,5 @@ Sage peut calculer des valeurs propres et des vecteurs propres :
 
 
 
-Les valeurs propres et vecteurs propres peuvent aussi être calculée avec
+Les valeurs propres et vecteurs propres peuvent aussi être calculés avec
 Maxima (voir :ref:`section-maxima` ci-dessous).

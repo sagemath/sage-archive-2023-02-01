@@ -59,31 +59,6 @@ r"""
         sage: f
         (a|~b|c)&(a|~b|~c)&(~a|b|~c)
 
-    We can also simplify an expression.
-        sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
-        sage: f.truthtable()
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        False  True   True   False
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-        sage: f.simplify()
-        (~a&~b)|(a&~b&~c)|(a&b)
-        sage: f.truthtable()
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        False  True   True   False
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-
     Or determine if an expression is satisfiable, a contradiction, or a tautology.
         sage: f = propcalc.formula("a|b")
         sage: f.is_satisfiable()

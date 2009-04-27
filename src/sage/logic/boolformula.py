@@ -65,31 +65,6 @@ r"""
         sage: f
         (a|~b|c)&(a|~b|~c)&(~a|b|~c)
 
-    We can also simplify an expression.
-        sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
-        sage: f.truthtable()
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        False  True   True   False
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-        sage: f.simplify()
-        (~a&~b)|(a&~b&~c)|(a&b)
-        sage: f.truthtable()
-        a      b      c      value
-        False  False  False  True
-        False  False  True   True
-        False  True   False  False
-        False  True   True   False
-        True   False  False  True
-        True   False  True   False
-        True   True   False  True
-        True   True   True   True
-
     Or determine if an epression is satisfiable, a contradiction, or a tautology.
         sage: f = propcalc.formula("a|b")
         sage: f.is_satisfiable()
@@ -146,7 +121,7 @@ r"""
 import booleval
 import logictable
 import logicparser
-import boolopt
+#import boolopt
 from types import *
 
 latex_operators = [('&', '\\wedge '),
@@ -817,72 +792,72 @@ class BooleanFormula:
         s = 'p cnf ' + str(len(self.__vars_order)) + ' ' + str(clauses) + '\n' + s
         return s[:-1]
 
-    def simplify(self):
-        r"""
-        This function uses the propcalc package to simplify an expression to
-        its minimal form.
-
-        INPUT:
-             self -- the calling object.
-
-        OUTPUT:
-            A simplified expression.
-
-        EXAMPLES:
-            sage: import sage.logic.propcalc as propcalc
-            sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
-            sage: f.truthtable()
-            a      b      c      value
-            False  False  False  True
-            False  False  True   True
-            False  True   False  False
-            False  True   True   False
-            True   False  False  True
-            True   False  True   False
-            True   True   False  True
-            True   True   True   True
-            sage: f.simplify()
-            (~a&~b)|(a&~b&~c)|(a&b)
-            sage: f.truthtable()
-            a      b      c      value
-            False  False  False  True
-            False  False  True   True
-            False  True   False  False
-            False  True   True   False
-            True   False  False  True
-            True   False  True   False
-            True   True   False  True
-            True   True   True   True
-
-        NOTES:
-            If the instance of boolean formula has not been converted to
-            cnf form by a call to convert_cnf() or convert_cnf_recur()
-            satformat() will call convert_cnf().  Please see the notes for
-            convert_cnf() and convert_cnf_recur() for performance issues.
-        """
-        exp = ''
-        self.__tree = logicparser.apply_func(self.__tree, self.reduce_op)
-        plf = logicparser.apply_func(self.__tree, self.convert_opt)
-        wff = boolopt.PLFtoWFF()(plf) # convert to positive-normal form
-        wtd = boolopt.WFFtoDNF()
-        dnf = wtd(wff)
-        dnf = wtd.clean(dnf)
-        if(dnf == [] or dnf == [[]]):
-            exp = self.__vars_order[0] + '&~' + self.__vars_order[0] + ' '
-        opt = boolopt.optimize(dnf)
-        if(exp == '' and (opt == [] or opt == [[]])):
-            exp = self.__vars_order[0] + '|~' + self.__vars_order[0] + ' '
-        if(exp == ''):
-            for con in opt:
-                s = '('
-                for prop in con:
-                    if(prop[0] == 'notprop'):
-                       s += '~'
-                    s += prop[1] + '&'
-                exp += s[:-1] + ')|'
-        self.__expression = exp[:-1]
-        self.__tree, self.__vars_order = logicparser.parse(self.__expression)
-        return BooleanFormula(self.__expression, self.__tree, self.__vars_order)
+#    def simplify(self):
+#        r"""
+#        This function uses the propcalc package to simplify an expression to
+#        its minimal form.
+#
+#        INPUT:
+#             self -- the calling object.
+#
+#        OUTPUT:
+#            A simplified expression.
+#
+#        EXAMPLES:
+#            sage: import sage.logic.propcalc as propcalc
+#            sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
+#            sage: f.truthtable()
+#            a      b      c      value
+#            False  False  False  True
+#            False  False  True   True
+#            False  True   False  False
+#            False  True   True   False
+#            True   False  False  True
+#            True   False  True   False
+#            True   True   False  True
+#            True   True   True   True
+#            sage: f.simplify()
+#            (~a&~b)|(a&~b&~c)|(a&b)
+#            sage: f.truthtable()
+#            a      b      c      value
+#            False  False  False  True
+#            False  False  True   True
+#            False  True   False  False
+#            False  True   True   False
+#            True   False  False  True
+#            True   False  True   False
+#            True   True   False  True
+#            True   True   True   True
+#
+#        NOTES:
+#            If the instance of boolean formula has not been converted to
+#            cnf form by a call to convert_cnf() or convert_cnf_recur()
+#            satformat() will call convert_cnf().  Please see the notes for
+#            convert_cnf() and convert_cnf_recur() for performance issues.
+#        """
+#        exp = ''
+#        self.__tree = logicparser.apply_func(self.__tree, self.reduce_op)
+#        plf = logicparser.apply_func(self.__tree, self.convert_opt)
+#        wff = boolopt.PLFtoWFF()(plf) # convert to positive-normal form
+#        wtd = boolopt.WFFtoDNF()
+#        dnf = wtd(wff)
+#        dnf = wtd.clean(dnf)
+#        if(dnf == [] or dnf == [[]]):
+#            exp = self.__vars_order[0] + '&~' + self.__vars_order[0] + ' '
+#        opt = boolopt.optimize(dnf)
+#        if(exp == '' and (opt == [] or opt == [[]])):
+#            exp = self.__vars_order[0] + '|~' + self.__vars_order[0] + ' '
+#        if(exp == ''):
+#            for con in opt:
+#                s = '('
+#                for prop in con:
+#                    if(prop[0] == 'notprop'):
+#                       s += '~'
+#                    s += prop[1] + '&'
+#                exp += s[:-1] + ')|'
+#        self.__expression = exp[:-1]
+#        self.__tree, self.__vars_order = logicparser.parse(self.__expression)
+#        return BooleanFormula(self.__expression, self.__tree, self.__vars_order)
 
     def convert_opt(self, tree):
         r"""

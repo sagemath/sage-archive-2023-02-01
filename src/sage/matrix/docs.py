@@ -13,6 +13,8 @@ AUTHORS:
 
 - William Stein and Robert Bradshaw - complete restructuring.
 
+- Rob Beezer - refactor kernel functions.
+
 Elements of matrix spaces are of class ``Matrix`` (or a
 class derived from Matrix). They can be either sparse or dense, and
 can be defined over any base ring.
@@ -207,4 +209,9 @@ See the files ``matrix_template.pxd`` and
 
        - Any method that can change the matrix should call
          ``check_mutability()`` first.  There are also many fast cdef'd bounds checking methods.
+
+       - Kernels of matrices
+         Implement only a left_kernel() or right_kernel() method, whichever requires
+         the least overhead (usually meaning little or no transpose'ing).  Let the
+         methods in the matrix2 class handle left, right, generic kernel distinctions.
 """

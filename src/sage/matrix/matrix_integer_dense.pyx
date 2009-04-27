@@ -2142,7 +2142,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.kernel_matrix()
             [-1  2 -1]
 
-        Note that the basis matrix returned above is not in Hermite form.
+        Note that the basis matrix returned above is not in Hermite/echelon form.
 
         ::
 
@@ -2188,17 +2188,69 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: D.ncols()
             2
         """
-        if self._nrows == 0:    # from a 0 space
-            return self.new_matrix(0, self.nrows())
-        elif self._ncols == 0:  # to a 0 space
-            # n x n identity matrix with n = self.nrows()
+        return self.transpose()._right_kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
+
+
+    def _right_kernel_matrix(self, algorithm='padic', LLL=False, proof=None):
+        """
+        The options are exactly like self.right_kernel(...), but returns a matrix
+        A whose rows form a basis for the right kernel, i.e., so that
+        self\*transpose(A) = 0.
+
+        This is mainly useful internally to avoid all overhead associated with
+        creating a free module.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 3, 3, [1..9])
+            sage: A._right_kernel_matrix()
+            [-1  2 -1]
+
+        Note that the basis matrix returned above is not in Hermite/echelon form.
+
+        ::
+
+            sage: A.right_kernel()
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 1 -2  1]
+
+        We compute another kernel::
+
+            sage: A = matrix(ZZ, 2, 4, [2, 1, -18, -1, -1, 1, -1, -5])
+            sage: K = A._right_kernel_matrix(); K
+            [-17 -20  -3   0]
+            [  7   3   1  -1]
+
+        K is a basis for the right kernel::
+
+            sage: A*K.transpose()
+            [0 0]
+            [0 0]
+
+        We illustrate the LLL flag::
+
+            sage: L = A._right_kernel_matrix(LLL=True); L
+            [  7   3   1  -1]
+            [  4 -11   0  -3]
+            sage: K.hermite_form()
+            [ 1 64  3 12]
+            [ 0 89  4 17]
+            sage: L.hermite_form()
+            [ 1 64  3 12]
+            [ 0 89  4 17]
+        """
+        if self._ncols == 0:    # from a 0 space
+            return self.new_matrix(0, self.ncols())
+        elif self._nrows == 0:  # to a 0 space
+            # return identity matrix of size n = self.ncols()
             import constructor
-            return constructor.identity_matrix(self.nrows())
+            return constructor.identity_matrix(self.ncols())
 
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'pari':
-            return self._kernel_gens_using_pari()
+            return self._kernel_matrix_using_pari()
         else:
             A = self._kernel_matrix_using_padic_algorithm(proof)
             if LLL:
@@ -2206,11 +2258,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 return A
 
-    def kernel(self, algorithm='padic', LLL=False, proof=None, echelonize=True):
+    def right_kernel(self, algorithm='padic', LLL=False, proof=None, echelonize=True):
         r"""
-        Return the left kernel of this matrix, as a module over the
-        integers. This is the saturated ZZ-module spanned by all the row
-        vectors v such that v\*self = 0.
+        Return the right kernel of this matrix, as a module over the
+        integers. This is the saturated ZZ-module spanned by all the column
+        vectors v such that self\*v = 0.
 
         INPUT:
 
@@ -2225,30 +2277,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            if False, impacts how determinants are computed.
 
 
-        By convention if self has 0 rows, the kernel is of dimension 0,
-        whereas the kernel is the whole domain if self has 0 columns.
+        By convention if self has 0 columnss, the right kernel is of dimension 0,
+        whereas the right kernel is the whole domain if self has 0 rows.
 
         EXAMPLES::
 
-            sage: M = MatrixSpace(ZZ,4,2)(range(8))
-            sage: M.kernel()
+            sage: M = MatrixSpace(ZZ,2,4)(range(8))
+            sage: M.right_kernel()
             Free module of degree 4 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 1  0 -3  2]
             [ 0  1 -2  1]
         """
-        if self._nrows == 0:    # from a 0 space
-            M = sage.modules.free_module.FreeModule(ZZ, self._nrows)
+        if self._ncols == 0:    # from a 0 space
+            M = sage.modules.free_module.FreeModule(ZZ, self._ncols)
             return M.zero_submodule()
-        elif self._ncols == 0:  # to a 0 space
-            return sage.modules.free_module.FreeModule(ZZ, self._nrows)
+        elif self._nrows == 0:  # to a 0 space
+            return sage.modules.free_module.FreeModule(ZZ, self._ncols)
 
-        X = self.kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
+        X = self._right_kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
         if not LLL and echelonize:
             X = X.hermite_form(proof=proof)
         X = X.rows()
 
-        M = sage.modules.free_module.FreeModule(ZZ, self.nrows())
+        M = sage.modules.free_module.FreeModule(ZZ, self.ncols())
         if LLL:
             return M.span_of_basis(X, check=False)
         else:
@@ -2259,22 +2311,50 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Compute a list of independent generators that span the right kernel
         of self.
 
-        ALGORITHM: Use IML to compute the kernel over QQ, clear
+        ALGORITHM: Use IML to compute the right kernel over QQ, clear
         denominators, then saturate.
         """
-        return self.transpose()._rational_kernel_iml().transpose().saturation(proof=proof)
+        return self._rational_kernel_iml().transpose().saturation(proof=proof)
 
 
-    def _kernel_gens_using_pari(self):
-        """
+    def _kernel_matrix_using_pari(self):
+        r"""
         Compute an LLL reduced list of independent generators that span the
-        kernel of self.
+        right kernel of self.
+
+        EXAMPLES:
+
+        A matrix of generators for a simple matrix of rank 2::
+
+            sage: M = MatrixSpace(ZZ,2,4)(range(8))
+            sage: M
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: M._kernel_matrix_using_pari()
+            [ 1 -1 -1  1]
+            [ 0 -1  2 -1]
+
+        Testing matrices with no rows or no columns::
+
+            sage: N = MatrixSpace(ZZ,0,4)()
+            sage: N
+            []
+            sage: N._kernel_matrix_using_pari()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: P=MatrixSpace(ZZ,4,0)()
+            sage: P
+            []
+            sage: P._kernel_matrix_using_pari()
+            []
 
         ALGORITHM: Call pari's matkerint function.
         """
-        A = self._pari_().mattranspose().matkerint().mattranspose().python()
+        A = self._pari_().matkerint().mattranspose().python()
         if A.nrows() == 0:
-            return A.new_matrix(nrows = 0, ncols = self._nrows)
+            return A.new_matrix(nrows = 0, ncols = self._ncols)
         else:
             return A
 

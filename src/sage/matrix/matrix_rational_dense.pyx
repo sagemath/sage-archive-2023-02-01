@@ -1205,12 +1205,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
-    ################################################
-    # Kernel
-    ################################################
-    def kernel(self, algorithm='padic', **kwds):
+    def right_kernel(self, algorithm='padic', **kwds):
         """
-        Return the left kernel of this matrix, as a vector space over QQ.
+        Return the right kernel of this matrix, as a vector space over QQ.
+        For a left kernel use self.left_kernel() or just self.kernel().
 
         INPUT:
 
@@ -1225,28 +1223,42 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: M=Matrix(QQ,[[1/2,3],[0,1],[1,1]])
-            sage: M.kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [   1 -5/2 -1/2]
-            sage: M.right_kernel()
-            Vector space of degree 2 and dimension 0 over Rational Field
-            Basis matrix:
-            []
+            A non-trivial right kernel over the rationals::
+
+                sage: A = matrix(QQ, [[2,1,-5,-8],[-1,-1,4,6],[1,0,-1,-2]])
+                sage: A.right_kernel()
+                Vector space of degree 4 and dimension 2 over Rational Field
+                Basis matrix:
+                [   1    0   -2  3/2]
+                [   0    1    1 -1/2]
+
+            A trivial right kernel, plus left kernel (via superclass)::
+
+                sage: M=Matrix(QQ,[[1/2,3],[0,1],[1,1]])
+                sage: M.right_kernel()
+                Vector space of degree 2 and dimension 0 over Rational Field
+                Basis matrix:
+                []
+                sage: M.left_kernel()
+                Vector space of degree 3 and dimension 1 over Rational Field
+                Basis matrix:
+                [   1 -5/2 -1/2]
+
+
         """
-        K = self.fetch('kernel')
+        K = self.fetch('right_kernel')
         if not K is None:
             return K
+
         if self._nrows > 0 and self._ncols > 0 and  \
             (algorithm == 'padic' or algorithm == 'default'):
-            A, _ = self.transpose()._clear_denom()
+            A, _ = self._clear_denom()
             K = A._rational_kernel_iml().change_ring(QQ)
             V = K.column_space()
-            self.cache('kernel', V)
+            self.cache('right_kernel', V)
             return V
         else:
-            return matrix_dense.Matrix_dense.kernel(self, algorithm, **kwds)
+            return matrix_dense.Matrix_dense.right_kernel(self, algorithm, **kwds)
 
 
     ################################################

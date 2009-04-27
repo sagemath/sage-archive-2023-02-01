@@ -1603,7 +1603,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return the (left) kernel of this matrix, as a vector space. This is
         the space of vectors x such that x\*self=0. Use
-        self.right_kernel() for the right kernel.
+        self.right_kernel() for the right kernel, while
         self.left_kernel() is equivalent to self.kernel().
 
         INPUT: all additional arguments to the kernel function are passed
@@ -1612,23 +1612,11 @@ cdef class Matrix(matrix1.Matrix):
         By convention if self has 0 rows, the kernel is of dimension 0,
         whereas the kernel is whole domain if self has 0 columns.
 
-        ALGORITHM:
-
-        Elementary row operations don't change the kernel, since they
-        are just right multiplication by an invertible matrix, so we
-        instead compute kernel of the column echelon form.  More
-        precisely, there is a basis vector of the kernel that
-        corresponds to each non-pivot row.  That vector has a 1 at the
-        non-pivot row, 0's at all other non-pivot rows, and for each
-        pivot row, the negative of the entry at the non-pivot row in
-        the column with that pivot element.
-
         .. note::
 
-           Since we view matrices as acting on the right, but have
-           functions for reduced *row* echelon forms, we instead
-           compute the reduced row echelon form of the transpose of
-           this matrix, which is the reduced column echelon form.
+           For information on algorithms used, see the documentation of :meth:`right_kernel`
+           in this class, or versions of right and left kernels in derived classes which
+           override the ones here.
 
         EXAMPLES:
 
@@ -1728,60 +1716,14 @@ cdef class Matrix(matrix1.Matrix):
             Basis matrix:
             0 x 500 dense matrix over Rational Field
         """
-        K = self.fetch('left_kernel')
-        if not K is None:
-            return K
-        R = self._base_ring
+        return self.left_kernel(*args, **kwds)
 
-        if self._nrows == 0:    # from a degree-0 space
-            V = sage.modules.free_module.VectorSpace(R, self._nrows)
-            Z = V.zero_subspace()
-            self.cache('left_kernel', Z)
-            return Z
-
-        elif self._ncols == 0:  # to a degree-0 space
-            Z = sage.modules.free_module.VectorSpace(R, self._nrows)
-            self.cache('left_kernel', Z)
-            return Z
-
-        if is_IntegerRing(R):
-            Z = self.kernel(*args, **kwds)
-            self.cache('left_kernel', Z)
-            return Z
-
-        if is_NumberField(R):
-            A = self._pari_().mattranspose()
-            B = A.matker()
-            n = self._nrows
-            V = sage.modules.free_module.VectorSpace(R, n)
-            basis = [V([R(x) for x in b]) for b in B]
-            Z = V.subspace(basis)
-            self.cache('left_kernel', Z)
-            return Z
-
-        E = self.transpose().echelon_form(*args, **kwds)
-        pivots = E.pivots()
-        pivots_set = set(pivots)
-        basis = []
-        V = R ** self.nrows()
-        ONE = R(1)
-        for i in xrange(self._nrows):
-            if not (i in pivots_set):
-                v = V(0)
-                v[i] = ONE
-                for r in range(len(pivots)):
-                    v[pivots[r]] = -E[r,i]
-                basis.append(v)
-        W = V.submodule(basis)
-        if W.dimension() != len(basis):
-            raise RuntimeError, "bug in kernel function in matrix2.pyx -- basis got from echelon form not a basis."
-        self.cache('left_kernel', W)
-        return W
 
     def right_kernel(self, *args, **kwds):
         r"""
         Return the right kernel of this matrix, as a vector space. This is
-        the space of vectors x such that self\*x=0.
+        the space of vectors x such that self\*x=0.  A left kernel can be found
+        with self.left_kernel() or just self.kernel().
 
         INPUT: all additional arguments to the kernel function are passed
         directly onto the echelon call.
@@ -1789,15 +1731,26 @@ cdef class Matrix(matrix1.Matrix):
         By convention if self has 0 columns, the kernel is of dimension 0,
         whereas the kernel is whole domain if self has 0 rows.
 
+        ALGORITHM:
+
+        Elementary row operations do not change the right kernel, since they
+        are left multiplication by an invertible matrix, so we
+        instead compute the kernel of the row echelon form.  More
+        precisely, there is a basis vector of the kernel that
+        corresponds to each non-pivot column.  That vector has a 1 at the
+        non-pivot column, 0's at all other non-pivot columnss, and for each
+        pivot column, the negative of the entry at the non-pivot column in
+        the row with that pivot element.
+
         .. note::
 
-           For information on algorithms used, see the documentation of :meth:`kernel`
-           in this class, or versions of kernel() in derived classes which override the
-           one here.
+           Preference is given to left kernels in that the generic method
+           name :meth:`kernel` returns a left kernel.  However most computations
+           of kernels are implemented as right kernels.
 
         EXAMPLES:
 
-        A right kernel of dimension one over `\QQ`::
+        A right kernel of dimension one over `\mathbb{Q}`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.right_kernel()
@@ -1876,15 +1829,57 @@ cdef class Matrix(matrix1.Matrix):
         if not K is None:
             return K
 
-        K = self.transpose().kernel(*args, **kwds)
-        self.cache('right_kernel', K)
-        return K
+        R = self._base_ring
 
+        if self._ncols == 0:    # from a degree-0 space
+            V = sage.modules.free_module.VectorSpace(R, self._ncols)
+            Z = V.zero_subspace()
+            self.cache('right_kernel', Z)
+            return Z
+        elif self._nrows == 0:  # to a degree-0 space
+            Z = sage.modules.free_module.VectorSpace(R, self._ncols)
+            self.cache('right_kernel', Z)
+            return Z
+
+        if is_IntegerRing(R):
+            Z = self.right_kernel(*args, **kwds)
+            self.cache('right_kernel', Z)
+            return Z
+
+        if is_NumberField(R):
+            A = self._pari_()
+            B = A.matker()
+            n = self._ncols
+            V = sage.modules.free_module.VectorSpace(R, n)
+            basis = [V([R(x) for x in b]) for b in B]
+            Z = V.subspace(basis)
+            self.cache('right_kernel', Z)
+            return Z
+
+        E = self.echelon_form(*args, **kwds)
+        pivots = E.pivots()
+        pivots_set = set(pivots)
+        basis = []
+        V = R ** self.ncols()
+        ONE = R(1)
+        for i in xrange(self._ncols):
+            if not (i in pivots_set):
+                v = V(0)
+                v[i] = ONE
+                for r in range(len(pivots)):
+                    v[pivots[r]] = -E[r,i]
+                basis.append(v)
+        W = V.submodule(basis)
+        if W.dimension() != len(basis):
+            raise RuntimeError, "bug in right_kernel function in matrix2.pyx -- basis from echelon form is not a basis."
+        self.cache('right_kernel', W)
+        return W
 
     def left_kernel(self, *args, **kwds):
         r"""
         Return the left kernel of this matrix, as a vector space.
-        This is the space of vectors x such that x*self=0.
+        This is the space of vectors x such that x*self=0.  This is
+        identical to self.kernel().  For a right kernel, use self.right_kernel().
 
         INPUT:
 
@@ -1896,9 +1891,9 @@ cdef class Matrix(matrix1.Matrix):
 
         .. note::
 
-           For information on algorithms used, see the documentation of kernel()
-           in this class, or versions of kernel() in derived classes which override the
-           one here.}
+           For information on algorithms used, see the documentation of right_kernel()
+           in this class, or versions of right and left kernels in derived classes which
+           override the ones here.
 
         EXAMPLES:
 
@@ -1983,7 +1978,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K is None:
             return K
 
-        K = self.kernel(*args, **kwds)
+        K = self.transpose().right_kernel(*args, **kwds)
         self.cache('left_kernel', K)
         return K
 

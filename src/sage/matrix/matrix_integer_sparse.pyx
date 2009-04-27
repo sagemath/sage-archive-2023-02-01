@@ -328,11 +328,11 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         v.append('0 0 0\n')
         return '\n'.join(v)
 
-    def kernel(self, algorithm='padic', LLL=False, proof=None, echelonize=True):
+    def right_kernel(self, algorithm='padic', LLL=False, proof=None, echelonize=True):
         r"""
-        Return the left kernel of this matrix, as a module over the
+        Return the right kernel of this matrix, as a module over the
         integers.  This is the saturated ZZ-module spanned by all the
-        row vectors v such that v*self = 0.
+        column vectors v such that self*\v = 0.
 
         INPUT:
             algorithm -- 'padic': a new p-adic based algorithm
@@ -346,14 +346,14 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         0, whereas the kernel is the whole domain if self has 0 columns.
 
         EXAMPLES:
-            sage: M = MatrixSpace(ZZ,4,2,sparse=True)(range(8))
-            sage: M.kernel()
+            sage: M = MatrixSpace(ZZ,2,4,sparse=True)(range(8))
+            sage: M.right_kernel()
             Free module of degree 4 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 1  0 -3  2]
             [ 0  1 -2  1]
         """
-        return self.dense_matrix().kernel(algorithm, LLL, proof, echelonize)
+        return self.dense_matrix().right_kernel(algorithm, LLL, proof, echelonize)
 
     def elementary_divisors(self, algorithm='pari'):
         """

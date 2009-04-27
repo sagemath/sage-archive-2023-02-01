@@ -349,6 +349,12 @@ class GraphPlot(SageObject):
             sage: GP.plot()
             sage: GP.set_edges(edge_colors='black')
             sage: GP.plot()
+
+        TESTS::
+
+            sage: G = Graph("Fooba")
+            sage: G.show(edge_colors={'red':[(3,6),(2,5)]})
+
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
@@ -394,6 +400,20 @@ class GraphPlot(SageObject):
                         edges_to_draw[key].append((label, color, head))
                     else:
                         edges_to_draw[key] = [(label, color, head)]
+            # add unspecified edges in (default color black)
+            for edge in self._graph.edge_iterator():
+                key = tuple(sorted([edge[0],edge[1]]))
+                label = edge[2]
+                specified = False
+                if key in edges_to_draw:
+                    for old_label, old_color, old_head in edges_to_draw[key]:
+                        if label == old_label:
+                            specified = True
+                            break
+                if not specified:
+                    if key == (edge[0],edge[1]): head = 1
+                    else: head = 0
+                    edges_to_draw[key] = [(label, 'black', head)]
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))

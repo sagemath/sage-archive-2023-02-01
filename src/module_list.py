@@ -1153,6 +1153,9 @@ ext_modules = [
               libraries=['mpfr', 'qd'],
               include_dirs = numpy_include_dirs),
 
+    Extension('sage.rings.polynomial.symmetric_reduction',
+              sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
+
     ################################
     ##
     ## sage.schemes

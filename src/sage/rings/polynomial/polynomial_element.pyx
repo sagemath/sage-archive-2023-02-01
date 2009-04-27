@@ -596,6 +596,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             t^3 + 30*t^2 + 300*t + 1000
             sage: list(f._fast_float_())
             ['load 0', 'push 30.0', 'add', 'load 0', 'mul', 'push 300.0', 'add', 'load 0', 'mul', 'push 1000.0', 'add']
+
+        TEST::
+
+            sage: f = t + 2 - t
+            sage: ff = f._fast_float_()
+            sage: ff(3)
+            2.0
+            sage: list(f._fast_float_())
+            ['push 2.0']
+
+            sage: f = t - t
+            sage: ff = f._fast_float_()
+            sage: ff(3)
+            0.0
+            sage: list(f._fast_float_())
+            ['push 0.0']
+
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
         var = (<ParentWithGens>self._parent)._names[0]
@@ -608,6 +625,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int i, d = self.degree()
         expr = x
         coeff = self[d]
+        if d <= 0:
+            return fast_float_constant(coeff)
         if coeff != 1:
             expr *= fast_float_constant(coeff)
         for i from d > i >= 0:

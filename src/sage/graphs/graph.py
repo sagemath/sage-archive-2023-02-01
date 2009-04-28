@@ -8856,8 +8856,44 @@ class Graph(GenericGraph):
             sage: G.chromatic_number()
             3
         """
-        from sage.graphs.graph_coloring import chromatic_number
-        return chromatic_number(self)
+        f = self.chromatic_polynomial()
+        i = 0
+        while f(i) == 0:
+            i += 1
+        return i
+
+    def coloring(self, hex_colors=False):
+        """
+        Returns the first (optimal) coloring found.
+
+        INPUT::
+
+            hex_colors -- if True, return a dict which can
+                          easily be used for plotting
+
+        EXAMPLES::
+
+            sage: G = Graph("Fooba")
+
+            sage: P = G.coloring(); P
+            [[1, 2, 3], [0, 5, 6], [4]]
+            sage: G.plot(partition=P)
+
+            sage: H = G.coloring(hex_colors=True)
+            sage: for c in sorted(H.keys()):
+            ...    print c, H[c]
+            #0000ff [4]
+            #00ff00 [1, 2, 3]
+            #ff0000 [0, 5, 6]
+            sage: G.plot(vertex_colors=H)
+
+        """
+        from sage.graphs.graph_coloring import all_graph_colorings
+        for C in all_graph_colorings(self, self.chromatic_number()):
+            if hex_colors:
+                return C
+            else:
+                return C.values()
 
     ### Centrality
 

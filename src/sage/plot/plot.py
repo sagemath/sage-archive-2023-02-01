@@ -1661,16 +1661,16 @@ def plot(funcs, *args, **kwds):
 
     PLOT OPTIONS:
 
-    - ``plot_points`` - (default: 5) the minimal number of plot points.
+    - ``plot_points`` - (default: 200) the minimal number of plot points.
 
     - ``adaptive_recursion`` - (default: 5) how many levels of recursion to go
       before giving up when doing adaptive refinement.  Setting this to 0
       disables adaptive refinement.
 
     - ``adaptive_tolerance`` - (default: 0.01) how large a difference should be
-      before the adaptive refinement code considers
-      it significant.  See the documentation for
-      plot() for more information.
+      before the adaptive refinement code considers it significant.  See the
+      documentation further below for more information, starting at "the
+      algorithm used to insert".
 
     - ``xmin`` - starting x value
 
@@ -1736,6 +1736,8 @@ def plot(funcs, *args, **kwds):
         The keys of the dictionary should be integers.
         The value of d[i] specifies the fill options for the i-th function in the list.
         If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
+        (But if d[i] == j: Fill the area between the i-th function in the list and the
+        horizontal line y = j.)
 
     - ``fillcolor`` - (default: 'automatic') The color of the fill.
       Either 'automatic' or a color.
@@ -1813,11 +1815,12 @@ def plot(funcs, *args, **kwds):
 
     You have the function (in blue) and its approximation (in green)
     passing through the points A and B. The algorithm finds the
-    midpoint C of AB and computes the distance between C and D. The
-    point D is added to the curve if it exceeds the (nonzero)
-    adaptive_tolerance threshold. If D is added to the curve, then the
+    midpoint C of AB and computes the distance between C and D. If that
+    distance exceeds the adaptive_tolerance threshold (*relative* to
+    the size of the initial plot subintervals), the point D is
+    added to the curve.  If D is added to the curve, then the
     algorithm is applied recursively to the points A and D, and D and
-    B. It is repeated adaptive_recursion times (10, by default).
+    B. It is repeated adaptive_recursion times (5, by default).
 
     The actual sample points are slightly randomized, so the above
     plots may look slightly different each time you draw them.
@@ -1882,10 +1885,17 @@ def plot(funcs, *args, **kwds):
         sage: f = (2*x^3+2*x-1)/((x-2)*(x+1))
         sage: plot([f, 2*x+2], -7,7, fill = {0: [1]}, fillcolor='#ccc').show(ymin=-20, ymax=20)
 
+    Fill the area between a list of functions and the x-axis::
+
         sage: def b(n): return lambda x: bessel_J(n, x)
         sage: plot([b(n) for n in [1..5]], 0, 20, fill = 'axis')
 
+    Note that to fill between the ith and jth functions, you
+    must use dictionary key-value pairs i:[j]; key-value pairs
+    like i:j will fill between the ith function and the line y=j::
+
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
 
     TESTS:
@@ -2057,7 +2067,7 @@ def _plot(funcs, xrange, parametric=False,
         if parametric:
             filldata = data
         else:
-            if fill == 'axis' or fill == True:
+            if fill == 'axis' or fill is True:
                 base_level = 0
             elif fill == 'min':
                 base_level = min(t[1] for t in data)
@@ -2693,7 +2703,7 @@ def var_and_list_of_values(v, plot_points):
     """
     plot_points = int(plot_points)
     if plot_points < 2:
-        raise ValueError, "plot_points must be positive"
+        raise ValueError, "plot_points must be greater than 1"
     if not isinstance(v, (tuple, list)):
         raise TypeError, "v must be a tuple or list"
     if len(v) == 3:
@@ -2913,10 +2923,10 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
        refinement. Setting this to 0 disables adaptive refinement.
 
     -  ``adaptive_tolerance`` - (default: 0.01) how large
-       a difference should be before the adaptive refinement code
-       considers it significant. See the documentation for plot() for more
-       information.
-
+       a relative difference should be before the adaptive refinement
+       code considers it significant; see documentation for generate_plot_points
+       for more information.  See the documentation for plot() for more
+       information on how the adaptive refinement algorithm works.
 
     OUTPUT:
 
@@ -2935,7 +2945,10 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
 
     This shows that lowering adaptive_tolerance and raising
     adaptive_recursion both increase the number of subdivision
-    points::
+    points, though which one creates more points is heavily
+    dependent upon the function being plotted.
+
+    ::
 
         sage: x = var('x')
         sage: f(x) = sin(1/x)
@@ -2948,9 +2961,17 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     """
     if level >= adaptive_recursion:
         return []
+
     x = (p1[0] + p2[0])/2.0
+    msg = ''
+
     try:
         y = float(f(x))
+        if str(y) in ['nan', 'NaN', 'inf', '-inf']:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+            # give up for this branch
+            return []
+
     except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
         sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
@@ -2972,9 +2993,9 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
 
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize = True):
     r"""
-    Calculate plot points for a function f in the interval xrange.
-    The adaptive refinement algorithm for plotting a function f. See the
-    docstring for plot for a description of the algorithm.
+    Calculate plot points for a function f in the interval xrange.  The
+    adaptive refinement algorithm is also automatically invoked with a
+    *relative* adaptive tolerance of adaptive_tolerance; see below.
 
     INPUT:
 
@@ -2982,16 +3003,19 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     - ``p1, p2`` - two points to refine between
 
-    - ``plot_points`` - (default: 5) the minimal number of plot points.
+    - ``plot_points`` - (default: 5) the minimal number of plot points. (Note
+      however that in any actual plot a number is passed to this, with default
+      value 200.)
 
     - ``adaptive_recursion`` - (default: 5) how many levels of recursion to go
       before giving up when doing adaptive refinement.  Setting this to 0
       disables adaptive refinement.
 
-    - ``adaptive_tolerance`` - (default: 0.01) how large a difference should be
-      before the adaptive refinement code considers
-      it significant.  See the documentation for
-      plot() for more information.
+    - ``adaptive_tolerance`` - (default: 0.01) how large the relative difference
+      should be before the adaptive refinement code considers it significant.  If
+      the actual difference is greater than adaptive_tolerance*delta, where delta
+      is the initial subinterval size for the given xrange and plot_points, then
+      the algorithm will consider it significant.
 
     OUTPUT:
 
@@ -3023,20 +3047,24 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         0.3826834323650898...), (3.1415926535897931, 1.2246...e-16)]
 
     This shows that lowering adaptive_tolerance and raising
-    adaptive_recursion both increase the number of subdivision points::
+    adaptive_recursion both increase the number of subdivision points.
+    (Note that which creates more points is heavily dependent on the
+    particular function plotted.)
+
+    ::
 
         sage: x = var('x')
         sage: f(x) = sin(1/x)
-        sage: [len(generate_plot_points(f, (-pi, pi), adaptive_tolerance=i)) for i in [0.01, 0.001, 0.0001]]
-        [42, 67, 104]
+        sage: [len(generate_plot_points(f, (-pi, pi), plot_points=16, adaptive_tolerance=i, randomize=False)) for i in [0.01, 0.001, 0.0001]]
+        [97, 161, 275]
 
-        sage: [len(generate_plot_points(f, (-pi, pi), adaptive_recursion=i)) for i in [5, 10, 15]]
-        [34, 144, 897]
+        sage: [len(generate_plot_points(f, (-pi, pi), plot_points=16, adaptive_recursion=i, randomize=False)) for i in [5, 10, 15]]
+        [97, 499, 2681]
     """
     x, data = var_and_list_of_values(xrange, plot_points)
     xmin = data[0]
     xmax = data[-1]
-    delta = float(xmax-xmin) / plot_points
+    delta = float(xmax-xmin) / float(plot_points-1)
 
     random = current_randstate().python_random().random
     exceptions = 0; msg=''
@@ -3051,13 +3079,14 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         try:
             data[i] = (float(xi), float(f(xi)))
             if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
                 exceptions += 1
                 exception_indices.append(i)
-        except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
 
-            if i == 0:
+        except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+
+            if i == 0: # Given an error for left endpoint, try to move it in slightly
                 for j in range(1, 99):
                     xj = xi + delta*j/100.0
                     try:
@@ -3071,7 +3100,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 else:
                     exceptions += 1
                     exception_indices.append(i)
-            elif i == plot_points-1:
+
+            elif i == plot_points-1: # Given an error for right endpoint, try to move it in slightly
                 for j in range(1, 99):
                     xj = xi - delta*j/100.0
                     try:
@@ -3089,13 +3119,9 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exceptions += 1
                 exception_indices.append(i)
 
-            exceptions += 1
-            exception_indices.append(i)
-
-
     data = [data[i] for i in range(len(data)) if i not in exception_indices]
 
-    # adaptive refinement
+    # calls adaptive refinement
     i, j = 0, 0
     adaptive_tolerance = delta * float(adaptive_tolerance)
     adaptive_recursion = int(adaptive_recursion)

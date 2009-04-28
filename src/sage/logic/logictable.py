@@ -19,7 +19,7 @@ True   False  True     ?
 True   True   False    ?
 True   True   True     ?
 
-This is equivlant to counting in binary, where a table would appear thus;
+This is equivalent to counting in binary, where a table would appear thus;
 
 2^2 2^1 2^0 value
 0   0   0     0

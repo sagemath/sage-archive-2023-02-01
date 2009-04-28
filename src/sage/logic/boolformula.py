@@ -389,7 +389,7 @@ class BooleanFormula:
             other -- the left hand side statement.
 
         OUTPUT:
-            Returns true if the left hand side is equivlant to the
+            Returns true if the left hand side is equivalent to the
             right hand side, and false otherwise.
 
         EXAMPLES:
@@ -402,7 +402,7 @@ class BooleanFormula:
             sage: f == g
             False
         """
-        return self.equivlant(other)
+        return self.equivalent(other)
 
     def truthtable(self, start = 0, end = -1):
         r"""
@@ -588,27 +588,27 @@ class BooleanFormula:
         """
         return not self.is_satisfiable()
 
-    def equivlant(self, other):
+    def equivalent(self, other):
         r"""
         This function determines if two formulas are semantically
-        equivlant.
+        equivalent.
 
         INPUT:
             self -- the calling object.
             other -- a boolformula instance.
 
         OUTPUT:
-            True if the two fromulas are logically equivlant, False
+            True if the two fromulas are logically equivalent, False
             otherwise.
 
         EXAMPLES:
     	    sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("(a|b)&c")
             sage: g = propcalc.formula("c&(a|b)")
-            sage: f.equivlant(g)
+            sage: f.equivalent(g)
             True
             sage: g = propcalc.formula("a|b&c")
-            sage: f.equivlant(g)
+            sage: f.equivalent(g)
             False
         """
         return self.iff(other).is_tautology()

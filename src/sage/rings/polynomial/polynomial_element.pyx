@@ -4236,6 +4236,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         try:
             if K.is_integral_domain():
+                if not K.is_field():
+                    try:
+                        # get rid of the content of self since we don't need it
+                        # and we really don't want to factor it if it's a huge
+                        # integer
+                        c = self.content()
+                        self = self//c
+                    except AttributeError:
+                        pass
                 rts = self.factor()
             else:
                 raise NotImplementedError

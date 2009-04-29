@@ -894,6 +894,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         make a somewhat intelligent decision to use Pari or NTL based on
         some benchmarking.
 
+        Note: This function factors the content of the polynomial,
+        which can take very long if it's a really big integer.  If you
+        do not need the content factored, divide it out of your
+        polynomial before calling this function.
+
         EXAMPLES:
             sage: R.<x>=ZZ[]
             sage: f=x^4-1

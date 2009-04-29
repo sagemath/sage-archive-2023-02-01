@@ -3220,26 +3220,14 @@ class GraphGenerators():
         else:
             raise NotImplementedError()
 
-    def trees(self, vertices, augment='edges'):
+    def trees(self, vertices):
         """
         Accesses the generator of trees (graphs without cycles). Iterates
         over distinct, exhaustive representatives.
 
         INPUT:
 
-
         -  ``vertices`` - natural number
-
-        -  ``augment`` - choices:
-
-        -  ``'vertices'`` - augments by adding a vertex, and
-           edges incident to that vertex. In this case, all trees on up to
-           n=vertices are generated.
-
-        -  ``'edges'`` - augments a fixed number of vertices by
-           adding one edge In this case, all trees on exactly n=vertices are
-           generated.
-
 
         EXAMPLES: Sloane A000055::
 
@@ -3258,10 +3246,8 @@ class GraphGenerators():
             23
             47
         """
-        is_forest = lambda g: g.is_forest()
-        for g in self(vertices=vertices, property=is_forest, augment=augment):
-            if g.is_connected():
-                yield g
+        from trees import TreeIterator
+        return iter(TreeIterator(vertices))
 
     def nauty_geng(self, options=""):
         r"""

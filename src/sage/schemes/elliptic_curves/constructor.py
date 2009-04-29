@@ -85,6 +85,26 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: EllipticCurve(GF(5), [0, 0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
 
+    Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
+    "elliptic curve over a finite field"::
+
+        sage: F = Zmod(101)
+        sage: EllipticCurve(F, [2, 3])
+        Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
+        sage: E = EllipticCurve([F(2), F(3)])
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+
+    In contrast, elliptic curves over `\ZZ/N\ZZ` with `N` composite
+    are of type "generic elliptic curve"::
+
+        sage: F = Zmod(95)
+        sage: EllipticCurve(F, [2, 3])
+        Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
+        sage: E = EllipticCurve([F(2), F(3)])
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
+
     The following is a curve over the complex numbers::
 
         sage: E = EllipticCurve(CC, [0,0,1,-1,0])
@@ -183,14 +203,13 @@ def EllipticCurve(x=None, y=None, j=None):
     if rings.is_Ring(x):
         if rings.is_RationalField(x):
             return ell_rational_field.EllipticCurve_rational_field(x, y)
-        elif rings.is_FiniteField(x):
+        elif rings.is_FiniteField(x) or (rings.is_IntegerModRing(x) and x.characteristic().is_prime()):
             return ell_finite_field.EllipticCurve_finite_field(x, y)
         elif rings.is_pAdicField(x):
             return ell_padic_field.EllipticCurve_padic_field(x, y)
         elif rings.is_NumberField(x):
             return ell_number_field.EllipticCurve_number_field(x, y)
-        else:
-            return ell_generic.EllipticCurve_generic(x, y)
+        return ell_generic.EllipticCurve_generic(x, y)
 
     if isinstance(x, str):
         return ell_rational_field.EllipticCurve_rational_field(x)
@@ -224,7 +243,7 @@ def EllipticCurve(x=None, y=None, j=None):
 
     x = Sequence(x)
     if not (len(x) in [2,5]):
-        raise ValueError, "sequence of coefficients must have length at 2 or 5"
+        raise ValueError, "sequence of coefficients must have length 2 or 5"
     R = x.universe()
 
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):
@@ -236,12 +255,11 @@ def EllipticCurve(x=None, y=None, j=None):
     elif rings.is_pAdicField(R):
         return ell_padic_field.EllipticCurve_padic_field(x, y)
 
-    elif isinstance(x[0], rings.FiniteFieldElement) or rings.is_IntegerMod(x[0]):
+    elif rings.is_FiniteField(R) or (rings.is_IntegerModRing(R) and R.characteristic().is_prime()):
         return ell_finite_field.EllipticCurve_finite_field(x, y)
 
-    else:
+    return ell_generic.EllipticCurve_generic(x, y)
 
-        return ell_generic.EllipticCurve_generic(x, y)
 
 def EllipticCurve_from_c4c6(c4, c6):
     """

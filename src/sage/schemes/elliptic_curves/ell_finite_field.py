@@ -68,6 +68,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: F=GF(101^2, 'a')
             sage: EllipticCurve([F(2),F(3)])
             Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field in a of size 101^2
+
+        Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
+        "elliptic curve over a finite field":
+
+            sage: F = Zmod(101)
+            sage: EllipticCurve(F, [2, 3])
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
+            sage: E = EllipticCurve([F(2), F(3)])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+
+        Elliptic curves over `\ZZ/N\ZZ` with `N` composite are of type
+        "generic elliptic curve"::
+
+            sage: F = Zmod(95)
+            sage: EllipticCurve(F, [2, 3])
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
+            sage: E = EllipticCurve([F(2), F(3)])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
         """
         if isinstance(x, list):
             seq = Sequence(x)

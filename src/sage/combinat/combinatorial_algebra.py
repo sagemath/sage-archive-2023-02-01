@@ -363,9 +363,21 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
             sage: a = s([2])
             sage: s.multiply(a,a)
             s[2, 2] + s[3, 1] + s[4]
+            sage: ZS3 = SymmetricGroupAlgebra(ZZ, 3)
+            sage: a = 2 + ZS3([2,1,3])
+            sage: a*a
+            5*[1, 2, 3] + 4*[2, 1, 3]
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
+            sage: j2 = H3.jucys_murphy(2)
+            sage: j2*j2
+            (q^3-q^2+q)*T[1, 2, 3] + (q^3-q^2+q-1)*T[2, 1, 3]
+            sage: X = SchubertPolynomialRing(ZZ)
+            sage: X([1,2,3])*X([2,1,3])
+            X[2, 1]
         """
         A = left.parent()
-        BR = A.base_ring()
+        ABR = A.base_ring()
+        ABRzero = ABR(0)
         z_elt = {}
 
         #Do the case where the user specifies how to multiply basis
@@ -374,6 +386,7 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
             for (left_m, left_c) in left._monomial_coefficients.iteritems():
                 for (right_m, right_c) in right._monomial_coefficients.iteritems():
                     res = self._multiply_basis(left_m, right_m)
+                    coeffprod = left_c * right_c
                     #Handle the case where the user returns a dictionary
                     #where the keys are the monomials and the values are
                     #the coefficients.  If res is not a dictionary, then
@@ -382,12 +395,10 @@ class CombinatorialAlgebra(CombinatorialFreeModuleInterface, Algebra):
                         if isinstance(res, self._element_class):
                             res = res._monomial_coefficients
                         else:
-                            res = {res: BR(1)}
-                    for m in res:
-                        if m in z_elt:
-                            z_elt[ m ] = z_elt[m] + left_c * right_c * res[m]
-                        else:
-                            z_elt[ m ] = left_c * right_c * res[m]
+                            z_elt[res] = z_elt.get(res, ABRzero) + coeffprod
+                            continue
+                    for m, c in res.iteritems():
+                        z_elt[m] = z_elt.get(m, ABRzero) + coeffprod * c
 
         #We assume that the user handles the multiplication correctly on
         #his or her own, and returns a dict with monomials as keys and

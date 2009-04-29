@@ -306,7 +306,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: from sage.misc.latex import latex
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
             sage: latex(X)
-            \mathbf{Q}[x_{\ast}, y_{\ast}]
+            \Bold{Q}[x_{\ast}, y_{\ast}]
         """
         from sage.misc.latex import latex
         vars = ', '.join([latex(X) for X in self.gens()])
@@ -333,11 +333,23 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         Note that any coercion will preserve variable names.
 
         """
+        # Case 1: another infinite polynomial ring
         if isinstance(S, InfinitePolynomialRing_sparse):
             return self._base.has_coerce_map_from(S.base_ring()) and set(S._names).issubset(set(self._names))
+        # Case 2: a field (e.g. fraction field) compatible with the base field
+        try:
+            if S.fraction_field() is S: # Note that the base ring of self is a field
+                return self._base.has_coerce_map_from(S)
+        except (NotImplementedError, AttributeError):
+            pass
+        # Case 3: a plain ring that coerces into our base field (e.g. ZZ into QQ)
         try:
             if S.base_ring() is S:
                 return self._base.has_coerce_map_from(S)
+        except AttributeError:
+            pass
+        # Case 4: a polynomial ring
+        try:
             for n in S.variable_names():
                 if (not self._name_dict.has_key(n[0])) or (not n[1:].isdigit()):
                     return False

@@ -1188,6 +1188,8 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         if hasattr(x._p,'variables'):
             if x._p.variables():
                 raise NotImplementedError, "Fraction Fields of Infinite Polynomial Rings are not implemented"
+        if hasattr(x._p,'lc'): # this works around a bug in multipolynomial rings over fraction fields
+            return InfinitePolynomial_dense(self.parent(), self._p/x._p.lc(), is_good_poly=True)
         return InfinitePolynomial_dense(self.parent(), self._p/self._p.base_ring()(x._p), is_good_poly=True)
 
     def _sub_(self, x):

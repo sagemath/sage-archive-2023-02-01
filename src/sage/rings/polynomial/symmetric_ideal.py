@@ -83,7 +83,7 @@ class SymmetricIdeal( Ideal_generic ):
         sage: I == loads(dumps(I))
         True
         sage: latex(I)
-        \left(y_{2}^{2} + x_{1}^{2}, y_{4} x_{1} + y_{3} x_{2} x_{1}\right)\mathbf{Q}[x_{\ast}, y_{\ast}][\mathfrak{S}_{\infty}]
+        \left(y_{2}^{2} + x_{1}^{2}, y_{4} x_{1} + y_{3} x_{2} x_{1}\right)\Bold{Q}[x_{\ast}, y_{\ast}][\mathfrak{S}_{\infty}]
 
     The default ordering is lexicographic. We now compute a Groebner basis::
 
@@ -192,7 +192,7 @@ class SymmetricIdeal( Ideal_generic ):
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
             sage: I=X*(x[1]*y[2])
             sage: latex(I)
-            \left(y_{2} x_{1}\right)\mathbf{Q}[x_{\ast}, y_{\ast}][\mathfrak{S}_{\infty}]
+            \left(y_{2} x_{1}\right)\Bold{Q}[x_{\ast}, y_{\ast}][\mathfrak{S}_{\infty}]
 
         """
         from sage.misc.latex import latex

@@ -545,6 +545,40 @@ class Factorization(SageObject):
         except AttributeError:
             return None
 
+    def base_change(self, U):
+        """
+        Return the factorization self, with its factors (including the
+        unit part) coerced into the universe `U`.
+
+        EXAMPLES::
+
+            sage: F = factor(2006)
+            sage: F.universe()
+            Integer Ring
+            sage: P.<x> = ZZ[]
+            sage: F.base_change(P).universe()
+            Univariate Polynomial Ring in x over Integer Ring
+
+        This method will return a TypeError if the coercion is not
+        possible::
+
+            sage: g = x^2 - 1
+            sage: F = factor(g); F
+            (x - 1) * (x + 1)
+            sage: F.universe()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: F.base_change(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: Impossible to coerce the factors of (x - 1) * (x + 1) into Integer Ring
+        """
+        if len(self) == 0:
+            return self
+        try:
+            return Factorization([(U(f[0]), f[1]) for f in list(self)], unit=U(self.unit()))
+        except TypeError:
+            raise TypeError, "Impossible to coerce the factors of %s into %s"%(self, U)
+
     def is_commutative(self):
         """
         Return True if my factors commute.
@@ -944,6 +978,10 @@ class Factorization(SageObject):
         Return the product of two factorizations, which is obtained by
         combining together like factors.
 
+        If the two factorizations have different universes, this
+        method will attempt to find a common universe for the
+        product.  A TypeError is raised if this is impossible.
+
         EXAMPLES::
 
             sage: factor(-10) * factor(-16)
@@ -958,9 +996,37 @@ class Factorization(SageObject):
             x^3 * y^2 * x^4 * y^2 * x
             sage: -1 * F
             (-1) * x^3 * y^2 * x
+
+            sage: P.<x> = ZZ[]
+            sage: f = 2*x + 2
+            sage: c = f.content(); g = f//c
+            sage: Fc = factor(c); Fc.universe()
+            Integer Ring
+            sage: Fg = factor(g); Fg.universe()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: F = Fc * Fg; F.universe()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: [type(a[0]) for a in F]
+            [<type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
+             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
         """
         if not isinstance(other, Factorization):
             return self * Factorization([(other, 1)])
+
+        if len(self) and len(other):
+            try:
+                # since self is a factorization, all its factors
+                # are in the same universe.
+                # the same is true for the factorization other.
+                # so if we want to put the factorizations together we just
+                # need to find a common universe for the first factor of
+                # self and the first factor of other
+                U = Sequence([self[0][0], other[0][0]]).universe()
+                self = self.base_change(U)
+                other = other.base_change(U)
+            except TypeError:
+                raise TypeError, "Cannot multiply %s and %s because they cannot be coerced into a common universe"%(self,other)
+
         if self.is_commutative() and other.is_commutative():
             d1 = dict(self)
             d2 = dict(other)
@@ -1096,6 +1162,10 @@ class Factorization(SageObject):
         r"""
         Return the gcd of two factorizations.
 
+        If the two factorizations have different universes, this
+        method will attempt to find a common universe for the
+        gcd.  A TypeError is raised if this is impossible.
+
         EXAMPLES::
 
             sage: factor(-30).gcd(factor(-160))
@@ -1103,9 +1173,23 @@ class Factorization(SageObject):
             sage: factor(gcd(-30,160))
             2 * 5
 
+            sage: R.<x> = ZZ[]
+            sage: (factor(-20).gcd(factor(5*x+10))).universe()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         if not isinstance(other, Factorization):
             raise NotImplementedError, "can't take gcd of factorization and non-factorization"
+
+        if len(self) and len(other):
+            try:
+                # first get the two factorizations to have the same
+                # universe
+                U = Sequence([self[0][0], other[0][0]]).universe()
+                self = self.base_change(U)
+                other = other.base_change(U)
+            except TypeError:
+                raise TypeError, "Cannot take the gcd of %s and %s because they cannot be coerced into a common universe"%(self,other)
+
         if self.is_commutative() and other.is_commutative():
             d1 = dict(self)
             d2 = dict(other)
@@ -1120,6 +1204,10 @@ class Factorization(SageObject):
         r"""
         Return the lcm of two factorizations.
 
+        If the two factorizations have different universes, this
+        method will attempt to find a common universe for the
+        lcm.  A TypeError is raised if this is impossible.
+
         EXAMPLES::
 
             sage: factor(-10).lcm(factor(-16))
@@ -1127,9 +1215,23 @@ class Factorization(SageObject):
             sage: factor(lcm(-10,16))
             2^4 * 5
 
+            sage: R.<x> = ZZ[]
+            sage: (factor(-20).lcm(factor(5*x+10))).universe()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         if not isinstance(other, Factorization):
             raise NotImplementedError, "can't take lcm of factorization and non-factorization"
+
+        if len(self) and len(other):
+            try:
+                # first get the two factorizations to have the same
+                # universe
+                U = Sequence([self[0][0], other[0][0]]).universe()
+                self = self.base_change(U)
+                other = other.base_change(U)
+            except TypeError:
+                raise TypeError, "Cannot take the lcm of %s and %s because they cannot be coerced into a common universe"%(self,other)
+
         if self.is_commutative() and other.is_commutative():
             d1 = dict(self)
             d2 = dict(other)

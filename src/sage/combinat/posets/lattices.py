@@ -70,12 +70,13 @@ def MeetSemilattice(data):
 
 class FiniteMeetSemilattice(FinitePoset):
     """
-    ..note ::
+    ..note::
         We assume that the argument passed to MeetSemilattice is the poset
         of a meet-semilattice (i.e. a poset with greatest lower bound for
         each pair of elements).
 
     TESTS::
+
         sage: M = MeetSemilattice([[1,2],[3],[3]])
         sage: M == loads(dumps(M))
         True
@@ -179,6 +180,7 @@ class FiniteJoinSemilattice(FinitePoset):
     for each pair of elements).
 
     TESTS::
+
         sage: J = JoinSemilattice([[1,2],[3],[3]])
         sage: J == loads(dumps(J))
         True
@@ -286,6 +288,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
     least upper bound for each pair of elements).
 
     TESTS::
+
         sage: L = LatticePoset([[1,2],[3],[3]])
         sage: L == loads(dumps(L))
         True
@@ -323,6 +326,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         otherwise.
 
         EXAMPLES::
+
             sage: L = LatticePoset({0:[1,2],1:[3],2:[3]})
             sage: L.is_distributive()
             True
@@ -338,6 +342,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ``False`` otherwise.
 
         EXAMPLES::
+
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: L.is_complemented()
             True
@@ -357,6 +362,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         join of ``x`` and ``y`` is the top element of ``self``.
 
         EXAMPLES::
+
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: L.complements()
             [4, 3, 3, 2, 0]

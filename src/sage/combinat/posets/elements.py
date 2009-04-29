@@ -22,7 +22,7 @@ class PosetElement(Element):
     def __init__(self, poset, element, vertex):
         r"""
         Establishes the parent-child relationship between ``poset``
-        and ``element``, where ``element`` is associated to the a
+        and ``element``, where ``element`` is associated to the
         vertex ``vertex`` of the Hasse diagram of the poset.
 
         INPUT:

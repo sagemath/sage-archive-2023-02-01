@@ -36,7 +36,7 @@ class PosetsGenerator(object):
     """
     def BooleanLattice(self, n):
         """
-        Returns the Boolean lattice containing 2^n elements.
+        Returns the Boolean lattice containing `2^n` elements.
 
         EXAMPLES::
 
@@ -48,7 +48,7 @@ class PosetsGenerator(object):
 
     def ChainPoset(self, n):
         """
-        Returns a chain (a totally ordered poset) containing n elements.
+        Returns a chain (a totally ordered poset) containing ``n`` elements.
 
         EXAMPLES::
 
@@ -68,7 +68,7 @@ class PosetsGenerator(object):
     def AntichainPoset(self, n):
         """
         Returns an antichain (a poset with no comparable elements)
-        containing n elements.
+        containing ``n`` elements.
 
         EXAMPLES::
 
@@ -84,7 +84,7 @@ class PosetsGenerator(object):
 
     def PentagonPoset(self):
         """
-        Return the ``pentagon''.
+        Return the "pentagon".
 
         EXAMPLES::
 
@@ -97,7 +97,7 @@ class PosetsGenerator(object):
 
     def DiamondPoset(self, n):
         """
-        Returns the lattice of rank two containing n elements.
+        Returns the lattice of rank two containing ``n`` elements.
 
         EXAMPLES::
 
@@ -114,13 +114,13 @@ class PosetsGenerator(object):
 
     def IntegerCompositions(self, n):
         """
-        Returns the poset of integer compositions on the integer n.
+        Returns the poset of integer compositions of the integer ``n``.
 
-        A composition of a positive integer n is a list of positive
-        integers that some to n. The order is reverse refinement:
-        [p_1,p_2,...,p_l] < [q_1,q_2,...,q_m] if q consists of a
-        integer composition of p_1, followed by an integer composition
-        of p_2, and so on.
+        A composition of a positive integer `n` is a list of positive
+        integers that sum to `n`. The order is reverse refinement:
+        ``[p_1,p_2,...,p_l]`` < ``[q_1,q_2,...,q_m]`` if ``q`` consists
+        of an integer composition of ``p_1``, followed by an integer
+        composition of ``p_2``, and so on.
 
         EXAMPLES::
 
@@ -135,12 +135,13 @@ class PosetsGenerator(object):
 
     def IntegerPartitions(self, n):
         """
-        Returns the poset of integer partitions on the integer n.
+        Returns the poset of integer partitions on the integer ``n``.
 
-        A partition of a positive integer n is a non-increasing list of
-        positive integers that some to n. If p and q are integer
-        partitions of n, then p covers q if and only if q is obtained
-        from p by joining two parts of p (and sorting, if necessary).
+        A partition of a positive integer `n` is a non-increasing list
+        of positive integers that sum to `n`. If ``p`` and ``q`` are
+        integer partitions of `n`, then ``p`` covers ``q`` if and only
+        if ``q`` is obtained from ``p`` by joining two parts of ``p``
+        (and sorting, if necessary).
 
         EXAMPLES::
 
@@ -173,10 +174,11 @@ class PosetsGenerator(object):
 
     def RestrictedIntegerPartitions(self, n):
         """
-        Returns the poset of integer partitions on the integer n ordered
-        by restricted refinement. That is, if p and q are integer
-        partitions of n, then p covers q if and only if q is obtained from
-        p by joining two distinct parts of p (and sorting, if necessary).
+        Returns the poset of integer partitions on the integer ``n``
+        ordered by restricted refinement. That is, if ``p`` and ``q``
+        are integer partitions of ``n``, then ``p`` covers ``q`` if and
+        only if ``q`` is obtained from ``p`` by joining two distinct
+        parts of ``p`` (and sorting, if necessary).
 
         EXAMPLES::
 
@@ -210,8 +212,8 @@ class PosetsGenerator(object):
 
     def RandomPoset(self, n,p):
         """
-        Generate a random poset on n vertices according to a
-        probability distribution p.
+        Generate a random poset on ``n`` vertices according to a
+        probability distribution ``p``.
 
         EXAMPLES::
 
@@ -255,7 +257,7 @@ class PosetsGenerator(object):
 
         .. note::
 
-           Must have start <= end.
+           Must have ``start`` <= ``end``.
 
         EXAMPLES:
 

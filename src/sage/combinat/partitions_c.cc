@@ -154,7 +154,14 @@ const unsigned int min_precision = DBL_MANT_DIG;                            // T
 const unsigned int double_precision = DBL_MANT_DIG;                         // The assumed precision of a double.
 
 
+#ifdef __sparc
+// On sparc solaris long double is bad/broken/different, etc.  E.g.,
+// LDBL_MANT_DIG is 113 rather than 106, which causes all kinds of trouble.
+// So we only use double_precision.
+const unsigned int long_double_precision = double_precision;
+#else
 const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? double_precision : LDBL_MANT_DIG;
+#endif
                                                                             // The assumed precision of a long double.
                                                                             // Note: On many systems double_precision = long_double_precision. This is OK, as
                                                                             // the long double stage of the computation will just be skipped.

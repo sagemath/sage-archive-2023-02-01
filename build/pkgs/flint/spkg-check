@@ -19,6 +19,11 @@ fi
 
 export FLINT_TUNE
 
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   FLINT_TUNE=" -fPIC -m64 -funroll-loops"
+fi
+
 FLINT_GMP_INCLUDE_DIR="$SAGE_LOCAL"/include/
 FLINT_GMP_LIB_DIR="$SAGE_LOCAL"/lib/
 

@@ -1,5 +1,5 @@
 """
-Latex printing support
+LaTeX printing support
 
 In order to support latex formating, an object should define a
 special method _latex_(self) that returns a string.
@@ -638,9 +638,13 @@ class Latex:
             ''
             sage: latex.add_to_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
 
-        At this point, a notebook cell containing "%latex" on the
-        first line followed on the next line by
-        "$\Ext_A^*(\GF{2}, \GF{2}) \Rightarrow \pi_*^s*(S^0)$"
+        At this point, a notebook cell containing
+
+        ::
+
+          %latex
+          $\Ext_A^*(\GF{2}, \GF{2}) \Rightarrow \pi_*^s*(S^0)$
+
         will be typeset correctly.
 
         ::
@@ -650,11 +654,15 @@ class Latex:
             '\\DeclareMathOperator{\\Ext}{Ext}\\usepackage{xypic}'
 
         Now one can put various xypic diagrams into a %latex cell, such as
-        "\[ \xymatrix{ \circ \ar `r[d]^{a} `[rr]^{b} `/4pt[rr]^{c} `[rrr]^{d}
-        `_dl[drrr]^{e} [drrr]^{f} & \circ & \circ & \circ \\ \circ & \circ &
-        \circ & \circ } \]"
 
         ::
+
+          %latex
+          \[ \xymatrix{ \circ \ar `r[d]^{a} `[rr]^{b} `/4pt[rr]^{c} `[rrr]^{d}
+          `_dl[drrr]^{e} [drrr]^{f} & \circ & \circ & \circ \\ \circ & \circ &
+          \circ & \circ } \]
+
+        Reset the preamble to its default, the empty string::
 
             sage: latex.extra_preamble('')
             sage: latex.extra_preamble()

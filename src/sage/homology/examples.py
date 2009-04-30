@@ -36,6 +36,7 @@ TAB key::
     NotIConnectedGraphs
     MatchingComplex
     ChessboardComplex
+    RandomComplex
 
 See the documentation for ``simplicial_complexes`` and for each
 particular type of example for full details.
@@ -44,6 +45,8 @@ particular type of example for full details.
 from sage.homology.simplicial_complex import SimplicialComplex, Simplex
 from sage.sets.set import Set
 from sage.misc.functional import is_even
+from sage.combinat.subset import Subsets
+import sage.misc.prandom as random
 
 def rename_vertex(n, keep, left = True):
     """
@@ -247,6 +250,7 @@ class SimplicialComplexExamples():
         NotIConnectedGraphs
         MatchingComplex
         ChessboardComplex
+        RandomComplex
 
     EXAMPLES::
 
@@ -683,5 +687,50 @@ class SimplicialComplexExamples():
                 facet.append(E_dict[pair])
             facets.append(facet)
         return SimplicialComplex(E, facets)
+
+    def RandomComplex(self, n, d, p=0.5):
+        """
+        A random ``d``-dimensional simplicial complex on ``n``
+        vertices.
+
+        INPUT:
+
+        - ``n`` - number of vertices
+        - ``d`` - dimension of the complex
+        -  ``p`` - floating point number between 0 and 1
+           (optional, default 0.5)
+
+        A random `d`-dimensional simplicial complex on `n` vertices,
+        as defined for example by Meshulam and Wallach, is constructed
+        as follows: take `n` vertices and include all of the simplices
+        of dimension strictly less than `d`, and then for each
+        possible simplex of dimension `d`, include it with probability
+        `p`.
+
+        EXAMPLES::
+
+            sage: simplicial_complexes.RandomComplex(6, 2)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 15 facets
+
+        If `d` is too large (if `d > n+1`, so that there are no
+        `d`-dimensional simplices), then return the simplicial complex
+        with a single `(n+1)`-dimensional simplex::
+
+            sage: simplicial_complexes.RandomComplex(6,12)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and facets {(0, 1, 2, 3, 4, 5, 6, 7)}
+
+        REFERENCES:
+
+        - Meshulam and Wallach, "Homological connectivity of random
+          `k`-dimensional complexes", preprint, math.CO/0609773.
+        """
+        if d > n+1:
+            return simplicial_complexes.Simplex(n+1)
+        else:
+            vertices = range(n+1)
+            facets = Subsets(vertices, d).list()
+            maybe = Subsets(vertices, d+1)
+            facets.extend([f for f in maybe if random.random() <= p])
+            return SimplicialComplex(n, facets)
 
 simplicial_complexes = SimplicialComplexExamples()

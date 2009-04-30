@@ -37,11 +37,11 @@ CFLAGS = $(INCS) $(FLINT_TUNE) -O3
 RM = rm -f
 
 HEADERS = \
-	zn_poly/zn_poly.h \
-	zn_poly/wide_arith.h \
-	zn_poly/support.h \
-	zn_poly/profiler.h \
-	zn_poly/zn_poly_internal.h \
+	zn_poly/src/zn_poly.h \
+	zn_poly/src/wide_arith.h \
+	zn_poly/src/support.h \
+	zn_poly/src/profiler.h \
+	zn_poly/src/zn_poly_internal.h \
 	mpz_extras.h \
 	F_mpn_mul-tuning.h \
 	ZmodF.h \
@@ -77,13 +77,16 @@ FLINTOBJ = \
 	mul_ks.o \
 	pack.o \
 	mul.o \
-	midmul.o \
-	tuning.o \
+	mulmid.o \
+	mulmid_ks.o \
+	ks_support.o \
+	mpn_mulmid.o \
+	nuss.o \
 	pmf.o \
+	pmfvec_fft.o \
+	tuning.o \
 	mul_fft.o \
 	mul_fft_dft.o \
-	midmul_fft.o \
-	nussbaumer.o \
 	array.o \
 	invert.o \
 	mpn_extras.o \
@@ -146,47 +149,56 @@ libflint.so: $(FLINTOBJ)
 
 ##### zn_poly object files
 
-zn_mod.o: zn_poly/zn_mod.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o zn_mod.o -c zn_poly/zn_mod.c
+zn_mod.o: zn_poly/src/zn_mod.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o zn_mod.o -c zn_poly/src/zn_mod.c
 
-misc.o: zn_poly/misc.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o misc.o -c zn_poly/misc.c
+misc.o: zn_poly/src/misc.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o misc.o -c zn_poly/src/misc.c
 
-mul_ks.o: zn_poly/mul_ks.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o mul_ks.o -c zn_poly/mul_ks.c
+ks_support.o: zn_poly/src/ks_support.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o ks_support.o -c zn_poly/src/ks_support.c
 
-pack.o: zn_poly/pack.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o pack.o -c zn_poly/pack.c
+mul_ks.o: zn_poly/src/mul_ks.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mul_ks.o -c zn_poly/src/mul_ks.c
 
-mul.o: zn_poly/mul.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o mul.o -c zn_poly/mul.c
+pack.o: zn_poly/src/pack.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o pack.o -c zn_poly/src/pack.c
 
-midmul.o: zn_poly/midmul.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o midmul.o -c zn_poly/midmul.c
+nuss.o: zn_poly/src/nuss.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o nuss.o -c zn_poly/src/nuss.c
 
-tuning.o: zn_poly/tuning.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o tuning.o -c zn_poly/tuning.c
+mul.o: zn_poly/src/mul.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mul.o -c zn_poly/src/mul.c
 
-pmf.o: zn_poly/pmf.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o pmf.o -c zn_poly/pmf.c
+mulmid.o: zn_poly/src/mulmid.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mulmid.o -c zn_poly/src/mulmid.c
 
-mul_fft.o: zn_poly/mul_fft.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o mul_fft.o -c zn_poly/mul_fft.c
+mpn_mulmid.o: zn_poly/src/mpn_mulmid.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mpn_mulmid.o -c zn_poly/src/mpn_mulmid.c
 
-mul_fft_dft.o: zn_poly/mul_fft_dft.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o mul_fft_dft.o -c zn_poly/mul_fft_dft.c
+mulmid_ks.o: zn_poly/src/mulmid_ks.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mulmid_ks.o -c zn_poly/src/mulmid_ks.c
 
-midmul_fft.o: zn_poly/midmul_fft.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o midmul_fft.o -c zn_poly/midmul_fft.c
+pmf.o: zn_poly/src/pmf.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNEBUG -o pmf.o -c zn_poly/src/pmf.c
 
-nussbaumer.o: zn_poly/nussbaumer.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o nussbaumer.o -c zn_poly/nussbaumer.c
+pmfvec_fft.o: zn_poly/src/pmfvec_fft.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNEBUG -o pmfvec_fft.o -c zn_poly/src/pmfvec_fft.c
 
-array.o: zn_poly/array.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o array.o -c zn_poly/array.c
+tuning.o: zn_poly/src/tuning.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o tuning.o -c zn_poly/src/tuning.c
 
-invert.o: zn_poly/invert.c $(HEADERS)
-	$(CC) $(CFLAGS) -DNDEBUG -o invert.o -c zn_poly/invert.c
+mul_fft.o: zn_poly/src/mul_fft.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mul_fft.o -c zn_poly/src/mul_fft.c
+
+mul_fft_dft.o: zn_poly/src/mul_fft_dft.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o mul_fft_dft.o -c zn_poly/src/mul_fft_dft.c
+
+array.o: zn_poly/src/array.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o array.o -c zn_poly/src/array.c
+
+invert.o: zn_poly/src/invert.c $(HEADERS)
+	$(CC) $(CFLAGS) -DNDEBUG -o invert.o -c zn_poly/src/invert.c
 
 ##### Object files
 
@@ -576,7 +588,7 @@ mpQS: QS/mpQS.c QS/mpQS.h QS/tinyQS.h factor_base.o poly.o sieve.o linear_algebr
 
 ####### Integer multiplication timing
 
-ZMULOBJ = zn_mod.o misc.o mul_ks.o pack.o mul.o midmul.o tuning.o pmf.o mul_fft.o mul_fft_dft.o midmul_fft.o nussbaumer.o array.o invert.o zmod_mat.o zmod_poly.o memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o long_extras.o
+ZMULOBJ = zn_mod.o misc.o mul_ks.o pack.o mul.o mulmid.o mulmid_ks.o ks_support.o mpn_mulmid.o nuss.o pmf.o pmfvec_fft.o tuning.o mul_fft.o mul_fft_dft.o array.o invert.o zmod_mat.o zmod_poly.o memory-manager.o fmpz.o ZmodF_mul-tuning.o mpz_poly.o mpz_poly-tuning.o fmpz_poly.o ZmodF_poly.o mpz_extras.o profiler.o ZmodF_mul.o ZmodF.o mpn_extras.o F_mpz_mul-timing.o long_extras.o
 
 F_mpz_mul-timing: $(ZMULOBJ)
 	$(CC) $(ZMULOBJ) -o Zmul $(LIBS)

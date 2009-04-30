@@ -1,5 +1,5 @@
---- makefile.orig	2009-04-05 20:19:32.000000000 -0700
-+++ makefile	2009-04-05 20:19:55.000000000 -0700
+--- makefile.orig	2009-04-30 00:57:06.000000000 -0700
++++ makefile	2009-04-30 00:56:29.000000000 -0700
 @@ -22,7 +22,7 @@
  
  CPP = $(FLINT_CPP) 
@@ -19,7 +19,7 @@
  
  ####### library object files
  
-@@ -102,13 +103,14 @@
+@@ -105,13 +106,14 @@
  	theta.o \
  	zmod_mat.o \
  	mpz_mat.o \
@@ -36,7 +36,7 @@
  
  check: test
  	./mpn_extras-test
-@@ -131,10 +133,10 @@
+@@ -134,10 +136,10 @@
  library: $(FLINT_LIB)
  
  libflint.dylib: $(FLINTOBJ)
@@ -49,7 +49,7 @@
  
  libflint.dll: $(FLINTOBJ)
  	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
-@@ -325,55 +327,55 @@
+@@ -337,55 +339,55 @@
  ####### test program targets
  
  mpn_extras-test: mpn_extras-test.o test-support.o $(FLINTOBJ) $(HEADERS)
@@ -122,7 +122,7 @@
  
  ####### tuning program object files
  
-@@ -491,7 +493,7 @@
+@@ -503,7 +505,7 @@
  	$(CPP) $(CFLAGS) -o NTL-profile NTL-profile.c NTL-profile-tables.o test-support.o $(PROFOBJ) $(LIB) -lntl
  
  zmod_poly-profile: zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ)

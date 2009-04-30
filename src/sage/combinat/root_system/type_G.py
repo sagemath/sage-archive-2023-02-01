@@ -67,10 +67,12 @@ def dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_G import dynkin_diagram
         sage: ct = CartanType(['G',2])
         sage: g = dynkin_diagram(ct);g
-        Dynkin diagram of type ['G', 2]
+          3
+        O=<=O
+        1   2
+        G2
         sage: e = g.edges(); e.sort(); e
         [(1, 2, 1), (2, 1, 3)]
-
     """
     from dynkin_diagram import precheck , DynkinDiagram_class
     precheck(t, letter='G', length=2, n=2)
@@ -87,7 +89,10 @@ def affine_dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_G import affine_dynkin_diagram
         sage: ct = CartanType(['G',2,1])
         sage: g = affine_dynkin_diagram(ct); g
-        Dynkin diagram of type ['G', 2, 1]
+           3
+         0=<=O---O
+         1   2   0
+         G2~
         sage: e = g.edges(); e.sort(); e
         [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 3)]
 

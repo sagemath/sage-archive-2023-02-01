@@ -43,7 +43,9 @@ def DynkinDiagram(*args):
     EXAMPLES::
 
         sage: DynkinDiagram(['A', 4])
-        Dynkin diagram of type ['A', 4]
+        O---O---O---O
+        1   2   3   4
+        A4
         sage: DynkinDiagram(['A',1],['A',1])
         Dynkin diagram of type A1xA1
         sage: R = RootSystem("A2xB2xF4")
@@ -82,11 +84,162 @@ def dynkin_diagram(t):
 
         sage: dynkin_diagram(["A", 3])
         doctest:1: DeprecationWarning: dynkin_diagram is deprecated, use DynkinDiagram instead!
-        Dynkin diagram of type ['A', 3]
+        O---O---O
+        1   2   3
+        A3
     """
     from sage.misc.misc import deprecation
     deprecation("dynkin_diagram is deprecated, use DynkinDiagram instead!")
     return DynkinDiagram(t)
+
+
+def dynkin_diagram_ascii_art(t):
+    """
+    Returns ascii art representing a Dynkin diagram of a finite
+    Cartan type.
+    """
+    if type(t) == str:
+        t = CartanType(t)
+    r = t[1]
+    if t[0] == 'A':
+        ret = ""
+        if r == 0:
+            return "Dynkin diagram of type ['A', 0]"
+        ret += (r-1)*"O---"+"O\n"
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret += "\nA%d"%r
+        return ret
+    elif t[0] == 'B':
+        if r == 1:
+            return "Dynkin diagram of type ['B', 1]"
+        ret = (r-2)*"O---"+"O=>=O\n"
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret += "\nB%d"%r
+        return ret
+    elif t[0] == 'C':
+        if r == 1:
+            return "Dynkin diagram of type ['C', 1]"
+        ret = (r-2)*"O---"+"O=<=O\n"
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret += "\nC%d"%r
+        return ret
+    elif t[0] == 'D':
+        if r == 1:
+            raise ValueError, "invalid Cartan type"
+        if r == 2:
+            return "O   O\n1   2\nD2"
+        ret = (4*(r-3))*" "+"O "+(r-1).__repr__()+"\n"
+        ret += (4*(r-3))*" "+"|\n"+(4*(r-3))*" "+"|\n"
+        ret += (r-2)*"O---"+"O\n"
+        for i in range(1,r-1):
+            ret += i.__repr__()+"   "
+        ret += r.__repr__()
+        ret += "\nD%d"%r
+        return ret
+    elif t[0] == 'E':
+        if r == 6:
+            return "        O 2\n        |\n        |\nO---O---O---O---O\n1   3   4   5   6   \nE6"
+        elif r == 7:
+            return "        O 2\n        |\n        |\nO---O---O---O---O---O\n1   3   4   5   6   7   \nE7"
+        elif r == 8:
+            return "        O 2\n        |\n        |\nO---O---O---O---O---O---O\n1   3   4   5   6   7   8   \nE8"
+        else:
+            raise ValueError, "invalid Cartan type"
+    elif t[0] == 'F':
+        if r == 4:
+            return "O---O=>=O---O\n1   2   3   4   \nF4"
+        else:
+            raise ValueError, "invalid Cartan type"
+    elif t[0] == 'G':
+        if r == 2:
+            return "  3\nO=<=O\n1   2\nG2"
+        else:
+            raise ValueError, "invalid Cartan type"
+    else:
+        raise ValueError, "invalid Cartan type"
+    ret += t[0]+repr(t[1])
+    return ret
+
+def extended_dynkin_diagram_ascii_art(t):
+    """
+    Returns ascii art representing the extended Dynkin diagram of a finite
+    Cartan type. This is also the Dynkin diagram of the associated
+    untwisted affine root system.
+    """
+    if type(t) == str or type(t) == list:
+        t = CartanType(t)
+    r = t[1]
+    if t[0] == 'A':
+        if r == 0:
+            return "Dynkin diagram of type ['A', 0, 1]"
+        if r == 1:
+            return "O<=>O\n0   1\nA1~"
+        ret = "0\nO"+(r-2)*"----"+"---+\n|"+(r-2)*"    "+"   |\n|"+(r-2)*"    "+"   |\n"
+        ret += (r-1)*"O---"+"O\n"
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret +="\nA%d~"%r
+        return ret
+    elif t[0] == 'B':
+        if r == 2:
+            return "O=>=O=<=O\n1   2   0"
+        ret = "    O 0\n    |\n    |\n" + (r-2)*"O---" + "O=>=O\n"
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret +="\nB%d~"%r
+        return ret
+    elif t[0] == 'C':
+        ret = "O=>=O"+(r-2)*"---O"+"=<=O\n0   "
+        for i in range(1,r+1):
+            ret += i.__repr__()
+            if i < r:
+                ret += "   "
+        ret +="\nC%d~"%r
+        return ret
+    elif t[0] == 'D':
+        if r == 4:
+            return "    O 4\n    |\n    |\nO---O---O\n1   |2  3\n    |\n    O 0\nD4~"
+        ret = "  0 O"+(4*(r-4))*" "+"O "+(r-1).__repr__()+"\n"
+        ret += "    |"+(4*(r-4))*" "+"|\n    |"+(4*(r-4))*" "+"|\n"
+        ret += (r-2)*"O---"+"O\n"
+        for i in range(1,r-1):
+            ret += i.__repr__()+"   "
+        ret += r.__repr__()+"\nD%d~"%r
+        return ret
+    elif t[0] == 'E':
+        if r == 6:
+            return "        O 0\n        |\n        |\n        O 2\n        |\n        |\nO---O---O---O---O\n1   3   4   5   6\nE6~"
+        elif r == 7:
+            return "            O 2\n            |\n            |\nO---O---O---O---O---O---O\n0   1   3   4   5   6   7\nE7~"
+        elif r == 8:
+            return "        O 2\n        |\n        |\nO---O---O---O---O---O---O---O\n1   3   4   5   6   7   8   0\nE8~"
+        else:
+            raise ValueError, "invalid Cartan type"
+    elif t[0] == 'F':
+        if r == 4:
+            return "O---O---O=>=O---O\n0   1   2   3   4\nF4~"
+        else:
+            raise ValueError, "invalid Cartan type"
+    elif t[0] == 'G':
+        if r == 2:
+            return "  3\n0=<=O---O\n1   2   0\nG2~"
+        else:
+            raise ValueError, "invalid Cartan type"
+    else:
+        raise ValueError, "invalid Cartan type"
 
 
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
@@ -105,9 +258,20 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         EXAMPLES::
 
-            sage: DynkinDiagram(['A',3])
-            Dynkin diagram of type ['A', 3]
+            sage: DynkinDiagram(['G',2])
+              3
+            O=<=O
+            1   2
+            G2
         """
+        try:
+            if self._cartan_type.is_finite() and self._cartan_type.is_irreducible():
+                if self._cartan_type.type() in ['A','B','C','D','E','F','G']:
+                    return dynkin_diagram_ascii_art(self._cartan_type)
+            elif self._cartan_type.is_affine() and self._cartan_type.is_irreducible():
+                return extended_dynkin_diagram_ascii_art(self._cartan_type)
+        except AttributeError:
+            pass
         if self._cartan_type is None:
             return "Dynkin diagram of rank %s"%self.rank()
         else:
@@ -167,7 +331,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         EXAMPLES::
 
             sage: DynkinDiagram(['C',3]).dynkin_diagram()
-            Dynkin diagram of type ['C', 3]
+            O---O=<=O
+            1   2   3
+            C3
         """
         return self
 
@@ -194,7 +360,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: D.edges()
             [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
             sage: D.dual()
-            Dynkin diagram of type ['B', 3]
+            O---O=>=O
+            1   2   3
+            B3
             sage: D.dual().edges()
             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
             sage: D.dual() == DynkinDiagram(['B',3])
@@ -214,7 +382,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: D.edges()
             []
             sage: D.dual()
-            Dynkin diagram of type ['A', 1]
+            O
+            1
+            A1
             sage: D.dual().edges()
             []
         """

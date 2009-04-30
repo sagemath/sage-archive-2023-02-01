@@ -34,7 +34,9 @@ class RootLatticeRealization(object):
         EXAMPLES:
             sage: r = RootSystem(['A',4]).root_space()
             sage: r.dynkin_diagram()
-            Dynkin diagram of type ['A', 4]
+            O---O---O---O
+            1   2   3   4
+            A4
         """
         return self.root_system.dynkin_diagram()
 

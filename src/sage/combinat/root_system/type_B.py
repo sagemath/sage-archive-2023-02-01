@@ -116,10 +116,11 @@ def dynkin_diagram(t):
          sage: from sage.combinat.root_system.type_B import dynkin_diagram
          sage: ct = CartanType(['B',3])
          sage: b = dynkin_diagram(ct);b
-         Dynkin diagram of type ['B', 3]
+         O---O=>=O
+         1   2   3
+         B3
          sage: e = b.edges(); e.sort(); e
          [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1)]
-
     """
     from dynkin_diagram import precheck, DynkinDiagram_class
     precheck(t, letter='B', length=2, n_ge=2)

@@ -115,14 +115,18 @@ def dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_A import dynkin_diagram
         sage: ct = CartanType(['A',3])
         sage: a = dynkin_diagram(ct); a
-        Dynkin diagram of type ['A', 3]
+        O---O---O
+        1   2   3
+        A3
         sage: e = a.edges(); e.sort(); e
         [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
 
     TEST:
         sage: a = DynkinDiagram(['A',1])
         sage: a
-        Dynkin diagram of type ['A', 1]
+        O
+        1
+        A1
         sage: a.vertices(), a.edges()
         ([1], [])
     """
@@ -143,7 +147,13 @@ def affine_dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_A import affine_dynkin_diagram
         sage: ct = CartanType(['A',3,1])
         sage: a = affine_dynkin_diagram(ct); a
-        Dynkin diagram of type ['A', 3, 1]
+         0
+         O-------+
+         |       |
+         |       |
+         O---O---O
+         1   2   3
+         A3~
         sage: e = a.edges(); e.sort(); e
         [(0, 1, 1),
          (0, 3, 1),

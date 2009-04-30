@@ -289,7 +289,9 @@ class RootSystem(SageObject):
 
             sage: R = RootSystem(['A',3])
             sage: R.dynkin_diagram()
-            Dynkin diagram of type ['A', 3]
+            O---O---O
+            1   2   3
+            A3
         """
         return self.cartan_type().dynkin_diagram()
 

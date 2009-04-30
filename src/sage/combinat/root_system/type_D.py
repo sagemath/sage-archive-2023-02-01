@@ -110,7 +110,12 @@ def dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_D import dynkin_diagram
         sage: ct = CartanType(['D',4])
         sage: d = dynkin_diagram(ct);d
-        Dynkin diagram of type ['D', 4]
+            O 3
+            |
+            |
+        O---O---O
+        1   2   4
+        D4
         sage: e = d.edges(); e.sort(); e
         [(1, 2, 1), (2, 1, 1), (2, 3, 1), (2, 4, 1), (3, 2, 1), (4, 2, 1)]
 
@@ -131,8 +136,16 @@ def affine_dynkin_diagram(t):
     Returns the extended Dynkin diagram for affine type D.
 
     EXAMPLES:
+
        sage: DynkinDiagram(CartanType(['D', 4, 1]))
-       Dynkin diagram of type ['D', 4, 1]
+            O 4
+            |
+            |
+        O---O---O
+        1   |2  3
+            |
+            O 0
+        D4~
        sage: DynkinDiagram(CartanType(['D', 4, 1])).edges()
        [(0, 2, 1),
         (1, 2, 1),

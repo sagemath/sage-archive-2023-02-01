@@ -420,7 +420,12 @@ def dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_E import dynkin_diagram
         sage: ct = CartanType(['E',6])
         sage: e = dynkin_diagram(ct);e
-        Dynkin diagram of type ['E', 6]
+                O 2
+                |
+                |
+        O---O---O---O---O
+        1   3   4   5   6
+        E6
         sage: edges = e.edges(); edges.sort(); edges
         [(1, 3, 1), (2, 4, 1), (3, 1, 1), (3, 4, 1), (4, 2, 1), (4, 3, 1), (4, 5, 1), (5, 4, 1), (5, 6, 1), (6, 5, 1)]
 

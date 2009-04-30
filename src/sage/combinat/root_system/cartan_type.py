@@ -398,7 +398,9 @@ class CartanType_simple(CartanType_abstract):
         EXAMPLES::
 
             sage: CartanType(['A',4]).dynkin_diagram()
-            Dynkin diagram of type ['A', 4]
+            O---O---O---O
+            1   2   3   4
+            A4
         """
         return root_system.dynkin_diagram.DynkinDiagram(self)
 

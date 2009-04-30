@@ -169,7 +169,9 @@ def dynkin_diagram(t):
         sage: from sage.combinat.root_system.type_F import dynkin_diagram
         sage: ct = CartanType(['F',4])
         sage: f = dynkin_diagram(ct);f
-        Dynkin diagram of type ['F', 4]
+        O---O=>=O---O
+        1   2   3   4
+        F4
         sage: e = f.edges(); e.sort(); e
         [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 

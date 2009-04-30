@@ -1104,15 +1104,15 @@ class BrandtModule_class(AmbientHeckeModule):
         r"""
         Return matrix of power series `\sum T_n q^n` to the given
         precision.  Note that the Hecke operators in this series are
-        always over `mathbb{Q}`, even if the base ring of this Brandt module
-        is not `mathbb{Q}`.
+        always over `\QQ`, even if the base ring of this Brandt module
+        is not `\QQ`.
 
         INPUT:
             - prec -- positive intege
             - var -- string (default: `q`)
 
         OUTPUT:
-            matrix of power series with coefficients in `mathbb{Q}`
+            matrix of power series with coefficients in `\QQ`
 
         EXAMPLES::
 
@@ -1184,7 +1184,7 @@ class BrandtModule_class(AmbientHeckeModule):
         fixed choice of basis. The weight of an ideal class `[I]` is
         half the number of units of the right order `I`.
 
-        NOTE: The base ring must be `mathbb{Q}` or `mathbb{Z}`.
+        NOTE: The base ring must be `\QQ` or `\ZZ`.
 
         EXAMPLES::
 

@@ -92,8 +92,9 @@ class HeckeModule_generic(sage.modules.module.Module):
 
         EXAMPLE::
 
-            sage: CuspForms(Gamma0(17),2).__hash__() # random
-            -1797992588
+            sage: CuspForms(Gamma0(17),2).__hash__()
+            -1797992588 # 32-bit
+            -3789716081060032652 # 64-bit
         """
         return hash((self.base_ring(), self.__level))
 
@@ -518,8 +519,9 @@ class HeckeModule_free_module(HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: ModularSymbols(22).__hash__() # random
-            1471905187
+            sage: ModularSymbols(22).__hash__()
+            1471905187 # 32-bit
+            -3789725500948382301 # 64-bit
         """
         return hash((self.__weight, self.level(), self.base_ring()))
 

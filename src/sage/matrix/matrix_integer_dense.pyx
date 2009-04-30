@@ -3205,7 +3205,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     cdef _det_4x4_unsafe(self):
         """
         Compute the determinant of this matrix using a special
-        forumlation for 4x4 matrices.
+        formulation for 4x4 matrices.
+
+        TESTS::
+
+            sage: A = matrix(ZZ,4,[1,2,3,4,4,3,2,1,0,5,0,1,9,1,2,3])
+            sage: A.determinant()     # indirect doctest
+            270
         """
         cdef Integer d = ZZ(0)
         _sig_on
@@ -4834,6 +4840,15 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
 ##############################################################
 
 cdef void four_dim_det(mpz_t r,mpz_t *x):
+    """
+    Internal function used in computing determinants of 4x4 matrices.
+
+    TESTS::
+
+        sage: A = matrix(ZZ,4,[1,0,3,0,4,3,2,1,0,5,0,0,9,1,2,3])
+        sage: A.determinant()     # indirect doctest
+        25
+    """
     cdef mpz_t a,b
     mpz_init(a)
     mpz_init(b)

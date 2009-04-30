@@ -37,7 +37,7 @@ class PosetElement(Element):
 
             sage: from sage.combinat.posets.elements import PosetElement
             sage: P = Poset([[1,2],[4],[3],[4],[]])
-            sage: e = PosetElement(P, "elm", 0)
+            sage: e = P(0)
             sage: e.parent() is P
             True
             sage: e == loads(dumps(e))
@@ -89,13 +89,50 @@ class PosetElement(Element):
             1
             sage: P(0)._cmp(P(0))
             0
+            sage: P(1)._cmp(P(2))
+
         """
-        if self.parent() != other.parent():
-            raise ValueError, "The elements are not in the same poset."
-        if self == other: return 0
-        if self.parent().is_less_than(self,other): return -1
-        if self.parent().is_less_than(other,self): return  1
-        return None
+        return self.parent().compare_elements(self,other)
+
+    def __cmp__(self, other):
+        r"""
+        Do a comparison of ``self`` with ``other`` (for sorting
+        lists of elements, etc.)
+
+        ..note::
+
+        If both ``self`` and ``other`` have the same parent poset,
+        then the comparison is done in the poset. If the elements are
+        incomparable in the poset, then 1 is returned.
+
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P(0).__cmp__(P(4))
+            -1
+            sage: P(4).__cmp__(P(0))
+            1
+            sage: P(0).__cmp__(P(0))
+            0
+            sage: P(1).__cmp__(P(2))
+            1
+            sage: cmp(P(0),P(4))
+            -1
+            sage: cmp(P(4),P(0))
+            1
+            sage: cmp(P(0),P(0))
+            0
+            sage: cmp(P(1),P(2))
+            1
+        """
+        if isinstance(other, type(self)):
+            r = self.parent().compare_elements(self,other)
+            if r is None:
+                return 1
+            else:
+                return r
+        else:
+            return cmp(type(other), type(self))
 
     def __lt__(self,other):
         """

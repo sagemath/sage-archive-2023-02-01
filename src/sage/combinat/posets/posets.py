@@ -667,7 +667,8 @@ class FinitePoset(ParentWithBase):
             sage: Q.is_lequal(z,z)
             True
         """
-        return self._hasse_diagram.is_lequal(*map(self._element_to_vertex,(x,y)))
+        r = self.compare_elements(x,y)
+        return r == 0 or r == -1
 
     def is_less_than(self, x, y):
         """
@@ -689,10 +690,7 @@ class FinitePoset(ParentWithBase):
             sage: Q.is_less_than(z,z)
             False
         """
-        if x == y:
-            return False
-        else:
-            return self.is_lequal(x,y)
+        return self.compare_elements(x,y) == -1
 
     def is_gequal(self, x, y):
         """
@@ -716,12 +714,13 @@ class FinitePoset(ParentWithBase):
             sage: Q.is_gequal(z,z)
             True
         """
-        return self._hasse_diagram.is_lequal(*map(self._element_to_vertex,(y,x)))
+        r = self.compare_elements(x,y)
+        return r == 0 or r == 1
 
     def is_greater_than(self, x, y):
         """
-        Returns True if x is greater than but not equal to y in the poset, and
-        False otherwise.
+        Returns True if ``x`` is greater than but not equal to ``y``
+        in the poset, and False otherwise.
 
         EXAMPLES::
 
@@ -740,10 +739,39 @@ class FinitePoset(ParentWithBase):
             sage: Q.is_greater_than(z,z)
             False
         """
-        if x == y:
-            return False
+        return self.compare_elements(x,y) == 1
+
+    def compare_elements(self, x, y):
+        r"""
+        Compare ``x`` and ``y`` in the poset.
+
+        If ``x`` = ``y``, then ``0`` is returned;
+        if ``x`` < ``y``, then ``-1`` is returned;
+        if ``x`` > ``y``, then ``1`` is returned;
+        and if ``x`` and ``y`` are not comparable,
+        then ``None`` is returned.
+
+        EXAMPLES::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P(0)._cmp(P(0))
+            0
+            sage: P(0)._cmp(P(4))
+            -1
+            sage: P(4)._cmp(P(0))
+            1
+            sage: P(1)._cmp(P(2))
+
+        """
+        i, j = map(self._element_to_vertex,(x,y))
+        if i == j:
+            return 0
+        elif self._hasse_diagram.is_less_than(i, j):
+            return -1
+        elif self._hasse_diagram.is_less_than(j, i):
+            return  1
         else:
-            return self.is_gequal(x,y)
+            return None
 
     def minimal_elements(self):
         """

@@ -155,6 +155,25 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             self.__parameters = P
             return P
 
+    def new_submodule(self, p=None):
+        r"""
+        Return the new submodule of self.
+
+        EXAMPLE::
+
+            sage: e = EisensteinForms(Gamma0(225), 2).new_submodule(); e
+            Modular Forms subspace of dimension 3 of Modular Forms space of dimension 42 for Congruence Subgroup Gamma0(225) of weight 2 over Rational Field
+            sage: e.basis()
+            [
+            q + O(q^6),
+            q^2 + O(q^6),
+            q^4 + O(q^6)
+            ]
+        """
+
+        if p is not None: raise NotImplementedError
+        return self.submodule([self(x) for x in self._compute_q_expansion_basis(self.sturm_bound(), new=True)], check=False)
+
     def _parameters_character(self):
         """
         Return the character defining self.
@@ -263,7 +282,22 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             self.__eisenstein_series = E
             return E
 
-    def _compute_q_expansion_basis(self, prec=None):
+    def new_eisenstein_series(self):
+        r"""
+        Return a list of the Eisenstein series in this space that are new.
+
+        EXAMPLE::
+
+            sage: E = EisensteinForms(25, 4)
+            sage: E.new_eisenstein_series()
+            [q + 7*zeta4*q^2 - 26*zeta4*q^3 - 57*q^4 + O(q^6),
+             q - 9*q^2 - 28*q^3 + 73*q^4 + O(q^6),
+             q - 7*zeta4*q^2 + 26*zeta4*q^3 - 57*q^4 + O(q^6)]
+         """
+
+        return [x for x in self.eisenstein_series() if x.new_level() == self.level()]
+
+    def _compute_q_expansion_basis(self, prec=None, new=False):
         """
         Compute a q-expansion basis for self to precision prec.
 
@@ -285,7 +319,10 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         else:
             prec = rings.Integer(prec)
 
-        E = self.eisenstein_series()
+        if new:
+            E = self.new_eisenstein_series()
+        else:
+            E = self.eisenstein_series()
         K = self.base_ring()
         V = K**prec
         G = []
@@ -305,7 +342,10 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         W = V.submodule(G, check=False)
         R = self._q_expansion_ring()
         X = [R(f.list(), prec) for f in W.basis()]
-        return X + [R(0,prec)]*(self.dimension() - len(X))
+        if not new:
+            return X + [R(0,prec)]*(self.dimension() - len(X))
+        else:
+            return X
 
     def _q_expansion(self, element, prec):
         """

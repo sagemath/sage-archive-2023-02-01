@@ -915,22 +915,19 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: N = ModularForms(6,4) ; ls = N.newspaces() ; ls
-            [Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field]
+            sage: N = CuspForms(44,2) ; ls = [N.submodule([N(u) for u in x.q_expansion_basis(20)]) for x in N.modular_symbols().decomposition()]; ls
+            [Modular Forms subspace of dimension 1 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(44) of weight 2 over Rational Field,
+            Modular Forms subspace of dimension 3 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(44) of weight 2 over Rational Field]
 
         ::
 
-            sage: N1 = ls[2] ; N2 = ls[3]
-            sage: N1.__add__(N2)
-            Modular Forms subspace of dimension 2 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+            sage: N1 = ls[0] ; N2 = ls[1]
+            sage: N1 + N2 # indirect doctest
+            Modular Forms subspace of dimension 4 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(44) of weight 2 over Rational Field
         """
         from sage.modular.modform.submodule import ModularFormsSubmodule
         if self.ambient_module() != right.ambient_module():
-            raise ArithmeticError, ("Intersection of %s and %s not defined because " + \
+            raise ArithmeticError, ("Sum of %s and %s not defined because " + \
                                     "they do not lie in a common ambient space.")%\
                                    (self, right)
         if self.is_ambient(): return self
@@ -938,27 +935,29 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         V = self.free_module() + right.free_module()
         return ModularFormsSubmodule(self.ambient_module(), V)
 
-
-    def __and__(self, right):
-        """
-        Return intersect of self and right.
-
-        EXAMPLES::
-
-            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
-
-        ::
-
-            sage: N.__and__(S)
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-
-        ::
-
-            sage: S.__and__(N)
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-        """
-        return self.intersect(right)
-
+# Removed since we already have a perfectly good intersection method and I'm not convinced overloading "and" is a very good
+# idea -- David Loeffler, 2009-04-30
+#
+#    def __and__(self, right):
+#        """
+#        Return intersect of self and right.
+#
+#        EXAMPLES::
+#
+#            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
+#
+#        ::
+#
+#            sage: N.__and__(S)
+#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+#
+#        ::
+#
+#            sage: S.__and__(N)
+#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+#        """
+#        return self.intersect(right)
+#
     def _has_natural_inclusion_map_to(self, right):
         """
         Return true if there is a natural inclusion map from modular forms
@@ -1146,7 +1145,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 x_potential = W.coordinates(x.padded_list(W.degree()))
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
                 x_potential = element.ModularFormElement(self, x_potential)
-                for i in range(W.degree(), x.prec()):
+                for i in range(int(W.degree()), x.prec()):
                     if x_potential[i] != x[i]:
                         raise ValueError, "q-expansion does not correspond to a form in self"
                 return x_potential
@@ -1751,16 +1750,15 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
             sage: N = ModularForms(6,4)
             sage: N.newspaces()
-            [Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        V = self.embedded_submodule()
-        return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
-                for M, t, is_cuspidal, B in self.ambient_module().__newspace_bases() \
-                if contains_each(V, B)]
+        raise NotImplementedError
+        #V = self.embedded_submodule()
+        #return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
+        #        for M, t, is_cuspidal, B in self.ambient_module().__newspace_bases() \
+        #        if contains_each(V, B)]
 
 
     def newforms(self, names=None):
@@ -1867,37 +1865,40 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         return self.free_module()
 
-    def intersect(self, right):
-        """
-        If self and right live in the same ambient module, return the
-        intersection of self and right (as submodules).
-
-        EXAMPLES::
-
-            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
-
-        ::
-
-            sage: N.intersect(S)
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-
-        ::
-
-            sage: S.intersect(N)
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-
-        ::
-
-            sage: S.intersect(N.eisenstein_subspace())
-            Modular Forms subspace of dimension 0 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-        """
-        from sage.modular.modform.all import ModularForms
-        if self.ambient_module() != right.ambient_module():
-            raise ArithmeticError, "Intersection of %s and %s not defined."%\
-                                   (self, right)
-        V = self.embedded_submodule().intersection(right.embedded_submodule())
+# intersect method commented out since it is a duplicate of the intersection method in sage.modular.hecke.submodule
+# -- David Loeffler, 2009-04-30
+#
+#    def intersect(self, right):
+#        """
+#        If self and right live in the same ambient module, return the
+#        intersection of self and right (as submodules).
+#
+#        EXAMPLES::
+#
+#            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
+#
+#        ::
+#
+#            sage: N.intersect(S)
+#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+#
+#        ::
+#
+#            sage: S.intersect(N)
+#            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+#
+#        ::
+#
+#            sage: S.intersect(N.eisenstein_subspace())
+#            Modular Forms subspace of dimension 0 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+#        """
+#        from sage.modular.modform.all import ModularForms
+#        if self.ambient_module() != right.ambient_module():
+#            raise ArithmeticError, "Intersection of %s and %s not defined."%\
+#                                   (self, right)
+#        V = self.embedded_submodule().intersection(right.embedded_submodule())
 ##        return ModularForms(self.ambient_module(),V)
-        return self.span([ self(b) for b in V.basis() ])
+#        return self.span([ self(b) for b in V.basis() ])
 
 ##    def _key(self):
 ##        if self.is_ambient():

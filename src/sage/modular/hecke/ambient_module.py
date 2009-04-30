@@ -283,7 +283,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             A = self._degeneracy_lowering_matrix(level, t)
 
         elif level % self.level() == 0:  # raise the level
-            if t != 1:
+            if t != 1 and isinstance(self, sage.modular.modsym.space.ModularSymbolsSpace):
 
                 # use Hecke operator and t=1 case.
                 d1 = self.degeneracy_map(level, 1).matrix()
@@ -292,7 +292,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
             else:
 
-                A = self._degeneracy_raising_matrix(level)
+                A = self._degeneracy_raising_matrix(level, t)
 
         d = degenmap.DegeneracyMap(A, self, M, t)
         self._degeneracy_maps[key] = d

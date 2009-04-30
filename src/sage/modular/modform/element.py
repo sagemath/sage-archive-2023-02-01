@@ -770,7 +770,17 @@ class Newform(ModularForm_abstract):
         """
         return True
 
+    def atkin_lehner_eigenvalue(self):
+        r"""
+        Return the eigenvalue of the Atkin-Lehner operator acting on self
+        (which is either 1 or -1).
 
+        EXAMPLE::
+
+            sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
+            [1, -1]
+        """
+        return self.modular_symbols(sign=1).atkin_lehner_operator().matrix()[0,0]
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):

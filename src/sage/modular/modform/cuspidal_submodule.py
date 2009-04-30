@@ -202,6 +202,22 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
         M = self.modular_symbols(sign = 1)
         return M.q_expansion_basis(prec)
 
+    def new_submodule(self, p=None):
+        r"""
+        Return the new subspace of this space of cusp forms. This is computed
+        using modular symbols.
+
+        EXAMPLE::
+
+            sage: CuspForms(55).new_submodule()
+            Modular Forms subspace of dimension 3 of Modular Forms space of dimension 8 for Congruence Subgroup Gamma0(55) of weight 2 over Rational Field
+        """
+        symbs = self.modular_symbols(sign=1).new_subspace(p)
+        bas = []
+        for x in symbs.q_expansion_basis(self.sturm_bound()):
+                bas.append(self(x))
+        return self.submodule(bas)
+
 class CuspidalSubmodule_level1_Q(CuspidalSubmodule):
     r"""
     Space of cusp forms of level 1 over `\QQ`.

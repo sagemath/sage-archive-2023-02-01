@@ -482,10 +482,14 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         M = self.ambient_hecke_module().submodule(V,check=False)
 
         ## if sign is nonzero, the intersection will be, too
-        if self.sign():
-            M._set_sign(self.sign())
-        elif other.sign():
-            M._set_sign(other.sign())
+        ## this only makes sense for modular symbols spaces (and hence shouldn't really be in this file)
+        try:
+            if self.sign():
+                M._set_sign(self.sign())
+            elif other.sign():
+                M._set_sign(other.sign())
+        except AttributeError:
+            pass
 
         return M
 
@@ -640,13 +644,14 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         """
         Construct a submodule of self from the embedded free module M.
         """
+        if not sage.modules.all.is_FreeModule(M):
+            V = self.ambient_module().free_module()
+            if isinstance(M, (list,tuple)):
+                M = V.span([V(x.element()) for x in M])
+            else:
+                M = V.span(M)
+
         if check:
-            if not sage.modules.all.is_FreeModule(M):
-                V = self.ambient_module().free_module()
-                if isinstance(M, (list,tuple)):
-                    M = V.span([V(x.element()) for x in M])
-                else:
-                    M = V.span(M)
             if not M.is_submodule(self.free_module()):
                 raise TypeError, "M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module())
 

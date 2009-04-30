@@ -204,6 +204,60 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             self.__dimension = self._dim_eisenstein() + self._dim_cuspidal()
             return self.__dimension
 
+    def hecke_module_of_level(self, N):
+        r"""
+        Return the Hecke module of level N corresponding to self, which is the
+        domain or codomain of a degeneracy map from self. Here N must be either
+        a divisor or a multiple of the level of self.
+
+        EXAMPLES::
+
+            sage: ModularForms(25, 6).hecke_module_of_level(5)
+            Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(5) of weight 6 over Rational Field
+            sage: ModularForms(Gamma1(4), 3).hecke_module_of_level(8)
+            Modular Forms space of dimension 7 for Congruence Subgroup Gamma1(8) of weight 3 over Rational Field
+            sage: ModularForms(Gamma1(4), 3).hecke_module_of_level(9)
+            Traceback (most recent call last):
+            ...
+            ValueError: N (=9) must be a divisor or a multiple of the level of self (=4)
+        """
+        if not (N % self.level() == 0 or self.level() % N == 0):
+            raise ValueError, "N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level())
+        import constructor
+        return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
+
+    def _degeneracy_raising_matrix(self, N, t):
+        r"""
+        Calculate the matrix of the degeneracy map from self to the Hecke
+        module of level N corresponding to `f(q) \mapsto f(q^t)`. Here N should
+        be a multiple of the level of self, and t should divide the quotient.
+
+        EXAMPLE::
+
+            sage: ModularForms(22, 2)._degeneracy_raising_matrix(44, 1)
+            [  1   0  -1  -2   0   0   0   0   0]                                                                                           [  0   1   0  -2   0   0   0   0   0]
+            [  0   0   0   0   1   0   0   0  24]
+            [  0   0   0   0   0   1   0  -2  21]
+            [  0   0   0   0   0   0   1   3 -10]
+            sage: ModularForms(22, 2)._degeneracy_raising_matrix(44, 2)
+            [0 1 0 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0]
+            [0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 0 1 0]
+        """
+        M = self.hecke_module_of_level(N)
+        from sage.matrix.matrix_space import MatrixSpace
+        A = MatrixSpace(self.base_ring(), self.dimension(), M.dimension())
+        d = M.sturm_bound() + 1
+        q = self.an_element().qexp(d).parent().gen()
+        im_gens = []
+        for x in self.basis():
+            fq = x.qexp(d)
+            fqt = fq(q**t).add_bigoh(d) # silly workaround for #5367
+            im_gens.append(M(fqt))
+        return A([M.coordinate_vector(u) for u in im_gens])
+
     def rank(self):
         r"""
         This is a synonym for ``self.dimension()``.
@@ -410,12 +464,6 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         Return the new or `p`-new submodule of this ambient
         module.
 
-        .. note::
-
-           This code is currently broken, so it now just raises a
-           NotImplementedError. The code and doctests remain below as
-           an example of what the function *should* do.
-
         INPUT:
 
 
@@ -425,17 +473,17 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
         EXAMPLES::
 
-            sage: m = ModularForms(Gamma0(33),2); m    # TODO: not tested -- broken
+            sage: m = ModularForms(Gamma0(33),2); m
             Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(33) of weight 2 over Rational Field
-            sage: m.new_submodule()              # not tested -- broken
+            sage: m.new_submodule()
             Modular Forms subspace of dimension 1 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(33) of weight 2 over Rational Field
 
         Another example::
 
             sage: M = ModularForms(17,4)
-            sage: N = M.new_subspace(); N        # not tested -- broken
+            sage: N = M.new_subspace(); N
             Modular Forms subspace of dimension 4 of Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(17) of weight 4 over Rational Field
-            sage: N.basis()                      # not tested -- broken
+            sage: N.basis()
             [
             q + 2*q^5 + O(q^6),
             q^2 - 3/2*q^5 + O(q^6),
@@ -446,89 +494,33 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         ::
 
             sage: ModularForms(12,4).new_submodule()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: computation of new submodule currently not implemented.
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 9 for Congruence Subgroup Gamma0(12) of weight 4 over Rational Field
 
         Unfortunately (TODO) - `p`-new submodules aren't yet
         implemented::
 
-            sage: m.new_submodule(3)            # not tested -- broken
+            sage: m.new_submodule(3)            # not implemented
             Traceback (most recent call last):
             ...
             NotImplementedError
-            sage: m.new_submodule(11)           # not tested -- broken
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-
-        ## this code is currently broken, but left in place so that
-        ## it can be used when I get a chance to fix it.
-        raise NotImplementedError, "computation of new submodule currently not implemented."
-
-##        try:
-##            return self.__new_submodule[p]
-##        except AttributeError:
-##            self.__new_submodule = {}
-##        except KeyError:
-##            pass
-##        if not p is None:
-##            p = rings.Integer(p)
-##            if not p.is_prime():
-##                raise ValueError, "p (=%s) must be a prime or None."%p
-##
-##        if p is None:
-##            M = self._full_new_submodule()
-##            self.__new_submodule[None] = M
-##            return M
-##        else:
-##            M = self._new_submodule(p)
-##            self.__new_submodule[p] = M
-##            return M
-
-
-
-    def _full_new_submodule(self):
-        """
-        Return the cuspidal new submodule plus the Eisenstein new
-        submodule.
-
-        EXAMPLES::
-
-            sage: m = ModularForms(Gamma0(54),2); m
-            Modular Forms space of dimension 15 for Congruence Subgroup Gamma0(54) of weight 2 over Rational Field
-            sage: m._full_new_submodule()
-            Modular Forms subspace of dimension 2 of Modular Forms space of dimension 15 for Congruence Subgroup Gamma0(54) of weight 2 over Rational Field
-        """
-        s = self._dim_new_cuspidal()
-        e = self._dim_new_eisenstein()
-        d = self._dim_cuspidal()
-        B = range(s) + range(d, d+e)
-        V = self.module()
-        W = V.submodule([V.gen(i) for i in B])
-        return submodule.ModularFormsSubmodule(self, W)
-
-    def _new_submodule(self, p):
-        """
-        Return the `p`-new submodule of self.
-
-        .. note::
-
-           This most be defined in the derived class.
-
-        EXAMPLES: Unfortunaely this is not implemented yet.
-
-        ::
-
-            sage: m = ModularForms(Gamma0(100),2); m
-            Modular Forms space of dimension 24 for Congruence Subgroup Gamma0(100) of weight 2 over Rational Field
-            sage: m._new_submodule(2)
+            sage: m.new_submodule(11)           # not implemented
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
-        raise NotImplementedError
+        try:
+            return self.__new_submodule[p]
+        except AttributeError:
+           self.__new_submodule = {}
+        except KeyError:
+           pass
+        if not p is None:
+            p = rings.Integer(p)
+            if not p.is_prime():
+               raise ValueError, "p (=%s) must be a prime or None."%p
+        M = self.eisenstein_submodule().new_submodule(p) + self.cuspidal_submodule().new_submodule(p)
+        self.__new_submodule[p] = M
+        return M
 
     def _q_expansion(self, element, prec):
         r"""

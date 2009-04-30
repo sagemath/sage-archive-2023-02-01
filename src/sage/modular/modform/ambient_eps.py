@@ -264,6 +264,34 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule_eps(self)
         return self.__eisenstein_submodule
 
+    def hecke_module_of_level(self, N):
+        r"""
+        Return the Hecke module of level N corresponding to self, which is the
+        domain or codomain of a degeneracy map from self. Here N must be either
+        a divisor or a multiple of the level of self, and a multiple of the
+        conductor of the character of self.
+
+        EXAMPLES::
+
+            sage: M = ModularForms(DirichletGroup(15).0, 3); M.character().conductor()
+            3
+            sage: M.hecke_module_of_level(3)
+            Modular Forms space of dimension 2, character [-1] and weight 3 over Rational Field
+            sage: M.hecke_module_of_level(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: conductor(=3) must divide M(=5)
+            sage: M.hecke_module_of_level(30)
+            Modular Forms space of dimension 16, character [1, -1, 1] and weight 3 over Rational Field
+        """
+        import constructor
+        if N % self.level() == 0:
+            return constructor.ModularForms(self.character().extend(N), self.weight(), self.base_ring(), prec=self.prec())
+        elif self.level() % N == 0:
+            return constructor.ModularForms(self.character().restrict(N), self.weight(), self.base_ring(), prec=self.prec())
+        else:
+            raise ValueError, "N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level())
+
     ####################################################################
     # Computations of Dimensions
     ####################################################################

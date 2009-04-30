@@ -68,9 +68,6 @@ export FLINT_LINK_OPTIONS
 
 cp patches/makefile src/
 
-# Do not use znpoly, since it is broken: see trac #5698
-cp patches/zmod_poly.h src/
-
 cd src
 
 # UNIX

@@ -105,7 +105,7 @@ fi
 
 rm -rf "$SAGE_LOCAL"/include/FLINT
 
-for i in {FLINT/,FLINT/zn_poly/include/}; do
+for i in {FLINT/,FLINT/zn_poly/src/}; do
 	mkdir -p "$SAGE_LOCAL"/include/$i
 	if [ $? -ne 0 ]; then
 	    echo "Error building FLINT"

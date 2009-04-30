@@ -1303,6 +1303,13 @@ class FinitePoset(ParentWithBase):
             sage: P = Poset({"a":["c","d"], "b":["d","e"], "c":["f"], "d":["f"], "e":["f"]})
             sage: P.subposet(["a","b","f"])
             Finite poset containing 3 elements
+
+            sage: P = posets.BooleanLattice(2)
+            sage: above = P.principal_order_filter(0)
+            sage: Q = P.subposet(above)
+            sage: above_new = Q.principal_order_filter(Q.list()[0])
+            sage: Q.subposet(above_new)
+            Finite poset containing 4 elements
         """
         if not isinstance(elements,list):
             raise ValueError, "not a list."
@@ -1310,9 +1317,10 @@ class FinitePoset(ParentWithBase):
             if element not in self:
                 raise ValueError, "element not in self"
         relations = []
+        elements = [self(e).element for e in elements]
         for u in elements:
             for v in elements:
-                if self(u) < self(v): relations.append([u,v])
+                if self.is_less_than(u,v): relations.append([u,v])
         return Poset((elements, relations), cover_relations=False)
 
     def random_subposet(self, p):

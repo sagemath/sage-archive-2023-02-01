@@ -28,6 +28,10 @@ setup_gfortran.py
 
 == Releases ==
 
+=== cvxopt-0.9.p8 (Gonzalo Tornaria, June 19th, 2009) ===
+
+ * Replace perl spkg-install with a bash one.
+
 === cvxopt-0.9.p7 (Michael Abshoff, September 24th, 2008) ===
  * Work around Solaris 10 problem with complex.h
 

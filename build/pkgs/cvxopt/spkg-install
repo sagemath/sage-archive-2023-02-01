@@ -1,20 +1,25 @@
-#!/usr/bin/env perl
-use File::Copy;
-#use File::Chdir;
+#!/usr/bin/env bash
 
-$ver_string = `sage_fortran --version`;
-if ($ver_string =~ m/G95/)
-{
-    print "Using g95";
-    copy("patches/setup_f95.py", "src/src/setup.py");
-}
-else
-{
-    print ("using gfortran");
-    copy("patches/setup_gfortran.py","src/src/setup.py");
-}
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
-chdir("src/src");
-#print `python setup.py install`;
-system('python setup.py install');
-exit 1 if $? >>8;
+CUR=`pwd`
+
+VER_STRING="`sage_fortran --version`"
+case "$VER_STRING" in
+    G95*)
+        echo "Using g95"
+        cp "patches/setup_f95.py" "src/src/setup.py"
+        ;;
+    *)
+        echo "Using gfortran"
+        cp "patches/setup_gfortran.py" "src/src/setup.py"
+        ;;
+esac
+
+cd src/src
+
+python setup.py install

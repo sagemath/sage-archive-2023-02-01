@@ -272,3 +272,101 @@ class CachedMethod(CachedFunction):
         return self
 
 cached_method = CachedMethod
+
+class CachedInParentMethod(CachedMethod):
+    def __init__(self, f):
+        """
+        Constructs a new method with cache stored in the parent of the instance.
+
+        See also ``cached_method`` and ``cached_function``.
+
+        EXAMPLES::
+
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       @cached_in_parent_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: Foo.f._cache_name
+            '_cache__element_f'
+        """
+        self._cache_name = '_cache__' + 'element_' + f.__name__
+        CachedFunction.__init__(self, f)
+
+    def get_key(self, *args, **kwds):
+        """
+        Returns the key used to lookup in the cache dictionary.
+
+        EXAMPLES::
+
+            sage: class MyParent(Parent):
+            ...       pass
+            ...
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       _parent = MyParent()
+            ...       def parent(self):
+            ...           return self._parent
+            ...       def __repr__(self):
+            ...           return str(self._x)
+            ...       @cached_in_parent_method
+            ...       def f(self, *args, **keywords):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f.get_key()
+            ((2,), ())
+            sage: a = Foo(2)
+            sage: a.f.get_key(1,3)
+            ((2, 1, 3), ())
+            sage: a.f.get_key(1,3, bla=4)
+            ((2, 1, 3), (('bla', 4),))
+        """
+        return super(CachedInParentMethod, self).get_key(self._instance, *args, **kwds)
+
+    def get_cache(self):
+        """
+        Returns the cache dictionary, which is stored in the parent.
+
+        EXAMPLES::
+
+            sage: class MyParent(Parent):
+            ...       pass
+            ...
+            sage: class Foo:
+            ...       def __init__(self, x):
+            ...           self._x = x
+            ...       _parent = MyParent()
+            ...       def parent(self):
+            ...           return self._parent
+            ...       def __repr__(self):
+            ...           return str(self._x)
+            ...       @cached_in_parent_method
+            ...       def f(self):
+            ...           return self._x^2
+            ...
+            sage: a = Foo(2)
+            sage: a.f()
+            4
+            sage: a.f.get_cache()
+            {((2,), ()): 4}
+            sage: b = Foo(2)
+            sage: a is not b
+            True
+            sage: b.f.get_cache()
+            {((2,), ()): 4}
+            sage: c = Foo(3)
+            sage: c.f()
+            9
+            sage: c.f.get_cache()
+            {((2,), ()): 4, ((3,), ()): 9}
+
+        """
+        return self._instance.parent().__dict__.setdefault(self._cache_name, {})
+
+
+cached_in_parent_method = CachedInParentMethod
+

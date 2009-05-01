@@ -150,7 +150,7 @@ from latex import latex, view, pretty_print, pretty_print_default
 
 from trace import trace
 
-from cachefunc import CachedFunction, cached_function, cached_method
+from cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method
 
 from lazy_attribute import lazy_attribute
 

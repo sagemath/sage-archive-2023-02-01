@@ -326,7 +326,7 @@ class QuadraticFormLocalRepresentationConditions():
             sqclass = self.squareclass_vector(p)
 
             for i in range(len(sq_class)):
-                if (self.coeff / sqclass[i]).is_padic_square(p):    ## Note:This should happen only once!
+                if QQ(self.coeff / sqclass[i]).is_padic_square(p):    ## Note:This should happen only once!
                     nu = valuation(self.coeff / sqclass[i], p) / 2
                 else:
                     v[i+1] = infinity

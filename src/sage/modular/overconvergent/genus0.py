@@ -809,6 +809,24 @@ class OverconvergentModularFormsSpace(Module):
                     m[i,j] = l[i]
         return m
 
+    def slopes(self, n, use_recurrence=False):
+        r"""
+        Compute the slopes of the `U_p` operator acting on self, using an n x n matrix.
+
+        EXAMPLES::
+            sage: OverconvergentModularForms(5,2,1/3,base_ring=Qp(5),prec=100).slopes(5)
+            [0, 2, 5, 6, 9]
+            sage: OverconvergentModularForms(2,1,1/3,char=DirichletGroup(4,QQ).0).slopes(5)
+            [0, 2, 4, 6, 8]
+        """
+        if self.base_ring() == QQ:
+            slopelist=self.cps_u(n).truncate().newton_slopes(self.prime())
+        elif is_pAdicField(self.base_ring()):
+            slopelist=self.cps_u(n).truncate().newton_slopes()
+        else:
+            print "slopes are only defined for base field QQ or a p-adic field"
+        return [-i for i in slopelist]
+
     def eigenfunctions(self, n, F = None, exact_arith=True):
         """
         Calculate approximations to eigenfunctions of self. These are the

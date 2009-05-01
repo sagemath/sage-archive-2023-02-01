@@ -23,19 +23,19 @@ from eis_series import eisenstein_series_qexp
 def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     r"""
     Compute and return the Victor-Miller basis for modular forms of
-    weight k and level 1 to precision $O(q^prec)$.  if
+    weight k and level 1 to precision `O(q^{prec})`.  If
     ``cusp_only`` is True, return only a basis for the cuspidal
     subspace.
 
     INPUT:
 
-        - ``k`` -- an integer
+    - ``k`` -- an integer
 
-        - ``prec`` -- (default: 10) a positive integer
+    - ``prec`` -- (default: 10) a positive integer
 
-        - ``cusp_only`` -- bool (default: False)
+    - ``cusp_only`` -- bool (default: False)
 
-        - ``var`` -- string (default: 'q'
+    - ``var`` -- string (default: 'q'
 
     OUTPUT:
         A sequence whose entries are power series in ZZ[[var]].
@@ -185,11 +185,11 @@ def delta_qexp(prec=10, var='q', K=ZZ):
 
     INPUT:
 
-        - ``prec`` -- integer; the absolute precision of the output
+    - ``prec`` -- integer; the absolute precision of the output
 
-        - ``var`` -- (default: 'q') variable name
+    - ``var`` -- (default: 'q') variable name
 
-        - ``K`` -- (default: ZZ) base ring of answer
+    - ``K`` -- (default: ZZ) base ring of answer
 
     OUTPUT:
         a power series over K
@@ -214,9 +214,9 @@ def delta_qexp(prec=10, var='q', K=ZZ):
 
     AUTHORS:
 
-        - William Stein: original code
+    - William Stein: original code
 
-        - David Harvey (2007-05): sped up first squaring step
+    - David Harvey (2007-05): sped up first squaring step
     """
     if prec <= 0:
         raise ValueError, "prec must be positive"

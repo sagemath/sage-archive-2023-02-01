@@ -79,3 +79,24 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
             self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule_g0_Q(self)
         return self.__eisenstein_submodule
 
+    def _compute_atkin_lehner_matrix(self, d):
+        r"""
+        Compute the matrix of the Atkin-Lehner involution W_d acting on self,
+        where d is a divisor of the level.  This is only implemented in the
+        (trivial) level 1 case.
+
+        EXAMPLE::
+
+            sage: ModularForms(1, 30).atkin_lehner_operator()
+            Hecke module morphism Atkin-Lehner operator W_1 defined by the matrix
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            Domain: Modular Forms space of dimension 3 for Modular Group SL(2,Z) ...
+            Codomain: Modular Forms space of dimension 3 for Modular Group SL(2,Z) ...
+        """
+        if self.level() == 1:
+            from sage.matrix.matrix_space import MatrixSpace
+            return MatrixSpace(self.base_ring(), self.rank())(1)
+        else:
+            raise NotImplementedError

@@ -492,7 +492,96 @@ class ModularForm_abstract(ModuleElement):
             self.__q_expansion = (prec, f)
             return f
 
+    def atkin_lehner_eigenvalue(self, d=None):
+        r"""
+        Return the eigenvalue of the Atkin-Lehner operator W_d acting on self
+        (which is either 1 or -1), or None if this form is not an eigenvector
+        for this operator. If d is not given or is None, use d = the level.
 
+        EXAMPLES::
+
+            sage: sage.modular.modform.element.ModularForm_abstract.atkin_lehner_eigenvalue(CuspForms(2, 8).0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    # this function lives here so it is inherited by Newform (which does *not* derive from ModularFormElement)
+    def cuspform_lseries(self, prec=53,
+                         max_imaginary_part=0,
+                         max_asymp_coeffs=40):
+        r"""
+        Return the L-series of the weight k cusp form
+        f on `\Gamma_0(N)`.
+
+        This actually returns an interface to Tim Dokchitser's program
+        for computing with the L-series of the cusp form.
+
+        INPUT:
+
+        - ``prec`` - integer (bits precision)
+
+        - ``max_imaginary_part`` - real number
+
+        - ``max_asymp_coeffs`` - integer
+
+        OUTPUT:
+
+        The L-series of the cusp form.
+
+        EXAMPLES::
+
+           sage: f = CuspForms(2,8).newforms()[0]
+           sage: L = f.cuspform_lseries()
+           sage: L(1)
+           0.0884317737041015
+           sage: L(0.5)
+           0.0296568512531983
+
+        Consistency check with delta_lseries (which computes coefficients in pari)::
+
+           sage: delta = CuspForms(1,12).0
+           sage: L = delta.cuspform_lseries()
+           sage: L(1)
+           0.0374412812685155
+           sage: L = delta_lseries()
+           sage: L(1)
+           0.0374412812685155
+
+        We check that #5262 is fixed::
+
+            sage: E=EllipticCurve('37b2')
+            sage: h=Newforms(37)[1]
+            sage: Lh = h.cuspform_lseries()
+            sage: LE=E.lseries()
+            sage: Lh(1), LE(1)
+            (0.725681061936153, 0.725681061936153)
+            sage: CuspForms(1, 30).0.cuspform_lseries().eps
+            -1
+        """
+        if self.q_expansion().list()[0] !=0:
+            raise TypeError,"f = %s is not a cusp form"%self
+        from sage.lfunctions.all import Dokchitser
+        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        l = self.weight()
+        N = self.level()
+        w = self.atkin_lehner_eigenvalue()
+        if w is None:
+            raise ValueError, "Form is not an eigenform for Atkin-Lehner"
+        e = (-1)**(l/2)*w
+        L = Dokchitser(conductor = N,
+                       gammaV = [0,1],
+                       weight = l,
+                       eps = e,
+                       prec = prec)
+        s = 'coeff = %s;'%self.q_expansion(prec).list()
+        L.init_coeffs('coeff[k+1]',pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        L.check_functional_equation()
+        L.rename('L-series associated to the cusp form %s'%self)
+        return L
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -770,17 +859,23 @@ class Newform(ModularForm_abstract):
         """
         return True
 
-    def atkin_lehner_eigenvalue(self):
+    def atkin_lehner_eigenvalue(self, d=None):
         r"""
-        Return the eigenvalue of the Atkin-Lehner operator acting on self
-        (which is either 1 or -1).
+        Return the eigenvalue of the Atkin-Lehner operator W_d acting on this newform
+        (which is either 1 or -1). A ValueError will be raised if the character
+        of this form is not either trivial or quadratic. If d is not given or
+        is None, then d defaults to the level of self.
 
         EXAMPLE::
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
+            sage: CuspForms(DirichletGroup(5).0, 5).newforms()[0].atkin_lehner_eigenvalue()
+            Traceback (most recent call last):
+            ...
+            ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
         """
-        return self.modular_symbols(sign=1).atkin_lehner_operator().matrix()[0,0]
+        return self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):
@@ -901,72 +996,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         return newparent.base_extend(newqexp.base_ring())(newqexp)
 
-    def cuspform_lseries(self, prec=53,
-                         max_imaginary_part=0,
-                         max_asymp_coeffs=40):
-        r"""
-        Return the L-series of the weight k cusp form
-        f on `\Gamma_0(N)`.
-
-        This actually returns an interface to Tim Dokchitser's program
-        for computing with the L-series of the cusp form.
-
-        INPUT:
-
-        - ``prec`` - integer (bits precision)
-
-        - ``max_imaginary_part`` - real number
-
-        - ``max_asymp_coeffs`` - integer
-
-        OUTPUT:
-
-        The L-series of the cusp form.
-
-        EXAMPLES::
-
-           sage: f = CuspForms(2,8).0
-           sage: L = f.cuspform_lseries()
-           sage: L(1)
-           0.0884317737041015
-           sage: L(0.5)
-           0.0296568512531983
-
-        Consistency check with delta_lseries (which computes coefficients in pari)::
-
-           sage: delta = CuspForms(1,12).0
-           sage: L = delta.cuspform_lseries()
-           sage: L(1)
-           0.0374412812685155
-           sage: L = delta_lseries()
-           sage: L(1)
-           0.0374412812685155
-        """
-        if self.q_expansion().list()[0] !=0:
-            raise TypeError,"f = %s is not a cusp form"%self
-        from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
-        l = self.weight()
-        N = self.level()
-        if N == 1:
-            e = (-1)**l
-        else:
-            m = ModularSymbols(N,l,sign=1)
-            n = m.cuspidal_subspace().new_subspace()
-            e = (-1)**(l/2)*n.atkin_lehner_operator().matrix()[0,0]
-        L = Dokchitser(conductor = N,
-                       gammaV = [0,1],
-                       weight = l,
-                       eps = e,
-                       prec = prec)
-        s = 'coeff = %s;'%self.q_expansion(prec).list()
-        L.init_coeffs('coeff[k+1]',pari_precode = s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        L.check_functional_equation()
-        L.rename('L-series associated to the cusp form %s'%self)
-        return L
-
     def modform_lseries(self, prec=53,
                         max_imaginary_part=0,
                         max_asymp_coeffs=40):
@@ -1023,8 +1052,32 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         L.rename('L-series associated to the weight %s modular form on SL_2(Z)'%l)
         return L
 
+    def atkin_lehner_eigenvalue(self, d=None):
+        r"""
+        Return the eigenvalue of the Atkin-Lehner operator W_d acting on this
+        modular form (which is either 1 or -1), or None if this form is not an
+        eigenvector for this operator.
 
+        EXAMPLE::
 
+             sage: CuspForms(1, 30).0.atkin_lehner_eigenvalue()
+             1
+             sage: CuspForms(2, 8).0.atkin_lehner_eigenvalue()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: Don't know how to compute Atkin-Lehner matrix acting on this space (try using a newform constructor instead)
+        """
+        try:
+            f = self.parent().atkin_lehner_operator(d)(self)
+        except NotImplementedError:
+            raise NotImplementedError, "Don't know how to compute Atkin-Lehner matrix acting on this space" \
+                + " (try using a newform constructor instead)"
+        if f == self:
+            return 1
+        elif f == -self:
+            return -1
+        else:
+            return None
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """
@@ -1107,6 +1160,27 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 - 2*q^9 + O(q^10)
         """
         return self.__E.q_expansion(prec)
+
+    def atkin_lehner_eigenvalue(self, d=None):
+        r"""
+        Calculate the eigenvalue of the Atkin-Lehner operator W_d acting on
+        this form. If d is None, default to the level of the form. As this form
+        is attached to an elliptic curve, we can read this off from the root
+        number of the curve if d is the level.
+
+        EXAMPLE::
+
+            sage: EllipticCurve('57a1').newform().atkin_lehner_eigenvalue()
+            1
+            sage: EllipticCurve('57b1').newform().atkin_lehner_eigenvalue()
+            -1
+            sage: EllipticCurve('57b1').newform().atkin_lehner_eigenvalue(19)
+            1
+        """
+        if d is None:
+            return -self.__E.root_number()
+        else:
+            return self.__E.modular_symbol_space().atkin_lehner_operator(d).matrix()[0,0]
 
 ######################################################################
 

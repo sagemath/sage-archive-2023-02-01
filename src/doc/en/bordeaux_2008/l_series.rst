@@ -25,7 +25,7 @@ In some cases we can also compute with
 
 ::
 
-     sage: f = CuspForms(2,8).0
+     sage: f = CuspForms(2,8).newforms()[0]
      sage: L = f.cuspform_lseries()
      sage: L(1)
      0.0884317737041015

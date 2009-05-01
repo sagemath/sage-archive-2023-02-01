@@ -1127,8 +1127,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 return x
 
             if not check:
-                f = x.copy()
-                f.set_parent(self)
+                from copy import copy
+                f = copy(x)
+                f._set_parent(self)
                 return f
 
             try:

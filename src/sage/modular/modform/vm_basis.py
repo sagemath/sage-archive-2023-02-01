@@ -24,19 +24,24 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     r"""
     Compute and return the Victor-Miller basis for modular forms of
     weight k and level 1 to precision $O(q^prec)$.  if
-    \code{cusp\_only} is True, return only a basis for the cuspidal
+    ``cusp_only`` is True, return only a basis for the cuspidal
     subspace.
 
     INPUT:
-        k -- an integer
-        prec -- (default: 10) a positive integer
-        cusp_only -- bool (default: False)
-        var -- string (default: 'q'
+
+        - ``k`` -- an integer
+
+        - ``prec`` -- (default: 10) a positive integer
+
+        - ``cusp_only`` -- bool (default: False)
+
+        - ``var`` -- string (default: 'q'
 
     OUTPUT:
         A sequence whose entries are power series in ZZ[[var]].
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: victor_miller_basis(1, 6)
         []
         sage: victor_miller_basis(0, 6)
@@ -179,9 +184,12 @@ def delta_qexp(prec=10, var='q', K=ZZ):
     coefficients in K (=ZZ by default).
 
     INPUT:
-        prec -- integer; the absolute precision of the output
-        var -- (default: 'q') variable name
-        K -- (default: ZZ) base ring of answer
+
+        - ``prec`` -- integer; the absolute precision of the output
+
+        - ``var`` -- (default: 'q') variable name
+
+        - ``K`` -- (default: ZZ) base ring of answer
 
     OUTPUT:
         a power series over K
@@ -193,7 +201,8 @@ def delta_qexp(prec=10, var='q', K=ZZ):
         arithmetic, which is VERY fast.   This function
         computes a *million* terms of Delta in under a minute.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: delta_qexp(7)
         q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 + O(q^7)
         sage: delta_qexp(7,'z')
@@ -204,8 +213,10 @@ def delta_qexp(prec=10, var='q', K=ZZ):
         ValueError: prec must be positive
 
     AUTHORS:
-        -- William Stein: original code
-        -- David Harvey (2007-05): sped up first squaring step
+
+        - William Stein: original code
+
+        - David Harvey (2007-05): sped up first squaring step
     """
     if prec <= 0:
         raise ValueError, "prec must be positive"

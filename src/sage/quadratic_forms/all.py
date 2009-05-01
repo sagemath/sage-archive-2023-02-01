@@ -9,7 +9,8 @@ from extras import sgn, least_quadratic_nonresidue, extend_to_primitive, is_tria
 from special_values import gamma__exact, zeta__exact, QuadraticBernoulliNumber, \
       quadratic_L_function__exact, quadratic_L_function__numerical
 
-from genera.genus import is_GlobalGenus, is_2_adic_genus, is_trivial_symbol
+from genera.genus import is_GlobalGenus, is_2_adic_genus
+#is_trivial_symbol
 
 from constructions import BezoutianQuadraticForm, HyperbolicPlane_quadratic_form
 

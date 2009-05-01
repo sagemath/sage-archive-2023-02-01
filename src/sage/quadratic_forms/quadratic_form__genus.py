@@ -1,5 +1,4 @@
 
-
 #############################################################
 ##                                                         ##
 ##  Wrappers for the Genus/Genus Symbol Code in ../genera/ ##
@@ -9,9 +8,13 @@
 from sage.quadratic_forms.genera.genus import Genus, LocalGenusSymbol, \
         is_GlobalGenus, is_2_adic_genus, canonical_2_adic_compartments, \
         canonical_2_adic_trains, canonical_2_adic_reduction, \
-        basis_complement, signature_of_matrix, p_adic_symbol, is_even, \
-        split_odd,  trace_diag, two_adic_symbol, is_trivial_symbol
+        basis_complement, p_adic_symbol, is_even_matrix, \
+        split_odd,  trace_diag_mod_8, two_adic_symbol
+        #is_trivial_symbol
         #GenusSymbol_p_adic_ring, GenusSymbol_global_ring
+
+## Removed signature_pair_of_matrix due to a circular import issue.
+
 ## NOTE: Removed the signature routine here... and rewrote it for now.
 
 
@@ -27,6 +30,20 @@ def global_genus_symbol(self):
     15 of Conway-Sloane), and a signature.
 
     EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
+        sage: Q.global_genus_symbol()
+        Genus of [2 0 0 0]
+        [0 4 0 0]
+        [0 0 6 0]
+        [0 0 0 8]
+
+        sage: Q = QuadraticForm(ZZ, 4, range(10))
+        sage: Q.global_genus_symbol()
+        Genus of [ 0  1  2  3]
+        [ 1  8  5  6]
+        [ 2  5 14  8]
+        [ 3  6  8 18]
+
     """
     ## Check that the form is defined over ZZ
     if not self.base_ring() == IntegerRing():
@@ -42,16 +59,47 @@ def global_genus_symbol(self):
 
 def local_genus_symbol(self, p):
     """
-    Returns the Conway-Sloane genus symbol of 2 times a quadratic form defined
-    over ZZ at a prime number p.
+    Returns the Conway-Sloane genus symbol of 2 times a quadratic form
+    defined over ZZ at a prime number p.  This is defined (in the
+    Genus_Symbol_p_adic_ring() class in the quadratic_forms/genera
+    subfolder) to be a list of tuples (one for each Jordan component
+    p^m*A at p, where A is a unimodular symmetric matrix with
+    coefficients the p-adic integers) of the following form:
+
+        1) If p>2 then return triples of the form [m, n, d] where
+            m = valuation of the component
+            n = rank of A
+            d = det(A) in {1,u} for normalized quadratic non-residue u.
+
+        2) If p=2 then return quintuples of the form [m, n, s, d, o]
+        where
+            m = valuation of the component
+            n = rank of A
+            d = det(A) in {1,3,5,7}
+            s = 0 (or 1) if A is even (or odd)
+            o = oddity of A (= 0 if s = 0) in Z/8Z
+              = the trace of the diagonalization of A
+
+    NOTE: The Conway-Sloane convention for describing the prime 'p =
+    -1' is not supported here, and neither is the convention for
+    including the 'prime' Infinity.  See note on p370 of Conway-Sloane
+    (3rd ed) for a discussion of this convention.
 
     INPUT:
         p -- a prime number > 0
 
     OUTPUT:
-        Returns a Conway-Sloane genus symbol.
+        Returns a Conway-Sloane genus symbol at p, which is an
+        instance of the Genus_Symbol_p_adic_ring class.
 
     EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
+        sage: Q.local_genus_symbol(2)
+        Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
+        sage: Q.local_genus_symbol(3)
+        Genus symbol at 3 : [[0, 3, 1], [1, 1, -1]]
+        sage: Q.local_genus_symbol(5)
+        Genus symbol at 5 : [[0, 4, 1]]
     """
     ## Check that p is prime and that the form is defined over ZZ.
     if not is_prime(p):
@@ -74,6 +122,12 @@ def local_genus_symbol(self, p):
 def CS_genus_symbol_list(self, force_recomputation=False):
     """
     Returns the list of Conway-Sloane genus symbols in increasing order of primes dividing 2*det.
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
+        sage: Q.CS_genus_symbol_list()
+        [Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]],
+         Genus symbol at 3 : [[0, 3, 1], [1, 1, -1]]]
     """
     ## Try to use the cached list
     if force_recomputation == False:

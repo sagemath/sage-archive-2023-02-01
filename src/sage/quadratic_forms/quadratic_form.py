@@ -98,7 +98,7 @@ class QuadraticForm():
         extract_variables, elementary_substitution, add_symmetric    ## Routines to perform elementary variable substitutions.
 
     from sage.quadratic_forms.quadratic_form__local_field_invariants \
-    import rational_diagonal_form, signature, local_diagonal, hasse_invariant, hasse_invariant__OMeara, \
+    import rational_diagonal_form, signature_vector, signature, local_diagonal, hasse_invariant, hasse_invariant__OMeara, \
         is_hyperbolic, is_anisotropic, is_isotropic, anisotropic_primes, compute_definiteness, \
         is_positive_definite, is_negative_definite, is_indefinite, is_definite    ## Routines to compute p-adic field invariants
 

@@ -88,23 +88,75 @@ def rational_diagonal_form(self, return_matrix=False):
     MS = MatrixSpace(Q.base_ring(), n, n)
     T = MS(1)
 
-    ## Construct an integral change of basis matrix T
-    ## so that T^t * Q * T is diagonal.
-
+    ## Clear the entries one row at a time.
     for i in range(n):
+
+        ## Deal with rows where the diagonal entry is zero.
+        if Q[i,i] == 0:
+
+            ## Look for a non-zero entry and use it to make the diagonal non-zero (if it exists)
+            for j in range(i+1, n):
+                if Q[i,j] != 0:
+                    temp = MS(1)
+                    temp[j, i] = 1
+
+                    ## Apply the transformation
+                    Q = Q(temp)
+                    T = T * temp
+                    break
+
+        ## Create a matrix which deals with off-diagonal entries (all at once for each row)
         temp = MS(1)
         for j in range(i+1, n):
-            temp[j,j] = 1
-            temp[i,j] = -Q[i,j] / ZZ(2) * Q[i,i]
+            temp[i,j] = -Q[i,j] / (Q[i,i] * 2)
 
         Q = Q(temp)
-        T = temp * T
+        T = T * temp
+
 
     ## Return the appropriate output
     if return_matrix:
         return Q, T
     else:
         return Q
+
+
+
+
+
+def signature_vector(self):
+    """
+    Returns the triple (p, n, z) of integers where
+        p = number of positive eigenvalues
+        n = number of negative eigenvalues
+        z = number of zero eigenvalues
+    for the symmetric matrix associated to Q.
+
+    INPUT:
+        None
+
+    OUTPUT:
+        a triple of integers
+
+    EXAMPLES:
+
+    """
+    diag = self.rational_diagonal_form()
+    p = 0
+    n = 0
+    z = 0
+    for i in range(diag.dim()):
+        if diag[i,i] > 0:
+            p += 1
+        elif diag[i,i] < 0:
+            n += 1
+        else:
+            z += 1
+
+    ## TO DO: Cache this result?
+
+    return (p, n, z)
+
 
 
 def signature(self):
@@ -121,8 +173,10 @@ def signature(self):
     EXAMPLES:
 
     """
-    diag = self.rational_diagonal_form()
-    return sum([sgn(diag[i,i])  for i in range(diag.dim())])
+    (p, n, z) = self.signature_vector()
+    return p - n
+
+
 
 
 

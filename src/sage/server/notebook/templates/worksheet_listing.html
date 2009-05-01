@@ -50,7 +50,9 @@
     {% endif %}
 
     <button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>
+    {% if not accounts %}
     <button onClick="download_worksheets_button();" title="Download selected worksheets">Download</button>
+    {% endif %}
     <span style="padding-left:100px;">
 
     Current Folder:

@@ -395,8 +395,19 @@ class Homset(Set_generic):
         """
         Return the corresponding homset, but with the domain and codomain
         reversed.
+
+        EXAMPLES::
+
+            sage: H = Hom(ZZ^2, ZZ^3); H
+            Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of free modules over Integer Ring
+            sage: type(H)
+            <class 'sage.modules.free_module_homspace.FreeModuleHomspace'>
+            sage: H.reversed()
+            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of free modules over Integer Ring
+            sage: type(H.reversed())
+            <class 'sage.modules.free_module_homspace.FreeModuleHomspace'>
         """
-        return Homset(self._codomain, self._domain, self.__category)
+        return self._codomain.Hom(self._domain)
 
     ############### For compatibility with old coercion model #######################
 

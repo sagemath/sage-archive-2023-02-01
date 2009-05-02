@@ -32,8 +32,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             raise TypeError, "parent (=%s) must be a free module hom space"%parent
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
-        if not matrix.is_Matrix(A):
-            A = parent._matrix_space()(A)
+        A = parent._matrix_space()(A)
         matrix_morphism.MatrixMorphism.__init__(self, parent, A)
 
     def __repr__(self):

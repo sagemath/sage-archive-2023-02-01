@@ -175,13 +175,16 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             sage: phi^(-1)
             Traceback (most recent call last):
             ...
-            TypeError: no conversion of this rational to integer
+            ZeroDivisionError: matrix morphism not invertible
         """
         try:
             B = ~(self.matrix())
         except ZeroDivisionError:
-            raise ZeroDivisionError, "Inverse does not exist."
-        return self.parent().reversed()(B)
+            raise ZeroDivisionError, "matrix morphism not invertible"
+        try:
+            return self.parent().reversed()(B)
+        except TypeError:
+            raise ZeroDivisionError, "matrix morphism not invertible"
 
     def __rmul__(self, left):
         """
@@ -380,9 +383,9 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
     def decomposition(self, *args, **kwds):
         """
         Return decomposition of this endomorphism, i.e., sequence of
-        subspaces obtained by finding invariants subspaces of self.
+        subspaces obtained by finding invariant subspaces of self.
 
-        See the documentation fro self.matrix().decomposition for more
+        See the documentation for self.matrix().decomposition for more
         details.  All inputs to this function are passed onto the
         matrix one.
 
@@ -507,8 +510,6 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             [0 2]
             sage: phi.image() == V
             True
-
-        Verify that trac 5887 is fixed
         """
         V = self.matrix().image()
         D = self.codomain()

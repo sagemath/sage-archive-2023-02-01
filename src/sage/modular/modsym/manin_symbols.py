@@ -135,8 +135,8 @@ class ManinSymbolList(SageObject):
             False
         """
         if not isinstance(right, ManinSymbolList):
-            return -1
-        return cmp([self._weight, self._list], [right._weight, right._list])
+            return cmp(type(self), type(right))
+        return cmp((self._weight, self._list), (right._weight, right._list))
 
     def __getitem__(self, n):
         """

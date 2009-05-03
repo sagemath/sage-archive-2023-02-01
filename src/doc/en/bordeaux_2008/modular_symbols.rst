@@ -122,6 +122,6 @@ We compute a modular symbols representation for the Manin symbol
     sage: a = M.1; a
     [X^2,(1,6)]
     sage: a.modular_symbol_rep()
-    36*X^2*{-1/6,0} + 12*X*Y*{-1/6,0} + Y^2*{-1/6,0}
+    Y^2*{-1/6, 0} + 12*X*Y*{-1/6, 0} + 36*X^2*{-1/6, 0}
     sage: 36*M([2,-1/6,0]) + 12*M([1,-1/6,0]) + M([0,-1/6,0])
     [X^2,(1,6)]

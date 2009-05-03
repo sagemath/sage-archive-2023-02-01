@@ -68,10 +68,10 @@ sage: bernoulli_mod_p(23)
 sage: set_modsym_print_mode ('modular')
 sage: M = ModularSymbols(11, 2)
 sage: M.basis()
-({Infinity,0}, {-1/8,0}, {-1/9,0})
+({Infinity, 0}, {-1/8, 0}, {-1/9, 0})
 sage: S = M.cuspidal_submodule()
 sage: S.integral_basis()     # basis over ZZ.
-({-1/8,0}, {-1/9,0})
+({-1/8, 0}, {-1/9, 0})
 sage: set_modsym_print_mode ('manin')    # set it back
 sage: convergents(4/7)
 [0, 1, 1/2, 4/7]
@@ -112,7 +112,7 @@ sage: [M.manin_generators()[i] for i in M.manin_basis()]
 sage: M.basis()
 ((1,0), (3,1), (3,2))
 sage: [x.modular_symbol_rep() for x in M.basis()]
-[{Infinity,0}, {0,1/3}, {-1/2,-1/3}]
+[{Infinity, 0}, {0, 1/3}, {-1/2, -1/3}]
 sage: M = ModularSymbols(2,2)
 sage: M.manin_gens_to_basis()
 [-1]

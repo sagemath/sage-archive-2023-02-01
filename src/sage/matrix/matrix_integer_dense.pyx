@@ -4723,6 +4723,8 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     cdef Py_ssize_t nr, nc
 
     n = len(residues)
+    if n == 0:   # special case: obviously residues[0] wouldn't make sense here.
+        return M
     nr = residues[0].nrows()
     nc = residues[0].ncols()
 

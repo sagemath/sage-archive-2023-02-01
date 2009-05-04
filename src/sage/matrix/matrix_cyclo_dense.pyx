@@ -571,6 +571,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: N1 = Matrix(CyclotomicField(6), 1, [-1])
             sage: N1*N2
             [        0        -1    -zeta6     zeta6 zeta6 - 1]
+
+        Verify that a degenerate case bug reported at trac 5974 is fixed.
+
+            sage: K.<zeta6>=CyclotomicField(6); matrix(K,1,2) * matrix(K,2,[0, 1, 0, -2*zeta6, 0, 0, 1, -2*zeta6 + 1])
+            [0 0 0 0]
         """
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()

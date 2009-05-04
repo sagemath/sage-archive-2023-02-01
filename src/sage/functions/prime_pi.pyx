@@ -120,8 +120,9 @@ cdef class PrimePi:
     cdef long primeCount, maxPrime
 
     def __call__(self, long long x, long mem_mult = 1):
-        """
-        EXAMPLES:
+        r"""
+        EXAMPLES::
+
             sage: prime_pi.__call__(7)
             4
             sage: prime_pi.__call__(100)
@@ -138,11 +139,40 @@ cdef class PrimePi:
             41581
             sage: prime_pi.__call__(500509, 8)
             41581
+
+        TESTS:
+
+        Make sure we actually compute correct results::
+
+            sage: for n in (30..40):
+            ...       prime_pi(2**n)
+            54400028
+            105097565
+            203280221
+            393615806
+            762939111
+            1480206279
+            2874398515
+            5586502348
+            10866266172
+            21151907950
+            41203088796
+
+        We know this implemenation is broken at least on some 32 bit
+        systems for 2^46, so we are capping the maximum allowed value.
+
+            sage: prime_pi(2^40+1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of prime_pi() greater 2**40 not implemented
+
         """
         if mem_mult < 1:
             raise ValueError, "mem_mult must be positive"
         if x < 2:
             return 0
+        if x > Integer(2**40):
+            raise NotImplementedError, "computation of prime_pi() greater 2**40 not implemented"
         x += x & 1
         # m_max is the current sieving value, for prime counting - this value is sqrt(x)
         cdef long m_max = sqrt_longlong(x) + 1

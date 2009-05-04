@@ -2550,7 +2550,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             (0, 0, 0)
             sage: a.linear_combination_of_rows([1/2,2/3])
             (2, 19/6, 13/3)
+            sage: matrix(QQ,0,2).linear_combination_of_rows([])
+            (0, 0)
         """
+        if self._nrows == 0:
+            return self.parent().row_space().zero_vector()
         from constructor import matrix
         v = matrix(list(v)+[0]*(self._nrows-len(v)))
         return (v * self)[0]
@@ -2577,8 +2581,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             (0, 0)
             sage: a.linear_combination_of_columns([1/2,2/3,3/4])
              (13/6, 95/12)
-
+            sage: matrix(QQ,2,0).linear_combination_of_columns([])
+            (0, 0)
         """
+        if self._ncols == 0:
+            return self.parent().column_space().zero_vector()
         from constructor import matrix
         v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
         return (self * v).column(0)

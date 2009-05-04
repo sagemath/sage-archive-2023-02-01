@@ -2453,9 +2453,19 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9])._multiply_pari(matrix(QQ,2,[1,2,3,4]))
             [  -9/5 -34/15]
             [ 25/12  59/18]
+
+        We verify that 0 rows or columns works::
+
+            sage: x = matrix(QQ,2,0); y= matrix(QQ,0,2); x*y
+            [0 0]
+            [0 0]
         """
         if self._ncols != right._nrows:
             raise ArithmeticError, "self must be a square matrix"
+        if not self._ncols*self._nrows or not right._ncols*right._nrows:
+            # pari doesn't work in case of 0 rows or columns
+            # This case is easy, since the answer must be the 0 matrix.
+            return self.matrix_space(self._nrows, right._ncols).zero_matrix()
         cdef PariInstance P = sage.libs.pari.gen.pari
         _sig_on
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))

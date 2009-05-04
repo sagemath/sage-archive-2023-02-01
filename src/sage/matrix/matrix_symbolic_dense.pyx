@@ -401,7 +401,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         if session is None:
             return self._maxima
         else:
-            return session(self._maxima)
+            return session(repr(self._maxima))
 
     def determinant(self):
         """

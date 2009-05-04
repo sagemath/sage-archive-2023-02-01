@@ -171,7 +171,7 @@ cdef class PrimePi:
             raise ValueError, "mem_mult must be positive"
         if x < 2:
             return 0
-        if x > Integer(2**40):
+        if x > 1099511627776L:
             raise NotImplementedError, "computation of prime_pi() greater 2**40 not implemented"
         x += x & 1
         # m_max is the current sieving value, for prime counting - this value is sqrt(x)

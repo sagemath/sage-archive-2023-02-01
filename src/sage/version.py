@@ -1,2 +1,2 @@
 """nodoctests"""
-version='3.4.2.rc0'; date='2009-04-30'
+version='3.4.2'; date='2009-05-04'

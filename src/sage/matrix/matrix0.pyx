@@ -2536,36 +2536,24 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
         -  ``v`` - list of length at most the number of rows of
-           self.
+                   self (less is fine)
 
 
         EXAMPLES::
 
-            sage: a = matrix(QQ,2,3,range(6)); a
+            sage: a = matrix(ZZ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
             sage: a.linear_combination_of_rows([1,2])
             (6, 9, 12)
             sage: a.linear_combination_of_rows([0,0])
             (0, 0, 0)
+            sage: a.linear_combination_of_rows([1/2,2/3])
+            (2, 19/6, 13/3)
         """
-        cdef Py_ssize_t i, n
-        R = self.rows()
-        n = len(R)
-        if len(v) > n:
-            raise ValueError, "length of v (=%s) must be at most the number (=%s) of rows."%(len(v), n)
-        zero = self._base_ring(0)
-        s = None
-        for i from 0 <= i < len(v):
-            if v[i] != zero:
-                a = v[i] * R[i]
-                if s is None:
-                    s = a
-                else:
-                    s += a
-        if s is None:
-            return self.parent().row_space()(0)
-        return s
+        from constructor import matrix
+        v = matrix(list(v)+[0]*(self._nrows-len(v)))
+        return (v * self)[0]
 
     def linear_combination_of_columns(self, v):
         """
@@ -2575,36 +2563,25 @@ cdef class Matrix(sage.structure.element.Matrix):
         INPUT:
 
 
-        -  ``v`` - list
+        -  ``v`` - list of length at most the number of columns of self (less is fine)
 
 
         EXAMPLES::
 
-            sage: a = matrix(QQ,2,3,range(6)); a
+            sage: a = matrix(ZZ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
             sage: a.linear_combination_of_columns([1,1,1])
             (3, 12)
             sage: a.linear_combination_of_columns([0,0,0])
             (0, 0)
+            sage: a.linear_combination_of_columns([1/2,2/3,3/4])
+             (13/6, 95/12)
+
         """
-        cdef Py_ssize_t i, n
-        C = self.columns()
-        n = len(C)
-        if len(v) != n:
-            raise ValueError, "length of v must equal number of columns."
-        zero = self._base_ring(0)
-        s = None
-        for i from 0 <= i < n:
-            if v[i] != zero:
-                a = v[i] * C[i]
-                if s is None:
-                    s = a
-                else:
-                    s = s + a
-        if s is None:
-            return self.parent().column_space()(0)
-        return s
+        from constructor import matrix
+        v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
+        return (self * v).column(0)
 
 
     ###################################################

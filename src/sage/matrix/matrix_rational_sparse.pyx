@@ -560,8 +560,10 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             proof -- boolean (default: True)
         """
         import misc
-        return misc.matrix_rational_echelon_form_multimodular(self,
+        cdef Matrix E = misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
+        E._parent = self._parent
+        return E
 
 
     def set_row_to_multiple_of_row(self, i, j, s):

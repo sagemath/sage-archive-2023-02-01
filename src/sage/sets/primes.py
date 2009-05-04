@@ -68,16 +68,13 @@ class Primes_class(Set_generic):
             0
             sage: P == R
             True
-            sage: P>R
+            sage: P != R
             False
             sage: Q=[1,2,3]
-            sage: P.__cmp__(Q)
-            -1
-            sage: Q>P
+            sage: Q != P        # indirect doctest
             True
-            sage: P>Q
-            False
-            sage: P>x^2+x
+            sage: R.<x>=ZZ[]
+            sage: P!=x^2+x
             True
         """
         if isinstance(right, Primes_class):

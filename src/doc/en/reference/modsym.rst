@@ -13,6 +13,7 @@ Modular Symbols
    sage/modular/modsym/subspace
 
    sage/modular/modsym/element
+   sage/modular/modsym/modular_symbols
    sage/modular/modsym/manin_symbols
 
    sage/modular/modsym/boundary

@@ -1,10 +1,11 @@
 r"""
 Modular symbols {alpha, beta}
 
-The ModularSymbol class represents a single modular symbols `X^i Y^{k-2-i} \{\alpha, \beta\}`
+The ModularSymbol class represents a single modular symbol `X^i Y^{k-2-i} \{\alpha, \beta\}`.
 
 AUTHOR:
-   - William Stein
+
+- William Stein (2005, 2009)
 
 TESTS::
 
@@ -46,15 +47,21 @@ X, Y = ZZ['X,Y'].gens()
 
 class ModularSymbol(SageObject):
     r"""
-    The modular symbol $X^i\cdot Y^{k-2-i} \{\alpha, \beta\}$.
+    The modular symbol `X^i\cdot Y^{k-2-i}\cdot \{\alpha, \beta\}`.
     """
     def __init__(self, space, i, alpha, beta):
         """
+        Initialise a modular symbol.
+
         INPUT:
-          - `space` -- space of Manin symbols
-          - `i` -- integer
-          - `alpha` -- cusp
-          - `beta` -- cusp
+
+        - ``space`` -- space of Manin symbols
+
+        - ``i`` -- integer
+
+        - ``alpha`` -- cusp
+
+        - ``beta`` -- cusp
 
         EXAMPLES::
 
@@ -62,7 +69,7 @@ class ModularSymbol(SageObject):
             {-1/9, 0}
             sage: type(s)
             <class 'sage.modular.modsym.modular_symbols.ModularSymbol'>
-            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[0][1]; s
             X^2*{-1/7, 0}
         """
         self.__space = space
@@ -72,9 +79,11 @@ class ModularSymbol(SageObject):
 
     def _repr_(self):
         """
+        String representation of this modular symbol.
+
         EXAMPLES::
 
-            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[0][1]; s
             X^2*{-1/7, 0}
             sage: s._repr_()
             'X^2*{-1/7, 0}'
@@ -89,9 +98,9 @@ class ModularSymbol(SageObject):
         return "%s{%s, %s}"%(polypart, self.__alpha, self.__beta)
 
     def __getitem__(self, j):
-        """
-        Given a modular symbols s = X^i*Y^(k-2-i){alpha, beta}, s[0] is alpha
-        and s[1] is beta.
+        r"""
+        Given a modular symbols `s = X^i Y^{k-2-i}\{\alpha, \beta\}`, ``s[0]`` is `\alpha`
+        and ``s[1]`` is `\beta`.
 
         EXAMPLES::
 
@@ -114,7 +123,7 @@ class ModularSymbol(SageObject):
 
         EXAMPLES::
 
-            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).2.modular_symbol_rep()[0][1]; s
             X^2*{-1/7, 0}
             sage: latex(s)                         # indirect doctest
             X^{2}\left\{\frac{-1}{7}, 0\right\}
@@ -128,6 +137,8 @@ class ModularSymbol(SageObject):
 
     def __cmp__(self, other):
         """
+        Compare self to other.
+
         EXAMPLES::
 
             sage: M = ModularSymbols(11)
@@ -146,12 +157,12 @@ class ModularSymbol(SageObject):
         """
         if not isinstance(other, ModularSymbol):
             return cmp(type(self), type(other))
-        return cmp((self.__space,self.__i,self.__alpha,self.__beta),
-                   (other.__space,other.__i,other.__alpha,other.__beta))
+        return cmp((self.__space,-self.__i,self.__alpha,self.__beta),
+                   (other.__space,-other.__i,other.__alpha,other.__beta))
 
     def space(self):
         """
-        List of Manin symbols.
+        The list of Manin symbols to which this symbol belongs.
 
         EXAMPLES::
 
@@ -162,7 +173,10 @@ class ModularSymbol(SageObject):
         return self.__space
 
     def polynomial_part(self):
-        """
+        r"""
+        Return the polynomial part of this symbol, i.e. for a symbol of the
+        form `X^i Y^{k-2-i}\{\alpha, \beta\}`, return `X^i Y^{k-2-i}`.
+
         EXAMPLES::
 
             sage: s = ModularSymbols(11).2.modular_symbol_rep()[0][1]
@@ -177,7 +191,9 @@ class ModularSymbol(SageObject):
         return X**i*Y**(self.weight()-2-i)
 
     def i(self):
-        """
+        r"""
+        For a symbol of the form `X^i Y^{k-2-i}\{\alpha, \beta\}`, return `i`.
+
         EXAMPLES::
 
             sage: s = ModularSymbols(11).2.modular_symbol_rep()[0][1]
@@ -191,7 +207,11 @@ class ModularSymbol(SageObject):
         return self.__i
 
     def weight(self):
-        """
+        r"""
+        Return the weight of the modular symbols space to which this symbol
+        belongs; i.e. for a symbol of the form `X^i Y^{k-2-i}\{\alpha,
+        \beta\}`, return `k`.
+
         EXAMPLES::
 
             sage: s = ModularSymbols(1,28).0.modular_symbol_rep()[0][1]
@@ -201,10 +221,12 @@ class ModularSymbol(SageObject):
         return self.__space.weight()
 
     def alpha(self):
-        """
+        r"""
+        For a symbol of the form `X^i Y^{k-2-i}\{\alpha, \beta\}`, return `\alpha`.
+
         EXAMPLES::
 
-            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[0][1]; s
             X^2*{-1/6, 0}
             sage: s.alpha()
             -1/6
@@ -214,10 +236,12 @@ class ModularSymbol(SageObject):
         return self.__alpha
 
     def beta(self):
-        """
+        r"""
+        For a symbol of the form `X^i Y^{k-2-i}\{\alpha, \beta\}`, return `\beta`.
+
         EXAMPLES::
 
-            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[0][1]; s
             X^2*{-1/6, 0}
             sage: s.beta()
             0
@@ -228,22 +252,28 @@ class ModularSymbol(SageObject):
 
     def apply(self, g):
         r"""
+        Act on this symbol by the element `g \in {\rm GL}_2(\QQ)`.
+
         INPUT:
-            - `g` -- a list [a,b,c,d] where we view [a,b,c,d] as defining a 2x2 matrix in GL_2(Q).
+
+        - ``g`` -- a list ``[a,b,c,d]``, corresponding to the 2x2 matrix
+          `\begin{pmatrix} a & b \\ c & d \end{pmatrix} \in {\rm GL}_2(\QQ)`.
 
         OUTPUT:
-            - FormalSum -- a form sum of of coef_i*x_i where coef_i is
-                    a scalar and x_i is a ModularSymbol, such that the
-                    sum coef_i*x_i is the image of this symbol under
-                    the action of g.  No reduction is performed modulo
-                    the relations that hold in self.space().
 
-        The action of $g$ on symbols is by
-        $$
+        - ``FormalSum`` -- a formal sum `\sum_i c_i x_i`, where `c_i` are
+          scalars and `x_i` are ModularSymbol objects, such that the sum
+          `\sum_i c_i x_i` is the image of this symbol under the action of g.
+          No reduction is performed modulo the relations that hold in
+          self.space().
+
+        The action of `g` on symbols is by
+
+        .. math::
+
            P(X,Y)\{\alpha, \beta\} \mapsto  P(dX-bY, -cx+aY) \{g(\alpha), g(\beta)\}.
-        $$
 
-        Note that for us we have $P=X^i Y^{k-2-i}$, which simplifies computation
+        Note that for us we have `P=X^i Y^{k-2-i}`, which simplifies computation
         of the polynomial part slightly.
 
         EXAMPLES::
@@ -256,10 +286,10 @@ class ModularSymbol(SageObject):
             15/29
             sage: x = 0;  (a*x+b)/(c*x+d)
             1/2
-            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[2][1]; s
+            sage: s = ModularSymbols(11,4).1.modular_symbol_rep()[0][1]; s
             X^2*{-1/6, 0}
             sage: s.apply([a,b,c,d])
-            4*Y^2*{11/21, 1/2} - 16*X*Y*{11/21, 1/2} + 16*X^2*{11/21, 1/2}
+            16*X^2*{11/21, 1/2} - 16*X*Y*{11/21, 1/2} + 4*Y^2*{11/21, 1/2}
             sage: P = s.polynomial_part()
             sage: X,Y = P.parent().gens()
             sage: P(d*X-b*Y, -c*X+a*Y)
@@ -283,8 +313,7 @@ class ModularSymbol(SageObject):
 
     def __manin_symbol_rep(self, alpha):
         """
-        Return representation of X^i*Y^(k-2-i){0,alpha}.
-
+        Return Manin symbol representation of X^i*Y^(k-2-i){0,alpha}.
 
         EXAMPLES::
 
@@ -322,13 +351,13 @@ class ModularSymbol(SageObject):
 
     def manin_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of modular symbols.
+        Returns a representation of self as a formal sum of Manin symbols.
         (The result is not cached.)
 
         EXAMPLES::
 
             sage: M = ModularSymbols(11,4)
-            sage: s = M.1.modular_symbol_rep()[2][1]; s
+            sage: s = M.1.modular_symbol_rep()[0][1]; s
             X^2*{-1/6, 0}
             sage: s.manin_symbol_rep()
             -[Y^2,(1,1)] - 2*[X*Y,(-1,0)] - [X^2,(-6,1)] - [X^2,(-1,0)]

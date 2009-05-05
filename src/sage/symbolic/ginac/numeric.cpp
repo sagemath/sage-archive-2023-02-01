@@ -722,13 +722,18 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 
   unsigned Number_T::hash() const { 
     //verbose("hash");
+    long res;
     switch(t) {
     case DOUBLE:
       return (unsigned int) v._double; 
     case LONG:
       return (unsigned int) v._long;
     case PYOBJECT:
-      return PyObject_Hash(v._pyobject);
+      res = PyObject_Hash(v._pyobject);
+      if (res == -1 && PyErr_Occurred()) {
+	      throw(std::runtime_error("Number_T::hash() python function (__hash__) raised exception"));
+      }
+      return res;
     default:
       stub("invalid type: ::hash() type not handled");
     }

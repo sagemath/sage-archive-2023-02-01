@@ -1,6 +1,7 @@
 
 from plot3d            import plot3d
 from parametric_plot3d import parametric_plot3d
+from implicit_surface  import implicit_plot3d
 from list_plot3d       import list_plot3d
 
 from platonic          import tetrahedron, cube, octahedron, dodecahedron, icosahedron

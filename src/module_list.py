@@ -815,6 +815,11 @@ ext_modules = [
     Extension('sage.plot.plot3d.base',
               sources = ['sage/plot/plot3d/base.pyx']),
 
+    Extension('sage.plot.plot3d.implicit_surface',
+              sources = ['sage/plot/plot3d/implicit_surface.pyx'],
+              libraries = ['gsl'],
+              include_dirs = numpy_include_dirs),
+
     Extension('sage.plot.plot3d.index_face_set',
               sources = ['sage/plot/plot3d/index_face_set.pyx']),
 

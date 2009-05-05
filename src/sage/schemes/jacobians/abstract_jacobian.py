@@ -115,17 +115,13 @@ class Jacobian_generic(Scheme):
             True
             sage: J1 == P2
             False
-            sage: J1 < P2
-            False
-            sage: J1 > P2
+            sage: J1 != P2
             True
             sage: J2 = Jacobian(Curve(x + y + z))
             sage: J1 == J2
             False
-            sage: J1 > J2
+            sage: J1 != J2
             True
-            sage: J1 < J2
-            False
         """
         if not is_Jacobian(J):
             return cmp(type(self), type(J))

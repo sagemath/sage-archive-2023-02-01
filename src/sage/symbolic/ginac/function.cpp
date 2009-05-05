@@ -52,6 +52,10 @@ extern "C" {
 	std::string* py_print_function(unsigned id, PyObject* args);
 	std::string* py_latex_function(unsigned id, PyObject* args);
 	int py_get_ginac_serial();
+	PyObject* py_get_sfunction_from_serial(unsigned id);
+	unsigned py_get_serial_from_sfunction(PyObject* f);
+	std::string* py_dumps(PyObject* o);
+	PyObject* py_loads(PyObject* o);
 }
 namespace GiNaC {
 
@@ -1102,8 +1106,31 @@ function::function(unsigned ser, std::auto_ptr<exvector> vp)
 /** Construct object from archive_node. */
 function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 {
-	// Find serial number by function name
+	// get python_func flag
+	bool python_func;
+	if (!n.find_bool("python", python_func))
+		throw std::runtime_error("function::function archive error: cannot read python_func flag");
 	std::string s;
+	if (python_func) {
+		// read the pickle from the archive
+		if (!n.find_string("pickle", s))
+			throw std::runtime_error("function::function archive error: cannot read pickled function");
+		// unpickle
+		PyObject* arg = Py_BuildValue("s#",s.c_str(), s.size());
+		PyObject* sfunc = py_loads(arg);
+		Py_DECREF(arg);
+		if (PyErr_Occurred()) {
+		    throw(std::runtime_error("function::function archive error: caught exception in py_loads"));
+		}
+		// get the serial of the new SFunction
+		unsigned s = py_get_serial_from_sfunction(sfunc);
+		if (PyErr_Occurred()) {
+		    throw(std::runtime_error("function::function archive error: cannot get serial from SFunction"));
+		}
+		// set serial 
+		serial = s;
+	} else { // otherwise
+	// Find serial number by function name
 	if (n.find_string("name", s)) {
 		unsigned int ser = 0;
 		std::vector<function_options>::const_iterator i = registered_functions().begin(), iend = registered_functions().end();
@@ -1117,6 +1144,7 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		throw (std::runtime_error("unknown function '" + s + "' in archive"));
 	} else
 		throw (std::runtime_error("unnamed function in archive"));
+	}
 }
 
 /** Unarchive the object. */
@@ -1130,7 +1158,29 @@ void function::archive(archive_node &n) const
 {
 	inherited::archive(n);
 	GINAC_ASSERT(serial < registered_functions().size());
-	n.add_string("name", registered_functions()[serial].name);
+	// we use different methods to archive function objects created at
+	// runtime and those created from c++
+	// the python_func flag indicates if we should use the python
+	// unpickling mechanism, or the regular unarchiving for c++ functions
+	if (registered_functions()[serial].python_func) {
+		n.add_bool("python", true);
+		// find the corresponding SFunction object
+		PyObject* sfunc = py_get_sfunction_from_serial(serial);
+		if (PyErr_Occurred()) {
+		    throw(std::runtime_error("function::archive cannot get serial from SFunction"));
+		}
+		// call python to pickle it
+		std::string* pickled = py_dumps(sfunc);
+		if (PyErr_Occurred()) {
+		    throw(std::runtime_error("function::archive py_dumps raised exception"));
+		}
+		// store the pickle in the archive
+		n.add_string("pickle", *pickled);
+		delete pickled;
+	} else {
+		n.add_bool("python", false);
+		n.add_string("name", registered_functions()[serial].name);
+	}
 }
 
 //////////
@@ -2137,9 +2187,10 @@ unsigned function::register_new(function_options const & opt)
 		//
 		// SAGE note: 
 		// We suppress this warning since we allow a user to create 
-		// functions with same name, but different number of args
+		// functions with same name, but different parameters
 		// Sage SFunction class checks existence of a function before
 		// allocating a new one.
+		//
 		//std::cerr << "WARNING: function name " << opt.name
 		//          << " already in use!" << std::endl;
 	}

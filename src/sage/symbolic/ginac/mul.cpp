@@ -1097,6 +1097,11 @@ int mul::compare_same_type(const basic & other) const
 	else if (cit2 != last2)
 		return -1;
 
+	// compare overall_coeff
+	cmpval = overall_coeff.compare(o.overall_coeff);
+	if (cmpval!=0)
+		return cmpval;
+
 	return 0;
 }
 

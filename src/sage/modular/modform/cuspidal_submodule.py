@@ -199,6 +199,8 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
             prec = self.prec()
         else:
             prec = Integer(prec)
+        if self.dimension() == 0:
+            return []
         M = self.modular_symbols(sign = 1)
         return M.q_expansion_basis(prec)
 

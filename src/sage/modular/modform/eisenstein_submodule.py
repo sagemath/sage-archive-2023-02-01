@@ -66,7 +66,8 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
 
     def modular_symbols(self, sign=0):
         r"""
-        Return the corresponding space of modular symbols with given sign.
+        Return the corresponding space of modular symbols with given sign. This
+        will fail in weight 1.
 
         .. warning::
 
@@ -96,6 +97,13 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             sage: E = EisensteinForms(eps^2, 2)
             sage: E.modular_symbols()
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
+
+            sage: E = EisensteinForms(eps, 1); E
+            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 1, character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
+            sage: E.modular_symbols()
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight must be at least 2
         """
         try:
             return self.__modular_symbols[sign]
@@ -143,6 +151,11 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             ([-1, 1, 1], [1, 1, 1], 2),
             ([-1, 1, 1], [1, 1, 1], 3),
             ([-1, 1, 1], [1, 1, 1], 6)]
+            sage: EisensteinForms(DirichletGroup(24).0,1).parameters()
+            [([1, 1, 1], [-1, 1, 1], 1),
+            ([1, 1, 1], [-1, 1, 1], 2),
+            ([1, 1, 1], [-1, 1, 1], 3),
+            ([1, 1, 1], [-1, 1, 1], 6)]
         """
         try:
             return self.__parameters
@@ -268,6 +281,12 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             sage: M = ModularForms(19,3).eisenstein_subspace()
             sage: M.eisenstein_series()
             [
+            ]
+
+            sage: M = ModularForms(DirichletGroup(13).0, 1)
+            sage: M.eisenstein_series()
+            [
+            -1/13*zeta12^3 + 6/13*zeta12^2 + 4/13*zeta12 + 2/13 + q + (zeta12 + 1)*q^2 + zeta12^2*q^3 + (zeta12^2 + zeta12 + 1)*q^4 + (-zeta12^3 + 1)*q^5 + O(q^6)
             ]
         """
         try:

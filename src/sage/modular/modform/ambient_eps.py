@@ -144,8 +144,12 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m
             Modforms of level 8
         """
+        try:
+            d = self.dimension()
+        except NotImplementedError:
+            d = "(unknown)"
         return "Modular Forms space of dimension %s, character %s and weight %s over %s"%(
-            self.dimension(), self.character(), self.weight(), self.base_ring())
+            d, self.character(), self.weight(), self.base_ring())
 
     def cuspidal_submodule(self):
         """

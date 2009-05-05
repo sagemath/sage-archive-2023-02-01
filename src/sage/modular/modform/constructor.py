@@ -15,6 +15,7 @@ EXAMPLES::
     1 + 4092/50521*q^2 + 472384/50521*q^3 + 4194300/50521*q^4 + O(q^6),
     q + 1024*q^2 + 59048*q^3 + 1048576*q^4 + 9765626*q^5 + O(q^6)
     ]
+
 """
 
 #########################################################################
@@ -91,8 +92,8 @@ def canonical_parameters(group, level, weight, base_ring):
         ValueError: group and level do not match.
     """
     weight = rings.Integer(weight)
-    if weight <= 1:
-        raise NotImplementedError, "weight must be at least 2"
+    if weight <= 0:
+        raise NotImplementedError, "weight must be at least 1"
 
     if isinstance(group, dirichlet.DirichletCharacter):
         if ( group.level() != rings.Integer(level) ):
@@ -235,6 +236,45 @@ def ModularForms(group  = 1,
 
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+
+
+    We create some weight 1 spaces. The first example works fine, since we can prove purely by Riemann surface theory that there are no weight 1 cusp forms::
+
+        sage: M = ModularForms(Gamma1(11), 1); M
+        Modular Forms space of dimension 5 for Congruence Subgroup Gamma1(11) of weight 1 over Rational Field
+        sage: M.basis()
+        [
+        1 + 22*q^5 + O(q^6),
+        q + 4*q^5 + O(q^6),
+        q^2 - 4*q^5 + O(q^6),
+        q^3 - 5*q^5 + O(q^6),
+        q^4 - 3*q^5 + O(q^6)
+        ]
+        sage: M.cuspidal_subspace().basis()
+        [
+        ]
+        sage: M == M.eisenstein_subspace()
+        True
+
+    This example doesn't work so well, because we can't calculate the cusp
+    forms; but we can still work with the Eisenstein series.
+
+        sage: M = ModularForms(Gamma1(57), 1); M
+        Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
+        sage: M.basis()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+        sage: M.cuspidal_subspace().basis()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+
+        sage: E = M.eisenstein_subspace(); E
+        Eisenstein subspace of dimension 36 of Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
+        sage: (E.0 + E.2).q_expansion(40)
+        1 + q^2 + 1473/2*q^36 - 1101/2*q^37 + q^38 - 373/2*q^39 + O(q^40)
+
     """
     if isinstance(group, dirichlet.DirichletCharacter):
         if base_ring is None:

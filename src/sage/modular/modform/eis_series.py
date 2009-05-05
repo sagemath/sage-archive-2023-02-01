@@ -231,7 +231,8 @@ def __find_eisen_chars(character, k):
                     if chi*psi == eps:
                         chi0, psi0 = __common_minimal_basering(chi, psi)
                         for t in divisors(N//(R*L)):
-                            params.append( (chi0,psi0,t) )
+                            if k != 1 or ((psi0, chi0, t) not in params):
+                                params.append( (chi0,psi0,t) )
     return params
 
 
@@ -275,8 +276,17 @@ def __find_eisen_chars_gamma1(N, k):
         for j in range(i,len(E)):
             if parity[i]*parity[j] == s and N % (E[i].conductor()*E[j].conductor()) == 0:
                 chi, psi = __common_minimal_basering(E[i], E[j])
-                pairs.append((chi, psi))
-                if i!=j: pairs.append((psi,chi))
+                if k != 1:
+                    pairs.append((chi, psi))
+                    if i!=j: pairs.append((psi,chi))
+                else:
+                    # if weight is 1 then (chi, psi) and (chi, psi) are the
+                    # same form
+                    if psi.is_trivial() and not chi.is_trivial():
+                        # need to put the trivial character first to get the L-value right
+                        pairs.append((psi, chi))
+                    else:
+                        pairs.append((chi, psi))
         #end fors
     #end if
 
@@ -354,7 +364,7 @@ def compute_eisenstein_params(character, k):
     Compute and return a list of all parameters `(\chi,\psi,t)` that
     define the Eisenstein series with given character and weight `k`.
 
-    Only the parity of `k` is relevant.
+    Only the parity of `k` is relevant (unless k = 1, which is a slightly different case).
 
     If character is an integer `N`, then the parameters for
     `\Gamma_1(N)` are computed instead.  Then the condition is that
@@ -374,6 +384,19 @@ def compute_eisenstein_params(character, k):
         ([1, 1], [1, 1], 10),
         ([1, 1], [1, 1], 15),
         ([1, 1], [1, 1], 30)]
+
+        sage: sage.modular.modform.eis_series.compute_eisenstein_params(15, 1)
+        [([1, 1], [-1, 1], 1),
+         ([1, 1], [-1, 1], 5),
+         ([1, 1], [1, zeta4], 1),
+         ([1, 1], [1, zeta4], 3),
+         ([1, 1], [-1, -1], 1),
+         ([1, 1], [1, -zeta4], 1),
+         ([1, 1], [1, -zeta4], 3),
+         ([-1, 1], [1, -1], 1)]
+
+        sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(15).0, 1)
+        [([1, 1], [-1, 1], 1), ([1, 1], [-1, 1], 5)]
     """
     if isinstance(character, (int,long,Integer)):
         N = character

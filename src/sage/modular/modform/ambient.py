@@ -115,7 +115,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularFormsSpace.__init__(self, group, weight, character, base_ring)
-        hecke.AmbientHeckeModule.__init__(self, base_ring, self.dimension(), group.level(), weight)
+        try:
+            d = self.dimension()
+        except NotImplementedError:
+            d = None
+        hecke.AmbientHeckeModule.__init__(self, base_ring, d, group.level(), weight)
 
     def _repr_(self):
         """
@@ -134,8 +138,12 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m._repr_()
             'Modular Forms space of dimension 1198 for Congruence Subgroup Gamma1(20) of weight 100 over Rational Field'
         """
+        try:
+            d = self.dimension()
+        except NotImplementedError:
+            d = "(unknown)"
         return "Modular Forms space of dimension %s for %s of weight %s over %s"%(
-                self.dimension(), self.group(), self.weight(), self.base_ring())
+                d, self.group(), self.weight(), self.base_ring())
 
     def _submodule_class(self):
         """
@@ -348,11 +356,37 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Vector space of dimension 69 over Rational Field
             sage: ModularForms(Gamma1(13),4, GF(49,'b')).free_module()
             Vector space of dimension 27 over Finite Field in b of size 7^2
+
+            sage: M = ModularForms(Gamma1(57), 1); M
+            Modular Forms space of dimension (unknown) for Congruence ...
+            sage: M.free_module()
+            Vector space of dimension 36 over Rational Field
+            sage: M.basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         if hasattr(self, "__module"): return self.__module
-        self.__module = free_module.VectorSpace(self.base_ring(),
-                                                 self.dimension())
+        try:
+            d = self.dimension()
+        except NotImplementedError:
+
+            # This only comes up for weight 1 forms, where we want to be able
+            # to embed Eisenstein forms (which we know how to calculate) into
+            # some suitable ambient space. Because we can't even calculate the
+            # dimension of the weight 1 cusp forms in general, we just map
+            # Eisenstein series onto basis vectors, and then make it clear by
+            # raising errors in appropriate places that some cusp forms might
+            # exist but we don't know how to compute them.
+
+            d = self._dim_eisenstein()
+        self.__module = free_module.VectorSpace(self.base_ring(), d)
         return self.__module
+
+    def free_module(self): return self.module()
+    # stupid thing: there are functions in classes ModularFormsSpace and
+    # HeckeModule that both do much the same thing, and one has to override
+    # both of them!
 
     def prec(self, new_prec=None):
         """

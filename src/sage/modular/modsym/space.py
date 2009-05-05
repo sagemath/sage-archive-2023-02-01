@@ -30,11 +30,11 @@ import sage.misc.misc as misc
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
 import sage.rings.fast_arith as fast_arith
-from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
+from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField, infinity, Zmod
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 
-from sage.modular.arithgroup.all import Gamma0 # for Sturm bound given a character
+from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
 
 import hecke_operator
 
@@ -2127,6 +2127,204 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             p = arith.next_prime(p)
         return B
 
+    #########################################################
+    # Cuspidal torsion groups
+    #########################################################
+
+    def abvarquo_cuspidal_subgroup(self):
+        """
+        """
+        try: return self.__abvarquo_cuspidal_subgroup
+        except AttributeError: pass
+        if self.base_ring() != QQ:
+            raise ValueError, "base ring must be QQ"
+        if self.weight() != 2:
+            raise NotImplementedError, "only implemented when weight is 2"
+        M = self.ambient_module()
+        phi = self.integral_period_mapping()
+
+        # Make a list of all the finite cusps.
+        P = [c for c in M.cusps() if not c.is_infinity()]
+
+        # Compute the images of the cusp classes (c)-(oo) in the
+        # rational homology of the quotient modular abelian variety.
+        ims = [phi(M([c,infinity])) for c in P]
+
+        # Take the span of the ims over ZZ
+        A = phi.codomain().span(ims, ZZ)
+
+        # The cuspidal subgroup is then the quotient of that module +
+        # H_1(A) by H_1(A)
+        C = (A.ambient_module() + A)/A.ambient_module()
+
+        self.__abvarquo_cuspidal_subgroup = C
+        return C
+
+    def abvarquo_rational_cuspidal_subgroup(self):
+        """
+        """
+        try: return self.__abvarquo_rational_cuspidal_subgroup
+        except AttributeError: pass
+        if self.base_ring() != QQ:
+            raise ValueError, "base ring must be QQ"
+        if self.weight() != 2:
+            raise NotImplementedError, "only implemented when weight is 2"
+        if not is_Gamma0(self.group()):
+            # todo -- do Gamma1 and GammaH, which are easy
+            raise NotImplementedError, "only implemented when group is Gamma0"
+        N = self.level()
+        if N.is_squarefree():
+            return self.abvarquo_cuspidal_subgroup()
+
+        M   = self.ambient_module()
+        phi = self.integral_period_mapping()
+
+        # Make a list of all the finite cusps.
+        P = [c for c in M.cusps() if not c.is_infinity()]
+
+        # Define the vector space V, which we think of as
+        # the vector space with basis (c)-(oo), where c runs
+        # through the finite cusp *classes*.
+        V = ZZ**len(P)   # vector space on (c)-(oo)
+
+        # Compute the images of the cusp classes (c)-(oo) in the
+        # rational homology of the quotient modular abelian variety.
+        ims = [phi(M([c,infinity])) for c in P]
+
+        # Take the span of the ims over ZZ
+        A = phi.codomain().span(ims, ZZ)
+
+        # The cuspidal subgroup is then the quotient of that module +
+        # H_1(A) by H_1(A)
+        C = (A.ambient_module() + A)/A.ambient_module()
+
+        # Make fgp module version of V.
+        D = V/V.zero_submodule()
+        psi = D.hom([C(x) for x in ims])
+
+        # The rational cuspidal subgroup is got by intersecting kernels
+        # of tau - 1, for all automorphisms tau.
+        G = Zmod(N).unit_gens()
+        CQ = C
+        for t in G:
+            T = self._matrix_of_galois_action(t, P) - 1
+            if not T: continue
+            im_gens = [psi(psi.lift(g).lift()*T) for g in CQ.gens()]
+            h = CQ.hom(im_gens)
+            CQ = h.kernel()
+            if CQ.cardinality() == 1:
+                break  # done -- no point in wasting more time shrinking CQ
+
+        self.__abvarquo_rational_cuspidal_subgroup = CQ
+        return CQ
+
+    def abvarsub_rational_cuspidal_subgroup(self):
+        """
+        """
+        try: return self.__abvarsub_rational_cuspidal_subgroup
+        except AttributeError: pass
+        if self.base_ring() != QQ:
+            raise ValueError, "base ring must be QQ"
+        if self.weight() != 2:
+            raise NotImplementedError, "only implemented when weight is 2"
+        if not is_Gamma0(self.group()):
+            # todo -- do Gamma1 and GammaH, which are easy
+            raise NotImplementedError, "only implemented when group is Gamma0"
+        N = self.level()
+        if N.is_squarefree():
+            return self.abvarsub_cuspidal_subgroup()
+
+        M   = self.ambient_module()
+        #phi = self.integral_period_mapping()
+        phi = self.projection()
+
+        # Make a list of all the finite cusps.
+        P = [c for c in M.cusps() if not c.is_infinity()]
+
+        # Define the vector space V, which we think of as
+        # the vector space with basis (c)-(oo), where c runs
+        # through the finite cusp *classes*.
+        V = ZZ**len(P)   # vector space on (c)-(oo)
+
+        # Compute the images of the cusp classes (c)-(oo) in the
+        # rational homology of the quotient modular abelian variety.
+        ims = [phi(M([c,infinity])).element() for c in P]
+
+        # Take the span of the ims over ZZ
+        A = self.free_module().span(ims, ZZ)
+
+        # The cuspidal subgroup is then the quotient of that module +
+        # H_1(A) by H_1(A)
+        L = self.integral_structure()
+        C = (L + A)/L
+
+        # Make fgp module version of V.
+        D = V/V.zero_submodule()
+        psi = D.hom([C(x) for x in ims])
+
+        # The rational cuspidal subgroup is got by intersecting kernels
+        # of tau - 1, for all automorphisms tau.
+        G = Zmod(N).unit_gens()
+        CQ = C
+        for t in G:
+            T = self._matrix_of_galois_action(t, P) - 1
+            if not T: continue
+            im_gens = [psi(psi.lift(g).lift()*T) for g in CQ.gens()]
+            h = CQ.hom(im_gens)
+            CQ = h.kernel()
+            if CQ.cardinality() == 1:
+                break  # done -- no point in wasting more time shrinking CQ
+
+        self.__abvarsub_rational_cuspidal_subgroup = CQ
+        return CQ
+
+    def abvarsub_cuspidal_subgroup(self):
+        """
+        """
+        try: return self.__abvarsub_cuspidal_subgroup
+        except AttributeError: pass
+        if self.base_ring() != QQ:
+            raise ValueError, "base ring must be QQ"
+        if self.weight() != 2:
+            raise NotImplementedError, "only implemented when weight is 2"
+        if not is_Gamma0(self.group()):
+            # todo -- do Gamma1 and GammaH, which are easy
+            raise NotImplementedError, "only implemented when group is Gamma0"
+        N = self.level()
+        M   = self.ambient_module()
+        #phi = self.integral_period_mapping()
+        phi = self.projection()
+
+        # Make a list of all the finite cusps.
+        P = [c for c in M.cusps() if not c.is_infinity()]
+
+        # Compute the images of the cusp classes (c)-(oo) in the
+        # rational homology of the modular abelian variety.
+        ims = [phi(M([c,infinity])).element() for c in P]
+        print ims
+
+        # Take the span of the ims over ZZ
+        A = self.free_module().span(ims, ZZ)
+
+        # The cuspidal subgroup is then the quotient of that
+        # module + H_1(A) by H_1(A)
+        L = self.integral_structure()
+        C = (L + A)/L
+
+        self.__abvarsub_cuspidal_subgroup = C
+        return C
+
+    def _matrix_of_galois_action(self, t, P):
+        N = self.level()
+        from sage.matrix.constructor import matrix
+        A = matrix(ZZ, len(P))
+        for i, c in enumerate(P):
+            d = c.galois_action(t, N)
+            for j, e in enumerate(P):
+                if d.is_gamma0_equiv(e, N, False):
+                    A[i,j] = 1
+        A.set_immutable()
+        return A
 
 class PeriodMapping(SageObject):
     r"""

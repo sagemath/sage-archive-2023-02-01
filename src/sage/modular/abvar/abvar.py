@@ -32,7 +32,7 @@ from sage.structure.parent_base import ParentWithBase
 from morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
 from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
-from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
+from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
 from sage.rings.all             import (ZZ, QQ, QQbar, is_Ring, LCM,
                                         divisors, Integer, prime_range)
 from sage.modules.all           import is_FreeModule
@@ -642,7 +642,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         try:
             return self.__modular_kernel
         except AttributeError:
-            _, f = self.dual()
+            _, f, _ = self.dual()
             G = f.kernel()[0]
             self.__modular_kernel = G
             return G
@@ -2395,7 +2395,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self._cuspidal_subgroup = T
             return T
 
-    def _ambient_cuspidal_subgroup(self, rational_only=False):
+    def _ambient_cuspidal_subgroup(self, rational_only=False, rational_subgroup=False):
         """
         EXAMPLES::
 
@@ -2409,7 +2409,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         n = 2 * self.degree()
         i = 0
         lattice = (ZZ**n).zero_submodule()
-        CS = RationalCuspidalSubgroup if rational_only else CuspidalSubgroup
+        if rational_subgroup:
+            CS = RationalCuspidalSubgroup
+        elif rational_only:
+            CS = RationalCuspSubgroup
+        else:
+            CS = CuspidalSubgroup
         for J in self._ambient_modular_symbols_abvars():
             L = CS(J).lattice().basis_matrix()
             Z_left = matrix(QQ,L.nrows(),i)
@@ -2518,6 +2523,67 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             else:
                 T = self.ambient_variety().rational_cusp_subgroup().intersection(self)
             self._rational_cusp_subgroup = T
+            return T
+
+    def rational_cuspidal_subgroup(self):
+        r"""
+        Return the rational subgroup of the cuspidal subgroup of this
+        modular abelian variety.
+
+        This is a subgroup of the group of rational points in the
+        cuspidal subgroup.
+
+        .. warning::
+
+           This is only currently implemented for
+           `\Gamma_0(N)`.
+
+        EXAMPLES::
+
+            sage: J = J0(54)
+            sage: CQ = J.rational_cuspidal_subgroup(); CQ
+            Finite subgroup with invariants [3, 3, 9] over QQ of Abelian variety J0(54) of dimension 4
+            sage: CQ.gens()
+            [[(1/3, 0, 0, 1/3, 2/3, 1/3, 0, 1/3)], [(0, 0, 1/9, 1/9, 7/9, 7/9, 1/9, 8/9)], [(0, 0, 0, 0, 0, 0, 1/3, 2/3)]]
+            sage: factor(CQ.order())
+            3^4
+            sage: CQ.invariants()
+            [3, 3, 9]
+
+        In this example the rational cuspidal subgroup and the cuspidal
+        subgroup differ by a lot.
+
+        ::
+
+            sage: J = J0(49)
+            sage: J.cuspidal_subgroup()
+            Finite subgroup with invariants [2, 14] over QQ of Abelian variety J0(49) of dimension 1
+            sage: J.rational_cuspidal_subgroup()
+            Finite subgroup with invariants [2] over QQ of Abelian variety J0(49) of dimension 1
+
+        Note that computation of the rational cusp subgroup isn't
+        implemented for `\Gamma_1`.
+
+        ::
+
+            sage: J = J1(13)
+            sage: J.cuspidal_subgroup()
+            Finite subgroup with invariants [19, 19] over QQ of Abelian variety J1(13) of dimension 2
+            sage: J.rational_cuspidal_subgroup()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of rational cuspidal subgroup only implemented in Gamma0 case.
+        """
+        try:
+            return self._rational_cuspidal_subgroup
+        except AttributeError:
+            if not self.is_subvariety_of_ambient_jacobian():
+                raise ValueError, "self must be a subvariety of the ambient variety"
+            if self.is_ambient():
+                T = self._ambient_cuspidal_subgroup(rational_subgroup=True)
+            else:
+                T = self.ambient_variety().rational_cuspidal_subgroup().intersection(self)
+            self._rational_cuspidal_subgroup = T
             return T
 
     def zero_subgroup(self):
@@ -3202,7 +3268,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         r"""
         Return the dual of this abelian variety.
 
-        OUTPUT: abelian variety
+        OUTPUT:
+            - dual abelian variety
+            - morphism from self to dual
+            - covering morphism from J to dual
 
         .. warning::
 
@@ -3223,7 +3292,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: A,B,C = J0(33)
             sage: C
             Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
-            sage: Cd, f = C.dual()
+            sage: Cd, f, pi = C.dual()
             sage: f.matrix()
             [3 0]
             [0 3]
@@ -3243,7 +3312,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
             sage: A = AbelianVariety('43b'); A
             Newform abelian subvariety 43b of dimension 2 of J0(43)
-            sage: Ad, f = A.dual()
+            sage: Ad, f, pi = A.dual()
 
         The kernel shows that the modular degree is `2`::
 
@@ -3269,7 +3338,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             C = self.complement()
             Q, phi = self.ambient_variety().quotient(C)
             psi = self.ambient_morphism()
-            self.__dual = Q, phi*psi
+            self.__dual = Q, phi*psi, phi
             return self.__dual
 
     def _factors_with_same_label(self, other):

@@ -49,7 +49,7 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(symbol, basic,
 // symbol
 
 symbol::symbol()
- : inherited(&symbol::tinfo_static), asexinfop(new assigned_ex_info), serial(next_serial++), name(autoname_prefix() + ToString(serial)), TeX_name(name), domain(domain::complex), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(autoname_prefix() + ToString(serial)), TeX_name(name), domain(domain::complex), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -77,25 +77,25 @@ possymbol::possymbol()
 // symbol
 
 symbol::symbol(const std::string & initname, unsigned domain)
- : inherited(&symbol::tinfo_static), asexinfop(new assigned_ex_info), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), asexinfop(new assigned_ex_info), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(const std::string & initname, const std::string & texname, unsigned domain)
- : inherited(&symbol::tinfo_static), asexinfop(new assigned_ex_info), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), asexinfop(new assigned_ex_info), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -134,7 +134,7 @@ possymbol::possymbol(const std::string & initname, const std::string & texname, 
 
 /** Construct object from archive_node. */
 symbol::symbol(const archive_node &n, lst &sym_lst)
- : inherited(n, sym_lst), asexinfop(new assigned_ex_info), serial(next_serial++)
+ : inherited(n, sym_lst), serial(next_serial++)
 {
 	if (!n.find_string("name", name))
 		name = autoname_prefix() + ToString(serial);
@@ -239,15 +239,7 @@ ex symbol::eval(int level) const
 	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 	
-	if (asexinfop->is_assigned) {
-		setflag(status_flags::evaluated);
-		if (level==1)
-			return (asexinfop->assigned_expression);
-		else
-			return (asexinfop->assigned_expression).eval(level);
-	} else {
-		return this->hold();
-	}
+	return this->hold();
 }
 
 ex symbol::conjugate() const
@@ -395,22 +387,6 @@ unsigned symbol::calchash() const
 
 // public
 
-void symbol::assign(const ex & value)
-{
-	asexinfop->is_assigned = true;
-	asexinfop->assigned_expression = value;
-	clearflag(status_flags::evaluated | status_flags::expanded);
-}
-
-void symbol::unassign()
-{
-	if (asexinfop->is_assigned) {
-		asexinfop->is_assigned = false;
-		asexinfop->assigned_expression = _ex0;
-	}
-	setflag(status_flags::evaluated | status_flags::expanded);
-}
-
 // private
 
 /** Symbols not constructed with a string get one assigned using this
@@ -451,15 +427,7 @@ std::string symbol::default_TeX_name() const
 
 unsigned symbol::next_serial = 0;
 
-//////////
-// subclass assigned_ex_info
-//////////
-
-/** Default ctor.  Defaults to unassigned. */
-symbol::assigned_ex_info::assigned_ex_info() throw() : is_assigned(false)
-{
-}
-
+// utility function to keep only one instance of a symbol with a given name
 const symbol & get_symbol(const std::string & s)
 {
 	static std::map<std::string, symbol> directory;

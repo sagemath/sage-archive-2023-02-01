@@ -45,14 +45,6 @@ class symbol : public basic
 
 // types
 	
-	/** Symbols as keys to expressions - only for ginsh. */
-	class assigned_ex_info : public refcounted {
-	public:
-		assigned_ex_info() throw();  ///< Default ctor
-		bool is_assigned;            ///< True if there is an expression assigned
-		ex assigned_expression;      ///< The actual expression
-	};
-
 // member functions
 	
 	// other constructors
@@ -88,8 +80,8 @@ protected:
 	
 	// non-virtual functions in this class
 public:
-	void assign(const ex & value);
-	void unassign();
+	//void assign(const ex & value);
+	//void unassign();
 	void set_name(const std::string & n) { name = n; }
 	std::string get_name() const { return name; }
 	unsigned get_domain() const { return domain; }
@@ -105,7 +97,6 @@ private:
 // member variables
 
 protected:
-	ptr<assigned_ex_info> asexinfop; ///< assigned expression, only for private use by ginsh
 	unsigned serial;                 ///< unique serial number for comparison
 	std::string name;                ///< printname of this symbol
 	std::string TeX_name;            ///< LaTeX name of this symbol
@@ -162,11 +153,6 @@ template<> inline bool is_exactly_a<possymbol>(const basic & obj)
 	unsigned domain = static_cast<const symbol &>(obj).get_domain();
 	return domain == domain::positive;
 }
-
-// wrapper functions around member functions
-inline void unassign(symbol & symarg)
-{ symarg.unassign(); }
-
 
 // keep symbols unique
 const symbol & get_symbol(const std::string & s);

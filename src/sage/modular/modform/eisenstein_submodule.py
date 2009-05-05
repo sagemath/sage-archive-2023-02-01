@@ -1,8 +1,5 @@
 """
 The Eisenstein Subspace
-
-EXAMPLES:
-
 """
 
 from sage.structure.all import Sequence
@@ -72,10 +69,9 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
 
         .. warning::
 
-           If sign != 0, then the space of modular symbols will, in
-           general, only correspond to a \emph{subspace} of this space
-           of modular forms.  This can be the case for both sign +1 or
-           -1.
+           If sign != 0, then the space of modular symbols will, in general,
+           only correspond to a *subspace* of this space of modular forms.
+           This can be the case for both sign +1 or -1.
 
         EXAMPLES::
 
@@ -334,13 +330,13 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
 
 
 class EisensteinSubmodule_g0_Q(EisensteinSubmodule_params):
-    """
-    Space of Eisenstein forms for Gamma0(N).
+    r"""
+    Space of Eisenstein forms for `\Gamma_0(N)`.
     """
 
 class EisensteinSubmodule_g1_Q(EisensteinSubmodule_params):
-    """
-    Space of Eisenstein forms for Gamma1(N).
+    r"""
+    Space of Eisenstein forms for `\Gamma_1(N)`.
     """
     def _parameters_character(self):
         """
@@ -355,6 +351,77 @@ class EisensteinSubmodule_g1_Q(EisensteinSubmodule_params):
         """
         return self.level()
 
+    def _compute_hecke_matrix(self, n, bound=None):
+        r"""
+        Calculate the matrix of the Hecke operator T_n acting on this space,
+        via modular symbols.
+
+        INPUT:
+
+        - n: a positive integer
+
+        - bound: an integer such that any element of this space with
+          coefficients a_1, ..., a_b all zero must be the zero element. If this
+          turns out not to be true, the code will double the bound and try
+          again. Setting bound = None is equivalent to setting bound =
+          self.dimension().
+
+        OUTPUT:
+
+        - a matrix (over QQ)
+
+        ALGORITHM:
+
+            This uses the usual pairing between modular symbols and modular
+            forms, but in a slightly non-standard way. As for cusp forms, we
+            can find a basis for this space made up of forms with q-expansions
+            `c_m(f) = a_{i,j}(T_m)`, where `T_m` denotes the matrix of the
+            Hecke operator on the corresponding modular symbols space. Then
+            `c_m(T_n f) = a_{i,j}(T_n* T_m). But we can't find the constant
+            terms by this method, so an extra step is required.
+
+        EXAMPLE::
+
+            sage: EisensteinForms(Gamma1(6), 3).hecke_matrix(3) # indirect doctest
+            [ 1  0 72  0]
+            [ 0  0 36 -9]
+            [ 0  0  9  0]
+            [ 0  1 -4 10]
+        """
+        if bound is None:
+            bound = self.dimension()
+        r=bound + 1
+        from sage.matrix.constructor import Matrix
+        QQ = self.base_ring()
+        symbs = self.modular_symbols(sign=0)
+        # crucial to take sign 0 here
+        T = symbs.hecke_matrix(n)
+        X = QQ**r
+        Y = X.zero_submodule()
+        basis = []
+        basis_images = []
+        d = symbs.rank()
+        for i in xrange(d**2):
+            v = X([symbs.hecke_matrix(m)[i // d][i % d] for m in xrange(1, r+1)])
+            Ynew = Y.span(Y.basis() + [v])
+            if Ynew.rank() > Y.rank():
+                basis.append(v)
+                basis_images.append(X([(T*symbs.hecke_matrix(m))[i // d][i % d] for m in xrange(1, 1+r)]))
+                Y = Ynew
+                if len(basis) == d:
+                    break
+        if len(basis) < d:
+            return self._compute_hecke_matrix(n, bound + 5)
+        # now can reconstruct the basis
+        bigmat = Matrix(basis).augment(Matrix(basis_images))
+        bigmat.echelonize()
+        pivs = bigmat.pivots()
+        wrong_mat = Matrix(QQ, d, d, [bigmat[i][r + pivs[j]] for i in xrange(d) for j in xrange(d)])
+        # this is the matrix in a basis such that projections onto q-expansion
+        # coefficients 1...r are echelon, but want coeffs 0..r echelon (modular
+        # symbols don't see the constant term)
+        change_mat = Matrix(QQ, d, d, [self.basis()[i][j+1] for i in xrange(d) for j in bigmat.pivots()])
+        return change_mat * wrong_mat * ~change_mat
 
 class EisensteinSubmodule_eps(EisensteinSubmodule_params):
     """

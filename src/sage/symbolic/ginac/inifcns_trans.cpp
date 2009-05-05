@@ -125,30 +125,38 @@ static ex exp_imag_part(const ex & x)
 	return exp(GiNaC::real_part(x))*sin(GiNaC::imag_part(x));
 }
 
+static ex exp_power(const ex & arg, const ex & p)
+{
+	return exp(p*arg);
+}
+
 static void exp_print(const ex & arg, const print_context & c,
 		bool latex=false)
 {
-	c.s << "e^";
-	std::stringstream tstream;
-	print_dflt tcontext(tstream, c.options);
-	arg.print(tcontext);
-	std::string argstr = tstream.str();
-	bool paranthesis = ((argstr.find(' ') != std::string::npos)||
-		(argstr.find('+') != std::string::npos) ||
-		(argstr.find('-') != std::string::npos) ||
-		(argstr.find('/') != std::string::npos) ||
-		(argstr.find('*') != std::string::npos) ||
-		(argstr.find('^') != std::string::npos));
-	if (latex)
-		c.s << "{";
-	else if (paranthesis)
-		c.s << "(";
+	c.s << "e";
+	if (!arg.is_equal(*_num1_p)) {
+		c.s<<"^";
+		std::stringstream tstream;
+		print_dflt tcontext(tstream, c.options);
+		arg.print(tcontext);
+		std::string argstr = tstream.str();
+		bool paranthesis = ((argstr.find(' ') != std::string::npos)||
+				(argstr.find('+') != std::string::npos) ||
+				(argstr.find('-') != std::string::npos) ||
+				(argstr.find('/') != std::string::npos) ||
+				(argstr.find('*') != std::string::npos) ||
+				(argstr.find('^') != std::string::npos));
+		if (latex)
+			c.s << "{";
+		else if (paranthesis)
+			c.s << "(";
 
-	c.s << argstr;
-	if (latex)
-		c.s << "}";
-	else if (paranthesis)
+		c.s << argstr;
+		if (latex)
+			c.s << "}";
+		else if (paranthesis)
 			c.s << ")";
+	}
 }
 
 static void exp_print_dflt(const ex & arg, const print_context & c)
@@ -166,6 +174,7 @@ REGISTER_FUNCTION(exp, eval_func(exp_eval).
                        derivative_func(exp_deriv).
                        real_part_func(exp_real_part).
                        imag_part_func(exp_imag_part).
+                       power_func(exp_power).
                        print_func<print_dflt>(exp_print_dflt).
                        print_func<print_latex>(exp_print_latex));
 

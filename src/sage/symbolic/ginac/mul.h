@@ -98,7 +98,7 @@ protected:
 	void print_overall_coeff(const print_context & c,
 			const char *mul_sym, bool latex=false) const;
 	void print_exvector(const exvector & v, const print_context & c,
-		char* sep) const;
+		const char* sep) const;
 	void do_print(const print_context & c, unsigned level) const;
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_rat_func(const print_context & c, unsigned level, 

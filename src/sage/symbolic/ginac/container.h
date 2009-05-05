@@ -140,8 +140,8 @@ protected:
 	// helpers
 	static tinfo_t get_tinfo() { return NULL; }
 	static unsigned get_default_flags() { return 0; }
-	static char* get_open_delim() { return "("; }
-	static char* get_close_delim() { return ")"; }
+	static const char* get_open_delim() { return "("; }
+	static const char* get_close_delim() { return ")"; }
 
 	// constructors
 public:
@@ -429,9 +429,10 @@ protected:
 	 *  deleted). Must be overridden by derived classes. */
 	virtual ex thiscontainer(std::auto_ptr<STLT> vp) const { return container(vp); }
 
-	virtual void printseq(const print_context & c, char* openbracket, char delim,
-	                      char* closebracket, unsigned this_precedence,
-	                      unsigned upper_precedence = 0) const;
+	virtual void printseq(const print_context & c, const char* openbracket,
+			char delim, const char* closebracket,
+			unsigned this_precedence,
+			unsigned upper_precedence = 0) const;
 
 	// non-virtual functions in this class
 private:
@@ -702,9 +703,9 @@ container<C> & container<C>::unique()
 
 /** Print sequence of contained elements. */
 template <template <class T, class = std::allocator<T> > class C>
-void container<C>::printseq(const print_context & c, char* openbracket, char delim,
-                            char* closebracket, unsigned this_precedence,
-                            unsigned upper_precedence) const
+void container<C>::printseq(const print_context & c, const char* openbracket,
+		char delim, const char* closebracket, unsigned this_precedence,
+		unsigned upper_precedence) const
 {
 	if (this_precedence <= upper_precedence)
 		c.s << openbracket;

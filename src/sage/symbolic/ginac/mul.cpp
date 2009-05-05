@@ -211,7 +211,7 @@ void mul::do_print_latex(const print_latex & c, unsigned level) const
 }
 
 void mul::print_exvector(const exvector & v, const print_context & c,
-		char* sep) const
+		const char* sep) const
 {
 	bool first = true;
 	exvector::const_iterator vit = v.begin(), vitend = v.end();
@@ -228,11 +228,11 @@ void mul::print_exvector(const exvector & v, const print_context & c,
 void mul::do_print_rat_func(const print_context & c, unsigned level,
 		bool latex_tags) const
 {
-	char *sep;
+	const char *sep;
 	if (latex_tags) {
-		sep = " ";
+		sep = (const char*)" ";
 	} else {
-		sep = "*";
+		sep = (const char*)"*";
 	}
 
 	// Separate factors into those with negative numeric exponent

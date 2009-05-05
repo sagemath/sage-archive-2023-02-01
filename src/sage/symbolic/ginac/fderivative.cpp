@@ -28,9 +28,9 @@
 #include "utils.h"
 
 extern "C" {
-	char* py_print_fderivative(unsigned id, PyObject* params,
+	std::string* py_print_fderivative(unsigned id, PyObject* params,
 		PyObject* args);
-	char* py_latex_fderivative(unsigned id, PyObject* params,
+	std::string* py_latex_fderivative(unsigned id, PyObject* params,
 		PyObject* args);
 	PyObject* paramset_to_PyTuple(const GiNaC::paramset &s);
 	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
@@ -119,14 +119,14 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 	PyObject* args = exvector_to_PyTuple(seq);
 	//check if latex mode
 	//call python function
-	char* out;
+	std::string *sout;
 	if (is_a<print_latex>(c)) {
-		out = py_latex_fderivative(serial, params, args);
+		sout = py_latex_fderivative(serial, params, args);
 	} else {
-		out = py_print_fderivative(serial, params, args);
+		sout = py_print_fderivative(serial, params, args);
 	}
-	c.s<<out;
-	free(out);
+	c.s<<*sout;
+	delete sout;
 	Py_DECREF(params);
 	Py_DECREF(args);
 	

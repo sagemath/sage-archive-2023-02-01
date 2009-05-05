@@ -74,7 +74,9 @@ public:
 
 	~ptr()
 	{
-		if (p->remove_reference() == 0)
+		// if the constructor of p fails, we get a null pointer
+		// which leads to a segfault while calling remove_reference
+		if (p && p->remove_reference() == 0)
 			delete p;
 	}
 

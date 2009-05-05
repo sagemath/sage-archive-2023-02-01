@@ -11,6 +11,7 @@
  *  The modifications and modified version is:
  * 
  *      GiNaC-SAGE Copyright (C) 2008 William Stein
+ *      Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,72 +67,81 @@ namespace math {
 #include "tostring.h"
 #include "utils.h"
 
-extern "C" PyObject* py_binomial(PyObject* a, PyObject* b);
-extern "C" PyObject* py_gcd(PyObject* a, PyObject* b);
-extern "C" PyObject* py_lcm(PyObject* a, PyObject* b);
-extern "C" PyObject* py_real(PyObject* a);
-extern "C" PyObject* py_imag(PyObject* a);
-extern "C" PyObject* py_numer(PyObject* a);
-extern "C" PyObject* py_denom(PyObject* a);
-extern "C" PyObject* py_conjugate(PyObject* a);
+extern "C" {
+	PyObject* py_binomial(PyObject* a, PyObject* b);
+	PyObject* py_gcd(PyObject* a, PyObject* b);
+	PyObject* py_lcm(PyObject* a, PyObject* b);
+	PyObject* py_real(PyObject* a);
+	PyObject* py_imag(PyObject* a);
+	PyObject* py_numer(PyObject* a);
+	PyObject* py_denom(PyObject* a);
+	PyObject* py_conjugate(PyObject* a);
 
-extern "C" bool      py_is_rational(PyObject* a);
-extern "C" bool      py_is_real(PyObject* a);
-extern "C" bool      py_is_integer(PyObject* a);
-extern "C" bool      py_is_prime(PyObject* n);
-extern "C" PyObject* py_int(PyObject* n);
-extern "C" PyObject* py_integer_from_long(long int x);
-extern "C" PyObject* py_integer_from_python_obj(PyObject* x);
+	bool      py_is_rational(PyObject* a);
+	bool      py_is_real(PyObject* a);
+	bool      py_is_integer(PyObject* a);
+	bool      py_is_prime(PyObject* n);
+	PyObject* py_int(PyObject* n);
+	PyObject* py_integer_from_long(long int x);
+	PyObject* py_integer_from_python_obj(PyObject* x);
 
-extern "C" PyObject* py_float(PyObject* a, int prec);
-extern "C" PyObject* py_RDF_from_double(double x);
+	PyObject* py_float(PyObject* a, int prec);
+	PyObject* py_RDF_from_double(double x);
 
-extern "C" PyObject* py_factorial(PyObject* a);
-extern "C" PyObject* py_fibonacci(PyObject* n);
-extern "C" PyObject* py_step(PyObject* n);
-extern "C" PyObject* py_doublefactorial(PyObject* a);
-extern "C" PyObject* py_bernoulli(PyObject* n);
-extern "C" PyObject* py_sin(PyObject* n);
-extern "C" PyObject* py_cos(PyObject* n);
-extern "C" PyObject* py_zeta(PyObject* n);
-extern "C" PyObject* py_exp(PyObject* n);
-extern "C" PyObject* py_log(PyObject* n);
-extern "C" PyObject* py_tan(PyObject* n);
-extern "C" PyObject* py_asin(PyObject* n);
-extern "C" PyObject* py_acos(PyObject* n);
-extern "C" PyObject* py_atan(PyObject* n);
-extern "C" PyObject* py_atan2(PyObject* n, PyObject* y);
-extern "C" PyObject* py_sinh(PyObject* n);
-extern "C" PyObject* py_cosh(PyObject* n);
-extern "C" PyObject* py_tanh(PyObject* n);
-extern "C" PyObject* py_asinh(PyObject* n);
-extern "C" PyObject* py_acosh(PyObject* n);
-extern "C" PyObject* py_atanh(PyObject* n);
-extern "C" PyObject* py_li2(PyObject* n);
-extern "C" PyObject* py_lgamma(PyObject* n);
-extern "C" PyObject* py_tgamma(PyObject* n);
-extern "C" PyObject* py_psi(PyObject* n);
-extern "C" PyObject* py_psi2(PyObject* n, PyObject* b);
-extern "C" PyObject* py_isqrt(PyObject* n);
-extern "C" PyObject* py_sqrt(PyObject* n);
-extern "C" PyObject* py_abs(PyObject* n);
-extern "C" PyObject* py_mod(PyObject* n, PyObject* b);
-extern "C" PyObject* py_smod(PyObject* n, PyObject* b);
-extern "C" PyObject* py_irem(PyObject* n, PyObject* b);
-extern "C" PyObject* py_iquo(PyObject* n, PyObject* b);
-extern "C" PyObject* py_iquo2(PyObject* n, PyObject* b);
-extern "C" int       py_int_length(PyObject* x);
+	PyObject* py_factorial(PyObject* a);
+	PyObject* py_fibonacci(PyObject* n);
+	PyObject* py_step(PyObject* n);
+	PyObject* py_doublefactorial(PyObject* a);
+	PyObject* py_bernoulli(PyObject* n);
+	PyObject* py_sin(PyObject* n);
+	PyObject* py_cos(PyObject* n);
+	PyObject* py_zeta(PyObject* n);
+	PyObject* py_exp(PyObject* n);
+	PyObject* py_log(PyObject* n);
+	PyObject* py_tan(PyObject* n);
+	PyObject* py_asin(PyObject* n);
+	PyObject* py_acos(PyObject* n);
+	PyObject* py_atan(PyObject* n);
+	PyObject* py_atan2(PyObject* n, PyObject* y);
+	PyObject* py_sinh(PyObject* n);
+	PyObject* py_cosh(PyObject* n);
+	PyObject* py_tanh(PyObject* n);
+	PyObject* py_asinh(PyObject* n);
+	PyObject* py_acosh(PyObject* n);
+	PyObject* py_atanh(PyObject* n);
+	PyObject* py_li2(PyObject* n);
+	PyObject* py_lgamma(PyObject* n);
+	PyObject* py_tgamma(PyObject* n);
+	PyObject* py_psi(PyObject* n);
+	PyObject* py_psi2(PyObject* n, PyObject* b);
+	PyObject* py_isqrt(PyObject* n);
+	PyObject* py_sqrt(PyObject* n);
+	PyObject* py_abs(PyObject* n);
+	PyObject* py_mod(PyObject* n, PyObject* b);
+	PyObject* py_smod(PyObject* n, PyObject* b);
+	PyObject* py_irem(PyObject* n, PyObject* b);
+	PyObject* py_iquo(PyObject* n, PyObject* b);
+	PyObject* py_iquo2(PyObject* n, PyObject* b);
+	int       py_int_length(PyObject* x);
 
-extern "C" PyObject* py_eval_pi(long ndigits);
-extern "C" PyObject* py_eval_euler_gamma(long ndigits);
-extern "C" PyObject* py_eval_catalan(long ndigits);
-extern "C" PyObject* py_eval_unsigned_infinity();
-extern "C" PyObject* py_eval_infinity();
-extern "C" PyObject* py_eval_neg_infinity();
+	PyObject* py_eval_pi(long ndigits);
+	PyObject* py_eval_euler_gamma(long ndigits);
+	PyObject* py_eval_catalan(long ndigits);
+	PyObject* py_eval_unsigned_infinity();
+	PyObject* py_eval_infinity();
+	PyObject* py_eval_neg_infinity();
 
-extern "C" int py_get_parent_char(PyObject* o);
+	// we use this to check if the element lives in a domain of positive
+	// characteristic, in which case we have to do modulo reductions
+	int py_get_parent_char(PyObject* o);
 
-extern "C" char* py_latex(PyObject* o);
+	// printing helper
+	std::string* py_latex(PyObject* o);
+
+	// archive helper
+	std::string* py_dumps(PyObject* o);
+	PyObject* py_loads(PyObject* s);
+}
 
 // Call the Python function f on *this as input and return the result
 // as a PyObject*.
@@ -501,6 +511,57 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     t = PYOBJECT;
     v._pyobject = o; // STEAL a reference
   }
+
+// Archive
+Number_T::Number_T(const archive_node &n, lst &sym_lst)
+{
+	// get type information
+	unsigned int t_tmp;
+	if(!n.find_unsigned(std::string("T"), t_tmp))
+		throw std::runtime_error("archive error: cannot read type info");
+	t = Type(t_tmp);
+	std::string str;
+	PyObject *arg;
+	switch(t) {
+		case PYOBJECT:
+			// read pickled python object to a string
+			if(!n.find_string("S", str))
+			    throw(std::runtime_error("archive error: cannot read pyobject data"));
+			arg = Py_BuildValue("s#",str.c_str(), str.size());
+			// unpickle
+			v._pyobject = py_loads(arg);
+			Py_DECREF(arg);
+			if (PyErr_Occurred()) {
+			    throw(std::runtime_error("archive error: caught exception in py_dumps"));
+			}
+			Py_INCREF(v._pyobject);
+			return;
+		default:
+			stub("unarchiving Number_T");
+			return;
+	}
+}
+
+void Number_T::archive(archive_node &n) const {
+	// store type information
+	n.add_unsigned("T", t);
+
+	// create a string representation of this object
+	std::string *tstr;
+	switch(t) {
+		case PYOBJECT:
+			tstr = py_dumps(v._pyobject);
+			if (PyErr_Occurred()) {
+			    throw(std::runtime_error("archive error: exception in py_dumps"));
+			}
+			break;
+		default:
+			stub("archive Number_T");
+	}
+
+	n.add_string("S",*tstr);
+	delete tstr;
+}
   
   Number_T::~Number_T() {
     switch(t) {
@@ -1420,17 +1481,15 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
   // archiving
   //////////
 
-  numeric::numeric(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
+  numeric::numeric(const archive_node &n, lst &sym_lst): 
+	  inherited(n, sym_lst), value(n, sym_lst)
   {
-    // TODO -- implement this, since it will be needed for pickling. 
-    stub("archiving");
     setflag(status_flags::evaluated | status_flags::expanded);
   }
 
   void numeric::archive(archive_node &n) const
   {
-    // TODO -- implement this, since it will be needed for pickling. 
-    stub("archive");
+    value.archive(n);
     inherited::archive(n);
   }
 
@@ -1489,8 +1548,11 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
 		  const char *par_close, const char *imag_sym, 
 		  const char *mul_sym, unsigned level, bool latex=false) const
   {
+	  std::string* out;
 	  if (latex) {
-		  c.s<<py_latex(to_pyobject());
+		  out = py_latex(to_pyobject());
+		  c.s<<*out;
+		  delete out;
 		  return;
 	  } else {
 

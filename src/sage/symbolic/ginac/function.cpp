@@ -49,8 +49,8 @@ extern "C" {
 	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
 	GiNaC::ex pyExpression_to_ex(PyObject* s);
 	PyObject* ex_to_pyExpression(GiNaC::ex e);
-	char* py_print_function(unsigned id, PyObject* args);
-	char* py_latex_function(unsigned id, PyObject* args);
+	std::string* py_print_function(unsigned id, PyObject* args);
+	std::string* py_latex_function(unsigned id, PyObject* args);
 	int py_get_ginac_serial();
 }
 namespace GiNaC {
@@ -1148,16 +1148,16 @@ void function::print(const print_context & c, unsigned level) const
 		//convert arguments to a PyTuple of Expressions
 		PyObject* args = exvector_to_PyTuple(seq);
 
-		char* ostr;
+		std::string* sout;
 		if (is_a<print_latex>(c)) {
-			ostr = py_latex_function(serial, args);
+			sout = py_latex_function(serial, args);
 		} else if (is_a<print_dflt>(c)) {
-			ostr = py_print_function(serial, args);
+			sout = py_print_function(serial, args);
 		} else {
 			throw(std::runtime_error("print context must be either latex or dflt"));
 		}
-		c.s<<ostr;
-		free(ostr);
+		c.s<<*sout;
+		delete sout;
 		Py_DECREF(args);
 	} else {
 

@@ -90,9 +90,14 @@ namespace GiNaC {
     Number_T(const Number_T& x);
     Number_T(const char* s);
     Number_T(PyObject* o);  // *STEALS a REFERENCE*
+    // unarchive
+    Number_T(const archive_node &n, lst &sym_lst);
 
     // Destructor
     ~Number_T();
+
+    // archive
+    void archive(archive_node &n) const;
     
     Number_T operator+(Number_T x) const;
     Number_T operator*(Number_T x) const;
@@ -212,6 +217,7 @@ namespace GiNaC {
     numeric(const char *);
     numeric(const Number_T& x);
     numeric(PyObject*);
+    numeric(archive_node& n, const lst &sym_lst);
 	
     // functions overriding virtual functions from base classes
   public:

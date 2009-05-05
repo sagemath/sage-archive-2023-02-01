@@ -32,7 +32,7 @@
 #include "utils.h"
 #include "inifcns.h"
 
-extern "C" char* py_latex_variable(const char* o);
+extern "C" std::string* py_latex_variable(const char* o);
 
 namespace GiNaC {
 
@@ -189,9 +189,9 @@ void symbol::do_print(const print_context & c, unsigned level) const
 
 void symbol::do_print_latex(const print_latex & c, unsigned level) const
 {
-	char* lstr = py_latex_variable(TeX_name.c_str());
-	c.s << lstr;
-	free(lstr);
+	std::string* lstr = py_latex_variable(TeX_name.c_str());
+	c.s << *lstr;
+	delete lstr;
 }
 
 void symbol::do_print_tree(const print_tree & c, unsigned level) const
@@ -460,4 +460,15 @@ symbol::assigned_ex_info::assigned_ex_info() throw() : is_assigned(false)
 {
 }
 
+const symbol & get_symbol(const std::string & s)
+{
+	static std::map<std::string, symbol> directory;
+	std::map<std::string, symbol>::iterator i = directory.find(s);
+	if (i != directory.end()) {
+		return i->second;
+	}
+	else {
+		return directory.insert(make_pair(s, symbol(s))).first->second;
+	}
+}
 } // namespace GiNaC

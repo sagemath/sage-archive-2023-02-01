@@ -1,19 +1,19 @@
 r"""
-Non Decreasing Parking Functions
+Non-Decreasing Parking Functions
 
-A **non decreasing parking functions** of size `n` is a non decreasing
+A *non-decreasing parking function* of size `n` is a non-decreasing
 function `f` from `\{1,\dots,n\}` to itself such that for all `i`, one
 has `f(i) \leq i`.
 
-The number of non decreasing parking functions of size `n` is the `n`-th
-:func:`catalan number<sage.combinat.combinat.catalan_number>`.
+The number of non-decreasing parking functions of size `n` is the `n`-th
+:func:`Catalan number<sage.combinat.combinat.catalan_number>`.
 
-The set of non decreasing parking functions of size `n` is in bijection with
+The set of non-decreasing parking functions of size `n` is in bijection with
 the set of :mod:`Dyck words<sage.combinat.dyck_word>` of size `n`.
 
 AUTHORS:
 
--Florent Hivert
+    - Florent Hivert (2009-04)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
@@ -39,26 +39,26 @@ from copy import copy
 
 def NonDecreasingParkingFunctions(n=None):
     r"""
-    Returns the combinatorial class of Non Decreasing Parking Functions.
+    Returns the combinatorial class of Non-Decreasing Parking Functions.
 
-    A *non decreasing parking functions* of size `n` is a non
-    decreasing function `f` from `\{1,\dots,n\}` to itself such that
-    for all `i`, one has `f(i) \leq i`.
+    A *non-decreasing parking function* of size `n` is a non-decreasing
+    function `f` from `\{1,\dots,n\}` to itself such that for all `i`,
+    one has `f(i) \leq i`.
 
     EXAMPLES:
 
-    Here are all the non decreasing parking functions of size 5::
+    Here are all the-non decreasing parking functions of size 5::
 
       sage: NonDecreasingParkingFunctions(3).list()
       [[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 2, 2], [1, 2, 3]]
 
     If no size is specified, then NonDecreasingParkingFunctions
-    returns the combinatorial class of all nondecreasing parking functions.
+    returns the combinatorial class of all non-decreasing parking functions.
 
     ::
 
          sage: PF = NonDecreasingParkingFunctions(); PF
-         Non decreasing parking functions
+         Non-decreasing parking functions
          sage: [] in PF
          True
          sage: [1] in PF
@@ -71,7 +71,7 @@ def NonDecreasingParkingFunctions(n=None):
          False
 
     If the size `n` is specified, then NonDecreasingParkingFunctions returns
-    combinatorial class of all nondecreasing parking functions of size `n`.
+    combinatorial class of all non-decreasing parking functions of size `n`.
 
     ::
 
@@ -86,7 +86,7 @@ def NonDecreasingParkingFunctions(n=None):
          [[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 2, 2], [1, 2, 3]]
 
          sage: PF3 = NonDecreasingParkingFunctions(3); PF3
-         Non decreasing parking functions of size 3
+         Non-decreasing parking functions of size 3
          sage: [] in PF3
          False
          sage: [1] in PF3
@@ -106,12 +106,14 @@ def NonDecreasingParkingFunctions(n=None):
     if n is None:
         return NonDecreasingParkingFunctions_all()
     else:
-        assert(isinstance(n, (Integer, int)) and n >= 0)
+        assert isinstance(n, (Integer, int)) and n >= 0, '%s is not a non-negative integer.' % n
         return NonDecreasingParkingFunctions_n(n)
 
 def is_a(x, n=None):
     """
-    Check whether a list is a non decreasing parking function of size `n`.
+    Check whether a list is a non-decreasing parking function. If a size
+    `n` is specified, checks if a list is a non-decreasing parking
+    function of size `n`.
 
     TESTS::
 
@@ -125,12 +127,14 @@ def is_a(x, n=None):
     """
     if not isinstance(x, list):
         return False
-    for i in range(len(x)-1):
-        if x[i] > x[i+1] or x[i] > i+1:
+    prev = 1
+    for i, elt in enumerate(x):
+        if prev > elt or elt > i+1:
             return False
+        prev = elt
     if n is not None and n != len(x):
         return False
-    return x==[] or x[len(x)-1] <= len(x)
+    return True
 
 
 class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
@@ -149,9 +153,9 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
         TESTS::
 
             sage: repr(NonDecreasingParkingFunctions())
-            'Non decreasing parking functions'
+            'Non-decreasing parking functions'
         """
-        return "Non decreasing parking functions"
+        return "Non-decreasing parking functions"
 
     def __contains__(self, x):
         """
@@ -176,7 +180,8 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
         """
         Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
 
-        TESTS:
+        TESTS::
+
             sage: (NonDecreasingParkingFunctions()._infinite_cclass_slice(4)
             ...    == NonDecreasingParkingFunctions(4))
             True
@@ -189,15 +194,15 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
 
 class NonDecreasingParkingFunctions_n(CombinatorialClass):
     """
-    The combinatorial class of non decreasing parking functions of a given
-    size n.
+    The combinatorial class of non-decreasing parking functions of
+    size `n`.
 
-    A *non decreasing parking functions* of size `n` is a non
-    decreasing function `f` from `\{1,\dots,n\}` to itself such that
-    for all `i`, one has `f(i) \leq i`.
+    A *non-decreasing parking function* of size `n` is a non-decreasing
+    function `f` from `\{1,\dots,n\}` to itself such that for all `i`,
+    one has `f(i) \leq i`.
 
-    The number of non decreasing parking functions of size `n` is the
-    `n`-th catalan number.
+    The number of non-decreasing parking functions of size `n` is the
+    `n`-th Catalan number.
 
     EXAMPLES::
 
@@ -217,7 +222,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
     AUTHORS:
 
-    -Florent Hivert
+        - Florent Hivert
     """
     def __init__(self, n):
         """
@@ -234,16 +239,16 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
         TESTS::
 
             sage: repr(NonDecreasingParkingFunctions(3))
-            'Non decreasing parking functions of size 3'
+            'Non-decreasing parking functions of size 3'
         """
-        return "Non decreasing parking functions of size %s"%(self.n)
+        return "Non-decreasing parking functions of size %s"%(self.n)
 
     def __contains__(self, x):
         """
         TESTS::
 
             sage: PF3 = NonDecreasingParkingFunctions(3); PF3
-            Non decreasing parking functions of size 3
+            Non-decreasing parking functions of size 3
             sage: [] in PF3
             False
             sage: [1] in PF3
@@ -263,8 +268,9 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
     def cardinality(self):
         """
-        Returns the number of non decreasing parking functions of size n. This
-        number is given by the n-th Catalan number.
+        Returns the number of non-decreasing parking functions of size
+        `n`. This number is the `n`-th :func:`Catalan
+        number<sage.combinat.combinat.catalan_number>`.
 
         EXAMPLES::
 
@@ -285,7 +291,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
     def __iter__(self):
         """
-        Returns an iterator for non decreasing parking functions of size n.
+        Returns an iterator for non-decreasing parking functions of size `n`.
 
         .. warning::
 
@@ -350,9 +356,9 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
 class NonDecreasingParkingFunction(CombinatorialObject):
     """
-    A *non decreasing parking function* of size `n` is a non
-    decreasing function `f` from `\{1,\dots,n\}` to itself such that
-    for all `i`, one has `f(i) \leq i`.
+    A *non decreasing parking function* of size `n` is a non-decreasing
+    function `f` from `\{1,\dots,n\}` to itself such that for all `i`,
+    one has `f(i) \leq i`.
 
     EXAMPLES::
 
@@ -363,7 +369,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
         sage: NonDecreasingParkingFunction([2])
         Traceback (most recent call last):
         ...
-        AssertionError
+        AssertionError: [2] is not a non-decreasing parking function.
         sage: NonDecreasingParkingFunction([1,2])
         [1, 2]
         sage: NonDecreasingParkingFunction([1,1,2])
@@ -371,7 +377,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
         sage: NonDecreasingParkingFunction([1,1,4])
         Traceback (most recent call last):
         ...
-        AssertionError
+        AssertionError: [1, 1, 4] is not a non-decreasing parking function.
     """
     def __init__(self, lst):
         """
@@ -380,7 +386,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
             sage: NonDecreasingParkingFunction([1, 1, 2, 2, 5, 6])
             [1, 1, 2, 2, 5, 6]
         """
-        assert(is_a(lst))
+        assert is_a(lst), '%s is not a non-decreasing parking function.' % lst
         CombinatorialObject.__init__(self, lst)
 
     def __getitem__(self, key):
@@ -403,7 +409,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
 
     def __mul__(self, lp):
         """
-        The composition of non decreasing parking functions.
+        The composition of non-decreasing parking functions.
 
         EXAMPLES::
 
@@ -423,7 +429,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
     def to_dyck_word(self):
         """
         Implements the bijection to :class:`Dyck
-        words<sage.combinat.dyck_word.DyckWords>`, which is defined as follow.
+        words<sage.combinat.dyck_word.DyckWords>`, which is defined as follows.
         Take a non decreasing parking function, say [1,1,2,4,5,5], and draw
         its graph::
 
@@ -436,7 +442,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
                                .__.__|  .  .  .  .
                                  1  1  2  4  5  5
 
-        The corresponding dyck word [1,1,0,1,0,0,1,0,1,1,0,0] is then read of
+        The corresponding Dyck word [1,1,0,1,0,0,1,0,1,1,0,0] is then read off
         from the sequence of horizontal and vertical steps. The converse
         bijection is :meth:`.from_dyck_word`.
 
@@ -453,7 +459,7 @@ class NonDecreasingParkingFunction(CombinatorialObject):
             sage: NonDecreasingParkingFunction([1,1,3,3,4,6,6]).to_dyck_word()
             [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
 
-        TEST::
+        TESTS::
 
             sage: ndpf=NonDecreasingParkingFunctions(5);
             sage: list(ndpf) == [pf.to_dyck_word().to_non_decreasing_parking_function() for pf in ndpf]
@@ -467,23 +473,23 @@ class NonDecreasingParkingFunction(CombinatorialObject):
         """
         Bijection from :class:`Dyck
         words<sage.combinat.dyck_word.DyckWords>`. It is the inverse of the
-        bijection :meth:`.to_dyck_word`. You can find there the matematical
+        bijection :meth:`.to_dyck_word`. You can find there the mathematical
         definition.
 
         EXAMPLES::
 
-          sage: NonDecreasingParkingFunction.from_dyck_word([])
-          []
-          sage: NonDecreasingParkingFunction.from_dyck_word([1,0])
-          [1]
-          sage: NonDecreasingParkingFunction.from_dyck_word([1,1,0,0])
-          [1, 1]
-          sage: NonDecreasingParkingFunction.from_dyck_word([1,0,1,0])
-          [1, 2]
-          sage: NonDecreasingParkingFunction.from_dyck_word([1,0,1,1,0,1,0,0,1,0])
-          [1, 2, 2, 3, 5]
+            sage: NonDecreasingParkingFunction.from_dyck_word([])
+            []
+            sage: NonDecreasingParkingFunction.from_dyck_word([1,0])
+            [1]
+            sage: NonDecreasingParkingFunction.from_dyck_word([1,1,0,0])
+            [1, 1]
+            sage: NonDecreasingParkingFunction.from_dyck_word([1,0,1,0])
+            [1, 2]
+            sage: NonDecreasingParkingFunction.from_dyck_word([1,0,1,1,0,1,0,0,1,0])
+            [1, 2, 2, 3, 5]
 
-        TEST::
+        TESTS::
 
           sage: ndpf=NonDecreasingParkingFunctions(5);
           sage: list(ndpf) == [NonDecreasingParkingFunction.from_dyck_word(pf.to_dyck_word()) for pf in ndpf]

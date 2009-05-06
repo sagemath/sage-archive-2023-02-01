@@ -303,11 +303,11 @@ class DyckWord_class(CombinatorialObject):
 
     def to_non_decreasing_parking_function(self):
         """
-        Bijection to :class:`non decreasing parking
+        Bijection to :class:`non-decreasing parking
         functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`. See
         there the method
         :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
-        for more informations.
+        for more information.
 
         EXAMPLES::
 
@@ -334,36 +334,36 @@ class DyckWord_class(CombinatorialObject):
     @classmethod
     def from_non_decreasing_parking_function(cls, pf):
         """
-        Bijection from :class:`non decreasing parking
+        Bijection from :class:`non-decreasing parking
         functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`. See
         there the method
         :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
-        for more informations.
+        for more information.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: from sage.combinat.dyck_word import DyckWord_class
-        sage: DyckWord_class.from_non_decreasing_parking_function([])
-        []
-        sage: DyckWord_class.from_non_decreasing_parking_function([1])
-        [1, 0]
-        sage: DyckWord_class.from_non_decreasing_parking_function([1,1])
-        [1, 1, 0, 0]
-        sage: DyckWord_class.from_non_decreasing_parking_function([1,2])
-        [1, 0, 1, 0]
-        sage: DyckWord_class.from_non_decreasing_parking_function([1,1,1])
-        [1, 1, 1, 0, 0, 0]
-        sage: DyckWord_class.from_non_decreasing_parking_function([1,2,3])
-        [1, 0, 1, 0, 1, 0]
-        sage: DyckWord_class.from_non_decreasing_parking_function([1,1,3,3,4,6,6])
-        [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
+            sage: from sage.combinat.dyck_word import DyckWord_class
+            sage: DyckWord_class.from_non_decreasing_parking_function([])
+            []
+            sage: DyckWord_class.from_non_decreasing_parking_function([1])
+            [1, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function([1,1])
+            [1, 1, 0, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function([1,2])
+            [1, 0, 1, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function([1,1,1])
+            [1, 1, 1, 0, 0, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function([1,2,3])
+            [1, 0, 1, 0, 1, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function([1,1,3,3,4,6,6])
+            [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
 
-    TESTS::
+        TESTS::
 
-        sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([]))
-        []
-        sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([1,1,3,3,4,6,6]))
-        [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
+            sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([]))
+            []
+            sage: DyckWord_class.from_non_decreasing_parking_function(NonDecreasingParkingFunction([1,1,3,3,4,6,6]))
+            [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0]
         """
         from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
         if isinstance(pf, NonDecreasingParkingFunction):

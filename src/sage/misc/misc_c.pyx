@@ -285,6 +285,8 @@ include "bitset.pxi"
 
 def test_bitset(py_a, py_b, long n):
     """
+    Test the Cython bitset functions so we can have some relevant doctests.
+
     TESTS:
         sage: from sage.misc.misc_c import test_bitset
         sage: test_bitset('00101', '01110', 4)
@@ -353,12 +355,12 @@ def test_bitset(py_a, py_b, long n):
         a.hamming_weight()  4
         a.hamming_weight_sparse()  4
 
-    Large enough to span multiple limbs:
+    Large enough to span multiple limbs.  We don't explicitly check the number of limbs below because it will be different in the 32 bit versus 64 bit cases:
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
         a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.size 150
         len(a) 100
-        a.limbs 5
+        a.limbs ...
         b 000100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000000011011100000111001101000100101001000000100100111
         a.in(n)   False
         a.not_in(n)   True

@@ -390,7 +390,7 @@ class Crystal(CombinatorialClass, Parent):
             sage: C = CrystalOfLetters(['A',2])
             sage: T = TensorProductOfCrystals(C, C)
             sage: A2 = WeylCharacterRing(C.cartan_type()); A2
-            The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
+            The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
             sage: chi = T.character(A2); chi
             A2(1,1,0) + A2(2,0,0)
             sage: chi.check(verbose = true)

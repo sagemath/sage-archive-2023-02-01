@@ -1,5 +1,6 @@
 from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple
 from sage.matrix.constructor import block_diagonal_matrix
+from sage.sets.family import Family
 import ambient_space
 import sage.combinat.root_system as root_system
 from sage.structure.sage_object import SageObject
@@ -34,6 +35,11 @@ class CartanType(SageObject, CartanType_abstract):
         self.affine = False
         self._spaces = [t.root_system().ambient_space() for t in types]
         self._shifts = [sum(l.n for l in self._spaces[:k]) for k in range(len(types))]
+        # fails for dual root systems
+        try:
+            self._shifts.append(sum(t.root_system().ambient_space().dimension() for t in types))
+        except:
+            pass
         self._rshifts = [sum(l[1] for l in types[:k]) for k in range(len(types))]
         self.tools = root_system.type_reducible
 
@@ -250,6 +256,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         sage: RootSystem("A2xB2").ambient_space()
         Ambient space of the Root system of type A2xB2
+
     """
     def cartan_type(self):
         """
@@ -316,13 +323,25 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         EXAMPLES::
 
-            sage: RootSystem("A1xA2").ambient_space().simple_roots()
-            [(1, -1, 0, 0, 0), (0, 0, 1, -1, 0), (0, 0, 0, 1, -1)]
+            sage: RootSystem("A1xB2").ambient_space().simple_roots()
+            Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 1)}
         """
         res = []
         for i, ambient_space in enumerate(self.ambient_spaces()):
             res.extend(self.inject_weights(i, v) for v in ambient_space.simple_roots())
-        return res
+        return Family(dict([i,res[i-1]] for i in range(1,len(res)+1)))
+
+    def simple_coroots(self):
+        """
+        EXAMPLES:
+
+            sage: RootSystem("A1xB2").ambient_space().simple_coroots()
+            Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2)}
+        """
+        cr = []
+        for i, ambient_space in enumerate(self.ambient_spaces()):
+            cr.extend(self.inject_weights(i, v) for v in ambient_space.simple_coroots())
+        return Family(dict([i,cr[i-1]] for i in range(1,len(cr)+1)))
 
     def positive_roots(self):
         """
@@ -353,12 +372,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
         EXAMPLES::
 
             sage: RootSystem("A2xB2").ambient_space().fundamental_weights()
-            [(1, 0, 0, 0, 0), (1, 1, 0, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, 1/2, 1/2)]
+            Finite family {1: (1, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0), 3: (0, 0, 0, 1, 0), 4: (0, 0, 0, 1/2, 1/2)}
         """
-        ret = []
+        fw = []
         for i, ambient_space in enumerate(self.ambient_spaces()):
-            ret.extend(self.inject_weights(i, v) for v in ambient_space.fundamental_weights())
-        return ret
+            fw.extend(self.inject_weights(i, v) for v in ambient_space.fundamental_weights())
+        return Family(dict([i,fw[i-1]] for i in range(1,len(fw)+1)))
 
 
 CartanType.AmbientSpace = AmbientSpace

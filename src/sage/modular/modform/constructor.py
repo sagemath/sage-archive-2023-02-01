@@ -103,6 +103,10 @@ def canonical_parameters(group, level, weight, base_ring):
     elif arithgroup.is_CongruenceSubgroup(group):
         if ( rings.Integer(level) != group.level() ):
             raise ValueError, "group.level() and level do not match."
+        # normalize the case of SL2Z
+        if arithgroup.is_SL2Z(group) or \
+           arithgroup.is_Gamma1(group) and group.level() == rings.Integer(1):
+            group = arithgroup.Gamma0(rings.Integer(1))
 
     elif group is None:
         pass
@@ -112,16 +116,10 @@ def canonical_parameters(group, level, weight, base_ring):
             m = rings.Integer(group)
         except TypeError:
             raise TypeError, "group of unknown type."
-        if ( m != rings.Integer(level) ):
-            raise ValueError, "group and level do not match."
-        group = arithgroup.Gamma0(group)
         level = rings.Integer(level)
-
-    if arithgroup.is_SL2Z(group) or \
-       arithgroup.is_Gamma1(group) and group.level() == rings.Integer(1):
-        if ( rings.Integer(level) != rings.Integer(1) ):
-            raise ValueError, "group.level() and level do not match."
-        group = arithgroup.Gamma0(rings.Integer(1))
+        if ( m != level ):
+            raise ValueError, "group and level do not match."
+        group = arithgroup.Gamma0(m)
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -244,7 +242,8 @@ def ModularForms(group  = 1,
     if base_ring is None:
         base_ring = rings.QQ
 
-    if isinstance(group, dirichlet.DirichletCharacter) or arithgroup.is_CongruenceSubgroup(group):
+    if isinstance(group, dirichlet.DirichletCharacter) \
+           or arithgroup.is_CongruenceSubgroup(group):
         level = group.level()
     else:
         level = group

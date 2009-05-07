@@ -154,6 +154,98 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 
+    def odd_degree_model(self):
+        r"""
+        Return an odd degree model of self, or raise ValueError if one does not exist over the field of definition.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: H = HyperellipticCurve((x^2 + 2)*(x^2 + 3)*(x^2 + 5)); H
+            Hyperelliptic Curve over Rational Field defined by y^2 = x^6 + 10*x^4 + 31*x^2 + 30
+            sage: H.odd_degree_model()
+            Traceback (most recent call last):
+            ...
+            ValueError: No odd degree model exists over field of definition
+
+            sage: K2 = QuadraticField(-2, 'a')
+            sage: Hp2 = H.change_ring(K2).odd_degree_model(); Hp2
+            Hyperelliptic Curve over Number Field in a with defining polynomial x^2 + 2 defined by y^2 = 6*a*x^5 - 29*x^4 - 20*x^2 + 6*a*x + 1
+
+            sage: K3 = QuadraticField(-3, 'b')
+            sage: Hp3 = H.change_ring(QuadraticField(-3, 'b')).odd_degree_model(); Hp3
+            Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
+
+            Of course, Hp2 and Hp3 are isomorphic over the composite
+            extension.  One consequence of this is that odd degree models
+            reduced over "different" fields should have the same number of
+            points on their reductions.  43 and 67 split completely in the
+            compositum, so when we reduce we find:
+
+            sage: P2 = K2.factor(43)[0][0]
+            sage: P3 = K3.factor(43)[0][0]
+            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+            sage: H.change_ring(GF(43)).odd_degree_model().frobenius_polynomial()
+            x^4 - 16*x^3 + 134*x^2 - 688*x + 1849
+
+            sage: P2 = K2.factor(67)[0][0]
+            sage: P3 = K3.factor(67)[0][0]
+            sage: Hp2.change_ring(K2.residue_field(P2)).frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+            sage: Hp3.change_ring(K3.residue_field(P3)).frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+            sage: H.change_ring(GF(67)).odd_degree_model().frobenius_polynomial()
+            x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
+
+        TESTS::
+            sage: HyperellipticCurve(x^5 + 1, 1).odd_degree_model()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: odd_degree_model only implemented for curves in Weierstrass form
+
+            sage: HyperellipticCurve(x^5 + 1, names="U, V").odd_degree_model()
+            Hyperelliptic Curve over Rational Field defined by V^2 = U^5 + 1
+        """
+        f, h = self._hyperelliptic_polynomials
+        if h:
+            raise NotImplementedError, "odd_degree_model only implemented for curves in Weierstrass form"
+        if f.degree() % 2:
+            # already odd, so just yield self
+            return self
+
+        rts = f.roots(multiplicities=False)
+        if not rts:
+            raise ValueError, "No odd degree model exists over field of definition"
+        rt = rts[0]
+        x = f.parent().gen()
+        fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
+
+        from constructor import HyperellipticCurve
+        return HyperellipticCurve(fnew, 0, names=self._names, PP=self._PP)
+
+    def has_odd_degree_model(self):
+        r"""
+        Return True if an odd degree model of self exists over the field of definition; False otherwise.
+
+        Use ``odd_degree_model`` to calculate an odd degree model.
+
+        EXAMPLES::
+            sage: x = QQ['x'].0
+            sage: HyperellipticCurve(x^5 + x).has_odd_degree_model()
+            True
+            sage: HyperellipticCurve(x^6 + x).has_odd_degree_model()
+            True
+            sage: HyperellipticCurve(x^6 + x + 1).has_odd_degree_model()
+            False
+        """
+        try:
+            return bool(self.odd_degree_model())
+        except ValueError:
+            return False
+
     def _magma_init_(self, magma):
         """
         Internal function. Returns a string to initialize this elliptic

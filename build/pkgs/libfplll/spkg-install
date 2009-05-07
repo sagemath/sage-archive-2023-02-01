@@ -6,8 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cp patches/dpe.h src/src/dpe.h
-
 cd src
 
 INCLUDES="-I$SAGE_LOCAL/include/"

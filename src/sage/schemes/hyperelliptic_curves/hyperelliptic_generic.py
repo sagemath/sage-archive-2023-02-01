@@ -63,8 +63,10 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             names = ["x","y"]
         elif isinstance(names,str):
             names = names.split(",")
+        self._names = names
         P1 = PolynomialRing(R,name=names[0])
         P2 = PolynomialRing(P1,name=names[1])
+        self._PP = PP
         self._printing_ring = P2
         self._hyperelliptic_polynomials = (f,h)
         self._genus = genus

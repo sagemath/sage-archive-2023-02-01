@@ -2530,7 +2530,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     def linear_combination_of_rows(self, v):
         """
         Return the linear combination of the rows of self given by the
-        coefficients in the list v.
+        coefficients in the list v.  Raise a ValueError if the length
+        of v is longer than the number of rows of the matrix.
 
         INPUT:
 
@@ -2552,7 +2553,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             (2, 19/6, 13/3)
             sage: matrix(QQ,0,2).linear_combination_of_rows([])
             (0, 0)
+
+        The length of v can be less than the number of rows, but not
+        more than the number of rows::
+
+            sage: A = matrix(QQ,2,3)
+            sage: A.linear_combination_of_rows([0])
+            (0, 0, 0)
+            sage: A.linear_combination_of_rows([1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: length of v must be at most the number of rows of self
         """
+        if len(v) > self._nrows:
+            raise ValueError, "length of v must be at most the number of rows of self"
         if self._nrows == 0:
             return self.parent().row_space().zero_vector()
         from constructor import matrix
@@ -2561,8 +2575,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def linear_combination_of_columns(self, v):
         """
-        Return the linear combination of the columns of self given by the
-        coefficients in the list v.
+        Return the linear combination of the columns of self given by
+        the coefficients in the list v.  Raise a ValueError if the
+        length of v is longer than the number of columns of the
+        matrix.
 
         INPUT:
 
@@ -2583,7 +2599,20 @@ cdef class Matrix(sage.structure.element.Matrix):
              (13/6, 95/12)
             sage: matrix(QQ,2,0).linear_combination_of_columns([])
             (0, 0)
+
+        The length of v can be less than the number of columns, but not
+        more than the number of columns::
+
+            sage: A = matrix(QQ,2,3)
+            sage: A.linear_combination_of_columns([0])
+            (0, 0)
+            sage: A.linear_combination_of_columns([1,2,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: length of v must be at most the number of columns of self
         """
+        if len(v) > self._ncols:
+            raise ValueError, "length of v must be at most the number of columns of self"
         if self._ncols == 0:
             return self.parent().column_space().zero_vector()
         from constructor import matrix

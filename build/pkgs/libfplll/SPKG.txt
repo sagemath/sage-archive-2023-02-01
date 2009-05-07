@@ -23,6 +23,11 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
+=== libfplll-3.0.11 (Michael Abshoff, May 7th, 2009) ===
+ * update to latest upstream
+ * remove Debian dist files
+ * add spkg-check script
+
 === libfplll-3.0.7 (Michael Abshoff, September 30th, 2008) ===
  * update to latest upstream. The license has changed from GPL V2+ to LGPL V2.1+
  * remove all workarounds but the dpe.h once for Solaris. The three other fixes have been upstreamed

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+INCLUDES="-I$SAGE_LOCAL/include/"
+
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
+CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
+CPPFLAGS="$INCLUDES"
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="$CFLAGS -m64"
+   CXXFLAGS="$CXXFLAGS -m64"
+   CPPFLAGS="$CPPFLAGS -m64"
+fi
+
+export CFLAGS
+export CXXFLAGS
+export CPPFLAGS
+
+cd src
+make check

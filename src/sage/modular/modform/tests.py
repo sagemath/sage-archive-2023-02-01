@@ -21,7 +21,7 @@ sage: for N in range(25,33):
 
 Another similar consistency check:
 sage: for N in range(1,26):
-...    eps = DirichletGroup(N,QQ).0
+...    eps = (N > 2 and DirichletGroup(N,QQ).0) or N
 ...    m = ModularForms(eps)
 ...    e = m.eisenstein_subspace()
 ...    f = e.hecke_polynomial(2)

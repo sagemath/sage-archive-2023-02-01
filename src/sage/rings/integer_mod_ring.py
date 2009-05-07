@@ -346,18 +346,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES::
 
             sage: Integers(5).multiplicative_subgroups()
-            [[2], [4], [1]]
+            [[2], [4], []]
             sage: Integers(15).multiplicative_subgroups()
-            [[11, 7], [11, 4], [11, 1], [1, 7], [1, 4], [1, 1]]
+            [[11, 7], [4, 11], [8], [11], [14], [7], [4], []]
+            sage: Integers(2).multiplicative_subgroups()
+            [[]]
+            sage: len(Integers(341).multiplicative_subgroups())
+            80
         """
-        from sage.rings.arith import divisors
-        from sage.misc.mrange import cartesian_product_iterator
+        from sage.groups.abelian_gps.abelian_group import AbelianGroup
+        from sage.misc.misc import mul
         U = self.unit_gens()
-        D = [divisors(u.multiplicative_order()) for u in U]
-        a = []
-        for exps in cartesian_product_iterator(D):
-           a.append([integer_ring.ZZ(U[i]**exps[i]) for i in range(len(exps))])
-        return a
+        G = AbelianGroup([x.multiplicative_order() for x in U])
+        rawsubs = G.subgroups()
+        mysubs = []
+        for G in rawsubs:
+            mysubs.append([])
+            for s in G.gens():
+                mysubs[-1].append(mul([U[i] ** s.list()[i] for i in xrange(len(U))]))
+        return mysubs
 
     def is_finite(self):
         """
@@ -455,8 +462,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def multiplicative_group_is_cyclic(self):
         """
         Return True if the multiplicative group of this field is cyclic.
-        This is the case exactly when the order is less than 8 or a power
-        of an odd prime.
+        This is the case exactly when the order is less than 8, a power
+        of an odd prime, or twice a power of an odd prime.
 
         EXAMPLES::
 
@@ -473,25 +480,23 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: Integers(25*3).multiplicative_group_is_cyclic()
             False
+
+        We test that #5250 is fixed::
+
+            sage: Integers(162).multiplicative_group_is_cyclic()
+            True
         """
         n = self.order()
         if n < 8:
             return True
-        if is_prime(n):
+
+        if n % 4 == 0:
+            return False # know n > 7, so n=4 case not a problem
+        if n % 4 == 2:
+            n = n // 2
+
+        if n.is_prime_power():
             return True
-
-        # TODO -- the implementation below uses factoring, but it doesn't
-        # need to; really it just needs to know if n is a prime power or not,
-        # which is easier than factoring.
-
-        if n.is_perfect_power():
-            F = factor(n)
-            if len(F) > 1:
-                return False
-            if F[0][0] == 2:
-                return False
-            return True
-
         else:
             return False
 
@@ -525,6 +530,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             ValueError: multiplicative group of this ring is not cyclic
             sage: Integers(25*3).unit_gens()
             [26, 52]
+            sage: Integers(162).unit_gens()
+            [83]
         """
         try:
             return self.__mult_gen
@@ -532,7 +539,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             if self.is_field():
                 a = self(self.field().multiplicative_generator())
             elif self.multiplicative_group_is_cyclic():
-                a = self.unit_gens()[0]
+                v = self.unit_gens()
+                if len(v) != 1:
+                    raise ArithmeticError
+                return v[0]
             else:
                 raise ValueError, "multiplicative group of this ring is not cyclic"
             self.__mult_gen = a
@@ -893,25 +903,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def unit_gens(self):
         r"""
-        Returns generators for the unit group
-        `(\ZZ/N\ZZ)^*`.
+        Returns generators for the unit group `(\ZZ/N\ZZ)^*`.
 
-        We compute the list of generators using a deterministic algorithm,
-        so the generators list will always be the same. Each generator
-        corresponds to a prime divisor of `N` (or possibly two
-        prime divisors for p=2).
+        We compute the list of generators using a deterministic algorithm, so
+        the generators list will always be the same. For each odd prime divisor
+        of N there will be exactly one corresponding generator; if N is even
+        there will be 0, 1 or 2 generators according to whether 2 divides N to
+        order 1, 2 or `\ge 3`.
 
-        INPUT: (none)OUTPUT:
+        INPUT: (none)
 
+        OUTPUT:
 
         -  ``list`` - a list of elements of self
-
 
         EXAMPLES::
 
             sage: R = IntegerModRing(18)
             sage: R.unit_gens()
-            [1, 11]
+            [11]
             sage: R = IntegerModRing(17)
             sage: R.unit_gens()
             [3]
@@ -930,7 +940,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             m = n/(p**r)
             for g in self.__unit_gens_primepowercase(p, r):
                 x = g.crt(integer_mod.Mod(1,m))
-                self.__unit_gens.append(x)
+                if x != 1:
+                    self.__unit_gens.append(x)
         return self.__unit_gens
 
     def unit_group_exponent(self):

@@ -1200,7 +1200,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         EXAMPLES::
 
             sage: B = ModularSymbols(DirichletGroup(6).0, 4).boundary_space() ; B
-            Boundary Modular Symbols space of level 6, weight 4, character [1, 1] and dimension 0 over Rational Field
+            Boundary Modular Symbols space of level 6, weight 4, character [-1] and dimension 0 over Rational Field
             sage: type(B)
             <class 'sage.modular.modsym.boundary.BoundarySpace_wtk_eps'>
             sage: B == loads(dumps(B))
@@ -1227,7 +1227,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         EXAMPLES::
 
             sage: ModularSymbols(DirichletGroup(6).0, 4).boundary_space()._repr_()
-            'Boundary Modular Symbols space of level 6, weight 4, character [1, 1] and dimension 0 over Rational Field'
+            'Boundary Modular Symbols space of level 6, weight 4, character [-1] and dimension 0 over Rational Field'
         """
         return ("Boundary Modular Symbols space of level %s, weight %s, character %s " + \
                 "and dimension %s over %s")%(self.level(), self.weight(),

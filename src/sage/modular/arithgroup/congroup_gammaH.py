@@ -954,7 +954,7 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLE::
 
             sage: [G.index() for G in Gamma0(40).gamma_h_subgroups()]
-            [72, 144, 288, 144, 288, 576, 144, 288, 576, 288, 576, 1152]
+            [72, 144, 144, 144, 144, 288, 288, 288, 288, 144, 288, 288, 576, 576, 144, 288, 288, 576, 576, 144, 288, 288, 576, 576, 288, 576, 1152]
         """
         from all import Gamma1
         return Gamma1(self.level()).index() / len(self._list_of_elements_in_H())
@@ -967,7 +967,7 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLE::
 
             sage: [H.nu2() for n in [1..10] for H in Gamma0(n).gamma_h_subgroups()]
-            [1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
+            [1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
             sage: GammaH(33,[2]).nu2()
             0
             sage: GammaH(5,[2]).nu2()
@@ -993,7 +993,7 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLE::
 
             sage: [H.nu3() for n in [1..10] for H in Gamma0(n).gamma_h_subgroups()]
-            [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             sage: GammaH(33,[2]).nu3()
             0
             sage: GammaH(7,[2]).nu3()

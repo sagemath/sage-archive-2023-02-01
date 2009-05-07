@@ -660,7 +660,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
             sage: m = ModularForms(Gamma0(22), 2)
             sage: v = m.eisenstein_params(); v
-            [([1, 1], [1, 1], 2), ([1, 1], [1, 1], 11), ([1, 1], [1, 1], 22)]
+            [([1], [1], 2), ([1], [1], 11), ([1], [1], 22)]
             sage: type(v)
             <class 'sage.structure.sequence.Sequence'>
         """

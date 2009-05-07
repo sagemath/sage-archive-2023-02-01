@@ -252,7 +252,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             val = self.base_ring()(1)
             for e in D:
                 if e.modulus() % 2 == 0:
-                    val *= e.values_on_gens()[0]
+                    if e.modulus() % 4 == 0:
+                        val *= e.values_on_gens()[0] # first gen is -1 for 2-power modulus
                 elif (arith.euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
                     val *= -1
             self.__value_at_minus_one = val
@@ -673,6 +674,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G(d[0])*G(d[1]) == c
             True
+
+        Conductors that are divisible by various powers of 2 present some problems as the multiplicative group modulo `2^k` is trivial for `k = 1` and non-cyclic for `k \ge 3`::
+
+            sage: (DirichletGroup(18).0).decomposition()
+            [[], [zeta6]]
+            sage: (DirichletGroup(36).0).decomposition()
+            [[-1], [1]]
+            sage: (DirichletGroup(72).0).decomposition()
+            [[-1, 1], [1]]
         """
         try:
             return self.__decomp
@@ -681,9 +691,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         D = self.parent().decomposition()
         vals = [[z] for z in self.values_on_gens()]
         R = self.base_ring()
-        if self.modulus()%8 == 0:   # 2 factors at 2.
+        if self.modulus() % 8 == 0:   # 2 factors at 2.
             vals[0].append(vals[1][0])
             del vals[1]
+        elif self.modulus() % 4 == 2: # 0 factors at 2.
+            vals = [1] + vals
         self.__decomp = [D[i](vals[i]) for i in range(len(D))]
         return self.__decomp
 
@@ -715,9 +727,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: G = DirichletGroup(30); e = G.2
+            sage: G = DirichletGroup(30); e = G.1
             sage: e.galois_orbit()
-            [[1, 1, zeta4], [1, 1, -zeta4]]
+            [[1, zeta4], [1, -zeta4]]
 
         Another example::
 
@@ -1856,9 +1868,9 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: G = DirichletGroup(6)
             sage: G._coerce_in_dirichlet_character(DirichletGroup(3).0)
-            [1, -1]
+            [-1]
             sage: G._coerce_in_dirichlet_character(DirichletGroup(15).0)
-            [1, -1]
+            [-1]
             sage: G._coerce_in_dirichlet_character(DirichletGroup(15).1)
             Traceback (most recent call last):
             ...
@@ -1989,9 +2001,12 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 #        return self._zeta.parent()
 
     def decomposition(self):
-        """
+        r"""
         Returns the Dirichlet groups of prime power modulus corresponding
         to primes dividing modulus.
+
+        (Note that if the modulus is 2 mod 4, there will be a "factor" of
+        `(\ZZ/2\ZZ)^*`, which is the trivial group.)
 
         EXAMPLES::
 

@@ -186,7 +186,7 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
 
         # now do prime by prime
         for p,e in bound.factor():
-            ptor = E._p_primary_torsion_basis(p)
+            ptor = E._p_primary_torsion_basis(p,e)
             # print p,'-primary part is ',ptor
             if len(ptor)>0:
                 T1 += ptor[0][0]

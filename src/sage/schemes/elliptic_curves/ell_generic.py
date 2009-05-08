@@ -2547,7 +2547,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     formal = formal_group
 
-    def _p_primary_torsion_basis(self,p):
+    def _p_primary_torsion_basis(self,p,m=None):
         r"""
         Find a basis for the `p`-primary part of the torsion
         subgroup of this elliptic curve.
@@ -2555,6 +2555,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         INPUT:
 
         - ``p`` (integer) -- a prime number.
+
+        - ``m`` (integer or None) -- if not None, the $p$-primary torsion will be assumed to have order at most $p^m$.
 
         OUTPUT:
 
@@ -2591,10 +2593,24 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: b=584772221603632866665682322899297141793188252000674256662071
             sage: [t[1] for t in EllipticCurve(GF(10^60+3201),[0,a,0,b,0])._p_primary_torsion_basis(2)]
             [16, 1]
+
+            sage: F.<z> = CyclotomicField(21)
+            sage: E = EllipticCurve([2,-z^7,-z^7,0,0])
+            sage: E._p_primary_torsion_basis(7,2)
+            [[(0 : z^7 : 1), 1],
+            [(z^7 - z^6 + z^4 - z^3 + z^2 - 1 : z^8 - 2*z^7 + z^6 + 2*z^5 - 3*z^4 + 2*z^3 - 2*z + 2 : 1),
+            1]]
         """
         p = rings.Integer(p)
         if not p.is_prime():
             raise ValueError, "p (=%s) should be prime"%p
+
+        if m is None:
+            from sage.rings.infinity import Infinity
+            m = Infinity
+
+        if m == 0:
+            return []
 
         # First find the p-torsion:
         Ep = self(0).division_points(p)
@@ -2610,10 +2626,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             P = Ep[0]
             if P.is_zero(): P=Ep[1]
             k = 1
+            if m==1:
+                return [[P,k]]
             pts = P.division_points(p) # length 0 or p
             while len(pts)>0:
                 k += 1
                 P = pts[0]
+                if m<=k:
+                    return [[P,k]]
                 pts = P.division_points(p)
             # now P generates the p-power-torsion and has order p^k
             return [[P,k]]
@@ -2628,12 +2648,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
 
         k = 1
+        log_order = 2
+        if m<=log_order:
+            return [[P1,1],[P2,1]]
+
         pts1 = P1.division_points(p)
         pts2 = P2.division_points(p)
         while len(pts1)>0 and len(pts2)>0:
             k += 1
             P1 = pts1[0]
             P2 = pts2[0]
+            log_order += 2
+            if m<=log_order:
+                return [[P1,k],[P2,k]]
             pts1 = P1.division_points(p)
             pts2 = P2.division_points(p)
 
@@ -2652,13 +2679,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         elif len(pts2) > 0:
             P1, P2 = P2, P1
             pts = pts2
+        else:
+            for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
+                # Q runs through P1+a*P2 for a=1,2,...,p-1
+                pts = Q.division_points(p)
+                if len(pts) > 0:
+                    P1 = Q
+                    break
 
-        for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):
-            # Q runs through P1+a*P2 for a=1,2,...,p-1
-            pts = Q.division_points(p)
-            if len(pts) > 0:
-                P1 = Q
-                break
         if len(pts)==0:
             return [[P1,k],[P2,k]]
 
@@ -2678,6 +2706,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         while True:
             P1=pts[0]
             n += 1
+            log_order += 1
+            if m<=log_order:
+                return [[P1,n],[P2,k]]
             pts = P1.division_points(p)
             if len(pts)==0:
                 for Q in generic.multiples(P2,p-1,P1+P2,operation='+'):

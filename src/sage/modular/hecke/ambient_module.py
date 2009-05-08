@@ -406,9 +406,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def dual_free_module(self):
         r"""
-        The free module dual to self, as a submodule of the dual module of the
-        ambient space. As this space is ambient anyway, this just returns
-        self.free_module().
+        The free module dual to self, as a submodule of the dual
+        module of the ambient space. As this space is ambient anyway,
+        this just returns self.free_module().
 
         EXAMPLE::
 
@@ -421,8 +421,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def fcp(self, n, var='x'):
         """
-        Returns the factorization of the characteristic polynomial of the Hecke
-        operator `T_n` of index `n` acting on this space.
+        Returns the factorization of the characteristic polynomial of
+        the Hecke operator `T_n` of index `n` acting on this space.
 
         INPUT:
 
@@ -600,9 +600,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def is_full_hecke_module(self, compute=True):
         """
-        Returns True if this space is invariant under the action of all
-        Hecke operators, even those that divide the level. This is always true
-        for ambient Hecke modules, so return True.
+        Returns True if this space is invariant under the action of
+        all Hecke operators, even those that divide the level. This is
+        always true for ambient Hecke modules, so return True.
 
         EXAMPLE::
 

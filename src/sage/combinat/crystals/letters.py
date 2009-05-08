@@ -6,6 +6,7 @@ Crystals of letters
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
 #                          Nicolas Thiery <nthiery at users.sf.net>
 #                          Daniel Bump    <bump at match.stanford.edu>
+#                          Brant Jones    <brant at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,11 +20,12 @@ Crystals of letters
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
 
-def CrystalOfLetters(cartan_type):
+def CrystalOfLetters(cartan_type, element_print_style = None, dual = None):
     r"""
     Returns the crystal of letters of the given type.
 
@@ -55,28 +57,50 @@ def CrystalOfLetters(cartan_type):
         [1, 2, 3, 4, 5, 6]
 	sage: C.cartan_type()
 	['A', 5]
+
+    For type E6, one can also specify how elements are printed.
+    This option is usually set to None and the default representation is used.
+    If one chooses the option 'compact', the elements are printed in the more
+    compact convention with 27 letters +abcdefghijklmnopqrstuvwxyz and
+    the 27 letters -ABCDEFGHIJKLMNOPQRSTUVWXYZ for the dual crystal.
+
+    EXAMPLES::
+
+        sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
+	sage: C.list()
+	[+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+        sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
+	sage: C.list()
+	[-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
     """
     ct = CartanType(cartan_type)
-    if ct[0] == 'A':
+    if ct.letter == 'A':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_A_element)
-    elif ct[0] == 'B':
+    elif ct.letter == 'B':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_B_element)
-    elif ct[0] == 'C':
+    elif ct.letter == 'C':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_C_element)
-    elif ct[0] == 'D':
+    elif ct.letter == 'D':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_D_element)
-    elif ct[0] == 'G':
+    elif ct.letter == 'E' and ct[1] == 6:
+	if dual is None:
+	    return ClassicalCrystalOfLetters(ct,
+					     Crystal_of_letters_type_E6_element, element_print_style)
+	else:
+	    return ClassicalCrystalOfLetters(ct,
+					     Crystal_of_letters_type_E6_element_dual, element_print_style, dual = True)
+    elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct,
                                          Crystal_of_letters_type_G_element)
     else:
         raise NotImplementedError
 
 
-class ClassicalCrystalOfLetters(ClassicalCrystal):
+class ClassicalCrystalOfLetters(UniqueRepresentation, ClassicalCrystal):
     r"""
     A generic class for classical crystals of letters.
 
@@ -93,7 +117,7 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
     transitive closure, so as to make the following operations constant
     time: list, cmp, (todo: phi, epsilon, e, f with caching)
     """
-    def __init__(self, cartan_type, element_class):
+    def __init__(self, cartan_type, element_class, element_print_style = None, dual = None):
         """
         EXAMPLES::
 
@@ -104,8 +128,16 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
         self._cartan_type = CartanType(cartan_type)
         self._name = "The crystal of letters for type %s"%cartan_type
         self.element_class = element_class
-        self.module_generators = [self(1)]
+	if cartan_type == CartanType(['E',6]):
+            if dual:
+                self.module_generators = [self([6])]
+                self._ambient = CrystalOfLetters(CartanType(['E',6]))
+            else:
+                self.module_generators = [self([1])]
+       	else:
+	    self.module_generators = [self(1)]
         self._list = ClassicalCrystal.list(self)
+	self._element_print_style = element_print_style
         self._digraph = ClassicalCrystal.digraph(self)
         self._digraph_closure = self.digraph().transitive_closure()
 
@@ -826,3 +858,413 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
                 return None
 
 
+#########################
+# Type E6
+#########################
+
+class Crystal_of_letters_type_E6_element(Letter, CrystalElement):
+    r"""
+    Type `E_6` crystal of letters elements. This crystal corresponds to the highest weight
+    crystal `B(\Lambda_1)`.
+
+    TESTS::
+
+        sage: C = CrystalOfLetters(['E',6])
+	sage: C.module_generators
+	[[1]]
+	sage: C.list()
+	[[1], [-1, 3], [-3, 4], [-4, 2, 5], [-2, 5], [-5, 2, 6], [-2, -5, 4, 6],
+	[-4, 3, 6], [-3, 1, 6], [-1, 6], [-6, 2], [-2, -6, 4], [-4, -6, 3, 5],
+	[-3, -6, 1, 5], [-1, -6, 5], [-5, 3], [-3, -5, 1, 4], [-1, -5, 4], [-4, 1, 2],
+	[-1, -4, 2, 3], [-3, 2], [-2, -3, 4], [-4, 5], [-5, 6], [-6], [-2, 1], [-1, -2, 3]]
+        sage: C.check()
+        True
+	sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
+	True
+	sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
+	True
+	sage: G = C.digraph()
+	sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
+    """
+
+    def __repr__(self):
+	"""
+	In their full representation, the vertices of this crystal are labeled
+	by their weight. For example vertex [-5,2,6] indicates that a 5-arrow
+	is coming into this vertex, and a 2-arrow and 6-arrow is leaving the vertex.
+	Specifying element_print_style = 'compact' for a given crystal C, labels the
+	vertices of this crystal by the 27 letters +abcdefghijklmnopqrstuvwxyz.
+
+	EXAMPLES::
+
+            sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact')
+	    sage: C.list()
+	    [+, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+        """
+	if self.parent()._element_print_style == 'compact':
+	    l=['+','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+	    return l[self.parent().list().index(self)]
+	return "%s"%self.value
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES::
+
+            sage: [v.weight() for v in CrystalOfLetters(['E',6])]
+	    [(0, 0, 0, 0, 0, -2/3, -2/3, 2/3),
+	    (-1/2, 1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+	    (1/2, -1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+	    (1/2, 1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+	    (-1/2, -1/2, -1/2, 1/2, 1/2, -1/6, -1/6, 1/6),
+	    (1/2, 1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+	    (-1/2, -1/2, 1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+	    (-1/2, 1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+	    (1/2, -1/2, -1/2, -1/2, 1/2, -1/6, -1/6, 1/6),
+	    (0, 0, 0, 0, 1, 1/3, 1/3, -1/3),
+	    (1/2, 1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+	    (-1/2, -1/2, 1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+	    (-1/2, 1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+	    (1/2, -1/2, -1/2, 1/2, -1/2, -1/6, -1/6, 1/6),
+	    (0, 0, 0, 1, 0, 1/3, 1/3, -1/3),
+	    (-1/2, 1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+	    (1/2, -1/2, 1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+	    (0, 0, 1, 0, 0, 1/3, 1/3, -1/3),
+	    (1/2, 1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+	    (0, 1, 0, 0, 0, 1/3, 1/3, -1/3),
+	    (1, 0, 0, 0, 0, 1/3, 1/3, -1/3),
+	    (0, -1, 0, 0, 0, 1/3, 1/3, -1/3),
+	    (0, 0, -1, 0, 0, 1/3, 1/3, -1/3),
+	    (0, 0, 0, -1, 0, 1/3, 1/3, -1/3),
+	    (0, 0, 0, 0, -1, 1/3, 1/3, -1/3),
+	    (-1/2, -1/2, -1/2, -1/2, -1/2, -1/6, -1/6, 1/6),
+	    (-1, 0, 0, 0, 0, 1/3, 1/3, -1/3)]
+        """
+	R=self.parent().weight_lattice_realization().fundamental_weights()
+	return sum(cmp(i,0)*R[abs(i)] for i in self.value)
+
+    def e(self, i):
+        r"""
+        Returns the action of `e_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6])
+	    sage: C([-1,3]).e(1)
+	    [1]
+	    sage: C([-2,-3,4]).e(2)
+	    [-3, 2]
+	    sage: C([1]).e(1)
+        """
+        assert i in self.index_set()
+
+        if self.value == [-1, 3] and i == 1:
+            return self.parent()([1])
+        if self.value == [-3, 4] and i == 3:
+            return self.parent()([-1, 3])
+        if self.value == [-4, 2, 5] and i == 4:
+            return self.parent()([-3, 4])
+        if self.value == [-5, 2, 6] and i == 5:
+            return self.parent()([-4, 2, 5])
+        if self.value == [-2, 5] and i == 2:
+            return self.parent()([-4, 2, 5])
+        if self.value == [-6, 2] and i == 6:
+            return self.parent()([-5, 2, 6])
+        if self.value == [-2, -5, 4, 6] and i == 2:
+            return self.parent()([-5, 2, 6])
+        if self.value == [-2, -6, 4] and i == 2:
+            return self.parent()([-6, 2])
+        if self.value == [-2, -5, 4, 6] and i == 5:
+            return self.parent()([-2, 5])
+        if self.value == [-2, -6, 4] and i == 6:
+            return self.parent()([-2, -5, 4, 6])
+        if self.value == [-4, 3, 6] and i == 4:
+            return self.parent()([-2, -5, 4, 6])
+        if self.value == [-4, -6, 3, 5] and i == 4:
+            return self.parent()([-2, -6, 4])
+        if self.value == [-4, -6, 3, 5] and i == 6:
+            return self.parent()([-4, 3, 6])
+        if self.value == [-3, 1, 6] and i == 3:
+            return self.parent()([-4, 3, 6])
+        if self.value == [-5, 3] and i == 5:
+            return self.parent()([-4, -6, 3, 5])
+        if self.value == [-3, -6, 1, 5] and i == 3:
+            return self.parent()([-4, -6, 3, 5])
+        if self.value == [-3, -5, 1, 4] and i == 3:
+            return self.parent()([-5, 3])
+        if self.value == [-3, -6, 1, 5] and i == 6:
+            return self.parent()([-3, 1, 6])
+        if self.value == [-1, 6] and i == 1:
+            return self.parent()([-3, 1, 6])
+        if self.value == [-3, -5, 1, 4] and i == 5:
+            return self.parent()([-3, -6, 1, 5])
+        if self.value == [-1, -6, 5] and i == 1:
+            return self.parent()([-3, -6, 1, 5])
+        if self.value == [-4, 1, 2] and i == 4:
+            return self.parent()([-3, -5, 1, 4])
+        if self.value == [-1, -5, 4] and i == 1:
+            return self.parent()([-3, -5, 1, 4])
+        if self.value == [-2, 1] and i == 2:
+            return self.parent()([-4, 1, 2])
+        if self.value == [-1, -4, 2, 3] and i == 1:
+            return self.parent()([-4, 1, 2])
+        if self.value == [-1, -2, 3] and i == 1:
+            return self.parent()([-2, 1])
+        if self.value == [-1, -6, 5] and i == 6:
+            return self.parent()([-1, 6])
+        if self.value == [-1, -5, 4] and i == 5:
+            return self.parent()([-1, -6, 5])
+        if self.value == [-1, -4, 2, 3] and i == 4:
+            return self.parent()([-1, -5, 4])
+        if self.value == [-1, -2, 3] and i == 2:
+            return self.parent()([-1, -4, 2, 3])
+        if self.value == [-3, 2] and i == 3:
+            return self.parent()([-1, -4, 2, 3])
+        if self.value == [-2, -3, 4] and i == 3:
+            return self.parent()([-1, -2, 3])
+        if self.value == [-2, -3, 4] and i == 2:
+            return self.parent()([-3, 2])
+        if self.value == [-4, 5] and i == 4:
+            return self.parent()([-2, -3, 4])
+        if self.value == [-5, 6] and i == 5:
+            return self.parent()([-4, 5])
+        if self.value == [-6] and i == 6:
+            return self.parent()([-5, 6])
+
+        else:
+            return None
+
+    def f(self, i):
+        r"""
+        Returns the action of `f_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6])
+	    sage: C([1]).f(1)
+	    [-1, 3]
+	    sage: C([-6]).f(1)
+        """
+        assert i in self.index_set()
+
+        if self.value == [1] and i == 1:
+            return self.parent()([-1, 3])
+        if self.value == [-1, 3] and i == 3:
+            return self.parent()([-3, 4])
+        if self.value == [-3, 4] and i == 4:
+            return self.parent()([-4, 2, 5])
+        if self.value == [-4, 2, 5] and i == 5:
+            return self.parent()([-5, 2, 6])
+        if self.value == [-4, 2, 5] and i == 2:
+            return self.parent()([-2, 5])
+        if self.value == [-5, 2, 6] and i == 6:
+            return self.parent()([-6, 2])
+        if self.value == [-5, 2, 6] and i == 2:
+            return self.parent()([-2, -5, 4, 6])
+        if self.value == [-6, 2] and i == 2:
+            return self.parent()([-2, -6, 4])
+        if self.value == [-2, 5] and i == 5:
+            return self.parent()([-2, -5, 4, 6])
+        if self.value == [-2, -5, 4, 6] and i == 6:
+            return self.parent()([-2, -6, 4])
+        if self.value == [-2, -5, 4, 6] and i == 4:
+            return self.parent()([-4, 3, 6])
+        if self.value == [-2, -6, 4] and i == 4:
+            return self.parent()([-4, -6, 3, 5])
+        if self.value == [-4, 3, 6] and i == 6:
+            return self.parent()([-4, -6, 3, 5])
+        if self.value == [-4, 3, 6] and i == 3:
+            return self.parent()([-3, 1, 6])
+        if self.value == [-4, -6, 3, 5] and i == 5:
+            return self.parent()([-5, 3])
+        if self.value == [-4, -6, 3, 5] and i == 3:
+            return self.parent()([-3, -6, 1, 5])
+        if self.value == [-5, 3] and i == 3:
+            return self.parent()([-3, -5, 1, 4])
+        if self.value == [-3, 1, 6] and i == 6:
+            return self.parent()([-3, -6, 1, 5])
+        if self.value == [-3, 1, 6] and i == 1:
+            return self.parent()([-1, 6])
+        if self.value == [-3, -6, 1, 5] and i == 5:
+            return self.parent()([-3, -5, 1, 4])
+        if self.value == [-3, -6, 1, 5] and i == 1:
+            return self.parent()([-1, -6, 5])
+        if self.value == [-3, -5, 1, 4] and i == 4:
+            return self.parent()([-4, 1, 2])
+        if self.value == [-3, -5, 1, 4] and i == 1:
+            return self.parent()([-1, -5, 4])
+        if self.value == [-4, 1, 2] and i == 2:
+            return self.parent()([-2, 1])
+        if self.value == [-4, 1, 2] and i == 1:
+            return self.parent()([-1, -4, 2, 3])
+        if self.value == [-2, 1] and i == 1:
+            return self.parent()([-1, -2, 3])
+        if self.value == [-1, 6] and i == 6:
+            return self.parent()([-1, -6, 5])
+        if self.value == [-1, -6, 5] and i == 5:
+            return self.parent()([-1, -5, 4])
+        if self.value == [-1, -5, 4] and i == 4:
+            return self.parent()([-1, -4, 2, 3])
+        if self.value == [-1, -4, 2, 3] and i == 2:
+            return self.parent()([-1, -2, 3])
+        if self.value == [-1, -4, 2, 3] and i == 3:
+            return self.parent()([-3, 2])
+        if self.value == [-1, -2, 3] and i == 3:
+            return self.parent()([-2, -3, 4])
+        if self.value == [-3, 2] and i == 2:
+            return self.parent()([-2, -3, 4])
+        if self.value == [-2, -3, 4] and i == 4:
+            return self.parent()([-4, 5])
+        if self.value == [-4, 5] and i == 5:
+            return self.parent()([-5, 6])
+        if self.value == [-5, 6] and i == 6:
+            return self.parent()([-6])
+
+        else:
+            return None
+
+class Crystal_of_letters_type_E6_element_dual(Letter, CrystalElement):
+    r"""
+    Type `E_6` crystal of letters elements. This crystal corresponds to the highest weight
+    crystal `B(\Lambda_6)`. This crystal is dual to `B(\Lambda_1)` of type `E_6`.
+
+    TESTS::
+
+        sage: C = CrystalOfLetters(['E',6], dual = True)
+	sage: C.module_generators
+	[[6]]
+	sage: all(b==b.retract(b.lift()) for b in C)
+	True
+	sage: C.list()
+	[[6], [5, -6], [4, -5], [2, 3, -4], [3, -2], [1, 2, -3], [2, -1], [1, 4, -2, -3],
+	[4, -1, -2], [1, 5, -4], [3, 5, -1, -4], [5, -3], [1, 6, -5], [3, 6, -1, -5], [4, 6, -3, -5],
+	[2, 6, -4], [6, -2], [1, -6], [3, -1, -6], [4, -3, -6], [2, 5, -4, -6], [5, -2, -6], [2, -5],
+	[4, -2, -5], [3, -4], [1, -3], [-1]]
+        sage: C.check()
+        True
+	sage: all(b.f(i).e(i) == b for i in C.index_set() for b in C if b.f(i) is not None)
+	True
+	sage: all(b.e(i).f(i) == b for i in C.index_set() for b in C if b.e(i) is not None)
+	True
+	sage: G = C.digraph()
+	sage: G.show(edge_labels=true, figsize=12, vertex_size=1)
+    """
+
+    def __repr__(self):
+	"""
+	In their full representation, the vertices of this crystal are labeled
+	by their weight. For example vertex [-2,1] indicates that a 2-arrow
+	is coming into this vertex, and a 1-arrow is leaving the vertex.
+	Specifying the option element_print_style = 'compact' for a given crystal C,
+	labels the vertices of this crystal by the 27 letters -ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+	EXAMPLES::
+
+            sage: C = CrystalOfLetters(['E',6], element_print_style = 'compact', dual = True)
+	    sage: C.list()
+	    [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+	    """
+	if self.parent()._element_print_style == 'compact':
+	    l=['-','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+	    return l[self.parent().list().index(self)]
+	return "%s"%self.value
+
+    def lift(self):
+	"""
+	Lifts an element of self to the crystal of letters CrystalOfLetters(['E',6])
+	by taking its inverse weight.
+
+	EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6], dual = True)
+	    sage: b=C.module_generators[0]
+	    sage: b.lift()
+	    [-6]
+	"""
+	return self.parent()._ambient([-i for i in self.value])
+
+    def retract(self, p):
+	"""
+	Retracts element p, which is an element in CrystalOfLetters(['E',6]) to
+	an element in CrystalOfLetters(['E',6], dual = True) by taking its inverse weight.
+
+	EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6])
+	    sage: Cd = CrystalOfLetters(['E',6], dual = True)
+	    sage: b = Cd.module_generators[0]
+	    sage: p = C([-1,3])
+	    sage: b.retract(p)
+	    [1, -3]
+	    sage: b.retract(None)
+	"""
+	if p is None:
+	    return None
+	return self.parent()([-i for i in p.value])
+
+    def e(self, i):
+        r"""
+        Returns the action of `e_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6], dual = True)
+	    sage: C([-1]).e(1)
+	    [1, -3]
+        """
+	return self.retract(self.lift().f(i))
+
+    def f(self, i):
+        r"""
+        Returns the action of `f_i` on self.
+
+        EXAMPLES::
+
+	    sage: C = CrystalOfLetters(['E',6], dual = True)
+	    sage: C([6]).f(6)
+	    [5, -6]
+	    sage: C([6]).f(1)
+        """
+	return self.retract(self.lift().e(i))
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['E',6], dual = True)
+	    sage: b=C.module_generators[0]
+	    sage: b.weight()
+	    (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
+            sage: [v.weight() for v in C]
+	    [(0, 0, 0, 0, 1, -1/3, -1/3, 1/3),
+	    (0, 0, 0, 1, 0, -1/3, -1/3, 1/3),
+	    (0, 0, 1, 0, 0, -1/3, -1/3, 1/3),
+	    (0, 1, 0, 0, 0, -1/3, -1/3, 1/3),
+	    (-1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
+	    (1, 0, 0, 0, 0, -1/3, -1/3, 1/3),
+	    (1/2, 1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+	    (0, -1, 0, 0, 0, -1/3, -1/3, 1/3),
+	    (-1/2, -1/2, 1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+	    (0, 0, -1, 0, 0, -1/3, -1/3, 1/3),
+	    (-1/2, 1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+	    (1/2, -1/2, -1/2, 1/2, 1/2, 1/6, 1/6, -1/6),
+	    (0, 0, 0, -1, 0, -1/3, -1/3, 1/3),
+	    (-1/2, 1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+	    (1/2, -1/2, 1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+	    (1/2, 1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+	    (-1/2, -1/2, -1/2, -1/2, 1/2, 1/6, 1/6, -1/6),
+	    (0, 0, 0, 0, -1, -1/3, -1/3, 1/3),
+	    (-1/2, 1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+	    (1/2, -1/2, 1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+	    (1/2, 1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+	    (-1/2, -1/2, -1/2, 1/2, -1/2, 1/6, 1/6, -1/6),
+	    (1/2, 1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+	    (-1/2, -1/2, 1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+	    (-1/2, 1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+	    (1/2, -1/2, -1/2, -1/2, -1/2, 1/6, 1/6, -1/6),
+	    (0, 0, 0, 0, 0, 2/3, 2/3, -2/3)]
+        """
+	return -self.lift().weight()

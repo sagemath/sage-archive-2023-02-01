@@ -11,6 +11,7 @@ Modular Forms over a Non-minimal Base Ring
 #########################################################################
 
 import ambient
+from cuspidal_submodule import CuspidalSubmodule_R
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
     def __init__(self, M, base_ring):
@@ -62,3 +63,14 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         R = self._q_expansion_ring()
         return [R(f) for f in B]
 
+    def cuspidal_submodule(self):
+        r"""
+        Return the cuspidal subspace of this space.
+
+        EXAMPLE::
+
+            sage: C = CuspForms(7, 4, base_ring=CyclotomicField(5)) # indirect doctest
+            sage: type(C)
+            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_R'>
+        """
+        return CuspidalSubmodule_R(self)

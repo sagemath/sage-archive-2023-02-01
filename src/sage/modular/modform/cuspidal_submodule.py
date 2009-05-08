@@ -164,6 +164,22 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         self.__modular_symbols[sign] = S
         return S
 
+class CuspidalSubmodule_R(CuspidalSubmodule):
+    """
+    Cuspidal submodule over a non-minimal base ring.
+    """
+    def _compute_q_expansion_basis(self, prec):
+        r"""
+        EXAMPLE::
+
+            sage: CuspForms(Gamma1(13), 2, base_ring=QuadraticField(-7, 'a')).q_expansion_basis() # indirect doctest
+            [
+            q - 4*q^3 - q^4 + 3*q^5 + O(q^6),
+            q^2 - 2*q^3 - q^4 + 2*q^5 + O(q^6)
+            ]
+        """
+        return submodule.ModularFormsSubmodule._compute_q_expansion_basis(self, prec)
+
 class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
     """
     Cuspidal submodule with q-expansions calculated via modular symbols.

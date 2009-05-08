@@ -23,7 +23,9 @@ class GraphicPrimitive(SageObject):
     themselves in 2d.
 
     EXAMPLES:
-    We create an object that derives from GraphicPrimitive:
+
+    We create an object that derives from GraphicPrimitive::
+
         sage: P = line([(-1,-2), (3,5)])
         sage: P[0]
         Line defined by 2 points
@@ -36,7 +38,9 @@ class GraphicPrimitive(SageObject):
         set the options.
 
         EXAMPLES:
-        We indirectly test this function.
+
+        We indirectly test this function::
+
             sage: from sage.plot.primitive import GraphicPrimitive
             sage: GraphicPrimitive({})
             Graphics primitive
@@ -49,9 +53,11 @@ class GraphicPrimitive(SageObject):
         Return the allowed options for a graphics primitive.
 
         OUTPUT:
-            -- a reference to a dictionary.
 
-        EXAMPLES:
+            - a reference to a dictionary.
+
+        EXAMPLES::
+
             sage: from sage.plot.primitive import GraphicPrimitive
             sage: GraphicPrimitive({})._allowed_options()
             {}
@@ -59,11 +65,35 @@ class GraphicPrimitive(SageObject):
         return {}
 
     def plot3d(self, **kwds):
-        raise NotImplementedError, "3d plotting not implemented for %s" % type(self)
+        """
+        Plots 3D version of 2D graphics object.  Not implemented
+        for base class.
+
+        EXAMPLES::
+
+            sage: from sage.plot.primitive import GraphicPrimitive
+            sage: G=GraphicPrimitive({})
+            sage: G.plot3d()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: 3d plotting not implemented for Graphics primitive
+        """
+        raise NotImplementedError, "3d plotting not implemented for %s" % self._repr_()
 
     def _plot3d_options(self, options=None):
         """
         Translate 2d plot options into 3d plot options.
+
+        EXAMPLES::
+
+            sage: P = line([(-1,-2), (3,5)], alpha=.5, thickness=4)
+            sage: p = P[0]; p
+            Line defined by 2 points
+            sage: q=p.plot3d()
+            sage: q.thickness
+            4
+            sage: q.texture.opacity
+            0.500000000000000
         """
         if options == None:
             options = self.options()
@@ -79,6 +109,24 @@ class GraphicPrimitive(SageObject):
         return options_3d
 
     def set_zorder(self, zorder):
+        """
+        Set the layer in which to draw the object.
+
+        EXAMPLES::
+
+            sage: P = line([(-2,-3), (3,4)], thickness=4)
+            sage: p=P[0]
+            sage: p.set_zorder(2)
+            sage: p.options()['zorder']
+            2
+            sage: Q = line([(-2,-4), (3,5)], thickness=4,zorder=1,hue=.5)
+            sage: P+Q # blue line on top
+            sage: q=Q[0]
+            sage: q.set_zorder(3)
+            sage: P+Q # teal line on top
+            sage: q.options()['zorder']
+            3
+        """
         self.__options['zorder'] = zorder
 
     def options(self):
@@ -88,7 +136,8 @@ class GraphicPrimitive(SageObject):
         By default this function verifies that the options are all
         valid; if any aren't a verbose message is printed with level 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.primitive import GraphicPrimitive
             sage: GraphicPrimitive({}).options()
             {}
@@ -125,7 +174,8 @@ class GraphicPrimitive(SageObject):
         """
         String representation of this graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.primitive import GraphicPrimitive
             sage: GraphicPrimitive({})._repr_()
             'Graphics primitive'
@@ -139,18 +189,23 @@ class GraphicPrimitive_xydata(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: d = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))[0].get_minmax_data()
             sage: d['ymin']
             0.0
             sage: d['xmin']
             1.0
 
+        ::
+
             sage: d = point((3, 3), rgbcolor=hue(0.75))[0].get_minmax_data()
             sage: d['xmin']
             3.0
             sage: d['ymin']
             3.0
+
+        ::
 
             sage: l = line([(100, 100), (120, 120)])[0]
             sage: d = l.get_minmax_data()

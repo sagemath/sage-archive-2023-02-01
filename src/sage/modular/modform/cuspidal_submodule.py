@@ -38,8 +38,9 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-from sage.rings.all import Integer
+from sage.rings.all import Integer, PowerSeriesRing
 from sage.misc.all import verbose
+from sage.matrix.all import Matrix
 
 import submodule
 import vm_basis
@@ -230,29 +231,42 @@ class CuspidalSubmodule_g1_Q(CuspidalSubmodule_modsym_qexp):
             [  1 -10  18]
             [  0  -4   8]
         """
-        from sage.matrix.constructor import Matrix
-        QQ = self.base_ring()
-        r = self.sturm_bound()
+        # compute the associated modular symbols space
         symbs = self.modular_symbols(sign=1)
         T = symbs.hecke_matrix(n)
-        X = QQ**r
+        d = symbs.rank()
+
+        # create a vector space of appropriate dimension to
+        # contain our q-expansions
+        A = self.base_ring()
+        r = self.sturm_bound()
+        X = A**r
         Y = X.zero_submodule()
         basis = []
         basis_images = []
-        d = symbs.rank()
+
+        # we repeatedly use these matrices below, so we store them
+        # once as lists to save time.
+        hecke_matrix_ls = [ symbs.hecke_matrix(m).list() for m in range(1,r+1) ]
+        hecke_image_ls = [ (T*symbs.hecke_matrix(m)).list() for m in range(1,r+1) ]
+
+        # compute the q-expansions of some cusp forms and their
+        # images under T_n
         for i in xrange(d**2):
-            v = X([symbs.hecke_matrix(m)[i // d][i % d] for m in xrange(1, r+1)])
+            v = X([ hecke_matrix_ls[m][i] for m in xrange(r) ])
             Ynew = Y.span(Y.basis() + [v])
             if Ynew.rank() > Y.rank():
                 basis.append(v)
-                basis_images.append(X([(T*symbs.hecke_matrix(m))[i // d][i % d] for m in xrange(1, 1+r)]))
+                basis_images.append(X([ hecke_image_ls[m][i] for m in xrange(r) ]))
                 Y = Ynew
                 if len(basis) == d: break
-        # now can reconstruct the basis
+
+        # now we can compute the matrix of T_n
         bigmat = Matrix(basis).augment(Matrix(basis_images))
         bigmat.echelonize()
         pivs = bigmat.pivots()
-        return Matrix(QQ, d, d, [bigmat[i][r + pivs[j]] for i in xrange(d) for j in xrange(d)])
+        return bigmat.matrix_from_rows_and_columns(range(d), [ r+x for x in pivs ])
+
 
 class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
     """

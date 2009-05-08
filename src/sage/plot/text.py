@@ -19,22 +19,75 @@ from sage.plot.misc import options, rename_keyword, to_mpl_color
 
 class Text(GraphicPrimitive):
     """
-    Text graphics primitive.
+    Base class for Text graphics primitive.
+
+    TESTS:
+
+    We test creating some text::
+
+        sage: text("I like Fibonacci",(3,5))
     """
     def __init__(self, string, point, options):
+        """
+        Initializes base class Text.
+
+        EXAMPLES::
+
+            sage: T = text("I like Fibonacci", (3,5))
+            sage: t = T[0]
+            sage: t.string
+            'I like Fibonacci'
+            sage: t.x
+            3.0
+            sage: t.options()['fontsize']
+            10
+        """
         self.string = string
         self.x = float(point[0])
         self.y = float(point[1])
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
+        """
+        Returns a dictionary with the bounding box data. Notice
+        that, for text, the box is just the location itself.
+
+        EXAMPLES::
+
+            sage: T = text("Where am I?",(1,1))
+            sage: t=T[0]
+            sage: t.get_minmax_data()['ymin']
+            1.0
+            sage: t.get_minmax_data()['ymax']
+            1.0
+        """
         from sage.plot.plot import minmax_data
         return minmax_data([self.x], [self.y], dict=True)
 
     def _repr_(self):
-        return "Text %s at the point (%s,%s)"%(self.string, self.x, self.y)
+        """
+        String representation of Text primitive.
+
+        EXAMPLES::
+
+            sage: T = text("I like cool constants", (pi,e))
+            sage: t=T[0];t
+            Text 'I like cool constants' at the point (3.14159265359,2.71828182846)
+        """
+        return "Text '%s' at the point (%s,%s)"%(self.string, self.x, self.y)
 
     def _allowed_options(self):
+        """
+        Return the allowed options for the Text class.
+
+        EXAMPLES::
+
+            sage: T = text("ABC",(1,1),zorder=3)
+            sage: T[0]._allowed_options()['fontsize']
+            'How big the text is.'
+            sage: T[0]._allowed_options()['zorder']
+            'The layer level in which to draw'
+        """
         return {'fontsize': 'How big the text is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.',
@@ -44,6 +97,19 @@ class Text(GraphicPrimitive):
                 'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
+        """
+        Translate 2d plot options into 3d plot options.
+
+        EXAMPLES::
+
+            sage: T = text("ABC",(1,1))
+            sage: t = T[0]
+            sage: t.options()['rgbcolor']
+            (0.0, 0.0, 1.0)
+            sage: s=t.plot3d()
+            sage: s.jmol_repr(s.testing_render_params())[0][1]
+            'color atom  [0,0,255]'
+        """
         if options == None:
             options = dict(self.options())
         options_3d = {}
@@ -54,16 +120,38 @@ class Text(GraphicPrimitive):
             del options['vertical_alignment']
         if 'horizontal_alignment' in options:
             del options['horizontal_alignment']
+        if 'axis_coords' in options:
+            del options['axis_coords']
         options_3d.update(GraphicPrimitive._plot3d_options(self, options))
         return options_3d
 
     def plot3d(self, **kwds):
+        """
+        Plots 2D text in 3D.
+
+        EXAMPLES::
+
+            sage: T = text("ABC",(1,1))
+            sage: t = T[0]
+            sage: s=t.plot3d()
+            sage: s.jmol_repr(s.testing_render_params())[0][2]
+            'label "ABC"'
+            sage: s._trans
+            (1.0, 1.0, 0)
+        """
         from sage.plot.plot3d.shapes2 import text3d
         options = self._plot3d_options()
         options.update(kwds)
         return text3d(self.string, (self.x, self.y, 0), **options)
 
     def _render_on_subplot(self, subplot):
+        """
+        TESTS::
+
+            sage: t1 = text("Hello",(1,1), vertical_alignment="top", fontsize=30, rgbcolor='black')
+            sage: t2 = text("World", (1,1), horizontal_alignment="left",fontsize=20, zorder=-1)
+            sage: t1 + t2   # render the sum
+        """
         options = self.options()
         opts = {}
         opts['color'] = options['rgbcolor']
@@ -81,39 +169,50 @@ class Text(GraphicPrimitive):
          vertical_alignment='center', axis_coords=False)
 def text(string, xy, **options):
     r"""
-    Returns a 2d text graphics object at the point $(x,y)$.
+    Returns a 2d text graphics object at the point `(x,y)`.
 
-    Type \code{text.options} for a dictionary of options for 2d text.
+    Type ``text.options`` for a dictionary of options for 2d text.
 
     2D OPTIONS:
-        fontsize -- How big the text is
-        rgbcolor -- The color as an rgb tuple
-        hue -- The color given as a hue
-        vertical_alignment -- how to align vertically: top, center, bottom
-        horizontal_alignment -- how to align horizontally: left, center, right
-        axis_coords -- (default: False) if True, use axis coordinates, so that
-                       (0,0) is the lower left and (1,1) upper right, irregardless
-                       of the x and y range of plotted values.
 
-    EXAMPLES:
-    Some text:
+    - ``fontsize`` - How big the text is
+
+    - ``rgbcolor`` - The color as an rgb tuple
+
+    - ``hue`` - The color given as a hue
+
+    - ``vertical_alignment`` - how to align vertically: top, center, bottom
+
+    - ``horizontal_alignment`` - how to align horizontally: left, center, right
+
+    - ``axis_coords`` - (default: False) if True, use axis coordinates, so that
+      (0,0) is the lower left and (1,1) upper right, regardless of the x and y
+      range of plotted values.
+
+    EXAMPLES::
+
         sage: text("Sage is really neat!!",(2,12))
 
-    The same text in larger font and colored red:
+    The same text in larger font and colored red::
+
         sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
 
-    Some text but guaranteed to be in the lower left no matter what:
+    Some text but guaranteed to be in the lower left no matter what::
+
         sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
 
-    You can also align text differently:
+    You can also align text differently::
+
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sum
 
-    You can save text as part of pdf output:
+    You can save text as part of pdf output::
+
         sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(SAGE_TMP + 'a.pdf')
 
-    Text must be 2d (use the text3d command for 3d text):
+    Text must be 2d (use the text3d command for 3d text)::
+
         sage: t = text("hi",(1,2,3))
         Traceback (most recent call last):
         ...

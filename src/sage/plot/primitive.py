@@ -20,7 +20,7 @@ from sage.misc.misc import verbose
 class GraphicPrimitive(SageObject):
     """
     Base class for graphics primitives, e.g., things that knows how to draw
-    themselves in 2d.
+    themselves in 2D.
 
     EXAMPLES:
 
@@ -45,7 +45,6 @@ class GraphicPrimitive(SageObject):
             sage: GraphicPrimitive({})
             Graphics primitive
         """
-
         self.__options = options
 
     def _allowed_options(self):
@@ -76,13 +75,13 @@ class GraphicPrimitive(SageObject):
             sage: G.plot3d()
             Traceback (most recent call last):
             ...
-            NotImplementedError: 3d plotting not implemented for Graphics primitive
+            NotImplementedError: 3D plotting not implemented for Graphics primitive
         """
-        raise NotImplementedError, "3d plotting not implemented for %s" % self._repr_()
+        raise NotImplementedError, "3D plotting not implemented for %s" % self._repr_()
 
     def _plot3d_options(self, options=None):
         """
-        Translate 2d plot options into 3d plot options.
+        Translate 2D plot options into 3D plot options.
 
         EXAMPLES::
 
@@ -134,7 +133,7 @@ class GraphicPrimitive(SageObject):
         Return the dictionary of options for this graphics primitive.
 
         By default this function verifies that the options are all
-        valid; if any aren't a verbose message is printed with level 0.
+        valid; if any aren't, then a verbose message is printed with level 0.
 
         EXAMPLES::
 

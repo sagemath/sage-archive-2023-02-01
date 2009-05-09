@@ -147,7 +147,7 @@ void mul::print_overall_coeff(const print_context & c,
 		coeffstr = coeffstr.erase(0, 1);
 	}
 
-	bool paranthesis = ((coeffstr.find(' ') != std::string::npos)||
+	bool parenthesis = ((coeffstr.find(' ') != std::string::npos)||
 		(coeffstr.find('+') != std::string::npos) ||
 		(coeffstr.find('-') != std::string::npos));// ||
 		//(coeffstr.find('/') != std::string::npos) ||
@@ -155,14 +155,14 @@ void mul::print_overall_coeff(const print_context & c,
 		//(coeffstr.find('^') != std::string::npos));
 	if (!coeff.is_equal(*_num1_p) &&
 		(!coeff.is_equal(*_num_1_p) || coeff.is_parent_pos_char())) {
-		if (paranthesis) {
+		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";
 			else
 				c.s << '(';
 		}
 		c.s<<coeffstr;
-		if (paranthesis) {
+		if (parenthesis) {
 			if (latex)
 				c.s << "\\right)";
 			else
@@ -220,7 +220,7 @@ void mul::print_exvector(const exvector & v, const print_context & c,
 			c.s << sep;
 		else
 			first = false;
-		vit->print(c, precedence());
+		vit->print(c,precedence());
 		++vit;
 	}
 }
@@ -228,6 +228,12 @@ void mul::print_exvector(const exvector & v, const print_context & c,
 void mul::do_print_rat_func(const print_context & c, unsigned level,
 		bool latex_tags) const
 {
+	if (precedence() <= level){
+                if (latex_tags) 
+                     c.s << '{';
+		c.s << '(';
+	}
+
 	const char *sep;
 	if (latex_tags) {
 		sep = (const char*)" ";
@@ -284,6 +290,10 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		print_overall_coeff(c, sep, latex_tags);
 
 		print_exvector(others, c, sep);
+	}
+	if (precedence() <= level){
+		c.s << ')';
+                if (latex_tags) c.s << '}';
 	}
 
 }

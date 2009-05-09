@@ -140,7 +140,7 @@ static void exp_print(const ex & arg, const print_context & c,
 		print_dflt tcontext(tstream, c.options);
 		arg.print(tcontext);
 		std::string argstr = tstream.str();
-		bool paranthesis = ((argstr.find(' ') != std::string::npos)||
+		bool parenthesis = ((argstr.find(' ') != std::string::npos)||
 				(argstr.find('+') != std::string::npos) ||
 				(argstr.find('-') != std::string::npos) ||
 				(argstr.find('/') != std::string::npos) ||
@@ -148,13 +148,13 @@ static void exp_print(const ex & arg, const print_context & c,
 				(argstr.find('^') != std::string::npos));
 		if (latex)
 			c.s << "{";
-		else if (paranthesis)
+		else if (parenthesis)
 			c.s << "(";
 
 		c.s << argstr;
 		if (latex)
 			c.s << "}";
-		else if (paranthesis)
+		else if (parenthesis)
 			c.s << ")";
 	}
 }

@@ -117,7 +117,7 @@ unsigned power::calchash() const
 void power::print_power(const print_context & c, const char *powersymbol, const char *openbrace, const char *closebrace, unsigned level) const
 {
 	// Ordinary output of powers using '^' or '**'
-	if (precedence() <= level)
+	if (precedence() <= level) 
 		c.s << openbrace << '(';
 	basis.print(c, precedence());
 	if (precedence() <= level)
@@ -130,7 +130,13 @@ void power::print_power(const print_context & c, const char *powersymbol, const 
 
 void power::do_print_dflt(const print_dflt & c, unsigned level) const
 {
-	if (exponent.is_equal(_ex1_2)) {
+       if ((-exponent).is_equal(_ex1)) {
+		// inverses printed in a special way
+ 	        if (level >= 20) c.s << "(";
+		c.s << "1/";
+		basis.print(c, precedence());
+ 	        if (level >= 20) c.s << ")";
+	} else if (exponent.is_equal(_ex1_2)) {
 
 		// Square roots are printed in a special way
 		c.s << "sqrt(";
@@ -143,12 +149,12 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		basis.print(c);
 		c.s << ')';
 	} else {
-		
+
 		std::stringstream tstream;
 		print_dflt tcontext(tstream, c.options);
-		exponent.print(tcontext, level);
+		exponent.print(tcontext, precedence());
 		std::string expstr = tstream.str();
-		if (expstr[0] == '-') {
+                if (expstr[0] == '-') {
 			c.s<<"1/";
 			expstr = expstr.erase(0, 1);
 		}
@@ -156,19 +162,7 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 			c.s << '(';
 		basis.print(c, precedence());
 		if (!exponent.is_equal(_ex_1)) {
-			c.s << "^";
-			bool paranthesis = ((expstr.find(' ') != 
-						std::string::npos)||
-				(expstr.find('+') != std::string::npos) ||
-				(expstr.find('-') != std::string::npos) ||
-				(expstr.find('/') != std::string::npos) ||
-				(expstr.find('*') != std::string::npos) ||
-				(expstr.find('^') != std::string::npos));
-			if (paranthesis)
-				c.s << '(';
-			c.s<<expstr;
-			if (paranthesis)
-				c.s << ')';
+    		        c.s << "^" << expstr;
 		}
 		if (precedence() <= level)
 			c.s << ')';
@@ -179,14 +173,12 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 void power::do_print_latex(const print_latex & c, unsigned level) const
 {
 	if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_negative()) {
-
 		// Powers with negative numeric exponents are printed as fractions
 		c.s << "\\frac{1}{";
 		power(basis, -exponent).eval().print(c);
 		c.s << '}';
 
 	} else if (exponent.is_equal(_ex1_2)) {
-
 		// Square roots are printed in a special way
 		c.s << "\\sqrt{";
 		basis.print(c);

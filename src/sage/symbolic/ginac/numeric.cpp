@@ -134,8 +134,9 @@ extern "C" {
 	// characteristic, in which case we have to do modulo reductions
 	int py_get_parent_char(PyObject* o);
 
-	// printing helper
-	std::string* py_latex(PyObject* o);
+	// printing helpers
+	std::string* py_latex(PyObject* o, int level);
+	std::string* py_repr(PyObject* o, int level);
 
 	// archive helper
 	std::string* py_dumps(PyObject* o);
@@ -1549,21 +1550,13 @@ void Number_T::archive(archive_node &n) const {
   {
 	  std::string* out;
 	  if (latex) {
-		  out = py_latex(to_pyobject());
-		  c.s<<*out;
-		  delete out;
-		  return;
+		  out = py_latex(to_pyobject(),level);
 	  } else {
-
-		  PyObject* res = PyObject_Repr(to_pyobject());
-		  if (!res) {
-			  throw(std::runtime_error("numeric::print_numeric(): exception printing python object"));
-
-		  } else {
-			  c.s << PyString_AsString(res);
-			  Py_DECREF(res);
-		  }
-	  }
+    	          out = py_repr(to_pyobject(),level);
+          }
+          c.s<<*out;
+	  delete out;
+	  return;
   }
 
   void numeric::do_print(const print_context & c, unsigned level) const

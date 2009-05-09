@@ -16,6 +16,8 @@ latex = Latex(density=130)
 latex_debug = Latex(debug=True, density=130)
 slide = Latex(slide=True, density=256)
 slide_debug = Latex(slide=True, debug=True, density=256)
+pdflatex = Latex(density=130, pdflatex=True)
+pdflatex_debug = Latex(density=130, pdflatex=True, debug=True)
 # we need a global instance of this in order to get %jsmath to work...
 jsmath = JSMath()
 

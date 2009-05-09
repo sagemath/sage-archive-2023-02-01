@@ -209,6 +209,7 @@ class _Latex_prefs_object(SageObject):
         self._option["vector_delimiters"] = list(delimiters)
         self._option["macros"] = ""
         self._option["preamble"] = ""
+        self._option["pdflatex"] = False
 
 _Latex_prefs = _Latex_prefs_object()
 
@@ -262,9 +263,10 @@ class Latex:
        on your operating system, or this command won't work.
 
     """
-    def __init__(self, debug=False, slide=False, density=150):
+    def __init__(self, debug=False, slide=False, density=150, pdflatex=None):
         self.__debug = debug
         self.__slide = slide
+        self.__pdflatex = pdflatex
         self.__density = density
 
     def __call__(self, x):
@@ -310,7 +312,7 @@ class Latex:
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
-             density=None, locals={}):
+             density=None, pdflatex=None, locals={}):
         """
         INPUT:
             globals -- a globals dictionary
@@ -327,14 +329,17 @@ class Latex:
 
         -  ``density`` - how big output image is.
 
+        -  ``pdflatex`` - whether to use pdflatex.
+
         -  ``locals`` - extra local variables used when
            evaluating Sage.. code in x.
 
         .. warning::
 
-           You must have dvipng (or dvips and convert) installed on
-           your operating system, or this command won't work.
-
+           When using latex (the default), you must have 'dvipng' (or
+           'dvips' and 'convert') installed on your operating system,
+           or this command won't work.  When using pdflatex, you must
+           have 'convert' installed.
         """
         MACROS = latex_extra_preamble()
 
@@ -372,16 +377,33 @@ class Latex:
             redirect=' 2>/dev/null 1>/dev/null '
         else:
             redirect=''
-        lt = 'cd "%s"&& sage-native-execute latex \\\\nonstopmode \\\\input{%s.tex} %s'%(base, filename, redirect)
-        if have_dvipng():
+        if pdflatex is None:
+            if self.__pdflatex is None:
+                pdflatex = _Latex_prefs._option["pdflatex"]
+            else:
+                pdflatex = bool(self.__pdflatex)
+        if pdflatex:
+            command = "pdflatex"
+        else:
+            command = "latex"
+        lt = 'cd "%s"&& sage-native-execute %s \\\\nonstopmode \\\\input{%s.tex} %s'%(base, command, filename, redirect)
+        if have_dvipng() and not pdflatex:
             dvipng = 'sage-native-execute dvipng -q -T bbox -D %s %s.dvi -o %s.png'%(density, filename, filename)
             cmd = ' && '.join([lt, dvipng])
-
         else:
+            # seem to need a larger size when using convert compared to when using dvipng
+            density = int(1.4 * density / 1.3)
             dvips = 'sage-native-execute dvips %s.dvi %s'%(filename, redirect)
-            convert = 'sage-native-execute convert -density %sx%s -trim %s.ps %s.png %s '%\
-                      (density,density, filename, filename, redirect)
-            cmd = ' && '.join([lt, dvips, convert])
+            if pdflatex:
+                suffix = "pdf"
+            else:
+                suffix = "ps"
+            convert = 'sage-native-execute convert -density %sx%s -trim %s.%s %s.png %s '%\
+                      (density,density, filename, suffix, filename, redirect)
+            if pdflatex:
+                cmd = ' && '.join([lt, convert])
+            else:
+                cmd = ' && '.join([lt, dvips, convert])
         if debug:
             print cmd
         e = os.system(cmd + ' ' + redirect)
@@ -670,6 +692,32 @@ class Latex:
         """
         _Latex_prefs._option['preamble'] += s
 
+    def pdflatex(self, t = None):
+        """
+        Controls whether Sage uses PDFLaTeX or LaTeX when typesetting
+        with ``view``, in ``%latex`` cells, etc.
+
+        INPUT:
+
+        - ``t`` -- boolean or None
+
+        OUTPUT: if t is None, return the current setting (True or False).
+
+        If t == True, use PDFLaTeX; otherwise use LaTeX.
+
+        EXAMPLES::
+
+            sage: latex.pdflatex()
+            False
+            sage: latex.pdflatex(True)
+            sage: latex.pdflatex()
+            True
+            sage: latex.pdflatex(False)
+        """
+        if t is None:
+            return _Latex_prefs._option["pdflatex"]
+        _Latex_prefs._option["pdflatex"] = bool(t)
+
 # Note: latex used to be a separate function, which by default was
 # only loaded in command-line mode: in the notebook, all_notebook.py
 # defined (and still defines) latex by 'latex = Latex(density=130)'.
@@ -900,7 +948,7 @@ def jsmath(x, mode='display'):
 def typeset(x):
     return JSMath().eval(x, mode='inline')
 
-def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
+def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
     and display typeset. If used from the command line, this requires
@@ -922,6 +970,7 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
 
     -  ``tiny`` - bool (default: False): use tiny font.
 
+    -  ``pdflatex`` - bool (default: False): use pdflatex.
 
     OUTPUT: Display typeset objects.
 
@@ -961,8 +1010,18 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
         s = str(objects)
     else:
         s = _latex_file_(objects, title=title, debug=debug, sep=sep, tiny=tiny)
-    from sage.misc.viewer import dvi_viewer
-    viewer = dvi_viewer()
+    if pdflatex is None:
+        pdflatex = _Latex_prefs._option["pdflatex"]
+    if pdflatex:
+        from sage.misc.viewer import pdf_viewer
+        viewer = pdf_viewer()
+        command = "pdflatex"
+        suffix = "pdf"
+    else:
+        from sage.misc.viewer import dvi_viewer
+        viewer = dvi_viewer()
+        command = "latex"
+        suffix = "dvi"
     tmp = tmp_dir('sage_viewer')
     open('%s/sage.tex'%tmp,'w').write(s)
     os.system('ln -sf %s/common/macros.tex %s'%(SAGE_DOC, tmp))
@@ -972,7 +1031,7 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
 
     # Added sleep 1 to allow viewer to open the file before it gets removed
     # Yi Qiang 2008-05-09
-    O.write('latex \\\\nonstopmode \\\\input{sage.tex}; %s sage.dvi ; sleep 1 rm sage.* macros.* go ; cd .. ; rmdir %s' % (viewer, tmp))
+    O.write('%s \\\\nonstopmode \\\\input{sage.tex}; %s sage.%s ; sleep 1 rm sage.* macros.* go ; cd .. ; rmdir %s' % (command, viewer, suffix, tmp))
     O.close()
     if not debug:
         direct = '1>/dev/null 2>/dev/null'

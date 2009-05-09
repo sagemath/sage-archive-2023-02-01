@@ -209,7 +209,7 @@ class Arrow(GraphicPrimitive):
 
     def _plot3d_options(self, options=None):
         """
-        Translate 2d plot options into 3d plot options.
+        Translate 2D plot options into 3D plot options.
 
         EXAMPLES::
 
@@ -333,11 +333,11 @@ def arrow(tailpoint=None, headpoint=None, path=None, **options):
 
     - ``head`` - 0, 1 or 2, whether to draw the head at the start (0), end (1) or both (2)
       of the path (using 0 will swap headpoint and tailpoint).  This is ignored
-      in 3-d plotting.
+      in 3D plotting.
 
-    - ``width`` - (default 2) the width of the arrow shaft, in points
+    - ``width`` - (default: 2) the width of the arrow shaft, in points
 
-    - ``color`` - (default (0,0,1)) the color of the arrow (as an rgb tuple or a string)
+    - ``color`` - (default: (0,0,1)) the color of the arrow (as an RGB tuple or a string)
 
     - ``hue`` - the color of the arrow (as a number)
 
@@ -346,7 +346,7 @@ def arrow(tailpoint=None, headpoint=None, path=None, **options):
     - ``arrowshorten`` - the length in points to shorten the arrow (ignored if using path
       parameter)
 
-    - ``zorder`` - the layer level to draw the arrow-- note that this is ignored in 3-d
+    - ``zorder`` - the layer level to draw the arrow-- note that this is ignored in 3D
       plotting.
 
     EXAMPLES:

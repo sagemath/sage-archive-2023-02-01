@@ -98,7 +98,7 @@ class Text(GraphicPrimitive):
 
     def _plot3d_options(self, options=None):
         """
-        Translate 2d plot options into 3d plot options.
+        Translate 2D plot options into 3D plot options.
 
         EXAMPLES::
 
@@ -169,21 +169,21 @@ class Text(GraphicPrimitive):
          vertical_alignment='center', axis_coords=False)
 def text(string, xy, **options):
     r"""
-    Returns a 2d text graphics object at the point `(x,y)`.
+    Returns a 2D text graphics object at the point `(x,y)`.
 
-    Type ``text.options`` for a dictionary of options for 2d text.
+    Type ``text.options`` for a dictionary of options for 2D text.
 
     2D OPTIONS:
 
     - ``fontsize`` - How big the text is
 
-    - ``rgbcolor`` - The color as an rgb tuple
+    - ``rgbcolor`` - The color as an RGB tuple
 
     - ``hue`` - The color given as a hue
 
-    - ``vertical_alignment`` - how to align vertically: top, center, bottom
+    - ``vertical_alignment`` - How to align vertically: top, center, bottom
 
-    - ``horizontal_alignment`` - how to align horizontally: left, center, right
+    - ``horizontal_alignment`` - How to align horizontally: left, center, right
 
     - ``axis_coords`` - (default: False) if True, use axis coordinates, so that
       (0,0) is the lower left and (1,1) upper right, regardless of the x and y
@@ -197,7 +197,7 @@ def text(string, xy, **options):
 
         sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
 
-    Some text but guaranteed to be in the lower left no matter what::
+    Same text but guaranteed to be in the lower left no matter what::
 
         sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
 
@@ -207,11 +207,11 @@ def text(string, xy, **options):
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
         sage: t1 + t2   # render the sum
 
-    You can save text as part of pdf output::
+    You can save text as part of PDF output::
 
         sage: text("sage", (0,0), rgbcolor=(0,0,0)).save(SAGE_TMP + 'a.pdf')
 
-    Text must be 2d (use the text3d command for 3d text)::
+    Text must be 2D (use the text3d command for 3D text)::
 
         sage: t = text("hi",(1,2,3))
         Traceback (most recent call last):

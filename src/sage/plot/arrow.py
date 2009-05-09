@@ -23,7 +23,8 @@ class CurveArrow(GraphicPrimitive):
         """
         Returns an arrow graphics primitive along the provided path (bezier curve).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.arrow import CurveArrow
             sage: b = CurveArrow(path=[[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],options={})
             sage: b
@@ -44,7 +45,8 @@ class CurveArrow(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.arrow import CurveArrow
             sage: b = CurveArrow(path=[[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],options={})
             sage: d = b.get_minmax_data()
@@ -62,7 +64,8 @@ class CurveArrow(GraphicPrimitive):
         """
         Return the dictionary of allowed options for the curve arrow graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
              sage: from sage.plot.arrow import CurveArrow
              sage: list(sorted(CurveArrow(path=[[(0,0),(2,3)]],options={})._allowed_options().iteritems()))
              [('arrowsize', 'The size of the arrowhead'),
@@ -88,7 +91,8 @@ class CurveArrow(GraphicPrimitive):
         """
         Text representation of an arrow graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.arrow import CurveArrow
             sage: CurveArrow(path=[[(0,0),(1,4),(2,3)]],options={})._repr_()
             'CurveArrow from (0, 0) to (2, 3)'
@@ -101,7 +105,8 @@ class CurveArrow(GraphicPrimitive):
         defines how this arrow graphics primitive is rendered in
         matplotlib's library.
 
-        EXAMPLES:
+        EXAMPLES::
+
         This function implicitly ends up rendering this arrow on a matplotlib subplot:
             sage: arrow(path=[[(0,1), (2,-1), (4,5)]])
         """
@@ -132,8 +137,10 @@ class Arrow(GraphicPrimitive):
     Primitive class that initializes the (line) arrow graphics type
 
     EXAMPLES:
+
     We create an arrow graphics object, then take the 0th entry
-    in it to get the actual Arrow graphics primitive:
+    in it to get the actual Arrow graphics primitive::
+
         sage: P = arrow((0,1), (2,3))[0]
         sage: type(P)
         <class 'sage.plot.arrow.Arrow'>
@@ -144,7 +151,8 @@ class Arrow(GraphicPrimitive):
         """
         Create an arrow graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.arrow import Arrow
             sage: Arrow(0,0,2,3,{})
             Arrow from (0.0,0.0) to (2.0,3.0)
@@ -159,7 +167,8 @@ class Arrow(GraphicPrimitive):
         """
         Returns a bounding box for this arrow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: d = arrow((1,1), (5,5)).get_minmax_data()
             sage: d['xmin']
             1.0
@@ -176,7 +185,8 @@ class Arrow(GraphicPrimitive):
         """
         Return the dictionary of allowed options for the line arrow graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
              sage: from sage.plot.arrow import Arrow
              sage: list(sorted(Arrow(0,0,2,3,{})._allowed_options().iteritems()))
              [('arrowshorten', 'The length in points to shorten the arrow.'),
@@ -198,6 +208,18 @@ class Arrow(GraphicPrimitive):
                 'linestyle':"2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
 
     def _plot3d_options(self, options=None):
+        """
+        Translate 2d plot options into 3d plot options.
+
+        EXAMPLES::
+
+            sage: P = arrow((0,1), (2,3), width=5)
+            sage: p=P[0]; p
+            Arrow from (0.0,1.0) to (2.0,3.0)
+            sage: q=p.plot3d()
+            sage: q.thickness
+            5
+        """
         if options == None:
             options = self.options()
         options = dict(self.options())
@@ -215,21 +237,43 @@ class Arrow(GraphicPrimitive):
         options_3d.update(GraphicPrimitive._plot3d_options(self, options))
         return options_3d
 
-    def plot3d(self, **kwds):
+    def plot3d(self, ztail=0, zhead=0, **kwds):
         """
-        EXAMPLE:
-            sage: arrow((0,0),(1,1)).plot3d()
+        Takes 2D plot and places it in 3D.
+
+        EXAMPLES::
+
+            sage: A = arrow((0,0),(1,1))[0].plot3d()
+            sage: A.jmol_repr(A.testing_render_params())[0]
+            'draw line_1 diameter 2 arrow {0.0 0.0 0.0}  {1.0 1.0 0.0} '
+
+        Note that we had to index the arrow to get the Arrow graphics
+        primitive.  We can also change the height via the plot3d method
+        of Graphics, but only as a whole::
+
+            sage: A = arrow((0,0),(1,1)).plot3d(3)
+            sage: A.jmol_repr(A.testing_render_params())[0][0]
+            'draw line_1 diameter 2 arrow {0.0 0.0 3.0}  {1.0 1.0 3.0} '
+
+        Optional arguments place both the head and tail outside the
+        `xy`-plane, but at different heights.  This must be done on
+        the graphics primitive obtained by indexing::
+
+            sage: A=arrow((0,0),(1,1))[0].plot3d(3,4)
+            sage: A.jmol_repr(A.testing_render_params())[0]
+            'draw line_1 diameter 2 arrow {0.0 0.0 3.0}  {1.0 1.0 4.0} '
         """
         from sage.plot.plot3d.shapes2 import line3d
         options = self._plot3d_options()
         options.update(kwds)
-        return line3d([(self.xtail, self.ytail, 0), (self.xhead, self.yhead, 0)], arrow_head=True, **options)
+        return line3d([(self.xtail, self.ytail, ztail), (self.xhead, self.yhead, zhead)], arrow_head=True, **options)
 
     def _repr_(self):
         """
         Text representation of an arrow graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.arrow import Arrow
             sage: Arrow(0,0,2,3,{})._repr_()
             'Arrow from (0.0,0.0) to (2.0,3.0)'
@@ -243,7 +287,10 @@ class Arrow(GraphicPrimitive):
         matplotlib's library.
 
         EXAMPLES:
-        This function implicitly ends up rendering this arrow on a matplotlib subplot:
+
+        This function implicitly ends up rendering this arrow on
+        a matplotlib subplot::
+
             sage: arrow((0,1), (2,-1))
         """
         options = self.options()
@@ -275,43 +322,57 @@ def arrow(tailpoint=None, headpoint=None, path=None, **options):
     to (xmax, ymax).  If tailpoint or headpoint is None and path is not None,
     returns an arrow along the path.  (See further info on paths in bezier_path).
 
-    INPUT
-        tailpoint -- the starting point of the arrow
-        headpoint -- where the arrow is pointing to
-        path -- the list of points and control points (see bezier_path for detail) that
-                the arrow will follow from source to destination
-        head -- 0, 1 or 2, whether to draw the head at the start (0), end (1) or both (2)
-                of the path (using 0 will swap headpoint and tailpoint).  This is ignored
-                in 3-d plotting.
-        width -- (default 2) the width of the arrow shaft, in points
-        color -- (default (0,0,1)) the color of the arrow (as an rgb tuple or a string)
-        hue -- the color of the arrow (as a number)
-        arrowsize -- the size of the arrowhead
-        arrowshorten -- the length in points to shorten the arrow (ignored if using path
-                parameter)
-        zorder -- the layer level to draw the arrow-- note that this is ignored in 3-d
-                plotting.
+    INPUT:
+
+    - ``tailpoint`` - the starting point of the arrow
+
+    - ``headpoint`` - where the arrow is pointing to
+
+    - ``path`` - the list of points and control points (see bezier_path for detail) that
+      the arrow will follow from source to destination
+
+    - ``head`` - 0, 1 or 2, whether to draw the head at the start (0), end (1) or both (2)
+      of the path (using 0 will swap headpoint and tailpoint).  This is ignored
+      in 3-d plotting.
+
+    - ``width`` - (default 2) the width of the arrow shaft, in points
+
+    - ``color`` - (default (0,0,1)) the color of the arrow (as an rgb tuple or a string)
+
+    - ``hue`` - the color of the arrow (as a number)
+
+    - ``arrowsize`` - the size of the arrowhead
+
+    - ``arrowshorten`` - the length in points to shorten the arrow (ignored if using path
+      parameter)
+
+    - ``zorder`` - the layer level to draw the arrow-- note that this is ignored in 3-d
+      plotting.
 
     EXAMPLES:
 
-    A straight, blue arrow
+    A straight, blue arrow::
+
        sage: arrow((1, 1), (3, 3))
 
-    Make a red arrow:
+    Make a red arrow::
+
        sage: arrow((-1, -1), (2, 3), color=(1,0,0))
        sage: arrow((-1, -1), (2, 3), color='red')
 
-    You can change the width of an arrow:
+    You can change the width of an arrow::
+
         sage: arrow((1, 1), (3, 3), width=5, arrowsize=15)
 
-    A pretty circle of arrows:
+    A pretty circle of arrows::
+
         sage: sum([arrow((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]]).show(aspect_ratio=1)
 
     If we want to draw the arrow between objects, for example, the
     boundaries of two lines, we can use the arrowshorten option
-    to make the arrow shorter by a certain number of points.
-        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
+    to make the arrow shorter by a certain number of points::
 
+        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
 
     """
     from sage.plot.plot import Graphics

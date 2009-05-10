@@ -282,7 +282,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             ...
             ValueError: conductor(=3) must divide M(=5)
             sage: M.hecke_module_of_level(30)
-            Modular Forms space of dimension 16, character [1, -1, 1] and weight 3 over Rational Field
+            Modular Forms space of dimension 16, character [-1, 1] and weight 3 over Rational Field
         """
         import constructor
         if N % self.level() == 0:

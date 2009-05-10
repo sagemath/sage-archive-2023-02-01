@@ -4,6 +4,7 @@
 (add-to-list 'auto-mode-alist '("\\.pxi\\'" . pyrex-mode))
 (add-to-list 'auto-mode-alist '("\\.pxd\\'" . pyrex-mode))
 
+;;;###autoload
 (define-derived-mode pyrex-mode python-mode "Pyrex"
   (font-lock-add-keywords
    nil

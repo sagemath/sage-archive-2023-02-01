@@ -27,6 +27,33 @@
 ;; with a slave sage session.  See the help for `sage-mode' for help getting
 ;; started and the default key bindings.
 
+;;; Todo:
+
+;; Print path in instructions again?
+;;
+;; M-q fills comments correctly after """ ; "
+;;
+;; - It is very handy to have the file names as links in the stack
+;;   trace!  However, I would personally find more practical if C-x `
+;;   did not iterate through all of them, but would just jump from one
+;;   error to the next one.
+;;
+;; Replace test output.
+;; Replace all test ouput.
+;; C-c C-j copies multiline tests.
+;; C-c C-j in the *Help* buffer.
+;; Comparing tests?
+;; C-u sage-test only tests, does not rebuild.
+;;
+;; Remove pdb history/different history based on prompt.
+;;
+;; sage-rerun exits from pdb.
+;; C-u sage-build hangs with exiting from pdb code.
+;;
+;; Fix pyrex-mode
+;;
+;; Upload an optional package?
+
 ;;; Code:
 
 (require 'python)
@@ -387,7 +414,7 @@ See variable `python-buffer'.  Starts a new process if necessary."
 	 (python-proc))
 	(t
 	 ;; otherwise, start a new sage and try again
-	 (run-sage nil t)
+	 (run-sage nil sage-command t)
 	 (python-proc))))
 
 ;; History of sage-run commands.
@@ -468,6 +495,7 @@ buffer for a list of commands.)"
 	(inferior-sage-mode))
       (when (inferior-sage-wait-for-prompt) ; wait for prompt
 	(run-hooks 'sage-startup-after-prompt-hook)))
+    (accept-process-output nil 0 1)
 
     (when (sage-mode-p)
       ;; If we're coming from a sage-mode buffer, update inferior buffer
@@ -747,7 +775,7 @@ command; other times, it has to execute as a standard eshell command."
   (when (equal command "sage")
     (cond ((not args)
 	   ;; run sage inside emacs
-	   (run-sage nil sage-command nil)
+	   (run-sage nil sage-command t)
 	   t)
 	  ((member (substring (car args) 0 2) '("-t" "-b"))
 	   ;; echo sage build into compilation buffer
@@ -898,6 +926,7 @@ Block while waiting for output."
 
 If ECHO-INPUT is non-nil, echo input in process buffer."
   (interactive "sCommand: ")
+  (accept-process-output nil 0 1)
   (with-current-buffer (process-buffer (python-proc))
     (goto-char (point-max))
     (if echo-input
@@ -1079,6 +1108,11 @@ See `completing-read' for REQUIRE-MATCH."
 	  (toggle-read-only 1))
 	t))))
 
+(defun sage-default-after-help-function ()
+  "Make it easy to run doctests in help buffers."
+  (local-set-key [(control c) (control r)] 'sage-send-region)
+  (local-set-key [(control c) (control j)] 'sage-send-doctest))
+
 (defun ipython-describe-symbol (symbol)
   "Get help on SYMBOL using IPython's inspection (?).
 Interactively, prompt for SYMBOL."
@@ -1110,7 +1144,9 @@ Interactively, prompt for SYMBOL."
 	(princ help-contents)))
     ;; Markup help buffer
     (with-current-buffer (help-buffer)
-      (ipython-describe-symbol-markup-buffer symbol))))
+      (ipython-describe-symbol-markup-buffer symbol)
+      ;; make it easy to send doctests from a help buffer, for example
+      (run-hooks 'sage-after-help-hook))))
 
 ;;;_ + `sage-find-symbol' is `find-function' for SAGE.
 

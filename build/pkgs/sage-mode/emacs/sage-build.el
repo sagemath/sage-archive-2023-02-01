@@ -66,7 +66,13 @@ rerun the freshly built sage."
 		   (not (eq (process-status sprocess) 'exit)))
 	  ;; (set-process-sentinel sprocess nil)
 	  (comint-kill-input)
-	  (comint-send-eof)
+	  (comint-send-eof) ;; once to kill ipdb
+	  (accept-process-output nil 0 1)
+	  (sit-for 0)
+	  (comint-send-eof) ;; and again to kill sage itself
+	  (accept-process-output nil 0 1)
+	  (sit-for 0)
+
 	  (sage-wait-until-dead sprocess 2 "soft kill")
 
 	  (when (not (eq (process-status sprocess) 'exit))

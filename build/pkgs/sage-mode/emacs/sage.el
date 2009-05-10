@@ -70,6 +70,11 @@ See `sage-startup-before-prompt-hook' and `run-hooks'."
   :group 'sage
   :type 'hook)
 
+(defcustom sage-after-help-hook (sage-default-after-help-function)
+  "List of hook functions run after a sage help buffer is displayed. (see `run-hooks')."
+  :type 'hook
+  :group 'sage)
+
 (defgroup sage-test nil "Run Sage doctests"
   :group 'sage
   :prefix "sage-test-"

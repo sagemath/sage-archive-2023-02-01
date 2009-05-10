@@ -176,13 +176,19 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: T
             Rank 0 submodule of a Hecke module of level 12
             sage: S.__cmp__(T)
+            1
+            sage: T.__cmp__(S)
             -1
             sage: S.__cmp__(S)
             0
         """
-        if not isinstance(other, module.HeckeModule_free_module) or self.ambient() != other.ambient():
-            return -1
-        return cmp(self.free_module(), other.free_module())
+        if not isinstance(other, module.HeckeModule_free_module):
+            return cmp(type(self), type(other))
+        c = cmp(self.ambient(), other.ambient())
+        if c:
+            return c
+        else:
+            return cmp(self.free_module(), other.free_module())
 
     ################################
     # Semi-Private functions

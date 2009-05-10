@@ -127,12 +127,14 @@ namespace GiNaC {
     bool is_positive() const;
     bool is_negative() const;
     bool is_integer() const;
+    bool is_cinteger() const;
     bool is_pos_integer() const;
     bool is_nonneg_integer() const;
     bool is_even() const;
     bool is_odd() const;
     bool is_prime() const;
     bool is_rational() const;
+    bool is_crational() const;
     bool is_real() const;
 
     Number_T numer() const;

@@ -79,8 +79,10 @@ extern "C" {
 	PyObject* py_conjugate(PyObject* a);
 
 	bool      py_is_rational(PyObject* a);
+	bool      py_is_crational(PyObject* a);
 	bool      py_is_real(PyObject* a);
 	bool      py_is_integer(PyObject* a);
+	bool      py_is_cinteger(PyObject* a);
 	bool      py_is_prime(PyObject* n);
 	PyObject* py_int(PyObject* n);
 	PyObject* py_integer_from_long(long int x);
@@ -1042,6 +1044,20 @@ void Number_T::archive(archive_node &n) const {
     }
   }
 
+  bool Number_T::is_cinteger() const { 
+    verbose("is_crational");
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return true;
+    case PYOBJECT:
+      return py_is_cinteger(v._pyobject);
+    default:
+      stub("invalid type -- is_cinteger() type not handled");
+    }
+  }
+
   bool Number_T::is_pos_integer() const { 
     verbose("is_pos_integer");
     switch(t) {
@@ -1146,6 +1162,20 @@ void Number_T::archive(archive_node &n) const {
       return py_is_rational(v._pyobject);
     default:
       stub("invalid type -- is_rational() type not handled");
+    }
+  }
+
+  bool Number_T::is_crational() const { 
+    verbose("is_crational");
+    switch(t) {
+    case DOUBLE:
+      return false;
+    case LONG:
+      return true;
+    case PYOBJECT:
+      return py_is_crational(v._pyobject);
+    default:
+      stub("invalid type -- is_crational() type not handled");
     }
   }
 
@@ -2085,9 +2115,7 @@ void Number_T::archive(archive_node &n) const {
    *  of the form a+b*I, where a and b are integers. */
   bool numeric::is_cinteger() const
   {
-   // TODO: I just call is_integer here.  Need something better
-   // that takes into account what cinteger actually means??
-    return value.is_integer();
+    return value.is_cinteger();
   }
 
 
@@ -2095,9 +2123,7 @@ void Number_T::archive(archive_node &n) const {
    *  (denominator may be unity). */
   bool numeric::is_crational() const
  {
-   // TODO: I just call is_rational here.  Need something better
-   // that takes into account what crational actually means??
-    return value.is_rational();
+    return value.is_crational();
   }
 
 

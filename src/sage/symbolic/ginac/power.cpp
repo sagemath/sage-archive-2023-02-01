@@ -532,7 +532,8 @@ ex power::eval(int level) const
 		// except if c1,c2 are rational, but c1^c2 is not)
 		if (basis_is_numerical) {
 			const bool basis_is_crational = num_basis->is_crational();
-			const bool exponent_is_crational = num_exponent->is_crational();
+                        const bool exponent_is_rational = num_exponent->is_rational();
+			const bool exponent_is_crational = exponent_is_rational || num_exponent->is_crational();
 			if (!basis_is_crational || !exponent_is_crational) {
 				// return a plain float
 				return (new numeric(num_basis->power(*num_exponent)))->setflag(status_flags::dynallocated |
@@ -540,16 +541,16 @@ ex power::eval(int level) const
 				                                                               status_flags::expanded);
 			}
 
-			const numeric res = num_basis->power(*num_exponent);
-			if (res.is_crational()) {
-				return res;
+			if (exponent_is_rational) {
+				const numeric res = num_basis->power(*num_exponent);
+				if (res.is_crational()) {
+					return res;
+				}
 			}
 			GINAC_ASSERT(!num_exponent->is_integer());  // has been handled by now
 
 			// ^(c1,n/m) -> *(c1^q,c1^(n/m-q)), 0<(n/m-q)<1, q integer
-			if (basis_is_crational && exponent_is_crational
-			    && num_exponent->is_real()
-			    && !num_exponent->is_integer()) {
+			if (basis_is_crational && exponent_is_rational) {
 				const numeric n = num_exponent->numer();
 				const numeric m = num_exponent->denom();
 				numeric r;

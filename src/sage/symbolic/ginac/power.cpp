@@ -848,10 +848,19 @@ ex power::derivative(const symbol & s) const
 		newseq.push_back(expair(basis.diff(s), _ex1));
 		return mul(newseq, exponent);
 	} else {
-		// D(b^e) = b^e * (D(e)*ln(b) + e*D(b)/b)
-		return mul(*this,
-		           add(mul(exponent.diff(s), log(basis)),
-		           mul(mul(exponent, basis.diff(s)), power(basis, _ex_1))));
+	    // If the exponent is not a function of s, we have the following nice
+	    // looking formula.  We use this to avoid getting ugly and hard to
+	    // read output.
+	    // D(b^e) = e * b^(e-1) * D(b)
+	    ex ediff = exponent.diff(s);
+	    if (ediff == 0) 
+		return mul(mul(exponent, power(basis, exponent-1)), basis.diff(s));
+	    
+	    // The formula in the general case.
+	    // D(b^e) = b^e * (D(e)*ln(b) + e*D(b)/b)
+	    return mul(*this,
+		       add(mul(ediff, log(basis)),
+			   mul(mul(exponent, basis.diff(s)), power(basis, _ex_1))));
 	}
 }
 

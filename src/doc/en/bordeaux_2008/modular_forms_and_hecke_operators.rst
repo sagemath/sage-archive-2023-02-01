@@ -322,8 +322,9 @@ We can also compute Hecke operators on the cuspidal subspace.
 Hecke Operator on :math:`M_k(\Gamma_1(N))`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Unfortunately, Sage doesn't yet implement computation of the Hecke
-operators on :math:`M_k(\Gamma_1(N))`.
+At the time these lectures were first written, Sage didn't yet implement
+computation of the Hecke operators on :math:`M_k(\Gamma_1(N))`, but these have
+subsequently been added:
 
 ::
 
@@ -332,14 +333,13 @@ operators on :math:`M_k(\Gamma_1(N))`.
     Modular Forms space of dimension 3 for Congruence Subgroup
     Gamma1(5) of weight 2 over Rational Field
     sage: M.hecke_matrix(2)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError
+    [ -21    0 -240]
+    [  -2    0  -23]
+    [   2    1   24]
 
-However, we can compute Hecke operators on modular symbols for
-:math:`\Gamma_1(N)`, which is a :math:`\mathbb{T}`-module that is
-isomorphic to :math:`M_k(\Gamma_1(N))` (see
-:ref:`sec-modsym`).
+These are calculated by first calculating Hecke operators on modular symbols
+for :math:`\Gamma_1(N)`, which is a :math:`\mathbb{T}`-module that is
+isomorphic to :math:`M_k(\Gamma_1(N))` (see :ref:`sec-modsym`).
 
 ::
 

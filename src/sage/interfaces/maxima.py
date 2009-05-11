@@ -755,7 +755,7 @@ class Maxima(Expect):
         if self._expect is None: return
         r = randrange(2147483647)
         s = marker + str(r+1)
-        cmd = '''sconcat("%s",(%s+1));\n'''%(marker,r)
+        cmd = ''';sconcat("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)

@@ -6,9 +6,9 @@ This file contains some miscellaneous functions used by p-adics.
 - ``min`` -- a version of ``min`` that returns `\infty` on empty input.
 - ``max`` -- a version of ``max`` that returns `-\infty` on empty input.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from __builtin__ import min as python_min

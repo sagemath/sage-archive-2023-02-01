@@ -4,9 +4,9 @@ Precision Error.
 The errors in this file indicate various styles of precision problems
 that can go wrong for p-adics and power series.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 #*****************************************************************************

@@ -3,9 +3,9 @@ p-Adic Extension Element.
 
 A common superclass for all elements of extension rings and field of Zp and Qp.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from sage.rings.padics.pow_computer cimport PowComputer_class

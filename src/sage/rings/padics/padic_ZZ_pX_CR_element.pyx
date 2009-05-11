@@ -151,9 +151,9 @@ NOTES::
     with a ``ZZ_pX_c`` as an argument, it copies.  If the modulus is not
     set to the modulus of the ``ZZ_pX_c``, you can get errors.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe  (2008-01-01) initial version
+- David Roe  (2008-01-01) initial version
 """
 
 #*****************************************************************************
@@ -237,6 +237,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             3 + O(w^15)
             sage: W(R(3,3))
             3 + O(w^15)
+            sage: W.<w> = R.ext(x^625 + 915*x^17 - 95)
+            sage: W(3)
+            3 + O(w^3125)
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -270,7 +273,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 raise TypeError, "Cannot coerce between p-adic parents with different primes."
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             mpq_init(tmp_q)
-            (<pAdicBaseGenericElement>x)._set_to_mpq(tmp_q)
+            (<pAdicBaseGenericElement>x)._set_mpq_into(tmp_q)
             if mpq_sgn(tmp_q) == 0:
                 if (<pAdicBaseGenericElement>x)._is_exact_zero():
                     if absprec is infinity:
@@ -432,6 +435,19 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             6
             sage: z.precision_relative()
             0
+
+        TESTS::
+
+            sage: R = Zp(17, 3)
+            sage: S.<x> = R[]
+            sage: W.<w> = R.ext(x^34 - 289*x^5 + 17)
+            sage: z = W(0, 6); z
+            O(w^6)
+            sage: z.valuation()
+            6
+            sage: z.precision_absolute()
+            6
+            sage: z.precision_relative()
         """
         self.ordp = absprec
         self.relprec = 0
@@ -446,6 +462,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
+            sage: z = R(0); z # indirect doctest
+            0
+            sage: z.valuation()
+            +Infinity
+            sage: z.precision_absolute()
+            +Infinity
+            sage: z.precision_relative()
+            0
+
+        TESTS::
+
+            sage: R = Zp(89, 3)
+            sage: S.<x> = R[]
+            sage: W.<w> = R.ext(x^34 - 2*89*x^5 + 89)
             sage: z = R(0); z # indirect doctest
             0
             sage: z.valuation()
@@ -474,6 +504,19 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: z = W(0,6)
             sage: z._is_exact_zero()
             False
+
+        TESTS::
+
+            sage: R = Qp(53, 3)
+            sage: S.<x> = R[]
+            sage: W.<w> = R.ext(x^34 - 2*53^5*x^9 + 53)
+            sage: z = W(0)
+            sage: z._is_exact_zero()
+            True
+            sage: z = W(0,6)
+            sage: z._is_exact_zero()
+            False
+
         """
         if self.ordp == maxordp:
             return 1
@@ -490,6 +533,18 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
+            sage: z = W(0)
+            sage: z._is_inexact_zero()
+            False
+            sage: z = W(0,6)
+            sage: z._is_inexact_zero()
+            True
+
+        TESTS::
+
+            sage: R = Qp(29, 3)
+            sage: S.<x> = R[]
+            sage: W.<w> = R.ext(x^29 - 2*29^5*x - 29)
             sage: z = W(0)
             sage: z._is_inexact_zero()
             False
@@ -516,6 +571,16 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: F = W.fraction_field()
             sage: z = F(1+w); z # indirect doctest
             1 + w + O(w^25)
+
+        TESTS::
+
+            sage: R = Zp(17,30)
+            sage: S.<x> = R[]
+            sage: f = x^51 - 34
+            sage: W.<w> = R.ext(f)
+            sage: F = W.fraction_field()
+            sage: z = F(1+w); z # indirect doctest
+            1 + w + O(w^1530)
         """
         self.ordp = ordp
         self._set_prec_rel(relprec)
@@ -536,6 +601,17 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + O(w^13)
             sage: W(70, relprec = 0)
             O(w^5)
+
+        TESTS::
+
+            sage: R = Qp(13,50)
+            sage: S.<x> = R[]
+            sage: f = x^169 - 13
+            sage: W.<w> = R.ext(f)
+            sage: a = W(65, relprec = 8); a.valuation() # indirect doctest
+            169
+            sage: W(65, relprec = 0)
+            O(w^169)
         """
         if mpz_sgn(x) == 0:
             self._set_exact_zero()
@@ -572,6 +648,17 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             4*w^5 + 3*w^7 + O(w^8)
             sage: W(70, absprec = 4)
             O(w^4)
+
+        TESTS::
+
+            sage: R = Zp(7,3)
+            sage: S.<x> = R[]
+            sage: f = x^49 + 7*x^21 - 14
+            sage: W.<w> = R.ext(f)
+            sage: W(70, 100) # indirect doctest
+            5*w^49 + 6*w^70 + 3*w^91 + O(w^100)
+            sage: W(70, absprec = 4)
+            O(w^4)
         """
         if mpz_sgn(x) == 0:
             self._set_inexact_zero(absprec)
@@ -597,7 +684,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     cdef int _set_from_mpq_rel(self, mpq_t x, long relprec) except -1:
         """
-        Sets ``self`` from an ``mpq_t`` with relative precision bounded by ``relprec``.
+        Sets ``self`` from an ``mpq_t`` with relative precision
+        bounded by ``relprec``.
 
         EXAMPLES::
 
@@ -622,6 +710,30 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             w^-5 + 3*w^-3 + 2*w^3 + 4*w^5 + 4*w^6 + 3*w^7 + w^9 + O(w^10)
             sage: c * 5
             1 + O(w^15)
+
+        TESTS::
+
+            sage: R = Zp(11, 8, print_mode='digits')
+            sage: S.<x> = R[]
+            sage: f = x^3 + 1331 * x^2 - 11 * x + 11
+            sage: W.<w> = R.ext(f)
+            sage: z = W(77/3, relprec = 11); repr(z)[3:]
+            '304107A2555000'
+            sage: repr(z*3)[3:]
+            '56698765444000'
+            sage: repr(W(77))[3:]
+            '5800A6604678856698765444000'
+            sage: F = W.fraction_field()
+            sage: y = F(3/847); repr(y)[3:]
+            '5563A4105291255628.148272'
+            sage: repr(y*847)[3:]
+            '3'
+            sage: W(77/3, relprec=0)
+            O(w^3)
+            sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
+            '11111.01A'
+            sage: repr(c * 11)[3:]
+            '1'
         """
         if mpq_sgn(x) == 0:
             self._set_exact_zero()
@@ -633,7 +745,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     cdef int _set_from_mpq_both(self, mpq_t x, long absprec, long relprec) except -1:
         """
-        Sets ``self`` from an ``mpq_t`` with relative precision bounded by ``relprec`` and absolute precision bounded by ``absprec``.
+        Sets ``self`` from an ``mpq_t`` with relative precision
+        bounded by ``relprec`` and absolute precision bounded by
+        ``absprec``.
 
         EXAMPLES::
 
@@ -2021,6 +2135,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: W(14) / W(125) #indirect doctest
             4*w^-15 + w^-13 + 3*w^-11 + 2*w^-10 + 3*w^-9 + 4*w^-8 + 4*w^-7 + 3*w^-6 + 2*w^-5 + 4*w^-4 + 3*w^-3 + 2*w^-2 + 4*w^-1 + 2 + w^2 + w^4 + 4*w^5 + w^6 + w^7 + 3*w^9 + O(w^10)
+            sage: 1 / w
+            w^-1 + O(w^24)
+            sage: W.<w> = R.ext(x^25 - 165*x + 5)
+            sage: a = (1 + w)^25 - 1
+            sage: b = (1 + w)^5 - 1
+            sage: c = (1 + w)^20 + (1 + w)^15 + (1 + w)^10 + (1 + w)^5 + 1
+            sage: d = a / b; d == c
+            True
+            sage: d.precision_absolute()
+            120
+            sage: c.precision_absolute()
+            125
+            sage: 1 / a == ~a
+            True
         """
         # for now, a simple implementation
         return self * (~right)
@@ -2598,16 +2726,16 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ...
             NotImplementedError: log is not quite working yet
 
-        AUTHORS::
+        AUTHORS:
 
-            - David Roe: initial version
+        - David Roe: initial version
 
-        TODO::
+        TODO:
 
-            - Currently implemented as `O(N^2)`. This can be improved
-              to soft-`O(N)` using algorithm described by Dan
-              Bernstein:
-              ``http://cr.yp.to/lineartime/multapps-20041007.pdf``
+        - Currently implemented as `O(N^2)`. This can be improved
+          to soft-`O(N)` using algorithm described by Dan
+          Bernstein:
+          ``http://cr.yp.to/lineartime/multapps-20041007.pdf``
         """
         raise NotImplementedError, "log is not quite working yet"
         if same_ring is False:

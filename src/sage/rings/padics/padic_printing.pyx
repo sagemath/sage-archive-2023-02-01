@@ -6,9 +6,9 @@ This file contains code for printing p-adic elements.
 It has been moved here to prevent code duplication and make finding
 the relevant code easier.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 #*****************************************************************************

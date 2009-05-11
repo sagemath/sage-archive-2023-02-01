@@ -3,9 +3,9 @@ Factory.
 
 This file contains the contructor classes and functions for `p`-adic rings and fields.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from sage.structure.factory import UniqueFactory
@@ -2325,7 +2325,9 @@ def krasner_check(poly, prec):
     Returns True iff poly determines a unique isomorphism class of
     extensions at precision prec.
 
-    Currently not implemented.
+    Currently just returns True (thus allowing extensions that are not
+    defined to high enough precision in order to specify them up to
+    isomorphism).  This will change in the future.
 
     EXAMPLES::
 

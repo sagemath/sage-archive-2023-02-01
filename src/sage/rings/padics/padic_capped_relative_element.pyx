@@ -3,11 +3,11 @@ p-Adic Capped Relative Element.
 
 Elements of p-Adic Rings with Capped Relative Precision
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
-    - Genya Zaytman: documentation
-    - David Harvey: doctests
+- David Roe
+- Genya Zaytman: documentation
+- David Harvey: doctests
 
 TESTS::
 
@@ -662,7 +662,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if mpz_sgn(self.unit) == 0:
             self._set_inexact_zero(self.ordp + self.relprec)
 
-    cdef int _set_to_mpz(pAdicCappedRelativeElement self, mpz_t dest) except -1:
+    cdef int _set_mpz_into(pAdicCappedRelativeElement self, mpz_t dest) except -1:
         """
         Sets dest to a lift of self.
 
@@ -684,7 +684,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 mpz_mul(dest, dest, self.prime_pow.pow_mpz_t_tmp(self.ordp))
         return 0
 
-    cdef int _set_to_mpq(pAdicCappedRelativeElement self, mpq_t dest) except -1:
+    cdef int _set_mpq_into(pAdicCappedRelativeElement self, mpq_t dest) except -1:
         """
         Sets dest to a lift of self.
 
@@ -1336,6 +1336,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R = Zp(5,6)
             sage: R(17) / R(21) #indirect doctest
             2 + 4*5^2 + 3*5^3 + 4*5^4 + O(5^6)
+            sage: a = R(50) / R(5); a
+            2*5 + O(5^7)
+            sage: R(5) / R(50)
+            3*5^-1 + 2 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5)
+            sage: ~a
+            3*5^-1 + 2 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5)
+            sage: 1 / a
+            3*5^-1 + 2 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5)
         """
         cdef pAdicCappedRelativeElement ans
         if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:

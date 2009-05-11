@@ -32,9 +32,9 @@ There are three styles of caching:
       cache_limit when they are computed (rather than at ring creation
       time).
 
-AUTHORS::
+AUTHORS:
 
-    -- David Roe  (2008-01-01) initial version
+- David Roe  (2008-01-01) initial version
 """
 
 #*****************************************************************************

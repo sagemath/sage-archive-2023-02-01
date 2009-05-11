@@ -4,9 +4,10 @@ p-Adic Generic Element.
 Elements of p-Adic Rings and Fields
 
 AUTHOR:
-    -- David Roe
-    -- Genya Zaytman: documentation
-    -- David Harvey: doctests
+
+- David Roe
+- Genya Zaytman: documentation
+- David Harvey: doctests
 """
 
 #*****************************************************************************

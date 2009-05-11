@@ -4,9 +4,9 @@ p-Adic Extension Leaves.
 The final classes for extensions of Zp and Qp (ie classes that are not
 just designed to be inherited from).
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from pow_computer_ext import PowComputer_ext_maker

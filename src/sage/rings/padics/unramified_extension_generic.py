@@ -3,9 +3,9 @@ Unramified Extension Generic.
 
 This file implements the shared functionality for unramified extentions.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 #*****************************************************************************

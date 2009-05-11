@@ -1,12 +1,12 @@
 """
-p-Adic ZZ_pX Element.
+`p`-Adic ``ZZ_pX Element``.
 
 A common superclass implementing features shared by all elements that
-use NTL's ZZ_pX as the fundamental data type.
+use NTL's ``ZZ_pX`` as the fundamental data type.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 include "../../ext/stdsage.pxi"
@@ -50,14 +50,14 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef int _set_from_list(self, L) except -1:
         """
-        Sets self from a list.
+        Sets ``self`` from a list.
 
-        The list can contain integers, IntegerMods, rationals, or
-        p-adic base elements
+        The list can contain integers, ``IntegerMods``, rationals, or
+        `p`-adic base elements
 
-        INPUT::
+        INPUT:
 
-            - L -- a list.
+        - `L` -- a list.
 
         EXAMPLES::
 
@@ -71,9 +71,6 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         """
         cdef ntl_ZZ_pContext_class ctx
         L, min_val, ctx = preprocess_list(self, L)
-        #print L
-        #print min_val
-        #print type(ctx)
         if ctx is None:
             self._set_from_ZZX((<ntl_ZZX>ntl_ZZX(L)).x)
         else:
@@ -82,16 +79,17 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef int _set_from_list_rel(self, L, long relprec) except -1:
         """
-        Sets self from a list.
+        Sets ``self`` from a list.
 
-        The list can contain integers, IntegerMods, rationals, or
-        p-adic base elements
+        The list can contain integers, ``IntegerMods``, rationals, or
+        `p`-adic base elements
 
-        INPUT::
+        INPUT:
 
-            - L -- a list.
+        - ``L`` -- a list.
 
-            - relprec -- an integer, capping the relative precision of self.
+        - ``relprec`` -- an integer, capping the relative precision of
+          ``self``.
 
         EXAMPLES::
 
@@ -113,16 +111,17 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef int _set_from_list_abs(self, L, long absprec) except -1:
         """
-        Sets self from a list.
+        Sets ``self`` from a list.
 
-        The list can contain integers, IntegerMods, rationals, or
-        p-adic base elements
+        The list can contain integers, ``IntegerMods``, rationals, or
+        `p`-adic base elements
 
-        INPUT::
+        INPUT:
 
-            - L -- a list.
+        - ``L`` -- a list.
 
-            - relprec -- an integer, capping the relative precision of self.
+        - ``relprec`` -- an integer, capping the relative precision of
+          ``self``.
 
         EXAMPLES::
 
@@ -144,17 +143,20 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef int _set_from_list_both(self, L, long absprec, long relprec) except -1:
         """
-        Sets self from a list.
+        Sets ``self`` from a list.
 
-        The list can contain integers, IntegerMods, rationals, or p-adic base elements
+        The list can contain integers, ``IntegerMods``, rationals, or
+        `p`-adic base elements
 
-        INPUT::
+        INPUT:
 
-            - L -- a list.
+        - ``L`` -- a list.
 
-            - absprec -- an integer, capping the absolute precision of self.
+        - ``absprec`` -- an integer, capping the absolute precision of
+          ``self``.
 
-            - relprec -- an integer, capping the relative precision of self.
+        - ``relprec`` -- an integer, capping the relative precision of
+          ``self``.
 
         EXAMPLES::
 
@@ -176,17 +178,17 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef long _check_ZZ_pContext(self, ntl_ZZ_pContext_class ctx) except -1:
         """
-        Checks that the given ntl_ZZ_pContext is actually a power of
-        the relevant prime.  If so, returns the exponent.
+        Checks that the given ``ntl_ZZ_pContext`` is actually a power
+        of the relevant prime.  If so, returns the exponent.
 
-        INPUT::
+        INPUT:
 
-            - ctx -- An ntl_ZZ_pContext_class
+        - ``ctx`` -- An ``ntl_ZZ_pContext_class``
 
-        OUTPUT::
+        OUTPUT:
 
-            - val -- If ctx is a context for p^n, returns n.
-              Otherwise, raises an error.
+        - ``val`` -- If ``ctx`` is a context for `p^n`, returns `n`.
+          Otherwise, raises an error.
 
         EXAMPLES::
 
@@ -206,31 +208,40 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     cdef ext_p_list_precs(self, bint pos, long prec):
         """
-        Returns a list of integers (in the eisenstein case) or a list
-        of lists of integers (in the unramified case).  self can be
-        reconstructed as a sum of elements of the list times powers of
-        the uniformiser (in the eisenstein case), or as a sum of
-        powers of the p times polynomials in the generator (in the
-        unramified case).
+        Returns a list giving a series representation of ``self``.
+
+        - The returned list will consist of:
+
+          + integers (in the eisenstein case) or
+
+          + lists of integers (in the unramified case).
+
+        - ``self`` can be reconstructed as
+
+          + a sum of elements of the list times powers of the
+            uniformiser (in the eisenstein case), or
+
+          + as a sum of powers of the `p` times polynomials in the
+            generator (in the unramified case).
 
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS::
+        INPUTS:
 
-            - pos -- bint.  If True, all integers will be in the range [0,p-1],
-              otherwise they will be in the range [(1-p)/2, p/2].
+        - ``pos`` -- ``bint``.  If ``True``, all integers will be in
+          the range `[0,p-1]`, otherwise they will be in the range
+          `[(1-p)/2, p/2]`.
 
-            - prec -- How many terms to return in the list.  This is
-              important since shifting in the eisenstein case can
-              introduce random high order bits.  Thus the process
-              would not otherwise necessarily terminate at the right
-              point.
+        - ``prec`` -- How many terms to return in the list.  This is
+          important since shifting in the eisenstein case can
+          introduce random high order bits.  Thus the process would
+          not otherwise necessarily terminate at the right point.
 
-        OUTPUT::
+        OUTPUT:
 
-            - L -- A list of integers or list of lists giving the
-              series expansion of self.
+        - ``L`` -- A list of integers or list of lists giving the
+          series expansion of ``self``.
 
         EXAMPLES::
 
@@ -326,12 +337,16 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         """
         Return the absolute or relative norm of this element.
 
-        NOTE!  This is not the p-adic absolute value.  This is a field theoretic norm down to a ground ring.
-        If you want the p-adic absolute value, use the abs() function instead.
+        NOTE!  This is not the `p`-adic absolute value.  This is a
+        field theoretic norm down to a ground ring.  If you want the
+        `p`-adic absolute value, use the ``abs()`` function instead.
 
-        If K is given then K must be a subfield of the parent L of
-        self, in which case the norm is the relative norm from L to K.
-        In all other cases, the norm is the absolute norm down to Qp or Zp.
+        If ``base`` is given then ``base`` must be a subfield of the
+        parent `L` of ``self``, in which case the norm is the relative
+        norm from L to ``base``.
+
+        In all other cases, the norm is the absolute norm down to
+        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
 
         EXAMPLES::
 
@@ -382,9 +397,12 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         """
         Return the absolute or relative trace of this element.
 
-        If K is given then K must be a subfield of the parent L of
-        self, in which case the norm is the relative norm from L to K.
-        In all other cases, the norm is the absolute norm down to Qp or Zp.
+        If ``base`` is given then ``base`` must be a subfield of the
+        parent `L` of ``self``, in which case the norm is the relative
+        norm from `L` to ``base``.
+
+        In all other cases, the norm is the absolute norm down to
+        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
 
         EXAMPLES::
 
@@ -445,9 +463,10 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     def _rational_(self):
         """
-        Returns a rational approximation of self.
+        Returns a rational approximation of ``self``.
 
-        This does not try to optimize which rational is picked: see algdep for another option.
+        This does not try to optimize which rational is picked: see
+        ``algdep`` for another option.
 
         EXAMPLES::
 
@@ -462,7 +481,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
     def _prime_pow(self):
         """
-        Provides access to self's prime_pow.
+        Provides access to ``self's`` ``prime_pow``.
 
         EXAMPLES::
 
@@ -477,29 +496,30 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
 def _test_preprocess_list(R, L):
     """
-    Given a list of elements convertible to ntl_ZZ_p's, finds the
-    appropriate absolute precision and returns a list of either ntl_ZZs or ntl_ZZ_ps.
+    Given a list of elements convertible to ``ntl_ZZ_p``s, finds the
+    appropriate absolute precision and returns a list of either ``ntl_ZZs`` or ``ntl_ZZ_ps``.
 
-    INPUTS::
+    INPUTS:
 
-        - R -- a p-adic extension ring
+    - ``R`` -- a `p`-adic extension ring
 
-        - L -- a list of rationals, integers, ints, longs, ntl_ZZ_ps,
-          ntl_ZZs, IntegerMods or p-adic base elements
+    - ``L`` -- a list of rationals, integers, ints, longs,
+      ``ntl_ZZ_ps``, ``ntl_ZZs``, ``IntegerMods`` or `p`-adic base
+      elements
 
-    OUTPUTS::
+    OUTPUTS:
 
-        - LL -- if all inputs are integral, a list of ntl_ZZs.
-          Otherwise, a list of ntl_ZZ_ps, modulo p^n which is
-          determined by the precision cap of R and the precisions of
-          the elements in L.
+    - ``LL`` -- if all inputs are integral, a list of ``ntl_ZZs``.
+      Otherwise, a list of ``ntl_ZZ_ps``, modulo `p^n` which is
+      determined by the precision cap of ``R`` and the precisions of
+      the elements in ``L``.
 
-        - min_val -- A valuation by which to multiply the elements of
-          LL in order to recover the input elements of L.
+    - ``min_val`` -- A valuation by which to multiply the elements of
+      ``LL`` in order to recover the input elements of ``L``.
 
-        - ctx -- An ntl_ZZ_p_Context giving the power of p modulo
-          which the elements in LL are defined.  If None, then the
-          elements of LL are ntl_ZZs.
+    - ``ctx`` -- An ``ntl_ZZ_p_Context`` giving the power of `p`
+      modulo which the elements in ``LL`` are defined.  If ``None``,
+      then the elements of ``LL`` are ``ntl_ZZs``.
 
     EXAMPLES::
 
@@ -526,50 +546,7 @@ def _test_preprocess_list(R, L):
 
 cdef preprocess_list(pAdicZZpXElement elt, L):
     """
-    Given a list of elements convertible to ntl_ZZ_p's, finds the
-    appropriate absolute precision and returns a list of either ntl_ZZs or ntl_ZZ_ps.
-
-    INPUTS::
-
-        - elt -- a p-adic extension element
-
-        - L -- a list of rationals, integers, ints, longs, ntl_ZZ_ps,
-          ntl_ZZs, IntegerMods or p-adic base elements
-
-    OUTPUTS::
-
-        - LL -- if all inputs are integral, a list of ntl_ZZs.
-          Otherwise, a list of ntl_ZZ_ps, modulo p^n which is
-          determined by the precision cap of R and the precisions of
-          the elements in L.
-
-        - min_val -- A valuation by which to multiply the elements of
-          LL in order to recover the input elements of L.
-
-        - ctx -- An ntl_ZZ_p_Context giving the power of p modulo
-          which the elements in LL are defined.  If None, then the
-          elements of LL are ntl_ZZs.
-
-    EXAMPLES::
-
-        sage: from sage.rings.padics.padic_ZZ_pX_element import _test_preprocess_list
-        sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_preprocess_list(Zq(25,names='a'), [1,2,3]) #indirect doctest
-        ([1, 2, 3], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [10,20,30])
-        ([10, 20, 30], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,2/5,3])
-        ([1, 2, 15], -1, NTL modulus 95367431640625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),3])
-        ([1, 10, 15], -1, NTL modulus 3125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
-        ([1, 10, 15], -1, NTL modulus 125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3)])
-        ([1, 10, 1], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),0])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
+    See the documentation for _test_preprocess_list
     """
     cdef Py_ssize_t i
     cdef ZZ_c tmp
@@ -645,20 +622,30 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
 
 def _find_val_aprec_test(R, L):
     """
-    Given a list L, finds the minimum valuation, minimum absolute precision and minimum common type of the elements.
+    Given a list ``L``, finds the minimum valuation, minimum absolute
+    precision and minimum common type of the elements.
 
-    INPUTS::
+    INPUTS:
 
-        - R -- a p-adic extension
-        - L -- a list of integers, rationals, IntegerMods, etc.
+    - ``R`` -- a `p`-adic extension
+    - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
 
-    OUTPUTS::
+    OUTPUTS:
 
-        - min_val -- the minimum valuation of any element in the list.
-        - min_aprec -- the minimum absolute precision of any element in the list.  If infinite, a predefined constant 'big' is returned instead.
-        - total_type -- If all elements are integers or ints, 2.
-                        If all elements are rationals or integers, 1.
-                        If some elements have finite precision, 0.
+    - ``min_val`` -- the minimum valuation of any element in the list.
+
+    - ``min_aprec`` -- the minimum absolute precision of any element
+      in the list.  If infinite, a predefined constant ``big`` is
+      returned instead.
+
+
+    - ``total_type`` --
+
+      + If all elements are integers or ints, 2.
+
+      + If all elements are rationals or integers, 1.
+
+      + If some elements have finite precision, 0.
 
     EXAMPLES::
 
@@ -677,33 +664,17 @@ def _find_val_aprec_test(R, L):
 
 cdef find_val_aprec(PowComputer_ext pp, L):
     """
-    Given a list L, finds the minimum valuation, minimum absolute precision and minimum common type of the elements.
+    Given a list ``L``, finds the minimum valuation, minimum absolute
+    precision and minimum common type of the elements.
 
-    INPUTS::
+    INPUTS:
 
-        - pp -- a PowComputer_ext for the element that this list is being initialized into.
-        - L -- a list of integers, rationals, IntegerMods, etc.
+    - ``pp`` -- a PowComputer_ext for the element that this list is
+      being initialized into.
 
-    OUTPUTS::
+    - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
 
-        - min_val -- the minimum valuation of any element in the list.
-        - min_aprec -- the minimum absolute precision of any element in the list.  If infinite, a predefined constant 'big' is returned instead.
-        - total_type -- If all elements are integers or ints, 2.
-                        If all elements are rationals or integers, 1.
-                        If some elements have finite precision, 0.
-
-    EXAMPLES::
-
-        sage: from sage.rings.padics.padic_ZZ_pX_element import _find_val_aprec_test
-        sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _find_val_aprec_test(Zq(25,names='a'), [15, int(75), ntl_ZZ(625)]) #indirect doctest
-        (1, 340282366920938463463374607431768211457, 2)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [5, int(25), 7/25])
-        (-2, 340282366920938463463374607431768211457, 1)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(4,125), Zp(5)(5,5), ntl_ZZ_p(16,625), 4/125])
-        (-3, 3, 0)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(25,125), Zp(5)(5,5), ntl_ZZ_p(15,625)])
-        (0, 3, 0)
+    See the documentation for _find_val_aprec_test for more details.
     """
     cdef Py_ssize_t i
     min_val = big
@@ -727,20 +698,31 @@ cdef find_val_aprec(PowComputer_ext pp, L):
 
 def _test_get_val_prec(R, a):
     """
-    Returns valuation, absolute precision and type of an input element.
+    Returns valuation, absolute precision and type of an input
+    element.
 
-    INPUTS::
+    INPUTS:
 
-        - R -- A p-adic extension ring to provide a PowComputer_ext
-        - a -- A rational, integer, int, long, ntl_ZZ_p, ntl_ZZ, IntegerMod or p-adic base element.
+    - ``R`` -- A `p`-adic extension ring to provide a ``PowComputer_ext``
 
-    OUTPUTS::
+    - ``a`` -- A rational, integer, int, long, ``ntl_ZZ_p``,
+      ``ntl_ZZ``, ``IntegerMod`` or `p`-adic base element.
 
-        - val -- if a is exact, a.valuation(p), otherwise min(0, a.valuation())
-        - aprec -- the absolute precision of a.  If a is exact, a large predefined constant.
-        - type -- 2 if a is an integer, int or long;
-                  1 if a is a rational.
-                  0 if a has finite precision.
+    OUTPUTS:
+
+    - ``val`` -- if ``a`` is exact, ``a.valuation(p)``, otherwise
+      ``min(0, a.valuation())``
+
+    - ``aprec`` -- the absolute precision of ``a``.  If ``a`` is
+      exact, a large predefined constant.
+
+    - type --
+
+      + 2 if ``a`` is an integer, int or long;
+
+      + 1 if ``a`` is a rational.
+
+      + 0 if ``a`` has finite precision.
 
     EXAMPLES::
 
@@ -762,30 +744,9 @@ def _test_get_val_prec(R, a):
         (0, 4, 0)
         sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(15,625))
         (0, 4, 0)
-    """
-    return get_val_prec(R.prime_pow, a)
 
-cdef get_val_prec(PowComputer_ext pp, a):
-    """
-    Returns valuation, absolute precision and type of an input element.
+    TESTS::
 
-    INPUTS::
-
-        - pp -- A PowComputer_ext
-        - a -- A rational, integer, int, long, ntl_ZZ_p, ntl_ZZ, IntegerMod or p-adic base element.
-
-    OUTPUTS::
-
-        - val -- if a is exact, a.valuation(p), otherwise min(0, a.valuation())
-        - aprec -- the absolute precision of a.  If a is exact, a large predefined constant.
-        - type -- 2 if a is an integer, int or long;
-                  1 if a is a rational.
-                  0 if a has finite precision.
-
-    EXAMPLES::
-
-        sage: from sage.rings.padics.padic_ZZ_pX_element import _test_get_val_prec
-        sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
         sage: _test_get_val_prec(Zq(25,names='a'), 0) #indirect doctest
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
         sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ(0))
@@ -804,6 +765,21 @@ cdef get_val_prec(PowComputer_ext pp, a):
         (0, 4, 0)
         sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(0,625))
         (0, 4, 0)
+    """
+    return get_val_prec(R.prime_pow, a)
+
+cdef get_val_prec(PowComputer_ext pp, a):
+    """
+    Returns valuation, absolute precision and type of an input element.
+
+    INPUTS:
+
+    - ``pp`` -- A ``PowComputer_ext``
+
+    - ``a`` -- A rational, integer, int, long, ``ntl_ZZ_p``,
+      ``ntl_ZZ``, ``IntegerMod`` or `p`-adic base element.
+
+    See _test_get_val_prec for more details.
     """
     cdef ntl_ZZ py_tmp
     #print "pre Integer check"

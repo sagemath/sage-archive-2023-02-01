@@ -3,9 +3,9 @@ Local Generic.
 
 Superclass for `p`-adic and power series rings.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 #*****************************************************************************

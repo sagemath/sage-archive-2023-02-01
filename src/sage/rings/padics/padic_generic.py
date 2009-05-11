@@ -3,11 +3,11 @@ p-Adic Generic.
 
 A generic superclass for all p-adic parents.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
-    - Genya Zaytman: documentation
-    - David Harvey: doctests
+- David Roe
+- Genya Zaytman: documentation
+- David Harvey: doctests
 """
 
 #*****************************************************************************
@@ -365,10 +365,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: b^125 == b
             True
 
-        AUTHORS::
+        AUTHORS:
 
-            Initial version: David Roe
-            Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
+        - Initial version: David Roe
+        - Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
         if prec is None:
             prec = self.precision_cap()

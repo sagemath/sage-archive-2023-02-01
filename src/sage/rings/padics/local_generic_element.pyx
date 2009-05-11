@@ -4,9 +4,9 @@ Local Generic Element.
 This file contains a common superclass for `p`-adic elements and power
 series elements.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from sage.rings.infinity import infinity

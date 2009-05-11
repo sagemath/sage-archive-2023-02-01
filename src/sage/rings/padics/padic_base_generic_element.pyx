@@ -1,12 +1,12 @@
 """
-p-Adic Base Generic Element.
+`p`-Adic Base Generic Element.
 
-A common superclass for features shared among all elements of Zp and
-Qp (regardless of implementation).
+A common superclass for features shared among all elements of `\mathbb{Z}_p` and
+`\mathbb{Q}_p` (regardless of implementation).
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from sage.rings.integer import Integer
@@ -23,10 +23,10 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         self.prime_pow = <PowComputer_base>parent.prime_pow
         pAdicGenericElement.__init__(self, parent)
 
-    cdef int _set_to_mpz(self, mpz_t dest) except -1:
+    cdef int _set_mpz_into(self, mpz_t dest) except -1:
         raise NotImplementedError
 
-    cdef int _set_to_mpq(self, mpq_t dest) except -1:
+    cdef int _set_mpq_into(self, mpq_t dest) except -1:
         raise NotImplementedError
 
     def _pari_init_(self):
@@ -40,12 +40,12 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             sage: pari(R(1777)) #indirect doctest
             2 + 5^2 + 4*5^3 + 2*5^4 + O(5^20)
         """
-        return self.lift().str() + " + O(" + self.parent().prime().str() + "^" + self.precision_absolute().str() + ")"
+        return "%s + O(%s^%s)" % (self.lift(), self.parent().prime(), self.precision_absolute())
 
     def _integer_(self, Z=None):
         """
         Returns an integer congruent to this element modulo
-        p^self.absolute_precision().
+        ``p^self.absolute_precision()``.
 
         EXAMPLES::
 
@@ -79,12 +79,16 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     cpdef abs(self, prec=None):
         """
-        Returns the p-adic absolute value of self.
+        Returns the `p`-adic absolute value of ``self``.
 
-        This is normalized so that the absolute value of p is 1/p.
+        This is normalized so that the absolute value of `p` is `1/p`.
 
-        INPUT --
-        prec - Integer.  The precision of the real field in which the answer is returned.  If None, returns a rational for absolutely unramified fields, or a real with 53 bits of precision if ramified.
+        INPUT:
+
+        - ``prec`` -- Integer.  The precision of the real field in
+          which the answer is returned.  If ``None``, returns a
+          rational for absolutely unramified fields, or a real with 53
+          bits of precision if ramified.
 
         EXAMPLES:
         sage: a = Qp(5)(15); a.abs()
@@ -99,10 +103,10 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     def exp(self):
         r"""
-        Compute the p-adic exp of any element of $\Z_p$ where the
-        series converges.
+        Compute the `p`-adic exponential of any element of
+        `\mathbb{Z}_p` where the series converges.
 
-        EXAMPLES
+        EXAMPLES:
 
         Borrowed from log.::
 
@@ -118,7 +122,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             1 + 13 + O(13^10)
 
         The next few examples illustrate precision when computing
-        $p$-adic exps.  First we create a field with \emph{default}
+        `p`-adic exps.  First we create a field with \emph{default}
         precision 10.::
 
             sage: R = Zp(5,10, print_mode='series')
@@ -135,7 +139,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             sage: e.exp()*K.teichmuller(4)
             4 + 2*5 + 3*5^3 + O(5^10)
 
-        TESTS
+        TESTS:
 
         Check that results are consistent over a range of precision::
 
@@ -154,9 +158,9 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             ...       assert ll == full_exp
             ...       assert ll.precision_absolute() == prec
 
-        AUTHORS::
+        AUTHORS:
 
-            - Genya Zaytman (2007-02-15)
+        - Genya Zaytman (2007-02-15)
 
         """
 
@@ -190,51 +194,63 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     def log(self, branch = None):
         r"""
-        Compute the p-adic logarithm of any unit in $\Z_p$.
+        Compute the `p`-adic logarithm of any unit in `\mathbb{Z}_p`.
         (See below for normalization.)
 
         The usual power series for log with values in the additive
-        group of $\Z_p$ only converges for 1-units (units congruent to
-        1 modulo p).  However, there is a unique extension of log to a
-        homomorphism defined on all the units.  If u = a*v is a unit
-        with v = 1 (mod p), then we define log(u) = log(v).  This is
-        the correct extension because the units U of Z_p splits as a
-        product U = V x <w>, where V is the subgroup of 1-units and w
-        is a (p-1)st root of unity.  The <w> factor is torsion, so
-        must go to 0 under any homomorphism to the torsion free group
-        $(\Z_p, +)$.
+        group of `\mathbb{Z}_p` only converges for 1-units (units
+        congruent to 1 modulo `p`).  However, there is a unique
+        extension of log to a homomorphism defined on all the units.
+        If `u = a \cdot v` is a unit with `v \equiv 1 \pmod{p}` and
+        `a` a Teichmuller representative, then we define `log(u) =
+        log(v)`.  This is the correct extension because the units `U`
+        of `\mathbb{Z}_p` split as a product `U = V \times \langle w
+        \rangle`, where `V` is the subgroup of 1-units and `w` is a
+        `(p-1)`st root of unity.  The `\langle w \rangle` factor is
+        torsion, so must go to 0 under any homomorphism to the torsion
+        free group `(\mathbb{Z}_p, +)`.
 
-        NOTES
+        INPUTS:
 
-        What some other systems do::
+        - ``self`` -- a `p`-adic element.
 
-            * PARI:  Seems to define log the same way as we do.
+        - ``branch`` -- A choice of branch, ie a choice of logarithm
+          of the uniformizer.  This choice can be made arbitrarily.
 
-            * MAGMA: Gives an error when unit is not a 1-unit.
+        NOTES:
 
-        ALGORITHM
+        What some other systems do:
 
-        Input: Some p-adic unit u.
+        * PARI:  Seems to define log the same way as we do.
 
-        1. Check that the input p-adic number is really a unit (i.e.,
-           valuation 0)
+        * MAGMA: Gives an error when unit is not a 1-unit.
 
-        2. Let $1-x = u^{p-1}$, which is a 1-unit.
+        ALGORITHM:
+
+        Input: Some p-adic unit `u` (or non-unit if ``branch`` is
+        specified).
+
+        1. Check that the input `p`-adic number is really a unit
+           (i.e., valuation 0), or take the unit part and multiply by
+           ``branch * self.valuation()`` if not and ``branch``
+           specified.
+
+        2. Let `1-x = u^{p-1}`, which is a 1-unit.
 
         3. Use the series expansion
 
         ..math ::
 
-            \log(1-x) = F(x) = -x - 1/2*x^2 - 1/3*x^3 - 1/4*x^4 - 1/5*x^5 - ...
+            \log(1-x) = F(x) = -x - 1/2*x^2 - 1/3*x^3 - 1/4*x^4 - 1/5*x^5 - \cdots
 
-        to compute the logarithm log(u**(p-1)).  Use enough terms so
+        to compute the logarithm `log(u^{p-1})`.  Use enough terms so
         that terms added on are zero
 
         4. Then
 
         ..math ::
 
-            \log(u) = log(u^{p-1})/(p-1) = F(1-u^{p-1})/(p-1).
+            \log(u) = \log(u^{p-1})/(p-1) = F(1-u^{p-1})/(p-1).
 
         EXAMPLES::
 
@@ -254,7 +270,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
         The next few examples illustrate precision when computing
-        $p$-adic logs.  First we create a field with \emph{default}
+        `p`-adic logs.  First we create a field with \emph{default}
         precision 10.::
 
             sage: R = Zp(5,10, print_mode='series')
@@ -280,19 +296,18 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             ...       assert ll.precision_absolute() == prec
 
 
-        AUTHORS::
+        AUTHORS:
 
-            - William Stein: initial version
-            - David Harvey (2006-09-13): corrected subtle precision bug
-              (need to take denominators into account! -- see trac \#53)
-            - Genya Zaytman (2007-02-14): adapted to new p-adic class
+        - William Stein: initial version
+        - David Harvey (2006-09-13): corrected subtle precision bug
+          (need to take denominators into account! -- see trac \#53)
+        - Genya Zaytman (2007-02-14): adapted to new p-adic class
 
         TODO:
 
-            - Currently implemented as $O(N^2)$. This can be improved
-              to soft-$O(N)$ using algorithm described by Dan
-              Bernstein:
-              http://cr.yp.to/lineartime/multapps-20041007.pdf
+        - Currently implemented as `O(N^2)`. This can be improved to
+          soft-`O(N)` using algorithm described by Dan Bernstein:
+          ``http://cr.yp.to/lineartime/multapps-20041007.pdf``
         """
 
         p = self.parent().prime()
@@ -334,16 +349,18 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     def minimal_polynomial(self, name):
         """
-        Returns a minimal polynomial of this p-adic element, i.e., x - self
+        Returns a minimal polynomial of this `p`-adic element, i.e., ``x - self``
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - name -- string the name of the variable
+        - ``self`` -- a `p`-adic element
 
-        OUTPUT::
+        - ``name`` -- string: the name of the variable
 
-            polynomial -- a minimal polynomial of this p-adic element, i.e., x - self
+        OUTPUT:
+
+        - ``polynomial`` -- a minimal polynomial of this `p`-adic element,
+          i.e., ``x - self``
 
         EXAMPLES::
 
@@ -355,20 +372,23 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     def norm(self, ground=None):
         """
-        Returns the norm of this p-adic element over the ground ring.
+        Returns the norm of this `p`-adic element over the ground ring.
 
-        NOTE!  This is not the p-adic absolute value.  This is a field
-        theoretic norm down to a ground ring.  If you want the p-adic
-        absolute value, use the abs() function instead.
+        NOTE!  This is not the `p`-adic absolute value.  This is a field
+        theoretic norm down to a ground ring.  If you want the `p`-adic
+        absolute value, use the ``abs()`` function instead.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - ground -- a subring of the ground ring (default: base ring)
+        - ``self`` -- a `p`-adic element
 
-        OUTPUT::
+        - ``ground`` -- a subring of the ground ring (default: base
+          ring)
 
-            element -- the norm of this p-adic element over the ground ring
+        OUTPUT:
+
+        - element -- the norm of this `p`-adic element over the ground
+          ring
 
         EXAMPLES::
 
@@ -382,16 +402,19 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     def trace(self, ground=None):
         """
-        Returns the trace of this p-adic element over the ground ring
+        Returns the trace of this `p`-adic element over the ground ring
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - ground -- a subring of the ground ring (default: base ring)
+        - ``self`` -- a `p`-adic element
 
-        OUTPUT::
+        - ``ground`` -- a subring of the ground ring (default: base
+          ring)
 
-            element -- the trace of this p-adic element over the ground ring
+        OUTPUT:
+
+        - ``element`` -- the trace of this `p`-adic element over the
+          ground ring
 
         EXAMPLES::
 
@@ -405,19 +428,18 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
     cdef int teichmuller_set_c(self, mpz_t value, mpz_t ppow) except -1:
         r"""
-        Sets value to the integer between 0 and p^prec that is
-        congruent to the Teichmuller lift of value to Z_p.  Does not
-        affect self.
+        Sets ``value`` to the integer between 0 and ``ppow`` that is
+        congruent to the Teichmuller lift of value to `\mathbb{Z}_p`.
+        Does not affect ``self``.
 
-        INPUT::
+        INPUT:
 
-            - value -- An mpz_t currently holding an approximation to
-                       the Teichmuller representative (this
-                       approximation can be any integer).  It will be
-                       set to the actual Teichmuller lift
+        - ``value`` -- An ``mpz_t`` currently holding an approximation
+          to the Teichmuller representative (this approximation can be
+          any integer).  It will be set to the actual Teichmuller lift
 
-            - ppow -- An mpz_t holding the value p^prec, where prec is the
-                      desired precision of the Teichmuller lift
+        - ``ppow`` -- An ``mpz_t`` holding the value ``p^prec``, where
+          ``prec`` is the desired precision of the Teichmuller lift
 
         EXAMPLES::
 

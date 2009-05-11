@@ -1,11 +1,11 @@
 """
-p-Adic Base Generic.
+`p`-Adic Base Generic.
 
-A superclass for implementations of Zp and Qp.
+A superclass for implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from padic_generic import pAdicGeneric
@@ -30,48 +30,18 @@ class pAdicBaseGeneric(pAdicGeneric):
         else:
             self._populate_coercion_lists_(coerce_list=[ZZ], element_constructor=element_class)
 
-#     def __reduce__(self):
-#         """
-#         For pickling.
-
-#         This function is provided because prime_pow needs to be set
-#         before _printer, so the standard unpickling fails.
-
-#         TESTS::
-
-#             sage: R = Zp(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
-#             sage: R == S
-#             True
-#             sage: S(2777)
-#         """
-#         from sage.rings.padics.factory import Zp, Qp
-#         if self.is_field():
-#             if self.is_capped_relative():
-#                 return Qp, (self.prime(), self.precision_cap(), 'capped-rel', self.print_mode(), 40, self.variable_name())
-#             else:
-#                 return Qp, (self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter(), self.variable_name())
-#         else:
-#             if self.is_capped_relative():
-#                 return Zp, (self.prime(), self.precision_cap(), 'capped-rel', self.print_mode(), 40, self.variable_name())
-#             elif self.is_capped_absolute():
-#                 return Zp, (self.prime(), self.precision_cap(), 'capped-abs', self.print_mode(), 40, self.variable_name())
-#             elif self.is_fixed_mod():
-#                 return Zp, (self.prime(), self.precision_cap(), 'fixed-mod', self.print_mode(), 40, self.variable_name())
-#             else:
-#                 return Zp, (self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter(), self.variable_name())
-
     def fraction_field(self, print_mode=None):
         r"""
-        Returns the fraction field of self.
+        Returns the fraction field of ``self``.
 
-        INPUT::
+        INPUT:
 
-            - print_mode - a dictionary containing print options.
-              Defaults to the same options as this ring.
+        - ``print_mode`` - a dictionary containing print options.
+          Defaults to the same options as this ring.
 
-        OUTPUT::
+        OUTPUT:
 
-            the fraction field of self.
+        - the fraction field of ``self``.
 
         EXAMPLES::
 
@@ -88,16 +58,17 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def integer_ring(self, print_mode=None):
         r"""
-        Returns the integer ring of self, possibly with print_mode changed.
+        Returns the integer ring of ``self``, possibly with
+        ``print_mode`` changed.
 
-        INPUT::
+        INPUT:
 
-            - print_mode - a dictionary containing print options.
-              Defaults to the same options as this ring.
+        - ``print_mode`` - a dictionary containing print options.
+          Defaults to the same options as this ring.
 
-        OUTPUT::
+        OUTPUT:
 
-            - The ring of integral elements in self.
+        - The ring of integral elements in ``self``.
 
         EXAMPLES::
 
@@ -114,16 +85,17 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def is_isomorphic(self, ring):
         r"""
-        Returns whether self and ring are isomorphic, i.e. whether ring is an implementation of $\Z_p$ for the same prime as self.
+        Returns whether ``self`` and ``ring`` are isomorphic, i.e. whether ``ring`` is an implementation of `\mathbb{Z}_p` for the same prime as ``self``.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic ring
-            ring -- a ring
+        - ``self`` -- a `p`-adic ring
 
-        OUTPUT::
+        - ``ring`` -- a ring
 
-            boolean -- whether ring is an implementation of $\Z_p$ for the same prime as self.
+        OUTPUT:
+
+        - ``boolean`` -- whether ``ring`` is an implementation of \mathbb{Z}_p` for the same prime as ``self``.
 
         EXAMPLES::
 
@@ -134,7 +106,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def gen(self, n=0):
         """
-        Returns the nth generator of this extension.  For base
+        Returns the ``nth`` generator of this extension.  For base
         rings/fields, we consider the generator to be the prime.
 
         EXAMPLES::
@@ -148,15 +120,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def absolute_discriminant(self):
         """
-        Returns the absolute discriminant of this p-adic ring
-
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            integer -- the absolute discriminant of this ring, i.e., 1
+        Returns the absolute discriminant of this `p`-adic ring
 
         EXAMPLES::
 
@@ -167,17 +131,18 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def discriminant(self, K=None):
         """
-        Returns the discriminant of this p-adic ring over K
+        Returns the discriminant of this `p`-adic ring over ``K``
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic ring
-            K -- a sub-ring of self or None (default: None)
+        - ``self`` -- a `p`-adic ring
 
-        OUTPUT::
+        - ``K`` -- a sub-ring of ``self`` or ``None`` (default: ``None``)
 
-            - integer -- the discriminant of this ring over K (or the
-              absolute discriminant if K is None)
+        OUTPUT:
+
+        - integer -- the discriminant of this ring over ``K`` (or the
+          absolute discriminant if ``K`` is ``None``)
 
         EXAMPLES::
 
@@ -191,15 +156,8 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def is_abelian(self):
         """
-        Returns whether the Galois group is abelian, i.e. True.  #should this be automorphism group?
-
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            boolean -- whether self is abelian, i.e., True
+        Returns whether the Galois group is abelian, i.e. ``True``.
+        #should this be automorphism group?
 
         EXAMPLES::
 
@@ -210,15 +168,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def is_normal(self):
         """
-        Returns whether or not this is a normal extension, i.e. True.
-
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            boolean -- whether self is normal, i.e., True
+        Returns whether or not this is a normal extension, i.e. ``True``.
 
         EXAMPLES::
 
@@ -231,14 +181,6 @@ class pAdicBaseGeneric(pAdicGeneric):
         """
         Returns a uniformizer for this ring.
 
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            element -- self's uniformizer
-
         EXAMPLES::
 
             sage: R = Zp(3,5,'fixed-mod', 'series')
@@ -249,7 +191,8 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def uniformizer_pow(self, n):
         """
-        Returns the nth power of the uniformizer of self (as an element of self).
+        Returns the ``nth`` power of the uniformizer of ``self`` (as
+        an element of ``self``).
 
         EXAMPLES::
 
@@ -274,15 +217,8 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def has_pth_root(self):
         r"""
-        Returns whether or not $\Z_p$ has a primitive $p^{\mbox{th}}$ root of unity.
-
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            boolean -- whether self has primitive $p^{\mbox{th}}$ root of unity.
+        Returns whether or not `\mathbb{Z}_p` has a primitive `p^{th}`
+        root of unity.
 
         EXAMPLES::
 
@@ -295,16 +231,19 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def has_root_of_unity(self, n):
         r"""
-        Returns whether or not $\Z_p$ has a primitive $n^{\mbox{th}}$ root of unity.
+        Returns whether or not `\mathbb{Z}_p` has a primitive `n^{th}`
+        root of unity.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic ring
-            - n -- an integer
+        - ``self`` -- a `p`-adic ring
 
-        OUTPUT::
+        - ``n`` -- an integer
 
-            boolean -- whether self has primitive $n^{\mbox{th}}$ root of unity
+        OUTPUT:
+
+        - ``boolean`` -- whether ``self`` has primitive `n^{th}` root
+          of unity
 
         EXAMPLES::
 
@@ -323,16 +262,17 @@ class pAdicBaseGeneric(pAdicGeneric):
         r"""
         Returns a generator of the group of roots of unity.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic ring
-            - n -- an integer ot None (default: None)
+        - ``self`` -- a `p`-adic ring
 
-        OUTPUT::
+        - ``n`` -- an integer or ``None`` (default: ``None``)
 
-            - element -- a generator of the $n^\mbox{th}$ roots of
-              unity, or a generator of the full group of roots of
-              unity if n is None
+        OUTPUT:
+
+        - ``element`` -- a generator of the `n^{th}` roots of unity,
+          or a generator of the full group of roots of unity if ``n``
+          is ``None``
 
         EXAMPLES::
 
@@ -355,14 +295,6 @@ class pAdicBaseGeneric(pAdicGeneric):
         """
         Returns the order of the group of roots of unity.
 
-        INPUT::
-
-            self -- a p-adic ring
-
-        OUTPUT::
-
-            integer -- the order of the group of roots of unity
-
         EXAMPLES::
 
             sage: R = Zp(37); R.zeta_order()
@@ -377,22 +309,24 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def plot(self, max_points=2500, **args):
         r"""
-        Creates a visualization of this p-adic ring as a fractal similar as
-        a generalization of the the Sierpi\'nski triangle. The resulting image
-        attempts to capture the algebraic and topological characteristics of $\Z_p$.
+        Creates a visualization of this `p`-adic ring as a fractal
+        similar as a generalization of the the Sierpi\'nski
+        triangle. The resulting image attempts to capture the
+        algebraic and topological characteristics of `\mathbb{Z}_p`.
 
-        INPUT::
+        INPUT:
 
-            - point_count -- the maximum number or points to plot,
-              which controls the depth of recursion (default 2500)
+        - ``point_count`` -- the maximum number or points to plot,
+          which controls the depth of recursion (default 2500)
 
-            - **args -- color, size, etc. that are passed to the
-              underlying point graphics objects
+        - **args -- color, size, etc. that are passed to the
+          underlying point graphics objects
 
-        REFERENCES::
+        REFERENCES:
 
-            Cuoco, A. ``Visualizing the $p$-adic Integers'', The American
-                Mathematical Monthly, Vol. 98, No. 4 (Apr., 1991), pp. 355-364
+        - Cuoco, A. ''Visualizing the `p`-adic Integers'', The
+          American Mathematical Monthly, Vol. 98, No. 4 (Apr., 1991),
+          pp. 355-364
 
         EXAMPLES::
 

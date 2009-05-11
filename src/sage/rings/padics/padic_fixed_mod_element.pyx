@@ -3,11 +3,11 @@ p-Adic Fixed-Mod Element.
 
 Elements of p-Adic Rings with Fixed Modulus
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
-    - Genya Zaytman: documentation
-    - David Harvey: doctests
+- David Roe
+- Genya Zaytman: documentation
+- David Harvey: doctests
 """
 
 #*****************************************************************************
@@ -255,7 +255,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         _sig_off
         return 0
 
-    cdef int _set_to_mpz(pAdicFixedModElement self, mpz_t dest) except -1:
+    cdef int _set_mpz_into(pAdicFixedModElement self, mpz_t dest) except -1:
         """
         Sets dest to a lift of self.
 
@@ -268,7 +268,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_set(dest, self.value)
         return 0
 
-    cdef int _set_to_mpq(pAdicFixedModElement self, mpq_t dest) except -1:
+    cdef int _set_mpq_into(pAdicFixedModElement self, mpq_t dest) except -1:
         """
         Sets dest to a lift of self.
 

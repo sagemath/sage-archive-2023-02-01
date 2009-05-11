@@ -3,9 +3,9 @@ p-Adic Extension Generic.
 
 A common superclass for all extensions of Qp and Zp.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from padic_generic import pAdicGeneric

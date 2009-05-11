@@ -3,9 +3,9 @@ Eisenstein Extension Generic.
 
 This file implements the shared functionality for Eisenstein extentions.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 #*****************************************************************************
@@ -94,7 +94,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
         The inertia degree is the degree of the extension of residue
         fields induced by this extensions.  Since Eisenstein
-        extensinos are totally ramified, this will be 1 for K=None.
+        extensions are totally ramified, this will be 1 for K=None.
 
         INPUTS:
 

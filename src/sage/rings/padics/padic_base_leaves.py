@@ -1,58 +1,57 @@
 """
-p-Adic Base Leaves.
+`p`-Adic Base Leaves.
 
-Implementations of Zp and Qp
+Implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
-    - Genya Zaytman: documentation
-    - David Harvey: doctests
-    - William Stein: doctest updates
+- David Roe
+- Genya Zaytman: documentation
+- David Harvey: doctests
+- William Stein: doctest updates
 
-EXAMPLES::
+EXAMPLES:
 
-    p-Adic rings and fields are examples of inexact structures, as the
-    reals are.  That means that elements cannot generally be stored
-    exactly: to do so would take an infinite amount of storage.
-    Instead, we store an approximation to the elements with varying
-    precision.
+`p`-Adic rings and fields are examples of inexact structures, as the
+reals are.  That means that elements cannot generally be stored
+exactly: to do so would take an infinite amount of storage.  Instead,
+we store an approximation to the elements with varying precision.
 
-    There are two types of precision for a p-adic element.  The first
-    is relative precision, which gives the number of known p-adic
-    digits::
+There are two types of precision for a `p`-adic element.  The first is
+relative precision, which gives the number of known `p`-adic digits::
 
     sage: R = Qp(5, 20, 'capped-rel', 'series'); a = R(675); a
     2*5^2 + 5^4 + O(5^22)
     sage: a.precision_relative()
     20
 
-    The second type of precision is absolute precision, which gives
-    the power of p that this element is stored modulo::
+The second type of precision is absolute precision, which gives the
+power of `p` that this element is stored modulo::
 
     sage: a.precision_absolute()
     22
 
-    The number of times that p divides the element is called the
-    valuation, and can be accessed with the functions valuation() and
-    ordp():
+The number of times that `p` divides the element is called the
+valuation, and can be accessed with the functions ``valuation()`` and
+``ordp()``:
 
     sage: a.valuation()
     2
 
-    The following relationship holds: self.valuation() +
-    self.precision_relative() == self.precision_absolute().
+The following relationship holds:
+
+``self.valuation() + self.precision_relative() == self.precision_absolute().``
 
     sage: a.valuation() + a.precision_relative() == a.precision_absolute()
     True
 
-    In the capped relative case, the relative precision of an element
-    is restricted to be at most a certain value, specified at the
-    creation of the field.  Individual elements also store their own
-    precision, so the effect of various arithmetic operations on
-    precision is tracked.  When you cast an exact element into a
-    capped relative field, it truncates it to the precision cap of the
-    field.::
+In the capped relative case, the relative precision of an element
+is restricted to be at most a certain value, specified at the
+creation of the field.  Individual elements also store their own
+precision, so the effect of various arithmetic operations on
+precision is tracked.  When you cast an exact element into a
+capped relative field, it truncates it to the precision cap of the
+field.::
 
     sage: R = Qp(5, 5); a = R(4006); a
     1 + 5 + 2*5^3 + 5^4 + O(5^5)
@@ -65,7 +64,7 @@ EXAMPLES::
     sage: a + b + c
     4*5 + 4*5^2 + 5^4 + O(5^5)
 
-    ::
+::
 
     sage: R = Zp(5, 5, 'capped-rel', 'series'); a = R(4006); a
     1 + 5 + 2*5^3 + 5^4 + O(5^5)
@@ -78,11 +77,11 @@ EXAMPLES::
     sage: a + b + c
     4*5 + 4*5^2 + 5^4 + O(5^5)
 
-    In the capped absolute type, instead of having a cap on the
-    relative precision of an element there is instead a cap on the
-    absolute precision.  Elements still store their own precisions,
-    and as with the capped relative case, exact elements are truncated
-    when cast into the ring.::
+In the capped absolute type, instead of having a cap on the
+relative precision of an element there is instead a cap on the
+absolute precision.  Elements still store their own precisions,
+and as with the capped relative case, exact elements are truncated
+when cast into the ring.::
 
     sage: R = ZpCA(5, 5); a = R(4005); a
     5 + 2*5^3 + 5^4 + O(5^5)
@@ -99,22 +98,23 @@ EXAMPLES::
     sage: type((a * b) / 5^3)
     <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
-    The fixed modulus type is the leanest of the p-adic rings: it is
-    basically just a wrapper around $\Z / p^n \Z$ providing a unified
-    interface with the rest of the p-adics.  This is the type you
-    should use if your primary interest is in speed (though it's not
-    all that much faster than other p-adic types).  It does not track
-    precision of elements.::
+The fixed modulus type is the leanest of the p-adic rings: it is
+basically just a wrapper around `\mathbb{Z} / p^n \mathbb{Z}`
+providing a unified interface with the rest of the `p`-adics.  This is
+the type you should use if your primary interest is in speed (though
+it's not all that much faster than other `p`-adic types).  It does not
+track precision of elements.::
 
     sage: R = ZpFM(5, 5); a = R(4005); a
     5 + 2*5^3 + 5^4 + O(5^5)
     sage: a // 5
     1 + 2*5^2 + 5^3 + O(5^5)
 
-    p-Adic rings and fields should be created using the creation functions Zp and Qp as
-    above.  This will ensure that there is only one instance of $\Z_p$ and $\Q_p$
-    of a given type, p, print mode and precision.  It also saves
-    typing very long class names.::
+`p`-Adic rings and fields should be created using the creation
+functions ``Zp`` and ``Qp`` as above.  This will ensure that there is
+only one instance of `\mathbb{Z}_p` and `\mathbb{Q}_p` of a given
+type, `p`, print mode and precision.  It also saves typing very long
+class names.::
 
     sage: Qp(17,10)
     17-adic Field with capped relative precision 10
@@ -123,10 +123,10 @@ EXAMPLES::
     sage: Qp(2)
     2-adic Field with capped relative precision 20
 
-    Once one has a p-Adic ring or field, one can cast elements into it in the
-    standard way.  Integers, ints, longs, Rationals, other p-Adic
-    types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast
-    into a p-Adic field.::
+Once one has a `p`-Adic ring or field, one can cast elements into it
+in the standard way.  Integers, ints, longs, Rationals, other `p`-Adic
+types, pari `p`-adics and elements of `\mathbb{Z} / p^n \mathbb{Z}`
+can all be cast into a `p`-Adic field.::
 
     sage: R = Qp(5, 5, 'capped-rel','series'); a = R(16); a
     1 + 3*5 + O(5^5)
@@ -137,27 +137,26 @@ EXAMPLES::
     sage: R(c)
     3*5^2 + O(5^5)
 
-    In the previous example, since fixed-mod elements don't keep track
-    of their precision, we assume that it has the full precision of
-    the ring.  This is why you have to cast manually here.
+In the previous example, since fixed-mod elements don't keep track
+of their precision, we assume that it has the full precision of
+the ring.  This is why you have to cast manually here.
 
-    While you can cast explicitly as above, the chains of automatic
-    coercion are more restricted.  As always in SAGE, the following
-    arrows are transitive and the diagram is commutative.
+While you can cast explicitly as above, the chains of automatic
+coercion are more restricted.  As always in SAGE, the following
+arrows are transitive and the diagram is commutative.::
 
     int -> long -> Integer -> Zp capped-rel -> Zp capped_abs -> IntegerMod
     Integer -> Zp fixed-mod -> IntegerMod
     Integer -> Zp capped-abs -> Qp capped-rel
 
-    In addition, there are arrows within each type.  For capped
-    relative and capped absolute rings and fields, these arrows go
-    from lower precision cap to higher precision cap.  This works
-    since elements track their own precision: choosing the parent with
-    higher precision cap means that precision is less likely to be
-    truncated unnecessarily.  For fixed modulus parents, the arrow
-    goes from higher precision cap to lower; the fact that elements
-    don't track precision necessitates this choice in order to not
-    produce incorrect results.
+In addition, there are arrows within each type.  For capped relative
+and capped absolute rings and fields, these arrows go from lower
+precision cap to higher precision cap.  This works since elements
+track their own precision: choosing the parent with higher precision
+cap means that precision is less likely to be truncated unnecessarily.
+For fixed modulus parents, the arrow goes from higher precision cap to
+lower.  The fact that elements do not track precision necessitates
+this choice in order to not produce incorrect results.
 
 TESTS::
 
@@ -194,18 +193,19 @@ from sage.rings.integer_ring import ZZ
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
     r"""
-    An implementation of the p-adic integers with capped relative precision.
+    An implementation of the `p`-adic integers with capped relative
+    precision.
     """
     def __init__(self, p, prec, print_mode, names):
         """
         Initialization.
 
-        INPUTS::
+        INPUTS:
 
-            - p -- prime
-            - prec -- precision cap
-            - print_mode -- dictionary with print options.
-            - names -- how to print the prime.
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
 
         EXAMPLES::
 
@@ -215,7 +215,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coerce map from R to self.
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -264,18 +264,18 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
-    An implementation of the p-adic integers with capped absolute precision.
+    An implementation of the `p`-adic integers with capped absolute precision.
     """
     def __init__(self, p, prec, print_mode, names):
         """
         Initialization.
 
-        INPUTS::
+        INPUTS:
 
-            - p -- prime
-            - prec -- precision cap
-            - print_mode -- dictionary with print options.
-            - names -- how to print the prime.
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
 
         EXAMPLES::
 
@@ -300,7 +300,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coerce map from R to self.
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -336,18 +336,18 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
-    An implementation of the p-adic integers using fixed modulus.
+    An implementation of the `p`-adic integers using fixed modulus.
     """
     def __init__(self, p, prec, print_mode, names):
         """
         Initialization
 
-        INPUTS::
+        INPUTS:
 
-            - p -- prime
-            - prec -- precision cap
-            - print_mode -- dictionary with print options.
-            - names -- how to print the prime.
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
 
         EXAMPLES::
 
@@ -357,7 +357,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coerce map from R to self.
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -406,11 +406,12 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
     def fraction_field(self, print_mode = None):
         r"""
-        Would normally return $\Q_p$, but there is no implementation
-        of $Q_p$ matching this ring so this raises an error
+        Would normally return `\mathbb{Q}_p`, but there is no
+        implementation of `\mathbb{Q}_p` matching this ring so this
+        raises an error
 
         If you want to be able to divide with elements of a fixed
-        modulus p-adic ring, you must cast explicitly.
+        modulus `p`-adic ring, you must cast explicitly.
 
         EXAMPLES::
 
@@ -418,13 +419,15 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             Traceback (most recent call last):
             ...
             TypeError: This implementation of the p-adic ring does not support fields of fractions.
+
+            sage: a = ZpFM(5)(4); b = ZpFM(5)(5)
         """
         raise TypeError, "This implementation of the p-adic ring does not support fields of fractions."
 
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
     r"""
-    An implementation of p-adic fields with capped relative precision.
+    An implementation of `p`-adic fields with capped relative precision.
 
     EXAMPLES::
 
@@ -438,10 +441,10 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
         INPUTS::
 
-            - p -- the prime
-            - prec -- relative precision cap
-            - print_mode -- dictionary of print options.
-            - names -- how to print the prime p.
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
 
         EXAMPLES::
 
@@ -451,7 +454,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coerce map from R to self.
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -488,7 +491,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
     def _repr_(self, do_latex=False):
         r"""
-        Returns a string representation of self.
+        Returns a string representation of ``self``.
 
         EXAMPLES::
 
@@ -504,14 +507,15 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
     def random_element(self, algorithm='default'):
         r"""
-        Returns a random element of self, optionally using the algorithm
+        Returns a random element of ``self``, optionally using the ``algorithm``
         argument to decide how it generates the element. Algorithms currently
         implemented:
 
-            default: Choose an integer k using the standard
-              distribution on the integers.  Then choose an integer a
-              uniformly in the range 0 <= a < p^self.precision_cap().
-              Return self(p^k * a, absprec = k + self.precision_cap()).
+        - default: Choose an integer `k` using the standard
+          distribution on the integers.  Then choose an integer `a`
+          uniformly in the range `0 \le a < p^N` where `N` is the
+          precision cap of ``self``.  Return ``self(p^k * a, absprec =
+          k + self.precision_cap())``.
 
         EXAMPLES::
 

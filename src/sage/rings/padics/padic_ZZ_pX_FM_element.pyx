@@ -53,9 +53,9 @@ element contains the following data::
     a polynomial modulus defined modulo `p^n` (appropriately divided
     by ``prime_pow.e`` in the capdiv case).
 
-EXAMPLES::
+EXAMPLES:
 
-    An eisenstein extension::
+An eisenstein extension::
 
     sage: R = ZpFM(5,5)
     sage: S.<x> = R[]
@@ -75,7 +75,7 @@ EXAMPLES::
     sage: z - (y << 1)
     1 + O(w^25)
 
-    An unramified extension::
+An unramified extension::
 
     sage: g = x^3 + 3*x + 3
     sage: A.<a> = R.ext(g)
@@ -88,7 +88,7 @@ EXAMPLES::
     sage: 1/a
     (3*a^2 + 4) + (a^2 + 4)*5 + (3*a^2 + 4)*5^2 + (a^2 + 4)*5^3 + (3*a^2 + 4)*5^4 + O(5^5)
 
-    Different printing modes::
+Different printing modes::
 
     sage: R = ZpFM(5, print_mode='digits'); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
     sage: z = (1+w)^5; repr(z)
@@ -103,9 +103,9 @@ EXAMPLES::
     sage: y = (1+w)^5 - 1; y
     w^5 * (2090041 + 95367431439401*w + 76293946571402*w^2 + 57220458985049*w^3 + 57220459001160*w^4) + O(w^100)
 
-AUTHORS::
+AUTHORS:
 
-    -- David Roe  (2008-01-01) initial version
+- David Roe  (2008-01-01) initial version
 """
 
 #*****************************************************************************
@@ -144,21 +144,25 @@ from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
 cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec=None, relprec=None, empty=False):
         """
-        Creates an element of a fixed modulus, unramified or eisenstein extension of Zp or Qp.
+        Creates an element of a fixed modulus, unramified or
+        eisenstein extension of `\mathbb{Z}_p` or `\mathbb{Q}_p`.
 
-        INPUT::
+        INPUT:
 
-            - parent -- either an EisensteinRingFixedMod or UnramifiedRingFixedMod
+        - ``parent`` -- either an ``EisensteinRingFixedMod`` or
+          ``UnramifiedRingFixedMod``
 
-            - x -- an integer, rational, p-adic element, polynomial,
-              list, integer_mod, pari int/frac/poly_t/pol_mod, an
-              ntl_ZZ_pX, an ntl_ZZX, an ntl_ZZ, or an ntl_ZZ_p
+        - ``x`` -- an integer, rational, `p`-adic element, polynomial,
+          list, integer_mod, pari int/frac/poly_t/pol_mod, an
+          ``ntl_ZZ_pX``, an ``ntl_ZZX``, an ``ntl_ZZ``, or an
+          ``ntl_ZZ_p``
 
-            - absprec -- not used
+        - ``absprec`` -- not used
 
-            - relprec -- not used
+        - ``relprec`` -- not used
 
-            - empty -- whether to return after initializing to zero (without setting anything).
+        - ``empty`` -- whether to return after initializing to zero
+          (without setting anything).
 
         EXAMPLES::
 
@@ -184,7 +188,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 raise TypeError, "Cannot coerce between p-adic parents with different primes."
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             mpz_init(tmp)
-            (<pAdicBaseGenericElement>x)._set_to_mpz(tmp)
+            (<pAdicBaseGenericElement>x)._set_mpz_into(tmp)
             self._set_from_mpz(tmp)
             mpz_clear(tmp)
             return
@@ -251,7 +255,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef int _set_from_mpz(self, mpz_t x) except -1:
         """
-        Sets self from an mpz_t.
+        Sets ``self`` from an ``mpz_t``.
 
         EXAMPLES::
 
@@ -275,7 +279,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef int _set_from_mpq(self, mpq_t x) except -1:
         """
-        Sets self from an mpq_t.
+        Sets ``self`` from an ``mpq_t``.
 
         EXAMPLES::
 
@@ -308,7 +312,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef int _set_from_ZZ_pX(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx) except -1:
         """
-        Sets self from a ZZ_pX_c.
+        Sets ``self`` from a ``ZZ_pX_c``.
 
         EXAMPLES::
 
@@ -327,7 +331,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef int _set_from_ZZX(self, ZZX_c poly) except -1:
         """
-        Sets self from a ZZX with relative precision bounded by relprec and absolute precision bounded by absprec.
+        Sets ``self`` from a ``ZZX`` with relative precision bounded
+        by ``relprec`` and absolute precision bounded by ``absprec``.
 
         EXAMPLES::
 
@@ -345,7 +350,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef bint _is_inexact_zero(self):
         """
-        Tests if self is an inexact zero.
+        Tests if ``self`` is an inexact zero.
 
         EXAMPLES::
 
@@ -364,7 +369,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __reduce__(self):
         """
-        Pickles self.
+        Pickles ``self``.
 
         EXAMPLES::
 
@@ -384,7 +389,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __dealloc__(self):
         """
-        Deallocates self.value.
+        Deallocates ``self.value``.
 
         EXAMPLES::
 
@@ -399,7 +404,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef pAdicZZpXFMElement _new_c(self):
         """
-        Returns a new element with the same parent as self.
+        Returns a new element with the same parent as ``self``.
 
         EXAMPLES::
 
@@ -419,7 +424,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __richcmp__(left, right, op):
         """
-        Compares left and right under the operation op.
+        Compares ``left`` and ``right`` under the operation ``op``.
 
         EXAMPLES::
 
@@ -473,9 +478,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __invert__(self):
         """
-        Returns the inverse of self, as long as self is a unit.
+        Returns the inverse of ``self``, as long as ``self`` is a
+        unit.
 
-        If self is not a unit, raises a ValueError.
+        If ``self`` is not a unit, raises a ``ValueError``.
 
         EXAMPLES::
 
@@ -498,9 +504,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef RingElement _invert_c_impl(self):
         """
-        Returns the inverse of self, as long as self is a unit.
+        Returns the inverse of ``self``, as long as ``self`` is a
+        unit.
 
-        If self is not a unit, raises a ValueError.
+        If ``self`` is not a unit, raises a ``ValueError``.
 
         EXAMPLES::
 
@@ -532,7 +539,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef pAdicZZpXFMElement _lshift_c(self, long n):
         """
-        Multiplies self by the uniformizer raised to the power n.  If n is negative, right shifts by -n.
+        Multiplies ``self`` by the uniformizer raised to the power
+        ``n``.  If ``n`` is negative, right shifts by ``-n``.
 
         EXAMPLES::
 
@@ -562,7 +570,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __lshift__(pAdicZZpXFMElement self, shift):
         """
-        Multiplies self by the uniformizer raised to the power n.  If n is negative, right shifts by -n.
+        Multiplies ``self`` by the uniformizer raised to the power
+        ``n``.  If ``n`` is negative, right shifts by ``-n``.
 
         EXAMPLES::
 
@@ -589,9 +598,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef pAdicZZpXFMElement _rshift_c(self, long n):
         """
-        Divides self by the uniformizer raised to the power n.  Throws
-        away the non-positive part of the series expansion.  The top
-        digits will be garbage.  If n is negative, left shifts by -n.
+        Divides ``self`` by the uniformizer raised to the power ``n``.
+        Throws away the non-positive part of the series expansion.
+        The top digits will be garbage.  If ``n`` is negative, left
+        shifts by ``-n``.
 
         EXAMPLES::
 
@@ -647,9 +657,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __rshift__(pAdicZZpXFMElement self, shift):
         """
-        Divides self by the uniformizer raised to the power n.  Throws
-        away the non-positive part of the series expansion.  The top
-        digits will be garbage.  If n is negative, left shifts by -n.
+        Divides ``self`` by the uniformizer raised to the power ``n``.
+        Throws away the non-positive part of the series expansion.
+        The top digits will be garbage.  If ``n`` is negative, left
+        shifts by ``-n``.
 
         EXAMPLES::
 
@@ -675,7 +686,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef ModuleElement _neg_(self):
         """
-        Returns -self.
+        Returns ``-self``.
 
         EXAMPLES::
 
@@ -698,7 +709,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def __pow__(pAdicZZpXFMElement self, right, m): # m ignored
         """
-        Computes self^right.
+        Computes ``self`` ^ ``right``.
 
         EXAMPLES::
 
@@ -723,7 +734,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
-        Returns self + right.
+        Returns ``self`` + ``right``.
 
         EXAMPLES::
 
@@ -742,7 +753,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef RingElement _mul_(self, RingElement right):
         """
-        Returns the product of self and right.
+        Returns the product of ``self`` and ``right``.
 
         EXAMPLES::
 
@@ -765,7 +776,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
-        Returns the difference of self and right.
+        Returns the difference of ``self`` and ``right``.
 
         EXAMPLES::
 
@@ -786,8 +797,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef RingElement _div_(self, RingElement _right):
         """
-        Returns the quotient of self by right.
-        If right is not a unit, raises a ValueError.
+        Returns the quotient of ``self`` by ``right``.
+
+        If ``right`` is not a unit, raises a ``ValueError``.
 
         EXAMPLES::
 
@@ -797,6 +809,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: W(125) / W(14) #indirect doctest
             4*w^15 + 4*w^17 + w^19 + w^20 + w^23 + 2*w^24 + O(w^25)
+            sage: 1 / W(14) == ~W(14)
+            True
+            sage: 1 / w
+            Traceback (most recent call last)
+            ...
+            ValueError: cannot invert non-unit
         """
         cdef pAdicZZpXFMElement right = <pAdicZZpXFMElement>_right
         if right.valuation_c() > 0:
@@ -808,7 +826,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def copy(self):
         """
-        Returns a copy of self.
+        Returns a copy of ``self``.
 
         EXAMPLES::
 
@@ -829,9 +847,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def is_zero(self, absprec = None):
         """
-        Returns whether the valuation of self is at least absprec.  If
-        absprec is None, returns if self is indistinugishable from
-        zero.
+        Returns whether the valuation of ``self`` is at least
+        ``absprec``.  If ``absprec`` is ``None``, returns whether
+        ``self`` is indistinugishable from zero.
 
         EXAMPLES::
 
@@ -891,68 +909,72 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def log(self, branch = None, same_ring = True):
         r"""
-        Compute the p-adic logarithm of any unit.
-        (See below for normalization.)
+        Compute the `p`-adic logarithm of any unit.
 
-        INPUT::
+        See below for normalization.
 
-            * branch -- pAdicZZpXFMElement (default None).  The log of
-              the uniformizer.  If None, then an error is raised if
-              self is not a unit.
+        INPUT:
 
-            * same_ring -- bool or pAdicGeneric (default True).  When
-              e > p it is possible (even common) that the image of the
-              log map is not contained in the ring of integers.  If
-              same_ring is True, then this function will return a
-              value in self.parent() or raise an error if the answer
-              would have negative valuation.  If same_ring is False,
-              then this function will raise an error (this behavior is
-              for consistency with other p-adic types).  If same_ring
-              is a p-adic field into which this fixed mod ring can be
-              successfully cast, then self is cast into that field and
-              the log is taken there.  Note that this casting will
-              assume that self has the full precision possible.
+        * ``branch`` -- ``pAdicZZpXFMElement`` (default ``None``).
+          The log of the uniformizer.  If ``None``, then an error is
+          raised if ``self`` is not a unit.
 
-        OUTPUT::
+        * ``same_ring`` -- ``bool`` or ``pAdicGeneric`` (default
+          ``True``).  When `e > p` it is possible (even common) that
+          the image of the log map is not contained in the ring of
+          integers.  If ``same_ring`` is ``True``, then this function
+          will return a value in ``self.parent()`` or raise an error
+          if the answer would have negative valuation.  If
+          ``same_ring`` is ``False``, then this function will raise an
+          error (this behavior is for consistency with other `p`-adic
+          types).  If ``same_ring`` is a `p`-adic field into which
+          this fixed mod ring can be successfully cast, then ``self``
+          is cast into that field and the log is taken there.  Note
+          that this casting will assume that ``self`` has the full
+          precision possible.
 
-            The p-adic log of self.
+        OUTPUT:
 
-            Let K be the parent of self, pi be a uniformizer of K and
-            w be a generator for the group of roots of unity in K.
-            The usual power series for log with values in the additive
-            group of K only converges for 1-units (units congruent to
-            1 modulo pi).  However, there is a unique extension of log
-            to a homomorphism defined on all the units.  If u = a*v is
-            a unit with v = 1 (mod p), then we define log(u) = log(v).
-            This is the correct extension because the units U of K
-            split as a product U = V x <w>, where V is the subgroup of
-            1-units.  The <w> factor is torsion, so must go to 0 under
-            any homomorphism to the torsion free group $(K, +)$.
+        The `p`-adic log of ``self``.
 
-        NOTES
+        Let `K` be the parent of self, `\pi` be a uniformizer of `K`
+            and `w` be a generator for the group of roots of unity in
+            `K`.  The usual power series for log with values in the
+            additive group of `K` only converges for 1-units (units
+            congruent to 1 modulo `\pi`).  However, there is a unique
+            extension of log to a homomorphism defined on all the
+            units.  If `u = a \cdot v` is a unit with `v = 1
+            \pmod{p}`, then we define `\log(u) = \log(v)`.  This is
+            the correct extension because the units `U` of `K` split
+            as a product `U = V \times \langle w \rangle`, where `V`
+            is the subgroup of 1-units.  The `\langle w \rangle`
+            factor is torsion, so must go to 0 under any homomorphism
+            to the torsion free group `(K, +)`.
 
-        What some other systems do with regard to non-1-units::
+        NOTES:
 
-            * PARI:  Seems to define log the same way as we do.
+        What some other systems do with regard to non-1-units:
 
-            * MAGMA: Gives an error when unit is not a 1-unit.
+        * PARI:  Seems to define log the same way as we do.
+
+        * MAGMA: Gives an error when ``unit`` is not a 1-unit.
 
         In addition, if branch is specified, then the log map will
         work on non-units
 
         ..math ::
 
-            log(pi^k * u) = k * branch + log(u)
+            \log(\pi^k \cdot u) = k \cdot branch + \log(u)
 
-        ALGORITHM
+        ALGORITHM:
 
         Input: Some unit u.
 
         1. Check that the input is really a unit
            (i.e., valuation 0), or that branch is specified.
 
-        2. Let $1-x = u^{q-1}$, which is a 1-unit, where q is the
-           order of the residue field of K.
+        2. Let `1-x = u^{q-1}`, which is a 1-unit, where `q` is the
+           order of the residue field of `K`.
 
         3. Use the series expansion
 
@@ -960,20 +982,20 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
             \log(1-x) = F(x) = -x - 1/2*x^2 - 1/3*x^3 - 1/4*x^4 - 1/5*x^5 - ...
 
-        to compute the logarithm log(u**(q-1)).
+        to compute the logarithm `log(u^{q-1})`.
 
-        Add on terms until x^k is zero modulo the precision cap, and
+        Add on terms until `x^k` is zero modulo the precision cap, and
         then determine if there are further terms that contribute to
-        the sum (those where k is slightly above the precision cap but
+        the sum (those where `k` is slightly above the precision cap but
         divisible by p).
 
         4. Then
 
         ..math ::
 
-            \log(u) = log(u^{q-1})/(q-1) = F(1-u^{q-1})/(q-1).
+            \log(u) = \log(u^{q-1})/(q-1) = F(1-u^{q-1})/(q-1).
 
-        EXAMPLES
+        EXAMPLES:
 
         First, the Eisenstein case.::
 
@@ -1006,16 +1028,15 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: b.log() + c.log() - (b*c).log()
             O(5^5)
 
-        AUTHORS::
+        AUTHORS:
 
-            - David Roe: initial version
+        - David Roe: initial version
 
-        TODO::
+        TODO:
 
-            - Currently implemented as $O(N^2)$. This can be improved
-              to soft-$O(N)$ using algorithm described by Dan
-              Bernstein:
-              http://cr.yp.to/lineartime/multapps-20041007.pdf
+        - Currently implemented as `O(N^2)`. This can be improved to
+          soft-`O(N)` using algorithm described by Dan Bernstein:
+          http://cr.yp.to/lineartime/multapps-20041007.pdf
         """
         if same_ring is False:
             raise TypeError, "Please specify a field explicitly: fixed modulus rings have no defined fraction field."
@@ -1238,7 +1259,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def _integer_(self, Z=None):
         """
         Returns an integer congruent to this element modulo
-        pi^self.absolute_precision(), if possible.
+        `\pi` ^ ``self.absolute_precision()``, if possible.
 
         EXAMPLES::
 
@@ -1270,10 +1291,11 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def matrix_mod_pn(self):
         """
         Returns the matrix of right multiplication by the element on
-        the power basis $1, x, x^2, \ldots, x^{d-1}$ for this
+        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
         extension field.  Thus the \emph{rows} of this matrix give the
-        images of each of the $x^i$.  The entries of the matrices are
-        IntegerMod elements, defined modulo p^(self.absprec() / e).
+        images of each of the `x^i`.  The entries of the matrices are
+        ``IntegerMod`` elements, defined modulo ``p^(self.absprec() /
+        e)``.
 
         Raises an error if self has negative valuation.
 
@@ -1331,13 +1353,15 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         Return the absolute or relative norm of this element.
 
-        NOTE!  This is not the p-adic absolute value.  This is a field theoretic norm down to a ground ring.
-        If you want the p-adic absolute value, use the abs() function instead.
+        NOTE!  This is not the `p`-adic absolute value.  This is a
+        field theoretic norm down to a ground ring.
 
-        If K is given then K must be a subfield of the parent L of
-        self, in which case the norm is the relative norm from L to K.
-        In all other cases, the norm is the absolute norm down to Qp
-        or Zp.
+        If you want the `p`-adic absolute value, use the ``abs()`` function instead.
+
+        If `K` is given then `K` must be a subfield of the parent `L` of
+        ``self``, in which case the norm is the relative norm from `L` to `K`.
+        In all other cases, the norm is the absolute norm down to `\mathbb{Q}_p`
+        or `\mathbb{Z}_p`.
 
         EXAMPLES::
 
@@ -1366,10 +1390,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         Return the absolute or relative trace of this element.
 
-        If K is given then K must be a subfield of the parent L of
-        self, in which case the norm is the relative norm from L to K.
-        In all other cases, the norm is the absolute norm down to Qp
-        or Zp.
+        If `K` is given then `K` must be a subfield of the parent `L` of
+        ``self``, in which case the norm is the relative norm from `L` to `K`.
+        In all other cases, the norm is the absolute norm down to `\mathbb{Q}_p`
+        or `\mathbb{Z}_p`.
 
         EXAMPLES::
 
@@ -1403,7 +1427,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def _ntl_rep(self):
         """
-        Returns an ntl_ZZ_pX holding self.value.
+        Returns an ``ntl_ZZ_pX`` holding ``self.value``.
 
         EXAMPLES::
 
@@ -1423,9 +1447,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef ZZ_p_c _const_term(self):
         """
-        Returns the constant term of self.unit.
+        Returns the constant term of ``self.unit``.
 
-        Note: this may be divisible by p if self is not normalized.
+        Note: this may be divisible by `p` if ``self`` is not
+        normalized.
 
         EXAMPLES::
 
@@ -1441,11 +1466,11 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def is_equal_to(self, right, absprec = None):
         """
-        Returns if self is equal to right modulo
-        self.uniformizer()^absprec.
+        Returns whether ``self`` is equal to ``right`` modulo
+        ``self.uniformizer()^absprec``.
 
-        If absprec is None, returns if self is equal to right modulo
-        the precision cap.
+        If ``absprec`` is ``None``, returns if ``self`` is equal to
+        ``right`` modulo the precision cap.
 
         EXAMPLES:
         sage: R = Zp(5,5)
@@ -1471,7 +1496,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def lift_to_precision(self, absprec):
         """
-        Returns self.
+        Returns ``self``.
 
         EXAMPLES::
 
@@ -1486,24 +1511,33 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def list(self, lift_mode = 'simple'):
         """
-        Returns a list giving a series representation of self.
+        Returns a list giving a series representation of ``self``.
 
-        If lift_mode == 'simple' or 'smallest', the returned list will
-        consist of integers (in the eisenstein case) or a list of
-        lists of integers (in the unramified case).  self can be
-        reconstructed as a sum of elements of the list times powers of
-        the uniformiser (in the eisenstein case), or as a sum of
-        powers of the p times polynomials in the generator (in the
-        unramified case).
+        - If ``lift_mode == 'simple' or 'smallest'``, the returned list will
+        consist of
 
-        If lift_mode == 'simple', all integers will be in the range
-        [0,p-1], if 'smallest' they will be in the range [(1-p)/2,
-        p/2].
+          + integers (in the eisenstein case) or
 
-        If lift_mode == 'teichmuller', returns a list of
-        pAdicZZpXCRElements, all of which are Teichmuller
-        representatives and such that self is the sum of that list
-        times powers of the uniformizer.
+          + lists of integers (in the unramified case).
+
+        - ``self`` can be reconstructed as
+
+          + a sum of elements of the list times powers of the
+            uniformiser (in the eisenstein case), or
+
+          + as a sum of powers of the `p` times polynomials in the
+            generator (in the unramified case).
+
+        - If ``lift_mode == 'simple'``, all integers will be in the range
+        `[0,p-1]`,
+
+        - If ``lift_mode == 'smallest'`` they will be in the range `[(1-p)/2,
+        p/2]`.
+
+        - If ``lift_mode == 'teichmuller'``, returns a list of
+          ``pAdicZZpXCRElements``, all of which are Teichmuller
+          representatives and such that ``self`` is the sum of that
+          list times powers of the uniformizer.
 
         EXAMPLES::
 
@@ -1564,8 +1598,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def _teichmuller_set(self):
         """
-        Sets self to the teichmuller representative congruent to self
-        modulo pi.
+        Sets ``self`` to the teichmuller representative congruent to
+        ``self`` modulo `\pi`.
 
         This function should not be used externally: elements are
         supposed to be immutable.
@@ -1624,8 +1658,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def precision_absolute(self):
         """
-        Returns the absolute precision of self, ie the precision cap
-        of self.parent().
+        Returns the absolute precision of ``self``, ie the precision cap
+        of ``self.parent()``.
 
         EXAMPLES::
 
@@ -1650,8 +1684,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def precision_relative(self):
         """
-        Returns the relative precision of self, ie the precision cap
-        of self.parent() minus the valuation of self.
+        Returns the relative precision of ``self``, ie the precision cap
+        of ``self.parent()`` minus the ``valuation of self``.
 
         EXAMPLES::
 
@@ -1682,8 +1716,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cpdef pAdicZZpXFMElement unit_part(self):
         """
-        Returns the unit part of self, ie
-        self / uniformizer^(self.valuation())
+        Returns the unit part of ``self``, ie
+        ``self / uniformizer^(self.valuation())``
 
         EXAMPLES::
 
@@ -1706,7 +1740,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef long valuation_c(self):
         """
-        Returns the valuation of self.
+        Returns the valuation of ``self``.
 
         EXAMPLES::
 
@@ -1740,20 +1774,27 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef ext_p_list(self, bint pos):
         """
-        Returns a list giving a series representation of self.
+        Returns a list giving a series representation of ``self``.
 
-        The returned list will consist of integers (in the eisenstein
-        case) or a list of lists of integers (in the unramified case).
-        self can be reconstructed as a sum of elements of the list
-        times powers of the uniformiser (in the eisenstein case), or
-        as a sum of powers of the p times polynomials in the generator
-        (in the unramified case).
+        - The returned list will consist of
 
-        If pos is True, all integers will be in the range [0,p-1],
-        otherwise they will be in the range [(1-p)/2, p/2].
+          + integers (in the eisenstein case) or
+
+          + a lists of integers (in the unramified case).
+
+        - ``self`` can be reconstructed
+
+          + as a sum of elements of the list times powers of the
+            uniformiser (in the eisenstein case), or
+
+          + as a sum of powers of `p` times polynomials in the
+            generator (in the unramified case).
+
+        - If ``pos`` is ``True``, all integers will be in the range `[0,p-1]`,
+        otherwise they will be in the range `[(1-p)/2, p/2]`.
 
         Note that zeros are truncated from the returned list, so you
-        must use the valuation function to fully reconstruct self.
+        must use the valuation function to fully reconstruct ``self``.
 
         EXAMPLES::
 
@@ -1784,8 +1825,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
 def make_ZZpXFMElement(parent, f):
     """
-    Creates a new pAdicZZpXFMElement out of an ntl_ZZ_pX f, with
-    parent parent.  For use with pickling.
+    Creates a new ``pAdicZZpXFMElement`` out of an ``ntl_ZZ_pX`` f, with
+    parent ``parent``.  For use with pickling.
 
     EXAMPLES::
 

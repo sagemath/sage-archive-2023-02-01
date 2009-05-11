@@ -5,9 +5,9 @@ This file contains a bunch of intermediate classes for the `p`-adic
 parents, allowing a function to be implemented at the right level of
 generality.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe
+- David Roe
 """
 
 from sage.rings.padics.local_generic import LocalGeneric

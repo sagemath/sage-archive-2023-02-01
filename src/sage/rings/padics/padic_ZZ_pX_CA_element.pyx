@@ -135,9 +135,9 @@ NOTES::
     argument, it copies.  If the modulus is not set to the modulus of
     the ZZ_pX_c, you can get errors.
 
-AUTHORS::
+AUTHORS:
 
-    - David Roe  (2008-01-01) initial version
+- David Roe  (2008-01-01) initial version
 """
 
 #*****************************************************************************
@@ -254,7 +254,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 raise ValueError, "element has negative valuation"
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             mpz_init(tmp)
-            (<pAdicBaseGenericElement>x)._set_to_mpz(tmp)
+            (<pAdicBaseGenericElement>x)._set_mpz_into(tmp)
             if mpz_sgn(tmp) == 0:
                 if (<pAdicBaseGenericElement>x)._is_exact_zero():
                     self._set_inexact_zero(aprec)
@@ -1490,6 +1490,20 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: W(14) / W(125) #indirect doctest
             4*w^-15 + w^-13 + 3*w^-11 + 2*w^-10 + 3*w^-9 + 4*w^-8 + 4*w^-7 + 3*w^-6 + O(w^-5)
+            sage: 1 / w
+            w^-1 + O(w^23)
+            sage: W.<w> = R.ext(x^20 - 165*x + 5)
+            sage: a = (1 + w)^25 - 1
+            sage: b = (1 + w)^5 - 1
+            sage: c = (1 + w)^20 + (1 + w)^15 + (1 + w)^10 + (1 + w)^5 + 1
+            sage: d = a / b; d == c
+            True
+            sage: d.precision_absolute()
+            95
+            sage: c.precision_absolute()
+            100
+            sage: 1 / a == ~a
+            True
         """
         return self.to_fraction_field() * (~right)
 

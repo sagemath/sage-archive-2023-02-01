@@ -627,8 +627,7 @@ class Maxima(Expect):
                 v = v[j:]
                 k = v.find(' ',4)
                 msg = "Computation failed since Maxima requested additional constraints (try the command 'assume(" + v[4:k] +">0)' before integral or limit evaluation, for example):\n" + v + self._ask[i-1]
-                self._sendstr(chr(3))
-                self._sendstr(chr(3))
+                self._sendline(";")
                 self._expect_expr()
                 raise ValueError, msg
         except KeyboardInterrupt, msg:

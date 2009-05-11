@@ -216,7 +216,7 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
         bas = []
         for x in symbs.q_expansion_basis(self.sturm_bound()):
                 bas.append(self(x))
-        return self.submodule(bas)
+        return self.submodule(bas, check=False)
 
 class CuspidalSubmodule_level1_Q(CuspidalSubmodule):
     r"""

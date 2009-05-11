@@ -10,6 +10,10 @@
 
 == Releases ==
 
+=== singular-3-0-4-4-20090511 (Martin Albrecht, May 11th, 2009) ===
+ * fixed #5862
+ * update SPKG.txt
+
 === singular-3-0-4-4-20080711.p4 (Michael Abshoff, January 23rd, 2009) ===
  * Integrate two patches by Georg Weber (#4181 and #5344)
  * update SPKG.txt

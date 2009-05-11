@@ -112,6 +112,7 @@ ifeq ($(SINGUNAME),ix86Mac-darwin)
 SO_SUFFIX        = dylib
 LIBSINGULAR_FLAGS = -single_module
 LIBSINGULAR_LD = $(LD)
+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 endif
 
 ifeq ($(SINGUNAME),ppcMac-darwin)

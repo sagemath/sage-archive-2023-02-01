@@ -1,6 +1,14 @@
---- src.Singular.Makefile.in.orig	2008-09-01 03:05:31.785669000 -0400
-+++ src.Singular.Makefile.in	2008-09-01 04:41:14.981441000 -0400
-@@ -123,10 +123,16 @@
+--- src/Singular/Makefile.in	2008-05-05 09:20:15.000000000 -0700
++++ patches/src.Singular.Makefile.in	2009-05-11 11:25:26.000000000 -0700
+@@ -112,6 +112,7 @@
+ SO_SUFFIX        = dylib
+ LIBSINGULAR_FLAGS = -single_module
+ LIBSINGULAR_LD = $(LD)
++LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
+ endif
+ 
+ ifeq ($(SINGUNAME),ppcMac-darwin)
+@@ -123,10 +124,16 @@
  
  ifeq ($(SINGUNAME),ix86-Win)
  SO_SUFFIX = dll

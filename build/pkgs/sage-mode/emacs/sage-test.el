@@ -31,8 +31,8 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
   '(("File \"\\(.*?\\)\", line \\([0-9]+\\):"
      1 2)
     ("File \"\\(.*?\\)\", line \\([0-9]+\\),"
-     1 2 nil 1)
-    ))
+     1 2 nil 0)
+    )) ;; a `compilation-error-regexp-alist' for sage doctest errors
 
 (defun sage-kill-compilation ()
   "Work hard to really kill sage-test."
@@ -65,7 +65,7 @@ Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
 
 (defun sage-default-test-new-command ()
   "Compute the default sage test new command for `sage-test' to offer."
-  (format "%s >/dev/null && %s -tnew" (sage-default-build-command) sage-command))
+  (format "%s -t %s" sage-command (sage-default-test-files)))
 
 ;;;###autoload
 (defun sage-test (command-args)

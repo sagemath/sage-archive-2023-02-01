@@ -33,22 +33,20 @@
 ;;
 ;; M-q fills comments correctly after """ ; "
 ;;
-;; - It is very handy to have the file names as links in the stack
-;;   trace!  However, I would personally find more practical if C-x `
-;;   did not iterate through all of them, but would just jump from one
-;;   error to the next one.
+;; (DONE) C-x ` jump from one error to the next one.
 ;;
 ;; Replace test output.
-;; Replace all test ouput.
+;; Replace output for all tests.
 ;; C-c C-j copies multiline tests.
 ;; Comparing tests?
-;; C-u sage-test only tests, does not rebuild.
+;; (DONE) C-u sage-test only tests, does not rebuild.
 ;; (DONE) C-c C-j in the *Help* buffer.
 ;;
 ;; (DONE) Remove pdb history/different history based on prompt.
 ;;
 ;; sage-rerun exits from pdb.
 ;; C-u sage-build hangs with exiting from pdb code.
+;; search *sage-build* buffer for build status rather than rely on exit codes
 ;;
 ;; Fix pyrex-mode
 ;;

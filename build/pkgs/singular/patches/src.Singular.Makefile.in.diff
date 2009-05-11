@@ -1,28 +1,37 @@
---- src/Singular/Makefile.in	2008-05-05 09:20:15.000000000 -0700
-+++ patches/src.Singular.Makefile.in	2009-05-11 11:25:26.000000000 -0700
-@@ -112,6 +112,7 @@
+--- patches/src.Singular.Makefile.in	2009-05-11 11:50:20.000000000 -0700
++++ src/Singular/Makefile.in	2008-05-05 09:20:15.000000000 -0700
+@@ -101,7 +101,7 @@
+ #
+ # Handle libSINGULAR stuff
+ #
+-LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
++LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+ 
+ SO_SUFFIX = so
+ #LIBSINGULAR_FLAGS = -export-dynamic 
+@@ -112,7 +112,6 @@
  SO_SUFFIX        = dylib
  LIBSINGULAR_FLAGS = -single_module
  LIBSINGULAR_LD = $(LD)
-+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
+-LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
  endif
  
  ifeq ($(SINGUNAME),ppcMac-darwin)
-@@ -123,10 +124,16 @@
+@@ -124,16 +123,10 @@
  
  ifeq ($(SINGUNAME),ix86-Win)
  SO_SUFFIX = dll
--LIBSINGULAR_FLAGS = --shared
-+LIBSINGULAR_FLAGS = -shared
+-LIBSINGULAR_FLAGS = -shared
++LIBSINGULAR_FLAGS = --shared
  LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
  endif
  
-+ifeq ($(SINGUNAME),ix86-SunOS)
-+SO_SUFFIX  = so
-+LIBSINGULAR_FLAGS = -shared
-+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
-+endif
-+
+-ifeq ($(SINGUNAME),ix86-SunOS)
+-SO_SUFFIX  = so
+-LIBSINGULAR_FLAGS = -shared
+-LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+-endif
+-
  #
  # End libSINGULAR
  #

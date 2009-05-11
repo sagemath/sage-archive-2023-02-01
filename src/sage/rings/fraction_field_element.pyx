@@ -213,6 +213,19 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__denominator
 
+    def factor(self):
+        """
+        Return the factorization of self over the base ring
+
+        EXAMPLES::
+            sage: K.<x> = QQ[]
+            sage: f = (x^3+x)/(x-3)
+            sage: f.factor()
+            (x - 3)^-1 * x * (x^2 + 1)
+
+        """
+        return self.numerator().factor()/self.denominator().factor()
+
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

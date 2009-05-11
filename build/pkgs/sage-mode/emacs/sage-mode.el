@@ -47,8 +47,9 @@
 ;; (DONE) sage-rerun exits from pdb.
 ;; (DONE) C-u sage-build hangs with exiting from pdb code.
 ;; search *sage-build* buffer for build status rather than rely on exit codes
+;; (DONE) search *sage-test* buffer for test status rather than rely on exit codes
 ;;
-;; Fix pyrex-mode
+;; (DONE) Fix pyrex-mode
 ;;
 ;; Upload an optional package?
 

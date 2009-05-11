@@ -1,7 +1,10 @@
 ;;;; `Pyrex' mode.
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pyx\\'" . pyrex-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pxi\\'" . pyrex-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pxd\\'" . pyrex-mode))
 
 ;;;###autoload

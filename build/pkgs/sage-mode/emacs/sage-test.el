@@ -12,18 +12,21 @@
 ;;;###autoload
 (defvar sage-test-history nil)
 
+(defun sage-test-all-tests-passed-p (code)
+  "Return t if all tests passed, based off the buffer contents and the return CODE."
+  (save-excursion
+    (goto-char (point-max))
+    (search-backward "All tests passed!" (point-min) t)))
+
 (defun sage-test-process-setup ()
   "Setup compilation variables and buffer for `sage-test'.
 Set up `compilation-exit-message-function' and run `sage-test-setup-hook'."
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
-	     (cond ((zerop code)
-		    '("finished (all test passed)\n" . "all tests passed"))
-		   ((> code 0)
-		    '("finished with failing tests\n" . "failing tests"))
-		   (t
-		    (cons msg code)))
+	     (if (sage-test-all-tests-passed-p code)
+		 '("finished (all test passed)\n" . "all tests passed")
+	       '("finished with failing tests\n" . "failing tests"))
 	   (cons msg code))))
   (run-hooks 'sage-test-setup-hook))
 

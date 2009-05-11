@@ -33,6 +33,10 @@
 
 namespace GiNaC {
 
+extern "C" {
+    constant py_get_constant(const char* name);
+}
+
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(constant, basic,
   print_func<print_context>(&constant::do_print).
   print_func<print_latex>(&constant::do_print_latex).
@@ -86,6 +90,7 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 {
 	// Find constant by name (!! this is bad: 'twould be better if there
 	// was a list of all global constants that we could search)
+	constant ans;
 	std::string s;
 	if (n.find_string("name", s)) {
 		if (s == Pi.name)
@@ -95,7 +100,9 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 		else if (s == Euler.name)
 			return Euler;
 		else
-			throw (std::runtime_error("unknown constant '" + s + "' in archive"));
+			ans = py_get_constant(s.c_str());
+            //throw (std::runtime_error("unknown constant '" + s + "' in archive"));
+			return ans;      
 	} else
 		throw (std::runtime_error("unnamed constant in archive"));
 }
@@ -253,11 +260,11 @@ const constant Pi("pi", ConstantEvalf, "\\pi", domain::positive);
 
 /** Euler's constant. (0.57721...)  Sometimes called Euler-Mascheroni constant.
  *  Calls python function py_eval_consant for evalf(). */
-const constant Euler("Euler", ConstantEvalf, "\\gamma_E", domain::positive);
+const constant Euler("euler_gamma", ConstantEvalf, "\\gamma_E", domain::positive);
 
 /** Catalan's constant. (0.91597...)  
  *  Calls python function py_eval_constant for evalf(). */
-const constant Catalan("Catalan", ConstantEvalf, "G", domain::positive);
+const constant Catalan("catalan", ConstantEvalf, "G", domain::positive);
 
 /** UnsignedInfinity. E.g., return value of gamma(-1).
  *  Calls python function py_eval_unsigned_infinity for evalf(). */

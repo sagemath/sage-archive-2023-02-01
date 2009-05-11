@@ -1216,6 +1216,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             1 + w^32 + w^50 + w^55 + w^60 + O(w^64)
             sage: (1+w+O(w^2))^64
             1 + w^64 + w^66 + w^71 + w^76 + w^81 + w^84 + w^86 + w^91 + w^94 + w^96 + O(w^98)
+            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit'); b = (a^3-a+14)^-6; b
+            12003242 + 4839703*a + 2697351*a^2 + 11717046*a^3 + O(17^6)
+            sage: b*(a^3-a+14)^6
+            1 + O(17^6)
         """
         cdef Integer right
         cdef bint padic_exp
@@ -1340,15 +1344,29 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             ans = self._new_c(self.prime_pow.ram_prec_cap) # restores context
         cdef ZZ_pX_c self_value
-        if ans.absprec == self.absprec:
-            _sig_on
-            ZZ_pX_PowerMod_pre(ans.value, self.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
-            _sig_off
-        else:
+        _sig_on
+        if ans.absprec != self.absprec:
             ZZ_pX_conv_modulus(self_value, self.value, self.prime_pow.get_context_capdiv(ans.absprec).x)
-            _sig_on
-            ZZ_pX_PowerMod_pre(ans.value, self_value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
-            _sig_off
+            if mpz_sgn(right.value) < 0: # only happens when self.ordp == 0
+                if self.prime_pow.e == 1:
+                    ZZ_pX_InvMod_newton_unram(ans.value, self_value, self.prime_pow.get_modulus(ans.absprec)[0], self.prime_pow.get_context(ans.absprec).x, self.prime_pow.get_context(1).x)
+                else:
+                    ZZ_pX_InvMod_newton_ram(ans.value, self_value, self.prime_pow.get_modulus_capdiv(ans.absprec)[0], self.prime_pow.get_context_capdiv(ans.absprec).x)
+                ZZ_negate(rZZ.x, rZZ.x)
+                ZZ_pX_PowerMod_pre(ans.value, ans.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
+            else:
+                ZZ_pX_PowerMod_pre(ans.value, self_value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
+        else:
+            if mpz_sgn(right.value) < 0: # only happens when self.ordp == 0
+                if self.prime_pow.e == 1:
+                    ZZ_pX_InvMod_newton_unram(ans.value, self.value, self.prime_pow.get_modulus(ans.absprec)[0], self.prime_pow.get_context(ans.absprec).x, self.prime_pow.get_context(1).x)
+                else:
+                    ZZ_pX_InvMod_newton_ram(ans.value, self.value, self.prime_pow.get_modulus_capdiv(ans.absprec)[0], self.prime_pow.get_context_capdiv(ans.absprec).x)
+                ZZ_negate(rZZ.x, rZZ.x)
+                ZZ_pX_PowerMod_pre(ans.value, ans.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
+            else:
+                ZZ_pX_PowerMod_pre(ans.value, self.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
+        _sig_off
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):

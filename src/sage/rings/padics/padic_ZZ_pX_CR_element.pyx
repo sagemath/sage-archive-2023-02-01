@@ -1801,6 +1801,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: (1 + w)^5 # indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
+            sage: (1 + w)^-5
+            1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: (1 + w + O(w^19))^5
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + O(w^24)
             sage: (1 + O(w))^5
@@ -1947,7 +1949,15 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, &right.value)
         _sig_on
-        ZZ_pX_PowerMod_pre(ans.unit, self.unit, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
+        if mpz_sgn(right.value) < 0:
+            if self.prime_pow.e == 1:
+                ZZ_pX_InvMod_newton_unram(ans.unit, self.unit, self.prime_pow.get_modulus(ans.relprec)[0], self.prime_pow.get_context(ans.relprec).x, self.prime_pow.get_context(1).x)
+            else:
+                ZZ_pX_InvMod_newton_ram(ans.unit, self.unit, self.prime_pow.get_modulus_capdiv(ans.relprec)[0], self.prime_pow.get_context_capdiv(ans.relprec).x)
+            ZZ_negate(rZZ.x, rZZ.x)
+            ZZ_pX_PowerMod_pre(ans.unit, ans.unit, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
+        else:
+            ZZ_pX_PowerMod_pre(ans.unit, self.unit, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
         _sig_off
         return ans
 

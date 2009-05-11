@@ -44,8 +44,8 @@
 ;;
 ;; (DONE) Remove pdb history/different history based on prompt.
 ;;
-;; sage-rerun exits from pdb.
-;; C-u sage-build hangs with exiting from pdb code.
+;; (DONE) sage-rerun exits from pdb.
+;; (DONE) C-u sage-build hangs with exiting from pdb code.
 ;; search *sage-build* buffer for build status rather than rely on exit codes
 ;;
 ;; Fix pyrex-mode
@@ -168,19 +168,25 @@
       success)))
 
 (defun sage-last-prompt ()
-  "Return the text of the last prompt seen in this inferior buffer"
-  (buffer-substring-no-properties (overlay-start comint-last-prompt-overlay)
-				  (overlay-end comint-last-prompt-overlay)))
+  "Return the text of the last prompt seen in this inferior buffer."
+  (if comint-last-prompt-overlay
+      (buffer-substring-no-properties (overlay-start comint-last-prompt-overlay)
+				      (overlay-end comint-last-prompt-overlay))
+    ""))
+
+(defun sage-last-prompt-is-debugger ()
+  "Return t if the last prompt seen in this inferior buffer was a debugger prompt."
+  (save-match-data
+    (string-match "[pPgG]db" (sage-last-prompt))))
 
 (defun sage-input-filter (string)
   "A `comint-input-filter' that keeps some input in the history.
 
 We don't save if we're at a pdb or gdb prompt and the string is
 short; otherwise, we save."
-  (save-match-data
-    (or (not (string-match "[pPgG]db" (sage-last-prompt))) ;; regular prompt
-	(> (length string) 2) ;; or a long-ish entry to the debugger
-	nil)))
+  (or (not (sage-last-prompt-is-debugger)) ;; regular prompt
+      (> (length string) 2) ;; or a long-ish entry to the debugger
+      nil))
 
 ;;;_* IPython magic commands
 
@@ -308,33 +314,66 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
 ;;;_* Make it easy to read long output
 (defun sage-input-sender (proc string)
   "A `comint-input-sender' that might send output to a buffer."
-  (when (not current-prefix-arg)
-    ;; When not prefixed, send normally
-    (ipython-input-sender proc string))
-  (when current-prefix-arg
-    ;; When prefixed, output to buffer -- modelled after shell-command
-    (let ((output-buffer (get-buffer-create "*Sage Output*")))
+  ;; this used to be fancier, but checking the prefix argument caused problems
+  ;; with programmatic invocation, so `sage-move-output-to-buffer' was added
+
+  (ipython-input-sender proc string))
+
+;;   (when (not current-prefix-arg)
+;;     ;; When not prefixed, send normally
+;;     (ipython-input-sender proc string))
+;;   (when current-prefix-arg
+;;     ;; When prefixed, output to buffer -- modelled after shell-command
+;;     (let ((output-buffer (get-buffer-create "*Sage Output*")))
+;;       (save-excursion
+;; 	;; Clear old output -- maybe this is a bad idea?
+;; 	(set-buffer output-buffer)
+;; 	(setq buffer-read-only nil)
+;; 	(erase-buffer))
+;;       (python-send-receive-to-buffer string output-buffer)
+;;       (comint-simple-send proc "") ;; Clears input, saves history
+;;       (if (with-current-buffer output-buffer (> (point-max) (point-min)))
+;; 	  (message "XXX YYY")
+;; 	  (error "XXX")
+;; 	  (display-message-or-buffer output-buffer)))))
+
+(defun sage-move-output-to-buffer ()
+  "Delete output from interpreter since last input, moving it to *sage-output* buffer.
+Does not delete the prompt."
+  (interactive)
+  (let ((proc (get-buffer-process (current-buffer)))
+	(replacement nil)
+	(saved nil)
+	(inhibit-read-only t))
+    (save-excursion
+      (let ((pmark (progn (goto-char (process-mark proc))
+			  (forward-line 0)
+			  (point-marker))))
+
+	;; save old text
+	(setq saved (buffer-substring comint-last-input-end pmark))
+
+	(delete-region comint-last-input-end pmark)
+	(goto-char (process-mark proc))
+	(setq replacement (concat "*** output moved to *sage-output* buffer ***\n"
+				  (buffer-substring pmark (point))))
+	(delete-region pmark (point))))
+    ;; Output message and put back prompt
+    (comint-output-filter proc replacement)
+
+    ;; now insert text in output buffer
+    (let ((output-buffer (get-buffer-create "*sage-output*")))
       (save-excursion
 	;; Clear old output -- maybe this is a bad idea?
 	(set-buffer output-buffer)
 	(setq buffer-read-only nil)
-	(erase-buffer))
-      (python-send-receive-to-buffer string output-buffer)
-      (comint-simple-send proc "") ;; Clears input, saves history
+	(erase-buffer)
+	(insert saved))
+      ;; and possibly display the output-buffer, either in status bar or onscreen
       (if (with-current-buffer output-buffer (> (point-max) (point-min)))
-	  (display-message-or-buffer output-buffer)))))
+	  (display-buffer output-buffer)))))
 
 ;;;_* SAGE process management
-
-(defun sage-send-startup-before-prompt-command ()
-  (sage-send-command sage-startup-before-prompt-command nil))
-(add-hook 'sage-startup-before-prompt-hook 'sage-send-startup-before-prompt-command)
-
-(defun sage-send-startup-after-prompt-command ()
-  (sage-send-command "" t)
-  (accept-process-output nil 0 1) ;; make sure the prompt appears between inputs
-  (sage-send-command sage-startup-after-prompt-command t))
-(add-hook 'sage-startup-after-prompt-hook 'sage-send-startup-after-prompt-command)
 
 (defvaralias 'sage-buffer 'python-buffer)
 ;; (defvar sage-buffer nil
@@ -502,8 +541,15 @@ buffer for a list of commands.)"
       (run-hooks 'sage-startup-before-prompt-hook)
       (unless (inferior-sage-mode-p)
 	(inferior-sage-mode))
-      (when (inferior-sage-wait-for-prompt) ; wait for prompt
+
+      ;; if there are commands to be executed after the prompt, wait for prompt...
+      (when (and sage-startup-after-prompt-hook (inferior-sage-wait-for-prompt))
+	;; ... and execute them.
 	(run-hooks 'sage-startup-after-prompt-hook)))
+
+    ;; newlines to clear things out
+    (accept-process-output nil 0 1)
+    (sage-send-command "" t)
     (accept-process-output nil 0 1)
 
     (when (sage-mode-p)
@@ -930,6 +976,7 @@ Block while waiting for output."
 ;; (with-python-output-to-buffer "*scratch*" "x?\x?"
 ;;   (message "%s" (buffer-name)))
 
+;;;###autoload
 (defun sage-send-command (command &optional echo-input)
   "Evaluate COMMAND in inferior Python process.
 
@@ -1116,11 +1163,6 @@ See `completing-read' for REQUIRE-MATCH."
 	  (help-xref-button 1 'help-sage-function-def symbol)
 	  (toggle-read-only 1))
 	t))))
-
-(defun sage-default-after-help-function ()
-  "Make it easy to run doctests in help buffers."
-  (local-set-key [(control c) (control r)] 'sage-send-region)
-  (local-set-key [(control c) (control j)] 'sage-send-doctest))
 
 (defun ipython-describe-symbol (symbol)
   "Get help on SYMBOL using IPython's inspection (?).

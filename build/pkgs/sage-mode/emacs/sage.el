@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(load "sage-load")
+
 (defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>" "(gdb)") " ")))
   "Regular expression matching the SAGE prompt."
   :group 'sage
@@ -49,28 +51,44 @@ Additional arguments are added when the command is used by `run-sage' et al."
   :type 'string)
 
 (defcustom sage-startup-before-prompt-command "%colors NoColor"
-  "*Run this command each time sage slave is executed by `run-sage', BEFORE the first prompt is seen."
+  "*Send this command to the sage slave each time it is executed by `run-sage', BEFORE the first prompt is seen."
   :group 'sage
   :type 'string)
 
-(defcustom sage-startup-after-prompt-command "import sage_emacs as emacs"
-  "*Run this command each time sage slave is executed by `run-sage', AFTER the first prompt is seen."
+;; "import sage_emacs as emacs"
+(defcustom sage-startup-after-prompt-command nil
+  "*Send this command to the sage slave each time it is executed by `run-sage', AFTER the first prompt is seen."
   :group 'sage
   :type 'string)
 
-(defcustom sage-startup-before-prompt-hook nil
+(defun sage-send-startup-before-prompt-command ()
+  (sage-send-command sage-startup-before-prompt-command nil))
+
+(defun sage-send-startup-after-prompt-command ()
+  (sage-send-command "" t)
+  (accept-process-output nil 0 1) ;; make sure the prompt appears between inputs
+  (when sage-startup-after-prompt-command
+    (sage-send-command sage-startup-after-prompt-command t)))
+
+(defcustom sage-startup-before-prompt-hook (list 'sage-send-startup-before-prompt-command)
   "*Normal hook (list of functions) run after `sage' is run but BEFORE the first prompt is seen.
 See `sage-startup-after-prompt-hook' and `run-hooks'."
   :group 'sage
   :type 'hook)
 
+;; (add-hook 'sage-startup-after-prompt-hook 'sage-send-startup-after-prompt-command)
 (defcustom sage-startup-after-prompt-hook nil
   "*Normal hook (list of functions) run after `sage' is run and AFTER the first prompt is seen.
 See `sage-startup-before-prompt-hook' and `run-hooks'."
   :group 'sage
   :type 'hook)
 
-(defcustom sage-after-help-hook (sage-default-after-help-function)
+(defun sage-default-after-help-function ()
+  "Make it easy to run doctests in help buffers."
+  (local-set-key [(control c) (control r)] 'sage-send-region)
+  (local-set-key [(control c) (control j)] 'sage-send-doctest))
+
+(defcustom sage-after-help-hook (list 'sage-default-after-help-function)
   "List of hook functions run after a sage help buffer is displayed. (see `run-hooks')."
   :type 'hook
   :group 'sage)
@@ -157,5 +175,4 @@ version of `sage-mode'!"
   (let ((generated-autoload-file "~/emacs/sage/emacs/sage-load.el"))
     (update-directory-autoloads "~/emacs/sage/emacs")))
 
-(load "sage-load")
 (provide 'sage)

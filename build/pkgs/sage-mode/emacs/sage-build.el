@@ -16,7 +16,7 @@
     (accept-process-output)
     (if (with-timeout (seconds (not killed))
 	  (while (not killed)
-	    (accept-process-output sprocess 1)
+	    (accept-process-output nil 1)
 	    (setq killed (not (memq (process-status process) '(open run stop))))
 	    ;; (setq killed (eq (process-status process) 'exit))
 
@@ -33,6 +33,19 @@
       t
       )))
 
+(defun sage-rerun-internal (buffer)
+  (accept-process-output nil 0 1)
+  (sit-for 0)
+  (with-current-buffer buffer
+    (goto-char (point-max))
+    (insert "\nRestarting SAGE...\n\n")
+    (goto-char (point-max))
+    ;; (call-interactively 'run-sage) ;; this causes new buffers to appear, not good
+    (message "Restarting SAGE...")
+    (run-sage nil sage-rerun-command t) ;; restart (new command noshow)
+    (message "Restarting SAGE... done")
+    (pop-to-buffer buffer)
+    (goto-char (point-max))))
 
 ;;;###autoload
 (defalias 'restart-sage 'rerun-sage)
@@ -65,26 +78,30 @@ rerun the freshly built sage."
 	(when (and sprocess
 		   (not (eq (process-status sprocess) 'exit)))
 	  ;; (set-process-sentinel sprocess nil)
-	  (comint-kill-input)
-	  (comint-send-eof) ;; once to kill ipdb
-	  (accept-process-output nil 0 1)
-	  (sit-for 0)
-	  (comint-send-eof) ;; and again to kill sage itself
-	  (accept-process-output nil 0 1)
-	  (sit-for 0)
+	  (when (sage-last-prompt-is-debugger)
+	    (comint-kill-input)
+	    (comint-send-eof) ;; once to quit ipdb
+	    (accept-process-output nil 0 1)
+	    (sit-for 0))
+
+	  (when (and sprocess
+		     (not (eq (process-status sprocess) 'exit))) ;; be a little cautious
+	    (comint-kill-input)
+	    (comint-send-eof) ;; and again to kill sage itself
+	    (accept-process-output nil 0 1)
+	    (sit-for 0))
 
 	  (sage-wait-until-dead sprocess 2 "soft kill")
 
 	  (when (not (eq (process-status sprocess) 'exit))
+	    (comint-kill-input)
 	    (comint-kill-subjob)
 	    (sage-wait-until-dead sprocess 3 "hard kill"))))
 
       ;; (comint-mode)
-      (goto-char (point-max))
-      (insert "\nRestarting SAGE...\n\n")
-      (goto-char (point-max))
-      (run-sage nil sage-rerun-command) ;; restart
-      (goto-char (point-max))
+      ;; the idea here is to not respawn sage from within the compilation
+      ;; sentinel.  it seems easy to deadlock emacs in this scenario.
+      (run-with-idle-timer 0.3 nil 'sage-rerun-internal buffer)
       )))
 
 ;;;###autoload

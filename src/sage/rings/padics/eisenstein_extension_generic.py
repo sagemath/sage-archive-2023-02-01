@@ -1,34 +1,85 @@
-import sage.rings.polynomial.polynomial_quotient_ring as pqr
-import sage.rings.padics.padic_generic
-#import sage.rings.padics.eisenstein_extension_generic_element
-import sage.rings.padics.padic_ring_generic
-import sage.rings.padics.padic_field_generic
-import padic_extension_generic
+"""
+Eisenstein Extension Generic.
 
-pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
-#PolynomialQuotientRing_domain = sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_domain
-#EisensteinExtensionGenericElement = sage.rings.padics.eisenstein_extension_generic_element.EisensteinExtensionGenericElement
-#pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
-#pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
-pAdicExtensionGeneric = padic_extension_generic.pAdicExtensionGeneric
+This file implements the shared functionality for Eisenstein extentions.
+
+AUTHORS::
+
+    - David Roe
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
+#                          William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from padic_generic import pAdicGeneric
+from padic_extension_generic import pAdicExtensionGeneric
+from sage.rings.infinity import infinity
+from sage.misc.latex import latex
+from sage.rings.integer import Integer
 
 class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
-        #base = poly.base_ring()
-        #if base.is_field():
-        #    self._PQR = pqr.PolynomialQuotientRing_field(poly.parent(), poly, name = names)
-        #else:
-        #    self._PQR = pqr.PolynomialQuotientRing_domain(poly.parent(), poly, name = names)
-        #if isinstance(names, tuple):
-        #    names = names[0]
+        """
+        Initializes self.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7) #indirect doctest
+        """
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         #self._precompute()
 
     def _repr_(self, do_latex = False):
-        return "Eisenstein Extension of %s in %s defined by %s"%(
-            self.ground_ring(), self.variable_name(), self.modulus())
+        """
+        Returns a print representation of this extension.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B #indirect doctest
+            Eisenstein Extension of 7-adic Ring with capped relative precision 10 in t defined by (1 + O(7^10))*x^2 + (O(7^11))*x + (7 + O(7^11))
+        """
+        if do_latex:
+            return "Eisenstein Extension of %s in %s defined by %s"%(latex(self.ground_ring()), self.latex_name(), latex(self.modulus()))
+        else:
+            return "Eisenstein Extension of %s in %s defined by %s"%(self.ground_ring(), self.variable_name(), self.modulus())
 
     def ramification_index(self, K = None):
+        """
+        Returns the ramification index of self over K, or over the
+        ground ring if K is None.
+
+        The ramification index is the index of the image of the
+        valuation map on K in the image of the valuation map on self
+        (both normalized so that the valuation of p is 1).
+
+        INPUTS:
+
+        - self -- an eisenstein extension
+        - K -- a subring of self (default None -> self.ground_ring())
+
+        OUTPUTS:
+
+        - The ramification index of the extension self/K
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.ramification_index()
+            2
+        """
         if K is None or K is self.ground_ring():
             return self.modulus().degree()
         elif K is self:
@@ -36,106 +87,170 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         else:
             raise NotImplementedError
 
-    def e(self, K=None):
-        return self.ramification_index(K)
-
     def inertia_degree(self, K = None):
+        """
+        Returns the inertia degree of self over K, or the ground ring
+        if K is None.
+
+        The inertia degree is the degree of the extension of residue
+        fields induced by this extensions.  Since Eisenstein
+        extensinos are totally ramified, this will be 1 for K=None.
+
+        INPUTS:
+
+        - self -- an eisenstein extension
+        - K -- a subring of self (default None -> self.ground_ring())
+
+        OUTPUTS:
+
+        - The degree of the induced extensions of residue fields.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.inertia_degree()
+            1
+        """
         if K is None or K is self.ground_ring():
-            return 1
+            return Integer(1)
         elif K is self:
-            return 1
+            return Integer(1)
         else:
             raise NotImplementedError
-
-    def f(self, K=None):
-        return self.inertia_degree(K)
-
-    def residue_class_degree(self, K=None):
-        return self.inertia_degree(K)
 
     def inertia_subring(self):
+        """
+        Returns the inertia subring.
+
+        Since an eisenstein extension is totally ramified, this is
+        just the ground field.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.inertia_subring()
+            7-adic Ring with capped relative precision 10
+        """
         return self.ground_ring()
 
-    def maximal_unramified_subextension(self):
-        return self.inertia_subring()
-
-    def extension(self, *args, **kwds):
-        raise NotImplementedError
-
-    def ext(self, *args, **kwds):
-        return self.extension(*args, **kwds)
-
     def residue_class_field(self):
+        """
+        Returns the residue class field.
+
+        INPUT:
+
+        - self -- a p-adic ring
+
+        OUTPUT:
+
+        - the residue field
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.residue_class_field()
+            Finite Field of size 7
+        """
         return self.ground_ring().residue_class_field()
 
-    def residue_field(self):
-        return self.residue_class_field()
+    #def discriminant(self, K=None):
+    #    if K is self:
+    #        return 1
+    #    else:
+    #        raise NotImplementedError
 
-    def discriminant(self, K=None):
-        if K is self:
-            return 1
-        else:
-            raise NotImplementedError
+    #def automorphisms(self):
+    #    raise NotImplementedError
 
-    def automorphisms(self):
-        raise NotImplementedError
+    #def galois_group(self):
+    #    r"""
+    #    Returns the galois group of self's fraction field over Qp.
+    #    """
+    #    ##
+    #    ## If K is a number field, then K.galois_group() can return
+    #    ## other variants, i.e. via Pari or KASH. We could consider
+    #    ## doing this.
+    #    ##
+    #    raise NotImplementedError
 
-    def galois_group(self):
-        r"""
-        Returns the galois group of self's fraction field over Qp.
-        """
-        ##
-        ## If K is a number field, then K.galois_group() can return
-        ## other variants, i.e. via Pari or KASH. We could consider
-        ## doing this.
-        ##
-        raise NotImplementedError
+    #def is_abelian(self):
+    #    raise NotImplementedError
 
-    def is_abelian(self):
-        raise NotImplementedError
-
-    def is_normal(self):
-        raise NotImplementedError
+    #def is_normal(self):
+    #    raise NotImplementedError
 
     def gen(self, n=0):
+        """
+        Returns a generator for self as an extension of its ground ring.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.gen()
+            t + O(t^21)
+        """
         if n != 0:
             raise IndexError, "only one generator"
         return self([0,1])
 
     def uniformizer_pow(self, n):
-        ans = self(0)
-        if n is not infinity:
-            ans._set_uniformizer_pow(n)
-        return ans
+        """
+        Returns the nth power of the uniformizer of self (as an
+        element of self).
 
-    def uniformiser_pow(self, n):
-        return self.uniformizer_pow(n)
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.uniformizer_pow(5)
+            t^5 + O(t^25)
+        """
+        if n is infinity:
+            return self(0)
+        else:
+            return self(1) << n
 
     def uniformizer(self):
         """
-        EXAMPLES:
-            sage : A = Zp(7,10)
-            sage : B.<t> = A.ext(x^2+7)
-            sage : B.uniformizer()
+        Returns the uniformizer of self, ie a generator for the unique
+        maximal ideal.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B.uniformizer()
             t + O(t^21)
         """
         return self.gen()
 
-    def uniformiser(self):
-        """
-        EXAMPLES:
-            sage : A = Zp(7,10)
-            sage : B.<t> = A.ext(x^2+7)
-            sage : B.uniformiser()
-            t + O(t^21)
-        """
-        return self.uniformizer()
-
     def _uniformizer_print(self):
+        """
+        Returns a string representation of how the uniformizer of self
+        prints.  Mainly for internal use.
+
+        EXAMPLES::
+
+            sage: A = Zp(7,10)
+            sage: S.<x> = A[]
+            sage: B.<t> = A.ext(x^2+7)
+            sage: B._uniformizer_print()
+            't'
+        """
         return self.variable_name()
 
-    def has_pth_root(self):
-        raise NotImplementedError
+#     def has_pth_root(self):
+#         raise NotImplementedError
 
-    def has_root_of_unity(self, n):
-        raise NotImplementedError
+#     def has_root_of_unity(self, n):
+#         raise NotImplementedError

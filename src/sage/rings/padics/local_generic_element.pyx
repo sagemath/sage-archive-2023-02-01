@@ -1,13 +1,15 @@
-import sage.rings.commutative_ring_element
-import sage.rings.integer
-import sage.rings.rational
-import sage.rings.integer_mod
-import sage.rings.finite_field_element
-from sage.rings.infinity import infinity
-import sage.rings.arith
-import sage.rings.padics.precision_error
-import sage.libs.pari.gen
+"""
+Local Generic Element.
 
+This file contains a common superclass for `p`-adic elements and power
+series elements.
+
+AUTHORS::
+
+    - David Roe
+"""
+
+from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 
 cdef class LocalGenericElement(CommutativeRingElement):
@@ -16,17 +18,20 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     cpdef RingElement _div_(self, RingElement right):
         r"""
-        Returns the quotient of self by right.
+        Returns the quotient of ``self`` by ``right``.
 
-        INPUT:
-            self -- a p-adic element.
-            right -- a p-adic element distinguishable from zero.
-                     In a fixed-modulus ring, this element must be a unit.
+	INPUT:
 
-        EXAMPLES:
+        - ``self`` -- a `p`-adic element.
+
+        - ``right`` -- a `p`-adic element distinguishable from zero.
+          In a fixed-modulus ring, this element must be a unit.
+
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'capped-rel', 'series'); R(3)/R(5)
             2 + 4*7 + 5*7^2 + 2*7^3 + O(7^4)
-            sage: R(2/3) / R(1/3)
+	    sage: R(2/3) / R(1/3) #indirect doctest
             2 + O(7^4)
             sage: R(49) / R(7)
             7 + O(7^5)
@@ -37,6 +42,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             ...
             ValueError: cannot invert non-unit
         """
+        # this doctest doesn't actually test the function, since it's overridden.
         return self * right.__invert__()
 
     #def __getitem__(self, n):
@@ -44,15 +50,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def slice(self, i, j, k = 1):
         r"""
-        Returns the sum of the $p^{i + FOO * k}$ terms of the series expansion
-        of self, for $i + FOO*k$ between i and j-1 inclusive, and FOO an arbitrary
+        Returns the sum of the `p^{i + FOO * k}` terms of the series expansion
+        of self, for `i + FOO*k` between `i` and `j-1` inclusive, and `FOO` an arbitrary
         integer. Behaves analogously to the slice function for lists.
 
         INPUT:
-            self -- a p-adic element
-            i -- an integer
-            j -- an integer
-            k -- a positive integer, default value 1
+
+        - ``self`` -- a `p`-adic element
+        - ``i`` -- an integer
+        - ``j`` -- an integer
+        - ``k`` -- a positive integer, default value 1
 
         EXAMPLES:
             sage: R = Zp(5, 6, 'capped-rel')
@@ -90,6 +97,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ans
 
     def _latex_(self):
+        """
+        Returns a latex representation of self.
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(17)
+            sage: latex(a) #indirect doctest
+            2 + 3 \cdot 5 + O(5^{20})
+        """
+        # TODO: add a bunch more documentation of latexing elements
         return self._repr_(do_latex = True)
 
     #def __mod__(self, right):
@@ -101,51 +118,25 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #cdef _neg_(self):
     #    raise NotImplementedError
 
-    def _pari_init_(self):
-        return self._repr_(mode = 'series')
-
     #def __pow__(self, right):
     #    raise NotImplementedError
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         r"""
-        Returns the difference between self and right.
+        Returns the difference between ``self`` and ``right``.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(12); b = R(5); a - b
             7 + O(7^4)
-            sage: R(4/3) - R(1/3)
+            sage: R(4/3) - R(1/3) #indirect doctest
             1 + O(7^4)
         """
+        # this doctest doesn't actually test this function, since _sub_ is overridden.
         return self + (-right)
 
-    def add_bigoh(self, prec):
-        return self.slice(None, prec)
-
-    def additive_order(self, prec):
-        r"""
-        Returns the additive order of self, where self is considered to be zero
-        if it is zero modulo $p^{\mbox{prec}}$.
-
-        INPUT:
-            self -- a p-adic element
-            prec -- an integer
-
-        OUTPUT:
-            integer -- the additive order of self
-
-        EXAMPLES:
-                sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
-                1
-                sage: a.additive_order(4)
-                +Infinity
-                sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
-                1
-        """
-        if self.is_zero(prec):
-            return sage.rings.integer.Integer(1)
-        else:
-            return infinity
+    #def add_bigoh(self, prec):
+    #    return self.slice(None, prec)
 
     #def copy(self):
     #    raise NotImplementedError
@@ -158,11 +149,15 @@ cdef class LocalGenericElement(CommutativeRingElement):
         Returns whether self is an integral element.
 
         INPUT:
-            self -- a local ring element
-        OUTPUT:
-            boolean -- whether self is an integral element.
 
-        EXAMPLES:
+        - ``self`` -- a local ring element
+
+        OUTPUT:
+
+        - boolean -- whether ``self`` is an integral element.
+
+        EXAMPLES::
+
             sage: R = Qp(3,20)
             sage: a = R(7/3); a.is_integral()
             False
@@ -179,10 +174,15 @@ cdef class LocalGenericElement(CommutativeRingElement):
         Returns whether self is a unit
 
         INPUT:
-            self -- a local ring element
+
+        - ``self`` -- a local ring element
+
         OUTPUT:
-            boolean -- whether self is a unit
-        EXAMPLES:
+
+        - boolean -- whether ``self`` is a unit
+
+        EXAMPLES::
+
             sage: R = Zp(3,20,'capped-rel'); K = Qp(3,20,'capped-rel')
             sage: R(0).is_unit()
             False
@@ -192,6 +192,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
             True
             sage: R(3).is_unit()
             False
+
+        TESTS::
+
             sage: R(4).is_unit()
             True
             sage: R(6).is_unit()
@@ -251,29 +254,29 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def sqrt(self, extend = True, all = False):
         r"""
-        Returns the square root of this local ring element.
-
-        TODO: doc what "extend" and "all" do
+        TODO: document what "extend" and "all" do
 
         INPUT:
-            self -- a local ring element
+
+        - ``self`` -- a local ring element
 
         OUTPUT:
-            local ring element -- the square root of self
 
-        EXAMPLES:
-            sage: R = Zp(13, 10, 'capped-rel', 'series')
-            sage: a = sqrt(R(-1)); a * a
-            12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
-            sage: sqrt(R(4))
-            2 + O(13^10)
-            sage: sqrt(R(4/9)) * 3
-            2 + O(13^10)
+        - local ring element -- the square root of ``self``
 
+	EXAMPLES::
+
+ 	    sage: R = Zp(13, 10, 'capped-rel', 'series')
+ 	    sage: a = sqrt(R(-1)); a * a
+ 	    12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
+ 	    sage: sqrt(R(4))
+ 	    2 + O(13^10)
+ 	    sage: sqrt(R(4/9)) * 3
+	    2 + O(13^10)
         """
         return self.square_root(extend, all)
 
-    #def square_root(self):
+    #def square_root(self, extend = True, all = False):
     #    raise NotImplementedError
 
     #def unit_part(self):
@@ -288,12 +291,15 @@ cdef class LocalGenericElement(CommutativeRingElement):
         i.e., the valuation divided by the absolute ramification index.
 
         INPUT:
-            self -- a local ring element.
+
+        ``self`` -- a local ring element.
 
         OUTPUT:
-            rational -- the normalized valuation of self.
 
-        EXAMPLES:
+        rational -- the normalized valuation of ``self``.
+
+        EXAMPLES::
+
             sage: Q7 = Qp(7)
             sage: R.<x> = Q7[]
             sage: F.<z> = Q7.ext(x^3+7*x+7)
@@ -307,15 +313,18 @@ cdef class LocalGenericElement(CommutativeRingElement):
         r"""
         Returns the valuation of this local ring element.
 
-        TODO: this docstring can't be right. Surely this is different from "valuation".
+        This function only differs from valuation for lazy elements.
 
         INPUT:
-            self -- a local ring element.
+
+        - ``self`` -- a local ring element.
 
         OUTPUT:
-            integer -- the valuation of self.
 
-        EXAMPLES:
+        - integer -- the valuation of ``self``.
+
+        EXAMPLES::
+
             sage: R = Qp(7, 4, 'capped-rel', 'series')
             sage: R(7)._min_valuation()
             1

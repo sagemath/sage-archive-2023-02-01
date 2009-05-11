@@ -954,9 +954,9 @@ def inverse_jacobi(sym,x,m):
         sage: float(jacobi("sn",1/2,1/2))
         0.4707504736556572
         sage: float(inverse_jacobi("sn",0.47,1/2))
-        0.4990982313222197
+        0.49909823132221959
         sage: float(inverse_jacobi("sn",0.4707504,0.5))
-        0.49999991146655459
+        0.49999991146655481
         sage: P = plot(inverse_jacobi('sn', x, 0.5), 0, 1, plot_points=20)
 
     Now to view this, just type show(P).

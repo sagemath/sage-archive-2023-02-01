@@ -1927,7 +1927,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(S(0.7).arctan2(0.6))
             0.8621700546672264
             sage: maxima('atan2(0.7,0.6)')
-            .8621700546672261
+            .8621700546672264
             sage: float(S(0.7).arctan2(-0.6))
             2.2794225989225669
             sage: maxima('atan2(0.7,-0.6)')
@@ -1935,7 +1935,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(S(-0.7).arctan2(0.6))
             -0.8621700546672264
             sage: maxima('atan2(-0.7,0.6)')
-            -.8621700546672261
+            -.8621700546672264
             sage: float(S(-0.7).arctan2(-0.6))
             -2.2794225989225669
             sage: maxima('atan2(-0.7,-0.6)')
@@ -2048,7 +2048,7 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1.0).arcsinh()
             0.881373587019543
             sage: maxima('asinh(1.0)')
-            .8813735870195429
+            0.881373587019543
 
         Sage automatically applies certain identies:
             sage: S(3/2).arcsinh().cosh()
@@ -2092,7 +2092,7 @@ cdef class Expression(CommutativeRingElement):
             sage: S(0.5).arctanh().tanh()
             0.500000000000000
             sage: maxima('atanh(0.5)')
-            .5493061443340549
+            .5493061443340548
         """
         return new_Expression_from_GEx(g_atanh(self._gobj))
 

@@ -1265,9 +1265,9 @@ If this all works, you can then make calls like:
         EXAMPLES::
 
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,5.5511151231257...E-15,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,5.5511151231257...E-15,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)

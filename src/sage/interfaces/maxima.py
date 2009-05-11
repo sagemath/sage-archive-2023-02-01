@@ -887,7 +887,7 @@ class Maxima(Expect):
         EXAMPLES::
 
             sage: maxima.completions('gc', verbose=False)
-            ['gc', 'gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
+            ['gctime', 'gcdex', 'gcd', 'gc', 'gcprint', 'gcfactor']
         """
         if verbose:
             print s,
@@ -902,10 +902,10 @@ class Maxima(Expect):
         EXAMPLES::
 
             sage: maxima._commands(verbose=False)
-            ['a',
-             'abconvtest',
+            ['asympt',
+             'automatic',
              ...
-             'Z']
+             'zeroequiv']
         """
         try:
             return self.__commands
@@ -1930,7 +1930,7 @@ class MaximaElement(ExpectElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (.5284822353142306, 4.163314137883845E-11, 231, 0)
+            (.5284822353142306, 4.163314137883845e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::

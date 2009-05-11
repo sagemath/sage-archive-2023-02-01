@@ -394,8 +394,7 @@ ext_modules = [
 
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singfac',
-                           'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = [SAGE_ROOT +'/local/include/singular'],
               depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
@@ -625,8 +624,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac',
-                           'omalloc', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = [SAGE_ROOT +'/local/include/singular'],
               depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
@@ -1076,14 +1074,14 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = [SAGE_ROOT +'/local/include/singular'],
               depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = [SAGE_ROOT +'/local/include/singular'],
               depends = [SAGE_ROOT + "/local/include/libsingular.h"]),

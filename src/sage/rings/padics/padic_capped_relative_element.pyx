@@ -1,12 +1,16 @@
 """
+p-Adic Capped Relative Element.
+
 Elements of p-Adic Rings with Capped Relative Precision
 
-AUTHOR:
-    -- David Roe
-    -- Genya Zaytman: documentation
-    -- David Harvey: doctests
+AUTHORS::
 
-TESTS:
+    - David Roe
+    - Genya Zaytman: documentation
+    - David Harvey: doctests
+
+TESTS::
+
     sage: M = MatrixSpace(pAdicField(3,100),2)
     sage: (M([1,0,0,90]) - (1+O(3^100)) * M(1)).left_kernel()
     Vector space of degree 2 and dimension 1 over 3-adic Field with capped relative precision 100
@@ -42,7 +46,7 @@ from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.rational cimport Rational
 
 import sage.rings.padics.padic_generic_element
-import sage.rings.padics.padic_lazy_element
+#import sage.rings.padics.padic_lazy_element
 import sage.rings.integer_mod
 import sage.rings.integer
 import sage.rings.rational
@@ -52,11 +56,17 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
-from sage.rings.padics.padic_lazy_element import pAdicLazyElement
+#from sage.rings.padics.padic_lazy_element import pAdicLazyElement
 
 cdef PariInstance P = sage.libs.pari.all.pari
 
-cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) -1
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2))
+# 1073741823 or 4611686018427387903 on 32/64 bit.
+cdef long minusmaxordp = -maxordp
+
+cdef inline int check_ordp(long a) except -1:
+    if a >= maxordp or a <= minusmaxordp:
+        raise ValueError, "valuation overflow"
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )
@@ -147,7 +157,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         """
         #print "x = %s, type = %s, absprec = %s, relprec = %s"%(x, type(x),absprec, relprec)
-        cpdef RingElement ordp
+        cdef RingElement ordp
         cdef mpz_t modulus, tmp2
         cdef GEN pari_tmp
         cdef Integer tmp
@@ -169,25 +179,25 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 raise ValueError, "element has negative valuation."
             if parent.prime() != x.parent().prime():
                 raise TypeError, "Cannot coerce between p-adic parents with different primes"
-        if isinstance(x, pAdicLazyElement):
-            ## One can do this in a better way to minimize the amount of
-            ## increasing precision on x.
-            if absprec is infinity:
-                try:
-                    x.set_precision_relative(relprec)
-                except PrecisionError:
-                    pass
-            else:
-                try:
-                    x.set_precision_absolute(absprec)
-                except PrecisionError:
-                    pass
+        #if isinstance(x, pAdicLazyElement):
+        #    ## One can do this in a better way to minimize the amount of
+        #    ## increasing precision on x.
+        #    if absprec is infinity:
+        #        try:
+        #            x.set_precision_relative(relprec)
+        #        except PrecisionError:
+        #            pass
+        #    else:
+        #        try:
+        #            x.set_precision_absolute(absprec)
+        #        except PrecisionError:
+        #            pass
 
-            if (relprec is infinity) or (x.precision_relative() < relprec):
-                try:
-                    x.set_precision_relative(relprec)
-                except PrecisionError:
-                    pass
+        #    if (relprec is infinity) or (x.precision_relative() < relprec):
+        #        try:
+        #            x.set_precision_relative(relprec)
+        #        except PrecisionError:
+        #            pass
 
         if PY_TYPE_CHECK(x, Integer):
             self._set_from_Integer(x, absprec, relprec)
@@ -205,6 +215,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         elif PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             ## this case could be rethought to remove the
             ## potential arithmetic with infinity.
+            if type(x) is type(self):
+                if absprec is infinity:
+                    self._set_from_CR_rel(<pAdicCappedRelativeElement>x, mpz_get_si((<Integer>relprec).value))
+                else:
+                    self._set_from_CR_both(<pAdicCappedRelativeElement>x, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
+                return
             ordp = x.valuation()
             if (ordp is infinity) and (absprec is infinity):
                 self._set_exact_zero()
@@ -215,7 +231,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 if absprec is infinity:
                     relprec = min(relprec, x.precision_relative(), self.parent().precision_cap())
                 else:
-                    relprec = min(relprec, absprec - ordp, x.precision_relative(), self.parent().precision_cap())
+                    relprec = min(relprec, absprec - ordp, x.precision_relative())
                 if ordp < 0 and self.prime_pow.in_field == 0:
                     raise ValueError, "negative valuation"
                 self._set(mpz_get_si((<Integer>ordp).value), (<Integer>unit).value, mpz_get_si((<Integer>relprec).value))
@@ -243,6 +259,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
             #if x.type() == "t_PADIC":
             if typ(pari_tmp) == t_PADIC:
+                if x.variable() != self.prime_pow.prime:
+                    raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."
                 self.relprec = precp(pari_tmp)
                 if self.relprec > relprec:
                     self.relprec = relprec
@@ -297,6 +315,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.prime_pow should already be set.
         absprec should be infinity or an Integer.
         relprec should be infinity or a nonnegative Integer.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(15) #indirect doctest
+            3*5 + O(5^21)
+            sage: R(15, absprec=5)
+            3*5 + O(5^5)
+            sage: R(15, relprec=5)
+            3*5 + O(5^6)
         """
         if absprec is infinity:
             if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
@@ -317,6 +345,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.prime_pow should already be set.
         absprec should be infinity or an Integer.
         relprec should be infinity or a nonnegative Integer.
+
+        TESTS::
+
+            sage: R = Zp(5,5)
+            sage: R(25/9) #indirect doctest
+            4*5^2 + 2*5^3 + 5^5 + 2*5^6 + O(5^7)
+            sage: R(25/9, absprec = 5)
+            4*5^2 + 2*5^3 + O(5^5)
+            sage: R(25/9, relprec = 4)
+            4*5^2 + 2*5^3 + 5^5 + O(5^6)
         """
         if absprec is infinity:
             if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
@@ -335,6 +373,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         self.prime_pow should already be set.
         relprec should be in the range [0,self.prime_pow.prec_cap]
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(15) #indirect doctest
+            3*5 + O(5^21)
+            sage: R(15, relprec=5)
+            3*5 + O(5^6)
         """
         if mpz_sgn(value) == 0:
             self._set_exact_zero()
@@ -355,6 +401,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         self.prime_pow should already be set.
         relprec should be in the range [0,self.prime_pow.prec_cap]
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(75, absprec = 10, relprec = 9) #indirect doctest
+            3*5^2 + O(5^10)
         """
         if mpz_sgn(value) == 0:
             self._set_inexact_zero(absprec)
@@ -380,6 +432,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         self.prime_pow should already be set.
         relprec should be in the range [0,self.prime_pow.prec_cap]
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(25/9, relprec = 5) #indirect doctest
+            4*5^2 + 2*5^3 + 5^5 + 2*5^6 + O(5^7)
         """
         cdef mpz_t tmp
         if mpq_sgn(value) == 0:
@@ -410,6 +468,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         self.prime_pow should already be set.
         relprec should be in the range [0,self.prime_pow.prec_cap]
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(25/9, relprec = 4, absprec = 5) #indirect doctest
+            4*5^2 + 2*5^3 + O(5^5)
         """
         cdef mpz_t num_unit, den_unit
         cdef long num_ordp, den_ordp
@@ -447,39 +511,119 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_clear(den_unit)
         self._normalized = 1
 
-    cdef int _set_from_CR(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other) except -1:
-        mpz_set(self.unit, other.unit)
-        if mpz_sgn(self.unit) >= 0:
-            self.ordp = other.ordp
-            if self.ordp < 0 and self.prime_pow.in_field == 0:
+    cdef int _set_from_CR_rel(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other, long relprec) except -1:
+        """
+        Sets self from another capped relative element.
+
+        TESTS::
+
+            sage: R = Zp(5); S = Zp(5, 6)
+            sage: S(R(17)) # indirect doctest
+            2 + 3*5 + O(5^6)
+            sage: T = Qp(5); a = T(1/5) - T(1/5)
+            sage: R(a)
+            O(5^19)
+            sage: S(a)
+            O(5^19)
+        """
+        if other._is_exact_zero():
+            self._set_exact_zero()
+            return 0
+        if other.relprec > relprec or other.ordp < 0 and self.prime_pow.in_field == 0:
+            other._normalize()
+            if other.ordp < 0 and self.prime_pow.in_field == 0:
                 raise ValueError, "negative valuation"
-            self.relprec = other.relprec
-            if self.relprec > self.prime_pow.prec_cap:
-                if not other._normalized:
-                    other._normalize()
-                    self.ordp = other.ordp
-                    self.relprec = other.relprec
-                    mpz_set(self.unit, other.unit)
-                if self.relprec > self.prime_pow.prec_cap and mpz_sgn(self.unit) == 1 and mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
+            if other.relprec > relprec:
+                if mpz_sgn(other.unit) > 0 and mpz_cmp(other.unit, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
                     _sig_on
-                    mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_top()[0])
+                    mpz_mod(self.unit, other.unit, self.prime_pow.pow_mpz_t_top()[0])
                     _sig_off
-            self._normalized = other._normalized
-        else:
-            self._normalized = 1
-        return 0
+                else:
+                    mpz_set(self.unit, other.unit)
+                self.relprec = relprec
+                self.ordp = other.ordp
+                self._normalized = 1
+                return 0
+        mpz_set(self.unit, other.unit)
+        self.ordp = other.ordp
+        self.relprec = other.relprec
+        self._normalized = other._normalized
+
+    cdef int _set_from_CR_both(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other, long absprec, long relprec) except -1:
+        """
+        Sets self from another capped relative element.
+
+        TESTS::
+
+            sage: R = Zp(5); S = Zp(5, 6)
+            sage: S(R(17),4) # indirect doctest
+            2 + 3*5 + O(5^4)
+            sage: T = Qp(5); a = T(1/5) - T(1/5)
+            sage: R(a)
+            O(5^19)
+            sage: S(a, 17)
+            O(5^17)
+        """
+        if other._is_exact_zero():
+            self._set_inexact_zero(absprec)
+            return 0
+        if other.relprec > relprec or other.ordp < 0 and self.prime_pow.in_field == 0 or other.ordp + other.relprec > absprec:
+            other._normalize()
+            if other.ordp < 0 and self.prime_pow.in_field == 0:
+                raise ValueError, "negative valuation"
+            if other.ordp >= absprec:
+                self._set_inexact_zero(absprec)
+                return 0
+            if relprec > absprec - other.ordp:
+                relprec = absprec - other.ordp
+            if other.relprec > relprec:
+                if mpz_sgn(other.unit) > 0 and mpz_cmp(other.unit, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
+                    _sig_on
+                    mpz_mod(self.unit, other.unit, self.prime_pow.pow_mpz_t_top()[0])
+                    _sig_off
+                else:
+                    mpz_set(self.unit, other.unit)
+                self.relprec = relprec
+                self.ordp = other.ordp
+                self._normalized = 1
+                return 0
+        mpz_set(self.unit, other.unit)
+        self.ordp = other.ordp
+        self.relprec = other.relprec
+        self._normalized = other._normalized
 
     cdef int _set_exact_zero(pAdicCappedRelativeElement self) except -1:
+        """
+        Sets self as an exact zero.
+
+        TESTS::
+
+            sage: R = Zp(5); R(0) #indirect doctest
+            0
+        """
         mpz_set_si(self.unit, -1)
         self._normalized = 1
 
     cdef int _set_inexact_zero(pAdicCappedRelativeElement self, long absprec) except -1:
+        """
+        Sets self as an inexact zero with precision absprec
+
+        TESTS::
+
+            sage: R = Zp(5); R(0, 5) #indirect doctest
+            O(5^5)
+        """
         self.relprec = 0
         mpz_set_ui(self.unit, 0)
         self.ordp = absprec
         self._normalized = 1
 
     cdef int _set_zero(pAdicCappedRelativeElement self, absprec) except -1:
+        """
+        Sets self as zero: exact or inexact depending on absprec.
+
+        Not used internally.
+        """
         if absprec is infinity:
             mpz_set_si(self.unit, -1)
         else:
@@ -489,9 +633,27 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self._normalized = 1
 
     cdef int _set_prec(pAdicCappedRelativeElement self, long relprec) except -1:
+        """
+        Sets the precision of self to relprec.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(6,5) * R(7,8) #indirect doctest.
+            2 + 3*5 + 5^2 + O(5^5)
+        """
         self.relprec = relprec
 
     cdef int _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec) except -1:
+        """
+        Sets the components of self directly.
+
+        TESTS::
+
+            sage: R = Zp(5); S = ZpCA(5)
+            sage: R(S(17, 5)) #indirect doctest
+            2 + 3*5 + O(5^5)
+        """
         self.relprec = relprec
         self.ordp = ordp
         mpz_set(self.unit, unit)
@@ -501,6 +663,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self._set_inexact_zero(self.ordp + self.relprec)
 
     cdef int _set_to_mpz(pAdicCappedRelativeElement self, mpz_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        TESTS::
+
+            sage: R = Zp(5); S.<a> = Zq(25)
+            sage: S(R(17)) #indirect doctest
+            2 + 3*5 + O(5^20)
+        """
         if mpz_sgn(self.unit) == -1:
             mpz_set_ui(dest, 0)
         elif self.ordp < 0:
@@ -514,6 +685,11 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return 0
 
     cdef int _set_to_mpq(pAdicCappedRelativeElement self, mpq_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        Not currently used internally.
+        """
         if mpz_sgn(self.unit) == -1:
             mpq_set_ui(dest, 0, 1)
         elif self.ordp < 0:
@@ -528,6 +704,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return 0
 
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self):
+        """
+        Creates a new element with the same basic info.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(6,5) * R(7,8) #indirect doctest
+            2 + 3*5 + 5^2 + O(5^5)
+        """
         cdef pAdicCappedRelativeElement ans
         ans = PY_NEW(pAdicCappedRelativeElement)
         ans._parent = self._parent
@@ -536,6 +721,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return ans
 
     cdef int _normalize(pAdicCappedRelativeElement self) except -1:
+        """
+        Normalizes self, so that self.ordp is correct.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: R(6) + R(4) #indirect doctest
+            2*5 + O(5^20)
+        """
         cdef long diff
         if self._normalized == 0:
             if mpz_sgn(self.unit) > 0:
@@ -554,15 +748,28 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self._normalized = 1
 
     def __dealloc__(pAdicCappedRelativeElement self):
+        """
+        Deallocation.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: a = R(17)
+            sage: del(a)
+        """
         mpz_clear(self.unit)
 
     def __reduce__(self):
         """
-        sage: a = ZpCR(5)(-3)
-        sage: type(a)
-        <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-        sage: loads(dumps(a)) == a
-        True
+        Pickling.
+
+        TESTS::
+
+            sage: a = ZpCR(5)(-3)
+            sage: type(a)
+            <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+            sage: loads(dumps(a)) == a
+            True
         """
         # Necessary for pickling.  See integer.pyx for more info.
         cdef Integer unit
@@ -571,13 +778,28 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return unpickle_pcre_v1, (self.parent(), unit, self.ordp, self.relprec)
 
     def __richcmp__(left, right, int op):
+        """
+        Comparison.
+
+        TESTS::
+
+            sage: R = Zp(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+        """
         return (<Element>left)._richcmp(right, op)
 
     cpdef ModuleElement _neg_(self):
         """
+        Negation.
+
         EXAMPLES:
             sage: R = Zp(5, 20, 'capped-rel', 'val-unit')
-            sage: -R(1)
+            sage: -R(1) # indirect doctest
             95367431640624 + O(5^20)
             sage: -R(5)
             5 * 95367431640624 + O(5^21)
@@ -643,7 +865,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: K(5)^30
             11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
-            sage: K(5, 3)^19
+            sage: K(5, 3)^19 #indirect doctest
             5 + 3*19 + 11*19^3 + O(19^4)
         """
         self._normalize()
@@ -671,7 +893,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 ans = self._new_c()
                 mpz_init_set_si(tmp, self.ordp)
                 mpz_mul(tmp, tmp, (<Integer>_right).value)
-                if mpz_cmp_si(tmp, maxordp) >= 0 or mpz_cmp_si(tmp, -maxordp) <= 0:
+                if mpz_cmp_si(tmp, maxordp) >= 0 or mpz_cmp_si(tmp, minusmaxordp) <= 0:
                     raise ValueError, "valuation overflow"
                 ans._set_inexact_zero(mpz_get_si(tmp))
                 mpz_clear(tmp)
@@ -751,7 +973,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_init_set_si(tmp, base.ordp)
         mpz_mul(tmp, right.value, tmp)
         if mpz_cmp_si(tmp, maxordp) >= 0:
-            raise ValueError, "Valuation too large"
+            raise ValueError, "valuation overflow"
         ans.ordp = mpz_get_si(tmp)
         mpz_clear(tmp)
         _sig_on
@@ -763,13 +985,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
+        Adds self and right.
+
         EXAMPLES:
             sage: R = Zp(19, 5, 'capped-rel','series')
             sage: a = R(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: b=R(-5/2); b
             7 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
-            sage: a+b
+            sage: a+b #indirect doctest
             6 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
         """
         # TODO: add more examples/tests that verify all the cases below (w.r.t. precision, valuation)
@@ -852,8 +1076,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: r = Zp(19)
             sage: a = r(1+19+17*19^3+5*19^4); b = r(19^3); a/b
             19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
-            sage: a/b
-            19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
             sage: a//b
             17 + 5*19 + O(19^17)
 
@@ -862,7 +1084,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: b=R(-2*19^3); b
             17*19^3 + 18*19^4 + 18*19^5 + 18*19^6 + 18*19^7 + O(19^8)
-            sage: a//b
+            sage: a//b # indirect doctest
             9 + 9*19 + O(19^2)
         """
         if self.parent() is not right.parent():
@@ -870,6 +1092,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return self._floordiv_c_impl(right)
 
     cpdef RingElement _floordiv_c_impl(self, RingElement right):
+        """
+        Implementation of floordiv.
+
+        TESTS::
+
+            sage: R = Zp(5,5)
+            sage: R(28937) // R(75) # indirect doctest
+            4 + 3*5 + 3*5^2 + O(5^3)
+        """
         cdef pAdicCappedRelativeElement ans
         cdef long relprec, diff
         (<pAdicCappedRelativeElement>right)._normalize()
@@ -923,23 +1154,55 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return ans
 
     def __lshift__(self, shift):
-        # TODO: move this up the hierarchy, perhaps this should go all the way to element?
-        # The "verify that shift is an integer" part could be shared
-        # should accept int (rather than do int -> Integer -> int every time)
         r"""
         Multiplies self by p^shift.
 
-        EXAMPLES:
-        sage: a = Zp(5)(17); a
-        2 + 3*5 + O(5^20)
-        sage: a << 2
-        2*5^2 + 3*5^3 + O(5^22)
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(1000); a
+            3*5^3 + 5^4 + O(5^23)
+
+            Shifting to the right is the same as dividing by a power of
+            the uniformizer $p$ of the $p$-adic ring.
+            sage: a >> 1
+            3*5^2 + 5^3 + O(5^22)
+
+            Shifting to the left is the same as multiplying by a power of $p$:
+            sage: a << 2
+            3*5^5 + 5^6 + O(5^25)
+            sage: a*5^2
+            3*5^5 + 5^6 + O(5^25)
+
+            Shifting by a negative integer to the left is the same as right shifting
+            by the absolute value:
+            sage: a << -3
+            3 + 5 + O(5^20)
+            sage: a >> 3
+            3 + 5 + O(5^20)
+
+            sage: a = Zp(5)(17); a
+            2 + 3*5 + O(5^20)
+            sage: a << 2 #indirect doctest
+            2*5^2 + 3*5^3 + O(5^22)
+            sage: a << -2
+            O(5^18)
         """
+        # TODO: move this up the hierarchy, perhaps this should go all the way to element?
+        # The "verify that shift is an integer" part could be shared
+        # should accept int (rather than do int -> Integer -> int every time)
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
         return (<pAdicCappedRelativeElement>self)._lshift_c(mpz_get_si((<Integer>shift).value))
 
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift):
+        """
+        Multiplies self by p^shift.
+
+        TESTS::
+
+            sage: a = Zp(5)(17); a << 2
+            2*5^2 + 3*5^3 + O(5^22)
+        """
         cdef pAdicCappedRelativeElement ans
         if mpz_sgn(self.unit) == -1:
             return self
@@ -950,27 +1213,44 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans.relprec = self.relprec
             mpz_set(ans.unit, self.unit)
             ans.ordp = self.ordp + shift
+            check_ordp(ans.ordp)
             ans._normalized = self._normalized
         return ans
 
     def __rshift__(pAdicCappedRelativeElement self, shift):
-        # TODO: move this up the hierarchy
         r"""
         Divides self by p^shift.  If self is a ring element, throws away the non-integral part.
 
-        EXAMPLES:
-        sage: a = Zp(5)(17); a
-        2 + 3*5 + O(5^20)
-        sage: a >> 1
-        3 + O(5^19)
-        sage: a = Qp(5)(17); a >> 1
-        2*5^-1 + 3 + O(5^19)
+        EXAMPLES::
+
+            sage: a = Zp(5)(17); a
+            2 + 3*5 + O(5^20)
+            sage: a >> 1 #indirect doctest
+            3 + O(5^19)
+            sage: a = Qp(5)(17); a >> 1
+            2*5^-1 + 3 + O(5^19)
         """
+        # TODO: move this up the hierarchy
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
     cdef pAdicCappedRelativeElement _rshift_c(pAdicCappedRelativeElement self, long shift):
+        """
+        Implementation of rshift.
+
+        TESTS::
+
+            sage: R = Zp(5); K = Qp(5)
+            sage: R(17) >> 1
+            3 + O(5^19)
+            sage: K(17) >> 1
+            2*5^-1 + 3 + O(5^19)
+            sage: R(17) >> 40
+            O(5^0)
+            sage: K(17) >> -5
+            2*5^5 + 3*5^6 + O(5^25)
+        """
         cdef pAdicCappedRelativeElement ans
         cdef long relprec, diff
         if mpz_sgn(self.unit) == -1:
@@ -980,6 +1260,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans.relprec = self.relprec
             mpz_set(ans.unit, self.unit)
             ans.ordp = self.ordp - shift
+            check_ordp(ans.ordp)
             ans._normalized = self._normalized
         else:
             diff = shift - self.ordp
@@ -999,10 +1280,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         r"""
         Converts self to an integer
 
-        sage: R = Zp(5, prec = 4); a = R(642); a
-        2 + 3*5 + O(5^4)
-        sage: Integer(a)
-        17
+        TESTS::
+
+            sage: R = Zp(5, prec = 4); a = R(642); a
+            2 + 3*5 + O(5^4)
+            sage: Integer(a) #indirect doctest
+            17
         """
         if self.ordp < 0:
             raise ValueError, "Cannot form an integer out of a p-adic field element with negative valuation"
@@ -1010,13 +1293,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     cpdef RingElement _mul_(self, RingElement _right):
         r"""
-        sage: R = Zp(5)
-        sage: a = R(2385,11); a
-        2*5 + 4*5^3 + 3*5^4 + O(5^11)
-        sage: b = R(2387625, 16); b
-        5^3 + 4*5^5 + 2*5^6 + 5^8 + 5^9 + O(5^16)
-        sage: a * b
-        2*5^4 + 2*5^6 + 4*5^7 + 2*5^8 + 3*5^10 + 5^11 + 3*5^12 + 4*5^13 + O(5^14)
+        Multiplies self by right.
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: a = R(2385,11); a
+            2*5 + 4*5^3 + 3*5^4 + O(5^11)
+            sage: b = R(2387625, 16); b
+            5^3 + 4*5^5 + 2*5^6 + 5^8 + 5^9 + O(5^16)
+            sage: a * b # indirect doctest
+            2*5^4 + 2*5^6 + 4*5^7 + 2*5^8 + 3*5^10 + 5^11 + 3*5^12 + 4*5^13 + O(5^14)
         """
         cdef pAdicCappedRelativeElement ans
         cdef pAdicCappedRelativeElement right = <pAdicCappedRelativeElement>_right
@@ -1027,8 +1314,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self._normalize()
         right._normalize()
         ans = self._new_c()
-        # Do we need to do overflow checking here?
         ans.ordp = self.ordp + right.ordp
+        check_ordp(ans.ordp)
         if self.relprec <= right.relprec:
             ans._set_prec(self.relprec)
         else:
@@ -1041,6 +1328,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return ans
 
     cpdef RingElement _div_(self, RingElement right):
+        """
+        Divides self by right.
+
+        EXAMPLES::
+
+            sage: R = Zp(5,6)
+            sage: R(17) / R(21) #indirect doctest
+            2 + 4*5^2 + 3*5^3 + 4*5^4 + O(5^6)
+        """
         cdef pAdicCappedRelativeElement ans
         if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:
             raise ZeroDivisionError, "cannot divide by zero"
@@ -1075,15 +1371,18 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         Returns a new element with absolute precision decreased to
         absprec.
 
-        INPUT:
+        INPUT::
+
             self -- a p-adic element
             absprec -- an integer
 
-        OUTPUT:
+        OUTPUT::
+
             element -- self with precision set to the minimum of
                        self's precision and absprec
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
             sage: b = R(0); b.add_bigoh(3)
@@ -1093,12 +1392,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: b = R(0); b.add_bigoh(3)
             O(7^3)
 
-        The precision never increases:
+            The precision never increases::
+
             sage: R(4).add_bigoh(2).add_bigoh(4)
             4 + O(7^2)
 
-        Another example that illustrates that the precision does not
-        increase:
+            Another example that illustrates that the precision does
+            not increase::
+
             sage: k = Qp(3,5)
             sage: a = k(1234123412/3^70); a
             2*3^-70 + 3^-69 + 3^-68 + 3^-67 + O(3^-65)
@@ -1125,7 +1426,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans = self._new_c()
             ans._set_inexact_zero(aprec)
             return ans
-        # Do we still need to worry about overflow?
         if aprec > self.ordp + self.relprec:
             return self
 
@@ -1143,6 +1443,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return ans
 
     def copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES::
+
+            sage: a = Zp(5,6)(17); b = a.copy()
+            sage: a == b
+            True
+            sage: a is b
+            False
+        """
         cdef pAdicCappedRelativeElement ans
         ans = self._new_c()
         ans.relprec = self.relprec
@@ -1151,17 +1462,36 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_set(ans.unit, self.unit)
         return ans
 
-    def exp_artin_hasse(self):
-        raise NotImplementedError
-        #E_p(x) = exp(x + x^p/p + x^(p^2)/p^2 + ...)
-
-    def gamma(self):
-        raise NotImplementedError
-
     cpdef bint _is_exact_zero(self) except -1:
+        """
+        Returns true if this element is exactly zero.
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: R(0)._is_exact_zero()
+            True
+            sage: R(0,5)._is_exact_zero()
+            False
+            sage: R(17)._is_exact_zero()
+            False
+        """
         return mpz_sgn(self.unit) == -1
 
     cpdef bint _is_inexact_zero(self) except -1:
+        """
+        Returns True if this element is indistinguishable from zero but has finite precision.
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: R(0)._is_inexact_zero()
+            False
+            sage: R(0,5)._is_inexact_zero()
+            True
+            sage: R(17)._is_inexact_zero()
+            False
+        """
         self._normalize()
         return self.relprec == 0 and not self._is_exact_zero()
 
@@ -1169,12 +1499,30 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         r"""
         Returns whether self is zero modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            absprec -- an integer
-        OUTPUT:
-            boolean -- whether self is zero
+        If absprec is None, returns True if this element is indistinguishable from zero.
 
+        INPUT::
+
+            - self -- a p-adic element
+            - absprec -- an integer or None
+
+        OUTPUT::
+
+            - boolean -- whether self is zero
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(0); b = R(0,5); c = R(75)
+            sage: a.is_zero(), a.is_zero(6)
+            (True, True)
+            sage: b.is_zero(), b.is_zero(5)
+            (True, True)
+            sage: c.is_zero(), c.is_zero(2), c.is_zero(3)
+            (False, True, False)
+            sage: b.is_zero(6)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision to determine if element is zero
         """
         if absprec is None:
             return mpz_sgn(self.unit) <= 0
@@ -1191,6 +1539,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return self.ordp >= mpz_get_si((<Integer>absprec).value)
 
     def __nonzero__(self):
+        """
+        Returns True if self is distinguishable from zero.
+
+        For most applications, explicitly specifying the power of p modulo which the element is supposed to be nonzero is preferrable.
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(0); b = R(0,5); c = R(75)
+            sage: bool(a), bool(b), bool(c)
+            (False, False, True)
+        """
         self._normalize()
         return mpz_sgn(self.unit) > 0
 
@@ -1198,12 +1557,93 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            right -- a p-addic element
-            absprec -- an integer
-        OUTPUT:
-            boolean -- whether self is equal to right
+        if absprec is None, returns True if self and right are equal to the minimum of their precisions.
+
+        INPUT::
+
+            - self -- a p-adic element
+            - right -- a p-addic element
+            - absprec -- an integer or None
+
+        OUTPUT::
+
+            - boolean -- whether self is equal to right (modulo $p^{\mbox{absprec}}$)
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10); a = R(0); b = R(0, 3); c = R(75, 5)
+            sage: aa = a + 625; bb = b + 625; cc = c + 625
+            sage: a.is_equal_to(aa), a.is_equal_to(aa, 4), a.is_equal_to(aa, 5)
+            (False, True, False)
+            sage: a.is_equal_to(aa, 15)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: a.is_equal_to(a, 50000)
+            True
+
+            sage: a.is_equal_to(b), a.is_equal_to(b, 2)
+            (True, True)
+            sage: a.is_equal_to(b, 5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: b.is_equal_to(b, 5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: b.is_equal_to(bb, 3)
+            True
+            sage: b.is_equal_to(bb, 4)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: c.is_equal_to(b, 2), c.is_equal_to(b, 3)
+            (True, False)
+            sage: c.is_equal_to(b, 4)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: c.is_equal_to(cc, 2), c.is_equal_to(cc, 4), c.is_equal_to(cc, 5)
+            (True, True, False)
+
+        TESTS::
+
+            sage: aa.is_equal_to(a), aa.is_equal_to(a, 4), aa.is_equal_to(a, 5)
+            (False, True, False)
+            sage: aa.is_equal_to(a, 15)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: b.is_equal_to(a), b.is_equal_to(a, 2)
+            (True, True)
+            sage: b.is_equal_to(a, 5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: bb.is_equal_to(b, 3)
+            True
+            sage: bb.is_equal_to(b, 4)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: b.is_equal_to(c, 2), b.is_equal_to(c, 3)
+            (True, False)
+            sage: b.is_equal_to(c, 4)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Elements not known to enough precision
+
+            sage: cc.is_equal_to(c, 2), cc.is_equal_to(c, 4), cc.is_equal_to(c, 5)
+            (True, True, False)
 
         """
         # TODO: lots of examples (this is a non-trivial function)
@@ -1256,20 +1696,22 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 return True
             if aprec > (<pAdicCappedRelativeElement>right).ordp + (<pAdicCappedRelativeElement>right).relprec:
                 raise PrecisionError, "Elements not known to enough precision"
-            elif mpz_sgn((<pAdicCappedRelativeElement>right).unit) == 0:
+            elif (<pAdicCappedRelativeElement>right).ordp >= aprec:
                 return True
             else:
                 return False
         if aprec > (<pAdicCappedRelativeElement>self).ordp + (<pAdicCappedRelativeElement>self).relprec:
             raise PrecisionError, "Elements not known to enough precision"
         if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:
-            if mpz_sgn((<pAdicCappedRelativeElement>self).unit) == 0:
+            if self.ordp >= aprec:
                 return True
             else:
                 return False
         if aprec > (<pAdicCappedRelativeElement>right).ordp + (<pAdicCappedRelativeElement>right).relprec:
             raise PrecisionError, "Elements not known to enough precision"
         # We now know that both self and right have enough precision to determine modulo p^absprec
+        if self.ordp >= aprec and (<pAdicCappedRelativeElement>right).ordp >= aprec:
+            return True
         if self.ordp != (<pAdicCappedRelativeElement>right).ordp:
             return False
         mpz_init(tmp)
@@ -1288,13 +1730,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def lift(self):
         """
-        Return an integer or rational congruent to self modulo self's precision.  If a rational is returned, its denominator will eqaul p^ordp(self).
+        Return an integer or rational congruent to self modulo self's
+        precision.  If a rational is returned, its denominator will
+        eqaul p^ordp(self).
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- a integer congruent to self mod $p^{\mbox{prec}}$
-        EXAMPLE:
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- a integer congruent to self mod $p^{\mbox{prec}}$
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-rel'); a = R(8); a.lift()
             8
             sage: R = Qp(7,4); a = R(8); a.lift()
@@ -1305,6 +1754,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return self.lift_c()
 
     cdef lift_c(self):
+        """
+        Implementation of lift.
+
+        TESTS::
+
+            sage: O(5^5).lift() #indirect doctest
+            0
+            sage: R = Qp(5); R(0).lift()
+            0
+            sage: R(5/9).lift()
+            264909532335070
+            sage: R(9/5).lift()
+            9/5
+        """
         cdef Integer ans
         cdef Rational ansr
         self._normalize()
@@ -1327,12 +1790,44 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             return ans
 
     def lift_to_precision(self, absprec):
-        # TODO: docs ans examples
+        """
+        Returns another element of the same parent, with absolute precision at least absprec, congruent to self modulo self's precision.
+
+        If such lifting would yield an element with precision greater than allowed by the precision cap of self's parent, an error is raised.
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(0); b = R(0,5); c = R(17,3)
+            sage: a.lift_to_precision(5)
+            0
+            sage: b.lift_to_precision(4)
+            O(5^5)
+            sage: b.lift_to_precision(8)
+            O(5^8)
+            sage: b.lift_to_precision(40)
+            O(5^40)
+            sage: c.lift_to_precision(1)
+            2 + 3*5 + O(5^3)
+            sage: c.lift_to_precision(8)
+            2 + 3*5 + O(5^8)
+            sage: c.lift_to_precision(40)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Precision higher than allowed by the precision cap.
+        """
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         return self.lift_to_precision_c(mpz_get_si((<Integer>absprec).value))
 
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, long absprec):
+        """
+        Returns another element of the same parent, with absolute precision at least absprec, congruent to self modulo self's precision.
+
+        EXAMPLES::
+
+            sage: R = Zp(5); c = R(17,3); c.lift_to_precision(8)
+            2 + 3*5 + O(5^8)
+        """
         cdef long relprec
         cdef pAdicCappedRelativeElement ans
         if mpz_sgn(self.unit) == -1:
@@ -1348,6 +1843,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if relprec <= self.relprec:
             return self
         else:
+            if relprec > self.prime_pow.prec_cap:
+                raise PrecisionError, "Precision higher than allowed by the precision cap."
             ans = self._new_c()
             mpz_set(ans.unit, self.unit)
             ans._set_prec(relprec)
@@ -1356,12 +1853,18 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             return ans
 
     cdef pari_gen _to_gen(pAdicCappedRelativeElement self):
-        return P.new_gen_from_padic(self.ordp, self.relprec,
-                                    self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
-                                    self.unit)
+        """
+        Converts this element to an equivalent pari element.
 
-    def _pari_(self):
+        EXAMPLES::
+
+            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+            2 + 3*5 + O(5^10)
+            sage: pari(R(0))
+            0
+            sage: pari(R(0,5))
+            O(5^5)
+        """
         if mpz_sgn(self.unit) == -1:
             return P.new_gen_from_int(0)
         else:
@@ -1370,24 +1873,72 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                                         self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
                                         self.unit)
 
+    def _pari_(self):
+        """
+        Converts this element to an equivalent pari element.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+            2 + 3*5 + O(5^10)
+            sage: pari(R(0))
+            0
+            sage: pari(R(0,5))
+            O(5^5)
+        """
+        return self._to_gen()
+
     def list(self, lift_mode = 'simple'):
         """
         Returns a list of coefficients in a power series expansion of self in terms of p.  If self is a field element, they start at p^valuation, if a ring element at p^0.
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            list -- the list of coeficients of self
-        EXAMPLES:
-            sage: R = Zp(7,3,'capped-rel'); a = R(2*7+7**2); a.list()
-            [0, 2, 1]
-            sage: R = Qp(7,4); a = R(2*7+7**2); a.list()
-            [2, 1]
 
-        NOTE:
+        INPUT::
+
+            - self -- a p-adic element
+            - lift_mode - 'simple', 'smallest' or 'teichmuller'
+
+        OUTPUT::
+
+            - list -- the list of coeficients of self.  These will be integers if lift_mode is 'simple' or 'smallest', and elements of self.parent() if lift_mode is 'teichmuller'
+
+        EXAMPLES::
+
+            sage: R = Zp(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: L = a.list(); L
+            [3, 4, 4, 0, 4]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('smallest'); L
+            [3, -3, -2, 1, -3, 1]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('teichmuller'); L
+            [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
+            0,
+            5 + 2*7 + 3*7^3 + O(7^4),
+            1 + O(7^3),
+            3 + 4*7 + O(7^2),
+            5 + O(7)]
+            sage: sum([L[i] * 7^i for i in range(len(L))])
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+
+            sage: R = Qp(7,4); a = R(6*7+7**2); a.list()
+            [6, 1]
+            sage: a.list('smallest')
+            [-1, 2]
+            sage: a.list('teichmuller')
+            [6 + 6*7 + 6*7^2 + 6*7^3 + O(7^4),
+            2 + 4*7 + 6*7^2 + O(7^3),
+            3 + 4*7 + O(7^2),
+            3 + O(7)]
+
+        NOTE::
+
             use slice operators to get a particular range
 
         """
-        cdef Integer ordp
+        cdef Integer ordp, zeron
         cdef pAdicCappedRelativeElement zero
         if mpz_sgn(self.unit) <= 0:
             return []
@@ -1398,18 +1949,35 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         elif lift_mode == 'smallest':
             ulist = (<pAdicPrinter_class>self.parent()._printer).base_p_list(self.unit, False)
         else:
-            raise ValueError
+            raise ValueError, "unknown lift_mode"
         if self.prime_pow.in_field == 0 and self.ordp > 0:
-            zero = self._new_c()
-            zero._set_exact_zero()
             ordp = PY_NEW(Integer)
             mpz_set_si(ordp.value, self.ordp)
-            return [zero]*ordp + ulist
+            if lift_mode == 'teichmuller':
+                zero = self._new_c()
+                zero._set_exact_zero()
+                return [zero]*ordp + ulist
+            else:
+                return [Integer(0)] * ordp + ulist
         else:
             return ulist
 
-# Working on this
     cdef teichmuller_list(pAdicCappedRelativeElement self):
+        r"""
+        Returns a list [$a_0$, $a_1$,..., $a_n$] such that
+            - $a_i^p = a_i$
+            - self.unit_part() = $\sum_{i = 0}^n a_i p^i$
+            - if $a_i \ne 0$, the absolute precision of $a_i$ is self.precision_relative() - i
+
+        EXAMPLES::
+
+            sage: R = Qp(5,5); R(70).list('teichmuller') #indirect doctest
+            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
+            2 + 5 + 2*5^2 + O(5^3),
+            1 + O(5^2),
+            4 + O(5)]
+        """
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
         cdef unsigned long curpower, preccap, i
         cdef mpz_t tmp, tmp2
@@ -1423,13 +1991,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             return ans
         mpz_init_set(tmp, self.unit)
         mpz_init(tmp2)
-        if self.prime_pow.in_field == 0 and self.ordp > 0:
-            list_elt = self._new_c()
-            list_elt._set_exact_zero()
-            for i from 0 <= i < self.ordp:
-                PyList_Append(ans, list_elt)
         while mpz_sgn(tmp) != 0:
-            curpower -= 1
             list_elt = self._new_c()
             mpz_mod(list_elt.unit, tmp, self.prime_pow.prime.value)
             if mpz_sgn(list_elt.unit) == 0:
@@ -1437,30 +1999,37 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
             else:
                 list_elt.ordp = 0
-                list_elt._set_prec(preccap)
-                mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(preccap)[0])
+                list_elt._set_prec(curpower)
+                mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
                 self.teichmuller_set_c(list_elt.unit, tmp2)
                 list_elt._normalized = 1
                 mpz_sub(tmp, tmp, list_elt.unit)
                 mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
-                mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
+                mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower - 1)[0])
+            curpower -= 1
             PyList_Append(ans, list_elt)
         mpz_clear(tmp)
         mpz_clear(tmp2)
         return ans
 
-    def log_artin_hasse(self):
-        raise NotImplementedError
-
-    def padded_list(self, n, list_mode = 'simple'):
+    def padded_list(self, n, lift_mode = 'simple'):
         """
-        Returns a list of coeficiants of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed).  If a field element, starts at p^val instead.
-        INPUT:
+        Returns a list of coeficiants of p starting with $p^0$ up to
+        $p^n$ exclusive (padded with zeros if needed).  If a field
+        element, starts at p^val instead.
+
+        INPUT::
+
             self -- a p-adic element
             n - an integer
-        OUTPUT:
+            lift_mode - 'simple', 'smallest' or 'teichmuller'
+
+        OUTPUT::
+
             list -- the list of coeficients of self
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: R = Zp(7,3,'capped-rel'); a = R(2*7+7**2); a.padded_list(5)
             [0, 2, 1, 0, 0]
             sage: R = Qp(7,3); a = R(2*7+7**2); a.padded_list(5)
@@ -1468,16 +2037,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: a.padded_list(3)
             [2, 1]
 
-        NOTE:
-            this differs from the padded_list method of padic_field_element
+        NOTE::
+
             the slice operators throw an error if asked for a slice above the precision
         """
-        if list_mode == 'simple' or list_mode == 'smallest':
+        if lift_mode == 'simple' or lift_mode == 'smallest':
             zero = Integer(0)
         else:
-            zero = self.parent()(0)
+            zero = self.parent()(0, 0)
         self._normalize()
-        L = self.list()
+        L = self.list(lift_mode)
         if self.prime_pow.in_field == 1:
             if mpz_sgn(self.unit) > 0:
                 n -= self.valuation()
@@ -1487,16 +2056,26 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def precision_absolute(pAdicCappedRelativeElement self):
         """
-        Returns the absolute precision of self
-         INPUT:
+        Returns the absolute precision of self.
+
+        This is the power of the maximal ideal modulo which this element is defined.
+
+        INPUT::
+
             self -- a p-adic element
-        OUTPUT:
+
+        OUTPUT::
+
             integer -- the absolute precision of self
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: R = Zp(7,3,'capped-rel'); a = R(7); a.precision_absolute()
             4
             sage: R = Qp(7,3); a = R(7); a.precision_absolute()
             4
+            sage: R(7^-3).precision_absolute()
+            0
         """
         cdef Integer ans
         if mpz_sgn(self.unit) == -1:
@@ -1507,7 +2086,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def precision_relative(self):
         """
-        Returns the relative precision of self
+        Returns the relative precision of self.
+
+        This is the power of the maximal ideal modulo which the unit part of self is defined.
 
         INPUT:
             self -- a p-adic element
@@ -1518,6 +2099,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             3
             sage: R = Qp(7,3); a = R(7); a.precision_relative()
             3
+            sage: a = R(7^-2, -1); a.precision_relative()
+            1
+            sage: a
+            7^-2 + O(7^-1)
        """
         self._normalize()
         cdef Integer ans
@@ -1528,19 +2113,34 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_set_si(ans.value, self.relprec)
         return ans
 
-    def residue(self, absprec):
+    def residue(self, absprec=1):
         """
-        Reduces this mod $p^absprec$
-        INPUT:
-            self -- a p-adic element
-            absprec - an integer
-        OUTPUT:
-            element of Z/(p^absprec Z) -- self reduced mod p^absprec
-        EXAMPLES:
+        Reduces this element modulo $p^absprec$.
+
+        INPUT::
+
+            - self -- a p-adic element
+            - absprec - an integer (defaults to 1)
+
+        OUTPUT::
+
+            - element of $Z/(p^{absprec} Z)$ -- self reduced mod p^absprec
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-rel'); a = R(8); a.residue(1)
             1
             sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
             1
+            sage: a.residue(6)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision known in order to compute residue.
+            sage: b = a/7
+            sage: b.residue(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Element must have non-negative valuation in order to compute residue.
         """
         cdef Integer selfvalue, modulus
         cdef PowComputer_class powerer
@@ -1554,8 +2154,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
             self._normalize()
-        if self.ordp < 0:
-            raise ValueError, "Element must have non-negative valuation in order to compute residue."
+            if self.ordp < 0:
+                raise ValueError, "Element must have non-negative valuation in order to compute residue."
         if mpz_sgn(self.unit) <= 0:
             modulus = PY_NEW(Integer)
             mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
@@ -1570,15 +2170,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
             return Mod(selfvalue, modulus)
 
-    def unit_part(self):
+    cpdef pAdicCappedRelativeElement unit_part(self):
         r"""
         Returns the unit part of self.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            p-adic element -- the unit part of self
-        EXAMPLES:
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - p-adic element -- the unit part of self
+
+        EXAMPLES::
+
             sage: R = Zp(17,4,'capped-rel')
             sage: a = R(18*17)
             sage: a.unit_part()
@@ -1599,10 +2204,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             9*17^-2 + 8*17^-1 + 8 + 8*17 + O(17^2)
             sage: b.unit_part()
             9 + 8*17 + 8*17^2 + 8*17^3 + O(17^4)
+            sage: Zp(5)(75).unit_part()
+            3 + O(5^20)
         """
-        return self.unit_part_c()
-
-    cdef pAdicCappedRelativeElement unit_part_c(self):
         self._normalize()
         if mpz_sgn(self.unit) < 0:
             raise ValueError, "unit part of 0 not defined"
@@ -1614,97 +2218,45 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         ans._normalized = 1
         return ans
 
-    def valuation(self):
+    cdef long valuation_c(self):
         """
         Returns the valuation of self.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the valuation of self
+        If self is an exact zero, returns maxordp+1, which is defined as
+        (1L << (sizeof(long) * 8 - 2))
 
-        EXAMPLES:
-            sage: R = Zp(17, 4,'capped-rel')
-            sage: a = R(2*17^2)
-            sage: a.valuation()
-            2
-            sage: R = Zp(5, 4,'capped-rel')
-            sage: R(0).valuation()
-            +Infinity
+        EXAMPLES::
 
-        TESTS:
-            sage: R(1).valuation()
+            sage: R = Qp(5); a = R(1)
+            sage: a.valuation() #indirect doctest
             0
-            sage: R(2).valuation()
-            0
-            sage: R(5).valuation()
-            1
-            sage: R(10).valuation()
-            1
-            sage: R(25).valuation()
-            2
-            sage: R(50).valuation()
-            2
-            sage: R = Qp(17, 4)
-            sage: a = R(2*17^2)
-            sage: a.valuation()
-            2
-            sage: R = Qp(5, 4)
-            sage: R(0).valuation()
-            +Infinity
-            sage: R(1).valuation()
-            0
-            sage: R(2).valuation()
-            0
-            sage: R(5).valuation()
-            1
-            sage: R(10).valuation()
-            1
-            sage: R(25).valuation()
-            2
-            sage: R(50).valuation()
-            2
-            sage: R(1/2).valuation()
-            0
-            sage: R(1/5).valuation()
-            -1
-            sage: R(1/10).valuation()
-            -1
-            sage: R(1/25).valuation()
-            -2
-            sage: R(1/50).valuation()
-            -2
+            sage: b = (a << 4); b.valuation()
+            4
+            sage: b = (a << 1073741823); b.valuation()
+            1073741823
+
         """
-        cdef long v = self.valuation_c()
-        cdef long maxlong
-        if sizeof(long) == 4:
-            maxlong = 2147483647
-        elif sizeof(long) == 8:
-            maxlong = 9223372036854775807
-        else:
-            raise RuntimeError
-        if v == maxlong:
-            return infinity
-        cdef Integer ans = PY_NEW(Integer)
-        mpz_set_si(ans.value, v)
-        return ans
-
-    cdef long valuation_c(self):
-        cdef Integer ans
-        cdef long maxlong
         self._normalize()
         if mpz_sgn(self.unit) == -1:
-            if sizeof(long) == 4:
-                maxlong = 2147483647
-            elif sizeof(long) == 8:
-                maxlong = 9223372036854775807
-            else:
-                raise RuntimeError
-            return maxlong
+            return maxordp
         else:
             return self.ordp
 
-    cdef val_unit_c(self):
+    cpdef val_unit(self):
+        """
+        Returns a pair (self.valuation(), self.unit_part()).
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(75, 20); a
+            3*5^2 + O(5^20)
+            sage: a.val_unit()
+            (2, 3 + O(5^18))
+            sage: R(0).val_unit()
+            (+Infinity, O(5^0))
+            sage: R(0, 10).val_unit()
+            (10, O(5^0))
+        """
         cdef Integer val
         cdef pAdicCappedRelativeElement unit
         if mpz_sgn(self.unit) == -1:
@@ -1721,28 +2273,40 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_set_si(val.value, self.ordp)
         return (val, unit)
 
-    def val_unit(self):
-        """
-        Returns an pair (self.valuation(), self.unit_part()).
-
-        If self is zero (either inexact or exact), the second return value is 0 + O(p^0).
-
-        EXAMPLES:
-        sage: R = Zp(5); a = R(75, 20); a
-        3*5^2 + O(5^20)
-        sage: a.val_unit()
-        (2, 3 + O(5^18))
-        sage: R(0).val_unit()
-        (+Infinity, O(5^0))
-        sage: R(0, 10).val_unit()
-        (10, O(5^0))
-        """
-        return self.val_unit_c()
-
     def __hash__(self):
+        """
+        Hashing.
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: hash(R(17)) #indirect doctest
+            17
+
+            sage: hash(R(-1)) # 32-bit
+            1977822444
+
+            sage: hash(R(-1)) # 64-bit
+            95367431640624
+        """
         return hash(self.lift_c())
 
     def _teichmuller_set(self):
+        """
+        Sets self to be the Teichmuller representative with the same residue as self.
+
+        WARNING: This function modifies self, which is not safe.  Elements are supposed to be immutable.
+
+        EXAMPLES::
+
+            sage: R = Zp(17,5); a = R(11)
+            sage: a
+            11 + O(17^5)
+            sage: a._teichmuller_set(); a
+            11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
+            sage: a.list('teichmuller')
+            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
+        """
         cdef mpz_t tmp
         self._normalize()
         if mpz_sgn(self.unit) < 0 or self.ordp > 0:
@@ -1757,6 +2321,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_clear(tmp)
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):
+    """
+    Unpickles a capped relative element.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_capped_relative_element import unpickle_pcre_v1
+        sage: R = Zp(5)
+        sage: a = unpickle_pcre_v1(R, 17, 2, 5); a
+        2*5^2 + 3*5^3 + O(5^7)
+    """
     cdef pAdicCappedRelativeElement ans
     ans = PY_NEW(pAdicCappedRelativeElement)
     ans._parent = R

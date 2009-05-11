@@ -1,3 +1,14 @@
+"""
+p-Adic Extension Leaves.
+
+The final classes for extensions of Zp and Qp (ie classes that are not
+just designed to be inherited from).
+
+AUTHORS::
+
+    - David Roe
+"""
+
 from pow_computer_ext import PowComputer_ext_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
@@ -5,14 +16,10 @@ from unramified_extension_generic import UnramifiedExtensionGeneric
 from eisenstein_extension_generic import EisensteinExtensionGeneric
 #from padic_general_extension_generic import pAdicGeneralExtensionGeneric
 
-from padic_capped_relative_ring_generic import pAdicCappedRelativeRingGeneric
-from padic_capped_relative_field_generic import pAdicCappedRelativeFieldGeneric
-from padic_lazy_ring_generic import pAdicLazyRingGeneric
-from padic_lazy_field_generic import pAdicLazyFieldGeneric
-from padic_capped_absolute_ring_generic import pAdicCappedAbsoluteRingGeneric
-from padic_fixed_mod_ring_generic import pAdicFixedModRingGeneric
-
-from padic_ring_fixed_mod import pAdicRingFixedMod
+from generic_nodes import pAdicCappedRelativeRingGeneric, \
+                          pAdicCappedRelativeFieldGeneric, \
+                          pAdicCappedAbsoluteRingGeneric, \
+                          pAdicFixedModRingGeneric
 
 #from unramified_extension_absolute_element import UnramifiedExtensionAbsoluteElement
 #from unramified_extension_capped_relative_element import UnramifiedExtensionCappedRelativeElement
@@ -31,7 +38,44 @@ from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
 from sage.rings.integer_ring import ZZ
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = ZqCR(27,10000); R == loads(dumps(R))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A capped relative representation of Zq.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Ring with capped relative precision 10000 in a defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (2 + O(3^10000))*x + (1 + O(3^10000))
+
+            sage: R.<a> = ZqCR(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
         if prec <= 30:
             self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, False, ntl_poly, "small", "u")
@@ -42,7 +86,44 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = QqCR(27,10000); R == loads(dumps(R))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A representation of Qq.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Qp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Field with capped relative precision 10000 in a defined by (1 + O(3^10000))*x^3 + (O(3^10000))*x^2 + (2 + O(3^10000))*x + (1 + O(3^10000))
+
+            sage: R.<a> = Qq(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
         # Currently doesn't support polynomials with non-integral coefficients
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
         if prec <= 30:
@@ -64,7 +145,44 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
 #        pAdicLazyFieldGeneric.__init__(self, poly.base_ring().prime(), prec, print_mode, names, halt)
 
 class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = ZqCA(27,10000); R == loads(dumps(R))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A capped absolute representation of Zq.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCA(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Ring with capped absolute precision 10000 in a defined by (1 + O(3^10000))*x^3 + (2 + O(3^10000))*x + (1 + O(3^10000))
+
+            sage: R.<a> = ZqCA(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
         # Currently doesn't support polynomials with non-integral coefficients
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
         if prec <= 30:
@@ -76,7 +194,44 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCAElement)
 
 class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModRingGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = ZqFM(27,10000); R == loads(dumps(R))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A fixed modulus representation of Zq.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Qp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Ring of fixed modulus 3^10000 in a defined by (1 + O(3^10000))*x^3 + (2 + O(3^10000))*x + (1 + O(3^10000))
+
+            sage: R.<a> = ZqFM(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
         self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(prec - 1, 30), 1), prec, prec, False, ntl_poly, "FM", "u")
         self._shift_seed = None
@@ -92,7 +247,51 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
     #    return None
 
 class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
+    """
+    TESTS::
+
+        sage: R = Zp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+        sage: W.<w> = R.ext(f); W == loads(dumps(W))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A capped relative representation of an eisenstein extension of Zp.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+            sage: W.<w> = R.ext(f); W #indirect doctest
+            Eisenstein Extension of 3-adic Ring with capped relative precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10001))*x^2 + (3^2 + O(3^10001))*x + (-3 + O(3^10001))
+            sage: W.precision_cap()
+            30000
+
+            sage: R.<p> = Zp(next_prime(10^30), 3, print_pos=False); S.<x> = ZZ[]; f = x^3 + p^2*x - p
+            sage: W.<w> = R.ext(f); W.prime()
+            1000000000000000000000000000057
+            sage: W.precision_cap()
+            9
+        """
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**unram_prec)
         shift_poly = ntl_ZZ_pX([a.lift() for a in shift_seed.list()], shift_seed.base_ring().prime()**unram_prec)
@@ -105,7 +304,51 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
 
 class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeFieldGeneric):
+    """
+    TESTS::
+
+        sage: R = Qp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+        sage: W.<w> = R.ext(f); W == loads(dumps(W))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A capped relative representation of an eisenstein extension of Qp.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Qp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R = Qp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+            sage: W.<w> = R.ext(f); W #indirect doctest
+            Eisenstein Extension of 3-adic Field with capped relative precision 10000 in w defined by (1 + O(3^10000))*x^3 + (O(3^10001))*x^2 + (3^2 + O(3^10001))*x + (-3 + O(3^10001))
+            sage: W.precision_cap()
+            30000
+
+            sage: R.<p> = Qp(next_prime(10^30), 3, print_pos=False); S.<x> = ZZ[]; f = x^3 + p^2*x - p
+            sage: W.<w> = R.ext(f); W.prime()
+            1000000000000000000000000000057
+            sage: W.precision_cap()
+            9
+        """
         # Currently doesn't support polynomials with non-integral coefficients
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**unram_prec)
@@ -129,7 +372,51 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
 #        pAdicLazyFieldGeneric.__init__(self, poly.base_ring().prime(), prec, print_mode, names, halt)
 
 class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
+    """
+    TESTS::
+
+        sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+        sage: W.<w> = R.ext(f); W == loads(dumps(W))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A capped absolute representation of an eisenstein extension of Zp.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+            sage: W.<w> = R.ext(f); W #indirect doctest
+            Eisenstein Extension of 3-adic Ring with capped absolute precision 10000 in w defined by (1 + O(3^10000))*x^3 + (3^2 + O(3^10000))*x + (-3 + 3^10000 + O(3^10000))
+            sage: W.precision_cap()
+            30000
+
+            sage: R.<p> = ZpCA(next_prime(10^30), 3, print_pos=False); S.<x> = ZZ[]; f = x^3 + p^2*x - p
+            sage: W.<w> = R.ext(f); W.prime()
+            1000000000000000000000000000057
+            sage: W.precision_cap()
+            6
+        """
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**unram_prec)
         shift_poly = ntl_ZZ_pX([a.lift() for a in shift_seed.list()], shift_seed.base_ring().prime()**unram_prec)
@@ -142,7 +429,51 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCAElement)
 
 class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
+    """
+    TESTS::
+
+        sage: R = ZpFM(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+        sage: W.<w> = R.ext(f); W == loads(dumps(W))
+        True
+    """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+        """
+        A fixed modulus representation of an eisenstein extension of Zp.
+
+        INPUTS::
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R = ZpFM(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
+            sage: W.<w> = R.ext(f); W #indirect doctest
+            Eisenstein Extension of 3-adic Ring of fixed modulus 3^10000 in w defined by (1 + O(3^10000))*x^3 + (3^2 + O(3^10000))*x + (-3 + 3^10000 + O(3^10000))
+            sage: W.precision_cap()
+            30000
+
+            sage: R.<p> = ZpFM(next_prime(10^30), 3, print_pos=False); S.<x> = ZZ[]; f = x^3 + p^2*x - p
+            sage: W.<w> = R.ext(f); W.prime()
+            1000000000000000000000000000057
+            sage: W.precision_cap()
+            9
+        """
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**unram_prec)
         shift_poly = ntl_ZZ_pX([a.lift() for a in shift_seed.list()], shift_seed.base_ring().prime()**unram_prec)

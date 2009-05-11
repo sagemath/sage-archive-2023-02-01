@@ -29,7 +29,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef int _set_zero(pAdicCappedRelativeElement self, absprec) except -1
     cdef int _set_prec(pAdicCappedRelativeElement self, long relprec) except -1
     cdef int _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec) except -1
-    cdef int _set_from_CR(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other) except -1
+    cdef int _set_from_CR_rel(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other, long relprec) except -1
+    cdef int _set_from_CR_both(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other, long absprec, long relprec) except -1
 
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef int _normalize(pAdicCappedRelativeElement self) except -1
@@ -45,7 +46,5 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef pari_gen _to_gen(pAdicCappedRelativeElement self)
     cdef lift_c(self)
     cdef teichmuller_list(pAdicCappedRelativeElement self)
-    cdef val_unit_c(self)
-    cdef pAdicCappedRelativeElement unit_part_c(self)
-    cdef long valuation_c(self)
+    cpdef pAdicCappedRelativeElement unit_part(self)
 

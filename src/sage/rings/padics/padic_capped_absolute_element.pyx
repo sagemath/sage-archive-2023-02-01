@@ -1,10 +1,13 @@
 """
+p-Adic Capped Absolute Element.
+
 Elements of p-Adic Rings with Absolute Precision Cap
 
-AUTHOR:
-    -- David Roe
-    -- Genya Zaytman: documentation
-    -- David Harvey: doctests
+AUTHORS::
+
+    - David Roe
+    - Genya Zaytman: documentation
+    - David Harvey: doctests
 """
 
 #*****************************************************************************
@@ -30,7 +33,6 @@ from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 import sage.rings.padics.padic_generic_element
-import sage.rings.padics.padic_lazy_element
 import sage.rings.integer_mod
 import sage.libs.pari.gen
 import sage.rings.integer
@@ -40,7 +42,6 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
-pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
@@ -86,21 +87,21 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 raise ValueError, "element valuation cannot be negative."
             if parent.prime() != x.parent().prime():
                 raise TypeError, "Cannot coerce between p-adic parents with different primes"
-        if isinstance(x, pAdicLazyElement):
-            # We may be doing unnecessary precision increases here...
-            if relprec is infinity:
-                try:
-                    x.set_precision_absolute(absprec)
-                except PrecisionError:
-                    pass
-            else:
-                try:
-                    x.set_precision_relative(relprec)
-                except PrecisionError:
-                    try:
-                        x.set_precision_absolute(absprec)
-                    except PrecisionError:
-                        pass
+        #if isinstance(x, pAdicLazyElement):
+        #    # We may be doing unnecessary precision increases here...
+        #    if relprec is infinity:
+        #        try:
+        #            x.set_precision_absolute(absprec)
+        #        except PrecisionError:
+        #            pass
+        #    else:
+        #        try:
+        #            x.set_precision_relative(relprec)
+        #        except PrecisionError:
+        #            try:
+        #                x.set_precision_absolute(absprec)
+        #            except PrecisionError:
+        #                pass
         cdef mpz_t modulus
         cdef Integer tmp
         cdef unsigned long k
@@ -111,6 +112,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             x = Integer(x)
         elif isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
+                if x.variable() != self.prime_pow.prime:
+                    raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."
                 absprec = min(Integer(x.padicprec(parent.prime())), absprec)
                 x = x.lift()
             if x.type() == "t_INT":
@@ -141,27 +144,52 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         self._set_from_Rational(Rational(x), absprec, relprec)
 
     def __dealloc__(self):
+        """
+        Deallocation.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17)
+            sage: del(a)
+        """
         mpz_clear(self.value)
 
     def __reduce__(self):
         """
-        sage: a = ZpCA(5)(-3)
-        sage: type(a)
-        <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
-        sage: loads(dumps(a)) == a
-        True
+        Pickling.
+
+        TESTS::
+
+            sage: a = ZpCA(5)(-3)
+            sage: type(a)
+            <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
+            sage: loads(dumps(a)) == a
+            True
         """
         return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
     cdef bint _set_prec_abs(self, long absprec) except -1:
         """
         Sets self.absprec
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17,5); a #indirect doctest
+            2 + 3*5 + O(5^5)
         """
         self.absprec = absprec
 
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         """
         Sets self.absprec.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(75, absprec = 5, relprec = 4); a #indirect doctest
+            3*5^2 + O(5^5)
         """
         self.absprec = absprec
         cdef long ordp
@@ -174,6 +202,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         Set self.value and self.absprec.
         absprec must be positive.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(75, absprec = 5, relprec = 4); a #indirect doctest
+            3*5^2 + O(5^5)
         """
         if relprec is not infinity and mpz_sgn((<Integer>relprec).value) == -1:
             raise ValueError, "relprec must be positive"
@@ -194,6 +228,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         Set self.value and self.absprec.
         absprec must be positive.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(25/9, absprec = 5, relprec = 4); a #indirect doctest
+            4*5^2 + 2*5^3 + O(5^5)
         """
         if relprec is not infinity and mpz_sgn((<Integer>relprec).value) == -1:
             raise ValueError, "relprec must be positive"
@@ -213,6 +253,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef int _set_from_mpz_abs(self, mpz_t x, long absprec) except -1:
         """
         self.prime_pow must already be set.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17,5); a #indirect doctest
+            2 + 3*5 + O(5^5)
         """
         self._set_prec_abs(absprec)
         if mpz_sgn(x) == -1 or mpz_cmp(x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
@@ -226,6 +272,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef int _set_from_mpz_both(self, mpz_t x, long absprec, long relprec) except -1:
         """
         self.prime_pow must already be set
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(75, absprec = 5, relprec = 4); a #indirect doctest
+            3*5^2 + O(5^5)
         """
         if mpz_sgn(x) == 0:
             mpz_set(self.value, x)
@@ -241,6 +293,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef int _set_from_mpq_abs(self, mpq_t x, long absprec) except -1:
         """
         self.prime_pow must already be set.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(25/9, absprec = 5); a #indirect doctest
+            4*5^2 + 2*5^3 + O(5^5)
         """
         self._set_prec_abs(absprec)
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
@@ -255,6 +313,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef int _set_from_mpq_both(self, mpq_t x, long absprec, long relprec) except -1:
         """
         self.prime_pow must already be set
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(25/9, absprec = 5, relprec = 4); a #indirect doctest
+            4*5^2 + 2*5^3 + O(5^5)
         """
         cdef long k
         cdef mpz_t tmp
@@ -272,14 +336,36 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return self._set_from_mpq_abs(x, self.absprec)
 
     cdef int _set_to_mpz(pAdicCappedAbsoluteElement self, mpz_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        TESTS::
+
+            sage: R = ZpCA(5); S.<a> = ZqCA(25)
+            sage: S(R(17))
+            2 + 3*5 + O(5^20)
+        """
         mpz_set(dest, self.value)
         return 0
 
     cdef int _set_to_mpq(pAdicCappedAbsoluteElement self, mpq_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        Not currently used internally.
+        """
         mpq_set_z(dest, self.value)
         return 0
 
     cdef pAdicCappedAbsoluteElement _new_c(self):
+        """
+        Creates a new element with the same basic info.
+
+        TESTS::
+
+            sage: R = ZpCA(5); R(6,5) * R(7,8) #indirect doctest
+            2 + 3*5 + 5^2 + O(5^5)
+        """
         cdef pAdicCappedAbsoluteElement x
         x = PY_NEW(pAdicCappedAbsoluteElement)
         x._parent = self._parent
@@ -289,9 +375,11 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     cpdef bint _is_inexact_zero(self) except -1:
         """
+        Returns True if self is indistinguishable from zero.
+
         EXAMPLES:
             sage: R = ZpCA(7, 5)
-            sage: R(7^5)._is_inexact_zero()
+            sage: R(0,4)._is_inexact_zero()
             True
             sage: R(0)._is_inexact_zero()
             True
@@ -299,11 +387,27 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return mpz_sgn(self.value) == 0
 
     def __richcmp__(left, right, op):
+        """
+        Comparison.
+
+        TESTS::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+        """
         return (<Element>left)._richcmp(right, op)
 
     def __invert__(self):
         """
-        EXAMPLES:
+        Returns the multiplicative inverse of self.
+
+        EXAMPLES::
+
             sage: R = ZpCA(17)
             sage: ~R(-1) == R(-1)
             True
@@ -315,22 +419,35 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return self._invert_c_impl()
 
     cpdef RingElement _invert_c_impl(self):
+        """
+        Returns the multiplicative inverse of self.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(17)
+            sage: ~R(-1) == R(-1) #indirect doctest
+            True
+        """
         return self.parent().fraction_field()(self).__invert__()
 
     cpdef ModuleElement _neg_(self):
         """
         Returns -x.
 
-        INPUT:
-        x -- a p-adic capped absolute element
-        OUTPUT:
-        -x
+        INPUT::
 
-        EXAMPLES:
-        sage: R = Zp(5, prec=10, type='capped-abs')
-        sage: a = R(1)
-        sage: -a
-        4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+            * x -- a p-adic capped absolute element
+
+        OUTPUT::
+
+            * -x
+
+        EXAMPLES::
+
+            sage: R = Zp(5, prec=10, type='capped-abs')
+            sage: a = R(1)
+            sage: -a #indirect doctest
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
         """
         if mpz_sgn(self.value) == 0:
             return self
@@ -342,6 +459,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def __pow__(pAdicCappedAbsoluteElement self, right, dummy):
         """
+        Exponentiation.
+
         EXAMPLES:
             sage: R = ZpCA(11, 5)
             sage: R(1/2)^5
@@ -353,6 +472,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             sage: R(3)^1000
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
         """
+        # p-adic exponents and correct precisions!!!
         if not self and not right:
             raise ArithmeticError, "0^0 is undefined."
         cdef Integer new, absprec
@@ -385,9 +505,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
-        EXAMPLES:
+        Addition.
+
+        EXAMPLES::
+
             sage: R = ZpCA(13, 4)
-            sage: R(2) + R(3)
+            sage: R(2) + R(3) #indirect doctest
             5 + O(13^4)
             sage: R(12) + R(1)
             13 + O(13^4)
@@ -405,32 +528,46 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return ans
 
     cpdef RingElement _div_(self, RingElement right):
+        """
+        Division.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(13, 4)
+            sage: R(2) / R(3) # indirect doctest
+            5 + 4*13 + 4*13^2 + 4*13^3 + O(13^4)
+        """
         return self * (~right)
 
     def __lshift__(pAdicCappedAbsoluteElement self, shift):
         """
-        EXAMPLES:
-        We create a capped relative field:
-            sage: R = Zp(5, 20, 'capped-rel'); a = R(1000); a
-            3*5^3 + 5^4 + O(5^23)
+        Multiplies self by p^shift.
 
-        Shifting to the right is the same as dividing by a power of
-        the uniformizer $p$ of the $p$-adic ring.
+        If shift < -self.ordp(), digits will be truncated.  See __rshift__ for details.
+
+        EXAMPLES::
+
+            We create a capped absolute ring:
+            sage: R = Zp(5, 20, 'capped-abs'); a = R(1000); a
+            3*5^3 + 5^4 + O(5^20)
+
+            Shifting to the right is the same as dividing by a power of
+            the uniformizer $p$ of the $p$-adic ring.
             sage: a >> 1
-            3*5^2 + 5^3 + O(5^22)
+            3*5^2 + 5^3 + O(5^19)
 
-        Shifting to the left is the same as multiplying by a power of $p$:
+            Shifting to the left is the same as multiplying by a power of $p$:
             sage: a << 2
-            3*5^5 + 5^6 + O(5^25)
+            3*5^5 + 5^6 + O(5^20)
             sage: a*5^2
-            3*5^5 + 5^6 + O(5^25)
+            3*5^5 + 5^6 + O(5^20)
 
-        Shifting by a negative integer to the left is the same as right shifting
-        by the absolute value:
+            Shifting by a negative integer to the left is the same as right shifting
+            by the absolute value:
             sage: a << -3
-            3 + 5 + O(5^20)
+            3 + 5 + O(5^17)
             sage: a >> 3
-            3 + 5 + O(5^20)
+            3 + 5 + O(5^17)
         """
         cdef pAdicCappedAbsoluteElement ans
         if not PY_TYPE_CHECK(shift, Integer):
@@ -446,6 +583,16 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return self._lshift_c(mpz_get_si((<Integer>shift).value))
 
     cdef pAdicCappedAbsoluteElement _lshift_c(pAdicCappedAbsoluteElement self, long shift):
+        """
+        Multiplies self by p^shift.
+
+        If shift < -self.ordp(), digits will be truncated.  See __rshift__ for details.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5); a = R(17); a << 2
+            2*5^2 + 3*5^3 + O(5^20)
+        """
         cdef unsigned long prec_cap, ansprec
         cdef pAdicCappedAbsoluteElement ans
         cdef PowComputer_class powerer
@@ -472,18 +619,21 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def __rshift__(pAdicCappedAbsoluteElement self, shift):
         """
-        EXAMPLES:
-            sage: R = Zp(997, 7, 'capped-rel'); a = R(123456878908); a
-            964*997 + 572*997^2 + 124*997^3 + O(997^8)
+        Divides by p^shift, and truncates.
 
-        Shifting to the right divides by a power of p, but dropping terms with
-        negative valuation:
+        EXAMPLES::
+
+            sage: R = Zp(997, 7, 'capped-abs'); a = R(123456878908); a
+            964*997 + 572*997^2 + 124*997^3 + O(997^7)
+
+            Shifting to the right divides by a power of p, but dropping terms with
+            negative valuation:
             sage: a >> 3
-            124 + O(997^5)
+            124 + O(997^4)
 
-        Shifting to the left multiplies by that power of p.
-            sage: a << 3
-            964*997^4 + 572*997^5 + 124*997^6 + O(997^11)
+            A negative shift multiplies by that power of p.
+            sage: a >> -3
+            964*997^4 + 572*997^5 + 124*997^6 + O(997^7)
         """
         cdef pAdicCappedAbsoluteElement ans
         if not PY_TYPE_CHECK(shift, Integer):
@@ -499,6 +649,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
     cdef pAdicCappedAbsoluteElement _rshift_c(pAdicCappedAbsoluteElement self, long shift):
+        """
+        Divides by p^shift and truncates.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5); a = R(77); a >> 1
+            3*5 + O(5^19)
+        """
         cdef unsigned long prec_cap, ansprec
         cdef pAdicCappedAbsoluteElement ans
         if shift < 0:
@@ -520,10 +678,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     cpdef RingElement _mul_(self, RingElement _right):
         """
-        EXAMPLES:
-        sage: R = ZpCA(5)
-        sage: a = R(20,5); b = R(75, 4); a * b
-        2*5^3 + 2*5^4 + O(5^5)
+        Multiplication.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: a = R(20,5); b = R(75, 4); a * b #indirect doctest
+            2*5^3 + 2*5^4 + O(5^5)
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef pAdicCappedAbsoluteElement right = <pAdicCappedAbsoluteElement> _right
@@ -532,7 +693,6 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         prec_cap = self.prime_pow.prec_cap
         sval = self.valuation_c()
         rval = right.valuation_c()
-        # Need to think about the possibility that the following overflows (too big for long).
         prec1 = sval + right.absprec
         prec2 = rval + self.absprec
         if prec1 < prec2:
@@ -551,9 +711,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
-        EXAMPLES:
+        Subtraction.
+
+        EXAMPLES::
+
             sage: R = ZpCA(13, 4)
-            sage: R(10) - R(10)
+            sage: R(10) - R(10) #indirect doctest
             O(13^4)
             sage: R(10) - R(11)
             12 + 12*13 + 12*13^2 + 12*13^3 + O(13^4)
@@ -575,13 +738,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         Returns a new element with absolute precision decreased to prec.
         The precision never increases.
 
-        INPUT:
-            self -- a p-adic element
-            prec -- an integer
-        OUTPUT:
-            element -- self with precision set to the minimum of self's precision and prec
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+            - prec -- an integer
+
+        OUTPUT::
+
+            - element -- self with precision set to the minimum of self's precision and prec
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-abs','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
 
@@ -625,6 +792,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return ans
 
     def copy(pAdicCappedAbsoluteElement self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES::
+
+            sage: a = ZpCA(5,6)(17); b = a.copy()
+            sage: a == b
+            True
+            sage: a is b
+            False
+        """
         cdef pAdicCappedAbsoluteElement ans
         ans = self._new_c()
         ans.absprec = self.absprec
@@ -635,13 +813,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         r"""
         Returns whether self is zero modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            prec -- an integer
-        OUTPUT:
-            boolean -- whether self is zero
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+            - prec -- an integer
+
+        OUTPUT::
+
+            - boolean -- whether self is zero
+
+        EXAMPLES::
+
             sage: R = ZpCA(17, 6)
             sage: R(0).is_zero()
             True
@@ -671,18 +853,22 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             mpz_clear(tmp)
             return False
 
-    def is_equal_to(pAdicCappedAbsoluteElement self, pAdicCappedAbsoluteElement right, absprec = None): #assumes they have the same parent
+    def is_equal_to(pAdicCappedAbsoluteElement self, pAdicCappedAbsoluteElement right, absprec = None):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            right -- a p-addic element with the same parent
-            absprec -- an integer
-        OUTPUT:
-            boolean -- whether self is equal to right
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+            - right -- a p-addic element with the same parent
+            - absprec -- an integer
+
+        OUTPUT::
+
+            - boolean -- whether self is equal to right
+
+        EXAMPLES::
+
             sage: R = ZpCA(2, 6)
             sage: R(13).is_equal_to(R(13))
             True
@@ -728,7 +914,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         Returns an integer congruent to this p-adic element modulo p^self.absprec().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = ZpCA(3)
             sage: R(10).lift()
             10
@@ -745,14 +932,19 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         Returns a p-adic integer congruent to this p-adic element modulo p^absprec
         with precision at least absprec.
 
-        EXAMPLES:
-            sage: R = ZpCA(17, 6)
-            sage: (1+O(2^5)).lift_to_precision(10)
-            1 + O(2^10)
-            sage: (1+O(2^15)).lift_to_precision(10)
-            1 + O(2^15)
-            sage: (1+O(2^15)).lift_to_precision(30)
-            1 + O(2^30)
+        If such lifting would yield an element with precision greater than allowed by the precision cap of self's parent, an error is raised.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(17)
+            sage: R(-1,2).lift_to_precision(10)
+            16 + 16*17 + O(17^10)
+            sage: R(1,15).lift_to_precision(10)
+            1 + O(17^15)
+            sage: R(1,15).lift_to_precision(30)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Precision higher than allowed by the precision cap.
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long prec_cap
@@ -767,7 +959,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             dest_prec = mpz_get_ui((<Integer>absprec).value)
             if prec_cap < dest_prec:
-                dest_prec = prec_cap
+                raise PrecisionError, "Precision higher than allowed by the precision cap."
             if dest_prec <= self.absprec:
                 return self
             else:
@@ -779,22 +971,45 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     def list(pAdicCappedAbsoluteElement self, lift_mode = 'simple'):
         """
         Returns a list of coefficients of p starting with $p^0$
-        INPUT:
-            self -- a p-adic element
-            lift_mode -- 'simple', 'smallest' or 'teichmuller' (default 'simple')
-        OUTPUT:
-            list -- the list of coeficients of self
 
-        NOTES:
-        Returns a list [a_0, a_1, \ldots, a_n] so that each a_i is an integer ('simple' and 'smallest')
-        or p-adic ('teichmuller') and \sum_{i = 0}^n a_i * p^i = self, modulo the precision of self.
-        If lift_mode = 'simple', 0 <= a_i < p.
-        If lift_mode = 'smallest', -p/2 < a_i <= p/2.
-        If lift_mode = 'teichmuller', a_i^p = a_i (mod p^(self.precision_absolute() - i))
+        INPUT::
 
-        EXAMPLES:
-        sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.list()
-        [0, 2, 1]
+            - self -- a p-adic element
+            - lift_mode -- 'simple', 'smallest' or 'teichmuller' (default 'simple')
+
+        OUTPUT::
+
+            - list -- the list of coeficients of self
+
+        NOTES::
+
+            Returns a list [a_0, a_1, \ldots, a_n] so that each a_i is an integer ('simple' and 'smallest')
+            or p-adic ('teichmuller') and \sum_{i = 0}^n a_i * p^i = self, modulo the precision of self.
+            If lift_mode = 'simple', 0 <= a_i < p.
+            If lift_mode = 'smallest', -p/2 < a_i <= p/2.
+            If lift_mode = 'teichmuller', a_i^p = a_i (mod p^(self.precision_absolute() - i))
+
+        EXAMPLES::
+
+            sage: R = ZpCA(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: L = a.list(); L
+            [3, 4, 4, 0, 4]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('smallest'); L
+            [3, -3, -2, 1, -3, 1]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('teichmuller'); L
+            [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
+            O(7^5),
+            5 + 2*7 + 3*7^3 + O(7^4),
+            1 + O(7^3),
+            3 + 4*7 + O(7^2),
+            5 + O(7)]
+            sage: sum([L[i] * 7^i for i in range(len(L))])
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
         """
         if lift_mode == 'teichmuller':
             return self.teichmuller_list()
@@ -806,7 +1021,21 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             raise ValueError
 
     cdef object teichmuller_list(pAdicCappedAbsoluteElement self):
+        r"""
+        Returns a list [$a_0$, $a_1$,..., $a_n$] such that
+            - $a_i^p = a_i$
+            - self = $\sum_{i = 0}^n a_i p^i$
+            - if $a_i \ne 0$, the absolute precision of $a_i$ is self.precision_relative() - i
 
+        EXAMPLES::
+
+            sage: R = ZpFM(5,5); R(14).list('teichmuller') #indirect doctest
+            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
+            3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5),
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5),
+            1 + O(5^5),
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)]
+        """
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
         cdef unsigned long curpower
         cdef mpz_t tmp, tmp2
@@ -816,7 +1045,6 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_init_set(tmp, self.value)
         mpz_init(tmp2)
         while mpz_sgn(tmp) != 0:
-            curpower -= 1
             list_elt = self._new_c()
             list_elt._set_prec_abs(curpower)
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
@@ -824,6 +1052,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             self.teichmuller_set_c(list_elt.value, tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
+            curpower -= 1
             mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
             PyList_Append(ans, list_elt)
         mpz_clear(tmp2)
@@ -831,6 +1060,21 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return ans
 
     def _teichmuller_set(self):
+        """
+        Sets self to be the Teichmuller representative with the same residue as self.
+
+        WARNING: This function modifies self, which is not safe.  Elements are supposed to be immutable.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(17,5); a = R(11)
+            sage: a
+            11 + O(17^5)
+            sage: a._teichmuller_set(); a
+            11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
+            sage: a.list('teichmuller')
+            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
+        """
         cdef mpz_t tmp
         mpz_init_set(tmp, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
         self.teichmuller_set_c(self.value, tmp)
@@ -840,12 +1084,18 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         r"""
         Returns the minimum possible multiplicative order of self.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the multiplicative order of self.  This is the minimum multiplicative order of all elements of Z_p lifting self to infinite precision.
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the multiplicative order of self.  This is the
+            minimum multiplicative order of all elements of Z_p
+            lifting self to infinite precision.
+
+        EXAMPLES::
+
             sage: R = ZpCA(7, 6)
             sage: R(1/3)
             5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + O(7^6)
@@ -886,17 +1136,25 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def padded_list(self, n, list_mode = 'simple'):
         """
-        Returns a list of coefficients of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed)
-        INPUT:
-            self -- a p-adic element
-            n - an integer
-        OUTPUT:
-            list -- the list of coeficients of self
-        EXAMPLES:
-            sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
-                [0, 2, 1, 0, 0]
+        Returns a list of coefficients of p starting with $p^0$ up to
+        $p^n$ exclusive (padded with zeros if needed)
 
-        NOTE:
+        INPUT::
+
+            - self -- a p-adic element
+            - n - an integer
+
+        OUTPUT::
+
+            - list -- the list of coeficients of self
+
+        EXAMPLES::
+
+            sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
+            [0, 2, 1, 0, 0]
+
+        NOTE::
+
             this differs from the padded_list method of padic_field_element
             the slice operators throw an error if asked for a slice above the precision, while this function works
         """
@@ -909,14 +1167,22 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def precision_absolute(self):
         """
-        Returns the absolute precision of self
-         INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the absolute precision of self
-        EXAMPLES:
+        Returns the absolute precision of self.
+
+        This is the power of the maximal ideal modulo which this element is defined.
+
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the absolute precision of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_absolute()
-                4
+            4
        """
         cdef Integer ans
         ans = PY_NEW(Integer)
@@ -925,32 +1191,43 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def precision_relative(self):
         """
-        Returns the relative precision of self
-         INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the relative precision of self
-        EXAMPLES:
+        Returns the relative precision of self.
+
+        This is the power of the maximal ideal modulo which the unit part of self is defined.
+
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the relative precision of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_relative()
-                3
+            3
        """
         cdef Integer ans
         ans = PY_NEW(Integer)
         mpz_set_si(ans.value, self.absprec - self.valuation_c())
         return ans
 
-    def residue(self, absprec):
+    def residue(self, absprec = 1):
         r"""
         Reduces self modulo $p^absprec$
 
-        INPUT:
-            self -- a p-adic element
-            absprec - an integer
+        INPUT::
 
-        OUTPUT:
-            element of Z/(p^prec Z) -- self reduced mod p^prec
+            - self -- a p-adic element
+            - absprec - an integer
 
-        EXAMPLES:
+        OUTPUT::
+
+            - element of Z/(p^prec Z) -- self reduced mod p^prec
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'capped-abs'); a = R(8); a.residue(1)
             1
         """
@@ -1012,17 +1289,22 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         r"""
         Returns the unit part of self.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            p-adic element -- the unit part of self
-        EXAMPLES:
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - p-adic element -- the unit part of self
+
+        EXAMPLES::
+
             sage: R = Zp(17,4,'capped-abs', 'val-unit')
             sage: a = R(18*17)
             sage: a.unit_part()
-                18 + O(17^3)
+            18 + O(17^3)
             sage: type(a)
-                <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
+            <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long v
@@ -1045,17 +1327,48 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         Returns the valuation of self, ie the largest power of p dividing self.
 
-        EXAMPLES:
-        sage: R = ZpCA(5)
-        sage: a = R(5^5*1827); a.valuation()
-        5
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: R(5^5*1827).valuation()
+            5
+
+        TESTS::
+
+            sage: R(1).valuation()
+            0
+            sage: R(2).valuation()
+            0
+            sage: R(5).valuation()
+            1
+            sage: R(10).valuation()
+            1
+            sage: R(25).valuation()
+            2
+            sage: R(50).valuation()
+            2
+            sage: R(0).valuation()
+            20
         """
+        # We override this, rather than using the valuation in
+        # padic_generic_element, for speed reasons.
+
         cdef Integer ans
         ans = PY_NEW(Integer)
         mpz_set_ui(ans.value, self.valuation_c())
         return ans
 
     cdef long valuation_c(self):
+        """
+        Returns the valuation of self, ie the largest power of p dividing self.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: a = R(0,6)
+            sage: a.valuation() #indirect doctest
+            6
+        """
         if mpz_sgn(self.value) == 0:
             return self.absprec
         cdef mpz_t tmp
@@ -1067,17 +1380,19 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     cpdef val_unit(self):
         """
-        Returns a 2-tuple, the first element set to the valuation of self, and the second to the unit part of self.
+        Returns a 2-tuple, the first element set to the valuation of
+        self, and the second to the unit part of self.
 
         If self == 0, then the unit part is O(p^0).
 
-        EXAMPLES:
-        sage: R = ZpCA(5)
-        sage: a = R(75, 6); b = a - a
-        sage: a.val_unit()
-        (2, 3 + O(5^4))
-        sage: b.val_unit()
-        (6, O(5^0))
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: a = R(75, 6); b = a - a
+            sage: a.val_unit()
+            (2, 3 + O(5^4))
+            sage: b.val_unit()
+            (6, O(5^0))
         """
         cdef pAdicCappedAbsoluteElement unit
         cdef Integer val
@@ -1101,7 +1416,10 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def __hash__(self):
         """
-        EXAMPLES:
+        Hashing.
+
+        EXAMPLES::
+
             sage: R = ZpCA(11, 5)
             sage: hash(R(3)) == hash(3)
             True
@@ -1109,4 +1427,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return hash(self.lift())
 
 def make_pAdicCappedAbsoluteElement(parent, x, absprec):
+    """
+    Unpickles a capped relative element.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_capped_absolute_element import make_pAdicCappedAbsoluteElement
+        sage: R = ZpCA(5)
+        sage: a = make_pAdicCappedAbsoluteElement(R, 17*25, 5); a
+        2*5^2 + 3*5^3 + O(5^5)
+    """
     return parent(x, absprec=absprec)

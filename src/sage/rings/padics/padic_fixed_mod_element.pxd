@@ -21,6 +21,4 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     cpdef ModuleElement _neg_(self)
     cdef Integer lift_c(pAdicFixedModElement self)
     cdef object teichmuller_list(pAdicFixedModElement self)
-    cdef pAdicFixedModElement unit_part_c(pAdicFixedModElement self)
-    cdef long valuation_c(self)
-    cdef val_unit_c(self)
+    cpdef pAdicFixedModElement unit_part(pAdicFixedModElement self)

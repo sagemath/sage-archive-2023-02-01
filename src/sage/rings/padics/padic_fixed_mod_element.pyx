@@ -1,10 +1,13 @@
 """
+p-Adic Fixed-Mod Element.
+
 Elements of p-Adic Rings with Fixed Modulus
 
-AUTHOR:
-    -- David Roe
-    -- Genya Zaytman: documentation
-    -- David Harvey: doctests
+AUTHORS::
+
+    - David Roe
+    - Genya Zaytman: documentation
+    - David Harvey: doctests
 """
 
 #*****************************************************************************
@@ -152,6 +155,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
+                if x.variable() != self.prime_pow.prime:
+                    raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."
                 x = x.lift()
             if x.type() == 't_INT':
                 x = Integer(x)
@@ -185,22 +190,44 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             tmp = <Integer> Integer(x)
             self._set_from_mpz(tmp.value)
         else:
-            self._set_from_Rational(Rational(x), absprec, relprec)
+            self._set_from_mpq((<Rational>Rational(x)).value)
 
     def __dealloc__(self):
+        """
+        Deallocation.
+
+        TESTS::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17)
+            sage: del(a)
+        """
         mpz_clear(self.value)
 
     def __reduce__(self):
         """
-        sage: a = ZpFM(5)(-3)
-        sage: type(a)
-        <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
-        sage: loads(dumps(a)) == a
-        True
+        Pickling.
+
+        EXAMPLES::
+
+            sage: a = ZpFM(5)(-3)
+            sage: type(a)
+            <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
+            sage: loads(dumps(a)) == a
+            True
         """
         return make_pAdicFixedModElement, (self.parent(), self.lift())
 
     cdef int _set_from_mpz(pAdicFixedModElement self, mpz_t value) except -1:
+        """
+        Sets self from an mpz_t.
+
+        TESTS::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17,5); a #indirect doctest
+            2 + 3*5 + O(5^20)
+        """
         if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
             _sig_on
             mpz_mod(self.value, value, self.prime_pow.pow_mpz_t_top()[0])
@@ -210,6 +237,15 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return 0
 
     cdef int _set_from_mpq(pAdicFixedModElement self, mpq_t x) except -1:
+        """
+        Sets self from an mpq_t.
+
+        TESTS::
+
+            sage: R = ZpFM(5,5)
+            sage: a = R(25/9); a #indirect doctest
+            4*5^2 + 2*5^3 + O(5^5)
+        """
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
             raise ValueError, "p divides denominator"
         _sig_on
@@ -220,14 +256,36 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return 0
 
     cdef int _set_to_mpz(pAdicFixedModElement self, mpz_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        TESTS::
+
+            sage: R = ZpCA(5); S.<a> = ZqFM(25)
+            sage: S(R(17))
+            2 + 3*5 + O(5^20)
+        """
         mpz_set(dest, self.value)
         return 0
 
     cdef int _set_to_mpq(pAdicFixedModElement self, mpq_t dest) except -1:
+        """
+        Sets dest to a lift of self.
+
+        Not currently used internally.
+        """
         mpq_set_z(dest, self.value)
         return 0
 
     cdef pAdicFixedModElement _new_c(self):
+        """
+        Creates a new element with the same basic info.
+
+        TESTS::
+
+            sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
+            2 + 3*5 + 5^2 + O(5^20)
+        """
         cdef pAdicFixedModElement x
         x = PY_NEW(pAdicFixedModElement)
         x._parent = self._parent
@@ -236,17 +294,41 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return x
 
     cpdef bint _is_inexact_zero(self) except -1:
+        """
+        Returns True if self is indistinguishable from zero.
+
+        EXAMPLES:
+            sage: R = ZpFM(7, 5)
+            sage: R(14)._is_inexact_zero()
+            False
+            sage: R(0)._is_inexact_zero()
+            True
+        """
         return mpz_sgn(self.value) == 0
 
     def __richcmp__(left, right, op):
+        """
+        Comparison.
+
+        TESTS::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+        """
         return (<Element>left)._richcmp(right, op)
 
     def __invert__(self):
         r"""
-        Returns multiplicative inverse of this element. Its valuation
-        must be zero.
+        Returns multiplicative inverse of this element. The valuation
+        of self must be zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: ~R(2)
             4 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
@@ -262,6 +344,24 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return self._invert_c_impl()
 
     cpdef RingElement _invert_c_impl(self):
+        """
+        Returns multiplicative inverse of this element. The valuation
+        of self must be zero.
+
+        EXAMPLES::
+
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: ~R(2) # indirect doctest
+            4 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
+            sage: ~R(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+            sage: ~R(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+        """
         cdef pAdicFixedModElement ans
         if mpz_divisible_p(self.value, self.prime_pow.prime.value) != 0:
             raise ValueError, "cannot invert non-unit"
@@ -273,6 +373,16 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return ans
 
     cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift):
+        """
+        Multiplies self by p^shift.
+
+        If shift < -self.ordp(), digits will be truncated.  See __rshift__ for details.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5); a = R(17); a << 2 #indirect doctest
+            2*5^2 + 3*5^3 + O(5^20)
+        """
         cdef pAdicFixedModElement ans
         cdef unsigned long prec_cap
         if shift < 0:
@@ -294,6 +404,35 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return self
 
     def __lshift__(pAdicFixedModElement self, shift):
+        """
+        Multiplies self by p^shift.
+
+        If shift < -self.ordp(), digits will be truncated.  See __rshift__ for details.
+
+        EXAMPLES::
+
+            We create a fixed modulus ring:
+            sage: R = ZpFM(5, 20); a = R(1000); a
+            3*5^3 + 5^4 + O(5^20)
+
+            Shifting to the right is the same as dividing by a power of
+            the uniformizer $p$ of the $p$-adic ring.
+            sage: a >> 1
+            3*5^2 + 5^3 + O(5^20)
+
+            Shifting to the left is the same as multiplying by a power of $p$:
+            sage: a << 2
+            3*5^5 + 5^6 + O(5^20)
+            sage: a*5^2
+            3*5^5 + 5^6 + O(5^20)
+
+            Shifting by a negative integer to the left is the same as right shifting
+            by the absolute value:
+            sage: a << -3
+            3 + 5 + O(5^20)
+            sage: a >> 3
+            3 + 5 + O(5^20)
+        """
         cdef pAdicFixedModElement ans
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
@@ -304,6 +443,16 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return self._lshift_c(mpz_get_si((<Integer>shift).value))
 
     cdef pAdicFixedModElement _rshift_c(pAdicFixedModElement self, long shift):
+        """
+        Divides by p^shift and truncates.
+
+        Note that this operation loses precision if shift > 0.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5); a = R(77); a >> 1 #indirect doctest
+            3*5 + O(5^20)
+        """
         cdef pAdicFixedModElement ans
         cdef unsigned long prec_cap
         if shift < 0:
@@ -321,6 +470,25 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             return self
 
     def __rshift__(pAdicFixedModElement self, shift):
+        """
+        Divides by p^shift, and truncates.
+
+        Note that this operation will insert arbitrary digits (in practice, currently all zero) in the least significant digits.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(997, 7); a = R(123456878908); a
+            964*997 + 572*997^2 + 124*997^3 + O(997^7)
+
+            Shifting to the right divides by a power of p, but dropping terms with
+            negative valuation:
+            sage: a >> 3
+            124 + O(997^7)
+
+            A negative shift multiplies by that power of p.
+            sage: a >> -3
+            964*997^4 + 572*997^5 + 124*997^6 + O(997^7)
+        """
         cdef pAdicFixedModElement ans
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
@@ -334,9 +502,10 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Returns negative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
-            sage: -R(7)
+            sage: -R(7) #indirect doctest
             6*7 + 6*7^2 + 6*7^3 + O(7^4)
         """
         if mpz_sgn(self.value) == 0:
@@ -347,6 +516,20 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return ans
 
     def __pow__(pAdicFixedModElement self, right, m): # NOTE: m ignored, always use self.prime_pow.pow_mpz_t_top()[0]
+        """
+        Exponentiation.
+
+        EXAMPLES:
+            sage: R = ZpFM(11, 5)
+            sage: R(1/2)^5
+            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4 + O(11^5)
+            sage: R(1/32)
+            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4 + O(11^5)
+            sage: R(1/2)^5 == R(1/32)
+            True
+            sage: R(3)^1000 #indirect doctest
+            1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+        """
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right) #Need to make sure that this works for p-adic exponents
         if not right and not self:
@@ -362,13 +545,14 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Returns sum of self and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: x = R(1721); x
             6 + 5*7^3 + O(7^4)
             sage: y = R(1373); y
             1 + 4*7^3 + O(7^4)
-            sage: x + y
+            sage: x + y #indirect doctest
             7 + 2*7^3 + O(7^4)
         """
         cdef pAdicFixedModElement ans
@@ -382,9 +566,10 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Returns product of self and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
-            sage: R(3) * R(2)
+            sage: R(3) * R(2) #indirect doctest
             6 + O(7^4)
             sage: R(1/2) * R(2)
             1 + O(7^4)
@@ -405,7 +590,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             6 + 5*7^3 + O(7^4)
             sage: y = R(1373); y
             1 + 4*7^3 + O(7^4)
-            sage: x - y
+            sage: x - y #indirect doctest
             5 + 7^3 + O(7^4)
         """
         cdef pAdicFixedModElement ans
@@ -422,7 +607,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         EXAMPLES:
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
-            sage: R(3) / R(2)
+            sage: R(3) / R(2) #indirect doctest
             5 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
             sage: R(5) / R(0)
             Traceback (most recent call last):
@@ -448,16 +633,19 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     def add_bigoh(self, absprec):
         """
-        Returns a new element with precision decreased to absprec.
+        Returns a new element truncated modulo p^absprec.
 
-        INPUT:
-            self -- a p-adic element
-            absprec -- an integer
-        OUTPUT:
-            element -- self with precision set to the minimum of
-                       self's precision and absprec
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+            - absprec -- an integer
+
+        OUTPUT::
+
+            - element -- a new element truncated modulo p^absprec.
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)
             1 + O(7^4)
         """
@@ -471,27 +659,44 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return ans
 
     def copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES::
+
+            sage: a = ZpFM(5,6)(17); b = a.copy()
+            sage: a == b
+            True
+            sage: a is b
+            False
+        """
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         mpz_set(ans.value, self.value)
         return ans
 
-    def exp_artin_hasse(self):
-        raise NotImplementedError
-
-    def gamma(self):
-        raise NotImplementedError
-
     def is_zero(self, absprec = None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            absprec -- an integer
-        OUTPUT:
+        INPUT::
+
+            - self -- a p-adic element
+            - absprec -- an integer
+
+        OUTPUT::
+
             boolean -- whether self is zero
 
+        EXAMPLES::
+
+            sage: R = ZpFM(17, 6)
+            sage: R(0).is_zero()
+            True
+            sage: R(17^6).is_zero()
+            True
+            sage: R(17^2).is_zero(absprec=2)
+            True
         """
         if absprec is None:
             return mpz_sgn(self.value) == 0
@@ -515,13 +720,29 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{absprec}}$.
 
-        INPUT:
-            self -- a p-adic element
-            right -- a p-addic element with the same parent
-            absprec -- a positive integer
-        OUTPUT:
+        If absprec is None, returns if self == 0.
+
+        INPUT::
+
+            - self -- a p-adic element
+            - right -- a p-addic element with the same parent
+            - absprec -- a positive integer (or None)
+
+        OUTPUT::
+
             boolean -- whether self is equal to right
 
+        EXAMPLES::
+
+            sage: R = ZpFM(2, 6)
+            sage: R(13).is_equal_to(R(13))
+            True
+            sage: R(13).is_equal_to(R(13+2^10))
+            True
+            sage: R(13).is_equal_to(R(17), 2)
+            True
+            sage: R(13).is_equal_to(R(17), 5)
+            False
         """
         if absprec is None:
             return mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0
@@ -551,11 +772,16 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Return an integer congruent to self modulo self's precision.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- a integer congruent to self mod $p^{\mbox{prec}}$
-        EXAMPLES:
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- a integer congruent to self mod $p^{\mbox{prec}}$
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.lift()
             8
             sage: type(a.lift())
@@ -564,33 +790,74 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return self.lift_c()
 
     cdef Integer lift_c(pAdicFixedModElement self):
+        """
+        Returns an integer congruent to self modulo self's precision.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(7,4); a = R(8); a.lift() # indirect doctest
+            8
+        """
         cdef Integer ans
         ans = PY_NEW(Integer)
         mpz_set(ans.value, self.value)
         return ans
 
     def lift_to_precision(self, absprec):
+        """
+        Returns self.
+
+        For compatibility with other p-adic types.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5); a = R(5); a.lift_to_precision(7)
+            5 + O(5^20)
+        """
         return self
 
     def list(self, lift_mode = 'simple'):
         r"""
-        Returns a list of coefficients of p starting with $p^0$
-        INPUT:
-            self -- a p-adic element
-            lift_mode -- 'simple', 'smallest' or 'teichmuller' (default 'simple')
-        OUTPUT:
-            list -- the list of coeficients of self
+        Returns a list of coefficients of p starting with $p^0$.
 
-        NOTES:
-        Returns a list [a_0, a_1, \ldots, a_n] so that each a_i is an integer
-        and \sum_{i = 0}^n a_i * p^i = self, modulo the precision cap.
-        If lift_mode = 'simple', 0 <= a_i < p.
-        If lift_mode = 'smallest', -p/2 < a_i <= p/2.
-        If lift_mode = 'teichmuller', a_i^p = a_i, modulo the precision cap.
+        INPUT::
 
-        EXAMPLES:
-        sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.list()
-        [0, 2, 1]
+            - self -- a p-adic element
+            - lift_mode -- 'simple', 'smallest' or 'teichmuller' (default 'simple')
+
+        OUTPUT::
+
+            - list -- the list of coeficients of self
+
+        NOTES::
+
+            Returns a list [a_0, a_1, \ldots, a_n] so that each a_i is an integer
+            and \sum_{i = 0}^n a_i * p^i = self, modulo the precision cap.
+            If lift_mode = 'simple', 0 <= a_i < p.
+            If lift_mode = 'smallest', -p/2 < a_i <= p/2.
+            If lift_mode = 'teichmuller', a_i^p = a_i, modulo the precision cap.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: L = a.list(); L
+            [3, 4, 4, 0, 4]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('smallest'); L
+            [3, -3, -2, 1, -3, 1]
+            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
+            True
+            sage: L = a.list('teichmuller'); L
+            [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
+            O(7^6),
+            5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6),
+            1 + O(7^6),
+            3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
+            5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)]
+            sage: sum([L[i] * 7^i for i in range(len(L))])
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
         """
         if lift_mode == 'teichmuller':
             return self.teichmuller_list()
@@ -602,6 +869,20 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             raise ValueError
 
     cdef object teichmuller_list(pAdicFixedModElement self):
+        r"""
+        Returns a list [$a_0$, $a_1$,..., $a_n$] such that
+            - $a_i^p = a_i$
+            - self.unit_part() = $\sum_{i = 0}^n a_i p^i$
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5,5); R(14).list('teichmuller') #indirect doctest
+            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
+            2 + 5 + 2*5^2 + O(5^3),
+            1 + O(5^2),
+            4 + O(5)]
+        """
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
         cdef unsigned long curpower, preccap
         cdef mpz_t tmp, tmp2
@@ -626,6 +907,21 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return ans
 
     def _teichmuller_set(self):
+        """
+        Sets self to be the Teichmuller representative with the same residue as self.
+
+        WARNING: This function modifies self, which is not safe.  Elements are supposed to be immutable.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(17,5); a = R(11)
+            sage: a
+            11 + O(17^5)
+            sage: a._teichmuller_set(); a
+            11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
+            sage: a.list('teichmuller')
+            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
+        """
         cdef mpz_t tmp
         mpz_init_set(tmp, self.prime_pow.pow_mpz_t_top()[0])
         self.teichmuller_set_c(self.value, tmp)
@@ -636,16 +932,37 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         r"""
         Returns the minimum possible multiplicative order of self.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the multiplicative order of self.  This is the minimum multiplicative order of all elements of Z_p lifting self to infinite precision.
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the multiplicative order of self.  This is
+              the minimum multiplicative order of all elements of Z_p
+              lifting self to infinite precision.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(7, 6)
+            sage: R(1/3)
+            5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + O(7^6)
+            sage: R(1/3).multiplicative_order()
+            +Infinity
+            sage: R(7).multiplicative_order()
+            +Infinity
+            sage: R(1).multiplicative_order()
+            1
+            sage: R(-1).multiplicative_order()
+            2
+            sage: R.teichmuller(3).multiplicative_order()
+            6
         """
         cdef mpz_t tmp
         cdef Integer ans
         if mpz_divisible_p(self.value, self.prime_pow.prime.value):
             return infinity
-        if mpz_cmp_ui(self.value, 1):
+        if mpz_cmp_ui(self.value, 1) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 1)
             return ans
@@ -666,20 +983,30 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     def padded_list(self, n, list_mode = 'simple'):
         """
-        Returns a list of coefficients of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed)
-        INPUT:
+        Returns a list of coefficients of p starting with $p^0$ up to
+        $p^n$ exclusive (padded with zeros if needed)
 
-            self -- a p-adic element
-            n - an integer
-        OUTPUT:
-            list -- the list of coeficients of self
-        EXAMPLES:
+        INPUT::
+
+            - self -- a p-adic element
+            - n -- an integer
+
+        OUTPUT::
+
+            - list -- the list of coeficients of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.padded_list(5)
-                [0, 2, 1, 0, 0]
+            [0, 2, 1, 0, 0]
 
-        NOTE:
-            this differs from the padded_list method of padic_field_element
-            the slice operators throw an error if asked for a slice above the precision, while this function works
+        NOTE::
+
+            For elements with positive valuation, this function will
+            return a list with leading 0s, unlike for field elements.
+
+            The slice operators throw an error if asked for a slice
+            above the precision, while this function works
         """
         if list_mode == 'simple' or list_mode == 'smallest':
             zero = Integer(0)
@@ -690,12 +1017,18 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     def precision_absolute(self):
         """
-        Returns the absolute precision of self
-         INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the absolute precision of self
-        EXAMPLES:
+        Returns the absolute precision of self.
+
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the absolute precision of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_absolute()
             4
         """
@@ -704,11 +1037,17 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     def precision_relative(self):
         r"""
         Returns the relative precision of self
-         INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the relative precision of self
-        EXAMPLES:
+
+        INPUT::
+
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the relative precision of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_relative()
             3
             sage: a = R(0); a.precision_relative()
@@ -721,18 +1060,21 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_set_si(ans.value, diff)
         return ans
 
-    def residue(self, absprec):
+    def residue(self, absprec=1):
         r"""
         Reduces this mod $p^prec$
 
-        INPUT:
-            self -- a p-adic element
-            prec - an integer
+        INPUT::
 
-        OUTPUT:
-            element of Z/(p^prec Z) -- self reduced mod p^prec
+            - self -- a p-adic element
+            - absprec - an integer (default 1)
 
-        EXAMPLES:
+        OUTPUT::
+
+            - element of Z/(p^prec Z) -- self reduced mod p^prec
+
+        EXAMPLES::
+
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
             1
         """
@@ -818,20 +1160,23 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     #        # an extension field
     #        raise ValueError, "element is not a square"
 
-    def unit_part(self):
+    cpdef pAdicFixedModElement unit_part(pAdicFixedModElement self):
         r"""
         Returns the unit part of self.
 
         If the valuation of self is positive, then the high digits of the
         result will be zero.
 
-        INPUT:
-            self -- a p-adic element
+        INPUT::
 
-        OUTPUT:
-            p-adic element -- the unit part of self
+            - self -- a p-adic element
 
-        EXAMPLES:
+        OUTPUT::
+
+            - p-adic element -- the unit part of self
+
+        EXAMPLES::
+
             sage: R = Zp(17, 4, 'fixed-mod')
             sage: R(5).unit_part()
             5 + O(17^4)
@@ -841,10 +1186,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             O(17^4)
             sage: type(R(5).unit_part())
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
+            sage: R = ZpFM(5, 5); a = R(75); a.unit_part()
+            3 + O(5^5)
         """
-        return self.unit_part_c()
-
-    cdef pAdicFixedModElement unit_part_c(pAdicFixedModElement self):
         cdef pAdicFixedModElement ans
         if mpz_sgn(self.value) == 0:
             return self
@@ -861,12 +1205,16 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         If self is zero, the valuation returned is the precision of the ring.
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            integer -- the valuation of self.
+        INPUT::
 
-        EXAMPLES:
+            - self -- a p-adic element
+
+        OUTPUT::
+
+            - integer -- the valuation of self.
+
+        EXAMPLES::
+
             sage: R = Zp(17, 4,'fixed-mod')
             sage: a = R(2*17^2)
             sage: a.valuation()
@@ -893,6 +1241,14 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return ans
 
     cdef long valuation_c(self):
+        """
+        Returns the valuation of self.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5, 5); R(0).valuation() #indirect doctest
+            5
+        """
         if mpz_sgn(self.value) == 0:
             return self.prime_pow.prec_cap
         cdef mpz_t tmp
@@ -902,10 +1258,22 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_clear(tmp)
         return ans
 
-    def val_unit(self):
-        return self.val_unit_c()
+    cpdef val_unit(self):
+        """
+        Returns a 2-tuple, the first element set to the valuation of
+        self, and the second to the unit part of self.
 
-    cdef val_unit_c(self):
+        If self == 0, then the unit part is O(p^self.parent().precision_cap()).
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5,5)
+            sage: a = R(75); b = a - a
+            sage: a.val_unit()
+            (2, 3 + O(5^5))
+            sage: b.val_unit()
+            (5, O(5^5))
+        """
         cdef Integer val
         cdef pAdicFixedModElement unit
         if mpz_sgn(self.value) == 0:
@@ -916,8 +1284,27 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return (val, unit)
 
     def __hash__(self):
+        """
+        Hashing.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(11, 5)
+            sage: hash(R(3)) == hash(3)
+            True
+        """
         return hash(self.lift_c())
 
 def make_pAdicFixedModElement(parent, value):
+    """
+    Unpickles a capped relative element.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_fixed_mod_element import make_pAdicFixedModElement
+        sage: R = ZpFM(5)
+        sage: a = make_pAdicFixedModElement(R, 17*25); a
+        2*5^2 + 3*5^3 + O(5^20)
+    """
     return parent(value)
 

@@ -17,6 +17,4 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef pAdicCappedAbsoluteElement _rshift_c(pAdicCappedAbsoluteElement self, long shift)
     cdef object teichmuller_list(pAdicCappedAbsoluteElement self)
     cpdef pAdicCappedAbsoluteElement unit_part(self)
-    cdef long valuation_c(self)
-    cpdef val_unit(self)
     cpdef Integer lift(self)

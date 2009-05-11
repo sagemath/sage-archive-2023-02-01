@@ -813,11 +813,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cdef long valuation_c(self):
         """
-        Returns the valuation of self.
+        This function is overridden in subclasses to provide an
+        actual implementation of valuation.
 
         For exact zeros, maxordp is returned, rather than infinity.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        For example, the valuation function on pAdicCappedRelativeElements
+        uses an overridden version of this function.::
 
             sage: Zp(5)(5).valuation() #indirect doctest
             1

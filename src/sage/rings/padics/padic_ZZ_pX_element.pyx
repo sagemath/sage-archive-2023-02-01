@@ -793,7 +793,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             return (big, big, two)
         py_tmp = PY_NEW(ntl_ZZ)
         py_tmp.x = pp.pow_ZZ_tmp(1)[0]
-        return (a.valuation(py_tmp), big, two)
+        return (Integer(a.valuation(py_tmp)), big, two)
     #print "pre int/long check"
     if isinstance(a, (int, long)):
         #print a, type(a)

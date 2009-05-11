@@ -1154,19 +1154,20 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(17,5)
             sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: f = x^5 + 34*x^3 - 17*x^2 +289*x - 17
             sage: W.<w> = R.ext(f)
-            sage: y = W.teichmuller(3); y
-            3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15 + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22 + 3*w^23 + 4*w^24 + O(w^25)
-            sage: y^5 == y
+            sage: y = W.teichmuller(3,10); y
+            3 + 13*w^5 + 4*w^7 + 9*w^8 + 13*w^9 + O(w^10)
+
+            sage: y^17 == y
             True
-            sage: g = x^3 + 3*x + 3
+            sage: g = x^3 + 9*x^2 + 1
             sage: A.<a> = R.ext(g)
-            sage: b = A.teichmuller(1 + 2*a - a^2); b
-            (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3 + (a^2 + a + 1)*5^4 + O(5^5)
-            sage: b^125 == b
+            sage: b = A.teichmuller(1 + 2*a - a^2, 3); b
+            (16*a^2 + 2*a + 1) + (4*a^2 + 5*a + 3)*17 + (10*a^2 + 15*a + 11)*17^2 + O(17^3)
+            sage: b^(17^3) == b
             True
         """
         cdef mpz_t u, xnew, value

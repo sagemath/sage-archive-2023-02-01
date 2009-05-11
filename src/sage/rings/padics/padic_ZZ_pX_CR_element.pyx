@@ -240,6 +240,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(x^625 + 915*x^17 - 95)
             sage: W(3)
             3 + O(w^3125)
+            sage: W(w, 14)
+            w + O(w^14)
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -364,7 +366,31 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         elif PY_TYPE_CHECK(x, pAdicExtElement):
             if x.parent() is parent:
                 _x = <pAdicZZpXCRElement>x
-                self._set(&_x.unit, _x.ordp, _x.relprec)
+                if _x.relprec == 0:
+                    if absprec is infinity or aprec > _x.ordp:
+                        self._set_inexact_zero(_x.ordp) # this works for exact zeros too.
+                    else:
+                        self._set_inexact_zero(aprec)
+                elif _x.relprec < 0:
+                    if -_x.relprec < rprec:
+                        rprec = _x.relprec
+                    else:
+                        rprec = -rprec
+                    if absprec is infinity or aprec > _x.ordp - rprec:
+                        self._set(&_x.unit, _x.ordp, rprec)
+                    elif aprec > _x.ordp:
+                        self._set(&_x.unit, _x.ordp, _x.ordp - aprec) #negating relprec to indicate non-normalized.
+                    else:
+                        self._set_inexact_zero(aprec)
+                else:
+                    if _x.relprec < rprec:
+                        rprec = _x.relprec
+                    if absprec is infinity or aprec > _x.ordp + rprec:
+                        self._set(&_x.unit, _x.ordp, rprec)
+                    elif aprec > _x.ordp:
+                        self._set(&_x.unit, _x.ordp, aprec - _x.ordp)
+                    else:
+                        self._set_inexact_zero(aprec)
             elif x.parent().fraction_field() is parent:
                 if PY_TYPE_CHECK(x, pAdicZZpXCRElement):
                     _x = <pAdicZZpXCRElement>x
@@ -448,6 +474,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: z.precision_absolute()
             6
             sage: z.precision_relative()
+            0
         """
         self.ordp = absprec
         self.relprec = 0
@@ -728,8 +755,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
             '3'
-            sage: W(77/3, relprec=0)
-            O(w^3)
+            sage: repr(W(77/3, relprec=0))[3:]
+            ''
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
             '11111.01A'
             sage: repr(c * 11)[3:]
@@ -3234,19 +3261,20 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(7,5)
             sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: f = x^5 + 77*x^3 - 98*x^2 - 7
             sage: W.<w> = R.ext(f)
-            sage: y = W.teichmuller(3); y #indirect doctest
-            3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15 + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22 + 3*w^23 + 4*w^24 + O(w^25)
-            sage: y^5 == y
+            sage: y = W.teichmuller(3, 15); y #indirect doctest
+            3 + 4*w^5 + 2*w^8 + 6*w^10 + w^11 + 6*w^12 + 5*w^13 + 4*w^14 + O(w^15)
+
+            sage: y^7 == y
             True
-            sage: g = x^3 + 3*x + 3
+            sage: g = x^3 + 3*x^2 + 4
             sage: A.<a> = R.ext(g)
             sage: b = A.teichmuller(1 + 2*a - a^2); b
-            (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3 + (a^2 + a + 1)*5^4 + O(5^5)
-            sage: b^125 == b
+            (6*a^2 + 2*a + 1) + (5*a + 3)*7 + (5*a + 5)*7^2 + (4*a^2 + 4*a + 2)*7^3 + (2*a + 1)*7^4 + O(7^5)
+            sage: b^343 == b
             True
         """
         self._normalize()

@@ -211,6 +211,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             3 + O(w^15)
             sage: W(pari('3 + O(5^3)'))
             3 + O(w^15)
+            sage: W(w, 14)
+            w + O(w^14)
         """
         pAdicZZpXElement.__init__(self, parent)
         cdef long aprec, rprec, ctx_prec
@@ -342,7 +344,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         elif PY_TYPE_CHECK(x, pAdicExtElement):
             if x.parent() is parent:
                 _x = <pAdicZZpXCAElement>x
-                self._set(&_x.value, _x.absprec)
+                if _x.absprec < aprec:
+                    aprec = _x.absprec
+                if rprec < self.prime_pow.ram_prec_cap:
+                    self._set_from_ZZ_pX_both(&_x.value, None, aprec, rprec)
+                else:
+                    self._set(&_x.value, aprec)
             elif x.parent() is parent.fraction_field():
                 _x = <pAdicZZpXCRElement>x
                 if _x.relprec < 0:
@@ -1914,19 +1921,20 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = ZpCA(5,5)
+            sage: R = ZpCA(11,5)
             sage: S.<x> = ZZ[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: f = x^5 + 33*x^3 - 121*x^2 - 77
             sage: W.<w> = R.ext(f)
-            sage: y = W.teichmuller(3); y #indirect doctest
-            3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15 + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22 + 3*w^23 + 4*w^24 + O(w^25)
-            sage: y^5 == y
+            sage: y = W.teichmuller(3, 19); y #indirect doctest
+            3 + 9*w^10 + 3*w^13 + 3*w^15 + 9*w^16 + 3*w^17 + w^18 + O(w^19)
+
+            sage: y^11 == y
             True
-            sage: g = x^3 + 3*x + 3
+            sage: g = x^3 + 9*x^2 + 7
             sage: A.<a> = R.ext(g)
             sage: b = A.teichmuller(1 + 2*a - a^2); b
-            (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3 + (a^2 + a + 1)*5^4 + O(5^5)
-            sage: b^125 == b
+            (10*a^2 + 2*a + 1) + (4*a^2 + 7)*11 + (5*a^2 + a + 3)*11^2 + (a^2 + 9*a + 6)*11^3 + (7*a^2 + 2*a + 3)*11^4 + O(11^5)
+            sage: b^1331 == b
             True
         """
         if self.absprec == 0:

@@ -176,25 +176,25 @@ class LocalGeneric(CommutativeRing):
         """
         return self._prec
 
-     def is_atomic_repr(self):
-         r"""
-         Return False, since we want `p`-adics to be printed with
-         parentheses around them when they are coefficients, e.g., in a
-         polynomial.
+    def is_atomic_repr(self):
+        r"""
+        Return False, since we want `p`-adics to be printed with
+        parentheses around them when they are coefficients, e.g., in a
+        polynomial.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a `p`-adic ring
+        - ``self`` -- a `p`-adic ring
 
-         OUTPUT:
+        OUTPUT:
 
-         - boolean -- whether ``self``'s representation is atomic, i.e., ``False``
+        - boolean -- whether ``self``'s representation is atomic, i.e., ``False``
 
 	EXAMPLES::
 
             sage: R = Zp(5, 5, 'fixed-mod'); R.is_atomic_repr()
             False
-        """
+            """
         return False
 
     def is_exact(self):
@@ -215,7 +215,7 @@ class LocalGeneric(CommutativeRing):
         """
         return False
 
-     def residue_characteristic(self):
+    def residue_characteristic(self):
  	r"""
 	Returns the characteristic of ``self``'s residue field.
 
@@ -232,94 +232,94 @@ class LocalGeneric(CommutativeRing):
  	    sage: R = Zp(3, 5, 'capped-rel'); R.residue_characteristic()
  	    3
  	"""
-         return self.residue_class_field().characteristic()
+        return self.residue_class_field().characteristic()
 
-     def defining_polynomial(self, var = 'x'):
-         r"""
-         Returns the defining polynomial of this local ring, i.e. just ``x``.
+    def defining_polynomial(self, var = 'x'):
+        r"""
+        Returns the defining polynomial of this local ring, i.e. just ``x``.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a local ring
-         - ``var`` -- string (default: ``'x'``) the name of the variable
+        - ``self`` -- a local ring
+        - ``var`` -- string (default: ``'x'``) the name of the variable
 
-         OUTPUT::
+        OUTPUT::
 
-         - polynomial -- the defining polynomial of this ring as an extension over its ground ring
+        - polynomial -- the defining polynomial of this ring as an extension over its ground ring
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: R = Zp(3, 3, 'fixed-mod'); R.defining_polynomial('foo')
-             (1 + O(3^3))*foo
-         """
-         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-         return PolynomialRing(self, var).gen()
+            sage: R = Zp(3, 3, 'fixed-mod'); R.defining_polynomial('foo')
+            (1 + O(3^3))*foo
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(self, var).gen()
 
-     def ground_ring(self):
-         r"""
-         Returns ``self``.
+    def ground_ring(self):
+        r"""
+        Returns ``self``.
 
-         Will be overridden by extensions.
+        Will be overridden by extensions.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a local ring
+        - ``self`` -- a local ring
 
-         OUTPUT::
+        OUTPUT::
 
-         - the ground ring of ``self``, i.e., itself
+        - the ground ring of ``self``, i.e., itself
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: R = Zp(3, 5, 'fixed-mod')
-             sage: S = Zp(3, 4, 'fixed-mod')
-             sage: R.ground_ring() is R
-             True
-             sage: S.ground_ring() is R
-             False
-         """
-         return self
+            sage: R = Zp(3, 5, 'fixed-mod')
+            sage: S = Zp(3, 4, 'fixed-mod')
+            sage: R.ground_ring() is R
+            True
+            sage: S.ground_ring() is R
+            False
+        """
+        return self
 
-     def ground_ring_of_tower(self):
-         r"""
-         Returns ``self``.
+    def ground_ring_of_tower(self):
+        r"""
+        Returns ``self``.
 
-         Will be overridden by extensions.
+        Will be overridden by extensions.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a `p`-adic ring
+        - ``self`` -- a `p`-adic ring
 
-         OUTPUT:
+        OUTPUT:
 
-         - the ground ring of the tower for ``self``, i.e., itself
+        - the ground ring of the tower for ``self``, i.e., itself
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: R = Zp(5)
-             sage: R.ground_ring_of_tower()
-             5-adic Ring with capped relative precision 20
-         """
-         return self
+            sage: R = Zp(5)
+            sage: R.ground_ring_of_tower()
+            5-adic Ring with capped relative precision 20
+        """
+        return self
 
-     def degree(self):
-         r"""
-         Returns the degree of ``self`` over the ground ring, i.e. 1.
+    def degree(self):
+        r"""
+        Returns the degree of ``self`` over the ground ring, i.e. 1.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a local ring
+        - ``self`` -- a local ring
 
-         OUTPUT:
+        OUTPUT:
 
-         - integer -- the degree of this ring, i.e., 1
+        - integer -- the degree of this ring, i.e., 1
 
-         EXAMPLES::
+        EXAMPLES::
 
- 	     sage: R = Zp(3, 10, 'capped-rel'); R.degree()
-             1
-         """
-         return Integer(1)
+            sage: R = Zp(3, 10, 'capped-rel'); R.degree()
+            1
+        """
+        return Integer(1)
 
     def ramification_index(self, K = None):
         r"""
@@ -423,25 +423,25 @@ class LocalGeneric(CommutativeRing):
         """
         return self.inertia_degree(K)
 
-     def inertia_subring(self):
-         r"""
-         Returns the inertia subring, i.e. ``self``.
+    def inertia_subring(self):
+        r"""
+        Returns the inertia subring, i.e. ``self``.
 
-         INPUT:
+        INPUT:
 
-         - ``self`` -- a local ring
+        - ``self`` -- a local ring
 
-         OUTPUT:
+        OUTPUT:
 
-         - the inertia subring of self, i.e., itself
+        - the inertia subring of self, i.e., itself
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: R = Zp(5)
-             sage: R.inertia_subring()
-             5-adic Ring with capped relative precision 20
-         """
-         return self
+            sage: R = Zp(5)
+            sage: R.inertia_subring()
+            5-adic Ring with capped relative precision 20
+        """
+        return self
 
     def maximal_unramified_subextension(self):
         r"""
@@ -498,24 +498,24 @@ class LocalGeneric(CommutativeRing):
         """
         return self.uniformizer_pow(n)
 
-     def is_finite(self):
-         r"""
-         Returns whether this ring is finite, i.e. ``False``.
+    def is_finite(self):
+        r"""
+        Returns whether this ring is finite, i.e. ``False``.
 
-         INPUT::
+        INPUT::
 
-         - ``self`` -- a `p`-adic ring
+        - ``self`` -- a `p`-adic ring
 
-         OUTPUT::
+        OUTPUT::
 
-         - boolean -- whether self is finite, i.e., ``False``
+        - boolean -- whether self is finite, i.e., ``False``
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: R = Zp(3, 10,'fixed-mod'); R.is_finite()
-             False
-         """
-         return False
+            sage: R = Zp(3, 10,'fixed-mod'); R.is_finite()
+            False
+        """
+        return False
 
     def ext(self, *args, **kwds):
         """

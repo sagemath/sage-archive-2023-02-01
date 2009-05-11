@@ -812,7 +812,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: 1 / W(14) == ~W(14)
             True
             sage: 1 / w
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: cannot invert non-unit
         """

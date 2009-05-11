@@ -256,10 +256,10 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             sage: K = Zp(17); K #indirect doctest
             17-adic Ring with capped relative precision 20
             sage: latex(K)
-            \mathbf{Z}_{17}
+            \ZZ_{17}
         """
         if do_latex:
-            return "\\mathbf{Z}_{%s}" % self.prime()
+            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
 
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
@@ -292,10 +292,10 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             sage: K = ZpCA(17); K #indirect doctest
             17-adic Ring with capped absolute precision 20
             sage: latex(K)
-            \mathbf{Z}_{17}
+            \ZZ_{17}
         """
         if do_latex:
-            return "\\mathbf{Z}_{%s}" % self.prime()
+            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with capped absolute precision %s"%(self.prime(), self.precision_cap())
 
     def _coerce_map_from_(self, R):
@@ -398,10 +398,10 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: K = ZpFM(7); K
             7-adic Ring of fixed modulus 7^20
             sage: latex(K) #indirect doctest
-            \mathbf{Z}_{7}
+            \ZZ_{7}
         """
         if do_latex:
-            return "\\mathbf{Z}_{%s}" % self.prime()
+            return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
 
     def fraction_field(self, print_mode = None):
@@ -498,10 +498,10 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             sage: K = Qp(17); K #indirect doctest
             17-adic Field with capped relative precision 20
             sage: latex(K)
-            \mathbf{Q}_{17}
+            \QQ_{17}
         """
         if do_latex:
-            return "\\mathbf{Q}_{%s}" % self.prime()
+            return "\\QQ_{%s}" % self.prime()
         return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
 
 

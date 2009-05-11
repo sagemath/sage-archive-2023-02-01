@@ -271,23 +271,6 @@ cdef class pAdicExtElement(pAdicGenericElement):
         return ans
 
     cdef ZZ_p_c _const_term(self):
-        """
-        Returns the constant term of a polynomial representing self.
-
-        This function is mainly for troubleshooting, and the meaning
-        of the return value will depend on whether self is capped
-        relative or otherwise.
-
-        EXAMPLES::
-
-            sage: R = Zp(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: a = W(566)
-            sage: a._const_term_test()
-            566
-        """
         raise NotImplementedError
 
     def _ext_p_list(self, pos):

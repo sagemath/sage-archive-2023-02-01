@@ -41,11 +41,11 @@
 ;; Replace test output.
 ;; Replace all test ouput.
 ;; C-c C-j copies multiline tests.
-;; C-c C-j in the *Help* buffer.
 ;; Comparing tests?
 ;; C-u sage-test only tests, does not rebuild.
+;; (DONE) C-c C-j in the *Help* buffer.
 ;;
-;; Remove pdb history/different history based on prompt.
+;; (DONE) Remove pdb history/different history based on prompt.
 ;;
 ;; sage-rerun exits from pdb.
 ;; C-u sage-build hangs with exiting from pdb code.
@@ -169,9 +169,20 @@
       (goto-char (point-max))
       success)))
 
+(defun sage-last-prompt ()
+  "Return the text of the last prompt seen in this inferior buffer"
+  (buffer-substring-no-properties (overlay-start comint-last-prompt-overlay)
+				  (overlay-end comint-last-prompt-overlay)))
+
 (defun sage-input-filter (string)
-  "A `comint-input-filter' that keeps all input in the history."
-  t)
+  "A `comint-input-filter' that keeps some input in the history.
+
+We don't save if we're at a pdb or gdb prompt and the string is
+short; otherwise, we save."
+  (save-match-data
+    (or (not (string-match "[pPgG]db" (sage-last-prompt))) ;; regular prompt
+	(> (length string) 2) ;; or a long-ish entry to the debugger
+	nil)))
 
 ;;;_* IPython magic commands
 

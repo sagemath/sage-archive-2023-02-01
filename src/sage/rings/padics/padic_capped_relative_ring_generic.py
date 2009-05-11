@@ -1,5 +1,0 @@
-import padic_ring_generic
-import capped_relative_ring_generic
-
-class pAdicCappedRelativeRingGeneric(padic_ring_generic.pAdicRingGeneric, capped_relative_ring_generic.CappedRelativeRingGeneric):
-    pass

@@ -1,5 +1,0 @@
-import padic_field_generic
-import capped_relative_field_generic
-
-class pAdicCappedRelativeFieldGeneric(padic_field_generic.pAdicFieldGeneric, capped_relative_field_generic.CappedRelativeFieldGeneric):
-    pass

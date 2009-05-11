@@ -1059,9 +1059,6 @@ ext_modules = [
               libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
               language='c++'),
 
-    Extension('sage.rings.padics.rigid_functions',
-              sources = ['sage/rings/padics/rigid_functions.pyx']),
-
         ################################
         ##
         ## sage.rings.polynomial

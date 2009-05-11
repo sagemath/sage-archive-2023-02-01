@@ -34,9 +34,61 @@ import quotient_ring
 from sage.interfaces.singular import singular as singular_default
 
 class QuotientRingElement(ring_element.RingElement):
+    """
+    An element of a quotient ring `R/I`.
+
+    INPUT:
+
+    - ``parent`` - the ring `R/I`
+
+    - ``rep`` - a representative of the element in `R`; this is used
+      as the internal representation of the element
+
+    - ``reduce`` - bool (optional, default: True) - if True, then the
+      internal representation of the element is ``rep`` reduced modulo
+      the ideal `I`
+
+    EXAMPLES::
+
+        sage: R.<x> = PolynomialRing(ZZ)
+        sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
+        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
+        sage: v = S.gens(); v
+        (xbar,)
+
+    ::
+
+        sage: loads(v[0].dumps()) == v[0]
+        True
+
+    ::
+
+        sage: R.<x,y> = PolynomialRing(QQ, 2)
+        sage: S = R.quo(x^2 + y^2); S
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+        sage: S.gens()
+        (xbar, ybar)
+
+    We name each of the generators.
+
+    ::
+
+        sage: S.<a,b> = R.quotient(x^2 + y^2)
+        sage: a
+        a
+        sage: b
+        b
+        sage: a^2 + b^2 == 0
+        True
+        sage: b.lift()
+        y
+        sage: (a^3 + b^2).lift()
+        -x*y^2 + y^2
+    """
     def __init__(self, parent, rep, reduce=True):
         """
-        An element of a quotient ring `R/I`.
+        An element of a quotient ring `R/I`.  See
+        ``QuotientRingElement`` for full documentation.
 
         EXAMPLES::
 
@@ -45,35 +97,6 @@ class QuotientRingElement(ring_element.RingElement):
             Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
             sage: v = S.gens(); v
             (xbar,)
-
-        ::
-
-            sage: loads(v[0].dumps()) == v[0]
-            True
-
-        ::
-
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: S = R.quo(x^2 + y^2); S
-            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-            sage: S.gens()
-            (xbar, ybar)
-
-        We name each of the generators.
-
-        ::
-
-            sage: S.<a,b> = R.quotient(x^2 + y^2)
-            sage: a
-            a
-            sage: b
-            b
-            sage: a^2 + b^2 == 0
-            True
-            sage: b.lift()
-            y
-            sage: (a^3 + b^2).lift()
-            -x*y^2 + y^2
         """
         ring_element.RingElement.__init__(self, parent)
         self.__rep = rep
@@ -82,8 +105,11 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _reduce_(self):
         """
-        This has nothing to do with pickling.  This internal method
-        replaces the cached representative by one in reduced form.
+        Reduce the element modulo the defining ideal of the quotient
+        ring.  This internal method replaces the cached representative
+        by one in reduced form.
+
+        (Note that this has nothing to do with pickling.)
 
         TESTS::
 
@@ -98,17 +124,26 @@ class QuotientRingElement(ring_element.RingElement):
 
     def lift(self):
         """
+        If self is an element of `R/I`, then return self as an
+        element of `R`.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
             sage: a.lift()
             x
+            sage: (3/5*(a + a^2 + b^2)).lift()
+            3/5*x
         """
         return self.__rep
 
     def __nonzero__(self):
         """
+        Return True if quotient ring element is non-zero in the
+        quotient ring `R/I`, by determining whether the element
+        is in `I`.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -129,10 +164,18 @@ class QuotientRingElement(ring_element.RingElement):
 
     def is_unit(self):
         """
+        Return True if self is a unit in the quotient ring.
+
+        TODO: This is not fully implemented, as illustrated in the
+        example below.  So far, self is determined to be unit only if
+        its representation in the cover ring `R` is also a unit.
+
         EXAMPLES::
 
-            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(1 - x*y); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
+            sage: a*b
+            1
             sage: a.is_unit()
             Traceback (most recent call last):
             ...
@@ -146,6 +189,8 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _repr_(self):
         """
+        String representation.
+
         TESTS::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -164,6 +209,10 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _add_(self, right):
         """
+        Add quotient ring element ``self`` to another quotient ring
+        element, ``right``. If the quotient is `R/I`, the addition is
+        carried out in `R` and then reduced to `R/I`.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -180,6 +229,10 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _sub_(self, right):
         """
+        Subtract quotient ring element ``right`` from quotient ring
+        element ``self``. If the quotient is `R/I`, the subtraction is
+        carried out in `R` and then reduced to `R/I`.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -196,6 +249,10 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _mul_(self, right):
         """
+        Multiply quotient ring element ``self`` by another quotient ring
+        element, ``right``. If the quotient is `R/I`, the multiplication is
+        carried out in `R` and then reduced to `R/I`.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -214,6 +271,13 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _div_(self, right):
         """
+        Divide quotient ring element ``self`` by another quotient ring
+        element, ``right``. If the quotient is `R/I`, the division is
+        carried out in `R` and then reduced to `R/I`.
+
+        TODO: This is not implemented in general -- see the first 'test'
+        below for an illustration.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -223,7 +287,7 @@ class QuotientRingElement(ring_element.RingElement):
 
         TESTS::
 
-            sage: a._div_(b)
+            sage: (a*b)._div_(b)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -242,6 +306,10 @@ class QuotientRingElement(ring_element.RingElement):
 
     def __int__(self):
         """
+        Try to convert self (an element of `R/I`) to an integer by
+        converting its lift in `R` to an integer.  Return a TypeError
+        if no such conversion can be found.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)

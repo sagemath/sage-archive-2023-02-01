@@ -63,9 +63,9 @@ Enjoy Sage!
    groups
    rings
    rings_standard
-   rings_padic
    rings_numerical
    number_fields
+   padics
    polynomial_rings
    power_series
    algebras

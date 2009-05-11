@@ -77,7 +77,6 @@ import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
-import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
 import sage.misc.mrange

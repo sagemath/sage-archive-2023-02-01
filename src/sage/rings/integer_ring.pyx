@@ -837,6 +837,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 1
 
+    def completion(self, p, prec, extras = {}):
+        """
+        Returns the completion of Z at p.
+
+        EXAMPLES::
+
+            sage: ZZ.completion(infinity, 53)
+            Real Field with 53 bits of precision
+            sage: ZZ.completion(5, 15, {'print_mode': 'bars'})
+            5-adic Ring with capped relative precision 15
+        """
+        if p == sage.rings.infinity.Infinity:
+            from sage.rings.real_mpfr import create_RealField
+            return create_RealField(prec, **extras)
+        else:
+            from sage.rings.padics.factory import Zp
+            return Zp(p, prec, **extras)
+
+
+
     def order(self):
         """
         Return the order (cardinality) of the integers, which is

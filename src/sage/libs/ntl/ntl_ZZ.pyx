@@ -327,10 +327,16 @@ cdef class ntl_ZZ:
         7
         sage: a.valuation(-p)
         7
+        sage: b = ntl.ZZ(0)
+        sage: b.valuation(p)
+        +Infinity
         """
         cdef ntl_ZZ ans = PY_NEW(ntl_ZZ)
         cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
         cdef long valuation
+        if ZZ_IsZero(self.x):
+            from sage.rings.infinity import infinity
+            return infinity
         _sig_on
         valuation = ZZ_remove(unit.x, self.x, prime.x)
         _sig_off

@@ -101,7 +101,7 @@ HAVE_MPSR       = @HAVE_MPSR@
 #
 # Handle libSINGULAR stuff
 #
-LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 
 SO_SUFFIX = so
 #LIBSINGULAR_FLAGS = -export-dynamic

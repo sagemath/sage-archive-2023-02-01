@@ -1199,6 +1199,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         Return the absolute or relative norm of this element.
 
+        NOTE!  This is not the p-adic absolute value.  This is a field theoretic norm down to a ground ring.
+        If you want the p-adic absolute value, use the abs() function instead.
+
         If K is given then K must be a subfield of the parent L of
         self, in which case the norm is the relative norm from L to K.
         In all other cases, the norm is the absolute norm down to Qp or Zp.

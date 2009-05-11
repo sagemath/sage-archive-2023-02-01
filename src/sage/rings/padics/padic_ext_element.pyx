@@ -169,3 +169,28 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
     def _ext_p_list(self, pos):
         return self.ext_p_list(pos)
+
+    cpdef abs(self, prec=None):
+        """
+        Returns the p-adic absolute value of self.
+
+        This is normalized so that the absolute value of p is 1/p.
+
+        INPUT --
+        prec - Integer.  The precision of the real field in which the answer is returned.  If None, returns a rational for absolutely unramified fields, or a real with 53 bits of precision if ramified.
+
+        EXAMPLES:
+        sage: R = Zp(5,5)
+        sage: S.<x> = ZZ[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: w.abs()
+        0.724779663677696
+        """
+        if prec is None:
+            if self.parent().e() == 1:
+                return self.parent().prime()**(-self.valuation())
+            else:
+                prec = 53
+        from sage.rings.real_mpfr import RealField
+        return RealField(prec)(self.parent().prime())**(-self.ordp())

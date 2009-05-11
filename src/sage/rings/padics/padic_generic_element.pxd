@@ -38,3 +38,5 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_abs(self, long absprec) except -1
     cdef bint _set_prec_rel(self, long relprec) except -1
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1
+
+    cpdef abs(self, prec=*)

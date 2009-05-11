@@ -662,7 +662,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def norm(self, ground=None):
         """
-        Returns the norm of this p-adic element over the ground ring
+        Returns the norm of this p-adic element over the ground ring.
+
+        NOTE!  This is not the p-adic absolute value.  This is a field theoretic norm down to a ground ring.
+        If you want the p-adic absolute value, use the abs() function instead.
 
         INPUT:
             self -- a p-adic element
@@ -879,3 +882,5 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _val_unit(self):
         return self.valuation(), self.unit_part().lift()
 
+    cpdef abs(self, prec=None):
+        raise NotImplementedError

@@ -56,19 +56,64 @@ default_texture = Texture()
 pi = RDF.pi()
 
 cdef class Graphics3d(SageObject):
-
+    """
+    This is the baseclass for all 3d graphics objects.
+    """
     def __repr__(self):
+        """
+        When show_default is True, objects are displayed rather than
+        string representations printed.
+
+        EXAMPLES::
+
+            sage: S = sphere((0, 0, 0), 1)
+            sage: show_default(False); S
+            Graphics3d Object
+            sage: show_default(True); S
+
+        """
         if show_default():
             self.show()
             return ''
         else:
-            return self.__str__()
+            return str(self)
 
     def __str__(self):
+        """
+        EXAMPLES::
+
+            sage: S = sphere((0, 0, 0), 1)
+            sage: str(S)
+            'Graphics3d Object'
+        """
         return "Graphics3d Object"
 
     def __add__(left, right):
-        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        """
+        Addition of objects adds them to the same scene.
+
+        EXAMPLES::
+            sage: A = sphere((0,0,0), 1, color='red')
+            sage: B = dodecahedron((2, 0, 0), color='yellow')
+            sage: A+B
+
+        For convenience, we take 0 and None to be the additive identity::
+
+            sage: A + 0 is A
+            True
+            sage: A + None is A, 0 + A is A, None + A is A
+            (True, True, True)
+
+        In particular, this allows us to use the sum() function without
+        having to provide an empty starting object::
+
+            sage: sum(point3d((cos(n), sin(n), n)) for n in [0..10, step=.1])
+
+        A Graphics 3d object can also be added a 2d graphic object::
+
+            sage: A = sphere((0, 0, 0), 1) + circle((0, 0), 1.5)
+            sage: A.show(aspect_ratio=1)
+        """
         if right == 0 or right is None:
             return left
         elif left == 0 or left is None:
@@ -79,13 +124,39 @@ cdef class Graphics3d(SageObject):
             right = right.plot3d()
         return Graphics3dGroup([left, right])
 
-    def _set_extra_kwds(self,kwds):
+    def _set_extra_kwds(self, kwds):
+        """
+        Allows one to pass rendering arguments on as if they were set in the constructor.
+
+        EXAMPLES::
+
+            sage: S = sphere((0, 0, 0), 1)
+            sage: S._set_extra_kwds({'aspect_ratio': [1, 2, 2]})
+            sage: S
+        """
         self._extra_kwds = kwds
 
     def aspect_ratio(self, v=None):
+        """
+        Sets or gets the preferred aspect ratio of self.
+
+        EXAMPLES::
+
+            sage: D = dodecahedron()
+            sage: D.aspect_ratio()
+            [1.0, 1.0, 1.0]
+            sage: D.aspect_ratio([1,2,3])
+            sage: D.aspect_ratio()
+            [1.0, 2.0, 3.0]
+            sage: D.aspect_ratio(1)
+            sage: D.aspect_ratio()
+            [1.0, 1.0, 1.0]
+        """
         if not v is None:
+            if v == 1:
+                v = (1,1,1)
             if not isinstance(v, (tuple, list)):
-                raise TypeError, "v must be a list or tuple of length 3"
+                raise TypeError, "aspect_ratio must be a list or tuple of length 3 or the integer 1"
             self._aspect_ratio = [float(a) for a in v]
         else:
             if self._aspect_ratio is None:
@@ -93,11 +164,30 @@ cdef class Graphics3d(SageObject):
             return self._aspect_ratio
 
     def frame_aspect_ratio(self, v=None):
+        """
+        Sets or gets the preferred frame aspect ratio of self.
+
+        EXAMPLES::
+
+            sage: D = dodecahedron()
+            sage: D.frame_aspect_ratio()
+            [1.0, 1.0, 1.0]
+            sage: D.frame_aspect_ratio([2,2,1])
+            sage: D.frame_aspect_ratio()
+            [2.0, 2.0, 1.0]
+            sage: D.frame_aspect_ratio(1)
+            sage: D.frame_aspect_ratio()
+            [1.0, 1.0, 1.0]
+        """
         if not v is None:
-            self._frame_aspect_ratio = v
+            if v == 1:
+                v = (1,1,1)
+            if not isinstance(v, (tuple, list)):
+                raise TypeError, "frame_aspect_ratio must be a list or tuple of length 3 or the integer 1"
+            self._frame_aspect_ratio = [float(a) for a in v]
         else:
             if self._frame_aspect_ratio is None:
-                self._frame_aspect_ratio = [1,1,1]
+                self._frame_aspect_ratio = [1.0,1.0,1.0]
             return self._frame_aspect_ratio
 
     def _determine_frame_aspect_ratio(self, aspect_ratio):
@@ -105,7 +195,18 @@ cdef class Graphics3d(SageObject):
         return [(a_max[i] - a_min[i])*aspect_ratio[i] for i in range(3)]
 
     def _safe_bounding_box(self):
-        # bounding box but where no side length is 0
+        """
+        Returns a bounding box but where no side length is 0. This is used
+        to avoid zero-divison errors for pathological plots.
+
+        EXAMPLES::
+
+            sage: G = line3d([(0, 0, 0), (0, 0, 1)])
+            sage: G.bounding_box()
+            ((0.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+            sage: G._safe_bounding_box()
+            ([-1.0, -1.0, 0.0], [1.0, 1.0, 1.0])
+        """
         a_min, a_max = self.bounding_box()
         a_min = list(a_min); a_max = list(a_max)
         for i in range(3):
@@ -116,48 +217,220 @@ cdef class Graphics3d(SageObject):
 
 
     def bounding_box(self):
-        # default
+        """
+        Returns the lower and upper corners of a 3d bounding box for self.
+        This is used for rendering and self should fit entirely within this
+        box.
+
+        Specifically, the first point returned should have x, y, and z
+        coordinates should be the respective infimum over all points in self,
+        and the second point is the supremum.
+
+        The default return value is simply the box containing the origin.
+
+        EXAMPLES::
+
+            sage: sphere((1,1,1), 2).bounding_box()
+            ((-1.0, -1.0, -1.0), (3.0, 3.0, 3.0))
+            sage: G = line3d([(1, 2, 3), (-1,-2,-3)])
+            sage: G.bounding_box()
+            ((-1.0, -2.0, -3.0), (1.0, 2.0, 3.0))
+        """
         return ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
 
     def transform(self, **kwds):
+        """
+        Apply a transformation to self, where the inputs are passed onto a
+        TransformGroup object. Mostly for internal use; see the translate,
+        scale, and rotate methods for more details.
+
+        EXAMPLES::
+
+            sage: sphere((0,0,0), 1).transform(trans=(1, 0, 0), scale=(2,3,4)).bounding_box()
+            ((-1.0, -3.0, -4.0), (3.0, 3.0, 4.0))
+        """
         return TransformGroup([self], **kwds)
 
     def translate(self, *x):
+        """
+        Return self translated by the given vector (which can be given either
+        as a 3-iterable or via positional arguments).
+
+        EXAMPLES::
+
+            sage: icosahedron() + sum(icosahedron(opacity=0.25).translate(2*n, 0, 0) for n in [1..4])
+            sage: icosahedron() + sum(icosahedron(opacity=0.25).translate([-2*n, n, n^2]) for n in [1..4])
+
+        TESTS::
+
+            sage: G = sphere((0, 0, 0), 1)
+            sage: G.bounding_box()
+            ((-1.0, -1.0, -1.0), (1.0, 1.0, 1.0))
+            sage: G.translate(0, 0, 1).bounding_box()
+            ((-1.0, -1.0, 0.0), (1.0, 1.0, 2.0))
+            sage: G.translate(-1, 5, 0).bounding_box()
+            ((-2.0, 4.0, -1.0), (0.0, 6.0, 1.0))
+        """
         if len(x)==1:
             x = x[0]
         return self.transform(trans=x)
 
     def scale(self, *x):
+        """
+        Returns self scaled in the x, y, and z directions.
+
+        EXAMPLES::
+
+            sage: G = dodecahedron() + dodecahedron(opacity=.5).scale(2)
+            sage: G.show(aspect_ratio=1)
+            sage: G = icosahedron() + icosahedron(opacity=.5).scale([1, 1/2, 2])
+            sage: G.show(aspect_ratio=1)
+
+        TESTS::
+
+            sage: G = sphere((0, 0, 0), 1)
+            sage: G.scale(2)
+            sage: G.scale(1, 2, 1/2).show(aspect_ratio=1)
+            sage: G.scale(2).bounding_box()
+            ((-2.0, -2.0, -2.0), (2.0, 2.0, 2.0))
+        """
         if isinstance(x[0], (tuple, list)):
             x = x[0]
         return self.transform(scale=x)
 
     def rotate(self, v, theta):
+        """
+        Returns self rotated about the vector `v` by `theta` radians.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: v = (1,2,3)
+            sage: G = arrow3d((0, 0, 0), v)
+            sage: G += Cone(1/5, 1).translate((0, 0, 2))
+            sage: C = Cone(1/5, 1, opacity=.25).translate((0, 0, 2))
+            sage: G += sum(C.rotate(v, pi*t/4) for t in [1..7])
+            sage: G.show(aspect_ratio=1)
+
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: Box(1/3, 1/5, 1/7).rotate((1, 1, 1), pi/3).show(aspect_ratio=1)
+        """
         vx, vy, vz = v
         return self.transform(rot=[vx, vy, vz, theta])
 
     def rotateX(self, theta):
+        """
+        Returns self rotated about the `x`-axis by the given angle.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateX(pi/2)
+            sage: G.show(aspect_ratio=1)
+        """
         return self.rotate((1,0,0), theta)
 
     def rotateY(self, theta):
+        """
+        Returns self rotated about the `y`-axis by the given angle.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateY(pi/3)
+            sage: G.show(aspect_ratio=1)
+        """
         return self.rotate((0,1,0), theta)
 
     def rotateZ(self, theta):
+        """
+        Returns self rotated about the `z`-axis by the given angle.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: G = Box(1/2, 1/3, 1/5) + Box(1/2, 1/3, 1/5, opacity=.25).rotateZ(pi/5)
+            sage: G.show(aspect_ratio=1)
+        """
         return self.rotate((0,0,1), theta)
 
 
     def viewpoint(self):
+        """
+        Returns the viewpoint of this plot. Currently only a stub for x3d.
+
+        EXAMPLES::
+
+            sage: type(dodecahedron().viewpoint())
+            <class 'sage.plot.plot3d.base.Viewpoint'>
+        """
+        # This should probably be reworked somehow.
         return Viewpoint(0,0,6)
 
     def default_render_params(self):
+        """
+        Returns an instance of RenderParams suitable for plotting this object.
+
+        EXAMPLES::
+
+            sage: type(dodecahedron().default_render_params())
+            <class 'sage.plot.plot3d.base.RenderParams'>
+        """
         return RenderParams(ds=.075)
 
     def testing_render_params(self):
+        """
+        Returns an instance of RenderParams suitable for testing this object.
+        In particular, it opens up '/dev/null' as an auxiliary zip file for jmol.
+
+        EXAMPLES::
+
+            sage: type(dodecahedron().testing_render_params())
+            <class 'sage.plot.plot3d.base.RenderParams'>
+        """
         params = RenderParams(ds=.075)
         params.output_archive = zipfile.ZipFile('/dev/null', 'w', zipfile.ZIP_STORED, True)
         return params
 
     def x3d(self):
+        """
+        An x3d scene file (as a string) containing the this object.
+
+        EXAMPLES::
+
+            sage: print sphere((1, 2, 3), 5).x3d()
+            <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
+            <head>
+            <meta name='title' content='sage3d'/>
+            </head>
+            <Scene>
+            <Viewpoint position='0 0 6'/>
+            <Transform translation='1 2 3'>
+            <Shape><Sphere radius='5.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            </Transform>
+            </Scene>
+            </X3D>
+
+            sage: G = icosahedron() + sphere((0,0,0), 0.5, color='red')
+            sage: print G.x3d()
+            <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
+            <head>
+            <meta name='title' content='sage3d'/>
+            </head>
+            <Scene>
+            <Viewpoint position='0 0 6'/>
+            <Shape>
+            <IndexedFaceSet coordIndex='...'>
+              <Coordinate point='...'/>
+            </IndexedFaceSet>
+            <Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            <Transform translation='0 0 0'>
+            <Shape><Sphere radius='0.5'/><Appearance><Material diffuseColor='1.0 0.0 0.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            </Transform>
+            </Scene>
+            </X3D>
+
+        """
         return """
 <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
 <head>
@@ -171,6 +444,44 @@ cdef class Graphics3d(SageObject):
 """%(self.viewpoint().x3d_str(), self.x3d_str())
 
     def tachyon(self):
+        """
+        An tachyon input file (as a string) containing the this object.
+
+        EXAMPLES::
+
+            sage: print sphere((1, 2, 3), 5, color='yellow').tachyon()
+            begin_scene
+            resolution 400 400
+                     camera
+                    ...
+                  plane
+                    center -2000 -1000 -500
+                    normal 2.3 2.4 2.0
+                    TEXTURE
+                        AMBIENT 1.0 DIFFUSE 1.0 SPECULAR 1.0 OPACITY 1.0
+                        COLOR 1.0 1.0 1.0
+                        TEXFUNC 0
+                Texdef texture...
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+               Color 1.0 1.0 0.0
+               TexFunc 0
+                Sphere center 1.0 -2.0 3.0 Rad 5.0 texture...
+            end_scene
+
+            sage: G = icosahedron(color='red') + sphere((1,2,3), 0.5, color='yellow')
+            sage: G.show(viewer='tachyon', frame=false)
+            sage: print G.tachyon()
+            begin_scene
+            ...
+            Texdef texture...
+              Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
+               Color 1.0 0.0 0.0
+               TexFunc 0
+            TRI V0 ...
+            Sphere center 1.0 -2.0 3.0 Rad 0.5 texture...
+            end_scene
+        """
+
         render_params = self.default_render_params()
         # switch from LH to RH coords to be consistant with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
@@ -207,22 +518,34 @@ resolution 400 400
 
 end_scene""" % (
                "\n".join([t.tachyon_str() for t in self.texture_set()]),
-               self.tachyon_str(render_params))
-
-    def tachyon_str(self, render_params):
-        """
-        DO NOT override this method, override tachyon_repr instead.
-        """
-        return "\n".join(flatten_list(self.tachyon_repr(render_params)))
+               "\n".join(flatten_list(self.tachyon_repr(render_params))))
 
     def obj(self):
-        return self.obj_str(self.default_render_params())
+        """
+        An .obj scene file (as a string) containing the this object. A
+        .mtl file of the same name must also be produced for coloring.
 
-    def obj_str(self, render_params):
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import ColorCube
+            sage: print ColorCube(1, ['red', 'yellow', 'blue']).obj()
+            g obj_1
+            usemtl ...
+            v 1 1 1
+            v -1 1 1
+            v -1 -1 1
+            v 1 -1 1
+            f 1 2 3 4
+            ...
+            g obj_6
+            usemtl ...
+            v -1 -1 1
+            v -1 1 1
+            v -1 1 -1
+            v -1 -1 -1
+            f 21 22 23 24
         """
-        DO NOT override this method, override obj_repr instead.
-        """
-        return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
+        return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=100, spin=False, background=(1,1,1), stereo=False,
@@ -230,6 +553,58 @@ end_scene""" % (
                     perspective_depth = True,
                     orientation = (-764,-346,-545,76.39), **ignored_kwds):
                     # orientation chosen to look same as tachyon
+        """
+        A jmol scene consists of a script which refers to external files.
+        Fortunately, we are able to put all of them in a single zip archive,
+        which is the output of this call.
+
+        EXAMPLES::
+
+            sage: out_file = sage.misc.misc.tmp_filename() + ".jmol"
+            sage: G = sphere((1, 2, 3), 5) + cube() + sage.plot.plot3d.shapes.Text("hi")
+            sage: G.export_jmol(out_file)
+            sage: import zipfile
+            sage: z = zipfile.ZipFile(out_file)
+            sage: z.namelist()
+            ['obj_...pmesh', 'SCRIPT']
+
+            sage: print z.read('SCRIPT')
+            data "model list"
+            2
+            empty
+            Xx 0 0 0
+            Xx 5.5 5.5 5.5
+            end "model list"; show data
+            select *
+            wireframe off; spacefill off
+            set labelOffset 0 0
+            background [255,255,255]
+            spin OFF
+            moveto 0 -764 -346 -545 76.39
+            centerAt absolute {0 0 0}
+            zoom 100
+            frank OFF
+            set perspectivedepth ON
+            isosurface sphere_1  center {1.0 2.0 3.0} sphere 5.0
+            color isosurface  [102,102,255]
+            pmesh obj_... "obj_...pmesh"
+            color pmesh  [102,102,255]
+            select atomno = 1
+            color atom  [102,102,255]
+            label "hi"
+
+            sage: print z.read(z.namelist()[0])
+            24
+            0.5 0.5 0.5
+            -0.5 0.5 0.5
+            ...
+            -0.5 -0.5 -0.5
+            6
+            5
+            0
+            1
+            ...
+        """
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
@@ -239,7 +614,7 @@ end_scene""" % (
 
         f = StringIO()
 
-        if len(render_params.atom_list):
+        if render_params.atom_list:
             # Load the atom model
             f.write('data "model list"\n')
             f.write('%s\nempty\n' % (len(render_params.atom_list) + 1))
@@ -280,25 +655,131 @@ end_scene""" % (
         render_params.output_archive.close()
 
     def jmol_repr(self, render_params):
+        """
+        A (possibly nested) list of strings which will be concatenated and
+        used by jmol to render self. (Nested lists of strings are used
+        because otherwise all the intermediate concatenations can kill
+        performance). This may refer to several remove files, which
+        are stored in render_parames.output_archive.
+
+        EXAMPLES::
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.jmol_repr(G.default_render_params())
+            []
+            sage: G = sphere((1, 2, 3))
+            sage: G.jmol_repr(G.default_render_params())
+            [['isosurface sphere_1  center {1.0 2.0 3.0} sphere 1.0\ncolor isosurface  [102,102,255]']]
+        """
         return []
 
     def tachyon_repr(self, render_params):
+        """
+        A (possibly nested) list of strings which will be concatenated and
+        used by tachyon to render self. (Nested lists of strings are used
+        because otherwise all the intermediate concatenations can kill
+        performance). This may include a reference to color information which
+        is stored elsewhere.
+
+        EXAMPLES::
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.tachyon_repr(G.default_render_params())
+            []
+            sage: G = sphere((1, 2, 3))
+            sage: G.tachyon_repr(G.default_render_params())
+            ['Sphere center 1.0 2.0 3.0 Rad 1.0 texture...']
+        """
         return []
 
     def obj_repr(self, render_params):
+        """
+        A (possibly nested) list of strings which will be concatenated and
+        used to construct an .obj file of self. (Nested lists of strings are
+        used because otherwise all the intermediate concatenations can kill
+        performance). This may include a reference to color information which
+        is stored elsewhere.
+
+        EXAMPLES::
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.obj_repr(G.default_render_params())
+            []
+            sage: G = cube()
+            sage: G.obj_repr(G.default_render_params())
+            ['g obj_1',
+             'usemtl ...',
+             ['v 0.5 0.5 0.5',
+              'v -0.5 0.5 0.5',
+              'v -0.5 -0.5 0.5',
+              'v 0.5 -0.5 0.5',
+              'v 0.5 0.5 -0.5',
+              'v -0.5 0.5 -0.5',
+              'v 0.5 -0.5 -0.5',
+              'v -0.5 -0.5 -0.5'],
+             ['f 1 2 3 4',
+              'f 1 5 6 2',
+              'f 1 4 7 5',
+              'f 6 5 7 8',
+              'f 7 4 3 8',
+              'f 3 2 6 8'],
+             []]
+        """
         return []
 
     def texture_set(self):
+        """
+        Often the textures of a 3d file format are kept separate from the
+        objects themselves. This function returns the set of textures used,
+        so they can be defined in a preamble or separate file.
+
+        EXAMPLES::
+
+            sage: sage.plot.plot3d.base.Graphics3d().texture_set()
+            set([])
+
+            sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
+            sage: G.texture_set()
+            set([Texture(texture..., red, ff0000), Texture(texture..., yellow, ffff00), Texture(texture..., red, ff0000)])
+        """
         return set()
 
     def mtl_str(self):
+        """
+        Returns the contents of a .mtl file, to be used to provide coloring
+        information for an .obj file.
+
+        EXAMPLES::
+            sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
+            sage: print G.mtl_str()
+            newmtl ...
+            Ka 0.5 0.0 0.0
+            Kd 1.0 0.0 0.0
+            Ks 0.0 0.0 0.0
+            illum 1
+            Ns 1
+            d 1
+            newmtl ...
+            Ka 0.5 0.5 0.0
+            Kd 1.0 1.0 0.0
+            Ks 0.0 0.0 0.0
+            illum 1
+            Ns 1
+            d 0.500000000000000
+        """
         return "\n\n".join([t.mtl_str() for t in self.texture_set()]) + "\n"
 
-    def flatten(self, T=None):
-        if T is None:
-            return self
-        else:
-            return self.transform(T=T)
+    def flatten(self):
+        """
+        Try to reduce the depth of the scene tree by consolidating groups
+        and transformations.
+
+        The generic Graphics3d object can't be made flatter.
+
+        EXAMPLES::
+
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.flatten() is G
+            True
+        """
+        return self
 
     def _rescale_for_frame_aspect_ratio_and_zoom(self, b, frame_aspect_ratio, zoom):
         if frame_aspect_ratio is None:
@@ -601,44 +1082,204 @@ SHOW_DEFAULTS = {'viewer':'jmol',
 
 
 class Graphics3dGroup(Graphics3d):
-    def __init__(self, all=[]):
-        self.all = all
+    """
+    This class represents a collection of 3d objects. Usually they are formed
+    implicitly by summing.
+    """
+    def __init__(self, all=(), rot=None, trans=None, scale=None, T=None):
+        """
+        EXAMPLES::
+
+            sage: sage.plot.plot3d.base.Graphics3dGroup([icosahedron(), dodecahedron(opacity=.5)])
+            sage: type(icosahedron() + dodecahedron(opacity=.5))
+            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+        """
+        self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
         self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
 
+    def __add__(self, other):
+        """
+        We override this here to make large sums more efficient.
+
+        EXAMPLES::
+            sage: G = sum(tetrahedron(opacity=1-t/11).translate(t, 0, 0) for t in range(10))
+            sage: G
+            sage: len(G.all)
+            10
+        """
+        if type(self) is Graphics3dGroup and isinstance(other, Graphics3d):
+            self.all.append(other)
+            return self
+        else:
+            return Graphics3d.__add__(self, other)
+
     def bounding_box(self):
-        # Box that contains the bounding boxes of
-        # all the objects that make up self.
+        """
+        Box that contains the bounding boxes of
+        all the objects that make up self.
+
+        EXAMPLES::
+
+            sage: A = sphere((0,0,0), 5)
+            sage: B = sphere((1, 5, 10), 1)
+            sage: A.bounding_box()
+            ((-5.0, -5.0, -5.0), (5.0, 5.0, 5.0))
+            sage: B.bounding_box()
+            ((0.0, 4.0, 9.0), (2.0, 6.0, 11.0))
+            sage: (A+B).bounding_box()
+            ((-5.0, -5.0, -5.0), (5.0, 6.0, 11.0))
+            sage: (A+B).show(aspect_ratio=1, frame=True)
+
+            sage: sage.plot.plot3d.base.Graphics3dGroup([]).bounding_box()
+            ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+        """
+        if len(self.all) == 0:
+            return Graphics3d.bounding_box(self)
         v = [obj.bounding_box() for obj in self.all]
         return min3([a[0] for a in v]), max3([a[1] for a in v])
 
     def transform(self, **kwds):
+        """
+        Transforming this entire group simply makes a transform group with
+        the same contents.
+
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
+            sage: G
+            sage: G.transform(scale=(2,1/2,1))
+            sage: G.transform(trans=(1,1,3))
+        """
         T = TransformGroup(self.all, **kwds)
         T._set_extra_kwds(self._extra_kwds)
         return T
 
+    def set_texture(self, **kwds):
+        """
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
+            sage: G
+            sage: G.set_texture(color='yellow')
+            sage: G
+        """
+        for g in self.all:
+            g.set_texture(**kwds)
+
     def tachyon_repr(self, render_params):
+        """
+        The tachyon representation of a group is simply the concatenation of
+        the representations of its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1,2,3))
+            sage: G.tachyon_repr(G.default_render_params())
+            [['Sphere center 0.0 0.0 0.0 Rad 1.0 texture...'],
+             ['Sphere center 1.0 2.0 3.0 Rad 1.0 texture...']]
+        """
         return [g.tachyon_repr(render_params) for g in self.all]
 
     def x3d_str(self):
+        """
+        The x3d representation of a group is simply the concatenation of
+        the representation of its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1,2,3))
+            sage: print G.x3d_str()
+            <Transform translation='0 0 0'>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            </Transform>
+            <Transform translation='1 2 3'>
+            <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
+            </Transform>
+        """
         return "\n".join([g.x3d_str() for g in self.all])
 
     def obj_repr(self, render_params):
+        """
+        The obj representation of a group is simply the concatenation of
+        the representation of its objects.
+
+        EXAMPLES::
+
+            sage: G = tetrahedron() + tetrahedron().translate(10, 10, 10)
+            sage: G.obj_repr(G.default_render_params())
+            [['g obj_1',
+              'usemtl ...',
+              ['v 0 0 1',
+               'v 0.942809 0 -0.333333',
+               'v -0.471405 0.816497 -0.333333',
+               'v -0.471405 -0.816497 -0.333333'],
+              ['f 1 2 3', 'f 2 4 3', 'f 1 3 4', 'f 1 4 2'],
+              []],
+             [['g obj_2',
+               'usemtl ...',
+               ['v 10 10 11',
+                'v 10.9428 10 9.66667',
+                'v 9.5286 10.8165 9.66667',
+                'v 9.5286 9.1835 9.66667'],
+               ['f 5 6 7', 'f 6 8 7', 'f 5 7 8', 'f 5 8 6'],
+               []]]]
+        """
         return [g.obj_repr(render_params) for g in self.all]
 
     def jmol_repr(self, render_params):
+        """
+        The jmol representation of a group is simply the concatenation of
+        the representation of its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1,2,3))
+            sage: G.jmol_repr(G.default_render_params())
+            [[['isosurface sphere_1  center {0.0 0.0 0.0} sphere 1.0\ncolor isosurface  [102,102,255]']],
+             [['isosurface sphere_2  center {1.0 2.0 3.0} sphere 1.0\ncolor isosurface  [102,102,255]']]]
+        """
         return [g.jmol_repr(render_params) for g in self.all]
 
     def texture_set(self):
+        """
+        The texture set of a group is simply the union of the textures of
+        all its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere(color='red') + sphere(color='yellow')
+            sage: G.texture_set()
+            set([Texture(texture..., yellow, ffff00), Texture(texture... red, ff0000)])
+
+            sage: T = sage.plot.plot3d.texture.Texture('blue'); T
+            Texture(texture..., blue, 0000ff)
+            sage: G = sphere(texture=T) + sphere((1, 1, 1), texture=T)
+            sage: len(G.texture_set())
+            1
+        """
         return reduce(set.union, [g.texture_set() for g in self.all])
 
-    def flatten(self, T=None):
+    def flatten(self):
+        """
+        Try to reduce the depth of the scene tree by consolidating groups
+        and transformations.
+
+        EXAMPLES::
+
+            sage: G = sum([circle((0, 0), t) for t in [1..10]], sphere()); G
+            sage: G.flatten()
+            sage: len(G.all)
+            2
+            sage: len(G.flatten().all)
+            11
+        """
         if len(self.all) == 1:
-            return self.all[0].flatten(T)
+            return self.all[0].flatten()
         all = []
         for g in self.all:
-            g = g.flatten(T)
+            g = g.flatten()
             if type(g) is Graphics3dGroup:
                 all += g.all
             else:
@@ -648,8 +1289,23 @@ class Graphics3dGroup(Graphics3d):
 
 
 class TransformGroup(Graphics3dGroup):
-
+    """
+    This class is a container for a group of objects with a common transformation.
+    """
     def __init__(self, all=[], rot=None, trans=None, scale=None, T=None):
+        """
+        EXAMPLES::
+
+            sage: sage.plot.plot3d.base.TransformGroup([sphere()], trans=(1,2,3)) + point3d((0,0,0))
+
+        The are usually constructed implicitly::
+
+            sage: type(sphere((1,2,3)))
+            <class 'sage.plot.plot3d.base.TransformGroup'>
+            sage: type(dodecahedron().scale(2))
+            <class 'sage.plot.plot3d.base.TransformGroup'>
+
+        """
         Graphics3dGroup.__init__(self, all)
         self._rot = rot
         self._trans = trans
@@ -665,6 +1321,21 @@ class TransformGroup(Graphics3dGroup):
         self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
 
     def bounding_box(self):
+        """
+        Returns the bounding box of self, i.e. the box containing the
+        contents of self after applying the transformation.
+
+        EXAMPLES::
+
+            sage: G = cube()
+            sage: G.bounding_box()
+            ((-0.5, -0.5, -0.5), (0.5, 0.5, 0.5))
+            sage: G.scale(4).bounding_box()
+            ((-2.0, -2.0, -2.0), (2.0, 2.0, 2.0))
+            sage: G.rotateZ(pi/4).bounding_box()
+            ((-0.70710678118654746, -0.70710678118654746, -0.5),
+             (0.70710678118654746, 0.70710678118654746, 0.5))
+        """
         try:
             return self._bounding_box
         except AttributeError:
@@ -675,11 +1346,16 @@ class TransformGroup(Graphics3dGroup):
         self._bounding_box = point_list_bounding_box(w)
         return self._bounding_box
 
-    def transform(self, **kwds):
-        # TODO: flatten right here
-        return TransformGroup([self], **kwds)
-
     def x3d_str(self):
+        """
+        To apply a transformation to a set of objects in x3d, simply make them
+        all children of an x3d Transform node.
+
+        EXAMPLES::
+
+            sage: sphere((1,2,3)).x3d_str()
+            "<Transform translation='1 2 3'>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+        """
         s = "<Transform"
         if self._rot is not None:
             s += " rotation='%s %s %s %s'"%tuple(self._rot)
@@ -693,57 +1369,161 @@ class TransformGroup(Graphics3dGroup):
         return s
 
     def tachyon_repr(self, render_params):
+        """
+        Transformations for Tachyon are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = sphere((1,2,3)).scale(2)
+            sage: G.tachyon_repr(G.default_render_params())
+            [['Sphere center 2.0 4.0 6.0 Rad 2.0 texture...']]
+        """
         render_params.push_transform(self.get_transformation())
         rep = [g.tachyon_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
 
     def obj_repr(self, render_params):
+        """
+        Transformations for .obj files are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = cube().scale(4).translate(1, 2, 3)
+            sage: G.obj_repr(G.default_render_params())
+            [[['g obj_1',
+               'usemtl ...',
+               ['v 3 4 5',
+                'v -1 4 5',
+                'v -1 0 5',
+                'v 3 0 5',
+                'v 3 4 1',
+                'v -1 4 1',
+                'v 3 0 1',
+                'v -1 0 1'],
+               ['f 1 2 3 4',
+                'f 1 5 6 2',
+                'f 1 4 7 5',
+                'f 6 5 7 8',
+                'f 7 4 3 8',
+                'f 3 2 6 8'],
+               []]]]
+        """
         render_params.push_transform(self.get_transformation())
         rep = [g.obj_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
 
     def jmol_repr(self, render_params):
+        """
+        Transformations for jmol are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = sphere((1,2,3)).scale(2)
+            sage: G.jmol_repr(G.default_render_params())
+            [[['isosurface sphere_1  center {2.0 4.0 6.0} sphere 2.0\ncolor isosurface  [102,102,255]']]]
+        """
         render_params.push_transform(self.get_transformation())
         rep = [g.jmol_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
 
     def get_transformation(self):
+        """
+        Returns the actual transformation object associated with self.
+
+        EXAMPLES::
+
+            sage: G = sphere().scale(100)
+            sage: T = G.get_transformation()
+            sage: T.get_matrix()
+            [100.0   0.0   0.0   0.0]
+            [  0.0 100.0   0.0   0.0]
+            [  0.0   0.0 100.0   0.0]
+            [  0.0   0.0   0.0   1.0]
+        """
         try:
             return self.T
         except AttributeError:
             self.T = Transformation(self._scale, self._rot, self._trans)
             return self.T
 
-    def flatten(self, T=None):
-        assert False, "broken"
-        all = []
-        for g in self.all:
-            g = g.flatten().transform(T=self.get_transformation())
-            if type(g) is Graphics3dGroup:
-                all += g.all
-            else:
-                all.append(g)
-        self.all = all
+    def flatten(self):
+        """
+        Try to reduce the depth of the scene tree by consolidating groups
+        and transformations.
 
+        EXAMPLES::
 
+            sage: G = sphere((1,2,3)).scale(100)
+            sage: T = G.get_transformation()
+            sage: T.get_matrix()
+            [100.0   0.0   0.0   0.0]
+            [  0.0 100.0   0.0   0.0]
+            [  0.0   0.0 100.0   0.0]
+            [  0.0   0.0   0.0   1.0]
 
+            sage: G.flatten().get_transformation().get_matrix()
+            [100.0   0.0   0.0 100.0]
+            [  0.0 100.0   0.0 200.0]
+            [  0.0   0.0 100.0 300.0]
+            [  0.0   0.0   0.0   1.0]
+        """
+        G = Graphics3dGroup.flatten(self)
+        if isinstance(G, TransformGroup):
+            return TransformGroup(G.all, T=self.get_transformation() * G.get_transformation())
+        elif isinstance(G, Graphics3dGroup):
+            return TransformGroup(G.all, T=self.get_transformation())
+        else:
+            return TransformGroup([G], T=self.get_transformation())
+
+    def transform(self, **kwds):
+        """
+        Transforming this entire group can be done by composing transformations.
+
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
+            sage: G
+            sage: G.transform(scale=(2,1/2,1))
+            sage: G.transform(trans=(1,1,3))
+        """
+        return Graphics3d.transform(self, **kwds)
 
 class Viewpoint(Graphics3d):
+    """
+    This class represents a viewpoint, necessary for x3d.
 
+    In the future, there could be multiple viewpoints, and they could have
+    more properties. (Currently they only hold a position).
+    """
     def __init__(self, *x):
+        """
+        EXAMPLES::
+
+            sage: sage.plot.plot3d.base.Viewpoint(1, 2, 4).x3d_str()
+            "<Viewpoint position='1 2 4'/>"
+        """
         if isinstance(x[0], (tuple, list)):
             x = tuple(x[0])
         self.pos = x
 
     def x3d_str(self):
+        """
+        EXAMPLES::
+
+            sage: sphere((0,0,0), 100).viewpoint().x3d_str()
+            "<Viewpoint position='0 0 6'/>"
+        """
         return "<Viewpoint position='%s %s %s'/>"%self.pos
 
 
 
 cdef class PrimitiveObject(Graphics3d):
+    """
+    This is the base class for the non-container 3d objects.
+    """
     def __init__(self, **kwds):
         if kwds.has_key('texture'):
             self.texture = kwds['texture']
@@ -752,39 +1532,143 @@ cdef class PrimitiveObject(Graphics3d):
         else:
             self.texture = Texture(kwds)
 
-    def set_texture(self, texture, **kwds):
+    def set_texture(self, texture=None, **kwds):
+        """
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red'); G
+            sage: G.set_texture(color='yellow'); G
+        """
         if not is_Texture(texture):
             texture = Texture(texture, **kwds)
         self.texture = texture
 
     def get_texture(self):
+        """
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red')
+            sage: G.get_texture()
+            Texture(texture..., red, ff0000)
+        """
         return self.texture
 
+    def texture_set(self):
+        """
+        EXAMPLES::
+
+            sage: G = dodecahedron(color='red')
+            sage: G.texture_set()
+            set([Texture(texture..., red, ff0000)])
+        """
+        return set([self.texture])
+
     def x3d_str(self):
+        """
+        EXAMPLES::
+
+            sage: sphere().flatten().x3d_str()
+            "<Transform>\n<Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance></Shape>\n\n</Transform>"
+        """
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 
     def tachyon_repr(self, render_params):
+        """
+        Default behavior is to render the triangulation.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: G = Torus(1, .5)
+            sage: G.tachyon_repr(G.default_render_params())
+            ['TRI V0 0 1 0.5
+            ...
+            'texture...']
+        """
         return self.triangulation().tachyon_repr(render_params)
 
     def obj_repr(self, render_params):
+        """
+        Default behavior is to render the triangulation.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: G = Torus(1, .5)
+            sage: G.obj_repr(G.default_render_params())
+            ['g obj_1',
+             'usemtl ...',
+             ['v 0 1 0.5',
+             ...
+              'f ...'],
+             []]
+        """
         return self.triangulation().obj_repr(render_params)
 
     def jmol_repr(self, render_params):
-        return self.triangulation().jmol_repr(render_params)
+        """
+        Default behavior is to render the triangulation. The actual polygon
+        data is stored in a separate file.
 
-    def texture_set(self):
-        return set([self.texture])
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: G = Torus(1, .5)
+            sage: G.jmol_repr(G.testing_render_params())
+            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+        """
+        return self.triangulation().jmol_repr(render_params)
 
 
 
 class BoundingSphere(SageObject):
+    """
+    A bounding sphere is like a bounding box, but is simpler to deal with and
+    behaves better under rotations.
+    """
     def __init__(self, cen, r):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.base import BoundingSphere
+            sage: BoundingSphere((0,0,0), 1)
+            Center (0.0, 0.0, 0.0) radius 1
+            sage: BoundingSphere((0,-1,5), 2)
+            Center (0.0, -1.0, 5.0) radius 2
+            """
         self.cen = vector(RDF, cen)
         self.r = r
+
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import BoundingSphere
+            sage: BoundingSphere((0,-1,10), 2)
+            Center (0.0, -1.0, 10.0) radius 2
+        """
         return "Center %s radius %s" % (self.cen, self.r)
+
     def __add__(self, other):
-        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        """
+        Returns the bounding sphere containing both terms.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.base import BoundingSphere
+            sage: BoundingSphere((0,0,0), 1) + BoundingSphere((0,0,0), 2)
+            Center (0.0, 0.0, 0.0) radius 2
+            sage: BoundingSphere((0,0,0), 1) + BoundingSphere((0,0,100), 1)
+            Center (0.0, 0.0, 50.0) radius 51.0
+            sage: BoundingSphere((0,0,0), 1) + BoundingSphere((1,1,1), 2)
+            Center (0.788675134595, 0.788675134595, 0.788675134595) radius 2.36602540378
+
+        Treat None and 0 as the identity::
+
+            sage: BoundingSphere((1,2,3), 10) + None + 0
+            Center (1.0, 2.0, 3.0) radius 10
+
+        """
         if other == 0 or other is None:
             return self
         elif self == 0 or self is None:
@@ -796,8 +1680,24 @@ class BoundingSphere(SageObject):
         diam = dist + self.r + other.r
         off  = diam/2 - self.r
         return BoundingSphere(self.cen + (off/dist)*diff, diam/2)
+
     def transform(self, T):
-        return BoundingSphere(T.transform(self.cen), self.r * T.max_scale())
+        """
+        Returns the bounding sphere of this sphere acted on by T. This always
+        returns a new sphere, even if the resulting object is an ellipsoid.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.transform import Transformation
+            sage: from sage.plot.plot3d.base import BoundingSphere
+            sage: BoundingSphere((0,0,0), 10).transform(Transformation(trans=(1,2,3)))
+            Center (1.0, 2.0, 3.0) radius 10.0
+            sage: BoundingSphere((0,0,0), 10).transform(Transformation(scale=(1/2, 1, 2)))
+            Center (0.0, 0.0, 0.0) radius 20.0
+            sage: BoundingSphere((0,0,3), 10).transform(Transformation(scale=(2, 2, 2)))
+            Center (0.0, 0.0, 6.0) radius 20.0
+        """
+        return BoundingSphere(T.transform_point(self.cen), self.r * T.max_scale())
 
 
 class RenderParams(SageObject):
@@ -805,6 +1705,10 @@ class RenderParams(SageObject):
     This class is a container for all parameters that may be needed to
     render triangulate/render an object to a certain format. It can
     contain both cumulative and global parameters.
+
+    Of particular note is the transformation object, which holds the
+    cumulative transformation from the root of the scene graph to this
+    node in the tree.
     """
 
     _uniq_counter = 0
@@ -814,6 +1718,15 @@ class RenderParams(SageObject):
     dots = False
 
     def __init__(self, **kwds):
+        """
+        EXAMPLES::
+
+            sage: params = sage.plot.plot3d.base.RenderParams(foo='x')
+            sage: params.transform_list
+            []
+            sage: params.foo
+            'x'
+        """
         self.output_file = sage.misc.misc.tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
@@ -825,6 +1738,29 @@ class RenderParams(SageObject):
         self.atom_list = []
 
     def push_transform(self, T):
+        """
+        Push a transformation onto the stack, updating self.transform.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.transform import Transformation
+            sage: params = sage.plot.plot3d.base.RenderParams()
+            sage: params.transform is None
+            True
+            sage: T = Transformation(scale=(10,20,30))
+            sage: params.push_transform(T)
+            sage: params.transform.get_matrix()
+            [10.0  0.0  0.0  0.0]
+            [ 0.0 20.0  0.0  0.0]
+            [ 0.0  0.0 30.0  0.0]
+            [ 0.0  0.0  0.0  1.0]
+            sage: params.push_transform(T)  # scale again
+            sage: params.transform.get_matrix()
+            [100.0   0.0   0.0   0.0]
+            [  0.0 400.0   0.0   0.0]
+            [  0.0   0.0 900.0   0.0]
+            [  0.0   0.0   0.0   1.0]
+        """
         self.transform_list.append(self.transform)
         if self.transform is None:
             self.transform = T
@@ -832,9 +1768,51 @@ class RenderParams(SageObject):
             self.transform = self.transform * T
 
     def pop_transform(self):
+        """
+        Remove the last transformation off the stack, resetting self.transform
+        to the previous value.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.transform import Transformation
+            sage: params = sage.plot.plot3d.base.RenderParams()
+            sage: T = Transformation(trans=(100, 500, 0))
+            sage: params.push_transform(T)
+            sage: params.transform.get_matrix()
+            [  1.0   0.0   0.0 100.0]
+            [  0.0   1.0   0.0 500.0]
+            [  0.0   0.0   1.0   0.0]
+            [  0.0   0.0   0.0   1.0]
+            sage: params.push_transform(Transformation(trans=(-100, 500, 200)))
+            sage: params.transform.get_matrix()
+            [   1.0    0.0    0.0    0.0]
+            [   0.0    1.0    0.0 1000.0]
+            [   0.0    0.0    1.0  200.0]
+            [   0.0    0.0    0.0    1.0]
+            sage: params.pop_transform()
+            sage: params.transform.get_matrix()
+            [  1.0   0.0   0.0 100.0]
+            [  0.0   1.0   0.0 500.0]
+            [  0.0   0.0   1.0   0.0]
+            [  0.0   0.0   0.0   1.0]
+
+        """
         self.transform = self.transform_list.pop()
 
     def unique_name(self, desc="name"):
+        """
+        Returns a unique identifier starting with desc.
+
+        EXAMPLES::
+
+            sage: params = sage.plot.plot3d.base.RenderParams()
+            sage: params.unique_name()
+            'name_1'
+            sage: params.unique_name()
+            'name_2'
+            sage: params.unique_name('texture')
+            'texture_3'
+        """
         if self.randomize_counter:
             self._uniq_counter = randint(1,1000000)
         else:
@@ -850,6 +1828,18 @@ def flatten_list(L):
     This is NOT recursive, otherwise there would be a lot of redundant
     copying (which we are trying to avoid in the first place, though at
     least it would be just the pointers).
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.base import flatten_list
+        sage: flatten_list([])
+        []
+        sage: flatten_list([[[[]]]])
+        []
+        sage: flatten_list([['a', 'b'], 'c'])
+        ['a', 'b', 'c']
+        sage: flatten_list([['a'], [[['b'], 'c'], ['d'], [[['e', 'f', 'g']]]]])
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     """
     if not PyList_CheckExact(L):
         return [L]

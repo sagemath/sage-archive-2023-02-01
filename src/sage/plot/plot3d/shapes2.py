@@ -309,8 +309,16 @@ def sphere(center=(0,0,0), size=1, **kwds):
         sage: u,v = var('u v')
         sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
         sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
+
+    TESTS::
+
+        sage: T = sage.plot.plot3d.texture.Texture('red')
+        sage: S = sphere(texture=T)
+        sage: T in S.texture_set()
+        True
     """
-    G = Sphere(size, texture=Texture(kwds), **kwds)
+    kwds['texture'] = Texture(**kwds)
+    G = Sphere(size, **kwds)
     H = G.translate(center)
     H._set_extra_kwds(kwds)
     return H

@@ -21,6 +21,12 @@ def is_Texture(x):
 def Texture(id=None, **kwds):
     if isinstance(id, Texture_class):
         return id
+    if kwds.has_key('texture'):
+        t = kwds['texture']
+        if is_Texture(t):
+            return t
+        else:
+            raise TypeError, "texture keyword must be a texture object"
     if isinstance(id, dict):
         kwds = id
         if kwds.has_key('rgbcolor'):
@@ -61,7 +67,7 @@ class Texture_class(SageObject):
         sage: from sage.plot.plot3d.texture import Texture
         sage: t = Texture(opacity=0.6)
         sage: t
-        <class 'sage.plot.plot3d.texture.Texture_class'>
+        Texture(texture..., 6666ff)
         sage: t.opacity
         0.600000000000000
         sage: t.jmol_str('obj')
@@ -73,8 +79,12 @@ class Texture_class(SageObject):
         sage: t.x3d_str()
         "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
     """
-    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
+    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, name=None, **kwds):
+
         self.id = id
+        if name is None and isinstance(color, str):
+            name = color
+        self.name = name
 
         if not isinstance(color, tuple):
             color = parse_color(color)
@@ -99,6 +109,32 @@ class Texture_class(SageObject):
             specular = parse_color(specular, color)
         self.specular = specular
 
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: Texture('yellow')
+            Texture(texture..., yellow, ffff00)
+            sage: Texture((1,1,0), opacity=.5)
+            Texture(texture..., ffff00)
+        """
+        if self.name is not None:
+            return "Texture(%s, %s, %s)" % (self.id, self.name, self.hex_rgb())
+        else:
+            return "Texture(%s, %s)" % (self.id, self.hex_rgb())
+
+    def hex_rgb(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: Texture('red').hex_rgb()
+            'ff0000'
+            sage: Texture((1, .5, 0)).hex_rgb()
+            'ff7f00'
+        """
+        return "%02x%02x%02x" % tuple(int(255*s) for s in self.color)
 
     def tachyon_str(self):
         total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))

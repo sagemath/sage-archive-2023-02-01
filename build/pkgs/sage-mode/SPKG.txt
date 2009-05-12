@@ -43,16 +43,16 @@ Boston, MA 02110-1301, USA.
 
 == Special Update/Build Instructions ==
 
-[[attachment:sage-mode-0.5.4.spkg]]
+[[attachment:sage-mode-0.6.spkg]]
 
-Use {{{sage -f sage-mode-0.5.4.spkg}}}.  The following installation instructions are suggested:
+Use {{{sage -f sage-mode-0.6.spkg}}}.  The following installation instructions are suggested:
 
 A basic install might include the following Emacs Lisp in your .emacs:
 
 {{{
-(add-to-list 'load-path (expand-file-name "path-to-sage-mode-el-files"))
+(add-to-list 'load-path (expand-file-name "$SAGE_DATA/emacs"))
 (require 'sage "sage")
-(setq sage-command "/path/to/sage")
+(setq sage-command "$SAGE_ROOT/sage")
 
 ;; If you want sage-view to typeset all your output and have plot()
 ;; commands inline, uncomment the following line and configure sage-view:
@@ -66,6 +66,42 @@ A basic install might include the following Emacs Lisp in your .emacs:
 }}}
 
 == Changelog ==
+
+=== sage-mode-0.6 (Nick Alexander, 2009-05-11) ===
+* `sage-run' no longer waits for a sage: prompt by default.  This can cause
+problems if `sage-startup-after-prompt-hook' is non-trivial, but doesn't lock
+up emacs busy waiting for the prompt.
+
+* `sage-send-doctest' now works with multiline tests and one line function
+definitions.
+
+* `sage-rerun' now exits from the debugger if it sees the debugger prompt, and
+`sage-build' with a prefix argument (build and run sage) should no longer hang.
+
+* `pyrex-mode' is now autoload-ed and the default for pyx, pxi, and pxd files.
+
+* `next-error' now jumps between top-level errors, avoiding lower level source
+files.  Lower level source files are still hyperlinked.
+
+* `sage-test' with a prefix argument now offers to test without rebuilding.
+
+* Now `sage-send-doctest' and `sage-send-region' are bound in *Help* buffer.
+
+* `sage-send-{buffer, region doctest}' now either automatically
+(`sage-quit-debugger-automatically') or after a prompt quit the debugger
+before sending input to the sage slave.
+
+* In the debugger, very short history items are not remembered.  (No more
+looping through u/d in the history.)
+
+* *sage-test* buffers now search for test status rather than relying on the
+exit codes that incorrectly say tests failed all the time.
+
+* SPKG.txt and spkg-install now print paths in the install instructions.
+
+* C-u RET no longer sends input to the sage slave with output to
+*sage-output*.  Use `sage-move-output-to-buffer' instead, or
+`comint-write-output' to save to a file.
 
 === sage-mode-0.5.4 (Nick Alexander, 2009-03-13) ===
 * Fixed errors in `sage-build' and `sage-test' autoloads; made sage-mode.el
@@ -119,6 +155,8 @@ First alpha version, for Mike Hansen to use and test.
 First internal version.
 
 == Old versions ==
+
+[[attachment:sage-mode-0.5.4.spkg]]
 
 [[attachment:sage-mode-0.5.2.spkg]]
 

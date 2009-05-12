@@ -28,9 +28,9 @@ cat <<EOF
 
 A basic install might include the following Emacs Lisp in your .emacs:
 
-(add-to-list 'load-path (expand-file-name "path-to-sage-mode-el-files"))
+(add-to-list 'load-path (expand-file-name "$SAGE_DATA/emacs"))
 (require 'sage "sage")
-(setq sage-command "/path/to/sage")
+(setq sage-command "$SAGE_ROOT/sage")
 
 ;; If you want sage-view to typeset all your output and have plot()
 ;; commands inline, uncomment the following line and configure sage-view:

@@ -29,7 +29,7 @@
 
 ;;; Todo:
 
-;; Print path in instructions again?
+;; (DONE) Print path in instructions again?
 ;;
 ;; M-q fills comments correctly after """ ; "
 ;;

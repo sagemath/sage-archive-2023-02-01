@@ -53,7 +53,7 @@ it to the precision cap of the field.
     sage: c = R(4025); c
         5^2 + 2*5^3 + 5^4 + 5^5 + O(5^7)
     sage: a + b
-	4*5 + 3*5^2 + 3*5^3 + 4*5^4 + O(5^5)
+        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + O(5^5)
     sage: a + b + c
         4*5 + 4*5^2 + 5^4 + O(5^5)
 
@@ -151,11 +151,14 @@ class pAdicFieldGeneric(padic_generic.pAdicGeneric, sage.rings.ring.Field):
         return "Generic %s-adic Field"%(self.prime())
 
     def _latex_(self):
-        return "\\mathbf{Q}_{%s}" % self.prime()
+        return "\\QQ_{%s}" % self.prime()
 
-    def fraction_field(self):
+    def fraction_field(self, print_mode=None):
         r"""
-        Returns the fraction field of self, i.e. self
+        Returns the fraction field of self, with given print_mode (defaults to the print_mode of self).
+
+        INPUT:
+        print_mode - a dictionary with print options.
         """
         return self
 

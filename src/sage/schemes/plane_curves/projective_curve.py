@@ -194,6 +194,66 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         v = [x0+t,y0+add([vals[i][2]*t**(i+1) for i in range(k)])]
         return v
 
+    def plot(self, *args, **kwds):
+        """
+        Plot the real points of an affine patch of this projective
+        plane curve.
+
+
+        INPUT:
+
+
+        -  ``self`` - an affine plane curve
+
+        -  ``patch`` - (optional) the affine patch to be plotted; if not
+           specified, the patch corresponding to the last projective
+           coordinate being nonzero
+
+        -  ``*args`` - optional tuples (variable, minimum, maximum) for
+           plotting dimensions
+
+        -  ``**kwds`` - optional keyword arguments passed on to
+           ``implicit_plot``
+
+
+        EXAMPLES:
+
+        A cuspidal curve::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: C = Curve(x^3 - y^2*z)
+            sage: C.plot()
+
+        The other affine patches of the same curve::
+
+            sage: C.plot(patch=0)
+            sage: C.plot(patch=1)
+
+        An elliptic curve::
+
+            sage: E = EllipticCurve('101a')
+            sage: C = Curve(E)
+            sage: C.plot()
+            sage: C.plot(patch=0)
+            sage: C.plot(patch=1)
+
+        A hyperelliptic curve::
+
+            sage: P.<x> = QQ[]
+            sage: f = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C = HyperellipticCurve(f)
+            sage: C.plot()
+            sage: C.plot(patch=0)
+            sage: C.plot(patch=1)
+        """
+        # if user hasn't specified a favourite affine patch, take the
+        # one avoiding "infinity", i.e. the one corresponding to the
+        # last projective coordinate being nonzero
+        patch = kwds.pop('patch', self.ngens() - 1)
+        from constructor import Curve
+        C = Curve(self.affine_patch(patch))
+        return C.plot(*args, **kwds)
+
 
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
     def rational_points(self, algorithm="enum", sort=True):
@@ -413,4 +473,33 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         else:
 
             raise ValueError, "No algorithm '%s' known"%algorithm
+
+def Hasse_bounds(q, genus=1):
+    r"""
+    Return the Hasse-Weil bounds for the cardinality of a nonsingular
+    curve defined over `\GF{q}` of given ``genus``.
+
+    INPUT:
+
+    - ``q`` (int) -- a prime power
+
+    - ``genus`` (int, default 1) -- a non-negative integer,
+
+    OUTPUT:
+
+    (tuple)  The Hasse bounds (lb,ub) for the cardinality of a curve of
+    genus ``genus`` defined over `\GF{q}`.
+
+    EXAMPLES::
+
+        sage: Hasse_bounds(2)
+        (1, 5)
+        sage: Hasse_bounds(next_prime(10^30))
+        (999999999999998000000000000058, 1000000000000002000000000000058)
+    """
+    if genus==1:
+        rq = (4*q).isqrt()
+    else:
+        rq = (4*(genus**2)*q).isqrt()
+    return (q+1-rq,q+1+rq)
 

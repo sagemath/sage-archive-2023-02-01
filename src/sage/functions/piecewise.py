@@ -77,9 +77,9 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative
 
-from sage.calculus.calculus import SR, var, maxima
+from sage.calculus.calculus import SR, var, maxima, is_SymbolicExpression
 
-def piecewise(list_of_pairs):
+def piecewise(list_of_pairs, var=None):
     """
     Returns a piecewise function from a list of (interval, function)
     pairs.
@@ -88,6 +88,11 @@ def piecewise(list_of_pairs):
     fcn is a Sage function (such as a polynomial over RR, or functions
     using the lambda notation), and I is an interval such as I = (1,3).
     Two consecutive intervals must share a common endpoint.
+
+    If the optional ``var`` is specified, then any symbolic expressions
+    in the list will be converted to symbolic functions using
+    ``fcn.function(var)``.  (This says which variable is considered to
+    be "piecewise".)
 
     We assume that these definitions are consistent (ie, no checking is
     done).
@@ -101,8 +106,14 @@ def piecewise(list_of_pairs):
         -1
         sage: f(3)
         2
+        sage: f = Piecewise([[(0,1),x], [(1,2),x^2]], x); f
+        Piecewise defined function with 2 parts, [[(0, 1), x |--> x], [(1, 2), x |--> x^2]]
+        sage: f(0.9)
+        0.900000000000000
+        sage: f(1.1)
+        1.21000000000000
     """
-    return PiecewisePolynomial(list_of_pairs)
+    return PiecewisePolynomial(list_of_pairs, var=var)
 
 Piecewise = piecewise
 
@@ -121,20 +132,33 @@ class PiecewisePolynomial:
         sage: f(3)
         2
     """
-    def __init__(self, list_of_pairs):
+    def __init__(self, list_of_pairs, var=None):
         r"""
         ``list_of_pairs`` is a list of pairs (I, fcn), where
         fcn is a Sage function (such as a polynomial over RR, or functions
         using the lambda notation), and I is an interval such as I = (1,3).
         Two consecutive intervals must share a common endpoint.
 
+        If the optional ``var`` is specified, then any symbolic
+        expressions in the list will be converted to symbolic
+        functions using ``fcn.function(var)``.  (This says which
+        variable is considered to be "piecewise".)
+
         We assume that these definitions are consistent (ie, no checking is
         done).
         """
         self._length = len(list_of_pairs)
         self._intervals = [x[0] for x in list_of_pairs]
-        self._functions = [x[1] for x in list_of_pairs]
-        self._list = list_of_pairs
+        functions = [x[1] for x in list_of_pairs]
+        if var is not None:
+            for i in range(len(functions)):
+                if is_SymbolicExpression(functions[i]):
+                    functions[i] = functions[i].function(var)
+        self._functions = functions
+        # We regenerate self._list in case self._functions was modified
+        # above.  This also protects us in case somebody mutates a list
+        # after they use it as an argument to piecewise().
+        self._list = [[self._intervals[i], self._functions[i]] for i in range(self._length)]
 
     def list(self):
         return self._list
@@ -166,31 +190,31 @@ class PiecewisePolynomial:
             self.length(),self.list())
 
     def _latex_(self):
-	r"""
-	EXAMPLES::
+        r"""
+        EXAMPLES::
 
-	    sage: f1(x) = 1
-	    sage: f2(x) = 1 - x
-	    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-	    sage: latex(f)
-	    \begin{cases}
-	    x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
-	    x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}\cr
-	    \end{cases}
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: latex(f)
+            \begin{cases}
+            x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}\cr
+            \end{cases}
 
-	::
+        ::
 
-	    sage: f(x) = sin(x*pi/2)
-	    sage: g(x) = 1-(x-1)^2
-	    sage: h(x) = -x
-	    sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
-	    sage: latex(P)
-	    \begin{cases}
-	    x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
-	    x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
-	    x \ {\mapsto}\ -x &\text{on  $(3, 5)$}\cr
-	    \end{cases}
-	"""
+            sage: f(x) = sin(x*pi/2)
+            sage: g(x) = 1-(x-1)^2
+            sage: h(x) = -x
+            sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
+            sage: latex(P)
+            \begin{cases}
+            x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
+            x \ {\mapsto}\ -x &\text{on  $(3, 5)$}\cr
+            \end{cases}
+        """
         from sage.misc.latex import latex
         tex = ['\\begin{cases}\n']
         for (left, right), f in self.list():
@@ -311,8 +335,8 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-            sage: f1 = x^2                   ## example 1
-            sage: f2 = 5-x^2
+            sage: f1(x) = x^2                   ## example 1
+            sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f._riemann_sum_helper(6, lambda x0, x1: (x1-x0)*f(x1))
             19/6
@@ -340,8 +364,8 @@ class PiecewisePolynomial:
 
         EXAMPLES::
 
-            sage: f1 = x^2                   ## example 1
-            sage: f2 = 5-x^2
+            sage: f1(x) = x^2                   ## example 1
+            sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.riemann_sum_integral_approximation(6)
             17/6
@@ -382,7 +406,7 @@ class PiecewisePolynomial:
 
         ::
 
-            sage: f = Piecewise([[(-1,1),1-x^2]])
+            sage: f = Piecewise([[(-1,1),(1-x^2).function(x)]])
             sage: rsf = f.riemann_sum(7)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
@@ -391,7 +415,7 @@ class PiecewisePolynomial:
 
         ::
 
-            sage: f = Piecewise([[(-1,1),1/2+x-x^3]]) ## example 3
+            sage: f = Piecewise([[(-1,1),(1/2+x-x^3)]], x) ## example 3
             sage: rsf = f.riemann_sum(8)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
@@ -658,7 +682,7 @@ class PiecewisePolynomial:
             sage: f2(x) = 3 - x
             sage: f = Piecewise([[(-2, 0), f1], [(0, 3), f2]])
             sage: f.integral()
-            Piecewise defined function with 2 parts, [[(-2, 0), 2*(x + 2)], [(0, 3), (6*x - x^2)/2 + 4]]
+            Piecewise defined function with 2 parts, [[(-2, 0), x |--> 2*(x + 2)], [(0, 3), x |--> (6*x - x^2)/2 + 4]]
 
             sage: f1(y) = -1
             sage: f2(y) = y + 3
@@ -668,11 +692,10 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-4,-3),f1],[(-3,-2),f2],[(-2,0),f3],[(0,2),f4],[(2,3),f5]])
             sage: F = f.integral(y)
             sage: F
-            Piecewise defined function with 5 parts, [[(-4, -3), -y - 4],
-            [(-3, -2), (y^2 + 6*y)/2 + 7/2], [(-2, 0), (-y^2 - 2*y)/2 - 1/2],
-            [(0, 2), (y^3 - 3*y)/3 - 1/2], [(2, 3), 3*(y - 2) + 1/6]]
+            Piecewise defined function with 5 parts, [[(-4, -3), y |--> -y - 4], [(-3, -2), y |--> (y^2 + 6*y)/2 + 7/2], [(-2, 0), y |--> (-y^2 - 2*y)/2 - 1/2], [(0, 2), y |--> (y^3 - 3*y)/3 - 1/2], [(2, 3), y |--> 3*(y - 2) + 1/6]]
 
-            Ensure results are consistant with FTC:
+        Ensure results are consistant with FTC::
+
             sage: F(-3) - F(-4)
             -1
             sage: F(-1) - F(-3)
@@ -688,21 +711,23 @@ class PiecewisePolynomial:
             sage: f.integral(definite=True)
             19/6
 
+        ::
+
             sage: f1(y) = (y+3)^2
             sage: f2(y) = y+3
             sage: f3(y) = 3
             sage: f = Piecewise([[(-infinity, -3), f1], [(-3, 0), f2], [(0, infinity), f3]])
             sage: f.integral()
-            Piecewise defined function with 3 parts, [[(-Infinity, -3), (y^3 + 9*y^2 + 27*y)/3 + 9],
-            [(-3, 0), (y^2 + 6*y)/2 + 9/2], [(0, +Infinity), 3*y + 9/2]]
+            Piecewise defined function with 3 parts, [[(-Infinity, -3), y |--> (y^3 + 9*y^2 + 27*y)/3 + 9], [(-3, 0), y |--> (y^2 + 6*y)/2 + 9/2], [(0, +Infinity), y |--> 3*y + 9/2]]
+
+        ::
 
             sage: f1(x) = e^(-abs(x))
             sage: f = Piecewise([[(-infinity, infinity), f1]])
             sage: f.integral(definite=True)
             2
             sage: f.integral()
-            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity),
-            -integrate(e^(-abs(x)), x, x, +Infinity)]]
+            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity), x |--> -integrate(e^(-abs(x)), x, x, +Infinity)]]
         """
         if a != None and b != None:
             F = self.integral(x)
@@ -741,7 +766,7 @@ class PiecewisePolynomial:
                 fun_integrated = fun.integral(x, start, x) + area
                 if definite or end != infinity:
                     area += fun.integral(x, start, end)
-            new_pieces.append([(start, end), fun_integrated])
+            new_pieces.append([(start, end), fun_integrated.function(x)])
 
         if definite:
             return area
@@ -848,21 +873,21 @@ class PiecewisePolynomial:
             sage: f2(x) = 1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, 1), 0], [(1, 2), -1]]
+            Piecewise defined function with 2 parts, [[(0, 1), x |--> 0], [(1, 2), x |--> -1]]
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
+            Piecewise defined function with 2 parts, [[(0, pi/2), x |--> 0], [(pi/2, pi), x |--> 0]]
 
         ::
 
-            sage: f = Piecewise([[(0,1), x * 2]])
+            sage: f = Piecewise([[(0,1), (x * 2)]], x)
             sage: f.derivative()
-            Piecewise defined function with 1 parts, [[(0, 1), 2]]
+            Piecewise defined function with 1 parts, [[(0, 1), x |--> 2]]
         """
         x = var('x')
-        dlist = [[(a, b), derivative(f(x), x)] for (a,b),f in self.list()]
+        dlist = [[(a, b), derivative(f(x), x).function(x)] for (a,b),f in self.list()]
         return Piecewise(dlist)
 
     def tangent_line(self, pt):
@@ -1260,7 +1285,7 @@ class PiecewisePolynomial:
 
 
         OUTPUT: `(f^*(x+)+f^*(x-)/2`, where `f^*` denotes
-        the function `f` extended to `\mathbb{R}` with period
+        the function `f` extended to `\RR` with period
         `2L` (Dirichlet's Theorem for Fourier series).
 
         EXAMPLES::
@@ -1473,27 +1498,27 @@ class PiecewisePolynomial:
 
     def __add__(self,other):
         """
-	Returns the piecewise defined function which is the sum of self and
-	other. Does not require both domains be the same.
+        Returns the piecewise defined function which is the sum of self and
+        other. Does not require both domains be the same.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: x = PolynomialRing(QQ,'x').gen()
-	    sage: f1 = x^0
+            sage: x = PolynomialRing(QQ,'x').gen()
+            sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
             sage: f4 = 10-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-	    sage: g1 = x-2
+            sage: g1 = x-2
             sage: g2 = x-5
             sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
-	    sage: h = f+g
-	    sage: h
+            sage: h = f+g
+            sage: h
             Piecewise defined function with 5 parts, [[(0, 1), x - 1], [(1, 2), -1], [(2, 3), 3*x - 2], [(3, 5), 8], [(5, 10), 5]]
 
-	Note that in this case the functions must be defined using
-	polynomial expressions *not* using the lambda notation.
-	"""
+        Note that in this case the functions must be defined using
+        polynomial expressions *not* using the lambda notation.
+        """
         F, G, intervals = self._make_compatible(other)
         fcn = []
         for a,b in intervals:
@@ -1502,29 +1527,29 @@ class PiecewisePolynomial:
 
     def __mul__(self,other):
         r"""
-	Returns the piecewise defined function which is the product of one
-	piecewise function (self) with another one (other).
+        Returns the piecewise defined function which is the product of one
+        piecewise function (self) with another one (other).
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: x = PolynomialRing(QQ,'x').gen()
-	    sage: f1 = x^0
+            sage: x = PolynomialRing(QQ,'x').gen()
+            sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
             sage: f4 = 10-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-	    sage: g1 = x-2
+            sage: g1 = x-2
             sage: g2 = x-5
             sage: g = Piecewise([[(0,5),g1],[(5,10),g2]])
-	    sage: h = f*g
-	    sage: h
-	    Piecewise defined function with 5 parts, [[(0, 1), x - 2], [(1, 2), -x^2 + 3*x - 2], [(2, 3), 2*x^2 - 4*x], [(3, 5), -x^2 + 12*x - 20], [(5, 10), -x^2 + 15*x - 50]]
+            sage: h = f*g
+            sage: h
+            Piecewise defined function with 5 parts, [[(0, 1), x - 2], [(1, 2), -x^2 + 3*x - 2], [(2, 3), 2*x^2 - 4*x], [(3, 5), -x^2 + 12*x - 20], [(5, 10), -x^2 + 15*x - 50]]
             sage: g*(11/2)
             Piecewise defined function with 2 parts, [[(0, 5), 11/2*x - 11], [(5, 10), 11/2*x - 55/2]]
 
-	Note that in this method the functions must be defined using
-	polynomial expressions *not* using the lambda notation.
-	"""
+        Note that in this method the functions must be defined using
+        polynomial expressions *not* using the lambda notation.
+        """
         ## needed for scalar multiplication
         if isinstance(other,Rational) or isinstance(other,Integer):
             return Piecewise([[(a,b), other*f] for (a,b),f in self.list()])

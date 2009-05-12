@@ -8,8 +8,8 @@ dictionary with exponent tuples as keys and coefficients as
 values.
 
 Additionally, specialized and optimized implementations are
-provided for multivariate polynomials over `\mathbb{Q}` and
-`\mathbb{F}_p`. These are implemented in the classes
+provided for multivariate polynomials over `\QQ` and
+`\GF{p}`. These are implemented in the classes
 ``MPolynomialRing_libsingular`` and
 ``MPolynomial_libsingular``
 
@@ -32,7 +32,7 @@ AUTHORS:
 EXAMPLES:
 
 We construct the Frobenius morphism on
-`\mbox{\rm F}_{5}[x,y,z]` over `\mathbb{F}_5`::
+`\mbox{\rm F}_{5}[x,y,z]` over `\GF{5}`::
 
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])

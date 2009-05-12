@@ -16,7 +16,7 @@ import weakref
 
 from sage.rings.integer import Integer
 
-from sage.modular.congroup import is_CongruenceSubgroup, Gamma0
+from sage.modular.arithgroup.all import is_CongruenceSubgroup, Gamma0
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.misc.misc import prod
 from abvar_newform import ModularAbelianVariety_newform
@@ -101,7 +101,7 @@ def J0(N):
     try:
         return _get(key)
     except ValueError:
-        from sage.modular.congroup import Gamma0
+        from sage.modular.arithgroup.all import Gamma0
         J = Gamma0(N).modular_abelian_variety()
         return _saved(key, J)
 
@@ -119,7 +119,7 @@ def J1(N):
     try:
         return _get(key)
     except ValueError:
-        from sage.modular.congroup import Gamma1
+        from sage.modular.arithgroup.all import Gamma1
         return _saved(key, Gamma1(N).modular_abelian_variety())
 
 def JH(N, H):
@@ -136,7 +136,7 @@ def JH(N, H):
     try:
         return _get(key)
     except ValueError:
-        from sage.modular.congroup import GammaH
+        from sage.modular.arithgroup.all import GammaH
         return _saved(key, GammaH(N, H).modular_abelian_variety())
 
 def AbelianVariety(X):

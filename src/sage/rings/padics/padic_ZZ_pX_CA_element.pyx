@@ -1576,7 +1576,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
         EXAMPLES:
         sage: R = ZpCA(5,5)
-        sage: S.<x> = R[]
+        sage: S.<x> = ZZ[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
         sage: a = (3+w)^7

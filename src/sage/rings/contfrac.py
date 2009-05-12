@@ -115,9 +115,9 @@ class ContinuedFractionField_class(Field):
         r"""
         EXAMPLES:
             sage: latex(CFF)
-            \mathbf{CFF}
+            \Bold{CFF}
         """
-        return "\\mathbf{CFF}"
+        return "\\Bold{CFF}"
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

@@ -141,17 +141,52 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         if par.prime() != self.prime():
             return False
         if par.is_capped_absolute() or par.is_capped_relative() or par.is_lazy():
-            if par.is_capped_absolute() and par.precision_cap() < self.precision_cap():
+            if par.is_capped_absolute() and par.precision_cap() > self.precision_cap():
                 return False
             return True
         return False
 
-    def fraction_field(self):
+    def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of self.
+
+        INPUT:
+        print_mode - a dictionary containing print options.  Defaults to the same options as this ring.
+        OUTPUT:
+        the fraction field of self.
+
+        EXAMPLES:
+            sage: R = Zp(5, print_mode='digits')
+            sage: K = R.fraction_field(); repr(K(1/3))
+            '...31313131313131313132'
+            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))
+            '...3132'
         """
         from sage.rings.padics.factory import Qp
-        return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
+        if print_mode is None:
+            print_mode = {}
+        elif isinstance(print_mode, str):
+            print_mode = {'mode': print_mode}
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+            if not print_mode.has_key(option):
+                print_mode[option] = self._printer.dict()[option]
+        return Qp(self.prime(), self.precision_cap(), print_mode=print_mode)
+
+    def integer_ring(self, print_mode=None):
+        r"""
+        Returns the integer ring of self, possibly with print_mode changed.
+        """
+        if print_mode is None:
+            return self
+        from sage.rings.padics.factory import ZpCA
+        if print_mode is None:
+            print_mode = {}
+        elif isinstance(print_mode, str):
+            print_mode = {'mode': print_mode}
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+            if not print_mode.has_key(option):
+                print_mode[option] = self._printer.dict()[option]
+        return ZpCA(self.prime(), self.precision_cap(), print_mode=print_mode)
 
     def random_element(self):
         """

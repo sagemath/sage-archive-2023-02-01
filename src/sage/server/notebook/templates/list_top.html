@@ -2,8 +2,11 @@
 
 
 {% if pub is not defined or not pub %}
-<a class="boldusercontrol" href="/new_worksheet">New Worksheet</a>
+<a class="boldusercontrol" href="/new_worksheet" target="_blank">New Worksheet</a>
 <a class="boldusercontrol" href="/upload">Upload</a>
+{% if not accounts %}
+<a class="boldusercontrol" href="/download_worksheets">Download All</a>
+{% endif %}
 {% endif %}
 
 {% include 'search.html' %}

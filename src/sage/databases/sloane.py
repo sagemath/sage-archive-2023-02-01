@@ -3,19 +3,19 @@ Interface to Sloane On-Line Encyclopedia of Integer Sequences
 
 To look up sequence A060843, type one of the following::
 
-    sage: sloane_sequence(60843)       # optional -- requires internet
+    sage: sloane_sequence(60843)       # optional - internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
 ::
 
-    sage: sloane_sequence("60843")     # optional -- requires internet
+    sage: sloane_sequence("60843")     # optional - internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
 ::
 
-    sage: sloane_sequence("060843")    # optional -- requires internet
+    sage: sloane_sequence("060843")    # optional - internet
     Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
@@ -24,7 +24,7 @@ octal. Results are of the form [number, description, list], and
 invalid numbers will cause ``sloane_sequence`` to
 raise an ValueError exception::
 
-    sage: sloane_sequence('sage')     # optional -- requires internet
+    sage: sloane_sequence('sage')     # optional - internet
     Traceback (most recent call last):
     ...
     ValueError: sequence 'sage' not found
@@ -33,7 +33,7 @@ To look up the sequence
 
 ::
 
-    sage: sloane_find([2,3,5,7], 2)       # optional -- requires internet
+    sage: sloane_find([2,3,5,7], 2)       # optional - internet
     Searching Sloane's online database...
     [[40, 'The prime numbers.', [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271]], [41, 'a(n) = number of partitions of n (the partition numbers).', [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134]]]
 
@@ -41,9 +41,9 @@ To return no more than 2 results (default is 30), type
 
 ::
 
-    sage: sloane_find([1,2,3,4,5], 2)      # optional -- requires internet
+    sage: sloane_find([1,2,3,4,5], 2)      # optional - internet
     Searching Sloane's online database...
-    [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers.', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
+    [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers p^k (p prime, k &gt;= 0).', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
 
 Note that the OEIS (http://www.research.att.com/ njas/sequences/)
 claims to limit the number of results to 100. Results are lists of
@@ -288,7 +288,7 @@ def sloane_sequence(number):
 
     EXAMPLES::
 
-        sage: sloane_sequence(22) #optional -- requires internet
+        sage: sloane_sequence(22) # optional - internet
         Searching Sloane's online database...
         [22,
          'Number of centered hydrocarbons with n atoms.',
@@ -298,7 +298,19 @@ def sloane_sequence(number):
           1,
           ...
           36201693122]]
+
+    The input must not be a sequence itself::
+
+        sage: sloane_sequence(prime_range(100))
+        Traceback (most recent call last):
+        ...
+        TypeError: input must be an integer or string that specifies the id of the Sloane sequence to download
     """
+    if not isinstance(number, str):
+        try:
+            number = str(ZZ(number))
+        except TypeError:
+            raise TypeError, "input must be an integer or string that specifies the id of the Sloane sequence to download"
     results = sloane_find('id:A%s'%number)
     if len(results) == 0:
         raise ValueError, "sequence '%s' not found"%number
@@ -328,7 +340,7 @@ def sloane_find(list, nresults = 30, verbose=True):
 
     EXAMPLES::
 
-        sage: sloane_find([1,1,2,3,5,8,13,21], nresults=1) #optional -- requires internet
+        sage: sloane_find([1,1,2,3,5,8,13,21], nresults=1) #optional - internet
         Searching Sloane's online database...
         [[45,
           'Fibonacci numbers: F(n) = F(n-1) + F(n-2), F(0) = 0, F(1) = 1, F(2) = 1, ...',

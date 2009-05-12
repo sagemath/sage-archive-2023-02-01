@@ -36,7 +36,7 @@ class AbelianGroupMap(Morphism):
     A set-theoretic map between AbelianGroups.
     """
     def __init__(self, parent):
-	Morphism.__init__(self, parent)
+        Morphism.__init__(self, parent)
 
     def _repr_type(self):
         return "AbelianGroup"
@@ -104,7 +104,7 @@ class AbelianGroupMorphism:
         self._codomain = H
         if not(G.is_abelian()):
             raise TypeError, "Sorry, the groups must be abelian groups."
-    	if not(H.is_abelian()):
+        if not(H.is_abelian()):
             raise TypeError, "Sorry, the groups must be abelian groups."
         G_domain = G.subgroup(genss)
         if G_domain.order() != G.order():
@@ -134,8 +134,8 @@ class AbelianGroupMorphism:
             sage: phi._gap_init_()
             'phi := GroupHomomorphismByImages(G,H,[x, y],[a, b])'
         """
-      	G  = (self.domain())._gap_init_()
-    	H  = (self.range())._gap_init_()
+        G  = (self.domain())._gap_init_()
+        H  = (self.range())._gap_init_()
         # print G,H
         s3 = 'G:=%s; H:=%s'%(G,H)
         #print s3,"\n"
@@ -155,9 +155,9 @@ class AbelianGroupMorphism:
            cmd = ("%s := gensH["+str(i+1)+"]")%gensH[i]
            #print i,"  \n",cmd
            gap.eval(cmd)
-    	args = str(self.domaingens)+","+ str(self.codomaingens)
+        args = str(self.domaingens)+","+ str(self.codomaingens)
         #print args,"\n"
-    	gap.eval("phi := GroupHomomorphismByImages(G,H,"+args+")")
+        gap.eval("phi := GroupHomomorphismByImages(G,H,"+args+")")
         self.gap_hom_string = "phi := GroupHomomorphismByImages(G,H,"+args+")"
         return self.gap_hom_string
 
@@ -221,21 +221,21 @@ class AbelianGroupMorphism:
 
     def __call__( self, g ):
         """
-    	Some python code for wrapping GAP's Images function but only for
-    	permutation groups. Returns an error if g is not in G.
+        Some python code for wrapping GAP's Images function but only for
+        permutation groups. Returns an error if g is not in G.
 
-    	EXAMPLES::
+        EXAMPLES::
 
-    	    sage: H = AbelianGroup(3, [2,3,4], names="abc")
-    	    sage: a,b,c = H.gens()
-    	    sage: G = AbelianGroup(2, [2,3], names="xy")
-    	    sage: x,y = G.gens()
-    	    sage: phi = AbelianGroupMorphism(G,H,[x,y],[a,b])
-    	    sage: phi(y*x)
-    	    a*b
-    	    sage: phi(y^2)
-    	    b^2
-    	"""
+            sage: H = AbelianGroup(3, [2,3,4], names="abc")
+            sage: a,b,c = H.gens()
+            sage: G = AbelianGroup(2, [2,3], names="xy")
+            sage: x,y = G.gens()
+            sage: phi = AbelianGroupMorphism(G,H,[x,y],[a,b])
+            sage: phi(y*x)
+            a*b
+            sage: phi(y^2)
+            b^2
+        """
         G = g.parent()
         w = g.word_problem(self.domaingens)
         n = len(w)
@@ -243,7 +243,7 @@ class AbelianGroupMorphism:
         # g.word_problem is faster in general than word_problem(g)
         gens = self.codomaingens
         h = prod([gens[(self.domaingens).index(w[i][0])]**(w[i][1]) for i in range(n)])
-    	return h
+        return h
 
 
 

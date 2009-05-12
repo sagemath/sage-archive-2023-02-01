@@ -16,6 +16,7 @@ AUTHORS:
     -- Martin Albrecht (2007-01): initial implementation
     -- Joel Mohler (2008-01): misc improvements, polishing
     -- Martin Albrecht (2008-08): added QQ(a) and ZZ support
+    -- Simon King (2009-04): improved coercion
 
 TODO:
    -- implement Real, Complex
@@ -591,10 +592,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: x in F
             False
         """
-        cdef poly *_p, *mon
+        cdef poly *_p, *mon, *_element
         cdef ring *_ring = self._ring
-        cdef unsigned int pos
-        rChangeCurrRing(_ring)
+        cdef ring *El_ring
+        cdef MPolynomial_libsingular Element
+        cdef MPolynomialRing_libsingular El_parent
+        cdef unsigned int i, j
+        if _ring!=currRing: rChangeCurrRing(_ring)
 
         # try to coerce first
         try:
@@ -630,22 +634,34 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 # of course).  This is here since R(blah) is supposed
                 # to be "make an element of R if at all possible with
                 # no guarantees that this is mathematically solid."
-                # TODO: We can do this faster without the dict
                 _p = p_ISet(0, _ring)
                 K = self.base_ring()
-                for (m,c) in element.dict().iteritems():
+                base = self._base
+                Element = <MPolynomial_libsingular>element
+                _element = Element._poly
+                El_parent = <MPolynomialRing_libsingular>Element.parent()
+                El_ring = El_parent._ring
+                El_base = El_parent._base
+
+                while _element:
+                    rChangeCurrRing(El_ring)
+                    c = co.si2sa(p_GetCoeff(_element, El_ring), El_ring, El_base)
                     try:
                         c = K(c)
-                        if not c: continue
                     except TypeError, msg:
                         p_Delete(&_p, _ring)
                         raise TypeError, msg
-                    mon = p_Init(_ring)
-                    p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
-                    for pos in m.nonzero_positions():
-                        p_SetExp(mon, pos+1, m[pos], _ring)
-                    p_Setm(mon, _ring)
-                    _p = p_Add_q(_p, mon, _ring)
+                    if c:
+                        rChangeCurrRing(_ring)
+                        mon = p_Init(_ring)
+                        p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
+                        for j from 1 <= j <= _ring.N:
+                            mpos = p_GetExp(_element,j,_ring)
+                            if mpos:
+                                p_SetExp(mon, j, mpos, _ring)
+                        p_Setm(mon, _ring)
+                        _p = p_Add_q(_p, mon, _ring)
+                    _element = pNext(_element)
                 return co.new_MP(self, _p)
 
         if PY_TYPE_CHECK(element, MPolynomial_polydict):

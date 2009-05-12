@@ -36,6 +36,9 @@ import user         # users
 
 from cgi import escape
 
+# latex macros
+from sage.misc.latex_macros import sage_jsmath_macros
+
 SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'r', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
 # We also record the system names without (optional) since they are
@@ -909,6 +912,7 @@ class Notebook(SageObject):
         t = escape(t)
         s = '<head>\n'
         s += '<title>Command History</title>\n'
+        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
         s += '</head>\n'
         s += '<body>\n'
         s += '<pre>' + t + '</pre>\n'
@@ -1171,6 +1175,7 @@ class Notebook(SageObject):
         t = escape(t)
         s = '<head>\n'
         s += '<title>Sage Worksheet: %s</title>\n'%W.name()
+        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
         s += '</head>\n'
         s += '<body>\n'
         s += '<h1><a href=".">Sage Worksheet: %s</a></h1>\n'%W.name()
@@ -1308,6 +1313,7 @@ class Notebook(SageObject):
         W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
         s += '<title>Sage Worksheet: %s</title>\n'%W.name()
+        s += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
         s += '<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         if do_print:
@@ -1715,6 +1721,7 @@ class Notebook(SageObject):
         else:
             head = '\n<title>Sage Notebook | Welcome</title>'
 
+        head += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
         # Load the Sage javascript libray.
         head += '\n<script type="text/javascript" src="/javascript_local/jquery/jquery.js"></script>'
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
@@ -1751,7 +1758,12 @@ jsMath.styles = {
          jsMath.Extension.Require("verb");
          jsMath.Extension.Require("moreArrows");
          jsMath.Extension.Require("AMSmath");
+         jsMath.Extension.Require("AMSsymbols");
 </script>'''
+
+        # import latex macros
+        for m in sage_jsmath_macros:
+            head += '<script>' + m + '</script>\n'
 
         # Load the jquery and ui-jquery javascript library.
         # This is used for interact functionality in the notebook, and will be used
@@ -1794,10 +1806,10 @@ jsMath.styles = {
 <script type="text/javascript">
 
 function toggleEditor(id) {
-	if (!tinyMCE.get(id))
-		tinyMCE.execCommand('mceAddControl', false, id);
-	else
-		tinyMCE.execCommand('mceRemoveControl', false, id);
+        if (!tinyMCE.get(id))
+                tinyMCE.execCommand('mceAddControl', false, id);
+        else
+                tinyMCE.execCommand('mceRemoveControl', false, id);
 }
 
 $.fn.tinymce = function(options){

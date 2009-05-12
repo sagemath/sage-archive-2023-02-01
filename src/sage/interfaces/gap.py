@@ -232,9 +232,6 @@ class Gap(Expect):
             sage: gap == loads(dumps(gap))
             True
         """
-        if os.uname()[-1] == 'ia64':
-            # workspace cache is buggy on Itanium in GAP-4.4.12 -- see #5455.
-            use_workspace_cache = False
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"
@@ -808,7 +805,7 @@ class Gap(Expect):
         EXAMPLES::
 
             sage: gap.console() #not tested
-            GAP4, Version: 4.4.12 of 17-Dec-2008, x86_64-unknown-linux-gnu-gcc
+            GAP4, Version: 4.4.10 of 02-Oct-2007, x86_64-unknown-linux-gnu-gcc
             gap>
         """
         gap_console()
@@ -820,7 +817,7 @@ class Gap(Expect):
         EXAMPLES::
 
             sage: gap.version()
-            '4.4.12'
+            '4.4.10'
         """
         return gap_version()
 
@@ -1286,7 +1283,7 @@ def gap_console(use_workspace_cache=True):
     EXAMPLES::
 
         sage: gap.console() #not tested
-        GAP4, Version: 4.4.12 of 17-Dec-2008, x86_64-unknown-linux-gnu-gcc
+        GAP4, Version: 4.4.10 of 02-Oct-2007, x86_64-unknown-linux-gnu-gcc
         gap>
     """
     cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
@@ -1299,7 +1296,7 @@ def gap_version():
     EXAMPLES::
 
         sage: gap_version()
-        '4.4.12'
+        '4.4.10'
     """
     return gap.eval('VERSION')[1:-1]
 

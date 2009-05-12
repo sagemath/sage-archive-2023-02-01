@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Lisp Interface
 
 EXAMPLES:
@@ -78,7 +78,7 @@ class Lisp(Expect):
                         prompt = '\[[0-9]+\]> ',
 
                         # This is the command that starts up your program
-                        command = "clisp --silent -on-error abort",
+                        command = "clisp-noreadline --silent -on-error abort",
 
                         maxread = maxread,
                         server=server,
@@ -108,6 +108,11 @@ class Lisp(Expect):
         EXAMPLES:
             sage: lisp.eval('(+ 2 2)')
             '4'
+
+        TEST:
+            # Verify that it works when input == output
+            sage: lisp.eval('2')
+            '2'
         """
         with gc_disabled():
             self._synchronize()
@@ -119,13 +124,9 @@ class Lisp(Expect):
                 if L != '':
                     try:
                         s = self.__in_seq + 1
-                        pr = '\[%s\]>'%s
                         M = self._eval_line(L, wait_for_prompt=self._prompt)
-                        phrase = '[C\x1b[C\n'
-                        phrase = phrase if phrase in M else L
-                        i = M.rfind(phrase)
-                        if i > 1:
-                            M = M[i+len(phrase):]
+                        if M.startswith(L + "\n"):
+                            M = M[len(L):]      # skip L in case it was echoed
                         x.append(M.strip())
                         self.__in_seq = s
                     except KeyboardInterrupt:
@@ -153,6 +154,11 @@ class Lisp(Expect):
             sage: lisp.set('x', '2')
             sage: lisp.get('x')
             '2'
+
+       TEST:
+            # it must also be possible to eval the variable by name
+            sage: lisp.eval('x')
+            '2'
         """
         cmd = '(setq %s %s)'%(var, value)
         out = self.eval(cmd)
@@ -166,7 +172,7 @@ class Lisp(Expect):
             sage: lisp.get('x')
             '2'
         """
-        out = self.eval(var).lstrip().lstrip(var).lstrip()
+        out = self.eval(var)
         return out
 
     def _start(self, *args, **kwds):

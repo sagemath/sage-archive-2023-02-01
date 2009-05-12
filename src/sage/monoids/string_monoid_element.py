@@ -230,7 +230,7 @@ class StringMonoidElement(FreeMonoidElement):
             'A..Za..z'
         """
         S = self.parent()
-	from Crypto.Util.number import long_to_bytes
+        from Crypto.Util.number import long_to_bytes
         if isinstance(S,string_monoid.AlphabeticStringMonoid):
             return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
         n = self.__len__()
@@ -292,24 +292,24 @@ class StringMonoidElement(FreeMonoidElement):
         """
         if not length in (1,2):
             raise NotImplementedError, "Not implemented"
-	if prec == 0:
+        if prec == 0:
             RR = RealField()
         else:
             RR = RealField(prec)
-	S = self.parent()
+        S = self.parent()
         n = S.ngens()
-	if length == 1:
-	    Alph = S.gens()
-	else:
-	    Alph = tuple([ x*y for x in S.gens() for y in S.gens() ])
+        if length == 1:
+            Alph = S.gens()
+        else:
+            Alph = tuple([ x*y for x in S.gens() for y in S.gens() ])
         X = {}
         N = len(self)-length+1
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
-	    if X.has_key(c):
+            if X.has_key(c):
                 X[c] += eps
-	    else:
+            else:
                 X[c] = eps
         return DiscreteProbabilitySpace(Alph,X,RR)
 

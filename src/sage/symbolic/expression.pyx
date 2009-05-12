@@ -371,6 +371,35 @@ cdef class Expression(CommutativeRingElement):
             e = g_ge(l._gobj, r._gobj)
         return new_Expression_from_GEx(e)
 
+    cpdef bint is_polynomial(self, var):
+        """
+        Return True if self is a polynomial in the given variable.
+
+        EXAMPLES::
+
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: t = x^2 + y; t
+            x^2 + y
+            sage: t.is_polynomial(x)
+            True
+            sage: t.is_polynomial(y)
+            True
+            sage: t.is_polynomial(z)
+            True
+
+            sage: t = sin(x) + y; t
+            y + sin(x)
+            sage: t.is_polynomial(x)
+            False
+            sage: t.is_polynomial(y)
+            True
+            sage: t.is_polynomial(sin(x))
+            True
+        """
+        cdef Expression symbol0 = self.coerce_in(var)
+        return self._gobj.is_polynomial(symbol0._gobj)
+
     cpdef bint is_relational(self):
         """
         Return True if self is a relational expression.
@@ -949,6 +978,47 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.match(p._gobj)
+
+    def find(self, pattern):
+        """
+        Find all occurences of the given pattern in this expression.
+
+        Note that once a subexpression matches the pattern, the search doesn't
+        extend to subexpressions of it.
+
+        EXAMPLES::
+
+            sage: var('x,y,z,a,b',ns=1); S = parent(x)
+            (x, y, z, a, b)
+            sage: w0 = S.wild(0); w1 = S.wild(1)
+
+            sage: (sin(x)*sin(y)).find(sin(w0))
+            [sin(x), sin(y)]
+
+            sage: ((sin(x)+sin(y))*(a+b)).expand().find(sin(w0))
+            [sin(x), sin(y)]
+
+            sage: (1+x+x^2+x^3).find(x)
+            [x]
+            sage: (1+x+x^2+x^3).find(x^w0)
+            [x^3, x^2]
+
+            sage: (1+x+x^2+x^3).find(y)
+            []
+
+            # subexpressions of a match are not listed
+            sage: ((x^y)^z).find(w0^w1)
+            [(x^y)^z]
+        """
+        cdef Expression p = self.coerce_in(pattern)
+        cdef GExList found
+        self._gobj.find(p._gobj, found)
+        res = []
+        cdef GExListIter itr = found.begin()
+        while itr.is_not_equal(found.end()):
+            res.append(new_Expression_from_GEx(itr.obj()))
+            itr.inc()
+        return res
 
     def has(self, pattern):
         """

@@ -51,11 +51,11 @@ class Cryptosystem(parent_old.Parent, Set_generic):
       key.
       """
       def __init__(self, plaintext_space, ciphertext_space, key_space, block_length = 1, period = None):
-	  self._cipher_domain = plaintext_space
-	  self._cipher_codomain = ciphertext_space
-	  self._key_space = key_space
-	  self._block_length = block_length
-	  self._period = period
+          self._cipher_domain = plaintext_space
+          self._cipher_codomain = ciphertext_space
+          self._key_space = key_space
+          self._block_length = block_length
+          self._period = period
 
       def __eq__(self,right):
             return type(self) == type(right) and  \
@@ -67,27 +67,27 @@ class Cryptosystem(parent_old.Parent, Set_generic):
 
 
       def plaintext_space(self):
-	  return self._cipher_domain
+          return self._cipher_domain
 
       def cipher_domain(self):
-	  return self._cipher_domain
+          return self._cipher_domain
 
       def ciphertext_space(self):
-	  return self._cipher_codomain
+          return self._cipher_codomain
 
       def cipher_codomain(self):
-	  return self._cipher_codomain
+          return self._cipher_codomain
 
       def key_space(self):
-	  return self._key_space
+          return self._key_space
 
       def block_length(self):
           return self._block_length
 
       def period(self):
-	  if self._period is None:
-	      raise TypeError, "Argument has no associated period."
-	  return self._period
+          if self._period is None:
+              raise TypeError, "Argument has no associated period."
+          return self._period
 
 class SymmetricKeyCryptosystem(Cryptosystem):
       """

@@ -5,12 +5,12 @@ The quotient of the
 extended upper half plane :math:`\mathfrak{h}^*` by the congruence subgroup
 :math:`\Gamma_1(N)` is the modular curve :math:`X_1(N)`. Its
 Jacobian :math:`J_1(N)` is an abelian variety that is
-canonically defined over :math:`\mathbb{Q}`. Likewise, one
+canonically defined over :math:`\QQ`. Likewise, one
 defines a modular abelian variety :math:`J_0(N)` associated to
 :math:`\Gamma_0(N)`.
 
     A modular abelian variety is an abelian variety over
-    :math:`\mathbb{Q}` that is a quotient of :math:`J_1(N)` for
+    :math:`\QQ` that is a quotient of :math:`J_1(N)` for
     some :math:`N`.
 
 

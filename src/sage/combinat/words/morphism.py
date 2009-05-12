@@ -737,29 +737,29 @@ class WordMorphism(SageObject):
 
     def _check_primitive(self):
         r"""
-    	Returns True if all the letters of the domain appear in all the
-    	images of letters of the domain.
+        Returns True if all the letters of the domain appear in all the
+        images of letters of the domain.
 
-    	INPUT:
-
-
-    	-  ``self`` - the codomain must be an instance of
-    	   Words
+        INPUT:
 
 
-    	EXAMPLES::
+        -  ``self`` - the codomain must be an instance of
+           Words
 
-    	    sage: m = WordMorphism('a->ab,b->ba')
-    	    sage: m._check_primitive()
-    	    True
-    	    sage: fibo = WordMorphism('a->ab,b->a')
-    	    sage: fibo._check_primitive()
-    	    False
-    	    sage: print WordMorphism({2:[4,5,6],3:[4,1,8]})
-    	    WordMorphism: 2->456, 3->418
-    	    sage: WordMorphism({2:[4,5,6],3:[4,1,8]})._check_primitive()
-    	    False
-    	"""
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->ab,b->ba')
+            sage: m._check_primitive()
+            True
+            sage: fibo = WordMorphism('a->ab,b->a')
+            sage: fibo._check_primitive()
+            False
+            sage: print WordMorphism({2:[4,5,6],3:[4,1,8]})
+            WordMorphism: 2->456, 3->418
+            sage: WordMorphism({2:[4,5,6],3:[4,1,8]})._check_primitive()
+            False
+        """
         if not is_Words(self.codomain()):
             raise TypeError, "codomain of self(=%s) must be an instance of Words"%self
 

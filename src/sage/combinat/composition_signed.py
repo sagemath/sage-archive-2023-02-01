@@ -30,7 +30,7 @@ def SignedCompositions(n):
 
         sage: SC3 = SignedCompositions(3); SC3
         Signed compositions of 3
-        sage: SC3.count()
+        sage: SC3.cardinality()
         18
         sage: len(SC3.list())
         18
@@ -110,19 +110,19 @@ class SignedCompositions_n(CombinatorialClass):
 
         return sum([abs(i) for i in x]) == self.n
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
             sage: SC4 = SignedCompositions(4)
-            sage: SC4.count() == len(SC4.list())
+            sage: SC4.cardinality() == len(SC4.list())
             True
-            sage: SignedCompositions(3).count()
+            sage: SignedCompositions(3).cardinality()
             18
         """
         return sum([ binomial(self.n-1, i-1)*2**(i) for i in range(1, self.n+1)])
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 

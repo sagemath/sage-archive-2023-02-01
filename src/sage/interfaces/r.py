@@ -958,7 +958,7 @@ class R(Expect):
         """
         return prompt_re.sub("", code)
 
-    def eval(self, *args, **kwds):
+    def eval(self, code, globals=None, locals=None, synchronize=True, *args, **kwds):
         """
         Evaluates a command inside the R interpreter and returns the output
         as a string.
@@ -966,21 +966,10 @@ class R(Expect):
         EXAMPLES:
             sage: r.eval('1+1')
             '[1] 2'
-
-        You must give r.eval at least one input:
-            sage: r.eval()
-            Traceback (most recent call last):
-            ...
-            TypeError: R eval takes at least one argument
         """
         # TODO split code at ";" outside of quotes and send them as individual
         #      lines without ";".
-        if len(args) == 0:
-            raise TypeError, "R eval takes at least one argument"
-        else:
-            code = args[0]
-            ret = Expect.eval(self, code, synchronize=True, *args,**kwds)
-            return ret
+        return Expect.eval(self, code, synchronize=synchronize, *args, **kwds)
 
     def _r_to_sage_name(self, s):
         """

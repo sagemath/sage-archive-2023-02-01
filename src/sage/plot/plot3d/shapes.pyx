@@ -45,6 +45,7 @@ cdef extern from "math.h":
     double asin(double)
     double acos(double)
     double atan(double)
+    double M_PI
 
 from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
@@ -73,6 +74,11 @@ class Box(IndexFaceSet):
         sage: show(B, figsize=6)
     """
     def __init__(self, *size, **kwds):
+        """
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: Box(10, 1, 1) + Box(1, 10, 1) + Box(1, 1, 10)
+        """
         if isinstance(size[0], (tuple, list)):
             from shapes2 import validate_frame_size
             size = validate_frame_size(size[0])
@@ -94,7 +100,13 @@ class Box(IndexFaceSet):
         return tuple([-a for a in self.size]), tuple(self.size)
 
     def x3d_geometry(self):
-        return "<Box size='%s %s %s'/>"%self.size
+        """
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: Box([1,2,1/4]).x3d_geometry()
+            "<Box size='1.0 2.0 0.25'/>"
+        """
+        return "<Box size='%s %s %s'/>" % tuple(self.size)
 
 def ColorCube(size, colors, opacity=1, **kwds):
     """
@@ -102,7 +114,7 @@ def ColorCube(size, colors, opacity=1, **kwds):
 
     INPUT:
         size -- 3-tuple of sizes (same as for box and frame)
-        colors -- a list of either 3 or 6 color
+        colors -- a list of either 3 or 6 colors
         opacity -- (default: 1) opacity of cube sides
         **kwds -- passed to the face constructor
 
@@ -117,7 +129,8 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: list(c.texture_set())[0].opacity
         0.500000000000000
 
-    If you omit the last 3 colors then the first three are repeated.
+    If you omit the last 3 colors then the first three are repeated (with
+    repeated colors on opposing faces):
         sage: c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
     """
     if not isinstance(size, (tuple, list)):
@@ -136,24 +149,81 @@ def ColorCube(size, colors, opacity=1, **kwds):
     return Graphics3dGroup(all)
 
 cdef class Cone(ParametricSurface):
+    """
+    A cone, with base in the xy-plane pointing up the z-axis.
 
+    INPUT:
+
+        - ``radius`` - positive real number
+
+        - ``height`` - positive real number
+
+        - ``closed`` - whether or not to include the base (default True)
+
+        - ``**kwds`` -- passed to the ParametricSurface constructor
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Cone
+        sage: c = Cone(3/2, 1, color='red') + Cone(1, 2, color='yellow').translate(3, 0, 0)
+        sage: c.show(aspect_ratio=1)
+
+    We may omit the base::
+
+        sage: Cone(1, 1, closed=False)
+
+    A spiky plot of the sine function::
+
+        sage: sum(Cone(.1, sin(n), color='yellow').translate(n, sin(n), 0) for n in [0..10, step=.1])
+
+    A Christmas tree::
+
+        sage: T = sum(Cone(exp(-n/5), 4/3*exp(-n/5), color=(0, .5, 0)).translate(0, 0, -3*exp(-n/5)) for n in [1..7])
+        sage: T += Cone(1/8, 1, color='brown').translate(0, 0, -3)
+        sage: T.show(aspect_ratio=1, frame=False)
+    """
     def __init__(self, radius, height, closed=True, **kwds):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: c = Cone(1/2, 1, opacity=.5)
+        """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
         self.height = height
         self.closed = closed
 
     def x3d_geometry(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: Cone(1, 3).x3d_geometry()
+            "<Cone bottomRadius='1.0' height='3.0'/>"
+
+        """
         return "<Cone bottomRadius='%s' height='%s'/>"%(self.radius, self.height)
 
     def get_grid(self, ds):
-        twoPi = 2*RDF.pi()
-        v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
+        """
+        Returns the grid on which to evaluate this parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cone
+            sage: Cone(1, 3, closed=True).get_grid(100)
+            ([1, 0, -1], [0.0, 1.2566..., 2.5132..., 3.7699..., 5.0265..., 0.0])
+            sage: Cone(1, 3, closed=False).get_grid(100)
+            ([1, 0], [0.0, 1.2566..., 2.5132..., 3.7699..., 5.0265..., 0.0])
+            sage: len(Cone(1, 3).get_grid(.001)[1])
+            38
+        """
+        cdef int k, t_res = min(max(int(2*M_PI*self.radius/ds), 5), 37)
         if self.closed:
             urange = [1,0,-1]
         else:
             urange = [1,0]
-        vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
+        vrange = [2*M_PI*k/t_res for k from 0 <= k < t_res] + [0.0]
         return urange, vrange
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
@@ -168,20 +238,84 @@ cdef class Cone(ParametricSurface):
 
 
 cdef class Cylinder(ParametricSurface):
+    """
+    A cone, with base in the xy-plane pointing up the z-axis.
 
+    INPUT:
+
+        - ``radius`` - positive real number
+
+        - ``height`` - positive real number
+
+        - ``closed`` - whether or not to include the ends (default True)
+
+        - ``**kwds`` -- passed to the ParametricSurface constructor
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Cylinder
+        sage: c = Cylinder(3/2, 1, color='red') + Cylinder(1, 2, color='yellow').translate(3, 0, 0)
+        sage: c.show(aspect_ratio=1)
+
+    We may omit the base::
+
+        sage: Cylinder(1, 1, closed=False)
+
+    Some gears::
+
+        sage: G = Cylinder(1, .5) + Cylinder(.25, 3).translate(0, 0, -3)
+        sage: G += sum(Cylinder(.2, 1).translate(cos(2*pi*n/9), sin(2*pi*n/9), 0) for n in [1..9])
+        sage: G += G.translate(2.3, 0, -.5)
+        sage: G += G.translate(3.5, 2, -1)
+        sage: G.show(aspect_ratio=1, frame=False)
+    """
     def __init__(self, radius, height, closed=True, **kwds):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: Cylinder(1, 1, color='red')
+        """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
         self.height = height
         self.closed = closed
 
     def bounding_box(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: Cylinder(1, 2).bounding_box()
+            ((-1.0, -1.0, 0), (1.0, 1.0, 2.0))
+
+        """
         return (-self.radius, -self.radius, 0), (self.radius, self.radius, self.height)
 
     def x3d_geometry(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: Cylinder(1, 2).x3d_geometry()
+            "<Cylinder radius='1.0' height='2.0'/>"
+
+        """
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
 
     def tachyon_repr(self, render_params):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: C = Cylinder(1/2, 4, closed=False)
+            sage: C.tachyon_repr(C.default_render_params())
+            'FCylinder \n   Base 0 0 0\n   Apex 0 0 4.0\n   Rad 0.5\n   texture...     '
+            sage: C = Cylinder(1, 2)
+            sage: C.tachyon_repr(C.default_render_params())
+                ['Ring Center 0 0 0 Normal 0 0 1 Inner 0 Outer 1.0 texture...',
+                 'FCylinder \n   Base 0 0 0\n   Apex 0 0 2.0\n   Rad 1.0\n   texture...     ',
+                 'Ring Center 0 0 2.0 Normal 0 0 1 Inner 0 Outer 1.0 texture...']
+        """
         transform = render_params.transform
         if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])):
             # Tachyon can't do sqashed
@@ -195,7 +329,9 @@ cdef class Cylinder(ParametricSurface):
    Rad %s
    %s     """%(base[0], base[1], base[2], top[0], top[1], top[2], rad, self.texture.id)
         if self.closed:
-            normal = transform.transform_vector((0,0,1))
+            normal = (0,0,1)
+            if transform is not None:
+                normal = transform.transform_vector(normal)
             base_cap = """Ring Center %s %s %s Normal %s %s %s Inner 0 Outer %s %s"""  \
                        % (base[0], base[1], base[2], normal[0], normal[1], normal[2], rad, self.texture.id)
             top_cap  = """Ring Center %s %s %s Normal %s %s %s Inner 0 Outer %s %s"""  \
@@ -205,12 +341,26 @@ cdef class Cylinder(ParametricSurface):
             return cyl
 
     def jmol_repr(self, render_params):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+
+        For thin cylinders, lines are used::
+            sage: C = Cylinder(.1, 4)
+            sage: C.jmol_repr(C.default_render_params())
+            ['\ndraw line_1 width 0.1 {0 0 0} {0 0 4.0}\ncolor $line_1  [102,102,255]\n']
+
+        For anything larger, we use a pmesh::
+            sage: C = Cylinder(3, 1, closed=False)
+            sage: C.jmol_repr(C.testing_render_params())
+            ['pmesh obj_1 "obj_1.pmesh"\ncolor pmesh  [102,102,255]']
+        """
         transform = render_params.transform
         base, top = self.get_endpoints(transform)
         rad = self.get_radius(transform)
 
         cdef double ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
-        #print ratio
 
         if ratio > .02:
             if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
@@ -227,27 +377,58 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
        self.texture.jmol_str("$" + name)) ]
 
     def get_endpoints(self, transform=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: from sage.plot.plot3d.transform import Transformation
+            sage: Cylinder(1, 5).get_endpoints()
+            ((0, 0, 0), (0, 0, 5.0))
+            sage: Cylinder(1, 5).get_endpoints(Transformation(trans=(1,2,3), scale=(2,2,2)))
+            ((1.0, 2.0, 3.0), (1.0, 2.0, 13.0))
+        """
         if transform is None:
             return (0,0,0), (0,0,self.height)
         else:
             return transform.transform_point((0,0,0)), transform.transform_point((0,0,self.height))
 
     def get_radius(self, transform=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: from sage.plot.plot3d.transform import Transformation
+            sage: Cylinder(3, 1).get_radius()
+            3.0
+            sage: Cylinder(3, 1).get_radius(Transformation(trans=(1,2,3), scale=(2,2,2)))
+            6.0
+        """
         if transform is None:
             return self.radius
         else:
             radv = transform.transform_vector((self.radius,0,0))
             return sqrt(sum([x*x for x in radv]))
 
-
     def get_grid(self, ds):
-        twoPi = 2*RDF.pi()
-        v_res = min(max(int(twoPi*self.radius/ds), 5), 37)
+        """
+        Returns the grid on which to evaluate this parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Cylinder
+            sage: Cylinder(1, 3, closed=True).get_grid(100)
+            ([2, 1, -1, -2], [0.0, 1.2566..., 2.5132..., 3.7699..., 5.0265..., 0.0])
+            sage: Cylinder(1, 3, closed=False).get_grid(100)
+            ([1, -1], [0.0, 1.2566..., 2.5132..., 3.7699..., 5.0265..., 0.0])
+            sage: len(Cylinder(1, 3).get_grid(.001)[1])
+            38
+        """
+        cdef int k, v_res = min(max(int(2*M_PI*self.radius/ds), 5), 37)
         if self.closed:
             urange = [2,1,-1,-2]
         else:
             urange = [1,-1]
-        vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
+        vrange = [2*M_PI*k/v_res for k from 0 <= k < v_res] + [0.0]
         return urange, vrange
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
@@ -382,8 +563,30 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
 
 
 cdef class Sphere(ParametricSurface):
+    """
+    This class represents a sphere centered at the origin.
 
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Sphere
+        sage: Sphere(3)
+
+    Plot with aspect_ratio=1 to see it unsquashed::
+
+        sage: S = Sphere(3, color='blue') + Sphere(2, color='red').translate(0,3,0)
+        sage: S.show(aspect_ratio=1)
+
+    Scale to get an ellipsoid::
+        sage: S = Sphere(1).scale(1,2,1/2)
+        sage: S.show(aspect_ratio=1)
+
+    """
     def __init__(self, radius, **kwds):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: Sphere(3)
+        """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
 
@@ -391,7 +594,8 @@ cdef class Sphere(ParametricSurface):
         """
         Return the bounding box that contains this sphere.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(3).bounding_box()
             ((-3.0, -3.0, -3.0), (3.0, 3.0, 3.0))
@@ -400,9 +604,35 @@ cdef class Sphere(ParametricSurface):
                 (self.radius, self.radius, self.radius))
 
     def x3d_geometry(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: Sphere(12).x3d_geometry()
+            "<Sphere radius='12.0'/>"
+        """
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_repr(self, render_params):
+        """
+        Tachyon can natively handle spheres. Ellipsoids rendering is done
+        as a parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: S = Sphere(2)
+            sage: S.tachyon_repr(S.default_render_params())
+            'Sphere center 0 0 0 Rad 2.0 texture...'
+            sage: S.translate(1, 2, 3).scale(3).tachyon_repr(S.default_render_params())
+            [['Sphere center 3.0 6.0 9.0 Rad 6.0 texture...']]
+            sage: S.scale(1,1/2,1/4).tachyon_repr(S.default_render_params())
+            [['TRI V0 0 0 -0.5 V1 0.308116 0.0271646 -0.493844 V2 0.312869 0 -0.493844',
+              'texture...',
+               ...
+              'TRI V0 0.308116 -0.0271646 0.493844 V1 0.312869 0 0.493844 V2 0 0 0.5',
+              'texture...']]
+        """
         transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
             return ParametricSurface.tachyon_repr(self, render_params)
@@ -417,6 +647,29 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Sphere
+
+        Jmol has native code for handling spheres::
+
+            sage: S = Sphere(2)
+            sage: S.jmol_repr(S.default_render_params())
+            ['isosurface sphere_1  center {0 0 0} sphere 2.0\ncolor isosurface  [102,102,255]']
+            sage: S.translate(10, 100, 1000).jmol_repr(S.default_render_params())
+            [['isosurface sphere_1  center {10.0 100.0 1000.0} sphere 2.0\ncolor isosurface  [102,102,255]']]
+
+        It can't natively handle ellipsoids::
+
+            sage: Sphere(1).scale(2, 3, 4).jmol_repr(S.testing_render_params())
+            [['pmesh obj_2 "obj_2.pmesh"\ncolor pmesh  [102,102,255]']]
+
+        Small spheres need extra hints to render well::
+
+            sage: Sphere(.01).jmol_repr(S.default_render_params())
+            ['isosurface sphere_1 resolution 100 center {0 0 0} sphere 0.01\ncolor isosurface  [102,102,255]']
+        """
         name = render_params.unique_name('sphere')
         transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
@@ -435,13 +688,23 @@ cdef class Sphere(ParametricSurface):
             res = ""
         return ["isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, self.texture.jmol_str("isosurface"))]
 
-    def get_grid(self, ds):
-        pi = RDF.pi()
-        twoPi = 2*pi
-        u_res = min(max(int(RDF.pi()*self.radius/ds), 6), 20)
-        v_res = min(max(int(twoPi*self.radius/ds), 6), 36)
-        urange = [-10] + [pi*k/u_res - twoPi/4 for k in range(1,u_res)] + [10]
-        vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
+    def get_grid(self, double ds):
+        """
+        Returns the the range of variables to be evaluated on to render as a
+        parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: Sphere(1).get_grid(100)
+            ([-10.0, ..., 0.0, ..., 10.0],
+             [0.0, ..., 3.1415926535897931, ..., 0.0])
+        """
+        cdef int K, u_res, v_res
+        u_res = min(max(int(M_PI*self.radius/ds), 6), 20)
+        v_res = min(max(int(2*M_PI * self.radius/ds), 6), 36)
+        urange = [-10.0] + [M_PI * k/u_res - M_PI/2 for k in range(1, u_res)] + [10.0]
+        vrange = [2*M_PI * k/v_res for k in range(v_res)] + [0.0]
         return urange, vrange
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
@@ -464,18 +727,50 @@ cdef class Torus(ParametricSurface):
 
     OUTPUT:
         a 3d torus
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Torus
+        sage: Torus(1, .2).show(aspect_ratio=1)
+        sage: Torus(1, .7, color='red').show(aspect_ratio=1)
+
+    A rubberband ball::
+
+        sage: show(sum([Torus(1, .03, color=(1, t/30.0, 0)).rotate((1,1,1),t) for t in range(30)]))
+
+    Mmm... doughnuts::
+
+        sage: D = Torus(1, .4, color=(.5, .3, .2)) + Torus(1, .3, color='yellow').translate(0, 0, .15)
+        sage: G = sum(D.translate(RDF.random_element(-.2, .2), RDF.random_element(-.2, .2), .8*t) for t in range(10))
+        sage: G.show(aspect_ratio=1, frame=False)
     """
     def __init__(self, R=1, r=.3, **kwds):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: T = Torus(1, .5)
+        """
         ParametricSurface.__init__(self, None, **kwds)
         self.R = R
         self.r = r
 
     def get_grid(self, ds):
-        twoPi = 2*RDF.pi()
-        u_divs = min(max(int(twoPi*self.R/ds), 6), 37)
-        v_divs = min(max(int(twoPi*self.r/ds), 6), 37)
-        urange = [-twoPi*k/u_divs for k in range(u_divs)] + [0.0]
-        vrange = [ twoPi*k/v_divs for k in range(v_divs)] + [0.0]
+        """
+        Returns the the range of variables to be evaluated on to render as a
+        parametric surface.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Torus
+            sage: Torus(2, 1).get_grid(100)
+            ([0.0, -1.047..., -3.1415926535897931, ..., 0.0],
+             [0.0, 1.047..., 3.1415926535897931, ..., 0.0])
+        """
+        cdef int k, u_divs, v_divs
+        u_divs = min(max(int(4*M_PI * self.R/ds), 6), 37)
+        v_divs = min(max(int(4*M_PI * self.r/ds), 6), 37)
+        urange = [0.0] + [-2*M_PI * k/u_divs for k in range(1, u_divs)] + [0.0]
+        vrange = [ 2*M_PI * k/v_divs for k in range(v_divs)] + [0.0]
         return urange, vrange
 
     cdef int eval_c(self, point_c *res, double u, double v) except -1:
@@ -485,17 +780,55 @@ cdef class Torus(ParametricSurface):
 
 
 class Text(PrimitiveObject):
+    """
+    A text label attached to a point in 3d space. It always starts at the
+    origin, translate it to move it elsewhere.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import Text
+        sage: Text("Just a lonely lable.")
+        sage: pts = [(RealField(10)^3).random_element() for k in range(20)]
+        sage: sum(Text(str(P)).translate(P) for P in pts)
+
+    """
     def __init__(self, string, **kwds):
+        """
+        TEST:
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: T = Text("Hi")
+        """
         PrimitiveObject.__init__(self, **kwds)
         self.string = string
 
     def x3d_geometry(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: Text("Hi").x3d_geometry()
+            "<Text string='Hi' solid='true'/>"
+        """
         return "<Text string='%s' solid='true'/>"%self.string
 
     def obj_repr(self, render_params):
+        """
+        The obj file format doesn't support text strings::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: Text("Hi").obj_repr(None)
+            ''
+        """
         return ''
 
     def tachyon_repr(self, render_params):
+        """
+        Strings are not yet supported in Tachyon, so we ignore them for now::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: Text("Hi").tachyon_repr(None)
+            ''
+        """
         return ''
         # Text in Tachyon not implemented yet.
         # I have no idea what the code below is supposed to do.
@@ -513,7 +846,23 @@ class Text(PrimitiveObject):
 ##         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        cen = render_params.transform.transform_point((0,0,0))
+        """
+        Labels in jmol must be attached to atoms.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: T = Text("Hi")
+            sage: T.jmol_repr(T.testing_render_params())
+            ['select atomno = 1', 'color atom  [102,102,255]', 'label "Hi"']
+            sage: T = Text("Hi").translate(-1, 0, 0) + Text("Bye").translate(1, 0, 0)
+            sage: T.jmol_repr(T.testing_render_params())
+            [[['select atomno = 1', 'color atom  [102,102,255]', 'label "Hi"']],
+             [['select atomno = 2', 'color atom  [102,102,255]', 'label "Bye"']]]
+        """
+        cen = (0,0,0)
+        if render_params.transform is not None:
+            cen = render_params.transform.transform_point(cen)
         render_params.atom_list.append(cen)
         atom_no = len(render_params.atom_list)
         return ['select atomno = %s' % atom_no,
@@ -521,5 +870,12 @@ class Text(PrimitiveObject):
                 'label "%s"' % self.string] #.replace('\n', '|')]
 
     def bounding_box(self):
+        """
+        Text labels have no extent::
+
+            sage: from sage.plot.plot3d.shapes import Text
+            sage: Text("Hi").bounding_box()
+            ((0, 0, 0), (0, 0, 0))
+        """
         return (0,0,0), (0,0,0)
 

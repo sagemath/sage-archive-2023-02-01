@@ -2,7 +2,6 @@
 cdef enum:
   GSL_SUCCESS = 0
 
-ctypedef int size_t
 include "gsl_mode.pxi"
 include "gsl_math.pxi"
 include "gsl_complex.pxi"

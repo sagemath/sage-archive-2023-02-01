@@ -104,7 +104,7 @@ class SchemeMorphism(PyMorphism):
         domain, return scheme obtained by gluing along the images.
 
         EXAMPLES: We construct a scheme isomorphic to the projective line
-        over `\mathrm{Spec}(\mathbb{Q})` by gluing two copies of
+        over `\mathrm{Spec}(\QQ)` by gluing two copies of
         `\mathbb{A}^1` minus a point.
 
         ::

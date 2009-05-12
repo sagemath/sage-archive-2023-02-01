@@ -136,7 +136,7 @@ cdef class RealDoubleField_class(Field):
         return False
 
     def _latex_(self):
-        return "\\mathbf{R}"
+        return "\\Bold{R}"
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -489,7 +489,7 @@ cdef class RealDoubleField_class(Field):
         EXAMPLES::
 
             sage: RDF.NaN()
-            nan
+            NaN
         """
         return self(0)/self(0)
 
@@ -498,7 +498,7 @@ cdef class RealDoubleField_class(Field):
         EXAMPLES::
 
             sage: RDF.nan()
-            nan
+            NaN
         """
         return self(0)/self(0)
 
@@ -588,11 +588,11 @@ cdef class RealDoubleElement(FieldElement):
             True
 
             sage: a = RDF(1)/RDF(0); a
-            inf
+            +infinity
             sage: a.ulp()
-            inf
+            +infinity
             sage: (-a).ulp()
-            inf
+            +infinity
             sage: a = RR('nan')
             sage: a.ulp() is a
             True
@@ -726,7 +726,7 @@ cdef class RealDoubleElement(FieldElement):
             RDF(3.1415926535897931)
             sage: sage_input(RDF(-e), verify=True, preparse=False)
             # Verified
-            -RDF(2.7182818284590451)
+            -RDF(2.718281828459045...)
             sage: sage_input(RDF(pi)*polygen(RDF), verify=True, preparse=None)
             # Verified
             R = RDF['x']
@@ -851,21 +851,30 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF('49203480923840.2923904823048'); a.str()
             '4.92034809238e+13'
             sage: a = RDF(1)/RDF(0); a.str()
-            'inf'
+            '+infinity'
             sage: a = -RDF(1)/RDF(0); a.str()
-            '-inf'
+            '-infinity'
             sage: a = RDF(0)/RDF(0); a.str()
-            'nan'
+            'NaN'
+
+        We verify consistency with RR (mpfr reals)::
+
+            sage: str(RR(RDF(1)/RDF(0))) == str(RDF(1)/RDF(0))
+            True
+            sage: str(RR(-RDF(1)/RDF(0))) == str(-RDF(1)/RDF(0))
+            True
+            sage: str(RR(RDF(0)/RDF(0))) == str(RDF(0)/RDF(0))
+            True
         """
         cdef int v
         if gsl_isnan(self._value):
-            return "nan"
+            return "NaN"
         else:
             v = gsl_isinf(self._value)
             if v == 1:
-                return "inf"
+                return "+infinity"
             elif v == -1:
-                return "-inf"
+                return "-infinity"
         return str(self._value)
 
     def __copy__(self):
@@ -1002,7 +1011,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF('-1.5') / RDF('2.5')
             -0.6
             sage: RDF(1)/RDF(0)
-            inf
+            +infinity
         """
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value / (<RealDoubleElement>right)._value
@@ -1016,7 +1025,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a /= RDF(2); a
             0.75
             sage: a /= RDF(0); a
-            inf
+            +infinity
         """
         self._value /= (<RealDoubleElement>right)._value
         return self
@@ -1380,7 +1389,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: RDF.NaN()
-            nan
+            NaN
         """
         return self(0)/self(0)
 
@@ -1388,8 +1397,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         EXAMPLES::
 
+
             sage: RDF.nan()
-            nan
+            NaN
         """
         return self(0)/self(0)
 
@@ -1527,7 +1537,22 @@ cdef class RealDoubleElement(FieldElement):
             return self.__pow__(float(1)/n)
 
     cdef RealDoubleElement __pow_float(self, double exponent):
-        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
+        """
+        TESTS:
+
+              sage: RDF(0)^.5
+              0.0
+              sage: RDF(0)^(1/2)
+              0.0
+              sage: RDF(0)^RDF(0)
+              1.0
+        """
+        if exponent == 0:
+            return self._new_c(1)
+        elif self._value == 0 or self._value == 1:
+            return self
+        else:
+            return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
 
     cdef RealDoubleElement __pow_int(self, int exponent):
         return self._new_c(gsl_pow_int(self._value, exponent))
@@ -1612,9 +1637,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(2).log(1.5)
             1.70951129135
             sage: RDF(0).log()
-            -inf
+            -infinity
             sage: RDF(-1).log()
-            nan
+            NaN
         """
         if base is None:
             return self._log_base(1)
@@ -1708,7 +1733,7 @@ cdef class RealDoubleElement(FieldElement):
         ::
 
             sage: RDF(1000).exp()
-            inf
+            +infinity
         """
         _sig_on
         a = self._new_c(gsl_sf_exp(self._value))
@@ -1799,7 +1824,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Specifically, it is the unique `x \in (-\pi, \pi]` such
         that ```self`` = x + 2\pi n` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         EXAMPLES::
 
@@ -1853,7 +1878,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: x.hypot(y)
             5e+300
             sage: sqrt(x^2+y^2) # overflow
-            inf
+            +infinity
         """
         _sig_on
         a = self._new_c(gsl_sf_hypot(self._value, float(other)))
@@ -2089,7 +2114,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-2).zeta()       # slightly random-ish arch dependent output
             -2.37378795339e-18
             sage: RDF(1).zeta()
-            inf
+            +infinity
         """
         if self._value == 1:
             return self._new_c(1)/self._new_c(0)

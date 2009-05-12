@@ -32,9 +32,9 @@ class Spec(scheme.AffineScheme):
 
     .. note::
 
-       Calling ``Spec(R)`` twice produces two distinct
-       (but equal) schemes, which is important for gluing to construct
-       more general schemes.
+        Calling ``Spec(R)`` twice produces two distinct (but equal)
+        schemes, which is important for gluing to construct more
+        general schemes.
 
     EXAMPLES::
 
@@ -80,6 +80,12 @@ class Spec(scheme.AffineScheme):
         1
     """
     def __init__(self, R, S=None, check=True):
+        """
+        EXAMPLES::
+
+            sage: Spec(ZZ)
+            Spectrum of Integer Ring
+        """
         if not is_CommutativeRing(R):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         self.__R = R
@@ -94,8 +100,12 @@ class Spec(scheme.AffineScheme):
 
     def _cmp_(self, X):
         """
-        Anything that is not a Spec is less than X. Spec's are compared
-        with self using comparison of the underlying rings.
+        Return the result of the comparison of self and X.
+
+        Spec's are compared with self using comparison of the
+        underlying rings.  If X is not a Spec, then the result is
+        platform-dependent (either self < X or X < self, but never
+        self == X).
 
         EXAMPLES::
 
@@ -109,17 +119,67 @@ class Spec(scheme.AffineScheme):
             True
             sage: Spec(GF(7)) < Spec(GF(5))
             False
+
+        TESTS::
+
+            sage: Spec(QQ).__cmp__(Spec(ZZ))
+            1
         """
         return cmp(self.__R, X.coordinate_ring())
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))
+            Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+        TESTS::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))._repr_()
+            'Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field'
+        """
         return "Spectrum of %s"%self.__R
+
+    def _latex_(self):
+        """
+        LaTeX representation of this Spec.
+
+        EXAMPLES::
+
+            sage: S = Spec(PolynomialRing(ZZ, 2, 'x'))
+            sage: S
+            Spectrum of Multivariate Polynomial Ring in x0, x1 over Integer Ring
+            sage: S._latex_()
+            '\\mathrm{Spec}(\\Bold{Z}[x_{0}, x_{1}])'
+        """
+        return "\\mathrm{Spec}(%s)" % self.__R._latex_()
 
     def __call__(self, x):
         """
-        Create a point of this scheme.
+        Create a point of this Spec.  The argument `x` can be a prime
+        ideal of the coordinate ring, or an element (or list of
+        elements) of the coordinate ring which generates a prime
+        ideal.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: P = S(3); P
+            Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
+            sage: type(P)
+            <class 'sage.schemes.generic.point.SchemeTopologicalPoint_prime_ideal'>
+            sage: S(ZZ.ideal(next_prime(1000000)))
+            Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
+
+        ::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: S = Spec(R)
+            sage: P = S(R.ideal(x, y, z)); P
+            Point on Spectrum of Multivariate Polynomial Ring in x, y, z over Rational Field defined by the Ideal (x, y, z) of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
-        return point.SchemePoint_spec(self, x)
+        return point.SchemeTopologicalPoint_prime_ideal(self, x)
 
     def coordinate_ring(self):
         """
@@ -129,18 +189,48 @@ class Spec(scheme.AffineScheme):
 
             sage: Spec(QQ).coordinate_ring()
             Rational Field
-            sage: Spec(PolynomialRing(QQ,3, 'x')).coordinate_ring()
+            sage: Spec(PolynomialRing(QQ, 3, 'x')).coordinate_ring()
             Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         """
         return self.__R
 
-    def dimension(self):
+    def is_noetherian(self):
+        """
+        Return True if this scheme is Noetherian.
+
+        EXAMPLES::
+
+            sage: Spec(ZZ).is_noetherian()
+            True
+        """
+        return self.__R.is_noetherian()
+
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_absolute()
+            1
+            sage: S.dimension()
+            1
+        """
+        return self.__R.krull_dimension()
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
         """
         Return the relative dimension of this scheme over its base.
-        """
-        if self.base_ring() == ZZ:
-            return self.__R.krull_dimension()
-        raise NotImplementedError
 
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_relative()
+            0
+        """
+        return self.__R.krull_dimension() - self.base_ring().krull_dimension()
 
 SpecZ = Spec(ZZ)

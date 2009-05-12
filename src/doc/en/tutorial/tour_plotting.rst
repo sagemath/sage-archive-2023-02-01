@@ -92,7 +92,8 @@ example, here is a green deltoid:
 
     sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
     ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
-    sage: polygon(L, rgbcolor=(1/8,3/4,1/2))
+    sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
+    sage: p
 
 Type ``show(p, axes=false)`` to see this without any axes.
 

@@ -5,7 +5,6 @@ from transcendental import (exponential_integral_1,
                             gamma_inc, incomplete_gamma,
                             zeta, zeta_symmetric,
                             Li, Ei,
-                            prime_pi,
                             dickman_rho)
 
 from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
@@ -40,3 +39,5 @@ from constants import I
 i = I  # alias
 
 from spike_function import spike_function
+
+from prime_pi import prime_pi

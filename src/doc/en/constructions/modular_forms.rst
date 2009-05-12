@@ -40,20 +40,42 @@ Coset representatives
 
 The explicit representation of fundamental domains of arithmetic
 quotients :math:`H/\Gamma` can be determined from the cosets of
-:math:`\Gamma` in :math:`SL_2(\mathbb{Z})`. How are these cosets
+:math:`\Gamma` in :math:`SL_2(\ZZ)`. How are these cosets
 computed in Sage?
 
 Here is an example of computing the coset representatives of
-:math:`SL_2(\mathbb{Z})/\Gamma_0(11)`:
+:math:`SL_2(\ZZ)/\Gamma_0(11)`:
 
 ::
 
     sage: G = Gamma0(11); G
     Congruence Subgroup Gamma0(11)
     sage: list(G.coset_reps())
-    [[1, 0, 0, 1], [0, -1, 1, 0], [0, -1, 1, 1], [0, -1, 1, 2],
-     [0, -1, 1, 3], [0, -1, 1, 4], [0, -1, 1, 5], [0, -1, 1, 6],
-     [0, -1, 1, 7], [0, -1, 1, 8], [0, -1, 1, 9], [0, -1, 1, 10]]
+    [[1 0]
+     [0 1],
+     [ 0 -1]
+     [ 1  0],
+     [1 0]
+     [1 1],
+     [ 0 -1]
+     [ 1  2],
+     [ 0 -1]
+     [ 1  3],
+     [ 0 -1]
+     [ 1  4],
+     [ 0 -1]
+     [ 1  5],
+     [ 0 -1]
+     [ 1  6],
+     [ 0 -1]
+     [ 1  7],
+     [ 0 -1]
+     [ 1  8],
+     [ 0 -1]
+     [ 1  9],
+     [ 0 -1]
+     [ 1 10]]
+
 
 .. index:: modular symbols, Hecke operators
 
@@ -79,7 +101,7 @@ modular symbols of level 1 and weight 12.
 Here ``t2`` represents the Hecke operator :math:`T_2` on the space
 of Full Modular Symbols for :math:`\Gamma_0(1)` of weight
 :math:`12` with sign :math:`0` and dimension :math:`3` over
-:math:`\mathbb{Q}`.
+:math:`\QQ`.
 
 ::
 
@@ -110,11 +132,11 @@ and related curves. Here are some examples of the syntax:
 
 ::
 
-    sage: sage.modular.dims.g0(22)
+    sage: dimension_cusp_forms(Gamma0(22))
     2
-    sage: sage.modular.dims.g0(30)
+    sage: dimension_cusp_forms(Gamma0(30))
     3
-    sage: sage.modular.dims.g1(30)
+    sage: dimension_cusp_forms(Gamma1(30))
     9
 
 See the code for computing dimensions of spaces of modular forms

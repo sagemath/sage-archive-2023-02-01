@@ -62,7 +62,7 @@ class BezierPath(GraphicPrimitive):
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'zorder':'The layer level in which to draw',
-				'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
 
     def _repr_(self):
         return "Bezier path from %s to %s"%(self.path[0][0],self.path[-1][-1])

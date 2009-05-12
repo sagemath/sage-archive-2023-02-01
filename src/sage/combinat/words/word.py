@@ -381,6 +381,20 @@ class AbstractWord(SageObject):
             self._word_content = BuildWordContent(word,
                 mapping=mapping, format=format, part=part)
 
+    def size_of_alphabet(self):
+        """
+        Returns the size of the alphabet of the word.
+
+        TESTS::
+
+            sage: from sage.combinat.words.word import AbstractWord
+            sage: AbstractWord(Words('ab'), '').size_of_alphabet()
+            2
+            sage: AbstractWord(Words('abc'), '').size_of_alphabet()
+            3
+        """
+        return self._parent.size_of_alphabet()
+
     def _repr_(self):
         r"""
         Returns a string representation of self.
@@ -2730,7 +2744,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Words('01234')('1231232').last_position_table()
             [-1, 3, 6, 5, -1]
         """
-        res = [-1]*len(self.alphabet())
+        res = [-1]*self.size_of_alphabet()
         for (i, s) in izip(count(), self._word_content):
             res[s] = i
         return res
@@ -3117,7 +3131,7 @@ exponent %s: the length of the word (%s) times the exponent \
         v = []
 
         p = W.alphabet().rank(s)
-        al = cycle(imap(W.alphabet().unrank, chain(xrange(p, len(W.alphabet())), xrange(p))))
+        al = cycle(imap(W.alphabet().unrank, chain(xrange(p, W.size_of_alphabet()), xrange(p))))
         al.next()
         for e in self:
             v += ([s] * e)
@@ -3748,7 +3762,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if not isint(q) or q <= 0:
            raise TypeError, "the balance level must be a positive integer"
         for i in xrange(2, len(self)):
-            tab = [None] * len(self.alphabet())
+            tab = [None] * self.size_of_alphabet()
             for j in xrange(len(tab)):
                 tab[j] = set()
             for fact in self.factor_iterator(i):
@@ -4741,7 +4755,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: cd = W("cd")
             sage: sp = ab.shuffle(cd); sp
             Shuffle product of word: ab and word: cd
-            sage: sp.count()
+            sage: sp.cardinality()
             6
             sage: sp.list()
             [word: abcd, word: acbd, word: acdb, word: cabd, word: cadb, word: cdab]
@@ -4782,7 +4796,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: cd = W("cd")
             sage: sp = ab.shifted_shuffle(ab); sp
             Shuffle product of word: ab and word: cd
-            sage: sp.count()
+            sage: sp.cardinality()
             6
             sage: sp.list()
             [word: abcd, word: acbd, word: acdb, word: cabd, word: cadb, word: cdab]

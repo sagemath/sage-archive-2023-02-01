@@ -77,10 +77,12 @@ class GraphPlot(SageObject):
         self._graph = graph
         self._options = options
         self.set_pos()
-        if self._graph.is_directed() and self._graph.multiple_edges():
-            self._multidigraph = True
+        self._arcs = self._graph.has_multiple_edges(to_undirected=True)
+        self._loops = self._graph.has_loops()
+        if self._graph.is_directed() and self._arcs:
+            self._arcdigraph = True
         else:
-            self._multidigraph = False
+            self._arcdigraph = False
         self.set_vertices()
         self.set_edges()
 
@@ -293,14 +295,14 @@ class GraphPlot(SageObject):
         if self._graph.is_directed():
             self._vertex_radius = sqrt(voptions['markersize']/pi)
             self._arrowshorten = 2*self._vertex_radius
-            if self._multidigraph:
+            if self._arcdigraph:
                 self._vertex_radius = sqrt(voptions['markersize']/(20500*pi))
 
         voptions['zorder'] = 7
 
         if not isinstance(vertex_colors, dict):
             voptions['facecolor'] = vertex_colors
-            if self._multidigraph:
+            if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center, self._vertex_radius, fill=True, facecolor=vertex_colors) for center in self._pos.values()]
             else:
                 self._plot_components['vertices'] = scatter_plot(self._pos.values(), **voptions)
@@ -311,8 +313,8 @@ class GraphPlot(SageObject):
             for i in vertex_colors:
                 pos += [self._pos[j] for j in vertex_colors[i]]
                 colors += [i]*len(vertex_colors[i])
-            if self._multidigraph:
-                self._plot_components['vertices'] = [circle(pos[i], self._vertex_radius, fill=True, facecolor=colors[i]) for i in len(pos)]
+            if self._arcdigraph:
+                self._plot_components['vertices'] = [circle(pos[i], self._vertex_radius, fill=True, facecolor=colors[i]) for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos, facecolor=colors, **voptions)
 
@@ -347,6 +349,12 @@ class GraphPlot(SageObject):
             sage: GP.plot()
             sage: GP.set_edges(edge_colors='black')
             sage: GP.plot()
+
+        TESTS::
+
+            sage: G = Graph("Fooba")
+            sage: G.show(edge_colors={'red':[(3,6),(2,5)]})
+
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
@@ -392,6 +400,20 @@ class GraphPlot(SageObject):
                         edges_to_draw[key].append((label, color, head))
                     else:
                         edges_to_draw[key] = [(label, color, head)]
+            # add unspecified edges in (default color black)
+            for edge in self._graph.edge_iterator():
+                key = tuple(sorted([edge[0],edge[1]]))
+                label = edge[2]
+                specified = False
+                if key in edges_to_draw:
+                    for old_label, old_color, old_head in edges_to_draw[key]:
+                        if label == old_label:
+                            specified = True
+                            break
+                if not specified:
+                    if key == (edge[0],edge[1]): head = 1
+                    else: head = 0
+                    edges_to_draw[key] = [(label, 'black', head)]
         else:
             for edge in self._graph.edges(sort=True):
                 key = tuple(sorted([edge[0],edge[1]]))
@@ -408,7 +430,7 @@ class GraphPlot(SageObject):
             return
 
         # Check for multi-edges or loops
-        if self._graph.multiple_edges() or self._graph.loops():
+        if self._arcs or self._loops:
             tmp = edges_to_draw.copy()
             dist = self._options['dist']*2
             loop_size = self._options['loop_size']
@@ -456,8 +478,8 @@ class GraphPlot(SageObject):
                     else:
                         odd_x = lambda d : M[0]
                         even_x = odd_x
-                        odd_y = M[1] + d
-                        even_y = M[1] - d
+                        odd_y = lambda d : M[1] + d
+                        even_y = lambda d : M[1] - d
 
                     # We now have the control points for each bezier curve
                     # in terms of distance parameter d.
@@ -468,7 +490,7 @@ class GraphPlot(SageObject):
                         distance = max_dist/len(local_labels)
                     for i in range(len(local_labels)/2):
                         k = (i+1.0)*distance
-                        if self._multidigraph:
+                        if self._arcdigraph:
                             odd_start = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)[0]
                             odd_end = self._polar_hack_for_multidigraph([odd_x(k),odd_y(k)], p2, self._vertex_radius)[1]
                             even_start = self._polar_hack_for_multidigraph(p1, [even_x(k),even_y(k)], self._vertex_radius)[0]
@@ -487,7 +509,7 @@ class GraphPlot(SageObject):
 
         dir = self._graph.is_directed()
         for (a,b) in edges_to_draw:
-            if self._multidigraph:
+            if self._arcdigraph:
                 C,D = self._polar_hack_for_multidigraph(self._pos[a], self._pos[b], self._vertex_radius)
                 self._plot_components['edges'].append(arrow(C,D, rgbcolor=edges_to_draw[(a,b)][0][1], head=edges_to_draw[(a,b)][0][2], **eoptions))
                 if labels:
@@ -496,7 +518,7 @@ class GraphPlot(SageObject):
                 self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b], rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten, head=edges_to_draw[(a,b)][0][2], **eoptions))
             else:
                 self._plot_components['edges'].append(line([self._pos[a],self._pos[b]], rgbcolor=edges_to_draw[(a,b)][0][1], **eoptions))
-            if labels and not self._multidigraph:
+            if labels and not self._arcdigraph:
                 self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(self._pos[a][0]+self._pos[b][0])/2, (self._pos[a][1]+self._pos[b][1])/2]))
 
     def _polar_hack_for_multidigraph(self, A, B, VR):

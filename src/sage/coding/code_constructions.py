@@ -114,7 +114,7 @@ defined using properties of the zeros of `C`.
   `k` at each `x_i`.
 
 - ToricCode - Let `P` denote a list of lattice points in
-  `\mathbb{Z}^d` and let `T` denote a listing of all
+  `\ZZ^d` and let `T` denote a listing of all
   points in `(F^x )^d`. Put `n=|T|` and let `k`
   denote the dimension of the vector space of functions
   `V = \mathrm{Span} \{x^e \ |\ e \in P\}`.
@@ -1296,7 +1296,7 @@ def TernaryGolayCode():
 def ToricCode(P,F):
     r"""
     Let `P` denote a list of lattice points in
-    `\mathbb{Z}^d` and let `T` denote the set of all
+    `\ZZ^d` and let `T` denote the set of all
     points in `(F^x)^d` (ordered in some fixed way). Put
     `n=|T|` and let `k` denote the dimension of the
     vector space of functions `V = \mathrm{Span}\{x^e \ |\ e \in P\}`.

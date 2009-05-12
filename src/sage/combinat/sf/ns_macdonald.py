@@ -629,7 +629,7 @@ class NonattackingFillings_shape(CombinatorialClass):
         """
         return NonattackingFillings(list(self._shape.flip()),self.pi)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -651,15 +651,15 @@ class NonattackingFillings_shape(CombinatorialClass):
 
         TESTS::
 
-            sage: NonattackingFillings([3,2,1,1]).count()
+            sage: NonattackingFillings([3,2,1,1]).cardinality()
             3
-            sage: NonattackingFillings([3,2,1,2]).count()
+            sage: NonattackingFillings([3,2,1,2]).cardinality()
             4
-            sage: NonattackingFillings([1,2,3]).count()
+            sage: NonattackingFillings([1,2,3]).cardinality()
             12
-            sage: NonattackingFillings([2,2,2]).count()
+            sage: NonattackingFillings([2,2,2]).cardinality()
             1
-            sage: NonattackingFillings([1,2,3,2]).count()
+            sage: NonattackingFillings([1,2,3,2]).cardinality()
             24
         """
         if sum(self._shape) == 0:
@@ -708,7 +708,7 @@ class NonattackingBacktracker(GenericBacktracker):
 
             sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
             sage: n = NonattackingBacktracker(LatticeDiagram([0,1,2]))
-            sage: len(list(n.iterator()))
+            sage: len(list(n))
             12
             sage: obj = [ [], [None], [None, None]]
             sage: state = 2, 1

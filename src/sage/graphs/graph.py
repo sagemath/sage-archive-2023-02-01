@@ -1006,7 +1006,7 @@ class GenericGraph(SageObject):
         Note that any additional keywords will be pased on to either
         the adjacency_matrix or weighted_adjacency_matrix method.
 
-	AUTHORS:
+        AUTHORS:
 
         - Tom Boothby
 
@@ -1396,9 +1396,13 @@ class GenericGraph(SageObject):
             loops += self.edge_boundary([v], [v], labels)
         return loops
 
-    def has_multiple_edges(self):
+    def has_multiple_edges(self, to_undirected=False):
         """
         Returns whether there are multiple edges in the (di)graph.
+
+        INPUT:
+            to_undirected -- (default: False) If True, runs the test on the undirected version of a DiGraph.
+                                Otherwise, treats DiGraph edges (u,v) and (v,u) as unique individual edges.
 
         EXAMPLES::
 
@@ -1437,18 +1441,31 @@ class GenericGraph(SageObject):
             False
             sage: D.edges()
             [(0, 1, None)]
+
+            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}})
+            sage: G.has_multiple_edges()
+            False
+            sage: G.has_multiple_edges(to_undirected=True)
+            True
+            sage: G.multiple_edges()
+            []
+            sage: G.multiple_edges(to_undirected=True)
+            [(1, 2, 'h'), (2, 1, 'g')]
         """
-        if self.allows_multiple_edges():
-            if self._directed:
+        if self.allows_multiple_edges() or to_undirected:
+            if self._directed and not to_undirected:
                 for v in self:
                     for u in self.predecessor_iterator(v):
                         edges = self.edge_boundary([u], [v])
                         if len(edges) > 1:
                             return True
             else:
+                to_undirected *= self._directed
                 for v in self:
                     for u in self.neighbor_iterator(v):
                         edges = self.edge_boundary([v], [u])
+                        if to_undirected:
+                            edges += self.edge_boundary([u],[v])
                         if len(edges) > 1:
                             return True
         return False
@@ -1545,7 +1562,7 @@ class GenericGraph(SageObject):
         """
         self._backend.multiple_edges(new)
 
-    def multiple_edges(self, new=None, labels=True):
+    def multiple_edges(self, new=None, to_undirected=False, labels=True):
         """
         Returns any multiple edges in the (di)graph.
 
@@ -1586,22 +1603,35 @@ class GenericGraph(SageObject):
             False
             sage: D.edges()
             [(0, 1, None)]
+
+            sage: G = DiGraph({1:{2: 'h'}, 2:{1:'g'}})
+            sage: G.has_multiple_edges()
+            False
+            sage: G.has_multiple_edges(to_undirected=True)
+            True
+            sage: G.multiple_edges()
+            []
+            sage: G.multiple_edges(to_undirected=True)
+            [(1, 2, 'h'), (2, 1, 'g')]
         """
         from sage.misc.misc import deprecation
         if new is not None:
             deprecation("The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
         multi_edges = []
-        if self._directed:
+        if self._directed and not to_undirected:
             for v in self:
                 for u in self.predecessor_iterator(v):
                     edges = self.edge_boundary([u], [v], labels)
                     if len(edges) > 1:
                         multi_edges += edges
         else:
+            to_undirected *= self._directed
             for v in self:
                 for u in self.neighbor_iterator(v):
                     if hash(u) >= hash(v):
                         edges = self.edge_boundary([v], [u], labels)
+                        if to_undirected:
+                            edges += self.edge_boundary([u],[v], labels)
                         if len(edges) > 1:
                             multi_edges += edges
         return multi_edges
@@ -6039,6 +6069,39 @@ class GenericGraph(SageObject):
                 G.add_edge(e)
         return G
 
+    def is_transitively_reduced(self):
+        r"""
+        Returns True if the digraph is transitively reduced and False
+        otherwise.
+
+        A digraph is transitively reduced if it is equal to its transitive
+        reduction.
+
+        EXAMPLES::
+
+            sage: d = DiGraph({0:[1],1:[2],2:[3]})
+            sage: d.is_transitively_reduced()
+            True
+
+            sage: d = DiGraph({0:[1,2],1:[2]})
+            sage: d.is_transitively_reduced()
+            False
+
+            sage: d = DiGraph({0:[1,2],1:[2],2:[]})
+            sage: d.is_transitively_reduced()
+            False
+        """
+        from sage.rings.infinity import Infinity
+        G = self.copy()
+        for e in self.edge_iterator():
+            G.delete_edge(e)
+            if G.distance(e[0],e[1]) == Infinity:
+                G.add_edge(e)
+            else:
+                return False
+        return True
+
+
     ### Visualization
 
     def _color_by_label(self, format='hex'):
@@ -6382,10 +6445,17 @@ class GenericGraph(SageObject):
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
 
+        ::
+
             sage: S = SupersingularModule(389)
             sage: H = S.hecke_matrix(2)
             sage: D = DiGraph(H)
             sage: P = D.plot()
+
+        ::
+
+            sage: G=Graph({'a':['a','b','b','b','e'],'b':['c','d','e'],'c':['c','d','d','d'],'d':['e']})
+            sage: G.show(pos={'a':[0,1],'b':[1,1],'c':[2,0],'d':[1,0],'e':[0,0]})
 
         """
         from sage.graphs.graph_plot import GraphPlot
@@ -6510,7 +6580,19 @@ class GenericGraph(SageObject):
             sage: for i in range(len(edges)):
             ...       edge_colors[R[i]] = [edges[i]]
             sage: P.plot3d(engine='tachyon', edge_colors=edge_colors).show() # long time
+
+
+        ::
+
+            sage: G=Graph({'a':['a','b','b','b','e'],'b':['c','d','e'],'c':['c','d','d','d'],'d':['e']})
+            sage: G.show3d()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: 3D plotting of multiple edges or loops not implemented.
+
         """
+        if self.has_multiple_edges() or self.has_loops():
+            raise NotImplementedError("3D plotting of multiple edges or loops not implemented.")
         if engine == 'jmol':
             from sage.plot.plot3d.all import sphere, line3d, arrow3d
             kwds.setdefault('aspect_ratio', [1,1,1])
@@ -7277,8 +7359,8 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table()
-            sage: abs(Integer(M.determinant()))
-            712483534798848
+            sage: M.determinant()
+            -712483534798848
             sage: G.order()
             384
 
@@ -7893,6 +7975,10 @@ class Graph(GenericGraph):
        example, 'out' is the label for the edge on 2 and 5. Labels can be
        used as weights, if all the labels share some common parent.
 
+        sage: a,b,c,d,e,f = sorted(SymmetricGroup(3))
+        sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
+        Graph on 4 vertices
+
     #. A dictionary of lists::
 
         sage: g = Graph({0:[1,2,3], 2:[4]}); g
@@ -8286,7 +8372,7 @@ class Graph(GenericGraph):
                 for v in data[u]:
                     if v not in verts: verts.append(v)
                     if hash(u) > hash(v):
-                        if u in data[v]:
+                        if v in data and u in data[v]:
                             if data[u][v] != data[v][u]:
                                 raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
                             continue

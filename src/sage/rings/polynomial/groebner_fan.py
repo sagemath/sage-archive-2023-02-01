@@ -888,16 +888,20 @@ class GroebnerFan(SageObject):
 
         EXAMPLES::
 
-            sage: R.<x,y> = PolynomialRing(QQ,2)
-            sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
-            sage: G.render()
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: G = R.ideal([y^3 - x^2, y^2 - 13*x,z]).groebner_fan()
+            sage: test_render = G.render()
 
         ::
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
-            sage: G.render(larger=True)
+            sage: test_render = G.render(larger=True)
         """
+        S = self.__ring
+        if S.ngens() < 3:
+            print "For 2-D fan rendering the polynomial ring must have 3 variables (or more, which are ignored)."
+            raise NotImplementedError
         cmd = 'render'
         if shift:
             cmd += ' --shiftVariables %s'%shift
@@ -1062,16 +1066,20 @@ class GroebnerFan(SageObject):
             sage: gf = R4.ideal([w^2-x,x^2-y,y^2-z,z^2-x]).groebner_fan()
             sage: three_d = gf.render3d()
         """
+        S = self.__ring
+        if S.ngens() != 4:
+            print "For 3-D fan rendering the polynomial ring must have 4 variables"
+            raise NotImplementedError
         g_cones = [q.groebner_cone() for q in self.reduced_groebner_bases()]
         g_cones_facets = [q.facets() for q in g_cones]
         g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]
         # Now the cones are intersected with a plane:
         cone_info = [ieq_to_vert(q,linearities=[[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
-	if verbose:
-	    for x in cone_info:
-		print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
-		print x.linearities()
-		print ""
+        if verbose:
+            for x in cone_info:
+                print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
+                print x.linearities()
+                print ""
         cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], linearities = x.linearities()) for x in cone_info]
         all_lines = []
         for cone_data in cone_info:
@@ -1247,19 +1255,19 @@ class GroebnerFan(SageObject):
         self[0].interactive(*args, **kwds)
 
     def tropical_intersection(self, ideal_arg = False, *args, **kwds):
-	"""
-	Returns information about the tropical intersection of the
-	polynomials defining the ideal.
+        """
+        Returns information about the tropical intersection of the
+        polynomials defining the ideal.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: R.<x,y,z> = PolynomialRing(QQ,3)
-	    sage: i1 = ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
-	    sage: gf = i1.groebner_fan()
-	    sage: pf = gf.tropical_intersection()
-	    sage: pf.rays()
-	    [[-1, 0, 0]]
-	"""
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: i1 = ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
+            sage: gf = i1.groebner_fan()
+            sage: pf = gf.tropical_intersection()
+            sage: pf.rays()
+            [[-1, 0, 0]]
+        """
         try:
             return self.__tropical_intersection
         except AttributeError:

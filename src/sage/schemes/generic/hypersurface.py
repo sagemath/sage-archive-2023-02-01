@@ -1,8 +1,11 @@
-"""
+r"""
 Hypersurfaces in affine and projective space
 
-AUTHOR: 2005-12-08, William Stein <wstein@gmail.com>
-                    David Kohel <kohel@maths.usyd.edu.au>
+AUTHORS:
+
+- William Stein <wstein@gmail.com> (2005-12-08)
+- David Kohel <kohel@maths.usyd.edu.au> (2005-12-08)
+- Alex Ghitza <aghitza@alum.mit.edu> (2009-04-17)
 """
 
 #*****************************************************************************
@@ -16,62 +19,203 @@ AUTHOR: 2005-12-08, William Stein <wstein@gmail.com>
 #*****************************************************************************
 
 from sage.rings.all import is_MPolynomial
-from algebraic_scheme import AlgebraicScheme
-from affine_scheme import AffineScheme_generic
-from affine_space import AffineSpace
-from projective_scheme import ProjectiveScheme
-from projective_space import ProjectiveSpace
+from algebraic_scheme import AlgebraicScheme_subscheme_projective, AlgebraicScheme_subscheme_affine
 
 def is_Hypersurface(self):
-    return isinstance(self,Hypersurface)
-
-class Hypersurface(AlgebraicScheme):
     """
-    A hypersurface defined by a polynomial in affine or projective space
+    Return True if self is a hypersurface, i.e. an object of the type
+    ProjectiveHypersurface or AffineHypersurface.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.hypersurface import is_Hypersurface
+        sage: R.<x, y, z> = ZZ[]
+        sage: H = ProjectiveHypersurface(x*z+y^2)
+        sage: is_Hypersurface(H)
+        True
+
+    ::
+
+        sage: H = AffineHypersurface(x*z+y^2)
+        sage: is_Hypersurface(H)
+        True
+
+    ::
+
+        sage: H = ProjectiveSpace(QQ, 5)
+        sage: is_Hypersurface(H)
+        False
     """
-    def __init__(self):
-        pass
+    return isinstance(self, (ProjectiveHypersurface, AffineHypersurface))
 
-    def defining_polynomial(self):
-        return self.defining_polynomials()[0]
-
-class ProjectiveHypersurface(ProjectiveScheme, HypersurfaceScheme):
+class ProjectiveHypersurface(AlgebraicScheme_subscheme_projective):
     """
     The projective hypersurface defined by the given polynomial.
+
+    EXAMPLES::
+
+        sage: P.<x, y, z> = ProjectiveSpace(ZZ, 2)
+        sage: ProjectiveHypersurface(x-y, P)
+        Projective hypersurface defined by x - y in Projective Space of dimension 2 over Integer Ring
+
+    ::
+
+        sage: R.<x, y, z> = QQ[]
+        sage: ProjectiveHypersurface(x-y)
+        Projective hypersurface defined by x - y in Projective Space of dimension 2 over Rational Field
     """
-    def __init__(self, ambient, poly):
+
+    def __init__(self, poly, ambient=None):
+        """
+        Return the projective hypersurface in the space ambient
+        defined by the polynomial poly.
+
+        If ambient is not given, it will be constructed based on
+        poly.
+
+        EXAMPLES::
+
+            sage: P.<x, y, z> = ProjectiveSpace(ZZ, 2)
+            sage: ProjectiveHypersurface(x-y, P)
+            Projective hypersurface defined by x - y in Projective Space of dimension 2 over Integer Ring
+
+        ::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: ProjectiveHypersurface(x-y)
+            Projective hypersurface defined by x - y in Projective Space of dimension 2 over Rational Field
+
+        TESTS::
+
+            sage: H = ProjectiveHypersurface(x-y)
+            sage: H == loads(dumps(H))
+            True
+        """
         if not is_MPolynomial(poly):
             raise TypeError, \
                   "Defining polynomial (=%s) must be a multivariate polynomial."%poly
         if not poly.is_homogeneous():
             raise TypeError, "Defining polynomial (=%s) must be homogeneous."%poly
         if ambient == None:
-            P = poly.parent()
-            ambient = ProjectiveSpace(P.base_ring(), P.ngens()-1, coordinate_ring = P)
-        ProjectiveScheme.__init__(self, ambient, [poly])
-        HypersurfaceScheme.__init__(self)
+            R = poly.parent()
+            from projective_space import ProjectiveSpace
+            ambient = ProjectiveSpace(R.base_ring(), R.ngens()-1)
+            ambient._coordinate_ring = R
+        AlgebraicScheme_subscheme_projective.__init__(self, ambient, [poly])
 
     def _repr_(self):
+        """
+        Return a string representation of this projective
+        hypersurface.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = ZZ[]
+            sage: H = ProjectiveHypersurface(x*z+y^2)
+            sage: H
+            Projective hypersurface defined by y^2 + x*z in Projective Space of dimension 2 over Integer Ring
+            sage: H._repr_()
+            'Projective hypersurface defined by y^2 + x*z in Projective Space of dimension 2 over Integer Ring'
+        """
         return "Projective hypersurface defined by %s in %s"%(
             self.defining_polynomial(), self.ambient_space())
 
-class AffineHypersurface(AffineScheme_generic, HypersurfaceScheme):
+    def defining_polynomial(self):
+        """
+        Return the polynomial equation that cuts out this projective
+        hypersurface.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = ZZ[]
+            sage: H = ProjectiveHypersurface(x*z+y^2)
+            sage: H.defining_polynomial()
+            y^2 + x*z
+        """
+        return self.defining_polynomials()[0]
+
+
+class AffineHypersurface(AlgebraicScheme_subscheme_affine):
     """
     The affine hypersurface defined by the given polynomial.
+
+    EXAMPLES::
+
+        sage: A.<x, y, z> = AffineSpace(ZZ, 3)
+        sage: AffineHypersurface(x*y-z^3, A)
+        Affine hypersurface defined by -z^3 + x*y in Affine Space of dimension 3 over Integer Ring
+
+    ::
+
+        sage: A.<x, y, z> = QQ[]
+        sage: AffineHypersurface(x*y-z^3)
+        Affine hypersurface defined by -z^3 + x*y in Affine Space of dimension 3 over Rational Field
     """
-    def __init__(self, ambient, poly):
+    def __init__(self, poly, ambient=None):
+        """
+        Return the affine hypersurface in the space ambient
+        defined by the polynomial poly.
+
+        If ambient is not given, it will be constructed based on
+        poly.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AffineSpace(ZZ, 3)
+            sage: AffineHypersurface(x*y-z^3, A)
+            Affine hypersurface defined by -z^3 + x*y in Affine Space of dimension 3 over Integer Ring
+
+        ::
+
+            sage: A.<x, y, z> = QQ[]
+            sage: AffineHypersurface(x*y-z^3)
+            Affine hypersurface defined by -z^3 + x*y in Affine Space of dimension 3 over Rational Field
+
+        TESTS::
+
+            sage: H = AffineHypersurface(x*y-z^3)
+            sage: H == loads(dumps(H))
+            True
+        """
         if not is_MPolynomial(poly):
             raise TypeError, "Defining polynomial (= %s) must be a multivariate polynomial"%poly
         if ambient == None:
-            P = poly.parent()
-            ambient = AffineSpace(P.base_ring(), P.ngens(), coordinate_ring = P)
-        AffineScheme.__init__(self, ambient, [poly])
-        HypersurfaceScheme.__init__(self)
+            R = poly.parent()
+            from affine_space import AffineSpace
+            ambient = AffineSpace(R.base_ring(), R.ngens())
+            ambient._coordinate_ring = R
+        AlgebraicScheme_subscheme_affine.__init__(self, ambient, [poly])
 
     def _repr_(self):
+        """
+        Return a string representation of this affine
+        hypersurface.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = ZZ[]
+            sage: H = AffineHypersurface(x*z+y^2)
+            sage: H
+            Affine hypersurface defined by y^2 + x*z in Affine Space of dimension 3 over Integer Ring
+            sage: H._repr_()
+            'Affine hypersurface defined by y^2 + x*z in Affine Space of dimension 3 over Integer Ring'
+        """
         return "Affine hypersurface defined by %s in %s"%(
             self.defining_polynomial(), self.ambient_space())
 
+    def defining_polynomial(self):
+        """
+        Return the polynomial equation that cuts out this affine
+        hypersurface.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = ZZ[]
+            sage: H = AffineHypersurface(x*z+y^2)
+            sage: H.defining_polynomial()
+            y^2 + x*z
+        """
+        return self.defining_polynomials()[0]
 
 
 

@@ -1020,8 +1020,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [               2.0                3.0]
             [               4.0                5.0]
 
-	Due to numerical noise issues on Intel Macs, the following fails if 1e-14
-	is changed to 1e-15:
+        Due to numerical noise issues on Intel Macs, the following fails if 1e-14
+        is changed to 1e-15:
             sage: max((U*S*V.transpose()-m).list())<1e-14 # check
             True
 

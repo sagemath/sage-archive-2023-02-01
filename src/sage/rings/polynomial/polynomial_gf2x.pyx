@@ -223,3 +223,20 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
         verbose("Res %5.3f s"%cputime(t),level=1)
         return res
+
+    def is_irreducible(self):
+        """
+        Return True precisely if this polynomial is irreducible over GF(2).
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(2)[]
+            sage: (x^2 + 1).is_irreducible()
+            False
+            sage: (x^3 + x + 1).is_irreducible()
+            True
+        """
+        if 0 == GF2X_IterIrredTest(self.x):
+            return False
+        else:
+            return True

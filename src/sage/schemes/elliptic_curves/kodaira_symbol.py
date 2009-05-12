@@ -1,5 +1,47 @@
-"""
+r"""
 Kodaira symbols.
+
+Kodaira symbols encode the type of reduction of an elliptic curve at a
+(finite) place.
+
+The standard notation for Kodaira Symbols is as a string which is one
+of `\rm{I}_m`, `\rm{II}`, `\rm{III}`, `\rm{IV}`, `\rm{I}^*_m`,
+`\rm{II}^*`, `\rm{III}^*`, `\rm{IV}^*`, where `m` denotes a
+non-negative integer.  These have been encoded by single integers by
+different people.  For convenience we give here the conversion table
+between strings, the eclib coding and the pari encoding.
+
++----------------------+----------------+--------------------+
+| Kodaira Symbol       |  Eclib coding  |  Pari Coding       |
++======================+================+====================+
+| `\rm{I}_0`           |      `0`       |   `1`              |
++----------------------+----------------+--------------------+
+| `\rm{I}^*_0`         |      `1`       |   `-1`             |
++----------------------+----------------+--------------------+
+| `\rm{I}_m`  `(m>0)`  |      `10m`     |   `m+4`            |
++----------------------+----------------+--------------------+
+| `\rm{I}^*_m` `(m>0)` |      `10m+1`   |   `-(m+4)`         |
++----------------------+----------------+--------------------+
+| `\rm{II}`            | `2`            |   `2`              |
++----------------------+----------------+--------------------+
+| `\rm{III}`           | `3`            |   `3`              |
++----------------------+----------------+--------------------+
+| `\rm{IV}`            | `4`            |   `4`              |
++----------------------+----------------+--------------------+
+| `\rm{II}^*`          | `7`            |   `-2`             |
++----------------------+----------------+--------------------+
+| `\rm{III}^*`         | `6`            |   `-3`             |
++----------------------+----------------+--------------------+
+| `\rm{IV}^*`          | `5`            |   `-4`             |
++----------------------+----------------+--------------------+
+
+
+AUTHORS:
+
+- David Roe       <roed@math.harvard.edu>
+
+- John Cremona
+
 """
 
 #*****************************************************************************
@@ -24,34 +66,30 @@ import weakref
 
 class KodairaSymbol_class(SageObject):
     r"""
-    Class to hold a Kodaira symbol of an elliptic curve over a $p$-adic local field.
+    Class to hold a Kodaira symbol of an elliptic curve over a
+    `p`-adic local field.
 
-    The standard notation for Kodaira Symbols is as a string which is
-    one of Im, II, III, IV, I*m, II*, III*, IV* where m denotes a
-    non-negative integer.  These have been encoded by single integers
-    by different people.  For convenience we give here the conversion
-    table between strings, the pari coding and the eclib encoding.
-
-    Kodaira Symbol        Eclib coding   Pari Coding
-
-    I0                    0              1
-    I*0                   1             -1
-    Im  (m>0)             10*m           m+4
-    I*m (m>0)             10*m+1        -(m+4)
-    II, III, IV           2, 3, 4        2,  3,  4
-    II*. III*, IV*        7, 6, 5       -2, -3, -4
-
+    Users should use the ``KodairaSymbol()`` function to construct
+    Kodaira Symbols rather than use the class constructor directly.
     """
     def __init__(self, symbol):
         r"""
         Constructor for Kodaira Symbol class.
 
-        INPUT: symbol -- string or integer.  The string should be a
-           standard string representation (e.g. 'III*') of a Kodaira
+        INPUT:
+
+        - ``symbol`` (string or integer) -- The string should be a
+           standard string representation (e.g. III*) of a Kodaira
            symbol, which will be parsed.  Alternatively, use the Pari
            encoding of Kodaira symbols as integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.kodaira_symbol import KodairaSymbol_class
+            sage: KodairaSymbol_class(14)
+            I10
+            sage: KodairaSymbol_class('III*')
+            III*
 
         """
         if not isinstance(symbol, str):
@@ -165,12 +203,74 @@ class KodairaSymbol_class(SageObject):
             raise ValueError, "input is not a Kodaira symbol"
 
     def __repr__(self):
+        r"""
+        Return the string representation of this Kodaira Symbol.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.kodaira_symbol import KodairaSymbol_class
+            sage: KS = KodairaSymbol_class(15)
+            sage: str(KS) # indirect doctest
+            'I11'
+        """
         return self._str
 
     def _latex_(self):
+        r"""
+        Return the string representation of this Kodaira Symbol.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.kodaira_symbol import KodairaSymbol_class
+            sage: KS = KodairaSymbol_class(15)
+            sage: latex(KS)
+            $I_{11}$
+        """
         return self._latex
 
     def __cmp__(self, other):
+        r"""
+        Standard comparison function for Kodaira Symbols.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.kodaira_symbol import KodairaSymbol_class
+            sage: KS1 = KodairaSymbol_class(15); KS1
+            I11
+            sage: KS2 = KodairaSymbol_class(-34); KS2
+            I30*
+            sage: KS1 < KS2
+            True
+            sage: KS2 < KS1
+            False
+
+        ::
+
+            sage: Klist = [KodairaSymbol_class(i) for i in [-10..10] if i!=0]
+            sage: Klist.sort()
+            sage: Klist
+            [I0,
+            I0*,
+            I1,
+            I1*,
+            I2,
+            I2*,
+            I3,
+            I3*,
+            I4,
+            I4*,
+            I5,
+            I5*,
+            I6,
+            I6*,
+            II,
+            II*,
+            III,
+            III*,
+            IV,
+            IV*]
+
+        """
         if isinstance(other, KodairaSymbol_class):
             if (self._n == "generic" and not other._n is None) or (other._n == "generic" and not self._n is None):
                 return cmp(self._starred, other._starred)
@@ -178,46 +278,40 @@ class KodairaSymbol_class(SageObject):
         else:
             return cmp(type(self), type(other))
 
-    def pari_code(self):
+    def _pari_code(self):
         """
         Return the Pari encoding of this Kodaira Symbol.
 
-        EXAMPLES:
-            sage: KodairaSymbol('I0').pari_code()
+        EXAMPLES::
+
+            sage: KodairaSymbol('I0')._pari_code()
             1
-            sage: KodairaSymbol('I10').pari_code()
+            sage: KodairaSymbol('I10')._pari_code()
             14
-            sage: KodairaSymbol('I10*').pari_code()
+            sage: KodairaSymbol('I10*')._pari_code()
             -14
-            sage: [KodairaSymbol(s).pari_code() for s in ['II','III','IV']]
+            sage: [KodairaSymbol(s)._pari_code() for s in ['II','III','IV']]
             [2, 3, 4]
-            sage: [KodairaSymbol(s).pari_code() for s in ['II*','III*','IV*']]
+            sage: [KodairaSymbol(s)._pari_code() for s in ['II*','III*','IV*']]
             [-2, -3, -4]
         """
         return self._pari
 
 _ks_cache = {}
 def KodairaSymbol(symbol):
-    """
+    r"""
     Returns the specified Kodaira symbol.
 
     INPUT:
-    symbol -- A string of the form "I0", "I1", \ldots, "In", "II", "III", "IV", "I0*", "I1*", \ldots, "In*", "II*", "III*", or "IV*",
-              or an integer encoding a Kodaira symbol using Pari's conventions:
-              1 = "I0" (good reduction)
-              2 = "II"
-              3 = "III"
-              4 = "IV"
-              4+n = "I_n"
-              -1 = "I0*"
-              -2 = "II*"
-              -3 = "III*"
-              -4 = "IV*"
-              -4-n = "I_n^*"
-    OUTPUT:
-        KodairaSymbol -- the corresponding Kodaira symbol.
 
-    EXAMPLES:
+    - ``symbol`` (string or integer) -- Either a string of the form "I0", "I1", ..., "In", "II", "III", "IV", "I0*", "I1*", ..., "In*", "II*", "III*", or "IV*", or an integer encoding a Kodaira symbol using Pari's conventions.
+
+    OUTPUT:
+
+    (KodairaSymbol)  The corresponding Kodaira symbol.
+
+    EXAMPLES::
+
         sage: KS = KodairaSymbol
         sage: [KS(n) for n in range(1,10)]
         [I0, II, III, IV, I1, I2, I3, I4, I5]

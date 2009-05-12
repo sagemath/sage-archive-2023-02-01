@@ -114,7 +114,7 @@ def get_classified_solution_dicts(output_file_contents, input_ring, get_failures
     solution_dicts = {}
     solution_types = ['complex', 'real','failure']
     for sol_type in solution_types:
-	solution_dicts[sol_type] = []
+        solution_dicts[sol_type] = []
     for solution_line in range(len(output_list)-1,-1,-1):
         if output_list[solution_line].find('THE SOLUTIONS') == 0:
             break
@@ -122,7 +122,7 @@ def get_classified_solution_dicts(output_file_contents, input_ring, get_failures
     sol_number = int(output_list[solution_line+2].split(' ')[0])
     for i in range(solution_line + 1,len(output_list)):
         if output_list[i].count('the solution for t') == 1:
-	    phc_type = output_list[i+var_number+1].split(' = ')[-1]
+            phc_type = output_list[i+var_number+1].split(' = ')[-1]
             if phc_type.find('complex') != -1:
                 phc_type = 'complex'
             elif phc_type.find('real') != -1:
@@ -168,14 +168,14 @@ def get_variable_list(output_file_contents):
 class PHC_Object:
 
     def __init__(self, output_file_contents, input_ring):
-	"""
+        """
         A container for data from the PHCpack program - lists of float
         solutions, etc.  Currently the file contents are kept as a string;
         for really large outputs this would be bad.
 
-	INPUT:
-	    output_file_contents: the string output of PHCpack
-	    input_ring: for coercion of the variables into the desired ring.
+        INPUT:
+            output_file_contents: the string output of PHCpack
+            input_ring: for coercion of the variables into the desired ring.
 
         EXAMPLES:
             sage: from sage.interfaces.phc import phc #optional
@@ -184,9 +184,9 @@ class PHC_Object:
             sage: sol = phc.blackbox(start_sys, R2)  #optional
             sage: str(sum([x[0] for x in sol.solutions()]).real())[0:3] #optional
             '2.0'
-	"""
+        """
         self.output_file_contents = output_file_contents
-	self.input_ring = input_ring
+        self.input_ring = input_ring
 
 
     def save_as_start(self, start_filename = None, sol_filter = ''):
@@ -206,54 +206,54 @@ class PHC_Object:
             sage: len(sol.solutions())               #optional
             15
         """
-	start_data = ''
-	output_list = self.output_file_contents.splitlines()
-	for a_line in output_list:
-	    if a_line.find('ROOT COUNTS') != -1 or a_line.find('START SOLUTIONS') != -1:
-		break
-	    else:
-		start_data += a_line + '\n'
-	for index in range(len(output_list)-1,0,-1):
-	    a_line = output_list[index]
-	    if a_line.find('THE SOLUTIONS') != -1:
-		found_solutions = index
-		break
-	start_data += output_list[found_solutions] + '\n\n'
-	try:
+        start_data = ''
+        output_list = self.output_file_contents.splitlines()
+        for a_line in output_list:
+            if a_line.find('ROOT COUNTS') != -1 or a_line.find('START SOLUTIONS') != -1:
+                break
+            else:
+                start_data += a_line + '\n'
+        for index in range(len(output_list)-1,0,-1):
+            a_line = output_list[index]
+            if a_line.find('THE SOLUTIONS') != -1:
+                found_solutions = index
+                break
+        start_data += output_list[found_solutions] + '\n\n'
+        try:
             var_number = int(output_list[found_solutions+1].split(' ')[1])
         except:
             # bad error handling
             var_number = int(output_list[found_solutions+2].split(' ')[1])
-	sol_count = 0
-	sol_data = ''
-	for i in range(found_solutions + 2, len(output_list)):
-	    if output_list[i].count('the solution for t') == 1 and output_list[i+1+var_number].find(sol_filter) != -1:
-		phc_type = output_list[i+var_number+1].split(' = ')[-1]
-		if phc_type.find('no solution') == -1:
-		    sol_count += 1
-		    for ind2 in range(i-3,i+var_number+2):
-			sol_data += output_list[ind2] + '\n'
-	jan_bar = '===========================================================================\n'
-	sol_data += jan_bar
-	start_data += str(sol_count) + ' ' + str(var_number) + '\n'
-	start_data += jan_bar + sol_data
-	if start_filename != None:
-	    start_file = file(start_filename,'w')
-	    start_file.write(start_data)
-	    start_file.close()
-	return start_data
+        sol_count = 0
+        sol_data = ''
+        for i in range(found_solutions + 2, len(output_list)):
+            if output_list[i].count('the solution for t') == 1 and output_list[i+1+var_number].find(sol_filter) != -1:
+                phc_type = output_list[i+var_number+1].split(' = ')[-1]
+                if phc_type.find('no solution') == -1:
+                    sol_count += 1
+                    for ind2 in range(i-3,i+var_number+2):
+                        sol_data += output_list[ind2] + '\n'
+        jan_bar = '===========================================================================\n'
+        sol_data += jan_bar
+        start_data += str(sol_count) + ' ' + str(var_number) + '\n'
+        start_data += jan_bar + sol_data
+        if start_filename != None:
+            start_file = file(start_filename,'w')
+            start_file.write(start_data)
+            start_file.close()
+        return start_data
 
     def classified_solution_dicts(self):
-	"""
-	Returns a dictionary of lists of dictionaries of solutions.
-	Its not as crazy as it sounds; the keys are the types of solutions as
-	classified by phcpack: regular vs. singular, complex vs. real
+        """
+        Returns a dictionary of lists of dictionaries of solutions.
+        Its not as crazy as it sounds; the keys are the types of solutions as
+        classified by phcpack: regular vs. singular, complex vs. real
 
-	INPUT:
-	    None
+        INPUT:
+            None
 
         OUTPUT:
-	    A dictionary of lists of dictionaries of solutions
+            A dictionary of lists of dictionaries of solutions
 
         EXAMPLES:
             sage: from sage.interfaces.phc import phc #optional
@@ -263,12 +263,12 @@ class PHC_Object:
             sage: classifieds = sol.classified_solution_dicts()          #optional
             sage: str(sum([q[y] for q in classifieds['real']]))[0:3]          #optional
             '2.0'
-	"""
-	try:
-	    return self.__classified_sols
-	except AttributeError:
-	    pass
-	classified_sols = get_classified_solution_dicts(self.output_file_contents, self.input_ring)
+        """
+        try:
+            return self.__classified_sols
+        except AttributeError:
+            pass
+        classified_sols = get_classified_solution_dicts(self.output_file_contents, self.input_ring)
         self.__classified_sols = classified_sols
         return classified_sols
 
@@ -276,19 +276,19 @@ class PHC_Object:
         """
         Returns a list of solutions in dictionary form: variable:value.
 
-	INPUT:
+        INPUT:
             self -- for access to self_out_file_contents, the string
-	    of raw PHCpack output.
+            of raw PHCpack output.
 
             get_failures (optional) -- a boolean.  The default (False)
-	    is to not process failed homotopies.  These either lie on
-	    positive-dimensional components or at infinity.
+            is to not process failed homotopies.  These either lie on
+            positive-dimensional components or at infinity.
 
         OUTPUT:
-	    solution_dicts: a list of dictionaries.  Each dictionary
-	    element is of the form variable:value, where the variable
-	    is an element of the input_ring, and the value is in
-	    ComplexField.
+            solution_dicts: a list of dictionaries.  Each dictionary
+            element is of the form variable:value, where the variable
+            is an element of the input_ring, and the value is in
+            ComplexField.
 
         EXAMPLES:
             sage: from sage.interfaces.phc import * #optional
@@ -309,18 +309,18 @@ class PHC_Object:
         return solution_dicts
 
     def solutions(self, get_failures = False):
-	"""
-	Returns a list of solutions in the ComplexField.  Use the variable_list function to get the order of variables used by PHCpack, which is usually different than the term order of the input_ring.
+        """
+        Returns a list of solutions in the ComplexField.  Use the variable_list function to get the order of variables used by PHCpack, which is usually different than the term order of the input_ring.
 
-	INPUT:
-	    self -- for access to self_out_file_contents, the string
-	    of raw PHCpack output.
-	    get_failures (optional) -- a boolean.  The default (False)
-	    is to not process failed homotopies.  These either lie on
-	    positive-dimensional components or at infinity.
+        INPUT:
+            self -- for access to self_out_file_contents, the string
+            of raw PHCpack output.
+            get_failures (optional) -- a boolean.  The default (False)
+            is to not process failed homotopies.  These either lie on
+            positive-dimensional components or at infinity.
 
         OUTPUT:
-	    solutions: a list of lists of ComplexField-valued solutions.
+            solutions: a list of lists of ComplexField-valued solutions.
 
         EXAMPLES:
             sage: from sage.interfaces.phc import *         #optional
@@ -329,21 +329,21 @@ class PHC_Object:
             sage: sol = phc.blackbox(test_sys, R2)          #optional
             sage: len(sol.solutions())                      #optional
             25
-	"""
-	try:
-	    return self.__solutions
-	except AttributeError:
+        """
+        try:
+            return self.__solutions
+        except AttributeError:
             pass
         solution_dicts = get_solution_dicts(self.output_file_contents, self.input_ring, get_failures = get_failures)
         self.__solution_dicts = solution_dicts
-	solutions = [sol_dict.values() for sol_dict in solution_dicts]
-	self.__solutions = solutions
+        solutions = [sol_dict.values() for sol_dict in solution_dicts]
+        self.__solutions = solutions
         return solutions
 
     def variable_list(self):
         """
-	Returns the variables, as strings, in the order in which
-	PHCpack has processed them.
+        Returns the variables, as strings, in the order in which
+        PHCpack has processed them.
 
         EXAMPLES:
             sage: from sage.interfaces.phc import *         #optional
@@ -369,21 +369,21 @@ class PHC:
     EXAMPLES:
         sage: from sage.interfaces.phc import phc #optional
         sage: R.<x,y> = PolynomialRing(CDF,2)     #optional
-	sage: testsys = [x^2 + 1, x*y - 1]        #optional
+        sage: testsys = [x^2 + 1, x*y - 1]        #optional
         sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
         2
         sage: v = phc.blackbox(testsys, R)     # optional
         sage: sols = v.solutions()             # optional
         sage: sols.sort()                      # optional
-	sage: sols                             # optional
+        sage: sols                             # optional
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
-	sage: sol_dict = v.solution_dicts()    # optional
+        sage: sol_dict = v.solution_dicts()    # optional
         sage: x_sols_from_dict = [d[x] for d in sol_dict]    # optional
         sage: x_sols_from_dict.sort(); x_sols_from_dict      # optional
         [-1.00000000000000*I, 1.00000000000000*I]
-	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
-	sage: residuals                             # optional
-	[[0, 0], [0, 0]]
+        sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
+        sage: residuals                             # optional
+        [[0, 0], [0, 0]]
     """
 
     def _output_from_command_list(self, command_list, polys, verbose = False):
@@ -586,14 +586,14 @@ class PHC:
         """
         # Probably unnecessarily redundant from the start_from function
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
-	    start_filename = sage.misc.misc.tmp_filename()
-	    start_file = file(start_filename,'w')
-	    start_file.write(start_filename_or_string)
-	    start_file.close()
-	elif os.path.exists(start_filename_or_string):
-	    start_filename = start_filename_or_string
-	else:
-	    raise RuntimeError, "There is something wrong with your start string or filename"
+            start_filename = sage.misc.misc.tmp_filename()
+            start_file = file(start_filename,'w')
+            start_file.write(start_filename_or_string)
+            start_file.close()
+        elif os.path.exists(start_filename_or_string):
+            start_filename = start_filename_or_string
+        else:
+            raise RuntimeError, "There is something wrong with your start string or filename"
 
         return self._output_from_command_list(['phc','0','0','A',start_filename, 'y','1','0','n','k','2','a','1',str(c_skew),'0','0','2'], polys, verbose = verbose)
 
@@ -729,11 +729,11 @@ class PHC:
 
 
     def start_from(self, start_filename_or_string, polys, input_ring, path_track_file = None, verbose = False):
-	"""
-	This computes solutions starting from a phcpack solution file.
+        """
+        This computes solutions starting from a phcpack solution file.
 
         INPUT:
-	    start_filename_or_string -- the filename for a phcpack start system, or the contents of such a file as a string.  Variable names must match the inputring variables.  The value of the homotopy variable t should be 1, not 0.
+            start_filename_or_string -- the filename for a phcpack start system, or the contents of such a file as a string.  Variable names must match the inputring variables.  The value of the homotopy variable t should be 1, not 0.
             polys -- a list of multivariate polynomials (elements of a multivariate
                      polynomial ring).
             input_ring: for coercion of the variables into the desired ring.
@@ -753,21 +753,21 @@ class PHC:
             sage: sol = phc.start_from(start_save, end_sys, R2) #optional
             sage: len(sol.solutions())                     #optional
             30
-	"""
-	input_filename = sage.misc.misc.tmp_filename()
-	output_filename = sage.misc.misc.tmp_filename()
+        """
+        input_filename = sage.misc.misc.tmp_filename()
+        output_filename = sage.misc.misc.tmp_filename()
 
-	if start_filename_or_string.find('THE SOLUTIONS') != -1:
-	    start_filename = sage.misc.misc.tmp_filename()
-	    start_file = file(start_filename,'w')
-	    start_file.write(start_filename_or_string)
-	    start_file.close()
-	elif os.path.exists(start_filename_or_string):
-	    start_filename = start_filename_or_string
-	else:
-	    raise RuntimeError, "There is something wrong with your start string or filename"
+        if start_filename_or_string.find('THE SOLUTIONS') != -1:
+            start_filename = sage.misc.misc.tmp_filename()
+            start_file = file(start_filename,'w')
+            start_file.write(start_filename_or_string)
+            start_file.close()
+        elif os.path.exists(start_filename_or_string):
+            start_filename = start_filename_or_string
+        else:
+            raise RuntimeError, "There is something wrong with your start string or filename"
 
-	# Get the input polynomial text
+        # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
@@ -777,7 +777,7 @@ class PHC:
             print "The following file will be the input polynomial file to phc."
             print input
 
-	# Create a phc process
+        # Create a phc process
         child_phc = pexpect.spawn('phc')
         child_phc.sendline('y')
         child_phc.sendline(input_filename)
@@ -787,34 +787,34 @@ class PHC:
         child_phc.expect('Nonlinear Reduction')
         child_phc.sendline('A')
         child_phc.sendline(start_filename)
-	child_phc.sendline('y')
-	child_phc.sendline('1')
-	child_phc.sendline('0')
+        child_phc.sendline('y')
+        child_phc.sendline('1')
+        child_phc.sendline('0')
         if verbose:
             phc_dialog = child_phc.read(size = 40)
             print phc_dialog
-	child_phc.sendline('n')
-	child_phc.sendline('0')
+        child_phc.sendline('n')
+        child_phc.sendline('0')
         if verbose:
             child_phc.expect('CURRENT CONTINUATION')
             phc_dialog = child_phc.read(size = 40)
             print phc_dialog
-	child_phc.sendline('0')
-	if path_track_file == None:
-	    child_phc.sendline('0')
-	else:
-	    child_phc.sendline('2')
+        child_phc.sendline('0')
+        if path_track_file == None:
+            child_phc.sendline('0')
+        else:
+            child_phc.sendline('2')
         child_phc.expect('results')
-	dots = child_phc.read()
+        dots = child_phc.read()
         if verbose:
             print "should be . : " + dots
 
-	#close down the process:
-	child_phc.close()
+        #close down the process:
+        child_phc.close()
         if not os.path.exists(output_filename):
             raise RuntimeError, "The output file does not exist; something went wrong running phc."
 
-	# Read the output produced by PHC
+        # Read the output produced by PHC
         out = open(output_filename).read()
 
         # Delete the temporary files

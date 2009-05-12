@@ -952,7 +952,8 @@ class SteenrodAlgebraFactory(UniqueFactory):
         sage: SteenrodAlgebra(2, 'comm_deg_long')(Sq(6))
         s_{1} s_{2} s_{12} + s_{2} s_{4}
 
-    Testing unique parents
+    Testing unique parents::
+
         sage: S0 = SteenrodAlgebra(2)
         sage: S1 = SteenrodAlgebra(2)
         sage: S0 is S1

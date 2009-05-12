@@ -19,8 +19,11 @@ modify and extend the core Sage libraries, and how to modify Sage's
 documentation. It also discusses how to share your new and modified
 code with other Sage users.
 
-Contents
-========
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/
+
 
 .. toctree::
    :maxdepth: 3

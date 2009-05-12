@@ -94,24 +94,24 @@ function generic_callback(status, response_text) {
 
 function async_request(url, callback, postvars) {
     var settings = {url : url,
-		    async : true,
-		    cache : false,
+                    async : true,
+                    cache : false,
                     dataType: "text"};
 
     if($.isFunction(callback)) {
-	settings['error'] = function (XMLHttpRequest, textStatus, errorThrown) {
-	    callback("failure", errorThrown);
-	};
-	settings['success'] = function (data, textStatus) {
-	    callback("success", data);
-	}
+        settings['error'] = function (XMLHttpRequest, textStatus, errorThrown) {
+            callback("failure", errorThrown);
+        };
+        settings['success'] = function (data, textStatus) {
+            callback("success", data);
+        }
     }
 
     if(postvars != null) {
-	settings['type'] = "POST";
-	settings['data'] = postvars;
+        settings['type'] = "POST";
+        settings['data'] = postvars;
     } else {
-	settings['type'] = "GET";
+        settings['type'] = "GET";
     }
 
     $.ajax(settings);
@@ -860,7 +860,7 @@ function handle_replacement_controls(cell_input, event) {
         return false;
     } else if(key_request_introspections(event)) {
         // instead of browsing through a list of options, here we are viewing
-        // the docstring on a funtion.
+        // the docstring on a function.
         if(sub_introspecting) {
             introspection_text = replacement_text;
             introspection_loaded = true;
@@ -1093,6 +1093,35 @@ function set_worksheet_list_checks() {
     }
 }
 
+function checked_worksheet_filenames() {
+    /*
+    For each filename listed in worksheet_filenames, look up the
+    corresponding input check box, see if it is checked, and if so,
+    add it to the list.
+
+    GLOBAL INPUT:
+        worksheet_filenames -- list of strings
+        SEP -- separator string used when encoding tuples of data to send
+               back to the server.
+    OUTPUT:
+        string of worksheet filenames that are checked, separated by SEP
+    */
+    var i, id, X, filenames;
+    filenames = "";
+
+    // Concatenate the list of all worksheet filenames that are checked
+    // together separated by the separator string.
+    for(i=0; i<worksheet_filenames.length; i++) {
+        id = worksheet_filenames[i];
+        X  = get_element(id);
+        if (X.checked) {
+            filenames = filenames + worksheet_filenames[i] + SEP;
+            X.checked = 0;
+        }
+    }
+    return filenames;
+}
+
 function worksheet_list_button(action) {
     /*
     For each filename listed in worksheet_filenames, look up the
@@ -1109,23 +1138,10 @@ function worksheet_list_button(action) {
         calls the server and requests an action be performened on all the
         listed worksheets
     */
-    var i, id, X, filenames;
-    filenames = "";
-
-    // Concatenate the list of all worksheet filenames that are checked
-    // together separated by the separator string.
-    for(i=0; i<worksheet_filenames.length; i++) {
-        id = worksheet_filenames[i];
-        X  = get_element(id);
-        if (X.checked) {
-            filenames = filenames + worksheet_filenames[i] + SEP;
-            X.checked = 0;
-        }
-    }
     // Send the list of worksheet names and requested action back to
     // the server.
     async_request(action, worksheet_list_button_callback,
-                  {filenames: filenames, sep: SEP});
+                  {filenames: checked_worksheet_filenames(), sep: SEP});
 }
 
 function worksheet_list_button_callback(status, response_text) {
@@ -1176,6 +1192,13 @@ function stop_worksheets_button() {
     Saves and then quits sage process for each checked worksheet.
     */
     worksheet_list_button("/send_to_stop");
+}
+
+function download_worksheets_button() {
+    /*
+    Downloads the set of checked worksheets as a zip file.
+    */
+    window.location.replace("/download_worksheets?filenames=" + checked_worksheet_filenames() + "&sep=" + SEP);
 }
 
 function history_window() {
@@ -1517,7 +1540,7 @@ function list_copy_worksheet(filename) {
     INPUT:
         filename -- string; filename of the worsheet to share
     */
-    async_request('/home/' + filename + '/copy', refresh);
+    async_request('/home/' + filename + '/copy?no_load', refresh);
 }
 
 function list_share_worksheet(filename) {
@@ -1526,7 +1549,7 @@ function list_share_worksheet(filename) {
     the worksheet list with other users.
 
     INPUT:
-        filename -- string; filename of the worsheet to share
+        filename -- string; filename of the worksheet to share
     */
     window.location.replace('/home/' + filename + '/share');
 }

@@ -375,7 +375,7 @@ cdef class Conversion:
             naDelete(&apow1, _ring)
             naDelete(&a, _ring)
         else:
-            n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)))
+           n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)))
 
         return n1
 

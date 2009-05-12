@@ -9,7 +9,7 @@ cdef class pAdicPrinter_class(SageObject):
     cdef object ring
     cdef int mode
     cdef bint pos
-    cdef object pname
+    cdef object ram_name
     cdef object unram_name
     cdef object var_name
     cdef object sep
@@ -29,5 +29,8 @@ cdef class pAdicPrinter_class(SageObject):
     cdef _var(self, x, exp, do_latex)
     cdef _dot_var(self, x, exp, do_latex)
     cdef _co_dot_var(self, co, x, exp, do_latex)
-    cdef _plus_ellipsis(self, do_latex)
+    cdef _plus_ellipsis(self, bint do_latex)
+    cdef _ellipsis(self, bint do_latex)
+    cdef _terse_frac(self, a, v, u, ram_name, bint do_latex)
+    cdef _print_unram_term(self, L, bint do_latex, polyname, long max_unram_terms, long expshift, bint increasing)
     cdef _print_term_of_poly(self, s, coeff, bint do_latex, polyname, long exp)

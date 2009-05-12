@@ -505,17 +505,17 @@ def matrix(*args, **kwds):
                 entries = 0
                 entry_ring = rings.ZZ
             elif isinstance(args[0][0], (list, tuple)) or is_Vector(args[0][0]):
-		# Ensure we have a list of lists, each inner list having the same number of elements
-		first_len = len(args[0][0])
-		if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-		    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+                # Ensure we have a list of lists, each inner list having the same number of elements
+                first_len = len(args[0][0])
+                if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
+                    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
                 # We have a list of rows or vectors
                 if nrows is None:
                     nrows = len(args[0])
                 elif nrows != len(args[0]):
                     raise ValueError, "Number of rows does not match up with specified number."
                 if ncols is None:
-		    ncols = len(args[0][0])
+                    ncols = len(args[0][0])
                 elif ncols != len(args[0][0]):
                     raise ValueError, "Number of columns does not match up with specified number."
 

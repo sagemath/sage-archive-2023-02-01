@@ -80,8 +80,8 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
                 R = PolynomialRing(self.value_ring(), 'x')
                 return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
             elif len(P) == 2:
-	        P1 = P[0]; P2 = P[1]
-		if is_Polynomial(P1) and is_Polynomial(P2):
+                P1 = P[0]; P2 = P[1]
+                if is_Polynomial(P1) and is_Polynomial(P2):
                     return JacobianMorphism_divisor_class_field(self, tuple(P))
                 if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
                     return self(P1) - self(P2)

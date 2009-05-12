@@ -24,7 +24,6 @@ import weakref
 import ambient
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc
-import sage.modular.congroup as congroup
 import sage.rings.arith as arith
 import sage.modules.free_module_morphism as free_module_morphism
 import sage.modular.hecke.all as hecke
@@ -120,18 +119,18 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             [ 0]
             [-1]
             Domain: Modular Symbols space of dimension 3 for Gamma_0(1) of weight ...
-            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
+            Codomain: Space of Boundary Modular Symbols for Modular Group SL(2,Z) ...
             sage: M.cuspidal_subspace().boundary_map()
             Hecke module morphism defined by the matrix
             [0]
             [0]
             Domain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
-            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
+            Codomain: Space of Boundary Modular Symbols for Modular Group SL(2,Z) ...
             sage: M.eisenstein_submodule().boundary_map()
             Hecke module morphism defined by the matrix
             [-236364091/6742820700]
             Domain: Modular Symbols subspace of dimension 1 of Modular Symbols space ...
-            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
+            Codomain: Space of Boundary Modular Symbols for Modular Group SL(2,Z) ...
         """
         try:
             return self.__boundary_map

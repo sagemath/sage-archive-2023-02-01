@@ -108,6 +108,8 @@ from sage.lfunctions.all import *
 
 from sage.geometry.all   import *
 
+from sage.homology.all   import *
+
 from sage.quadratic_forms.all import *
 
 from sage.gsl.all        import *
@@ -125,6 +127,9 @@ from sage.stats.all      import *
 import sage.finance.all  as finance
 
 from sage.parallel.all   import *
+
+from sage.ext.fast_callable  import fast_callable
+from sage.ext.fast_eval      import fast_float
 
 from copy import copy, deepcopy
 
@@ -270,8 +275,8 @@ def quit_sage(verbose=True):
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     sage.rings.integer.clear_mpz_globals()
-    import sage.algebras.quaternion_algebra_element
-    sage.algebras.quaternion_algebra_element._clear_globals()
+    import sage.algebras.quatalg.quaternion_algebra_element
+    sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
     from sage.libs.all import symmetrica
     symmetrica.end()
@@ -299,8 +304,6 @@ from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
-
-#from catalogue.all import new
 
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed

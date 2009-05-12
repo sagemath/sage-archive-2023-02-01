@@ -1,5 +1,5 @@
 r"""
-Dense matrices over `\mathbb{Z}/n\mathbb{Z}` for `n` small.
+Dense matrices over `\ZZ/n\ZZ` for `n` small.
 
 AUTHORS:
 
@@ -8,7 +8,7 @@ AUTHORS:
 - Robert Bradshaw
 
 This is a compiled implementation of dense matrices over
-`\mathbb{Z}/n\mathbb{Z}` for `n` small.
+`\ZZ/n\ZZ` for `n` small.
 
 EXAMPLES::
 

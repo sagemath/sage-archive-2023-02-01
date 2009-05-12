@@ -439,7 +439,7 @@ Reverse Search and Tab Completion
 =================================
 
 First create the three dimensional vector space
-:math:`V=\mathbf{Q}^3` as follows:
+:math:`V=\QQ^3` as follows:
 
 ::
 
@@ -575,7 +575,7 @@ What does the ``coordinate_vector`` function do?
 The ``coordinate_vector`` function coerces its input into the
 ambient space, which has the effect of computing the vector of
 coefficients of :math:`v` in terms of :math:`V`. The space
-:math:`V` is already ambient since it's just :math:`\mathbb{Q}^3`.
+:math:`V` is already ambient since it's just :math:`\QQ^3`.
 There is also a ``coordinate_vector`` function for subspaces, and
 it's different. We create a subspace and see:
 

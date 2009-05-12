@@ -511,7 +511,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
         EXAMPLES:
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))
-            \mathbf{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
+            \Bold{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
         """
         vars = ', '.join([a + '^{\pm 1}' for a in self.latex_variable_names()])
         return "%s[%s]"%(latex(self.base_ring()), vars)

@@ -11,7 +11,7 @@ Hecke Operators on $q$-expansions.
 #########################################################################
 
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
-from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries)
+from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries, Infinity)
 from sage.matrix.all import matrix, MatrixSpace
 from element import is_ModularFormElement
 
@@ -44,6 +44,17 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
 
         sage: hecke_operator_on_qexp(M.basis()[0], 6, 12)
         -6048*q + 145152*q^2 - 1524096*q^3 + O(q^4)
+
+    An example on a formal power series::
+
+        sage: R.<q> = QQ[[]]
+        sage: f = q + q^2 + q^3 + q^7 + O(q^8)
+        sage: hecke_operator_on_qexp(f, 3, 12)
+        q + O(q^3)
+        sage: hecke_operator_on_qexp(delta_qexp(24), 3, 12).prec()
+        8
+        sage: hecke_operator_on_qexp(delta_qexp(25), 3, 12).prec()
+        9
     """
     if eps is None:
         # Need to have base_ring=ZZ to work over finite fields, since
@@ -59,11 +70,15 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
     v = []
 
     if prec is None:
-        # always want at least three coeffs, but not too many, unless
-        # requested
-        pr = max(f.prec(), f.parent().prec(), (n+1)*3)
-        pr = min(pr, 100*(n+1))
-        prec = pr // n + 1
+        if is_ModularFormElement(f):
+            # always want at least three coeffs, but not too many, unless
+            # requested
+            pr = max(f.prec(), f.parent().prec(), (n+1)*3)
+            pr = min(pr, 100*(n+1))
+            prec = pr // n + 1
+        else:
+            prec = (f.prec() / ZZ(n)).ceil()
+            if prec == Infinity: prec = f.parent().default_prec() // n + 1
 
     if f.prec() < prec:
         f._compute_q_expansion(prec)
@@ -75,9 +90,11 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
         v.append(am)
     if _return_list:
         return v
-    R = f.parent()._q_expansion_ring()
+    if is_ModularFormElement(f):
+        R = f.parent()._q_expansion_ring()
+    else:
+        R = f.parent()
     return R(v, prec)
-
 
 def _hecke_operator_on_basis(B, V, n, k, eps):
     """

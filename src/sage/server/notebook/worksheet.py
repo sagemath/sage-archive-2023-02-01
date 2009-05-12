@@ -324,7 +324,7 @@ class Worksheet:
             '[Cell 0; in=, out=]'
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: W.__repr__()
-            '[Cell 0; in=2+3, out=5, Cell 10; in=2+8, out=10]'
+            '[Cell 0; in=2+3, out=\n5, Cell 10; in=2+8, out=\n10]'
         """
         return str(self.cell_list())
 
@@ -1847,8 +1847,12 @@ class Worksheet:
         filename = '%s/%s.bz2'%(path, basename)
         if E is None:
             E = self.edit_text()
+        worksheet_txt = '%s/worksheet.txt'%self.__dir
+        if os.path.exists(worksheet_txt) and open(worksheet_txt).read() == E:
+            # we already wrote it out...
+            return
         open(filename, 'w').write(bz2.compress(E))
-        open('%s/worksheet.txt'%self.__dir, 'w').write(E)
+        open(worksheet_txt, 'w').write(E)
         try:
             X = self.__saved_by_info
         except AttributeError:
@@ -1866,6 +1870,7 @@ class Worksheet:
         return self.notebook().user(username)['autosave_interval']
 
     def autosave(self, username):
+        return
         try:
             last = self.__last_autosave
         except AttributeError:
@@ -1874,11 +1879,7 @@ class Worksheet:
         t = time.time()
         if t - last >= self.user_autosave_interval(username):
             self.__last_autosave = t
-            current = self.edit_text()
-            filename = '%s/worksheet.txt'%(self.__dir)
-            old = open(filename).read()
-            if not current == old:
-                self.save_snapshot(username, current)
+            self.save_snapshot(username)
 
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()
@@ -2086,7 +2087,9 @@ class Worksheet:
 
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: W
-            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            [Cell 0; in=2+3, out=
+            5, Cell 1; in=2+8, out=
+            10]
             sage: W.name()
             'Sage'
         """
@@ -2507,9 +2510,12 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: v = W.cell_list(); v
-            [Cell 0; in=2+3, out=5, Cell 1; in=2+8, out=10]
+            [Cell 0; in=2+3, out=
+            5, Cell 1; in=2+8, out=
+            10]
             sage: v[0]
-            Cell 0; in=2+3, out=5
+            Cell 0; in=2+3, out=
+            5
         """
         try:
             return self.__cells
@@ -3861,7 +3867,8 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         ::
 
             sage: W.cell_list()
-            [Cell 0; in=2+3, out=5]
+            [Cell 0; in=2+3, out=
+            5]
 
         We now delete the output, observe that it is gone.
 
@@ -3888,7 +3895,6 @@ $("#insert_last_cell").shiftclick(function(e) {insert_new_text_cell_after(cell_i
         """
         if not self.user_can_edit(username):
             raise ValueError, "user '%s' not allowed to edit this worksheet"%username
-        self.save_snapshot(username)
         for C in self.cell_list():
             C.delete_output()
 
@@ -3997,7 +4003,7 @@ def extract_first_compute_cell(text):
         output = ''
     else:
         input = text[i:i+k].strip()
-        output = text[i+k+4:j].strip()
+        output = text[i+k+4:j]
 
     return meta, input.strip(), output, j+4
 

@@ -2,7 +2,7 @@ Number Theory
 =============
 
 Sage has extensive functionality for number theory. For example, we
-can do arithmetic in :math:`\mathbb{Z}/N\mathbb{Z}` as follows:
+can do arithmetic in :math:`\ZZ/N\ZZ` as follows:
 
 ::
 
@@ -145,7 +145,7 @@ NumberField class.
 
 ::
 
-    sage: K.galois_group()
+    sage: K.galois_group(type="pari")
     Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field
     in a with defining polynomial x^3 + x^2 - 2*x + 8
 

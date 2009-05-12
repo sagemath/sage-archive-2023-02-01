@@ -106,13 +106,29 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         else:
             return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
 
-    def fraction_field(self):
+    def fraction_field(self, print_mode = None):
         r"""
         Would normally return $\Q_p$, but there is no implementation of $Q_p$ matching this ring so this raises an error
 
         If you want to be able to divide with elements of a fixed modulus p-adic ring, you must cast explicitly.
         """
         raise TypeError, "This implementation of the p-adic ring does not support fields of fractions."
+
+    def integer_ring(self, print_mode=None):
+        r"""
+        Returns the integer ring of self, possibly with print_mode changed.
+        """
+        if print_mode is None:
+            return self
+        from sage.rings.padics.factory import ZpFM
+        if print_mode is None:
+            print_mode = {}
+        elif isinstance(print_mode, str):
+            print_mode = {'mode': print_mode}
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+            if not print_mode.has_key(option):
+                print_mode[option] = self._printer.dict()[option]
+        return ZpFM(self.prime(), self.precision_cap(), print_mode=print_mode)
 
     def random_element(self):
         """

@@ -186,7 +186,7 @@ Computing the Genus
 -------------------
 
 We compute the projective genus of ideals that define curves over
-`\mathbb{Q}`. It is *very important* to load the
+`\QQ`. It is *very important* to load the
 ``normal.lib`` library before calling the
 ``genus`` command, or you'll get an error message.
 
@@ -301,7 +301,7 @@ TESTS: We test an automatic coercion::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re
+import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -354,7 +354,7 @@ class Singular(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=1000)
+                        eval_using_file_cutoff=100 if os.uname()[0]=="SunOS" else 1000)
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.
@@ -640,12 +640,12 @@ class Singular(Expect):
             sage: I.parent()
             Singular
         """
-        if isinstance(x, SingularElement):
+        if isinstance(x, SingularElement) and x.parent() is self:
             return x
-
-        elif (not isinstance(x, ExpectElement) and hasattr(x, '_singular_')) or  \
-                (isinstance(x, ExpectElement) and x.hasattr('_singular_')):
-            return getattr(x, '_singular_')(self)
+        elif isinstance(x, ExpectElement):
+            return self(x.sage())
+        elif not isinstance(x, ExpectElement) and hasattr(x, '_singular_'):
+            return x._singular_(self)
 
         # some convenient conversions
         if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):
@@ -827,7 +827,7 @@ class Singular(Expect):
            without getting errors, and it sets printing of elements
            for this range to short (i.e., with \*'s and carets).
 
-        EXAMPLES: We first declare `\mathbb{Q}[x,y,z]` with degree reverse
+        EXAMPLES: We first declare `\QQ[x,y,z]` with degree reverse
         lexicographic ordering.
 
         ::
@@ -851,7 +851,7 @@ class Singular(Expect):
             sage: R3 = singular.ring(7, '(x(1..10))', 'ds')
 
         This is a polynomial ring over the transcendental extension
-        `\mathbb{Q}(a)` of `\mathbb{Q}`::
+        `\QQ(a)` of `\QQ`::
 
             sage: R4 = singular.ring('(0,a)', '(mu,nu)', 'lp')
 
@@ -1286,26 +1286,26 @@ class SingularElement(ExpectElement):
         return P.eval('%s == 0'%self.name()) == '0'
 
     def sage_polystring(self):
-	r"""
-	If this Singular element is a polynomial, return a string
-	representation of this polynomial that is suitable for evaluation
-	in Python. Thus \* is used for multiplication and \*\* for
-	exponentiation. This function is primarily used internally.
+        r"""
+        If this Singular element is a polynomial, return a string
+        representation of this polynomial that is suitable for evaluation
+        in Python. Thus \* is used for multiplication and \*\* for
+        exponentiation. This function is primarily used internally.
 
-	The short=0 option *must* be set for the parent ring or this
-	function will not work as expected. This option is set by default
-	for rings created using ``singular.ring`` or set using
-	``ring_name.set_ring()``.
+        The short=0 option *must* be set for the parent ring or this
+        function will not work as expected. This option is set by default
+        for rings created using ``singular.ring`` or set using
+        ``ring_name.set_ring()``.
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: R = singular.ring(0,'(x,y)')
-	    sage: f = singular('x^3 + 3*y^11 + 5')
-	    sage: f
-	    x^3+3*y^11+5
-	    sage: f.sage_polystring()
-	    'x**3+3*y**11+5'
-	"""
+            sage: R = singular.ring(0,'(x,y)')
+            sage: f = singular('x^3 + 3*y^11 + 5')
+            sage: f
+            x^3+3*y^11+5
+            sage: f.sage_polystring()
+            'x**3+3*y**11+5'
+        """
         return str(self).replace('^','**')
 
 

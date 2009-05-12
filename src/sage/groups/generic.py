@@ -961,6 +961,12 @@ def order_from_multiple(P, m, plist=None, operation='+',
             sage: order_from_multiple(w,230,operation='*')
             23
 
+            sage: F=GF(2^1279,'a')
+            sage: n=F.cardinality()-1 # Mersenne prime
+            sage: order_from_multiple(F.random_element(),n,[n],operation='*')==n
+            True
+
+
     """
     from operator import mul, add
     Z = integer_ring.ZZ
@@ -975,6 +981,10 @@ def order_from_multiple(P, m, plist=None, operation='+',
         if op==None:
             raise ValueError, "operation and identity must be specified"
 
+    N=Z(1)
+    if P == identity:
+        return N
+
     M=Z(m)
     assert multiple(P,M,operation=operation) == identity
 
@@ -984,13 +994,26 @@ def order_from_multiple(P, m, plist=None, operation='+',
     # For each p in plist we determine the power of p dividing
     # the order, accumulating the order in N
 
-    N=Z(1)
+    # Efficiency improvement (2009-04-01, suggested by Ryan Hinton,
+    # implemented by John Cremona): avoid the last multiplication by p
+    # for each prime.  For example, if M itself is prime the code used
+    # to compute M*P twice (unless P=0), now it does it once.
+
+    if M == plist[0]:
+        return M
+
     for p in plist:
-        Q = multiple(P,M.prime_to_m_part(p),operation=operation)
-        # so Q has p-power order
-        while Q != identity:
+        e, M0 = M.val_unit(p)
+        Q = multiple(P,M0,operation=operation)
+        # so Q has p-power order, at most p**e
+        e0 = 0
+        while (Q != identity) and (e0<e-1):
             Q = multiple(Q,p,operation=operation)
             N *= p
+            e0 +=1
+        if (Q != identity) and (e0==e-1):
+            # avoid the final multiplication of Q by p
+            N *=p
 
     # now N is the exact order of self
     return N

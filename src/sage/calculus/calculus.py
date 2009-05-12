@@ -87,11 +87,13 @@ Also we can substitute with keywords::
     sage: f(x = t, y = z)
     sin(t*z - z)
 
-If there is no ambiguity of variable names, we don't have to
-specify them::
+It was formerly the case that if there was no ambiguity of variable
+names, we didn't have to specify them; that still works for the moment,
+but the behavior is deprecated::
 
     sage: f = sin(x)
     sage: f(y)
+    doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
     sin(y)
     sage: f(pi)
     0
@@ -100,7 +102,7 @@ However if there is ambiguity, we must explicitly state what
 variables we're substituting for::
 
     sage: f = sin(2*pi*x/y)
-    sage: f(4)
+    sage: f(x=4)
     sin(8*pi/y)
 
 We can also make a ``CallableSymbolicExpression``,
@@ -135,18 +137,18 @@ Some further examples::
     sage: f = 5*sin(x)
     sage: f
     5*sin(x)
-    sage: f(2)
+    sage: f(x=2)
     5*sin(2)
-    sage: f(pi)
+    sage: f(x=pi)
     0
-    sage: float(f(pi))
+    sage: float(f(x=pi))
     6.123...e-16
 
 Another example::
 
     sage: f = integrate(1/sqrt(9+x^2), x); f
     arcsinh(x/3)
-    sage: f(3)
+    sage: f(x=3)
     arcsinh(1)
     sage: f.derivative(x)
     1/(3*sqrt(x^2/9 + 1))
@@ -587,7 +589,7 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             sage: latex(SR)
             \text{SR}
             sage: M = MatrixSpace(SR, 2); latex(M)
-            \mbox{\rm Mat}_{2\times 2}(\text{SR})
+            \mathrm{Mat}_{2\times 2}(\text{SR})
         """
         return r'\text{SR}'
 
@@ -836,9 +838,9 @@ class SymbolicExpression(RingElement):
 
             sage: var('x y')
             (x, y)
-            sage: f = y^2/(y+1)^3 + x/(x-1)^3
+            sage: f(x) = y^2/(y+1)^3 + x/(x-1)^3
             sage: f
-            y^2/(y + 1)^3 + x/(x - 1)^3
+            x |--> y^2/(y + 1)^3 + x/(x - 1)^3
             sage: print f
                                               2
                                              y          x
@@ -848,8 +850,8 @@ class SymbolicExpression(RingElement):
 
         ::
 
-            sage: f = (exp(x)-1)/(exp(x/2)+1)
-            sage: g = exp(x/2)-1
+            sage: f(x) = (exp(x)-1)/(exp(x/2)+1)
+            sage: g(x) = exp(x/2)-1
             sage: print f(10), g(10)
                                      10
                                     e   - 1
@@ -1045,9 +1047,11 @@ class SymbolicExpression(RingElement):
 
             sage: plot(1.0 - x * floor(1/x), (x,0.00001,1.0))
 
-        A plot of a symbolic function with "no arguments"::
+        Sage used to allow symbolic functions with "no arguments";
+        this still works, but is deprecated::
 
             sage: plot(2*sin, -4, 4)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
 
         TESTS::
 
@@ -1954,13 +1958,20 @@ class SymbolicExpression(RingElement):
             sage: f()
             y + x
             sage: f(3)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            y + 3
+            sage: f(x=3)
             y + 3
             sage: f(3,4)
+            7
+            sage: f(x=3,y=4)
             7
             sage: f(2,3,4)
             Traceback (most recent call last):
             ...
             ValueError: the number of arguments must be less than or equal to 2
+            sage: f(x=2,y=3,z=4)
+            5
 
         ::
 
@@ -1995,6 +2006,8 @@ class SymbolicExpression(RingElement):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
+            from sage.misc.misc import deprecation
+            deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             d = {}
             vars = self.arguments()
             for i in range(len(args)):
@@ -2608,11 +2621,11 @@ class SymbolicExpression(RingElement):
             2.06961575467...
             sage: f.limit(x = I, taylor=True)
             (1 - I)^I
-            sage: f(1.2)
+            sage: f(x=1.2)
             2.0696157546720...
-            sage: f(I)
+            sage: f(x=I)
             (1 - I)^I
-            sage: CDF(f(I))
+            sage: CDF(f(x=I))
             2.06287223508 + 0.74500706218*I
             sage: CDF(f.limit(x = I))
             2.06287223508 + 0.74500706218*I
@@ -3740,6 +3753,9 @@ class SymbolicExpression(RingElement):
 
             sage: f = x^2 - 1
             sage: f.find_root(-2, 3)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            1.0
+            sage: f.find_root(-2, 3, x)
             1.0
             sage: z, result = f.find_root(-2, 3, full_output=True)
             sage: result.converged
@@ -4397,6 +4413,7 @@ class SymbolicExpression(RingElement):
             sage: f.variables()
             (x,)
             sage: f(pi)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             2*pi^2
             sage: f(x=pi)
             2*pi^2
@@ -4732,7 +4749,7 @@ class SymbolicExpression(RingElement):
             sage: x,y,z = var('x,y,z')
             sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
             sage: ff = f._fast_float_('x', 'y', 'z')
-            sage: f(1.0,2.0,3.0)
+            sage: f(x=1.0,y=2.0,z=3.0)
             4.17806389779...
             sage: ff(1.0,2.0,3.0)
             4.17806389778660...
@@ -4767,6 +4784,23 @@ class Symbolic_object(SymbolicExpression):
 
     def _fast_float_(self, *vars):
         return fast_float.fast_float_constant(float(self))
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: SR(pi)._fast_callable_(etb)
+            pi
+            sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
+            sage: SR(pi)._fast_callable_(etb)
+            3.14159265359
+        """
+        return etb.constant(self._obj)
 
     def __float__(self):
         """
@@ -5416,11 +5450,13 @@ class SymbolicArithmetic(SymbolicOperation):
 
             sage: h = sin + cos
             sage: h(1)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             sin(1) + cos(1)
             sage: h(x)
             sin(x) + cos(x)
             sage: h = 3*sin
             sage: h(1)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             3*sin(1)
             sage: h(x)
             3*sin(x)
@@ -5432,10 +5468,13 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: (sin+1)(1)
             sin(1) + 1
             sage: (x+sin)(5)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             sin(5) + 5
             sage: (y+sin)(5)
             sin(5) + 5
             sage: (x+y+sin)(5)
+            y + sin(5) + 5
+            sage: (x+y+sin)(x=5)
             y + sin(5) + 5
 
         ::
@@ -5443,9 +5482,15 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: f = x + 2*y + 3*z
             sage: f(1)
             3*z + 2*y + 1
+            sage: f(x=1)
+            3*z + 2*y + 1
             sage: f(0,1)
             3*z + 2
+            sage: f(x=0,y=1)
+            3*z + 2
             sage: f(0,0,1)
+            3
+            sage: f(x=0,y=0,z=1)
             3
 
         ::
@@ -5480,6 +5525,10 @@ class SymbolicArithmetic(SymbolicOperation):
 
         else:
             #Handle the case where args are specified
+
+            if args:
+                from sage.misc.misc import deprecation
+                deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
 
             #Get all the variables
             variables = list( self.arguments() )
@@ -5533,13 +5582,13 @@ class SymbolicArithmetic(SymbolicOperation):
 
         ::
 
-            sage: f = y^5 - sqrt(2)
+            sage: f(y) = y^5 - sqrt(2)
             sage: f(10)
             100000 - sqrt(2)
 
         ::
 
-            sage: a = x^2; b = a(2); b
+            sage: a = x^2; b = a(x=2); b
             4
             sage: type(b)
             <class 'sage.calculus.calculus.SymbolicConstant'>
@@ -5578,10 +5627,12 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: ff(2,3)
             1.0
 
-        ::
+        Using _fast_float_ without specifying the variable names is
+        deprecated::
 
             sage: a = x + 2*y
             sage: f = a._fast_float_()
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             sage: f(1,0)
             1.0
             sage: f(0,1)
@@ -5589,8 +5640,38 @@ class SymbolicArithmetic(SymbolicOperation):
         """
         if vars == ():
             vars = self.arguments()
+            from sage.misc.misc import deprecation
+            deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
         fops = [op._fast_float_(*vars) for op in self._operands]
         return self._operator(*fops)
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y')
+            (x, y)
+            sage: (x+y)._fast_callable_(etb)
+            add(v_0, v_1)
+            sage: (-x)._fast_callable_(etb)
+            neg(v_0)
+
+        TESTS::
+
+            sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
+            sage: (x^7)._fast_callable_(etb)
+            ipow(v_0, 7)
+        """
+        # This used to convert the operands first.  Doing it this way
+        # instead gives a chance to notice powers with an integer
+        # exponent before the exponent gets (potentially) converted
+        # to another type.
+        return etb.call(self._operator, *self._operands)
 
     def _convert(self, typ):
         """
@@ -6157,14 +6238,18 @@ class SymbolicVariable(SymbolicExpression):
             sage: sqrt(2)._fast_float_()(2)
             1.4142135623730951
 
-        ::
+        Using _fast_float_ without specifying the variable names is
+        deprecated::
 
             sage: f = x._fast_float_()
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             sage: f(1.2)
             1.2
         """
         #if no var
         if vars == ():
+            from sage.misc.misc import deprecation
+            deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             return fast_float.fast_float_arg(0)
 
         if self._name in vars:
@@ -6177,6 +6262,28 @@ class SymbolicVariable(SymbolicExpression):
             return fast_float.fast_float_constant(float(self))
         except TypeError:
             raise ValueError, "free variable: %s" % self._name
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: x._fast_callable_(etb)
+            v_0
+            sage: y._fast_callable_(etb)
+            v_1
+            sage: z._fast_callable_(etb)
+            Traceback (most recent call last):
+            ...
+            ValueError: Variable 'z' not found
+        """
+        return etb.var(self)
 
     def _recursive_sub(self, kwds):
         # do the replacement if needed
@@ -6438,7 +6545,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             return z
 
     def is_field(self):
-	    """
+        """
         Returns True, since the callable symbolic expression ring is (for
         the most part) a field.
 
@@ -6448,7 +6555,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             sage: g.parent().is_field()
             True
         """
-	    return True
+        return True
 
     def _an_element_impl(self):
         """
@@ -6684,6 +6791,21 @@ class CallableSymbolicExpression(SymbolicExpression):
         if vars == ():
             vars = self.arguments()
         return self._expr._fast_float_(*vars)
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: g(x) = sin(x) + 2
+            sage: g._fast_callable_(etb)
+            add(sin(v_0), 2)
+        """
+        return self._expr._fast_callable_(etb)
 
     def __float__(self):
         return float(self._expr)
@@ -7235,6 +7357,22 @@ class SymbolicComposition(SymbolicOperation):
             else:
                 return fast_float.fast_float_func(f, g)
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: var('x,y')
+            (x, y)
+            sage: sin(sqrt(x+y))._fast_callable_(etb)
+            sin(sqrt(add(v_0, v_1)))
+        """
+        return etb.call(self._operands[0], etb(self._operands[1]))
+
     def __complex__(self):
         """
         Convert this symbolic composition to a Python complex number.
@@ -7516,7 +7654,7 @@ class PrimitiveFunction(SymbolicExpression):
 
             sage: from sage.ext.fast_eval import fast_float
             sage: fast_float(sin)
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
+            <sage.ext... object at 0x...>
             sage: sin._fast_float_()
             <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
             sage: sin._fast_float_()(0)
@@ -7546,6 +7684,23 @@ class PrimitiveFunction(SymbolicExpression):
             return self(*args)
         except TypeError:
             return fast_float.fast_float_func(self, *args)
+
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x','y'])
+            sage: sin._fast_callable_(etb)
+            sin(v_0)
+            sage: erf._fast_callable_(etb)
+            {erf}(v_0)
+        """
+        args = [etb._var_number(n) for n in range(self.number_of_arguments())]
+        return etb.call(self, *args)
 
 _syms = {}
 
@@ -7658,11 +7813,11 @@ class Function_ceil(PrimitiveFunction):
         sage: a = ceil(2/5 + x)
         sage: a
         ceil(x + 2/5)
-        sage: a(4)
+        sage: a(x=4)
         5
-        sage: a(4.0)
+        sage: a(x=4.0)
         5
-        sage: ZZ(a(3))
+        sage: ZZ(a(x=3))
         4
         sage: a = ceil(x^3 + x + 5/2)
         sage: a
@@ -7790,7 +7945,7 @@ class Function_floor(PrimitiveFunction):
         x
         sage: a = floor(5.4 + x); a
         floor(x + 0.4) + 5
-        sage: a(2)
+        sage: a(x=2)
         7
 
     ::
@@ -9554,7 +9709,7 @@ class SymbolicFunction(PrimitiveFunction):
         return True
 
     def _latex_(self):
-        return "{\\rm %s}"%self._name
+        return "\\mathrm{%s}"%self._name
 
     def _maxima_init_(self):
         return "'%s"%self._name
@@ -9752,7 +9907,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         try:
             return  latex(self._maxima_())
         except:
-            return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
+            return "\\mathrm{%s}(%s)"%(self._f._name, ', '.join([x._latex_() for
                                                               x in self._args]))
 
 
@@ -9764,11 +9919,13 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
 
         EXAMPLES::
 
-            sage: f = function('Gamma', var('w'), var('theta')); f
+            sage: function('Gamma', var('w'), var('theta'))
             Gamma(w, theta)
-            sage: f._maxima_init_()
+            sage: Gamma._maxima_init_()
+            "'Gamma"
+            sage: Gamma(w, theta)._maxima_init_()
             "'Gamma(w, theta)"
-            sage: maxima(f(sqrt(2), theta+3))
+            sage: maxima(Gamma(sqrt(2), theta+3))
             'Gamma(sqrt(2),theta+3)
         """
         try:
@@ -9808,22 +9965,23 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         EXAMPLES::
 
             sage: y = var('y')
-            sage: f = function('foo',x); f
+            sage: function('foo',x)
             foo(x)
+            sage: f = foo(x)
             sage: f(foo=sin)
             sin(x)
-            sage: f(x+y)
+            sage: f(x=x+y)
             foo(y + x)
-            sage: a = f(pi)
+            sage: a = f(x=pi)
             sage: a.substitute(foo = sin)
             0
-            sage: a = f(pi/2)
+            sage: a = f(x=pi/2)
             sage: a.substitute(foo = sin)
             1
 
         ::
 
-            sage: b = f(pi/3) + x + y
+            sage: b = f(x=pi/3) + x + y
             sage: b
             y + x + foo(pi/3)
             sage: b(foo = sin)
@@ -9952,7 +10110,7 @@ def function(s, *args):
         diff(cr(a), a, 1)*b
         sage: g(cr=cos)
         -sin(a)*b
-        sage: g(cr=sin(x) + cos(x))
+        sage: g(cr=(sin(x) + cos(x)).function(x))
         (cos(a) - sin(a))*b
 
     Basic arithmetic::

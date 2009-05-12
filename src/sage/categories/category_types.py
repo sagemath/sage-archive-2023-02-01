@@ -80,7 +80,14 @@ class Elements(uniq1, Category):
         return "Category of elements of %s"%self.object()
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Elt}_{%s}"%latex(self.__object)
+        """
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,3)
+            sage: x = V.0
+            sage: latex(x.category())
+            \mathbf{Elt}_{\Bold{Q}^{3}}
+        """
+        return "\\mathbf{Elt}_{%s}"%latex(self.__object)
 
 
 #############################################################
@@ -129,7 +136,14 @@ class Sequences(uniq1, Category):
         return "Category of sequences in %s"%self.object()
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Seq}_{%s}"%latex(self.__object)
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3])
+            sage: latex(v.category())
+            \mathbf{Seq}_{\Bold{Z}}
+        """
+
+        return "\\mathbf{Seq}_{%s}"%latex(self.__object)
 
 #############################################################
 # Category of objects over some base object
@@ -150,7 +164,7 @@ class Category_over_base(uniq1, Category):
         return Category._repr_(self) + " over %s"%self.__base
 
     def _latex_(self):
-        return "\\mbox{\\bf %s}_{%s}"%(self.__label, latex(self.__base))
+        return "\\mathbf{%s}_{%s}"%(self.__label, latex(self.__base))
 
 
 #############################################################
@@ -334,6 +348,27 @@ class GSets(uniq1, Category):
         """
         return GSets, (self.__G, )
 
+
+#############################################################
+# SimplicialComplex
+#############################################################
+class SimplicialComplexes(Category_uniq):
+    """
+    The category of simplicial complexes.
+
+    EXAMPLES::
+
+        sage: SimplicialComplexes()
+        Category of simplicial complexes
+    """
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: C = SimplicialComplexes()
+            sage: loads(C.dumps()) == C
+            True
+        """
+        return SimplicialComplexes, tuple([])
 
 #############################################################
 # Semigroup
@@ -1084,6 +1119,31 @@ class CommutativeAlgebraIdeals(Category_ideal):
         """
         return CommutativeAlgebraIdeals, (self.algebra(),)
 
+#############################################################
+# ChainComplex
+#############################################################
+class ChainComplexes(Category_module):
+    """
+    The category of all chain complexes over a base ring.
+
+    EXAMPLES::
+
+        sage: ChainComplexes(RationalField())
+        Category of chain complexes over Rational Field
+
+        sage: ChainComplexes(Integers(9))
+        Category of chain complexes over Ring of integers modulo 9
+    """
+
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: C = ChainComplexes(ZZ)
+            sage: loads(C.dumps()) == C
+            True
+        """
+        return ChainComplexes, (self.base(), )
 
 #############################################################
 # Schemes over a given base scheme.

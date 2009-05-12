@@ -305,6 +305,15 @@ cdef class SageObject:
     def _axiom_init_(self):
         return self._interface_init_()
 
+    def _fricas_(self, G=None):
+        if G is None:
+            import sage.interfaces.fricas
+            G = sage.interfaces.fricas.fricas
+        return self._interface_(G)
+
+    def _fricas_init_(self):
+        return self._interface_init_()
+
     def _maxima_(self, G=None):
         if G is None:
             import sage.interfaces.maxima
@@ -685,7 +694,7 @@ def picklejar(obj, dir=None):
 
     open(base + '.txt', 'w').write(txt)
 
-def unpickle_all(dir):
+def unpickle_all(dir, debug=False):
     """
     Unpickle all sobj's in the given directory, reporting failures as
     they occur.  Also printed the number of successes and failure.
@@ -714,12 +723,13 @@ def unpickle_all(dir):
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
         sage: sage.structure.sage_object.unpickle_all(std)
         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
-        Successfully unpickled 487 objects.
+        Successfully unpickled 483 objects.
         Failed to unpickle 0 objects.
     """
     i = 0
     j = 0
     failed = []
+    tracebacks = []
     if dir.endswith('.tar.bz2'):
         # create a temporary directory
         from sage.misc.all import tmp_dir
@@ -738,8 +748,12 @@ def unpickle_all(dir):
                 j += 1
                 print "** failed: ", A
                 failed.append(A)
+                if debug:
+                    tracebacks.append(sys.exc_info())
 
     if len(failed) > 0:
         print "Failed:\n%s"%('\n'.join(failed))
     print "Successfully unpickled %s objects."%i
     print "Failed to unpickle %s objects."%j
+    if debug:
+        return tracebacks

@@ -30,7 +30,7 @@ Compression for ZODB.
 
 # This is the original copyright notice:
 #
-#	$Id$
+#       $Id$
 #
 # Copyright (c) 1999 Tyler C. Sarna (tsarna@endicor.com)
 # All rights reserved.

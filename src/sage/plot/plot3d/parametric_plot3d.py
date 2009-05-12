@@ -10,7 +10,7 @@ from sage.plot.misc import ensure_subs
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 import sage.calculus.calculus
 
-def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
+def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_style=None, **kwds):
     r"""
     Return a parametric three-dimensional space curve or surface.
 
@@ -52,6 +52,10 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
        75 for curves and [40,40] for surfaces) initial number of sample
        points in each parameter; an integer for a curve, and a pair of
        integers for a surface.
+
+    - ``boundary_style`` - (default: None, no boundary) a dict that describes
+      how to draw the boundaries of regions by giving options that are passed
+      to the line3d command.
 
     -  ``mesh`` - bool (default: False) whether to display
        mesh grid lines
@@ -143,6 +147,16 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
         sage: t = var('t')
         sage: parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) )
+
+    We specify a boundary style to show us the values of the function at its
+    extrema::
+
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, pi), (v, 0, pi), \
+        ...                     boundary_style={"color": "black", "thickness": 2})
+
+    Any options you would normally use to specify the appearance of a curve are
+    valid as entries in the boundary_style dict.
 
     MANY MORE EXAMPLES:
 
@@ -447,20 +461,19 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
     From Trac #2858::
 
-        sage: parametric_plot3d((u,-u,v), (-10,10),(-10,10))
+        sage: parametric_plot3d((u,-u,v), (u,-10,10),(v,-10,10))
         sage: f(u)=u; g(v)=v^2; parametric_plot3d((g,f,f), (-10,10),(-10,10))
 
     From Trac #5368::
 
         sage: x, y = var('x,y')
-        sage: plot3d(x*y^2 - sin(x), (-1,1), (-1,1))
+        sage: plot3d(x*y^2 - sin(x), (x,-1,1), (y,-1,1))
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
     #   * Iterative refinement
 
 
-    # boundary_style -- (default: None) how boundary lines are drawn for a surface
     # color_function -- (default: "automatic") how to determine the color of curves and surfaces
     # color_function_scaling -- (default: True) whether to scale the input to color_function
     # exclusions -- (default: "automatic") u points or (u,v) conditions to exclude.
@@ -489,7 +502,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
         if plot_points == "automatic":
             plot_points = [40,40]
-        G = parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds)
+        G = parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds)
     G._set_extra_kwds(kwds)
     return G
 
@@ -534,7 +547,7 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
         print "WARNING: Failed to evaluate parametric plot at %s points"%fail
     return line3d(w, **kwds)
 
-def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
+def parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds):
     r"""
     This function is used internally by the
     ``parametric_plot3d`` command.
@@ -562,7 +575,19 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
 
         g = fast_float(f, str(u), str(v))
 
-    return ParametricSurface(g, (u_vals, v_vals), **kwds)
+    G = ParametricSurface(g, (u_vals, v_vals), **kwds)
+
+    # Canonicalize the urange and vrange for processing the boundary style
+    urange = urange if len(urange) == 3 else (u,) + urange
+    vrange = vrange if len(vrange) == 3 else (v,) + vrange
+
+    if boundary_style is not None:
+        for (var, extrema, bounds) in [(u, urange[1], vrange), (u, urange[2], vrange),
+                                       (v, vrange[1], urange), (v, vrange[2], urange)]:
+                f_prime = tuple(n.substitute({var: extrema}) for n in f)
+                G = G + parametric_plot3d(f_prime, bounds, **boundary_style)
+
+    return G
 
 
 
@@ -614,6 +639,9 @@ def adapt_to_callable(f, nargs=None):
             # Otherwise any free variable names in any order
             try:
                 vars = tuple(sorted(set(sum( [z.variables() for z in f], ()) )))
+                if len(vars) > 1:
+                    from sage.misc.misc import deprecation
+                    deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             except AttributeError:
                 vars = ()
                 f = [fast_float_constant(x) for x in f]

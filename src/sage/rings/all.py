@@ -46,8 +46,6 @@ from quotient_ring import QuotientRing
 
 # Infinities
 from infinity import infinity, Infinity, is_Infinite, InfinityRing, unsigned_infinity, UnsignedInfinityRing
-from extended_rational_field import ExtendedRationalField
-from extended_integer_ring import ExtendedIntegerRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis

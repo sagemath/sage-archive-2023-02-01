@@ -435,7 +435,7 @@ class Tachyon(SageObject):
         self._objects.append(FCylinder(base, apex, radius, texture))
 
     def triangle(self, vertex_1, vertex_2, vertex_3, texture):
-	 self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
+        self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
 
     def smooth_triangle(self, vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture):
          self._objects.append(TachyonSmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))

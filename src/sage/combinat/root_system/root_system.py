@@ -56,8 +56,8 @@ class RootSystem(SageObject):
         sage: space
         Root lattice of the Root system of type ['B', 3]
 
-    It is the free `\mathbb{Z}`-module
-    `\bigoplus_i \mathbb{Z}.\alpha_i` spanned by the simple
+    It is the free `\ZZ`-module
+    `\bigoplus_i \ZZ.\alpha_i` spanned by the simple
     roots::
 
         sage: space.base_ring()
@@ -88,9 +88,9 @@ class RootSystem(SageObject):
 
     We can carry over the same computations in any of the other
     realizations of the root lattice, like the root space
-    `\bigoplus_i \mathbb{Q}.\alpha_i`, the weight lattice
-    `\bigoplus_i \mathbb{Z}.\Lambda_i`, the weight
-    space `\bigoplus_i \mathbb{Q}.\Lambda_i`. For example::
+    `\bigoplus_i \QQ.\alpha_i`, the weight lattice
+    `\bigoplus_i \ZZ.\Lambda_i`, the weight
+    space `\bigoplus_i \QQ.\Lambda_i`. For example::
 
         sage: space = R.weight_space()
         sage: space
@@ -456,7 +456,7 @@ class RootSystem(SageObject):
         r"""
         Returns the usual ambient lattice for this root_system, if it
         exists and is implemented, and None otherwise. This is a
-        `\mathbb{Z}`-module, endowed with its canonical euclidean
+        `\ZZ`-module, endowed with its canonical euclidean
         scalar product, which embeds simultaneously the root lattice
         and the coroot lattice (what about the weight lattice?)
 
@@ -480,12 +480,12 @@ class RootSystem(SageObject):
     def ambient_space(self, base_ring=QQ):
         r"""
         Returns the usual ambient space for this root_system, if it is
-        implemented, and None otherwise. This is a `\mathbb{Q}`-module, endowed with
+        implemented, and None otherwise. This is a `\QQ`-module, endowed with
         its canonical euclidean scalar product, which embeds simultaneously
         the root lattice and the coroot lattice (what about the weight
         lattice?). An alternative base ring can be provided as an option;
         it must contain the smallest ring over which the ambient space can
-        be defined (`\mathbb{Z}` or `\mathbb{Q}`, depending on the type).
+        be defined (`\ZZ` or `\QQ`, depending on the type).
 
         EXAMPLES::
 

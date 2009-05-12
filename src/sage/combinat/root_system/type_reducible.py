@@ -49,22 +49,16 @@ class CartanType(CartanType_abstract):
             sage: ct1 = CartanType(['A',1],['B',2])
             sage: ct2 = CartanType(['B',2],['A',1])
             sage: ct3 = CartanType(['A',4])
-            sage: ct = [ct1, ct2, ct3]
-            sage: [[x.__cmp__(y) for x in ct] for y in ct]
-            [[0, 1, -1], [-1, 0, -1], [1, 1, 0]]
-            sage: sorted(ct)
-            [['A', 4], A1xB2, B2xA1]
+            sage: ct1 == ct1
+            True
+            sage: ct1 == ct2
+            False
+            sage: ct1 == ct3
+            False
         """
         if isinstance(other, CartanType_simple):
             return 1
-        if len(self._types) < len(other._types):
-            return -1
-        if len(self._types) > len(other._types):
-            return 1
-        for i in range(len(self._types)):
-            if self._types[i] != other._types[i]:
-                return self._types[i].__cmp__(other._types[i])
-        return 0
+        return cmp(self._types, other._types)
 
     def component_types(self):
         """

@@ -186,6 +186,7 @@ is modeled by the system of 2nd order differential equations
 
 .. math::
     m_1 x_1'' + (k_1+k_2) x_1 - k_2 x_2 = 0
+
     m_2 x_2''+ k_2 (x_2-x_1) = 0,
 
 
@@ -200,7 +201,7 @@ is the spring constant for spring *i*.
 :math:`x_{2}(0)=3`, :math:`x_{2}'(0)=0`.
 
 Solution: Take the Laplace transform of the first equation (with
-the notation :math:`x=x_{1}`, :math:`y=x_{2}`:
+the notation :math:`x=x_{1}`, :math:`y=x_{2}`):
 
 ::
 

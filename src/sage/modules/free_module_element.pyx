@@ -12,7 +12,7 @@ exactly like with matrices, since we'll have to define a bunch of
 special purpose implementations of vectors easily and
 systematically.
 
-EXAMPLES: We create a vector space over `\mathbb{Q}` and a
+EXAMPLES: We create a vector space over `\QQ` and a
 subspace of this space.
 
 ::
@@ -35,7 +35,7 @@ not from `V` to `W`.
     sage: W.0 - V.0
     (-1, 1, 0, 0, 0)
 
-Next we define modules over `\mathbb{Z}` and a finite
+Next we define modules over `\ZZ` and a finite
 field.
 
 ::
@@ -43,10 +43,10 @@ field.
     sage: K = ZZ^5
     sage: M = GF(7)^5
 
-Arithmetic between the `\mathbb{Q}` and
-`\mathbb{Z}` modules is defined, and the result is always
-over `\mathbb{Q}`, since there is a canonical coercion map
-to `\mathbb{Q}`.
+Arithmetic between the `\QQ` and
+`\ZZ` modules is defined, and the result is always
+over `\QQ`, since there is a canonical coercion map
+to `\QQ`.
 
 ::
 
@@ -56,14 +56,14 @@ to `\mathbb{Q}`.
     Vector space of dimension 5 over Rational Field
 
 Since there is no canonical coercion map to the finite field from
-`\mathbb{Q}` the following arithmetic is not defined::
+`\QQ` the following arithmetic is not defined::
 
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
-However, there is a map from `\mathbb{Z}` to the finite
+However, there is a map from `\ZZ` to the finite
 field, so the following is defined, and the result is in the finite
 field.
 
@@ -202,7 +202,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: free_module_element([1/3, -4/5])
         (1/3, -4/5)
 
-    Make a vector mod 3 out of a vector over `\mathbb{Z}`::
+    Make a vector mod 3 out of a vector over `\ZZ`::
 
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
@@ -330,52 +330,6 @@ def prepare_dict(w, R):
         X[key] = value
     return prepare(X, R)
 
-vector_delimiters = ['(', ')']
-
-def set_vector_latex_delimiters(left='(', right=')'):
-    r"""
-    Change the left and right delimiters for the LaTeX representation
-    of vectors
-
-    INPUT:
-
-    - ``left``, ``right`` - strings (default '(' and ')', respectively)
-
-    Good choices for ``left`` and ``right`` are any delimiters which
-    LaTeX understands and knows how to resize; some examples are:
-
-    - parentheses: '(', ')'
-    - brackets: '[', ']'
-    - braces: '\\{', '\\}'
-    - vertical lines: '|'
-    - angle brackets: '\\langle', '\\rangle'
-
-    .. note::
-
-       Putting aside aesthetics, you may combine these in any way
-       imaginable; for example, you could set ``left`` to be a
-       right-hand bracket ']' and ``right`` to be a right-hand brace
-       '\\}', and it will be typeset correctly.
-
-    EXAMPLES::
-
-        sage: a = vector(QQ, [1,2,3])
-        sage: latex(a)
-        \left(1,2,3\right)
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters("[", "]")
-        sage: latex(a)
-        \left[1,2,3\right]
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters("\\{", "\\}")
-        sage: latex(a)
-        \left\{1,2,3\right\}
-
-    Reset to default::
-
-        sage: sage.modules.free_module_element.set_vector_latex_delimiters()
-    """
-    global vector_delimiters
-    vector_delimiters = [left, right]
-
 cdef class FreeModuleElement(element_Vector):   # abstract base class
     """
     An element of a generic free module.
@@ -450,10 +404,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector(v, ZZ['x', 'y'])
             (2, 12, 22)
 
-	    sage: vector(vector((1, 6.8)))
-	    (1.00000000000000, 6.80000000000000)
-	    sage: vector(vector(SR, (1, sqrt(2)) ) )
-	    (1, sqrt(2))
+            sage: vector(vector((1, 6.8)))
+            (1.00000000000000, 6.80000000000000)
+            sage: vector(vector(SR, (1, sqrt(2)) ) )
+            (1, sqrt(2))
         """
         if R is None:
             R = self.base_ring()
@@ -503,7 +457,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector(ZZ, [42, 389])._sage_input_(SageInputBuilder(), False)
             {call: {atomic:vector}({atomic:ZZ}, {list: ({atomic:42}, {atomic:389})})}
             sage: vector(RDF, {1:pi, 1000:e})._sage_input_(SageInputBuilder(), False)
-            {call: {atomic:vector}({atomic:RDF}, {dict: {{atomic:1}:{atomic:3.1415926535897931}, {atomic:1000}:{atomic:2.7182818284590451}}})}
+            {call: {atomic:vector}({atomic:RDF}, {dict: {{atomic:1}:{atomic:3.1415926535897931}, {atomic:1000}:{atomic:2.718281828459045...}}})}
         """
         # Not a lot of room for prettiness here.
         # We always specify the ring, because that lets us use coerced=2
@@ -1044,29 +998,27 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             else:
                 plot_type='step'
 
+        coords = self.list()
+
         if plot_type == 'arrow' or plot_type == 'point':
-            dimension = len(self)
+            dimension = len(coords)
             if dimension == 3:
-                from sage.plot.plot3d.shapes import arrow3d, Sphere
-                # Sphere complains if the radius is given twice,
-                # so we have to delete it from kwds if it is given.
-                radius = kwds.pop('radius', .02)
+                from sage.plot.plot3d.shapes2 import line3d, point3d
 
                 if plot_type == 'arrow':
-                    return arrow3d((0,0,0), self, radius=radius, **kwds)
+                    return line3d([(0,0,0), coords], arrow_head=True, **kwds)
                 else:
-                    return Sphere(radius, **kwds).translate(self.list())
+                    return point3d(coords, **kwds)
             elif dimension < 3:
-                vectorlist = self.list()
                 if dimension < 2:
                     # pad to make 2-dimensional
-                    vectorlist.extend([0]*(2-dimension))
+                    coords.extend([0]*(2-dimension))
 
                 from sage.plot.all import arrow, point
                 if plot_type == 'arrow':
-                    return arrow((0,0), vectorlist, **kwds)
+                    return arrow((0,0), coords, **kwds)
                 else:
-                    return point(vectorlist, **kwds)
+                    return point(coords, **kwds)
             else:
                 raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
 
@@ -1447,9 +1399,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _latex_(self):
         """
-        Return a latex representation of self. For example, if self is the
-        free module element (1,2,3,4), then following latex is generated:
-        "(1,2,3,4)" (without the quotes).
+        Return a latex representation of self. For example, if self is
+        the free module element (1,2,3,4), then following latex is
+        generated: "(1,2,3,4)" (without the quotes).  The vector is
+        enclosed in parentheses by default, but the delimiters can be
+        changed using the command ``latex.vector_delimiters(...)``.
 
         EXAMPLES::
 
@@ -1457,9 +1411,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: latex(v)
             \left(1,2,3\right)
         """
+        latex = sage.misc.latex.latex
+        vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
         for a in self.list():
-            s = s + sage.misc.latex.latex(a) + ','
+            s = s + latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right' + vector_delimiters[1]
@@ -1500,7 +1456,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         EXAMPLES::
 
             sage: m = vector([1,x,sin(x+1)])
-            sage: m.apply_map(x^2)
+            sage: m.apply_map(lambda x: x^2)
             (1, x^2, sin(x + 1)^2)
             sage: m.apply_map(sin)
             (sin(1), sin(x), sin(sin(x + 1)))

@@ -24,6 +24,12 @@ the latter binds argument names to argument positions). The
 See the function \code{fast_float(f, *vars)} to create a fast-callable
 version of f.
 
+NOTE: Sage temporarily has two implementations of this functionality;
+one in this file, which will probably be deprecated soon, and one in
+fast_callable.pyx.  The following instructions are for the old
+implementation; you probably want to be looking at fast_callable.pyx
+instead.
+
 To provide this interface for a class, implement
 \code{_fast_float_(self, *vars)}.  The basic building blocks are
 provided by the functions \code{fast_float_constant} (returns a
@@ -35,11 +41,11 @@ math functions such sqrt, exp, and trig functions.
 
 EXAMPLES:
     sage: from sage.ext.fast_eval import fast_float
-    sage: f = fast_float(sqrt(x^7+1), 'x')
+    sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
-    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)']
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
 
     To interpret that last line, we load argument 0 ('x' in this case) onto
     the stack, push the constant 2.0 onto the stack, call the pow function
@@ -50,7 +56,7 @@ Here we take sin of the first argument and add it to f:
     sage: from sage.ext.fast_eval import fast_float_arg
     sage: g = fast_float_arg(0).sin()
     sage: (f+g).op_list()
-    ['load 0', 'push 7.0', 'call pow(2)', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
 
 TESTS:
 This used to segfault because of an assumption that assigning None to a
@@ -80,6 +86,8 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.ext.fast_callable import fast_callable, Wrapper
 
 include "stdsage.pxi"
 
@@ -152,6 +160,7 @@ cdef enum:
     NEG
     ABS
     INVERT
+    POW
 
 # basic comparison
     LT
@@ -183,6 +192,7 @@ op_names = {
     NEG: 'neg',
     ABS: 'abs',
     INVERT: 'invert',
+    POW: 'pow',
 
 
     LT: 'lt',
@@ -369,6 +379,12 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
     elif op.type == INVERT:
         stack[top] = 1/stack[top]
         return top
+
+    elif op.type == POW:
+        if stack[top-1] < 0 and stack[top] != floor(stack[top]):
+            raise ValueError, "negative number to a fractional power not real"
+        stack[top-1] = pow(stack[top-1], stack[top])
+        return top-1
 
     elif op.type == LT:
         stack[top-1] = 1.0 if stack[top-1] < stack[top] else 0.0
@@ -774,6 +790,19 @@ cdef class FastDoubleFunc:
             sage: f = FastDoubleFunc('arg', 0)^FastDoubleFunc('arg', 1)
             sage: f(5,3)
             125.0
+
+        TESTS:
+            sage: var('a,b')
+            (a, b)
+            sage: ff = (a^b)._fast_float_(a,b)
+            sage: ff(2, 9)
+            512.0
+            sage: ff(-2, 9)
+            -512.0
+            sage: ff(-2, 9.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number to a fractional power not real
         """
         if isinstance(right, FastDoubleFunc) and right.nargs == 0:
             right = float(right)
@@ -790,8 +819,7 @@ cdef class FastDoubleFunc:
                 elif right < 0:
                     return (~left)**(-right)
             right = FastDoubleFunc('const', right)
-        cdef FastDoubleFunc feval = binop(left, right, TWO_ARG_FUNC)
-        feval.ops[feval.nops-1].params.func = &pow
+        cdef FastDoubleFunc feval = binop(left, right, POW)
         return feval
 
     def __neg__(FastDoubleFunc self):
@@ -1288,16 +1316,23 @@ def fast_float_func(f, *args):
     return FastDoubleFunc('callable', f, *args)
 
 
-def fast_float(f, *vars):
+new_fast_float=True
+
+def fast_float(f, *vars, old=None, expect_one_var=False):
     """
-    Tries to create a fast float function out of the
-    input, if possible.
+    Tries to create a function that evaluates f quickly using
+    floating-point numbers, if possible.  There are two implementations
+    of fast_float in Sage; by default we use the newer, which is
+    slightly faster on most tests.
 
     On failure, returns the input unchanged.
 
     INPUT:
         f    -- an expression
         vars -- the names of the arguments
+        old  -- use the original algorithm for fast_float
+        expect_one_var -- don't give deprecation warning if vars is
+                          omitted, as long as expression has only one var
 
     EXAMPLES:
         sage: from sage.ext.fast_eval import fast_float
@@ -1315,8 +1350,11 @@ def fast_float(f, *vars):
         sage: f(1,2)
         1.0
     """
+    if old is None:
+        old = not new_fast_float
+
     if isinstance(f, (tuple, list)):
-        return tuple([fast_float(x, *vars) for x in f])
+        return tuple([fast_float(x, *vars, expect_one_var=expect_one_var) for x in f])
 
     cdef int i
     for i from 0 <= i < len(vars):
@@ -1328,7 +1366,10 @@ def fast_float(f, *vars):
             vars = vars[:i] + (v,) + vars[i+1:]
 
     try:
-        return f._fast_float_(*vars)
+        if old:
+            return f._fast_float_(*vars)
+        else:
+            return fast_callable(f, vars=vars, domain=float, _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=True, expect_one_var=expect_one_var)
     except AttributeError:
         pass
 
@@ -1339,7 +1380,7 @@ def fast_float(f, *vars):
 
     try:
         from sage.calculus.calculus import SR
-        return SR(f)._fast_float_(*vars)
+        return fast_float(SR(f), *vars)
     except TypeError:
         pass
 
@@ -1349,4 +1390,5 @@ def fast_float(f, *vars):
     return f
 
 def is_fast_float(x):
-    return PY_TYPE_CHECK(x, FastDoubleFunc)
+    return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
+

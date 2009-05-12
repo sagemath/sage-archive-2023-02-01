@@ -27,8 +27,6 @@ import os
 
 import os.path
 
-import sage.plot.all
-
 from misc import tmp_dir
 
 def list_function(x):

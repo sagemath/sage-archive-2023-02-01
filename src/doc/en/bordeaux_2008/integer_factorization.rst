@@ -39,7 +39,7 @@ factorization (ECM) algorithm is the best algorithm for factoring
 numbers of the form :math:`n=pm`, where :math:`p` is not "too
 big". ECM is an algorithm due to Hendrik Lenstra, which works by
 "pretending" that :math:`n` is prime, chosing a random elliptic curve
-over :math:`\mathbb{Z}/n\mathbb{Z}`, and doing arithmetic on that
+over :math:`\ZZ/n\ZZ`, and doing arithmetic on that
 curve--if something goes wrong when doing arithmetic, we factor
 :math:`n`.
 

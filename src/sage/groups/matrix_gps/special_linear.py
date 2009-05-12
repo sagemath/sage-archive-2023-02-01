@@ -89,7 +89,7 @@ def SL(n, R, var='a'):
         [0 1]
         ]
 
-    Next we compute generators for `\mathrm{SL}_3(\mathbb{Z})`.
+    Next we compute generators for `\mathrm{SL}_3(\ZZ)`.
 
     ::
 
@@ -135,7 +135,7 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
 
             sage: G = SL(6,GF(5))
             sage: latex(G)
-            \text{SL}_{6}(\mathbf{F}_{5})
+            \text{SL}_{6}(\Bold{F}_{5})
         """
         return "\\text{SL}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 

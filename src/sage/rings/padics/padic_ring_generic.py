@@ -151,13 +151,7 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric, sage.rings.
         return "Generic %s-adic Ring"%(self.prime())
 
     def _latex_(self):
-        return "\\mathbf{Z}_{%s}" % self.prime()
-
-    def integer_ring(self):
-        r"""
-        Returns the integer ring of self, i.e. self.
-        """
-        return self
+        return "\\ZZ_{%s}" % self.prime()
 
     def krull_dimension(self):
         r"""

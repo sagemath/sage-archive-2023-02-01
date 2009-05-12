@@ -1,8 +1,8 @@
 r"""
-Field `\mathbb{Q}` of Rational Numbers.
+Field `\QQ` of Rational Numbers.
 
 The class ``RationalField`` represents the field
-`\mathbb{Q}` of (arbitrary precision) rational numbers.
+`\QQ` of (arbitrary precision) rational numbers.
 Each rational number is an instance of the class
 ``Rational``.
 
@@ -70,7 +70,7 @@ class _uniq(object):
 class RationalField(_uniq, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field
-    `\mathbb{Q}` of rational numbers.
+    `\QQ` of rational numbers.
 
     EXAMPLES::
 
@@ -133,22 +133,11 @@ class RationalField(_uniq, number_field_base.NumberField):
         0.200000000000000
         sage: QQ(RealField(45)(t))
         1/5
-
-    Elements from the extended rational field can be forced back into
-    the rational field.
-
-    ::
-
-        sage: E = ExtendedRationalField
-        sage: QQ(E(2))
-        2
-        sage: type(_)
-        <type 'sage.rings.rational.Rational'>
     """
 
     def __init__(self):
         r"""
-        We create the rational numbers `\mathbb{Q}`, and call a few
+        We create the rational numbers `\QQ`, and call a few
         functions::
 
             sage: Q = RationalField(); Q
@@ -160,7 +149,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: Q.zeta()
             -1
 
-        We next illustrate arithmetic in `\mathbb{Q}`.
+        We next illustrate arithmetic in `\QQ`.
 
         ::
 
@@ -226,9 +215,28 @@ class RationalField(_uniq, number_field_base.NumberField):
         return "Rational Field"
 
     def _latex_(self):
-        return "\\mathbf{Q}"
+        return "\\Bold{Q}"
+
+    def __reduce__(self):
+        """
+        Used for pickling QQ.
+
+        EXAMPLES::
+
+           sage: loads(dumps(QQ)) is QQ
+           True
+        """
+        return RationalField, tuple([])
 
     def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: len(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: len() of unsized object
+        """
         raise TypeError, 'len() of unsized object'
 
     def construction(self):
@@ -471,7 +479,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def embeddings(self, K):
         """
-        Return list of the one embedding of `\mathbb{Q}` into
+        Return list of the one embedding of `\QQ` into
         `K`, if it exists.
 
         EXAMPLES::
@@ -565,8 +573,8 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_absolute(self):
         """
-        `\mathbb{Q}` is an absolute extension of
-        `\mathbb{Q}`.
+        `\QQ` is an absolute extension of
+        `\QQ`.
 
         EXAMPLES::
 
@@ -577,7 +585,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_subring(self, K):
         """
-        Return ``True`` if `\mathbb{Q}` is a subring of
+        Return ``True`` if `\QQ` is a subring of
         `K`.
 
         We are only able to determine this in some cases, e.g., when
@@ -633,7 +641,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_prime_field(self):
         """
-        Return ``True``, since `\mathbb{Q}` is a prime
+        Return ``True``, since `\QQ` is a prime
         field.
 
         EXAMPLES::
@@ -662,7 +670,7 @@ class RationalField(_uniq, number_field_base.NumberField):
     def maximal_order(self):
         """
         Return the maximal order of the rational numbers, i.e., the ring
-        `\mathbb{Z}` of integers.
+        `\ZZ` of integers.
 
         EXAMPLES::
 
@@ -676,9 +684,9 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def number_field(self):
         """
-        Return the number field associated to `\mathbb{Q}`. Since
-        `\mathbb{Q}` is a number field, this just returns
-        `\mathbb{Q}` again.
+        Return the number field associated to `\QQ`. Since
+        `\QQ` is a number field, this just returns
+        `\QQ` again.
 
         EXAMPLES::
 
@@ -809,6 +817,13 @@ class RationalField(_uniq, number_field_base.NumberField):
 
             sage: magma(QQ)                       # optional - magma
             Rational Field
+
+        TESTS::
+
+        See trac 5521::
+
+            sage: loads(dumps(QQ)) == QQ          # optional - magma
+            True
         """
         return 'RationalField()'
 
@@ -820,6 +835,20 @@ class RationalField(_uniq, number_field_base.NumberField):
             QQ
         """
         return "QQ"
+
+    def _axiom_init_(self):
+        """
+        EXAMPLES::
+
+           sage: axiom(QQ)    #optional - axiom
+           Fraction Integer
+           sage: fricas(QQ)   #optional - fricas
+           Fraction(Integer)
+
+        """
+        return 'Fraction Integer'
+
+    _fricas_init_ = _axiom_init_
 
     def _sage_input_(self, sib, coerced):
         r"""

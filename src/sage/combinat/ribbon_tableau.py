@@ -199,51 +199,51 @@ class RibbonTableaux_shapeweightlength(CombinatorialClass):
         res = graph_implementation_rec(self._shape, self._weight, self._length, list_rec)
         return [from_expr(x) for x in res]
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: RibbonTableaux([[2,1],[]],[1,1,1],1).count()
+            sage: RibbonTableaux([[2,1],[]],[1,1,1],1).cardinality()
             2
-            sage: RibbonTableaux([[2,2],[]],[1,1],2).count()
+            sage: RibbonTableaux([[2,2],[]],[1,1],2).cardinality()
             2
-            sage: RibbonTableaux([[4,3,3],[]],[2,1,1,1],2).count()
+            sage: RibbonTableaux([[4,3,3],[]],[2,1,1,1],2).cardinality()
             5
 
         TESTS::
 
-            sage: RibbonTableaux([6,6,6], [4,2], 3).count()
+            sage: RibbonTableaux([6,6,6], [4,2], 3).cardinality()
             6
-            sage: RibbonTableaux([3,3,3,2,1], [3,1], 3).count()
+            sage: RibbonTableaux([3,3,3,2,1], [3,1], 3).cardinality()
             1
-            sage: RibbonTableaux([3,3,3,2,1], [2,2], 3).count()
+            sage: RibbonTableaux([3,3,3,2,1], [2,2], 3).cardinality()
             2
-            sage: RibbonTableaux([3,3,3,2,1], [2,1,1], 3).count()
+            sage: RibbonTableaux([3,3,3,2,1], [2,1,1], 3).cardinality()
             5
-            sage: RibbonTableaux([3,3,3,2,1], [1,1,1,1], 3).count()
+            sage: RibbonTableaux([3,3,3,2,1], [1,1,1,1], 3).cardinality()
             12
-            sage: RibbonTableaux([5,4,3,2,1],[2,2,1],3).count()
+            sage: RibbonTableaux([5,4,3,2,1],[2,2,1],3).cardinality()
             10
 
         ::
 
-            sage: RibbonTableaux([8,7,6,5,1,1],[3,2,2,1],3).count()
+            sage: RibbonTableaux([8,7,6,5,1,1],[3,2,2,1],3).cardinality()
             85
-            sage: RibbonTableaux([5,4,3,2,1,1,1],[2,2,1],3).count()
+            sage: RibbonTableaux([5,4,3,2,1,1,1],[2,2,1],3).cardinality()
             10
 
         ::
 
-            sage: RibbonTableaux([7,7,7,2,1,1],[3,2,0,1,1],3).count()
+            sage: RibbonTableaux([7,7,7,2,1,1],[3,2,0,1,1],3).cardinality()
             25
 
         Weights with some zeros in the middle and end
 
         ::
 
-            sage: RibbonTableaux([3,3,3], [0,1,0,2,0], 3).count()
+            sage: RibbonTableaux([3,3,3], [0,1,0,2,0], 3).cardinality()
             3
-            sage: RibbonTableaux([3,3,3],[1,0,1,0,1,0,0,0],3).count()
+            sage: RibbonTableaux([3,3,3],[1,0,1,0,1,0,0,0],3).cardinality()
             6
         """
         return graph_implementation_rec(self._shape, self._weight, self._length, count_rec)[0]
@@ -883,7 +883,7 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
             sage: s = SemistandardMultiSkewTableaux(a.r_quotient(k),weight)
             sage: len(s.list())
             34
-            sage: RibbonTableaux(a,weight,k).count()
+            sage: RibbonTableaux(a,weight,k).cardinality()
             34
         """
         parts = self._shape

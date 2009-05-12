@@ -564,7 +564,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: S.<alpha12>=ZZ[]
             sage: latex(S)
-            \mathbf{Z}[\alpha_{12}]
+            \Bold{Z}[\alpha_{12}]
         """
         return "%s[%s]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
 

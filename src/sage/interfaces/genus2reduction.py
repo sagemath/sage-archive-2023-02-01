@@ -119,7 +119,7 @@ class ReductionData(SageObject):
        [2I_0-(m+1)].
 
     #. The second datum is the GROUP OF CONNECTED COMPONENTS (over an
-       ALGEBRAIC CLOSURE (!) of `\mathbb{F}_p`) of the Neron
+       ALGEBRAIC CLOSURE (!) of `\GF{p}`) of the Neron
        model of J(C). The symbol (n) means the cyclic group with n
        elements. When n=0, (0) is the trivial group (1).
        ``Hn`` is isomorphic to (2)x(2) if n is even and to (4)
@@ -146,7 +146,7 @@ class ReductionData(SageObject):
        2", Compositio Math. 94 (1994) 51-79, Theoreme 2) is valid only if
        the residual field is algebraically closed as stated in the paper.
        So this equality does not hold in general over
-       `\mathbb{Q}_p`. The fact is that the minimal discriminant
+       `\QQ_p`. The fact is that the minimal discriminant
        may change after unramified extension. One can show however that,
        at worst, the change will stabilize after a quadratic unramified
        extension (Q. Liu : "Modeles entiers de courbes hyperelliptiques
@@ -373,6 +373,13 @@ class Genus2reduction(SageObject):
             <BLANKLINE>
             the prime to 2 part of the conductor is 1416875
             in factorized form : [2,0;5,4;2267,1]
+
+        Verify that we fix trac 5573::
+
+            sage: genus2reduction(x^3 + x^2 + x,-2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2)
+            Reduction data about this proper smooth genus 2 curve:
+            y^2 + (x^3 + x^2 + x)*y = -2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2
+            ...
         """
         from sage.rings.all import QQ
         R = QQ['x']
@@ -388,6 +395,10 @@ class Genus2reduction(SageObject):
             E.eval(str(Q).replace(' ',''))
             s = E.eval(str(P).replace(' ',''))
         except RuntimeError:
+            # If something goes wrong genus2reduction often goes into
+            # a bad state, and quitting it fixes things, since next
+            # time it is used, it is started cleanly.  See trac 5573.
+            E.quit()
             raise ValueError, "error in input; possibly singular curve? (Q=%s, P=%s)"%(Q,P)
         i = s.find('a minimal')
         j = s.rfind(']')

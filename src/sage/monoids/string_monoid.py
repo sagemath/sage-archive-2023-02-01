@@ -35,22 +35,22 @@ def BinaryStrings():
     EXAMPLES:
         sage: S = BinaryStrings(); S
         Free binary string monoid
-	sage: u = S('')
-	sage: u
+        sage: u = S('')
+        sage: u
 
         sage: x = S('0')
-	sage: x
-	0
+        sage: x
+        0
         sage: y = S('1')
-	sage: y
-	1
+        sage: y
+        1
         sage: z = S('01110')
-	sage: z
+        sage: z
         01110
         sage: x*y^3*x == z
-	True
-	sage: u*x == x*u
-	True
+        True
+        sage: u*x == x*u
+        True
     """
     # Here we cache the binary strings to make them unique
     if _cache.has_key(2):
@@ -78,7 +78,7 @@ def OctalStrings():
         0
         sage: x[7]
         7
-	sage: x[0] * x[3]^3 * x[5]^4 * x[6]
+        sage: x[0] * x[3]^3 * x[5]^4 * x[6]
         033355556
     """
     # Here we cache the octal strings to make them unique
@@ -106,10 +106,10 @@ def HexadecimalStrings():
         sage: x = S.gen(0)
         sage: y = S.gen(10)
         sage: z = S.gen(15)
-	sage: z
+        sage: z
         f
         sage: x*y^3*z
-	0aaaf
+        0aaaf
     """
     # Here we cache the hexadecimal strings to make them unique
     if _cache.has_key(16):
@@ -140,12 +140,12 @@ def Radix64Strings():
         sage: S = Radix64Strings(); S
         Free radix 64 string monoid
         sage: x = S.gens()
-	sage: x[0]
-	A
+        sage: x[0]
+        A
         sage: x[62]
-	+
+        +
         sage: x[63]
-	/
+        /
     """
     # Here we cache the radix-64 strings to make them unique
     if _cache.has_key(64):
@@ -172,10 +172,10 @@ def AlphabeticStrings():
         sage: S = AlphabeticStrings(); S
         Free alphabetic string monoid on A-Z
         sage: x = S.gens()
-	sage: x[0]
-	A
+        sage: x[0]
+        A
         sage: x[25]
-	Z
+        Z
     """
     # Here we cache the alphabetic strings to make them unique
     if _cache.has_key(26):
@@ -197,8 +197,8 @@ class StringMonoid_class(FreeMonoid_class):
         Create free binary string monoid on $n$ generators$.
 
         INPUT:
-	    n: Integer
-	    alphabet: String or tuple whose characters or elements denote the generators.
+            n: Integer
+            alphabet: String or tuple whose characters or elements denote the generators.
 
         EXAMPLES:
             sage: S = BinaryStrings(); S
@@ -208,9 +208,9 @@ class StringMonoid_class(FreeMonoid_class):
             01111101
         """
         # Names must be alphabetical -- omitted since printing is defined locally
-	# FreeMonoid_class.__init__(self, n, names = alphabet)
-	FreeMonoid_class.__init__(self, n)
-	self._alphabet = alphabet
+        # FreeMonoid_class.__init__(self, n, names = alphabet)
+        FreeMonoid_class.__init__(self, n)
+        self._alphabet = alphabet
 
     def __contains__(self, x):
         return isinstance(x, StringMonoidElement) and x.parent() == self
@@ -239,13 +239,13 @@ class StringMonoid_class(FreeMonoid_class):
             sage: S.gen(0)
             0
             sage: S.gen(12)
-	    c
+            c
             sage: S.gen(16)
             Traceback (most recent call last):
             ...
             IndexError: Argument i (= 16) must be between 0 and 15.
         """
-	n = self.ngens()
+        n = self.ngens()
         if i < 0 or not i < n:
             raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i,n-1)
         return StringMonoidElement(self,[int(i)])
@@ -271,7 +271,7 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: x[0]*x[1]**5 * (x[0]*x[1])
             01111101
         """
-	StringMonoid_class.__init__(self, 2, ['0','1'])
+        StringMonoid_class.__init__(self, 2, ['0','1'])
 
     def __cmp__(self, other):
         if not isinstance(other, BinaryStringMonoid):
@@ -286,10 +286,10 @@ class BinaryStringMonoid(StringMonoid_class):
         Return $x$ coerced into this free monoid.
 
         One can create a free binary string monoid element from a
-	Python string of 0's and 1's or list integers
+        Python string of 0's and 1's or list integers
 
-	NOTE: Due to the ambiguity of the second generator '1' with the that the
-	identity element '' of the monoid, the syntax S(1) is not permissible.
+        NOTE: Due to the ambiguity of the second generator '1' with the that the
+        identity element '' of the monoid, the syntax S(1) is not permissible.
 
         EXAMPLES:
             sage: S = BinaryStrings()
@@ -298,7 +298,7 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: S.gen(0)
             0
             sage: S.gen(1)
-	    1
+            1
         """
         ## There should really some careful type checking here...
         if isinstance(x, StringMonoidElement) and x.parent() == self:
@@ -327,16 +327,16 @@ class BinaryStringMonoid(StringMonoid_class):
 
         Set padic = True to reverse the bit string.
 
-	EXAMPLES:
-	    sage: S = BinaryStrings()
-	    sage: S.encoding('A')
-	    01000001
-	    sage: S.encoding('A',padic=True)
-	    10000010
-	    sage: S.encoding(' ',padic=True)
-	    00000100
+        EXAMPLES:
+            sage: S = BinaryStrings()
+            sage: S.encoding('A')
+            01000001
+            sage: S.encoding('A',padic=True)
+            10000010
+            sage: S.encoding(' ',padic=True)
+            00000100
         """
-	from Crypto.Util.number import bytes_to_long
+        from Crypto.Util.number import bytes_to_long
         bit_string = [ ]
         for i in range(len(S)):
             n = int(bytes_to_long(S[i]))
@@ -365,10 +365,10 @@ class OctalStringMonoid(StringMonoid_class):
             sage: x = S.gens()
             sage: (x[0]*x[7])**3 * (x[0]*x[1]*x[6]*x[5])**2
             07070701650165
-	    sage: S([ i for i in range(8) ])
-	    01234567
+            sage: S([ i for i in range(8) ])
+            01234567
         """
-	StringMonoid_class.__init__(self, 8, [ str(i) for i in range(8) ])
+        StringMonoid_class.__init__(self, 8, [ str(i) for i in range(8) ])
 
     def __cmp__(self, other):
         if not isinstance(other, OctalStringMonoid):
@@ -383,7 +383,7 @@ class OctalStringMonoid(StringMonoid_class):
         Return $x$ coerced into this free monoid.
 
         One can create a free octal string monoid element from a
-	Python string of 0's to 7's or list of integers.
+        Python string of 0's to 7's or list of integers.
 
         EXAMPLES:
             sage: S = OctalStrings()
@@ -392,9 +392,9 @@ class OctalStringMonoid(StringMonoid_class):
             sage: S.gen(0)
             0
             sage: S.gen(1)
-	    1
-	    sage: S([ i for i in range(8) ])
-	    01234567
+            1
+            sage: S([ i for i in range(8) ])
+            01234567
         """
         ## There should really some careful type checking here...
         if isinstance(x, StringMonoidElement) and x.parent() == self:
@@ -422,11 +422,11 @@ class HexadecimalStringMonoid(StringMonoid_class):
             sage: x = S.gens()
             sage: (x[0]*x[10])**3 * (x[0]*x[1]*x[9]*x[15])**2
             0a0a0a019f019f
-	    sage: S([ i for i in range(16) ])
-	    0123456789abcdef
+            sage: S([ i for i in range(16) ])
+            0123456789abcdef
         """
-	alph = '0123456789abcdef'
-	StringMonoid_class.__init__(self, 16, [ alph[i] for i in range(16) ])
+        alph = '0123456789abcdef'
+        StringMonoid_class.__init__(self, 16, [ alph[i] for i in range(16) ])
 
     def __cmp__(self, other):
         if not isinstance(other, HexadecimalStringMonoid):
@@ -441,7 +441,7 @@ class HexadecimalStringMonoid(StringMonoid_class):
         Return $x$ coerced into this free monoid.
 
         One can create a free hexadecimal string monoid element from a
-	Python string of a list of integers in $\{0,..,15\}$.
+        Python string of a list of integers in $\{0,..,15\}$.
 
         EXAMPLES:
             sage: S = HexadecimalStrings()
@@ -450,9 +450,9 @@ class HexadecimalStringMonoid(StringMonoid_class):
             sage: S.gen(0)
             0
             sage: S.gen(1)
-	    1
-	    sage: S([ i for i in range(16) ])
-	    0123456789abcdef
+            1
+            sage: S([ i for i in range(16) ])
+            0123456789abcdef
         """
         ## There should really some careful type checking here...
         if isinstance(x, StringMonoidElement) and x.parent() == self:
@@ -478,31 +478,31 @@ class HexadecimalStringMonoid(StringMonoid_class):
             Z = '\x5a' -> 5a
 
         rather than a left-to-right representation A = 65 -> 14.
-	Although standard (e.g., in the Python constructor '\xhh'),
+        Although standard (e.g., in the Python constructor '\xhh'),
         this can be confusing when the string reads left-to-right.
 
         Set padic = True to reverse the character encoding.
 
-	EXAMPLES:
-	    sage: S = HexadecimalStrings()
-	    sage: S.encoding('A')
-	    41
-	    sage: S.encoding('A',padic=True)
-	    14
-	    sage: S.encoding(' ',padic=False)
-	    20
-	    sage: S.encoding(' ',padic=True)
-	    02
+        EXAMPLES:
+            sage: S = HexadecimalStrings()
+            sage: S.encoding('A')
+            41
+            sage: S.encoding('A',padic=True)
+            14
+            sage: S.encoding(' ',padic=False)
+            20
+            sage: S.encoding(' ',padic=True)
+            02
         """
-	from Crypto.Util.number import bytes_to_long
+        from Crypto.Util.number import bytes_to_long
         hex_string = [ ]
         for i in range(len(S)):
             n = int(bytes_to_long(S[i]))
-	    n0 = n % 16; n1 = n // 16
-	    if not padic:
-	        hex_chars = [n1,n0]
-	    else:
-	        hex_chars = [n0,n1]
+            n0 = n % 16; n1 = n // 16
+            if not padic:
+                hex_chars = [n1,n0]
+            else:
+                hex_chars = [n0,n1]
             hex_string.extend(hex_chars)
         return self(hex_string)
 
@@ -521,12 +521,12 @@ class Radix64StringMonoid(StringMonoid_class):
             Free radix 64 string monoid
             sage: x = S.gens()
             sage: (x[50]*x[10])**3 * (x[60]*x[1]*x[19]*x[35])**2
-	    yKyKyK8BTj8BTj
-	    sage: S([ i for i in range(64) ])
-	    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
+            yKyKyK8BTj8BTj
+            sage: S([ i for i in range(64) ])
+            ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
         """
-	alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-	StringMonoid_class.__init__(self, 64, [ alph[i] for i in range(64) ])
+        alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+        StringMonoid_class.__init__(self, 64, [ alph[i] for i in range(64) ])
 
 
     def __cmp__(self, other):
@@ -543,20 +543,20 @@ class Radix64StringMonoid(StringMonoid_class):
 
         One can create a free radix 64 string monoid element from a
         Python string or a list of integers in $0,..,63$, as for
-	generic FreeMonoids.
+        generic FreeMonoids.
 
         EXAMPLES:
             sage: S = Radix64Strings()
             sage: S.gen(0)
             A
             sage: S.gen(1)
-	    B
+            B
             sage: S.gen(62)
-	    +
+            +
             sage: S.gen(63)
-	    /
-	    sage: S([ i for i in range(64) ])
-	    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
+            /
+            sage: S([ i for i in range(64) ])
+            ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
         """
         ## There should really some careful type checking here...
         if isinstance(x, StringMonoidElement) and x.parent() == self:
@@ -582,14 +582,14 @@ class AlphabeticStringMonoid(StringMonoid_class):
             sage: S = AlphabeticStrings(); S
             Free alphabetic string monoid on A-Z
             sage: S.gen(0)
-	    A
+            A
             sage: S.gen(25)
-	    Z
-	    sage: S([ i for i in range(26) ])
-	    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            Z
+            sage: S([ i for i in range(26) ])
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ
         """
-	alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	StringMonoid_class.__init__(self, 26, [ alph[i] for i in range(26) ])
+        alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        StringMonoid_class.__init__(self, 26, [ alph[i] for i in range(26) ])
 
     def __cmp__(self, other):
         if not isinstance(other, AlphabeticStringMonoid):
@@ -611,11 +611,11 @@ class AlphabeticStringMonoid(StringMonoid_class):
             sage: S.gen(0)
             A
             sage: S.gen(1)
-	    B
+            B
             sage: S.gen(25)
-	    Z
-	    sage: S([ i for i in range(26) ])
-	    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            Z
+            sage: S([ i for i in range(26) ])
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ
         """
         ## There should really some careful type checking here...
         if isinstance(x, StringMonoidElement) and x.parent() == self:
@@ -638,13 +638,13 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
         It should be noted that this is a non-injective monoid homomorphism.
 
-	EXAMPLES:
-	    sage: S = AlphabeticStrings()
-	    sage: s = S.encoding("The cat in the hat."); s
-	    THECATINTHEHAT
-	    sage: s.decoding()
-	    'THECATINTHEHAT'
-	"""
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: s = S.encoding("The cat in the hat."); s
+            THECATINTHEHAT
+            sage: s.decoding()
+            'THECATINTHEHAT'
+        """
         return self(strip_encoding(S))
 
 

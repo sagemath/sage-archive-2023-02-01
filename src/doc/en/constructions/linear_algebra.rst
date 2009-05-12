@@ -78,7 +78,7 @@ to the matrix object. The following examples illustrate the syntax.
     [ 1  0 -3  2]
     [ 0  1 -2  1]
 
-A kernel of dimension one over :math:`\mathbb{Q}`:
+A kernel of dimension one over :math:`\QQ`:
 
 ::
 
@@ -171,7 +171,7 @@ Frobenius normal form (rational canonical form).
 
 
 There are many methods for matrices over a field such as
-:math:`\mathbb{Q}` or a finite field: ``row_span``, ``nullity``,
+:math:`\QQ` or a finite field: ``row_span``, ``nullity``,
 ``transpose``, ``swap_rows``, ``matrix_from_columns``,
 ``matrix_from_rows``, among many others.
 
@@ -345,7 +345,7 @@ Characteristic polynomial
 The characteristic polynomial is a Sage method
 for square matrices.
 
-First a matrix over :math:`\mathbb{Z}`:
+First a matrix over :math:`\ZZ`:
 
 ::
 
@@ -357,7 +357,7 @@ First a matrix over :math:`\mathbb{Z}`:
     Univariate Polynomial Ring in x over Integer Ring
 
 We compute the characteristic polynomial of a matrix over the
-polynomial ring :math:`\mathbb{Z}[a]`:
+polynomial ring :math:`\ZZ[a]`:
 
 ::
 
@@ -379,7 +379,7 @@ polynomial ring :math:`\mathbb{Z}[a]`:
     a^2
 
 We compute the characteristic polynomial of a matrix over the
-multi-variate polynomial ring :math:`\mathbb{Z}[u,v]`:
+multi-variate polynomial ring :math:`\ZZ[u,v]`:
 
 ::
 

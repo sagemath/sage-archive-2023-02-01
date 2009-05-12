@@ -602,7 +602,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         Note: when right is divisible by p then one can get more precision than expected.
         Lemma 2.1 (Constructing Class Fields over Local Fields, Sebastian Pauli):
         [modified from original for Qp.  See padic_ZZ_pX_CR_element for original]
-        Let $\alpha$ be in $\mathbb{Z}_p$. The $p$-th power of $1 + \alpha p^{\lambda}$ satisifes
+        Let $\alpha$ be in $\ZZ_p$. The $p$-th power of $1 + \alpha p^{\lambda}$ satisifes
             (1 + \alpha p^{\lambda})^p \equiv 1 + \alpha p^{\lambda + 1} mod p^{\lambda + 2}
 
             unless $\lambda = 1$ and $p = 2$, in which case

@@ -505,7 +505,7 @@ class Maxima(Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = 'maxima -p "%s"'%STARTUP,
+                        command = 'maxima-noreadline -p "%s"'%STARTUP,
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
@@ -697,7 +697,7 @@ class Maxima(Expect):
         self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
-	    # This implicitly uses the set method, then displays the result of the thing that was set.
+            # This implicitly uses the set method, then displays the result of the thing that was set.
             # This only works when the input line is an expression.   But this is our only choice, since
             # batchmode doesn't display expressions to screen.
             a = self(line)
@@ -1480,7 +1480,7 @@ class Maxima(Expect):
     def unit_quadratic_integer(self, n):
         r"""
         Finds a unit of the ring of integers of the quadratic number field
-        `\mathbb{Q}(\sqrt{n})`, `n>1`, using the qunit maxima
+        `\QQ(\sqrt{n})`, `n>1`, using the qunit maxima
         command.
 
         EXAMPLES::
@@ -2338,10 +2338,10 @@ class MaximaFunction(MaximaElement):
 
             sage: f = maxima.function('x,y','sin(x+y)')
             sage: latex(f)
-            \mbox{\rm sin(x+y)}
+            \mathrm{sin(x+y)}
         """
         if self.__latex is None:
-            return r'\mbox{\rm %s}'%self.__defn
+            return r'\mathrm{%s}'%self.__defn
         else:
             return self.__latex
 

@@ -21,11 +21,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)
     cdef gen new_gen_from_mpz_t(self, mpz_t value)
+    cdef gen new_gen_from_mpq_t(self, mpq_t value)
     cdef GEN new_GEN_from_mpz_t(self, mpz_t value)
     cdef gen new_gen_from_int(self, int value)
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum)
     cdef gen new_gen_from_padic(self, long ordp, long relprec, mpz_t prime, mpz_t p_pow, mpz_t unit)
     cdef void clear_stack(self)
+    cdef void set_mytop_to_avma(self)
     cdef gen double_to_gen_c(self, double)
     cdef GEN double_to_GEN(self, double)
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address)
@@ -34,6 +36,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef int get_var(self, v)
     cdef object GEN_to_str(self, GEN g)
     cdef GEN toGEN(self, x, int i) except NULL
+    cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0
+    cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0
+    cdef integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf)
+    cdef GEN rational_matrix_GEN(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0
+    cdef rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
 
 
 

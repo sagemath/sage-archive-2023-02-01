@@ -42,7 +42,7 @@ def LyndonWords(e, k=None):
         [2, 3, 3]
         sage: LW.random_element()
         [1, 1, 2]
-        sage: LW.count()
+        sage: LW.cardinality()
         8
 
     If e is a (weak) composition, then it returns the class of Lyndon
@@ -115,17 +115,17 @@ class LyndonWords_evaluation(CombinatorialClass):
 
         return True
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of Lyndon words with the evaluation e.
 
         EXAMPLES::
 
-            sage: LyndonWords([]).count()
+            sage: LyndonWords([]).cardinality()
             0
-            sage: LyndonWords([2,2]).count()
+            sage: LyndonWords([2,2]).cardinality()
             1
-            sage: LyndonWords([2,3,2]).count()
+            sage: LyndonWords([2,3,2]).cardinality()
             30
 
         Check to make sure that the count matches up with the number of
@@ -135,7 +135,7 @@ class LyndonWords_evaluation(CombinatorialClass):
 
             sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
             sage: lws = [ LyndonWords(comp) for comp in comps]
-            sage: all( [ lw.count() == len(lw.list()) for lw in lws] )
+            sage: all( [ lw.cardinality() == len(lw.list()) for lw in lws] )
             True
         """
         evaluation = self.e
@@ -148,7 +148,7 @@ class LyndonWords_evaluation(CombinatorialClass):
         return sum([moebius(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for the Lyndon words with evaluation e.
 
@@ -227,11 +227,11 @@ class LyndonWords_nk(CombinatorialClass):
         #Check to see if it is in the Lyndon
         return new_x in LyndonWords_evaluation(c)
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
-            sage: [ LyndonWords(3,i).count() for i in range(1, 11) ]
+            sage: [ LyndonWords(3,i).cardinality() for i in range(1, 11) ]
             [3, 3, 8, 18, 48, 116, 312, 810, 2184, 5880]
         """
         if self.k == 0:
@@ -242,7 +242,7 @@ class LyndonWords_nk(CombinatorialClass):
                 s += moebius(d)*(self.n**(self.k/d))
         return s/self.k
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
@@ -281,7 +281,7 @@ def StandardBracketedLyndonWords(n, k):
         [1, [1, 2]]
         sage: SBLW33.last()
         [[2, 3], 3]
-        sage: SBLW33.count()
+        sage: SBLW33.cardinality()
         8
         sage: SBLW33.random_element()
         [1, [1, 2]]
@@ -309,18 +309,18 @@ class StandardBracketedLyndonWords_nk(CombinatorialClass):
         """
         return "Standard bracketed Lyndon words from an alphabet of size %s of length %s"%(self.n, self.k)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: StandardBracketedLyndonWords(3, 3).count()
+            sage: StandardBracketedLyndonWords(3, 3).cardinality()
             8
-            sage: StandardBracketedLyndonWords(3, 4).count()
+            sage: StandardBracketedLyndonWords(3, 4).cardinality()
             18
         """
-        return LyndonWords_nk(self.n,self.k).count()
+        return LyndonWords_nk(self.n,self.k).cardinality()
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 

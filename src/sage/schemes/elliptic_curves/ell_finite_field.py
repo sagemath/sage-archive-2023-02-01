@@ -30,9 +30,9 @@ from sage.misc.randstate import current_randstate
 import sys
 from math import ceil, floor, sqrt
 
-from ell_generic import Hasse_bounds
+from sage.schemes.plane_curves.projective_curve import Hasse_bounds
 from ell_field import EllipticCurve_field
-from constructor import EllipticCurve
+from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
@@ -68,6 +68,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: F=GF(101^2, 'a')
             sage: EllipticCurve([F(2),F(3)])
             Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field in a of size 101^2
+
+        Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
+        "elliptic curve over a finite field":
+
+            sage: F = Zmod(101)
+            sage: EllipticCurve(F, [2, 3])
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
+            sage: E = EllipticCurve([F(2), F(3)])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+
+        Elliptic curves over `\ZZ/N\ZZ` with `N` composite are of type
+        "generic elliptic curve"::
+
+            sage: F = Zmod(95)
+            sage: EllipticCurve(F, [2, 3])
+            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
+            sage: E = EllipticCurve([F(2), F(3)])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
         """
         if isinstance(x, list):
             seq = Sequence(x)
@@ -678,7 +698,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                implemented in PARI via the C-library function ellap.
 
             -  ``'sea'`` - use sea.gp as implemented in PARI by
-               Christophe Doche and Sylvain Duquesne.
+               Christophe Doche and Sylvain Duquesne.  ('sea' stands
+               for 'Schoof-Elkies-Atkin'.)
 
             -  ``bsgs`` - use the baby step giant step method as
                implemented in Sage, with the Cremona -
@@ -829,11 +850,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
 
         # recursive call which will do all the real work:
-        Ej = EllipticCurve(jkj)
+        Ej = EllipticCurve_from_j(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
 
         # if curve ia a (quadratic) twist of the "standard" one:
-        if not self.is_isomorphic(EllipticCurve(j)): N=2*(q+1)-N
+        if not self.is_isomorphic(EllipticCurve_from_j(j)): N=2*(q+1)-N
 
         self._order = N
         return self._order

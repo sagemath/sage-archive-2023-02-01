@@ -1,7 +1,6 @@
 include '../../ext/cdefs.pxi'
 
 cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
     void *realloc(void *ptr, size_t size)
@@ -1062,7 +1061,7 @@ cdef extern from 'pari/pari.h':
     GEN     galoisexport(GEN gal, long format)
     GEN     galoisfixedfield(GEN gal, GEN v, long flag, long y)
     GEN     galoisidentify(GEN gal)
-    GEN     galoisinit(GEN nf, GEN den, long karma)
+    GEN     galoisinit(GEN nf, GEN den)
     GEN     galoisisabelian(GEN gal, long flag)
     GEN     galoispermtopol(GEN gal, GEN perm)
     GEN     galoissubgroups(GEN G)

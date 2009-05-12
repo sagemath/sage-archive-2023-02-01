@@ -357,61 +357,6 @@ import math
 def _one_over_log(t):
     return 1/math.log(t)
 
-class PrimePi:
-    """
-    Return the number of primes `\leq x`.
-
-    EXAMPLES::
-
-        sage: prime_pi(7)
-        4
-        sage: prime_pi(100)
-        25
-        sage: prime_pi(1000)
-        168
-        sage: prime_pi(100000)
-        9592
-        sage: prime_pi(0.5)
-        0
-        sage: prime_pi(-10)
-        0
-        sage: prime_pi(500509)
-        41581
-
-    The prime_pi function also has a special plotting method, so it
-    plots quickly and perfectly as a step function.
-
-    ::
-
-        sage: P = plot(prime_pi, 50,100)
-    """
-    def __repr__(self):
-        return "Function that counts the number of primes up to x"
-
-    def __call__(self, x):
-        if x < 2:
-            return ZZ(0)
-        return ZZ(pari(x).primepi())
-
-    def plot(self, xmin=0, xmax=100, *args, **kwds):
-        primes = prime_range(xmin, xmax+2)
-        base = self(xmin)
-        if xmin <= 2:
-            v = [(xmin,0),(min(xmax,2),0)]
-            ymin = 0
-        else:
-            v = []
-            ymin = base
-        for i in range(len(primes)-1):
-            v.extend([(primes[i],base+i+1), (primes[i+1],base+i+1)])
-        P = sage.plot.all.line(v, *args, **kwds)
-        P.axes_range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=base+len(primes))
-        return P
-
-#############
-prime_pi = PrimePi()
-
-
 from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
 
 class DickmanRhoComputer(PrimitiveFunction):

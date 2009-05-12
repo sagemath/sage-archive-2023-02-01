@@ -20,6 +20,29 @@ from sage.structure.element import Element
 
 class PosetElement(Element):
     def __init__(self, poset, element, vertex):
+        r"""
+        Establishes the parent-child relationship between ``poset``
+        and ``element``, where ``element`` is associated to the
+        vertex ``vertex`` of the Hasse diagram of the poset.
+
+        INPUT:
+
+        - ``poset`` - a poset object
+
+        - ``element`` - any object
+
+        - ``vertex`` - a vertex of the Hasse diagram of the poset
+
+        TESTS::
+
+            sage: from sage.combinat.posets.elements import PosetElement
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: e = PosetElement(P, "elm", 0)
+            sage: e.parent() is P
+            True
+            sage: e == loads(dumps(e))
+            True
+        """
         Element.__init__(self, poset)
         if isinstance(element, self.parent()._element_type):
             self.element = element.element
@@ -144,18 +167,43 @@ class PosetElement(Element):
         """
         return self == other or self._cmp(other) == 1 or False
 
-class LatticePosetElement(PosetElement):
-    def __add__(self,other):
-        return self.parent().join(self,other)
-
-    def __mul__(self,other):
-        return self.parent().meet(self,other)
-
 class MeetSemilatticeElement(PosetElement):
     def __mul__(self,other):
+        r"""
+        Return the meet of ``self`` and ``other`` in the lattice.
+
+        EXAMPLES::
+
+            sage: D = Posets.DiamondPoset(5)
+            sage: D(1) * D(2)
+            0
+            sage: D(1) * D(1)
+            1
+            sage: D(1) * D(0)
+            0
+            sage: D(1) * D(4)
+            1
+        """
         return self.parent().meet(self,other)
 
 class JoinSemilatticeElement(PosetElement):
     def __add__(self,other):
+        r"""
+        Return the join of ``self`` and ``other`` in the lattice.
+
+        EXAMPLES::
+
+            sage: D = Posets.DiamondPoset(5)
+            sage: D(1) + D(2)
+            4
+            sage: D(1) + D(1)
+            1
+            sage: D(1) + D(4)
+            4
+            sage: D(1) + D(0)
+            1
+        """
         return self.parent().join(self,other)
 
+class LatticePosetElement(MeetSemilatticeElement,JoinSemilatticeElement):
+    pass

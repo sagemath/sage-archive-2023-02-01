@@ -58,25 +58,27 @@ class FastCrystal(ClassicalCrystal):
     TESTS::
 
         sage: C = FastCrystal(['A',2],shape=[4,1])
-        sage: C.count()
+        sage: C.cardinality()
         24
+	sage: C.cartan_type()
+	['A', 2]
         sage: C.check()
         True
         sage: C = FastCrystal(['B',2],shape=[4,1])
-        sage: C.count()
+        sage: C.cardinality()
         154
         sage: C.check()
         True
         sage: C = FastCrystal(['B',2],shape=[3/2,1/2])
-        sage: C.count()
+        sage: C.cardinality()
         16
         sage: C.check()
         True
         sage: C = FastCrystal(['C',2],shape=[2,1])
-        sage: C.count()
+        sage: C.cardinality()
         16
         sage: C = FastCrystal(['C',2],shape=[3,1])
-        sage: C.count()
+        sage: C.cardinality()
         35
         sage: C.check()
         True
@@ -88,7 +90,7 @@ class FastCrystal(ClassicalCrystal):
             sage: C = FastCrystal(['A',2],shape=[4,1]); C
             The fast crystal for A2 with shape [4,1]
         """
-        self.cartan_type = CartanType(ct)
+        self._cartan_type = CartanType(ct)
         if ct[1] != 2:
             raise NotImplementedError
 
@@ -136,11 +138,10 @@ class FastCrystal(ClassicalCrystal):
             l1_str = "%d"%l1
             l2_str = "%d"%l2
         else:
-            assert self.cartan_type[0] == 'B' and int(2*l2)%2 == 1
+            assert self._cartan_type[0] == 'B' and int(2*l2)%2 == 1
             l1_str = "%d/2"%int(2*l1)
             l2_str = "%d/2"%int(2*l2)
         self._name = "The fast crystal for %s2 with shape [%s,%s]"%(ct[0],l1_str,l2_str)
-        self.index_set = self.cartan_type.index_set()
         self.module_generators = [self(0)]
         self._list = ClassicalCrystal.list(self)
         self._digraph = ClassicalCrystal.digraph(self)
@@ -183,7 +184,7 @@ class FastCrystal(ClassicalCrystal):
             sage: len(C.gampat)
             4
         """
-        if self.cartan_type[0] == 'B':
+        if self._cartan_type[0] == 'B':
             [m1, m2] = [l1+l2, l1-l2]
         else:
             [m1, m2] = [l1, l2]
@@ -199,7 +200,7 @@ class FastCrystal(ClassicalCrystal):
                         b2 = max(a3, a1+a4, a1+2*a3-a2)
                         b3 = min(a2, 2*a2-2*a3+a4, 2*a1+a4)
                         b4 = min(a1, a2-a3, a3-a4)
-                        if self.cartan_type[0] == 'B':
+                        if self._cartan_type[0] == 'B':
                             self.delpat.append([a1,a2,a3,a4])
                             self.gampat.append([b1,b2,b3,b4])
                         else:
@@ -291,7 +292,7 @@ class FastCrystalElement(CrystalElement):
         self.value = value
         self.format = format
 
-    def parent(self):
+    def parent(self): # Should be inherited from Element
         """
         Returns the parent of self.
 
@@ -320,11 +321,11 @@ class FastCrystalElement(CrystalElement):
             sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,1])]
             [(1, 1), (1, -1), (0, 0), (-1, 1), (-1, -1)]
         """
-        delpat = self._parent.delpat[self.value]
-        if self._parent.cartan_type[0] == 'A':
+        delpat = self.parent().delpat[self.value]
+        if self.parent()._cartan_type[0] == 'A':
             delpat.append(0)
-        [alpha1, alpha2] = self._parent.weight_lattice_realization().simple_roots()
-        hwv = sum(self._parent.shape[i]*self._parent.weight_lattice_realization()._term(i) for i in range(2))
+        [alpha1, alpha2] = self.parent().weight_lattice_realization().simple_roots()
+        hwv = sum(self.parent().shape[i]*self.parent().weight_lattice_realization()._term(i) for i in range(2))
         return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
 
     def __repr__(self):
@@ -336,9 +337,9 @@ class FastCrystalElement(CrystalElement):
             '[0, 0, 0]'
         """
         if self.format == "string":
-            return repr(self._parent.delpat[self.value])
+            return repr(self.parent().delpat[self.value])
         elif self.format == "dual_string":
-            return repr(self._parent.gampat[self.value])
+            return repr(self.parent().gampat[self.value])
         elif self.format == "simple":
             return repr(self.value)
         else:
@@ -396,10 +397,10 @@ class FastCrystalElement(CrystalElement):
         """
         assert i in self.index_set()
         if i == 1:
-            r = self._parent._rootoperators[self.value][0]
+            r = self.parent()._rootoperators[self.value][0]
         else:
-            r = self._parent._rootoperators[self.value][2]
-        return self._parent(r) if r is not None else None
+            r = self.parent()._rootoperators[self.value][2]
+        return self.parent()(r) if r is not None else None
 
 
     def f(self, i):
@@ -416,9 +417,9 @@ class FastCrystalElement(CrystalElement):
         """
         assert i in self.index_set()
         if i == 1:
-            r = self._parent._rootoperators[self.value][1]
+            r = self.parent()._rootoperators[self.value][1]
         else:
-            r = self._parent._rootoperators[self.value][3]
-        return self._parent(r) if r is not None else None
+            r = self.parent()._rootoperators[self.value][3]
+        return self.parent()(r) if r is not None else None
 
 

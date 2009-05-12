@@ -324,10 +324,10 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
             sage: R = GF(17)[['y']]
             sage: latex(R)
-            \mathbf{F}_{17}[[y]]
+            \Bold{F}_{17}[[y]]
             sage: R = GF(17)[['y12']]
             sage: latex(R)
-            \mathbf{F}_{17}[[y_{12}]]
+            \Bold{F}_{17}[[y_{12}]]
         """
         return "%s[[%s]]"%(latex.latex(self.base_ring()), self.latex_variable_names()[0])
 

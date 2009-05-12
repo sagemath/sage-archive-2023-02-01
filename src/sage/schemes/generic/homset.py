@@ -76,7 +76,7 @@ def enum_affine_rational_field(X,B):
             m = ZZ(0)
         except StopIteration:
             iters[i] = iter(R) # reset
-	    P[i] = iters[i].next() # reset P[i] to 0 and increment
+            P[i] = iters[i].next() # reset P[i] to 0 and increment
             i += 1
     return pts
 
@@ -91,7 +91,7 @@ def enum_projective_finite_field(X):
             pts.append(X(P))
         except:
             pass
-	# define some iterators and increment them:
+        # define some iterators and increment them:
         iters = [ iter(R) for _ in range(i) ]
         [ iters[j].next() for j in range(i) ]
         j = 0

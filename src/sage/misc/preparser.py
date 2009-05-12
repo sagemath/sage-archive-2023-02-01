@@ -50,8 +50,8 @@ preparser doesn't get confused by the internal quotes):
 
 
 A hex literal:
-    sage: preparse('0x2a3')
-    'Integer(0x2a3)'
+    sage: preparse('0x2e3')
+    'Integer(0x2e3)'
     sage: 0xA
     10
 
@@ -103,7 +103,7 @@ SYMBOLIC FUNCTIONAL NOTATION:
 
 This involves an =-, but should still be turned into a symbolic expression:
     sage: preparse('a(x) =- 5')
-    '_ = var("x"); a = symbolic_expression(- Integer(5)).function(x)'
+    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -237,7 +237,8 @@ def strip_string_literals(code, state=None):
     labels and a dict of labels for re-subsitution. This makes
     parsing much easier.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.preparser import strip_string_literals
         sage: s, literals, state = strip_string_literals(r'''['a', "b", 'c', "d\""]''')
         sage: s
@@ -249,25 +250,36 @@ def strip_string_literals(code, state=None):
         sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]
         -%(L1)s-%(L2)s-
 
-    Triple-quotes are handled as well.
+    Triple-quotes are handled as well::
+
         sage: s, literals, state = strip_string_literals("[a, '''b''', c, '']")
         sage: s
         '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
         [a, '''b''', c, '']
 
-    Comments are subsituted too:
+    Comments are subsituted too::
+
         sage: s, literals, state = strip_string_literals("code '#' # ccc 't'"); s
         'code %(L1)s #%(L2)s'
         sage: s % literals
         "code '#' # ccc 't'"
 
     A state is returned so one can break strings across multiple calls to
-    this function:
+    this function::
+
         sage: s, literals, state = strip_string_literals('s = "some'); s
         's = %(L1)s'
         sage: s, literals, state = strip_string_literals('thing" * 5', state); s
         '%(L1)s * 5'
+
+    TESTS:
+
+    Even for raw strings, a backslash can escape a following quote::
+
+        sage: s, literals, state = strip_string_literals(r"r'somethin\' funny'"); s
+        'r%(L1)s'
+        sage: dep_regex = r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +(\w+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))' # Ticket 5821
     """
     new_code = []
     literals = {}
@@ -304,7 +316,7 @@ def strip_string_literals(code, state=None):
                 new_code.append(code[start:].replace('%','%%'))
             break
         elif in_quote:
-            if not raw and code[q-1] == '\\':
+            if code[q-1] == '\\':
                 k = 2
                 while code[q-k] == '\\':
                     k += 1
@@ -508,6 +520,12 @@ def preparse_numeric_literals(code, extract=False):
         "Integer('100', 8)"
         sage: preparse_numeric_literals('0b111001')
         "Integer('111001', 2)"
+        sage: preparse_numeric_literals('0xe')
+        'Integer(0xe)'
+        sage: preparse_numeric_literals('0xEAR')
+        '0xEA'
+        sage: preparse_numeric_literals('0x1012Fae')
+        'Integer(0x1012Fae)'
     """
     literals = {}
     last = 0
@@ -522,7 +540,7 @@ def preparse_numeric_literals(code, extract=False):
         # This is slightly annoying as floating point numbers may start
         # with a decimal point, but if they do the \b will not match.
         float_num = r"((\b\d+([.]\d*)?)|([.]\d+))(e[-+]?\d+)?"
-        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (float_num, dec_num, hex_num, oct_num, bin_num)
+        all_num = r"((%s)|(%s)|(%s)|(%s)|(%s))(rj|rL|jr|Lr|j|L|r|)\b" % (hex_num, oct_num, bin_num, float_num, dec_num)
         all_num_regex = re.compile(all_num, re.I)
 
     for m in all_num_regex.finditer(code):
@@ -558,7 +576,17 @@ def preparse_numeric_literals(code, extract=False):
                     end += 1
                     num += '.'
 
-            if '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
+
+            if len(num)>2 and num[1] in 'oObBxX':
+                # Py3 oct and bin support
+                num_name = numeric_literal_prefix + num
+                if num[1] in 'bB':
+                    num_make = "Integer('%s', 2)" % num[2:]
+                elif num[1] in 'oO':
+                    num_make = "Integer('%s', 8)" % num[2:]
+                else:
+                    num_make = "Integer(%s)" % num
+            elif '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
                 num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
                 if 'J' in postfix:
                     num_make = "ComplexNumber(0, '%s')" % num
@@ -567,16 +595,7 @@ def preparse_numeric_literals(code, extract=False):
                     num_make = "RealNumber('%s')" % num
             else:
                 num_name = numeric_literal_prefix + num
-                if len(num) > 3:
-                    # Py3 oct and bin support
-                    if num[1] in 'bB':
-                        num_make = "Integer('%s', 2)" % num[2:]
-                    elif num[1] in 'oO':
-                        num_make = "Integer('%s', 8)" % num[2:]
-                    else:
-                        num_make = "Integer(%s)" % num
-                else:
-                    num_make = "Integer(%s)" % num
+                num_make = "Integer(%s)" % num
 
             literals[num_name] = num_make
 
@@ -619,7 +638,7 @@ def preparse_calculus(code):
     Support for calculus-like function assignment, the line
     "f(x,y,z) = sin(x^3 - 4*y) + y^x"
     gets turnd into
-    '_ = var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
+    '__tmp__=var("x,y,z"); f = symbolic_expression(sin(x**3 - 4*y) + y**x).function(x,y,z)'
 
     AUTHORS:
         -- Bobby Moretti: initial version - 02/2007
@@ -628,22 +647,22 @@ def preparse_calculus(code):
 
     EXAMPLES:
         sage: preparse("f(x) = x^3-x")
-        '_ = var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '_ = var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
         sage: preparse("f(x) =-5")
-        '_ = var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '_ = var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end with a semicolon.
         sage: from sage.misc.preparser import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
-        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
-        ';_ = var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+        ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
     """
     new_code = []
     last_end = 0
@@ -652,7 +671,7 @@ def preparse_calculus(code):
         ident, func, vars, expr = m.groups()
         vars = ','.join(v.strip() for v in vars.split(','))
         new_code.append(code[last_end:m.start()])
-        new_code.append(';%s_ = var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
+        new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
         last_end = m.end()
 
     if last_end == 0:

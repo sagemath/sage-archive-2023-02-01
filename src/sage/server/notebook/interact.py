@@ -229,8 +229,8 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
         <html>...</html>
     """
     s = """<table><tr><td>
-    	<div id='%s' class='ui-slider ui-slider-3' style='margin:%spx;'><span class='ui-slider-handle'></span></div>
-    	</td>"""%(id,int(margin))
+        <div id='%s' class='ui-slider ui-slider-3' style='margin:%spx;'><span class='ui-slider-handle'></span></div>
+        </td>"""%(id,int(margin))
     if values != "null":
         s += "<td><font color='black' id='%s-lbl'></font></td>"%id
     s += "</tr></table>"
@@ -240,9 +240,9 @@ def html_slider(id, values, callback, steps, default=0, margin=0):
     # below which gets passed an anonymous function.
     s += """<script>(function(){ var values = %(values)s; setTimeout(function() {
     $('#%(id)s').slider({
-    	stepping: 1, min: 0, max: %(maxvalue)s, startValue: %(startvalue)s,
-    	change: function (e,ui) { var position = ui.value; if(values!=null) $('#%(id)s-lbl').text(values[position]); %(callback)s; },
-    	slide: function(e,ui) { if(values!=null) $('#%(id)s-lbl').text(values[ui.value]); }
+        stepping: 1, min: 0, max: %(maxvalue)s, startValue: %(startvalue)s,
+        change: function (e,ui) { var position = ui.value; if(values!=null) $('#%(id)s-lbl').text(values[position]); %(callback)s; },
+        slide: function(e,ui) { if(values!=null) $('#%(id)s-lbl').text(values[ui.value]); }
     });
     if(values != null) $('#%(id)s-lbl').text(values[$('#%(id)s').slider('value')]);
     }, 1); })();</script>"""%{'values': values, 'id': id, 'maxvalue': steps-1, 'startvalue': default, 'callback': callback}
@@ -636,7 +636,7 @@ class InputBox(InteractControl):
         """
         InteractControl.__init__(self, var, default_value, label)
         self.__type = type
-	self.__width = width
+        self.__width = width
 
     def __repr__(self):
         """
@@ -1025,10 +1025,10 @@ class Selector(InteractControl):
         use_buttons = self.use_buttons()
         event = self.interact()
         if use_buttons:
-        	#On selected buttons, border is set to inset, on unselected boxes - outset. This usually is default rendering.
-        	if len(vals) > 1:
-		       	event = '$("BUTTON", this.parentNode).css("border-style", "outset"); $(this).css("border-style", "inset"); %s'%event
-        	s = '<table style="border:1px solid #dfdfdf;background-color:#efefef">'
+                #On selected buttons, border is set to inset, on unselected boxes - outset. This usually is default rendering.
+                if len(vals) > 1:
+                        event = '$("BUTTON", this.parentNode).css("border-style", "outset"); $(this).css("border-style", "inset"); %s'%event
+                s = '<table style="border:1px solid #dfdfdf;background-color:#efefef">'
         else:
             s = "<select onchange='%s;'>"%event
         i = 0
@@ -2013,7 +2013,7 @@ class input_box(control):
         self.__default = default
         self.__type = type
         control.__init__(self, label)
-	self.__width = width
+        self.__width = width
 
     def __repr__(self):
         """
@@ -2240,8 +2240,8 @@ class slider_generic(control):
         elif(len(vals)<=500):
             self.__values = vals
         else:
-	    vlen = (len(vals)-1)/499.0
-	    self.__values = [vals[(int)(i*vlen)] for i in range(500)]
+            vlen = (len(vals)-1)/499.0
+            self.__values = [vals[(int)(i*vlen)] for i in range(500)]
 
     def values(self):
         """
@@ -2613,8 +2613,8 @@ class selector(control):
 
 class text_control(control):
     def __init__(self, value=''):
-    	"""
-    	Text that can be inserted among other interact controls.
+        """
+        Text that can be inserted among other interact controls.
 
         INPUT:
             value -- HTML for the control
@@ -2622,7 +2622,7 @@ class text_control(control):
         EXAMPLES:
             sage: text_control('something')
             Text field: something
-    	"""
+        """
         self.__default = value
         control.__init__(self, '')
 

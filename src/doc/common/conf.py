@@ -30,7 +30,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u""
-copyright = u'2008, The Sage Group'
+copyright = u'2005--2009, The Sage Development Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -178,6 +178,21 @@ latex_preamble = '\usepackage{amsmath}\n\usepackage{amsfonts}\n'
 # If false, no module index is generated.
 #latex_use_modindex = True
 
+#####################################################
+# add LaTeX macros for Sage
+
+from sage.misc.latex_macros import sage_latex_macros
+
+try:
+    pngmath_latex_preamble  # check whether this is already defined
+except NameError:
+    pngmath_latex_preamble = ""
+
+for macro in sage_latex_macros:
+    # used when building latex and pdf versions
+    latex_preamble += macro + '\n'
+    # used when building html version
+    pngmath_latex_preamble += macro + '\n'
 
 #####################################################
 

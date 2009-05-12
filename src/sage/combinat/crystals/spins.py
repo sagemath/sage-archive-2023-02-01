@@ -74,6 +74,8 @@ def CrystalOfSpins(ct):
          [-1, 1, -1],
          [-1, -1, 1],
          [-1, -1, -1]]
+	 sage: C.cartan_type()
+	 ['B', 3]
 
     ::
 
@@ -82,7 +84,7 @@ def CrystalOfSpins(ct):
 
     TESTS::
 
-        sage: len(TensorProductOfCrystals(C,C,generators=[[C.list()[0],C.list()[0]]]))
+        sage: TensorProductOfCrystals(C,C,generators=[[C.list()[0],C.list()[0]]]).cardinality()
         35
     """
     ct = CartanType(ct)
@@ -188,7 +190,7 @@ class GenericCrystalOfSpins(ClassicalCrystal):
             sage: E == loads(dumps(E))
             True
         """
-        self.cartan_type = CartanType(ct)
+        self._cartan_type = CartanType(ct)
         if case == "spins":
             self._name = "The crystal of spins for type %s"%ct
         elif case == "plus":
@@ -196,7 +198,6 @@ class GenericCrystalOfSpins(ClassicalCrystal):
         else:
             self._name = "The minus crystal of spins for type %s"%ct
 
-        self.index_set = self.cartan_type.index_set()
         self.element_class = element_class
         if case == "minus":
             generator = [1]*(ct[1]-1)
@@ -371,7 +372,7 @@ class Spin(Element):
             '++-'
         """
         sword = ""
-        for x in range(self._parent.cartan_type.n):
+        for x in range(self.parent().cartan_type().n):
             sword += "+" if self.value[x] == 1 else "-"
         return sword
 
@@ -397,18 +398,18 @@ class Spin_crystal_type_B_element(Spin, CrystalElement):
              [None, None, [-1, -1, 1]]]
         """
         assert i in self.index_set()
-        rank = self._parent.cartan_type.n
+        rank = self.parent().cartan_type().n
         if i < rank:
             if self.value[i-1] == -1 and self.value[i] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
                 ret[i] = -1
-                return self._parent(ret)
+                return self.parent()(ret)
         elif i == rank:
             if self.value[i-1] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
-                return self._parent(ret)
+                return self.parent()(ret)
         else:
             return None
 
@@ -430,18 +431,18 @@ class Spin_crystal_type_B_element(Spin, CrystalElement):
              [None, None, None]]
         """
         assert i in self.index_set()
-        rank = self._parent.cartan_type.n
+        rank = self.parent().cartan_type().n
         if i < rank:
             if self.value[i-1] == 1 and self.value[i] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
                 ret[i] = 1
-                return self._parent(ret)
+                return self.parent()(ret)
         elif i == rank:
             if self.value[i-1] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
-                return self._parent(ret)
+                return self.parent()(ret)
         else:
             return None
 
@@ -480,19 +481,19 @@ class Spin_crystal_type_D_element(Spin, CrystalElement):
              [None, None, [-1, -1, 1, -1]]]
         """
         assert i in self.index_set()
-        rank = self._parent.cartan_type.n
+        rank = self.parent().cartan_type().n
         if i < rank:
             if self.value[i-1] == -1 and self.value[i] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
                 ret[i] = -1
-                return self._parent(ret)
+                return self.parent()(ret)
         elif i == rank:
             if self.value[i-2] == -1 and self.value[i-1] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-2] = 1
                 ret[i-1] = 1
-                return self._parent(ret)
+                return self.parent()(ret)
         else:
             return None
 
@@ -527,18 +528,18 @@ class Spin_crystal_type_D_element(Spin, CrystalElement):
              [None, None, None]]
         """
         assert i in self.index_set()
-        rank = self._parent.cartan_type.n
+        rank = self.parent().cartan_type().n
         if i < rank:
             if self.value[i-1] == 1 and self.value[i] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
                 ret[i] = 1
-                return self._parent(ret)
+                return self.parent()(ret)
         elif i == rank:
             if self.value[i-2] == 1 and self.value[i-1] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-2] = -1
                 ret[i-1] = -1
-                return self._parent(ret)
+                return self.parent()(ret)
         else:
             return None

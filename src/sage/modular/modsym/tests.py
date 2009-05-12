@@ -29,7 +29,7 @@ import random
 
 import modsym
 import sage.modular.dirichlet as dirichlet
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime
 
 class Test:
@@ -144,7 +144,7 @@ class Test:
             Modular Symbols space of dimension 0 for Gamma_0(1) of weight 3 with sign 0 over Rational Field
         """
         level, weight, sign = self._level_weight_sign()
-        M = modsym.ModularSymbols(congroup.Gamma0(level), weight, sign)
+        M = modsym.ModularSymbols(arithgroup.Gamma0(level), weight, sign)
         self.current_space = M
         return M
 
@@ -160,7 +160,7 @@ class Test:
             Modular Symbols space of dimension 2 for Gamma_1(3) of weight 4 with sign 0 and over Rational Field
         """
         level, weight, sign = self._level_weight_sign()
-        M = modsym.ModularSymbols(congroup.Gamma1(level), weight, sign)
+        M = modsym.ModularSymbols(arithgroup.Gamma1(level), weight, sign)
         self.current_space = M
         return M
 

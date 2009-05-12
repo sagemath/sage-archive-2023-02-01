@@ -367,7 +367,7 @@ class Scheme(ParentWithBase):
     def category(self):
         """
         Return the category to which this scheme belongs. This is the
-        category of all schemes of the base scheme of self.
+        category of all schemes over the base scheme of self.
 
         EXAMPLES::
 
@@ -394,7 +394,29 @@ class Scheme(ParentWithBase):
         except AttributeError:
             raise ValueError, "This scheme has no associated coordinated ring (defined)."
 
-    def dimension(self):
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = QQ[]
+            sage: I = (x^2 - y^2)*R
+            sage: X = Spec(R.quotient(I))
+            sage: X.dimension_absolute()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: X.dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError # override in derived class
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
         """
         Return the relative dimension of this scheme over its base.
 
@@ -403,7 +425,7 @@ class Scheme(ParentWithBase):
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: X = Spec(R.quotient(I))
-            sage: X.dimension()
+            sage: X.dimension_relative()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -464,8 +486,8 @@ class Scheme(ParentWithBase):
     def count_points(self, n):
         r"""
         Count points over
-        `\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}` on a scheme over
-        a finite field `\mathbf{F}_q`.
+        `\GF{q}, \ldots, \GF{q^n}` on a scheme over
+        a finite field `\GF{q}`.
 
         .. note::
 
@@ -569,9 +591,9 @@ class AffineScheme(Scheme):
         If Y is not given, try to determine from context.
 
         EXAMPLES: We construct the inclusion from
-        `\mathrm{Spec}(\mathbb{Q})` into `\mathrm{Spec}(\mathbb{Z})`
-        induced by the inclusion from `\mathbb{Z}` into
-        `\mathbb{Q}`.
+        `\mathrm{Spec}(\QQ)` into `\mathrm{Spec}(\ZZ)`
+        induced by the inclusion from `\ZZ` into
+        `\QQ`.
 
         ::
 

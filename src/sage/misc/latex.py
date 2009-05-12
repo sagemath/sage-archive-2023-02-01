@@ -1,5 +1,5 @@
 """
-Latex printing support
+LaTeX printing support
 
 In order to support latex formating, an object should define a
 special method _latex_(self) that returns a string.
@@ -28,11 +28,13 @@ __doc_exclude = ['_latex_file_', 'list_function', 'tuple_function', \
 
 EMBEDDED_MODE = False
 
-LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+
+LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
+
+SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.1\\textwidth\\textheight=2\\textheight\n'
 
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
-SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n\\textwidth=1.1\\textwidth\\textheight=2\\textheight'
-
 
 import os, shutil
 
@@ -46,6 +48,25 @@ from sage.misc.misc import SAGE_DOC
 
 _have_dvipng = None
 def have_dvipng():
+    """
+    Return True if this computer has the program dvipng.
+
+    The first time it is run, this function caches its result in the
+    variable ``_have_dvipng``, and any subsequence time, it just
+    checks the value of the variable.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import have_dvipng
+        sage: sage.misc.latex._have_dvipng is None
+        True
+        sage: have_dvipng() # random
+        True
+        sage: sage.misc.latex._have_dvipng is None
+        False
+        sage: sage.misc.latex._have_dvipng == have_dvipng()
+        True
+    """
     global _have_dvipng
     if _have_dvipng is None:
         _have_dvipng = not bool(os.system('which dvipng >/dev/null'))
@@ -53,17 +74,20 @@ def have_dvipng():
 
 def list_function(x):
     r"""
-    Returns the latex for a list x.
+    Returns the LaTeX code for a list x.
 
-    EXAMPLES
+    INPUT: x - a list
 
-    ::
+    EXAMPLES::
 
-        sage: latex([1,2,3])
+        sage: from sage.misc.latex import list_function
+        sage: list_function([1,2,3])
+        '\\left[1, \n 2, \n 3\\right]'
+        sage: latex([1,2,3])  # indirect doctest
         \left[1,
         2,
         3\right]
-        sage: latex([Matrix(ZZ,3,range(9)), Matrix(ZZ,3,range(9))])
+        sage: latex([Matrix(ZZ,3,range(9)), Matrix(ZZ,3,range(9))]) # indirect doctest
         \left[\left(\begin{array}{rrr}
         0 & 1 & 2 \\
         3 & 4 & 5 \\
@@ -74,7 +98,6 @@ def list_function(x):
         3 & 4 & 5 \\
         6 & 7 & 8
         \end{array}\right)\right]
-
     """
     K = [latex(v) for v in x]
     if len(K) > 0 and sum([len(r) for r in K]) > 80:
@@ -92,9 +115,33 @@ def list_function(x):
     return "\\left[" + sep.join(K) + "\\right]"
 
 def tuple_function(x):
+    r"""
+    Returns the LaTeX code for a tuple x.
+
+    INPUT: x - a tuple
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import tuple_function
+        sage: tuple_function((1,2,3))
+        '\\left(1, \n 2, \n 3\\right)'
+    """
     return "\\left(" + ", \n ".join([latex(v) for v in x]) + "\\right)"
 
 def bool_function(x):
+    r"""
+    Returns the LaTeX code for a tuple x.
+
+    INPUT: x - boolean
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import bool_function
+        sage: bool_function(2==3)
+        '\\mbox{\\rm False}'
+        sage: bool_function(3==(2+1))
+        '\\mbox{\\rm True}'
+    """
     if x:
         s = "\\mbox{\\rm True}"
     else:
@@ -104,6 +151,17 @@ def bool_function(x):
     return s
 
 def str_function(x):
+    r"""
+    Returns the LaTeX code for a string x.
+
+    INPUT: x - a string
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import str_function
+        sage: str_function('hello world')
+        '\\text{hello world}'
+    """
     #if EMBEDDED_MODE:
     return '\\text{%s}'%(x.replace('_','\\_'))
     #return "\\mbox{\\rm %s}"%x'
@@ -135,24 +193,50 @@ class LatexExpr(str):
     def _latex_(self):
         return str(self)
 
-def latex(x):
-    if hasattr(x, '_latex_'):
-        return LatexExpr(x._latex_())
+from sage.structure.sage_object import SageObject
 
-    for k, f in latex_table.iteritems():
-        if isinstance(x, k):
-            return LatexExpr(f(x))
+class _Latex_prefs_object(SageObject):
+    """
+    An object that holds LaTeX global preferences.
+    """
+    def __init__(self, bb=False, delimiters=["(", ")"]):
+        """
+        Define an object that holds LaTeX global preferences.
+        """
+        self._option = {}
+        self._option["blackboard_bold"] = bb
+        self._option["matrix_delimiters"] = list(delimiters)
+        self._option["vector_delimiters"] = list(delimiters)
+        self._option["macros"] = ""
+        self._option["preamble"] = ""
 
-    if x is None:
-        return LatexExpr("\\mbox{\\rm None}")
-
-    return LatexExpr(str_function(str(x)))
-
+_Latex_prefs = _Latex_prefs_object()
 
 ##############################################################
 # The Latex class is used to make slides and latex output in
 # the SAGE Notebook
 #########################################
+
+def latex_extra_preamble():
+    r"""
+    Return the string containing the user-configured preamble,
+    ``sage_latex_macros``, and any user-configured macros.  This is
+    used in the ``eval`` method for the ``Latex`` class, and in
+    ``_latex_file``; it follows either ``LATEX_HEADER`` or
+    ``SLIDE_HEADER`` (defined at the top of this file) which is a
+    string containing the documentclass and standard usepackage
+    commands.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import latex_extra_preamble
+        sage: latex_extra_preamble()
+        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
+    """
+    from sage.misc.latex_macros import sage_latex_macros
+    return (_Latex_prefs._option['preamble'] + "\n"
+                + "\n".join(sage_latex_macros) + "\n"
+                + _Latex_prefs._option['macros'])
 
 class Latex:
     r"""nodetex
@@ -165,7 +249,7 @@ class Latex:
                 We have $2006 = Sage{factor(2006)}$.
 
 
-    in an input cell to get a typeset version (care of slitex). Use
+    in an input cell to get a typeset version. Use
     ``%latex_debug`` to get debugging output.
 
     Use ``latex(...)`` to typeset a Sage object.
@@ -174,7 +258,7 @@ class Latex:
 
     .. warning::
 
-       You must have the dvipng (or dvips and convert) installed
+       You must have dvipng (or dvips and convert) installed
        on your operating system, or this command won't work.
 
     """
@@ -184,7 +268,17 @@ class Latex:
         self.__density = density
 
     def __call__(self, x):
-        return latex(x)
+        if hasattr(x, '_latex_'):
+            return LatexExpr(x._latex_())
+
+        for k, f in latex_table.iteritems():
+            if isinstance(x, k):
+                return LatexExpr(f(x))
+
+        if x is None:
+            return LatexExpr("\\mbox{\\rm None}")
+
+        return LatexExpr(str_function(str(x)))
 
     def _latex_preparse(self, s, locals):
         """
@@ -238,11 +332,12 @@ class Latex:
 
         .. warning::
 
-           You must have the dvipng (or dvips and convert)
-           installed on your operating system, or this command won't
-           work.
+           You must have dvipng (or dvips and convert) installed on
+           your operating system, or this command won't work.
 
         """
+        MACROS = latex_extra_preamble()
+
         if density is None:
             density = self.__density
         if filename is None:
@@ -259,9 +354,11 @@ class Latex:
         O = open('%s/%s.tex'%(base,filename),'w')
         if self.__slide:
             O.write(SLIDE_HEADER)
+            O.write(MACROS)
             O.write('\\begin{document}\n\n')
         else:
             O.write(LATEX_HEADER)
+            O.write(MACROS)
             O.write('\\begin{document}\n')
 
         O.write(x)
@@ -299,28 +396,356 @@ class Latex:
         shutil.rmtree(base)
         return ''
 
+    def blackboard_bold(self, t = None):
+        """
+        Controls whether Sage uses blackboard bold or ordinary bold
+        face for typesetting ZZ, RR, etc.
 
+        INPUT:
 
+        - ``t`` -- boolean or None
 
+        OUTPUT: if t is None, return the current setting (True or False).
+
+        If t == True, use blackboard bold (\\mathbb); otherwise use
+        boldface (\\mathbf).
+
+        EXAMPLES::
+
+            sage: latex.blackboard_bold()
+            False
+            sage: latex.blackboard_bold(True)
+            sage: latex.blackboard_bold()
+            True
+            sage: latex.blackboard_bold(False)
+        """
+        if t is None:
+            return _Latex_prefs._option["blackboard_bold"]
+        from latex_macros import sage_latex_macros, sage_jsmath_macros, sage_configurable_latex_macros, convert_latex_macro_to_jsmath
+        global sage_latex_macros
+        global sage_jsmath_macros
+        old = _Latex_prefs._option["blackboard_bold"]
+        _Latex_prefs._option["blackboard_bold"] = bool(t)
+        if bool(old) != bool(t):
+            if old:
+                old_macro = "\\newcommand{\\Bold}[1]{\\mathbb{#1}}"
+            else:
+                old_macro = "\\newcommand{\\Bold}[1]{\\mathbf{#1}}"
+            if bool(t):
+                macro = "\\newcommand{\\Bold}[1]{\\mathbb{#1}}"
+            else:
+                macro = "\\newcommand{\\Bold}[1]{\\mathbf{#1}}"
+            sage_latex_macros.remove(old_macro)
+            sage_configurable_latex_macros.remove(old_macro)
+            sage_latex_macros.append(macro)
+            sage_configurable_latex_macros.append(macro)
+            sage_jsmath_macros.remove(convert_latex_macro_to_jsmath(old_macro))
+            sage_jsmath_macros.append(convert_latex_macro_to_jsmath(macro))
+
+    def matrix_delimiters(self, left=None, right=None):
+        r"""
+        Change the left and right delimiters for the LaTeX representation
+        of matrices
+
+        INPUT:
+
+        - ``left``, ``right`` - strings or None
+
+        If both ``left`` and ``right`` are ``None``, then return the
+        current delimiters.  Otherwise, set the left and/or right
+        delimiters, whichever are specified.
+
+        Good choices for ``left`` and ``right`` are any delimiters which
+        LaTeX understands and knows how to resize; some examples are:
+
+        - parentheses: '(', ')'
+        - brackets: '[', ']'
+        - braces: '\\{', '\\}'
+        - vertical lines: '|'
+        - angle brackets: '\\langle', '\\rangle'
+
+        .. note::
+
+           Putting aside aesthetics, you may combine these in any way
+           imaginable; for example, you could set ``left`` to be a
+           right-hand bracket ']' and ``right`` to be a right-hand
+           brace '\\}', and it will be typeset correctly.
+
+        EXAMPLES::
+
+            sage: a = matrix(1, 1, [17])
+            sage: latex(a)
+            \left(\begin{array}{r}
+            17
+            \end{array}\right)
+            sage: latex.matrix_delimiters("[", "]")
+            sage: latex(a)
+            \left[\begin{array}{r}
+            17
+            \end{array}\right]
+            sage: latex.matrix_delimiters(left="\\{")
+            sage: latex(a)
+            \left\{\begin{array}{r}
+            17
+            \end{array}\right]
+            sage: latex.matrix_delimiters()
+            ['\\{', ']']
+
+        Restore defaults::
+
+            sage: latex.matrix_delimiters("(", ")")
+        """
+        if left is None and right is None:
+            return _Latex_prefs._option['matrix_delimiters']
+        else:
+            if left is not None:
+                _Latex_prefs._option['matrix_delimiters'][0] = left
+            if right is not None:
+                _Latex_prefs._option['matrix_delimiters'][1] = right
+
+    def vector_delimiters(self, left=None, right=None):
+        r"""
+        Change the left and right delimiters for the LaTeX representation
+        of vectors
+
+        INPUT:
+
+        - ``left``, ``right`` - strings or None
+
+        If both ``left`` and ``right`` are ``None``, then return the
+        current delimiters.  Otherwise, set the left and/or right
+        delimiters, whichever are specified.
+
+        Good choices for ``left`` and ``right`` are any delimiters which
+        LaTeX understands and knows how to resize; some examples are:
+
+        - parentheses: '(', ')'
+        - brackets: '[', ']'
+        - braces: '\\{', '\\}'
+        - vertical lines: '|'
+        - angle brackets: '\\langle', '\\rangle'
+
+        .. note::
+
+           Putting aside aesthetics, you may combine these in any way
+           imaginable; for example, you could set ``left`` to be a
+           right-hand bracket ']' and ``right`` to be a right-hand
+           brace '\\}', and it will be typeset correctly.
+
+        EXAMPLES::
+
+            sage: a = vector(QQ, [1,2,3])
+            sage: latex(a)
+            \left(1,2,3\right)
+            sage: latex.vector_delimiters("[", "]")
+            sage: latex(a)
+            \left[1,2,3\right]
+            sage: latex.vector_delimiters(right="\\}")
+            sage: latex(a)
+            \left[1,2,3\right\}
+            sage: latex.vector_delimiters()
+            ['[', '\\}']
+
+        Restore defaults::
+
+            sage: latex.vector_delimiters("(", ")")
+        """
+        if left is None and right is None:
+            return _Latex_prefs._option['vector_delimiters']
+        else:
+            if left is not None:
+                _Latex_prefs._option['vector_delimiters'][0] = left
+            if right is not None:
+                _Latex_prefs._option['vector_delimiters'][1] = right
+
+    def extra_macros(self, macros=None):
+        """
+        String containing extra LaTeX macros to use with %latex,
+        %html, and %jsmath.
+
+        INPUT: ``macros`` - string
+
+        If ``macros`` is None, return the current string.  Otherwise,
+        set it to ``macros``.  If you want to *append* to the string
+        of macros instead of replacing it, using ``latex.add_macro``.
+
+        EXAMPLES::
+
+            sage: latex.extra_macros("\\newcommand{\\foo}{bar}")
+            sage: latex.extra_macros()
+            '\\newcommand{\\foo}{bar}'
+            sage: latex.extra_macros("")
+            sage: latex.extra_macros()
+            ''
+        """
+        if macros is None:
+            return _Latex_prefs._option['macros']
+        else:
+            _Latex_prefs._option['macros'] = macros
+
+    def add_macro(self, macro):
+        """
+        Append to the string of extra LaTeX macros, for use with
+        %latex, %html, and %jsmath.
+
+        INPUT: ``macro`` - string
+
+        EXAMPLES::
+            sage: latex.extra_macros()
+            ''
+            sage: latex.add_macro("\\newcommand{\\foo}{bar}")
+            sage: latex.extra_macros()
+            '\\newcommand{\\foo}{bar}'
+            sage: latex.extra_macros("")  # restore to default
+        """
+        _Latex_prefs._option['macros'] += macro
+
+    def extra_preamble(self, s=None):
+        """
+        String containing extra preamble to be used with %latex.
+        Anything in this string won't be processed by %jsmath.
+
+        INPUT: ``s`` - string or ``None``
+
+        If ``s`` is None, return the current preamble.  Otherwise, set
+        it to ``s``.  If you want to *append* to the current extra
+        preamble instead of replacing it, using
+        ``latex.add_to_preamble``.
+
+        EXAMPLES::
+
+            sage: latex.extra_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
+            sage: latex.extra_preamble()
+            '\\DeclareMathOperator{\\Ext}{Ext}'
+            sage: latex.extra_preamble("")
+            sage: latex.extra_preamble()
+            ''
+        """
+        if s is None:
+            return _Latex_prefs._option['preamble']
+        else:
+            _Latex_prefs._option['preamble'] = s
+
+    def add_to_preamble(self, s):
+        r"""nodetex
+        Append to the string of extra LaTeX macros, for use with
+        %latex.  Anything in this string won't be processed by
+        %jsmath.
+
+        EXAMPLES::
+
+            sage: latex.extra_preamble()
+            ''
+            sage: latex.add_to_preamble("\\DeclareMathOperator{\\Ext}{Ext}")
+
+        At this point, a notebook cell containing
+
+        ::
+
+          %latex
+          $\Ext_A^*(\GF{2}, \GF{2}) \Rightarrow \pi_*^s*(S^0)$
+
+        will be typeset correctly.
+
+        ::
+
+            sage: latex.add_to_preamble("\\usepackage{xypic}")
+            sage: latex.extra_preamble()
+            '\\DeclareMathOperator{\\Ext}{Ext}\\usepackage{xypic}'
+
+        Now one can put various xypic diagrams into a %latex cell, such as
+
+        ::
+
+          %latex
+          \[ \xymatrix{ \circ \ar `r[d]^{a} `[rr]^{b} `/4pt[rr]^{c} `[rrr]^{d}
+          `_dl[drrr]^{e} [drrr]^{f} & \circ & \circ & \circ \\ \circ & \circ &
+          \circ & \circ } \]
+
+        Reset the preamble to its default, the empty string::
+
+            sage: latex.extra_preamble('')
+            sage: latex.extra_preamble()
+            ''
+        """
+        _Latex_prefs._option['preamble'] += s
+
+# Note: latex used to be a separate function, which by default was
+# only loaded in command-line mode: in the notebook, all_notebook.py
+# defined (and still defines) latex by 'latex = Latex(density=130)'.
+# Meanwhile, the __call__ method for Latex used to call the latex
+# function.  This has been changed around so that the contents of the
+# old latex function are now in Latex.__call__; thus the following
+# assignment.
+
+latex = Latex()
 #########################################
 
-
-def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
-                 sep='$$ $$', tiny=False, center=False, math_left='$$',
-                 math_right='$$',
-                 extra_preamble='', brk=0):
-    """
-    Compute a latex file that defines a representation of each object
-    in objects.
+def _latex_file_(objects, title='SAGE', debug=False, \
+                 sep='', tiny=False, math_left='\\[',
+                 math_right='\\]',
+                 extra_preamble=''):
+    r"""nodetex
+    Produce a string to be used as a LaTeX file, containing a
+    representation of each object in objects.
 
     INPUT:
 
 
     -  ``objects`` - list (or object)
 
-    -  ``size`` - latex size of document ('small',
-       'tiny')
+    -  ``title`` - string (default: 'Sage'): title for the document
+
+    -  ``math_left`` - string (default: '\\['), left delimiter for math mode
+
+    -  ``math_right`` - string (default: '\\]'), right delimiter for math mode
+
+    -  ``debug`` - bool (default: False): print verbose output
+
+    -  ``sep`` - string (default: ''): separator between math objects
+
+    -  ``tiny`` - bool (default: False): use 'tiny' font.
+
+    -  ``extra_preamble`` - string (default: ''): extra LaTeX commands,
+       inserted before "\\begin{document}"
+
+    This creates a string intended to be a LaTeX file containing the
+    LaTeX representations of objects. It contains the following:
+
+      - a header (with documentclass and usepackage commands)
+
+      - ``extra_preamble``
+
+      - the title (centered)
+
+      - a size specification if ``tiny`` is True
+
+      - LaTeX representation of the first element of ``objects``,
+        surrounded by ``math_left`` and ``math_right``
+
+    Then if ``objects`` contains more than one element, for each
+    remaining element:
+
+      - the string ``sep``: you can use this, for example, to add
+        vertical space between objects with ``sep='\\vspace{15mm}'``,
+        or to add a horizontal line between objects with
+        ``sep='\\hrule'``, or to insert a page break between objects
+        with ``sep='\\newpage'``.
+
+      - the LaTeX representation of the element
+
+    The string ends with '\\end{document}'.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import _latex_file_
+        sage: _latex_file_(3, title="The number three")
+        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
+        sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
+        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
+    MACROS = latex_extra_preamble()
+
     process = True
     if hasattr(objects, '_latex_'):
         objects = [objects]
@@ -333,64 +758,35 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
     if not isinstance(objects, list):
         objects = [objects]
 
-    if expert:
-        expert='-expert'
-    else:
-        expert=''
-
     if tiny:
-        size='tiny'
+        size='\\tiny\n'
     else:
-        size='small'
+        size=''
 
-    if center:
-        center0 = '\\begin{center}'
-        center1 = '\\end{center}'
-    else:
-        center0 =''
-        center1 = ''
-
-    s = LATEX_HEADER
-    s += '\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n %s\\%s '%(
-        extra_preamble, title, center0, size)
+    s = LATEX_HEADER + '\n' + MACROS
+    s += '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
+        extra_preamble, title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
-    s += '\\vfill'
+    s += '\\vspace{40mm}'
     if process:
         for i in range(len(objects)):
             x = objects[i]
             L = latex(x)
             if not '\\begin{verbatim}' in L:
-                s += '\\thispagestyle{empty}\\pagestyle{empty}\n\n %s %s %s'%(math_left, latex(x), math_right)
+                s += '%s%s%s'%(math_left, latex(x), math_right)
             else:
-                s += '\\thispagestyle{empty}\\pagestyle{empty}\n\n %s'%latex(x)
+                s += '%s'%latex(x)
             if i < len(objects)-1:
                 s += '\n\n%s\n\n'%sep
     else:
         s += "\n\n".join([str(x) for x in objects])
 
-    s += '\n\n\\vfill %s\\vfill\\end{document}'%center1
+    s += '\n\\end{document}'
     if debug:
         print s
 
-    # Finally break input so there is whitespace every brk characters, assuming brk > 0
-    if brk > 0:
-        # add a space to any block of brk characters or more.
-        i = 0
-        j = 0
-        while i < len(s):
-            if s[i] in ['\n', '\t', ' ']:
-                j = i
-            else:
-                if i - j > brk:
-                    s = s[:i] + ' ' + s[i:]
-                    j = i
-            i += 1
-
     return s
-
-def typeset(x):
-    return LatexExpr('<html><span class="math">%s</span></html>'%latex(x))
 
 class JSMathExpr:
     '''
@@ -417,7 +813,7 @@ class JSMath:
     def __call__(self, x):
         return self.eval(x)
 
-    def eval(self, x, mode='display'):
+    def eval(self, x, globals=None, locals=None, mode='display'):
         try:
             # try to get a latex representation of the object
             x = x._latex_()
@@ -429,10 +825,17 @@ class JSMath:
         # in JSMath:
         # inline math: <span class="math">...</span>
         # displaymath: <div class="math">...</div>
+        from sage.misc.latex_macros import sage_configurable_latex_macros
         if 'display' == mode:
-            return JSMathExpr('<html><div class="math">%s</div></html>'%x)
+            return JSMathExpr('<html><div class="math">'
+                              + ''.join(sage_configurable_latex_macros)
+                              + _Latex_prefs._option['macros']
+                              + '%s</div></html>'%x)
         elif 'inline' == mode:
-            return JSMathExpr('<html><span class="math">%s</span></html>'%x)
+            return JSMathExpr('<html><span class="math">'
+                              + ''.join(sage_configurable_latex_macros)
+                              + _Latex_prefs._option['macros']
+                              + '%s</span></html>'%x)
         else:
             # what happened here?
             raise ValueError, "mode must be either 'display' or 'inline'"
@@ -442,6 +845,12 @@ def jsmath(x, mode='display'):
     Attempt to nicely render an arbitrary SAGE object wih jsmath typesetting.
     Tries to call ._latex_() on x. If that fails, it will render a string
     representation of x.
+
+    .. warning::
+
+        2009-04: This function is deprecated; use ``html`` instead:
+        replace ``jsmath('MATH', mode='display')`` with ``html('$$MATH$$')``,
+        and replace ``jsmath('MATH', mode='inline')`` with ``html('$MATH$')``.
 
     INPUT:
         x -- the object to render
@@ -453,14 +862,17 @@ def jsmath(x, mode='display'):
 
     EXAMPLES::
 
+        sage: from sage.misc.latex import jsmath
         sage: f = maxima('1/(x^2+1)')
         sage: g = f.integrate()
         sage: jsmath(f)
-         <html><div class="math">\frac{1}{x^2+1}</div></html>
+        ... DeprecationWarning: The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.
+        # -*- coding: utf-8 -*-
+        <html><font color='black'><div class="math">{{1}\over{x^2+1}}</div></font></html>
         sage: jsmath(g, 'inline')
-         <html><span class="math">\tan^{-1} x</span></html>
+        <html><font color='black'><span class="math">\tan^{-1} x</span></font></html>
         sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
-         <html><div class="math">\int\frac{1}{x^2+1}\ dx=\tan^{-1} x</div></html>
+        <html><font color='black'><div class="math">\int{{1}\over{x^2+1}}\ dx=\tan^{-1} x</div></font></html>
 
     AUTHORS:
 
@@ -468,11 +880,28 @@ def jsmath(x, mode='display'):
 
     - Bobby Moretti (2006-10): improvements, comments, documentation
     '''
-    return jsmath.eval(x, mode)
+    from sage.misc.misc import deprecation
+    from sage.misc.html import html
+    deprecation("The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.")
+    if mode == 'display':
+        delimiter = '$$'
+    elif mode == 'inline':
+        delimiter = '$'
+    else:
+        raise ValueError, "mode must be either 'display' or 'inline'"
+    try:
+        # try to get a latex representation of the object
+        x = x._latex_()
+    except AttributeError:
+        # otherwise just get the string representation
+        x = str(x)
+    return html(delimiter + x + delimiter)
 
-def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
-         sep='', tiny=False,  **kwds):
-    r"""
+def typeset(x):
+    return JSMath().eval(x, mode='inline')
+
+def view(objects, title='SAGE', debug=False, sep='', tiny=False,  **kwds):
+    r"""nodetex
     Compute a latex representation of each object in objects, compile,
     and display typeset. If used from the command line, this requires
     that latex be installed.
@@ -484,11 +913,6 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
 
     -  ``title`` - string (default: 'Sage'): title for the
        document
-
-    -  ``zoom`` - zoom factor, passed on to xdvi if used
-
-    -  ``expert`` - bool (default: True): mode passed on to
-       xdvi
 
     -  ``debug`` - bool (default: False): print verbose
        output
@@ -507,12 +931,14 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     If not in notebook mode, this opens up a window displaying a dvi
     (or pdf) file, displaying the following: the title string is
     printed, centered, at the top. Beneath that, each object in objects
-    is typeset on its own line, with the string sep typeset between
+    is typeset on its own line, with the string sep inserted between
     these lines.
 
-    If the program xdvi is used to display the dvi file, then the
-    values of expert and zoom are passed on to it. On OS X displays a
-    pdf.
+    The value of ``sep`` is inserted between each element of the list
+    ``objects``; you can, for example, add vertical space between
+    objects with ``sep='\\vspace{15mm}'``, while ``sep='\\hrule'``
+    adds a horizontal line between objects, and ``sep='\\newpage'``
+    inserts a page break between objects.
 
     If in notebook mode, this uses jmath to display the output in the
     notebook. Only the first argument, objects, is relevant; the others
@@ -522,10 +948,10 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
 
     EXAMPLES::
 
-        sage: sage.misc.latex.EMBEDDED_MODE=True
+        sage: sage.misc.latex.EMBEDDED_MODE = True
         sage: view(3)
-        <html><span class="math">3</span></html>
-        sage: sage.misc.latex.EMBEDDED_MODE=False
+        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
+        sage: sage.misc.latex.EMBEDDED_MODE = False
     """
     if EMBEDDED_MODE:
         print typeset(objects)
@@ -534,8 +960,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     if isinstance(objects, LatexExpr):
         s = str(objects)
     else:
-        s = _latex_file_(objects, title=title, expert=expert,
-                     debug=debug, sep=sep, tiny=tiny)
+        s = _latex_file_(objects, title=title, debug=debug, sep=sep, tiny=tiny)
     from sage.misc.viewer import dvi_viewer
     viewer = dvi_viewer()
     tmp = tmp_dir('sage_viewer')
@@ -557,18 +982,37 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     #return os.popen('cd %s; chmod +x go; ./go %s & '%(tmp,direct), 'r').read()
 
 
-def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tiny=False):
+def png(x, filename, density=150, debug=False,
+        do_in_background=True, tiny=False):
     """
     Create a png image representation of x and save to the given
     filename.
+
+    INPUT:
+
+
+    -  ``x`` - object to be displayed
+
+    -  ``filename`` - file in which to save the image
+
+    -  ``density`` - integer (default: 150)
+
+    -  ``debug`` - bool (default: False): print verbose
+       output
+
+    -  ``do_in_background`` - bool (default: True): create the
+       file in the background
+
+    -  ``tiny`` - bool (default: False): use 'tiny' font
+
     """
     import sage.plot.all
     if sage.plot.all.is_Graphics(x):
         x.save(filename)
         return
     s = _latex_file_([x], math_left='$\\displaystyle', math_right='$', title='',
-                     debug=debug, tiny=tiny, extra_preamble='\\textheight=2\\textheight',
-                     brk=brk)
+                     debug=debug, tiny=tiny,
+                     extra_preamble='\\textheight=2\\textheight')
     abs_path_to_png = os.path.abspath(filename)
 
     tmp = tmp_dir('sage_viewer')
@@ -656,7 +1100,7 @@ def repr_lincomb(symbols, coeffs):
 
 
 def print_or_typeset(object):
-    """
+    r"""
     'view' or 'print' the object depending on the situation.
 
     In particular, if in notebook mode with the typeset box checked,
@@ -671,10 +1115,12 @@ def print_or_typeset(object):
         sage: sage.misc.latex.EMBEDDED_MODE=True
         sage: sage.misc.latex.print_or_typeset(3)
         3
+        sage: TEMP = sys.displayhook
         sage: sys.displayhook = sage.misc.latex.pretty_print
         sage: sage.misc.latex.print_or_typeset(3)
-        <html><span class="math">3</span></html>
+        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
         sage: sage.misc.latex.EMBEDDED_MODE=False
+        sage: sys.displayhook = TEMP
     """
     import sys
     if EMBEDDED_MODE and sys.displayhook == pretty_print:
@@ -701,7 +1147,7 @@ def pretty_print (object):
         return
     else:
         try:
-            print '<html><span class="math">%s</span></html>'%latex(object)
+            print typeset(object)
         except:
             import sys
             sys.__displayhook__(object)
@@ -747,6 +1193,8 @@ common_varnames = ['alpha',
                    'Sigma',
                    'tau',
                    'upsilon',
+                   'phi',
+                   'Phi',
                    'varphi',
                    'chi',
                    'psi',
@@ -786,8 +1234,7 @@ def latex_variable_name(x):
 
     EXAMPLES::
 
-        sage: import sage.misc.latex as latex_module
-        sage: latex_variable_name = latex_module.latex_variable_name
+        sage: from sage.misc.latex import latex_variable_name
         sage: latex_variable_name('a')
         'a'
         sage: latex_variable_name('abc')

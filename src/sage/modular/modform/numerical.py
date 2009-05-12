@@ -10,14 +10,14 @@ Numerical computation of newforms
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-from sage.structure.sage_object import SageObject
-from sage.structure.sequence    import Sequence
-from sage.modular.modsym.all    import ModularSymbols
-from sage.modular.congroup      import is_CongruenceSubgroup, Gamma0
-from sage.modules.all           import vector
-from sage.misc.misc             import verbose
-from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
-from sage.misc.prandom          import randint
+from sage.structure.sage_object  import SageObject
+from sage.structure.sequence     import Sequence
+from sage.modular.modsym.all     import ModularSymbols
+from sage.modular.arithgroup.all import is_CongruenceSubgroup, Gamma0
+from sage.modules.all            import vector
+from sage.misc.misc              import verbose
+from sage.rings.all              import CDF, Integer, QQ, next_prime, prime_range
+from sage.misc.prandom           import randint
 
 class NumericalEigenforms(SageObject):
     """

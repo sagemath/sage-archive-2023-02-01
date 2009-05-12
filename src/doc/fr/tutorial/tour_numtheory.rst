@@ -3,7 +3,7 @@ Théorie des nombres
 
 Sage possède des fonctionnalités de théorie des nombres étendues.
 Par exemple, on peut faire de l'arithmétique dans
-:math:`\mathbb{Z}/N\mathbb{Z}` comme suit :
+:math:`\ZZ/N\ZZ` comme suit :
 
 ::
 
@@ -148,7 +148,7 @@ dans la classe NumberField.
 
 ::
 
-    sage: K.galois_group()
+    sage: K.galois_group(type="pari")
     Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field
     in a with defining polynomial x^3 + x^2 - 2*x + 8
 

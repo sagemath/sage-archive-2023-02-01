@@ -89,6 +89,8 @@ TESTS::
 
 from __future__ import with_statement
 from sage.structure.parent_gens import localvars
+from sage.misc.cachefunc import cached_method
+
 from sage.categories.map import Map
 
 # There will be one running instance of GP for all
@@ -113,8 +115,8 @@ from sage.rings.integer_mod import mod
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name, latex_varify
 
+from unit_group import UnitGroup
 from class_group import ClassGroup
-from galois_group import GaloisGroup
 #import order
 
 from sage.structure.element import is_Element
@@ -277,7 +279,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         sage: K is L
         True
 
-    Having different defining polynomials makes them fields different::
+    Having different defining polynomials makes the fields different::
 
         sage: x = polygen(QQ, 'x'); y = polygen(QQ, 'y')
         sage: k.<a> = NumberField(x^2 + 3)
@@ -288,7 +290,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         Number Field in a with defining polynomial y^2 + 3
 
     One can also define number fields with specified embeddings, may be
-    used for arithmatic and deduce relations with other number fields
+    used for arithmetic and deduce relations with other number fields
     which would not be valid for an abstract number field::
 
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
@@ -469,7 +471,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
 
     The Galois group is a product of 3 groups of order 2::
 
-        sage: k.galois_group()
+        sage: k.galois_group(type="pari")
         Galois group PARI group [8, 1, 3, "E(8)=2[x]2[x]2"] of degree 8 of the Number Field in a with defining polynomial x^2 + 1 over its base field
 
     Repeatedly calling base_field allows us to descend the internally
@@ -587,7 +589,7 @@ def QuadraticField(D, names, check=True, embedding=True):
 
     -  ``D`` - a rational number
 
-    -  ``name`` - variable name
+    -  ``names`` - variable name
 
     -  ``check`` - bool (default: True)
 
@@ -596,8 +598,8 @@ def QuadraticField(D, names, check=True, embedding=True):
 
 
     OUTPUT: A number field defined by a quadratic polynomial. Unless
-    otherwise specified, it has an embedding into `\mathbb{R}` or
-    `\mathbb{C}` by sending the generator to the positive
+    otherwise specified, it has an embedding into `\RR` or
+    `\CC` by sending the generator to the positive
     root.
 
     EXAMPLES::
@@ -705,7 +707,7 @@ def CyclotomicField(n, names=None, embedding=True):
 
 
     EXAMPLES: We create the `7`\th cyclotomic field
-    `\mathbb{Q}(\zeta_7)` with the default generator name.
+    `\QQ(\zeta_7)` with the default generator name.
 
     ::
 
@@ -762,7 +764,7 @@ def CyclotomicField(n, names=None, embedding=True):
         sage: CyclotomicField(1)
         Cyclotomic Field of order 1 and degree 1
 
-    Due to their default embedding into `\mathbb{C}`,
+    Due to their default embedding into `\CC`,
     cyclotomic number fields are all compatable.
 
     ::
@@ -943,11 +945,10 @@ class NumberField_generic(number_field_base.NumberField):
         elif isinstance(x, (tuple, list)) or \
                 (isinstance(x, sage.modules.free_module_element.FreeModuleElement) and
                  self.base_ring().has_coerce_map_from(x.parent().base_ring())):
-            if len(x) != self.degree():
+            if len(x) != self.relative_degree():
                 raise ValueError, "Length must be equal to the degree of this number field"
-            return sum([ x[i]*self.gen(0)**i for i in range(self.degree()) ])
+            return sum([ x[i]*self.gen(0)**i for i in range(self.relative_degree()) ])
         return self._coerce_non_number_field_element_in(x)
-
 
     def _coerce_from_str(self, x):
         """
@@ -1077,7 +1078,7 @@ class NumberField_generic(number_field_base.NumberField):
     def primitive_element(self):
         r"""
         Return a primitive element for this field, i.e., an element that
-        generates it over `\mathbb{Q}`.
+        generates it over `\QQ`.
 
         EXAMPLES::
 
@@ -1212,7 +1213,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: to_K(L.0)
             2*i0 - 6
 
-        Note that he image is indeed a square root of -1.
+        Note that the image is indeed a square root of -1.
 
         ::
 
@@ -1574,15 +1575,15 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
             sage: k._latex_()
-            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
+            '\\Bold{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
+            \Bold{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
 
         Numbered variables are often correctly typeset::
 
             sage: k.<theta25> = NumberField(x^25+x+1)
             sage: print k._latex_()
-            \mathbf{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
+            \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
                               self.polynomial()._latex_(self.latex_variable_name()))
@@ -1876,11 +1877,6 @@ class NumberField_generic(number_field_base.NumberField):
         OUTPUT: A list of prime ideals of self lying over x. If degree is
         specified and no such ideal exists, returns the empty list.
 
-        .. warning::
-
-           At this time we factor the ideal x, which may not be
-           supported for relative number fields.
-
         EXAMPLES::
 
             sage: x = ZZ['x'].gen()
@@ -1934,6 +1930,21 @@ class NumberField_generic(number_field_base.NumberField):
             sage: P5_2 = P5_2s[0]; P5_2.residue_class_degree()
             2
 
+        Works in relative extensions too::
+
+            sage: PQ.<X> = QQ[]
+            sage: F.<a, b> = NumberField([X^2 - 2, X^2 - 3])
+            sage: PF.<Y> = F[]
+            sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
+            sage: I = F.ideal(a + 2*b)
+            sage: K.primes_above(I)
+            [Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1),
+             Fractional ideal (5, (5/2*b + 7/2)*a + 2*b + 10)]
+            sage: K.primes_above(I, degree=1)
+            [Fractional ideal (2, ((-13*b - 45/2)*a - 37/2*b - 63/2)*c + 1)]
+            sage: K.primes_above(I, degree=4)
+            [Fractional ideal (5, (5/2*b + 7/2)*a + 2*b + 10)]
+
         TESTS:
 
         It doesn't make sense to factor the ideal (0)::
@@ -1943,13 +1954,6 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
 
-        Sage can't factor ideals over extension fields yet::
-
-            sage: G = F.extension(x^2 - 11, 'b')
-            sage: G.primes_above(13)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
         """
         if degree is not None:
             degree = ZZ(degree)
@@ -2040,6 +2044,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: P5_2.residue_class_degree()
             2
 
+        Relative number fields are ok::
+
+            sage: G = F.extension(x^2 - 11, 'b')
+            sage: G.prime_above(7)
+            Fractional ideal (7, (3*t^2 + 2*t + 9)*b - t^2 - 31*t - 10)
+
         TESTS:
 
         It doesn't make sense to factor the ideal (0)::
@@ -2049,13 +2059,6 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
 
-        Sage can't factor ideals over extension fields yet::
-
-            sage: G = F.extension(x^2 - 11, 'b')
-            sage: G.prime_above(13)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
         """
         ids = self.primes_above(x, degree)
         if not ids:
@@ -2242,7 +2245,7 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             TypeError: Unable to coerce number field defined by non-integral polynomial to PARI.
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         try:
             return self.__pari_nf
@@ -2268,7 +2271,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: pari(k)
             [x^2 + x + 1, [0, 1], -3, 1, ...[1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         return 'nfinit(%s)'%self.pari_polynomial()
 
@@ -2287,7 +2290,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_nf())
             9
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         try:
             if certify:
@@ -2324,7 +2327,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.pari_bnf_certify()
             True
         """
-        if self.defining_polynomial().denominator() != 1:
+        if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
         if not self.__pari_bnf_certified:
             if self.pari_bnf(certify=False, units=True).bnfcertify() != 1:
@@ -2347,7 +2350,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f
             <algebraic extension over the Rationals of degree 4>
             sage: f.GeneratorsOfDivisionRing()
-            [ zeta8 ]
+            [ (zeta8) ]
         """
         if not self.is_absolute():
             raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"
@@ -2706,7 +2709,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def absolute_degree(self):
         """
-        Return the degree of self over `\mathbb{Q}`.
+        Return the degree of self over `\QQ`.
 
         EXAMPLES::
 
@@ -2738,9 +2741,12 @@ class NumberField_generic(number_field_base.NumberField):
         r"""
         Compute the different fractional ideal of this number field.
 
-        The different is the set of all `x` in `K` such
-        that the trace of `xy` is an integer for all
-        `y \in O_K`.
+        The codifferent is the fractional ideal of all `x` in `K`
+        such that the the trace of `xy` is an integer for
+        all `y \in O_K`.
+
+        The different is the integral ideal which is the inverse of
+        the codifferent.
 
         EXAMPLES::
 
@@ -2930,7 +2936,7 @@ class NumberField_generic(number_field_base.NumberField):
             3*I - 2
 
         We recover the integer that was factored in
-        `\mathbb{Z}[i]`
+        `\ZZ[i]`
 
         ::
 
@@ -3001,7 +3007,7 @@ class NumberField_generic(number_field_base.NumberField):
     def is_galois(self):
         r"""
         Return True if this number field is a Galois extension of
-        `\mathbb{Q}`.
+        `\QQ`.
 
         EXAMPLES::
 
@@ -3010,50 +3016,71 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3 + 2, 'a').is_galois()
             False
         """
-        return self.galois_group(pari_group=True).group().order() == self.degree()
+        return self.galois_group(type="pari").order() == self.degree()
 
-    def galois_group(self, pari_group = True, algorithm='pari'):
+    def galois_group(self, type=None, algorithm='pari', names=None):
         r"""
-        Return the Galois group of the Galois closure of this number field
-        as an abstract group.
+        Return the Galois group of the Galois closure of this number field.
 
         INPUT:
 
+        -  ``type`` - ``none``, ``gap``, or ``pari``. If None (the default),
+           return an explicit group of automorphisms of self as a
+           ``GaloisGroup_v2`` object.  Otherwise, return a ``GaloisGroup_v1``
+           wrapper object based on a Pari or Gap transitive group object, which
+           is quicker to compute, but rather less useful (in particular, it
+           can't be made to act on self).  If type = 'gap', the database_gap
+           package should be installed.
 
-        -  ``pari_group`` - bool (default: False); if True
-           instead return the Galois group as a PARI group.
+        -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
+           when the degree is >= 12 when 'kash' is tried.)
 
-        -  ``algorithm`` - 'pari', 'kash', 'magma' (default:
-           'pari', except when the degree is >= 12 when 'kash' is tried)
+        -  ``name`` - a string giving a name for the generator of the Galois
+           closure of self, when self is not Galois. This is ignored if type is
+           not None.
 
+        Note that computing Galois groups as abstract groups is often much
+        faster than computing them as explicit automorphism groups (but of
+        course you get less information out!) For more (important!)
+        documentation, so the documentation for Galois groups of polynomials
+        over `\QQ`, e.g., by typing ``K.polynomial().galois_group?``,
+        where `K` is a number field.
 
-        For more (important!) documentation, so the documentation for
-        Galois groups of polynomials over `\mathbb{Q}`, e.g., by
-        typing ``K.polynomial().galois_group?``, where
-        `K` is a number field.
+        To obtain actual field homomorphisms from the number field to its
+        splitting field, use type=None.
 
-        To obtain actual field automorphisms that can be applied to
-        elements, use ``End(K).list()`` and
-        ``K.galois_closure()`` together (see example below).
+        EXAMPLES:
 
-        EXAMPLES::
+        With type ``None``::
 
-            sage: k.<b> = NumberField(x^2 - 14)
-            sage: k.galois_group ()
-            Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in b with defining polynomial x^2 - 14
+            sage: k.<b> = NumberField(x^2 - 14) # a Galois extension
+            sage: G = k.galois_group(); G
+            Galois group of Number Field in b with defining polynomial x^2 - 14
+            sage: G.gen(0)
+            (1,2)
+            sage: G.gen(0)(b)
+            -b
+            sage: G.artin_symbol(k.primes_above(3)[0])
+            (1,2)
 
-        ::
+            sage: k.<b> = NumberField(x^3 - x + 1) # not Galois
+            sage: G = k.galois_group(names='c'); G
+            Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - x + 1
+            sage: G.gen(0)
+            (1,3,4)(2,6,5)
 
-            sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
+        With type ``'pari'``::
+
+            sage: NumberField(x^3-2, 'a').galois_group(type="pari")
             Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
 
-            sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional - database_gap
+            sage: NumberField(x-1, 'a').galois_group(type="gap")    # optional - database_gap
             Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional - database_gap
+            sage: NumberField(x^2+2, 'a').galois_group(type="gap")  # optional - database_gap
             Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional - database_gap
+            sage: NumberField(x^3-2, 'a').galois_group(type="gap")  # optional - database_gap
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         ::
@@ -3085,17 +3112,28 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G[1](b1)
             1/36*b1^4 + 1/18*b1
         """
-        try:
-            return self.__galois_group[pari_group, algorithm]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__galois_group = {}
+        return self._galois_group_cached(type, algorithm, names)
 
-        G = self.polynomial().galois_group(pari_group = pari_group, algorithm = algorithm)
-        H = GaloisGroup(G, self)
-        self.__galois_group[pari_group, algorithm] = H
-        return H
+
+    @cached_method
+    def _galois_group_cached(self, type, algorithm, names):
+
+        r"""
+        Return the Galois group of this number field, caching the result
+        properly. (This method exists because the introspection machinery
+        doesn't interact terribly well with the @cached_method decorator.)
+        """
+        from galois_group import GaloisGroup_v1, GaloisGroup_v2
+
+        if type is None:
+            return GaloisGroup_v2(self, names)
+
+        elif type=="pari":
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = True, algorithm = algorithm), self)
+        elif type=="gap":
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = False, algorithm = algorithm), self)
+        else:
+            raise ValueError, "Galois group type must be None, 'pari', or 'gap'."
 
     def _normalize_prime_list(self, v):
         """
@@ -3148,7 +3186,7 @@ class NumberField_generic(number_field_base.NumberField):
             [1, zeta15, zeta15^2, zeta15^3, zeta15^4, zeta15^5, zeta15^6, zeta15^7]
         """
         g = self.gen()
-        return [ g**i for i in range(self.degree()) ]
+        return [ g**i for i in range(self.relative_degree()) ]
 
     def integral_basis(self, v=None):
         """
@@ -3345,8 +3383,8 @@ class NumberField_generic(number_field_base.NumberField):
         OUTPUT: The Gram matrix `[<x_i,x_j>]` of an LLL reduced
         basis for the maximal order of self, where the integral basis for
         self is given by `\{x_0, \dots, x_{n-1}\}`. Here < , > is the
-        usual inner product on `\mathbb{R}^n`, and self is embedded in
-        `\mathbb{R}^n` by the Minkowski embedding. See the docstring for
+        usual inner product on `\RR^n`, and self is embedded in
+        `\RR^n` by the Minkowski embedding. See the docstring for
         :meth:`Minkowski_embedding` for more information.
 
         .. note::
@@ -3670,7 +3708,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: M.polynomial_ring()
             Univariate Polynomial Ring in y over Number Field in a1 with defining polynomial y^2 + 1
         """
-        return self.polynomial().parent()
+        return self.relative_polynomial().parent()
 
     def polynomial_quotient_ring(self):
         """
@@ -3683,7 +3721,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.polynomial_quotient_ring()
             Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^3 + 2*x - 5
         """
-        return self.polynomial_ring().quotient(self.polynomial(), self.variable_name())
+        return self.polynomial_ring().quotient(self.relative_polynomial(), self.variable_name())
 
     def regulator(self, proof=None):
         """
@@ -3893,6 +3931,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         INPUTS: proof - default: True
 
+        NOTE: For more functionality see the unit_group() function.
+
         EXAMPLES::
 
             sage: x = QQ['x'].0
@@ -3957,24 +3997,102 @@ class NumberField_generic(number_field_base.NumberField):
             self.__units_no_proof = [self(R(g)) for g in B]
             return self.__units_no_proof
 
+    def unit_group(self, proof=None):
+        """
+        Return the unit group (including torsion) of this number field.
+
+        ALGORITHM: Uses PARI's bnfunit command.
+
+        INPUTS: proof -- default: True
+
+        NOTE: the group is cached.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0
+            sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
+            sage: K = NumberField(A, 'a')
+            sage: U = K.unit_group(); U
+            Unit group with structure C10 x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375
+            sage: U.gens()
+            [-1/275*a^3 + 7/55*a^2 - 6/11*a + 4, 8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+            sage: U.invariants()
+            [10, 0]
+            sage: [u.multiplicative_order() for u in U.gens()]
+            [10, +Infinity]
+
+        Sage might not be able to provably compute the unit group::
+
+            sage: K = NumberField(x^17 + 3, 'a')
+            sage: K.unit_group(proof=True) # default
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
+
+        In this case, one can ask for the conjectural unit group (correct if
+        the Generalized Riemann Hypothesis is true)::
+
+            sage: U = K.unit_group(proof=False); U; U.gens()
+            Unit group with structure C2 x Z x Z x Z x Z x Z x Z x Z x Z of Number Field in a with defining polynomial x^17 + 3
+            [-1,
+            a^9 + a - 1,
+            a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+            2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
+            2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
+            a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+            a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
+            a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
+            3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
+
+        The provable and the conjectural results are cached separately
+        (this fixes trac #2504)::
+
+            sage: K.units(proof=True)
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
+        """
+        try:
+            return self._unit_group
+        except AttributeError:
+            pass
+
+        if proof == False:
+            try:
+                return self._unit_group_no_proof
+            except AttributeError:
+                pass
+
+        U = UnitGroup(self,proof)
+        if proof:
+            self._unit_group = U
+        else:
+            self._unit_group_no_proof = U
+        return U
+
     def zeta(self, n=2, all=False):
         """
-        If all is False, return a primitive n-th root of unity in this
-        field, or raise an ArithmeticError exception if there are none.
-
-        If all is True, return a list of all primitive n-th roots of unity
-        in this field (possibly empty).
-
-        Note that if one wants to know the maximal root of unity in this
-        field, one can use self.zeta_order().
+        Return one, or a list of all, primitive n-th root of unity in this field.
 
         INPUT:
 
-
         -  ``n`` - positive integer
 
-        -  ``all`` - bool, default: False.
+        - ``all`` - bool.  If False (default), return a primitive
+          `n`-th root of unity in this field, or raise an
+          ArithmeticError exception if there are none.  If True,
+          return a list of all primitive `n`-th roots of unity in this
+          field (possibly empty).
 
+        .. note::
+
+           To obtain the maximal order of a root of unity in this field,
+           use self.number_of_roots_of_unity().
+
+        .. note::
+
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -3992,7 +4110,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 4-th roots of unity in self.
+            ValueError: n (=4) does not divide order of generator
 
         ::
 
@@ -4005,50 +4123,54 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity in self.
+            ValueError: n (=3) does not divide order of generator
             sage: K.zeta(3,all=True)
             []
         """
+        try:
+            return self._unit_group.zeta(n,all)
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.zeta(n,all)
+        except AttributeError:
+            pass
+
+        K = self
         n = ZZ(n)
         if n <= 0:
             raise ValueError, "n (=%s) must be positive"%n
         if n == 1:
             if all:
-                return [self(1)]
+                return [K(1)]
             else:
-                return self(1)
+                return K(1)
         elif n == 2:
             if all:
-                return [self(-1)]
+                return [K(-1)]
             else:
-                return self(-1)
-        else:
-            field = self.absolute_field('a')
-            from_field = field.structure()[0]
-            f = field.polynomial_ring().cyclotomic_polynomial(n)
-            F = field['x'](f)
-            R = F.roots()
-            if len(R) == 0:
-                if all:
-                    return []
-                else:
-                    if n == 1:
-                        th = 'st'
-                    elif n == 2:
-                        th = 'nd'
-                    elif n == 3:
-                        th = 'rd'
-                    else:
-                        th = 'th'
-                    raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
+                return K(-1)
+        N = K.zeta_order()
+        if n.divides(N):
+            z = K.primitive_root_of_unity() ** (N//n)
             if all:
-                return [from_field(r[0]) for r in R]
+                return [z**i for i in n.coprime_integers(n)]
             else:
-                return from_field(R[0][0])
+                return z
+        else:
+            if all:
+                return []
+            else:
+                raise ValueError, "n (=%s) does not divide order of generator"%n
 
     def zeta_order(self):
         r"""
         Return the number of roots of unity in this field.
+
+        .. note::
+
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -4059,19 +4181,65 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.zeta_order()
             2
         """
+        try:
+            return self._unit_group.zeta_order()
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.zeta_order()
+        except AttributeError:
+            pass
+
         return ZZ(self.pari_nf().nfrootsof1()[0])
 
-    def number_of_roots_of_unity(self):
+    number_of_roots_of_unity = zeta_order
+
+    def primitive_root_of_unity(self):
         """
-        Return number of roots of unity in this field.
+        Return a generator of the roots of unity in this field.
+
+        .. note::
+
+           We do not create the full unit group since that can be
+           expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
-            sage: K.<b> = NumberField(x^2+1)
-            sage: K.number_of_roots_of_unity()
+            sage: K.<i> = NumberField(x^2+1)
+            sage: z = K.primitive_root_of_unity(); z
+            i
+            sage: z.multiplicative_order()
             4
+
+            sage: K.<a> = NumberField(x^2+x+1)
+            sage: z = K.primitive_root_of_unity(); z
+            -a
+            sage: z.multiplicative_order()
+            6
         """
-        return ZZ(self.pari_nf().nfrootsof1()[0])
+        try:
+            return self._unit_group.torsion_generator()
+        except AttributeError:
+            pass
+        try:
+            return self._unit_group_no_proof.torsion_generator()
+        except AttributeError:
+            pass
+
+        pK = self.pari_nf()
+        n, z = pK.nfrootsof1()
+        n = ZZ(n)
+        if self.is_absolute():
+            z = self(z)
+        else:
+            zk = pK.getattr('zk')
+            z = z.mattranspose()
+            cc = [z[0,i] for i in range(z.ncols())]
+            z = sum([self(c*d) for d,c in zip(zk,cc)])
+
+        primitives = [z**i for i in n.coprime_integers(n)]
+        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
+        return primitives[0]
 
     def roots_of_unity(self):
         """
@@ -4085,12 +4253,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: [ z**K.number_of_roots_of_unity() for z in zs ]
             [1, 1, 1, 1]
         """
-        temp = self.pari_nf().nfrootsof1()
-        n = ZZ(temp[0])
-        z = self(temp[1])
-        primitives = [ z**k for k in range(1, n) if sage.rings.arith.gcd(k,n)==1 ]
-        primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
-        z = primitives[0]
+        z = self.primitive_root_of_unity()
+        n = self.zeta_order()
         return [ z**k for k in range(1, n+1) ]
 
     def zeta_coefficients(self, n):
@@ -4706,7 +4870,7 @@ class NumberField_absolute(NumberField_generic):
             ValueError: each generator must be integral
 
         Alternatively, an order can be constructed by adjoining elements to
-        `\mathbb{Z}`:
+        `\ZZ`:
         """
         if len(gens) == 0:
             return NumberField_generic.order(self)
@@ -4760,7 +4924,7 @@ class NumberField_absolute(NumberField_generic):
 
     def absolute_vector_space(self):
         r"""
-        Return vector space over `\mathbb{Q}` corresponding to this
+        Return vector space over `\QQ` corresponding to this
         number field, along with maps from that space to this number field
         and in the other direction.
 
@@ -4801,7 +4965,7 @@ class NumberField_absolute(NumberField_generic):
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2, 'a')
-            sage: K.galois_group().order()
+            sage: K.galois_group(type='pari').order()
             48
             sage: L, phi = K._galois_closure_and_embedding('c')
             sage: phi.domain() is K, phi.codomain() is L
@@ -4821,7 +4985,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        G = self.galois_group()
+        G = self.galois_group(type='pari')
         K = self
         self_into_K = maps.IdentityMap(self)
 
@@ -4861,7 +5025,7 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b with defining polynomial x^8 + 28*x^4 + 2500
             sage: L.<a2> = K.galois_closure(); L
             Number Field in a2 with defining polynomial x^8 + 28*x^4 + 2500
-            sage: K.galois_group().order()
+            sage: K.galois_group(names=("a3")).order()
             8
 
         ::
@@ -4899,6 +5063,52 @@ class NumberField_absolute(NumberField_generic):
             return (L, self_into_L)
         else:
             return L
+
+    def automorphisms(self):
+        r"""
+        Compute all Galois automorphisms of self.
+
+        This uses PARI's \code{nfgaloisconj} and is much faster than root
+        finding for many fields.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 10000)
+            sage: K.automorphisms()
+            [
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 10000
+              Defn: a |--> a,
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 10000
+              Defn: a |--> -a
+            ]
+
+            Here's a larger example, that would take some time if we found
+            roots instead of using PARI's specialized machinery:
+
+            sage: K = NumberField(x^6 - x^4 - 2*x^2 + 1, 'a')
+            sage: len(K.automorphisms())
+            2
+
+            `L` is the Galois closure of `K`:
+
+            sage: L = NumberField(x^24 - 84*x^22 + 2814*x^20 - 15880*x^18 - 409563*x^16 - 8543892*x^14 + 25518202*x^12 + 32831026956*x^10 - 672691027218*x^8 - 4985379093428*x^6 + 320854419319140*x^4 + 817662865724712*x^2 + 513191437605441, 'a')
+            sage: len(L.automorphisms())
+            24
+        """
+        try:
+            # this should be concordant with embeddings
+            return self.__embeddings[self]
+        except AttributeError:
+            self.__embeddings = {}
+        except KeyError:
+            pass
+        embs = map(self, self.pari_nf().nfgaloisconj())
+        embs.sort()
+        v = [ self.hom([ e ], check=False) for e in embs ]
+        put_natural_embedding_first(v)
+        self.__embeddings[self] = Sequence(v, cr = (v != []), immutable=True,
+                                        check=False, universe=self.Hom(self))
+        return self.__embeddings[self]
 
     def embeddings(self, K):
         """
@@ -4964,11 +5174,15 @@ class NumberField_absolute(NumberField_generic):
             ]
         """
         try:
+            # this should be concordant with automorphisms
             return self.__embeddings[K]
         except AttributeError:
             self.__embeddings = {}
         except KeyError:
             pass
+        if K is self:
+            return self.automorphisms()
+
         f = K['x'](self.defining_polynomial())
         r = f.roots(); r.sort()
         v = [self.hom([e[0]], check=False) for e in r]
@@ -4984,16 +5198,16 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Return an nxn matrix over RDF whose columns are the images of the
         basis `\{1, \alpha, \dots, \alpha^{n-1}\}` of self over
-        `\mathbb{Q}` (as vector spaces), where here
+        `\QQ` (as vector spaces), where here
         `\alpha` is the generator of self over
-        `\mathbb{Q}`, i.e. self.gen(0). If B is not None, return
+        `\QQ`, i.e. self.gen(0). If B is not None, return
         the images of the vectors in B as the columns instead. If prec is
         not None, use RealField(prec) instead of RDF.
 
         This embedding is the so-called "Minkowski embedding" of a number
-        field in `\mathbb{R}^n`: given the `n` embeddings
+        field in `\RR^n`: given the `n` embeddings
         `\sigma_1, \dots, \sigma_n` of self in
-        `\mathbb{C}`, write `\sigma_1, \dots, \sigma_r`
+        `\CC`, write `\sigma_1, \dots, \sigma_r`
         for the real embeddings, and
         `\sigma_{r+1}, \dots, \sigma_{r+s}` for choices of one of
         each pair of complex conjugate embeddings (in our case, we simply
@@ -5009,8 +5223,8 @@ class NumberField_absolute(NumberField_generic):
                      \sqrt{2}\Re(\sigma_{r+s}(x)),
                      \sqrt{2}\Im(\sigma_{r+s}(x)))
 
-        Equivalently, this is an embedding of self in `\mathbb{R}^n` so
-        that the usual norm on `\mathbb{R}^n` coincides with
+        Equivalently, this is an embedding of self in `\RR^n` so
+        that the usual norm on `\RR^n` coincides with
         `|x| = \sum_i |\sigma_i(x)|^2` on self.
 
         TODO: This could be much improved by implementing homomorphisms
@@ -5185,7 +5399,7 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Given an element in self or an embedding of a subfield into self,
         return a relative number field `K` isomorphic to self that is relative
-        over the absolute field `\mathbb{Q}(\alpha)` or the domain of `alpha`, along
+        over the absolute field `\QQ(\alpha)` or the domain of `alpha`, along
         with isomorphisms from `K` to self and from self to `K`.
 
         INPUT:
@@ -5338,6 +5552,142 @@ class NumberField_absolute(NumberField_generic):
                     return M
 
         assert False, "bug in relativize"
+
+    # Synonyms so that terminology appropriate to relative number fields
+    # can be applied to an absolute number field:
+
+    def absolute_degree(self):
+        """
+        A synonym for degree.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.absolute_degree()
+            2
+        """
+        return self.degree()
+
+    def relative_degree(self):
+        """
+        A synonym for degree.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.relative_degree()
+            2
+        """
+        return self.degree()
+
+    def absolute_polynomial(self):
+        """
+        A synonym for polynomial.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.absolute_polynomial()
+            x^2 + 1
+        """
+        return self.polynomial()
+
+    def relative_polynomial(self):
+        """
+        A synonym for polynomial.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.relative_polynomial()
+            x^2 + 1
+        """
+        return self.polynomial()
+
+    def absolute_vector_space(self):
+        """
+        A synonym for vector_space.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.absolute_vector_space()
+            (Vector space of dimension 2 over Rational Field,
+             Isomorphism map:
+              From: Vector space of dimension 2 over Rational Field
+              To:   Number Field in i with defining polynomial x^2 + 1,
+             Isomorphism map:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Vector space of dimension 2 over Rational Field)
+        """
+        return self.vector_space()
+
+    def relative_vector_space(self):
+        """
+        A synonym for vector_space.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.relative_vector_space()
+            (Vector space of dimension 2 over Rational Field,
+             Isomorphism map:
+              From: Vector space of dimension 2 over Rational Field
+              To:   Number Field in i with defining polynomial x^2 + 1,
+             Isomorphism map:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Vector space of dimension 2 over Rational Field)
+        """
+        return self.vector_space()
+
+    def absolute_discriminant(self):
+        """
+        A synonym for discriminant.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.absolute_discriminant()
+            -4
+        """
+        return self.discriminant()
+
+    def relative_discriminant(self):
+        """
+        A synonym for discriminant.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.relative_discriminant()
+            -4
+        """
+        return self.discriminant()
+
+    def absolute_different(self):
+        """
+        A synonym for different.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.absolute_different()
+            Fractional ideal (2)
+        """
+        return self.different()
+
+    def relative_different(self):
+        """
+        A synonym for different.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.relative_different()
+            Fractional ideal (2)
+        """
+        return self.different()
+
 
 class NumberField_cyclotomic(NumberField_absolute):
     """
@@ -5492,10 +5842,10 @@ class NumberField_cyclotomic(NumberField_absolute):
         r"""
         Return string representation of this cyclotomic field.
 
-        The "order" of the cyclotomic field `\mathbb{Q}(\zeta_n)`
+        The "order" of the cyclotomic field `\QQ(\zeta_n)`
         in the string output refers to the order of the `\zeta_n`,
         i.e., it is the integer `n`. The degree is the degree of
-        the field as an extension of `\mathbb{Q}`.
+        the field as an extension of `\QQ`.
 
         EXAMPLES::
 
@@ -5530,7 +5880,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: Z.gen()
             zeta4
             sage: latex(Z)
-            \mathbf{Q}(\zeta_{4})
+            \Bold{Q}(\zeta_{4})
 
         Latex printing respects the generator name.
 
@@ -5538,7 +5888,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: k.<a> = CyclotomicField(4)
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{2} + 1)
+            \Bold{Q}[a]/(a^{2} + 1)
             sage: k
             Cyclotomic Field of order 4 and degree 2
             sage: k.gen()
@@ -6049,6 +6399,37 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             return (ZZ(0), ZZ(m/2))
 
+    def different(self):
+        """
+        Returns the different ideal of the cyclotomic field self.
+
+        EXAMPLES::
+
+            sage: C20 = CyclotomicField(20)
+            sage: C20.different()
+            Fractional ideal (-4*zeta20^7 + 8*zeta20^5 - 12*zeta20^3 + 6*zeta20)
+            sage: C18 = CyclotomicField(18)
+            sage: D = C18.different().norm()
+            sage: D == C18.discriminant().abs()
+            True
+        """
+        try:
+            return self.__different
+
+        except AttributeError:
+
+            z = self.gen()
+            n = self._n()
+            D = self.ideal(1)
+            factors = n.factor()
+            for f in factors:
+                p = f[0]
+                r = f[1]
+                e = (r*p - r - 1)*p**(r-1)
+                D *= self.ideal(z**(n/p**r) - 1)**e
+            self.__different = D
+            return self.__different
+
     def discriminant(self, v=None):
         """
         Returns the discriminant of the ring of integers of the cyclotomic
@@ -6325,6 +6706,28 @@ class NumberField_cyclotomic(NumberField_absolute):
             v += [-x for x in v]
         return v
 
+    def primitive_root_of_unity(self):
+        """
+        Return a generator of the roots of unity in this field.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: z = K.primitive_root_of_unity(); z
+            -a
+            sage: z.multiplicative_order()
+            6
+
+            sage: K.<a> = CyclotomicField(10)
+            sage: z = K.primitive_root_of_unity(); z
+            a
+            sage: z.multiplicative_order()
+            10
+        """
+        if self._n()%2:
+            return -self.gen()
+        return self.gen()
+
 class NumberField_quadratic(NumberField_absolute):
     """
     Create a quadratic extension of the rational field.
@@ -6482,14 +6885,14 @@ class NumberField_quadratic(NumberField_absolute):
             3
 
         These are all the primes so that the class number of
-        `\mathbb{Q}(\sqrt{-p})` is `1`::
+        `\QQ(\sqrt{-p})` is `1`::
 
             sage: [d for d in prime_range(2,300) if not is_square(d) and QuadraticField(-d,'a').class_number() == 1]
             [2, 3, 7, 11, 19, 43, 67, 163]
 
         It is an open problem to *prove* that there are infinity many
         positive square-free `d` such that
-        `\mathbb{Q}(\sqrt{d})` has class number `1`:n
+        `\QQ(\sqrt{d})` has class number `1`:n
 
         ::
 
@@ -6518,9 +6921,9 @@ class NumberField_quadratic(NumberField_absolute):
                 self.__class_number = ZZ(pari("qfbclassno(%s)"%D))
             return self.__class_number
 
-    def hilbert_class_field_defining_polynomial(self):
+    def hilbert_class_field_defining_polynomial(self, name='x'):
         r"""
-        Returns a polynomial over `\mathbb{Q}` whose roots generate
+        Returns a polynomial over `\QQ` whose roots generate
         Hilbert class field of this quadratic field as an extension of
         this quadratic field.
 
@@ -6545,11 +6948,11 @@ class NumberField_quadratic(NumberField_absolute):
             sage: K.<a> = QuadraticField(-431)
             sage: K.class_number()
             21
-            sage: K.hilbert_class_field_defining_polynomial()
-            x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
+            sage: K.hilbert_class_field_defining_polynomial(name='z')
+            z^21 + z^20 - 13*z^19 - 50*z^18 + 592*z^17 - 2403*z^16 + 5969*z^15 - 10327*z^14 + 13253*z^13 - 12977*z^12 + 9066*z^11 - 2248*z^10 - 5523*z^9 + 11541*z^8 - 13570*z^7 + 11315*z^6 - 6750*z^5 + 2688*z^4 - 577*z^3 + 9*z^2 + 15*z + 1
         """
         f = pari('quadhilbert(%s))'%self.discriminant())
-        return QQ['x'](f)
+        return QQ[name](f)
 
     def hilbert_class_field(self, names):
         r"""
@@ -6563,6 +6966,8 @@ class NumberField_quadratic(NumberField_absolute):
            command, which is vastly faster than this command, since it doesn't
            construct a relative extension.
 
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^2 + 23)
             sage: L = K.hilbert_class_field('b'); L
             Number Field in b with defining polynomial x^3 + x^2 - 1 over its base field
@@ -6573,6 +6978,60 @@ class NumberField_quadratic(NumberField_absolute):
         """
         f = self.hilbert_class_field_defining_polynomial()
         return self.extension(f, names)
+
+    def hilbert_class_polynomial(self, name='x'):
+        r"""
+        Compute the Hilbert class polynomial of this quadratic field.
+
+        Right now, this is only implemented for imaginary quadratic
+        fields.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: K.hilbert_class_polynomial()
+            x
+
+            sage: K.<a> = QuadraticField(-31)
+            sage: K.hilbert_class_polynomial(name='z')
+            z^3 + 39491307*z^2 - 58682638134*z + 1566028350940383
+        """
+        D = self.discriminant()
+
+        if D > 0:
+            raise NotImplementedError, "Hilbert class polynomial is not implemented for real quadratic fields."
+
+        # get all reduced quadratic forms
+        from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
+        rqf = BinaryQF_reduced_representatives(D)
+
+        # compute needed  precision
+        # (according to [http://arxiv.org/abs/0802.0979v1])
+        N = (D.abs()//3).isqrt()+1
+        h = len(rqf)
+        a_s = [1/qf.a for qf in rqf]
+        from sage.rings.all import RR
+        prec = RR(sum(a_s, 0)*5.1416*D.abs().isqrt()+h*2.48).floor()+1
+        prec = max(prec, 71)
+
+        # set appropriate precision for further computing
+        from sage.rings.all import ComplexField
+        __CC = ComplexField(prec)
+
+        Dsqrt = D.sqrt(prec=prec)
+        R = __CC['t']
+        t = R.gen()
+        pol = R(1)
+        for qf in rqf:
+            tau = (qf.b+Dsqrt)/(qf.a<<1)
+            jinv = pari(tau).ellj()
+            pol = pol * (t - __CC(jinv))
+
+        coeffs = [cof.real().round() for cof in pol.coeffs()]
+        R = ZZ[name]
+        return R(coeffs)
+
+
 
 def is_fundamental_discriminant(D):
     r"""
@@ -6662,15 +7121,22 @@ def put_natural_embedding_first(v):
 
         sage: K.<a> = CyclotomicField(7)
         sage: embs = K.embeddings(K)
-        sage: [e(a) for e in embs] # already sorted
+        sage: [e(a) for e in embs] # random - there is no natural sort order
         [a, a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1]
-        sage: permuted_embs = [embs[i] for i in [1,2,3,4,5,0]]
-        sage: [e(a) for e in permuted_embs] # natural map is not first
+        sage: id = [ e for e in embs if e(a) == a ][0]; id
+        Ring endomorphism of Cyclotomic Field of order 7 and degree 6
+          Defn: a |--> a
+        sage: permuted_embs = list(embs); permuted_embs.remove(id); permuted_embs.append(id)
+        sage: [e(a) for e in permuted_embs] # random - but natural map is not first
         [a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a]
+        sage: permuted_embs[0] != a
+        True
         sage: from sage.rings.number_field.number_field import put_natural_embedding_first
         sage: put_natural_embedding_first(permuted_embs)
-        sage: [e(a) for e in permuted_embs] # now natural map is first
+        sage: [e(a) for e in permuted_embs] # random - but natural map is first
         [a, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1, a^2]
+        sage: permuted_embs[0] == id
+        True
     """
     for i in range(len(v)):
         phi = v[i]

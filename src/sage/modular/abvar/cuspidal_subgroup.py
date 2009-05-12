@@ -65,11 +65,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from finite_subgroup         import FiniteSubgroup
-from sage.rings.all          import infinity, QQ, gcd, ZZ
-from sage.matrix.all         import matrix
-from sage.modular.congroup   import is_Gamma0
-from sage.modular.cusps      import Cusp
+from finite_subgroup                import FiniteSubgroup
+from sage.rings.all                 import infinity, QQ, gcd, ZZ
+from sage.matrix.all                import matrix
+from sage.modular.arithgroup.all    import is_Gamma0
+from sage.modular.cusps             import Cusp
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
     def _compute_lattice(self, rational_only=False):

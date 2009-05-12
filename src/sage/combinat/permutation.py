@@ -10,6 +10,8 @@ AUTHORS:
 - Mike Hansen
 
 - Dan Drake (2008-04-07): allow Permutation() to take lists of tuples
+
+- Sebastien Labbe (2009-03-17): added robinson_schensted_inverse
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -41,7 +43,7 @@ from sage.misc.prandom import randint, sample
 from sage.graphs.graph import DiGraph
 import itertools
 import __builtin__
-from combinat import CombinatorialClass, CombinatorialObject, catalan_number
+from combinat import CombinatorialClass, CombinatorialObject, catalan_number, InfiniteAbstractCombinatorialClass
 import copy
 from necklace import Necklaces
 from sage.misc.misc import uniq
@@ -139,6 +141,9 @@ def Permutation(l):
 
     -  a PermutationGroupElement
 
+    -  a pair of two tableaux of the same shape, where the second one is
+       standard. This uses the inverse of Robinson Schensted algorithm.
+
 
     OUTPUT:
 
@@ -191,6 +196,23 @@ def Permutation(l):
         sage: Permutation(g)
         [2, 1, 3]
 
+    From a pair of tableaux of the same shape. This uses the inverse
+    of Robinson Schensted algorithm::
+
+        sage: p = [[1, 4, 7], [2, 5], [3], [6]]
+        sage: q = [[1, 2, 5], [3, 6], [4], [7]]
+        sage: P = Tableau(p)
+        sage: Q = Tableau(q)
+        sage: Permutation( (p, q) )
+        [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( [p, q] )
+        [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( (P, Q) )
+        [3, 6, 5, 2, 7, 4, 1]
+        sage: Permutation( [P, Q] )
+        [3, 6, 5, 2, 7, 4, 1]
+
+
     TESTS::
 
         sage: Permutation([()])
@@ -199,12 +221,20 @@ def Permutation(l):
         [1]
         sage: Permutation(())
         [1]
+
+    From a pair of empty tableaux ::
+
+        sage: Permutation( ([], []) )
+        []
+        sage: Permutation( [[], []] )
+        []
     """
     if isinstance(l, Permutation_class):
         return l
-    #if l is a string, then assume it is in cycle notation
     elif isinstance(l, PermutationGroupElement):
         l = l.list()
+
+    #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
         if l == "()":
             return from_cycles(1,[])
@@ -215,6 +245,16 @@ def Permutation(l):
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
         return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
+
+    #if l is a pair of tableaux or a pair of lists
+    elif isinstance(l, (tuple, list)) and len(l) == 2 and \
+        all(map(lambda x: isinstance(x, tableau.Tableau_class), l)):
+        return robinson_schensted_inverse(*l)
+    elif isinstance(l, (tuple, list)) and len(l) == 2 and \
+        all(map(lambda x: isinstance(x, list), l)):
+        P,Q = map(tableau.Tableau, l)
+        return robinson_schensted_inverse(P, Q)
+
     # if it's a tuple or nonempty list of tuples, also assume cycle
     # notation
     elif isinstance(l, tuple) or \
@@ -2050,7 +2090,7 @@ class Permutation_class(CombinatorialObject):
         """
         p = self
 
-        return __builtin__.list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, subword.Subwords(range(len(p)), len(patt)).iterator() ))
+        return __builtin__.list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
 
 
     def reverse(self):
@@ -2136,14 +2176,24 @@ class Permutation_class(CombinatorialObject):
             sage: p = Permutation([6,2,3,1,7,5,4])
             sage: p.robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
-        """
 
-        p = [[]]
-        q = [[]]
+        TESTS:
+
+        The empty permutation::
+
+            sage: p = Permutation([])
+            sage: p.robinson_schensted()
+            [[], []]
+
+        """
+        p = []
+        q = []
 
         for i in range(1, len(self)+1):
             #Row insert self[i-1] into p
             row_counter = 0
+            if row_counter == len(p):
+                p.append([])
             r = p[row_counter]
             x = self[i-1]
             while max(r+[0]) > x:
@@ -2156,13 +2206,11 @@ class Permutation_class(CombinatorialObject):
                 r = p[row_counter]
             r.append(x)
 
-
             #Insert i into q in the same place as we inserted
             #i into p
             if row_counter == len(q):
                 q.append([])
             q[row_counter].append(i)
-
 
         return [tableau.Tableau(p),tableau.Tableau(q)]
 
@@ -2250,7 +2298,7 @@ def Arrangements(mset, k):
          [5, 2],
          [5, 3],
          [5, 4]]
-         sage: Arrangements(mset,2).count()
+         sage: Arrangements(mset,2).cardinality()
          22
          sage: Arrangements( ["c","a","t"], 2 ).list()
          [['c', 'a'], ['c', 't'], ['a', 'c'], ['a', 't'], ['t', 'c'], ['t', 'a']]
@@ -2316,11 +2364,11 @@ class Permutations_nk(CombinatorialClass):
         """
         return "Permutations of {1,...,%s} of length %s"%(self.n, self.k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
-            sage: [p for p in Permutations(3,2)] # indirect doctest
+            sage: [p for p in Permutations(3,2)]
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
             sage: [p for p in Permutations(3,0)]
             [[]]
@@ -2330,19 +2378,19 @@ class Permutations_nk(CombinatorialClass):
         for x in PermutationsNK(self.n, self.k):
             yield [i+1 for i in x]
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(3,0).count()
+            sage: Permutations(3,0).cardinality()
             1
-            sage: Permutations(3,1).count()
+            sage: Permutations(3,1).cardinality()
             3
-            sage: Permutations(3,2).count()
+            sage: Permutations(3,2).cardinality()
             6
-            sage: Permutations(3,3).count()
+            sage: Permutations(3,3).cardinality()
             6
-            sage: Permutations(3,4).count()
+            sage: Permutations(3,4).cardinality()
             0
         """
         if self.k <= self.n and self.k >= 0:
@@ -2380,7 +2428,7 @@ class Permutations_mset(CombinatorialClass):
         """
         return "Permutations of the multi-set %s"%self.mset
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         Algorithm based on:
         http://marknelson.us/2002/03/01/next-permutation/
@@ -2438,11 +2486,11 @@ class Permutations_mset(CombinatorialClass):
             #Yield the permutation
             yield [lmset[x] for x in  mset_list]
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,2]).count()
+            sage: Permutations([1,2,2]).cardinality()
             3
         """
         lmset = list(self.mset)
@@ -2477,7 +2525,7 @@ class Permutations_set(CombinatorialClass):
         """
         return "Permutations of the set %s"%self._set
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         Algorithm based on:
         http://marknelson.us/2002/03/01/next-permutation/
@@ -2540,11 +2588,11 @@ class Permutations_set(CombinatorialClass):
             #Yield the permutation
             yield [lset[x] for x in set_list]
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,3]).count()
+            sage: Permutations([1,2,3]).cardinality()
             6
         """
         return factorial(len(self._set))
@@ -2658,7 +2706,7 @@ class Permutations_setk(CombinatorialClass):
         """
         return "Permutations of the set %s of length %s"%(self._set,self.k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -2698,7 +2746,7 @@ class Arrangements_setk(Permutations_setk):
         return "Arrangements of the set %s of length %s"%(self._set,self.k)
 
 
-class StandardPermutations_all(CombinatorialClass):
+class StandardPermutations_all(InfiniteAbstractCombinatorialClass):
     def __init__(self):
         """
         TESTS::
@@ -2750,16 +2798,19 @@ class StandardPermutations_all(CombinatorialClass):
         else:
             return False
 
-    def list(self):
+    def _infinite_cclass_slice(self, n):
         """
-        EXAMPLES::
+        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
 
-            sage: Permutations().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+        TESTS::
+
+            sage: Permutations()._infinite_cclass_slice(4) == Permutations(4)
+            True
+            sage: it = iter(Permutations())    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [1], [1, 2], [2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        raise NotImplementedError
+        return StandardPermutations_n(n)
 
 
 class StandardPermutations_n(CombinatorialClass):
@@ -2800,7 +2851,7 @@ class StandardPermutations_n(CombinatorialClass):
         """
         return "Standard permutations of %s"%self.n
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -2812,15 +2863,15 @@ class StandardPermutations_n(CombinatorialClass):
         for p in Permutations_set(range(1,self.n+1)):
             yield Permutation_class(p)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(0).count()
+            sage: Permutations(0).cardinality()
             1
-            sage: Permutations(3).count()
+            sage: Permutations(3).cardinality()
             6
-            sage: Permutations(4).count()
+            sage: Permutations(4).cardinality()
             24
         """
         return factorial(self.n)
@@ -2905,8 +2956,6 @@ def from_permutation_group_element(pge):
 
     return Permutation(pge.list())
 
-
-
 def from_rank(n, rank):
     r"""
     Returns the permutation with the specified lexicographic rank. The
@@ -2961,9 +3010,6 @@ def from_inversion_vector(iv):
             p[open_spots[0]] = i+1
             open_spots.remove(open_spots[0])
     return Permutation(p)
-
-
-
 
 def from_cycles(n, cycles):
     r"""
@@ -3038,6 +3084,99 @@ def from_reduced_word(rw):
         (p[i-1], p[i]) = (p[i], p[i-1])
 
     return Permutation(p)
+
+def robinson_schensted_inverse(p, q):
+    r"""
+    Returns the permutation corresponding to the pair of tableaux `(p,q)`
+    using the inverse of Robinson-Schensted algorithm.
+
+    INPUT:
+
+     - ``p``, ``q``: two tableaux of the same shape and where ``q`` is
+       standard.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.permutation import robinson_schensted_inverse
+        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
+        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
+        sage: robinson_schensted_inverse(t1, t2)
+        [1, 4, 5, 3, 2]
+        sage: robinson_schensted_inverse(t1, t1)
+        [1, 4, 3, 2, 5]
+        sage: robinson_schensted_inverse(t2, t2)
+        [1, 2, 5, 4, 3]
+        sage: robinson_schensted_inverse(t2, t1)
+        [1, 5, 4, 2, 3]
+
+    If the first tableau is semistandard::
+
+        sage: p = Tableau([[1,2,2]]); q = Tableau([[1,2,3]])
+        sage: robinson_schensted_inverse(p, q)
+        [1, 2, 2]
+        sage: _.robinson_schensted()
+        [[[1, 2, 2]], [[1, 2, 3]]]
+
+    Note that currently the constructor of ``Tableau`` accept as input lists
+    that are not even tableaux but only filling of a parition diagram. This
+    feature should not be used with ``robinson_schensted_inverse``.
+
+    TESTS:
+
+    From empty tableaux::
+
+        sage: robinson_schensted_inverse(Tableau([]), Tableau([]))
+        []
+
+    This function is the inverse of robinson_shensted::
+
+        sage: f = lambda p: robinson_schensted_inverse(*p.robinson_schensted())
+        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        True
+
+        sage: n = ZZ.random_element(200)
+        sage: p = Permutations(n).random_element()
+        sage: is_fine = True if p == f(p) else p ; is_fine
+        True
+
+    Both tableaux must be of the same shape::
+
+        sage: robinson_schensted_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    The second tableau must be standard::
+
+        sage: robinson_schensted_inverse(Tableau([[1,2,3]]), Tableau([[1,3,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: q(=[[1, 3, 2]]) must be standard
+    """
+    if p.shape() != q.shape():
+        raise ValueError, "p(=%s) and q(=%s) must have the same shape"%(p, q)
+    if not q.is_standard():
+        raise ValueError, "q(=%s) must be standard"%q
+
+    size = p.size()
+    permutation = []
+    d = dict((q[i][j],(i,j)) for i in range(len(q)) for j in range(len(q[i])))
+    p = map(list, p)
+    for n in range(size, 0, -1):
+        i,j = d[n]
+        x = p[i][j]
+        del p[i][j]
+        if len(p[i]) == 0:
+            del p[i]
+        while i > 0:
+            row = p[i-1]
+            y = max(filter(lambda z: z<x, row ))
+            row[row.index(y)] = x
+            x = y
+            i = i-1
+        permutation.insert(0, x)
+    return Permutation(permutation)
+
 
 
 class StandardPermutations_descents(CombinatorialClass):
@@ -3664,6 +3803,23 @@ class CyclicPermutations_mset(CombinatorialClass):
         """
         return list(self.iterator(distinct=distinct))
 
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ p for p in CyclicPermutations(range(4)) ]
+            [[0, 1, 2, 3],
+             [0, 1, 3, 2],
+             [0, 2, 1, 3],
+             [0, 2, 3, 1],
+             [0, 3, 1, 2],
+             [0, 3, 2, 1]]
+             sage: [ p for p in CyclicPermutations([1,1,1]) ]
+             [[1, 1, 1]]
+        """
+        for p in self.iterator(distinct=False):
+            yield p
+
     def iterator(self, distinct=False):
         """
         EXAMPLES::
@@ -3759,6 +3915,27 @@ class CyclicPermutationsOfPartition_partition(CombinatorialClass):
             'Cyclic permutations of partition [[1, 2, 3, 4], [5, 6, 7]]'
         """
         return "Cyclic permutations of partition %s"%self.partition
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ p for p in CyclicPermutationsOfPartition([[1,2,3,4],[5,6,7]]) ]
+            [[[1, 2, 3, 4], [5, 6, 7]],
+             [[1, 2, 4, 3], [5, 6, 7]],
+             [[1, 3, 2, 4], [5, 6, 7]],
+             [[1, 3, 4, 2], [5, 6, 7]],
+             [[1, 4, 2, 3], [5, 6, 7]],
+             [[1, 4, 3, 2], [5, 6, 7]],
+             [[1, 2, 3, 4], [5, 7, 6]],
+             [[1, 2, 4, 3], [5, 7, 6]],
+             [[1, 3, 2, 4], [5, 7, 6]],
+             [[1, 3, 4, 2], [5, 7, 6]],
+             [[1, 4, 2, 3], [5, 7, 6]],
+             [[1, 4, 3, 2], [5, 7, 6]]]
+        """
+        for p in self.iterator(distinct=False):
+            yield p
 
     def iterator(self, distinct=False):
         """
@@ -3915,18 +4092,18 @@ class StandardPermutations_avoiding_132(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [1, 3, 2]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[1, 3, 2]).count()
+            sage: Permutations(5, avoiding=[1, 3, 2]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[1, 3, 2]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4000,18 +4177,18 @@ class StandardPermutations_avoiding_123(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [1, 2, 3]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[1, 2, 3]).count()
+            sage: Permutations(5, avoiding=[1, 2, 3]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[1, 2, 3]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4084,18 +4261,18 @@ class StandardPermutations_avoiding_321(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [3, 2, 1]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[3, 2, 1]).count()
+            sage: Permutations(5, avoiding=[3, 2, 1]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[3, 2, 1]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4126,18 +4303,18 @@ class StandardPermutations_avoiding_231(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [2, 3, 1]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[2, 3, 1]).count()
+            sage: Permutations(5, avoiding=[2, 3, 1]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[2, 3, 1]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4168,18 +4345,18 @@ class StandardPermutations_avoiding_312(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [3, 1, 2]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[3, 1, 2]).count()
+            sage: Permutations(5, avoiding=[3, 1, 2]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[3, 1, 2]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4210,18 +4387,18 @@ class StandardPermutations_avoiding_213(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding [2, 1, 3]"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Permutations(5, avoiding=[2, 1, 3]).count()
+            sage: Permutations(5, avoiding=[2, 1, 3]).cardinality()
             42
             sage: len( Permutations(5, avoiding=[2, 1, 3]).list() )
             42
         """
         return catalan_number(self.n)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4256,7 +4433,7 @@ class StandardPermutations_avoiding_generic(CombinatorialClass):
         """
         return "Standard permutations of %s avoiding %s"%(self.n, self.a)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -4451,7 +4628,7 @@ def Permutations(n=None,k=None, **kwargs):
 
         sage: p = Permutations(5, avoiding=[[3,4,1,2], [4,2,3,1]]); p
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
-        sage: p.count()
+        sage: p.cardinality()
         88
         sage: p.random_element()
         [5, 1, 2, 4, 3]

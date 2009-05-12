@@ -31,7 +31,7 @@ class RestrictedGrowthArrays(CombinatorialClass):
         self._n = n
         self._name = "Restricted growth arrays of size %s"%n
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -59,13 +59,13 @@ class RestrictedGrowthArrays(CombinatorialClass):
                 a[j] = 0
                 m[j] = mi
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.restricted_growth import RestrictedGrowthArrays
             sage: R = RestrictedGrowthArrays(6)
-            sage: R.count()
+            sage: R.cardinality()
             203
         """
         return bell_number(self._n)

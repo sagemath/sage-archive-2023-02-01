@@ -34,7 +34,7 @@ import sage.rings.arith as arith
 import sage.matrix.matrix_space as matrix_space
 from   sage.matrix.constructor import matrix
 
-import sage.modular.dims as dims
+from sage.modular.arithgroup.all import Gamma0 # for Sturm bound
 
 def is_AmbientHeckeModule(x):
     return isinstance(x, AmbientHeckeModule)
@@ -44,11 +44,27 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     Ambient Hecke module.
     """
     def __init__(self, base_ring, rank, level, weight):
-        rank = int(rank)
+        rank = sage.rings.all.Integer(rank)
         if rank < 0:
             raise ValueError, "rank (=%s) must be nonnegative"%rank
         self.__rank = rank
         module.HeckeModule_free_module.__init__(self, base_ring, level, weight)
+
+    def rank(self):
+        """
+        Return the rank of this ambient Hecke module.
+
+        OUTPUT:
+            Integer
+
+        EXAMPLES::
+
+            sage: M = sage.modular.hecke.ambient_module.AmbientHeckeModule(QQ, 3, 11, 2); M
+            Ambient Hecke module of rank Rational Field over 3
+            sage: M.rank()
+            3
+        """
+        return self.__rank
 
     def __add__(self, other):
         if not isinstance(other, module.HeckeModule_free_module):
@@ -56,9 +72,6 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         if other.ambient_hecke_module() == self:
             return self
         raise ArithmeticError, "Sum only defined for subspaces of a common ambient Hecke module."
-
-    def __call__(self, x):
-        raise NotImplementedError
 
     def _repr_(self):
         return "Ambient Hecke module of rank %s over %s"%(self.base_ring(), self.rank())
@@ -344,7 +357,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         `n` not coprime to the level.
         """
         misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
-        return dims.sturm_bound(self.level(), self.weight()) + 2*dims.dimension_eis(self.level(), self.weight()) + 5
+        return Gamma0(self.level()).sturm_bound(self.weight()) + 2*Gamma0(self.level()).dimension_eis(self.weight()) + 5
 
     def hecke_module_of_level(self, level):
         raise NotImplementedError

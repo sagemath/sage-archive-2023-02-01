@@ -137,7 +137,7 @@ class Polytope(SageObject):
         F = tmp_file
         open(F,'w').write(self.__data)
         c = '%s %s %s'%(polymake_command, F, cmd)
-	polymake_processes = Popen([polymake_command, F, cmd],stdout=PIPE,stderr=PIPE)
+        polymake_processes = Popen([polymake_command, F, cmd],stdout=PIPE,stderr=PIPE)
         ans, err = polymake_processes.communicate()
         if len(err) > 0:
             raise RuntimeError, err

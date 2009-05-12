@@ -61,7 +61,7 @@ benchmark and test ideal.
     sage: len(B)
     45
 
-We compute in a quotient of a polynomial ring over `\mathbb{Z}/17\mathbb{Z}`::
+We compute in a quotient of a polynomial ring over `\ZZ/17\ZZ`::
 
     sage: R.<x,y> = ZZ[]
     sage: S.<a,b> = R.quotient((x^2 + y^2, 17))     # optional -- macaulay2
@@ -80,7 +80,7 @@ We compute in a quotient of a polynomial ring over `\mathbb{Z}/17\mathbb{Z}`::
     sage: S(17) == 0                                # optional -- macaulay2
     True
 
-Working with a polynomial ring over `\mathbb{Z}`::
+Working with a polynomial ring over `\ZZ`::
 
     sage: R.<x,y,z,w> = ZZ['x,y,z,w']
     sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
@@ -133,14 +133,14 @@ Two examples from the Mathematica documentation (done in Sage):
         [1]
 
 The next example shows how we can use Groebner bases over
-`\mathbb{Z}` to find the primes modulo which a system of
+`\ZZ` to find the primes modulo which a system of
 equations has a solution, when the system has no solutions over the
 rationals.
 
     We first form a certain ideal `I` in
-    `\mathbb{Z}[x, y, z]`, and note that the Groebner basis of
-    `I` over `\mathbb{Q}` contains 1, so there are no
-    solutions over `\mathbb{Q}` or an algebraic closure of it
+    `\ZZ[x, y, z]`, and note that the Groebner basis of
+    `I` over `\QQ` contains 1, so there are no
+    solutions over `\QQ` or an algebraic closure of it
     (this is not surprising as there are 4 equations in 3 unknowns).
 
     ::
@@ -237,6 +237,7 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.rings.integer_ring import ZZ
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
+import sage.rings.polynomial.toy_variety as toy_variety
 import sage.rings.polynomial.toy_d_basis as toy_d_basis
 
 class RedSBContext:
@@ -552,12 +553,12 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `Q` is a primary ideal of the ring `R`, then the
         radical ideal `P` of `Q`, i.e.
         `P = \{a \in R, a^n \in Q\}` for some
-        `n \in \mathbb{Z}`, is called the
+        `n \in \ZZ`, is called the
         *associated prime* of `Q`.
 
         If `I` is a proper ideal of the ring `R` then there
@@ -659,7 +660,7 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `I` is a proper ideal of the ring `R` then there
         exists a decomposition in primary ideals `Q_i` such that
@@ -721,12 +722,12 @@ class MPolynomialIdeal_singular_repr:
         An ideal `Q` is called primary if it is a proper ideal of
         the ring `R` and if whenever `ab \in Q` and
         `a \not\in Q` then `b^n \in Q` for some
-        `n \in \mathbb{Z}`.
+        `n \in \ZZ`.
 
         If `Q` is a primary ideal of the ring `R`, then the
         radical ideal `P` of `Q`, i.e.
         `P = \{a \in R, a^n \in Q\}` for some
-        `n \in \mathbb{Z}`, is called the
+        `n \in \ZZ`, is called the
         *associated prime* of `Q`.
 
         If `I` is a proper ideal of the ring `R` then there
@@ -820,61 +821,19 @@ class MPolynomialIdeal_singular_repr:
                 sage: I = sage.rings.ideal.Cyclic(P)
                 sage: GB = Ideal(I.groebner_basis('singular:stdfglm'))
                 sage: GB.triangular_decomposition('singular:triangLfak')
-                [Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a - 1) of
-                  Multivariate Polynomial Ring in e, d, c, b, a over
-                  Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^2 + 3*a + 1) of
-                  Multivariate Polynomial Ring in e, d, c, b, a over
-                  Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 - 4*a^3 + 6*a^2
-                  + a + 1) of Multivariate Polynomial Ring in e, d, c, b,
-                  a over Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + a^2 + a
-                  + 1) of Multivariate Polynomial Ring in e, d, c, b, a
-                  over Rational Field,
-                 Ideal (e + d + c + b + a, 275*d^2 + 825*d*a + 550*b^6*a +
-                  1650*b^5*a^2 + 275*b^4*a^3 - 550*b^3*a^4 + 275*b^2 -
-                  566*b*a^11 - 69003*b*a^6 + 69019*b*a - 1467*a^12 -
-                  178981*a^7 + 179073*a^2, 275*c^3 + 550*c^2*a - 550*c*a^2
-                  + 275*b^6*a^2 + 550*b^5*a^3 - 550*b^4*a^4 + 550*b^2*a -
-                  232*b*a^12 - 28336*b*a^7 + 28018*b*a^2 - 568*a^13 -
-                  69289*a^8 + 69307*a^3, 55*b^7 + 165*b^6*a + 55*b^5*a^2 -
-                  55*b^2 - 398*b*a^11 - 48554*b*a^6 + 48787*b*a -
-                  1042*a^12 - 127116*a^7 + 128103*a^2, a^4 + a^3 + 6*a^2 -
-                  4*a + 1) of Multivariate Polynomial Ring in e, d, c, b,
-                  a over Rational Field]
+                [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3, e + b^3 + b^2 + b + 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1, 11*b^2 - 6*b*a^3 + 26*b*a^2 - 41*b*a + 4*b + 8*a^3 - 31*a^2 + 40*a + 24, 11*c + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2 + 26*a - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - 1, c + a^3 + a^2 + a + 1, d - a^3, e - a^2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c - a, d^2 + 3*d*a + a^2, e + d + 3*a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2, d + c + 3*a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b + 3*a, d - a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2 + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 + b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a - a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+                Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 - 10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24, 11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 + 25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field]
             """
 
         P = self.ring()
@@ -889,7 +848,7 @@ class MPolynomialIdeal_singular_repr:
 
         if is_groebner:
             if Q == P:
-                I = self
+                I =  MPolynomialIdeal(P, self.interreduced_basis())
             else:
                 I = self
                 I = MPolynomialIdeal(P, I.transformed_basis('fglm')) # -> 'lex'
@@ -960,6 +919,11 @@ class MPolynomialIdeal_singular_repr:
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             1
+            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: I = R.ideal(0)
+            sage: I.dimension()
+            verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+            2
 
         ALGORITHM: Uses Singular, unless the characteristic is too large.
 
@@ -975,6 +939,8 @@ class MPolynomialIdeal_singular_repr:
                 v = self._groebner_basis_singular_raw()
                 self.__dimension = Integer(v.dim())
             except TypeError:
+                if not self.base_ring().is_field():
+                    raise NotImplementedError, "dimension() is implemented only over fields."
                 if self.ring().term_order().is_global():
                     verbose("Warning: falling back to very slow toy implementation.", level=0)
                     # See Chapter 9, Section 1 of Cox, Little, O'Shea's "Ideals, Varieties,
@@ -996,9 +962,9 @@ class MPolynomialIdeal_singular_repr:
                     # then through all subsets of order 2, etc...
                     # the way Sage currently operates
                     all_J = Set([each + 1 for each in range(n)]).subsets()
-                    min_dimension = 0
-                    all_J = all_J.iterator()
-                    while min_dimension == 0:
+                    min_dimension = -1
+                    all_J = iter(all_J)
+                    while min_dimension == -1:
                         try:
                             J = all_J.next()
                         except StopIteration:
@@ -1207,7 +1173,7 @@ class MPolynomialIdeal_singular_repr:
 
         EXAMPLE: Consider the hyperelliptic curve
         `y^2 = 4x^5 - 30x^3 + 45x - 22` over
-        `\mathbb{Q}`, it has genus 2::
+        `\QQ`, it has genus 2::
 
             sage: P, x = PolynomialRing(QQ,"x").objgen()
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -1766,38 +1732,41 @@ class MPolynomialIdeal_singular_repr:
 
         return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
 
-    def variety(self, ring=None):
+    def variety(self, ring=None, proof=True):
         r"""
         Return the variety of ``self``.
 
-        Given a zero-dimensional ideal `I` (==
-        ``self``) of a polynomial ring P whose order is
-        lexicographic, return the variety of I as a list of dictionaries
-        with (variable, value) pairs. By default, the variety of the ideal
-        over its coefficient field `K` is returned;
-        ``ring`` can be specified to find the variety over a
-        different ring.
+        Given a zero-dimensional ideal `I` (== ``self``) of a
+        polynomial ring P whose order is lexicographic, return the
+        variety of I as a list of dictionaries with (variable, value)
+        pairs. By default, the variety of the ideal over its
+        coefficient field `K` is returned; ``ring`` can be specified
+        to find the variety over a different ring.
 
         These dictionaries have cardinality equal to the number of
         variables in P and represent assignments of values to these
         variables such that all polynomials in I vanish.
 
-        If ``ring`` is specified, then a triangular
-        decomposition of ``self`` is found over the original
-        coefficient field `K`; then the triangular systems are
-        solved using root-finding over ``ring``. This is
-        particularly useful when `K` is ``QQ`` (to
-        allow fast symbolic computation of the triangular decomposition)
-        and ``ring`` is ``RR``, ``AA``,
-        ``CC``, or ``QQbar`` (to compute the whole
-        real or complex variety of the ideal).
+        If ``ring`` is specified, then a triangular decomposition of
+        ``self`` is found over the original coefficient field `K`;
+        then the triangular systems are solved using root-finding over
+        ``ring``. This is particularly useful when `K` is ``QQ`` (to
+        allow fast symbolic computation of the triangular
+        decomposition) and ``ring`` is ``RR``, ``AA``, ``CC``, or
+        ``QQbar`` (to compute the whole real or complex variety of the
+        ideal).
 
-        Note that with ``ring``=``RR`` or
-        ``CC``, computation is done numerically and potentially
-        inaccurately; in particular, the number of points in the real
-        variety may be miscomputed. With
-        ``ring``=``AA`` or ``QQbar``,
-        computation is done exactly (which may be much slower, of course).
+        Note that with ``ring``=``RR`` or ``CC``, computation is done
+        numerically and potentially inaccurately; in particular, the
+        number of points in the real variety may be miscomputed. With
+        ``ring``=``AA`` or ``QQbar``, computation is done exactly
+        (which may be much slower, of course).
+
+        INPUT:
+
+        - ``ring`` - return roots in the ``ring`` instead of the base
+          ring of this ideal (default: ``None``)
+        - ``proof`` - return a provably correct result (default: ``True``)
 
         EXAMPLE::
 
@@ -1814,28 +1783,20 @@ class MPolynomialIdeal_singular_repr:
             + 1) of Multivariate Polynomial Ring in x, y over Finite
             Field in w of size 3^3
 
-        ::
-
             sage: V = I.variety(); V
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
-
-        ::
 
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
 
         However, we only account for solutions in the ground field and not
-        in the algebraic closure.
-
-        ::
+        in the algebraic closure::
 
             sage: I.vector_space_dimension()
             48
 
         Here we compute the points of intersection of a hyperbola and a
-        circle, in several fields.
-
-        ::
+        circle, in several fields::
 
             sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
             sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
@@ -1874,6 +1835,16 @@ class MPolynomialIdeal_singular_repr:
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
 
+        If the ground field's characteristic is too large for
+        Singular, we resort to a toy implementation::
+
+            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: I=ideal([x^3-2*y^2,3*x+y^4])
+            sage: I.variety()
+            verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [{y: 0, x: 0}]
+
         TESTS::
 
             sage: K.<w> = GF(27)
@@ -1887,6 +1858,50 @@ class MPolynomialIdeal_singular_repr:
             sage: T = I.triangular_decomposition('singular:triangLfak')
             sage: I.variety()
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
+
+        Testing that a bug is indeed fixed.
+
+        ::
+
+            sage: R = PolynomialRing(GF(2), 30, ['x%d'%(i+1) for i in range(30)], order='lex')
+            sage: R.inject_variables()
+            Defining...
+            sage: I = Ideal([x1 + 1, x2, x3 + 1, x5*x10 + x10 + x18, x5*x11 + x11, \
+                             x5*x18, x6, x7 + 1, x9, x10*x11 + x10 + x18, x10*x18 + x18, \
+                             x11*x18, x12, x13, x14, x15, x16 + 1, x17 + x18 + 1, x19, x20, \
+                             x21 + 1, x22, x23, x24, x25 + 1, x28 + 1, x29 + 1, x30, x8, \
+                             x26, x1^2 + x1, x2^2 + x2, x3^2 + x3, x4^2 + x4, x5^2 + x5, \
+                             x6^2 + x6, x7^2 + x7, x8^2 + x8, x9^2 + x9, x10^2 + x10, \
+                             x11^2 + x11, x12^2 + x12, x13^2 + x13, x14^2 + x14, x15^2 + x15, \
+                             x16^2 + x16, x17^2 + x17, x18^2 + x18, x19^2 + x19, x20^2 + x20, \
+                             x21^2 + x21, x22^2 + x22, x23^2 + x23, x24^2 + x24, x25^2 + x25, \
+                             x26^2 + x26, x27^2 + x27, x28^2 + x28, x29^2 + x29, x30^2 + x30])
+            sage: I.basis_is_groebner()
+            True
+            sage: for V in I.variety():
+            ...     print V
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+
+
 
         ALGORITHM: Uses triangular decomposition.
         """
@@ -1918,11 +1933,20 @@ class MPolynomialIdeal_singular_repr:
 
         P = self.ring()
         if ring is not None: P = P.change_ring(ring)
-        T = self.triangular_decomposition('singular:triangLfak')
+        try:
+          TI = self.triangular_decomposition('singular:triangLfak')
+          T = [list(each.gens()) for each in TI]
+        except TypeError, msg: # conversion to Singular not supported
+          if self.ring().term_order().is_global():
+            verbose("Warning: falling back to very slow toy implementation.", level=0)
+            T = toy_variety.triangular_factorization(self.groebner_basis(),proof=proof)
+          else:
+            raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
 
         V = []
         for t in T:
-            Vbar = _variety(list(t.gens()),[])
+            Vbar = _variety(list(t),[])
+            #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
                 V.append(dict([(P(var),val) for var,val in v.iteritems()]))
@@ -2043,7 +2067,7 @@ class MPolynomialIdeal_macaulay2_repr:
             [z^4 - x^2*w^2, y*z^2 - x*w^2, x*y - z^2, y^2 - w^2]
 
         The Groebner basis can be used to compute in
-        `\mathbb{Z}/n\mathbb{Z}[x,\ldots]`.
+        `\ZZ/n\ZZ[x,\ldots]`.
 
         ::
 
@@ -2181,8 +2205,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         r"""
         Return the Groebner fan of this ideal.
 
-        The base ring must be `\mathbb{Q}` or a finite field
-        `\mathbb{F}_p` of with `p <= 32749`.
+        The base ring must be `\QQ` or a finite field
+        `\GF{p}` of with `p <= 32749`.
 
         EXAMPLES::
 
@@ -2373,7 +2397,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        Groebner bases over `\mathbb{Z}` can be computed. However,
+        Groebner bases over `\ZZ` can be computed. However,
         the native implementation is very slow. If available Macaulay2 is
         used, which is an optional Sage package.
 
@@ -2703,13 +2727,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     def plot(self, *args, **kwds):
         """
-        Plot the real zero locus of this ideal (if principal).
+        Plot the real zero locus of this principal ideal.
 
         INPUT:
 
 
-        -  ``self`` - must be a principal ideal in 2 variables
-           over QQ.
+        -  ``self`` - a principal ideal in 2 variables
 
         -  ``algorithm`` - set this to 'surf' if you want
            'surf' to plot the ideal (default: None)
@@ -2763,8 +2786,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-        if self.ring().base_ring() is not QQ:
-            raise TypeError, "Base ring must be rational field."
+
+        K = self.base_ring()
+        try:
+            RR._coerce_(K(1))
+        except TypeError:
+            raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
+
         if not self.is_principal():
             raise TypeError, "Ideal must be principal."
 
@@ -2809,11 +2837,185 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                     V[var_index] = variables[var_index], mi, ma
 
             kwds.setdefault("plot_points",200)
+            kwds.pop('algorithm', '')
             return implicit_plot(f, V[0], V[1], **kwds)
 
         elif len(variables) == 3 or kwds.get('algorithm','') == 'surf':
             MPolynomialIdeal_singular_repr.plot(self, kwds.get("singular",singular_default))
         else:
             raise TypeError, "Ideal generator may not have either 2 or 3 variables."
+
+
+    def weil_restriction(self):
+        """
+        Compute the Weil restriction of this ideal over some extension
+        field.
+
+        A Weil restriction of scalars - denoted `Res_{L/k}` - is a
+        functor which, for any finite extension of fields `L/k` and
+        any algebraic variety `X` over `L`, produces another
+        corresponding variety `Res_{L/k}(X)`, defined over `k`. It is
+        useful for reducing questions about varieties over large
+        fields to questions about more complicated varieties over
+        smaller fields.
+
+        This function does not compute this Weil restriction directly
+        but computes on generating sets of polynomial ideals:
+
+        Let `d` be the degree of the field extension `L/k`, let `a` a
+        generator of `L/k` and `p` the minimal polynomial of
+        `L/k`. Denote this ideal by `I`.
+
+        Specifically, this function first maps each variable `x` to
+        its representation over `k`: `\sum_{i=0}^{d-1} a^i x_i`. Then
+        each generator of `I` is evaulated over these representations
+        and reduced modulo the minimal polynomial `p`. The result is
+        interpreted as a univariate polynomial in `a` and its
+        coefficients are the new generators of the returned ideal.
+
+        If the input and the output ideals are radical, this is
+        equivalent to the statement about algebraic varieties above.
+
+        EXAMPLE::
+
+            sage: k.<a> = GF(2^2)
+            sage: P.<x,y> = PolynomialRing(k,2)
+            sage: I = Ideal([x*y + 1, a*x + 1])
+            sage: I.variety()
+            [{y: a, x: a + 1}]
+            sage: J = I.weil_restriction()
+            sage: J
+            Ideal (x1*y0 + x0*y1 + x1*y1, x0*y0 + x1*y1 + 1, x0 + x1, x1 + 1) of
+            Multivariate Polynomial Ring in x0, x1, y0, y1 over Finite Field of size 2
+            sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
+            sage: J.variety()
+            [{y1: 1, x1: 1, x0: 1, y0: 0}]
+
+            sage: J.weil_restriction() # returns J
+            Ideal (x1*y0 + x0*y1 + x1*y1, x0*y0 + x1*y1 + 1, x0 + x1, x1 + 1, x0^2 + x0,
+                   x1^2 + x1, y0^2 + y0, y1^2 + y1)
+                   of Multivariate Polynomial Ring in x0, x1, y0, y1 over Finite Field of size 2
+
+            sage: k.<a> = GF(3^5)
+            sage: P.<x,y,z> = PolynomialRing(k)
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.dimension()
+            0
+            sage: I.variety()
+            [{y: 0, z: 0, x: 1}]
+
+            sage: J = I.weil_restriction(); J
+            Ideal (x4 - y4 - z4, x3 - y3 - z3, x2 - y2 - z2, x1 - y1 - z1, x0 - y0 - z0 - 1,
+                   x2^2 - x1*x3 - x0*x4 + x4^2 - y2^2 + y1*y3 + y0*y4 - y4^2 - z2^2 + z1*z3 + z0*z4 - z4^2 - x4,
+                   -x1*x2 - x0*x3 - x3*x4 - x4^2 + y1*y2 + y0*y3 + y3*y4 + y4^2 + z1*z2 + z0*z3 + z3*z4 + z4^2 - x3,
+                   x1^2 - x0*x2 + x3^2 - x2*x4 + x3*x4 - y1^2 + y0*y2 - y3^2 + y2*y4 - y3*y4 - z1^2 + z0*z2 - z3^2 + z2*z4 - z3*z4 - x2,
+                   -x0*x1 - x2*x3 - x3^2 - x1*x4 + x2*x4 + y0*y1 + y2*y3 + y3^2 + y1*y4 - y2*y4 + z0*z1 + z2*z3 + z3^2 + z1*z4 - z2*z4 - x1,
+                   x0^2 + x2*x3 + x1*x4 - y0^2 - y2*y3 - y1*y4 - z0^2 - z2*z3 - z1*z4 - x0,
+                   -x4*y0 - x3*y1 - x2*y2 - x1*y3 - x0*y4 - x4*y4 - y4*z0 - y3*z1 - y2*z2 - y1*z3 - y0*z4 - y4*z4 - y4,
+                   -x3*y0 - x2*y1 - x1*y2 - x0*y3 - x4*y3 - x3*y4 + x4*y4 - y3*z0 - y2*z1 - y1*z2 - y0*z3 - y4*z3 - y3*z4 + y4*z4 - y3,
+                   -x2*y0 - x1*y1 - x0*y2 - x4*y2 - x3*y3 + x4*y3 - x2*y4 + x3*y4 - y2*z0 - y1*z1 - y0*z2 - y4*z2 - y3*z3 + y4*z3 - y2*z4 + y3*z4 - y2,
+                   -x1*y0 - x0*y1 - x4*y1 - x3*y2 + x4*y2 - x2*y3 + x3*y3 - x1*y4 + x2*y4 - y1*z0 - y0*z1 - y4*z1 - y3*z2 + y4*z2 - y2*z3 + y3*z3 - y1*z4 + y2*z4 - y1,
+                   -x0*y0 + x4*y1 + x3*y2 + x2*y3 + x1*y4 - y0*z0 + y4*z1 + y3*z2 + y2*z3 + y1*z4 - y0) of Multivariate Polynomial Ring in
+                   x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4 over Finite Field of size 3
+            sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
+            sage: J.variety()
+            [{y1: 0, y4: 0, z2: 0, y2: 0, x0: 1, y0: 0, x2: 0, z4: 0, z3: 0, x4: 0, x1: 0, z1: 0, z0: 0, y3: 0, x3: 0}]
+
+
+        Weil restrictions are often used to study elliptic curves over
+        extension fields so we give a simple example involving those::
+
+            sage: K.<a> = QuadraticField(1/3)
+            sage: E = EllipticCurve(K,[1,2,3,4,5])
+
+        We pick a point on ``E``::
+
+            sage: p = E.lift_x(1); p
+            (1 : 2 : 1)
+
+            sage: I = E.defining_ideal(); I
+            Ideal (-x^3 - 2*x^2*z + x*y*z + y^2*z - 4*x*z^2 + 3*y*z^2 - 5*z^3)
+            of Multivariate Polynomial Ring in x, y, z over Number Field in a with defining polynomial x^2 - 1/3
+
+        Of course, the point ``p`` is a root of all generators of ``I``::
+
+            sage: [f.subs(x=1,y=2,z=1) for f in I.gens()]
+            [0]
+
+        ``I`` is also radical::
+
+            sage: I.radical() == I
+            True
+
+        So we compute its Weil restriction::
+
+            sage: J = I.weil_restriction()
+            sage: J
+            Ideal (-3*x0^2*x1 - 1/3*x1^3 - 4*x0*x1*z0 + x1*y0*z0 + x0*y1*z0 + 2*y0*y1*z0 - 4*x1*z0^2 + 3*y1*z0^2 - 2*x0^2*z1
+                    - 2/3*x1^2*z1 + x0*y0*z1 + y0^2*z1 + 1/3*x1*y1*z1 + 1/3*y1^2*z1 - 8*x0*z0*z1 + 6*y0*z0*z1 - 15*z0^2*z1 - 4/3*x1*z1^2 + y1*z1^2 - 5/3*z1^3,
+                   -x0^3 - x0*x1^2 - 2*x0^2*z0 - 2/3*x1^2*z0 + x0*y0*z0 + y0^2*z0 + 1/3*x1*y1*z0 + 1/3*y1^2*z0 - 4*x0*z0^2 + 3*y0*z0^2 - 5*z0^3 - 4/3*x0*x1*z1
+                    + 1/3*x1*y0*z1 + 1/3*x0*y1*z1 + 2/3*y0*y1*z1 - 8/3*x1*z0*z1 + 2*y1*z0*z1 - 4/3*x0*z1^2 + y0*z1^2 - 5*z0*z1^2)
+            of Multivariate Polynomial Ring in x0, x1, y0, y1, z0, z1 over Rational Field
+
+        We can check that the point ``p`` is still a root of all generators of ``J``::
+
+            sage: [f.subs(x0=1,y0=2,z0=1,x1=0,y1=0,z1=0) for f in J.gens()]
+            [0, 0]
+
+        .. note::
+
+           Based on a Singular implementation by Michael Brickenstein
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        R = self.ring()
+        nvars = R.ngens()
+        L = R.base_ring()
+        k = L.prime_subfield()
+
+        if L.degree() == 1:
+            return self
+
+        helper = PolynomialRing(L.prime_subfield(), nvars + 1, (L.variable_name(),) + R.variable_names(), order='lex')
+        myminpoly = L.polynomial().subs(helper.gen(0))
+
+        l = [helper(str(f))  for f in self.gens()]
+
+        r = myminpoly.degree()
+
+        intermediate_ring = PolynomialRing(k, nvars*r+1, 'x')
+
+        a = intermediate_ring.gen(0)
+
+        # map e.g. x -> a^2*x_2 + a*x_1 + x_0, where x_0,..,x_2
+        # represent the components of x if viewed as a vector in k^r
+        map_ideal = [a]
+
+        variables = iter(intermediate_ring.gens()[1:])
+        for _ in xrange(nvars):
+           map_ideal.append(sum([a**i * variables.next() for i in range(r)]))
+
+        myminpoly = myminpoly(*map_ideal)
+
+        l = [f(*map_ideal).reduce([myminpoly]) for f in l]
+
+        result = []
+        # split e.g. a^2*x0+a*x1+x2 to x0,x1,x2
+        for f in l:
+            for i in reversed(range(r)):
+               g = f.coefficient(a**i)
+               f =  f - a**i * g
+               result.append(g)
+
+        # eliminate parameter
+        new_var_names = [str(var)+"%d"%i for var in R.gens() for i in range(r)]
+
+        result_ring = PolynomialRing(k, nvars*r, new_var_names)
+
+        map_ideal = (0,) + result_ring.gens()
+        result = [f(*map_ideal) for f in result]
+
+        return result_ring.ideal(result)
+
 
 

@@ -65,7 +65,7 @@ S'il n'y a aucune solution, Sage renvoie une erreur :
 De même, il faut utiliser ``A.solve_left(Y)`` pour résoudre en :math:`X`
 l'équation :math:`XA=Y`.
 
-Créons l'espace :math:`\text{Mat}_{3\times 3}(\mathbb{Q})`:
+Créons l'espace :math:`\text{Mat}_{3\times 3}(\QQ)`:
 
 ::
 
@@ -138,7 +138,7 @@ des corps finis :
     [(1, 1, 0, 0, 1, 1, 1, 1), (0, 1, 0, 0, 1, 0, 1, 1),
      (0, 0, 1, 0, 1, 1, 0, 1), (0, 0, 1, 1, 1, 1, 1, 0)]
 
-Nous créons le sous-espace engendré sur :math:`\mathbb{F}_2` par les
+Nous créons le sous-espace engendré sur :math:`\GF{2}` par les
 vecteurs lignes ci-dessus.
 
 .. link

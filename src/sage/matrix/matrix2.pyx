@@ -165,7 +165,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A*x == v
             True
 
-        Same example but over `\mathbb{Z}`::
+        Same example but over `\ZZ`::
 
             sage: A = matrix(ZZ,2,3, [1,2,3,2,4,6]); v = vector([-1,-2])
             sage: A \ v
@@ -799,7 +799,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.determinant()
             -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
-        We create a matrix over `\mathbb{Z}[x,y]` and compute its
+        We create a matrix over `\ZZ[x,y]` and compute its
         determinant.
 
         ::
@@ -815,7 +815,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = MatrixSpace(ZZ['x'], 5, 5)(A)
             sage: A.det() - B.det()
             0
+
+        We verify that trac 5569 is resolved (otherwise the following will hang for hours)::
+
+            sage: d = random_matrix(GF(next_prime(10^20)),50).det()
+            sage: d = random_matrix(Integers(10^50),50).det()
+
         """
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+
         if self._nrows != self._ncols:
             raise ArithmeticError, "self must be a square matrix"
 
@@ -836,6 +844,13 @@ cdef class Matrix(matrix1.Matrix):
 
         n = self._ncols
         R = self._base_ring
+
+        # As of Sage 3.4, computing determinants directly in Z/nZ for
+        # n composite is too slow, so we lift to Z and compute there.
+        if is_IntegerModRing(R):
+            from matrix_modn_dense import Matrix_modn_dense
+            if not (isinstance(self, Matrix_modn_dense) and R.characteristic().is_prime()):
+                return R(self.lift().det())
 
         # For small matrices, you can't beat the naive formula
         if n <=  3:
@@ -1031,7 +1046,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        First a matrix over `\mathbb{Z}`::
+        First a matrix over `\ZZ`::
 
             sage: A = MatrixSpace(ZZ,2)( [1,2,  3,4] )
             sage: f = A.charpoly('x')
@@ -1043,7 +1058,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        An example over `\mathbb{Q}`::
+        An example over `\QQ`::
 
             sage: A = MatrixSpace(QQ,3)(range(9))
             sage: A.charpoly('x')
@@ -1054,7 +1069,7 @@ cdef class Matrix(matrix1.Matrix):
             0
 
         We compute the characteristic polynomial of a matrix over the
-        polynomial ring `\mathbb{Z}[a]`::
+        polynomial ring `\ZZ[a]`::
 
             sage: R.<a> = PolynomialRing(ZZ)
             sage: M = MatrixSpace(R,2)([a,1,  a,a+1]); M
@@ -1070,7 +1085,7 @@ cdef class Matrix(matrix1.Matrix):
             a^2
 
         We compute the characteristic polynomial of a matrix over the
-        multi-variate polynomial ring `\mathbb{Z}[x,y]`::
+        multi-variate polynomial ring `\ZZ[x,y]`::
 
             sage: R.<x,y> = PolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
@@ -1236,7 +1251,7 @@ cdef class Matrix(matrix1.Matrix):
             TypeError: denominator not defined for elements of the base ring
 
         We can even compute the denominator of matrix over the fraction
-        field of `\mathbb{Z}[x]`.
+        field of `\ZZ[x]`.
 
         ::
 
@@ -1617,7 +1632,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A kernel of dimension one over `\mathbb{Q}`::
+        A kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.kernel()
@@ -1782,7 +1797,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A right kernel of dimension one over `\mathbb{Q}`::
+        A right kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.right_kernel()
@@ -1887,7 +1902,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
 
-        A left kernel of dimension one over `\mathbb{Q}`::
+        A left kernel of dimension one over `\QQ`::
 
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.left_kernel()
@@ -3716,7 +3731,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def _echelon_in_place_classical(self):
         """
-        Return the echelon form of self and set the pivots of self.
+        Transform self into echelon form and set the pivots of self.
 
         EXAMPLES::
 
@@ -3724,7 +3739,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: t._echelon_in_place_classical(); t
+            sage: E = t._echelon_in_place_classical(); t
             [ 1  0 -1]
             [ 0  1  2]
             [ 0  0  0]
@@ -3735,7 +3750,7 @@ cdef class Matrix(matrix1.Matrix):
             return
 
         self.check_mutability()
-        cdef Matrix A, d
+        cdef Matrix A
 
         nr = self._nrows
         nc = self._ncols
@@ -3760,10 +3775,8 @@ cdef class Matrix(matrix1.Matrix):
                     start_row = start_row + 1
                     break
         self.cache('pivots', pivots)
-        A.cache('pivots', pivots)
-        A.cache('in_echelon_form', True)
-        self.cache('echelon_form', A)
-
+        self.cache('in_echelon_form', True)
+        self.cache('echelon_form', self)
         verbose('done with gauss echelon form', tm)
 
     #####################################################################################

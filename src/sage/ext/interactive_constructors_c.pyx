@@ -41,7 +41,7 @@ def inject_on(verbose=True):
         sage: GF(9,'c')
         Finite Field in c of size 3^2
         sage: c^3
-		2*c + 1
+        2*c + 1
 
     ROLL YOUR OWN: If a constructor you would like to auto inject
     variables isn't made to do so by running this command your options

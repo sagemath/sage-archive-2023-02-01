@@ -268,8 +268,21 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: x = polygen(ZZ)
         sage: complex_roots(x^5 - x - 1)
         [(1.167303978261419?, 1), (-0.764884433600585? - 0.352471546031727?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (0.181232444469876? + 1.083954101317711?*I, 1)]
-        sage: complex_roots(x^2 + 27*x + 181)
+        sage: v=complex_roots(x^2 + 27*x + 181)
+
+    Unfortunately due to numerical noise there can be a small imaginary part to each
+    root depending on CPU, compiler, etc, and that affects the printing order. So we
+    verify the real part of each root and check that the imaginary part is small in
+    both cases:
+
+        sage: v # random
         [(-14.61803398874990?..., 1), (-12.3819660112501...? + 0.?e-27*I, 1)]
+        sage: sorted((v[0][0].real(),v[1][0].real()))
+        [-14.61803398874990?, -12.3819660112501...?]
+        sage: v[0][0].imag() < 1e25
+        True
+        sage: v[1][0].imag() < 1e25
+        True
 
         sage: K.<im> = NumberField(x^2 + 1)
         sage: eps = 1/2^100

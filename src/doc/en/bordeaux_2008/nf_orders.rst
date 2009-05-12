@@ -6,9 +6,9 @@ Orders in Number Fields
 -----------------------
 
 An *order* in a number field :math:`K` is a subring of :math:`K` whose
-rank over :math:`\mathbb{Z}` equals the degree of :math:`K`. For
-example, if :math:`K=\mathbb{Q}(\sqrt{-1})`, then
-:math:`\mathbb{Z}[7i]` is an order in :math:`K`. A good first exercise
+rank over :math:`\ZZ` equals the degree of :math:`K`. For
+example, if :math:`K=\QQ(\sqrt{-1})`, then
+:math:`\ZZ[7i]` is an order in :math:`K`. A good first exercise
 is to prove that every element of an order is an algebraic integer.
 
 ::
@@ -63,10 +63,10 @@ Computing Maximal Orders
 
 We can also compute the maximal order, using the ``maxima order``
 command, which behind the scenes finds an integral basis using Pari's
-``nfbasis`` command. For example, :math:`\mathbb{Q}(\sqrt[4]{2})` has
-maximal order :math:`\mathbb{Z}[\sqrt[4]{2}]`, and if :math:`\alpha`
-is a root of :math:`x^3 + x^2 - 2x+8`, then :math:`\mathbb{Q}(\alpha)`
-has maximal order with :math:`\mathbb{Z}`-basis
+``nfbasis`` command. For example, :math:`\QQ(\sqrt[4]{2})` has
+maximal order :math:`\ZZ[\sqrt[4]{2}]`, and if :math:`\alpha`
+is a root of :math:`x^3 + x^2 - 2x+8`, then :math:`\QQ(\alpha)`
+has maximal order with :math:`\ZZ`-basis
 
 .. math::
 
@@ -111,12 +111,12 @@ Relative Extensions
 A *relative number field* :math:`L` is a number field of the form
 :math:`K(\alpha)`, where :math:`K` is a number field, and an *absolute
 number field* is a number field presented in the form
-:math:`\mathbb{Q}(\alpha)`. By the primitive element theorem, any
+:math:`\QQ(\alpha)`. By the primitive element theorem, any
 relative number field :math:`K(\alpha)` can be written as
-:math:`\mathbb{Q}(\beta)` for some :math:`\beta\in L`. However, in
+:math:`\QQ(\beta)` for some :math:`\beta\in L`. However, in
 practice it is often convenient to view :math:`L` as
 :math:`K(\alpha)`.  In :ref:`section-symbolic`, we constructed the
-number field :math:`\mathbb{Q}(\sqrt{2})(\alpha)`, where
+number field :math:`\QQ(\sqrt{2})(\alpha)`, where
 :math:`\alpha` is a root of :math:`x^3 + \sqrt{2} x + 5`, but *not* as
 a relative field--we obtained just the number field defined by a root
 of :math:`x^6 + 10x^3 - 2x^2 + 25`.
@@ -125,7 +125,7 @@ Constructing a relative number field step by step
 -------------------------------------------------
 
 To construct this number field as a relative number field, first we
-let :math:`K` be :math:`\mathbb{Q}(\sqrt{2})`.
+let :math:`K` be :math:`\QQ(\sqrt{2})`.
 
 ::
 
@@ -135,7 +135,7 @@ Next we create the univariate polynomial ring :math:`R = K[X]`.  In
 Sage, we do this by typing ``R.<X> = K[]``. Here ``R.<X>`` means
 "create the object :math:`R` with generator :math:`X`" and ``K[]``
 means a "polynomial ring over :math:`K`", where the generator is named
-based on the afformentioned :math:`X` (to create a polynomial ring in
+based on the aformentioned :math:`X` (to create a polynomial ring in
 two variables :math:`X,Y` simply replace ``R.<X>`` by ``R.<X,Y>``).
 
 .. link
@@ -148,7 +148,7 @@ two variables :math:`X,Y` simply replace ``R.<X>`` by ``R.<X,Y>``).
     with defining polynomial x^2 - 2
 
 Now we can make a polynomial over the number field
-:math:`K=\mathbb{Q}(\sqrt{2})`, and construct the extension of
+:math:`K=\QQ(\sqrt{2})`, and construct the extension of
 :math:`K` obtained by adjoining a root of that polynomial to
 :math:`K`.
 
@@ -161,7 +161,7 @@ Now we can make a polynomial over the number field
     Number Field in a with defining polynomial X^3 + sqrt2*X + 5...
 
 Finally, :math:`L` is the number field
-:math:`\mathbb{Q}(\sqrt{2})(\alpha)`, where :math:`\alpha` is a root
+:math:`\QQ(\sqrt{2})(\alpha)`, where :math:`\alpha` is a root
 of :math:`X^3 + \sqrt{2}\alpha + 5`. We can do now do arithmetic in
 this number field, and of course include :math:`\sqrt{2}` in
 expressions.
@@ -180,16 +180,18 @@ Functions on relative number fields
 -----------------------------------
 
 The relative number field :math:`L` also has numerous functions, many
-of which are by default relative. For example the ``degree`` function
-on :math:`L` returns the relative degree of :math:`L` over :math:`K`;
-for the degree of :math:`L` over :math:`\mathbb{Q}` use the
-``absolute_degree`` function.
+of which have both relative and absolute version. For example the
+``relative_degree`` function on :math:`L` returns the relative degree
+of :math:`L` over :math:`K`; the degree of :math:`L` over
+:math:`\QQ` is given by the ``absolute_degree`` function.  To
+avoid possible ambiguity ``degree`` is not implemented for relative
+number fields.
 
 .. link
 
 ::
 
-    sage: L.degree()
+    sage: L.relative_degree()
     3
     sage: L.absolute_degree()
     6
@@ -199,9 +201,9 @@ Extra structure on relative number fields
 -----------------------------------------
 
 Given any relative number field you can also an absolute number field
-that is isomorphic to it. Below we create :math:`M = \mathbb{Q}(b)`,
+that is isomorphic to it. Below we create :math:`M = \QQ(b)`,
 which is isomorphic to :math:`L`, but is an absolute field over
-:math:`\mathbb{Q}`.
+:math:`\QQ`.
 
 .. link
 
@@ -249,7 +251,7 @@ extension of an absolute field).
 
     Exercise: Construct the relative number field
     :math:`L = K(\sqrt[3]{\sqrt{2}+\sqrt{3}})`, where
-    :math:`K=\mathbb{Q}(\sqrt{2}, \sqrt{3})`.
+    :math:`K=\QQ(\sqrt{2}, \sqrt{3})`.
 
 
 Relative number field arithmetic can be slow
@@ -260,7 +262,7 @@ scenes all arithmetic is done in terms of a single absolute
 defining polynomial, and in some cases this can be very slow (much
 slower than Magma). Perhaps this could be fixed by using Singular's
 multivariate polynomials modulo an appropriate ideal, since
-Singular polynomial arithmetic is extremely flast. Also, Sage has
+Singular polynomial arithmetic is extremely fast. Also, Sage has
 very little direct support for constructive class field theory,
 which is a major motivation for explicit computation with relative
 orders; it would be good to expose more of Pari's functionality in

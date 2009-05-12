@@ -19,6 +19,10 @@ a few hours. You can read it in HTML or PDF versions, or from the
 Sage notebook (click ``Help``, then click ``Tutorial`` to interactively
 work through the tutorial from within Sage).
 
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/
 
 .. toctree::
    :maxdepth: 2

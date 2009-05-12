@@ -148,7 +148,7 @@ def Curve(F):
         sage: Curve(x^2+y^2+z)
         Traceback (most recent call last):
         ...
-        TypeError: defining polynomials (= x^2 + y^2 + z) must be homogeneous
+        TypeError: The polynomial(s) x^2 + y^2 + z must be homogeneous
 
     The defining polynomial must always be nonzero::
 

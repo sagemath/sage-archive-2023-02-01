@@ -43,7 +43,7 @@ Another approach to this:
     sage: a^20062006
     80*a
     sage: print gap.eval("R:= PolynomialRing( GF(97))")
-    GF(97)[x_1]
+    PolynomialRing(..., [ x_1 ])
     sage: print gap.eval("i:= IndeterminatesOfPolynomialRing(R)")
     [ x_1 ]
     sage: gap.eval("x:= i[1];; f:= x;;")

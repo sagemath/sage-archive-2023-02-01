@@ -17,6 +17,7 @@
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.misc import options, rename_keyword, rgbcolor, get_cmap
 from sage.misc.misc import verbose, xsrange
+import operator
 
 class ContourPlot(GraphicPrimitive):
     """
@@ -37,7 +38,7 @@ class ContourPlot(GraphicPrimitive):
 
         EXAMPLES:
             sage: x,y = var('x,y')
-            sage: f = x^2 + y^2
+            sage: f(x,y) = x^2 + y^2
             sage: d = contour_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
             sage: d['xmin']
             3.0
@@ -124,25 +125,25 @@ def contour_plot(f, xrange, yrange, **options):
 
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: contour_plot(cos(x^2+y^2), (-4, 4), (-4, 4))
+        sage: contour_plot(cos(x^2+y^2), (x, -4, 4), (y, -4, 4))
 
 
     Here we change the ranges and add some options:
-        sage: contour_plot((x^2)*cos(x*y), (-10, 5), (-5, 5), fill=False, plot_points=100)
+        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=100)
 
 
     An even more complicated plot.
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (-4, 4), (-4, 4),plot_points=100)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=100)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
     variables x,y.
         sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
-        sage: contour_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
+        sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
 
 
     We can play with the contour levels.
-        sage: f = x^2 + y^2
+        sage: f(x,y) = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
@@ -159,7 +160,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(contours=(0,0), fill=False)
+@options(plot_points=50, contours=(0,0), fill=False)
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     \code{implicit_plot} takes a function of two variables, $f(x,y)$
@@ -168,12 +169,15 @@ def implicit_plot(f, xrange, yrange, **options):
 
       implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)
 
+      implicit_plot(f, (x, xmin, xmax), (y, ymin, ymax), ...)
+
     INPUT:
-        f -- a function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values
-        (ymin, ymax) -- 2-tuple, the range of y values
+        f -- a function of two variables or equation in two variables
+        (xmin, xmax) -- 2-tuple, the range of x values or (x,xmin,xmax)
+        (ymin, ymax) -- 2-tuple, the range of y values or (y,ymin,ymax)
+
     The following inputs must all be passed in as named parameters:
-        plot_points  -- integer (default: 25); number of points to plot
+        plot_points  -- integer (default: 50); number of points to plot
                         in each direction of the grid
         fill         -- boolean (default: False); if True, fill the region $f(x,y)<0$.
 
@@ -183,7 +187,12 @@ def implicit_plot(f, xrange, yrange, **options):
     A simple circle with a radius of 2:
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2+y^2-2, (-3,3), (-3,3)).show(aspect_ratio=1)
+        sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+
+    You can also plot an equation:
+        sage: var("x y")
+        (x, y)
+        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
 
     We can define a level-$n$ approximation of the boundary of the
     Mandelbrot set.
@@ -208,6 +217,11 @@ def implicit_plot(f, xrange, yrange, **options):
     (plot_points=200 looks even better, but it's about 16 times slower.)
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
+    from sage.calculus.equations import is_SymbolicEquation
+    if is_SymbolicEquation(f):
+        if f.operator() != operator.eq:
+            raise ValueError, "input to implicit plot must be function or equation"
+        f = f.lhs() - f.rhs()
     return contour_plot(f, xrange, yrange, **options)
 
 @options(plot_points=25, incol='blue', outcol='white', bordercol=None)
@@ -233,35 +247,43 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     Here we plot a simple function of two variables:
         sage: x,y = var('x,y')
-        sage: region_plot(cos(x^2+y^2) <= 0, (-3, 3), (-3, 3))
+        sage: region_plot(cos(x^2+y^2) <= 0, (x, -3, 3), (y, -3, 3))
 
     Here we play with the colors:
-        sage: region_plot(x^2+y^3 < 2, (-2, 2), (-2, 2), incol='lightblue', bordercol='gray')
+        sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
 
     An even more complicated plot:
-        sage: region_plot(sin(x)*sin(y) >= 1/4, (-10,10), (-10,10), incol='yellow', bordercol='black', plot_points=100)
+        sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=100)
 
     A plot with more than one condition:
-        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2))
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
     Since it doesn't look very good, let's increase plot_points:
-        sage: region_plot([x^2+y^2<1, x<y], (-2,2), (-2,2), plot_points=400).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1) #long time
 
-    Here is anoher plot:
-        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+    The first quadrant of the unit circle:
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (-1.1, 1.1), (-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
+
+    Here is another plot:
+        sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
     If we want to keep only the region where x is positive:
-        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (-3, 2), (-3, 3), incol='lightblue', bordercol='gray', plot_points=50)
+        sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
     Here we have a cut circle:
-        sage: region_plot([x^2+y^2<4, x>-1], (-2, 2), (-2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
+        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
     """
 
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     if not isinstance(f, (list, tuple)):
         f = [f]
-    f = map(equify, f)
+
+    variables = reduce(lambda g1, g2: g1.union(g2), [set(g.variables()) for g in f], set([]))
+
+    f = [equify(g, variables) for g in f]
+
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid(f, xrange, yrange, plot_points)
+
     xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
                                              for y in xsrange(yrange[0], yrange[1], ystep)], g)
 
@@ -286,24 +308,36 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     return g
 
-def equify(f):
+def equify(f, variables = None):
     """
-    Returns the equation rewritten to give negative values when True,
+    Returns the equation rewritten as a symbolic function to give negative values when True,
     positive when False.
 
     EXAMPLES:
         sage: from sage.plot.contour_plot import equify
+        sage: var('x, y')
+        (x, y)
         sage: equify(x^2 < 2)
-        x^2 - 2
+        x |--> x^2 - 2
         sage: equify(x^2 > 2)
-        2 - x^2
+        x |--> 2 - x^2
+        sage: equify(x*y > 1)
+        (x, y) |--> 1 - x*y
+        sage: equify(y > 0, (x,y))
+        (x, y) |--> -y
     """
     import operator
+    from sage.calculus.all import symbolic_expression
     op = f.operator()
+    if variables == None:
+        variables = f.variables()
+
     if op is operator.gt or op is operator.ge:
-        return f.rhs() - f.lhs()
+        s = symbolic_expression(f.rhs() - f.lhs()).function(*variables)
+        return s
     else:
-        return f.lhs() - f.rhs()
+        s = symbolic_expression(f.lhs() - f.rhs()).function(*variables)
+        return s
 
 def mangle_neg(vals):
     """

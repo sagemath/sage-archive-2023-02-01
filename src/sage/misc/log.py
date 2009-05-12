@@ -65,8 +65,6 @@ import interpreter
 import latex
 import misc
 
-import sage.plot.all
-
 from   sage.misc.viewer  import browser, dvi_viewer
 
 offset = 0
@@ -111,7 +109,7 @@ class Log:
         return "Logger"
 
     def _latex_(self):
-        return "\\mbox{\\rm %s}"%self
+        return "\\mathrm{%s}"%self
 
     def dir(self):
         """

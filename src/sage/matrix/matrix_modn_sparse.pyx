@@ -1,8 +1,8 @@
 r"""
-Sparse matrices over `\mathbb{Z}/n\mathbb{Z}` for `n` small.
+Sparse matrices over `\ZZ/n\ZZ` for `n` small.
 
 This is a compiled implementation of sparse matrices over
-`\mathbb{Z}/n\mathbb{Z}` for `n` small.
+`\ZZ/n\ZZ` for `n` small.
 
 TODO: - move vectors into a pyrex vector class - add _add_ and
 _mul_ methods.

@@ -40,7 +40,7 @@ rather than arithmetic in a common parent. For example::
     sage: 5*P
     (1/4 : -5/8 : 1)
 
-where there is action of `\mathbb{Z}` on the points of `E` given by the additive
+where there is action of `\ZZ` on the points of `E` given by the additive
 group law. Parents can specify how they act on or are acted upon by other
 parents.
 
@@ -50,7 +50,7 @@ conversions.
 Coercions are canonical (possibly modulo a finite number of
 deterministic choices) morphisms, and the set of all coercions between
 all parents forms a commuting diagram (modulo possibly rounding
-issues). `\mathbb{Z} \rightarrow \mathbb{Q}` is an example of a
+issues). `\ZZ \rightarrow \QQ` is an example of a
 coercion. These are invoked implicitly by the coercion model.
 
 Conversions try to construct an element out of their input if at all possible.
@@ -783,7 +783,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: type(a)
             <type 'sage.rings.rational.Rational'>
 
-        We also make an exception for 0, even if $\mathbb{Z}$ does not map in::
+        We also make an exception for 0, even if $\ZZ$ does not map in::
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))

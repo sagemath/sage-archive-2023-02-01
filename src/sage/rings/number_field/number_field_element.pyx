@@ -468,7 +468,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: p._gap_init_() # The variable name $sage2 belongs to the gap(F) and is somehow random
             'GeneratorsOfField($sage2)[1]^2 + 2*GeneratorsOfField($sage2)[1] - 3'
             sage: gap(p._gap_init_())
-            zeta8^2+2*zeta8-3
+            (-3+2*zeta8+zeta8^2)
         """
         s = self.__repr__()
         return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
@@ -567,7 +567,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             IndexError: index must be between 0 and degree minus 1.
 
-        The list method implicitly calls __getitem__::
+        The list method implicitly calls ``__getitem__``::
 
             sage: list(c)
             [8/27, -16/15, 32/25, -64/125]
@@ -656,7 +656,7 @@ cdef class NumberFieldElement(FieldElement):
     def coordinates_in_terms_of_powers(self):
         r"""
         Let `\alpha` be self. Return a Python function that takes
-        any element of the parent of self in `\mathbb{Q}(\alpha)`
+        any element of the parent of self in `\QQ(\alpha)`
         and writes it in terms of the powers of `\alpha`:
         `1, \alpha, \alpha^2, ...`.
 
@@ -982,7 +982,8 @@ cdef class NumberFieldElement(FieldElement):
         _sig_on
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
-        if ZZX_is_monic( &self.__fld_numerator.x ):
+
+        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
             ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, self.__fld_numerator.x)
         else:
@@ -1044,7 +1045,7 @@ cdef class NumberFieldElement(FieldElement):
         x = self._new()
         _sig_on
         _right._invert_c_(&inv_num, &inv_den)
-        if ZZX_is_monic( &self.__fld_numerator.x ):
+        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
             ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
         else:
@@ -1417,7 +1418,7 @@ cdef class NumberFieldElement(FieldElement):
             True
 
         There is only one Galois conjugate of `\sqrt[3]{2}` in
-        `\mathbb{Q}(\sqrt[3]{2})`.
+        `\QQ(\sqrt[3]{2})`.
 
         ::
 
@@ -1425,7 +1426,7 @@ cdef class NumberFieldElement(FieldElement):
             [a]
 
         Galois conjugates of `\sqrt[3]{2}` in the field
-        `\mathbb{Q}(\zeta_3,\sqrt[3]{2})`::
+        `\QQ(\zeta_3,\sqrt[3]{2})`::
 
             sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
             sage: a.galois_conjugates(L)
@@ -1593,12 +1594,36 @@ cdef class NumberFieldElement(FieldElement):
             10
             sage: (1+z).multiplicative_order()
             +Infinity
+
+            sage: x = polygen(QQ)
+            sage: K.<a>=NumberField(x^40 - x^20 + 4)
+            sage: u = 1/4*a^30 + 1/4*a^10 + 1/2
+            sage: u.multiplicative_order()
+            6
+            sage: a.multiplicative_order()
+            +Infinity
+
+        An example in a relative extension:
+
+            sage: K.<a, b> = NumberField([x^2 + x + 1, x^2 - 3])
+            sage: z = (a - 1)*b/3
+            sage: z.multiplicative_order()
+            12
+            sage: z^12==1 and z^6!=1 and z^4!=1
+            True
+
         """
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
 
-        if self.is_rational_c():
-            self.__multiplicative_order = self._rational_().multiplicative_order()
+        one = self.number_field().one_element()
+        infinity = sage.rings.infinity.infinity
+
+        if self == one:
+            self.__multiplicative_order = ZZ(1)
+            return self.__multiplicative_order
+        if self == -one:
+            self.__multiplicative_order = ZZ(2)
             return self.__multiplicative_order
 
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
@@ -1611,37 +1636,18 @@ cdef class NumberFieldElement(FieldElement):
                 self.__multiplicative_order = sage.rings.infinity.infinity
                 return self.__multiplicative_order
 
-        ####################################################################
-        # VERY DUMB Algorithm to compute the multiplicative_order of
-        # an element x of a number field K.
-        #
-        # 1. Find an integer B such that if n>=B then phi(n) > deg(K).
-        #    For this use that for n>6 we have phi(n) >= log_2(n)
-        #    (to see this think about the worst prime factorization
-        #    in the multiplicative formula for phi.)
-        # 2. Compute x, x^2, ..., x^B in order to determine the multiplicative_order.
-        #
-        # todo-- Alternative: Only do the above if we don't require an optional
-        # argument which gives a multiple of the order, which is usually
-        # something available in any actual application.
-        #
-        # BETTER TODO: Factor cyclotomic polynomials over K to determine
-        # possible orders of elements?  Is there something even better?
-        #
-        ####################################################################
-        d = self.number_field().degree()
-        B = max(7, 2**d+1)
-        x = self
-        i = 1
-        while i < B:
-            if x == 1:
-                self.__multiplicative_order = i
-                return self.__multiplicative_order
-            x *= self
-            i += 1
+        if self.is_rational_c() or not self.is_integral() or not self.norm() ==1:
+            self.__multiplicative_order = infinity
+            return self.__multiplicative_order
 
-        # it must have infinite order
-        self.__multiplicative_order = sage.rings.infinity.infinity
+        # Now we have a unit of norm 1, and check if it is a root of unity
+
+        n = self.number_field().zeta_order()
+        if not self**n ==1:
+            self.__multiplicative_order = infinity
+            return self.__multiplicative_order
+        from sage.groups.generic import order_from_multiple
+        self.__multiplicative_order = order_from_multiple(self,n,operation='*')
         return self.__multiplicative_order
 
     def additive_order(self):
@@ -1791,7 +1797,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (O.2).vector()
             (1, -b)
         """
-        return self.number_field().vector_space()[2](self)
+        return self.number_field().relative_vector_space()[2](self)
 
     def charpoly(self, var='x'):
         raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
@@ -1951,7 +1957,7 @@ cdef class NumberFieldElement(FieldElement):
             v = []
             x = K.gen()
             a = K(1)
-            d = K.degree()
+            d = K.relative_degree()
             for n in range(d):
                 v += (a*self).list()
                 a *= x
@@ -1983,6 +1989,7 @@ cdef class NumberFieldElement(FieldElement):
             <type 'sage.rings.integer.Integer'>
         """
         from number_field_ideal import is_NumberFieldIdeal
+        from sage.rings.infinity import infinity
         if not is_NumberFieldIdeal(P):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)
@@ -1991,6 +1998,8 @@ cdef class NumberFieldElement(FieldElement):
         if not P.is_prime():
             # We always check this because it caches the pari prime representation of this ideal.
             raise ValueError, "P must be prime"
+        if self == 0:
+            return infinity
         return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
 
     def support(self):
@@ -2262,7 +2271,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
     def absolute_minpoly(self, var='x', algorithm=None):
         r"""
         Return the minimal polynomial of this element over
-        `\mathbb{Q}`.
+        `\QQ`.
 
         For the meaning of the optional argument algorithm, see :meth:`charpoly`.
 
@@ -2293,8 +2302,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
     def charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element, over
-        `\mathbb{Q}` if self is an element of a field, and over
-        `\mathbb{Z}` is self is an element of an order.
+        `\QQ` if self is an element of a field, and over
+        `\ZZ` is self is an element of an order.
 
         This is the same as ``self.absolute_charpoly`` since
         this is an element of an absolute extension.
@@ -2409,6 +2418,44 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     """
     def __init__(self, parent, f):
         NumberFieldElement.__init__(self, parent, f)
+
+    def __getitem__(self, n):
+        """
+        Return the n-th coefficient of this relative number field element, written
+        as a polynomial in the generator.
+
+        Note that `n` must be between 0 and `d-1`, where
+        `d` is the relative degree of the number field.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^3 - 5, x^2 + 3])
+            sage: c = (a + b)^3; c
+            3*b*a^2 - 9*a - 3*b + 5
+            sage: c[0]
+            -3*b + 5
+
+        We illustrate bounds checking::
+
+            sage: c[-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and the relative degree minus 1.
+            sage: c[4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between 0 and the relative degree minus 1.
+
+        The list method implicitly calls ``__getitem__``::
+
+            sage: list(c)
+            [-3*b + 5, -9, 3*b]
+            sage: K(list(c)) == c
+            True
+        """
+        if n < 0 or n >= self.parent().relative_degree():
+            raise IndexError, "index must be between 0 and the relative degree minus 1."
+        return self.vector()[n]
 
     def list(self):
         """
@@ -2572,10 +2619,10 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     def absolute_charpoly(self, var='x', algorithm=None):
         r"""
         The characteristic polynomial of this element over
-        `\mathbb{Q}`.
+        `\QQ`.
 
         We construct a relative extension and find the characteristic
-        polynomial over `\mathbb{Q}`.
+        polynomial over `\QQ`.
 
         The optional argument algorithm controls how the
         characteristic polynomial is computed: 'pari' uses Pari,
@@ -2627,7 +2674,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def absolute_minpoly(self, var='x', algorithm=None):
         r"""
-        Return the minimal polynomial over `\mathbb{Q}` of this element.
+        Return the minimal polynomial over `\QQ` of this element.
 
         For the meaning of the optional argument algorithm, see :meth:`absolute_charpoly`.
 

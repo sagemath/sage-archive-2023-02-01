@@ -268,7 +268,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: R.<x> = PolynomialRing(ZZ,'x')
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: R.quotient_ring(I)._latex_()
-            '\\mathbf{Z}[x]/\\left(x^{2} + 3x + 4, x^{2} + 1\\right)\\mathbf{Z}[x]'
+            '\\Bold{Z}[x]/\\left(x^{2} + 3x + 4, x^{2} + 1\\right)\\Bold{Z}[x]'
         """
         return "%s/%s"%(latex.latex(self.cover_ring()), latex.latex(self.defining_ideal()))
 

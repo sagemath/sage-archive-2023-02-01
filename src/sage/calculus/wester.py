@@ -117,7 +117,7 @@ explicit calls to maxima or other systems.
     (e^x - 1)/(e^(x/2) + 1)
     sage: g
     e^(x/2) - 1
-    sage: print f(10.0), g(10.0)
+    sage: print f(x=10.0), g(x=10.0)
     147.4131591025766 147.4131591025766
     sage: print bool(f == g)
     True
@@ -309,7 +309,7 @@ explicit calls to maxima or other systems.
     sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
     sage: bool(f == 0)
     False
-    sage: [float(f(i/10)) for i in range(1,5)]
+    sage: [float(f(x=i/10)) for i in range(1,5)]
     [-0.0003367004075408...,
      -0.002777800409662...,
      -0.00989099409140...,
@@ -319,9 +319,9 @@ explicit calls to maxima or other systems.
 
     sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
     sage: g = f.derivative()
-    sage: abs(float(f(0))) < 1e-10
+    sage: abs(float(f(x=0))) < 1e-10
     True
-    sage: abs(float(g(0))) < 1e-10
+    sage: abs(float(g(x=0))) < 1e-10
     True
     sage: print g
                              2 x    pi
@@ -344,7 +344,7 @@ explicit calls to maxima or other systems.
                                 sqrt(4 r + 4 sqrt(r) + 1)
     sage: print bool(f == 0)
     False
-    sage: print [float(f(i)) for i in [0.1,0.3,0.5]]
+    sage: print [float(f(r=i)) for i in [0.1,0.3,0.5]]
     [0.0, 0.0, 0.0]
 
 ::
@@ -361,7 +361,7 @@ explicit calls to maxima or other systems.
                                                                     - 2 sqrt(r) - 1
     sage: bool(f == 0)
     False
-    sage: [float(f(i)) for i in [0.1,0.3,0.5]]
+    sage: [float(f(r=i)) for i in [0.1,0.3,0.5]]
     [0.0, 0.0, -2.2204460492503131e-16]
 
 ::

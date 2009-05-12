@@ -65,7 +65,7 @@ class SymplecticGroup_generic(MatrixGroup_gap):
         EXAMPLES::
 
             sage: latex(Sp(4,5))
-            \text{Sp}_{4}(\mathbf{F}_{5})
+            \text{Sp}_{4}(\Bold{F}_{5})
         """
         return "\\text{Sp}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 

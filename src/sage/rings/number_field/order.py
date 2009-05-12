@@ -255,7 +255,7 @@ class Order(IntegralDomain):
 
         """
         if self._is_maximal is None:
-            self._is_maximal = (self.absolute_discriminant() == self._K.discriminant())
+            self._is_maximal = (self.absolute_discriminant() == self._K.absolute_discriminant())
         return self._is_maximal
 
     def is_field(self):
@@ -552,7 +552,7 @@ class Order(IntegralDomain):
             sage: O.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity in self.
+            ArithmeticError: There are no 3rd roots of unity in self.
         """
         roots_in_field = self.number_field().zeta(n, True)
         roots_in_self = [ self(x) for x in roots_in_field if x in self ]
@@ -560,15 +560,7 @@ class Order(IntegralDomain):
             if all:
                 return []
             else:
-                if n == 1:
-                    th = 'st'
-                elif n == 2:
-                    th = 'nd'
-                elif n == 3:
-                    th = 'rd'
-                else:
-                    th = 'th'
-                raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
+                raise ArithmeticError, "There are no %s roots of unity in self."%n.ordinal_str()
         if all:
             return roots_in_self
         else:
@@ -1188,10 +1180,44 @@ class RelativeOrder(Order):
     def __call__(self, x):
         """
         Coerce an element into this relative order.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: OK = K.ring_of_integers()
+            sage: OK(a)
+            a
+            sage: OK([3, 4])
+            4*a + 3
+
+        The following used to fail; see trac #5276::
+
+            sage: S.<y> = OK[]; S
+            Univariate Polynomial Ring in y over Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
+
+        We test that trac #4193 is also fixed::
+
+            sage: K1.<a> = NumberField(x^3 - 2)
+            sage: R.<y> = PolynomialRing(K1)
+            sage: K2.<b> = K1.extension(y^2 - a)
+            sage: R = K2.order(b)
+            sage: b in R
+            True
+            sage: bb = R.gens()[1] # b by any other name
+            sage: bb == b
+            True
+            sage: bb.parent() is R
+            True
+            sage: bb in R # this used to return False
+            True
+            sage: R(bb) == bb # this used to raise an error
+            True
         """
-        if x.parent() is not self._K:
-            x = self._K(x)
-        x = self._absolute_order(x) # will test membership
+
+        x = self._K(x)
+        abs_order = self._absolute_order
+        to_abs = abs_order._K.structure()[1]
+        x = abs_order(to_abs(x)) # will test membership
         return OrderElement_relative(self, x)
 
     def _repr_(self):

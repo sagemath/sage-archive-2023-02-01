@@ -894,6 +894,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         make a somewhat intelligent decision to use Pari or NTL based on
         some benchmarking.
 
+        Note: This function factors the content of the polynomial,
+        which can take very long if it's a really big integer.  If you
+        do not need the content factored, divide it out of your
+        polynomial before calling this function.
+
         EXAMPLES:
             sage: R.<x>=ZZ[]
             sage: f=x^4-1
@@ -904,14 +909,18 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             (-1) * (x - 1)
             sage: f.factor().unit()
             -1
+            sage: f = -30*x; f.factor()
+            (-1) * 2 * 3 * 5 * x
         """
         cdef int i
         cdef int deg = ZZX_deg(self.__poly)
         # it appears that pari has a window from about degrees 30 and 300 in which it beats NTL.
+        c = self.content()
+        g = self//c
         if deg < 30 or deg > 300:
-            return self._factor_ntl()
+            return c.factor()*g._factor_ntl()
         else:
-            return self._factor_pari()
+            return c.factor()*g._factor_pari()
 
     def factor_mod(self, p):
         """

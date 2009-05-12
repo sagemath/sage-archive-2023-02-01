@@ -301,7 +301,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: L.define(E+X*L)
             sage: L.generating_series().coefficients(4)
             [1, 1, 1, 1]
-            sage: L.structures([1,2,3]).count()
+            sage: L.structures([1,2,3]).cardinality()
             6
             sage: L.structures([1,2,3]).list()
             [1*(2*(3*{})),
@@ -316,7 +316,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: L = species.LinearOrderSpecies()
             sage: L.generating_series().coefficients(4)
             [1, 1, 1, 1]
-            sage: L.structures([1,2,3]).count()
+            sage: L.structures([1,2,3]).cardinality()
             6
             sage: L.structures([1,2,3]).list()
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]

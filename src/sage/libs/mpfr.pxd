@@ -1,5 +1,5 @@
 
-from sage.libs.gmp.all cimport size_t, mp_exp_t, mp_size_t, gmp_randstate_t, mpz_t, mpq_t
+from sage.libs.gmp.all cimport mp_exp_t, mp_size_t, gmp_randstate_t, mpz_t, mpq_t
 
 cdef extern from "mpfr.h":
     ctypedef struct __mpfr_struct:

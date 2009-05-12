@@ -6,7 +6,7 @@ Géométrie algébrique
 
 Il est possible de définir des variétés algébriques arbitraires en Sage,
 mais les fonctionnalités non triviales sont parfois limitées aux anneaux
-sur  :math:`\mathbb{Q}` ou sur les corps finis. Calculons par exemple
+sur  :math:`\QQ` ou sur les corps finis. Calculons par exemple
 la réunion de deux courbes planes affines, puis récupérons les courbes
 en tant que composantes irréductibles de la réunion.
 
@@ -86,7 +86,7 @@ ligne de Cremona (ceci requiert un paquet de base de donnée
 optionnel), les fonctionnalités de mwrank, c'est-à-dire la 2-descente
 avec calcul du groupe de Mordell-Weil complet, l'algorithme SEA, le
 calcul de toutes les isogénies, beaucoup de nouveau code pour les
-courbes sur :math:`\mathbb{Q}` et une partie du code de descente
+courbes sur :math:`\QQ` et une partie du code de descente
 algébrique de Denis Simon.
 
 La commande ``EllipticCurve`` permet de créer une courbe elliptique avec
@@ -101,8 +101,8 @@ beaucoup de souplesse :
 
    où les :math:`a_i`'s sont convertis par coercition dans le parent
    de :math:`a_1`. Si tous les :math:`a_i` ont pour parent
-   :math:`\mathbb{Z}`, ils sont convertis par coercition dans
-   :math:`\mathbb{Q}`.
+   :math:`\ZZ`, ils sont convertis par coercition dans
+   :math:`\QQ`.
 
 -  EllipticCurve([:math:`a_4`, :math:`a_6`]) : idem
    avec :math:`a_1=a_2=a_3=0`.
@@ -137,8 +137,8 @@ Illustrons chacune de ces constructions :
     sage: EllipticCurve('37a')
     Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-    sage: EllipticCurve(1)
-    Elliptic Curve defined by y^2  = x^3 + 5181*x - 5965058 over Rational Field
+    sage: EllipticCurve_from_j(1)
+    Elliptic Curve defined by y^2 + x*y = x^3 + 36*x + 3455 over Rational Field
 
     sage: EllipticCurve(GF(5), [0,0,1,-1,0])
     Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
@@ -172,8 +172,10 @@ suit :
 
 ::
 
-    sage: E = EllipticCurve([0,0,1,-1,0]); E
-    Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+    sage: E = EllipticCurve([0,0,0,-4,2]); E
+    Elliptic Curve defined by y^2 = x^3 - 4*x + 2 over Rational Field
+    sage: E.conductor()
+    2368
     sage: E.j_invariant()
     110592/37
 
@@ -184,9 +186,9 @@ conducteur est différent.
 
 ::
 
-    sage: F = EllipticCurve(110592/37)
-    sage: factor(F.conductor())
-     2^6 * 3^2 * 37^2
+    sage: F = EllipticCurve_from_j(110592/37)
+    sage: F.conductor()
+    37
 
 Toutefois, le twist??? de :math:`F` par 2 donne une courbe isomorphe.
 
@@ -194,10 +196,10 @@ Toutefois, le twist??? de :math:`F` par 2 donne une courbe isomorphe.
 
 ::
 
-    sage: G = F.quadratic_twist(-6*37); G
-    Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+    sage: G = F.quadratic_twist(2); G
+    Elliptic Curve defined by y^2 = x^3 - 4*x + 2 over Rational Field
     sage: G.conductor()
-    37
+    2368
     sage: G.j_invariant()
     110592/37
 
@@ -275,8 +277,8 @@ Caractères de Dirichlet
 -----------------------
 
 Un *caractère de Dirichlet* est une extension d'un homomorphisme
-:math:`(\mathbb{Z}/N\mathbb{Z})^* \to R^*`, pour un certain anneau
-:math:`R`, à l'application :math:`\mathbb{Z} \to R` obtenue en envoyant
+:math:`(\ZZ/N\ZZ)^* \to R^*`, pour un certain anneau
+:math:`R`, à l'application :math:`\ZZ \to R` obtenue en envoyant
 les entiers :math:`x` tels que  :math:`\gcd(N,x)>1` vers 0.
 
 ::
@@ -314,7 +316,7 @@ Une fois le groupe créé, on crée aussitôt un élément et on calcule avec lu
     -zeta6 + 1
 
 Il est possible aussi de calculer l'action d'un groupe de Galois
-:math:`\text{Gal}(\mathbb{Q}(\zeta_N)/\mathbb{Q})` sur l'un de ces
+:math:`\text{Gal}(\QQ(\zeta_N)/\QQ)` sur l'un de ces
 caractères, de même qu'une décomposition en produit direct correspondant
 à la factorisation du module.
 
@@ -343,7 +345,7 @@ caractères, de même qu'une décomposition en produit direct correspondant
     ]
 
 Construisons maintenant le groupe de caractères de Dirichlet modulo 20,
-mais à valeur dans  :math:`\mathbb{Q}(i)`:
+mais à valeur dans  :math:`\QQ(i)`:
 
 ::
 

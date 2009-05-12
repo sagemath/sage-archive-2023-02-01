@@ -4,6 +4,6 @@ from modsym import ModularSymbols, ModularSymbols_clear_cache
 
 from space import is_ModularSymbolsSpace
 
-from heilbronn import *
+from heilbronn import HeilbronnCremona, HeilbronnMerel
 
-from p1list import *
+from p1list import P1List, lift_to_sl2z

@@ -146,7 +146,7 @@ from functional import (additive_order,
                         parent)
 
 
-from latex import latex, view, pretty_print, pretty_print_default, jsmath
+from latex import latex, view, pretty_print, pretty_print_default
 
 # disabled -- nobody uses mathml
 #from mathml ml

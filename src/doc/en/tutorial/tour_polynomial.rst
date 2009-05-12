@@ -101,7 +101,7 @@ generator, or just the generator, during ring creation as follows:
     sage: R, t = objgen(QQ['t'])
     sage: t    = gen(QQ['t'])
 
-Finally we do some arithmetic in :math:`\mathbb{Q}[t]`.
+Finally we do some arithmetic in :math:`\QQ[t]`.
 
 ::
 
@@ -188,8 +188,8 @@ ring with variable called ``x`` does not return a different ring.
 
 Sage also has support for power series and Laurent series rings
 over any base ring. In the following example, we create an element
-of :math:`\mathbb{F}_7[[T]]` and divide to create an element of
-:math:`\mathbb{F}_7((T))`.
+of :math:`\GF{7}[[T]]` and divide to create an element of
+:math:`\GF{7}((T))`.
 
 ::
 

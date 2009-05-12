@@ -191,7 +191,7 @@ class TextCell(Cell_generic):
 
         s = """<div class="text_cell" id="cell_text_%s">%s</div>"""%(self.__id,self.html_inner(ncols=ncols, do_print=do_print, do_math_parse=do_math_parse, editing=editing))
 
-        if JEDITABLE_TINYMCE and hasattr(self.worksheet(),'is_published') and not self.worksheet().is_published():
+        if JEDITABLE_TINYMCE and hasattr(self.worksheet(),'is_published') and not self.worksheet().is_published() and not self.worksheet().docbrowser():
             s += """<script>$("#cell_text_%s").unbind('dblclick').editable(function(value,settings) {
 evaluate_text_cell_input(%s,value,settings);
 return(value);
@@ -404,7 +404,8 @@ class Cell(Cell_generic):
             sage: W.edit_save('Sage\n{{{\n2+3\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
             sage: C
-            Cell 0; in=2+3, out=20
+            Cell 0; in=2+3, out=
+            20
 
         We re-evaluate that input cell::
 
@@ -1749,6 +1750,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
             <BLANKLINE>
             )
             sage: C.files()
@@ -1775,6 +1777,7 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
             sage: C.evaluate()
             sage: W.check_comp(wait=9999)
             ('d', Cell 0; in=plot(sin(x),0,5), out=
+            <html><font color='black'><img src='cell://sage0.png'></font></html>
             <BLANKLINE>
             )
             sage: C.files()

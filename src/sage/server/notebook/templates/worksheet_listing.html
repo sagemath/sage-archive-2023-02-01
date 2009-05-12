@@ -50,6 +50,9 @@
     {% endif %}
 
     <button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>
+    {% if not accounts %}
+    <button onClick="download_worksheets_button();" title="Download selected worksheets">Download</button>
+    {% endif %}
     <span style="padding-left:100px;">
 
     Current Folder:
@@ -147,7 +150,7 @@
       </td>
 
       <td class="worksheet_link">
-	<a title="{{ worksheet.name() | escape }}" id="name/{{ name }}" class="worksheetname" href="/home/{{ name }}">
+	<a title="{{ worksheet.name() | escape }}" id="name/{{ name }}" class="worksheetname" target="_blank" href="/home/{{ name }}">
 	{% if worksheet.compute_process_has_been_started() %}(running) {% endif %}
 	{{ worksheet.truncated_name(35) | escape}}
 	</a>
@@ -155,7 +158,12 @@
 	{% if not pub and worksheet.is_published() %}(Published){% endif %}
       </td>
       <td class="owner_collab">
-	{{ worksheet.owner() }}
+
+    {% if not pub %}
+        {{ worksheet.owner() }}
+    {% else %}
+        {{worksheet.worksheet_that_was_published().owner()}}
+    {% endif %}
 
 	{% if not pub and typ != 'trash' %}
 

@@ -2,7 +2,7 @@ include "../../ext/cdefs.pxi"
 
 include '../../modules/vector_modn_sparse_h.pxi'
 
-ctypedef size_t mod_int
+from sage.matrix.matrix_integer_dense cimport mod_int
 
 cdef class Linbox_modn_dense:
     cdef mod_int** matrix

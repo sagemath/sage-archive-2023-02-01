@@ -874,7 +874,7 @@ class CombinatorialFreeModuleInterface(sage.structure.parent_base.ParentWithBase
             sage: s.dimension()
             +Infinity
         """
-        return self._combinatorial_class.count()
+        return self._combinatorial_class.cardinality()
 
     def set_order(self, order):
         """

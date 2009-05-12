@@ -17,16 +17,19 @@ Finite combinatorial classes
 #*****************************************************************************
 from combinat import CombinatorialClass
 
-def FiniteCombinatorialClass(l):
+class FiniteCombinatorialClass(CombinatorialClass):
     """
-    Returns the combinatorial class with elements in l.
+    INPUT:
+     - l a list or iterable
+
+    Returns l, wrapped as a combinatorial class
 
     EXAMPLES::
 
         sage: F = FiniteCombinatorialClass([1,2,3])
         sage: F.list()
         [1, 2, 3]
-        sage: F.count()
+        sage: F.cardinality()
         3
         sage: F.random_element()
         1
@@ -35,11 +38,6 @@ def FiniteCombinatorialClass(l):
         sage: F.last()
         3
     """
-    if not isinstance(l, list):
-        l = list(l)
-    return FiniteCombinatorialClass_l(l)
-
-class FiniteCombinatorialClass_l(CombinatorialClass):
     def __init__(self, l):
         """
         TESTS::
@@ -48,7 +46,7 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
             sage: F == loads(dumps(F))
             True
         """
-        self.l = l
+        self.l = list(l) # Probably would be better to use a tuple
 
     def object_class(self, x):
         """
@@ -72,7 +70,7 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
 
     def __contains__(self, x):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: 1 in F
@@ -96,13 +94,36 @@ class FiniteCombinatorialClass_l(CombinatorialClass):
         """
         return self.l
 
-    def count(self):
+    def cardinality(self):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
-            sage: F.count()
+            sage: F.cardinality()
             3
         """
         return len(self.l)
 
+
+    def __getitem__(self, i): # TODO: optimize
+        """
+        EXAMPLES::
+
+            sage: F = FiniteCombinatorialClass(["a", "b", "c"])
+            sage: F[2]
+            'c'
+        """
+        return self.l[i]
+
+    def keys(self):
+        """
+        EXAMPLES:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: F.keys()
+            [0, 1, 2]
+        """
+        return range(len(self.l))
+
+# Backward compatibility pointer
+# Needed for unpickling.
+FiniteCombinatorialClass_l = FiniteCombinatorialClass

@@ -152,6 +152,11 @@ cdef class Graphics3d(SageObject):
     def default_render_params(self):
         return RenderParams(ds=.075)
 
+    def testing_render_params(self):
+        params = RenderParams(ds=.075)
+        params.output_archive = zipfile.ZipFile('/dev/null', 'w', zipfile.ZIP_STORED, True)
+        return params
+
     def x3d(self):
         return """
 <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
@@ -229,10 +234,6 @@ end_scene""" % (
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
         render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
-        render_params.atom_list = [] # some things (such as labels) must be attached to atoms
-        render_params.mesh = mesh
-        render_params.dots = dots
-
         # Render the data
         all = flatten_list([self.jmol_repr(render_params), ""])
 
@@ -505,8 +506,10 @@ end_scene""" % (
         if kwds.has_key('frame'): frame = kwds['frame']; del kwds['frame']
         if kwds.has_key('axes'): axes = kwds['axes']; del kwds['axes']
 
+        if aspect_ratio == 1:
+            aspect_ratio = (1, 1, 1)
         if not isinstance(aspect_ratio, (str, list, tuple)):
-            raise TypeError, "aspect ratio must be a string, list, or tuple"
+            raise TypeError, "aspect ratio must be a string, list, tuple, or 1"
         if aspect_ratio != "automatic" and frame_aspect_ratio == "automatic":
             # set the aspect_ratio of the frame to be the same as that of the
             # object we are rendering given the aspect_ratio we'll use for it.
@@ -803,9 +806,14 @@ class RenderParams(SageObject):
     render triangulate/render an object to a certain format. It can
     contain both cumulative and global parameters.
     """
+
+    _uniq_counter = 0
+    randomize_counter = 0
+    force_reload = False
+    mesh = False
+    dots = False
+
     def __init__(self, **kwds):
-        self._uniq_counter = 0
-        self.randomize_counter = 0
         self.output_file = sage.misc.misc.tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
@@ -813,6 +821,8 @@ class RenderParams(SageObject):
         self.ds = 1
         self.crease_threshold = .8
         self.__dict__.update(kwds)
+        # for jmol, some things (such as labels) must be attached to atoms
+        self.atom_list = []
 
     def push_transform(self, T):
         self.transform_list.append(self.transform)

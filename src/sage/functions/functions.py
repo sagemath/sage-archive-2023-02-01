@@ -298,9 +298,9 @@ class Function(RingElement):
             raise TypeError, "these objects are not comparable"
         if c: return c
         try:
-	    return cmp(maxima(self),maxima(right))
-	except TypeError:
-	    pass
+            return cmp(maxima(self),maxima(right))
+        except TypeError:
+            pass
         raise NotImplementedError, "equality testing for general mathematical functions not yet implemented (can't prove equality)."
 
 

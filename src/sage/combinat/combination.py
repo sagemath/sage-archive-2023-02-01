@@ -53,7 +53,7 @@ def Combinations(mset, k=None):
          [0, 2, 3],
          [1, 2, 3],
          [0, 1, 2, 3]]
-         sage: C.count()
+         sage: C.cardinality()
          16
 
     ::
@@ -62,7 +62,7 @@ def Combinations(mset, k=None):
         Combinations of [0, 1, 2, 3] of length 2
         sage: C2.list()
         [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
-        sage: C2.count()
+        sage: C2.cardinality()
         6
 
     ::
@@ -146,7 +146,7 @@ class Combinations_mset(CombinatorialClass):
         """
         return "Combinations of %s"%self.mset
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
@@ -157,22 +157,22 @@ class Combinations_mset(CombinatorialClass):
             for comb in Combinations_msetk(self.mset, k):
                 yield comb
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
-            sage: Combinations([1,2,3]).count()
+            sage: Combinations([1,2,3]).cardinality()
             8
-            sage: Combinations(['a','a','b']).count()
+            sage: Combinations(['a','a','b']).cardinality()
             6
         """
         c = 0
         for k in range(len(self.mset)+1):
-            c +=  Combinations_msetk(self.mset, k).count()
+            c +=  Combinations_msetk(self.mset, k).cardinality()
         return c
 
 class Combinations_set(Combinations_mset):
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -189,7 +189,7 @@ class Combinations_set(Combinations_mset):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
-            sage: c.list() == map(c.unrank, range(c.count()))
+            sage: c.list() == map(c.unrank, range(c.cardinality()))
             True
         """
         k = 0
@@ -208,7 +208,7 @@ class Combinations_set(Combinations_mset):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
-            sage: range(c.count()) == map(c.rank, c)
+            sage: range(c.cardinality()) == map(c.rank, c)
             True
         """
         x = map(self.mset.index, x)
@@ -263,7 +263,7 @@ class Combinations_msetk(CombinatorialClass):
         """
         return "Combinations of %s of length %s"%(self.mset, self.k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES::
 
@@ -278,7 +278,7 @@ class Combinations_msetk(CombinatorialClass):
         for iv in IntegerVectors(self.k, len(indices), outer=counts):
             yield sum([[self.mset[indices[i]]]*iv[i] for i in range(len(indices))],[])
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
         GAP's NrCombinations.
@@ -286,7 +286,7 @@ class Combinations_msetk(CombinatorialClass):
         EXAMPLES::
 
             sage: mset = [1,1,2,3,4,4,5]
-            sage: Combinations(mset,2).count()
+            sage: Combinations(mset,2).cardinality()
             12
         """
         items = map(self.mset.index, self.mset)
@@ -326,7 +326,7 @@ class Combinations_setk(Combinations_msetk):
         """
         yield []
 
-    def iterator(self):
+    def __iter__(self):
         r"""
         Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
         http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
@@ -375,7 +375,7 @@ class Combinations_setk(Combinations_msetk):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
-            sage: c.list() == map(c.unrank, range(c.count()))
+            sage: c.list() == map(c.unrank, range(c.cardinality()))
             True
         """
         return map(lambda i: self.mset[i], from_rank(r, len(self.mset), self.k))
@@ -386,7 +386,7 @@ class Combinations_setk(Combinations_msetk):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
-            sage: range(c.count()) == map(c.rank, c.list())
+            sage: range(c.cardinality()) == map(c.rank, c.list())
             True
         """
         x = map(self.mset.index, x)

@@ -272,7 +272,7 @@ class ComplexIntervalField_class(field.Field):
         return "Complex Interval Field with %s bits of precision"%self._prec
 
     def _latex_(self):
-        return "\\C"
+        return "\\Bold{C}"
 
     def characteristic(self):
         return integer.Integer(0)

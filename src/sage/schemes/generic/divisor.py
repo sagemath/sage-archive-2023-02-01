@@ -267,8 +267,8 @@ class Divisor_curve(Divisor_generic):
             -1
         """
         P = self.parent().scheme()(P)
-   	if not(P in self.support()):
-       	    return ZZ(0)
+        if not(P in self.support()):
+            return ZZ(0)
         t, i = search(self.support(), P)
         assert t
         try:

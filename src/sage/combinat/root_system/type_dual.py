@@ -36,14 +36,13 @@ class CartanType(CartanType_abstract):
     def __cmp__(self, other):
         """
         EXAMPLES:
-            sage: ct1 = CartanType(['A',1],['B',2])
-            sage: ct2 = CartanType(['B',2],['A',1])
-            sage: ct3 = CartanType(['A',4])
-            sage: ct = [ct1, ct2, ct3]
-            sage: [[x.__cmp__(y) for x in ct] for y in ct]
-            [[0, 1, -1], [-1, 0, -1], [1, 1, 0]]
-            sage: sorted(ct)
-            [['A', 4], A1xB2, B2xA1]
+            sage: ct1 = CartanType(['B',2]).dual()
+            sage: ct2 = CartanType(['B',2]).dual()
+            sage: ct3 = CartanType(['D',4]).dual()
+            sage: ct1 == ct2
+            True
+            sage: ct1 == ct3
+            False
         """
         if other.__class__ != self.__class__:
             return cmp(self.__class__, other.__class__)

@@ -28,7 +28,7 @@ EXAMPLES::
 import weakref
 import re
 
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
@@ -82,7 +82,7 @@ def canonical_parameters(group, level, weight, base_ring):
         (5, Congruence Subgroup Gamma0(5), 7, Integer Ring)
         sage: type(v[0]), type(v[1]), type(v[2]), type(v[3])
         (<type 'sage.rings.integer.Integer'>,
-         <class 'sage.modular.congroup.Gamma0_class'>,
+         <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class'>,
          <type 'sage.rings.integer.Integer'>,
          <type 'sage.rings.integer_ring.IntegerRing_class'>)
         sage: canonical_parameters( 5, 7, 7, ZZ )
@@ -97,7 +97,7 @@ def canonical_parameters(group, level, weight, base_ring):
     if isinstance(group, (int, long, rings.Integer)):
         if ( rings.Integer(group) != rings.Integer(level) ):
             raise ValueError, "group and level do not match."
-        group = congroup.Gamma0(group)
+        group = arithgroup.Gamma0(group)
         level = rings.Integer(level)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
@@ -107,13 +107,13 @@ def canonical_parameters(group, level, weight, base_ring):
         level = rings.Integer(level)
 
 
-    elif congroup.is_SL2Z(group) or \
-       congroup.is_Gamma1(group) and group.level() == rings.Integer(1):
+    elif arithgroup.is_SL2Z(group) or \
+       arithgroup.is_Gamma1(group) and group.level() == rings.Integer(1):
         if ( rings.Integer(level) != rings.Integer(1) ):
             raise ValueError, "group.level() and level do not match."
-        group = congroup.Gamma0(rings.Integer(1))
+        group = arithgroup.Gamma0(rings.Integer(1))
 
-    elif congroup.is_CongruenceSubgroup(group):
+    elif arithgroup.is_CongruenceSubgroup(group):
         if ( rings.Integer(level) != group.level() ):
             raise ValueError, "group.level() and level do not match."
 
@@ -255,17 +255,17 @@ def ModularForms(group  = 1,
     (level, group, weight, base_ring) = key
 
     M = None
-    if congroup.is_Gamma0(group):
+    if arithgroup.is_Gamma0(group):
         M = ambient_g0.ModularFormsAmbient_g0_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
-    elif congroup.is_Gamma1(group):
+    elif arithgroup.is_Gamma1(group):
         M = ambient_g1.ModularFormsAmbient_g1_Q(group.level(), weight)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
-    elif congroup.is_GammaH(group):
+    elif arithgroup.is_GammaH(group):
         M = ambient.ModularFormsAmbient(group, weight, rings.QQ)
         if base_ring != rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
@@ -424,14 +424,14 @@ def parse_label(s):
     for c in reversed(order):
         index = 26*index + ord(c)-ord('a')
     if G == '' or G == 'G0':
-        G = congroup.Gamma0(N)
+        G = arithgroup.Gamma0(N)
     elif G == 'G1':
-        G = congroup.Gamma1(N)
+        G = arithgroup.Gamma1(N)
     elif G[:2] == 'GH':
         if G[2] != '[' or G[-1] != ']':
             raise ValueError, "Invalid congruence subgroup label: %s" % G
         gens = [int(g.strip()) for g in G[3:-1].split(',')]
-        return congroup.GammaH(N, gens)
+        return arithgroup.GammaH(N, gens)
     else:
         raise ValueError, "Invalid congruence subgroup label: %s" % G
     return G, index

@@ -184,6 +184,46 @@ class AffineCurve_generic(Curve_generic):
         v = [x0+t,y0+add([vals[i][2]*t**(i+1) for i in range(k)])]
         return v
 
+    def plot(self, *args, **kwds):
+        """
+        Plot the real points on this affine plane curve.
+
+        INPUT:
+
+
+        -  ``self`` - an affine plane curve
+
+        -  ``*args`` - optional tuples (variable, minimum, maximum) for
+           plotting dimensions
+
+        -  ``**kwds`` - optional keyword arguments passed on to
+           ``implicit_plot``
+
+
+        EXAMPLES:
+
+        A cuspidal curve::
+
+            sage: R.<x, y> = QQ[]
+            sage: C = Curve(x^3 - y^2)
+            sage: C.plot()
+
+        A 5-nodal curve of degree 11.  This example also illustrates
+        some of the optional arguments::
+
+            sage: R.<x, y> = ZZ[]
+            sage: C = Curve(32*x^2 - 2097152*y^11 + 1441792*y^9 - 360448*y^7 + 39424*y^5 - 1760*y^3 + 22*y - 1)
+            sage: C.plot((x, -1, 1), (y, -1, 1), plot_points=400)
+
+        A line over `\mathbf{RR}`::
+
+            sage: R.<x, y> = RR[]
+            sage: C = Curve(R(y - sqrt(2)*x))
+            sage: C.plot()
+        """
+        I = self.defining_ideal()
+        return I.plot(*args, **kwds)
+
 class AffineCurve_finite_field(AffineCurve_generic):
     def rational_points(self, algorithm="enum"):
         r"""

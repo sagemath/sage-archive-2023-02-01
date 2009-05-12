@@ -53,3 +53,28 @@ void ZZ_to_t_INT ( GEN *g, mpz_t value )
   return;
 }
 
+
+/*
+
+  Convert back and forth from mpq_t to PARI's t_FRAC GEN type. Nothing
+  fancy happens here either.
+
+  No type checking is done.
+
+  AUTHOR: William Stein
+
+*/
+
+void t_FRAC_to_QQ ( mpq_t value, GEN g )
+{
+    t_INT_to_ZZ(mpq_numref(value), numer(g));
+    t_INT_to_ZZ(mpq_denref(value), denom(g));
+}
+
+void QQ_to_t_FRAC ( GEN *g, mpq_t value )
+{
+    GEN num, den;
+    ZZ_to_t_INT(&num, mpq_numref(value));
+    ZZ_to_t_INT(&den, mpq_denref(value));
+    *g = gdiv(num, den);
+}

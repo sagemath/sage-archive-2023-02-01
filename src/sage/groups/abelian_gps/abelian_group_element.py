@@ -59,7 +59,6 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod
 from sage.rings.arith import LCM, GCD
-from sage.misc.randstate import current_randstate
 
 def is_AbelianGroupElement(x):
     """
@@ -351,8 +350,7 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             sage: y.word_problem([x,y])
             [[y, 1]]
             sage: (y*x).word_problem([x,y])
-            [[y, 1], [x, 1]]
+            [[x, 1], [y, 1]]
         """
-        current_randstate().set_seed_gap()
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)

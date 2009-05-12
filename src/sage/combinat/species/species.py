@@ -383,12 +383,12 @@ class GenericCombinatorialSpecies(SageObject):
             sage: P._check()
             True
         """
-        s = self.structures(range(n))
+        st = self.structures(range(n))
         it = self.isotypes(range(n))
 
         try:
-            return (len(s.list()) == s.count() and
-                    len(it.list()) == it.count())
+            return (len(st.list()) == st.cardinality() and
+                    len(it.list()) == it.cardinality())
         except NotImplementedError:
             return False
 

@@ -309,7 +309,7 @@ cdef class RealField(sage.rings.ring.Field):
         return s
 
     def _latex_(self):
-        return "\\mathbf{R}"
+        return "\\Bold{R}"
 
     def _sage_input_(self, sib, coerce):
         r"""
@@ -661,6 +661,14 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        # The docs for mpfr_free_cache say "Free the cache used by
+        # the functions computing constants if needed (currently
+        # mpfr_const_log2, mpfr_const_pi and mpfr_const_euler)", so
+        # this isn't a seriously bad thing to do.  This prevents trac
+        # #5689.  This is needed for all constants, despite what the docs say.
+        # NOTE: The MPFR docs at this time leave off several mpfr_const
+        # functions, but this free is needed for them too!
+        mpfr_free_cache()
         mpfr_const_pi(x.value, self.rnd)
         _sig_off
         return x
@@ -679,6 +687,7 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        mpfr_free_cache()
         mpfr_const_euler(x.value, self.rnd)
         _sig_off
         return x
@@ -696,6 +705,7 @@ cdef class RealField(sage.rings.ring.Field):
         cdef RealNumber x
         x = self._new()
         _sig_on
+        mpfr_free_cache()
         mpfr_const_catalan(x.value, self.rnd)
         _sig_off
         return x
@@ -715,6 +725,7 @@ cdef class RealField(sage.rings.ring.Field):
         """
         cdef RealNumber x = self._new()
         _sig_on
+        mpfr_free_cache()
         mpfr_const_log2(x.value, self.rnd)
         _sig_off
         return x
@@ -2142,6 +2153,32 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def _complex_number_(self):
         import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())(self)
+
+    def _axiom_(self, axiom):
+        """
+        Returns self as a floating point number in Axiom.
+
+        EXAMPLES::
+
+            sage: R = RealField(100)
+            sage: R(pi)
+            3.1415926535897932384626433833
+            sage: axiom(R(pi))  # optional - axiom
+            3.1415926535 8979323846 26433833
+            sage: fricas(R(pi)) # optional - fricas
+            3.1415926535 8979323846 26433833
+
+        """
+        prec = self.parent().prec()
+
+        #Set the precision in Axiom
+        old_prec = axiom('precision(%s)$Float'%prec)
+        res = axiom('%s :: Float'%self.exact_rational())
+        axiom.eval('precision(%s)$Float'%old_prec)
+
+        return res
+
+    _fricas_ = _axiom_
 
     def _pari_(self):
         """

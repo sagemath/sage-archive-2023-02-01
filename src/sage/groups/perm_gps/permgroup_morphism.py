@@ -66,7 +66,7 @@ class PermutationGroupMap(Morphism):
     A set-theoretic map between PermutationGroups.
     """
     def __init__(self, parent):
-	Morphism.__init__(self, parent)
+        Morphism.__init__(self, parent)
 
     def _repr_type(self):
         return "PermutationGroup"
@@ -111,10 +111,10 @@ class PermutationGroupMorphism_from_gap:
         self._codomain = H
         if not(isinstance(G, PermutationGroup_generic)):
             raise TypeError, "Sorry, the groups must be permutation groups."
-    	if not(isinstance(H, PermutationGroup_generic)):
+        if not(isinstance(H, PermutationGroup_generic)):
             raise TypeError, "Sorry, the groups must be permutation groups."
-    	G0  = G._gap_init_()
-    	H0  = H._gap_init_()
+        G0  = G._gap_init_()
+        H0  = H._gap_init_()
         self.gap_hom_string = gap_hom_str
         self._name = name
         self.hom = gap.eval(gap_hom_str)
@@ -185,12 +185,12 @@ class PermutationGroupMorphism_from_gap:
 
     def __call__( self, g ):
         """
-    	Some python code for wrapping GAP's Images function but only for
-    	permutation groups. Returns an error if g is not in G.
-    	"""
+        Some python code for wrapping GAP's Images function but only for
+        permutation groups. Returns an error if g is not in G.
+        """
         cmd = self.gap_hom_string
         gap.eval(cmd)
-    	return PermutationGroupElement(gap.eval("Image( "+self._name+", "+str(g)+")"),self.range(), check = True)
+        return PermutationGroupElement(gap.eval("Image( "+self._name+", "+str(g)+")"),self.range(), check = True)
 
 class PermutationGroupMorphism_im_gens:
     """
@@ -228,28 +228,28 @@ class PermutationGroupMorphism_im_gens:
         self._codomain = H
         if not(isinstance(G, PermutationGroup_generic)):
             raise TypeError, "Sorry, the groups must be permutation groups."
-    	if not(isinstance(H, PermutationGroup_generic)):
+        if not(isinstance(H, PermutationGroup_generic)):
             raise TypeError, "Sorry, the groups must be permutation groups."
-    	G0  = G._gap_init_()
-    	H0  = H._gap_init_()
-    	gaplist_gens = [gap_format(x) for x in gensG]
-    	gaplist_imgs = [gap_format(x) for x in imgsH]
-    	L = gaplist_gens
-    	if len(L) == 1:
+        G0  = G._gap_init_()
+        H0  = H._gap_init_()
+        gaplist_gens = [gap_format(x) for x in gensG]
+        gaplist_imgs = [gap_format(x) for x in imgsH]
+        L = gaplist_gens
+        if len(L) == 1:
             genss = "["+L[0]+"]"
-    	if len(L)>1:
+        if len(L)>1:
             genss = "["+L[0]+''.join([","+L[i+1] for i in range(len(L)-1)])+"]"
-    	L = gaplist_imgs
-    	if len(L) == 1:
+        L = gaplist_imgs
+        if len(L) == 1:
             imgss = "["+L[0]+"]"
-    	if len(L)>1:
+        if len(L)>1:
             imgss = "["+L[0]+''.join([","+L[i+1] for i in range(len(L)-1)])+"]"
-    	args = str(G0)+","+str(H0)+","+genss+","+ imgss
-    	phi0 = gap.eval("phi := GroupHomomorphismByImages("+args+")")
+        args = str(G0)+","+str(H0)+","+genss+","+ imgss
+        phi0 = gap.eval("phi := GroupHomomorphismByImages("+args+")")
         self.gap_hom_string = "phi := GroupHomomorphismByImages("+args+")"
-    	if phi0=="fail":
+        if phi0=="fail":
             raise ValueError,"The map "+str(gensG)+"-->"+str(imgsH)+" isn't a homomorphism."
-    	self.hom = gap.eval("phi")
+        self.hom = gap.eval("phi")
 
     def __repr__(self):
         return "Homomorphism : %s --> %s"%(self.domain(),self.range())
@@ -308,20 +308,20 @@ class PermutationGroupMorphism_im_gens:
 
     def __call__( self, g ):
         """
-    	Some python code for wrapping GAP's Images function but only for
-    	permutation groups. Returns an error if g is not in G.
+        Some python code for wrapping GAP's Images function but only for
+        permutation groups. Returns an error if g is not in G.
 
-    	EXAMPLES::
+        EXAMPLES::
 
-    	    sage: G = CyclicPermutationGroup(4)
+            sage: G = CyclicPermutationGroup(4)
             sage: gens = G.gens()
             sage: H = DihedralGroup(4)
             sage: phi = PermutationGroupMorphism_im_gens( G, H, gens, gens)
             sage: g = G([(1,3),(2,4)]); g
-    	    (1,3)(2,4)
+            (1,3)(2,4)
             sage: phi(g)
-    	    (1,3)(2,4)
-    	"""
+            (1,3)(2,4)
+        """
         return self.image(g)
 
 PermutationGroupMorphism = PermutationGroupMorphism_im_gens

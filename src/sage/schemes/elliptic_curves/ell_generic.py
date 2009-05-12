@@ -1,5 +1,5 @@
 r"""
-Elliptic curves over a general ring
+Elliptic curves over a general ring.
 
 Elliptic curves are always represented by 'Weierstrass Models' with
 five coefficients `[a_1,a_2,a_3,a_4,a_6]` in standard
@@ -7,8 +7,9 @@ notation. In Magma, 'Weierstrass Model' means a model with
 a1=a2=a3=0, which is called 'Short Weierstrass Model' in Sage;
 these only exist in characteristics other than 2 and 3.
 
-EXAMPLES: We construct an elliptic curve over an elaborate base
-ring::
+EXAMPLES:
+
+We construct an elliptic curve over an elaborate base ring::
 
     sage: p = 97; a=1; b=3
     sage: R, u = PolynomialRing(GF(p), 'u').objgen()
@@ -88,7 +89,9 @@ O = rings.O         # big oh
 import sage.schemes.plane_curves.projective_curve as plane_curve
 
 def is_EllipticCurve(x):
-    """
+    r"""
+    Utility function to test if ``x`` is an instance of an Elliptic Curve class.
+
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
@@ -101,7 +104,7 @@ def is_EllipticCurve(x):
     return isinstance(x, EllipticCurve_generic)
 
 class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
-    """
+    r"""
     Elliptic curve over a generic base ring.
 
     EXAMPLES::
@@ -116,9 +119,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         (179051/80089 : -91814227/22665187 : 1)
     """
     def __init__(self, ainvs, extra=None):
-        """
-        Constructor from [a1,a2,a3,a4,a6] or [a4,a6] (see constructor.py
-        for more variants)
+        r"""
+        Constructor from `a`-invariants (long or short Weierstrass coefficients).
+
+        INPUT:
+
+        - ``ainvs`` (list) -- either `[a_1,a_2,a_3,a_4,a_6]` or
+          `[a_4,a_6]` (with `a_1=a_2=a_3=0` in the second case).
+
+        .. note::
+
+           See constructor.py for more variants.
 
         EXAMPLES::
 
@@ -127,12 +138,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve(GF(7),[1,2,3,4,5]); E
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Finite Field of size 7
 
-        Constructor from [a4,a6] sets a1=a2=a3=0::
+        Constructor from `[a_4,a_6]` sets `a_1=a_2=a_3=0`::
 
             sage: EllipticCurve([4,5]).ainvs()
             [0, 0, 0, 4, 5]
 
-        Base ring need not be a field::
+        The base ring need not be a field::
 
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
@@ -166,9 +177,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
-        """
+        r"""
         Internal function. Returns a tuple of the base ring of this
-        elliptic curve and its a-invariants, from which it can be
+        elliptic curve and its `a`-invariants, from which it can be
         reconstructed.
 
         EXAMPLES::
@@ -387,6 +398,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                                   - sqrt(4 x  - 4 x  - 40 x - 79) - 1
                                   -----------------------------------
                                                    2
+            sage: v = v.function(x)
             sage: v(3)
             (-sqrt(127)*I - 1)/2
             sage: v(7)
@@ -516,7 +528,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E([0,0])
             Traceback (most recent call last):
             ...
-            TypeError: coordinates [0, 0, 1] do not define a point on Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+            TypeError: Coordinates [0, 0, 1] do not define a point on Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
 
         We create a point on an elliptic curve over a number field.
 
@@ -647,12 +659,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def is_x_coord(self, x):
         """
-        Returns whether x is the x-coordinate of a point on this curve.
+        Returns True if ``x`` is the `x`-coordinate of a point on this curve.
 
-        See also lift_x() to find the point(s) with a given x_coordinate.
-        This function may be useful in cases where testing an element of
-        the base field for being a square is faster than finding its square
-        root.
+        .. note::
+
+           See also ``lift_x()`` to find the point(s) with a given
+           `x`-coordinate.  This function may be useful in cases where
+           testing an element of the base field for being a square is
+           faster than finding its square root.
 
         EXAMPLES::
 
@@ -663,19 +677,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.is_x_coord(2)
             True
 
-        There are no rational points with x-coordinate 3.
-
-        ::
+        There are no rational points with x-coordinate 3::
 
             sage: E.is_x_coord(3)
             False
 
-        However, there are such points in `E(\mathbb{R})`::
+        However, there are such points in `E(\RR)`::
 
             sage: E.change_ring(RR).is_x_coord(3)
             True
 
-        And of course it always works in `E(\mathbb{C})`::
+        And of course it always works in `E(\CC)`::
 
             sage: E.change_ring(RR).is_x_coord(-3)
             False
@@ -717,10 +729,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return D.is_square()
 
     def lift_x(self, x, all=False):
-        """
-        Given the x-coordinate of a point on the curve, use the defining
-        polynomial to find all affine points on this curve with the given
-        x-coordinate.
+        r"""
+        Returns one or all points with given `x`-coordinate.
+
+        INPUT:
+
+        - ``x`` -- an element of the base ring of the curve.
+
+        - ``all`` (bool, default False) -- if True, return a (possibly
+          empty) list of all points; if False, return just one point,
+          or raise a ValueError if there are none.
+
+        .. note::
+
+           See also ``is_x_coord()``.
 
         EXAMPLES::
 
@@ -733,21 +755,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.lift_x(1/4, all=True)
             [(1/4 : -3/8 : 1), (1/4 : -5/8 : 1)]
 
-        There are no rational points with x-coordinate 3.
-
-        ::
+        There are no rational points with `x`-coordinate 3::
 
             sage: E.lift_x(3)
             Traceback (most recent call last):
             ...
             ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-        However, there are two such points in `E(\mathbb{R})`::
+        However, there are two such points in `E(\RR)`::
 
             sage: E.change_ring(RR).lift_x(3, all=True)
             [(3.00000000000000 : 4.42442890089805 : 1.00000000000000), (3.00000000000000 : -5.42442890089805 : 1.00000000000000)]
 
-        And of course it always works in `E(\mathbb{C})`::
+        And of course it always works in `E(\CC)`::
 
             sage: E.change_ring(RR).lift_x(.5, all=True)
             []
@@ -765,17 +785,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...
             ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
 
-        Note that there is only one lift with x-coordinate 10 in
-        `E(\mathbb{F}_{17})`.
-
-        ::
+        Note that there is only one lift with `x`-coordinate 10 in
+        `E(\GF{17})`::
 
             sage: E.lift_x(10, all=True)
             [(10 : 8 : 1)]
 
-        We can lift over more exotic rings too.
-
-        ::
+        We can lift over more exotic rings too::
 
             sage: E = EllipticCurve('37a');
             sage: E.lift_x(pAdicField(17, 5)(6))
@@ -876,30 +892,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         return isinstance(self.base_ring(), rings.RationalField)
 
-    def change_ring(self, R):
+    def is_on_curve(self, x, y):
         """
-        Return the elliptic curve defined by coercing the a-invariants of
-        this elliptic curve into the ring R.
+        Returns True if `(x,y)` is an affine point on this curve.
 
         INPUT:
 
-
-        -  ``R`` - ring
-
-
-        OUTPUT: an elliptic curve
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0, 0, 1, -1, 0])
-            sage: E.change_ring(GF(3))
-            Elliptic Curve defined by y^2 + y = x^3 + 2*x over Finite Field of size 3
-        """
-        return constructor.EllipticCurve(R, [R(a) for a in self.ainvs()])
-
-    def is_on_curve(self, x, y):
-        """
-        Returns True if (x,y) is an affine point on this curve.
+        - ``x``, ``y`` - elements of the base ring of the curve.
 
         EXAMPLES::
 
@@ -914,13 +913,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def a_invariants(self):
         """
-        The a-invariants of this elliptic curve.
+        The `a`-invariants of this elliptic curve, as a list.
 
         OUTPUT:
 
-
-        -  ``list`` - a new list
-
+        (list) - a (new) list of the 5 `a`-invariants.
 
         EXAMPLES::
 
@@ -947,9 +944,73 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     ainvs = a_invariants
 
+    def a1(self):
+        r"""
+        Returns the `a_1` invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,6])
+            sage: E.a1()
+            1
+        """
+        return self.__ainvs[0]
+
+    def a2(self):
+        r"""
+        Returns the `a_2` invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,6])
+            sage: E.a2()
+            2
+        """
+        return self.__ainvs[1]
+
+    def a3(self):
+        r"""
+        Returns the `a_3` invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,6])
+            sage: E.a3()
+            3
+        """
+        return self.__ainvs[2]
+
+    def a4(self):
+        r"""
+        Returns the `a_4` invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,6])
+            sage: E.a4()
+            4
+        """
+        return self.__ainvs[3]
+
+    def a6(self):
+        r"""
+        Returns the `a_6` invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,6])
+            sage: E.a6()
+            6
+        """
+        return self.__ainvs[4]
+
     def b_invariants(self):
         """
-        The b-invariants of this elliptic curve.
+        Returns the `b`-invariants of this elliptic curve, as a tuple.
+
+        OUTPUT:
+
+        (tuple) - a 4-tuple of the `b`-invariants of this elliptic curve.
 
         EXAMPLES::
 
@@ -974,7 +1035,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.b8()
             35
 
-        ALGORITHM: These are simple functions of the a-invariants.
+        ALGORITHM:
+
+        These are simple functions of the `a`-invariants.
 
         AUTHORS:
 
@@ -991,7 +1054,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__b_invariants
 
     def b2(self):
-        """
+        r"""
+        Returns the `b_2` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -1004,7 +1069,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.b_invariants()[0]
 
     def b4(self):
-        """
+        r"""
+        Returns the `b_4` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -1017,7 +1084,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.b_invariants()[1]
 
     def b6(self):
-        """
+        r"""
+        Returns the `b_6` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -1030,7 +1099,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.b_invariants()[2]
 
     def b8(self):
-        """
+        r"""
+        Returns the `b_8` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([1,2,3,4,5])
@@ -1043,8 +1114,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.b_invariants()[3]
 
     def c_invariants(self):
-        """
-        The c-invariants of this elliptic curve.
+        r"""
+        Returns the `c`-invariants of this elliptic curve, as a tuple.
+
+        OUTPUT:
+
+        (tuple) - a 2-tuple of the `c`-invariants of the elliptic curve.
 
         EXAMPLES::
 
@@ -1055,7 +1130,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.c_invariants()
             (192, 0)
 
-        ALGORITHM: These are simple functions of the b-invariants.
+        ALGORITHM:
+
+        These are simple functions of the `a`-invariants.
 
         AUTHORS:
 
@@ -1070,7 +1147,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__c_invariants
 
     def c4(self):
-        """
+        r"""
+        Returns the `c_4` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
@@ -1084,7 +1163,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self.c_invariants()[0]
 
     def c6(self):
-        """
+        r"""
+        Returns the `c_6` invariant of this elliptic curve.
+
         EXAMPLES::
 
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
@@ -1097,13 +1178,74 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             pass
         return self.c_invariants()[1]
 
+    def discriminant(self):
+        """
+        Returns the discriminant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0,0,1,-1,0])
+            sage: E.discriminant()
+            37
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])
+            sage: E.discriminant()
+            -161051
+
+        ::
+
+            sage: E = EllipticCurve([GF(7)(2),1])
+            sage: E.discriminant()
+            1
+        """
+        try:
+            return self.__discriminant
+        except AttributeError:
+            b2, b4, b6, b8 = self.b_invariants()
+            self.__discriminant = -b2**2*b8 - 8*b4**3 - 27*b6**2 + 9*b2*b4*b6
+            return self.__discriminant
+
+    def j_invariant(self):
+        r"""
+        Returns the `j`-invariant of this elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0,0,1,-1,0])
+            sage: E.j_invariant()
+            110592/37
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])
+            sage: E.j_invariant()
+            -122023936/161051
+            sage: E = EllipticCurve([-4,0])
+            sage: E.j_invariant()
+            1728
+
+        ::
+
+            sage: E = EllipticCurve([GF(7)(2),1])
+            sage: E.j_invariant()
+            1
+        """
+        try:
+            return self.__j_invariant
+        except AttributeError:
+            c4, _ = self.c_invariants()
+            self.__j_invariant = c4**3 / self.discriminant()
+            return self.__j_invariant
+
 
     def base_extend(self, R):
-        """
-        Returns a new curve with the same a-invariants but defined over a
-        new ring into which the original's a-invariants may be mapped. R is
-        either a ring into which they may be coerced, or a morphism which
-        may be applied to them.
+        r"""
+        Returns a new curve with the same `a`-invariants but defined over a new ring.
+
+        INPUT:
+
+        - ``R`` -- either a ring into which the curve's `a`-invariants
+          may be coerced, or a morphism which may be applied to them.
+
+        OUTPUT:
+
+        A new elliptic curve with the same `a`-invariants, defined over the new ring.
 
         EXAMPLES::
 
@@ -1120,6 +1262,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Elliptic Curve defined by y^2 = x^3 + x + (4*b^3+4*b^2+4*b+3) over Finite Field in b of size 5^4
         """
         return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
+
+    change_ring = base_extend
 
     def base_ring(self):
         """
@@ -1145,63 +1289,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         return self.__base_ring
 
-    base_field = base_ring
-
-    def a1(self):
-        """
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,6])
-            sage: E.a1()
-            1
-        """
-        return self.__ainvs[0]
-
-    def a2(self):
-        """
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,6])
-            sage: E.a2()
-            2
-        """
-        return self.__ainvs[1]
-
-    def a3(self):
-        """
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,6])
-            sage: E.a3()
-            3
-        """
-        return self.__ainvs[2]
-
-    def a4(self):
-        """
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,6])
-            sage: E.a4()
-            4
-        """
-        return self.__ainvs[3]
-
-    def a6(self):
-        """
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,6])
-            sage: E.a6()
-            6
-        """
-        return self.__ainvs[4]
-
     def gens(self):
         """
-        Placeholder function to return generators of an elliptic curve:
-        derived classes such as EllipticCurve_rational_field implement
-        this functionality.
+        Placeholder function to return generators of an elliptic curve.
+
+        .. note::
+
+           This functionality is implemented in certain derived
+           classes, such as EllipticCurve_rational_field.
 
         EXAMPLES::
 
@@ -1220,7 +1315,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def gen(self, i):
         """
         Function returning the i'th generator of this elliptic curve.
-        Relies on gens() being implemented.
+
+        .. note::
+
+           Relies on gens() being implemented.
 
         EXAMPLES::
 
@@ -1233,217 +1331,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         return self.gens()[i]
 
-
-    # Twists: rewritten by John Cremona as follows:
-    #
-    # Quadratic twist allowed except when char=2, j=0
-    # Quartic twist allowed only if j=1728!=0 (so char!=2,3)
-    # Sextic  twist allowed only if j=0!=1728 (so char!=2,3)
-    #
-    # More complicated twists exist in theory for char=2,3 and
-    # j=0=1728, but I have never worked them out or seen them used!
-    #
-
-    def quadratic_twist(self, D=None):
-        """
-        Return the quadratic twist of this curve by D, which must be
-        nonzero except in characteristic 2.
-
-        In characteristic!=2, D must be nonzero, and the twist is
-        isomorphic to self after adjoining sqrt(D) to the base.
-
-        In characteristic 2, D is arbitrary, and the twist is isomorphic
-        to self after adjoining a root of `x^2+x+D` to the base.
-
-        In characteristic 2 when j==0 this is not implemented.
-
-        If the base field F is finite, D need not be specified, and
-        the curve returned is the unique curve (up to isomorphism)
-        defined over F isomorphic to the original curve over the
-        quadratic extension of F but not over F itself.  Over infinte
-        fields, an error is raised if D is not given.
-
-        ::
-
-            sage: E = EllipticCurve([GF(1103)(1), 0, 0, 107, 340]); E
-            Elliptic Curve defined by y^2 + x*y  = x^3 + 107*x + 340 over Finite Field of size 1103
-            sage: F=E.quadratic_twist(-1); F
-            Elliptic Curve defined by y^2  = x^3 + 1102*x^2 + 609*x + 300 over Finite Field of size 1103
-            sage: E.is_isomorphic(F)
-            False
-            sage: E.is_isomorphic(F,GF(1103^2,'a'))
-            True
-
-        A characteristic 2 example::
-
-            sage: E=EllipticCurve(GF(2),[1,0,1,1,1])
-            sage: E1=E.quadratic_twist(1)
-            sage: E.is_isomorphic(E1)
-            False
-            sage: E.is_isomorphic(E1,GF(4,'a'))
-            True
-
-        Over finite fields, the twisting parameter may be omitted::
-
-            sage: k.<a> = GF(2^10)
-            sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
-            sage: Et = E.quadratic_twist()
-            sage: Et # random (only determined up to isomorphism)
-            Elliptic Curve defined by y^2 + x*y  = x^3 + (a^7+a^4+a^3+a^2+a+1)*x^2 + (a^8+a^6+a^4+1) over Finite Field in a of size 2^10
-            sage: E.is_isomorphic(Et)
-            False
-            sage: E.j_invariant()==Et.j_invariant()
-            True
-
-            sage: p=next_prime(10^10)
-            sage: k = GF(p)
-            sage: E = EllipticCurve(k,[1,2,3,4,5])
-            sage: Et = E.quadratic_twist()
-            sage: Et # random (only determined up to isomorphism)
-            Elliptic Curve defined by y^2  = x^3 + 7860088097*x^2 + 9495240877*x + 3048660957 over Finite Field of size 10000000019
-            sage: E.is_isomorphic(Et)
-            False
-            sage: k2 = GF(p^2,'a')
-            sage: E.change_ring(k2).is_isomorphic(Et.change_ring(k2))
-            True
-        """
-        K=self.base_ring()
-        char=K.characteristic()
-
-        if D is None:
-            if K.is_finite():
-                x = polygen(K)
-                if char==2:
-                    # We find D such that x^2+x+D is irreducible. If the
-                    # degree is odd we can take D=1; otherwise it suffices to
-                    # consider odd powers of a generator.
-                    D = K(1)
-                    if K.degree()%2==0:
-                        D = K.gen()
-                        a = D**2
-                        while len((x**2+x+D).roots())>0:
-                            D *= a
-                else:
-                    # We could take a multiplicative generator but
-                    # that might be expensive to compute; otherwise
-                    # half the elements will do
-                    D = K.random_element()
-                    while len((x**2-D).roots())>0:
-                        D = K.random_element()
-            else:
-                raise ValueError, "twisting parameter D must be specified over infinite fields."
-        else:
-            try:
-                D=K(D)
-            except ValueError:
-                raise ValueError, "twisting parameter D must be in the base field."
-
-            if char!=2 and D.is_zero():
-                raise ValueError, "twisting parameter D must be nonzero when characteristic is not 2"
-
-        if char!=2:
-            b2,b4,b6,b8=self.b_invariants()
-            # E is isomorphic to  [0,b2,0,8*b4,16*b6]
-            return EllipticCurve(K,[0,b2*D,0,8*b4*D**2,16*b6*D**3])
-
-        # now char==2
-        if self.j_invariant() !=0: # iff a1!=0
-            a1,a2,a3,a4,a6=self.ainvs()
-            E0=self.change_weierstrass_model(a1,a3/a1,0,(a1**2*a4+a3**2)/a1**3)
-            # which has the form = [1,A2,0,0,A6]
-            assert E0.a1()==K(1)
-            assert E0.a3()==K(0)
-            assert E0.a4()==K(0)
-            return EllipticCurve(K,[1,E0.a2()+D,0,0,E0.a6()])
-        else:
-            raise ValueError, "Quadratic twist not implemented in char 2 when j=0"
-
-    def quartic_twist(self, D):
-        """
-        Return the quartic twist of this curve by D, which must be
-        nonzero.
-
-        The characteristic must not be 2 or 3 and the j-invariant must be
-        1728.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(GF(13)(1728)); E
-            Elliptic Curve defined by y^2  = x^3 + x over Finite Field of size 13
-            sage: E1=E.quartic_twist(2); E1
-            Elliptic Curve defined by y^2  = x^3 + 5*x over Finite Field of size 13
-            sage: E.is_isomorphic(E1)
-            False
-            sage: E.is_isomorphic(E1,GF(13^2,'a'))
-            False
-            sage: E.is_isomorphic(E1,GF(13^4,'a'))
-            True
-        """
-        K=self.base_ring()
-        char=K.characteristic()
-        D=K(D)
-
-        if char==2 or char==3:
-            raise ValueError, "Quartic twist not defined in chars 2,3"
-
-        if self.j_invariant() !=K(1728):
-            raise ValueError, "Quartic twist not defined when j!=1728"
-
-        if D.is_zero():
-            raise ValueError, "quartic twist requires a nonzero argument"
-
-        c4,c6=self.c_invariants()
-        # E is isomorphic to  [0,0,0,-27*c4,0]
-        assert c6==0
-        return EllipticCurve(K,[0,0,0,-27*c4*D,0])
-
-    def sextic_twist(self, D):
-        """
-        Return the sextic twist of this curve by D, which must be nonzero.
-
-        The characteristic must not be 2 or 3 and the j-invariant must be
-        0.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(GF(13)(0)); E
-            Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 13
-            sage: E1=E.sextic_twist(2); E1
-            Elliptic Curve defined by y^2 = x^3 + 11 over Finite Field of size 13
-            sage: E.is_isomorphic(E1)
-            False
-            sage: E.is_isomorphic(E1,GF(13^2,'a'))
-            False
-            sage: E.is_isomorphic(E1,GF(13^4,'a'))
-            False
-            sage: E.is_isomorphic(E1,GF(13^6,'a'))
-            True
-        """
-        K=self.base_ring()
-        char=K.characteristic()
-        D=K(D)
-
-        if char==2 or char==3:
-            raise ValueError, "Sextic twist not defined in chars 2,3"
-
-        if self.j_invariant() !=K(0):
-            raise ValueError, "Sextic twist not defined when j!=0"
-
-        if D.is_zero():
-            raise ValueError, "Sextic twist requires a nonzero argument"
-
-        c4,c6=self.c_invariants()
-        # E is isomorphic to  [0,0,0,0,-54*c6]
-        assert c4==0
-        return EllipticCurve(K,[0,0,0,0,-54*c6*D])
-
     def rst_transform(self, r, s, t):
-        """
-        Transforms the elliptic curve using the unimodular (u=1) transform
-        with standard parameters [r,s,t]. This is just a special case of
-        change_weierstrass_model().
+        r"""
+        Returns the transform of the curve by `(r,s,t)` (with `u=1`).
 
-        Returns the transformed curve.
+        INPUT:
+
+        - ``r``, ``s``, ``t`` -- three elements of the base ring.
+
+        OUTPUT:
+
+        The elliptic curve obtained from self by the standard
+        Weierstrass transformation `(u,r,s,t)` with `u=1`.
+
+        .. note::
+
+           This is just a special case of ``change_weierstrass_model()``, with `u=1`.
 
         EXAMPLES::
 
@@ -1455,14 +1358,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self.change_weierstrass_model(1,r,s,t)
 
     def scale_curve(self, u):
-        """
-        Transforms the elliptic curve using scale factor `u`, i.e.,
-        multiplies `c_i` by `u^i`. This is another special
-        case of change_weierstrass_model().
+        r"""
+        Returns the transform of the curve by scale factor `u`.
 
-        Returns the transformed curve.
+        INPUT:
 
-        EXAMPLES::
+        - ``u`` -- an invertible element of the base ring.
+
+        OUTPUT:
+
+        The elliptic curve obtained from self by the standard
+        Weierstrass transformation `(u,r,s,t)` with `r=s=t=0`.
+
+        .. note::
+
+           This is just a special case of ``change_weierstrass_model()``, with `r=s=t=0`.
+
+       EXAMPLES::
 
             sage: K=Frac(PolynomialRing(QQ,'u'))
             sage: u=K.gen()
@@ -1609,7 +1521,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             be added to the cache as they are computed.
 
 
-         ALGORITHM: - Recursion described in Mazur/Tate. The recursive
+         ALGORITHM:
+
+         Recursion described in Mazur/Tate. The recursive
          formulae are evaluated `O((log n)^2)` times.
 
          AUTHORS:
@@ -1643,9 +1557,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
              sage: E.division_polynomial_0(18) % E.division_polynomial_0(6) == 0
              True
 
-         An example to illustrate the relationship with torsion points.
-
-         ::
+         An example to illustrate the relationship with torsion points::
 
              sage: F = GF(11)
              sage: E = EllipticCurve(F, [0, 2]); E
@@ -1657,9 +1569,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          This indicates that the x-coordinates of all the 5-torsion points
          of `E` are in `GF(11^2)`, and therefore the
-         y-coordinates are in `GF(11^4)`.
-
-         ::
+         `y`-coordinates are in `\GF(11^4)`::
 
              sage: K = GF(11^4, 'a')
              sage: X = E.change_ring(K)
@@ -1678,16 +1588,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
               2*a^3 + 3*a^2 + a + 7,
               a^3 + 7*a^2 + 6*a]
 
-         Now we check that these are exactly the x-coordinates of the
-         5-torsion points of E.
-
-         ::
+         Now we check that these are exactly the `x`-coordinates of the
+         5-torsion points of `E`::
 
              sage: for x in x_coords:
              ...       assert X.lift_x(x).order() == 5
 
-         The roots of the polynomial are the x-coordinates of the points P
-         such that m\*P==0 but 2\*P!=0::
+         The roots of the polynomial are the `x`-coordinates of the points `P`
+         such that `mP=0` but `2P\not=0`::
 
              sage: E=EllipticCurve('14a1')
              sage: T=E.torsion_subgroup()
@@ -1706,9 +1614,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          .. note::
 
-            #. The point of order 2 and the identity do not appear.
-
-            #. The points with x=-1/3 and x=-5 are not rational.
+            The point of order 2 and the identity do not appear.
+            The points with `x=-1/3` and `x=-5` are not rational.
          """
          if cache is None:
              cache = {}
@@ -1769,18 +1676,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def two_division_polynomial(self, x = None):
         r"""
         Returns the 2-division polynomial of this elliptic curve evaluated
-        at x.
+        at ``x``.
 
         INPUT:
 
-
-        -  ``x`` - optional ring element to use as the "x"
-           variable. If x is None, then a new polynomial ring will be
-           constructed over the base ring of the elliptic curve, and its
-           generator will be used as x. Note that x does not need to be a
-           generator of a polynomial ring; any ring element is ok. This
-           permits fast calculation of the torsion polynomial *evaluated* on
-           any element of a ring.
+        - ``x`` - optional ring element to use as the `x` variable. If
+          ``x`` is ``None``, then a new polynomial ring will be
+          constructed over the base ring of the elliptic curve, and
+          its generator will be used as ``x``. Note that ``x`` does
+          not need to be a generator of a polynomial ring; any ring
+          element is ok. This permits fast calculation of the torsion
+          polynomial *evaluated* on any element of a ring.
 
 
         EXAMPLES::
@@ -1799,7 +1705,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def division_polynomial(self, m, x=None, two_torsion_multiplicity=2):
         r"""
         Returns the `m^{th}` division polynomial of this elliptic
-        curve.
+        curve evaluated at ``x``.
 
         INPUT:
 
@@ -1940,230 +1846,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     torsion_polynomial = division_polynomial
 
-#     def torsion_polynomial_old(self, n, var='x', i=0):
-#         r"""
-#         Returns the n-th torsion polynomial (a.k.a., division polynomial).
-
-#         INPUT:
-#             n -- non-negative integer
-#             var -- string; the indeterminate of the polynomial (default: x)
-#             i -- integer, either 0 (default) or 1.
-
-#         OUTPUT:
-#             Polynomial -- n-th torsion polynomial, which is a polynomial over
-#                           the base field of the elliptic curve.
-
-#         SEE ALSO: _division_polynomial, full_division_polynomial
-
-#         EXAMPLES:
-#             sage: E = EllipticCurve([0,0,1,-1,0])
-#             sage: E.torsion_polynomial_old(1)
-#             1
-#             sage: E.torsion_polynomial_old(2)
-#             4*x^3 - 4*x + 1
-#             sage: E.torsion_polynomial_old(3, 'z')
-#             3*z^4 - 6*z^2 + 3*z - 1
-
-#             sage: E = EllipticCurve([0, -1, 1, -10, -20])
-#             sage: E.torsion_polynomial(0)
-#             0
-#             sage: E.torsion_polynomial(1)
-#             1
-#             sage: E.torsion_polynomial(2)
-#             4*x^3 - 4*x^2 - 40*x - 79
-#             sage: E.torsion_polynomial(3)
-#             3*x^4 - 4*x^3 - 60*x^2 - 237*x - 21
-#             sage: E.torsion_polynomial(4)
-#             8*x^9 - 24*x^8 - 464*x^7 - 2758*x^6 + 6636*x^5 + 34356*x^4 + 53510*x^3 + 99714*x^2 + 351024*x + 459859
-
-#             sage: E = EllipticCurve([-4,0])
-#             sage: E.torsion_polynomial(2)
-#             4*x^3 - 16*x
-#             sage: E.torsion_polynomial(5)
-#             5*x^12 - 248*x^10 - 1680*x^8 + 19200*x^6 - 32000*x^4 + 51200*x^2 + 4096
-#             sage: E.torsion_polynomial(6)
-#             12*x^19 - 1200*x^17 - 18688*x^15 + 422912*x^13 - 2283520*x^11 + 9134080*x^9 - 27066368*x^7 + 19136512*x^5 + 19660800*x^3 - 3145728*x
-
-#             Check for consistency with division_polynomial_0:
-#             sage: assert all([E.torsion_polynomial(2*m-1)==E.division_polynomial_0(2*m-1) for m in range(1,20)])
-#             sage: assert all([E.torsion_polynomial(2*m)==E.division_polynomial_0(2*m)*E.division_polynomial_0(-1) for m in range(1,20)])
-
-#         AUTHOR: David Kohel (kohel@maths.usyd.edu.au), 2005-04-25
-#         """
-#         n = int(n)
-#         try:
-#             return self.__torsion_polynomial[n]
-#         except AttributeError:
-#             self.__torsion_polynomial = {}
-#         except KeyError:
-#             pass
-#         E = self; i=int(i)
-#         if n < 0:
-#             raise ValueError, "n must be a non-negative integer."
-#         if i > 1 :
-#             raise ValueError, "i must be 0 or 1."
-
-#         R = rings.PolynomialRing(E.base_ring(), var)
-
-# # This is just an abbreviation to make the following code clearer:
-#         tp = lambda m: E.torsion_polynomial(m)
-
-#         if i == 1:
-#             if n == 0:
-#                 f = tp(1)
-#                 E.__torsion_polynomial[n] = f
-#                 return f
-#             else:
-#                 x = R.gen()
-#                 psi2 = tp(2)
-#                 if n%2 == 0:
-#                     f = x * psi2 * (tp(n)//psi2)**2 - tp(n+1) * tp(n-1)
-#                     E.__torsion_polynomial[n] = f
-#                     return f
-#                 else:
-#                     f = x * tp(n)**2 - (tp(n+1)//psi2) * tp(n-1)
-#                     E.__torsion_polynomial[n] = f
-#                     return f
-
-#         else:
-
-#             if n == 0: return R(0)
-#             if n == 1: return R(1)
-#             x = R.gen()
-#             b2, b4, b6, b8 = E.b_invariants()
-#             psi2 = 4*x**3 + b2*x**2 + 2*b4*x + b6
-#             if n == 2:
-#                 f = psi2
-#                 E.__torsion_polynomial[n] = f; return f
-#             if n == 3:
-#                 f = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
-#                 E.__torsion_polynomial[n] = f; return f
-#             if n == 4:
-#                 f = psi2 * (2*x**6 + b2*x**5 + 5*b4*x**4 + 10*b6*x**3 \
-#                     + 10*b8*x**2  + (b2*b8 - b4*b6)*x + b4*b8 - b6**2)
-#                 E.__torsion_polynomial[n] = f; return f
-#             if n%2 == 0:
-#                 m = n//2
-#                 if m%2 == 0:
-#                     f = tp(m) * \
-#                         ((tp(m+2)//psi2) * tp(m-1)**2 - \
-#                          (tp(m-2)//psi2) * tp(m+1)**2)
-#                     E.__torsion_polynomial[n] = f; return f
-#                 else:
-#                     f = psi2 * tp(m)*( \
-#                         tp(m+2) * (tp(m-1)//psi2)**2 - \
-#                         tp(m-2) * (tp(m+1)//psi2)**2)
-#                     E.__torsion_polynomial[n] = f; return f
-#             else:
-#                 m = n//2
-#                 if m%2 == 0:
-#                     f = psi2 * \
-#                         tp(m+2) * (tp(m)//psi2)**3 - \
-#                         tp(m-1) * tp(m+1)**3
-#                     E.__torsion_polynomial[n] = f; return f
-#                 else:
-#                     f = tp(m+2) * tp(m)**3 - psi2 * \
-#                         tp(m-1)*(tp(m+1)//psi2)**3
-#                     E.__torsion_polynomial[n] = f; return f
-
-#     def full_division_polynomial(self, m):
-#         """
-#         Return the $m$-th bivariate division polynomial in $x$ and
-#         $y$.  When $m$ is odd this is exactly the same as the usual
-#         $m$th division polynomial.
-
-#         For the usual division polynomial only in $x$, see the
-#         functions division_polynomial() and
-#         division_polynomial_0().
-
-#         INPUT:
-#             self -- elliptic curve
-#             m    -- a positive integer
-#         OUTPUT:
-#             a polynomial in two variables $x$, $y$.
-
-#         NOTE: The result is cached.
-
-#         EXAMPLES:
-#         We create a curve and compute the first two full division
-#         polynomials.
-#             sage: E = EllipticCurve([2,3])
-#             sage: E.full_division_polynomial(1)
-#             1
-#             sage: E.full_division_polynomial(2)
-#             2*y
-
-#         Note that for odd input the full division polynomial is
-#         just the usual division polynomial, but not for even input:
-#             sage: E.division_polynomial(2)
-#             4*x^3 + 8*x + 12
-#             sage: E.full_division_polynomial(3)
-#             3*x^4 + 12*x^2 + 36*x - 4
-#             sage: E.division_polynomial(3)
-#             3*x^4 + 12*x^2 + 36*x - 4
-#             sage: E.full_division_polynomial(4)
-#             4*x^6*y + 40*x^4*y + 240*x^3*y - 80*x^2*y - 96*x*y - 320*y
-#             sage: E.full_division_polynomial(5)
-#             5*x^12 + 124*x^10 + 1140*x^9 - 420*x^8 + 1440*x^7 - 4560*x^6 - 8352*x^5 - 36560*x^4 - 45120*x^3 - 10240*x^2 - 39360*x - 22976
-
-#         TESTS:
-#         We test that the full division polynomial as computed using
-#         the recurrence agrees with the normal division polynomial for
-#         a certain curve and all odd $n$ up to $23$:
-
-#             sage: E = EllipticCurve([23,-105])
-#             sage: for n in [1,3,..,23]:
-#             ...       assert E.full_division_polynomial(n) == E.division_polynomial(n)
-#         """
-#         # Coerce the input m to be an integer
-#         m = rings.Integer(m)
-
-#         # Check whether the corresponding poly is cached already
-#         try:
-#             return self.__divpoly2[m]
-#         except AttributeError:
-#             self.__divpoly2 = {}
-#         except KeyError:
-#             pass
-
-#         # Get the invariants of the curve
-#         a1,a2,a3,a4,a6 = self.a_invariants()
-
-#         # Define the polynomial ring that will contain the full
-#         # division polynomial.
-
-#         R, (x,y) = PolynomialRing(self.base_ring(), 2, 'x,y').objgens()
-
-#         # The function division_polynomial_0() gives the correct
-#         # result when m is odd, and all we do in this case is evaluate
-#         # this at the variable x in our bivariate polynomial ring.
-
-#         # For even m, we must multiply the result of
-#         # division_polynomial_0() by the full 2-torsion polynomial
-#         # which is 2*y+a1*x+a3
-
-#         f = self.division_polynomial_0(m,x)
-#         if m % 2 == 0:
-#             f *= (2*y+a1*x+a3)
-
-#         # Cache the result and return it.
-#         self.__divpoly2[m] = f
-#         return f
-
     def _multiple_x_numerator(self, n, x=None, cache=None):
          r"""
-         Returns the numerator of the x-coordinate of the nth multiple of a
+         Returns the numerator of the `x`-coordinate of the `n\th` multiple of a
          point, using torsion polynomials (division polynomials).
 
-         The inputs n, x, cache are as described in
-         division_polynomial_0().
+         INPUT:
 
-         The result is adjusted to be correct for both even and odd n.
+         -  ``n``, ``x``, ``cache`` --  as described in ``division_polynomial_0()``.
 
-         The result is cached.  This is so that calling
-         ``P.division_points(n)`` for the same n and different points P
-         (on the same curve) does not have to recompute the
-         polynomials.
+         The result is cached.  This is so that on calling
+         ``P.division_points(n)`` for the same `n` and different
+         points `P` (on the same curve), we do not have to recompute
+         the polynomials.
 
          .. warning::
 
@@ -2254,10 +1949,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
          Returns the denominator of the x-coordinate of the nth multiple of
          a point, using torsion polynomials (division polynomials).
 
-         The inputs n, x, cache are as described in
-         division_polynomial_0().
+         INPUT:
 
-         The result is adjusted to be correct for both even and odd n.
+         -  ``n``, ``x``, ``cache`` --  as described in ``division_polynomial_0()``.
 
          The result is cached.  This is so that calling
          P.division_points(n) for the same n and different points P
@@ -2316,38 +2010,31 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def multiplication_by_m(self, m, x_only=False):
-        """
-        Return the multiplication-by-m map from self to self as a pair of
-        rational functions in two variables x,y.
+        r"""
+        Return the multiplication-by-`m` map from self to self as a pair of
+        rational functions in two variables `x`,`y`.
 
         INPUT:
-
-
-        -  ``self`` - an elliptic curve in short Weierstrass
-           form
 
         -  ``m`` - a nonzero integer
 
         -  ``x_only`` - bool (default: False) if True, return
-           only the x coordinate of the map.
+           only the `x`-coordinate of the map.
 
 
         OUTPUT:
 
-
-        -  ``2-tuple`` - (f(x), g(x,y)) where f and g are
-           rational functions with the degree of y in g(x,y) exactly 1.
+        (2-tuple) `(f(x), g(x,y))`, where `f` and `g` are rational
+        functions with the degree of `y` in `g(x,y)` exactly 1.
 
 
         .. note:
 
-           #. The result is not cached.
+           The result is not cached.
 
-           #. ``m`` is allowed to be negative (but not 0).
+           ``m`` is allowed to be negative (but not 0).
 
-        EXAMPLES: We create an elliptic curve.
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve([-1,3])
 
@@ -2356,9 +2043,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.multiplication_by_m(1)
             (x, y)
 
-        Multiplication by 2 is more complicated.
-
-        ::
+        Multiplication by 2 is more complicated::
 
             sage: f = E.multiplication_by_m(2)
             sage: f
@@ -2391,11 +2076,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...       f = E.multiplication_by_m(m)
             ...       assert E(eval(f,P)) == m*P
 
-        TESTS: Verify for this fairly random looking curve and point that
-        multiplication by m returns the right result for the first 10
-        integers.
+        TESTS:
 
-        ::
+        Verify for this fairly random looking curve and point that
+        multiplication by m returns the right result for the first 10
+        integers::
 
             sage: E = EllipticCurve([23,-105])
             sage: P = E([129/4, 1479/8])
@@ -2407,9 +2092,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...       Q = -n*P
             ...       assert Q == E(eval(f,P))
 
-        The following test shows that \#4364 is indeed fixed.
-
-        ::
+        The following test shows that \#4364 is indeed fixed::
 
             sage: p = next_prime(2^30-41)
             sage: a = GF(p)(1)
@@ -2461,10 +2144,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def isomorphism_to(self, other):
         """
-        Given another weierstrass model ``other`` of self,
-        return a morphism from self to ``other``.
+        Given another weierstrass model ``other`` of self, return an
+        isomorphism from self to ``other``.
 
-        If the curves in question are not isomorphic, raise a ValueError.
+        INPUT:
+
+        - ``other`` -- an elliptic curve isomorphic to ``self``.
+
+        OUTPUT:
+
+        (Weierstrassmorphism) An isomorphism from self to other.
+
+        .. note::
+
+           If the curves in question are not isomorphic, a ValueError is raised.
 
         EXAMPLES::
 
@@ -2500,27 +2193,39 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         Return the set of isomorphisms from self to itself (as a list).
 
+        INPUT:
+
+        - ``field`` (default None) -- a field into which the
+          coefficients of the curve may be coerced (by default, uses
+          the base field of the curve).
+
+        OUTPUT:
+
+        (list) A list of ``WeierstrassIsomorphism`` objects
+        consisting of all the isomorphisms from the curve ``self`` to
+        itself defined over ``field``.
+
         EXAMPLES::
 
-            sage: E = EllipticCurve(QQ(0)) # a curve with j=0 over QQ
+            sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
             sage: E.automorphisms();
-            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, 0), Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
         We can also find automorphisms defined over extension fields::
 
             sage: K.<a> = NumberField(x^2+3) # adjoin roots of unity
             sage: E.automorphisms(K)
-            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in a with defining polynomial x^2 + 3
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
             Via:  (u,r,s,t) = (1, 0, 0, 0),
             ...
-            Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in a with defining polynomial x^2 + 3
+            Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
             Via:  (u,r,s,t) = (-1/2*a - 1/2, 0, 0, 0)]
 
         ::
 
-            sage: [ len(EllipticCurve(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
+            sage: [ len(EllipticCurve_from_j(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
             [2, 24, 2, 12, 2, 6, 6, 6]
         """
         if field==None:
@@ -2534,17 +2239,31 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         Return the set of isomorphisms from self to other (as a list).
 
+        INPUT:
+
+        - ``other`` -- another elliptic curve.
+
+        - ``field`` (default None) -- a field into which the
+          coefficients of the curves may be coerced (by default, uses
+          the base field of the curves).
+
+        OUTPUT:
+
+        (list) A list of ``WeierstrassIsomorphism`` objects consisting of all
+        the isomorphisms from the curve ``self`` to the curve
+        ``other`` defined over ``field``.
+
         EXAMPLES::
 
-            sage: E = EllipticCurve(QQ(0)) # a curve with j=0 over QQ
-            sage: F = EllipticCurve('36a1') # should be the same one
+            sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
+            sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F);
             [Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, 0), Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 1 over Rational Field
+            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
+            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
         We can also find istomorphisms defined over extension fields::
@@ -2572,11 +2291,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def is_isomorphic(self, other, field=None):
         """
-        Returns whether or not self is isomorphic to other, i.e., they
-        define the same curve over the same base ring.
+        Returns whether or not self is isomorphic to other.
 
-        If field!=None then both curves must base_extend-able to it and
-        the isomorphism is then checked over that field.
+        INPUT:
+
+        - ``other`` -- another elliptic curve.
+
+        - ``field`` (default None) -- a field into which the
+          coefficients of the curves may be coerced (by default, uses
+          the base field of the curves).
+
+        OUTPUT:
+
+        (bool) True if there is an isomorphism from curve ``self`` to
+        curve ``other`` defined over ``field``.
 
         EXAMPLES::
 
@@ -2607,14 +2335,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def change_weierstrass_model(self, *urst):
         r"""
-        Return a new Weierstrass model of self under the transformation (on
-        points)
+        Return a new Weierstrass model of self under the standard transformation `(u,r,s,,t)`
 
         .. math::
 
-             (x,y) \mapsto (x',y') = (u^2*x+r , u^3*y + s*u^2*x' + t)
+             (x,y) \mapsto (x',y') = (u^2xr , u^3y + su^2x' + t).
 
-        .
 
         EXAMPLES::
 
@@ -2632,22 +2358,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def short_weierstrass_model(self, complete_cube=True):
         """
-        Return a short Weierstrass model for self.
+        Returns a short Weierstrass model for self.
 
         INPUT:
-
 
         -  ``complete_cube`` - bool (default: True); for
            meaning, see below.
 
+        OUTPUT:
 
-        OUTPUT: an elliptic curve
+        An elliptic curve.
 
-        If complete_cube=True: Return a model of the form
+        If ``complete_cube=True``: Return a model of the form
         `y^2 = x^3 + a*x + b` for this curve. The characteristic
-        must not be 2; in characteristic 3, it is only possible if b2==0.
+        must not be 2; in characteristic 3, it is only possible if `b_2=0`.
 
-        If complete_cube=False: Return a model of the form
+        If ``complete_cube=False``: Return a model of the form
         `y^2 = x^3 + ax^2 + bx + c` for this curve. The
         characteristic must not be 2.
 
@@ -2673,16 +2399,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
 
-        This used to be different see trac #3973
-
-        ::
+        This used to be different see trac #3973::
 
             sage: E.short_weierstrass_model()
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
 
-        More tests in characteristic 3
-
-        ::
+        More tests in characteristic 3::
 
             sage: E = EllipticCurve(GF(3),[0,2,1,2,1])
             sage: E.short_weierstrass_model()
@@ -2738,9 +2460,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         INPUT:
 
-
-        -  ``xmin, xmax`` - points will be computed at least
-           within this rings, but possibly farther. These may be left off.
+        -  ``xmin, xmax`` - (optional) points will be computed at
+           least within this range, but possibly farther.
 
         -  ``**args`` - all other options are passed to the
            line graphing primitive.
@@ -2831,12 +2552,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Find a basis for the `p`-primary part of the torsion
         subgroup of this elliptic curve.
 
-        INPUT : `p` - a prime
+        INPUT:
 
-        OUTPUT : A list of 0, 1 or 2 pairs [T,k] where T is a generator of
-        order `p^k`. That is, either [] or [[T1,k1]] or
-        [[T1,k1],[T2,k2]] with [], [T1], or [T1,T2] a basis and
-        `p^k1 >= p^k2 >= 1` their orders.
+        - ``p`` (integer) -- a prime number.
+
+        OUTPUT:
+
+        A list of 0, 1 or 2 pairs `[T,k]` where `T` is a generator of
+        order `p^k`. That is, either `[]` or `[[T_1,k_1]]` or
+        `[[T_1,k_1],[T_2,k_2]]` with `[]`, `[T_1]`, or `[T_1,T_2]` a
+        basis and `p^{k_1} \ge p^{k_2} \ge 1` their orders.
 
         .. warning::
 
@@ -2965,14 +2690,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def hyperelliptic_polynomials(self):
-        r""" Returns a pair of polynomials g(x), h(x) such that this elliptic
+        r"""
+        Returns a pair of polynomials `g(x)`, `h(x)` such that this elliptic
         curve can be defined by the standard hyperelliptic equation
 
         .. math::
 
-            y^2 + h(x)y = g(x)
-
-        .
+            y^2 + h(x)y = g(x).
 
         EXAMPLES::
 
@@ -2991,7 +2715,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
-        The result is cached.
+        .. note::
+
+           The result is cached; on subsequent calls the cached value
+           is returned provided that it has sufficient precision,
+           otherwise pari is called again with the new precision.
 
         EXAMPLES::
 
@@ -3012,24 +2740,3 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         from sage.libs.pari.all import pari
         self._pari_curve = pari(self.a_invariants()).ellinit(precision=prec)
         return self._pari_curve
-
-
-
-def Hasse_bounds(q, genus=1):
-    """
-    Return the Hasse bounds (lb,ub) for the cardinality of a curve of
-    genus g (default 1) defined over GF(q).
-
-    EXAMPLES::
-
-        sage: Hasse_bounds(2)
-        (1, 5)
-        sage: Hasse_bounds(next_prime(10^30))
-        (999999999999998000000000000058, 1000000000000002000000000000058)
-    """
-    if genus==1:
-        rq = (4*q).isqrt()
-    else:
-        rq = (4*(genus**2)*q).isqrt()
-    return (q+1-rq,q+1+rq)
-

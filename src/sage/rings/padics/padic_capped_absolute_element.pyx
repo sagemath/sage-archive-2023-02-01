@@ -68,6 +68,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + O(3^5)
             sage: R(mod(-1, 3^2))
             2 + 2*3 + O(3^2)
+            sage: R(3 + O(3^2))
+            3 + O(3^2)
         """
         mpz_init(self.value)
         pAdicBaseGenericElement.__init__(self,parent)
@@ -103,7 +105,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef Integer tmp
         cdef unsigned long k
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
-            self._set_from_Integer(x._integer_(), absprec, relprec)
+            self._set_from_Integer(x._integer_(), min(absprec, x.precision_absolute()), relprec)
             return
         elif isinstance(x, (int, long)):
             x = Integer(x)
@@ -868,7 +870,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return ans
         mpz_init(ppow_minus_one)
         mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0], 1)
-        if mpz_cmp(self.value, tmp) == 0:
+        if mpz_cmp(self.value, ppow_minus_one) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             mpz_clear(ppow_minus_one)

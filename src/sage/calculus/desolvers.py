@@ -74,9 +74,9 @@ def desolve(de, dvar, ics=None, ivar=None):
         k1*e^x + k2*e^(-x) - x
         sage: f = desolve(de, y, [10,2,1]); f
         (e^10*y(10) + 8*e^10)*e^(-x)/2 + (y(10) + 12)*e^(x - 10)/2 - x
-        sage: f(10).expand()
+        sage: f(x=10).expand()
         y(10)
-        sage: diff(f,x)(10).expand()
+        sage: diff(f,x)(x=10).expand()
         1
 
     AUTHOR: David Joyner (1-2006)
@@ -181,7 +181,8 @@ def desolve_laplace(de,vars,ics=None):
     EXAMPLES:
         sage: from sage.calculus.desolvers import desolve_laplace
         sage: x = var('x')
-        sage: f = function('f', x)
+        sage: function('f', x)
+        f(x)
         sage: de = lambda y: diff(y,x,x) - 2*diff(y,x) + y
         sage: desolve_laplace(de(f(x)),["x","f"])
         "x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x"
@@ -288,8 +289,10 @@ def desolve_system_strings(des,vars,ics=None):
     EXAMPLES:
         sage: from sage.calculus.desolvers import desolve_system_strings
         sage: s = var('s')
-        sage: x = function('x', s)
-        sage: y = function('y', s)
+        sage: function('x', s)
+        x(s)
+        sage: function('y', s)
+        y(s)
         sage: de1 = lambda z: diff(z[0],s) + z[1] - 1
         sage: de2 = lambda z: diff(z[1],s) - z[0] + 1
         sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]

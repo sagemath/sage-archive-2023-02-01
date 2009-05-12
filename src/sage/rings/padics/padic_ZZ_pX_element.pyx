@@ -177,7 +177,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         TESTS:
         sage: R = ZpCA(5,5)
-        sage: S.<x> = R[]
+        sage: S.<x> = ZZ[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
         sage: ((1+2*w)^5).norm()
@@ -185,7 +185,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         sage: ((1+2*w)).norm()^5
         1 + 5^2 + O(5^5)
         sage: R = ZpFM(5,5)
-        sage: S.<x> = R[]
+        sage: S.<x> = ZZ[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
         sage: ((1+2*w)^5).norm()
@@ -232,7 +232,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         TESTS:
         sage: R = ZpCA(5,5)
-        sage: S.<x> = R[]
+        sage: S.<x> = ZZ[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
         sage: a = (2+3*w)^7

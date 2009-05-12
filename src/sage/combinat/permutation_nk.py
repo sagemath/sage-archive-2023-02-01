@@ -34,7 +34,7 @@ class PermutationsNK(CombinatorialClass):
         self._n = n
         self._k = k
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of permutations of k things from a list of n
         things.
@@ -42,15 +42,15 @@ class PermutationsNK(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.permutation_nk import PermutationsNK
-            sage: PermutationsNK(3,2).count()
+            sage: PermutationsNK(3,2).cardinality()
             6
-            sage: PermutationsNK(5,4).count()
+            sage: PermutationsNK(5,4).cardinality()
             120
         """
         n, k = self._n, self._k
         return factorial(n)/factorial(n-k)
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all permutations of k things from range(n).
 

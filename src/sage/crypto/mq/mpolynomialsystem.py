@@ -150,11 +150,11 @@ def MPolynomialSystem(arg1, arg2=None):
         R = arg1.ring()
         rounds = arg1.gens()
     elif isinstance(arg1, (list,tuple)):
-	rounds = arg1
-	R = iter(rounds).next().parent()
-	for f in rounds:
-	    if f.parent() is not R:
-		raise TypeError("Generators must have same parent.")
+        rounds = arg1
+        R = iter(rounds).next().parent()
+        for f in rounds:
+            if f.parent() is not R:
+                raise TypeError("Generators must have same parent.")
     else:
         raise TypeError, "first parameter must be a MPolynomialRing"
 
@@ -198,20 +198,20 @@ class MPolynomialRoundSystem_generic(SageObject):
             self._gens = list(gens)
 
     def __copy__(self):
-	"""
-	Return a copy of this round system.
+        """
+        Return a copy of this round system.
 
-	EXAMPLE::
+        EXAMPLE::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
-	    sage: r = F.round(0)
+            sage: r = F.round(0)
             sage: copy(r)
-	    [w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
-	    w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
-	    a)]
-	"""
-	return MPolynomialRoundSystem_generic(self._ring, list(self._gens))
+            [w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
+            w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
+            a)]
+        """
+        return MPolynomialRoundSystem_generic(self._ring, list(self._gens))
 
     def __cmp__(self, other):
         """
@@ -546,18 +546,18 @@ class MPolynomialSystem_generic(SageObject):
                 raise TypeError, "parameter not supported"
 
     def __copy__(self):
-	"""
-	Return a copy of self. While this is not a deep copy, only mutable
-	members of this system are copied.
+        """
+        Return a copy of self. While this is not a deep copy, only mutable
+        members of this system are copied.
 
-	EXAMPLE::
+        EXAMPLE::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: copy(F) # indirect doctest
-	    Polynomial System with 40 Polynomials in 20 Variables
-	"""
-	return MPolynomialSystem_generic(self._ring, [r.__copy__() for r in self._rounds])
+            Polynomial System with 40 Polynomials in 20 Variables
+        """
+        return MPolynomialSystem_generic(self._ring, [r.__copy__() for r in self._rounds])
 
     def __cmp__(self, other):
         """

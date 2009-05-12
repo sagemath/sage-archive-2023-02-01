@@ -4,7 +4,7 @@ Linear Codes
 VERSION: 1.1
 
 Let `F` be a finite field (we denote the finite field with
-`q` elements `GF(q)` by `\mathbb{F}_q`).
+`q` elements by `\GF{q}`).
 A subspace of `F^n` (with the standard basis) is called a
 linear code of length `n`. If its dimension is denoted
 `k` then we typically store a basis of `C` as a
@@ -20,8 +20,8 @@ matrix of `C` are a basis for the code,
 
 called the dual space of `C`.
 
-If `F=\mathbb{F}_2` then `C` is called a binary
-code. If `F = \mathbb{F}_q` then `C` is called a
+If `F=\GF{2}` then `C` is called a binary
+code. If `F = \GF{q}` then `C` is called a
 `q`-ary code. The elements of a code `C` are
 called codewords.
 
@@ -1140,15 +1140,15 @@ class LinearCode(module.Module):
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
             (2, 0, 0, 2, 1, 0)
- 	    sage: F = GF(4,"a")
- 	    sage: C = HammingCode(2,F)
- 	    sage: v = vector(F, [1,0,0,a,1])
- 	    sage: C.decode(v)
- 	    (1, 0, 0, 1, 1)
- 	    sage: C.decode(v, method="nearest neighbor")
- 	    (1, 0, 0, 1, 1)
- 	    sage: C.decode(v, method="guava")
- 	    (1, 0, 0, 1, 1)
+            sage: F = GF(4,"a")
+            sage: C = HammingCode(2,F)
+            sage: v = vector(F, [1,0,0,a,1])
+            sage: C.decode(v)
+            (1, 0, 0, 1, 1)
+            sage: C.decode(v, method="nearest neighbor")
+            (1, 0, 0, 1, 1)
+            sage: C.decode(v, method="guava")
+            (1, 0, 0, 1, 1)
 
         Does not work for very long codes since the syndrome table grows
         too large.
@@ -2003,7 +2003,7 @@ class LinearCode(module.Module):
             else:
                 c0 = QQ((n-d)*C.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
         if i==3 or i==4:
-	    if d>d0:
+            if d>d0:
                 c0 = rising_factorial(d-d0,d0+1)*C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
                 c0 = C.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))

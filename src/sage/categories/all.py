@@ -8,6 +8,7 @@ from category_types import(
                         GSets,
                         PointedSets,
                         SetsWithPartialMaps,
+                        SimplicialComplexes,
                         Semigroups,
                         Monoids,
                         Groupoid,
@@ -35,6 +36,7 @@ from category_types import(
                         AlgebraModules,
                         AlgebraIdeals,
                         CommutativeAlgebraIdeals,
+                        ChainComplexes,
                         Schemes,
                         ModularAbelianVarieties)
 

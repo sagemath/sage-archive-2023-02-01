@@ -3,7 +3,6 @@ cdef extern from "gmp.h":
     ### Type Declarations ###
 
     # Underlying typedefs
-    ctypedef unsigned long size_t
     ctypedef unsigned long mp_limb_t
     ctypedef long mp_size_t
     ctypedef long mp_exp_t

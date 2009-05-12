@@ -36,7 +36,7 @@ def GraphPaths(g, source=None, target=None):
 
         sage: p = GraphPaths(G); p
         Paths in Multi-digraph on 5 vertices
-        sage: p.count()
+        sage: p.cardinality()
         37
         sage: p.random_element()
         [1, 2, 3, 4, 5]
@@ -60,7 +60,7 @@ def GraphPaths(g, source=None, target=None):
 
         sage: p = GraphPaths(G, target=3); p
         Paths in Multi-digraph on 5 vertices ending at 3
-        sage: p.count()
+        sage: p.cardinality()
         5
         sage: p.list()
         [[3], [1, 3], [2, 3], [1, 2, 3], [1, 2, 3]]
@@ -72,7 +72,7 @@ def GraphPaths(g, source=None, target=None):
 
         sage: p = GraphPaths(G, source=1, target=3); p
         Paths in Multi-digraph on 5 vertices starting at 1 and ending at 3
-        sage: p.count()
+        sage: p.cardinality()
         3
         sage: p.list()
         [[1, 2, 3], [1, 2, 3], [1, 3]]
@@ -226,7 +226,7 @@ class GraphPaths_all(CombinatorialClass, GraphPaths_common):
 
         sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
         sage: p = GraphPaths(G)
-        sage: p.count()
+        sage: p.cardinality()
         37
     """
     def __init__(self, g):
@@ -346,25 +346,25 @@ class GraphPaths_st(CombinatorialClass, GraphPaths_common):
     EXAMPLES::
 
         sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
-        sage: GraphPaths(G,1,2).count()
+        sage: GraphPaths(G,1,2).cardinality()
         2
-        sage: GraphPaths(G,1,3).count()
+        sage: GraphPaths(G,1,3).cardinality()
         3
-        sage: GraphPaths(G,1,4).count()
+        sage: GraphPaths(G,1,4).cardinality()
         5
-        sage: GraphPaths(G,1,5).count()
+        sage: GraphPaths(G,1,5).cardinality()
         10
-        sage: GraphPaths(G,2,3).count()
+        sage: GraphPaths(G,2,3).cardinality()
         1
-        sage: GraphPaths(G,2,4).count()
+        sage: GraphPaths(G,2,4).cardinality()
         2
-        sage: GraphPaths(G,2,5).count()
+        sage: GraphPaths(G,2,5).cardinality()
         4
-        sage: GraphPaths(G,3,4).count()
+        sage: GraphPaths(G,3,4).cardinality()
         1
-        sage: GraphPaths(G,3,5).count()
+        sage: GraphPaths(G,3,5).cardinality()
         2
-        sage: GraphPaths(G,4,5).count()
+        sage: GraphPaths(G,4,5).cardinality()
         2
     """
     def __init__(self, g, source, target):

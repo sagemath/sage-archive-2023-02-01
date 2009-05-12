@@ -41,7 +41,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
             return
-	elif is_gen:
+        elif is_gen:
             self._poly = PolynomialRing(ZZ, parent.variable_name()).gen()
             self._valbase = 0
             self._valaddeds = [infinity, 0]
@@ -157,6 +157,17 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return make_padic_poly, (self.parent(), (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list), 0)
 
     def _comp_list(self):
+        """
+        Recomputes the list of coefficients.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = t[0:1]
+        sage: a._comp_list()
+        sage: a
+        0
+        """
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
             return self._list
@@ -164,7 +175,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
                      + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
-        while self._list[-1]._is_exact_zero():
+        while len(self._list) > 0 and self._list[-1]._is_exact_zero():
             self._list.pop()
 
     def _comp_valaddeds(self):
@@ -306,15 +317,39 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns the content of self.
 
+        The content is returned to maximum precision: since it's only
+        defined up to a unit, we can choose p^k as the representative.
+
+        Returns an error if the base ring is actually a field: this is
+        probably not a function you want to be using then, since any
+        nonzero answer will be correct.
+
+        The content of the exact zero polynomial is zero.
+
         EXAMPLES:
-        sage: K = Qp(13,7)
+        sage: K = Zp(13,7)
         sage: R.<t> = K[]
         sage: a = 13^7*t^3 + K(169,4)*t - 13^4
         sage: a.content()
         13^2 + O(13^9)
+        sage: R(0).content()
+        0
+        sage: P.<x> = ZZ[]
+        sage: f = x + 2
+        sage: f.content()
+        1
+        sage: fp = f.change_ring(pAdicRing(2, 10))
+        sage: fp
+        (1 + O(2^10))*x + (2 + O(2^11))
+        sage: fp.content()
+        1 + O(2^10)
+        sage: (2*fp).content()
+        2 + O(2^11)
         """
+        if self.base_ring().is_field():
+            raise TypeError, "ground ring is a field.  Answer is only defined up to units."
         if self._normalized:
-            return self._valbase
+            return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:
             self._comp_valaddeds()
         return self.base_ring()(self.base_ring().prime_pow(min(self._valaddeds) + self._valbase))
@@ -1000,7 +1035,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         # This will eventually be improved.
         if self == 0:
             raise ValueError, "Factorization of the zero polynomial not defined"
-	from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.padics.factory import ZpCA
         base = self.base_ring()
         #print self.list()

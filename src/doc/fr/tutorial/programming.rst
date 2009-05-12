@@ -729,11 +729,11 @@ objet, on utilise l'opérateur ``is``.
     True
 
 Dans les deux lignes suivantes, la première égalité est fausse parce
-qu'il n'y a pas de morphisme canonique :math:`\mathbb{Q}\to
-\mathbb{F}_5`, et donc pas de manière canonique de comparer l'élément
-:math:`1` de :math:`\mathbb{F}_5` à :math:`1 \in \mathbb{Q}`. En
-revanche, il y a une projection canonique :math:`\mathbb{Z} \to
-\mathbb{F}_5`, de sorte que la deuxième comparaison renvoie « vrai ».
+qu'il n'y a pas de morphisme canonique :math:`\QQ\to
+\GF{5}`, et donc pas de manière canonique de comparer l'élément
+:math:`1` de :math:`\GF{5}` à :math:`1 \in \QQ`. En
+revanche, il y a une projection canonique :math:`\ZZ \to
+\GF{5}`, de sorte que la deuxième comparaison renvoie « vrai ».
 Remarquez aussi que l'ordre des membres de l'égalité n'a pas
 d'importance.
 
@@ -749,7 +749,7 @@ d'importance.
     True
 
 ATTENTION : La comparaison est plus restrictive en Sage qu'en Magma, qui
-considère :math:`1 \in \mathbb{F}_5` comme égal à :math:`1 \in \mathbb{Q}`.
+considère :math:`1 \in \GF{5}` comme égal à :math:`1 \in \QQ`.
 
 
 ::

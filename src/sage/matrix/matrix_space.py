@@ -375,7 +375,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             coerce = True
             copy = False
         elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries) \
-             or isinstance(entries, sage.modular.congroup_element.CongruenceSubgroupElement):
+             or isinstance(entries, sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement):
             return self(entries.matrix(), copy=False)
 
         return self.matrix(entries, copy=copy, coerce=coerce, rows=rows)
@@ -547,9 +547,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
             sage: MS3 = MatrixSpace(QQ,6,6,true)
             sage: latex(MS3)
-            \mbox{\rm Mat}_{6\times 6}(\mathbf{Q})
+            \mathrm{Mat}_{6\times 6}(\Bold{Q})
         """
-        return "\\mbox{\\rm Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
+        return "\\mathrm{Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
 
     def __iter__(self):

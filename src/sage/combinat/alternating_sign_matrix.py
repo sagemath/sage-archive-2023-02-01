@@ -97,32 +97,32 @@ class AlternatingSignMatrices_n(CombinatorialClass):
         """
         return "Alternating sign matrices of size %s"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
-            sage: [ AlternatingSignMatrices(n).count() for n in range(0, 11)]
+            sage: [ AlternatingSignMatrices(n).cardinality() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
 
         ::
 
             sage: asms = [ AlternatingSignMatrices(n) for n in range(6) ]
-            sage: all( [ asm.count() == len(asm.list()) for asm in asms] )
+            sage: all( [ asm.cardinality() == len(asm.list()) for asm in asms] )
             True
         """
         return prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] )
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
-            sage: AlternatingSignMatrices(0).list()
+            sage: AlternatingSignMatrices(0).list() # indirect doctest
             [[]]
-            sage: AlternatingSignMatrices(1).list()
+            sage: AlternatingSignMatrices(1).list() # indirect doctest
             [[1]]
-            sage: map(list, AlternatingSignMatrices(2).list())
+            sage: map(list, AlternatingSignMatrices(2).list()) # indirect doctest
             [[(0, 1), (1, 0)], [(1, 0), (0, 1)]]
-            sage: map(list, AlternatingSignMatrices(3).list())
+            sage: map(list, AlternatingSignMatrices(3).list()) # indirect doctest
             [[(0, 0, 1), (0, 1, 0), (1, 0, 0)],
              [(0, 1, 0), (0, 0, 1), (1, 0, 0)],
              [(0, 0, 1), (1, 0, 0), (0, 1, 0)],
@@ -143,7 +143,7 @@ def ContreTableaux(n):
 
         sage: ct4 = ContreTableaux(4); ct4
         Contre tableaux of size 4
-        sage: ct4.count()
+        sage: ct4.cardinality()
         42
         sage: ct4.first()
         [[1, 2, 3, 4], [1, 2, 3], [1, 2], [1]]
@@ -175,11 +175,11 @@ class ContreTableaux_n(CombinatorialClass):
         """
         return "Contre tableaux of size %s"%self.n
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
-            sage: [ ContreTableaux(n).count() for n in range(0, 11)]
+            sage: [ ContreTableaux(n).cardinality() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
         """
         return prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] )
@@ -206,7 +206,7 @@ class ContreTableaux_n(CombinatorialClass):
                 for column in _next_column_iterator(previous_column, len(previous_column)-1):
                     yield columns + [ column ]
 
-    def iterator(self):
+    def __iter__(self):
         """
         TESTS::
 
@@ -280,7 +280,7 @@ def TruncatedStaircases(n, last_column):
 
         sage: t4 = TruncatedStaircases(4, [2,3]); t4
         Truncated staircases of size 4 with last column [2, 3]
-        sage: t4.count()
+        sage: t4.cardinality()
         4
         sage: t4.first()
         [[4, 3, 2, 1], [3, 2, 1], [3, 2]]
@@ -333,7 +333,7 @@ class TruncatedStaircases_nlastcolumn(CombinatorialClass):
                 for column in _previous_column_iterator(previous_column, len(previous_column)+1, self.n):
                     yield [column] + columns
 
-    def iterator(self):
+    def __iter__(self):
         """
         EXAMPLES:::
 

@@ -12,6 +12,11 @@ Python code, it is hoped that this will provide the casual user
 with some basic examples on how to start using Sage in a useful
 way.
 
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/
+
 Please send suggestions, additions, corrections to the ``sage-devel``
 Google group!
 
@@ -19,8 +24,6 @@ The Sage wiki http://wiki.sagemath.org/ contains a wealth of
 information. Moreover, all these can be tested in the Sage notebook
 interface http://www.sagenb.org/ on the web.
 
-
-Contents:
 
 .. toctree::
    :maxdepth: 2

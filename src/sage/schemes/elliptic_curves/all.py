@@ -18,10 +18,11 @@ Exported elliptic curves functionality
 #*****************************************************************************
 
 from constructor import (EllipticCurve, EllipticCurve_from_c4c6,
-                         EllipticCurve_from_cubic)
+                         EllipticCurve_from_j, EllipticCurve_from_cubic,
+                         EllipticCurves_with_good_reduction_outside_S)
 
 
-from ell_generic import is_EllipticCurve, Hasse_bounds
+from ell_generic import is_EllipticCurve
 
 from ell_rational_field import cremona_curves, cremona_optimal_curves
 

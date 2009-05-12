@@ -454,7 +454,7 @@ Recherche en arrière et complétion de ligne de commande
 =======================================================
 
 Commençons par créer l'espace vectoriel de dimension trois
-:math:`V=\mathbf{Q}^3` comme suit :
+:math:`V=\QQ^3` comme suit :
 
 ::
 
@@ -593,7 +593,7 @@ que fait la fonction ``coordinate_vector`` ?
 La fonction ``coordinate_vector`` convertit son entrée en un élément de
 l'espace ambiant, ce qui a pour effet de calculer le vecteur des
 coefficients de  :math:`v` dans :math:`V`. L'espace :math:`V` est déjà
-« l'espace ambiant » puisque c'est simplement :math:`\mathbb{Q}^3`. Il y
+« l'espace ambiant » puisque c'est simplement :math:`\QQ^3`. Il y
 a aussi une fonction ``coordinate_vector`` différente pour les
 sous-espaces. Créons un sous-espace et examinons-là :
 

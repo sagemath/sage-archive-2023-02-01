@@ -1,5 +1,4 @@
 cdef extern from "stdlib.h":
-    ctypedef int size_t
     void free(void *ptr)
 
 include 'mpfi.pxi'
@@ -17,7 +16,7 @@ cimport real_mpfr
 
 cdef class RealIntervalFieldElement(sage.structure.element.RingElement)  # forward decl
 
-cdef class RealIntervalField(sage.rings.ring.Field):
+cdef class RealIntervalField_class(sage.rings.ring.Field):
     cdef int __prec
     cdef bint sci_not
     # Cache RealField instances for the lower, upper, and middle bounds.

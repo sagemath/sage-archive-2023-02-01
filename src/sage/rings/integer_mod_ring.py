@@ -1,5 +1,5 @@
 r"""
-Ring `\mathbb{Z}/n\mathbb{Z}` of integers modulo `n`
+Ring `\ZZ/n\ZZ` of integers modulo `n`
 
 EXAMPLES::
 
@@ -9,8 +9,8 @@ EXAMPLES::
     61
 
 This example illustrates the relation between
-`\mathbb{Z}/p\mathbb{Z}` and `\mathbb{F}_p`. In
-particular, there is a canonical map to `\mathbb{F}_p`, but not in
+`\ZZ/p\ZZ` and `\GF{p}`. In
+particular, there is a canonical map to `\GF{p}`, but not in
 the other direction.
 
 ::
@@ -28,7 +28,7 @@ the other direction.
     sage: parent(r(1) + s(1))
     Finite Field of size 7
 
-We list the elements of `\mathbb{Z}/3\mathbb{Z}`
+We list the elements of `\ZZ/3\ZZ`
 
 ::
 
@@ -89,7 +89,7 @@ from sage.structure.factory import UniqueFactory
 
 class IntegerModFactory(UniqueFactory):
     r"""
-    Return the quotient ring `\mathbb{Z} / n\mathbb{Z}`.
+    Return the quotient ring `\ZZ / n\ZZ`.
 
     INPUT:
 
@@ -285,6 +285,26 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return "ZZ/%s"%self.order()
 
+    def _axiom_init_(self):
+        """
+        Returns a string representation of self in (Pan)Axiom.
+
+        EXAMPLES::
+
+            sage: Z7 = Integers(7)
+            sage: Z7._axiom_init_()
+            'IntegerMod(7)'
+
+            sage: axiom(Z7)  #optional - axiom
+            IntegerMod 7
+
+            sage: fricas(Z7) #optional - fricas
+            IntegerMod(7)
+        """
+        return 'IntegerMod(%s)'%self.order()
+
+    _fricas_init_ = _axiom_init_
+
     def krull_dimension(self):
         """
         EXAMPLES::
@@ -321,7 +341,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def multiplicative_subgroups(self):
         r"""
         Return generators for each subgroup of
-        `(\mathbb{Z}/N\mathbb{Z})^*`.
+        `(\ZZ/N\ZZ)^*`.
 
         EXAMPLES::
 
@@ -646,7 +666,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         return "Ring of integers modulo %s"%self.__order
 
     def _latex_(self):
-        return "\mathbf{Z}/%s\mathbf{Z}" % self.__order
+        return "\ZZ/%s\ZZ" % self.__order
 
     def modulus(self):
         r"""
@@ -742,8 +762,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             12
 
         But this is not, since there is no (canonical or not!) ring
-        homomorphism from `\mathbb{Q}` to
-        `\mathrm{GF}(17)`.
+        homomorphism from `\QQ` to `\GF{17}`.
 
         ::
 
@@ -845,7 +864,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def __unit_gens_primepowercase(self, p, r):
         r"""
         Find smallest generator for
-        `(\mathbb{Z}/p^r\mathbb{Z})^*`.
+        `(\ZZ/p^r\ZZ)^*`.
         """
         if r==1:
             return [self.__unit_gens_primecase(p)]
@@ -875,7 +894,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def unit_gens(self):
         r"""
         Returns generators for the unit group
-        `(\mathbb{Z}/N\mathbb{Z})^*`.
+        `(\ZZ/N\ZZ)^*`.
 
         We compute the list of generators using a deterministic algorithm,
         so the generators list will always be the same. Each generator

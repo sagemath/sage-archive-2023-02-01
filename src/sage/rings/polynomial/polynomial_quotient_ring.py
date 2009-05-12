@@ -57,7 +57,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
     EXAMPLES:
 
-    We create the quotient ring `\mathbb{Z}[x]/(x^3+7)`, and
+    We create the quotient ring `\ZZ[x]/(x^3+7)`, and
     demonstrate many basic functions with it::
 
         sage: Z = IntegerRing()
@@ -86,7 +86,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
     .. math::
 
-                    R = (\mathbb{F}_2[y]/(y^{2}+y+1))[x]/(x^3 - 5).
+                    R = (\GF{2}[y]/(y^{2}+y+1))[x]/(x^3 - 5).
 
 
 
@@ -102,7 +102,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         Univariate Quotient Polynomial Ring in xbar over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
 
     Next we create a number field, but viewed as a quotient of a
-    polynomial ring over `\mathbb{Q}`::
+    polynomial ring over `\QQ`::
 
         sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
         sage: S = R.quotient(x^3 + 2*x - 5, 'a')
@@ -114,7 +114,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         3
 
     There are conversion functions for easily going back and forth
-    between quotients of polynomial rings over `\mathbb{Q}` and
+    between quotients of polynomial rings over `\QQ` and
     number fields::
 
         sage: K = S.number_field(); K
@@ -334,8 +334,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         EXAMPLES:
 
         The base ring of
-        `\mathbb{Z}[z]/(z^3 + z^2 + z + 1)` is
-        `\mathbb{Z}`.
+        `\ZZ[z]/(z^3 + z^2 + z + 1)` is
+        `\ZZ`.
 
         ::
 

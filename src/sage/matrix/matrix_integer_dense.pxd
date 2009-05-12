@@ -7,6 +7,8 @@ from sage.rings.integer cimport Integer
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
 
+ctypedef long* GEN
+
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef char _initialized
     cdef mpz_t *_entries
@@ -30,3 +32,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
                                    Py_ssize_t nrows, Py_ssize_t ncols) except NULL
     cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
+    cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
+
+
+################################################################
+# fast conversion to pari on the stack
+################################################################
+cdef GEN pari_GEN(Matrix_integer_dense B)

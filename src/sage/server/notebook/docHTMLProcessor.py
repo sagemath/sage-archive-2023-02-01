@@ -137,7 +137,6 @@ class SphinxHTMLProcessor(SGMLParser):
             output_flag = False
             piece = '{{{id=%s|\n'%self.get_cellcount()
             for p in pieces:
-                p = p.lstrip()
 
                 if p[:5] == 'sage:' and not output_flag:
                     piece += p[5:].lstrip() + '\n'
@@ -152,15 +151,21 @@ class SphinxHTMLProcessor(SGMLParser):
                 elif p[:3] == '...':
                     piece += p[3:] + '\n'
                 else:
+                    # in an output string. replace escaped html
+                    # strings so they don't get converted twice.
+                    p = p.replace('&lt;', '<')
+                    p = p.replace('&gt;', '>')
+                    p = p.replace('&amp;', '&')
+                    p = p.replace('&#39;', "'")
                     # first occurrence of an output string
                     # write /// denoting output
                     if output_flag == False:
                         piece += '///\n'
-                        piece += p.lstrip() + '\n'
+                        piece += p + '\n'
                         output_flag = True
                     # multiple output lines exist, don't need /// repeated
                     else:
-                        piece += p.lstrip() + '\n'
+                        piece += p + '\n'
             piece += '}}}\n'
         return piece
 
@@ -169,16 +174,16 @@ class SphinxHTMLProcessor(SGMLParser):
     ## These just append their HTML to
     ## self.temp_pieces.
 
-    def	unknown_starttag(self, tag, attrs):
+    def unknown_starttag(self, tag, attrs):
         if self.bodyQ:
             strattrs = "".join([' %s="%s"' % (key, value) for key, value in attrs])
             self.temp_pieces.append("<%(tag)s%(strattrs)s>" % locals())
 
-    def	unknown_endtag(self, tag):
+    def unknown_endtag(self, tag):
         if self.bodyQ:
             self.temp_pieces.append("</%(tag)s>" % locals())
 
-    def	handle_data(self, data):
+    def handle_data(self, data):
         if self.bodyQ:
             self.temp_pieces.append(data)
 
@@ -192,7 +197,7 @@ class SphinxHTMLProcessor(SGMLParser):
             if entitydefs.has_key(ref):
                 self.temp_pieces.append(';')
 
-    def	handle_comment(self, data):
+    def handle_comment(self, data):
         if self.bodyQ:
             self.temp_pieces.append("<!--%(data)s-->" % locals())
 

@@ -8,9 +8,8 @@ include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
 include "../ext/python_ref.pxi"
 
+from sage.rings.all import polygen, QQ,ZZ
 from sage.rings.integer cimport Integer
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport ModuleElement, Element
 
 cimport matrix_dense
@@ -18,12 +17,91 @@ import matrix_dense
 
 cimport matrix
 
+from matrix_space import MatrixSpace_generic
+
+class MatrixSpace_ZZ_2x2_class(MatrixSpace_generic):
+    """
+    Return a space of 2x2 matrices over ZZ, whose elements are of
+    type sage.matrix.matrix_integer_2x2.Matrix_integer_2x2 instead of
+    sage.matrix.matrix_integer_dense.Matrix_integer_dense.
+
+    NOTE: This class exists only for quickly creating and testing
+    elements of this type. Once these become the default for 2x2
+    matrices over ZZ, this class should be removed.
+
+    EXAMPLES:
+        sage: sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+        Space of 2x2 integer matrices
+    """
+    def __init__(self):
+        """
+        EXAMPLES:
+            sage: sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            Space of 2x2 integer matrices
+        """
+        MatrixSpace_generic.__init__(self, ZZ, 2, 2, False)
+
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M.__reduce__()
+            (<built-in function MatrixSpace_ZZ_2x2>, ())
+        """
+        return MatrixSpace_ZZ_2x2, ()
+
+    def _repr_(self):
+        """
+        EXAMPLES:
+            sage: sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            Space of 2x2 integer matrices
+        """
+        return "Space of 2x2 integer matrices"
+
+    def _get_matrix_class(self):
+        """
+        EXAMPLES:
+            sage: A = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: A._get_matrix_class()
+            <type 'sage.matrix.matrix_integer_2x2.Matrix_integer_2x2'>
+        """
+        return Matrix_integer_2x2
+
+ZZ_2x2_parent = MatrixSpace_ZZ_2x2_class()
+def MatrixSpace_ZZ_2x2():
+    """
+    Return the space of 2x2 integer matrices. (This function
+    exists to maintain uniqueness of parents.)
+
+    EXAMPLES:
+        sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+        sage: M
+        Space of 2x2 integer matrices
+        sage: M is sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+        True
+    """
+    return ZZ_2x2_parent
+
 
 cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     r"""
-    The \class{Matrix_generic_dense} class derives from \class{Matrix}, and
-    defines fast functionality 2x2 matrices over the integers.
-    Matrices are represented by four gmp integer fields: a, b, c, and d.
+    The \class{Matrix_integer_2x2} class derives from
+    \class{Matrix_dense}, and defines fast functionality for 2x2
+    matrices over the integers.  Matrices are represented by four gmp
+    integer fields: a, b, c, and d.
+
+    EXAMPLES:
+        sage: MS = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+        sage: m = MS([1,2,3,4]) ; m
+        [1 2]
+        [3 4]
+        sage: loads(dumps(m))
+        [1 2]
+        [3 4]
+        sage: loads(dumps(m)) == m
+        True
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -44,6 +122,23 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         self._entries = &self.a
 
     def __init__(self, parent, entries, copy, coerce):
+        """
+        EXAMPLES:
+            sage: MS = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: MS()
+            [0 0]
+            [0 0]
+            sage: MS(5)
+            [5 0]
+            [0 5]
+            sage: MS([3,4,5,6])
+            [3 4]
+            [5 6]
+            sage: MS([11,3])
+            Traceback (most recent call last):
+            ...
+            TypeError: entries has the wrong length
+        """
         matrix.Matrix.__init__(self, parent)
 
         cdef Py_ssize_t i, n
@@ -108,9 +203,23 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return z
 
     def _pickle(self):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([9,8,7,6])
+            sage: m == loads(dumps(m))
+            True
+        """
         return self.list(), 0
 
     def _unpickle(self, data, int version):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M(5)
+            sage: m == loads(dumps(m))
+            True
+        """
         if version == 0:
             mpz_set(self.a, (<Integer>ZZ(data[0])).value)
             mpz_set(self.b, (<Integer>ZZ(data[1])).value)
@@ -119,12 +228,44 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         else:
             raise RuntimeError, "unknown matrix version"
 
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
+    def __richcmp__(matrix.Matrix self, right, int op):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,2,3,4])
+            sage: n = M([-1,2,3,4])
+            sage: m < n
+            False
+            sage: m > n
+            True
+            sage: m == m
+            True
+        """
         return self._richcmp(right, op)
+
     def __hash__(self):
+        """
+        Return a hash of self.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,2,3,4])
+            sage: m.set_immutable()
+            sage: m.__hash__()
+            8
+        """
         return self._hash()
 
     def __iter__(self):
+        """
+        Return an iterator over the entries of self.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,2,3,4])
+            sage: m.__iter__()
+            <listiterator object at ...>
+        """
         return iter(self.list())
 
     cdef Matrix_integer_2x2 _new_c(self):
@@ -150,6 +291,18 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     ########################################################################
 
     def __copy__(self):
+        """
+        Return a copy of self.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,3,4,5])
+            sage: n = copy(m)
+            sage: n == m
+            True
+            sage: n is m
+            False
+        """
         cdef Matrix_integer_2x2 x
         x = self._new_c()
         mpz_set(x.a, self.a)
@@ -161,6 +314,13 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return x
 
     cpdef ModuleElement _add_(left, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([8,7,6,5]) + M([4,5,6,7])
+            [12 12]
+            [12 12]
+        """
         cdef Matrix_integer_2x2 A
         A = left._new_c()
         mpz_add(A.a, left.a, (<Matrix_integer_2x2>right).a)
@@ -170,9 +330,36 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return A
 
     cdef int _cmp_c_impl(left, Element right) except -2:
-        return mpz_cmp(left.a, (<Matrix_integer_2x2>right).a) or mpz_cmp(left.b, (<Matrix_integer_2x2>right).b) or mpz_cmp(left.c, (<Matrix_integer_2x2>right).c) or mpz_cmp(left.d, (<Matrix_integer_2x2>right).d)
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([4,3,7,9])
+            sage: n = M([3,3,7,9])
+            sage: m < n
+            False
+            sage: m > n
+            True
+            sage: m == m
+            True
+            sage: m == n
+            False
+        """
+        return mpz_cmp(left.a, (<Matrix_integer_2x2>right).a) or \
+               mpz_cmp(left.b, (<Matrix_integer_2x2>right).b) or \
+               mpz_cmp(left.c, (<Matrix_integer_2x2>right).c) or \
+               mpz_cmp(left.d, (<Matrix_integer_2x2>right).d)
 
     def __neg__(self):
+        """
+        Return the additive inverse of self.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,-1,-1,1])
+            sage: -m
+            [-1  1]
+            [ 1 -1]
+        """
         cdef Matrix_integer_2x2 A
         A = self._new_c()
         mpz_neg(A.a, self.a)
@@ -182,11 +369,48 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return A
 
     def __invert__(self):
+        """
+        Return the inverse of self, as a 2x2 matrix over QQ.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([2,0,0,2])
+            sage: m^-1
+            [1/2   0]
+            [  0 1/2]
+            sage: type(m^-1)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+        """
         MS = self._matrix_(QQ).parent()
         D = self.determinant()
         return MS([self.get_unsafe(1,1)/D, -self.get_unsafe(0,1)/D, -self.get_unsafe(1,0)/D, self.get_unsafe(0,0)/D], coerce=False, copy=False)
 
     def __invert__unit(self):
+        """
+        If self is a unit, i.e. if its determinant is 1 or -1, return
+        the inverse of self as a 2x2 matrix over ZZ. If not, raise a
+        ZeroDivisionError.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([1,8,3,25])
+            sage: m.__invert__unit()
+            [25 -8]
+            [-3  1]
+            sage: type(m.__invert__unit())
+            <type 'sage.matrix.matrix_integer_2x2.Matrix_integer_2x2'>
+            sage: m^-1
+            [25 -8]
+            [-3  1]
+            sage: type(m^-1)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: m.__invert__unit() == m^-1
+            True
+            sage: M([2,0,0,2]).__invert__unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Not a unit!
+        """
         cdef Matrix_integer_2x2 A
         cdef Integer D
         D = self.determinant()
@@ -214,6 +438,17 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         """
         Multiply the matrices left and right using the classical $O(n^3)$
         algorithm.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([9,7,6,4])
+            sage: n = M([7,1,3,0])
+            sage: m*n
+            [84  9]
+            [54  6]
+            sage: m._multiply_classical(n)
+            [84  9]
+            [54  6]
         """
         cdef Matrix_integer_2x2 A, right
         cdef mpz_t tmp
@@ -242,7 +477,14 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return A
 
     def _list(self):
-        return [self.get_unsafe(0,0), self.get_unsafe(0,1), self.get_unsafe(1,0), self.get_unsafe(1,1)]
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([8,6,0,8])._list()
+            [8, 6, 0, 8]
+        """
+        return [self.get_unsafe(0,0), self.get_unsafe(0,1),
+                self.get_unsafe(1,0), self.get_unsafe(1,1)]
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
@@ -255,6 +497,13 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     ########################################################################
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([3,4,5,6]) - M([1,2,3,4])
+            [2 2]
+            [2 2]
+        """
         cdef Matrix_integer_2x2 A
         A = left._new_c()
         mpz_sub(A.a, left.a, (<Matrix_integer_2x2>right).a)
@@ -264,6 +513,14 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         return A
 
     def determinant(self):
+        """
+        Return the determinant of self, which is just ad-bc.
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([9,0,8,7]).determinant()
+            63
+        """
         cdef Integer z
         cdef mpz_t tmp
         mpz_init(tmp)
@@ -274,15 +531,52 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_clear(tmp)
         return z
 
-    def charpoly(self, var):
-        R = ZZ[var]
-        t = R.gen(0)
-        cdef Integer z
-        z = Integer.__new__(Integer)
-        mpz_mul(z.value, self.b, self.c)
-        return t*t + t*z + self.determinant()
+    def trace(self):
+        """
+        Return the trace of self, which is just a+d.
 
-    def __deepcopy__(self):
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([9,0,8,7]).trace()
+            16
+        """
+        cdef Integer z = PY_NEW(Integer)
+        mpz_add(z.value, self._entries[0], self._entries[3])
+        return z
+
+    def charpoly(self, var='x'):
+        """
+        Return the charpoly of self as a polynomial in var. Since self
+        is 2x2, this is just var^2 - self.trace() * var +
+        self.determinant().
+
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: M([9,0,8,7]).charpoly()
+            x^2 - 16*x + 63
+            sage: M(range(4)).charpoly()
+            x^2 - 3*x - 2
+            sage: M(range(4)).charpoly('t')
+            t^2 - 3*t - 2
+        """
+        t = polygen(ZZ,name=var)
+        return t*t - t*self.trace() + self.determinant()
+
+    def __deepcopy__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
+            sage: m = M([5,5,5,5])
+            sage: n = deepcopy(m)
+            sage: n == m
+            True
+            sage: n is m
+            False
+            sage: m[0,0] == n[0,0]
+            True
+            sage: m[0,0] is n[0,0]
+            False
+        """
         return self.__copy__()
 
 

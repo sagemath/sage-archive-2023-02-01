@@ -25,9 +25,6 @@ include "../../ext/stdsage.pxi"
 include "../../ext/python_int.pxi"
 include "../../ext/python_ref.pxi"
 
-cdef extern from "stdlib.h":
-     ctypedef unsigned long size_t
-
 cdef extern from "dancing_links_c.h":
     ctypedef struct vector_int "std::vector<int>":
         void (* push_back)(int elem)
@@ -124,7 +121,7 @@ cdef class dancing_linksWrapper:
         initialised using the same row list.
 
         TESTS:
-	    sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
             sage: Z = dlx_solver(rows)

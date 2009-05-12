@@ -8,7 +8,7 @@ EXAMPLES: There are 8 compositions of 4.
 
 ::
 
-    sage: Compositions(4).count()
+    sage: Compositions(4).cardinality()
     8
 
 Here is the list of them::
@@ -171,7 +171,7 @@ AUTHORS:
 #*****************************************************************************
 
 import sage.combinat.skew_partition
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
 import __builtin__
 from sage.rings.integer import Integer
 from sage.rings.arith import binomial
@@ -472,7 +472,7 @@ def Compositions(n=None, **kwargs):
         Compositions of 3
         sage: Compositions(3).list()
         [[1, 1, 1], [1, 2], [2, 1], [3]]
-        sage: Compositions(3).count()
+        sage: Compositions(3).cardinality()
         4
 
     In addition, the following constraints can be put on the
@@ -495,7 +495,7 @@ def Compositions(n=None, **kwargs):
         else:
             return Compositions_n(n)
 
-class Compositions_all(CombinatorialClass):
+class Compositions_all(InfiniteAbstractCombinatorialClass):
     def __init__(self):
         """
         TESTS::
@@ -541,16 +541,20 @@ class Compositions_all(CombinatorialClass):
         else:
             return False
 
-    def list(self):
+    def _infinite_cclass_slice(self, n):
         """
+        Needed by InfiniteAbstractCombinatorialClass to buid __iter__.
+
         TESTS::
 
-            sage: Compositions().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: Compositions()._infinite_cclass_slice(4) == Compositions(4)
+            True
+            sage: it = iter(Compositions())    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
-        raise NotImplementedError
+        return Compositions_n(n)
+
 
 class Compositions_n(CombinatorialClass):
     def __init__(self, n):
@@ -587,13 +591,13 @@ class Compositions_n(CombinatorialClass):
         """
         return x in Compositions() and sum(x) == self.n
 
-    def count(self):
+    def cardinality(self):
         """
         TESTS::
 
-            sage: Compositions(3).count()
+            sage: Compositions(3).cardinality()
             4
-            sage: Compositions(0).count()
+            sage: Compositions(0).cardinality()
             1
         """
         if self.n >= 1:
@@ -659,21 +663,21 @@ class Compositions_constraints(CombinatorialClass):
         return x in Compositions() and sum(x) == self.n and misc.check_integer_list_constraints(x, singleton=True, **self.constraints)
 
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: Compositions(4, length=2).count()
+            sage: Compositions(4, length=2).cardinality()
             3
-            sage: Compositions(4, min_length=2).count()
+            sage: Compositions(4, min_length=2).cardinality()
             7
-            sage: Compositions(4, max_length=2).count()
+            sage: Compositions(4, max_length=2).cardinality()
             4
-            sage: Compositions(4, max_part=2).count()
+            sage: Compositions(4, max_part=2).cardinality()
             5
-            sage: Compositions(4, min_part=2).count()
+            sage: Compositions(4, min_part=2).cardinality()
             2
-            sage: Compositions(4, outer=[3,1,2]).count()
+            sage: Compositions(4, outer=[3,1,2]).cardinality()
             3
         """
         if len(self.constraints) == 1 and 'length' in self.constraints:

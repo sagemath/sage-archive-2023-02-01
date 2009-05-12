@@ -80,7 +80,6 @@ from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.groups.class_function import ClassFunction
-from sage.misc.randstate import current_randstate
 
 #################################################################
 
@@ -123,7 +122,7 @@ def MatrixGroup(gens):
         [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
 
     In the second example, the generators are a matrix over
-    `\mathbb{Z}`, a matrix over a finite field, and the integer
+    `\ZZ`, a matrix over a finite field, and the integer
     `2`. Sage determines that they both canonically map to
     matrices over the finite field, so creates that matrix group
     there.
@@ -1031,13 +1030,13 @@ class MatrixGroup_gens_finite_field(MatrixGroup_gens, MatrixGroup_gap_finite_fie
 ##             sage: gens = [MS([[1,0],[-1,1]]),MS([[1,1],[0,1]])]
 ##             sage: G = MatrixGroup(gens)
 ##             sage: G.conjugacy_class_representatives_gap()
-## 	    ['[ [ Z(3)^0, 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ]',
-##  	    '[ [ 0*Z(3), Z(3)^0 ], [ Z(3), Z(3)^0 ] ]',
+##          ['[ [ Z(3)^0, 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ]',
+##          '[ [ 0*Z(3), Z(3)^0 ], [ Z(3), Z(3)^0 ] ]',
 ##             '[ [ 0*Z(3), Z(3)^0 ], [ Z(3), Z(3) ] ]',
 ##             '[ [ 0*Z(3), Z(3) ], [ Z(3)^0, Z(3)^0 ] ]',
-##      	    '[ [ 0*Z(3), Z(3) ], [ Z(3)^0, Z(3) ] ]',
-##      	    '[ [ 0*Z(3), Z(3)^0 ], [ Z(3), 0*Z(3) ] ]',
-##  	    '[ [ Z(3), 0*Z(3) ], [ 0*Z(3), Z(3) ] ]']
+##                  '[ [ 0*Z(3), Z(3) ], [ Z(3)^0, Z(3) ] ]',
+##                  '[ [ 0*Z(3), Z(3)^0 ], [ Z(3), 0*Z(3) ] ]',
+##          '[ [ Z(3), 0*Z(3) ], [ 0*Z(3), Z(3) ] ]']
 
 ##         AUTHOR: David Joyner (1-2006)
 ##         """

@@ -1,7 +1,8 @@
 r"""
 Dense complex double vectors using a numpy backend.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: v = vector(CDF,[(1,-1), (2,pi), (3,5)])
     sage: v
     (1.0 - 1.0*I, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)
@@ -15,7 +16,16 @@ EXAMPLES:
     sage: loads(dumps(v)) == v
     True
 
+TESTS::
+
+    sage: v = vector(CDF, [2, 2])
+    sage: v - v
+    (0, 0)
+    sage: (v - v).norm()
+    0.0
+
 AUTHORS:
+
     -- Jason Grout, Oct 2008: switch to numpy backend, factored out
        Vector_double_dense class
 """

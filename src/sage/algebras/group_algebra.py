@@ -200,9 +200,9 @@ class GroupAlgebra(Algebra):
             self.group(), an element of self.base_ring(), or an element
             of self.group().
             -- check (boolean): whether or not to check that the given elements
-	    really do lie in self.group(). Chiefly provided to speed up
-	    arithmetic operations with elements that have already been checked
-	    to lie in the group.
+            really do lie in self.group(). Chiefly provided to speed up
+            arithmetic operations with elements that have already been checked
+            to lie in the group.
 
         OUTPUT:
             -- a GroupAlgebraElement instance whose parent is self.

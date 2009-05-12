@@ -27,14 +27,14 @@ class Cipher(Element):
 
         EXAMPLES: None yet
         """
-	self._parent = parent
-	self._key = key
+        self._parent = parent
+        self._key = key
 
     def __eq__(self, right):
         return type(self) == type(right) and self._parent == right._parent and self._key == right._key
 
     def __repr__(self):
-	return str(self._key)
+        return str(self._key)
 
     def key(self):
         return self._key # was str(self._key)
@@ -60,7 +60,7 @@ class SymmetricKeyCipher(Cipher):
 
         EXAMPLES: None yet
         """
-	Cipher.__init__(self, parent, key)
+        Cipher.__init__(self, parent, key)
 
 class PublicKeyCipher(Cipher):
     """
@@ -74,5 +74,5 @@ class PublicKeyCipher(Cipher):
 
         EXAMPLES: None yet
         """
-	Cipher.__init__(self, parent, key)
-	self._public = public
+        Cipher.__init__(self, parent, key)
+        self._public = public

@@ -411,10 +411,10 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
                 # set expression
                 if not isinstance(kwds[key],list):
-					if key == 'induced_subgraphs':
-						qdict['expression'] = [key, 'regexp', '.*%s.*'%(graph.Graph(kwds[key]).canonical_label()).graph6_string()]
-					else:
-						qdict['expression'] = [key, '=', kwds[key]]
+                                        if key == 'induced_subgraphs':
+                                                qdict['expression'] = [key, 'regexp', '.*%s.*'%(graph.Graph(kwds[key]).canonical_label()).graph6_string()]
+                                        else:
+                                                qdict['expression'] = [key, '=', kwds[key]]
                 elif key == 'degree_sequence':
                     qdict['expression'] = [key, '=', degseq_to_data(kwds[key])]
                 elif key != 'induced_subgraphs':
@@ -445,36 +445,36 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
 
             # organize display
             if display_cols is not None:
-				for col in display_cols:
-					if col in graph_data: graph_data_disp.append(col)
-					elif col in aut_grp: aut_grp_disp.append(col)
-					elif col in degrees: degrees_disp.append(col)
-					elif col in misc: misc_disp.append(col)
-					elif col in spectrum: spectrum_disp.append(col)
+                                for col in display_cols:
+                                        if col in graph_data: graph_data_disp.append(col)
+                                        elif col in aut_grp: aut_grp_disp.append(col)
+                                        elif col in degrees: degrees_disp.append(col)
+                                        elif col in misc: misc_disp.append(col)
+                                        elif col in spectrum: spectrum_disp.append(col)
 
-				# finish filling master join with display tables
-				for tab in disp_tables:
-					if len(tab) > 1:
-						master_join[tab[0]] = ('graph_id', 'graph_id')
+                                # finish filling master join with display tables
+                                for tab in disp_tables:
+                                        if len(tab) > 1:
+                                                master_join[tab[0]] = ('graph_id', 'graph_id')
 
-				# join clause for display tables
-				join_str = 'FROM graph_data '
-				for tab in master_join:
-					join_str += 'INNER JOIN %s ON graph_data.graph_id=%s.graph_id '%(tab, tab)
+                                # join clause for display tables
+                                join_str = 'FROM graph_data '
+                                for tab in master_join:
+                                        join_str += 'INNER JOIN %s ON graph_data.graph_id=%s.graph_id '%(tab, tab)
 
-				# construct sql syntax substring for display cols
-				disp_str = 'SELECT graph_data.graph6, '
-				for col in graph_data_disp[1:]:
-					if col != 'graph6': disp_str += 'graph_data.%s, '%col
-				for col in aut_grp_disp[1:]: disp_str += 'aut_grp.%s, '%col
-				for col in degrees_disp[1:]: disp_str += 'degrees.%s, '%col
-				for col in misc_disp[1:]: disp_str += 'misc.%s, '%col
-				for col in spectrum_disp[1:]: disp_str += 'spectrum.%s, '%col
-				disp_str = disp_str.rstrip(', ') + ' '
+                                # construct sql syntax substring for display cols
+                                disp_str = 'SELECT graph_data.graph6, '
+                                for col in graph_data_disp[1:]:
+                                        if col != 'graph6': disp_str += 'graph_data.%s, '%col
+                                for col in aut_grp_disp[1:]: disp_str += 'aut_grp.%s, '%col
+                                for col in degrees_disp[1:]: disp_str += 'degrees.%s, '%col
+                                for col in misc_disp[1:]: disp_str += 'misc.%s, '%col
+                                for col in spectrum_disp[1:]: disp_str += 'spectrum.%s, '%col
+                                disp_str = disp_str.rstrip(', ') + ' '
 
-				# substitue disp_str and join_str back into self's query string
-				self.__query_string__ = re.sub('SELECT.*WHERE ', disp_str + join_str + \
-												'WHERE ', self.__query_string__)
+                                # substitue disp_str and join_str back into self's query string
+                                self.__query_string__ = re.sub('SELECT.*WHERE ', disp_str + join_str + \
+                                                                                                'WHERE ', self.__query_string__)
 
     def show(self, max_field_size=20, with_picture=False):
         """

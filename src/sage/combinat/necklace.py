@@ -36,7 +36,7 @@ def Necklaces(e):
 
         sage: Necklaces([2,1,1])
         Necklaces with evaluation [2, 1, 1]
-        sage: Necklaces([2,1,1]).count()
+        sage: Necklaces([2,1,1]).cardinality()
         3
         sage: Necklaces([2,1,1]).first()
         [1, 1, 2, 3]
@@ -114,17 +114,17 @@ class Necklaces_evaluation(CombinatorialClass):
 
         return True
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of integer necklaces with the evaluation e.
 
         EXAMPLES::
 
-            sage: Necklaces([]).count()
+            sage: Necklaces([]).cardinality()
             0
-            sage: Necklaces([2,2]).count()
+            sage: Necklaces([2,2]).cardinality()
             2
-            sage: Necklaces([2,3,2]).count()
+            sage: Necklaces([2,3,2]).cardinality()
             30
 
         Check to make sure that the count matches up with the number of
@@ -134,7 +134,7 @@ class Necklaces_evaluation(CombinatorialClass):
 
             sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
             sage: ns = [ Necklaces(comp) for comp in comps]
-            sage: all( [ n.count() == len(n.list()) for n in ns] )
+            sage: all( [ n.cardinality() == len(n.list()) for n in ns] )
             True
         """
         evaluation = self.e
@@ -147,7 +147,7 @@ class Necklaces_evaluation(CombinatorialClass):
         return sum([euler_phi(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for the integer necklaces with evaluation e.
 

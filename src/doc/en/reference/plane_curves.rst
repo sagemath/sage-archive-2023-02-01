@@ -15,9 +15,21 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/ell_generic
    sage/schemes/elliptic_curves/ell_field
    sage/schemes/elliptic_curves/ell_rational_field
+   sage/schemes/elliptic_curves/ec_database
+   sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/ell_finite_field
+   sage/schemes/elliptic_curves/ell_point
+   sage/schemes/elliptic_curves/ell_torsion
+   sage/schemes/elliptic_curves/ell_local_data
+   sage/schemes/elliptic_curves/kodaira_symbol
+   sage/schemes/elliptic_curves/weierstrass_morphism
+   sage/schemes/elliptic_curves/period_lattice
    sage/schemes/elliptic_curves/formal_group
+   sage/schemes/elliptic_curves/ell_tate_curve
    sage/schemes/elliptic_curves/monsky_washnitzer
+   sage/schemes/elliptic_curves/padic_lseries
+   sage/schemes/elliptic_curves/ell_modular_symbols
+   sage/schemes/elliptic_curves/sha_tate
    sage/schemes/elliptic_curves/padics
 
 

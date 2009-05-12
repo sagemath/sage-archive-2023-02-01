@@ -1,5 +1,5 @@
 """
-Matrices over the $\mathbb{F}_2$ via NTL
+Matrices over the $\GF{2}$ via NTL
 
 This class is only provided to have a complete NTL interface and for
 comparison purposes. Sage's native matrices over $F_2$ are much faster
@@ -569,7 +569,7 @@ cdef class ntl_mat_GF2:
 
     def __invert__(self):
         """
-	Return $X = A^{-1}$; an error is raised if A is singular.
+        Return $X = A^{-1}$; an error is raised if A is singular.
 
         EXAMPLES:
             sage: l = [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, \

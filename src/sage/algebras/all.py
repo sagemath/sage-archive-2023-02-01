@@ -17,6 +17,8 @@ Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from quatalg.all import *
+
 # Algebra base classes
 from algebra import Algebra, is_Algebra
 
@@ -26,7 +28,6 @@ from algebra_element import AlgebraElement, is_AlgebraElement
 
 from free_algebra import FreeAlgebra, is_FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
-from quaternion_algebra import QuaternionAlgebra
 
 from steenrod_algebra import SteenrodAlgebra
 from steenrod_algebra_element import Sq

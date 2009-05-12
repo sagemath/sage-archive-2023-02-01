@@ -618,6 +618,43 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
+    def _fast_callable_(self, etb):
+        r"""
+        Given an ExpressionTreeBuilder, return an Expression representing
+        this value.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['t'])
+            sage: R.<t> = QQ[]
+            sage: v = R.random_element(6); v
+            -t^6 - 12*t^5 + 1/2*t^4 - 1/95*t^3 - 1/2*t^2 - 4
+            sage: v._fast_callable_(etb)
+            add(mul(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2), v_0), v_0), -4)
+        """
+        x = etb.var(self.variable_name())
+        expr = x
+        cdef int i, d = self.degree()
+        coeff = self[d]
+        # We handle polynomial rings like QQ['x']['y']; that gives us some
+        # slowdown.  Optimize away some of that:
+        if len(etb._vars) == 1:
+            # OK, we're in the (very common) univariate case.
+            coeff_maker = etb.constant
+        else:
+            # There may be variables in our coefficients...
+            coeff_maker = etb.make
+        if coeff != 1:
+            expr *= coeff_maker(coeff)
+        for i from d > i >= 0:
+            coeff = self[i]
+            if coeff:
+                expr += coeff_maker(coeff)
+            if i > 0:
+                expr *= x
+        return expr
+
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
         Compare the two polynomials self and other.
@@ -835,8 +872,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Inverts the polynomial a with respect to m, or raises a ValueError
         if no such inverse exists. The parameter m may be either a single
-	polynomial or an ideal (for consistency with inverse_mod in other
-	rings).
+        polynomial or an ideal (for consistency with inverse_mod in other
+        rings).
 
         EXAMPLES::
 
@@ -1130,8 +1167,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        If we do the same over `\mathbb{Z}` the result is in the
-        polynomial ring over `\mathbb{Q}`.
+        If we do the same over `\ZZ` the result is in the
+        polynomial ring over `\QQ`.
 
         ::
 
@@ -1321,7 +1358,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
 
-        A fairly simple example over `\mathbb{Q}`.
+        A fairly simple example over `\QQ`.
 
         ::
 
@@ -1588,10 +1625,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Advantages:
 
 
-        -  Faster than Karatsuba over `\mathbb{Q}` and
-           `\mathbb{Z}` (but much slower still than calling NTL's
+        -  Faster than Karatsuba over `\QQ` and
+           `\ZZ` (but much slower still than calling NTL's
            optimized C++ implementation, which is the default over
-           `\mathbb{Z}`)
+           `\ZZ`)
 
         -  Potentially less complicated.
 
@@ -2108,7 +2145,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the factorization of self over the base ring of this
         polynomial. Factoring polynomials over
-        `\mathbb{Z}/n\mathbb{Z}` for `n` composite is at
+        `\ZZ/n\ZZ` for `n` composite is at
         the moment not implemented.
 
         INPUT: a polynomial
@@ -2125,7 +2162,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
 
-        We factor some polynomials over `\mathbb{Q}`.
+        We factor some polynomials over `\QQ`.
 
         ::
 
@@ -2134,7 +2171,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (x - 1)^2 * (x^2 + x + 1)^2
 
-        Notice that over the field `\mathbb{Q}` the irreducible
+        Notice that over the field `\QQ` the irreducible
         factors are monic.
 
         ::
@@ -2146,7 +2183,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (10) * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
 
-        Over `\mathbb{Z}` the irreducible factors need not be
+        Over `\ZZ` the irreducible factors need not be
         monic::
 
             sage: x = ZZ['x'].0
@@ -2304,7 +2341,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (x^3 + x + a) * (x^5 + x + zeta3)
 
-        Factoring polynomials over `\mathbb{Z}/n\mathbb{Z}` for
+        Factoring polynomials over `\ZZ/n\ZZ` for
         composite `n` is not implemented::
 
             sage: R.<x> = PolynomialRing(Integers(35))
@@ -2564,12 +2601,49 @@ cdef class Polynomial(CommutativeAlgebraElement):
         q = f//g
         return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
 
-    def is_primitive(self):
+    def is_primitive(self, n=None, n_prime_divs=None):
         """
-        Identifies whether a polynomial is primitive. A polynomial can only
-        be primitive if it is irreducible.
+        Returns ``True`` if the polynomial is primitive.  The semantics of
+        "primitive" depend on the polynomial coefficients.
+
+        - (field theory) A polynomial of degree `m` over a finite field
+          `\GF{q}` is primitive if it is irreducible and its root in
+          `\GF{q^m}` generates the multiplicative group `\GF{q^m}^*`.
+
+        - (ring theory) A polynomial over a ring is primitive if its
+          coefficients generate the unit ideal.
+
+        Calling `is_primitive` on a polynomial over an infinite field will
+        raise an error.
+
+        The additional inputs to this function are to speed up computation for
+        field semantics (see note).
+
+        INPUTS:
+
+          - ``n`` (default: ``None``) - if provided, should equal
+            `q-1` where ``self.parent()`` is the field with `q`
+            elements;  otherwise it will be computed.
+
+          - ``n_prime_divs`` (default: ``None``) - if provided, should
+            be a list of the prime divisors of ``n``; otherwise it
+            will be computed.
+
+        .. note::
+
+          Computation of the prime divisors of ``n`` can dominate the running
+          time of this method, so performing this computation externally
+          (e.g. ``pdivs=n.prime_divisors()``) is a good idea for repeated calls
+          to is_primitive for polynomials of the same degree.
+
+          Results may be incorrect if the wrong ``n`` and/or factorization are
+          provided.
 
         EXAMPLES::
+
+          Field semantics examples.
+
+          ::
 
             sage: R.<x> = GF(2)['x']
             sage: f = x^4+x^3+x^2+x+1
@@ -2592,16 +2666,88 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2-x+2
             sage: f.is_primitive()
             True
+            sage: x=polygen(QQ); f=x^2+1
+            sage: f.is_primitive()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_primitive() not defined for polynomials over infinite fields.
+
+          Ring semantics examples.
+
+          ::
+
+            sage: x=polygen(ZZ)
+            sage: f = 5*x^2+2
+            sage: f.is_primitive()
+            True
+            sage: f = 5*x^2+5
+            sage: f.is_primitive()
+            False
+
+            sage: K=NumberField(x^2+5,'a')
+            sage: R=K.ring_of_integers()
+            sage: a=R.gen(1)
+            sage: a^2
+            -5
+            sage: f=a*x+2
+            sage: f.is_primitive()
+            True
+            sage: f=(1+a)*x+2
+            sage: f.is_primitive()
+            False
+
+            sage: x=polygen(Integers(10));
+            sage: f=5*x^2+2
+            sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return True
+            sage: f=4*x^2+2
+            sage: #f.is_primitive()  #BUG:: elsewhere in Sage, should return False
+
+        TESTS::
+
+            sage: R.<x> = GF(2)['x']
+            sage: f = x^4+x^3+x^2+x+1
+            sage: f.is_primitive(15)
+            False
+            sage: f.is_primitive(15, [3,5])
+            False
+            sage: f.is_primitive(n_prime_divs=[3,5])
+            False
+            sage: f = x^3+x+1
+            sage: f.is_primitive(7, [7])
+            True
+            sage: R.<x> = GF(3)[]
+            sage: f = x^3-x+1
+            sage: f.is_primitive(26, [2,13])
+            True
+            sage: f = x^2+1
+            sage: f.is_primitive(8, [2])
+            False
+            sage: R.<x> = GF(5)[]
+            sage: f = x^2+x+1
+            sage: f.is_primitive(24, [2,3])
+            False
+            sage: f = x^2-x+2
+            sage: f.is_primitive(24, [2,3])
+            True
+            sage: x=polygen(Integers(103)); f=x^2+1
+            sage: f.is_primitive()
+            False
         """
-        if not self.is_irreducible():
-            return False
-        p = self.parent().characteristic()
-        n = p ** self.degree() - 1
-        y = self.parent().quo(self).gen()
-        for d in n.prime_divisors():
-            if ( y ** (n//d) ) == 1:
+        R = self.base_ring()
+        if R.is_field():
+            if not R.is_finite():
+                raise NotImplementedError, "is_primitive() not defined for polynomials over infinite fields."
+
+            if not self.is_irreducible():
                 return False
-        return True
+            if n is None:
+                q = self.base_ring().order()
+                n = q ** self.degree() - 1
+            y = self.parent().quo(self).gen()
+            from sage.groups.generic import order_from_multiple
+            return n == order_from_multiple(y, n, n_prime_divs, operation="*")
+        else:
+            return R.ideal(self.coefficients())==R.ideal(1)
 
     def is_constant(self):
         """
@@ -3833,7 +3979,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: bigc = 2^1500
             sage: CDF(bigc)
-            inf
+            +infinity
             sage: CC(bigc)
             3.50746621104340e451
 
@@ -4090,6 +4236,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         try:
             if K.is_integral_domain():
+                if not K.is_field():
+                    try:
+                        # get rid of the content of self since we don't need it
+                        # and we really don't want to factor it if it's a huge
+                        # integer
+                        c = self.content()
+                        self = self//c
+                    except AttributeError:
+                        pass
                 rts = self.factor()
             else:
                 raise NotImplementedError
@@ -4386,8 +4541,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return True precisely if this polynomial is irreducible over its
         base ring. Testing irreducibility over
-        `\mathbb{Z}/n\mathbb{Z}` for composite `n` is not
+        `\ZZ/n\ZZ` for composite `n` is not
         implemented.
+
+        The function returns False for polynomials which are units,
+        and raises an exception for the zero polynomial.
 
         EXAMPLES::
 
@@ -4403,10 +4561,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             ValueError: self must be nonzero
 
-        `4` is irreducible as a polynomial, since as a polynomial
-        it doesn't factor::
-
+        See \#5140:
+            sage: R(1).is_irreducible()
+            False
             sage: R(4).is_irreducible()
+            False
+            sage: R(5).is_irreducible()
+            True
+
+        The base ring does matter: for example, 2x is irreducible as a
+        polynomial in QQ[x], but not in ZZ[x]:
+
+            sage: R.<x> = ZZ[]
+            sage: R(2*x).is_irreducible()
+            False
+            sage: R.<x> = QQ[]
+            sage: R(2*x).is_irreducible()
             True
 
         TESTS::
@@ -4422,8 +4592,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.is_zero():
             raise ValueError, "self must be nonzero"
+        if self.is_unit():
+            return False
         if self.degree() == 0:
-            return True
+            return self.base_ring()(self).is_irreducible()
 
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:

@@ -8,8 +8,8 @@ the form `[P, u/v]`, where `u/v` is a cusp for our
 group `G`. The group of boundary modular symbols naturally
 embeds into a vector space `B_k(G)` (see Stein, section
 8.4, or Merel, section 1.4, where this space is called
-`\mathbb{C}[\Gamma \backslash \mathbb{Q}]_k`, for a definition),
-which is a finite dimensional `\mathbb{Q}` vector space of
+`\CC[\Gamma \backslash \QQ]_k`, for a definition),
+which is a finite dimensional `\QQ` vector space of
 dimension equal to the number of cusps for `G`. The
 embedding takes `[P, u/v]` to
 `P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
@@ -27,7 +27,7 @@ for all `\gamma \in G` and
      [(\lambda u, \lambda v)] = \operatorname{sign}(\lambda)^k [(u,v)]
 
 
-for all `\lambda \in \mathbb{Q}^\times`.
+for all `\lambda \in \QQ^\times`.
 
 It's possible for these relations to kill a class, i.e., for a pair
 [(u,v)] to be 0. For example, when N=4, u=1, v=2 and k=3 then
@@ -107,7 +107,7 @@ import sage.modules.free_module as free_module
 import sage.modules.module_element as module_element
 from   sage.modules.all import is_FreeModuleElement
 
-import sage.modular.congroup as congroup
+import sage.modular.arithgroup.all as arithgroup
 import sage.modular.cusps as cusps
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
@@ -290,7 +290,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
 class BoundarySpace(hecke.HeckeModule_generic):
     def __init__(self,
-                 group = congroup.Gamma0(1),
+                 group = arithgroup.Gamma0(1),
                  weight = 2,
                  sign = 0,
                  base_ring = rings.QQ,
@@ -306,7 +306,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
 
         -  ``weight`` - int, the weight
 
-        -  ``group`` - congroup.CongruenceGroup, a congruence
+        -  ``group`` - arithgroup.congroup_generic.CongruenceSubgroup, a congruence
            subgroup.
 
         -  ``sign`` - int, either -1, 0, or 1
@@ -326,12 +326,12 @@ class BoundarySpace(hecke.HeckeModule_generic):
         weight = int(weight)
         if weight <= 1:
             raise ArithmeticError, "weight must be at least 2"
-        if not congroup.is_CongruenceSubgroup(group):
+        if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError, "group must be a congruence subgroup"
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and rings.is_CommutativeRing(base_ring):
             raise TypeError, "base_ring must be a commutative ring"
-        if character == None and congroup.is_Gamma0(group):
+        if character == None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
         (self.__group, self.__weight, self.__character,
           self.__sign, self.__base_ring) = (group, weight,
@@ -643,7 +643,7 @@ class BoundarySpace_wtk_g0(BoundarySpace):
             raise ArithmeticError, "level must be positive"
         BoundarySpace.__init__(self,
                                  weight = weight,
-                                 group  = congroup.Gamma0(level),
+                                 group  = arithgroup.Gamma0(level),
                                  sign   = sign,
                                  base_ring = F)
 
@@ -787,7 +787,7 @@ class BoundarySpace_wtk_g1(BoundarySpace):
 
         BoundarySpace.__init__(self,
                 weight = weight,
-                group  = congroup.Gamma1(level),
+                group  = arithgroup.Gamma1(level),
                 sign   = sign,
                 base_ring = F)
 
@@ -1209,7 +1209,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             raise ArithmeticError, "level must be positive"
         BoundarySpace.__init__(self,
                 weight = weight,
-                group = congroup.Gamma1(level),
+                group = arithgroup.Gamma1(level),
                 sign = sign,
                 base_ring = eps.base_ring(),
                 character = eps)

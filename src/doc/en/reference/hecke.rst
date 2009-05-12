@@ -11,7 +11,6 @@ functionality see :ref:`ch:modsym`.
 .. toctree::
    :maxdepth: 2
 
-   sage/modular/congroup
    sage/modular/dirichlet
    sage/modular/cusps
    sage/modular/dims

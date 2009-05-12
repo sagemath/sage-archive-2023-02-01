@@ -841,23 +841,41 @@ cdef class ComplexDoubleElement(FieldElement):
             2.0 - 3.0*I
             sage: a^2
             -5.0 - 12.0*I
+            sage: (1/CDF(0,0)).__repr__()
+            'NaN + NaN*I'
+            sage: CDF(oo,1)
+            +infinity + 1.0*I
+            sage: CDF(1,oo)
+            1.0 + +infinity*I
+            sage: CDF(1,-oo)
+            1.0 - +infinity*I
+            sage: CC(CDF(1,-oo))
+            1.00000000000000 - +infinity*I
+            sage: CDF(oo,oo)
+            +infinity + +infinity*I
+            sage: CC(CDF(oo,oo))
+            +infinity + +infinity*I
         """
-        # todo -- redo completely in C
-        cdef double y
-        s = ""
-        if self._complex.dat[0] != 0:
-            s = str(self._complex.dat[0])
-        y  =  self._complex.dat[1]
-        if y != 0:
+        if self._complex.dat[0]:
+            # real part is nonzero
+            s = double_to_str(self._complex.dat[0])
+        else:
+            # real part is zero
+            if self._complex.dat[1]:   # imag is nonzero
+                s = ''
+            else:
+                return '0'             # imag is zero
+
+        cdef double y = self._complex.dat[1]
+        if y:
             if s != "":
                 if y < 0:
                     s = s+" - "
                     y = -y
                 else:
                     s = s+" + "
-            s = s+"%s*I"%y
-        if len(s) == 0:
-            s = "0"
+            t = double_to_str(y)
+            s += t + "*I"
         return s
 
     def _latex_(self):
@@ -976,7 +994,7 @@ cdef class ComplexDoubleElement(FieldElement):
         The inverse of 0 is nan (it doesn't raise an exception)::
 
             sage: ~(0*CDF(0,1))
-            nan + nan*I
+            NaN + NaN*I
         """
         return self._new_c(gsl_complex_inverse(self._complex))
 
@@ -987,7 +1005,6 @@ cdef class ComplexDoubleElement(FieldElement):
         .. math::
 
             -z = (-x) + i(-y).
-
 
 
         EXAMPLES::
@@ -1265,7 +1282,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
     def is_square(self):
         """
-        This function always returns true as `\mathbb{C}` is algebraically
+        This function always returns true as `\CC` is algebraically
         closed.
 
         EXAMPLES::
@@ -1733,7 +1750,7 @@ cdef class ComplexDoubleElement(FieldElement):
     def eta(self, int omit_frac=0):
         r"""
         Return the value of the Dedekind `\eta` function on self,
-        intelligently computed using `\mathbb{SL}(2,\mathbb{Z})`
+        intelligently computed using `\mathbb{SL}(2,\ZZ)`
         transformations.
 
         INPUT:
@@ -2112,6 +2129,22 @@ def ComplexDoubleField():
 from sage.misc.parser import Parser
 cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
 
+cdef extern from "math.h":
+       int isfinite(double x)
+       int isnan(double x)
+       int isinf(double x)
 
+cdef double_to_str(double x):
+    if isfinite(x):
+        return str(x)
+    if isnan(x):
+        return "NaN"
+    # C99 only guarantees that isinf() returns a nonzero value (actually: 1) if x is an
+    # infinity (positive or negative). Modern Linux distros return -1 or +1 depending
+    # on the sign of infinity, but that is not the case on OSX or Solaris
+    if isinf(x) != 0 and x < 0:
+        return '-infinity'
+    elif isinf(x) != 0 and x > 0:
+        return '+infinity'
 
 #####

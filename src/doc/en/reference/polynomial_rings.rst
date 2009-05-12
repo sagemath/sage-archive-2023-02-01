@@ -17,6 +17,7 @@ Polynomial Rings
    sage/rings/polynomial/multi_polynomial_element
 
    sage/rings/polynomial/multi_polynomial_ideal
+   sage/rings/polynomial/toy_variety
 
    sage/rings/polynomial/pbori
 

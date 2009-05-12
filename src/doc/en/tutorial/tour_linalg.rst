@@ -64,7 +64,7 @@ If there is no solution, Sage returns an error:
 Similarly, use ``A.solve_left(Y)`` to solve for :math:`X` in
 :math:`XA=Y`.
 
-We create the space :math:`\text{Mat}_{3\times 3}(\mathbb{Q})`:
+We create the space :math:`\text{Mat}_{3\times 3}(\QQ)`:
 
 ::
 
@@ -137,7 +137,7 @@ fields:
     [(1, 1, 0, 0, 1, 1, 1, 1), (0, 1, 0, 0, 1, 0, 1, 1),
      (0, 0, 1, 0, 1, 1, 0, 1), (0, 0, 1, 1, 1, 1, 1, 0)]
 
-We make the subspace over :math:`\mathbb{F}_2` spanned by the above
+We make the subspace over :math:`\GF{2}` spanned by the above
 rows.
 
 .. link

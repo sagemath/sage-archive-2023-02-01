@@ -28,6 +28,15 @@ from sage.misc.all import sage_eval
 _gp = None
 
 def gp():
+    r"""
+    Return a copy of the GP interpreter with the appropriate files loaded.
+
+    EXAMPLE::
+
+        sage: sage.modular.buzzard.gp()
+        GP/PARI interpreter
+    """
+
     global _gp
     if _gp is None:
         _gp = Gp(script_subdirectory='buzzard')

@@ -76,7 +76,13 @@ def get_memory_usage(t=None):
     elif U == 'darwin':
         m = float(top().split()[-1].strip('M+'))
     elif U == 'sunos':
-        m = float(top().split()[-5].strip('M'))
+        # An evil and ugly workaround some Solaris race condition.
+        while True:
+             try:
+                  m = float(top().split()[-5].strip('M'))
+                  break
+             except:
+                  pass
     else:
         raise NotImplementedError, "memory usage not implemented on platform %s"%U
 

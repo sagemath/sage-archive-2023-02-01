@@ -147,6 +147,7 @@ import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.misc.randstate cimport randstate, current_randstate
+
 from sage.misc.misc_c import is_64_bit
 
 #include '../../ext/interrupt.pxi'
@@ -156,6 +157,7 @@ include '../../ext/stdsage.pxi'
 
 cdef extern from "convert.h":
     cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
+    cdef void QQ_to_t_FRAC( GEN *g, mpq_t value )
 
 # Make sure we don't use mpz_t_offset before initializing it by
 # putting in a value that's likely to provoke a segmentation fault,
@@ -164,11 +166,7 @@ cdef long mpz_t_offset = 1000000000
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
-#pari_instance = PariInstance(200000000, 500000)
-#pari_instance = PariInstance(100000000, 500000)
-#pari_instance = PariInstance(75000000, 500000)
-#pari_instance = PariInstance(50000000, 500000)
-pari_instance = PariInstance(8000000, 500000)
+pari_instance = PariInstance(16000000, 500000)
 P = pari_instance   # shorthand notation
 
 # so Galois groups are represented in a sane way
@@ -3555,7 +3553,7 @@ cdef class gen(sage.structure.element.RingElement):
     def acos(gen x, long precision=0):
         r"""
         The principal branch of `\cos^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
+        `\RR e(\mathrm{acos}(x))` belongs to `[0,Pi]`. If `x`
         is real and `|x| > 1`, then `\mathrm{acos}(x)` is complex.
 
         If `x` is an exact argument, it is first converted to a
@@ -3654,7 +3652,7 @@ cdef class gen(sage.structure.element.RingElement):
     def asin(gen x, precision=0):
         r"""
         The principal branch of `\sin^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
+        `\RR e(\mathrm{asin}(x))` belongs to `[-\pi/2,\pi/2]`. If
         `x` is real and `|x| > 1` then `\mathrm{asin}(x)`
         is complex.
 
@@ -3697,7 +3695,7 @@ cdef class gen(sage.structure.element.RingElement):
     def atan(gen x, precision=0):
         r"""
         The principal branch of `\tan^{-1}(x)`, so that
-        `\mathbb{R}e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
+        `\RR e(\mathrm{atan}(x))` belongs to `]-\pi/2, \pi/2[`.
 
         If `x` is an exact argument, it is first converted to a
         real or complex number using the optional parameter precision (in
@@ -4119,7 +4117,7 @@ cdef class gen(sage.structure.element.RingElement):
         x.eta(flag=0): if flag=0, `\eta` function without the
         `q^{1/24}`; otherwise `\eta` of the complex number
         `x` in the upper half plane intelligently computed using
-        `\mathrm{SL}(2,\mathbb{Z})` transformations.
+        `\mathrm{SL}(2,\ZZ)` transformations.
 
         DETAILS: This functions computes the following. If the input
         `x` is a complex number with positive imaginary part, the
@@ -4287,7 +4285,7 @@ cdef class gen(sage.structure.element.RingElement):
         of `x`, i.e., the branch such that
         `\Im(\log(x)) \in ]-\pi, \pi].` The result is
         complex (with imaginary part equal to `\pi`) if
-        `x\in \mathbb{R}` and `x<0`. In general, the algorithm uses
+        `x\in \RR` and `x<0`. In general, the algorithm uses
         the formula
 
         .. math::
@@ -5351,7 +5349,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+        -  ``e`` - elliptic curve over `\QQ`,
            assumed to be in a standard minimal integral model (as given by
            ellminimalmodel)
 
@@ -5401,7 +5399,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`,
+        -  ``e`` - elliptic curve over `\QQ`,
            assumed to be in a standard minimal integral model (as given by
            ellminimalmodel)
 
@@ -5459,8 +5457,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve with coefficients in
-           `\mathbb{Z}`
+        -  ``e`` - elliptic curve with coefficients in `\ZZ`
 
         -  ``p`` - prime number
 
@@ -5615,8 +5612,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve defined over
-           `\mathbb{Q}`
+        -  ``e`` - elliptic curve defined over `\QQ`
 
         -  ``s`` - complex number
 
@@ -5693,8 +5689,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve defined over
-           `\mathbb{Q}`
+        -  ``e`` - elliptic curve defined over `\QQ`
 
         -  ``x`` - point on e
 
@@ -5823,7 +5818,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`
+        -  ``e`` - elliptic curve over `\QQ`
 
         -  ``p (default = 1)`` - 1 or a prime number
 
@@ -5900,7 +5895,7 @@ cdef class gen(sage.structure.element.RingElement):
         INPUT:
 
 
-        -  ``e`` - elliptic curve over `\mathbb{Q}`
+        -  ``e`` - elliptic curve over `\QQ`
 
         -  ``flag (optional)`` - specify which algorithm to
            use:
@@ -6112,10 +6107,44 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(buchfu(self.g))
 
+    def bnfisunit(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(isunit(self.g, t0))
+
     def dirzetak(self, n):
         t0GEN(n)
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
+
+    def galoisapply(self, aut, x):
+        t0GEN(aut)
+        t1GEN(x)
+        _sig_on
+        return self.new_gen(galoisapply(self.g, t0, t1))
+
+    def galoisinit(self, den=None):
+        """
+        galoisinit(K{,den}): calculate Galois group of number field K; see PARI manual
+        for meaning of den
+        """
+        if den is None:
+            _sig_on
+            return self.new_gen(galoisinit(self.g, NULL))
+        else:
+            t0GEN(den)
+            _sig_on
+            return self.new_gen(galoisinit(self.g, t0))
+
+    def galoispermtopol(self, perm):
+        t0GEN(perm)
+        _sig_on
+        return self.new_gen(galoispermtopol(self.g, t0))
+
+    def galoisfixedfield(self, v, long flag, long y):
+        t0GEN(v);
+        _sig_on
+        return self.new_gen(galoisfixedfield(self.g, t0, flag, y))
 
     def idealred(self, I, vdir=0):
         t0GEN(I); t1GEN(vdir)
@@ -6370,10 +6399,34 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(nfdiscf0(self.g, flag, g))
 
+    def nfeltreduce(self, x, I):
+        """
+        Given an ideal I in Hermite normal form and an element x of the pari
+        number field self, finds an element r in self such that x-r belongs
+        to the ideal and r is small.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: I = k.ideal(a)
+            sage: kp = pari(k)
+            sage: kp.nfeltreduce(12, I.pari_hnf())
+            [2, 0]~
+            sage: 12 - k(kp.nfeltreduce(12, I.pari_hnf())) in I
+            True
+        """
+        t0GEN(x); t1GEN(I)
+        _sig_on
+        return self.new_gen(element_reduce(self.g, t0, t1))
+
     def nffactor(self, x):
         t0GEN(x)
         _sig_on
         return self.new_gen(nffactor(self.g, t0))
+
+    def galoisconj(self):
+        _sig_on
+        return self.new_gen(galoisconj(self.g))
 
     def nfgenerator(self):
         f = self[0]
@@ -6688,6 +6741,52 @@ cdef class gen(sage.structure.element.RingElement):
         """
         _sig_on
         return self.new_gen(galois(self.g, prec))
+
+    def nfgaloisconj(self):
+        r"""
+        Edited from the pari documentation:
+
+        nfgaloisconj(nf): list of conjugates of a root of the
+        polynomial x=nf.pol in the same number field.
+
+        Uses a combination of Allombert's algorithm and nfroots.
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].0; nf = pari(x^2 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [-x, x]~
+            sage: nf = pari(x^3 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [x]~
+            sage: nf = pari(x^4 + 2).nfinit()
+            sage: nf.nfgaloisconj()
+            [-x, x]~
+        """
+        _sig_on
+        return self.new_gen(galoisconj(self.g))
+
+    def nfroots(self, poly):
+        r"""
+        Return the roots of `poly` in the number field self without
+        multiplicity.
+
+        EXAMPLES::
+
+            sage: y = QQ['yy'].0; _ = pari(y) # pari has variable ordering rules
+            sage: x = QQ['zz'].0; nf = pari(x^2 + 2).nfinit()
+            sage: nf.nfroots(y^2 + 2)
+            [-zz, zz]
+            sage: nf = pari(x^3 + 2).nfinit()
+            sage: nf.nfroots(y^3 + 2)
+            [zz]
+            sage: nf = pari(x^4 + 2).nfinit()
+            sage: nf.nfroots(y^4 + 2)
+            [-zz, zz]
+        """
+        t0GEN(poly)
+        _sig_on
+        return self.new_gen(nfroots(self.g, t0))
 
     def polhensellift(self, y, p, long e):
         """
@@ -7329,7 +7428,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Return a primitive root modulo self, whenever it exists.
 
-        This is a generator of the group `(\mathbb{Z}/n\mathbb{Z})^*`, whenever
+        This is a generator of the group `(\ZZ/n\ZZ)^*`, whenever
         this group is cyclic, i.e. if `n=4` or `n=p^k` or
         `n=2p^k`, where `p` is an odd prime and `k`
         is a natural number.
@@ -7455,13 +7554,13 @@ cdef class gen(sage.structure.element.RingElement):
             't_POL'
         """
         # The following original code leaks memory:
- 	#        return str(type_name(typ(self.g)))
- 	#
- 	# This code is the usual workaround:
- 	#        cdef char* s= <char*>type_name(typ(self.g))
- 	#        t=str(s)
- 	#        free(s)
- 	#        return(t)
+        #        return str(type_name(typ(self.g)))
+        #
+        # This code is the usual workaround:
+        #        cdef char* s= <char*>type_name(typ(self.g))
+        #        t=str(s)
+        #        free(s)
+        #        return(t)
         # However, it causes segfaults with t_INTs on some
         # machines, and errors about freeing non-aligned
         # pointers on others. So we settle for the following
@@ -7821,8 +7920,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.ONE = self.new_gen(gen_1)
         self.TWO = self.new_gen(gen_2)
 
-    #def __dealloc__(self):
-
     def _unsafe_deallocate_pari_stack(self):
         if bot:
             sage_free(<void*>bot)
@@ -7960,6 +8057,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         avma = mytop
         _sig_off
 
+    cdef void set_mytop_to_avma(self):
+        global mytop, avma
+        mytop = avma
+
     cdef gen new_gen_noclear(self, GEN x):
         """
         Create a new gen, but don't free any memory on the stack and don't
@@ -8000,6 +8101,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen_from_int(self, int value):
         _sig_on
         return self.new_gen(stoi(value))
+
+    cdef gen new_gen_from_mpq_t(self, mpq_t value):
+        """
+        EXAMPLES::
+            sage: pari(2/3)       # indirect doctest
+            2/3
+        """
+        cdef GEN z
+        _sig_on
+        QQ_to_t_FRAC(&z, value)
+        return self.new_gen(z)
 
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum):
         """
@@ -8222,6 +8334,72 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         t = str(s)
         _sig_str('evaluating PARI string')
         g = gp_read_str(t)
+        return self.new_gen(g)
+
+    cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        """
+        EXAMPLES::
+
+            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+
+        """
+        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                ZZ_to_t_INT(&x, B[i][j])
+                (<GEN>(A[j+1]))[i+1] = <long>x
+        return A
+
+    cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        cdef GEN x,  A = gtomat(zeromat(nc, nr))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                ZZ_to_t_INT(&x, B[i][nc-j-1])
+                (<GEN>(A[i+1]))[j+1] = <long>x
+        return A
+
+    cdef integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+        """
+        EXAMPLES::
+
+            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        _sig_on
+        cdef GEN g
+        if permute_for_hnf:
+            g = self.integer_matrix_permuted_for_hnf_GEN(B, nr, nc)
+        else:
+            g = self.integer_matrix_GEN(B, nr, nc)
+        return self.new_gen(g)
+
+    cdef GEN rational_matrix_GEN(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
+        """
+        EXAMPLES::
+
+            sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+        cdef Py_ssize_t i, j
+        for i in range(nr):
+            for j in range(nc):
+                QQ_to_t_FRAC(&x, B[i][j])
+                (<GEN>(A[j+1]))[i+1] = <long>x
+        return A
+
+    cdef rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+        """
+        EXAMPLES::
+
+            sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
+            [1, 2, 3; 4, 5, 6]
+        """
+        _sig_on
+        cdef GEN g = self.rational_matrix_GEN(B, nr, nc)
         return self.new_gen(g)
 
     cdef _coerce_c_impl(self, x):
@@ -8587,7 +8765,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         polsubcyclo(n, d, v=x): return the pari list of polynomial(s)
         defining the sub-abelian extensions of degree `d` of the
-        cyclotomic field `\mathbb{Q}(\zeta_n)`, where `d`
+        cyclotomic field `\QQ(\zeta_n)`, where `d`
         divides `\phi(n)`.
 
         EXAMPLES::
@@ -8706,17 +8884,23 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         matrix(long m, long n, entries=None): Create and return the m x n
         PARI matrix with given list of entries.
         """
-        cdef int i, j, k
+        cdef long i, j, k
         cdef gen A
+        cdef gen x
+
         _sig_on
-        A = self.new_gen(zeromat(m,n)).Mat()
-        if entries != None:
+         # The gtomat is very important!!  Without sage/PARI will segfault.
+         # I do not know why. -- William Stein
+        A = self.new_gen(gtomat(zeromat(m,n)))
+        if entries is not None:
             if len(entries) != m*n:
                 raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
             k = 0
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    A[i,j] = entries[k]
+                    x = pari(entries[k])
+                    A._refers_to[(i,j)] = x
+                    (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
                     k = k + 1
         return A
 
@@ -9020,10 +9204,17 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     """
     TESTS::
 
-        sage: v = pari.listcreate(2^62 if is_64_bit else 2^30)
+    We only run this test on Linux, since on some machine this will
+    allocate insane amounts of RAM and lead to segfaults (e.g., on
+    FreeBSD and Solaris).
+
+        sage: if os.uname()[0]=="Linux":
+        ...       pari.listcreate(2^62 if is_64_bit else 2^30)
+        ... else:
+        ...       raise MemoryError
         Traceback (most recent call last):
         ...
-        MemoryError: Unable to allocate ... bytes memory for PARI.
+        MemoryError...
     """
     _sig_off
     if retries > 100:
@@ -9093,4 +9284,5 @@ cdef _factor_int_when_pari_factor_failed(x, failed_factorization):
         m[i,0] = w[i][0]
         m[i,1] = w[i][1]
     return m
+
 

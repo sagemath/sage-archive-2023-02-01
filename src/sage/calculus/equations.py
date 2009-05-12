@@ -219,8 +219,15 @@ class SymbolicEquation(SageObject):
             y
             sage: eqn = x^3 < sin(y)
             sage: eqn(2)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            8 < sin(y)
+            sage: eqn(x=2)
             8 < sin(y)
             sage: eqn(2,3)
+            8 < sin(3)
+            sage: eqn(x=2,y=3)
             8 < sin(3)
             sage: eqn = x^3 < 2
             sage: eqn(2)
@@ -1001,8 +1008,9 @@ class SymbolicEquation(SageObject):
         EXAMPLES::
 
             sage: (x == sin(x)).find_root(-2,2)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             0.0
-            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2)
+            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2,x)
             -0.63283452024215225
             sage: (cos(x) == sin(x)).find_root(10,20)
             19.634954084936208
@@ -1616,7 +1624,94 @@ def string_to_list_of_solutions(s):
 ############################################################
 # Solving modulo N
 
-def solve_mod(eqns, modulus):
+def solve_mod(eqns, modulus, solution_dict = False):
+    r"""
+    Return all solutions to an equation or list of equations modulo the
+    given integer modulus. Each equation must involve only polynomials
+    in 1 or many variables.
+
+    By default the solutions are returned as `n`-tuples, where `n`
+    is the number of variables appearing anywhere in the given
+    equations. The variables are in alphabetical order.
+
+    INPUT:
+
+
+    -  ``eqns`` - equation or list of equations
+
+    -  ``modulus`` - an integer
+
+    -  ``solution_dict`` - (default: False) if True,  return a list of
+       dictionaries containing the solutions.
+
+    EXAMPLES::
+
+        sage: var('x,y')
+        (x, y)
+        sage: solve_mod([x^2 + 2 == x, x^2 + y == y^2], 14)
+        [(4, 2), (4, 6), (4, 9), (4, 13)]
+        sage: solve_mod([x^2 == 1, 4*x  == 11], 15)
+        [(14,)]
+
+    Fermat's equation modulo 3 with exponent 5::
+
+        sage: var('x,y,z')
+        (x, y, z)
+        sage: solve_mod([x^5 + y^5 == z^5], 3)
+        [(0, 0, 0), (0, 1, 1), (0, 2, 2), (1, 0, 1), (1, 1, 2), (1, 2, 0), (2, 0, 2), (2, 1, 0), (2, 2, 1)]
+
+    We can solve with respect to a bigger modulus if it consists only of small prime factors::
+
+        sage: solve_mod([5*x + y == 3, 2*x - 3*y == 9], 3*5*7*11*19*23*29, solution_dict = True)
+        [{y: 8610183, x: 12915279}]
+
+    We solve an simple equation modulo 2::
+
+        sage: x,y = var('x,y')
+        sage: solve_mod([x == y], 2)
+        [(0, 0), (1, 1)]
+
+    .. warning::
+
+       The current implementation splits the modulus into prime powers,
+       then naively enumerates all possible solutions and finally combines
+       the solution using the Chinese Remainder Theorem.
+       The interface is good, but the algorithm is horrible if the modulus
+       has some larger prime factors! Sage {does} have the ability to do
+       something much faster in certain cases at least by using Groebner
+       basis, linear algebra techniques, etc. But for a lot of toy problems
+       this function as is might be useful. At least it establishes an interface.
+    """
+    from sage.rings.all import Integer, Integers, PolynomialRing, factor, crt_basis
+    from sage.misc.all import cartesian_product_iterator
+    from sage.modules.all import vector
+    from sage.matrix.all import matrix
+
+    if not isinstance(eqns, (list, tuple)):
+        eqns = [eqns]
+    modulus = Integer(modulus)
+    if modulus < 1:
+         raise ValueError, "the modulus must be a positive integer"
+    vars = list(set(sum([list(e.variables()) for e in eqns], [])))
+    vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
+    n = len(vars)
+
+    factors = [p**i for p,i in factor(modulus)]
+    crt_basis = vector(Integers(modulus), crt_basis(factors))
+    solutions = [solve_mod_enumerate(eqns, p) for p in factors]
+
+    ans = []
+    for solution in cartesian_product_iterator(solutions):
+        solution_mat = matrix(Integers(modulus), solution)
+        ans.append(tuple(c.dot_product(crt_basis) for c in solution_mat.columns()))
+
+    if solution_dict == True:
+        sol_dict = [dict(zip(vars, solution)) for solution in ans]
+        return sol_dict
+    else:
+        return ans
+
+def solve_mod_enumerate(eqns, modulus):
     r"""
     Return all solutions to an equation or list of equations modulo the
     given integer modulus. Each equation must involve only polynomials
@@ -1677,7 +1772,7 @@ def solve_mod(eqns, modulus):
     if modulus < 1:
          raise ValueError, "the modulus must be a positive integer"
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort(cmp)
+    vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
     n = len(vars)
     R = Integers(modulus)
     S = PolynomialRing(R, len(vars), vars)
@@ -1694,4 +1789,3 @@ def solve_mod(eqns, modulus):
             ans.append(t)
 
     return ans
-

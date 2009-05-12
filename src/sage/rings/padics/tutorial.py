@@ -54,29 +54,28 @@ projective limit of finite groups:
 
 .. math::
 
-    \mathbb{Z}p = \lim_{\leftarrow n} \mathbb{Z}pn.
-
+    \ZZ_p = \lim_{\leftarrow n} \ZZ/{p^n}\ZZ.
 
 Secondly, as Cauchy sequences of rationals (or integers, in the
-case of `\mathbb{Z}p`) under the `p`-adic metric.
+case of `\ZZ_p`) under the `p`-adic metric.
 Since we only need to consider these sequences up to equivalence,
 this second way of thinking of the `p`-adics is the same as
 considering power series in `p` with integral coefficients
 in the range `0` to `p-1`. If we only allow
 nonnegative powers of `p` then these power series converge
-to elements of `\mathbb{Z}p`, and if we allow bounded
-negative powers of `p` then we get `\mathbb{Q}p`.
+to elements of `\ZZ_p`, and if we allow bounded
+negative powers of `p` then we get `\QQ_p`.
 
 Both of these representations give a natural way of thinking about
 finite approximations to a `p`-adic element. In the first
 representation, we can just stop at some point in the projective
-limit, giving an element of `\mathbb{Z}pn`. As
-`\mathbb{Z}p / p^n\mathbb{Z}p \cong \mathbb{Z}pn`, this is
+limit, giving an element of `\ZZ/p^n \ZZ`. As
+`\ZZ_p / p^n\ZZ_p \cong \ZZ/p^n \ZZ`, this is
 is equivalent to specifying our element modulo
-`p^n\mathbb{Z}p`.
+`p^n\ZZ_p`.
 
 The *absolute precision* of a finite approximation
-`\bar{x} \in \mathbb{Z}pn` to `x \in \mathbb{Z}p`
+`\bar{x} \in \ZZ/p^n \ZZ` to `x \in \ZZ_p`
 is the non-negative integer `n`.
 
 In the second representation, we can achieve the same thing by
@@ -96,10 +95,10 @@ at `p^n`, yielding
 As above, we call this `n` the absolute precision of our
 element.
 
-Given any `x \in \mathbb{Q}p` with `x \ne 0`, we
-can write `x = p^v u` where `v \in \mathbb{Z}` and
-`u \in \mathbb{Z}px`. We could thus also store an element
-of `\mathbb{Q}p` (or `\mathbb{Z}p`) by storing
+Given any `x \in \QQ_p` with `x \ne 0`, we
+can write `x = p^v u` where `v \in \ZZ` and
+`u \in \ZZ_p^{\times}`. We could thus also store an element
+of `\QQ_p` (or `\ZZ_p`) by storing
 `v` and a finite approximation of `u`. This
 motivates the following definition: The *relative precision* of an
 approximation to `x` is defined as the absolute precision
@@ -111,8 +110,8 @@ then the absolute precision of `x` is `n`, the
 valuation of `x` is `k` and the relative precision
 of `x` is `n-k`.
 
-There are four different representations of `\mathbb{Z}p`
-in Sage and two representations of `\mathbb{Q}p`:
+There are four different representations of `\ZZ_p`
+in Sage and two representations of `\QQ_p`:
 
 
 -  the fixed modulus ring
@@ -131,8 +130,8 @@ in Sage and two representations of `\mathbb{Q}p`:
 Fixed Modulus Rings
 -------------------
 
-The first, and simplest, type of `\mathbb{Z}p` is basically
-a wrapper around `\mathbb{Z}pn`, providing a unified
+The first, and simplest, type of `\ZZ_p` is basically
+a wrapper around `\ZZ/p^n \ZZ`, providing a unified
 interface with the rest of the `p`-adics. You specify a
 precision, and all elements are stored to that absolute precision.
 If you perform an operation that would normally lose precision, the
@@ -143,7 +142,7 @@ but it is also the one that has the lowest computational overhead.
 Once we have ironed out some bugs, the fixed modulus elements will
 be those most optimized for speed.
 
-As with all of the implementations of `\mathbb{Z}p`, one
+As with all of the implementations of `\ZZ_p`, one
 creates a new ring using the constructor ``Zp``, and passing in
 ``'fixed-mod'`` for the ``type`` parameter. For example,
 
@@ -203,7 +202,7 @@ operator::
 Capped Absolute Rings
 ---------------------
 
-The second type of implementation of `\mathbb{Z}p` is
+The second type of implementation of `\ZZ_p` is
 similar to the fixed modulus implementation, except that individual
 elements track their known precision. The absolute precision of
 each element is limited to be less than the precision cap of the
@@ -378,8 +377,8 @@ useful when experimenting.
 Unramified Extensions
 ---------------------
 
-One can create unramified extensions of `\mathbb{Z}p` and
-`\mathbb{Q}p` using the functions ``Zq`` and ``Qq``. These
+One can create unramified extensions of `\ZZ_p` and
+`\QQ_p` using the functions ``Zq`` and ``Qq``. These
 extensions are still in a relatively primitive state, so I would
 suggest the following options when creating such extensions (more
 are available but may not currently work as well).

@@ -43,62 +43,11 @@ from   sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
+from sage.rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 
 import matrix_misc
-
-matrix_delimiters = ['(', ')']
-
-def set_matrix_latex_delimiters(left='(', right=')'):
-    r"""
-    Change the left and right delimiters for the LaTeX representation
-    of matrices
-
-    INPUT:
-
-    - ``left``, ``right`` - strings (default '(' and ')', respectively)
-
-    Good choices for ``left`` and ``right`` are any delimiters which
-    LaTeX understands and knows how to resize; some examples are:
-
-    - parentheses: '(', ')'
-    - brackets: '[', ']'
-    - braces: '\\{', '\\}'
-    - vertical lines: '|'
-    - angle brackets: '\\langle', '\\rangle'
-
-    .. note::
-
-       Putting aside aesthetics, you may combine these in any way
-       imaginable; for example, you could set ``left`` to be a
-       right-hand bracket ']' and ``right`` to be a right-hand brace
-       '\\}', and it will be typeset correctly.
-
-    EXAMPLES::
-
-        sage: a = matrix(1, 1, [17])
-        sage: latex(a)
-        \left(\begin{array}{r}
-        17
-        \end{array}\right)
-        sage: sage.matrix.matrix0.set_matrix_latex_delimiters("[", "]")
-        sage: latex(a)
-        \left[\begin{array}{r}
-        17
-        \end{array}\right]
-        sage: sage.matrix.matrix0.set_matrix_latex_delimiters("\\{", "\\}")
-        sage: latex(a)
-        \left\{\begin{array}{r}
-        17
-        \end{array}\right\}
-
-    Reset to default::
-
-        sage: sage.matrix.matrix0.set_matrix_latex_delimiters()
-    """
-    global matrix_delimiters
-    matrix_delimiters = [left, right]
 
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
@@ -1652,7 +1601,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _latex_(self):
         r"""
-        Return latex representation of this matrix.
+        Return latex representation of this matrix.  The matrix is
+        enclosed in parentheses by default, but the delimiters can be
+        changed using the command
+        ``latex.matrix_delimiters(...)``.
 
         EXAMPLES::
 
@@ -1664,7 +1616,42 @@ cdef class Matrix(sage.structure.element.Matrix):
             z_{0}^{2} + z_{1} z_{2} & z_{0} z_{1} + z_{1} z_{3} \\
             z_{0} z_{2} + z_{2} z_{3} & z_{1} z_{2} + z_{3}^{2}
             \end{array}\right)
+
+        Latex representation for block matrices::
+
+            sage: B = matrix(3,4)
+            sage: B.subdivide([2,2], [3])
+            sage: latex(B)
+            \left(\begin{array}{rrr|r}
+            0 & 0 & 0 & 0 \\
+            0 & 0 & 0 & 0 \\
+            \hline\hline
+            0 & 0 & 0 & 0
+            \end{array}\right)
+
+        Note that size-zero subdivisions are ignored in the notebook::
+
+            sage: sage.server.support.EMBEDDED_MODE = True
+            sage: latex(B)
+            \left(\begin{array}{rr}
+            \left(\begin{array}{rrr}
+            0 & 0 & 0 \\
+            0 & 0 & 0
+            \end{array}\right) & \left(\begin{array}{r}
+            0 \\
+            0
+            \end{array}\right) \\
+            \\
+            \left(\begin{array}{rrr}
+            0 & 0 & 0
+            \end{array}\right) & \left(\begin{array}{r}
+            0
+            \end{array}\right)
+            \end{array}\right)
+            sage: sage.server.support.EMBEDDED_MODE = False
         """
+        latex = sage.misc.latex.latex
+        matrix_delimiters = latex.matrix_delimiters()
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
@@ -1673,28 +1660,53 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         S = self.list()
         rows = []
-        m = 0
 
         row_divs, col_divs = self.get_subdivisions()
 
-        # compute rows
-        latex = sage.misc.latex.latex
+        from sage.server.support import EMBEDDED_MODE
+
+        # jsmath doesn't know the command \hline, so have to do things
+        # differently (and not as atractively) in embedded mode:
+        # construct an array with a subarray for each block.
+        if len(row_divs) + len(col_divs) > 0 and EMBEDDED_MODE:
+            for r in range(len(row_divs)+1):
+                s = ""
+                for c in range(len(col_divs)+1):
+                    if c == len(col_divs):
+                        sep=""
+                    else:
+                        sep=" & "
+                    sub = self.subdivision(r,c)
+                    if sub.nrows() > 0 and sub.ncols() > 0:
+                        entry = latex(self.subdivision(r,c))
+                        s = s + entry + sep
+                rows.append(s)
+
+            # Put brackets around in a single string
+            tmp = []
+            for row in rows:
+                tmp.append(str(row))
+
+            s = " \\\\\n".join(tmp)
+            format = 'r'*len(row_divs)
+            return "\\left" + matrix_delimiters[0] + "\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right" + matrix_delimiters[1]
+
+        # not in EMBEDDED_MODE, or in EMBEDDED_MODE with just a single
+        # block: construct one large array, using \hline and vertical
+        # bars | in the array descriptor to indicate subdivisions.
         for r from 0 <= r < nr:
-#            if r in row_divs:
-#                rows.append("\\hline")*row_divs.count(r) # jsmath doesn't understand?
-            s = ""
+            if r in row_divs:
+                s = "\\hline"*row_divs.count(r) + "\n"
+            else:
+                s = ""
             for c from 0 <= c < nc:
                 if c == nc-1:
                     sep=""
                 else:
                     sep=" & "
                 entry = latex(S[r*nc+c])
-                if c == 0:
-                    m = max(m, len(entry))
                 s = s + entry + sep
             rows.append(s)
-#        if nr in row_divs
-#            rows.append("\\hline")*row_divs.count(nr)
 
         # Put brackets around in a single string
         tmp = []
@@ -2665,7 +2677,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return True if this matrix is invertible.
 
         EXAMPLES: The following matrix is invertible over
-        `\mathbb{Q}` but not over `\mathbb{Z}`.
+        `\QQ` but not over `\ZZ`.
 
         ::
 
@@ -2684,7 +2696,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [-3/2  1/2]
             [   1    0]
 
-        The next matrix is invertible over `\mathbb{Z}`.
+        The next matrix is invertible over `\ZZ`.
 
         ::
 
@@ -2696,7 +2708,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0 -1]
 
         The following nontrivial matrix is invertible over
-        `\mathbb{Z}[x]`.
+        `\ZZ[x]`.
 
         ::
 
@@ -3283,7 +3295,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return the product of two matrices.
 
         EXAMPLE of matrix times matrix over same base ring: We multiply
-        matrices over `\mathbb{Q}[x,y]`.
+        matrices over `\QQ[x,y]`.
 
         ::
 
@@ -3504,8 +3516,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         Raises a ``ZeroDivisionError`` if the matrix has zero
         determinant, and raises an ``ArithmeticError``, if the
         inverse doesn't exist because the matrix is nonsquare. Also, note,
-        e.g., that the inverse of a matrix over `\mathbb{Z}` is
-        always a matrix defined over `\mathbb{Q}` (even if the
+        e.g., that the inverse of a matrix over `\ZZ` is
+        always a matrix defined over `\QQ` (even if the
         entries are integers).
 
         EXAMPLES::
@@ -3531,7 +3543,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
         This is analogous to the situation for ring elements, e.g., for
-        `\mathbb{Z}` we have::
+        `\ZZ` we have::
 
             sage: parent(~1)
             Rational Field
@@ -3546,9 +3558,49 @@ cdef class Matrix(sage.structure.element.Matrix):
             True
             sage: M.inverse() == M
             True
+
+        Matrices over the integers modulo a composite modulus::
+
+            sage: m = matrix(Zmod(49),2,[2,1,3,3])
+            sage: type(m)
+            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+            sage: ~m
+            [ 1 16]
+            [48 17]
+            sage: m = matrix(Zmod(2^100),2,[2,1,3,3])
+            sage: type(m)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: (~m)*m
+            [1 0]
+            [0 1]
+            sage: ~m
+            [                              1  422550200076076467165567735125]
+            [1267650600228229401496703205375  422550200076076467165567735126]
+
+        This matrix isn't invertible::
+
+            sage: m = matrix(Zmod(9),2,[2,1,3,3])
+            sage: ~m
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: self is not invertible
         """
         if not self.base_ring().is_field():
-            return ~self.matrix_over_field()
+            try:
+                return ~self.matrix_over_field()
+            except TypeError:
+                # There is one easy special case -- the integers modulo N.
+                if is_IntegerModRing(self.base_ring()):
+                    # This is "easy" in that we either get an error or
+                    # the right answer.  Note that of course there
+                    # could be a much faster algorithm, e.g., using
+                    # CRT or p-adic lifting.
+                    try:
+                        return (~self.lift()).change_ring(self.base_ring())
+                    except (TypeError, ZeroDivisionError):
+                        raise ZeroDivisionError, "self is not invertible"
+                raise
+
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
         if self.nrows()==0:
@@ -3672,16 +3724,16 @@ def unpickle(cls, parent, mutability, cache, data, version):
     EXAMPLES: We illustrating saving and loading several different
     types of matrices.
 
-    OVER `\mathbb{Z}`::
+    OVER `\ZZ`::
 
         sage: A = matrix(ZZ,2,range(4))
         sage: loads(dumps(A))
         [0 1]
         [2 3]
 
-    Sparse OVER `\mathbb{Q}`:
+    Sparse OVER `\QQ`:
 
-    Dense over `\mathbb{Q}[x,y]`:
+    Dense over `\QQ[x,y]`:
 
     Dense over finite field.
     """

@@ -22,7 +22,7 @@ EXAMPLES: There are 5 set partitions of the set 1,2,3.
 
 ::
 
-    sage: SetPartitions(3).count()
+    sage: SetPartitions(3).cardinality()
     5
 
 Here is the list of them
@@ -106,14 +106,14 @@ def SetPartitions(s, part=None):
         Set partitions of [1, 2, 3, 4] with 2 parts
         sage: SetPartitions([1,2,3,4], [3,1]).list()
         [{{2, 3, 4}, {1}}, {{1, 3, 4}, {2}}, {{3}, {1, 2, 4}}, {{4}, {1, 2, 3}}]
-        sage: SetPartitions(7, [3,3,1]).count()
+        sage: SetPartitions(7, [3,3,1]).cardinality()
         70
 
     In strings, repeated letters are considered distinct::
 
-        sage: SetPartitions('aabcd').count()
+        sage: SetPartitions('aabcd').cardinality()
         52
-        sage: SetPartitions('abcde').count()
+        sage: SetPartitions('abcde').cardinality()
         52
 
     REFERENCES:
@@ -196,7 +196,7 @@ class SetPartitions_setparts(CombinatorialClass):
 
         return True
 
-    def count(self):
+    def cardinality(self):
         """
         Returns the number of set partitions of set. This number is given
         by the n-th Bell number where n is the number of elements in the
@@ -207,13 +207,13 @@ class SetPartitions_setparts(CombinatorialClass):
 
         EXAMPLES::
 
-            sage: SetPartitions([1,2,3,4]).count()
+            sage: SetPartitions([1,2,3,4]).cardinality()
             15
-            sage: SetPartitions(3).count()
+            sage: SetPartitions(3).cardinality()
             5
-            sage: SetPartitions(3,2).count()
+            sage: SetPartitions(3,2).cardinality()
             3
-            sage: SetPartitions([]).count()
+            sage: SetPartitions([]).cardinality()
             1
         """
         return len(self.list())
@@ -237,7 +237,7 @@ class SetPartitions_setparts(CombinatorialClass):
             sage: list(sorted(map(list, it.next())))
             [[1], [2], [3]]
             sage: S21 = SetPartitions(3,Partition([2,1]))
-            sage: len(list(S._iterator_part(Partition([2,1])))) == S21.count()
+            sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()
             True
         """
         set = self.set
@@ -260,7 +260,7 @@ class SetPartitions_setparts(CombinatorialClass):
 
 
 
-    def iterator(self):
+    def __iter__(self):
         """
         An iterator for all the set partitions of the set.
 
@@ -295,14 +295,14 @@ class SetPartitions_setn(SetPartitions_setparts):
         """
         return "Set partitions of %s with %s parts"%(self.set,self.n)
 
-    def count(self):
+    def cardinality(self):
         """
         The Stirling number of the second kind is the number of partitions
         of a set of size n into k blocks.
 
         EXAMPLES::
 
-            sage: SetPartitions(5, 3).count()
+            sage: SetPartitions(5, 3).cardinality()
             25
             sage: stirling_number2(5,3)
             25
@@ -329,11 +329,11 @@ class SetPartitions_set(SetPartitions_setparts):
         """
         return "Set partitions of %s"%(self.set)
 
-    def count(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
-            sage: SetPartitions(4).count()
+            sage: SetPartitions(4).cardinality()
             15
             sage: bell_number(4)
             15

@@ -3305,7 +3305,7 @@ def test_consistency(max_n=2, **kwargs):
                             sr = SR(n, r, c, e, gf2=gf2, **kwargs)
                             try:
                                 F, s = sr.polynomial_system()
-                                F.subs(s)
+                                F = F.subs(s)
                                 consistent &= (F.groebner_basis('libsingular:slimgb')[0] != 1)
                                 if not consistent:
                                     print sr, " is not consistent"

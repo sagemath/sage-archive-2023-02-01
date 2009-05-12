@@ -430,7 +430,7 @@ class MPolynomialRoundSystem_generic(SageObject):
     def subs(self, *args, **kwargs):
         """
         Substitute variables for every polynomial in this system and
-        return a system. See ``MPolynomial.subs`` for calling
+        return a new system. See ``MPolynomial.subs`` for calling
         convention.
 
         INPUT:

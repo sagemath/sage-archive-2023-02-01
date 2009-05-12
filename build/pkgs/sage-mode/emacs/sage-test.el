@@ -94,6 +94,96 @@ easily repeat a sage-test command."
   (compilation-start command-args 'sage-test-mode))
 
 ;;;_* "Interactive" doctesting
+
+(defun sage-test-remove-prompts-in-current-buffer ()
+  ;; (interactive) ;; XXX
+
+  (let ((prompt-length nil))
+    ;; (extra-newline nil))
+
+;;     (goto-char (point-min))
+;;     (when (re-search-forward (rx (seq "sage:" (0+ anything) ":")) (point-max) t) ;; (regexp bound noerror)
+;;       (setq extra-newline t))
+
+    (goto-char (point-min))
+    (re-search-forward sage-test-prompt)
+    (setq prompt-length (- (point) 1))
+
+    ;; (message "prompt-length %s %s" prompt-length extra-newline)
+    (goto-char (point-min))
+
+    (delete-char prompt-length)
+
+    (end-of-line)
+    (while (not (eobp))
+      (forward-line 1)
+      (beginning-of-line) ;;  1)
+      (delete-char prompt-length)
+      (end-of-line))
+
+;;     (when extra-newline ;; doesn't seem to help
+;;       (insert "\n"))
+))
+
+(defun sage-test-remove-prompts (doctest)
+  "Given a doctest snippet, remove any leading sage: and ... prompts."
+  (with-temp-buffer
+    (insert doctest)
+    (sage-test-remove-prompts-in-current-buffer)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
+(defun sage-test-doctest-at-point ()
+  "Return the doctest at point.
+Expects that point is on the same line as a sage: prompt."
+  (interactive)
+
+  ;; error checking
+  (save-excursion
+    (beginning-of-line)
+    (unless (looking-at sage-test-prompt)
+      (error "Not at a sage: prompt"))
+
+    (let ((beg (point)))
+      (forward-line 1)
+      (beginning-of-line)
+      (while (looking-at (rx (0+ whitespace) "..."))
+	;; accumulate additional lines
+	(forward-line 1)
+	(beginning-of-line))
+      ;; back up to end of previous line
+      (forward-line -1)
+      (end-of-line)
+      ;; and return...
+      (sage-test-remove-prompts
+       (buffer-substring-no-properties beg (point))))))
+
+(defun sage-send-doctest-at-point ()
+  "Send the doctest at point to the inferior sage.
+Expects that point is on the same line as a sage: prompt."
+  ;; (interactive)
+  (let ((doctest (sage-test-doctest-at-point)))
+    (sage-send-command doctest t)
+
+    (let ((need-newline (string-match (rx (or ":" "\n")) doctest))
+	  (one-liner (not (string-match (rx "\n") doctest))))
+      ;; (message "need-newline %s %s _%s_" need-newline one-liner doctest)
+      (when need-newline
+	;; extra newline to clear indentation or single line function/if/try definition
+	(unless one-liner
+	  (sage-send-command "\n" nil))
+	(sage-send-command "\n" t)))))
+
+(defun sage-test-narrow-to-defun-or-string ()
+  "Narrow to the current docstring if possible, otherwise to the surrounding defun.
+Helps interactive doctesting of class/module comments."
+  ;; (message "NARROWING %s" (python-in-string/comment))
+  (if (not (python-in-string/comment))
+      (narrow-to-defun)
+    (save-excursion
+      (let ((beg (nth 8 (syntax-ppss)))) ;;  8. character address of start of comment or string; nil if not in one.
+	(search-forward "\"\"\"") ;; just go to end of triple quoted string for now, even though it's not prefect
+	(narrow-to-region beg (point))))))
+
 (defun sage-send-doctest-line-and-forward (&optional noshow)
   "If looking at a 'sage:' prompt, send this line and move to the next prompt
 in this docstring.
@@ -108,11 +198,12 @@ If NOSHOW is nil, display the Sage process buffer."
       (error "Not at a sage: prompt"))
     ;; send current line
     (re-search-forward sage-test-prompt)
-    (sage-send-command (buffer-substring-no-properties
-			(point) (line-end-position)) t)
+    (sage-send-doctest-at-point)
+    ;; (sage-send-command (sage-test-doctest-at-point) t)
+
     (unless noshow (display-buffer sage-buffer)))
   (save-restriction
-    (narrow-to-defun)
+    (sage-test-narrow-to-defun-or-string)
     (end-of-line)
     (unless (re-search-forward sage-test-prompt (point-max) t)
       (forward-line 1))
@@ -179,9 +270,20 @@ If NOGO is nil, pop to the Sage process buffer."
 With prefix argument, send all doctests (at sage: prompts) until
 the end of the docstring."
   (interactive "P")
-  (if all
-      (let ((current-prefix-arg nil))
-	(sage-send-all-doctest-lines))
-    (sage-send-doctest-line-and-forward)))
+
+  ;; we're going to mangle point and mark, but let's do our damage, figure
+  ;; out where we end, and then restore point and mark
+  (push-mark) ;; so that you can do `sage-send-doctest' twice easily.
+
+  (let ((end-point nil))
+    ;; this may be overkill, but it works for now.
+    (save-excursion
+      (save-restriction
+	(if all
+	  (let ((current-prefix-arg nil))
+	    (sage-send-all-doctest-lines))
+	  (sage-send-doctest-line-and-forward)))
+      (setq end-point (point)))
+    (goto-char end-point)))
 
 (provide 'sage-test)

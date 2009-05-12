@@ -37,17 +37,18 @@
 ;;
 ;; Replace test output.
 ;; Replace output for all tests.
-;; C-c C-j copies multiline tests.
-;; Comparing tests?
+;; Actually compare test outputs?
+;; (DONE) C-c C-j copies multiline tests.
 ;; (DONE) C-u sage-test only tests, does not rebuild.
 ;; (DONE) C-c C-j in the *Help* buffer.
 ;;
+;; Make sage-send-{buffer, doctest} quit pdb before sending.
 ;; (DONE) Remove pdb history/different history based on prompt.
 ;;
 ;; (DONE) sage-rerun exits from pdb.
 ;; (DONE) C-u sage-build hangs with exiting from pdb code.
-;; search *sage-build* buffer for build status rather than rely on exit codes
 ;; (DONE) search *sage-test* buffer for test status rather than rely on exit codes
+;; search *sage-build* buffer for build status rather than rely on exit codes (how to tell?)
 ;;
 ;; (DONE) Fix pyrex-mode
 ;;

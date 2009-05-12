@@ -34,7 +34,7 @@
 
 (load "sage-load")
 
-(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" "....." ">>>" "..." "(Pdb)" "ipdb>" "(gdb)") " ")))
+(defcustom inferior-sage-prompt (rx line-start (1+ (and (or "sage:" ">>>" "....." "..." "(Pdb)" "ipdb>" "(gdb)") " ")))
   "Regular expression matching the SAGE prompt."
   :group 'sage
   :type 'regexp)
@@ -103,7 +103,8 @@ See `sage-startup-before-prompt-hook' and `run-hooks'."
   :type 'hook
   :group 'sage-test)
 
-(defcustom sage-test-prompt (rx line-start (? (or "-" "+")) (0+ (or space punct)) (1+ (or "sage: " ">>> " "....." "...")))
+;; the -, + is for diff-mode
+(defcustom sage-test-prompt (rx line-start (? (or "-" "+")) (0+ (or space punct)) (1+ (or "sage: " ">>> ")))
   "Regular expression matching the SAGE prompt of a single doctest line."
   :group 'sage-test
   :type 'regexp)

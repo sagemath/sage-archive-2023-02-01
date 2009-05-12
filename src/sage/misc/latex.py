@@ -52,8 +52,11 @@ def have_dvipng():
     Return True if this computer has the program dvipng.
 
     The first time it is run, this function caches its result in the
-    variable ``_have_dvipng``, and any subsequence time, it just
+    variable ``_have_dvipng``, and any subsequent time, it just
     checks the value of the variable.
+
+    If this computer doesn't have dvipng installed, you may obtain it
+    from http://sourceforge.net/projects/dvipng/
 
     EXAMPLES::
 
@@ -71,6 +74,36 @@ def have_dvipng():
     if _have_dvipng is None:
         _have_dvipng = not bool(os.system('which dvipng >/dev/null'))
     return _have_dvipng
+
+_have_convert = None
+def have_convert():
+    """
+    Return True if this computer has the program convert.
+
+    The first time it is run, this function caches its result in the
+    variable ``_have_convert``, and any subsequent time, it just
+    checks the value of the variable.
+
+    If this computer doesn't have convert installed, you may obtain it
+    (along with the rest of the ImageMagick suite) from
+    http://www.imagemagick.org
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import have_convert
+        sage: sage.misc.latex._have_convert is None
+        True
+        sage: have_convert() # random
+        True
+        sage: sage.misc.latex._have_convert is None
+        False
+        sage: sage.misc.latex._have_convert == have_convert()
+        True
+    """
+    global _have_convert
+    if _have_convert is None:
+        _have_convert = not bool(os.system('which convert >/dev/null'))
+    return _have_convert
 
 def list_function(x):
     r"""
@@ -341,6 +374,17 @@ class Latex:
            or this command won't work.  When using pdflatex, you must
            have 'convert' installed.
         """
+        if not (have_dvipng() or have_convert()):
+            print ""
+            print "Error: neither dvipng nor convert (from the ImageMagick suite)"
+            print "appear to be installed. Displaying LaTeX or PDFLaTeX output"
+            print "requires at least one of these programs, so please install"
+            print "and try again."
+            print ""
+            print "Go to http://sourceforge.net/projects/dvipng/ and"
+            print "http://www.imagemagick.org to download these programs."
+            return ''
+
         MACROS = latex_extra_preamble()
 
         if density is None:
@@ -384,33 +428,54 @@ class Latex:
                 pdflatex = bool(self.__pdflatex)
         if pdflatex:
             command = "pdflatex"
+            suffix = "pdf"
         else:
             command = "latex"
+            suffix = "ps"
+        # Define the commands to be used:
         lt = 'cd "%s"&& sage-native-execute %s \\\\nonstopmode \\\\input{%s.tex} %s'%(base, command, filename, redirect)
+        # dvipng is run with the 'picky' option: this means that if
+        # there are warnings, no png file is created.
+        dvipng = 'cd "%s"&& sage-native-execute dvipng --picky -q -T bbox -D %s %s.dvi -o %s.png'%(base, density, filename, filename)
+        dvips = 'sage-native-execute dvips %s.dvi %s'%(filename, redirect)
+        # We seem to need a larger size when using convert compared to
+        # when using dvipng:
+        density = int(1.4 * density / 1.3)
+        convert = 'sage-native-execute convert -density %sx%s -trim %s.%s %s.png %s '%\
+            (density,density, filename, suffix, filename, redirect)
+        # When using latex, first try dvipng:
         if have_dvipng() and not pdflatex:
-            dvipng = 'sage-native-execute dvipng -q -T bbox -D %s %s.dvi -o %s.png'%(density, filename, filename)
             cmd = ' && '.join([lt, dvipng])
+            if debug:
+                print cmd
+            e = os.system(cmd + ' ' + redirect)
+            dvipng_error = not os.path.exists(base + '/' + filename + '.png')
+            # If there is no png file, then either the latex process
+            # failed or dvipng failed.  Assume that dvipng failed, and
+            # try running dvips and convert.  (If the latex process
+            # failed, then dvips and convert will fail also, so we'll
+            # still catch the error.)
+            if dvipng_error:
+                cmd = ' && '.join(['cd "%s"'%(base,), dvips, convert])
+                if debug:
+                    print "'dvipng' failed; trying 'convert' instead..."
+                    print cmd
+                e = os.system(cmd + ' ' + redirect)
         else:
-            # seem to need a larger size when using convert compared to when using dvipng
-            density = int(1.4 * density / 1.3)
-            dvips = 'sage-native-execute dvips %s.dvi %s'%(filename, redirect)
-            if pdflatex:
-                suffix = "pdf"
-            else:
-                suffix = "ps"
-            convert = 'sage-native-execute convert -density %sx%s -trim %s.%s %s.png %s '%\
-                      (density,density, filename, suffix, filename, redirect)
+            # Either we're supposed to use latex and dvipng is
+            # missing, so use dvips then convert, or we're supposed to
+            # use pdflatex, so use that and then convert.
             if pdflatex:
                 cmd = ' && '.join([lt, convert])
             else:
                 cmd = ' && '.join([lt, dvips, convert])
-        if debug:
-            print cmd
-        e = os.system(cmd + ' ' + redirect)
+            if debug:
+                print cmd
+            e = os.system(cmd + ' ' + redirect)
         if e:
             print "An error occured."
             try:
-                print open(filename + '.log').read()
+                print open(base + '/' + filename + '.log').read()
             except IOError:
                 pass
             return 'Error latexing slide.'

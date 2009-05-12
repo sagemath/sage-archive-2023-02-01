@@ -365,7 +365,8 @@ ext_modules = [
               sources = ['sage/libs/fplll/fplll.pyx'],
               libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
               language="c++",
-              include_dirs = [SAGE_ROOT +'/local/include/fplll']),
+              include_dirs = [SAGE_ROOT +'/local/include/fplll'],
+              depends = [SAGE_ROOT + "/local/include/fplll/fplll.h"]),
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],

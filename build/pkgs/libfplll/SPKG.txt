@@ -23,6 +23,9 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
+=== libfplll-3.0.12 (Michael Abshoff, May 12th, 2009) ===
+ * update to latest upstream
+
 === libfplll-3.0.11 (Michael Abshoff, May 7th, 2009) ===
  * update to latest upstream
  * remove Debian dist files

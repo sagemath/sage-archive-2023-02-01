@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -41,6 +41,13 @@ fi
 $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing libfplll"
+    exit 1
+fi
+
+# run make check target for now - should be turned off
+make check
+if [ $? -ne 0 ]; then
+    echo "Error running check target for libfplll"
     exit 1
 fi
 

@@ -96,7 +96,17 @@ def dynkin_diagram(t):
 def dynkin_diagram_ascii_art(t):
     """
     Returns ascii art representing a Dynkin diagram of a finite
-    Cartan type.
+    Cartan type. Accessed through the __repr__ method of DynkinDiagram.
+
+    EXAMPLES::
+
+        sage: DynkinDiagram("E6")
+                 O 2
+                 |
+                 |
+         O---O---O---O---O
+         1   3   4   5   6
+         E6
     """
     if type(t) == str:
         t = CartanType(t)
@@ -174,6 +184,19 @@ def extended_dynkin_diagram_ascii_art(t):
     Returns ascii art representing the extended Dynkin diagram of a finite
     Cartan type. This is also the Dynkin diagram of the associated
     untwisted affine root system.
+
+    EXAMPLES::
+
+        sage: DynkinDiagram(['E',6,1])
+                O 0
+                |
+                |
+                O 2
+                |
+                |
+        O---O---O---O---O
+        1   3   4   5   6
+        E6~
     """
     if type(t) == str or type(t) == list:
         t = CartanType(t)

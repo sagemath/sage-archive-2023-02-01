@@ -2246,35 +2246,24 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @cached_method
     def groebner_basis(self, algorithm='', *args, **kwds):
-        r"""
-        Return the reduced Groebner basis of this ideal. A Groeber basis
-        `g_1,...,g_n` for an ideal `I` is a basis such
-        that
-
-
-        .. math::
-
-            <LT(g_i)> = LT(I)
-
-        ,
-
-        i.e. the leading term ideal of `I` is spanned by the
-        leading terms of `g_1,...,g_n`. Groebner bases are the
-        key concept in computational ideal theory in multivariate
-        polynomial rings which allows a variety of problems to be solved.
+        """
+        Return the reduced Groebner basis of this ideal. A Groebner
+        basis `g_1,...,g_n` for an ideal `I` is a basis such that
+        `<LM(g_i)> = LM(I)`, i.e., the leading monomial ideal of
+        `I` is spanned by the leading terms of
+        `g_1,...,g_n`. Groebner bases are the key concept in
+        computational ideal theory in multivariate polynomial rings
+        which allows a variety of problems to be solved.
         Additionally, a *reduced* Groebner basis `G` is a unique
-        representation for the ideal `<G>` with respect to the
-        chosen monomial ordering.
+        representation for the ideal `<G>` with respect to the chosen
+        monomial ordering.
 
         INPUT:
 
-
         -  ``algorithm`` - determines the algorithm to use, see
            below for available algorithms.
-
         -  ``*args`` - additional parameters passed to the
            respective implementations
-
         -  ``**kwds`` - additional keyword parameters passed
            to the respective implementations
 
@@ -2306,20 +2295,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             libSingular's ``slimgb`` command
 
         'toy:buchberger'
-            Sage's toy/educational buchberger without strategy
+            Sage's toy/educational buchberger without Buchberger criteria
 
         'toy:buchberger2'
-            Sage's toy/educational buchberger with strategy
+            Sage's toy/educational buchberger with Buchberger criteria
 
         'toy:d_basis'
-            Sage's toy/educational d_basis algorithm
+            Sage's toy/educational algorithm for computation over PIDs
 
         'macaulay2:gb'
             Macaulay2's ``gb`` command (if available)
 
         'magma:GroebnerBasis'
             Magma's ``Groebnerbasis`` command (if available)
-
 
         If only a system is given - e.g. 'magma' - the default algorithm is
         chosen for that system.
@@ -2374,7 +2362,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('singular:slimgb')
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        Note that toy:buchberger does not return the reduced Groebner
+        Note that ``toy:buchberger`` does not return the reduced Groebner
         basis,
 
         ::
@@ -2388,7 +2376,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              b + 30*c^3 - 79/7*c^2 + 3/7*c,
              c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        but that toy:buchberger2 does.
+        but that ``toy:buchberger2`` does.
 
         ::
 
@@ -2441,8 +2429,24 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis()
             [x^2 + 1/2*y^3, x*y*z + z^5, y^5 + 3*z^5, y^4*z - 2*x*z^5, z^6]
 
+        We can represent every element in the ideal as a combination
+        of the generators using the :meth:`~sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict.lift` method::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ,3)
+            sage: I = P * ( x*y*z + z^5, 2*x^2 + y^3 + z^7, 3*z^5 +y ^5 )
+            sage: J = Ideal(I.groebner_basis())
+            sage: f = sum(P.random_element(terms=2)*f for f in I.gens())
+            sage: f
+            1/2*y^2*z^7 - 1/4*y*z^8 + 2*x*z^5 + 95*z^6 + 1/2*y^5 - 1/4*y^4*z + x^2*y^2 + 3/2*x^2*y*z + 95*x*y*z^2
+            sage: f.lift(I.gens())
+            [2*x + 95*z, 1/2*y^2 - 1/4*y*z, 0]
+            sage: l = f.lift(J.gens()); l
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1/2*y^2 + 1/4*y*z, 1/2*y^2*z^2 - 1/4*y*z^3 + 2*x + 95*z]
+            sage: sum(map(mul, zip(l,J.gens()))) == f
+            True
+
         ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
-        available), or toy implementation.
+        available), or a toy implementation.
         """
         from sage.rings.integer_mod_ring import is_IntegerModRing
 

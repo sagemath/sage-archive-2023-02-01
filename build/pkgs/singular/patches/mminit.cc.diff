@@ -1,0 +1,11 @@
+--- ../src/kernel/mminit.cc	2009-03-19 10:34:00.000000000 +0000
++++ mminit.cc	2009-05-12 20:56:19.000000000 +0100
+@@ -37,7 +37,7 @@
+ {
+   if(mmIsInitialized==0)
+   {
+-#if defined(OMALLOC_USES_MALLOC) || defined(X_OMALLOC)
++#if 0 //defined(OMALLOC_USES_MALLOC) || defined(X_OMALLOC)
+     /* in mmstd.c, for some architectures freeSize() unconditionally uses the *system* free() */
+     /* sage ticket 5344: http://trac.sagemath.org/sage_trac/ticket/5344 */
+     /* solution: correctly check OMALLOC_USES_MALLOC from omalloc.h, */

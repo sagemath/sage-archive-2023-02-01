@@ -74,6 +74,7 @@ clean_headers()
 patch()
 {
     # work-around patches
+    cp patches/mminit.cc src/kernel/
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in

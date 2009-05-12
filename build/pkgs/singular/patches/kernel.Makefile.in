@@ -292,9 +292,7 @@ install-nolns: install
 
 install-libsingular:
 	${MKINSTALLDIRS} ${includedir}/singular
-	-for file in *.h; do \
-	${INSTALL_PROGRAM} $$file ${includedir}/singular; \
-        done
+	-for file in *.h; do ${INSTALL_PROGRAM} $$file ${includedir}/singular; done
 
 install: all installbin
 

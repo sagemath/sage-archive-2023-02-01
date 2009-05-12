@@ -10,6 +10,9 @@
 
 == Releases ==
 
+=== singular-3-1-0-2-20090512 (Martin Albrecht, May 12th, 2009) ===
+ * new upstream release
+
 === singular-3-0-4-4-20090511 (Martin Albrecht, May 11th, 2009) ===
  * fixed #5862
  * update SPKG.txt

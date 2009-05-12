@@ -1,12 +1,12 @@
---- kernel.Makefile.in.orig	2008-09-01 03:58:36.047024000 -0400
-+++ kernel.Makefile.in	2008-09-01 03:57:42.772677000 -0400
+--- ../Singular-3-1-0/kernel/Makefile.in	2009-02-06 07:54:38.000000000 +0000
++++ kernel.Makefile.in	2009-05-12 18:20:10.000000000 +0100
 @@ -292,7 +292,9 @@
  
  install-libsingular:
  	${MKINSTALLDIRS} ${includedir}/singular
 -	cp *.h ${includedir}/singular
-+	-for file in *.h; do \
-+          ${INSTALL_PROGRAM} $$file ${includedir}/singular; \
++	-for file in *.h; do \ 
++	${INSTALL_PROGRAM} $$file ${includedir}/singular; \
 +        done
  
  install: all installbin

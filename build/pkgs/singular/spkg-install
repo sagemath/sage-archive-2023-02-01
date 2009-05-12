@@ -77,8 +77,6 @@ patch()
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
-    cp patches/fac_distrib.cc src/factory/fac_distrib.cc
-    cp patches/mminit.cc src/kernel/mminit.cc
 }
 
 distclean()

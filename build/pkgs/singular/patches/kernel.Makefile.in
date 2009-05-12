@@ -93,7 +93,7 @@ CXXSOURCES=clapconv.cc \
     clapsing.cc mminit.cc\
     febase.cc feread.cc feResource.cc \
     ffields.cc hdegree.cc hilb.cc hutil.cc \
-    sca.cc gring.cc gr_kstd2.cc\
+    sca.cc gring.cc gr_kstd2.cc summator.cc ncSAMult.cc ncSACache.cc ncSAFormula.cc \
     ideals.cc intvec.cc int64vec.cc \
     khstd.cc kstdfac.cc \
     kstd1.cc kstd2.cc kutil.cc \
@@ -112,8 +112,8 @@ CXXSOURCES=clapconv.cc \
     mpr_inout.cc mpr_base.cc mpr_numeric.cc \
     prCopy.cc p_Mult_q.cc \
     pDebug.cc pInline2.cc pInline1.cc pInline0.cc \
-    pShallowCopyDelete.cc fast_mult.cc digitech.cc\
-    tgb.cc tgbgauss.cc ringgb.cc f5gb.cc ratgring.cc shiftgb.cc
+    pShallowCopyDelete.cc fast_mult.cc digitech.cc \
+    tgb.cc tgbgauss.cc ringgb.cc f5data.cc f5lists.cc f5gb.cc ratgring.cc shiftgb.cc gfan.cc
 
 # normal C source files
 CSOURCES=weight0.c fegetopt.c fereadl.c dError.c mmstd.c
@@ -154,11 +154,11 @@ HEADERS=hutil.h stairc.h ideals.h \
 	clapsing.h matpol.h polys.h p_polys.h syz.h \
 	ring.h timer.h dError.h fast_maps.h \
 	febase.h shortfl.h mpr_complex.h mpr_global.h \
-	sca.h gring.h walkProc.h walkMain.h walkSupport.h\
+	summator.h ncSAMult.h ncSACache.h sca.h gring.h ncSAFormula.h \
+	walkProc.h walkMain.h walkSupport.h\
 	ffields.h khstd.h sparsmat.h gnumpfl.h gnumpc.h \
 	fglm.h kstd1.h \
-	rmodulo2m.h rmodulon.h rintegers.h \
-        modulop.h sing_dbm.h weight.h \
+	rmodulo2m.h rmodulon.h rintegers.h modulop.h sing_dbm.h weight.h \
 	fglmgauss.h fglmvec.h \
 	kstdfac.h kmatrix.h\
 	kutil.h \
@@ -172,7 +172,7 @@ HEADERS=hutil.h stairc.h ideals.h \
         pInline2.h pInline1.h pInline0.h mmalloc.h \
         omSingularConfig.h pShallowCopyDelete.h \
 	p_Procs_Dynamic.h p_Procs_Impl.h p_Procs_Set.h \
-	p_Procs.h p_Procs_Static.h p_Mult_q.h
+	p_Procs.h p_Procs_Static.h p_Mult_q.h gfan.h
 
 DISTFILES=${SOURCES} ${HEADERS} ${ESOURCES} \
         Makefile.in configure.in configure \
@@ -292,8 +292,8 @@ install-nolns: install
 
 install-libsingular:
 	${MKINSTALLDIRS} ${includedir}/singular
-	for file in *.h; do \
-          cp $$file ${includedir}/singular; \
+	-for file in *.h; do \
+	${INSTALL_PROGRAM} $$file ${includedir}/singular; \
         done
 
 install: all installbin
@@ -319,10 +319,6 @@ ifeq (,${DL_LIBS})
 else
 	-${INSTALL_PROGRAM} ${DL_LIBS} ${bindir}
 endif
-
-# compatibility
-
-install-bindist-plural: install-bindist
 
 ##
 ## clean targest

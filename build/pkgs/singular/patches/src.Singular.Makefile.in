@@ -112,7 +112,6 @@ ifeq ($(SINGUNAME),ix86Mac-darwin)
 SO_SUFFIX        = dylib
 LIBSINGULAR_FLAGS = -single_module
 LIBSINGULAR_LD = $(LD)
-LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 endif
 
 ifeq ($(SINGUNAME),ppcMac-darwin)
@@ -133,6 +132,7 @@ SO_SUFFIX  = so
 LIBSINGULAR_FLAGS = -shared
 LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
 endif
+
 
 #
 # End libSINGULAR
@@ -254,38 +254,22 @@ DL_LIBS := 	$(DL_LIBS) $(MPSR_SO)
 endif
 else
 ifndef LD_STATIC
+ifeq ($(HAVE_MPSR), 1)
 LIBS := $(MP_LIBS) $(LIBS)
+LIBSG := $(MP_LIBS) $(LIBSG)
+endif
 endif
 OBJS := $(OBJS) $(STATIC_SOURCES:.cc=.o) $(COMMON_SOURCES:.cc=.o)
+OBJSG := $(OBJSG) $(STATIC_SOURCES:.cc=.og) $(COMMON_SOURCES:.cc=.og)
 DL_LIBS=
 endif
+
 
 #
 # Singular libraries which go into distribution
 # MAKE SURE THAT THIS IS UP_TO_DATE
 #
-
-SLIB0 = absfact.lib  arcpoint.lib  atkins.lib    aksaka.lib    ainvar.lib\
-	alexpoly.lib algebra.lib   brnoeth.lib   curvepar.lib  classify.lib \
-        compregb.lib \
-	control.lib  curvepar.lib   crypto.lib    deform.lib    elim.lib \
-        equising.lib \
-	finvar.lib   gmspoly.lib   gmssing.lib   general.lib   graphics.lib \
-	grwalk.lib   groups.lib    hnoether.lib  homolog.lib   hyperel.lib \
-	inout.lib    intprog.lib   kskernel.lib  latex.lib     linalg.lib \
-        lll.lib      makedbm.lib   matrix.lib \
-	modstd.lib   mondromy.lib  mprimdec.lib  mregular.lib  rootsmr.lib \
-	noether.lib  normal.lib    ntsolve.lib  \
-	poly.lib     presolve.lib  primdec.lib   primitiv.lib   qhmoduli.lib \
-	random.lib   realrad.lib   reesclos.lib  resolve.lib    resgraph.lib \
-	reszeta.lib \
-	ring.lib     rinvar.lib    sagbi.lib     sheafcoh.lib   sing.lib \
-	solve.lib    signcond.lib  spcurve.lib   spectrum.lib   standard.lib \
-	stratify.lib surf.lib      surfex.lib    teachstd.lib   toric.lib \
-	triang.lib   rootsur.lib  weierstr.lib  zeroset.lib
-
-
-PLIBS = central.lib dmod.lib gkdim.lib involut.lib ncalg.lib ncdecomp.lib nctools.lib perron.lib qmatrix.lib
+include singular-libs
 
 ifdef HAVE_PLURAL
 SLIBS = COPYING ${SLIB0} ${PLIBS} all.lib help.cnf
@@ -303,8 +287,7 @@ GFTABLES = $(wildcard LIB/gftables/[1-9]*)
 .l.cc:
 	@if test -r scanner.cc; then \
 		touch scanner.cc ;\
-	else \
-	if test "x${LEX}" = x; then \
+	elif test "x${LEX}" = x; then \
 		echo Error: no lex given, could not rebuilt scanner.cc;\
                 exit 1; \
 	fi
@@ -337,8 +320,8 @@ all:	$(SING_EXEC)
 Singular-static: version.h
 	sleep 1
 	echo "#define HAVE_STATIC" > static.h
-	(cd ../kernel;${MAKE} LD_STATIC=1 install-bindist;cd ..//Singular)
-	${MAKE} LD_STATIC=1 S_EXT="-static" Singular-static
+	(cd ../kernel;rm -f mod_raw.o;${MAKE} LD_STATIC=1 depend install-bindist;cd ../Singular)
+	${MAKE} LD_STATIC=1 S_EXT="-static" depend Singular-static
 	echo "#undef HAVE_STATIC" > static.h
 
 Singular${S_EXT}: mod2.h Makefile version.h $(WIN_LIBS) scanner.cc  ${OBJS} \
@@ -519,7 +502,7 @@ installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
 	  ${INSTALL_PROGRAM} $$file ${bindir}; \
 	done
 	${INSTALL_PROGRAM} libparse ${RUN_SINGULARS} ${bindir}
-	${INSTALL_PROGRAM} ESingular TSingular ${DL_LIBS} ${bindir}
+	${INSTALL_PROGRAM} ESingular TSingular ${bindir}
 	${INSTALL_PROGRAM} surfex ${bindir}
 	chmod a+x ${SINGULAR}
 	rm -f ${bindir}/${SING_EXEC}${EXEC_EXT}
@@ -610,17 +593,13 @@ install-bindist: $(HEADERS) $(SOURCES) Makefile depend
 	${INSTALL_PROGRAM} surfex ${install_bindir}
 	echo "#undef MAKE_DISTRIBUTION " > distrib.h
 
-install-bindist-plural: install-bindist
-
-install-sharedist-plural: install-sharedist
-
 install-sharedist: ${SLIBS_FILES} LIB/gftables
 	${MKINSTALLDIRS} ${install_slibdir}
 	cp ${SLIBS_FILES} ${install_slibdir}
 	${MKINSTALLDIRS} ${install_slibdir}/gftables
 	cp ${GFTABLES} ${install_slibdir}/gftables
 	${MKINSTALLDIRS} ${install_slibdir}/surfex
-	cp -r LIB/surfex ${install_slibdir}
+	cp LIB/surfex/surfex.jar ${install_slibdir}/surfex
 	chmod -R +rX ${install_slibdir}/*
 
 tar:

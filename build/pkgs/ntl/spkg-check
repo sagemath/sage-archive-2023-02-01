@@ -14,7 +14,7 @@ fi
 
 CUR=`pwd`
 
-cd src/
+cd src/src
 
 CFLAGS="-O2 -g $CFLAGS"
 CXXFLAGS="-O2 -g $CXXFLAGS"

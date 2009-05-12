@@ -270,6 +270,7 @@ If NOGO is nil, pop to the Sage process buffer."
 With prefix argument, send all doctests (at sage: prompts) until
 the end of the docstring."
   (interactive "P")
+  (sage-maybe-quit-debugger)
 
   ;; we're going to mangle point and mark, but let's do our damage, figure
   ;; out where we end, and then restore point and mark

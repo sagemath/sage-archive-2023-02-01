@@ -78,11 +78,7 @@ rerun the freshly built sage."
 	(when (and sprocess
 		   (not (eq (process-status sprocess) 'exit)))
 	  ;; (set-process-sentinel sprocess nil)
-	  (when (sage-last-prompt-is-debugger)
-	    (comint-kill-input)
-	    (comint-send-eof) ;; once to quit ipdb
-	    (accept-process-output nil 0 1)
-	    (sit-for 0))
+	  (sage-quit-debugger)
 
 	  (when (and sprocess
 		     (not (eq (process-status sprocess) 'exit))) ;; be a little cautious

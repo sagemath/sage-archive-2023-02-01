@@ -42,7 +42,7 @@
 ;; (DONE) C-u sage-test only tests, does not rebuild.
 ;; (DONE) C-c C-j in the *Help* buffer.
 ;;
-;; Make sage-send-{buffer, doctest} quit pdb before sending.
+;; (DONE) Make sage-send-{buffer, doctest} quit pdb before sending.
 ;; (DONE) Remove pdb history/different history based on prompt.
 ;;
 ;; (DONE) sage-rerun exits from pdb.
@@ -171,10 +171,11 @@
 
 (defun sage-last-prompt ()
   "Return the text of the last prompt seen in this inferior buffer."
-  (if comint-last-prompt-overlay
-      (buffer-substring-no-properties (overlay-start comint-last-prompt-overlay)
-				      (overlay-end comint-last-prompt-overlay))
-    ""))
+  (with-current-buffer sage-buffer
+    (if comint-last-prompt-overlay
+	(buffer-substring-no-properties (overlay-start comint-last-prompt-overlay)
+					(overlay-end comint-last-prompt-overlay))
+      "")))
 
 (defun sage-last-prompt-is-debugger ()
   "Return t if the last prompt seen in this inferior buffer was a debugger prompt."
@@ -653,11 +654,30 @@ and restart a fresh inferior sage in an existing buffer.
 
 (add-to-list 'python-source-modes 'sage-mode)
 
+(defun sage-quit-debugger ()
+  "Quit debugger if looking at a debugger prompt."
+
+  (when (sage-last-prompt-is-debugger)
+    (with-current-buffer sage-buffer
+      (comint-kill-input)
+      (comint-send-eof)
+      (accept-process-output nil 0 1)
+      (sit-for 0))))
+
+(defun sage-maybe-quit-debugger ()
+  "Maybe quit debugger if looking at a debugger prompt.
+Quits if `sage-quit-debugger-automatically' is non-nil or user requests quit."
+  (when (or sage-quit-debugger-automatically
+	    (y-or-n-p "Quit debugger before sending input? "))
+    (sage-quit-debugger)))
+
 ;;;###autoload
 (defun sage-send-buffer ()
   "Send the current buffer to the inferior sage process.
 The buffer is loaded using sage's \"load\" command."
   (interactive)
+  (sage-maybe-quit-debugger)
+
   (when (buffer-file-name)
     ;; named file -- offer to save it, then send it
     (when (buffer-modified-p)
@@ -690,6 +710,8 @@ the region \"2\" does not print \"2\"."
   ;; Fixme: Write a `coding' header to the temp file if the region is
   ;; non-ASCII.
   (interactive "r")
+  (sage-maybe-quit-debugger)
+
   (let* ((f (make-temp-file "sage" nil ".sage"))
 	 (command (format "load '%s' # loading region..." f))
 	 (orig-start (copy-marker start)))

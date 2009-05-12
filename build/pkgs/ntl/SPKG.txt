@@ -28,6 +28,10 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p7 (Michael Abshoff, May 6th, 2009) ===
+ * Add workaround fix for gcc 4.4 until we update to upstream
+ * add spkg-check target
+
 === ntl-5.4.2.p6 (Michael Abshoff, February 3rd, 2009) ===
  * Set SHAREDFALGS to -fnocommon on Darwin (#5164)
 

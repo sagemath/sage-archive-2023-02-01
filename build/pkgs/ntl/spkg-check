@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+if [ $UNAME = "Darwin" ]; then
+   echo "Setting SHAREDFLAGS to '-fno-common'"
+   export SHAREDFLAGS="-fno-common"
+fi
+
+CUR=`pwd`
+
+cd src/
+
+CFLAGS="-O2 -g $CFLAGS"
+CXXFLAGS="-O2 -g $CXXFLAGS"
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   CFLAGS=" -m64 $CFLAGS"
+   CXXFLAGS=" -m64 $CXXFLAGS"
+fi
+
+make check
+if ! [ $? -eq 0 ]; then
+    echo "Failed to run make check target for NTL"
+    exit 1
+fi
+

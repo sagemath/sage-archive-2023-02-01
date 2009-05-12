@@ -1,6 +1,14 @@
---- include/NTL/tools.h	2008-03-04 15:35:02.000000000 -0800
-+++ include/NTL/tools.h.modified	2008-04-17 12:24:41.000000000 -0700
-@@ -249,6 +249,12 @@
+--- tools.h.orig	2009-05-07 02:45:30.505550000 -0400
++++ tools.h	2009-05-07 02:45:49.404307000 -0400
+@@ -10,6 +10,7 @@
+ 
+ #include <cstdlib>
+ #include <cmath>
++#include <cstdio>
+ #include <iostream>
+ 
+ #else
+@@ -249,6 +250,12 @@
  char IntValToChar(long a);
  
  

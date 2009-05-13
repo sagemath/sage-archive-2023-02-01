@@ -7,6 +7,10 @@
 DEBUG=0
 SRC=`pwd`/src
 
+# we set LD=ld which is troublesome on OSX. Singular figures out LD by
+# itself pretty well so we unset it here.
+unset LD
+
 # see track ticket #48 -- do this to avoid subtle bug that Rob Gross
 # found in build process
 unset TMPDIR

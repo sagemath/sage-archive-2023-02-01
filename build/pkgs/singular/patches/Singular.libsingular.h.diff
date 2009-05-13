@@ -1,0 +1,12 @@
+--- ../src/Singular/libsingular.h	2007-10-11 10:46:38.000000000 +0100
++++ Singular.libsingular.h	2009-05-13 22:10:16.000000000 +0100
+@@ -16,6 +16,9 @@
+ #include "singular/kstd1.h"
+ #include "singular/tgb.h"
+ #include "singular/sparsmat.h"
++#include "singular/rintegers.h"
++#include "singular/rmodulo2m.h"
++#include "singular/rmodulon.h"
+ 
+ int siInit(char *);
+ 

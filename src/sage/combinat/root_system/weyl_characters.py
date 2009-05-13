@@ -17,6 +17,7 @@ Weyl Characters
 #*****************************************************************************
 import cartan_type
 from sage.combinat.root_system.root_system import RootSystem
+from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
@@ -828,6 +829,39 @@ class WeylCharacterRing_class(Algebra):
         """
         return self._space.positive_roots()
 
+    def dynkin_diagram(self):
+        """
+        Returns the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: WeylCharacterRing("E7").dynkin_diagram()
+                    O 2
+                    |
+                    |
+            O---O---O---O---O---O
+            1   3   4   5   6   7
+            E7
+        """
+        return self.space().dynkin_diagram()
+
+    def extended_dynkin_diagram(self):
+        """
+        Returns the extended Dynkin diagram, which is the Dynkin diagram
+        of the corresponding untwisted affine type.
+
+        EXAMPLES::
+
+            sage: WeylCharacterRing("E7").extended_dynkin_diagram()
+                        O 2
+                        |
+                        |
+            O---O---O---O---O---O---O
+            0   1   3   4   5   6   7
+            E7~
+        """
+        return DynkinDiagram([self.cartan_type()[0],self.cartan_type()[1],1])
+
     def rank(self):
         """
         Returns the rank.
@@ -1147,10 +1181,10 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     and these may be obtained using the rule "symmetric_power".
 
-    MISCELLANEOUS: Use rule="miscellaneous" for the following rule,
-    which does not fit into the above framework.
+    MISCELLANEOUS: Use rule="miscellaneous" for the following rules.
 
     B3 => G2
+    F4 => G2xA1 (not implemented yet)
 
     BRANCHING RULES FROM PLETHYSMS
 
@@ -1302,18 +1336,31 @@ def branch_weyl_character(chi, R, S, rule="default"):
          B4(1,1,0,0) + B4(1,1,1,0) + B4(3/2,1/2,1/2,1/2) + B4(3/2,3/2,1/2,1/2) + B4(2,1,1,0),
          B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0) + B4(1,1,0,0) + B4(1,1,1,0) + B4(3/2,1/2,1/2,1/2),
          B4(0,0,0,0) + B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0)]
+
+        sage: E6 = WeylCharacterRing("E6", style="coroots")
+        sage: A2xA2xA2=WeylCharacterRing("A2xA2xA2",style="coroots")
+        sage: A5xA1=WeylCharacterRing("A5xA1",style="coroots")
         sage: G2 = WeylCharacterRing("G2", style="coroots")
         sage: A1xA1 = WeylCharacterRing("A1xA1", style="coroots")
-        sage: G2(1,0).branch(A1xA1, rule="extended")
-         A1xA1(1,1) + A1xA1(2,0)
+        sage: F4 = WeylCharacterRing("F4",style="coroots")
+        sage: A3xA1 = WeylCharacterRing("A3xA1", style="coroots")
+        sage: A2xA2 = WeylCharacterRing("A2xA2", style="coroots")
+        sage: A1xC3 = WeylCharacterRing("A1xC3",style="coroots")
+
+        sage: E6(1,0,0,0,0,0).branch(A5xA1,rule="extended") # long time
+         A5xA1(0,0,0,1,0,0) + A5xA1(1,0,0,0,0,1)
+        sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # long time
+         A2xA2xA2(0,0,0,1,1,0) + A2xA2xA2(0,1,1,0,0,0) + A2xA2xA2(1,0,0,0,0,1)
+        sage: F4(1,0,0,0).branch(A1xC3,rule="extended") # long time
+         A1xC3(0,2,0,0) + A1xC3(1,0,0,1) + A1xC3(2,0,0,0)
         sage: G2(0,1).branch(A1xA1, rule="extended")
          A1xA1(0,2) + A1xA1(2,0) + A1xA1(3,1)
-
-    For example we can get the branching rule D4 => A1xA1xA1xA1 by remembering
-    that A1xA1 = D2.
-
+        sage: F4(0,0,0,1).branch(A2xA2, rule="extended") # long time
+         A2xA2(0,0,1,1) + A2xA2(0,1,0,1) + A2xA2(1,0,1,0)
+        sage: F4(0,0,0,1).branch(A3xA1,rule="extended") # long time
+         A3xA1(0,0,0,0) + A3xA1(0,0,0,2) + A3xA1(0,0,1,1) + A3xA1(0,1,0,0) + A3xA1(1,0,0,1)
         sage: D4=WeylCharacterRing("D4",style="coroots")
-        sage: D2xD2=WeylCharacterRing("D2xD2",style="coroots")
+        sage: D2xD2=WeylCharacterRing("D2xD2",style="coroots") # We get D4 => A1xA1xA1xA1 by remembering that A1xA1 = D2.
         sage: [D4(fw).branch(D2xD2, rule="extended") for fw in D4.fundamental_weights()]
         [D2xD2(0,0,1,1) + D2xD2(1,1,0,0),
          D2xD2(0,0,2,0) + D2xD2(0,0,0,2) + D2xD2(2,0,0,0) + D2xD2(1,1,1,1) + D2xD2(0,2,0,0),
@@ -1323,6 +1370,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     EXAMPLES: (Tensor type)
 
+    ::
         sage: A5=WeylCharacterRing("A5", style="coroots")
         sage: A2xA1=WeylCharacterRing("A2xA1", style="coroots")
         sage: [A5(hwv).branch(A2xA1, rule="tensor") for hwv in A5.fundamental_weights()]
@@ -1664,6 +1712,47 @@ def get_branching_rule(Rtype, Stype, rule):
             elif Rtype[0] == 'C'  and s == r:
                 if all(t[0] == Rtype[0] for t in stypes):
                     return lambda x : x
+            elif Rtype[0] == 'E' and s == r:
+                if r == 6:
+                    if stypes[0][0] == 'A' and stypes[0][1] == 5:
+                        if stypes[1][0] == 'A' and stypes[1][1] == 1:
+                            M = matrix(QQ,[(-3, -3, -3, -3, -3, -5, -5, 5), \
+                                           (-9, 3, 3, 3, 3, 1, 1, -1), \
+                                           (3, -9, 3, 3, 3, 1, 1, -1), \
+                                           (3, 3, -9, 3, 3, 1, 1, -1), \
+                                           (3, 3, 3, -9, 3, 1, 1, -1), \
+                                           (3, 3, 3, 3, -9, 9, -3, 3), \
+                                           (-3, -3, -3, -3, -3, -1, 11, 1), \
+                                           (3, 3, 3, 3, 3, 1, 1, 11)])/12
+                            return lambda x : tuple(M*vector(x))
+                    if len(stypes) == 3 and all(x[0] == 'A' and x[1] == 2 for x in stypes):
+                        M = matrix(QQ,[(0, 0, -2, -2, -2, -2, -2, 2), \
+                                       (-3, 3, 1, 1, 1, 1, 1, -1), \
+                                       (3, -3, 1, 1, 1, 1, 1, -1), \
+                                       (0, 0, -2, -2, 4, 0, 0, 0), \
+                                       (0, 0, -2, 4, -2, 0, 0, 0), \
+                                       (0, 0, 4, -2, -2, 0, 0, 0), \
+                                       (0, 0, -2, -2, -2, 2, 2, -2), \
+                                       (3, 3, 1, 1, 1, -1, -1, 1), \
+                                       (-3, -3, 1, 1, 1, -1, -1, 1)])/6
+                        return lambda x : tuple(M*vector(x))
+            elif Rtype[0] == 'F' and s == r:
+                if stypes[0][0] == 'C' and stypes[0][1] == 3:
+                    if stypes[1][0] == 'A' and stypes[1][1] == 1:
+                        return lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2]
+                if stypes[0][0] == 'A' and stypes[0][1] == 1:
+                    if stypes[1][0] == 'C' and stypes[1][1] == 3:
+                        return lambda x : [(-x[0]-x[1])/2,(x[0]+x[1])/2,x[0]-x[1],x[2]+x[3],x[2]-x[3]]
+                if stypes[0][0] == 'A' and stypes[1][0] == 'A':
+                    if stypes[0][1] == 2 and stypes[1][1] == 2:
+                        M = matrix(QQ,[(-2, -1, -1, 0), (1, 2, -1, 0), (1, -1, 2, 0), (1, -1, -1, 3), (1, -1, -1, -3), (-2, 2, 2, 0)])/3
+                    elif stypes[0][1] == 3 and stypes[1][1] == 1:
+                        M = matrix(QQ,[(-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3), (2, -2, -2, -2), (-2, 2, 2, 2)])/4
+                    elif stypes[0][1] == 1 and stypes[1][1] == 3:
+                        M = matrix(QQ,[(2, -2, -2, -2), (-2, 2, 2, 2), (-3, -1, -1, -1), (1, 3, -1, -1), (1, -1, 3, -1), (1, -1, -1, 3)])/4
+                    return lambda x : tuple(M*vector(x))
+                else:
+                    raise ValueError, "Rule not found"
             elif Rtype[0] == 'G' and s == r:
                 if all(t[0] == 'A' and t[1] == 1 for t in stypes):
                     return lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2]

@@ -241,6 +241,11 @@ class RootSystem(UniqueRepresentation, Parent):
         if as_dual_of is None:
             self.dual_side = False
             self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
+            # still fails for CartanType G2xA1
+            try:
+                self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
+            except:
+                pass
         else:
             self.dual_side = True
             self.dual = as_dual_of

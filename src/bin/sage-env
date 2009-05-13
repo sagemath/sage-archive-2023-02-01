@@ -122,6 +122,8 @@ GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
+SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
+
 if [ "$SAGE_SERVER" = "" ]; then
     SAGE_SERVER="http://www.sagemath.org/"
     export SAGE_SERVER

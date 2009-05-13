@@ -124,13 +124,13 @@ endif
 ifeq ($(SINGUNAME),ix86-Win)
 SO_SUFFIX = dll
 LIBSINGULAR_FLAGS = -shared
-LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc  -lhtmlhelp
 endif
 
 ifeq ($(SINGUNAME),ix86-SunOS)
 SO_SUFFIX  = so
 LIBSINGULAR_FLAGS = -shared
-LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 endif
 
 

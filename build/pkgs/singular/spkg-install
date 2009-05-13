@@ -158,7 +158,7 @@ build_singular()
 
     cd $SRC
 
-    make install-nolns
+    make slibdir="$SAGE_LOCAL/share/singular" install-nolns
 
     if [ $? -ne 0 ]; then
         echo "Unable to install Singular."
@@ -175,8 +175,8 @@ create_singular_script()
     cd $SAGE_LOCAL/bin
     $RM -f Singular singular
 
-    if [ -f Singular-3-0-3 ]; then
-        $RM -f Singular-3-0-3   # remove previous version of Singular.
+    if [ -f Singular-3-0-4 ]; then
+        $RM -f Singular-3-0-4   # remove previous version of Singular.
     fi
 
     # The singular executable is called somewhat randomly depending

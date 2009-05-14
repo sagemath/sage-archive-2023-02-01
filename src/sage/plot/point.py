@@ -34,6 +34,27 @@ class Point(GraphicPrimitive_xydata):
     Primitive class for the point graphics type.  See point?, point2d?
     or point3d? for information about actually plotting points.
 
+    INPUT:
+
+    - xdata - list of x values for points in Point object
+
+    - ydata - list of y values for points in Point object
+
+    - options - dict of valid plot options to pass to constructor
+
+    EXAMPLES:
+
+    Note this should normally be used indirectly via ``point`` and friends::
+
+        sage: from sage.plot.point import Point
+        sage: P = Point([1,2],[2,3],{'alpha':.5})
+        sage: P
+        Point set defined by 2 point(s)
+        sage: P.options()['alpha']
+        0.500000000000000
+        sage: P.xdata
+        [1, 2]
+
     TESTS:
 
     We test creating a point::

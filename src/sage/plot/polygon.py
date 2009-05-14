@@ -22,6 +22,27 @@ class Polygon(GraphicPrimitive_xydata):
     Primitive class for the Polygon graphics type.  For information
     on actual plotting, please see polygon?, polygon2d?, or polygon3d?
 
+    INPUT:
+
+    - xdata - list of `x`-coordinates of points defining Polygon
+
+    - ydata - list of `y`-coordinates of points defining Polygon
+
+    - options - dict of valid plot options to pass to constructor
+
+    EXAMPLES:
+
+    Note this should normally be used indirectly via ``circle``::
+
+        sage: from sage.plot.polygon import Polygon
+        sage: P = Polygon([1,2,3],[2,3,2],{'alpha':.5})
+        sage: P
+        Polygon defined by 3 points
+        sage: P.options()['alpha']
+        0.500000000000000
+        sage: P.ydata
+        [2, 3, 2]
+
     TESTS:
 
     We test creating polygons::

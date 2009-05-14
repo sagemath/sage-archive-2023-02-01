@@ -23,6 +23,29 @@ class Circle(GraphicPrimitive):
     Primitive class for the Circle graphics type.  See circle? for information
     about actually plotting circles.
 
+    INPUT:
+
+    - x - `x`-coordinate of center of Circle
+
+    - y - `y`-coordinate of center of Circle
+
+    - r - radius of Circle object
+
+    - options - dict of valid plot options to pass to constructor
+
+    EXAMPLES:
+
+    Note this should normally be used indirectly via ``circle``::
+
+        sage: from sage.plot.circle import Circle
+        sage: C = Circle(2,3,5,{'zorder':2})
+        sage: C
+        Circle defined by (2.0,3.0) with r=5.0
+        sage: C.options()['zorder']
+        2
+        sage: C.r
+        5.0
+
     TESTS:
 
     We test creating a circle::

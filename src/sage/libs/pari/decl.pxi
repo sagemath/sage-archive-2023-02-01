@@ -273,7 +273,9 @@ cdef extern from 'pari/pari.h':
     GEN     rowextract_ip(GEN A, GEN p, long x1, long x2)
     GEN     rowextract_p(GEN A, GEN p)
     GEN     sindexrank(GEN x)
-    GEN     sum(GEN v, long a, long b)
+    # we rename sum to pari_sum to avoid conflicts with
+    # python's sum function
+    GEN     pari_sum "sum"(GEN v, long a, long b)
     GEN     suppl(GEN x)
     GEN     vconcat(GEN A, GEN B)
     GEN     vec_ei(long n, long i)

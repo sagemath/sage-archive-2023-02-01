@@ -375,6 +375,12 @@ cdef class MPolynomial(CommutativeRingElement):
             z^5 + x*w*k*z + w^5 + 17*x*w^3 + x^3 + 3*x*w + 5
             sage: f.polynomial(k)
             x*w*z*k + w^5 + z^5 + 17*x*w^3 + x^3 + 3*x*w + 5
+            sage: R.<x,y>=GF(5)[]
+            sage: f=x^2+x+y
+            sage: f.polynomial(x)
+            x^2 + x + y
+            sage: f.polynomial(y)
+            y + x^2 + x
         """
         cdef int ind
         R = self.parent()
@@ -961,5 +967,8 @@ cdef class MPolynomial(CommutativeRingElement):
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]
-    return tuple(w)
+    if len(w) == 1:
+        return w[0]
+    else:
+        return tuple(w)
 

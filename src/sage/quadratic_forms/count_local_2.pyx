@@ -2,13 +2,154 @@
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 
-from sage.rings.arith import valuation
+from sage.rings.arith import valuation, kronecker_symbol, is_prime
 from sage.rings.integer_mod import IntegerMod, Mod
 from sage.rings.integer_mod_ring import IntegerModRing
 
 from sage.rings.integer_ring import ZZ
 
 from sage.rings.integer_mod cimport IntegerMod_gmp
+from sage.sets.set import Set
+
+
+
+
+def extract_sublist_indices(Biglist, Smalllist):
+    """
+    Returns the indices of Biglist which index the entries of
+    Smalllist appearing in Biglist.  (Note that Smalllist may not be a
+    sublist of Biglist.)
+
+    NOTE 1: This is an internal routine which deals with reindexing
+    lists, and is not exported to the QuadraticForm namespace!
+
+    NOTE 2: This should really by applied only when BigList has no
+    repeated entries.
+
+    TO DO: *** Please revisit this routine, and eliminate it! ***
+
+
+
+    INPUT:
+        Biglist, Smalllist -- two lists of a common type, where
+                              Biglist has no repeated entries.
+
+    OUTPUT:
+        a list of integers >= 0
+
+    EXAMPLES:
+        sage: from sage.quadratic_forms.quadratic_form__local_density_congruence import extract_sublist_indices
+
+        sage: biglist = [1,3,5,7,8,2,4]
+        sage: sublist = [5,3,2]
+        sage: sublist == [biglist[i]  for i in extract_sublist_indices(biglist, sublist)]  ## Ok whenever Smalllist is a sublist of Biglist
+        True
+
+        sage: extract_sublist_indices([1,2,3,6,9,11], [1,3,2,9])
+        [0, 2, 1, 4]
+
+        sage: extract_sublist_indices([1,2,3,6,9,11], [1,3,10,2,9,0])
+        [0, 2, 1, 4]
+
+        sage: extract_sublist_indices([1,3,5,3,8], [1,5])
+        Traceback (most recent call last):
+        ...
+        TypeError: Biglist must not have repeated entries!
+    """
+    ## Check that Biglist has no repeated entries
+    Big_set = Set(Biglist)
+    if len(Set(Biglist)) != len(Biglist):
+        raise TypeError, "Biglist must not have repeated entries!"
+
+    ## Extract the indices of Biglist needed to make Sublist
+    index_list = []
+    for x in Smalllist:
+        try:
+            index_list.append(Biglist.index(x))
+        except ValueError:                                   ## This happens when an entry of Smalllist is not contained in Biglist
+            None
+
+    ## Return the list if indices
+    return index_list
+
+
+
+
+def count_modp__by_gauss_sum(n, p, m, Qdet):
+    """
+    Returns the number of solutions of Q(x) = m over the finite field
+    Z/pZ, where p is a prime number > 2 and Q is a non-degenerate
+    quadratic form of dimension n >= 1 and has Gram determinant Qdet.
+
+    REFERENCE:
+               These are defined in Table 1 on p363 of Hanke's "Local
+        Densities..." paper.
+
+    INPUT:
+        n -- an integer >= 1
+        p -- a prime number > 2
+        m -- an integer
+        Qdet -- a integer which is non-zero mod p
+
+    OUTPUT:
+        an integer >= 0
+
+    EXAMPLES:
+        sage: from sage.quadratic_forms.count_local_2 import count_modp__by_gauss_sum
+
+        sage: count_modp__by_gauss_sum(3, 3, 0, 1)    ## for Q = x^2 + y^2 + z^2  => Gram Det = 1 (mod 3)
+        9
+        sage: count_modp__by_gauss_sum(3, 3, 1, 1)    ## for Q = x^2 + y^2 + z^2  => Gram Det = 1 (mod 3)
+        6
+        sage: count_modp__by_gauss_sum(3, 3, 2, 1)    ## for Q = x^2 + y^2 + z^2  => Gram Det = 1 (mod 3)
+        12
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: [Q.count_congruence_solutions(3, 1, m, None, None) == count_modp__by_gauss_sum(3, 3, m, 1)  for m in range(3)]
+        [True, True, True]
+
+
+        sage: count_modp__by_gauss_sum(3, 3, 0, 2)    ## for Q = x^2 + y^2 + 2*z^2  => Gram Det = 2 (mod 3)
+        9
+        sage: count_modp__by_gauss_sum(3, 3, 1, 2)    ## for Q = x^2 + y^2 + 2*z^2  => Gram Det = 2 (mod 3)
+        12
+        sage: count_modp__by_gauss_sum(3, 3, 2, 2)    ## for Q = x^2 + y^2 + 2*z^2  => Gram Det = 2 (mod 3)
+        6
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,2])
+        sage: [Q.count_congruence_solutions(3, 1, m, None, None) == count_modp__by_gauss_sum(3, 3, m, 2)  for m in range(3)]
+        [True, True, True]
+
+
+    """
+    ## Check that Qdet is non-degenerate
+    if Qdet % p == 0:
+        raise RuntimeError, "Qdet must be non-zero."
+
+    ## Check that p is prime > 0
+    if not is_prime(p) or p == 2:
+        raise RuntimeError, "p must be a prime number > 2."
+
+    ## Check that n >= 1
+    if n < 1:
+        raise RuntimeError, "the dimension n must be >= 1."
+
+    ## Compute the Gauss sum
+    neg1 = -1
+    if (m % p == 0):
+        if (n % 2 != 0):
+            count = (p**(n-1))
+        else:
+            count = (p**(n-1)) + (p-1) * (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)
+    else:
+        if (n % 2 != 0):
+            count = (p**(n-1)) + (p**((n-1)/2)) * kronecker_symbol(((neg1**((n-1)/2)) * Qdet * m) % p, p)
+        else:
+            count = (p**(n-1)) - (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)
+
+    ## Return the result
+    return count
+
 
 
 
@@ -16,31 +157,20 @@ from sage.rings.integer_mod cimport IntegerMod_gmp
 
 cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
     """
-    ///////////////////////////////////////////////////////////////////
-    /// Naively counts the number of solutions of Q(x) = m mod p^k   //
-    /// of type solntype, satisfying the mod p congruence conditions //
-    /// at the indices of the vectors "zero" and "nonzero"           //
-    ///////////////////////////////////////////////////////////////////
-
-    valarray <mpz_class> Matrix_mpz::CountAllLocalTypesNaive(const mpz_class & p, unsigned long k, const mpz_class & m,
-                                             const valarray<size_t> & zero, const valarray<size_t> & nonzero) const
+    This cython routine is documented in its Python wrapper method
+    QuadraticForm.count_congruence_solutions_by_type().
     """
-
-    ## DIAGNOSTIC
-    #print "   --> CountAllLocalTypesNaive is using the form Q \n" + str(Q)
-    #print "       p = " + str(p) + "  and   m = " + str(m)
-
-    #cdef mpz_t* v
     cdef long n, i
     cdef long a, b    ## Used to quickly evaluate Q(v)
     cdef long ptr     ## Used to increment the vector
     cdef long solntype    ## Used to store the kind of solution we find
 
 
-
-
+    ## Some shortcuts and definitions
     n = Q.dim()
     R = p ** k
+    Q1 = Q.base_change_to(IntegerModRing(R))
+
 
     ## Cython Variables
     cdef IntegerMod_gmp zero, one
@@ -48,24 +178,12 @@ cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
     one = IntegerMod_gmp(IntegerModRing(R), 1)
 
 
-    Q1 = Q.base_change_to(IntegerModRing(R))
-
-
-
-    ###########################################
-    #v = <mpz_t*> sage_malloc(sizeof(mpz_t)*n)
-    #for i from 0 <= i < n:
-    #    mpz_init(v[i])
-    ###########################################
 
     ## Initialize the counting vector
     count_vector = [0  for i in range(6)]
 
     ## Initialize v = (0, ... , 0)
     v = [Mod(0, R)  for i in range(n)]
-    #v = []
-    #for i in 1 <= i < n:
-    #    v.append(zero)
 
 
     ## Some declarations to speed up the loop
@@ -100,39 +218,44 @@ cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
                 count_vector[solntype] += 1
 
 
-
     ## Generate the Bad-type and Total counts
     count_vector[3] = count_vector[4] + count_vector[5]
     count_vector[0] = count_vector[1] + count_vector[2] + count_vector[3]
 
-
-    ## DIAGNOSTIC
-    #cout << "R = " << R << "\n";
-    #cout << "n = " << n << "\n";
-    #cout << "R_n = " << R_n << "\n";
-    #
-    #for(i=1; i<=25; i++) {
-    #    cout << "v = " << v << "\n";
-    #    Increment(v,R);
-    #}
-    #
-    #cout << "Q1 = " << Q1 << "\n";
-    #cout << "v = " << v << "\n";
-    #cout << "Q1 * v = " << Q1 * v<< "\n";
-
-    ###########################
-    #for i from 0 <= i < n:
-    #    mpz_clear(v[i])
-    #sage_free(v)
-    ###########################
-
+    ## Return the solution counts
     return count_vector
+
 
 
 
 def CountAllLocalTypesNaive(Q, p, k, m, zvec, nzvec):
     """
-    Python wrapper function for this (now) cython function.
+    This is an internal routine, which is called by
+    QuadraticForm.count_congruence_solutions_by_type().  See that
+    documentation for more details.
+
+    INPUT:
+        Q -- quadratic form over ZZ
+        p -- prime number > 0
+        k -- an integer > 0
+        m -- an integer (depending only on mod p^k)
+        zvec, nzvec -- a list of integers in range(Q.dim()), or None
+
+    OUTPUT:
+        a list of six integers >= 0 representing the solution types:
+            [All, Good, Zero, Bad, BadI, BadII]
+
+
+    EXAMPLES:
+        sage: from sage.quadratic_forms.count_local_2 import CountAllLocalTypesNaive
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3])
+        sage: CountAllLocalTypesNaive(Q, 3, 1, 1, None, None)
+        [6, 6, 0, 0, 0, 0]
+        sage: CountAllLocalTypesNaive(Q, 3, 1, 2, None, None)
+        [6, 6, 0, 0, 0, 0]
+        sage: CountAllLocalTypesNaive(Q, 3, 1, 0, None, None)
+        [15, 12, 1, 2, 0, 2]
+
     """
     return CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec)
 
@@ -144,39 +267,30 @@ def CountAllLocalTypesNaive(Q, p, k, m, zvec, nzvec):
 
 cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
     """
-    ////////////////////////////////////////////////////////////////////////////////////
-    /// Private routine to check if a given solution vector w (of Q(w) = m mod p^k)   //
-    /// is of a certain local type and satisfies certain congruence conditions mod p. //
-    ///   (Personal Note: For p=2, we should still use p=2 and not p=8.)              //
-    ////////////////////////////////////////////////////////////////////////////////////
+    Internal routine to check if a given solution vector w (of Q(w) =
+    m mod p^k) is of a certain local type and satisfies certain
+    congruence conditions mod p.
 
-    size_t Matrix_mpz::local_solution_type(const mpz_class & p, const valarray<mpz_class> & w,
-               const valarray<size_t> & zero, const valarray<size_t> & nonzero) const
+    NOTE: No internal checking is done to test if p is a prime >=2, or
+    that Q has the same size as w.
 
     """
-
-    ## Note: Here p is assumed to be a prime >= 2, though the routine still works if not...
-
-    ## ToDo?: Add a check that Q is square and has the same size as w.
-
     cdef long i
     cdef long n
 
     n = Q.dim()
 
-    zero_flag = False        ## Tests the zero mod p congruence conditions
-    nonzero_flag = False     ## Tests the nonzero congruence conditions
-
 
     ## Check if the solution satisfies the zvec "zero" congruence conditions
     ## (either zvec is empty or its components index the zero vector mod p)
-    if (len(zvec) == 0):
+    if (zvec == None) or (len(zvec) == 0):
         zero_flag = True
     else:
+        zero_flag = False
         i = 0
-        while ( (i < len(zvec)) and ((w[zvec[i]] % p) == 0) ):
+        while ( (i < len(zvec)) and ((w[zvec[i]] % p) == 0) ):  ## Increment so long as our entry is zero (mod p)
             i += 1
-        if (i == len(zvec)):
+        if (i == len(zvec)):      ## If we make it through all entries then the solution is zero (mod p)
             zero_flag = True
 
 
@@ -184,29 +298,32 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
     #print "IsLocalSolutionType: Finished the Zero congruence condition test \n"
 
     if (zero_flag == False):
-        return 0
+        return <long> 0
 
     ## DIAGNOSTIC
     #print "IsLocalSolutionType: Passed the Zero congruence condition test \n"
 
 
     ## Check if the solution satisfies the nzvec "nonzero" congruence conditions
-    ## (either nzvec is empty or its components index a non-zero vector mod p)
-    if (len(nzvec) == 0):
+    ## (nzvec is non-empty and its components index a non-zero vector mod p)
+    if (nzvec == None):
         nonzero_flag = True
+    elif (len(nzvec) == 0):
+        nonzero_flag = False           ## Trivially no solutions in this case!
     else:
+        nonzero_flag = False
         i = 0
         while ((nonzero_flag == False) and (i < len(nzvec))):
             if ((w[nzvec[i]] % p) != 0):
-                nonzero_flag = True
+                nonzero_flag = True           ## The non-zero condition is satisfied when we find one non-zero entry
             i += 1
 
     if (nonzero_flag == False):
         return <long> 0
 
 
-    ## Check if the solution has the appropriate (local) type
-
+    ## Check if the solution has the appropriate (local) type:
+    ## -------------------------------------------------------
 
     ## 1: Check Good-type
     for i from 0 <= i < n:
@@ -252,8 +369,6 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
         #print " Bad I Soln :  " + str(w)
         return <long> 4
 
-
-    ##    cout << " Bad II Soln :  " << w << "  wS1_nonzero_flag = " << wS1_nonzero_flag << endl;
 
     ## 5: Check Bad-type II
     if (wS1_nonzero_flag == False):

@@ -8,70 +8,23 @@ from sage.rings.arith import valuation
 from sage.rings.rational_field import QQ, RationalField
 
 
-#  ////////////////////////////////
-#  // Private Front-end Routines //
-#/////////////////////////////////////////////////////////////////////////////////////////////
 
-def local_good_density(self, p, m):
-    """
-    Finds the Good-type local density of Q representing m at p.
-    (Front end routine for its congruence counterpart.)
-    """
-    #print "Doing Good Density with p = " + str(p) +  " and m = " + str(m)
-    return self.local_good_density_congruence(p, m, [], [])
-
-
-def local_zero_density(self, p, m):
-    """
-    Finds the Zero-type local density of Q representing m at p.
-    (Front end routine for its congruence counterpart.)
-    """
-    #print "Doing Good Density with p = " + str(p) +  " and m = " + str(m)
-    return self.local_zero_density_congruence(p, m, [], [])
-
-
-def local_bad_density(self, p, m):
-    """
-    Finds the Bad-type local density of Q representing m at p.
-    (Front end routine for its congruence counterpart.)
-    """
-    #print "Doing Bad Density with p = " + str(p) +  " and m = " + str(m)
-    return self.local_bad_density_congruence(p, m, [], [])
-
-
-def local_badI_density(self, p, m):
-    """
-    Finds the Bad-type I local density of Q representing m at p.
-    (Front end routine for its congruence counterpart.)
-    """
-    #print "Doing Bad I Density with p = " + str(p) +  " and m = " + str(m)
-    return self.local_badI_density_congruence(p, m, [], [])
-
-
-def local_badII_density(self, p, m):
-    """
-    Finds the Bad-type II local density of Q representing m at p.
-    (Front end routine for its congruence counterpart.)
-    """
-    #print "Doing Bad II Density with p = " + str(p) +  " and m = " + str(m)
-    return self.local_badII_density_congruence(p, m, [], [])
-
-
-## ---------------  These are the important ones, which we'll filter for primitive forms!!!  ------------------
-
-
-### TODO:  THESE TWO ROUTINES HAVE **A LOT** OF CODE IN COMMON, BUT NEITHER PUTS THE FORM IN LOCAL NORMAL FORM FIRST!
 
 
 def local_density(self, p, m):
     """
     Gives the local density -- should be called by the user. =)
 
-    NOTE: This screens for imprimitive forms, but *doesn't* put the
-    quadratic form in local normal form, which is a *requirement* of
-    the routines performing the computations!
+    NOTE: This screens for imprimitive forms, and puts the quadratic
+    form in local normal form, which is a *requirement* of the
+    routines performing the computations!
 
-    mpq_class Matrix_mpz::local_density(const mpz_class & p, const mpz_class & m) const {
+    INPUT:
+        p -- a prime number > 0
+        m -- an integer
+
+    OUTPUT:
+        a rational number
 
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])   ## NOTE: This is already in local normal form for *all* primes p!
@@ -91,60 +44,26 @@ def local_density(self, p, m):
     if (n == 0):
         raise TypeError, "Oops!  We currently don't handle 0-dim'l forms. =("
 
-
-    ## Set the modulus to check for imprimitive forms at p
-    no_val_flag = True
-
-    ## Check for imprimitive forms at p -- ASSUMES THE FORM IS UPPER TRIANGULAR!
-    ## (NOTE: We could do better if we know it's normalized!)
-    for i in range(n):
-        for j in range(i, n):
-            if (self[i,j] != 0):
-                if (no_val_flag == True):
-                    no_val_flag = False
-                    p_valuation = valuation(self[i,j], p)
-                else:
-                    p_valuation = min(p_valuation, valuation(self[i,j], p))
-
-
-    ## DIAGNOSTIC
-    #cout << " Using the matrix: \n " << (*this) << endl;
-    #cout << "Valuation(m,p) = " << Valuation(m,p) << endl;
-    #cout << "p_valuation = " << p_valuation << endl;
-
+    ## Find the local normal form and p-scale of Q     --  Note: This uses the valuation ordering of local_normal_form.
+    ##                                                     TO DO:  Write a separate p-scale and p-norm routines!
+    Q_local = self.local_normal_form(p)
+    if n == 1:
+        p_valuation = valuation(Q_local[0,0], p)
+    else:
+        p_valuation = min(valuation(Q_local[0,0], p), valuation(Q_local[0,1], p))
 
     ## If m is less p-divisible than the matrix, return zero
     if ((m != 0) and (valuation(m,p) < p_valuation)):   ## Note: The (m != 0) condition protects taking the valuation of zero.
         return QQ(0)
 
-    ## If the form is imprimitive, divide it (and m) by p-powers to get a primitive form
-    else:
-        if (p_valuation > 0):
 
-            ## Make a new (primitive) matrix
-            Q1 = deepcopy(self)
-            #Q1 = QuadraticForm(self.base_ring(), self.dim())
+    ## If the form is imprimitive, rescale it and call the local density routine
+    p_adjustment = QQ(1) / p**p_valuation
+    m_prim = QQ(m) / p**p_valuation
+    Q_prim = Q_local.scale_by_factor(p_adjustment)
 
-            ## DIAGNOSTIC
-            #print " p = " << p
-            #print " p_valuation = " << p_valuation
-            #print " p_mod = " << (p ** p_valuation)
-
-            p_mod = p ** p_valuation      ## This should give a power...
-            for i in range(n):
-                for j in range(i, n):
-                    Q1[i,j] = self[i,j] / p_mod
-
-            ## Make a new number mm
-            mm = m / p_mod
-
-            ## Then return the densities for the reduced problem
-            return Q1.local_good_density(p, mm) + Q1.local_zero_density(p, mm) + Q1.local_bad_density(p, mm)
-
-
-        ## Otherwise, proceed as usual... =)
-        else:
-            return self.local_good_density(p, m) + self.local_zero_density(p, m) + self.local_bad_density(p, m)
+    ## Return the densities for the reduced problem
+    return Q_prim.local_density_congruence(p, m_prim)
 
 
 
@@ -153,69 +72,72 @@ def local_primitive_density(self, p, m):
     """
     Gives the local primitive density -- should be called by the user. =)
 
-    NOTE: This screens for imprimitive forms, but *doesn't* put the
+    NOTE: This screens for imprimitive forms, and puts the
     quadratic form in local normal form, which is a *requirement* of
     the routines performing the computations!
 
-    mpq_class Matrix_mpz::local_density(const mpz_class & p, const mpz_class & m) const {
-    """
+    INPUT:
+        p -- a prime number > 0
+        m -- an integer
 
+    OUTPUT:
+        a rational number
+
+    EXAMPLES:
+        sage: Q = QuadraticForm(ZZ, 4, range(10))
+        sage: Q[0,0] = 5
+        sage: Q[1,1] = 10
+        sage: Q[2,2] = 15
+        sage: Q[3,3] = 20
+        sage: Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 5 1 2 3 ]
+        [ * 10 5 6 ]
+        [ * * 15 8 ]
+        [ * * * 20 ]
+        sage: Q.theta_series(20)
+        1 + 2*q^5 + 2*q^10 + 2*q^14 + 2*q^15 + 2*q^16 + 2*q^18 + O(q^20)
+        sage: Q.local_normal_form(2)
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 0 1 0 0 ]
+        [ * 0 0 0 ]
+        [ * * 0 1 ]
+        [ * * * 0 ]
+
+        sage: Q.local_primitive_density(2, 1)
+        3/4
+        sage: Q.local_primitive_density(5, 1)
+        24/25
+
+        sage: Q.local_primitive_density(2, 5)
+        3/4
+        sage: Q.local_density(2, 5)
+        3/4
+
+    """
     n = self.dim()
     if (n == 0):
         raise TypeError, "Oops!  We currently don't handle 0-dim'l forms. =("
 
-
-    ## Set the modulus to check for imprimitive forms at p
-    no_val_flag = True
-
-    ## Check for imprimitive forms at p -- ASSUMES THE FORM IS UPPER TRIANGULAR!
-    ## (NOTE: We could do better if we know it's normalized!)
-    for i in range(n):
-        for j in range(i, n):
-            if (self[i,j] != 0):
-                if (no_val_flag == True):
-                    no_val_flag = False
-                    p_valuation = valuation(self[i,j], p)
-                else:
-                    p_valuation = min(p_valuation, valuation(self[i,j], p))
-
-
-    ## DIAGNOSTIC
-    #cout << " Using the matrix: \n " << (*this) << endl;
-    #cout << "Valuation(m,p) = " << Valuation(m,p) << endl;
-    #cout << "p_valuation = " << p_valuation << endl;
+    ## Find the local normal form and p-scale of Q     --  Note: This uses the valuation ordering of local_normal_form.
+    ##                                                     TO DO:  Write a separate p-scale and p-norm routines!
+    Q_local = self.local_normal_form(p)
+    if n == 1:
+        p_valuation = valuation(Q_local[0,0], p)
+    else:
+        p_valuation = min(valuation(Q_local[0,0], p), valuation(Q_local[0,1], p))
 
 
     ## If m is less p-divisible than the matrix, return zero
     if ((m != 0) and (valuation(m,p) < p_valuation)):   ## Note: The (m != 0) condition protects taking the valuation of zero.
         return QQ(0)
 
-    ## If the form is imprimitive, divide it (and m) by p-powers to get a primitive form
-    else:
-        if (p_valuation > 0):
 
-            ## Make a new (primitive) matrix
-            Q1 = deepcopy(self)
-            #Q1 = QuadraticForm(self.base_ring(), self.dim())
+    ## If the form is imprimitive, rescale it and call the local density routine
+    p_adjustment = QQ(1) / p**p_valuation
+    m_prim = QQ(m) / p**p_valuation
+    Q_prim = Q_local.scale_by_factor(p_adjustment)
 
-            ## DIAGNOSTIC
-            #print " p = " << p
-            #print " p_valuation = " << p_valuation
-            #print " p_mod = " << (p ** p_valuation)
-
-            p_mod = p ** p_valuation      ## This should give a power...
-            for i in range(n):
-                for j in range(i, n):
-                    Q1[i,j] = self[i,j] / p_mod
-
-            ## Make a new number mm
-            mm = m / p_mod
-
-            ## Then return the densities for the reduced problem
-            return Q1.local_good_density(p, mm) + Q1.local_bad_density(p, mm)
-
-
-        ## Otherwise, proceed as usual... =)
-        else:
-            return self.local_good_density(p, m) + self.local_bad_density(p, m)
+    ## Return the densities for the reduced problem
+    return Q_prim.local_primitive_density_congruence(p, m_prim)
 

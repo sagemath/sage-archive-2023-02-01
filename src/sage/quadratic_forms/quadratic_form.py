@@ -89,26 +89,46 @@ class QuadraticForm():
     ## Import specialized methods:
     ## ---------------------------
 
-    from sage.quadratic_forms.quadratic_form__local_normal_form \
-    import find_entry_with_minimal_scale_at_prime, local_normal_form, jordan_blocks_by_scale_and_unimodular, \
-        jordan_blocks_in_unimodular_list_by_scale_power              ## Routines to compute the p-adic local normal form.
+    ## Routines to compute the p-adic local normal form
+    from sage.quadratic_forms.quadratic_form__local_normal_form import \
+            find_entry_with_minimal_scale_at_prime, \
+            local_normal_form, \
+            jordan_blocks_by_scale_and_unimodular, \
+            jordan_blocks_in_unimodular_list_by_scale_power
 
-    from sage.quadratic_forms.quadratic_form__variable_substitutions \
-    import swap_variables, multiply_variable, divide_variable, scale_by_factor, \
-        extract_variables, elementary_substitution, add_symmetric    ## Routines to perform elementary variable substitutions.
+    ## Routines to perform elementary variable substitutions
+    from sage.quadratic_forms.quadratic_form__variable_substitutions import \
+            swap_variables, \
+            multiply_variable, \
+            divide_variable, \
+            scale_by_factor, \
+            extract_variables, \
+            elementary_substitution, \
+            add_symmetric
 
-    from sage.quadratic_forms.quadratic_form__local_field_invariants \
-    import rational_diagonal_form, signature_vector, signature, local_diagonal, hasse_invariant, hasse_invariant__OMeara, \
-        is_hyperbolic, is_anisotropic, is_isotropic, anisotropic_primes, compute_definiteness, \
-        is_positive_definite, is_negative_definite, is_indefinite, is_definite    ## Routines to compute p-adic field invariants
+    ## Routines to compute p-adic field invariants
+    from sage.quadratic_forms.quadratic_form__local_field_invariants import \
+            rational_diagonal_form, \
+            signature_vector, \
+            signature, \
+            local_diagonal, \
+            hasse_invariant, \
+            hasse_invariant__OMeara, \
+            is_hyperbolic, \
+            is_anisotropic, \
+            is_isotropic, \
+            anisotropic_primes, \
+            compute_definiteness, \
+            is_positive_definite, \
+            is_negative_definite, \
+            is_indefinite, \
+            is_definite
 
     ## Routines to compute local densities by the reduction procedure
     from sage.quadratic_forms.quadratic_form__local_density_congruence import \
-            reindex_vector_from_extraction, \
-            count_modp__by_gauss_sum, \
+            count_modp_solutions__by_Gauss_sum, \
             local_good_density_congruence_odd, \
             local_good_density_congruence_even, \
-            local_good_density_congruence_even__experimental, \
             local_good_density_congruence, \
             local_zero_density_congruence, \
             local_badI_density_congruence, \
@@ -119,23 +139,16 @@ class QuadraticForm():
 
     ## Routines to compute local densities by counting solutions of various types
     from sage.quadratic_forms.quadratic_form__count_local_2 import \
-            VecIncrement__deprecated, \
-            local_solution_type__deprecated, \
-            CountAllLocalTypesNaive__deprecated, \
-            count_local_type, \
-            count_local_good_type, \
-            count_local_zero_type, \
-            count_local_bad_type, \
-            count_local_bad_typeI, \
-            count_local_bad_typeII
+            count_congruence_solutions_as_vector, \
+            count_congruence_solutions, \
+            count_congruence_solutions__good_type, \
+            count_congruence_solutions__zero_type, \
+            count_congruence_solutions__bad_type, \
+            count_congruence_solutions__bad_type_I, \
+            count_congruence_solutions__bad_type_II
 
     ## Routines to be called by the user to compute local densities
     from sage.quadratic_forms.quadratic_form__local_density_interfaces import \
-            local_good_density, \
-            local_zero_density, \
-            local_bad_density, \
-            local_badI_density, \
-            local_badII_density, \
             local_density, \
             local_primitive_density
 
@@ -165,18 +178,22 @@ class QuadraticForm():
             is_zero_nonsingular, \
             is_zero_singular
 
-    from sage.quadratic_forms.quadratic_form__theta \
-    import theta_series, theta_by_pari, theta_by_cholesky         ## Routines to compute the theta function
+    ## Routines to compute the theta function
+    from sage.quadratic_forms.quadratic_form__theta import \
+            theta_series, \
+            theta_by_pari, \
+            theta_by_cholesky
 
     ## Routines to compute the product of all local densities
     from sage.quadratic_forms.quadratic_form__siegel_product import \
             siegel_product
 
+    ## Routines to compute p-neighbors
     from sage.quadratic_forms.quadratic_form__neighbors import \
-    find_primitive_p_divisible_vector__random, \
-    find_primitive_p_divisible_vector__all, \
-    find_primitive_p_divisible_vector__next, \
-    find_p_neighbor_from_vec                       ## Routines to compute p-neighbors
+            find_primitive_p_divisible_vector__random, \
+            find_primitive_p_divisible_vector__all, \
+            find_primitive_p_divisible_vector__next, \
+            find_p_neighbor_from_vec
 
     ## Routines to reduce a given quadratic form
     from sage.quadratic_forms.quadratic_form__reduction_theory import \
@@ -186,8 +203,12 @@ class QuadraticForm():
             minkowski_reduction, \
             minkowski_reduction_for_4vars__SP
 
-    from sage.quadratic_forms.quadratic_form__genus \
-    import global_genus_symbol, local_genus_symbol, CS_genus_symbol_list   ## Wrappers for Conway-Sloane genus routines (in ./genera/)
+    ## Wrappers for Conway-Sloane genus routines (in ./genera/)
+    from sage.quadratic_forms.quadratic_form__genus import \
+            global_genus_symbol, \
+            local_genus_symbol, \
+            CS_genus_symbol_list
+
 
     ## Routines to compute local masses for ZZ.
     from sage.quadratic_forms.quadratic_form__mass import \
@@ -226,9 +247,12 @@ class QuadraticForm():
             is_locally_represented_number_at_place, \
             is_locally_represented_number
 
+    ## Routines to make a split local covering of the given quadratic form.
     from sage.quadratic_forms.quadratic_form__split_local_covering import \
-    cholesky_decomposition, vectors_by_length, \
-    complementary_subform_to_vector, split_local_cover     ## Routines to make a split local covering of the given quadratic form.
+            cholesky_decomposition, \
+            vectors_by_length, \
+            complementary_subform_to_vector, \
+            split_local_cover
 
     ## Routines to make automorphisms of the given quadratic form.
     from sage.quadratic_forms.quadratic_form__automorphisms import \

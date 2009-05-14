@@ -4,8 +4,14 @@
 ## Singular
 ###########################################
 
-DEBUG=0
+SAGE_DEBUG=0
 SRC=`pwd`/src
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 # we set LD=ld which is troublesome on OSX. Singular figures out LD by
 # itself pretty well so we unset it here.
@@ -31,7 +37,7 @@ if [ "$UNAME" = "Darwin" ]; then
      export MACOSX_DEPLOYMENT_TARGET
 fi
 
-if [ "$DEBUG" = "1" ]; then
+if [ "$SAGE_DEBUG" = "1" ]; then
   ENABLE_DEBUG="--enable-debug"
   CXXFLAGS="$CXXFLAGS -O0 -g"
   CFLAGS="$CFLAGS -O0 -g"
@@ -81,6 +87,7 @@ patch()
     cp patches/mminit.cc src/kernel/
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
+    cp patches/kernel.rintegers.cc src/kernel/rintegers.cc
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
 }

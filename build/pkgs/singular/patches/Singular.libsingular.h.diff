@@ -1,12 +1,15 @@
 --- ../src/Singular/libsingular.h	2007-10-11 10:46:38.000000000 +0100
-+++ Singular.libsingular.h	2009-05-13 22:10:16.000000000 +0100
-@@ -16,6 +16,9 @@
++++ Singular.libsingular.h	2009-05-14 05:20:47.000000000 +0100
+@@ -16,6 +16,12 @@
  #include "singular/kstd1.h"
  #include "singular/tgb.h"
  #include "singular/sparsmat.h"
 +#include "singular/rintegers.h"
 +#include "singular/rmodulo2m.h"
 +#include "singular/rmodulon.h"
++
++// temporary workaround
++number nrnMapGMP(number from);
  
  int siInit(char *);
  

@@ -24,6 +24,30 @@ class Disk(GraphicPrimitive):
     about actually plotting a disk (the Sage term for a sector or wedge
     of a circle).
 
+    INPUT:
+
+    - point - coordinates of center of Disk
+
+    - r - radius of Disk object
+
+    - angle - beginning and ending angles of Disk object (i.e.
+      angle extent of sector/wedge)
+
+    - options - dict of valid plot options to pass to constructor
+
+    EXAMPLES:
+
+    Note this should normally be used indirectly via ``disk``::
+
+        sage: from sage.plot.disk import Disk
+        sage: D = Disk((1,2), 2, (pi/2,pi), {'zorder':3})
+        sage: D
+        Disk defined by (1.0,2.0) with r=2.0 spanning (1.57079632679, 3.14159265359) radians
+        sage: D.options()['zorder']
+        3
+        sage: D.x
+        1.0
+
     TESTS:
 
     We test creating a disk::

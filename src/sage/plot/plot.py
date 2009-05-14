@@ -11,7 +11,7 @@ The following graphics primitives are supported:
 
 -  circle - a circle with given radius
 
--  disk - a filled disk
+-  disk - a filled disk (i.e. a sector or wedge of a circle)
 
 -  line - a line determined by a sequence of points (this need not
    be straight!)

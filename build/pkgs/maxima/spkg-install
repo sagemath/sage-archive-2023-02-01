@@ -21,13 +21,8 @@ check_error() {
     fi
 }
 
-if [ `uname` = "Darwin" ]; then
-    ./configure --prefix=$SAGE_LOCAL --with-clisp=clisp.bin 1>"$CUR"/output.log 2>"$CUR"/error.log
-    echo "Ignoring errors during configure on Darwin"
-else
-    ./configure --prefix=$SAGE_LOCAL --with-clisp=clisp.bin
-    check_error "Failed to configure Maxima."
-fi
+./configure --prefix=$SAGE_LOCAL --enable-ecl
+check_error "Failed to configure Maxima."
 
 if [ `uname` = "Darwin" ]; then
    echo "Now building maxima; this takes a few minutes"

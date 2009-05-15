@@ -2,6 +2,9 @@
 
 == Releases ==
 
+=== maxima-5.16.3.p2 (Michael Abshoff, May 15th, 2009) ===
+ * Switch lisp used to ecl
+
 === maxima-5.16.3.p1 (Michael Abshoff, April 19th, 2009) ===
  * address review comment by Gonzalo
 

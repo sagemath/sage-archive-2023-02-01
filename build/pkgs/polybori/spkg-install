@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-###########################################
-## PolyBoRi
-###########################################
 
-BOOSTDIR=boost_1_34_1.cropped
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 PBDIR=polybori-0.5rc
 WORKDIR=${PWD}/src
 SCONS=scons
+BOOSTINCDIR="$SAGE_LOCAL"/include; export BOOSTINCDIR
 
 patch()
 {
@@ -24,20 +27,11 @@ patch()
     cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
 }
 
-install_boost()
-{
-    cp -r ${BOOSTDIR}/boost ${SAGE_LOCAL}/include/
-}
-
-clean_boost()
-{
-    rm -rf ${SAGE_LOCAL}/include/boost
-}
 
 build_polybori()
 {
     cd ${PBDIR}
-    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} prepare-devel ${MAKEOPTS}
+    ${SCONS} prepare-devel ${MAKEOPTS}
     if [ $? -ne 0 ]; then
         echo "Error building PolyBoRi."
         exit 1
@@ -48,7 +42,7 @@ build_polybori()
 install_polybori()
 {
     cd ${PBDIR}
-    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
+    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1
@@ -91,14 +85,6 @@ echo "Starting build..."
 echo "Removing old PolyBoRi install..."
 clean_polybori
 echo "Done removing old PolyBoRi install."
-
-echo "Removing old boost..."
-clean_boost
-echo "Done removing old boost."
-
-echo "Installing boost..."
-install_boost
-echo "Done installing boost."
 
 echo "Running build_polybori..."
 build_polybori

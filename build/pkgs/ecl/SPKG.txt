@@ -1,0 +1,59 @@
+= ECL  =
+
+== Description ==
+
+ECL is an implementation of the Common Lisp language as defined by the ANSI X3J13 specification. The most relevant features:
+
+ * A bytecodes compiler and interpreter.
+ * Compiles Lisp also with any C/C++ compiler.
+ * It can build standalone executables and libraries.
+ * ASDF, Sockets, Gray streams, MOP, and other useful components.
+ * Extremely portable.
+ * A reasonable license.
+
+ECL supports the operating systems Linux, FreeBSD, NetBSD, OpenBSD, Solaris and Windows, running on top of the Intel, Sparc, Alpha and PowerPC processors. Porting to other architectures should be rather easy.
+
+Website: http://ecls.sourceforge.net/
+
+== License ==
+
+ * LGPL V2+ or compatible - for details see http://ecls.sourceforge.net/license.html
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+ * the ECL mailing list - see http://ecls.sourceforge.net/resources.html
+
+== Dependencies ==
+
+ * gmp
+ * boehm_gc
+
+== Special Update/Build Instructions ==
+
+ * To build dpp with system boehm_gc and gmp we need to copy some headers due to a but in ecl:
+{{{
+cp "$SAGE_LOCAL"/include/gmp.h src/c
+cp "$SAGE_LOCAL"/include/gc.h src/c
+cp -r "$SAGE_LOCAL"/include/gc src/c
+}}}
+ * Delete the gmp directory in src. Delete the folloeing line from src/configure.in:
+{{{
+AC_CONFIG_AUX_DIR([${srcdir}/gmp])
+}}}
+ * Rerun autoconf
+ * Move gc/mkinstalldirs to mkinstalldirs and delte the gc directory.
+ * In Makefile.in change
+{{{
+-mkinstalldirs = $(SHELL) $(top_srcdir)/gc/mkinstalldirs
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+}}}
+
+== Changelog ==
+
+=== ecl-9.4.1 (Michael Abshoff, May 15th, 2009) ===
+ * Initial version.
+

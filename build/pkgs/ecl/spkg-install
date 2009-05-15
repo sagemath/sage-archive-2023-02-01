@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+CPPFLAGS="-I$SAGE_LOCAL/include"; export CPPFLAGS
+LDFLAGS="-L$SAGE_LOCAL/lib"; export LDFLAGS
+
+if [ "$SAGE64" = "yes" ]; then
+   CFLAGS="-g -O2 -fPIC -m64"; export CFLAGS
+   LDFLAGS="-m64 -L$SAGE_LOCAL/lib"; export LDFLAGS
+fi
+
+cd src
+
+# copy some headers temporarily to work around some problem
+cp "$SAGE_LOCAL"/include/gmp.h src/c
+cp "$SAGE_LOCAL"/include/gc.h src/c
+cp -r "$SAGE_LOCAL"/include/gc src/c
+
+./configure --prefix=$SAGE_LOCAL --with-system-gmp --enable-boehm=system
+if [ $? -ne 0 ]; then
+   echo "Failed to configure ECL ... exiting"
+   exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+   echo "Failed to build ECL ... exiting"
+   exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+   echo "Failed to install ECL ... exiting"
+   exit 1
+fi
+

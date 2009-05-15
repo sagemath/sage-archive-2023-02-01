@@ -169,6 +169,8 @@ easily repeat a sage-build command."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
+  (compilation-forget-errors)
+  (setq compilation-messages-start nil)
   (compilation-start command-args 'sage-build-mode))
 
 (provide 'sage-build)

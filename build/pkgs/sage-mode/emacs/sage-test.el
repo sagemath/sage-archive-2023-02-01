@@ -91,11 +91,14 @@ easily repeat a sage-test command."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
+  (compilation-forget-errors)
+  (setq compilation-messages-start nil)
   (compilation-start command-args 'sage-test-mode))
 
 ;;;_* "Interactive" doctesting
 
 (defun sage-test-remove-prompts-in-current-buffer ()
+  "Modify doctest in buffer to not have any leading sage: and ... prompts."
   ;; (interactive) ;; XXX
 
   (let ((prompt-length nil))
@@ -126,11 +129,16 @@ easily repeat a sage-test command."
 ))
 
 (defun sage-test-remove-prompts (doctest)
-  "Given a doctest snippet, remove any leading sage: and ... prompts."
-  (with-temp-buffer
-    (insert doctest)
-    (sage-test-remove-prompts-in-current-buffer)
-    (buffer-substring-no-properties (point-min) (point-max))))
+  "Given a doctest snippet, return a string with any leading sage: and ... prompts removed."
+  (let ((width tab-width))
+    (with-temp-buffer
+      (insert doctest)
+      ;; clear tabs as best as possible
+      (setq tab-width width)
+      (untabify (point-min) (point-max))
+      ;; remove prompts
+      (sage-test-remove-prompts-in-current-buffer)
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun sage-test-doctest-at-point ()
   "Return the doctest at point.

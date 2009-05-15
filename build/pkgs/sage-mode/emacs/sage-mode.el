@@ -56,6 +56,7 @@
 
 ;;; Code:
 
+(require 'cl)
 (require 'python)
 (require 'comint)
 (require 'ansi-color)

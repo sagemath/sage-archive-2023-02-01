@@ -6,11 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-#Patch
-cp patches/makefile src/
-cp patches/de.c src/
-cp patches/macro.h src/
-
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
     CFLAGS="-01 -m64 -fPIC -g -DFAST -DALLTRUE" && export CFLAGS
 else
@@ -18,7 +13,7 @@ else
 fi
 
 cd src
-make -f makefile
+$MAKE -f makefile
 
 if [ $? -ne 0 ]; then
     echo "Error building symmetrica."

@@ -1,0 +1,66 @@
+diff -urN boost.orig/mpl/apply.hpp boost/mpl/apply.hpp
+--- boost.orig/mpl/apply.hpp	2009-05-15 06:16:34.000000000 -0700
++++ boost/mpl/apply.hpp	2009-05-15 06:17:16.000000000 -0700
+@@ -135,7 +135,7 @@
+ 
+ ///// iteration, depth == 1
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 1
++#elif BOOST_PP_ITERATION_DEPTH == 1
+ 
+ #   define i_ BOOST_PP_FRAME_ITERATION(1)
+ 
+diff -urN boost.orig/mpl/apply_wrap.hpp boost/mpl/apply_wrap.hpp
+--- boost.orig/mpl/apply_wrap.hpp	2009-05-15 06:16:34.000000000 -0700
++++ boost/mpl/apply_wrap.hpp	2009-05-15 06:18:18.000000000 -0700
+@@ -78,7 +78,7 @@
+ 
+ ///// iteration, depth == 1
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 1
++#elif BOOST_PP_ITERATION_DEPTH == 1
+ 
+ #   define i_ BOOST_PP_FRAME_ITERATION(1)
+ 
+@@ -170,7 +170,7 @@
+ 
+ ///// iteration, depth == 2
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 2
++#elif BOOST_PP_ITERATION_DEPTH == 2
+ 
+ #   define j_ BOOST_PP_FRAME_ITERATION(2)
+ 
+diff -urN boost.orig/mpl/aux_/full_lambda.hpp boost/mpl/aux_/full_lambda.hpp
+--- boost.orig/mpl/aux_/full_lambda.hpp	2009-05-15 06:16:34.000000000 -0700
++++ boost/mpl/aux_/full_lambda.hpp	2009-05-15 06:16:56.000000000 -0700
+@@ -227,7 +227,7 @@
+ 
+ ///// iteration, depth == 1
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 1
++#elif BOOST_PP_ITERATION_DEPTH == 1
+ #define i_ BOOST_PP_FRAME_ITERATION(1)
+ 
+ #if i_ > 0
+diff -urN boost.orig/mpl/bind.hpp boost/mpl/bind.hpp
+--- boost.orig/mpl/bind.hpp	2009-05-15 06:16:34.000000000 -0700
++++ boost/mpl/bind.hpp	2009-05-15 06:17:45.000000000 -0700
+@@ -361,7 +361,7 @@
+ 
+ ///// iteration, depth == 1
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 1
++#elif BOOST_PP_ITERATION_DEPTH == 1
+ 
+ #   define i_ BOOST_PP_FRAME_ITERATION(1)
+ 
+@@ -528,7 +528,7 @@
+ 
+ ///// iteration, depth == 2
+ 
+-#elif BOOST_PP_ITERATION_DEPTH() == 2
++#elif BOOST_PP_ITERATION_DEPTH == 2
+ 
+ #   define j_ BOOST_PP_FRAME_ITERATION(2)
+ #   if !defined(BOOST_MPL_CFG_NO_UNNAMED_PLACEHOLDER_SUPPORT)

@@ -9,7 +9,12 @@ fi
 PBDIR=polybori-0.5rc
 WORKDIR=${PWD}/src
 SCONS=scons
-BOOSTINCDIR="$SAGE_LOCAL"/include; export BOOSTINCDIR
+
+# For some strange reason the installed boost in $SAGE_LOCAL causes
+# make install failures, so copy it over.
+mkdir src/boost_1_34_1.cropped
+cp -r $SAGE_LOCAL/include/boost src/boost_1_34_1.cropped
+BOOSTDIR=boost_1_34_1.cropped
 
 patch()
 {
@@ -31,7 +36,7 @@ patch()
 build_polybori()
 {
     cd ${PBDIR}
-    ${SCONS} prepare-devel ${MAKEOPTS}
+    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} prepare-devel ${MAKEOPTS}
     if [ $? -ne 0 ]; then
         echo "Error building PolyBoRi."
         exit 1
@@ -42,7 +47,7 @@ build_polybori()
 install_polybori()
 {
     cd ${PBDIR}
-    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
+    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1

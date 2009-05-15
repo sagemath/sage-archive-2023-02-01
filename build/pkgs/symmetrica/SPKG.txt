@@ -30,9 +30,18 @@ We include index.html, which is the above web site, which officially states that
 
 == Special Update/Build Instructions ==
 
-Slight modifications, see patches directory
+Against common policy the patches in the patches directory have been applied to the src directory:
+
+ * de.patch (Turn off banner)
+ * macro.h.patch (Change some return types, this can be avoided)
+ * makefile.patch (Fix compiler, inject CFLAGS)
+ * sort_sum_rename.patch (rename sort tp sym_sort, sum to sym_sum)
 
 == Changelog ==
+
+=== symmetrica-2.0.p3 (Michael Abshoff, May 15th, 2009) ===
+ * Work around Solaris linker problem
+ * Apply patches to src directly against policy - see above
 
 === symmetrica-2.0.p2 (Michael Abshoff, April 3rd, 2008) ===
  * OS 64 bit build support

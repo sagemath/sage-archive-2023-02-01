@@ -111,7 +111,6 @@ class QuadraticForm():
             rational_diagonal_form, \
             signature_vector, \
             signature, \
-            local_diagonal, \
             hasse_invariant, \
             hasse_invariant__OMeara, \
             is_hyperbolic, \
@@ -119,6 +118,7 @@ class QuadraticForm():
             is_isotropic, \
             anisotropic_primes, \
             compute_definiteness, \
+            compute_definiteness_string_by_determinants, \
             is_positive_definite, \
             is_negative_definite, \
             is_indefinite, \
@@ -191,7 +191,6 @@ class QuadraticForm():
     ## Routines to compute p-neighbors
     from sage.quadratic_forms.quadratic_form__neighbors import \
             find_primitive_p_divisible_vector__random, \
-            find_primitive_p_divisible_vector__all, \
             find_primitive_p_divisible_vector__next, \
             find_p_neighbor_from_vec
 

@@ -53,7 +53,21 @@ def cholesky_decomposition(self, bit_prec = 53):
 
 
     EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.cholesky_decomposition()
+        [ 1.00000000000000 0.000000000000000 0.000000000000000]
+        [0.000000000000000  1.00000000000000 0.000000000000000]
+        [0.000000000000000 0.000000000000000  1.00000000000000]
 
+        sage: Q = QuadraticForm(QQ, 3, range(1,7)); Q
+        Quadratic form in 3 variables over Rational Field with coefficients:
+        [ 1 2 3 ]
+        [ * 4 5 ]
+        [ * * 6 ]
+        sage: Q.cholesky_decomposition()
+        [ 1.00000000000000  1.00000000000000  1.50000000000000]
+        [0.000000000000000  3.00000000000000 0.333333333333333]
+        [0.000000000000000 0.000000000000000  3.41666666666667]
 
     """
 
@@ -83,7 +97,7 @@ def cholesky_decomposition(self, bit_prec = 53):
 
     ## 4. Zero out the strictly lower-triangular entries
     for i in range(n):
-        for j in range(i-1):
+        for j in range(i):
             Q[i,j] = 0
 
     return Q
@@ -96,6 +110,9 @@ def vectors_by_length(self, bound):
 
     This is a maive algorithm which uses the Cholesky decomposition,
     but does not use the LLL-reduction algorithm.
+
+    INPUT:
+       bound -- an integer >= 0
 
     OUTPUT:
         A list L of length (bound + 1) whose entry L[i] is a list of
@@ -250,6 +267,13 @@ def complementary_subform_to_vector(self, v):
     lattice (as opposed to a sublattice in the C++ code) since we
     now extend v to a unimodular matrix.
 
+    INPUT:
+        v -- a list of self.dim() integers
+
+    OUTPUT:
+        a QuadraticForm over ZZ
+
+
     EXAMPLES:
     sage: Q1 = DiagonalQuadraticForm(ZZ, [1,3,5,7])
     sage: Q1.complementary_subform_to_vector([1,0,0,0])
@@ -340,6 +364,12 @@ def split_local_cover(self):
     This is done by exhaustive search on small vectors, and then
     comparing the local conditions of its sum with it's complementary
     lattice and the original quadratic form Q.
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a QuadraticForm over ZZ
 
     EXAMPLES:
         sage: Q1 = DiagonalQuadraticForm(ZZ, [7,5,3])

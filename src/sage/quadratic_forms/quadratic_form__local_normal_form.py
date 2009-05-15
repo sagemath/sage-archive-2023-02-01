@@ -33,6 +33,25 @@ def find_entry_with_minimal_scale_at_prime(self, p):
 
     Note: This answer is independent of the kind of matrix (Gram or
     Hessian) associated to the form.
+
+    INPUT:
+        p -- a prime number > 0
+
+    OUTPUT:
+        a pair of integers >= 0
+
+    EXAMPLES:
+        sage: Q = QuadraticForm(ZZ, 2, [6, 2, 20]); Q
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 6 2 ]
+        [ * 20 ]
+        sage: Q.find_entry_with_minimal_scale_at_prime(2)
+        (0, 1)
+        sage: Q.find_entry_with_minimal_scale_at_prime(3)
+        (1, 1)
+        sage: Q.find_entry_with_minimal_scale_at_prime(5)
+        (0, 0)
+
     """
     n = self.dim()
     min_val = Infinity
@@ -69,6 +88,9 @@ def local_normal_form(self, p):
 
     INPUT:
         p -- a positive prime number.
+
+    OUTPUT:
+        a quadratic form over ZZ
 
     WARNING:  Currently this only works for quadratic forms defined over ZZ.
 
@@ -261,7 +283,6 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
     we return a copy of the cached information.  If this is set to
     False, then the routine is much faster but the return values are
     vulnerable to being corrupted by the user.
-
 
     INPUT:
         p -- a prime number > 0.

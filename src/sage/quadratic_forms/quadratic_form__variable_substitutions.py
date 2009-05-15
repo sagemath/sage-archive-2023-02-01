@@ -21,6 +21,12 @@ def swap_variables(self, r, s, in_place = False):
     Switch the variables x_r and x_s in the quadratic form
     (replacing the original form if the in_place flag is True).
 
+    INPUT:
+        r, s -- integers >= 0
+
+    OUTPUT:
+        a QuadraticForm (by default, otherwise none)
+
     EXAMPLES:
         sage: Q = QuadraticForm(ZZ, 4, range(1,11))
         sage: Q
@@ -73,6 +79,13 @@ def multiply_variable(self, c, i, in_place = False):
     Here c must be an element of the base_ring defining the
     quadratic form.
 
+    INPUT:
+        c -- an element of Q.base_ring()
+        i -- an integer >= 0
+
+    OUTPUT:
+        a QuadraticForm (by default, otherwise none)
+
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,9,5,7])
         sage: Q.multiply_variable(5,0)
@@ -109,6 +122,13 @@ def divide_variable(self, c, i, in_place = False):
     Here c must be an element of the base_ring defining the
     quadratic form, and the division must be definied in the base
     ring.
+
+    INPUT:
+        c -- an element of Q.base_ring()
+        i -- an integer >= 0
+
+    OUTPUT:
+        a QuadraticForm (by default, otherwise none)
 
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,9,5,7])
@@ -196,6 +216,25 @@ def extract_variables(self, var_indices):
     """
     Extract the variables (in order) whose indices are listed in
     var_indices, to give a new quadratic form.
+
+    INPUT:
+        var_indices -- a list of integers >= 0
+
+    OUTPUT:
+        a QuadraticForm
+
+    EXAMPLES:
+        sage: Q = QuadraticForm(ZZ, 4, range(10)); Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 0 1 2 3 ]
+        [ * 4 5 6 ]
+        [ * * 7 8 ]
+        [ * * * 9 ]
+        sage: Q.extract_variables([1,3])
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 4 6 ]
+        [ * 9 ]
+
     """
     m = len(var_indices)
     Q = copy.deepcopy(self)
@@ -212,6 +251,13 @@ def elementary_substitution(self, c, i, j, in_place = False):     ## CHECK THIS!
     """
     Perform the substitution x_i --> x_i + c*x_j (replacing the
     original form if the in_place flag is True).
+
+    INPUT:
+        c -- an element of Q.base_ring()
+        i,j -- integers >= 0
+
+    OUTPUT:
+        a QuadraticForm (by default, otherwise none)
 
     EXAMPLES:
         sage: Q = QuadraticForm(ZZ, 4, range(1,11))
@@ -284,6 +330,42 @@ def add_symmetric(self, c, i, j, in_place = False):
     NOTE: This is meant for compatibility with previous code,
     which implemented a matrix model for this class.  It is used
     in the local_normal_form() method.
+
+
+    INPUT:
+        c -- an element of Q.base_ring()
+        i,j -- integers >= 0
+
+    OUTPUT:
+        a QuadraticForm (by default, otherwise none)
+
+    EXAMPLES:
+        sage: Q = QuadraticForm(ZZ, 3, range(1,7)); Q
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 2 3 ]
+        [ * 4 5 ]
+        [ * * 6 ]
+        sage: Q.add_symmetric(-1, 1, 0)
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 3 ]
+        [ * 3 2 ]
+        [ * * 6 ]
+        sage: Q.add_symmetric(-3/2, 2, 0)     ## ERROR: -3/2 isn't in the base ring ZZ
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.
+
+        sage: Q = QuadraticForm(QQ, 3, range(1,7)); Q
+        Quadratic form in 3 variables over Rational Field with coefficients:
+        [ 1 2 3 ]
+        [ * 4 5 ]
+        [ * * 6 ]
+        sage: Q.add_symmetric(-3/2, 2, 0)
+        Quadratic form in 3 variables over Rational Field with coefficients:
+        [ 1 2 0 ]
+        [ * 4 2 ]
+        [ * * 15/4 ]
+
     """
     return self.elementary_substitution(c, j, i, in_place)
 

@@ -96,7 +96,7 @@ class Point(GraphicPrimitive_xydata):
 
     def _plot3d_options(self, options=None):
         """
-        Translate 2d plot options into 3d plot options.
+        Translate 2D plot options into 3D plot options.
 
         EXAMPLES::
 

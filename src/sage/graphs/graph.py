@@ -8358,7 +8358,7 @@ class Graph(GenericGraph):
         elif format == 'dict_of_dicts':
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = data.keys()
+            verts = set(data.keys())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -8370,7 +8370,7 @@ class Graph(GenericGraph):
             if weighted is None: weighted = False
             for u in data:
                 for v in data[u]:
-                    if v not in verts: verts.append(v)
+                    if v not in verts: verts.add(v)
                     if hash(u) > hash(v):
                         if v in data and u in data[v]:
                             if data[u][v] != data[v][u]:
@@ -8385,7 +8385,7 @@ class Graph(GenericGraph):
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = data.keys()
+            verts = set(data.keys())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -8396,7 +8396,7 @@ class Graph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                verts += [v for v in data[u] if v not in verts]
+                verts=verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
                         raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
@@ -9892,7 +9892,7 @@ class DiGraph(GenericGraph):
         elif format == 'dict_of_dicts':
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = data.keys()
+            verts = set(data.keys())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -9904,7 +9904,7 @@ class DiGraph(GenericGraph):
             if weighted is None: weighted = False
             for u in data:
                 for v in data[u]:
-                    if v not in verts: verts.append(v)
+                    if v not in verts: verts.add(v)
                     if multiedges is not False and not isinstance(data[u][v], list):
                         if multiedges is None: multiedges = False
                         if multiedges:
@@ -9914,7 +9914,7 @@ class DiGraph(GenericGraph):
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = data.keys()
+            verts = set(data.keys())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -9925,7 +9925,7 @@ class DiGraph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                verts += [v for v in data[u] if v not in verts]
+                verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
                         raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))

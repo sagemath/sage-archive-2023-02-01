@@ -403,7 +403,8 @@ ext_modules = [
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/%s"%s for s in ["symmetrica.pyx"]],
               include_dirs = ['/usr/include/malloc/'],
-              libraries = ["symmetrica"]),
+              libraries = ["symmetrica"],
+              depends = [SAGE_ROOT + "/local/include/symmetrica/def.h"]),
 
         ###################################
         ##

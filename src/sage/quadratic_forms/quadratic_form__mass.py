@@ -23,36 +23,50 @@ from sage.quadratic_forms.quadratic_form__mass__Conway_Sloane_masses import \
         conway_p_mass, \
         conway_standard_p_mass, \
         conway_standard_mass, \
-        conway_mass, \
-        conway_generic_mass, \
-        conway_p_mass_adjustment
+        conway_mass
+#        conway_generic_mass, \
+#        conway_p_mass_adjustment
 
 ###################################################
 
 
-def shimura_mass__maximal(self, p):
+def shimura_mass__maximal(self,):
     """
     Use Shimuras exact mass formula to compute the mass of a maximal
     quadratic lattice. This works for any totally real number field,
     but has a small technical restriction when n is odd.
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLE:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.shimura_mass__maximal()
+
     """
     pass
 
 
-def hanke_mass__maximal(self, p):
-    """
-    Use Shimuras exact mass formula to compute the mass of a maximal
-    quadratic lattice.  This works for any totally real number field,
-    but has a small technical restriction when n is odd.
-    """
-    pass
 
-
-def GHY_mass_maximal(self, p):
+def GHY_mass__maximal(self):
     """
     Use the GHY formula to compute the mass of a (maximal?) quadratic
     lattice. This works for any number field.
 
-    See [GHY, Prop 7.4 and 7.5, p121] and [GY, Thrm 10.20, p25].
+    Reference:  See [GHY, Prop 7.4 and 7.5, p121] and [GY, Thrm 10.20, p25].
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLE:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.GHY_mass__maximal()
+
     """
     pass

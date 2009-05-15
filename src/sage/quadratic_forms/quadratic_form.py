@@ -212,8 +212,7 @@ class QuadraticForm():
     ## Routines to compute local masses for ZZ.
     from sage.quadratic_forms.quadratic_form__mass import \
             shimura_mass__maximal, \
-            hanke_mass__maximal, \
-            GHY_mass_maximal
+            GHY_mass__maximal
     from sage.quadratic_forms.quadratic_form__mass__Siegel_densities import \
             mass__by_Siegel_densities, \
             Pall_mass_density_at_odd_prime, \
@@ -233,9 +232,9 @@ class QuadraticForm():
             conway_p_mass, \
             conway_standard_p_mass, \
             conway_standard_mass, \
-            conway_mass, \
-            conway_generic_mass, \
-            conway_p_mass_adjustment
+            conway_mass
+#            conway_generic_mass, \
+#            conway_p_mass_adjustment
 
     ## Routines to check local representability of numbers
     from sage.quadratic_forms.quadratic_form__local_representation_conditions import \

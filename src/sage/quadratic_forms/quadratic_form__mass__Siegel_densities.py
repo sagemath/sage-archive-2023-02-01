@@ -194,6 +194,17 @@ def Watson_mass_at_2(self):
     Returns the local mass of the quadratic form when p=2, according
     to Watson's Theorem 1 of "The 2-adic density of a quadratic form"
     in Mathematika 23 (1976), pp 94--106.
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.Watson_mass_at_2()               ## WARNING:  WE NEED TO CHECK THIS CAREFULLY!
+        384
     """
     ## Make a 0-dim'l quadratic form (for initialization purposes)
     Null_Form = copy.deepcopy(self)
@@ -288,6 +299,17 @@ def Kitaoka_mass_at_2(self):
     to Theorem 5.6.3 on pp108--9 of Kitaoka's Book "The Arithmetic of
     Quadratic Forms".
 
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number > 0
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.Kitaoka_mass_at_2()   ## WARNING:  WE NEED TO CHECK THIS CAREFULLY!
+        1/2
+
     """
     ## Make a 0-dim'l quadratic form (for initialization purposes)
     Null_Form = copy.deepcopy(self)
@@ -342,7 +364,7 @@ def Kitaoka_mass_at_2(self):
 
             ## Deal with the complicated case:
             tmp_m = dim2_dict[j].dim() / 2
-            if dim2_dict[j].is_hyperbolic():
+            if dim2_dict[j].is_hyperbolic(2):
                 E *= 2 / (1 + 2**(-tmp_m))
             else:
                 E *= 2 / (1 - 2**(-tmp_m))
@@ -371,11 +393,27 @@ def Kitaoka_mass_at_2(self):
     return mass_at_2
 
 
+
 def mass_at_two_by_counting_mod_power(self, k):
     """
     Computes the local mass at p=2 assuming that it's stable (mod 2^k).
 
     Note: This is **way** too slow to be useful, even when k=1!!!
+
+    TO DO: Remove this routine, or try to compile it!
+
+
+    INPUT:
+        k -- an integer >= 1
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLE:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.mass_at_two_by_counting_mod_power(1)
+        4
+
     """
     R = IntegerModRing(2**k)
     Q1 = self.base_change_to(R)

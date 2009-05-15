@@ -7,6 +7,8 @@ from sage.misc.misc import prod
 from sage.quadratic_forms.special_values import gamma__exact, zeta__exact, quadratic_L_function__exact
 from sage.calculus.calculus import floor
 
+
+
 def parity(self, allow_rescaling_flag=True):
     """
     Returns the parity ("even" or "odd") of an integer-valued quadratic
@@ -157,6 +159,18 @@ def conway_species_list_at_odd_prime(self, p):
 
     OUTPUT:
         a list of integers
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,10))
+        sage: Q.conway_species_list_at_odd_prime(3)
+        [6, 2, 1]
+
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,8))
+        sage: Q.conway_species_list_at_odd_prime(3)
+        [5, 2]
+        sage: Q.conway_species_list_at_odd_prime(5)
+        [-6, 1]
+
     """
     ## Sanity Check:
     if not ((p>2) and is_prime(p)):
@@ -192,6 +206,7 @@ def conway_species_list_at_odd_prime(self, p):
     return species_list
 
 
+
 def conway_species_list_at_2(self):
     """
     Returns an integer called the 'species' which determines the type
@@ -209,6 +224,14 @@ def conway_species_list_at_2(self):
         a list of integers
 
     EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,10))
+        sage: Q.conway_species_list_at_2()
+        [1, 5, 1, 1, 1, 1]
+
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,8))
+        sage: Q.conway_species_list_at_2()
+        [1, 3, 1, 1, 1]
+
     """
     ## Some useful variables
     n = self.dim()
@@ -277,8 +300,22 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
     unimodular blocks of size <= 2 and the 1x1 blocks are all in the upper
     leftmost position.
 
+    INPUT:
+        none
+
     OUTPUT:
         an integer 0 <= x <= 7
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
+        sage: Q.conway_octane_of_this_unimodular_Jordan_block_at_2()
+        0
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,5,13])
+        sage: Q.conway_octane_of_this_unimodular_Jordan_block_at_2()
+        3
+        sage: Q = DiagonalQuadraticForm(ZZ, [3,7,13])
+        sage: Q.conway_octane_of_this_unimodular_Jordan_block_at_2()
+        7
 
     """
     ## Deal with 'even' forms
@@ -348,6 +385,18 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
 def conway_diagonal_factor(self, p):
     """
     Computes the diagonal factor of Conway's p-mass.
+
+    INPUT:
+        p -- a prime number > 0
+
+    OUTPUT:
+        a rational number > 0
+
+    EXAMPLES:
+        sage:  sage: Q = DiagonalQuadraticForm(ZZ, range(1,6))
+        sage: Q.conway_diagonal_factor(3)
+        81/256
+
     """
      ## Get the species list at p
     if p == 2:
@@ -376,6 +425,28 @@ def conway_cross_product_doubled_power(self, p):
     """
     Computes twice the power of p which evalues the 'cross product'
     term in Conway's mass formula.
+
+    INPUT:
+        p -- a prime number > 0
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,8))
+        sage: Q.conway_cross_product_doubled_power(2)
+        18
+        sage: Q.conway_cross_product_doubled_power(3)
+        10
+        sage: Q.conway_cross_product_doubled_power(5)
+        6
+        sage: Q.conway_cross_product_doubled_power(7)
+        6
+        sage: Q.conway_cross_product_doubled_power(11)
+        0
+        sage: Q.conway_cross_product_doubled_power(13)
+        0
+
     """
     doubled_power = 0
     dim_list = [J.dim()  for J in self.jordan_blocks_in_unimodular_list_by_scale_power(p)]
@@ -390,6 +461,18 @@ def conway_cross_product_doubled_power(self, p):
 def conway_type_factor(self):
     """
     This is a special factor only present in the mass formula when p=2.
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,8))
+        sage: Q.conway_type_factor()
+        4
+
     """
     jordan_list = self.jordan_blocks_in_unimodular_list_by_scale_power(2)
     n2 = sum([J.dim()  for J in jordan_list  if J.is_even()])
@@ -402,6 +485,20 @@ def conway_type_factor(self):
 def conway_p_mass(self, p):
     """
     Computes Conway's p-mass.
+
+    INPUT:
+        p -- a prime number > 0
+
+    OUTPUT:
+        a rational number > 0
+
+    EXAMPLES:
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1, 6))
+        sage: Q.conway_p_mass(2)
+        16/3
+        sage: Q.conway_p_mass(3)
+        729/256
+
     """
     ## Compute the first two factors of the p-mass
     p_mass = self.conway_diagonal_factor(p) * (p ** (self.conway_cross_product_doubled_power(p) / ZZ(2)))
@@ -418,6 +515,12 @@ def conway_p_mass(self, p):
 def conway_standard_p_mass(self, p):
     """
     Computes the standard (generic) Conway-Sloane p-mass.
+
+    INPUT:
+        p -- a prime number > 0
+
+    OUTPUT:
+        a rational number > 0
 
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
@@ -447,6 +550,12 @@ def conway_standard_p_mass(self, p):
 def conway_standard_mass(self):
     """
     Returns the infinite product of the standard mass factors.
+
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number > 0
 
     EXAMPLES:
         sage: Q = QuadraticForm(ZZ, 3, [2, -2, 0, 3, -5, 4])
@@ -486,6 +595,12 @@ def conway_mass(self):
     """
     Compute the mass by using the Conway-Sloane mass formula.
 
+    INPUT:
+        none
+
+    OUTPUT:
+        a rational number > 0
+
     EXAMPLES:
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.conway_mass()
@@ -524,52 +639,52 @@ def conway_mass(self):
 
 
 
-def conway_generic_mass(self):
-    """
-    Computes the generic mass given as
-         2 \pi^{-n(n+1)/4} \prod_{j=1}^{n} \Gamma\(\tfrac{j}{2}\)
-        \zeta(2) \cdots \zeta(2s-2) \zeta_{D}(s)
-    where $n = 2s$ or $2s-1$ depending on the parity of $n$,
-    and $D = (-1)^{s} d$.  We interpret the symbol $\(\frac{D}{p}\)$
-    as 0 if $p\mid 2d$.
-    (Conway and Sloane, Mass formula paper, p??)
-
-    This is possibly equal to
-        2^{-td} * \tau(G) *[\prod_{i=1}^{t} \zeta(1-2i) ]* L(1-t, \chi)
-    where $\dim(Q) = n = 2t$ or $2t+1$, and the last factor is omitted
-    when $n$ is odd.
-    (GHY, Prop 7.4 and 7.5, p121)
-    """
-    RR = RealField(200)
-    n = self.dim()
-    if n % 2 == 0:
-        s = n / 2
-    else:
-        s = (n-1) / 2
-
-    ## Form the generic zeta product
-    ans = 2 * RR(pi)^(-n * (n+1) / 4)
-    for j in range(1,n+1):
-        ans *= gamma(RR(j/2))
-    for j in range(2, 2*s, 2):  ## j = 2, ..., 2s-2
-        ans *= zeta(RR(j))
-
-    ## Extra L-factor for even dimensional forms  -- DO THIS!!!
-    raise NotImplementedError, "This routine is not finished yet... =("
-
-    ## Return the answer
-    return ans
-
-
+#def conway_generic_mass(self):
+#    """
+#    Computes the generic mass given as
+#         2 \pi^{-n(n+1)/4} \prod_{j=1}^{n} \Gamma\(\tfrac{j}{2}\)
+#        \zeta(2) \cdots \zeta(2s-2) \zeta_{D}(s)
+#    where $n = 2s$ or $2s-1$ depending on the parity of $n$,
+#    and $D = (-1)^{s} d$.  We interpret the symbol $\(\frac{D}{p}\)$
+#    as 0 if $p\mid 2d$.
+#    (Conway and Sloane, Mass formula paper, p??)
+#
+#    This is possibly equal to
+#        2^{-td} * \tau(G) *[\prod_{i=1}^{t} \zeta(1-2i) ]* L(1-t, \chi)
+#    where $\dim(Q) = n = 2t$ or $2t+1$, and the last factor is omitted
+#    when $n$ is odd.
+#    (GHY, Prop 7.4 and 7.5, p121)
+#    """
+#    RR = RealField(200)
+#    n = self.dim()
+#    if n % 2 == 0:
+#        s = n / 2
+#    else:
+#        s = (n-1) / 2
+#
+#    ## Form the generic zeta product
+#    ans = 2 * RR(pi)^(-n * (n+1) / 4)
+#    for j in range(1,n+1):
+#        ans *= gamma(RR(j/2))
+#    for j in range(2, 2*s, 2):  ## j = 2, ..., 2s-2
+#        ans *= zeta(RR(j))
+#
+#    ## Extra L-factor for even dimensional forms  -- DO THIS!!!
+#    raise NotImplementedError, "This routine is not finished yet... =("
+#
+#    ## Return the answer
+#    return ans
 
 
 
 
-def conway_p_mass_adjustment(self, p):
-    """
-    Computes the adjustment to give the p-mass from the generic mass.
-    """
-    pass
+
+
+#def conway_p_mass_adjustment(self, p):
+#    """
+#    Computes the adjustment to give the p-mass from the generic mass.
+#    """
+#    pass
 
 
 ########################################################################

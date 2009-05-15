@@ -856,21 +856,16 @@ def is_locally_represented_number_at_place(self, m, p):
         True
         sage: Q.is_locally_represented_number_at_place(7, 5)
         True
-
-        sage: Q.is_locally_represented_number_at_place(7, infinity)
-        True
-        sage: Q.is_locally_represented_number_at_place(7, 2)
-        True
-        sage: Q.is_locally_represented_number_at_place(7, 3)
-        True
-        sage: Q.is_locally_represented_number_at_place(7, 5)
-        True
-
-
         sage: Q.is_locally_represented_number_at_place(-1, infinity)
         False
         sage: Q.is_locally_represented_number_at_place(-1, 2)
         False
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,-1])
+        sage: Q.is_locally_represented_number_at_place(7, infinity)
+        True
+        sage: Q.is_locally_represented_number_at_place(7, 2)
+        True
         sage: Q.is_locally_represented_number_at_place(7, 3)
         True
         sage: Q.is_locally_represented_number_at_place(7, 5)
@@ -893,7 +888,7 @@ def is_locally_represented_number(self, m):
         boolean
 
     EXAMPLES:
-        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.is_locally_represented_number(2)
         True
         sage: Q.is_locally_represented_number(7)

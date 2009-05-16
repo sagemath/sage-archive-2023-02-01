@@ -1,0 +1,11 @@
+--- ../src/kernel/rmodulon.cc	2009-05-16 02:27:34.000000000 +0100
++++ kernel.rmodulon.cc	2009-05-16 02:28:37.000000000 +0100
+@@ -214,7 +214,7 @@
+ 
+ BOOLEAN nrnGreaterZero (number k)
+ {
+-  return 0 <= mpz_cmp_si((int_number) k, 0);
++  return 0 < mpz_cmp_si((int_number) k, 0);
+ }
+ 
+ BOOLEAN nrnIsUnit (number a)

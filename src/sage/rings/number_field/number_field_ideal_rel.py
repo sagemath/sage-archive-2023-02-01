@@ -614,11 +614,11 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<a, w> = NumberFieldTower([x^2 - 3, x^2 + x + 1])
             sage: I = K.ideal(6, -w*a - w + 4)
             sage: list(I.residues())[:5]
-            [(-10/3*w - 8/3)*a,
-             (-10/3*w - 8/3)*a + 1,
-             (-10/3*w - 8/3)*a + 2,
-             (-10/3*w - 8/3)*a + 3,
-             (-10/3*w - 8/3)*a + 4]
+            [(25/3*w - 1/3)*a + 22*w + 1,
+            (16/3*w - 1/3)*a + 13*w,
+            (7/3*w - 1/3)*a + 4*w - 1,
+            (-2/3*w - 1/3)*a - 5*w - 2,
+            (-11/3*w - 1/3)*a - 14*w - 3]
         """
         abs_ideal = self.absolute_ideal()
         from_abs = abs_ideal.number_field().structure()[0]

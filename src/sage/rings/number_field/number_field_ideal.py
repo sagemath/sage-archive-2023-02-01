@@ -268,9 +268,11 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Return the string representation of this number field ideal.
 
-        NOTE: Only the zero ideal actually has type NumberFieldIdeal;
-        all others have type NumberFieldFractionalIdeal.  So this
-        function will only ever be called on the zero ideal.
+        .. note::
+
+           Only the zero ideal actually has type NumberFieldIdeal; all
+           others have type NumberFieldFractionalIdeal.  So this function
+           will only ever be called on the zero ideal.
 
         EXAMPLES::
 
@@ -1098,8 +1100,10 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         Return the string representation of this number field fractional ideal.
 
-        NOTE: Only the zero ideal actually has type NumberFieldIdeal;
-        all others have type NumberFieldFractionalIdeal.
+        .. note::
+
+           Only the zero ideal actually has type NumberFieldIdeal; all
+           others have type NumberFieldFractionalIdeal.
 
         EXAMPLES::
 
@@ -1306,24 +1310,134 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the fractional ideal (= %s) is not prime"%self
 
+    def reduce(self, f):
+        """
+        Return the canonical reduction of the element of `f` modulo the ideal
+        `I` (=self). This is an element of `R` (the ring of integers of the
+        number field) that is equivalent modulo `I` to `f`.
+
+        An error is raised if this fractional ideal is not integral or
+        the element `f` is not integral.
+
+        INPUT:
+
+        - ``f`` - an integral element of the number field
+
+        OUTPUT:
+
+        An integral element `g`, such that `f - g` belongs to the ideal self
+        and such that `g` is a canonical reduced representative of the coset
+        `f + I` (`I` =self) as described in the ``residues`` function, namely an integral element with coordinates `(r_0, \dots,r_{n-1})`, where:
+
+        - `r_i` is reduced modulo `d_i`
+        - `d_i = b_i[i]`, with `{b_0, b_1, \dots, b_n}` HNF basis
+          of the ideal self.
+
+        .. note::
+
+           The reduced element `g` is not necessarily small. To get a
+           small `g` use the method ``small_residue``.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^3 + 11)
+            sage: I = k.ideal(5, a^2 - a + 1)
+            sage: c = 4*a + 9
+            sage: I.reduce(c)
+            a^2 - 2*a
+            sage: c - I.reduce(c) in I
+            True
+
+        The reduced element is in the list of canonical representatives
+        returned by the ``residues`` method:
+
+        ::
+
+            sage: I.reduce(c) in list(I.residues())
+            True
+
+        The reduced element does not necessarily have smaller norm (use
+        ``small_residue`` for that)
+
+        ::
+
+            sage: c.norm()
+            25
+            sage: (I.reduce(c)).norm()
+            209
+            sage: (I.small_residue(c)).norm()
+            10
+
+        Sometimes the canonical reduced representative of `1` won't be `1`
+        (it depends on the choice of basis for the ring of integers):
+
+        ::
+
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: I = k.ideal(3)
+            sage: I.reduce(3*a + 1)
+            -3/2*a - 1/2
+            sage: k.ring_of_integers().basis()
+            [1/2*a + 1/2, a]
+
+        AUTHOR: Maite Aranes.
+        """
+
+        if not self.is_integral():
+            raise ValueError, "reduce only defined for integral ideals"
+
+        R = self.number_field().maximal_order()
+
+        if not (f in R):
+            raise TypeError, "reduce only defined for integral elements"
+
+        Rbasis = R.basis()
+        n = len(Rbasis)
+        from sage.matrix.all import MatrixSpace
+        M = MatrixSpace(ZZ,n)([R.coordinates(y) for y in self.basis()])
+
+        D = M.hermite_form()
+        d = [D[i,i] for i in range(n)]
+
+        v = R.coordinates(f)
+
+        for i in range(n):
+            q, r = ZZ(v[i]).quo_rem(d[i])#v is a vector of rationals, we want division of integers
+            if 2*r > d[i]:
+                q = q + 1
+            v = v - q*D[i]
+
+        return sum([v[i]*Rbasis[i] for i in range(n)])
+
     def residues(self):
         """
         Returns a iterator through a complete list of residues modulo this integral ideal.
 
         An error is raised if this fractional ideal is not integral.
 
-        AUTHOR: John Cremona
+        OUTPUT:
+
+        An iterator through a complete list of residues modulo the integral
+        ideal self. This list is the set of canonical reduced representatives
+        given by all integral elements with coordinates `(r_0, \dots,r_{n-1})`,
+        where:
+
+        - `r_i` is reduced modulo `d_i`
+
+        - `d_i = b_i[i]`, with `{b_0, b_1, \dots, b_n}` HNF basis
+          of the ideal.
+
+        AUTHOR: John Cremona (modified by Maite Aranes)
 
         EXAMPLES::
-
 
             sage: K.<i>=NumberField(x^2+1)
             sage: res =  K.ideal(2).residues(); res  # random address
             xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0xa252144>)
             sage: list(res)
-            [0, 1, i, i + 1]
+            [0, i, 1, i + 1]
             sage: list(K.ideal(2+i).residues())
-            [-2, -1, 0, 1, 2]
+            [-2*i, -i, 0, i, 2*i]
             sage: list(K.ideal(i).residues())
             [0]
             sage: I = K.ideal(3+6*i)
@@ -1351,12 +1465,10 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         from sage.matrix.all import MatrixSpace
         M = MatrixSpace(ZZ,n)(map(R.coordinates, self.basis()))
 
-        D, U, V = M.smith_form()
+        D = M.hermite_form()
         d = [D[i,i] for i in range(n)]
         coord_ranges = [range((-di+2)//2,(di+2)//2) for di in d]
-        V = V.inverse()
-        newRbasis = [sum([V[i,j]*Rbasis[j] for j in range(n)]) for i in range(n)]
-        combo = lambda c: sum([c[i]*newRbasis[i] for i in range(n)])
+        combo = lambda c: sum([c[i]*Rbasis[i] for i in range(n)])
         return xmrange_iter(coord_ranges, combo)
 
     def invertible_residues(self, reduce=True):
@@ -1921,7 +2033,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: K.<i>=NumberField(x^2+1)
             sage: I = K.ideal(2+i)
             sage: [r for r in I.residues() if I.is_coprime(r)]
-            [-2, -1, 1, 2]
+            [-2*i, -i, i, 2*i]
             sage: I.euler_phi()
             4
             sage: J = I^3

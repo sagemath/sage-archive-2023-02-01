@@ -2452,6 +2452,32 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         z = sage.rings.rational.Rational(0)
         return v + [z]*(n - len(v))
 
+    def inverse_mod(self, I):
+        """
+        Returns the inverse of self mod the integral ideal I.
+
+        INPUT:
+
+        -  ``I`` - may be an ideal of self.parent(), or an element or list
+           of elements of self.parent() generating a nonzero ideal. A TypeError
+           is raised if I is non-integral, and a ValueError if the generators
+           are all zero. A ZeroDivisionError is raised if I + (x) != (1).
+
+        NOTE: It's not implemented yet for non-integral elements.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: N = k.ideal(3)
+            sage: d = 3*a + 1
+            sage: d.inverse_mod(N)
+            1
+        """
+        R = I.number_field().ring_of_integers()
+        try:
+            return I.small_residue(_inverse_mod_generic(R(self), I))
+        except TypeError:
+            raise NotImplementedError, "inverse_mod is not implemented for non-integral elements"
 
 
 cdef class NumberFieldElement_relative(NumberFieldElement):

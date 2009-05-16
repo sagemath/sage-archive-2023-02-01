@@ -142,7 +142,7 @@ REFERENCES:
 
 .. [BPW06] J\. Buchmann, A\. Pychkine, R\.-P\. Weinmann *Block Ciphers
    Sensitive to Groebner Basis Attacks* in Topics in
-   Cryptology –- CT RSA'06\; LNCS 3860\; pp. 313--331\; Springer Verlag 2006\;
+   Cryptology -- CT RSA'06\; LNCS 3860\; pp. 313--331\; Springer Verlag 2006\;
    pre-print available at http://eprint.iacr.org/2005/200
 
 """

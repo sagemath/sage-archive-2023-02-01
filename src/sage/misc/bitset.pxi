@@ -364,8 +364,10 @@ cdef inline void bitset_complement(bitset_t r, bitset_t a):
     cdef long i
     for i from 0 <= i < r.limbs:
         r.bits[i] = ~a.bits[i]
-    # Zero out bits in the last limb beyond the size of r
-    r.bits[r.limbs-1] &= ((<unsigned long>1) << (r.size & offset_mask)) - 1
+    if r.size & offset_mask != 0:
+        # If the last limb has extra bits beyond the size of r,
+        # then zero out those extra bits
+        r.bits[r.limbs-1] &= ((<unsigned long>1) << ((r.size) & offset_mask)) - 1
 
 cdef inline void bitset_not(bitset_t r, bitset_t a):
     """

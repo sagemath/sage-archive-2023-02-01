@@ -20,8 +20,9 @@
 #include "singular/rmodulo2m.h"
 #include "singular/rmodulon.h"
 
-// temporary workaround
+// temporary workarounds
 number nrnMapGMP(number from);
+number nr2mMapZp(number from);
 
 int siInit(char *);
 

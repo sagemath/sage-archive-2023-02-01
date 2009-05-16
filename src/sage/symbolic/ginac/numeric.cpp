@@ -287,6 +287,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
       // TODO: maybe program around Python's braindead L suffix? PyLong_Check(s.v._pyobject) 
       o = PyObject_Repr(s.v._pyobject);
       if (!o) {
+        PyErr_Clear();
 	throw(std::runtime_error("operator<<(ostream, Number_T): exception printing python object"));
       } else {
 	os << PyString_AsString(o);
@@ -1107,6 +1108,7 @@ void Number_T::archive(archive_node &n) const {
     case PYOBJECT:
       o = PyNumber_Remainder(v._pyobject, TWO);
       if (!o) {
+	PyErr_Clear();
 	return false;
       }
       ans = (PyObject_Compare(o, ZERO) == 0);

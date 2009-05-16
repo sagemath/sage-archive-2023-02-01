@@ -34,6 +34,7 @@ Website: http://ecls.sourceforge.net/
 
 == Special Update/Build Instructions ==
 
+ * delete the msvc directory
  * To build dpp with system boehm_gc and gmp we need to copy some headers due to a but in ecl:
 {{{
 cp "$SAGE_LOCAL"/include/gmp.h src/c

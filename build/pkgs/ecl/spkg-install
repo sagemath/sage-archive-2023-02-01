@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# parallel make is broken, so unset it
+unset MAKE
+
 CPPFLAGS="-I$SAGE_LOCAL/include"; export CPPFLAGS
 LDFLAGS="-L$SAGE_LOCAL/lib"; export LDFLAGS
 

@@ -426,6 +426,9 @@ class SageInputBuilder:
             sage: sage_input('Icky chars: \0\n\t\b\'\"\200\300\234', verify=True)
             # Verified
             'Icky chars: \x00\n\t\x08\'"\x80\xc0\x9c'
+            sage: sage_input(u'unicode with spectral: \u1234\U00012345', verify=True)
+            # Verified
+            u'unicode with spectral: \u1234\U00012345'
             sage: sage_input((2, 3.5, 'Hi'), verify=True)
             # Verified
             (2, 3.5, 'Hi')
@@ -455,6 +458,9 @@ class SageInputBuilder:
 
         if hasattr(x, '_sage_input_'):
             return x._sage_input_(self, coerced)
+
+        if x is None:
+            return SIE_literal_stringrep(self, 'None')
 
         if isinstance(x, bool):
             return SIE_literal_stringrep(self, str(x))
@@ -514,7 +520,7 @@ class SageInputBuilder:
                 return self.name('float')(self.int(ZZ(rrx)))
             return self.name('float')(RR(x))
 
-        if isinstance(x, str):
+        if isinstance(x, (str, unicode)):
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
@@ -522,6 +528,9 @@ class SageInputBuilder:
 
         if isinstance(x, list):
             return SIE_tuple(self, map(self, x), True)
+
+        if isinstance(x, dict):
+            return self.dict(x)
 
         if self._allow_locals:
             loc = self._next_local
@@ -704,6 +713,89 @@ class SageInputBuilder:
         self._id_cache[id(x)] = (x, sie)
         sie._sie_preferred_varname = name
 
+    def import_name(self, module, name, alt_name=None):
+        r"""
+        INPUTS:
+            module, name, alt_name -- strings
+
+        Creates an expression that will import a name from a module and
+        then use that name.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: v1 = sib.import_name('sage.foo.bar', 'baz')
+            sage: v2 = sib.import_name('sage.foo.bar', 'ZZ', 'not_the_real_ZZ')
+            sage: sib.result(v1+v2)
+            from sage.foo.bar import baz
+            from sage.foo.bar import ZZ as not_the_real_ZZ
+            baz + not_the_real_ZZ
+
+        We adjust the names if there is a conflict.
+
+            sage: sib = SageInputBuilder()
+            sage: v1 = sib.import_name('sage.foo', 'poly')
+            sage: v2 = sib.import_name('sage.bar', 'poly')
+            sage: sib.result(v1+v2)
+            from sage.foo import poly as poly1
+            from sage.bar import poly as poly2
+            poly1 + poly2
+        """
+        return SIE_import_name(self, module, name, alt_name)
+
+    def assign(self, e, val):
+        r"""
+        INPUTS:
+            e, val -- SageInputExpression
+
+        Constructs a command that performs the assignment e=val.
+
+        Can only be used as an argument to the \method{command}
+        method.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: circular = sib([None])
+            sage: sib.command(circular, sib.assign(circular[0], circular))
+            sage: sib.result(circular)
+            si = [None]
+            si[0] = si
+            si
+        """
+        e = self(e)
+        val = self(val)
+
+        return SIE_assign(self, e, val)
+
+    def command(self, v, cmd):
+        r"""
+        INPUTS:
+            v, cmd -- SageInputExpression
+
+        Attaches a command to v, which will be executed before v is used.
+        Multiple commands will be executed in the order added.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: incr_list = sib([])
+            sage: sib.command(incr_list, incr_list.append(1))
+            sage: sib.command(incr_list, incr_list.extend([2, 3]))
+            sage: sib.result(incr_list)
+            si = []
+            si.append(1)
+            si.extend([2, 3])
+            si
+        """
+        v = self(v)
+        cmd = self(cmd)
+
+        v._sie_commands.append(cmd)
+
     def dict(self, entries):
         r"""
         Given a dictionary, or a list of (key, value) pairs,
@@ -723,6 +815,26 @@ class SageInputBuilder:
             entries = list(entries.items())
         entries = [(self(key),self(val)) for (key,val) in entries]
         return SIE_dict(self, entries)
+
+    def getattr(self, sie, attr):
+        r"""
+        Given a \class{SageInputExpression} representing \code{foo}
+        and an attribute name bar, produce a \class{SageInputExpression}
+        representing \code{foo.bar}.  Normally, you could just use
+        attribute-access syntax, but that doesn't work if bar
+        is some attribute that bypasses __getattr__ (such as if
+        bar is '__getattr__' itself).
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.getattr(ZZ, '__getattr__')
+            {getattr: {atomic:ZZ}.__getattr__}
+            sage: sib.getattr(sib.name('foo'), '__new__')
+            {getattr: {atomic:foo}.__new__}
+        """
+        return SIE_getattr(self, self(sie), attr)
 
     def empty_subscript(self, parent):
         r"""
@@ -744,6 +856,67 @@ class SageInputBuilder:
             x
         """
         return SIE_subscript(self, parent, None)
+
+    def use_variable(self, sie, name):
+        r"""
+        Marks the \class{SageInputExpression} \var{sie} to use a
+        variable even if it is only referenced once.  (If \var{sie}
+        is the final top-level expression, though, it will not use
+        a variable.)
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: e = sib.name('MatrixSpace')(ZZ, 10, 10)
+            sage: sib.use_variable(e, 'MS')
+            sage: sib.result(e.zero_matrix())
+            MS = MatrixSpace(ZZ, 10, 10)
+            MS.zero_matrix()
+
+        Without the call to use_variable, we get this instead:
+
+            sage: sib = SageInputBuilder()
+            sage: e = sib.name('MatrixSpace')(ZZ, 10, 10)
+            sage: sib.result(e.zero_matrix())
+            MatrixSpace(ZZ, 10, 10).zero_matrix()
+
+        And even with the call to use_variable, we don't use a variable
+        here:
+
+            sage: sib = SageInputBuilder()
+            sage: e = sib.name('MatrixSpace')(ZZ, 10, 10)
+            sage: sib.use_variable(e, 'MS')
+            sage: sib.result(e)
+            MatrixSpace(ZZ, 10, 10)
+        """
+        sie._sie_preferred_varname = name
+        sie._sie_request_use_var = True
+
+    def share(self, sie):
+        r"""
+        Mark the given expression as sharable, so that it will be replaced
+        by a variable if it occurs multiple times in the expression.
+        (Most non-single-token expressions are already sharable.)
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+        Without explicitly using .share(), string literals are not shared:
+            sage: sib = SageInputBuilder()
+            sage: e = sib('hello')
+            sage: sib.result(sib((e, e)))
+            ('hello', 'hello')
+
+        See the difference if we use .share():
+            sage: sib = SageInputBuilder()
+            sage: e = sib('hello')
+            sage: sib.share(e)
+            sage: sib.result(sib((e, e)))
+            si = 'hello'
+            (si, si)
+        """
+        sie._sie_share = True
 
     def parent_with_gens(self, parent, sie, gen_names, name, gens_syntax=None):
         r"""
@@ -975,6 +1148,10 @@ class SageInputBuilder:
         """
         sif = SageInputFormatter()
 
+        # Even if use_variable was called on e, don't automatically
+        # use a variable for it.
+        e._sie_request_use_var = False
+
         e._sie_prepare(sif)
 
         s = sif.format(e, 0)
@@ -1053,8 +1230,10 @@ class SageInputExpression(object):
         self._sie_context = None
         self._sie_preferred_varname = None
         self._sie_varname = None
+        self._sie_request_use_var = False
         self._sie_use_var = False
         self._sie_requested_varname = False
+        self._sie_commands = []
 
     def _sie_is_simple(self):
         r"""
@@ -1117,12 +1296,17 @@ class SageInputExpression(object):
             self._sie_context = sif
             self._sie_refcount = 0
         self._sie_refcount += 1
+        if self._sie_request_use_var:
+            self._sie_require_varname(sif)
+            self._sie_use_var = True
         if not self._sie_is_simple():
             if self._sie_refcount == 2:
                 self._sie_require_varname(sif)
                 self._sie_use_var = True
         if self._sie_refcount == 1:
             for r in self._sie_referenced():
+                r._sie_prepare(sif)
+            for r in self._sie_commands:
                 r._sie_prepare(sif)
 
     def _sie_require_varname(self, sif):
@@ -1419,8 +1603,44 @@ class SageInputExpression(object):
             ('3', 42)
             ('3 + 7', 24)
             ('3/5', 26)
+            sage: v = sib.assign(sib.name('foo').x, 3)
+            sage: v._sie_prepare(sif)
+            sage: v._sie_format(sif)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot format SIE_assign as expression
         """
         raise NotImplementedError
+
+    def _sie_format_statement(self, sif):
+        r"""
+        Return the formatted string value of this expression, when
+        used as a statement.
+
+        On most \class{SageInputExpression}s, this forwards directly
+        to the \method{_sie_format} method.  However, on
+        \class{SageInputExpression}s that actually represent
+        statements (such as \class{SIE_assign}), this method
+        has an implementation and \method{_sie_format} raises
+        an error.  (This is to prevent accidental use of
+        \class{SIE_assign} as a value.)
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: v = sib(3)
+            sage: v._sie_prepare(sif)
+            sage: v._sie_format_statement(sif)
+            '3'
+            sage: v = sib.assign(sib.name('foo').x, 3)
+            sage: v._sie_prepare(sif)
+            sage: v._sie_format_statement(sif)
+            'foo.x = 3'
+        """
+        result, prec = self._sie_format(sif)
+        return result
 
 class SIE_literal(SageInputExpression):
     r"""
@@ -1451,11 +1671,17 @@ class SIE_literal(SageInputExpression):
             sage: sie = sib(3)
             sage: sie._sie_is_simple()
             True
+
+            sage: sib.share(sie)
+            sage: sie._sie_is_simple()
+            False
+            sage: sie._sie_share
+            True
         """
         # Perhaps this should actually look at the formatted length of self,
         # and sometimes return false?  If some 50-digit integer occurs multiple
         # times in an expression, it might be better to do the replacement.
-        return True
+        return not self._sie_share
 
 class SIE_literal_stringrep(SIE_literal):
     r"""
@@ -1499,6 +1725,7 @@ class SIE_literal_stringrep(SIE_literal):
         """
         super(SIE_literal_stringrep, self).__init__(sib)
         self._sie_value = str(n)
+        self._sie_share = False
 
     def __repr__(self):
         r"""
@@ -2638,6 +2865,228 @@ class SIE_gen(SageInputExpression):
         """
         return self._sie_get_varname(sif) == self._sie_preferred_varname
 
+class SIE_import_name(SageInputExpression):
+    r"""
+    This class represents a name which has been imported from a module.
+
+    EXAMPLES:
+        sage: from sage.misc.sage_input import SageInputBuilder
+
+        sage: sib = SageInputBuilder()
+        sage: sib.import_name('sage.rings.integer', 'make_integer')
+        {import:sage.rings.integer/make_integer}
+        sage: sib.import_name('sage.foo', 'happy', 'sad')
+        {import:sage.foo/happy as sad}
+    """
+
+    def __init__(self, sib, module, name, alt_name=None):
+        r"""
+        Initializes an instance of \class{SIE_import_name}.
+
+        INPUTS:
+            sib -- a \class{SageInputBuilder}
+            module -- a module name
+            name -- an object name
+            alt_name -- an alternate object name, or None (the default)
+                        to use name
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.import_name('sage.rings.integer', 'make_integer') # indirect doctest
+            {import:sage.rings.integer/make_integer}
+            sage: sib.import_name('sage.foo', 'happy', 'sad')
+            {import:sage.foo/happy as sad}
+        """
+        super(SIE_import_name, self).__init__(sib)
+        self._sie_formatted = False
+        self._sie_module_name = module
+        self._sie_object_name = name
+        if alt_name is None:
+            self._sie_preferred_varname = name
+        else:
+            self._sie_preferred_varname = alt_name
+
+    def __repr__(self):
+        r"""
+        Returns a string representing this \class{SIE_import_name} value.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.import_name('sage.rings.integer', 'make_integer') # indirect doctest
+            {import:sage.rings.integer/make_integer}
+            sage: sib.import_name('sage.foo', 'happy', 'sad')
+            {import:sage.foo/happy as sad}
+        """
+        return "{import:%s/%s%s}" % (self._sie_module_name, self._sie_object_name,
+                                     "" if self._sie_object_name == self._sie_preferred_varname else " as %s" % self._sie_preferred_varname)
+
+    def _sie_is_simple(self):
+        r"""
+        Report that \class{SIE_import_name} values are single tokens.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.import_name('sage.rings.integer', 'make_integer')._sie_is_simple()
+            True
+        """
+        return True
+
+    def _sie_prepare(self, sif):
+        r"""
+        We override the \method{_sie_prepare} method from
+        \class{SageInputExpression} to request a variable name.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.import_name('sage.rings.integer', 'make_integer')
+            sage: sie._sie_requested_varname
+            False
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_requested_varname
+            True
+        """
+        super(SIE_import_name, self)._sie_prepare(sif)
+        self._sie_require_varname(sif)
+
+    def _sie_format(self, sif):
+        r"""
+        Return the formatted string value of this import,
+        and an indication that it is atomic.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: v1 = sib.import_name('sage.rings.integer', 'make_integer')
+            sage: v2 = sib.import_name('sage.foo', 'happy', 'sad')
+            sage: sie = v1(v2)
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_format(sif)
+            ('make_integer(sad)', 40)
+            sage: print sif._commands
+            from sage.rings.integer import make_integer
+            from sage.foo import happy as sad
+        """
+        name = self._sie_get_varname(sif)
+        if self._sie_formatted:
+            # Only run the import command once
+            return name, _prec_atomic
+        self._sie_formatted = True
+        rename = ''
+        if name != self._sie_object_name:
+            rename = ' as ' + name
+        sif._commands += 'from %s import %s%s\n' % (self._sie_module_name,
+                                                    self._sie_object_name,
+                                                    rename)
+        return name, _prec_atomic
+
+class SIE_assign(SageInputExpression):
+    r"""
+    This class represents an assignment command.
+
+    EXAMPLES:
+        sage: from sage.misc.sage_input import SageInputBuilder
+
+        sage: sib = SageInputBuilder()
+        sage: sib.assign(sib.name('foo').x, sib.name('pi'))
+        {assign: {getattr: {atomic:foo}.x} {atomic:pi}}
+    """
+
+    def __init__(self, sib, lhs, rhs):
+        r"""
+        Initializes an instance of \class{SIE_assign}.
+
+        INPUTS:
+            sib -- a \class{SageInputBuilder}
+            lhs -- the left-hand side of the assignment
+            rhs -- the right-hand side of the assignment
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.assign(sib.name('foo').x, sib.name('pi'))
+            {assign: {getattr: {atomic:foo}.x} {atomic:pi}}
+        """
+        super(SIE_assign, self).__init__(sib)
+        self._sie_lhs = lhs
+        self._sie_rhs = rhs
+
+    def __repr__(self):
+        r"""
+        Returns a string representing this \class{SIE_assign} command.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sib.assign(sib.name('foo').x, sib.name('pi'))
+            {assign: {getattr: {atomic:foo}.x} {atomic:pi}}
+        """
+        return "{assign: %s %s}" % (repr(self._sie_lhs), repr(self._sie_rhs))
+
+    def _sie_referenced(self):
+        r"""
+        Returns a list of the immediate subexpressions of this
+        \class{SIE_assign}.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder
+
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.assign(sib.name('foo').x, sib.name('pi'))
+            sage: sie._sie_referenced()
+            [{getattr: {atomic:foo}.x}, {atomic:pi}]
+        """
+        return [self._sie_lhs, self._sie_rhs]
+
+    def _sie_format(self, sif):
+        r"""
+        Return the formatted string value of this \class{SIE_assign}
+        as an expression.  Since an assignment is a statement, not
+        an expression, always raises an error.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.assign(sib.name('foo').x, sib.name('pi'))
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_format(sif)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot format SIE_assign as expression
+        """
+        raise ValueError, "Cannot format SIE_assign as expression"
+
+    def _sie_format_statement(self, sif):
+        r"""
+        Return the formatted string of this \class{SIE_assign}
+        as a statement.
+
+        EXAMPLES:
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.assign(sib.name('foo').x, sib.name('pi'))
+            sage: sie._sie_prepare(sif)
+            sage: sie._sie_format_statement(sif)
+            'foo.x = pi'
+        """
+        return '%s = %s' % (sif.format(self._sie_lhs, 0), sif.format(self._sie_rhs, 0))
+
 class SageInputFormatter:
     r"""
     An instance of this class is used to keep track of variable names
@@ -2690,19 +3139,45 @@ class SageInputFormatter:
             'GF_5'
             sage: sif._commands
             'GF_5 = GF(5)\n'
+
+        We demonstrate the use of commands, by showing how to construct
+        code that will produce a random matrix:
+            sage: sib = SageInputBuilder()
+            sage: sif = SageInputFormatter()
+            sage: sie = sib.name('matrix')(sib.name('ZZ'), 10, 10)
+            sage: sib.command(sie, sie.randomize())
+            sage: sie._sie_prepare(sif)
+            sage: sif._commands
+            ''
+            sage: sif.format(sie, 0)
+            'si'
+            sage: sif._commands
+            'si = matrix(ZZ, 10, 10)\nsi.randomize()\n'
         """
         if e._sie_use_var:
             if not e._sie_generated:
                 s, _ = e._sie_format(self)
-                self._commands += '%s = %s\n' % (e._sie_get_varname(self), s)
-                e._sie_generated = True
+                # In complicated situations, this can get called
+                # recursively...
+                if not e._sie_generated:
+                    self._commands += '%s = %s\n' % (e._sie_get_varname(self), s)
+                    e._sie_generated = True
 
-            return e._sie_get_varname(self)
+            formatted = e._sie_get_varname(self)
+        else:
+            s, iprec = e._sie_format(self)
+            if iprec < prec:
+                s = '(' + s + ')'
+            formatted = s
 
-        s, iprec = e._sie_format(self)
-        if iprec < prec:
-            s = '(' + s + ')'
-        return s
+        commands = e._sie_commands
+        e._sie_commands = []
+
+        for cmd in commands:
+            s_cmd = cmd._sie_format_statement(self)
+            self._commands += s_cmd + '\n'
+
+        return formatted
 
     def register_name(self, name):
         r"""

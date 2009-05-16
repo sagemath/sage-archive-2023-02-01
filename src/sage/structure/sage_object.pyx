@@ -5,6 +5,9 @@ Abstract base class for Sage objects
 import cPickle
 import os
 import sys
+from cStringIO import StringIO
+
+sys_modules = sys.modules
 
 # changeto import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
@@ -602,6 +605,78 @@ def dumps(obj, compress=True):
         else:
             return cPickle.dumps(obj, protocol=2)
 
+# This is used below, and also by explain_pickle.py
+unpickle_override = {}
+
+def register_unpickle_override(module, name, callable, call_name=None):
+    r"""
+    Python pickles include the module and class name of classes.
+    This means that rearranging the Sage source can invalidate old
+    pickles.  To keep the old pickles working, you can call
+    register_unpickle_override with an old module name and class name,
+    and the Python callable (function, class with __call__ method, etc.)
+    to use for unpickling.  (If this callable is a value in some module,
+    you can specify the module name and class name, for the benefit of
+    explain_pickle(..., in_current_sage=True).)
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.integer.Integer'>
+
+    Now we horribly break the pickling system:
+
+        sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.rational.Rational'>
+
+    And we reach into the internals and put it back:
+
+        sage: del unpickle_override[('sage.rings.integer', 'Integer')]
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.integer.Integer'>
+    """
+    unpickle_override[(module,name)] = (callable, call_name)
+
+def unpickle_global(module, name):
+    r"""
+    Given a module name and a name within that module (typically a class
+    name), retrieve the corresponding object.  This normally just looks
+    up the name in the module, but it can be overridden by
+    register_unpickle_override.  This is used in the Sage unpickling
+    mechanism, so if the Sage source code organization changes,
+    register_unpickle_override can allow old pickles to continue to work.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.integer.Integer'>
+
+    Now we horribly break the pickling system:
+
+        sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.rational.Rational'>
+
+    And we reach into the internals and put it back:
+
+        sage: del unpickle_override[('sage.rings.integer', 'Integer')]
+        sage: unpickle_global('sage.rings.integer', 'Integer')
+        <type 'sage.rings.integer.Integer'>
+    """
+    unpickler = unpickle_override.get((module, name))
+    if unpickler is not None:
+        return unpickler[0]
+
+    mod = sys_modules.get(module)
+    if mod is not None:
+        return getattr(mod, name)
+    __import__(module)
+    mod = sys_modules[module]
+    return getattr(mod, name)
+
 def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
@@ -617,9 +692,10 @@ def loads(s, compress=True):
         [   1    2]
         [   3 -4/3]
 
-    One can load uncompressed data even if one messes up
-    and doesn't specify compress=False.  This is slightly
-    slower though.
+    If compress is True (the default), it will try to decompress
+    the data with zlib and with bz2 (in turn); if neither succeeds,
+    it will assume the data is actually uncompressed.  If compress=False
+    is explicitly specified, then no decompression is attempted.
 
     ::
 
@@ -628,35 +704,27 @@ def loads(s, compress=True):
         True
         sage: loads(dumps(v, compress=False), compress=True) == v
         True
-        sage: loads(dumps(v, compress=True), compress=False) == v
-        True
+        sage: loads(dumps(v, compress=True), compress=False)
+        Traceback (most recent call last):
+        ...
+        UnpicklingError: invalid load key, 'x'.
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
     if compress:
         try:
-            return cPickle.loads(comp.decompress(s))
+            s = comp.decompress(s)
         except Exception, msg1:
             try:
-                return cPickle.loads(comp_other.decompress(s))
+                s = comp_other.decompress(s)
             except Exception, msg2:
                 # Maybe data is uncompressed?
-                try:
-                    return cPickle.loads(s)
-                except Exception, msg3:
-                    try: msg1 = str(msg1)
-                    except: msg1 = type(msg1)
-                    try: msg2 = str(msg2)
-                    except: msg2 = type(msg2)
-                    try: msg3 = str(msg3)
-                    except: msg3 = type(msg3)
-                    raise RuntimeError, "%s\n%s\n%s\nUnable to load pickled data."%(msg1,msg2,msg3)
-    else:
-        try:
-            return cPickle.loads(s)
-        except:
-            # maybe data is compressed anyways??
-            return loads(s, compress=True)
+                pass
+
+    unpickler = cPickle.Unpickler(StringIO(s))
+    unpickler.find_global = unpickle_global
+
+    return unpickler.load()
 
 
 cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
@@ -723,7 +791,7 @@ def unpickle_all(dir, debug=False):
     INPUT:
 
     - ``dir`` - string; a directory or name of a .tar.bz2 file that
-      decompresses to give a directo pickirectory.
+      decompresses to give a directory full of pickles.
 
     EXAMPLES::
 

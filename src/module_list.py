@@ -247,8 +247,8 @@ ext_modules = [
                          'sage/graphs/planarity/platformTime.h',
                          'sage/graphs/planarity/stack.h']),
 
-    Extension('sage.graphs.base.sparse_graph',
-              sources = ['sage/graphs/base/sparse_graph.pyx']),
+    Extension('sage.graphs.trees',
+              sources = ['sage/graphs/trees.pyx']),
 
         ################################
         ##
@@ -258,6 +258,9 @@ ext_modules = [
 
     Extension('sage.graphs.base.c_graph',
               sources = ['sage/graphs/base/c_graph.pyx']),
+
+    Extension('sage.graphs.base.sparse_graph',
+              sources = ['sage/graphs/base/sparse_graph.pyx']),
 
     Extension('sage.graphs.base.dense_graph',
               sources = ['sage/graphs/base/dense_graph.pyx']),

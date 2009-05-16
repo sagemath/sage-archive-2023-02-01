@@ -69,7 +69,7 @@ int nrnSize(number a)
  */
 int nrnInt(number &n)
 {
-  return (int) mpz_get_si( (int_number) &n);
+  return (int) mpz_get_si( (int_number) n);
 }
 
 /*

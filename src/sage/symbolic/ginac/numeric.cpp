@@ -1192,7 +1192,11 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return 0;
     case PYOBJECT:
-      return py_get_parent_char(v._pyobject);
+      {
+	int c = py_get_parent_char(v._pyobject);
+	if (c == -1) py_error("error in py_get_parent_char");
+	return c;
+      }
     default:
       stub("invalid type -- is_parent_pos_char() type not handled");
     }

@@ -15,7 +15,7 @@ if os.environ['SAGE64'] == "yes":
     CXXFLAGS=[" -m64"] + CXXFLAGS
     LINKFLAGS=[" -m64"]
 
-CPPPATH=[os.environ['BOOSTINCDIR']]
+CPPPATH=[os.environ['BOOSTINCDIR']]+[os.environ['SAGE_LOCAL']+"/include"]
 PYPREFIX=os.environ['PYTHONHOME']
 PBP=os.environ['PYTHONHOME']+'/bin/python'
 

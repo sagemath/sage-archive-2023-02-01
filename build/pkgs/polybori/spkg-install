@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.5rc
+PBDIR=polybori-0.6
 WORKDIR=${PWD}/src
 SCONS=scons
 
@@ -26,7 +26,6 @@ patch()
 
     cp patches/SConstruct src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
-    cp patches/m4ri.h src/${PBDIR}/M4RI/m4ri.h
 
     # workaround so will build on cygwin
     cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c

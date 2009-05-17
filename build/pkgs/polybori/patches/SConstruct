@@ -1,11 +1,11 @@
 # Emacs edit mode for this file is -*- python -*-
-#$Id: SConstruct,v 1.31 2008/07/08 21:41:57 alexanderdreyer Exp $
+#$Id: SConstruct,v 1.42 2009/05/15 13:40:24 alexanderdreyer Exp $
 opts = Options('custom.py')
 
 # Some hard-coded settings
 pboriname = 'PolyBoRi'
-pboriversion = "0.5"
-pborirelease = "0"
+pboriversion = "0.6"
+pborirelease = "1"
 
 libraryversion = "0.0.0"
 debname = "polybori-" + pboriversion
@@ -16,9 +16,11 @@ import sys
 from os import sep, path
 from glob import glob
 
-m4ri=["grayflex.c", "packedmatrix.c","watch.c","strassen.c","misc.c",
+m4ri=["grayflex.c", "permutation.c", "packedmatrix.c","strassen.c","misc.c",
 "brilliantrussian.c"]
 m4ri=[path.join("M4RI", m) for m in m4ri]
+
+m4ri_inc = 'M4RI/m4ri'
 
 # Fix some paths and names
 class PathJoiner(object):
@@ -97,7 +99,7 @@ def sonameprefix(env):
     if env['PLATFORM']=="darwin":
         return "-Wl,-dylib_install_name -Wl,"
     else:
-        return '-Wl,-soname,'
+        return '-Wl,-soname -Wl,'
 #print defaultenv.Dump()
 # Define option handle, may be changed from command line or custom.py
 opts.Add('CXX', 'C++ Compiler', "g++")
@@ -153,9 +155,9 @@ opts.Add(BoolOption('BOOST_WORKS',
 opts.Add(BoolOption('RELATIVE_SYMLINK',
                     'Use relative symbolic links on install', True))
 
-opts.Add(BoolOption('HAVE_L2H', 'Switch latex2html on/off', True))
-opts.Add(BoolOption('HAVE_HEVEA', 'Switch hevea on/off (if latex2html is not available)', True))
-opts.Add(BoolOption('HAVE_TEX4HT', 'Switch tex4ht on/off (if latex2html and hevea are not available) ', True))
+opts.Add(BoolOption('HAVE_L2H', 'Switch latex2html on/off (deprecated)', False))
+opts.Add(BoolOption('HAVE_HEVEA', 'Switch hevea on/off (deprecated)', False))
+opts.Add(BoolOption('HAVE_TEX4HT', 'Switch tex4ht on/off', True))
 
 
 opts.Add(BoolOption('HAVE_PYDOC', 'Switch python doc generation on/off', True))
@@ -280,9 +282,17 @@ env.AppendUnique(PYTHONSITE = pyconf.sitedir)
 Help(opts.GenerateHelpText(env))
 
 have_l2h = have_t4h = False
+external_m4ri = True
 
 if not env.GetOption('clean'):
     conf = Configure(env)
+
+
+
+    if conf.CheckCXXHeader('unordered_map'):
+        env.Append(CPPDEFINES=["HAVE_UNORDERED_MAP"])
+    elif conf.CheckCXXHeader('tr1/unordered_map'):
+        env.Append(CPPDEFINES=["HAVE_TR1_UNORDERED_MAP"])
 
     extern_python_ext = env['EXTERNAL_PYTHON_EXTENSION']
     if HAVE_PYTHON_EXTENSION or extern_python_ext:
@@ -313,14 +323,34 @@ if not env.GetOption('clean'):
 
     if not have_l2h:
         have_t4h = env['HAVE_HEVEA'] and env.Detect('hevea')
+        t4h_opts = ''
         if not have_t4h:
             have_t4h = env['HAVE_TEX4HT'] and env.Detect('htlatex')
             tex_to_ht = 'htlatex'
+
             if not have_t4h:
                 print "Warning: No LaTeX to html converter found,",
                 print "Tutorial will not be installed"
+    external_m4ri = conf.CheckLib('m4ri')
+    if external_m4ri:
+       env['LIBS'] += ['m4ri']
+    else:
+       env['CPPPATH'] += ['M4RI']
+
+       # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
+       if not path.exists(m4ri_inc):
+           print "Symlinking to", m4ri_inc, "..."
+           os.symlink('.', m4ri_inc)
 
     env = conf.Finish()
+
+
+else:
+    # Removing symlink M4RI/m4ri
+    if path.exists(m4ri_inc) and path.islink(m4ri_inc):
+        print "Removing symbolic link to ", m4ri_inc, "..."
+        os.remove(m4ri_inc)
+
 # end of not cleaning
 
 env.Clean('.', glob('*.pyc') + ['config.log'] )
@@ -340,12 +370,14 @@ def build_symlink(target, source, env):
     source = source[0].path
     if env['RELATIVE_SYMLINK'] :
         source = relpath(targetdir, source)
+    if not source:
+        source = '.'
 
     print "Symlinking from", source, "to", target
 
     try:
         if path.exists(target):
-            env.Remove(target)
+            os.remove(target)
         os.symlink(source, target)
     except:
         return True
@@ -354,6 +386,7 @@ def build_symlink(target, source, env):
 symlinkbld = Builder(action = build_symlink)
 
 env.Append(BUILDERS={'SymLink' : symlinkbld})
+
 ######################################################################
 # Stuff for building Cudd library
 ######################################################################
@@ -469,8 +502,10 @@ env.Clean([libpb] + pb_shared, cache_opts)
 # Stuff for building Groebner library
 ######################################################################
 
-gb_src=Split("groebner.cc literal_factorization.cc randomset.cc pairs.cc groebner_alg.cc polynomial_properties.cc lexbuckets.cc dlex4data.cc dp_asc4data.cc lp4data.cc nf.cc interpolate.cc")
-gb_src=[GBPath('src', source) for source in gb_src]+m4ri
+gb_src=Split("groebner.cc literal_factorization.cc randomset.cc pairs.cc groebner_alg.cc fglm.cc polynomial_properties.cc lexbuckets.cc dlex4data.cc dp_asc4data.cc lp4data.cc nf.cc interpolate.cc")
+gb_src = [GBPath('src', source) for source in gb_src]
+if not(external_m4ri):
+   gb_src += m4ri
 gb=env.StaticLibrary(GBPath('groebner'), gb_src+[libpb])
 
 #print "gb:", gb, dir(gb)
@@ -534,7 +569,8 @@ python_absolute = shell_output("which", env["PYTHON"])
 
 if HAVE_PYTHON_EXTENSION:
     wrapper_files=[ PyPBPath(f) for f in Split("""test_util.cc main_wrapper.cc
-    dd_wrapper.cc Poly_wrapper.cc navigator_wrap.cc variable_block.cc
+    fglm_wrapper.cc
+    Poly_wrapper.cc navigator_wrap.cc variable_block.cc
     monomial_wrapper.cc misc_wrapper.cc strategy_wrapper.cc set_wrapper.cc
     slimgb_wrapper.cc""") ]
 
@@ -607,8 +643,8 @@ if HAVE_PYTHON_EXTENSION:
     cnffiles += ['uuf100/uuf100_01', 'uuf125/uuf125_1']
 
     for fname in cnffiles:
-	files = glob(DataPath(fname + ".cnf"))
-	if len(files) > 0:
+        files = glob(DataPath(fname + ".cnf"))
+        if len(files) > 0:
             env.CNF(files)
 
     for fdir in Split("blocksworld qg gcp_large bejing"):
@@ -624,9 +660,11 @@ if HAVE_PYTHON_EXTENSION or extern_python_ext:
         TargetPath = PathJoiner(target[0].dir)
         for file in source:
             (fname, fext) = path.splitext(str(file).replace(pyroot,''))
-            if fext in ['.so', '.py']:
-                fname = TargetPath(fname.replace(sep,'.') + '.html')
-                target.append(env.File(fname))
+
+            if not fname.split(sep)[-1] == "__init__" :
+                if fext in ['.so', '.py'] :
+                    fname = TargetPath(fname.replace(sep,'.') + '.html')
+                    target.append(env.File(fname))
 
         return (target, source)
 
@@ -654,7 +692,8 @@ HAVE_SINGULAR_EXTENSION=True
 docutarget = [DocPath('c++', elt) for elt in Split("html latex")]
 if HAVE_DOXYGEN:
     cxxdocu = env.Doxygen(source=[DocPath('doxygen.conf')], target = docutarget)
-    env.AlwaysBuild(cxxdocu)
+    #env.AlwaysBuild(cxxdocu)
+    env.Depends(cxxdocu, [PBPath(), 'groebner'])
 
 env.Clean(DocPath('c++'), docutarget)
 
@@ -664,7 +703,11 @@ if SINGULAR_HOME:
   HAVE_SINGULAR_EXTENSION=True
 else:
   HAVE_SINGULAR_EXTENSION=False
+
 if HAVE_SINGULAR_EXTENSION:
+
+    SINGULAR_LIBS = env['LIBS'] + ['groebner', 'polybori']
+
     SING_ARCH= subprocess.Popen(["sh", SINGULAR_HOME+"/singuname.sh"], stdout=subprocess.PIPE).communicate()[0]
     SING_ARCH=SING_ARCH.replace("\n","")
     SING_INCLUDES=[SINGULAR_HOME+"/"+SING_ARCH+"/include",SINGULAR_HOME+"/kernel",SINGULAR_HOME+"/Singular"]
@@ -673,12 +716,12 @@ if HAVE_SINGULAR_EXTENSION:
     if env['PLATFORM']=="darwin":
         singpb=env.LoadableModule('Singular/polybori_module', wrapper_files,
             LINKFLAGS="-bundle_loader " + SINGULAR_HOME+"Singular/Singular",
-            LIBS=LIBS,LDMODULESUFFIX=".so",
+            LIBS=SINGULAR_LIBS,LDMODULESUFFIX=".so",
             CPPPATH=SING_INCLUDES+CPPPATH,CCFLAGS=env["CCFLAGS"]+["-fvisibility=hidden"],CXXFLAGS=env["CXXFLAGS"]+["-fvisibility=hidden"])
     else:
         #print "l:", l
         singpb=env.SharedLibrary('Singular/polybori_module', wrapper_files,
-            LDMODULESUFFIX=".so",SHLIBPREFIX="", LIBS=LIBS+USERLIBS,
+            LDMODULESUFFIX=".so",SHLIBPREFIX="", LIBS=SINGULAR_LIBS,
             CPPPATH=SING_INCLUDES+CPPPATH)
             #LIBS=env['LIBS']+['boost_python',l])#,LDMODULESUFFIX=".so",\
             #SHLIBPREFIX="")
@@ -690,13 +733,14 @@ if HAVE_SINGULAR_EXTENSION:
 env.Append(DISTTAR_EXCLUDEEXTS = Split(""".o .os .so .a .dll .cache .pyc
            .cvsignore .dblite .log .sconsign .depend .out .graphViz_temp
            .kprof.html .rpm .spec .so.0 .so.0.0.0 .0"""),
-           DISTTAR_EXCLUDEDIRS = Split("CVS .svn .sconf_temp SOURCES BUILD"),
+           DISTTAR_EXCLUDEDIRS = Split("""CVS .svn .sconf_temp SOURCES BUILD
+           aux"""),
            DISTTAR_EXCLUDEPATTERN = Split(""".#* #*# *~ profiled cacheopts.h
            coding.py """))
 
 if distribute or rpm_generation or deb_generation:
     allsrcs = Split("SConstruct README LICENSE ChangeLog disttar.py doxygen.py")
-    for dirname in Split("""extra groebner ipbori M4RI polybori
+    for dirname in Split("""groebner ipbori M4RI polybori
     PyPolyBoRi pyroot Singular pkgs"""):
         allsrcs.append(env.Dir(dirname))
 
@@ -720,7 +764,8 @@ if distribute or rpm_generation or deb_generation:
 
     # doc is not distributed completely
     allsrcs += [ DocPath(dsrc) for dsrc in Split("""doxygen.conf index.html.in
-    tutorial/tutorial.tex python/genpythondoc.py man/ipbori.1 """) ]
+    tutorial/tutorial.tex tutorial/tutorial_content.tex python/genpythondoc.py
+    man/ipbori.1 """) ]
     allsrcs.append(env.Dir(DocPath('images')))
 
 if distribute:
@@ -760,7 +805,9 @@ if 'devel-install' in COMMAND_LINE_TARGETS:
     env.Install(DevelInstPath('include/polybori/groebner'),
                 glob(GBPath('src/*.h')))
     env.Install(DevelInstPath('include/cudd'), cudd_headers)
-    env.Install(DevelInstPath('include/polybori/M4RI'), glob('M4RI/*.h'))
+    if not(external_m4ri):
+        env.Install(DevelInstPath('include/m4ri'), glob('M4RI/*.h'))
+
     env.Alias('devel-install', DevelInstPath())
 
 
@@ -792,8 +839,10 @@ def cp_pydoc(target, source, env):
     if not path.exists(target):
         Execute(Mkdir(target))
     showpath = relpath(env.Dir(target).abspath,
-                       env.Dir(env['PYINSTALLPREFIX']).abspath) +'/'
+                       env.Dir(env['PYINSTALLPREFIX']).abspath)
 
+    if showpath != '' and showpath[-1] != '/':
+         showpath += '/'
     for file in glob(path.join(source, '*.html')):
         if not path.isdir(file):
             fcontent = open(file).read()
@@ -816,7 +865,7 @@ def l2h_emitter(target, source, env):
     env.Clean(target, target[0].dir)
     return (target, source)
 
-l2h = Builder(action = 'latex2html -html_version 4.0,unicode,utf-8 $SOURCE',
+l2h = Builder(action = 'cd `dirname $SOURCE`; latex2html -html_version 4.0,unicode,utf-8 $SOURCE',
               emitter = l2h_emitter)
 
 def t4h_emitter(target, source, env):
@@ -827,9 +876,17 @@ def t4h_emitter(target, source, env):
 
 
 if have_t4h :
-    t4h_str =  tex_to_ht + ' ' + path.join(env.Dir('').abspath, "$SOURCE")
-    tex_to_ht_bld = Builder(action = 'cd `dirname $TARGET`;' + t4h_str + ';'
-                            + t4h_str, emitter = t4h_emitter)
+    t4h_str =  tex_to_ht + ' ' + path.join(env.Dir('').abspath, "$SOURCE") + t4h_opts
+    os.environ['TEXINPUTS'] = env.Dir('doc/tutorial').abspath
+
+    def t4h_action(source, target, env, for_signature):
+        subdir = path.splitext(target[0].name)[0]
+        if tex_to_ht == 'htlatex':
+            t4h_opts = ' "html,2,charset=utf-8" " -cunihtf -utf8" "-d%s/"' % subdir
+
+        return ('cd %s;' + tex_to_ht + ' %s ' +  t4h_opts) % (source[0].dir, source[0].abspath)
+
+    tex_to_ht_bld = Builder(generator = t4h_action, emitter = t4h_emitter)
     env.Append(BUILDERS={'TeXToHt' : tex_to_ht_bld})
 
 
@@ -879,7 +936,7 @@ substinstbld  = Builder(action = substitute_install)
 def docu_master(target, source, env):
     import os, re
 
-    basefiles = ['index.html', 'polybori.html']
+    basefiles = ['index.html', 'polybori.html', 'tutorial.html']
     basesfound = []
 
     for item in source:
@@ -964,19 +1021,23 @@ env.Append(BUILDERS={'SpecBuilder': specbld,
                      'RPMBuilder': rpmbld, 'SRPMBuilder': srpmbld,
                      'DebBuilder': debbld})
 
+tutorial_srcs = [DocPath('tutorial/tutorial.tex')] + glob(DocPath('tutorial/*.tex'))
 if have_l2h:
-    tutorial = env.L2H(env.Dir(DocPath('tutorial/tutorial')),
-                       DocPath('tutorial/tutorial.tex'))
+    tutorial = env.L2H(env.Dir(DocPath('tutorial/tutorial')), tutorial_srcs)
 else:
     if have_t4h :
         tutorial = env.TeXToHt(env.Dir(DocPath('tutorial/tutorial')),
-                               DocPath('tutorial/tutorial.tex'))
+                               tutorial_srcs)
 
 # Clean, even, if L2H/TexToHt are not available anymore
 env.Clean(DocPath('tutorial'), DocPath('tutorial/tutorial'))
 
+documastersubdirs = "tutorial/tutorial python"
+if HAVE_DOXYGEN:
+    documastersubdirs += " c++"
+
 env.DocuMaster(DocPath('index.html'), [DocPath('index.html.in')] + [
-    env.Dir(DocPath(srcs)) for srcs in Split("""tutorial python c++""") ] + [
+    env.Dir(DocPath(srcs)) for srcs in Split(documastersubdirs) ] + [
     env.Dir('Cudd/cudd/doc')])
 
 pbrpmname = pboriname + '-' + pboriversion + "-" + pborirelease

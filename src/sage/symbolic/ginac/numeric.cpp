@@ -82,6 +82,7 @@ extern "C" {
 	bool      py_is_crational(PyObject* a);
 	bool      py_is_real(PyObject* a);
 	bool      py_is_integer(PyObject* a);
+	bool      py_is_even(PyObject* a);
 	bool      py_is_cinteger(PyObject* a);
 	bool      py_is_prime(PyObject* n);
 	PyObject* py_int(PyObject* n);
@@ -753,10 +754,8 @@ void Number_T::archive(archive_node &n) const {
       todo("Need to check for overflow in   Number_T::operator int() const");
       return (int) v._long;
     case PYOBJECT:
-      // TODO -- worry -- we are assuming long == int!
-      // Must rewrite with some sort of sizeof thing?
       n = PyInt_AsLong(v._pyobject);
-      if (n == -1 && PyErr_Occurred())
+      if (((int)n != n) || (n == -1 && PyErr_Occurred()))
 	py_error("Error converting to a long.");
       return n;
     default:
@@ -1106,16 +1105,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return (v._long %2 == 0);
     case PYOBJECT:
-      o = PyNumber_Remainder(v._pyobject, TWO);
-      if (!o) {
-	PyErr_Clear();
-	return false;
-      }
-      ans = (PyObject_Compare(o, ZERO) == 0);
-      Py_DECREF(o);
-      if (PyErr_Occurred()) 
-	py_error("is_even");
-      return ans;
+      return py_is_even(v._pyobject);
     default:
       stub("invalid type: is_even() type not handled");
     }

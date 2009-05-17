@@ -145,12 +145,11 @@ static ex tgamma_eval(const ex & x)
 		// trap integer arguments:
 		const numeric two_x = (*_num2_p)*ex_to<numeric>(x);
 		if (two_x.is_even()) {
-			// tgamma(n) -> (n-1)! for postitive n
+			// tgamma(n) -> (n-1)! for positive n
 			if (two_x.is_positive()) {
 				return factorial(ex_to<numeric>(x).sub(*_num1_p));
 			} else {
 				//throw (pole_error("tgamma_eval(): simple pole",1));
-
 				return UnsignedInfinity;
 			}
 		}

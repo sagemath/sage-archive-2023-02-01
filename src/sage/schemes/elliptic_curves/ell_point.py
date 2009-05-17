@@ -1668,10 +1668,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.discriminant() < 0
             True
             sage: P = E([16,-61])
-            sage: P.elliptic_logarithm (precision=96)
-            0.2538418608559106843377589234
-            sage: E.period_lattice().basis(prec=96)[0] / P.elliptic_logarithm (precision=96)
-            5.000000000000000000000000000
+            sage: P.elliptic_logarithm(precision=70)
+            0.25384186085591068434
+            sage: E.period_lattice().real_period(prec=70) / P.elliptic_logarithm(precision=70)
+            5.0000000000000000000
 
         A larger example.  The default algorithm uses Pari and makes
         sure the result has the requested precision::

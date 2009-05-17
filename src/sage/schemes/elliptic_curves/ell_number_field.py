@@ -1182,40 +1182,42 @@ class EllipticCurve_number_field(EllipticCurve_field):
         T = self.torsion_subgroup() # make sure it is cached
         return T.points()           # these are also cached in T
 
-    def period_lattice(self, real_embedding):
+    def period_lattice(self, embedding):
         r"""
-        Returns the period lattice of the elliptic curve for the given real embedding of its base field.
+        Returns the period lattice of the elliptic curve for the given embedding of its base field.
 
         INPUT:
 
-        - ``real_embedding`` - a real embedding of the base number field.
-
-        .. note::
-
-           Period lattices have not yet been implemented for non-real
-           complex embeddings.
+        - ``embedding`` - an embedding of the base number field into `\RR` or `\CC`.
 
         EXAMPLES:
 
         First define a field with two real embeddings::
 
-            sage: K.<a> = NumberField(x^2-2)
+            sage: K.<a> = NumberField(x^3-2)
             sage: E=EllipticCurve([0,0,0,a,2])
-            sage: embs=K.embeddings(RR); len(embs)
-            2
+            sage: embs=K.embeddings(CC); len(embs)
+            3
 
         For each embedding we have a different period lattice::
 
             sage: E.period_lattice(embs[0])
-            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
-            From: Number Field in a with defining polynomial x^2 - 2
-            To:   Real Field with 53 bits of precision
-            Defn: a |--> -1.414213562373...
+            Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Complex Field with 53 bits of precision
+            Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+
             sage: E.period_lattice(embs[1])
-            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + a*x + 2 over Number Field in a with defining polynomial x^2 - 2 with respect to the real embedding Ring morphism:
-            From: Number Field in a with defining polynomial x^2 - 2
-            To:   Real Field with 53 bits of precision
-            Defn: a |--> 1.414213562373...
+            Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Complex Field with 53 bits of precision
+            Defn: a |--> -0.629960524947436 + 1.09112363597172*I
+
+            sage: E.period_lattice(embs[2])
+            Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+            From: Number Field in a with defining polynomial x^3 - 2
+            To:   Complex Field with 53 bits of precision
+            Defn: a |--> 1.25992104989487
 
         Although the original embeddings have only the default
         precision, we can obtain the basis with higher precision
@@ -1223,15 +1225,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: L=E.period_lattice(embs[0])
             sage: L.basis()
-            (4.13107185270502, -2.06553592635251 + 0.988630424469108*I)
-            sage: L.basis(prec=75)
-            (4.131071852705016774310,
-            -2.065535926352508387155 + 0.9886304244691077723690*I)
+            (1.86405007647981 - 0.903761485143226*I, -0.1493446331439... - 2.066195462729...*I)
+
             sage: L.basis(prec=100)
-            (4.1310718527050167743096955262,
-            -2.0655359263525083871548477631 + 0.98863042446910777236901069434*I)
+            (1.8640500764798108425920506200 - 0.90376148514322594749786960975*I, -0.14934463314391922099120107422 - 2.0661954627294548995621225062*I)
         """
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
-        return PeriodLattice_ell(self,real_embedding)
+        return PeriodLattice_ell(self,embedding)
 
 

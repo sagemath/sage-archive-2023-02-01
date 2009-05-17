@@ -999,7 +999,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long > 0; 
     case PYOBJECT:
-      n = (PyObject_Compare(v._pyobject, ZERO) > 0);
+      n = is_real() && (PyObject_Compare(v._pyobject, ZERO) > 0);
       if (PyErr_Occurred()) 
 	py_error("is_positive");
       return n;
@@ -1017,7 +1017,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long < 0; 
     case PYOBJECT:
-      n = (PyObject_Compare(v._pyobject, ZERO) < 0);
+      n = is_real() && (PyObject_Compare(v._pyobject, ZERO) < 0);
       if (PyErr_Occurred()) 
 	py_error("is_negative");
       return n;

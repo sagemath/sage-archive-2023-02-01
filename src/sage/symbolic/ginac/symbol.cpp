@@ -189,7 +189,7 @@ void symbol::do_print(const print_context & c, unsigned level) const
 
 void symbol::do_print_latex(const print_latex & c, unsigned level) const
 {
-	std::string* lstr = py_latex_variable(TeX_name.c_str());
+        std::string* lstr = py_latex_variable(name.c_str());
 	c.s << *lstr;
 	delete lstr;
 }

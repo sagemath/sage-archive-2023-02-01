@@ -104,12 +104,7 @@ DEFAULT_UNARCHIVE(power)
 
 unsigned power::calchash() const
 {
-  // TODO: SAGE -- we have to disable hashing in order to
-  // get internal sorting of poly vars (via PARI) 
-  // to work correctly on the linear part.  This makes
-  // the hashes fail, so the actual compare funtion
-  // is called.
-  hashvalue = 0;
+  hashvalue = basis.gethash()+exponent.gethash();
   setflag(status_flags::hash_calculated);
   return hashvalue;
 }

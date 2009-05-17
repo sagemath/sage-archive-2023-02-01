@@ -626,6 +626,7 @@ currently looking at to the inferior sage interactively.
 and restart a fresh inferior sage in an existing buffer.
 
 \\{sage-mode-map}"
+  (setq comment-column 60)
   (set (make-local-variable 'font-lock-multiline) t)
   (set (make-local-variable 'font-lock-defaults)
        `(, (cons

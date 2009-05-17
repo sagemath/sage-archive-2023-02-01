@@ -293,9 +293,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: sum(parts) == q
             True
 
-        We do the best we can over in-exact fields.
-
-        ::
+        We do the best we can over in-exact fields::
 
             sage: R.<x> = RealField(20)[]
             sage: q = 1/(x^2 + 2)^2 + 1/(x-1); q
@@ -304,12 +302,34 @@ cdef class FractionFieldElement(FieldElement):
             [1.0000/(1.0000*x - 1.0000), 1.0000/(1.0000*x^4 + 4.0000*x^2 + 4.0000)]
             sage: sum(parts)
             (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
+
+        TESTS:
+
+        We test partial fraction for irreducible denominators::
+
+            sage: R.<x> = ZZ[]
+            sage: q = x^2/(x-1)
+            sage: q.partial_fraction_decomposition()
+            (x + 1, [1/(x - 1)])
+            sage: q = x^10/(x-1)^5
+            sage: whole, parts = q.partial_fraction_decomposition()
+            sage: whole + sum(parts) == q
+            True
+
+        And also over finite fields (see trac #6052)::
+
+            sage: R.<x> = GF(2)[]
+            sage: q = (x+1)/(x^3+x+1)
+            sage: q.partial_fraction_decomposition()
+            (0, [(x + 1)/(x^3 + x + 1)])
         """
         denom = self.denominator()
         whole, numer = self.numerator().quo_rem(denom)
         factors = denom.factor()
         if factors.unit() != 1:
             numer *= ~factors.unit()
+        if len(factors) == 1:
+            return whole, [numer/r**e for r,e in factors]
         if not self._parent.is_exact():
             # factors not grouped in this case
             # TODO: think about changing the factor code itself
@@ -322,6 +342,8 @@ cdef class FractionFieldElement(FieldElement):
         factors = [r**e for r,e in factors]
         parts = []
         for d in factors:
+            # note that the product below is non-empty, since the case
+            # of only one factor has been dealt with above
             n = numer * prod([r for r in factors if r != d]).inverse_mod(d) % d # we know the inverse exists as the two are relatively prime
             parts.append(n/d)
         return whole, parts

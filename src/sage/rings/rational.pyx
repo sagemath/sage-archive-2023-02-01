@@ -19,6 +19,9 @@ AUTHORS:
   multiplicative_order, is_one; optimized __nonzero__ ; documented:
   lcm,gcd
 
+- John Cremona (2009-05-15): added support for local and global
+  logarithmic heights.
+
 TESTS::
 
     sage: a = -2/3
@@ -862,16 +865,25 @@ cdef class Rational(sage.structure.element.FieldElement):
             return Rational(1)
 
     def valuation(self, p):
-        """
-        Return the largest power of p that divides self.
+        r"""
+        Return the power of ``p`` in the factorization of self.
 
         INPUT:
 
 
         -  ``p`` - a prime number
 
+        OUTPUT:
 
-        EXAMPLES::
+        (integer or infinity) Infinity if self is zero, otherwise the
+        (positive or negative) integer `e` such that self = `m*p^e`
+        with `m` coprime to `p`.
+
+        .. note::
+
+           See also ``val_unit()`` which returns the pair `(e,m)`.
+
+        Examples::
 
             sage: x = -5/9
             sage: x.valuation(5)
@@ -889,6 +901,197 @@ cdef class Rational(sage.structure.element.FieldElement):
             -2
         """
         return self.numerator().valuation(p) - self.denominator().valuation(p)
+
+    def local_height(self, p, prec=None):
+        r"""
+        Returns the local height of this rational number at the prime `p`.
+
+        INPUT:
+
+
+        -  ``p`` - a prime number
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The local height of this rational number at the
+        prime `p`.
+
+        EXAMPLES::
+
+            sage: a = QQ(25/6)
+            sage: a.local_height(2)
+            0.693147180559945
+            sage: a.local_height(3)
+            1.09861228866811
+            sage: a.local_height(5)
+            0.000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        val = self.valuation(p)
+        if val >= 0:
+            return R.zero_element()
+        return -val * R(p).log()
+
+    def local_height_arch(self, prec=None):
+        r"""
+        Returns the archimdean local height of this rational number at the infinite place.
+
+        INPUT:
+
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The local height of this rational number `x` at the
+        unique infinite place of `\QQ`, which is
+        `\max(\log(|x|),0)`.
+
+        EXAMPLES::
+
+            sage: a = QQ(6/25)
+            sage: a.local_height_arch()
+            0.000000000000000
+            sage: (1/a).local_height_arch()
+            1.42711635564015
+            sage: (1/a).local_height_arch(100)
+            1.4271163556401457483890413081
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        a = self.abs()
+        if a <= 1:
+            return R.zero_element()
+        return R(a).log()
+
+    def global_height_non_arch(self, prec=None):
+        r"""
+        Returns the total non-archimedean component of the height of this rational number.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The total non-archimedean component of the height of
+        this rational number.
+
+        ALGORITHM:
+
+        This is the sum of the local heights at all primes `p`, which
+        may be computed without fatorization as the log of the
+        denominator.
+
+        EXAMPLES::
+
+            sage: a = QQ(5/6)
+            sage: a.support()
+            [2, 3, 5]
+            sage: a.global_height_non_arch()
+            1.79175946922805
+            sage: [a.local_height(p) for p in a.support()]
+            [0.693147180559945, 1.09861228866811, 0.000000000000000]
+            sage: sum([a.local_height(p) for p in a.support()])
+            1.79175946922805
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        d = self.denominator()
+        if d.is_one():
+            return R.zero_element()
+        return R(d).log()
+
+    def global_height_arch(self, prec=None):
+        r"""
+        Returns the total archimedean component of the height of this rational number.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The total archimedean component of the height of
+        this rational number.
+
+        ALGORITHM:
+
+        Since `\QQ` has only one infinite place this is just the value
+        of the local height at that place.  This separate function is
+        included for compatibility with number fields.
+
+        EXAMPLES::
+
+            sage: a = QQ(6/25)
+            sage: a.global_height_arch()
+            0.000000000000000
+            sage: (1/a).global_height_arch()
+            1.42711635564015
+            sage: (1/a).global_height_arch(100)
+            1.4271163556401457483890413081
+        """
+        return self.local_height_arch(prec)
+
+    def global_height(self, prec=None):
+        r"""
+        Returns the absolute logarithmic height of this rational number.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this rational
+        number.
+
+        ALGORITHM:
+
+        The height is the sum of the total archimedean and
+        non-archimedean components, which is equal to
+        `\max(\log(n),\log(d))` where `n,d` are the numerator and
+        denominator of the rational number.
+
+        EXAMPLES::
+
+            sage: a = QQ(6/25)
+            sage: a.global_height_arch() + a.global_height_non_arch()
+            3.21887582486820
+            sage: a.global_height()
+            3.21887582486820
+            sage: (1/a).global_height()
+            3.21887582486820
+            sage: QQ(0).global_height()
+            0.000000000000000
+            sage: QQ(1).global_height()
+            0.000000000000000
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        return R(max(self.numerator().abs(),self.denominator())).log()
 
     def is_square(self):
         """
@@ -1367,13 +1570,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         Return the period of the repeating part of the decimal expansion of
         this rational number.
 
-        ALGORITHM: When a rational number `n/d` with
-        `(n,d)==1` is expanded, the period begins after `s`
-        terms and has length `t`, where `s` and `t`
-        are the smallest numbers satisfying
-        `10^s=10^(s+t) (mod d)`. When `d` is coprime to 10,
-        this becomes a purely periodic decimal with
-        `10^t=1 (mod d)`. (Lehmer 1941 and Mathworld).
+        ALGORITHM: When a rational number `n/d` with `(n,d)==1` is
+        expanded, the period begins after `s` terms and has length
+        `t`, where `s` and `t` are the smallest numbers satisfying
+        `10^s=10^{s+t} (\mod d)`. In general if `d=2^a3^bm` where `m`
+        is coprime to 10, then `s=\max(a,b)` and `t` is the order of
+        10 modulo `d`.
 
         EXAMPLES::
 
@@ -1397,14 +1599,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         cdef unsigned int alpha, beta
         d = self.denominator()
-        alpha = d.valuation(2)
-        beta = d.valuation(5)
-        P = d.parent()
-        if alpha > 0 or beta > 0:
-            d = d//(P(2)**alpha * P(5)**beta)
+        alpha, d = d.val_unit(2)
+        beta, d  = d.val_unit(5)
         from sage.rings.integer_mod import Mod
-        a = Mod(P(10),d)
-        return a.multiplicative_order()
+        return Mod(ZZ(10),d).multiplicative_order()
 
     def nth_root(self, int n):
         r"""
@@ -2520,6 +2718,11 @@ cdef class Rational(sage.structure.element.FieldElement):
         AUTHORS:
 
         - Naqi Jaffery (2006-03-05): examples
+
+        .. note::
+
+           For the logarithmic height, use ``global_height()``.
+
         """
         x = abs(self.numer())
         if x > self.denom():

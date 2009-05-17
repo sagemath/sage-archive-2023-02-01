@@ -496,7 +496,13 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.ideal(13).is_prime()
             False
         """
-        return self.absolute_ideal().is_prime()
+        try:
+            return self._pari_prime is not None
+        except AttributeError:
+            abs_ideal = self.absolute_ideal()
+            _ = abs_ideal.is_prime()
+            self._pari_prime = abs_ideal._pari_prime
+            return self._pari_prime is not None
 
     def is_integral(self):
         """

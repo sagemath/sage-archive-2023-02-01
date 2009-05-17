@@ -1745,6 +1745,52 @@ class NumberField_relative(NumberField_generic):
                                         check=False, universe=self.Hom(self))
         return self.__automorphisms
 
+    def places(self, all_complex=False, prec=None):
+        """
+        Return the collection of all infinite places of self.
+
+        By default, this returns the set of real places as
+        homomorphisms into RIF first, followed by a choice of one of
+        each pair of complex conjugate homomorphisms into CIF.
+
+        On the other hand, if prec is not None, we simply return places
+        into RealField(prec) and ComplexField(prec) (or RDF, CDF if
+        prec=53).
+
+        There is an optional flag all_complex, which defaults to False. If
+        all_complex is True, then the real embeddings are returned as
+        embeddings into CIF instead of RIF.
+
+        EXAMPLES::
+
+            sage: L.<b, c> = NumberFieldTower([x^2 - 5, x^3 + x + 3])
+            sage: L.places()
+            [Relative number field morphism:
+            From: Number Field in b with defining polynomial x^2 - 5 over its base field
+            To:   Real Field with 106 bits of precision
+            Defn: b |--> -2.236067977499789696409173668937
+            c |--> -1.213411662762229634132131377426,
+            Relative number field morphism:
+            From: Number Field in b with defining polynomial x^2 - 5 over its base field
+            To:   Real Field with 106 bits of precision
+            Defn: b |--> 2.236067977499789696411548005367
+            c |--> -1.213411662762229634130492421800,
+            Relative number field morphism:
+            From: Number Field in b with defining polynomial x^2 - 5 over its base field
+            To:   Complex Field with 53 bits of precision
+            Defn: b |--> -2.23606797749979 - 2.22044604925031e-16*I
+            c |--> 0.606705831381115 - 1.45061224918844*I,
+            Relative number field morphism:
+            From: Number Field in b with defining polynomial x^2 - 5 over its base field
+            To:   Complex Field with 53 bits of precision
+            Defn: b |--> 2.23606797749979 - 4.44089209850063e-16*I
+            c |--> 0.606705831381115 - 1.45061224918844*I]
+        """
+        L = self.absolute_field('a')
+        pl = L.places(all_complex, prec)
+        return [self.hom(p, p.codomain()) for p in pl]
+
+
     def absolute_different(self):
         r"""
         Return the absolute different of this relative number field `L`, as an

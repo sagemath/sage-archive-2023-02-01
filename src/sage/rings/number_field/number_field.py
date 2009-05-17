@@ -1877,8 +1877,10 @@ class NumberField_generic(number_field_base.NumberField):
            exactly this degree.
 
 
-        OUTPUT: A list of prime ideals of self lying over x. If degree is
-        specified and no such ideal exists, returns the empty list.
+        OUTPUT: A list of prime ideals of self lying over x. If degree
+        is specified and no such ideal exists, returns the empty list.
+        The output is sorted by residue degree first, then by
+        underlying prime (or equivalently, by norm).
 
         EXAMPLES::
 
@@ -5321,10 +5323,11 @@ class NumberField_absolute(NumberField_generic):
 
     def places(self, all_complex=False, prec=None):
         """
-        Return the collection of all places of self. By default, this
-        returns the set of real places as homomorphisms into RIF first,
-        followed by a choice of one of each pair of complex conjugate
-        homomorphisms into CIF.
+        Return the collection of all infinite places of self.
+
+        By default, this returns the set of real places as
+        homomorphisms into RIF first, followed by a choice of one of
+        each pair of complex conjugate homomorphisms into CIF.
 
         On the other hand, if prec is not None, we simply return places
         into RealField(prec) and ComplexField(prec) (or RDF, CDF if

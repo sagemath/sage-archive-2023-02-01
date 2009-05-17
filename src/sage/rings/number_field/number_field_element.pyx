@@ -11,6 +11,10 @@ AUTHORS:
 
 - Robert Bradshaw (2007-09-15): specialized classes for relative and
   absolute elements
+
+- John Cremona (2009-05-15): added support for local and global
+  logarithmic heights.
+
 """
 
 # TODO -- relative extensions need to be completely rewritten, so one
@@ -606,13 +610,13 @@ cdef class NumberFieldElement(FieldElement):
         return self.abs(prec=53, i=0)
 
     def abs(self, prec=53, i=0):
-        """
-        Return the absolute value of this element with respect to the ith
-        complex embedding of parent, to the given precision.
+        r"""
+        Return the absolute value of this element with respect to the
+        `i`th complex embedding of parent, to the given precision.
 
-        If prec is 53 (the default), then the complex double field is used;
-        otherwise the arbitrary precision (but slow) complex field is
-        used.
+        If prec is 53 (the default), then the complex double field is
+        used; otherwise the arbitrary precision (but slow) complex
+        field is used.
 
         INPUT:
 
@@ -653,6 +657,54 @@ cdef class NumberFieldElement(FieldElement):
         """
         P = self.number_field().complex_embeddings(prec)[i]
         return abs(P(self))
+
+    def abs_non_arch(self, P, prec=None):
+        r"""
+        Return the non-archimedean absolute value of this element with
+        respect to the prime `P`, to the given precision.
+
+        INPUT:
+
+        -  ``P`` - a prime ideal of the parent of self
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) the non-archimedean absolute value of this element with
+        respect to the prime `P`, to the given precision.  This is the
+        normalised absolute value, so that the underlying prime number
+        `p` has absolute value `1/p`.
+
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2+5)
+            sage: [1/K(2).abs_non_arch(P) for P in K.primes_above(2)]
+            [2.00000000000000]
+            sage: [1/K(3).abs_non_arch(P) for P in K.primes_above(3)]
+            [3.00000000000000, 3.00000000000000]
+            sage: [1/K(5).abs_non_arch(P) for P in K.primes_above(5)]
+            [5.00000000000000]
+
+        A relative example::
+
+            sage: L.<b> = K.extension(x^2-5)
+            sage: [b.abs_non_arch(P) for P in L.primes_above(b)]
+            [0.447213595499958, 0.447213595499958]
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+
+        if self.is_zero():
+            return R.zero_element()
+        val = self.valuation(P)
+        nP = P.residue_class_degree()*P.absolute_ramification_index()
+        return R(P.absolute_norm()) ** (-R(val) / R(nP))
 
     def coordinates_in_terms_of_powers(self):
         r"""
@@ -1649,7 +1701,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.multiplicative_order()
             +Infinity
 
-        An example in a relative extension:
+        An example in a relative extension::
 
             sage: K.<a, b> = NumberField([x^2 + x + 1, x^2 - 3])
             sage: z = (a - 1)*b/3
@@ -2033,6 +2085,12 @@ cdef class NumberFieldElement(FieldElement):
             1
             sage: type(b.valuation(P))
             <type 'sage.rings.integer.Integer'>
+
+        The function can be applied to elements in relative number fields::
+
+            sage: L.<b> = K.extension(x^2 - 3)
+            sage: [L(6).valuation(P) for P in L.primes_above(6)]
+            [4, 2, 2]
         """
         from number_field_ideal import is_NumberFieldIdeal
         from sage.rings.infinity import infinity
@@ -2047,6 +2105,345 @@ cdef class NumberFieldElement(FieldElement):
         if self == 0:
             return infinity
         return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
+
+    def local_height(self, P, prec=None, weighted=False):
+        r"""
+        Returns the local height of self at a given prime ideal `P`.
+
+        INPUT:
+
+
+        -  ``P`` - a prime ideal of the parent of self
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        - ``weighted`` (bool, default False) -- if True, apply local
+          degree weighting.
+
+        OUTPUT:
+
+        (real) The local height of this number field element at the
+        place `P`.  If ``weighted`` is True, this is multiplied by the
+        local degree (as required for global heights).
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: b = 1/(a^2 + 30)
+            sage: b.local_height(P)
+            4.11087386417331
+            sage: b.local_height(P, weighted=True)
+            8.22174772834662
+            sage: b.local_height(P, 200)
+            4.1108738641733112487513891034256147463156817430812610629374
+            sage: (b^2).local_height(P)
+            8.22174772834662
+            sage: (b^-1).local_height(P)
+            0.000000000000000
+
+        A relative example::
+
+            sage: PK.<y> = K[]
+            sage: L.<c> = NumberField(y^2 + a)
+            sage: L(1/4).local_height(L.ideal(2, c-a+1))
+            1.38629436111989
+        """
+        if self.valuation(P) >= 0: ## includes the case self=0
+            from sage.rings.real_mpfr import RealField
+            if prec is None:
+                return RealField().zero_element()
+            else:
+                return RealField(prec).zero_element()
+        ht = self.abs_non_arch(P,prec).log()
+        if not weighted:
+            return ht
+        nP = P.residue_class_degree()*P.absolute_ramification_index()
+        return nP*ht
+
+    def local_height_arch(self, i, prec=None, weighted=False):
+        r"""
+        Returns the local height of self at the `i`'th infinite place.
+
+        INPUT:
+
+
+        - ``i`` (int) - an integer in ``range(r+s)`` where `(r,s)` is the
+           signature of the parent field (so `n=r+2s` is the degree).
+
+        - ``prec`` (int) -- desired floating point precision (default:
+          default RealField precision).
+
+        - ``weighted`` (bool, default False) -- if True, apply local
+          degree weighting, i.e. double the value for complex places.
+
+        OUTPUT:
+
+        (real) The archimedean local height of this number field
+        element at the `i`'th infinite place.  If ``weighted`` is
+        True, this is multiplied by the local degree (as required for
+        global heights), i.e. 1 for real places and 2 for complex
+        places.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: [p.codomain() for p in K.places()]
+            [Real Field with 106 bits of precision,
+            Real Field with 106 bits of precision,
+            Complex Field with 53 bits of precision]
+            sage: [a.local_height_arch(i) for i in range(3)]
+            [0.5301924545717755083366563897519,
+            0.5301924545717755083366563897519,
+            0.886414217456333]
+            sage: [a.local_height_arch(i, weighted=True) for i in range(3)]
+            [0.5301924545717755083366563897519,
+            0.5301924545717755083366563897519,
+            1.77282843491267]
+
+        A relative example::
+
+            sage: L.<b, c> = NumberFieldTower([x^2 - 5, x^3 + x + 3])
+            sage: [(b + c).local_height_arch(i) for i in range(4)]
+            [1.238223390757884911842206617439,
+            0.02240347229957875780769746914391,
+            0.780028961749618,
+            1.16048938497298]
+        """
+        K = self.number_field()
+        emb = K.places(prec=prec)[i]
+        a = emb(self).abs()
+        Kv = emb.codomain()
+        if a <= Kv.one_element():
+            return Kv.zero_element()
+        ht = a.log()
+        from sage.rings.real_mpfr import is_RealField
+        if weighted and not is_RealField(Kv):
+            ht*=2
+        return ht
+
+    def global_height_non_arch(self, prec=None):
+        """
+        Returns the total non-archimedean component of the height of self.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The total non-archimedean component of the height of
+        this number field element; that is, the sum of the local
+        heights at all finite places, weighted by the local degrees.
+
+        ALGORITHM:
+
+        An alternative formula is `\log(d)` where `d` is the norm of
+        the denominator ideal; this is used to avoid factorization.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: b = a/6
+            sage: b.global_height_non_arch()
+            7.16703787691222
+
+        Check that this is equal to the sum of the non-archimedean
+        local heights::
+
+            sage: [b.local_height(P) for P in b.support()]
+            [0.000000000000000, 0.693147180559945, 1.09861228866811, 1.09861228866811]
+            sage: [b.local_height(P, weighted=True) for P in b.support()]
+            [0.000000000000000, 2.77258872223978, 2.19722457733622, 2.19722457733622]
+            sage: sum([b.local_height(P,weighted=True) for P in b.support()])
+            7.16703787691222
+
+        A relative example::
+
+            sage: PK.<y> = K[]
+            sage: L.<c> = NumberField(y^2 + a)
+            sage: (c/10).global_height_non_arch()
+            18.4206807439524
+        """
+        from sage.rings.real_mpfr import RealField
+        if prec is None:
+            R = RealField()
+        else:
+            R = RealField(prec)
+        if self.is_zero():
+            return R.zero_element()
+        return R(self.denominator_ideal().absolute_norm()).log()
+
+    def global_height_arch(self, prec=None):
+        """
+        Returns the total archimedean component of the height of self.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The total archimedean component of the height of
+        this number field element; that is, the sum of the local
+        heights at all infinite places.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: b = a/2
+            sage: b.global_height_arch()
+            0.38653407379277...
+        """
+        r,s = self.number_field().signature()
+        hts = [self.local_height_arch(i, prec, weighted=True) for i in range(r+s)]
+        return sum(hts, hts[0].parent().zero_element())
+
+    def global_height(self, prec=None):
+        """
+        Returns the absolute logarithmic height of this number field element.
+
+        INPUT:
+
+        - ``prec`` (int) -- desired floating point precision (defult:
+          default RealField precision).
+
+        OUTPUT:
+
+        (real) The absolute logarithmic height of this number field
+        element; that is, the sum of the local heights at all finite
+        and infinite places, with the contributions from the infinite
+        places scaled by the degree to make the result independent of
+        the parent field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: b = a/2
+            sage: b.global_height()
+            2.869222240687...
+            sage: b.global_height(prec=200)
+            2.8692222406879748488543678846959454765968722137813736080066
+
+        The global height of an algebraic number is absolute, i.e. it
+        does not depend on th parent field::
+
+            sage: QQ(6).global_height()
+            1.79175946922805
+            sage: K(6).global_height()
+            1.79175946922805
+
+            sage: L.<b> = NumberField((a^2).minpoly())
+            sage: L.degree()
+            2
+            sage: b.global_height() # element of L (degree 2 field)
+            1.41660667202811
+            sage: (a^2).global_height() # element of K (degree 4 field)
+            1.41660667202811
+        """
+        return self.global_height_non_arch(prec)+self.global_height_arch(prec)/self.number_field().absolute_degree()
+
+    def numerator_ideal(self):
+        """
+        Return the numerator ideal of this number field element.
+
+        .. note::
+
+           A ValueError will be saised if this function is called on
+           0.
+
+        .. note::
+
+           See also ``denominator_ideal()``
+
+        OUTPUT:
+
+        (integral ideal) The numerator ideal `N` of this element,
+        where for a non-zero number field element `a`, the principal
+        ideal generated by `a` has the form `N/D` where `N` and `D`
+        are coprime integral ideals.  An error is raised if the
+        element is zero.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2+5)
+            sage: b = (1+a)/2
+            sage: b.norm()
+            3/2
+            sage: N = b.numerator_ideal(); N
+            Fractional ideal (3, a + 1)
+            sage: N.norm()
+            3
+            sage: (1/b).numerator_ideal()
+            Fractional ideal (2, a + 1)
+
+        TESTS:
+
+        Undefined for 0::
+
+            sage: K(0).numerator_ideal()
+            Traceback (most recent call last):
+            ...
+            ValueError: numerator ideal of 0 is not defined.
+        """
+        if self.is_zero():
+            raise ValueError, "numerator ideal of 0 is not defined."
+        return self.number_field().ideal(self).numerator()
+
+    def denominator_ideal(self):
+        """
+        Return the denominator ideal of this number field element.
+
+        .. note::
+
+           A ValueError will be saised if this function is called on
+           0.
+
+        .. note::
+
+           See also ``numerator_ideal()``
+
+        OUTPUT:
+
+        (integral ideal) The denominator ideal `D` of this element,
+        where for a non-zero number field element `a`, the principal
+        ideal generated by `a` has the form `N/D` where `N` and `D`
+        are coprime integral ideals.  An error is raised if the
+        element is zero.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2+5)
+            sage: b = (1+a)/2
+            sage: b.norm()
+            3/2
+            sage: D = b.denominator_ideal(); D
+            Fractional ideal (2, a + 1)
+            sage: D.norm()
+            2
+            sage: (1/b).denominator_ideal()
+            Fractional ideal (3, a + 1)
+
+        TESTS:
+
+        Undefined for 0::
+
+            sage: K(0).denominator_ideal()
+            Traceback (most recent call last):
+            ...
+            ValueError: denominator ideal of 0 is not defined.
+        """
+        if self.is_zero():
+            raise ValueError, "denominator ideal of 0 is not defined."
+        return self.number_field().ideal(self).denominator()
 
     def support(self):
         """

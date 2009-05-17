@@ -145,6 +145,21 @@ class CartanType(CartanType_abstract):
         """
         return False
 
+    def dynkin_diagram(self):
+        """
+        Returns the Dynkin diagram associated with self.
+
+        EXAMPLES::
+
+            sage: CartanType("F4xA2").dynkin_diagram()
+             O---O=>=O---O
+             1   2   3   4
+             O---O
+             5   6
+             F4xA2
+        """
+        return root_system.dynkin_diagram.DynkinDiagram(self)
+
     def dual(self):
         """
         EXAMPLES:
@@ -277,7 +292,13 @@ def dynkin_diagram(t):
     EXAMPLES:
         sage: t = CartanType("A2xB2xF4")
         sage: dd = DynkinDiagram(t); dd
-        Dynkin diagram of type A2xB2xF4
+         O---O
+         1   2
+         O=>=O
+         3   4
+         O---O=>=O---O
+         5   6   7   8
+         A2xB2xF4
         sage: dd.edges()
         [(1, 2, 1), (2, 1, 1), (3, 4, 2), (4, 3, 1), (5, 6, 1), (6, 5, 1), (6, 7, 2), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
 

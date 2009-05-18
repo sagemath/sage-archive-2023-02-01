@@ -2008,8 +2008,17 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
             sage: divmod(5,3)
             (1, 2)
+            sage: divmod(25r,12)
+            (2, 1)
+            sage: divmod(25,12r)
+            (2, 1)
+
         """
-        return self.quo_rem(other)
+        if PY_TYPE_CHECK(self, Element):
+            return self.quo_rem(other)
+        else:
+            x, y = canonical_coercion(self, other)
+            return x.quo_rem(y)
 
     def __floordiv__(self,right):
         """

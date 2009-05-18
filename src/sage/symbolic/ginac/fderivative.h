@@ -66,6 +66,8 @@ public:
 	ex series(const relational & r, int order, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;
 	ex thiscontainer(std::auto_ptr<exvector> vp) const;
+	paramset get_parameter_set() const { return parameter_set; };
+
 protected:
 	ex derivative(const symbol & s) const;
 	bool is_equal_same_type(const basic & other) const;

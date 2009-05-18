@@ -1369,6 +1369,9 @@ ex function::eval(int level) const
 		if (!pyresult) { 
 			throw(std::runtime_error("function::eval(): python function raised exception"));
 		}
+		if ( pyresult == Py_None ) {
+			return this->hold();
+		}
 		// convert output Expression to an ex
 		eval_result = pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
@@ -2036,6 +2039,9 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		Py_DECREF(kwds);
 		if (!pyresult) { 
 			throw(std::runtime_error("function::pderivative(): python function raised exception"));
+		}
+		if ( pyresult == Py_None ) {
+			return fderivative(serial, diff_param, seq);
 		}
 		// convert output Expression to an ex
 		ex result = pyExpression_to_ex(pyresult);

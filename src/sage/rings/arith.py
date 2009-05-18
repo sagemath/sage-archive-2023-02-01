@@ -2714,10 +2714,12 @@ def kronecker_symbol(x,y):
         1
         sage: kronecker(-2,15)
         -1
+        sage: kronecker(2/3,5)
+        1
 
     IMPLEMENTATION: Using GMP.
     """
-    x = ZZ(x)
+    x = QQ(x).numerator() * QQ(x).denominator()
     return ZZ(x.kronecker(y))
 
 def kronecker(x,y):
@@ -2759,8 +2761,10 @@ def legendre_symbol(x,p):
         ValueError: p must be a prime
         sage: kronecker_symbol(2,15)
         1
+        sage: legendre_symbol(2/3,7)
+        -1
     """
-    x = ZZ(x)
+    x = QQ(x).numerator() * QQ(x).denominator()
     p = ZZ(p)
     if not p.is_prime():
         raise ValueError, "p must be a prime"

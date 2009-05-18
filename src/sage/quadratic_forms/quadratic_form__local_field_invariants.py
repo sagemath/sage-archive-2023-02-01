@@ -439,10 +439,10 @@ def is_anisotropic(self, p):
         sage: Q.is_anisotropic(5)
         False
 
-        sage: [DiagonalQuadraticForm(ZZ, [1, -quadratic_nonresidue(p)]).is_anisotropic(p)  for p in prime_range(3, 30)]
+        sage: [DiagonalQuadraticForm(ZZ, [1, -least_quadratic_nonresidue(p)]).is_anisotropic(p)  for p in prime_range(3, 30)]
         [True, True, True, True, True, True, True, True, True]
 
-        sage: [DiagonalQuadraticForm(ZZ, [1, -quadratic_nonresidue(p), p, -p*quadratic_nonresidue(p)]).is_anisotropic(p)  for p in prime_range(3, 30)]
+        sage: [DiagonalQuadraticForm(ZZ, [1, -least_quadratic_nonresidue(p), p, -p*least_quadratic_nonresidue(p)]).is_anisotropic(p)  for p in prime_range(3, 30)]
         [True, True, True, True, True, True, True, True, True]
 
 
@@ -497,10 +497,10 @@ def is_isotropic(self, p):
         sage: Q.is_isotropic(5)
         True
 
-        sage: [DiagonalQuadraticForm(ZZ, [1, -quadratic_nonresidue(p)]).is_isotropic(p)  for p in prime_range(3, 30)]
+        sage: [DiagonalQuadraticForm(ZZ, [1, -least_quadratic_nonresidue(p)]).is_isotropic(p)  for p in prime_range(3, 30)]
         [False, False, False, False, False, False, False, False, False]
 
-        sage: [DiagonalQuadraticForm(ZZ, [1, -quadratic_nonresidue(p), p, -p*quadratic_nonresidue(p)]).is_isotropic(p)  for p in prime_range(3, 30)]
+        sage: [DiagonalQuadraticForm(ZZ, [1, -least_quadratic_nonresidue(p), p, -p*least_quadratic_nonresidue(p)]).is_isotropic(p)  for p in prime_range(3, 30)]
         [False, False, False, False, False, False, False, False, False]
 
     """

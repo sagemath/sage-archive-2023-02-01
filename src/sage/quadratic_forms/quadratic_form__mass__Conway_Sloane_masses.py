@@ -393,7 +393,7 @@ def conway_diagonal_factor(self, p):
         a rational number > 0
 
     EXAMPLES:
-        sage:  sage: Q = DiagonalQuadraticForm(ZZ, range(1,6))
+        sage: Q = DiagonalQuadraticForm(ZZ, range(1,6))
         sage: Q.conway_diagonal_factor(3)
         81/256
 

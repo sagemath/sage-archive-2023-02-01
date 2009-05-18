@@ -471,8 +471,8 @@ class QuadraticFormLocalRepresentationConditions():
             False
 
             sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,-1])
-            sage: C = QuadraticFormLocalRepresentationConditions(Q)
-            sage: C.is_universal_at_all_places()
+            sage: C = QuadraticFormLocalRepresentationConditions(Q)     # long time (8.5 s)
+            sage: C.is_universal_at_all_places()                        # long time
             True
         """
         ## Check if dim <= 2.
@@ -825,7 +825,7 @@ def is_locally_universal_at_all_places(self):
         False
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,-1])
-        sage: Q.is_locally_universal_at_all_places()
+        sage: Q.is_locally_universal_at_all_places()        # long time (8.5 s)
         True
 
     """
@@ -862,13 +862,13 @@ def is_locally_represented_number_at_place(self, m, p):
         False
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,-1])
-        sage: Q.is_locally_represented_number_at_place(7, infinity)
+        sage: Q.is_locally_represented_number_at_place(7, infinity)     # long time (8.5 s)
         True
-        sage: Q.is_locally_represented_number_at_place(7, 2)
+        sage: Q.is_locally_represented_number_at_place(7, 2)            # long time
         True
-        sage: Q.is_locally_represented_number_at_place(7, 3)
+        sage: Q.is_locally_represented_number_at_place(7, 3)            # long time
         True
-        sage: Q.is_locally_represented_number_at_place(7, 5)
+        sage: Q.is_locally_represented_number_at_place(7, 5)            # long time
         True
 
     """

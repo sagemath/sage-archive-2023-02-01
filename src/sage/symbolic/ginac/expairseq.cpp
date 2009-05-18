@@ -581,9 +581,7 @@ bool expairseq::is_equal_same_type(const basic &other) const
 #if EXPAIRSEQ_USE_HASHTAB
 	// compare number of elements in each hashtab entry
 	if (hashtabsize!=o.hashtabsize) {
-		std::cout << "this:" << std::endl;
 		print(print_tree(std::cout));
-		std::cout << "other:" << std::endl;
 		other.print(print_tree(std::cout));
 	}
 		
@@ -881,7 +879,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			seq.push_back(split_ex_to_pair(rh));
 		}
 	} else {
-		if (is_exactly_a<numeric>(rh)) {
+           if (is_exactly_a<numeric>(rh)) {
 			combine_overall_coeff(rh);
 			seq.push_back(split_ex_to_pair(lh));
 		} else {
@@ -1307,9 +1305,6 @@ void expairseq::remove_hashtab_entry(epvector::const_iterator element)
 		++epplit;
 	}
 	if (!erased) {
-		std::cout << "tried to erase " << element-seq.begin() << std::endl;
-		std::cout << "size " << seq.end()-seq.begin() << std::endl;
-
 		unsigned hashindex = calc_hashindex(element->rest);
 		epplist &eppl = hashtab[hashindex];
 		epplist::iterator epplit = eppl.begin();

@@ -82,6 +82,7 @@ extern "C" {
 	bool      py_is_crational(PyObject* a);
 	bool      py_is_real(PyObject* a);
 	bool      py_is_integer(PyObject* a);
+        bool      py_is_equal(PyObject* a, PyObject* b);
 	bool      py_is_even(PyObject* a);
 	bool      py_is_cinteger(PyObject* a);
 	bool      py_is_prime(PyObject* n);
@@ -817,14 +818,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long == right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result)== -1) {
-	      PyErr_Clear();
-	      result = 1;
-	//py_error("==");
-      }
-      verbose2("result =", result);
-      return (result == 0);
+      return py_is_equal(v._pyobject, right.v._pyobject);
     default:
       stub("invalid type: operator== type not handled");
     }
@@ -843,11 +837,7 @@ void Number_T::archive(archive_node &n) const {
     case LONG:
       return v._long != right.v._long;
     case PYOBJECT:
-      int result;
-      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
-	py_error("!=");
-      }
-      return (result != 0);
+      return (!py_is_equal(v._pyobject, right.v._pyobject));
     default:
       stub("invalid type: operator!= type not handled");
     }

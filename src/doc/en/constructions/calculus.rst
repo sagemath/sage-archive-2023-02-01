@@ -148,18 +148,16 @@ Sage can also compute symbolic definite integrals involving limits.
     (x, k, w)
     sage: f = x^3 * e^(k*x) * sin(w*x)
     sage: print f.integrate(x)
-                   6      3  4      5  2    7   3
-                 (((k w  + 3 k  w  + 3 k  w  + k ) x
-               6      2      4      4  2      6   2            4       3  2      5
-         + (3 w  + 3 k  w  - 3 k  w  - 3 k ) x  + (- 18 k w  - 12 k  w  + 6 k ) x
-              4           2  2      4    k x
-         - 6 w  + 36 k  w  - 6 k )  e    sin(w x)
+          6      3  4      5  2    7   3       6      2  4      4  2      6   2
+    (((k w  + 3 k  w  + 3 k  w  + k ) x  + (3 w  + 3 k  w  - 3 k  w  - 3 k ) x
+                4       3  2      5         4       2  2      4    k x
+     + (- 18 k w  - 12 k  w  + 6 k ) x - 6 w  + 36 k  w  - 6 k )  e    sin(w x)
             7      2  5      4  3    6     3         5       3  3      5     2
-         + ((- w  - 3 k  w  - 3 k  w  - k  w) x  + (6 k w  + 12 k  w  + 6 k  w) x
-               5       2  3   4              3       3      k x
-         + (6 w  - 12 k  w  - 18 k  w) x - 24 k w  + 24 k  w)  e    cos(w x))
-           8          2  6      4  4      6  2    8
-        /(w  + 4 k  w  + 6 k  w  + 4 k  w  + k )
+     + ((- w  - 3 k  w  - 3 k  w  - k  w) x  + (6 k w  + 12 k  w  + 6 k  w) x
+           5       2  3       4              3       3      k x
+     + (6 w  - 12 k  w  - 18 k  w) x - 24 k w  + 24 k  w)  e    cos(w x))
+       8      2  6      4  4      6  2    8
+    /(w  + 4 k  w  + 6 k  w  + 4 k  w  + k )
     sage: integrate(1/x^2, x, 1, infinity)
     1
 

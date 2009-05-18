@@ -2986,14 +2986,12 @@ class SymbolicExpression(RingElement):
                      x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                                  2                 Pi
             sage: print f.integral(x)
-                        z
-                     x y  + (sqrt( pi) ((sqrt(2)  I + sqrt(2))
-                 (sqrt(2)  I + sqrt(2)) x
-             erf(------------------------) + (sqrt(2)  I - sqrt(2))
-                            2
-                 (sqrt(2)  I - sqrt(2)) x
-             erf(------------------------)))/8
-                            2
+               z                                          (sqrt(2)  I + sqrt(2)) x
+            x y  + (sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                                                             2
+                                                      (sqrt(2)  I - sqrt(2)) x
+                         + (sqrt(2)  I - sqrt(2)) erf(------------------------)))/8
+                                                                 2
 
         We integrate the above function in maple now::
 

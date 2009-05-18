@@ -886,8 +886,8 @@ class Maxima(Expect):
 
         EXAMPLES::
 
-            sage: maxima.completions('gc', verbose=False)
-            ['gctime', 'gcdex', 'gcd', 'gc', 'gcprint', 'gcfactor']
+            sage: sorted(maxima.completions('gc', verbose=False))
+            ['gc', 'gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
         """
         if verbose:
             print s,
@@ -901,11 +901,11 @@ class Maxima(Expect):
 
         EXAMPLES::
 
-            sage: maxima._commands(verbose=False)
-            ['asympt',
-             'automatic',
+            sage: sorted(maxima._commands(verbose=False))
+            ['Alpha',
+             'Beta',
              ...
-             'zeroequiv']
+             'zunderflow']
         """
         try:
             return self.__commands
@@ -1820,18 +1820,12 @@ class MaximaElement(ExpectElement):
         self._check_valid()
         P = self.parent()
         with gc_disabled():
-            s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
-            P._eval_line('display2d : false;', reformat=False)
+            P._eval_line('display2d : true$')
+            s = P._eval_line('disp(%s)$'%self.name(), reformat=False)
+            P._eval_line('display2d: false$')
 
-        r = P._output_prompt_re
+        s = s.strip('\r\n')
 
-        m = r.search(s)
-        s = s[m.start():]
-        i = s.find('\n')
-        s = s[i+1 + len(P._display_prompt):]
-        m = r.search(s)
-        if not m is None:
-            s = s[:m.start()] + ' '*(m.end() - m.start()) + s[m.end():].rstrip()
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:

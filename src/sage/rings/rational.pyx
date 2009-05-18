@@ -1816,7 +1816,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not PY_TYPE_CHECK(self, Rational):
             # If the base is not a rational, e.g., it is an int, complex, float, user-defined type, etc.
             try:
-                self_coerced = Rational(self)
+                self_coerced = n.parent().coerce(self)
             except TypeError:
                 n_coerced = type(self)(n)
                 if n != n_coerced:

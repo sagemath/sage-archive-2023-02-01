@@ -12,10 +12,12 @@ GPL V2+
 
  * Burcin Erocal - burcin <AT> spam.erocal.org
  * Michael Abshoff
+
 == Upstream Contact ==
 
- * Burcin Erocal - burcin <AT> spam.erocal.org
- * William Stein - wstein <AT> spam.gmail.com
+ * Burcin Erocal -  burcin <AT> spam.erocal.org
+ * William Stein -  wstein <AT> spam.gmail.com
+ * Mike Hansen   - mhansen <AT> spam.gmail.com
 
 == Dependencies ==
 
@@ -30,6 +32,10 @@ If build fails trying to run autoheader, run
 in the src directory.
 
 == Changelog ==
+
+=== pynac-0.1.7 (Mike Hansen, et al. May 18, 2009) ===
+ * Many fixes needed to make Pynac work as the default system for
+   symbolic manipulation in Sage.
 
 === pynac-0.1.6 (Burcin Erocal, May 6th, 2009) ===
  * Fix error handling in Number_T::hash().

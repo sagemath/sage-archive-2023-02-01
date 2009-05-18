@@ -1045,6 +1045,13 @@ class GenericGraph(SageObject):
             [ 0  1 -1  0]
             [-1 -1  3 -1]
             [-1  0 -1  2]
+
+	A weighted directed graph with loops::
+
+	    sage: G = DiGraph({1:{1:2,2:3}, 2:{1:4}}, weighted=True)
+            sage: G.laplacian_matrix()
+	    [ 3 -3]
+	    [-4  4]
         """
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import IntegerRing
@@ -1069,7 +1076,7 @@ class GenericGraph(SageObject):
             row_sums = dict((i, S[i,0]) for i in range(M.nrows()))
 
         for i in range(M.nrows()):
-            A[i,i] = row_sums.get(i, 0)
+            A[i,i] += row_sums.get(i, 0)
         return A
 
     laplacian_matrix = kirchhoff_matrix

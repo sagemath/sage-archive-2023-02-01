@@ -1,10 +1,35 @@
-"""
+r"""
 Ambient spaces of modular symbols.
+
+This module defines the following classes.  There is an abstract base
+class ``ModularSymbolsAmbient``, derived from
+``space.ModularSymbolsSpace`` and ``hecke.AmbientHeckeModule``.  As
+this is an abstract base class, only derived classes should be
+instantiated.  There are five derived classes:
+
+- ``ModularSymbolsAmbient_wtk_g0``, for modular symbols of general
+  weight `k` for `\Gamma_0(N)`;
+
+- ``ModularSymbolsAmbient_wt2_g0`` (derived from
+  ``ModularSymbolsAmbient_wtk_g0``), for modular symbols of weight 2
+  for `\Gamma_0(N)`;
+
+- ``ModularSymbolsAmbient_wtk_g1``, for modular symbols of general
+  weight `k` for `\Gamma_1(N)`;
+
+- ``ModularSymbolsAmbient_wtk_gamma_h``, for modular symbols of
+  general weight `k` for `\Gamma_H`, where `H` is a subgroup of
+  `\ZZ/N\ZZ`;
+
+- ``ModularSymbolsAmbient_wtk_eps``, for modular symbols of general
+  weight `k` and character `\epsilon`.
+
+
 
 EXAMPLES:
 
 We compute a space of modular symbols modulo 2. The dimension is
-different than that of the corresponding space in characteristic
+different from that of the corresponding space in characteristic
 0::
 
     sage: M = ModularSymbols(11,4,base_ring=GF(2)); M
@@ -18,7 +43,7 @@ different than that of the corresponding space in characteristic
     sage: M0.basis()
     ([X^2,(0,1)], [X^2,(1,6)], [X^2,(1,7)], [X^2,(1,8)], [X^2,(1,9)], [X^2,(1,10)])
 
-The charpoly of the Hecke operator `T_2` has an extra
+The characteristic polynomial of the Hecke operator `T_2` has an extra
 factor `x`.
 
 ::
@@ -84,15 +109,16 @@ ZZ = rings.Integers
 
 
 class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule):
-    """
+    r"""
     An ambient space of modular symbols for a congruence subgroup of
-    SL_2(Z).
+    `SL_2(\ZZ)`.
 
     This class is an abstract base class, so only derived classes
-    should be instantiated. INPUT:
+    should be instantiated.
 
+    INPUT:
 
-    -  ``weight`` - an integer = 2
+    -  ``weight`` - an integer
 
     -  ``group`` - a congruence subgroup.
 
@@ -104,6 +130,22 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                  character = None):
         """
         Initialize a space of modular symbols.
+
+        INPUT:
+
+        -  ``weight`` - an integer
+
+        -  ``group`` - a congruence subgroup.
+
+        -  ``sign`` - an integer, either -1, 0, or 1
+
+        -  ``base_ring`` - a commutative ring
+
+        EXAMPLES::
+
+            sage: ModularSymbols(2,2)
+            Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 0 over Rational Field
+
         """
         weight = int(weight)
         if weight <= 1:
@@ -135,6 +177,17 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         hecke.AmbientHeckeModule.__init__(self, base_ring, rank, group.level(), weight)
 
     def __cmp__(self, other):
+        """
+        Standard comparison function.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2) == ModularSymbols(11,2) # indirect doctest
+            True
+            sage: ModularSymbols(11,2) == ModularSymbols(11,4) # indirect doctest
+            False
+
+        """
         if not isinstance(other, space.ModularSymbolsSpace):
             return cmp(type(self), type(other))
         if isinstance(other, ModularSymbolsAmbient):
@@ -146,17 +199,19 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return -1
 
     def new_submodule(self, p=None):
-        """
-        Returns the new or p-new submodule of self.
+        r"""
+        Returns the new or `p`-new submodule of this moduluar symbols ambient space.
 
         INPUT:
 
 
         -  ``p`` - (default: None); if not None, return only
-           the p-new submodule.
+           the `p`-new submodule.
 
 
-        OUTPUT: the new or p-new submodule of self
+        OUTPUT:
+
+        The new or `p`-new submodule of this modular symbols ambient space.
 
         EXAMPLES::
 
@@ -172,6 +227,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return hecke.AmbientHeckeModule.new_submodule(self, p=p)
 
     def manin_symbols(self):
+        """
+        Return the list of Manin symbols for this modular symbols ambient space.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2).manin_symbols()
+            Manin Symbol List of weight 2 for Gamma0(11)
+        """
         raise NotImplementedError
 
     def manin_generators(self):
@@ -220,16 +283,34 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self._manin_basis
 
     def p1list(self):
+        """
+        Return a P1list of the level of this modular symbol space.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2).p1list()
+            The projective line over the integers modulo 11
+        """
         try:
             return self.__p1list
         except AttributeError:
             self.__p1list = p1list.P1List(self.level())
         return self.__p1list
 
-    def relation_matrix(self):
-        raise NotImplementedError
+#     See the file relation_matrix.py
+#
+#     def relation_matrix(self):
+#         raise NotImplementedError
 
     def compute_presentation(self):
+        r"""
+        Compute and cache the presentation of this space.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2).compute_presentation() # no output
+
+        """
         B, basis, mod = relation_matrix.compute_presentation(
                 self.manin_symbols(), self.sign(),
                 self.base_ring(), self.weight())
@@ -239,6 +320,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         self._mod2term = mod
 
     def manin_gens_to_basis(self):
+        r"""
+        Return the matrix expressing the manin symbol generators in terms of the basis.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2).manin_gens_to_basis()
+            [-1  0  0]
+            [ 1  0  0]
+            [ 0  0  0]
+            [ 0  0  1]
+            [ 0 -1  1]
+            [ 0 -1  0]
+            [ 0  0 -1]
+            [ 0  0 -1]
+            [ 0  1 -1]
+            [ 0  1  0]
+            [ 0  0  1]
+            [ 0  0  0]
+        """
         try:
             return self._manin_gens_to_basis
         except AttributeError:
@@ -251,10 +351,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     #####################################################################
     def __call__(self, x, computed_with_hecke=False):
         r"""
-        Coerce x into this modular symbols space (self). The result is
+        Coerce `x` into this modular symbols space. The result is
         either an element of self or a subspace of self.
 
-        The allowed inputs for x are as follows:
+        INPUTS:
+
+        The allowed input types for `x` are as follows:
 
 
         -  ``Vector`` - a vector of the same degree. This
@@ -294,6 +396,57 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
            corresponding sum of modular symbols as an element of self. So if
            `f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}`, return
            `\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]`.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,2)
+
+        M(0) is the 0 element of the space::
+
+            sage: M(0)
+            0
+            sage: type(M(0))
+            <class 'sage.modular.modsym.element.ModularSymbolsElement'>
+
+        From a vector of the correct dimenstion we construct the
+        corresponding linear comination of the basis elements::
+
+            sage: M.dimension()
+            5
+            sage: M.basis()
+            ((1,0), (1,23), (1,32), (1,34), (1,35))
+            sage: M(vector([1,2,3,4,5]))
+            (1,0) + 2*(1,23) + 3*(1,32) + 4*(1,34) + 5*(1,35)
+            sage: M(vector([1/2,2/3,3/4,4/5,5/6]))
+            1/2*(1,0) + 2/3*(1,23) + 3/4*(1,32) + 4/5*(1,34) + 5/6*(1,35)
+
+        Manin symbols can be converted to elments of the space::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol
+            sage: ManinSymbol(M.manin_symbols(),(0,2,3))
+            (2,3)
+            sage: M(ManinSymbol(M.manin_symbols(),(0,2,3)))
+            (1,34) - (1,35)
+
+        However, it is easier to use one of the following forms.
+        Either a 3-tuple `(i,u,v)` or a 2-tuple `(u,v)` with `i=0`
+        assumed::
+
+            sage: M((0,2,3))
+            (1,34) - (1,35)
+            sage: M((2,3))
+            (1,34) - (1,35)
+
+        Or a 3-list `[i,\alpha,\beta]` where `i` is the degree and
+        `\alpha` and `beta` are cusps, or a 2-tuple `[\alpha,\beta]`
+        with `i=0` assumed::
+
+            sage: M([0,Cusp(1/2),Cusp(0)])
+            (1,35)
+            sage: M([Cusp(1/2),Cusp(0)])
+            (1,35)
+
+
         """
         if isinstance(x, free_module_element.FreeModuleElement):
             if x.degree() != self.dimension():
@@ -328,13 +481,33 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 
     def _action_on_modular_symbols(self, g):
-        """
-        Compute the matrix of the action of the 2x2 integer matrix
-        g=[a,b,c,d] (which must be specified as an integer list) on self
-        with respect to the standard basis.
+        r"""
+        Returns the matrix of the action of a 2x2 matrix on this space.
 
-        Use _matrix_of_operator_on_modular_symbols for more general
+        INPUT:
+
+        ``g`` (list) -- `g=[a,b,c,d]` where `a,b,c,d` are integers
+        defining a `2\times2` integer matrix.
+
+        OUTPUT:
+
+        (matrix) The matrix of the action of `g` on this Modular
+        Symbol space, with respect to the standard basis.
+
+        .. note::
+
+           Use _matrix_of_operator_on_modular_symbols for more general
         operators.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,4,1)
+            sage: M._action_on_modular_symbols([1,2,3,7])
+            [   0    0  5/2 -3/2]
+            [   0    0  5/2 -3/2]
+            [   0    1    0    0]
+            [   0    1 -1/2  1/2]
+
         """
         if not isinstance(g, list):
             raise TypeError, "g must be a list"
@@ -343,6 +516,28 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self._matrix_of_operator_on_modular_symbols(self, [g])
 
     def manin_symbol(self, x, check=True):
+        r"""
+        Construct a Manin Symbol from the given data.
+
+        INPUT:
+
+        - ``x`` (list) -- either `[u,v]` or `[i,u,v]`, where `0\le
+          i\le k-2` where `k` is the weight, and `u`,`v` are integers
+          defining a valid element of `\mathbb{P}^1(N)`, where `N` is
+          the level.
+
+        OUTPUT:
+
+        (ManinSymbol) the monomial Manin Symbol associated to
+        `[i;(u,v)]`, with `i=0` if not supplied, corresponding to the
+        symbol `[X^i*Y^{k-2-i}, (u,v)]`.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,4,1)
+            sage: M.manin_symbol([2,5,6])
+            [X^2,(1,10)]
+        """
         if check:
             if len(x) == 2:
                 x = (0,x[0],x[1])
@@ -369,6 +564,31 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return z
 
     def _modular_symbol_0_to_alpha(self, alpha, i=0):
+        r"""
+        Return the modular symbol `\{0,\alpha\}` in this space.
+
+        INPUT:
+
+        - ``alpha`` (rational or Infinity) -- a cusp
+
+        - ``i`` (int, default 0) -- the degree of the symbol.
+
+        OUTPUT:
+
+        (ModularSymbol) The modular symbol `X^iY^{k-2-i}\{0,\alpha\}`.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,4,1)
+            sage: M._modular_symbol_0_to_alpha(Cusp(3/5))
+            11*[X^2,(1,7)] + 33*[X^2,(1,9)] - 20*[X^2,(1,10)]
+            sage: M._modular_symbol_0_to_alpha(Cusp(3/5),1)
+            15/2*[X^2,(1,7)] + 35/2*[X^2,(1,9)] - 10*[X^2,(1,10)]
+            sage: M._modular_symbol_0_to_alpha(Cusp(Infinity))
+            -[X^2,(1,10)]
+            sage: M._modular_symbol_0_to_alpha(Cusp(Infinity),1)
+            0
+        """
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
         v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
@@ -442,17 +662,24 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         INPUT:
 
+        -  ``x`` (list) -- a list of either 2 or 3 entries:
 
-        -  ``x`` - a list of either 2 or 3 entries
+            - 2 entries: `[\alpha, \beta]` where `\alpha` and `\beta`
+              are cusps;
 
-        -  ``2 entries: [`\alpha`, `\beta`]`` -
-           creates the modular symbol alpha, beta, or, if the weight is 2 the
-           symbol `Y^(k-2){\alpha,\beta}`.
+            - 3 entries: `[i, \alpha, \beta]` where `0\le i\le k-2`
+              and `\alpha` and `\beta` are cusps;
 
-        -  ``3 entries: [i, `\alpha`,
-           `\beta`]`` - create the modular symbol
-           `X^i Y^{k-2-i}{\alpha,\beta}`.
+        - ``check`` (bool, default True) -- flag that determines
+          whether the input ``x`` needs processing: use check=False
+          for efficiency if the input ``x`` is a list of length 3 whose
+          first entry is an Integer, and whose second and third
+          entries are Cusps (se examples).
 
+        OUTPUT:
+
+        (Modular Symbol) The modular symbol `Y^{k-2}\{\alpha,
+        \beta\}`. or `X^i Y^{k-2-i}\{\alpha,\beta\}`.
 
         EXAMPLES::
 
@@ -515,15 +742,30 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return b - a
 
     def modular_symbol_sum(self, x, check=True):
-        """
-        Take a 3-element list consisting of a homogeneous polynomial in
-        degree self.weight()-2 over ZZ, and return the corresponding sum of
-        modular symbols as an element of self. That is, if x is ``[f,
-        alpha, beta]``, where
-        `f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}`, return
-        `\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]`.
+        r"""
+        Construct a modular symbol sum.
+
+        INPUT:
+
+        - ``x`` (list) -- `[f, \alpha, \beta]` where `f =
+          \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}` is a homogeneous
+          polynomial over `\ZZ` of degree `k` and `\alpha` and `\beta`
+          are cusps.
+
+        - ``check`` (bool, default True) -- if True check the validity
+          of the input tuple ``x``
+
+        OUTPUT:
+
+        The sum `\sum_{i=0}^{k-2} a_i [ i, \alpha, \beta ]` as an
+        element of this modular symbol space.
 
         EXAMPLES:
+
+            sage: M = ModularSymbols(11,4)
+            sage: R.<X,Y>=QQ[]
+            sage: M.modular_symbol_sum([X*Y,Cusp(0),Cusp(Infinity)])
+            -3/14*[X^2,(1,6)] + 1/14*[X^2,(1,7)] - 1/14*[X^2,(1,8)] + 1/2*[X^2,(1,9)] - 2/7*[X^2,(1,10)]
         """
         if check:
             if len(x) != 3:
@@ -559,14 +801,57 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
 
     def _compute_dual_hecke_matrix(self, n):
+        r"""
+        Return the matrix of the dual Hecke operator `T(n)`.
+
+        INPUT:
+
+        - ``n`` (int) -- a positive integer
+
+        OUTPUT:
+
+        (matrix) The matrix of the dual od `T(n)`.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,4,1)
+            sage: M._compute_dual_hecke_matrix(5)
+            [126   0   0   0]
+            [  2  63  38  22]
+            [ 11  33  82 121]
+            [-13  30   6 -17]
+        """
         return self.hecke_matrix(n).transpose()
 
     def _compute_hecke_matrix_prime(self, p, rows=None):
         """
-        Compute and return the matrix of the p-th Hecke operator. Note that p
-        doesn't have to be prime, despite the name.
+        Return the matrix of the Hecke operator `T(p)`.
 
-        EXAMPLES: We first compute some examples for Gamma0(N)::
+        INPUT:
+
+        - ``p`` (int) -- a prime number.
+
+        - ``rows`` (list or None (default)) -- if not None, a list of
+          the rows which should be computed; otherwise the complete
+          matrix will be computed,
+
+        .. note::
+
+           `p` does not have to be, prime despite the function name.
+
+        OUTPUT:
+
+        (matrix) The matrix of the Hecke operator `T(p)` on this
+        space, with respect to its standard basis.
+
+        ALGORITHM:
+
+        Uses Heilbronn-Cremonma matrices of `p` is prime, else use
+        Heilbronn-Merel matrices.
+
+        EXAMPLES:
+
+        We first compute some examples for Gamma0(N)::
 
             sage: m = ModularSymbols(2, weight=4)
             sage: m._compute_hecke_matrix_prime(2).charpoly('x')
@@ -638,10 +923,23 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: m = ModularSymbols(Gamma1(9),3, sign=1)
             sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
+
+        In some situations we do not need all the rows of the result, and can thereby save time:
+
+            sage: m = ModularSymbols(1,weight=12)
+            sage: m._compute_hecke_matrix_prime(2)
+            [ -24    0    0]
+            [   0  -24    0]
+            [4860    0 2049]
+            sage: m._compute_hecke_matrix_prime(2,rows=[0,1])
+            [-24   0   0]
+            [  0 -24   0]
+            sage: m._compute_hecke_matrix_prime(2,rows=[1,2])
+            [   0  -24    0]
+            [4860    0 2049]
         """
         # note -- p doesn't have to be prime despite the function name
         p = int(rings.Integer(p))   # go through Integer so p = 2.5 gives an error.
-        # NOTE -- it is actually NOT necessary that p be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:
@@ -690,29 +988,52 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
 
     def __heilbronn_operator(self, M, H, t=1):
-        """
-        Returns the matrix function from self to M defined by the pair (H,
-        t), where H is a list of matrices and t is an integer.
+        r"""
+        Return the matrix function to the space `M` defined by `H`, `t`.
+
+        .. note::
+
+           Users will instead use the simpler interface defined, for
+           example, by ``hecke_matrix()`` (see examples).
 
         INPUT:
 
 
-        -  ``self`` - ModularSymbols , domain (an ambient space
-           of modular symbols),
+        -  ``M`` (ModularSymbols) -- codomain (a space of modular
+           symbols);
 
-        -  ``M`` - ModularSymbols, codomain (a space of modular
-           symbols),
+        -  ``H`` (list) -- a list of matrices in `M_2(\ZZ)`;
 
-        -  ``H`` - list, a list of matrices in M_2(Z),
-
-        -  ``t`` - int, an integer.
+        -  ``t`` (int, default 1) -- an integer.
 
 
         OUTPUT:
 
+        (free module morphism) A function from the Modular Symbol
+         space to the Modular Symbol space `M` defined by `t` and the
+         matrices in `H`.
 
-        -  ``free module morphism`` - A function from self to M
-           defined by t and the matrices in H.
+         EXAMPLES::
+
+             sage: M = ModularSymbols(37,2)
+             sage: M._ModularSymbolsAmbient__heilbronn_operator(M,HeilbronnCremona(3))
+             Hecke module morphism Heilbronn operator(The Cremona-Heilbronn matrices of determinant 3,1) defined by the matrix
+             [ 4  0  0  0 -1]
+             [ 0 -1  2  2 -2]
+             [ 0  2 -1  2  0]
+             [ 0  0  0 -3  2]
+             [ 0  0  0  0  1]
+             Domain: Modular Symbols space of dimension 5 for Gamma_0(37) of weight ...
+             Codomain: Modular Symbols space of dimension 5 for Gamma_0(37) of weight ...
+
+             sage: M.hecke_matrix(3)
+             [ 4  0  0  0 -1]
+             [ 0 -1  2  2 -2]
+             [ 0  2 -1  2  0]
+             [ 0  0  0 -3  2]
+             [ 0  0  0  0  1]
+
+
         """
 
         MS = matrix_space.MatrixSpace(self.base_ring(), self.dimension(), M.dimension())
@@ -764,37 +1085,72 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return hom(A, "Heilbronn operator(%s,%s)"%(H,t))
 
     def _repr_(self):
+        r"""
+        String representation of this Modular Symbols space.
+
+        EXAMPLES::
+
+            sage: m = ModularSymbols(1,weight=12)
+            sage: m # indirect doctest
+            Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
+        """
         return "Modular Symbols space of dimension %s and weight %s for %s with sign %s and character %s over %s"%(
                 self.dimension(), self.weight(), self.group(), self.sign(), self.character(), self.base_ring())
 
     def _latex_(self):
+        r"""
+        Latex representation of this Modular Symbols space.
+
+        EXAMPLES::
+
+            sage: m = ModularSymbols(11,weight=12)
+            sage: latex(m) # indirect doctest
+            \mathrm{ModSym}_{12}(\Gamma_0(11),\text{[1]};\Bold{Q})
+        """
         return "\\mathrm{ModSym}_{%s}(%s,%s;%s)"%(self.weight(),
                                                      latex.latex(self.group()),
                                                      latex.latex(self.character()),
                                                      latex.latex(self.base_ring()))
 
     def _matrix_of_operator_on_modular_symbols(self, codomain, R):
-        """
+        r"""
+        Returns the matrix of a modular symbols operator.
+
+        .. note::
+
+           Users will instead use the simpler interface defined, for
+           example, by ``hecke_matrix()`` (see examples).
+
         INPUT:
-
-
-        -  ``self`` - this space of modular symbols
 
         -  ``codomain`` - space of modular symbols
 
-        -  ``R`` - list of lists [a,b,c,d] of length 4, which
-           we view as elements of GL_2(Q).
+        -  ``R`` (list) -- a list of lists `[a,b,c,d]` of length 4, which
+           we view as elements of `GL_2(`QQ)`.
 
 
-        OUTPUT: A matrix, which represents the operator
+        OUTPUT:
+
+        (matrix) The matrix of the operator
 
         .. math::
 
-                            x \mapsto \sum_{g in R} g.x
+                            x \mapsto \sum_{g in R} g.x,
 
 
-        where g.x is the formal linear fractional transformation on modular
-        symbols.
+        where `g.x` is the formal linear fractional transformation on modular
+        symbols, with respect to the standard basis.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,2)
+            sage: M._matrix_of_operator_on_modular_symbols(M,HeilbronnCremona(3))
+            [ 4  0  0  0  0]
+            [ 0 -3  1  1  0]
+            [ 0  3  0  5 -2]
+            [ 0 -3  1 -5  3]
+            [ 0  0  2  3 -3]
+
         """
         rows = []
         for b in self.basis():
@@ -810,13 +1166,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def _compute_atkin_lehner_matrix(self, d):
         r"""
+        Return the matrix of the Atkin-Lehner involution `W_d`.
+
         INPUT:
 
+        -  ``d`` (int) -- an integer that divides the level.
 
-        -  ``d`` - integer that divides level
+        OUTPUT:
 
-
-        OUTPUT: matrix
+        (matrix) The matrix of the involution `W_d` with respect to
+        the standard basis.
 
         EXAMPLES: An example at level 29::
 
@@ -866,9 +1225,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return Wmat
 
     def boundary_map(self):
-        """
-        The boundary map to the corresponding space of boundary modular
+        r"""
+        Return the boundary map to the corresponding space of boundary modular
         symbols.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).boundary_map()
+            Hecke module morphism boundary map defined by the matrix
+            [ 1 -1  0  0  0  0]
+            [ 0  1 -1  0  0  0]
+            [ 0  1  0 -1  0  0]
+            [ 0  0  0 -1  1  0]
+            [ 0  1  0 -1  0  0]
+            [ 0  0  1 -1  0  0]
+            [ 0  1  0  0  0 -1]
+            Domain: Modular Symbols space of dimension 7 for Gamma_0(20) of weight ...
+            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(20) ...
+            sage: type(ModularSymbols(20,2).boundary_map())
+            <class 'sage.modular.hecke.morphism.HeckeModuleMorphism_matrix'>
         """
         try:
             return self.__boundary_map
@@ -892,6 +1267,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return self.__boundary_map
 
     def cusps(self):
+        r"""
+        Return the set of cusps for this modular symbols space.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).cusps()
+            [Infinity, 0, -1/4, 1/5, -1/2, 1/10]
+        """
         try:
             return self.__cusps
         except AttributeError:
@@ -902,11 +1285,23 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return C
 
     def boundary_space(self):
+        r"""
+        Return the subspace of boundary modular symbols of this modular symbols ambient space.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).boundary_space()
+            Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(20) of weight 2 and over Rational Field
+            sage: ModularSymbols(20,2).dimension()
+            7
+            sage: ModularSymbols(20,2).boundary_space().dimension()
+            6
+        """
         raise NotImplementedError
 
     def cuspidal_submodule(self):
         """
-        The cuspidal submodule of self.
+        The cuspidal submodule of this modular symbols ambient space.
 
         EXAMPLES::
 
@@ -947,6 +1342,34 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self.__cuspidal_submodule
 
     def _degeneracy_raising_matrix(self, level, t):
+        r"""
+        Return the matrix of the level-raising degeneracy map. This is calculated
+        by composing the level-raising matrix for
+        `t = 1` with a Hecke operator.
+
+        INPUT:
+
+        - ``level`` (int) -- an integer multiple of the the level
+
+        - ``t`` (int) -- a positive integer dividing the quotient.
+
+        OUTPUT:
+
+        (matrix) The matrix of the degeneracy map from this space of
+        level `N` to the space of level ``level`` (a multiple of `N`).  `t`
+        is a divisor of the quotient.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11, 2)._degeneracy_raising_matrix(22, 1)
+            [ 1  0  0  0  0 -1 -1]
+            [ 0  1  0 -3  1  1 -1]
+            [ 0  1  1 -1 -1  0  0]
+            sage: ModularSymbols(11, 2)._degeneracy_raising_matrix(22, 2)
+            [ 2  0  0  0  1  0 -1]
+            [ 0  0 -1  3 -1 -1  1]
+            [ 0 -1 -1  1  0  1 -1]
+        """
         if t == 1:
             return self._degeneracy_raising_matrix_1(level)
         else:
@@ -957,9 +1380,50 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return (~self.base_ring()(t)) * d1 * T
 
     def _degeneracy_raising_matrix_1(self, level):
+        r"""
+        Return the matrix of the degeneracy map to the given level
+        (which must be a multiple of the level of self).
+
+        .. note::
+
+           Not implemented in the base class, only in the derived classes.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,4)
+            sage: M._degeneracy_raising_matrix_1(74)
+            20 x 58 dense matrix over Rational Field
+        """
         raise NotImplementedError
 
     def _degeneracy_lowering_matrix(self, level, t):
+        r"""
+        Return the matrix of the level-lowering degeneracy map.
+
+        INPUT:
+
+        - ``level`` (int) -- an integer dividing the level
+
+        - ``t`` (int) -- a positive integer dividing the quotient.
+
+        OUTPUT:
+
+        (matrix) The matrix of the degeneracy map from this space of
+        level `N` to the space of level ``level`` dividing `N`.  `t`
+        is a divisor of the quotient.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(22,2)
+            sage: M._degeneracy_lowering_matrix(11,2)
+            [ 1  0  0]
+            [ 0  1 -1]
+            [ 0  0 -1]
+            [ 0  1  0]
+            [ 0  0  0]
+            [-1  0  1]
+            [-1  0  0]
+        """
         # Use Proposition 2.6.15 in Merel's 1585 paper (or Prop 15 in
         # electronic version of that paper).
         H = heilbronn.HeilbronnMerel(t)
@@ -968,20 +1432,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def rank(self):
         """
-        Returns the rank of self.
-
-        INPUT:
-
-
-        -  ``ModularSymbols self`` - arbitrary space of modular
-           symbols
-
+        Returns the rank of this modular symbols ambient space.
 
         OUTPUT:
 
-
-        -  ``int`` - the rank
-
+        (int) The rank of this space of modular symbols.
 
         EXAMPLES::
 
@@ -1013,6 +1468,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def eisenstein_submodule(self):
         """
         Return the Eisenstein submodule of this space of modular symbols.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).eisenstein_submodule()
+            Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 7 for Gamma_0(20) of weight 2 with sign 0 over Rational Field
         """
         try:
             return self.__eisenstein_submodule
@@ -1035,6 +1495,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         OUTPUT:
 
         ModularSymbol - a modular symbol with parent self.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11,4,1)
+            sage: M.T(3)
+            Hecke operator T_3 on Modular Symbols space of dimension 4 for Gamma_0(11) of weight 4 with sign 1 over Rational Field
+            sage: M.T(3)(M.0)
+            28*[X^2,(0,1)] + 2*[X^2,(1,7)] - [X^2,(1,9)] - [X^2,(1,10)]
+            sage: M.T(3)(M.0).element()
+            (28, 2, -1, -1)
         """
         if isinstance(x, manin_symbols.ManinSymbol):
             if not x.parent().weight() == self.weight():
@@ -1062,6 +1532,17 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         Return the matrix of the dual star involution, which is induced by
         complex conjugation on the linear dual of modular symbols.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).dual_star_involution_matrix()
+            [1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0]
+            [0 0 0 0 1 0 0]
+            [0 0 0 1 0 0 0]
+            [0 0 1 0 0 0 0]
+            [0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 1]
         """
         try:
             return self.__dual_star_involution_matrix
@@ -1228,13 +1709,24 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         self._factorization = D
         return self._factorization
 
-    def factor(self):
-        """
-        Synonym for self.factorization().
-        """
-        return self.factorization()
+    factor = factorization
 
     def is_cuspidal(self):
+        r"""
+        Returns True if this space is cuspidal, else False.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(20,2)
+            sage: M.is_cuspidal()
+            False
+            sage: S = M.cuspidal_subspace()
+            sage: S.is_cuspidal()
+            True
+            sage: S = M.eisenstein_subspace()
+            sage: S.is_cuspidal()
+            False
+        """
         try:
             return self.__is_cuspidal
         except AttributeError:
@@ -1243,11 +1735,26 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self.__is_cuspidal
 
     def is_eisenstein(self):
+        r"""
+        Returns True if this space is Eisenstein, else False.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(20,2)
+            sage: M.is_eisenstein()
+            False
+            sage: S = M.eisenstein_submodule()
+            sage: S.is_eisenstein()
+            True
+            sage: S = M.cuspidal_subspace()
+            sage: S.is_eisenstein()
+            False
+        """
         try:
             return self.__is_eisenstein
         except AttributeError:
             S = self.ambient_hecke_module().eisenstein_submodule()
-            self.__is_eisenstein = self.is_subspace(S)
+            self.__is_eisenstein = self.dimension()==S.dimension()
         return self.__is_eisenstein
 
     def manin_symbols_basis(self):
@@ -1281,10 +1788,20 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
 
     def modular_symbols_of_sign(self, sign):
-        """
+        r"""
         Returns a space of modular symbols with the same defining
         properties (weight, level, etc.) as this space except with given
         sign.
+
+        INPUT:
+
+        - ``sign`` (int) -- A sign (`+1`, `-1` or `0`).
+
+        OUTPUT:
+
+        (ModularSymbolsAmbient) A space of modular symbols with the
+        same defining properties (weight, level, etc.) as this space
+        except with given sign.
 
         EXAMPLES::
 
@@ -1303,10 +1820,20 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
 
     def modular_symbols_of_weight(self, k):
-        """
+        r"""
         Returns a space of modular symbols with the same defining
         properties (weight, sign, etc.) as this space except with weight
-        k.
+        `k`.
+
+        INPUT:
+
+        - ``k`` (int) -- A positive integer.
+
+        OUTPUT:
+
+        (ModularSymbolsAmbient) A space of modular symbols with the
+        same defining properties (level, sign) as this space
+        except with given weight.
 
         EXAMPLES::
 
@@ -1319,7 +1846,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return modsym.ModularSymbols(self.group(), weight=k, sign=self.sign(), base_ring=self.base_ring())
 
     def _compute_sign_submodule(self, sign, compute_dual=True):
-        """
+        r"""
         Return the subspace of self that is fixed under the star
         involution.
 
@@ -1332,7 +1859,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
            compute dual subspace. This are useful for many algorithms.
 
 
-        OUTPUT: subspace of modular symbols
+        OUTPUT:
+
+        A subspace of modular symbols
 
         EXAMPLES::
 
@@ -1350,9 +1879,28 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return M
 
     def star_involution(self):
-        """
-        Return the star involution on self, which is induced by complex
-        conjugation on modular symbols.
+        r"""
+        Return the star involution on this modular symbols space.
+
+        OUTPUT:
+
+        (matrix) The matrix of the star involution on this space,
+        which is induced by complex conjugation on modular symbols,
+        with respect to the standard basis.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20,2).star_involution()
+            Hecke module morphism Star involution on Modular Symbols space of dimension 7 for Gamma_0(20) of weight 2 with sign 0 over Rational Field defined by the matrix
+            [1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0]
+            [0 0 0 0 1 0 0]
+            [0 0 0 1 0 0 0]
+            [0 0 1 0 0 0 0]
+            [0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 1]
+            Domain: Modular Symbols space of dimension 7 for Gamma_0(20) of weight ...
+            Codomain: Modular Symbols space of dimension 7 for Gamma_0(20) of weight ...
         """
         try:
             return self.__star_involution
@@ -1364,24 +1912,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self.__star_involution
 
     def submodule(self, M, dual_free_module=None, check=True):
-        """
-        Return the submdoule of self with given generators or free module
-        M.
+        r"""
+        Return the submodule with given generators or free module `M`.
 
         INPUT:
 
 
-        -  ``M`` - a submodule of the ambient free module or
-           generators for a submodule
+        -  ``M`` - either a submodule of this ambient free module, or
+           generators for a submodule;
 
-        -  ``dual_free_module (optional)`` - this may be
-           useful to speed up certain calculations; it is the corresponding
-           submodule of the ambient dual module
+        - ``dual_free_module`` (bool, default None) -- this may be
+           useful to speed up certain calculations; it is the
+           corresponding submodule of the ambient dual module;
 
-        -  ``check`` - bool (optional: default - True); if
-           True, actually check that M is a module, which means it is
-           invariant under all Hecke operators.
+        - ``check`` (bool, default True) -- if True, check that `M` is
+           a submodule, i.e. is invariant under all Hecke operators.
 
+        OUTPUT:
+
+        A subspace of this modular symbol space.
 
         EXAMPLES::
 
@@ -1399,7 +1948,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         .. note::
 
-           It would make more sense to only check that M is invariant
+           It would make more sense to only check that `M` is invariant
            under the Hecke operators with index coprime to the level.
            Unfortunately, I do not know a reasonable algorithm for
            determining whether a module is invariant under just the
@@ -1418,13 +1967,35 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def twisted_winding_element(self, i, eps):
         r"""
-        Given a space of modular symbols, an integer 0 = i = k-2, and a
-        Dirichlet character eps, return the so-called 'twisted winding
-        element':
+        Return the twisted winding element of given degree and character.
+
+        INPUT:
+
+        - ``i`` (int) -- an integer, `0\le i\le k-2` where `k` is the weight.
+
+        - ``eps`` (character) -- a Dirichlet character
+
+        OUTPUT:
+
+        (modular symbol) The so-called 'twisted winding element':
 
         .. math::
 
                 \sum_{a \in (\ZZ/m\ZZ)^\times} \varepsilon(a) * [ i, 0, a/m ].
+
+        .. note::
+
+           This will only work if the base ring of the modular symbol
+           space contains the character values.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5)[2]
+            sage: K = eps.base_ring()
+            sage: M = ModularSymbols(37,2,0,K)
+            sage: M.twisted_winding_element(0,eps)
+            2*(1,23) + (-2)*(1,32) + 2*(1,34)
+
         """
 
         if not dirichlet.is_DirichletCharacter(eps):
@@ -1446,7 +2017,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def integral_structure(self, algorithm='default'):
         r"""
         Return the `\ZZ`-structure of this modular symbols
-        spaces generated by all integral modular symbols.
+        space, generated by all integral modular symbols.
 
         INPUT:
 
@@ -1454,10 +2025,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         -  ``algorithm`` - string (default: 'default' - choose
            heuristically)
 
-        -  ``'pari'`` - use pari for the HNF computation
+           -  ``'pari'`` - use pari for the HNF computation
 
-        -  ``'padic'`` - use p-adic algorithm (only good for
-           dense case)
+           -  ``'padic'`` - use p-adic algorithm (only good for
+              dense case)
 
 
         ALGORITHM: It suffices to consider lattice generated by the free
@@ -1662,6 +2233,33 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
     r"""
     Modular symbols for `\Gamma_0(N)` of integer weight
     `k > 2` over the field `F`.
+
+    For weight `2`, it is faster to use ``ModularSymbols_wt2_g0``.
+
+    INPUT:
+
+
+    -  ``N`` - int, the level
+
+    -  ``k`` - integer weight = 2.
+
+    -  ``sign`` - int, either -1, 0, or 1
+
+    -  ``F`` - field
+
+
+    EXAMPLES::
+
+        sage: ModularSymbols(1,12)
+        Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
+        sage: ModularSymbols(1,12, sign=1).dimension()
+        2
+        sage: ModularSymbols(15,4, sign=-1).dimension()
+        4
+        sage: ModularSymbols(6,6).dimension()
+        10
+        sage: ModularSymbols(36,4).dimension()
+        36
     """
     def __init__(self, N, k, sign, F):
         r"""
@@ -1707,6 +2305,17 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
 
     def _dimension_formula(self):
+        r"""
+        Return the dimension of this space using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,6)
+            sage: M.dimension()
+            32
+            sage: M._dimension_formula()
+            32
+        """
         if self.base_ring().characteristic() == 0:
             N, k, sign = self.level(), self.weight(), self.sign()
             if sign != 0: return None
@@ -1720,11 +2329,31 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             raise NotImplementedError
 
     def _repr_(self):
+        r"""
+        Return the string representation of this Modular Symbols space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,6)
+            sage: M # indirect doctest
+            Modular Symbols space of dimension 32 for Gamma_0(37) of weight 6 with sign 0 over Rational Field
+        """
         return ("Modular Symbols space of dimension %s for Gamma_0(%s) of weight %s with sign %s " + \
                 "over %s")%(self.dimension(), self.level(),self.weight(), self.sign(),
                             self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the cuspidal subspace, using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,4)
+            sage: M.cuspidal_subspace().dimension()
+            18
+            sage: M._cuspidal_submodule_dimension_formula()
+            18
+        """
         if self.base_ring().characteristic() == 0:
             N, k, sign = self.level(), self.weight(), self.sign()
             if sign == 0:
@@ -1737,6 +2366,28 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
 
     def _degeneracy_raising_matrix_1(self, level):
+        r"""
+        Return the matrix of the degeneracy map (with t = 1) to level
+        `N`, where `N` is a multiple of the level.
+
+        INPUT:
+
+        - ``level`` (int) -- An integer multiple of the level of this space.
+
+        OUTPUT:
+
+        (matrix) The matrix of the degeneracy raising map to level ``level``.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,4)
+            sage: M._degeneracy_raising_matrix_1(74)
+            20 x 58 dense matrix over Rational Field
+            sage: M.dimension()
+            20
+            sage: ModularSymbols(74,4).dimension()
+            58
+        """
         level = int(level)
         N = self.level()
         M = self.hecke_module_of_level(level)
@@ -1771,6 +2422,17 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the new cuspidal subsapce, via the formula.
+
+        EXAMPLES:
+
+            sage: M = ModularSymbols(100,2)
+            sage: M._cuspidal_new_submodule_dimension_formula()
+            2
+            sage: M.cuspidal_subspace().new_subspace().dimension()
+            2
+        """
         if self.base_ring().characteristic() == 0:
             N, k, sign = self.level(), self.weight(), self.sign()
             if sign == 0:
@@ -1782,6 +2444,15 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             raise NotImplementedError
 
     def boundary_space(self):
+        r"""
+        Return the space of boundary modular symbols for this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(100,2)
+            sage: M.boundary_space()
+            Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(100) of weight 2 and over Rational Field
+        """
         try:
             return self.__boundary_space
         except AttributeError:
@@ -1791,6 +2462,17 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         return self.__boundary_space
 
     def manin_symbols(self):
+        r"""
+        Return the Manin symbol list of this modular symbol space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(100,4)
+            sage: M.manin_symbols()
+            Manin Symbol List of weight 4 for Gamma0(100)
+            sage: len(M.manin_symbols())
+            540
+        """
         try:
             return self.__manin_symbols
         except AttributeError:
@@ -1799,14 +2481,23 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         return self.__manin_symbols
 
     def modular_symbols_of_level(self, N):
-        """
-        Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with the level
-        N.
+        r"""
+        Returns a space of modular symbols with the same parameters as
+        this space except with level `N`.
 
-        For example, if self is the space of modular symbols of weight 2
-        for Gamma_0(22), and level is 11, then this function returns
-        modular symbols of weight 2 for Gamma_0(11).
+        INPUT:
+
+        - ``N`` (int) -- a positive integer.
+
+        OUTPUT:
+
+        (Modular Symbol space) A space of modular symbols with the
+        same defining properties (weight, sign, etc.) as this space
+        except with level `N`.
+
+        For example, if self is the space of modular symbols of weight `2`
+        for `\Gamma_0(22)`, and level is `11`, then this function returns
+        the modular symbol space of weight `2` for `\Gamma_0(11)`.
 
         EXAMPLES::
 
@@ -1881,22 +2572,42 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
                                                       v, self.manin_gens_to_basis())
 
 class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
-    """
-    Modular symbols for Gamma_0(N) of integer weight 2 over the field
-    F.
+    r"""
+    Modular symbols for `\Gamma_0(N)` of integer weight `2` over the field
+    `F`.
+
+    INPUT:
+
+    -  ``N`` - int, the level
+
+    -  ``sign`` - int, either -1, 0, or 1
+
+
+    OUTPUT:
+
+    The space of modular symbols of weight `2`, trivial character, level
+    `N` and given sign.
+
+    EXAMPLES::
+
+        sage: ModularSymbols(Gamma0(12),2)
+        Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
     """
     def __init__(self, N, sign, F):
         """
         Initialize a space of modular symbols. INPUT:
 
+        INPUT:
 
         -  ``N`` - int, the level
 
         -  ``sign`` - int, either -1, 0, or 1
 
 
-        OUTPUT: The space of modular symbols of weight 2, trivial
-        character, level N and given sign.
+        OUTPUT:
+
+        The space of modular symbols of weight 2, trivial character,
+        level N and given sign.
 
         EXAMPLES::
 
@@ -1906,6 +2617,17 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
                                                 N=N, k=2, sign=sign, F=F)
 
     def _dimension_formula(self):
+        r"""
+        Return the dimension of this space using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,6)
+            sage: M.dimension()
+            32
+            sage: M._dimension_formula()
+            32
+        """
         if self.base_ring().characteristic() == 0:
             N, sign = self.level(), self.sign()
             if sign != 0: return None
@@ -1914,6 +2636,17 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             raise NotImplementedError
 
     def _cuspidal_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the cuspidal subspace, using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,4)
+            sage: M.cuspidal_subspace().dimension()
+            18
+            sage: M._cuspidal_submodule_dimension_formula()
+            18
+        """
         if self.base_ring().characteristic() == 0:
             if self.sign() == 0:
                 m = 2
@@ -1924,6 +2657,17 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             raise NotImplementedError
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the new cuspidal subsapce, via the formula.
+
+        EXAMPLES:
+
+            sage: M = ModularSymbols(100,2)
+            sage: M._cuspidal_new_submodule_dimension_formula()
+            2
+            sage: M.cuspidal_subspace().new_subspace().dimension()
+            2
+        """
         if self.base_ring().characteristic() == 0:
             if self.sign() == 0:
                 m = 2
@@ -1935,8 +2679,9 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
 
 
     def _compute_hecke_matrix_prime(self, p, rows=None):
-        """
-        Compute and return the matrix of the p-th Hecke operator.
+        r"""
+        Compute and return the matrix of the `p`-th Hecke operator.
+
         EXAMPLES::
 
             sage: m = ModularSymbols(37,2)
@@ -2006,6 +2751,15 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         return Tp
 
     def boundary_space(self):
+        r"""
+        Return the space of boundary mdular symbols for this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(100,2)
+            sage: M.boundary_space()
+            Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(100) of weight 2 and over Rational Field
+        """
         try:
             return self.__boundary_space
         except AttributeError:
@@ -2093,8 +2847,34 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
 
 
 class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
-    def __init__(self, level, weight, sign, F):
+    r"""
+    INPUT:
+
+
+    -  ``level`` - int, the level
+
+    -  ``weight`` - int, the weight = 2
+
+    -  ``sign`` - int, either -1, 0, or 1
+
+    -  ``F`` - field
+
+
+    EXAMPLES::
+
+        sage: ModularSymbols(Gamma1(17),2)
+        Modular Symbols space of dimension 25 for Gamma_1(17) of weight 2 with sign 0 and over Rational Field
+        sage: [ModularSymbols(Gamma1(7),k).dimension() for k in [2,3,4,5]]
+        [5, 8, 12, 16]
+
+    ::
+
+        sage: ModularSymbols(Gamma1(7),3)
+        Modular Symbols space of dimension 8 for Gamma_1(7) of weight 3 with sign 0 and over Rational Field
         """
+
+    def __init__(self, level, weight, sign, F):
+        r"""
         Initialize a space of modular symbols for Gamma1(N).
 
         INPUT:
@@ -2128,6 +2908,17 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
 
     def _dimension_formula(self):
+        r"""
+        Return the dimension of this space using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma1(7),6)
+            sage: M.dimension()
+            20
+            sage: M._dimension_formula()
+            20
+        """
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError
         level, weight, sign = self.level(), self.weight(), self.sign()
@@ -2145,11 +2936,31 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return None
 
     def _repr_(self):
+        r"""
+        Return a string representation of this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma1(7),3)
+            sage: M # indirect doctest
+            Modular Symbols space of dimension 8 for Gamma_1(7) of weight 3 with sign 0 and over Rational Field
+        """
         return ("Modular Symbols space of dimension %s for Gamma_1(%s) of weight %s with sign %s " + \
                 "and over %s")%(self.dimension(), self.level(),self.weight(),
                                 self.sign(), self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the cuspidal subspace, using the formula.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(37,4)
+            sage: M.cuspidal_subspace().dimension()
+            18
+            sage: M._cuspidal_submodule_dimension_formula()
+            18
+        """
         if self.sign() == 0:
             m = 2
         else:
@@ -2157,6 +2968,17 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return m * self.group().dimension_cusp_forms(self.weight())
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        r"""
+        Return the dimension of the new cuspidal subsapce, via the formula.
+
+        EXAMPLES:
+
+            sage: M = ModularSymbols(100,2)
+            sage: M._cuspidal_new_submodule_dimension_formula()
+            2
+            sage: M.cuspidal_subspace().new_subspace().dimension()
+            2
+        """
         if self.sign() == 0:
             m = 2
         else:
@@ -2165,6 +2987,15 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
 
     def _compute_hecke_matrix_prime_power(self, p, r):
+        r"""
+        Compute and return the matrix of the Hecke operator `T(p^r)`.
+
+        EXAMPLES::
+
+            sage: m = ModularSymbols(37,2)
+            sage: m._compute_hecke_matrix_prime_power(3,4).charpoly('x')
+            x^5 - 141*x^4 + 2538*x^3 - 14458*x^2 + 21861*x - 9801
+        """
         return self._compute_hecke_matrix_prime(p**r)
 
 ##     def _xxx_degeneracy_raising_matrix(self, M):
@@ -2172,6 +3003,27 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 ##         return self._matrix_of_operator_on_modular_symbols(M, R)
 
     def _degeneracy_raising_matrix_1(self, level):
+        r"""
+        Return the matrix of the degeneracy raising map to level ``level``.
+
+        INPUT:
+
+        - ``level`` (int) -- an integer (multiple of the level).
+
+        OUTPUT:
+
+        (matrix) The matrix of the degeneracy raising matrix to the higher level.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma1(7),3)
+            sage: M._degeneracy_raising_matrix_1(21)
+            8 x 64 dense matrix over Rational Field
+            sage: M.dimension()
+            8
+            sage: ModularSymbols(Gamma1(21),3).dimension()
+            64
+        """
         level = int(level)
         N = self.level()
         M = self.hecke_module_of_level(level)
@@ -2205,6 +3057,15 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return A
 
     def boundary_space(self):
+        r"""
+        Return the space of boundary mdular symbols for this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(100,2)
+            sage: M.boundary_space()
+            Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(100) of weight 2 and over Rational Field
+        """
         try:
             return self.__boundary_space
         except AttributeError:
@@ -2214,6 +3075,17 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return self.__boundary_space
 
     def manin_symbols(self):
+        r"""
+        Return the Manin symbol list of this modular symbol space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma1(30),4)
+            sage: M.manin_symbols()
+            Manin Symbol List of weight 4 for Gamma1(30)
+            sage: len(M.manin_symbols())
+            1728
+        """
         try:
             return self.__manin_symbols
         except AttributeError:
@@ -2223,10 +3095,30 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
 
     def modular_symbols_of_level(self, N):
-        """
-        Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with the level
-        N.
+        r"""
+        Returns a space of modular symbols with the same parameters as
+        this space except with level `N`.
+
+        INPUT:
+
+        - ``N`` (int) -- a positive integer.
+
+        OUTPUT:
+
+        (Modular Symbol space) A space of modular symbols with the
+        same defining properties (weight, sign, etc.) as this space
+        except with level `N`.
+
+        For example, if self is the space of modular symbols of weight `2`
+        for `\Gamma_0(22)`, and level is `11`, then this function returns
+        the modular symbol space of weight `2` for `\Gamma_0(11)`.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma1(30),4); M
+            Modular Symbols space of dimension 144 for Gamma_1(30) of weight 4 with sign 0 and over Rational Field
+            sage: M.modular_symbols_of_level(22)
+            Modular Symbols space of dimension 90 for Gamma_1(22) of weight 4 with sign 0 and over Rational Field
         """
         return modsym.ModularSymbols(arithgroup.Gamma1(N), self.weight(),self.sign(), self.base_ring())
 
@@ -2258,26 +3150,98 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
                 sign=sign, base_ring=F)
 
     def _dimension_formula(self):
+        r"""
+        Return None: we have no dimension formulas for `\Gamma_H(N)` spaces.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M.dimension()
+            9
+            sage: M._dimension_formula()
+        """
         return None
 
     def _repr_(self):
+        r"""
+        Return a string representation of this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M # indirect doctest
+            Modular Symbols space of dimension 9 for Congruence Subgroup Gamma_H(15) with H generated by [4] of weight 2 with sign 0 and over Rational Field
+        """
         return ("Modular Symbols space of dimension %s for %s of weight %s with sign %s " + \
                 "and over %s")%(self.dimension(), self.group(),self.weight(),
                                 self.sign(), self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
+        r"""
+        Return None: we have no dimension formulas for `\Gamma_H(N)` spaces.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(GammaH(15,[4]),2)._cuspidal_submodule_dimension_formula() is None
+            True
+
+        """
         return None
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        r"""
+        Return None: we have no dimension formulas for `\Gamma_H(N)` spaces.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(GammaH(15,[4]),2)._cuspidal_new_submodule_dimension_formula() is None
+            True
+        """
         return None
 
     def _compute_hecke_matrix_prime_power(self, n, p, r):
+        r"""
+        Return matrix of a prime-power Hecke operator.
+
+        .. note::
+
+           Not implemented for this class.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M._compute_hecke_matrix_prime_power
+            <bound method ModularSymbolsAmbient_wtk_gamma_h._compute_hecke_matrix_prime_power of Modular Symbols space of dimension 9 for Congruence Subgroup Gamma_H(15) with H generated by [4] of weight 2 with sign 0 and over Rational Field>
+            sage: M._compute_hecke_matrix_prime_power(1,2,3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def _degeneracy_raising_matrix_1(self, level):
+        r"""
+        Return matrix of a degeneracy raising map.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(GammaH(15,[4]),2)._degeneracy_raising_matrix_1(30)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def boundary_space(self):
+        r"""
+        Return the space of boundary modular symbols for this space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M.boundary_space()
+            Boundary Modular Symbols space for Congruence Subgroup Gamma_H(15) with H generated by [4] of weight 2 over Rational Field
+        """
         try:
             return self.__boundary_space
         except AttributeError:
@@ -2287,6 +3251,17 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
         return self.__boundary_space
 
     def manin_symbols(self):
+        r"""
+        Return the Manin symbol list of this modular symbol space.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M.manin_symbols()
+            Manin Symbol List of weight 2 for Congruence Subgroup Gamma_H(15) with H generated by [4]
+            sage: len(M.manin_symbols())
+            96
+        """
         try:
             return self.__manin_symbols
         except AttributeError:
@@ -2295,10 +3270,21 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
         return self.__manin_symbols
 
     def modular_symbols_of_level(self, N):
-        """
-        Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with the level
-        N.
+        r"""
+        Returns a space of modular symbols with the same parameters as
+        this space except with level `N`.
+
+        .. note::
+
+           Not implemented for this class.
+
+        TESTS::
+
+            sage: M = ModularSymbols(GammaH(15,[4]),2)
+            sage: M.modular_symbols_of_level(30)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -2357,12 +3343,34 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
                 character = eps)
 
     def _repr_(self):
+        r"""
+        Return a string representation of this space.
+
+        EXAMPLES::
+
+            sage: G, e = DirichletGroup(5).objgen()
+            sage: M = ModularSymbols(e,3)
+            sage: M # indirect doctest
+            Modular Symbols space of dimension 2 and level 5, weight 3, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+        """
         return ("Modular Symbols space of dimension %s and level %s, weight %s, character %s, sign %s, " + \
                 "over %s")%(self.dimension(), self.level(), self.weight(),
                     self.character(), self.sign(), self.base_ring())
 
 
     def _cuspidal_submodule_dimension_formula(self):
+        r"""
+        Return the dimension for the cuspidal subspace of this space, given by the formula.
+
+        EXAMPLES::
+
+            sage: G, e = DirichletGroup(50).objgen()
+            sage: M = ModularSymbols(e^2,2)
+            sage: M.dimension()
+            16
+            sage: M._cuspidal_submodule_dimension_formula()
+            12
+        """
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError
         if self.sign() == 0:
@@ -2372,6 +3380,18 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return m * self.group().dimension_cusp_forms(self.weight(), eps=self.character())
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        r"""
+        Return the dimension for the new cuspidal subspace of this space, given by the formula.
+
+        EXAMPLES::
+
+            sage: G, e = DirichletGroup(50).objgen()
+            sage: M = ModularSymbols(e,3)
+            sage: M.dimension()
+            30
+            sage: M._cuspidal_new_submodule_dimension_formula()
+            10
+        """
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError
         if self.sign() == 0:
@@ -2402,6 +3422,17 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         where g.x is the formal linear fractional transformation on modular
         symbols.
+
+        EXAMPLES::
+
+            sage: G, e = DirichletGroup(5).objgen()
+            sage: M = ModularSymbols(e,3)
+            sage: M.dimension()
+            2
+            sage: M._matrix_of_operator_on_modular_symbols(M,HeilbronnCremona(3))
+            [ 6  6]
+            [ 0 10]
+
         """
         eps = self.character()
         rows = []
@@ -2424,6 +3455,26 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 ##         return self._matrix_of_operator_on_modular_symbols(M, R, character_twist = True)
 
     def _degeneracy_raising_matrix_1(self, level):
+        r"""
+        Return the matrix of the degeneray raising map to level ``level``.
+
+        INPUT:
+
+        - ``level`` (int) -- an integer (multiple of the level).
+
+        OUTPUT:
+
+        (matrix) The matrix of the degeneracy raising matrix to the higher level.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(4).gen(0)
+            sage: M = ModularSymbols(eps, 3); M
+            Modular Symbols space of dimension 2 and level 4, weight 3, character [-1], sign 0, over Rational Field
+            sage: M._degeneracy_raising_matrix_1(20)
+            [ 1  0  0  0 -1 -1  3  1  0  2 -3  0]
+            [ 0  5  1 -2 -3  3  0  4 -1  5 -7 -1]
+        """
         level = int(level)
         N = self.level()
         M = self.hecke_module_of_level(level)
@@ -2458,9 +3509,30 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return A
 
     def _dimension_formula(self):
+        r"""
+        Return None: we have no dimension formula for `\Gamma_H(N)` spaces.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2)
+            sage: M.dimension()
+            0
+            sage: M._dimension_formula()
+        """
         return None
 
     def boundary_space(self):
+        r"""
+        Return the space of boundary modular symbols for this space.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2)
+            sage: M.boundary_space()
+            Boundary Modular Symbols space of level 5, weight 2, character [zeta4] and dimension 0 over Cyclotomic Field of order 4 and degree 2
+        """
         try:
             return self.__boundary_space
         except AttributeError:
@@ -2470,6 +3542,18 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return self.__boundary_space
 
     def manin_symbols(self):
+        r"""
+        Return the Manin symbol list of this modular symbol space.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2)
+            sage: M.manin_symbols()
+            Manin Symbol List of weight 2 for Gamma1(5) with character [zeta4]
+            sage: len(M.manin_symbols())
+            6
+        """
         try:
             return self.__manin_symbols
         except AttributeError:
@@ -2478,14 +3562,27 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return self.__manin_symbols
 
     def modular_symbols_of_level(self, N):
-        """
-        Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with the level
-        N.
+        r"""
+        Returns a space of modular symbols with the same parameters as
+        this space except with level `N`.
 
-        For example, if self is the space of modular symbols of weight 2
-        for Gamma_0(22), and level is 11, then this function returns
-        modular symbols of weight 2 for Gamma_0(11).
+        INPUT:
+
+        - ``N`` (int) -- a positive integer.
+
+        OUTPUT:
+
+        (Modular Symbol space) A space of modular symbols with the
+        same defining properties (weight, sign, etc.) as this space
+        except with level `N`.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2); M
+            Modular Symbols space of dimension 0 and level 5, weight 2, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+            sage: M.modular_symbols_of_level(15)
+            Modular Symbols space of dimension 0 and level 15, weight 2, character [1, zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
         """
         if self.level() % N == 0:
             eps = self.character().restrict(N)
@@ -2496,18 +3593,61 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return modsym.ModularSymbols(eps, self.weight(), self.sign(), self.base_ring())
 
     def modular_symbols_of_sign(self, sign):
-        """
+        r"""
         Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with given
+        properties (weight, level, etc.) as this space except with given
         sign.
+
+        INPUT:
+
+        - ``sign`` (int) -- A sign (`+1`, `-1` or `0`).
+
+        OUTPUT:
+
+        (ModularSymbolsAmbient) A space of modular symbols with the
+        same defining properties (weight, level, etc.) as this space
+        except with given sign.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2); M
+            Modular Symbols space of dimension 0 and level 5, weight 2, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+            sage: M.modular_symbols_of_sign(0) == M
+            True
+            sage: M.modular_symbols_of_sign(+1)
+            Modular Symbols space of dimension 0 and level 5, weight 2, character [zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
+            sage: M.modular_symbols_of_sign(-1)
+            Modular Symbols space of dimension 0 and level 5, weight 2, character [zeta4], sign -1, over Cyclotomic Field of order 4 and degree 2
+
         """
         return modsym.ModularSymbols(self.character(), self.weight(), sign, self.base_ring())
 
     def modular_symbols_of_weight(self, k):
-        """
+        r"""
         Returns a space of modular symbols with the same defining
         properties (weight, sign, etc.) as this space except with weight
-        k.
+        `k`.
+
+        INPUT:
+
+        - ``k`` (int) -- A positive integer.
+
+        OUTPUT:
+
+        (ModularSymbolsAmbient) A space of modular symbols with the
+        same defining properties (level, sign) as this space
+        except with given weight.
+
+        EXAMPLES::
+
+            sage: eps = DirichletGroup(5).gen(0)
+            sage: M = ModularSymbols(eps, 2); M
+            Modular Symbols space of dimension 0 and level 5, weight 2, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+            sage: M.modular_symbols_of_weight(3)
+            Modular Symbols space of dimension 2 and level 5, weight 3, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+            sage: M.modular_symbols_of_weight(2) == M
+            True
         """
         return modsym.ModularSymbols(self.character(), k, self.sign(), self.base_ring())
 
@@ -2528,6 +3668,20 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
 
         -  ``matrix`` - whose rows are the Hecke images
+
+        EXAMPLES::
+
+            sage: G, e = DirichletGroup(50,QQ).objgen()
+            sage: M = ModularSymbols(e^2,2)
+            sage: M.dimension()
+            15
+            sage: M._hecke_images(8,range(1,5))
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  1  0  0  0  0  1  0  0]
+            [ 0  1  0  2  0 -1  1  1  0  0  0  0  0  0  0]
+            [ 0  1  1 -1 -1  0 -1  1  1  0  1  2  0 -2  2]
+
+
         """
         if self.weight() != 2:
             raise NotImplementedError, "hecke images only implemented when the weight is 2"

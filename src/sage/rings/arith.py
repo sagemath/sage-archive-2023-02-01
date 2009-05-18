@@ -3376,8 +3376,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     p = ZZ(p)
     if p != -1 and not p.is_prime():
         raise ValueError, "p must be prime or -1"
-    a = QQ(a).squarefree_part()
-    b = QQ(b).squarefree_part()
+    a = QQ(a).numerator() * QQ(a).denominator()
+    b = QQ(b).numerator() * QQ(b).denominator()
 
     if algorithm == "pari":
         return ZZ(pari(a).hilbert(b,p))

@@ -2040,7 +2040,7 @@ class GenericGraph(SageObject):
                     self._embedding = G._embedding
             return planar
 
-    def is_circular_planar(self, ordered=True, kuratowski=False, set_embedding=False, set_pos=False):
+    def is_circular_planar(self, ordered=True, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
         """
         A graph (with nonempty boundary) is circular planar if it has a
         planar embedding in which all boundary vertices can be drawn in
@@ -2137,10 +2137,20 @@ class GenericGraph(SageObject):
             sage: K23.set_boundary([0,2,1,3]) # Diff Order!
             sage: K23.is_circular_planar(set_embedding=True)
             True
+
+        For graphs without a boundary, circular planar is the same as planar::
+
+            sage: g = graphs.KrackhardtKiteGraph()
+            sage: g.is_circular_planar()
+            True
+
         """
+        boundary = self.get_boundary()
+        if not boundary:
+            return self.is_planar(on_embedding, kuratowski, set_embedding, set_pos)
+
         from sage.graphs.planarity import is_planar
         graph = self.to_undirected()
-        boundary = self.get_boundary()
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 

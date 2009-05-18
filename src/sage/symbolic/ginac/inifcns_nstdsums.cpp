@@ -394,8 +394,9 @@ numeric S_num(int n, int p, const numeric& x);
 
 
 // helper function for classical polylog Li
-numeric Lin_numeric(int n, const numeric& x)
+numeric Lin_numeric(const numeric& n, const numeric& x, int prec)
 {
+  return x.value.Li(n.value, prec);
 // 	if (n == 1) {
 // 		// just a log
 // 		return -cln::log(1-x.to_cl_N());
@@ -1420,16 +1421,15 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 
 static ex Li_evalf(const ex& m_, const ex& x_, int prec)
 {
-  /*
 	// classical polylogs
 	if (m_.info(info_flags::posint)) {
 		if (x_.info(info_flags::numeric)) {
-			return Lin_numeric(ex_to<numeric>(m_).to_int(), ex_to<numeric>(x_));
+			return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), prec);
 		} else {
 			// try to numerically evaluate second argument
 			ex x_val = x_.evalf(0, prec);
 			if (x_val.info(info_flags::numeric)) {
-				return Lin_numeric(ex_to<numeric>(m_).to_int(), ex_to<numeric>(x_val));
+				return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_val), prec);
 			}
 		}
 	}
@@ -1464,13 +1464,11 @@ static ex Li_evalf(const ex& m_, const ex& x_, int prec)
 	}
 
 	return Li(m_,x_).hold();
-  */
 }
 
 
 static ex Li_eval(const ex& m_, const ex& x_)
 {
-  /*
 	if (is_a<lst>(m_)) {
 		if (is_a<lst>(x_)) {
 			// multiple polylogs
@@ -1544,18 +1542,16 @@ static ex Li_eval(const ex& m_, const ex& x_)
 			return power(Pi,_ex2)/_ex_48 - Catalan*I;
 		}
 	}
-	if (m_.info(info_flags::posint) && x_.info(info_flags::numeric) && !x_.info(info_flags::crational)) {
-		return Lin_numeric(ex_to<numeric>(m_).to_int(), ex_to<numeric>(x_));
-	}
+	/* if (m_.info(info_flags::posint) && x_.info(info_flags::numeric) && !x_.info(info_flags::crational)) { */
+	/* 	return Lin_numeric(ex_to<numeric>(m_), ex_to<numeric>(x_), prec); */
+	/* } */
 
 	return Li(m_, x_).hold();
-  */
 }
 
 
 static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, unsigned options)
 {
-  /*
 	if (is_a<lst>(m) || is_a<lst>(x)) {
 		// multiple polylog
 		epvector seq;
@@ -1587,13 +1583,11 @@ static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, 
 	}
 	// all other cases should be safe, by now:
 	throw do_taylor();  // caught by function::series()
-  */
 }
 
 
 static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 {
-  /*
 	GINAC_ASSERT(deriv_param < 2);
 	if (deriv_param == 0) {
 		return _ex0;
@@ -1618,13 +1612,11 @@ static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 	} else {
 		return 1/(1-x);
 	}
-  */
 }
 
 
 static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 {
-  /*
 	lst m;
 	if (is_a<lst>(m_)) {
 		m = ex_to<lst>(m_);
@@ -1637,7 +1629,7 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 	} else {
 		x = lst(x_);
 	}
-	c.s << "\\mbox{Li}_{";
+	c.s << "\\mbox{polylog}_{";
 	lst::const_iterator itm = m.begin();
 	(*itm).print(c);
 	itm++;
@@ -1654,11 +1646,10 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 		(*itx).print(c);
 	}
 	c.s << ")";
-  */
 }
 
 
-REGISTER_FUNCTION(Li,
+unsigned Li_SERIAL::serial = function::register_new(function_options("polylog", 2).
                   evalf_func(Li_evalf).
                   eval_func(Li_eval).
                   series_func(Li_series).

@@ -113,6 +113,7 @@ extern "C" {
 	PyObject* py_asinh(PyObject* n);
 	PyObject* py_acosh(PyObject* n);
 	PyObject* py_atanh(PyObject* n);
+    PyObject* py_li(PyObject* x, PyObject* n, PyObject* prec);
 	PyObject* py_li2(PyObject* n);
 	PyObject* py_lgamma(PyObject* n);
 	PyObject* py_tgamma(PyObject* n);
@@ -1336,6 +1337,16 @@ void Number_T::archive(archive_node &n) const {
 
   Number_T Number_T::atanh() const {
     PY_RETURN(py_atanh);
+  }
+
+  Number_T Number_T::Li(const Number_T &n, int prec) const {
+    PyObject *pp = PyInt_FromLong(prec);
+    PyObject *aa = Number_T_to_pyobject(*this);	
+    PyObject* nn = Number_T_to_pyobject(n);	
+    PyObject *ans = py_li(aa, nn, pp);             
+    if (!ans) py_error("error calling function");
+    Py_DECREF(aa); Py_DECREF(nn); Py_DECREF(pp);
+    return ans; 
   }
 
   Number_T Number_T::Li2() const {

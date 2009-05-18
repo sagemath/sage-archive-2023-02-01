@@ -159,6 +159,7 @@ namespace GiNaC {
     Number_T asinh() const;
     Number_T acosh() const;
     Number_T atanh() const;
+    Number_T Li(const Number_T &n, int prec) const;
     Number_T Li2() const;
     Number_T zeta() const;
     Number_T lgamma() const;

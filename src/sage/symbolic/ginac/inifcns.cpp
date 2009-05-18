@@ -655,7 +655,8 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 	throw do_taylor();  // caught by function::series()
 }
 
-REGISTER_FUNCTION(Li2, eval_func(Li2_eval).
+unsigned Li2_SERIAL::serial = function::register_new(function_options("dilog", 1).
+                       eval_func(Li2_eval).
                        evalf_func(Li2_evalf).
                        derivative_func(Li2_deriv).
                        series_func(Li2_series).

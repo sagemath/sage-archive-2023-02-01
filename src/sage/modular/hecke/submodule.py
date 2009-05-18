@@ -542,6 +542,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             failed (cut down to rank 7, but should have cut down to rank 4).
             sage: S.dual_free_module().dimension() == S.dimension()
             True
+
+        We check that #5080 is fixed (which turns out to have been caused by a bug in this routine)::
+
+            sage: EllipticCurve('128a').congruence_number() # indirect doctest
+            32
         """
         try:
             return self.__dual_free_module

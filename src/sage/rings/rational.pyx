@@ -985,6 +985,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
             sage: QQ(2).is_padic_square(5)
             False
+
+        TESTS:
+            sage: QQ(5/7).is_padic_square(int(2))
+            False
         """
         ## Special case when self is zero
         if self.is_zero():
@@ -996,6 +1000,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return (self > 0)
 
         ## Check that p is prime
+        p = ZZ(p)
         if not p.is_prime():
             raise ValueError, 'p must be "infinity" or a positive prime number.'
 

@@ -233,11 +233,20 @@ static ex abs_power(const ex & arg, const ex & exp)
 		return power(abs(arg), exp).hold();
 }
 
+static ex abs_deriv(const ex & x, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param==0);
+	
+	// d/dx abs(x) -> x/abs(x)
+	return x/abs(x);
+}
+
 REGISTER_FUNCTION(abs, eval_func(abs_eval).
                        evalf_func(abs_evalf).
                        print_func<print_latex>(abs_print_latex).
                        print_func<print_csrc_float>(abs_print_csrc_float).
                        print_func<print_csrc_double>(abs_print_csrc_float).
+                       derivative_func(abs_deriv).
                        conjugate_func(abs_conjugate).
                        real_part_func(abs_real_part).
                        imag_part_func(abs_imag_part).

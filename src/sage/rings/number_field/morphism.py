@@ -127,8 +127,54 @@ class NumberFieldHomset(RingHomset_generic):
 
 
 class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
-    pass
+    def __invert__(self):
+        r"""
+        EXAMPLES::
 
+            sage: K.<a> = NumberField(x^2 + 5)
+            sage: tau1, tau2 = K.automorphisms(); tau1, tau2
+            (Ring endomorphism of Number Field in a with defining polynomial x^2 + 5
+              Defn: a |--> a,
+             Ring endomorphism of Number Field in a with defining polynomial x^2 + 5
+              Defn: a |--> -a)
+            sage: ~tau1
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 5
+             Defn: a |--> a
+            sage: ~tau2
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 5
+             Defn: a |--> -a
+
+            sage: L.<z> = CyclotomicField(5)
+            sage: tau1, tau2, tau3, tau4 = L.automorphisms()
+            sage: (tau1, ~tau1)
+            (Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z,
+             Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z)
+            sage: (tau2, ~tau2)
+            (Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z^2,
+             Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z^3)
+            sage: (tau4, ~tau4)
+            (Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z^3,
+             Ring endomorphism of Cyclotomic Field of order 5 and degree 4
+              Defn: z |--> z^2)
+        """
+        if not self.is_endomorphism():
+            raise TypeError, "Can only invert endomorphisms"
+        K = self.domain()
+        V, V_into_K, K_into_V = K.relative_vector_space()
+
+        from sage.all import matrix
+        M = matrix([ K_into_V(self(x)) for x in K.power_basis() ]).transpose()
+        inv_gen = V_into_K((~M) * K_into_V(K.gen()))
+        inv = K.hom([inv_gen])
+
+        assert inv(self(K.gen())) == K.gen()
+        assert self(inv(K.gen())) == K.gen()
+        return inv
 
 class RelativeNumberFieldHomset(NumberFieldHomset):
     """
@@ -357,7 +403,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
         return v
 
 
-class CyclotomicFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
+class CyclotomicFieldHomomorphism_im_gens(NumberFieldHomomorphism_im_gens):
     pass
 
 

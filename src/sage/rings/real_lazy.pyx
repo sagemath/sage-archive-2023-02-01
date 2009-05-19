@@ -111,6 +111,20 @@ cdef class LazyField(Field):
         elif self.interval_field().has_coerce_map_from(R) and R.is_exact():
             return LazyWrapperMorphism(R, self)
 
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self,
+        ie, the complex lazy field.
+
+        EXAMPLES:
+            sage: RLF.algebraic_closure()
+            Complex Lazy Field
+
+            sage: CLF.algebraic_closure()
+            Complex Lazy Field
+        """
+        return CLF
+
     cpdef interval_field(self, prec=None):
         raise NotImplementedError, "subclasses must override this method"
 
@@ -185,17 +199,6 @@ cdef class RealLazyField_class(LazyField):
         return CompletionFunctor(sage.rings.infinity.Infinity,
                                  sage.rings.infinity.Infinity,
                                  {'type': 'RLF'}), QQ
-
-    def algebraic_closure(self):
-        """
-        Returns the algebraic closure of self,
-        ie, the complex double field.
-
-        EXAMPLES:
-            sage: RLF.algebraic_closure()
-            Complex Lazy Field
-        """
-        return CLF
 
     def _latex_(self):
         r"""

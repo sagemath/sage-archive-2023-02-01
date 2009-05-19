@@ -87,22 +87,20 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             else:
                 G = DenseGraph(n)
             if G_in.is_directed():
-                for i from 0 <= i < n:
-                    for _,j,_ in G_in.outgoing_edge_iterator(i):
-                        G.add_arc(i,j)
+                for i,j in G_in.edge_iterator(labels=False):
+                    G.add_arc(i,j)
             else:
-                for i from 0 <= i < n:
-                    for _,j,_ in G_in.edge_iterator(i):
-                        if j <= i:
-                            G.add_arc(i,j)
-                            G.add_arc(j,i)
+                for i,j in G_in.edge_iterator(labels=False):
+                    G.add_arc(i,j)
+                    G.add_arc(j,i)
         elif isinstance(G_in, CGraph):
             G = <CGraph> G_in
             if n == -1:
                 n = G.num_verts
             elif n != G.num_verts:
                 return False
-            to = range(n)
+            to = {}
+            for a in G.verts(): to[a]=a
             frm = to
         else:
             raise TypeError("G must be a Sage graph.")
@@ -163,7 +161,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
         return output_py
 
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
-                    verbosity=0, use_indicator_function=True, sparse=False,
+                    verbosity=0, use_indicator_function=True, sparse=True,
                     base=False, order=False):
     """
     Compute canonical labels and automorphism groups of graphs.
@@ -268,8 +266,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
         sage: ade,bde = st(GD, Pi)
-        sage: bsg = Graph(implementation='networkx')
-        sage: bdg = Graph(implementation='networkx')
+        sage: bsg = Graph()
+        sage: bdg = Graph()
         sage: for i in range(20):
         ...    for j in range(20):
         ...        if bsp.has_arc(i,j):
@@ -319,7 +317,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: HS = graphs.HoffmanSingletonGraph()
         sage: clqs = (HS.complement()).cliques()
         sage: alqs = [Set(c) for c in clqs if len(c) == 15]
-        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0], implementation='networkx')
+        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
         sage: Y0,Y1 = Y.connected_components_subgraphs()
         sage: st(Y0, [Y0.vertices()])[1] == st(Y1, [Y1.vertices()])[1]
         True
@@ -345,7 +343,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         True
 
         sage: from sage.graphs.graph import graph_isom_equivalent_non_multi_graph
-        sage: G = Graph(multiedges=True, implementation='networkx')
+        sage: G = Graph(multiedges=True, sparse=True)
         sage: G.add_edge(('a', 'b'))
         sage: G.add_edge(('a', 'b'))
         sage: G.add_edge(('a', 'b'))
@@ -381,19 +379,17 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         else:
             G = DenseGraph(n)
         if G_in.is_directed():
-            for i from 0 <= i < n:
-                for _,j,_ in G_in.outgoing_edge_iterator(i):
-                    G.add_arc(i,j)
+            for i,j in G_in.edge_iterator(labels=False):
+                G.add_arc(i,j)
         else:
-            for i from 0 <= i < n:
-                for _,j,_ in G_in.edge_iterator(i):
-                    if j <= i:
-                        G.add_arc(i,j)
-                        G.add_arc(j,i)
+            for i,j in G_in.edge_iterator(labels=False):
+                G.add_arc(i,j)
+                G.add_arc(j,i)
     elif isinstance(G_in, CGraph):
         G = <CGraph> G_in
         n = G.num_verts
-        to = dict(enumerate(range(n)))
+        to = {}
+        for a in G.verts(): to[a]=a
         frm = to
     else:
         raise TypeError("G must be a Sage graph.")

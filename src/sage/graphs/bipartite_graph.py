@@ -127,7 +127,7 @@ class BipartiteGraph(Graph):
          (6, 10, None)]
 
         sage: M = Matrix([(1, 1, 2, 0, 0), (0, 2, 1, 1, 1), (0, 1, 2, 1, 1)])
-        sage: B = BipartiteGraph(M, multiedges=True)
+        sage: B = BipartiteGraph(M, multiedges=True, sparse=True)
         sage: B.edges()
         [(0, 5, None),
          (1, 5, None),
@@ -147,7 +147,7 @@ class BipartiteGraph(Graph):
          sage: F.<a> = GF(4)
          sage: MS = MatrixSpace(F, 2, 3)
          sage: M = MS.matrix([[0, 1, a+1], [a, 1, 1]])
-         sage: B = BipartiteGraph(M, weighted=True)
+         sage: B = BipartiteGraph(M, weighted=True, sparse=True)
          sage: B.edges()
          [(0, 4, a), (1, 3, 1), (1, 4, 1), (2, 3, a + 1), (2, 4, 1)]
          sage: B.weighted()
@@ -184,23 +184,23 @@ class BipartiteGraph(Graph):
 
         """
         if len(args) == 0:
-            Graph.__init__(self, implementation='networkx')
+            Graph.__init__(self)
             self.left = []; self.right = []
             return
         arg1 = args[0]
         args = args[1:]
         from sage.structure.element import is_Matrix
         if isinstance(arg1, BipartiteGraph):
-            Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
+            Graph.__init__(self, arg1, *args, **kwds)
             self.left, self.right = arg1.left, arg1.right
         elif isinstance(arg1, str):
-            Graph.__init__(self, implementation='networkx', *args, **kwds)
+            Graph.__init__(self, *args, **kwds)
             self.load_afile(arg1)
         elif is_Matrix(arg1):
             # sanity check for mutually exclusive keywords
             if kwds.get('multiedges',False) and kwds.get('weighted',False):
                 raise TypeError, "Weighted multi-edge bipartite graphs from reduced adjacency matrix not supported."
-            Graph.__init__(self, implementation='networkx', *args, **kwds)
+            Graph.__init__(self, *args, **kwds)
             ncols = arg1.ncols()
             nrows = arg1.nrows()
             self.left, self.right = range(ncols), range(ncols, nrows+ncols)
@@ -228,7 +228,7 @@ class BipartiteGraph(Graph):
                 verts = set(left)|set(right)
                 if set(arg1.vertices()) != verts:
                     arg1 = arg1.subgraph(list(verts))
-                Graph.__init__(self, arg1, implementation='networkx', *(args[1:]), **kwds)
+                Graph.__init__(self, arg1, *(args[1:]), **kwds)
                 if not kwds.has_key('check') or kwds['check']:
                     while len(left) > 0:
                         a = left.pop(0)
@@ -254,14 +254,14 @@ class BipartiteGraph(Graph):
                 self.left, self.right = copy(args[0][0]), copy(args[0][1])
         elif isinstance(arg1, Graph):
             try:
-                Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
+                Graph.__init__(self, arg1, *args, **kwds)
                 self.left, self.right = self.bipartite_sets()
                 return
             except:
                 raise TypeError("Input graph is not bipartite!")
         else:
             import networkx
-            Graph.__init__(self, arg1, implementation='networkx', *args, **kwds)
+            Graph.__init__(self, arg1, *args, **kwds)
             if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
                 if hasattr(arg1, 'node_type'):
                     # Assume the graph is bipartite
@@ -320,7 +320,7 @@ class BipartiteGraph(Graph):
             (10, 10)
 
         """
-        G = Graph(implementation='networkx')
+        G = Graph()
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
@@ -339,7 +339,7 @@ class BipartiteGraph(Graph):
             (10, 10)
 
         """
-        G = Graph(implementation='networkx')
+        G = Graph()
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
@@ -599,7 +599,7 @@ class BipartiteGraph(Graph):
 
         Multi-edge graphs also return a matrix over ZZ.
             sage: M = Matrix([(1, 1, 2, 0, 0), (0, 2, 1, 1, 1), (0, 1, 2, 1, 1)])
-            sage: B = BipartiteGraph(M, multiedges=True)
+            sage: B = BipartiteGraph(M, multiedges=True, sparse=True)
             sage: N = B.reduced_adjacency_matrix()
             sage: N == M
             True
@@ -611,7 +611,7 @@ class BipartiteGraph(Graph):
             sage: F.<a> = GF(4)
             sage: MS = MatrixSpace(F, 2, 3)
             sage: M = MS.matrix([[0, 1, a+1], [a, 1, 1]])
-            sage: B = BipartiteGraph(M, weighted=True)
+            sage: B = BipartiteGraph(M, weighted=True, sparse=True)
             sage: N = B.reduced_adjacency_matrix(sparse=False)
             sage: N == M
             True
@@ -626,7 +626,7 @@ class BipartiteGraph(Graph):
             sage: BipartiteGraph(M).reduced_adjacency_matrix() == M
             True
             sage: M = Matrix([[10,2/3], [0,0]])
-            sage: B = BipartiteGraph(M, weighted=True)
+            sage: B = BipartiteGraph(M, weighted=True, sparse=True)
             sage: M == B.reduced_adjacency_matrix()
             True
         """

@@ -301,6 +301,8 @@ def test_bitset(py_a, py_b, long n):
         a.discard(n)   00100
         a.set_to(n)  00101
         a.flip(n)    00100
+        a.set_first_n(n)    11110
+        a.first_in_complement()    4
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     1
@@ -321,6 +323,10 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   4
         a.hamming_weight()  2
         a.hamming_weight_sparse()  2
+        reallocating a      00101
+        to size 4          0010
+        to size 8          00100000
+        to original size    00100
 
         sage: test_bitset('11101', '11001', 2)
         a 11101
@@ -334,6 +340,8 @@ def test_bitset(py_a, py_b, long n):
         a.discard(n)   11001
         a.set_to(n)  11101
         a.flip(n)    11001
+        a.set_first_n(n)    11000
+        a.first_in_complement()    2
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     1
@@ -354,6 +362,10 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   2
         a.hamming_weight()  4
         a.hamming_weight_sparse()  4
+        reallocating a      11101
+        to size 2          11
+        to size 4          1100
+        to original size    11000
 
     Test a corner-case: a bitset that is a multiple of words
         sage: test_bitset('00'*64, '01'*64, 127)
@@ -368,6 +380,8 @@ def test_bitset(py_a, py_b, long n):
         a.discard(n)   00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         a.set_to(n)  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
         a.flip(n)    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+        a.set_first_n(n)    11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110
+        a.first_in_complement()    127
         a.isempty()  True
         a.eq(b)      False
         a.cmp(b)     -1
@@ -398,6 +412,10 @@ def test_bitset(py_a, py_b, long n):
         discard bit    127
         lshift add unset ok True
         rshift set unset ok True
+        reallocating a      00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        to size 127          0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        to size 254          00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        to original size    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
     Large enough to span multiple limbs.  We don't explicitly check the number of limbs below because it will be different in the 32 bit versus 64 bit cases:
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
@@ -412,6 +430,8 @@ def test_bitset(py_a, py_b, long n):
         a.discard(n)   111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.set_to(n)  111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.flip(n)    111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.set_first_n(n)    111111111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        a.first_in_complement()    69
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     -1
@@ -442,6 +462,10 @@ def test_bitset(py_a, py_b, long n):
         discard bit    69
         lshift add unset ok True
         rshift set unset ok True
+        reallocating a      111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        to size 69          111001111001111001111001111001111001111001111001111001111001111001111
+        to size 138          111001111001111001111001111001111001111001111001111001111001111001111000000000000000000000000000000000000000000000000000000000000000000000
+        to original size    111001111001111001111001111001111001111001111001111001111001111001111000000000000000000000000000000000000000000000000000000000000000000000000000000000
     """
     cdef bint bit = True
     cdef bitset_t a, b, r
@@ -470,6 +494,10 @@ def test_bitset(py_a, py_b, long n):
     bitset_from_str(a, py_a)
     bitset_flip(a, n)
     print "a.flip(n)   ", bitset_string(a)
+    bitset_set_first_n(a, n)
+    print "a.set_first_n(n)   ", bitset_string(a)
+    print "a.first_in_complement()   ", bitset_first_in_complement(a)
+
 
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
@@ -563,6 +591,14 @@ def test_bitset(py_a, py_b, long n):
         bitset_rshift(r, r, 8)
         bitset_discard(r, 11)
         print "rshift set unset ok", bitset_isempty(r)
+
+    print "reallocating a     ", bitset_string(a)
+    bitset_realloc(a, n)
+    print "to size %d         "%n, bitset_string(a)
+    bitset_realloc(a, 2*n)
+    print "to size %d         "%(2*n), bitset_string(a)
+    bitset_realloc(a, b.size)
+    print "to original size   ", bitset_string(a)
 
     bitset_free(a)
     bitset_free(b)

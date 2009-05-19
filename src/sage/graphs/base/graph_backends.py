@@ -15,14 +15,6 @@ Implements various backends for Sage graphs.
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 
-#from random import random
-#from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
-#import sage.graphs.graph_fast as graph_fast
-#from sage.rings.integer import Integer
-#from sage.rings.integer_ring import ZZ
-#from sage.graphs.graph_coloring import chromatic_number, chromatic_polynomial
-#from sage.rings.rational import Rational
-
 class GenericGraphBackend(SageObject):
     """
     A generic wrapper for the backend of a graph.  Various graph classes use
@@ -221,14 +213,14 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
-    def iterator_edges(self, vertices, labels, not_directed):
+    def iterator_edges(self, vertices, labels):
         """
-        Iterate over the edges incident to a sequence of vertices.
+        Iterate over the edges incident to a sequence of vertices. Edges are
+        assumed to be undirected.
 
         INPUT:
             vertices:     a list of vertex labels
             labels:       boolean
-            not_directed: boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
@@ -236,7 +228,7 @@ class GenericGraphBackend(SageObject):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
-            sage: G.iterator_edges([],True,True)
+            sage: G.iterator_edges([],True)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -494,7 +486,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
-            sage: G.iterator_edges([],True,True)
+            sage: G.iterator_edges([],True)
             <generator object iterator_edges at ...>
         """
         if N is None:
@@ -691,14 +683,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         return self._nxg.has_node(v)
 
-    def iterator_edges(self, vertices, labels, not_directed):
+    def iterator_edges(self, vertices, labels):
         """
-        Iterate over the edges incident to a sequence of vertices.
+        Iterate over the edges incident to a sequence of vertices. Edges are
+        assumed to be undirected.
 
         INPUT:
             vertices:     a list of vertex labels
             labels:       boolean
-            not_directed: boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
@@ -706,19 +698,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
-            sage: G.iterator_edges([],True,True)
+            sage: G.iterator_edges([],True)
             <generator object iterator_edges at ...>
         """
         if labels:
             filter = lambda u,v,l: (u,v,l)
         else:
             filter = lambda u,v,l: (u,v)
-        if not_directed:
-            for u,v,l in self._nxg.edges_iter():
-                if u in vertices or v in vertices:
-                    yield filter(u,v,l)
-        else:
-            for u,v,l in self._nxg.edges_iter(vertices):
+        for u,v,l in self._nxg.edges_iter():
+            if u in vertices or v in vertices:
                 yield filter(u,v,l)
 
     def iterator_in_edges(self, vertices, labels):

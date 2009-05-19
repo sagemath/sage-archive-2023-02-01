@@ -2,8 +2,8 @@
 A fast bitset datatype in Cython.
 
 Operations between bitsets are only guaranteed to work if the bitsets
-have the same size.  Similarly, you should not try to access elements
-of a bitset beyond the size.
+have the same size, with the exception of ``bitset_realloc``.  Similarly, you
+should not try to access elements of a bitset beyond the size.
 """
 
 #*****************************************************************************
@@ -41,6 +41,23 @@ cdef inline bint bitset_init(bitset_t bits, unsigned long size) except -1:
         raise MemoryError
     bits.bits[bits.limbs-1] = 0 #Set entries beyond the end of the set to zero.
 
+cdef inline bint bitset_realloc(bitset_t bits, unsigned long size) except -1:
+    """
+    Reallocates a bitset to size size.  If reallocation is larger, new bitset
+    does not contain any of the extra bits.
+    """
+    cdef unsigned long limbs_old = bits.limbs
+    cdef unsigned long size_old = bits.size
+    if size_old == size: return 0
+    bits.limbs = (size - 1)/(8*sizeof(unsigned long)) + 1
+    bits.bits = <unsigned long*>sage_realloc(bits.bits, bits.limbs * sizeof(unsigned long))
+    if bits.bits == NULL:
+        bits.limbs = limbs_old
+        raise MemoryError
+    bits.size = size
+    if size_old < size:
+        bits.bits[size_old >> index_shift] &= ((<unsigned long>1 << (size_old & offset_mask)) - 1)
+        memset(bits.bits + (size_old >> index_shift) + 1, 0, (bits.limbs - (size_old >> index_shift) - 1) * sizeof(unsigned long))
 
 cdef inline void bitset_free(bitset_t bits):
     """
@@ -234,6 +251,18 @@ cdef inline void bitset_flip(bitset_t bits, unsigned long n):
     """
     bits.bits[n >> index_shift] ^= (<unsigned long>1) << (n & offset_mask)
 
+cdef inline void bitset_set_first_n(bitset_t bits, unsigned long n):
+    """
+    Sets exactly the first n bits.
+    """
+    cdef unsigned long i
+    cdef long index = n >> index_shift
+    for i from 0 <= i < index:
+        bits.bits[i] = ~0
+    bits.bits[index] = ((<unsigned long>1) << (n & offset_mask)) - 1
+    for i from index < i < bits.limbs:
+        bits.bits[i] = 0
+
 #############################################################################
 # Bitset Searching
 #############################################################################
@@ -257,6 +286,25 @@ cdef inline long _bitset_first_in_limb(unsigned long limb):
                 return j
     return -1
 
+#cdef inline long _bitset_first_in_limb_complement(unsigned long limb):
+#    """
+#    Given a limb of a bitset, return the index of the first zero
+#    bit.  If there are no bits set in the limb, return -1.
+#    """
+#    cdef long j
+#    # First, we see if the first half of the limb is all 1 or not
+#    if ~limb & (((<unsigned long>1) << 4*sizeof(unsigned long)) - 1):
+#        for j from 0 <= j < 4*sizeof(unsigned long):
+#            if not limb & ((<unsigned long>1) << j):
+#                return j
+#    else:
+#        # First half of the limb is zero, so first nonzero bit is in
+#        # the second half.
+#        for j from 4*sizeof(unsigned long) <= j < 8*sizeof(unsigned long):
+#            if not limb & ((<unsigned long>1) << j):
+#                return j
+#    return -1
+
 cdef inline long bitset_first(bitset_t a):
     """
     Calculate the index of the first element in the set.  If the set
@@ -266,6 +314,21 @@ cdef inline long bitset_first(bitset_t a):
     for i from 0 <= i < a.limbs:
         if a.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb(a.bits[i])
+    return -1
+
+cdef inline long bitset_first_in_complement(bitset_t a):
+    """
+    Calculate the index of the first element not in the set.  If the set
+    is full, returns -1.
+    """
+    cdef long i
+    for i from 0 <= i < a.limbs - 1:
+        if ~a.bits[i]:
+            return (i << index_shift) | _bitset_first_in_limb(~a.bits[i])
+    i = (((<unsigned long>1) << (a.size - (a.limbs-1)*8*sizeof(long))) - 1)
+    i = i & ~a.bits[a.limbs - 1]
+    if i:
+        return ((a.limbs - 1) << index_shift) | _bitset_first_in_limb(i)
     return -1
 
 cdef inline long bitset_pop(bitset_t a) except -1:

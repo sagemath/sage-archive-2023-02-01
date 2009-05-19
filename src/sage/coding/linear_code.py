@@ -978,10 +978,10 @@ class LinearCode(module.Module):
 
             sage: C = HammingCode(3,GF(2))
             sage: C.chinen_polynomial()       # long time
-            (2*sqrt(2)*t^3/5 + 2*sqrt(2)*t^2/5 + 2*t^2/5 + sqrt(2)*t/5 + 2*t/5 + 1/5)/(sqrt(2) + 1)
+            1/5*(2*sqrt(2)*t^3 + 2*sqrt(2)*t^2 + 2*t^2 + sqrt(2)*t + 2*t + 1)/(sqrt(2) + 1)
             sage: C = TernaryGolayCode()
             sage: C.chinen_polynomial()       # long time
-            (3*sqrt(3)*t^3/7 + 3*sqrt(3)*t^2/7 + 3*t^2/7 + sqrt(3)*t/7 + 3*t/7 + 1/7)/(sqrt(3) + 1)
+            1/7*(3*sqrt(3)*t^3 + 3*sqrt(3)*t^2 + 3*t^2 + sqrt(3)*t + 3*t + 1)/(sqrt(3) + 1)
 
         This last output agrees with the corresponding example given in
         Chinen's paper below.
@@ -991,7 +991,7 @@ class LinearCode(module.Module):
         - Chinen, K. "An abundance of invariant polynomials
           satisfying the Riemann hypothesis", April 2007 preprint.
         """
-        from sage.calculus.calculus import sqrt
+        from sage.functions.all import sqrt
         C = self
         n = C.length()
         RT = PolynomialRing(QQ,2,"Ts")

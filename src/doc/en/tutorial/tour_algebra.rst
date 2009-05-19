@@ -29,7 +29,7 @@ You can solve equations for one variable in terms of others:
 
     sage: x, b, c = var('x b c')
     sage: solve([x^2 + b*x + c == 0],x)
-    [x == (-sqrt(b^2 - 4*c) - b)/2, x == (sqrt(b^2 - 4*c) - b)/2]
+    [x == -1/2*b - 1/2*sqrt(b^2 - 4*c), x == -1/2*b + 1/2*sqrt(b^2 - 4*c)]
 
 You can also solve for several variables:
 
@@ -51,8 +51,8 @@ symbolically:
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == (-4*sqrt(10) - 2)/3, y == (sqrt(2)*sqrt(5) - 4)/6],
-     [p == 1, q == 8, x == (4*sqrt(10) - 2)/3, y == (-sqrt(2)*sqrt(5) - 4)/6]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3],
+     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
 
 For numerical approximations of the solutions, you can instead use:
 
@@ -104,7 +104,7 @@ To compute the fourth derivative of :math:`\sin(x^2)`:
 ::
 
     sage: diff(sin(x^2), x, 4)
-    16*x^4*sin(x^2) - 12*sin(x^2) - 48*x^2*cos(x^2)
+    16*x^4*sin(x^2) - 48*x^2*cos(x^2) - 12*sin(x^2)
 
 To compute the partial derivatives of :math:`x^2+17y^2` with
 respect to *x* and *y*, respectively:
@@ -125,9 +125,9 @@ We move on to integrals, both indefinite and definite. To compute
 ::
 
     sage: integral(x*sin(x^2), x)
-    -cos(x^2)/2
+    -1/2*cos(x^2)
     sage: integral(x/(x^2+1), x, 0, 1)
-    log(2)/2
+    1/2*log(2)
 
 To compute the partial fraction decomposition of
 :math:`\frac{1}{x^2-1}`:
@@ -136,11 +136,7 @@ To compute the partial fraction decomposition of
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/(2*(x - 1)) - 1/(2*(x + 1))
-    sage: print f.partial_fraction(x)
-        1           1
-    --------- - ---------
-    2 (x - 1)   2 (x + 1)
+    1/2/(x - 1) - 1/2/(x + 1)
 
 .. _section-systems:
 
@@ -156,7 +152,7 @@ solve the equation :math:`x'+x-1=0`:
     sage: x = function('x',t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    e^(-t)*(e^t + c)
+    (c + e^t)*e^(-t)
 
 This uses Sage's interface to Maxima [Max]_, and so its output may be
 a bit different from other Sage output. In this case, this says
@@ -239,8 +235,8 @@ equations:
     (s, X, Y)
     sage: eqns = [(2*s^2+6)*X-2*Y == 6*s, -2*X +(s^2+2)*Y == 3*s]
     sage: solve(eqns, X,Y)
-    [[X == (3*s^3 + 9*s)/(s^4 + 5*s^2 + 4),
-      Y == (3*s^3 + 15*s)/(s^4 + 5*s^2 + 4)]]
+    [[X == 3*(s^3 + 3*s)/(s^4 + 5*s^2 + 4),
+      Y == 3*(s^3 + 5*s)/(s^4 + 5*s^2 + 4)]]
 
 Now take inverse Laplace transforms to get the answer:
 
@@ -251,7 +247,7 @@ Now take inverse Laplace transforms to get the answer:
     sage: inverse_laplace((3*s^3 + 9*s)/(s^4 + 5*s^2 + 4),s,t)
     cos(2*t) + 2*cos(t)
     sage: inverse_laplace((3*s^3 + 15*s)/(s^4 + 5*s^2 + 4),s,t)
-    4*cos(t) - cos(2*t)
+    -cos(2*t) + 4*cos(t)
 
 Therefore, the solution is
 

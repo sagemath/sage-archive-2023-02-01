@@ -4,12 +4,13 @@ Calculus functions.
 
 from sage.matrix.all import matrix, is_Matrix
 from sage.structure.element import is_Vector
-from calculus import SymbolicVariable, SymbolicExpression
+from sage.symbolic.ring import is_SymbolicVariable
 from functional import diff
 
 
 def wronskian(*args):
-    """Returns the Wronskian of the provided functions, differentiating with
+    """
+    Returns the Wronskian of the provided functions, differentiating with
     respect to the given variable. If no variable is provided,
     diff(f) is called for each function f.
 
@@ -24,52 +25,55 @@ def wronskian(*args):
     The nth row (starting from 0) is a list of the nth derivatives of the
     given functions.
 
-    For two functions:
+    For two functions::
 
                               | f   g  |
                  W(f, g) = det|        | = f*g' - g*f'.
                               | f'  g' |
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: wronskian(e^x, x^2)
-        2*x*e^x - x^2*e^x
+        -x^2*e^x + 2*x*e^x
 
-        sage: var('x, y'); wronskian(x*y, log(x), x)
-        (x, y)
-        y - log(x)*y
+        sage: x,y = var('x, y')
+        sage: wronskian(x*y, log(x), x)
+        -y*log(x) + y
 
-      If your functions are in a list, you can use `*' to turn them into
-      arguments to wronskian():
+    If your functions are in a list, you can use `*' to turn them into
+    arguments to :func:`wronskian`::
+
         sage: wronskian(*[x^k for k in range(1, 5)])
         12*x^4
 
-      If you want to use 'x' as one of the functions in the Wronskian,
-      you can't put it last or it will be interpreted as the variable
-      with respect to which we differentiate. There are several ways to
-      get around this.
+    If you want to use 'x' as one of the functions in the Wronskian,
+    you can't put it last or it will be interpreted as the variable
+    with respect to which we differentiate. There are several ways to
+    get around this.
 
-      Two-by-two Wronskian of sin(x) and e^x:
+    Two-by-two Wronskian of sin(x) and e^x::
+
         sage: wronskian(sin(x), e^x, x)
         e^x*sin(x) - e^x*cos(x)
 
-      Three-by-three Wronskian of sin(x), e^x, and x:
-        sage: wronskian(sin(x), cos(x), x+0)
-        x*(-sin(x)^2 - cos(x)^2)
+    Or don't put x last::
 
-      Or don't put x last:
         sage: wronskian(x, sin(x), e^x)
-        x*(e^x*sin(x) + e^x*cos(x)) - 2*e^x*sin(x)
+        (e^x*sin(x) + e^x*cos(x))*x - 2*e^x*sin(x)
 
-      Example where one of the functions is constant:
+    Example where one of the functions is constant::
+
         sage: wronskian(1, e^(-x), e^(2*x))
         -6*e^x
 
     NOTES:
-        http://en.wikipedia.org/wiki/Wronskian
-        http://planetmath.org/encyclopedia/WronskianDeterminant.html
+
+    - http://en.wikipedia.org/wiki/Wronskian
+    - http://planetmath.org/encyclopedia/WronskianDeterminant.html
 
     AUTHORS:
-        - Dan Drake (2008-03-12)
+
+    - Dan Drake (2008-03-12)
     """
     if len(args) == 0:
         raise TypeError, 'wronskian() takes at least one argument (0 given)'
@@ -77,7 +81,7 @@ def wronskian(*args):
         # a 1x1 Wronskian is just its argument
         return args[0]
     else:
-        if isinstance(args[-1], SymbolicVariable):
+        if is_SymbolicVariable(args[-1]):
             # if last argument is a variable, peel it off and
             # differentiate the other args
             v = args[-1]
@@ -103,14 +107,15 @@ def jacobian(functions, variables):
     derivatives in which the i,j entry of the Jacobian matrix is the
     partial derivative diff(functions[i], variables[j]).
 
-    EXAMPLE:
-        sage: var('x,y')
-        (x, y)
+    EXAMPLES::
+
+        sage: x,y = var('x,y')
         sage: g=x^2-2*x*y
         sage: jacobian(g, (x,y))
         [2*x - 2*y      -2*x]
 
-    The Jacobian of the Jacobian should give us the "second derivative", the Hessian matrix.
+    The Jacobian of the Jacobian should give us the "second derivative", the Hessian matrix::
+
         sage: jacobian(jacobian(g, (x,y)), (x,y))
         [ 2 -2]
         [-2  0]

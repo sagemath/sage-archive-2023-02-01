@@ -724,7 +724,7 @@ class Factorization(SageObject):
                             return cmp((f[0].degree(),f[1],f[0]), (g[0].degree(),g[1],g[0]))
                         except (AttributeError, NotImplementedError):
                             return cmp(f[0], g[0])
-                except (AttributeError, NotImplementedError):
+                except (AttributeError, NotImplementedError, TypeError):  # TypeError in case degree must take an argument, e.g., for symbolic expressions it has to.
                     self.__x.sort()
                     return
 

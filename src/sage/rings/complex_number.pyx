@@ -157,7 +157,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(self.__re)
         mpfr_clear(self.__im)
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Returns self formatted as a string, suitable as input to another
         computer algebra system. (This is the default function used for
@@ -1033,6 +1033,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.tanh())
 
+    def arccoth(self):
+        """
+        EXAMPLES::
+
+            sage: ComplexField(100)(1,1).arccoth()
+            0.40235947810852509365018983331 - 0.55357435889704525150853273009*I
+        """
+        return (~self).arctanh()
+
     def csc(self):
         """
         EXAMPLES::
@@ -1051,6 +1060,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.sinh())
 
+    def arccsch(self):
+        """
+        EXAMPLES::
+
+            sage: ComplexField(100)(1,1).arccsch()
+            0.53063753095251782601650945811 - 0.45227844715119068206365839783*I
+        """
+        return (~self).arcsinh()
+
     def sec(self):
         """
         EXAMPLES::
@@ -1068,6 +1086,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.49833703055518678521380589177 - 0.59108384172104504805039169297*I
         """
         return ~(self.cosh())
+
+    def arcsech(self):
+        """
+        EXAMPLES::
+
+            sage: ComplexField(100)(1,1).arcsech()
+            -0.53063753095251782601650945811 + 1.1185178796437059371676632938*I
+        """
+        return (~self).arccosh()
 
     def cotan(self):
         """
@@ -1427,7 +1454,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.dilog()
             1.64493406684823
             sage: float(pi^2/6)
-            1.6449340668482264
+            1.6449340668482262
 
         ::
 

@@ -5,7 +5,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.arith import kronecker_symbol, bernoulli, prime_divisors
 #from sage.combinat.combinat import bernoulli_polynomial
-from sage.calculus.calculus import sqrt
+from sage.functions.all import sqrt
 #from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.functional import ideal
 from sage.quadratic_forms.special_values import QuadraticBernoulliNumber

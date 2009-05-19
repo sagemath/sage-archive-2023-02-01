@@ -81,8 +81,8 @@ implemented here.
 
          y'' - xy = 0,
 
-   known as the Airy equation. They belong to the class of"Bessel functions of
-   fractional order". The initial conditions
+   known as the Airy equation. They belong to the class of 'Bessel functions of
+   fractional order'. The initial conditions
    `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
    `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define
    `Ai(x)`. The initial conditions
@@ -343,8 +343,8 @@ REFERENCES:
 
 - http://en.wikipedia.org/wiki/Jacobi's_elliptic_functions
 
-- A. Khare, U. Sukhatme, "Cyclic Identities Involving
-  Jacobi Elliptic Functions", Math ArXiv, math-ph/0201004
+- A. Khare, U. Sukhatme, 'Cyclic Identities Involving
+  Jacobi Elliptic Functions', Math ArXiv, math-ph/0201004
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
@@ -357,7 +357,7 @@ AUTHORS:
 - David Joyner and William Stein
 
 Added 16-02-2008 (wdj): optional calls to scipy and replace all
-"#random" by "..." (both at the request of William Stein)
+'#random' by '...' (both at the request of William Stein)
 
 .. warning::
 
@@ -389,18 +389,16 @@ from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, QQ, RR
+from sage.rings.all import ZZ, QQ, RR, RDF
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
-from sage.misc.functional import real, imag
-
-from sage.interfaces.maxima import maxima
+from sage.functions.other import real, imag
+from sage.symbolic.function import PrimitiveFunction, SFunction
+from sage.calculus.calculus import maxima, symbolic_expression_from_maxima_element
 
 def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element
-    return symbolic_expression_from_maxima_element(maxima(x))
-
-from functions import *
+    return symbolic_expression_from_maxima_element(maxima(x), maxima)
 
 _done = False
 def _init():
@@ -410,6 +408,192 @@ def _init():
     maxima.eval('load("orthopoly");')
     maxima.eval('orthopoly_returns_intervals:false;')
     _done = True
+
+class MaximaFunction(PrimitiveFunction):
+    def __init__(self, name, nargs=2, conversions={}):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.special import MaximaFunction
+            sage: f = MaximaFunction("jacobi_sn")
+            sage: f(1,1)
+            tanh(1)
+            sage: f(1/2,1/2).n()
+            0.470750473655657
+        """
+        c = dict(maxima=name)
+        c.update(conversions)
+        PrimitiveFunction.__init__(self, name=name, nargs=nargs,
+                                   conversions=c)
+
+    __call__ = SFunction.__call__
+
+
+    def _maxima_init_evaled_(self, *args):
+        """
+        Returns a string which reprsents this function evaluated at
+        *args* in Maxima.
+
+        EXAMPLES::
+
+            sage: from sage.functions.special import MaximaFunction
+            sage: f = MaximaFunction("jacobi_sn")
+            sage: f._maxima_init_evaled_(1/2, 1/2)
+            'jacobi_sn(1/2, 1/2)'
+        """
+        return "%s(%s)"%(self.name(),
+                             ", ".join([(a if isinstance(a,str) else a._maxima_init_()) for a in args]))
+
+    def _evalf_(self, *args, **kwds):
+        """
+        Returns a numerical approximation of this function using
+        Maxima.  Currently, this is limited to 53 bits of precision.
+
+        EXAMPLES::
+
+            sage: from sage.functions.special import MaximaFunction
+            sage: f = MaximaFunction("jacobi_sn")
+            sage: f(1/2,1/2)
+            jacobi_sn(1/2, 1/2)
+            sage: f(1/2,1/2).n()
+            0.470750473655657
+
+            sage: f._evalf_(1/2, 1/2)
+            0.470750473655657
+
+        TESTS::
+
+            sage: f(1/2,1/2).n(150)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: jacobi_sn not implemented for precision > 53
+        """
+        prec = kwds.get('prec', 0)
+        if prec > 53:
+            raise NotImplementedError, "%s not implemented for precision > 53"%self.name()
+        _init()
+        return RR(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
+
+    def _eval_(self, *args):
+        """
+        Returns a string which represents this function evaluated at
+        *args* in Maxima.
+
+        EXAMPLES::
+
+            sage: from sage.functions.special import MaximaFunction
+            sage: f = MaximaFunction("jacobi_sn")
+            sage: f(1,1)
+            tanh(1)
+
+            sage: f._eval_(1,1)
+            tanh(1)
+
+        Here arccoth doesn't have 1 in its domain, so we just hold the expression:
+
+            sage: elliptic_e(arccoth(1), x^2*e)
+            elliptic_e(arccoth(1), x^2*e)
+        """
+        _init()
+        try:
+            s = maxima(self._maxima_init_evaled_(*args))
+        except TypeError:
+            return None
+        if self.name() in repr(s):
+            return None
+        else:
+            return  symbolic_expression_from_maxima_element(s)
+
+from sage.misc.cachefunc import cached_function
+
+@cached_function
+def maxima_function(*args, **kwds):
+    """
+    Returns a function which is evaluated both symbolically and
+    numerically via Maxima.  In particular, it returns an instance
+    of :class:`MaximaFunction`.
+
+    .. note::
+
+       This function is cached so that duplicate copies of the same
+       function are not created.
+
+
+    """
+    return MaximaFunction(*args, **kwds)
+
+
+def airy_ai(x):
+   r"""
+   The function `Ai(x)` and the related function `Bi(x)`,
+   which is also called an *Airy function*, are
+   solutions to the differential equation
+
+   .. math::
+
+      y'' - xy = 0,
+
+   known as the *Airy equation*. The initial conditions
+   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
+   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
+   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
+   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
+
+   They are named after the British astronomer George Biddell Airy.
+   They belong to the class of "Bessel functions of fractional order".
+
+   EXAMPLES::
+
+       sage: airy_ai(1.0)        # last few digits are random
+       0.135292416312881400
+       sage: airy_bi(1.0)        # last few digits are random
+       1.20742359495287099
+
+   REFERENCE:
+   - Abramowitz and Stegun: Handbook of Mathematical Functions,
+     http://www.math.sfu.ca/~cbm/aands/
+
+   - http://en.wikipedia.org/wiki/Airy_function
+   """
+   _init()
+   return RDF(meval("airy_ai(%s)"%RDF(x)))
+
+def airy_bi(x):
+   r"""
+   The function `Ai(x)` and the related function `Bi(x)`,
+   which is also called an *Airy function*, are
+   solutions to the differential equation
+
+   .. math::
+
+      y'' - xy = 0,
+
+   known as the *Airy equation*. The initial conditions
+   `Ai(0) = (\Gamma(2/3)3^{2/3})^{-1}`,
+   `Ai'(0) = -(\Gamma(1/3)3^{1/3})^{-1}` define `Ai(x)`.
+   The initial conditions `Bi(0) = 3^{1/2}Ai(0)`,
+   `Bi'(0) = -3^{1/2}Ai'(0)` define `Bi(x)`.
+
+   They are named after the British astronomer George Biddell Airy.
+   They belong to the class of "Bessel functions of fractional order".
+
+   EXAMPLES::
+
+       sage: airy_ai(1)        # last few digits are random
+       0.135292416312881400
+       sage: airy_bi(1)        # last few digits are random
+       1.20742359495287099
+
+   REFERENCE:
+
+   - Abramowitz and Stegun: Handbook of Mathematical Functions,
+     http://www.math.sfu.ca/~cbm/aands/
+
+   - http://en.wikipedia.org/wiki/Airy_function
+   """
+   _init()
+   return RDF(meval("airy_bi(%s)"%RDF(x)))
+
 
 def bessel_I(nu,z,algorithm = "pari",prec=53):
     r"""
@@ -585,7 +769,7 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
     elif algorithm == "maxima":
         if prec != 53:
             raise ValueError, "for the maxima algorithm the precision must be 53"
-        return meval("bessel_j(%s,%s)"%(nu, z))
+        return maxima_function("bessel_j")(nu, z)
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 
@@ -823,7 +1007,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
     EXAMPLES::
 
         sage: spherical_bessel_J(2,x)
-        (-(1 - 24/(8*x^2))*sin(x) - 3*cos(x)/x)/x
+        ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)/x
     """
     if algorithm=="scipy":
         import scipy.special
@@ -849,7 +1033,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
 
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        -(3*sin(x)/x - (1 - 24/(8*x^2))*cos(x))/x
+        -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
     """
     if algorithm=="scipy":
         import scipy.special
@@ -864,7 +1048,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 
-def spherical_hankel1(n,var):
+def spherical_hankel1(n, var):
     r"""
     Returns the spherical Hankel function of the first kind for
     integers `n > -1`, written as a string. Reference: AS
@@ -872,11 +1056,10 @@ def spherical_hankel1(n,var):
 
     EXAMPLES::
 
-        sage: spherical_hankel1(2,'x')
-        -3*I*(-x^2/3 - I*x + 1)*e^(I*x)/x^3
+        sage: spherical_hankel1(2, x)
+        (I*x^2 - 3*x - 3*I)*e^(I*x)/x^3
     """
-    _init()
-    return meval("spherical_hankel1(%s,%s)"%(ZZ(n),var))
+    return maxima_function("spherical_hankel1")(ZZ(n), var)
 
 def spherical_hankel2(n,x):
     r"""
@@ -886,14 +1069,12 @@ def spherical_hankel2(n,x):
 
     EXAMPLES::
 
-        sage: spherical_hankel2(2,'x')
-        '3*I*(-x^2/3+I*x+1)*%e^-(I*x)/x^3'
+        sage: spherical_hankel2(2, x)
+        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
 
     Here I = sqrt(-1).
     """
-    _init()
-    y = str(x)
-    return maxima.eval("spherical_hankel2(%s,%s)"%(n,y)).replace("%i","I")
+    return maxima_function("spherical_hankel2")(ZZ(n), x)
 
 def spherical_harmonic(m,n,x,y):
     r"""
@@ -905,9 +1086,9 @@ def spherical_harmonic(m,n,x,y):
 
         sage: x,y = var('x,y')
         sage: spherical_harmonic(3,2,x,y)
-        15*sqrt(7)*cos(x)*sin(x)^2*e^(2*I*y)/(4*sqrt(30)*sqrt(pi))
+        1/8*sqrt(7)*sqrt(30)*e^(2*I*y)*sin(x)^2*cos(x)/sqrt(pi)
         sage: spherical_harmonic(3,2,1,2)
-        15*sqrt(7)*e^(4*I)*cos(1)*sin(1)^2/(4*sqrt(30)*sqrt(pi))
+        1/8*sqrt(7)*sqrt(30)*e^(4*I)*sin(1)^2*cos(1)/sqrt(pi)
     """
     _init()
     return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
@@ -938,8 +1119,7 @@ def jacobi(sym,x,m):
 
     To view this, type P.show().
     """
-    _init()
-    return meval("jacobi_%s(%s,%s)"%(sym, x, m))
+    return maxima_function("jacobi_%s"%sym)(x,m)
 
 def inverse_jacobi(sym,x,m):
     """
@@ -961,152 +1141,143 @@ def inverse_jacobi(sym,x,m):
 
     Now to view this, just type show(P).
     """
-    _init()
-    return meval("inverse_jacobi_%s(%s,%s)"%(sym, x,m))
+    return maxima_function("inverse_jacobi_%s"%sym)(x,m)
 
 #### elliptic integrals
 
-def elliptic_e (phi, m):
-    r"""
-    This returns the value of the incomplete elliptic integral of the
-    second kind, `\int_0^\phi \sqrt(1 - m\sin(x)^2)\, dx`, ie,
-    ``integrate(sqrt(1 - m*sin(x)2), x, 0, phi)``. Taking
-    `\phi = \pi/2` gives ``elliptic_ec``.
+class EllipticE(MaximaFunction):
+    def __init__(self):
+        r"""
+        This returns the value of the incomplete elliptic integral of the
+        second kind, `\int_0^\phi \sqrt(1 - m\sin(x)^2)\, dx`, ie,
+        ``integrate(sqrt(1 - m*sin(x)2), x, 0, phi)``. Taking
+        `\phi = \pi/2` gives ``elliptic_ec``.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: z = var("z")
-        sage: elliptic_e (z, 1)
-        sin(z)
-        sage: elliptic_e (z, 0)
-        z
-        sage: elliptic_e (0.5, 0.1)
-        0.498011394499
-    """
-    _init()
-    return meval("elliptic_e(%s,%s)"%(phi,m))
+            sage: z = var("z")
+            sage: elliptic_e(z, 1)
+            sin(z)
+            sage: elliptic_e(z, 0)
+            z
+            sage: elliptic_e(0.5, 0.1)
+            0.498011394499
 
-def elliptic_ec (m):
-    """
-    This returns the value of the complete elliptic integral of the
-    second kind, `\int_0^{\pi/2} \sqrt(1 - m\sin(x)^2)\, dx`.
+            sage: loads(dumps(elliptic_e))
+            elliptic_e
+        """
+        MaximaFunction.__init__(self, "elliptic_e")
 
-    EXAMPLES::
+elliptic_e = EllipticE()
 
-        sage: elliptic_ec (0.1)
-        1.5307576369
-        sage: elliptic_ec (x).diff()
-        (elliptic_ec(x) - elliptic_kc(x))/(2*x)
-    """
-    _init()
-    return meval("elliptic_ec(%s)"%m)
+class EllipticEC(MaximaFunction):
+    def __init__(self):
+        """
+        This returns the value of the complete elliptic integral of the
+        second kind, `\int_0^{\pi/2} \sqrt(1 - m\sin(x)^2)\, dx`.
 
+        EXAMPLES::
 
-def elliptic_eu (u, m):
-    r"""
-    This returns the value of the incomplete elliptic integral of the
-    second kind defined by
-    `\int_0^u jacobi_dn(x,m)^2)\, dx`.
+            sage: elliptic_ec(0.1)
+            1.5307576369
+            sage: elliptic_ec(x).diff()
+            1/2*(elliptic_ec(x) - elliptic_kc(x))/x
 
-    EXAMPLES::
+            sage: loads(dumps(elliptic_ec))
+            elliptic_ec
+        """
+        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
 
-        sage: elliptic_eu (0.5, 0.1)
-        0.496054551287
-    """
-    _init()
-    return meval("elliptic_eu(%s,%s)"%(u,m))
+    def _derivative_(self, *args, **kwds):
+        """
+        EXAMPLES::
 
+            sage: elliptic_ec(x).diff()
+            1/2*(elliptic_ec(x) - elliptic_kc(x))/x
+        """
+        diff_param = kwds['diff_param']
+        assert diff_param == 0
+        x = args[diff_param]
+        return (elliptic_ec(x) - elliptic_kc(x))/(2*x)
 
-def elliptic_f (phi, m):
-    r"""
-    This returns the value of the "incomplete elliptic integral of the
-    first kind",
-    `\int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}}`, ie,
-    ``integrate(1/sqrt(1 - m*sin(x)2), x, 0, phi)``.
-    Taking `\phi = \pi/2` gives ``elliptic_kc``.
+elliptic_ec = EllipticEC()
 
-    EXAMPLES::
+class EllipticEU(MaximaFunction):
+    def __init__(self):
+        r"""
+        This returns the value of the incomplete elliptic integral of the
+        second kind defined by
+        `\int_0^u jacobi_dn(x,m)^2)\, dx`.
 
-        sage: z = var("z")
-        sage: elliptic_f (z, 0)
-        z
-        sage: elliptic_f (z, 1)
-        log(tan(z/2 + pi/4))
-        sage: elliptic_f (0.2, 0.1)
-        0.200132506748
-    """
-    _init()
-    return meval("elliptic_f(%s,%s)"%(phi,m))
+        EXAMPLES::
 
-def elliptic_kc (m):
-    r"""
-    This returns the value of the "complete elliptic integral of the
-    first kind",
-    `\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}`.
+            sage: elliptic_eu (0.5, 0.1)
+            0.496054551287
+        """
+        MaximaFunction.__init__(self, "elliptic_eu")
 
-    EXAMPLES::
+elliptic_eu = EllipticEU()
 
-        sage: elliptic_kc (0.5)
-        1.8540746773
-        sage: elliptic_f (RR(pi/2), 0.5)
-        1.8540746773
-    """
-    _init()
-    return meval("elliptic_kc(%s)"%m)
+class EllipticF(MaximaFunction):
+    def __init__(self):
+        r"""
+        This returns the value of the "incomplete elliptic integral of the
+        first kind",
+        `\int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}}`, ie,
+        ``integrate(1/sqrt(1 - m*sin(x)2), x, 0, phi)``.
+        Taking `\phi = \pi/2` gives ``elliptic_kc``.
 
-def elliptic_pi (n, phi, m):
-    r"""
-    This returns the value of the "incomplete elliptic integral of the
-    third kind",
+        EXAMPLES::
 
-    .. math::
+            sage: z = var("z")
+            sage: elliptic_f (z, 0)
+            z
+            sage: elliptic_f (z, 1)
+            log(tan(1/4*pi + 1/2*z))
+            sage: elliptic_f (0.2, 0.1)
+            0.200132506748
+        """
+        MaximaFunction.__init__(self, "elliptic_f")
 
-        \int_0^\phi \frac{dx}{\sqrt{(1 - m\sin(x)^2)(1 - n\sin(x)^2)}}
+elliptic_f = EllipticF()
 
-    .
+class EllipticKC(MaximaFunction):
+    def __init__(self):
+        r"""
+        This returns the value of the "complete elliptic integral of the
+        first kind",
+        `\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}`.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: elliptic_pi(0.1, 0.2, 0.3)
-        0.200665068221
-    """
-    _init()
-    return meval("elliptic_pi(%s,%s,%s)"%(n,phi,m))
+            sage: elliptic_kc(0.5)
+            1.8540746773
+            sage: elliptic_f(RR(pi/2), 0.5)
+            1.8540746773
+        """
+        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
 
-#### hyperboic trig functions (which are special cases
-#### of Jacobi elliptic functions but faster to evaluate directly)
+elliptic_kc = EllipticKC()
 
-## def sinh(t):
-##     try:
-##         return t.sinh()
-##     except AttributeError:
-##         from sage.calculus.calculus import exp
-##         return (exp(t)-exp(-t))/2
+class EllipticPi(MaximaFunction):
+    def __init__(self):
+        r"""
+        This returns the value of the "incomplete elliptic integral of the
+        third kind",
 
-## def cosh(t):
-##     try:
-##         return t.cosh()
-##     except AttributeError:
-##         from sage.calculus.calculus import exp
-##         return (exp(t)+exp(-t))/2
+        .. math::
 
-## def coth(t):
-##     try:
-##         return t.coth()
-##     except AttributeError:
-##         return 1/tanh(t)
+            \int_0^\phi \frac{dx}{\sqrt{(1 - m\sin(x)^2)(1 - n\sin(x)^2)}}.
 
-## def sech(t):
-##     try:
-##         return t.sech()
-##     except AttributeError:
-##         return 1/cosh(t)
+        EXAMPLES::
 
-## def csch(t):
-##     try:
-##         return t.csch()
-##     except AttributeError:
-##         return 1/sinh(t)
+            sage: elliptic_pi(0.1, 0.2, 0.3)
+            0.200665068221
+        """
+        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+
+elliptic_pi = EllipticPi()
+
 
 ## Now implemented using polylog in calculus.py:
 ## def dilog(t):

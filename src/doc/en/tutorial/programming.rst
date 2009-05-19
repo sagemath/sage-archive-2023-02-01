@@ -686,10 +686,10 @@ Use bool for symbolic inequalities:
 
 ::
 
-    sage: 3.1+2*I<4+3*I
-    2*I + 3.1 < 3*I + 4
-    sage: bool(3.1+2*I<4+3*I)
-    False
+    sage: x < x + 1
+    x < x + 1
+    sage: bool(x < x + 1)
+    True
 
 When comparing objects of different types in Sage, in most cases
 Sage tries to find a canonical coercion of both objects to a common

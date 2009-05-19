@@ -274,11 +274,11 @@ command
 ::
 
     sage: show(a)
-    {{\left(...
+    -\frac{1}{2} ...
 
 .. math::
 
-   {{\left( \frac{\sqrt{ {8 \sqrt{ 2 }} + 675 }}{{6 \sqrt{ 3 }}} - \frac{5}{2} \right)}^{\frac{1}{3}}  \left( \frac{{-\sqrt{ 3 } i}}{2} - \frac{1}{2} \right)} - \frac{{\sqrt{ 2 } \left( \frac{{\sqrt{ 3 } i}}{2} - \frac{1}{2} \right)}}{{3 {\left( \frac{\sqrt{ {8 \sqrt{ 2 }} + 675 }}{{6 \sqrt{ 3 }}} - \frac{5}{2} \right)}^{\frac{1}{3}} }}
+    -\frac{1}{2} \, {(I \, \sqrt{3} + 1)} {(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)} + \frac{1}{6} \, \frac{{(-I \, \sqrt{3} + 1)} \sqrt{2}}{{(\frac{1}{18} \, \sqrt{8 \, \sqrt{2} + 675} \sqrt{3} - \frac{5}{2})}^{\left(\frac{1}{3}\right)}}
 
 
 You can also see the latex needed to paste :math:`a` into a paper
@@ -290,7 +290,7 @@ command works on most Sage objects.
 ::
 
     sage: latex(a)
-    {{\left( \frac{\sqrt{ {8 \sqrt{ 2 }} ...
+    -\frac{1}{2} \, {(I \, \sqrt{3} + 1)} ...
 
 
 Adjoining a root of the cubic

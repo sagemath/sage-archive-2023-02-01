@@ -762,6 +762,20 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             raise IndexError, "generator n not defined"
         return self.__generator
 
+    def gens_dict(self):
+        """
+        Returns a dictionary whose keys are the variable names of this
+        ring as strings and whose values are the corresponding
+        generators.
+
+        EXAMPLES::
+
+            sage: R.<x> = RR[]
+            sage: R.gens_dict()
+            {'x': 1.00000000000000*x}
+        """
+        return dict(zip(self.variable_names(), self.gens()))
+
     def parameter(self):
         """
         Return the generator of this polynomial ring.

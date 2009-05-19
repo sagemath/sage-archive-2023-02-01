@@ -2134,7 +2134,7 @@ def is_Ring(x):
 from sage.structure.parent_gens import _certify_names
 
 def gen_name(x, name_chr):
-    from sage.calculus.all import is_SymbolicVariable
+    from sage.symbolic.ring import is_SymbolicVariable
     if is_SymbolicVariable(x):
         return repr(x), name_chr
     name = str(x)

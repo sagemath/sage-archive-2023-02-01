@@ -1,5 +1,5 @@
 include "../libs/ginac/decl.pxi"
 
-from sage.rings.ring cimport Ring
+from sage.rings.ring cimport CommutativeRing
 
-cdef class NSymbolicRing(Ring)
+cdef class SymbolicRing(CommutativeRing)

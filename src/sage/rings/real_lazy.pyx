@@ -58,7 +58,7 @@ cdef named_constants = [ 'pi', 'e',
 
 cdef class LazyField(Field):
     """
-    The base class for lazy real fields."
+    The base class for lazy real fields.
     """
     def __getattr__(self, name):
         """
@@ -952,9 +952,8 @@ cdef class LazyUnop(LazyFieldElement):
     def __hash__(self):
         """
         EXAMPLES:
-            sage: hash(RLF(sin(1)))
-            -1524677126          # 32-bit
-            -2924022902101686790 # 64-bit
+            sage: hash(RLF(sin(1))) #random
+            -1524677126
         """
         return hash(self._op(hash(self._arg)))
 
@@ -1044,8 +1043,6 @@ cdef class LazyNamedUnop(LazyUnop):
             sage: from sage.rings.real_lazy import LazyNamedUnop
             sage: LazyNamedUnop(RLF, 8, 'sqrt')
             2.828427124746190?
-            sage: LazyNamedUnop(RLF, 8, 'csc')
-            1.01075621840010
         """
         try:
             return LazyUnop.approx(self)

@@ -1075,7 +1075,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             s = "%s \\times 10^{%s}" % (parts[0], parts[1])
         return s
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Return string representation of self in base 10, avoiding
         scientific notation except for very large or very small numbers.
@@ -2923,9 +2923,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: x, y = var('x,y')
             sage: 1.5^x
-            1.5^x
+            1.50000000000000^x
             sage: -2.3^(x+y^3+sin(x))
-            -2.3^(y^3 + sin(x) + x)
+            -2.30000000000000^(y^3 + x + sin(x))
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):
@@ -3411,6 +3411,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def arccoth(self):
+        """
+        Returns the inverse hyperbolic cotangent of this number
+
+        EXAMPLES::
+
+            sage: q = RR.pi()/5
+            sage: i = q.coth()
+            sage: i.arccoth() == q
+            True
+        """
+        return (~self).arctanh()
+
     def cot(self):
         """
         Returns the cotangent of this number
@@ -3443,6 +3456,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def arccsch(self):
+        """
+        Returns the inverse hyperbolic cosecant of this number
+
+        EXAMPLES::
+
+            sage: i = RR.pi()/5
+            sage: q = i.csch()
+            sage: q.arccsch() == i
+            True
+        """
+        return (~self).arcsinh()
+
     def csc(self):
         """
         Returns the cosecant of this number
@@ -3474,6 +3500,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_sech(x.value, self.value, (<RealField>self._parent).rnd)
         _sig_off
         return x
+
+    def arcsech(self):
+        """
+        Returns the inverse hyperbolic secant of this number
+
+        EXAMPLES::
+
+            sage: i = RR.pi()/3
+            sage: q = i.sech()
+            sage: q.arcsech() == i
+            True
+        """
+        return (~self).arccosh()
 
     def sec(self):
         """

@@ -76,8 +76,10 @@ from sage.rings.real_mpfr import RealField_constructor as RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative
+from sage.symbolic.expression import Expression, is_Expression
 
-from sage.calculus.calculus import SR, var, maxima, is_SymbolicExpression
+from sage.calculus.calculus import SR, maxima
+from sage.calculus.all import var
 
 def piecewise(list_of_pairs, var=None):
     """
@@ -152,7 +154,7 @@ class PiecewisePolynomial:
         functions = [x[1] for x in list_of_pairs]
         if var is not None:
             for i in range(len(functions)):
-                if is_SymbolicExpression(functions[i]):
+                if is_Expression(functions[i]):
                     functions[i] = functions[i].function(var)
         self._functions = functions
         # We regenerate self._list in case self._functions was modified
@@ -184,7 +186,7 @@ class PiecewisePolynomial:
             sage: f1(x) = 1
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]]); f
-            Piecewise defined function with 2 parts, [[(0, 1), x |--> 1], [(1, 2), x |--> 1 - x]]
+            Piecewise defined function with 2 parts, [[(0, 1), x |--> 1], [(1, 2), x |--> -x + 1]]
         """
         return 'Piecewise defined function with %s parts, %s'%(
             self.length(),self.list())
@@ -199,7 +201,7 @@ class PiecewisePolynomial:
             sage: latex(f)
             \begin{cases}
             x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
-            x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}\cr
+            x \ {\mapsto}\ -x + 1 &\text{on $(1, 2)$}\cr
             \end{cases}
 
         ::
@@ -210,9 +212,9 @@ class PiecewisePolynomial:
             sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
             sage: latex(P)
             \begin{cases}
-            x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
-            x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
-            x \ {\mapsto}\ -x &\text{on  $(3, 5)$}\cr
+            x \ {\mapsto}\ \sin\left(\frac{1}{2} \, \pi x\right) &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ -{(x - 1)}^{2} + 1 &\text{on $(1, 3)$}\cr
+            x \ {\mapsto}\ -x &\text{on $(3, 5)$}\cr
             \end{cases}
         """
         from sage.misc.latex import latex
@@ -267,7 +269,7 @@ class PiecewisePolynomial:
             sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f.functions()
-            [x |--> 1, x |--> 1 - x, x |--> e^x, x |--> sin(2*x)]
+            [x |--> 1, x |--> -x + 1, x |--> e^x, x |--> sin(2*x)]
         """
         return self._functions
 
@@ -283,7 +285,7 @@ class PiecewisePolynomial:
             sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.extend_by_zero_to(-1, 3)
-            Piecewise defined function with 4 parts, [[(-1, 0), 0], [(0, 1), x |--> 1], [(1, 2), x |--> 1 - x], [(2, 3), 0]]
+            Piecewise defined function with 4 parts, [[(-1, 0), 0], [(0, 1), x |--> 1], [(1, 2), x |--> -x + 1], [(2, 3), 0]]
         """
         zero = QQ['x'](0)
         list_of_pairs = self.list()
@@ -582,8 +584,10 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f(0.5)
             1
-            sage: f(2.5)
-            12.1824939607
+            sage: f(5/2)
+            e^(5/2)
+            sage: f(5/2).n()
+            12.1824939607035
             sage: f(1)
             1/2
         """
@@ -614,7 +618,7 @@ class PiecewisePolynomial:
             sage: f4(t) = sin(2*t)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f.which_function(3/2)
-            x |--> 1 - x
+            x |--> -x + 1
         """
         for (a,b), f in self.list():
             if a <= x0 <= b:
@@ -676,13 +680,13 @@ class PiecewisePolynomial:
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.integral(definite=True)
-            pi/2
+            1/2*pi
 
             sage: f1(x) = 2
             sage: f2(x) = 3 - x
             sage: f = Piecewise([[(-2, 0), f1], [(0, 3), f2]])
             sage: f.integral()
-            Piecewise defined function with 2 parts, [[(-2, 0), x |--> 2*(x + 2)], [(0, 3), x |--> (6*x - x^2)/2 + 4]]
+            Piecewise defined function with 2 parts, [[(-2, 0), x |--> 2*x + 4], [(0, 3), x |--> -1/2*x^2 + 3*x + 4]]
 
             sage: f1(y) = -1
             sage: f2(y) = y + 3
@@ -692,7 +696,7 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(-4,-3),f1],[(-3,-2),f2],[(-2,0),f3],[(0,2),f4],[(2,3),f5]])
             sage: F = f.integral(y)
             sage: F
-            Piecewise defined function with 5 parts, [[(-4, -3), y |--> -y - 4], [(-3, -2), y |--> (y^2 + 6*y)/2 + 7/2], [(-2, 0), y |--> (-y^2 - 2*y)/2 - 1/2], [(0, 2), y |--> (y^3 - 3*y)/3 - 1/2], [(2, 3), y |--> 3*(y - 2) + 1/6]]
+            Piecewise defined function with 5 parts, [[(-4, -3), y |--> -y - 4], [(-3, -2), y |--> 1/2*y^2 + 3*y + 7/2], [(-2, 0), y |--> -1/2*y^2 - y - 1/2], [(0, 2), y |--> 1/3*y^3 - y - 1/2], [(2, 3), y |--> 3*y - 35/6]]
 
         Ensure results are consistant with FTC::
 
@@ -718,7 +722,7 @@ class PiecewisePolynomial:
             sage: f3(y) = 3
             sage: f = Piecewise([[(-infinity, -3), f1], [(-3, 0), f2], [(0, infinity), f3]])
             sage: f.integral()
-            Piecewise defined function with 3 parts, [[(-Infinity, -3), y |--> (y^3 + 9*y^2 + 27*y)/3 + 9], [(-3, 0), y |--> (y^2 + 6*y)/2 + 9/2], [(0, +Infinity), y |--> 3*y + 9/2]]
+            Piecewise defined function with 3 parts, [[(-Infinity, -3), y |--> 1/3*y^3 + 3*y^2 + 9*y + 9], [(-3, 0), y |--> 1/2*y^2 + 3*y + 9/2], [(0, +Infinity), y |--> 3*y + 9/2]]
 
         ::
 
@@ -878,7 +882,7 @@ class PiecewisePolynomial:
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, pi/2), x |--> 0], [(pi/2, pi), x |--> 0]]
+            Piecewise defined function with 2 parts, [[(0, 1/2*pi), x |--> 0], [(1/2*pi, pi), x |--> 0]]
 
         ::
 
@@ -960,7 +964,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_cosine_coefficient(2,1)
-            1/pi^2
+            pi^(-2)
             sage: f(x) = x^2
             sage: f = Piecewise([[(-pi,pi),f]])
             sage: f.fourier_series_cosine_coefficient(2,pi)
@@ -969,7 +973,7 @@ class PiecewisePolynomial:
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_cosine_coefficient(5,pi)
-            -3/(5*pi)
+            -3/5/pi
         """
         from sage.all import cos, pi
         x = var('x')
@@ -1020,7 +1024,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f._fourier_series_helper(3, 1, lambda n: 1)
-            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
+            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
         """
         from sage.all import pi, sin, cos, srange
         x = var('x')
@@ -1047,7 +1051,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum(3,1)
-            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
+            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
@@ -1062,7 +1066,7 @@ class PiecewisePolynomial:
 
         .. math::
 
-                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+           f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 
 
         as a string. This is a "smoother" partial sum - the Gibbs
@@ -1073,7 +1077,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_cesaro(3,1)
-            cos(2*pi*x)/(3*pi^2) - 8*cos(pi*x)/(3*pi^2) + 1/3
+            -8/3*cos(pi*x)/pi^2 + 1/3*cos(2*pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
@@ -1089,8 +1093,7 @@ class PiecewisePolynomial:
 
         .. math::
 
-                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-
+           f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 
         as a string, where `H_N(x) = (1+\cos(\pi x/N))/2`. This is
         a "smoother" partial sum - the Gibbs phenomenon is mollified.
@@ -1100,12 +1103,12 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
-            cos(2*pi*x)/(4*pi^2) - 3*cos(pi*x)/pi^2 + 1/3
+            -3*cos(pi*x)/pi^2 + 1/4*cos(2*pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            -3*sin(2*x)/(4*pi) + 9*sin(x)/(4*pi) - 9*cos(x)/(4*pi) - 1/4
+            -3/4*sin(2*x)/pi + 9/4*sin(x)/pi - 9/4*cos(x)/pi - 1/4
         """
         from sage.all import cos, pi
         return self._fourier_series_helper(N, L, lambda n: (1+cos(pi*n/N))/2)
@@ -1116,8 +1119,7 @@ class PiecewisePolynomial:
 
         .. math::
 
-                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-
+           f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 
         as a string, where `F = [F_1,F_2, ..., F_{N}]` is a list
         of length `N` consisting of real numbers. This can be used
@@ -1128,7 +1130,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
-            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
+            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
@@ -1143,8 +1145,7 @@ class PiecewisePolynomial:
 
         .. math::
 
-                     f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
-
+           f(x) \sim \frac{a_0}{2} +  sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 
         over xmin x xmin.
 
@@ -1300,11 +1301,11 @@ class PiecewisePolynomial:
             sage: f.fourier_series_value(100,10)
             1
             sage: f.fourier_series_value(10,10)
-            (sin(20) + 1)/2
+            1/2*sin(20) + 1/2
             sage: f.fourier_series_value(20,10)
             1
             sage: f.fourier_series_value(30,10)
-            (sin(20) + 1)/2
+            1/2*sin(20) + 1/2
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])
@@ -1355,7 +1356,7 @@ class PiecewisePolynomial:
             sage: f.cosine_series_coefficient(2,1)
             0
             sage: f.cosine_series_coefficient(3,1)
-            -4/(9*pi^2)
+            -4/9/pi^2
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
@@ -1364,11 +1365,11 @@ class PiecewisePolynomial:
             sage: f.cosine_series_coefficient(3,pi)
             2/pi
             sage: f.cosine_series_coefficient(111,pi)
-            2/(37*pi)
+            2/37/pi
             sage: f1 = lambda x: x*(pi-x)
             sage: f = Piecewise([[(0,pi),f1]])
             sage: f.cosine_series_coefficient(0,pi)
-            pi^2/3
+            1/3*pi^2
 
         """
         from sage.all import cos, pi
@@ -1385,7 +1386,6 @@ class PiecewisePolynomial:
 
         INPUT:
 
-
         -  ``self`` - the function f(x), defined over 0 x L (no
            checking is done to insure this)
 
@@ -1393,16 +1393,14 @@ class PiecewisePolynomial:
 
         -  ``L`` - (the period)/2
 
-
         OUTPUT:
+
         `b_n = \frac{2}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx` such
         that
 
         .. math::
 
-                     f(x) \sim \sum_{n=1}^\infty b_n\sin(\frac{n\pi x}{L}),\ \ 0<x<L.
-
-
+           f(x) \sim \sum_{n=1}^\infty b_n\sin(\frac{n\pi x}{L}),\ \ 0<x<L.
 
         EXAMPLES::
 
@@ -1411,7 +1409,7 @@ class PiecewisePolynomial:
             sage: f.sine_series_coefficient(2,1)
             0
             sage: f.sine_series_coefficient(3,1)
-            4/(3*pi)
+            4/3/pi
         """
         from sage.all import sin, pi
         x = var('x')
@@ -1440,16 +1438,16 @@ class PiecewisePolynomial:
             sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
             sage: f.laplace(x, s)
-            -e^(-s)/s - e^(-s)/s^2 + (s + 1)*e^(-(2*s))/s^2 + 1/s
+            (s + 1)*e^(-2*s)/s^2 - e^(-s)/s + 1/s - e^(-s)/s^2
             sage: f.laplace(x, w)
-            -e^(-w)/w - e^(-w)/w^2 + (w + 1)*e^(-(2*w))/w^2 + 1/w
+            (w + 1)*e^(-2*w)/w^2 - e^(-w)/w + 1/w - e^(-w)/w^2
 
         ::
 
             sage: y, t = var('y, t')
             sage: f = Piecewise([[(1,2), 1-y]])
             sage: f.laplace(y, t)
-            (t + 1)*e^(-(2*t))/t^2 - e^(-t)/t^2
+            (t + 1)*e^(-2*t)/t^2 - e^(-t)/t^2
 
         ::
 
@@ -1461,7 +1459,7 @@ class PiecewisePolynomial:
             sage: f.laplace(t,s)
             (s + 1)*e^(-s)/s^2 + 2*e^(-s)/s - 1/s^2
         """
-        from sage.calculus.all import assume, exp, forget
+        from sage.all import assume, exp, forget
         x = var(x)
         s = var(s)
         assume(s>0)

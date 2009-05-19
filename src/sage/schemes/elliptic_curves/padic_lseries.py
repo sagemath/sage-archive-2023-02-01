@@ -87,7 +87,6 @@ import monsky_washnitzer
 from sage.misc.functional import log
 
 from sage.libs.cremona.newforms import ECModularSymbol
-from sage.calculus.calculus import sqrt
 
 class pAdicLseries(SageObject):
     r"""
@@ -637,6 +636,7 @@ class pAdicLseries(SageObject):
             6
 
         """
+        from sage.functions.all import sqrt
         # This funciton does not depend on p and could be moved out of this file but it is needed only here
 
         # Note that the number of real components does not change by twisting.

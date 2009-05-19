@@ -36,9 +36,9 @@ instead of Sympy.
     sage: x + y + x - y
     2*x
     sage: (x+y)^2
-    (y + x)^2
+    (x + y)^2
     sage: ((x+y)^2).expand()
-    y^2 + 2*x*y + x^2
+    x^2 + 2*x*y + y^2
     sage: ((x+y)^2).subs(x=1)
     (y + 1)^2
     sage: ((x+y)^2).subs(x=y)
@@ -60,9 +60,9 @@ instead of Sympy.
     sage: diff(sin(2*x), x)
     2*cos(2*x)
     sage: diff(tan(x), x)
-    sec(x)^2
+    tan(x)^2 + 1
     sage: limit((tan(x+y) - tan(x))/y, y=0)
-    1/cos(x)^2
+    cos(x)^(-2)
     sage: diff(sin(2*x), x, 1)
     2*cos(2*x)
     sage: diff(sin(2*x), x, 2)
@@ -73,9 +73,9 @@ instead of Sympy.
 ::
 
     sage: cos(x).taylor(x,0,10)
-    1 - x^2/2 + x^4/24 - x^6/720 + x^8/40320 - x^10/3628800
+    -1/3628800*x^10 + 1/40320*x^8 - 1/720*x^6 + 1/24*x^4 - 1/2*x^2 + 1
     sage: (1/cos(x)).taylor(x,0,10)
-    1 + x^2/2 + 5*x^4/24 + 61*x^6/720 + 277*x^8/8064 + 50521*x^10/3628800
+    50521/3628800*x^10 + 277/8064*x^8 + 61/720*x^6 + 5/24*x^4 + 1/2*x^2 + 1
 
 ::
 
@@ -127,16 +127,11 @@ And the pretty-printer::
 And the functionality to convert from sympy format to Sage format::
 
     sage: e._sage_()
-    1/cos(x)^3
-    sage: print e._sage_()
-                                               1
-                                            -------
-                                               3
-                                            cos (x)
+    cos(x)^(-3)
     sage: e._sage_().taylor(x._sage_(), 0, 8)
-    1 + 3*x^2/2 + 11*x^4/8 + 241*x^6/240 + 8651*x^8/13440
+    8651/13440*x^8 + 241/240*x^6 + 11/8*x^4 + 3/2*x^2 + 1
     sage: f._sage_()
-    8651*x^8/13440 + 241*x^6/240 + 11*x^4/8 + 3*x^2/2 + 1
+    8651/13440*x^8 + 241/240*x^6 + 11/8*x^4 + 3/2*x^2 + 1
 
 Mixing SymPy with Sage::
 
@@ -148,19 +143,19 @@ Mixing SymPy with Sage::
     sage: t1 = s + o
     sage: t2 = o + s
     sage: type(t1)
-    <class 'sage.calculus.calculus.SymbolicArithmetic'>
+    <class 'sympy.core.add.Add'>
     sage: type(t2)
-    <class 'sage.calculus.calculus.SymbolicArithmetic'>
+    <type 'sage.symbolic.expression.Expression'>
     sage: t1, t2
-    (x + omega, x + omega)
-    sage: e=sympy.sin(var("y"))+sage.all.cos(Symbol("x"))
+    (omega + x, omega + x)
+    sage: e=sympy.sin(var("y"))+sage.all.cos(sympy.Symbol("x"))
     sage: type(e)
     <class 'sympy.core.add.Add'>
     sage: e
     cos(x) + sin(y)
     sage: e=e._sage_()
     sage: type(e)
-    <class 'sage.calculus.calculus.SymbolicArithmetic'>
+    <type 'sage.symbolic.expression.Expression'>
     sage: e
     sin(y) + cos(x)
     sage: e = sage.all.cos(var("y")**3)**4+var("x")**2

@@ -35,9 +35,9 @@ Other functions for solving DEs are given in functions/elementary.py.
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
-from sage.calculus.equations import SymbolicEquation
 from sage.interfaces.maxima import MaximaElement, Maxima
 from sage.plot.all import line
+from sage.symbolic.expression import is_SymbolicEquation
 
 maxima = Maxima()
 
@@ -61,9 +61,9 @@ def desolve(de, dvar, ics=None, ivar=None):
         sage: x = var('x')
         sage: y = function('y', x)
         sage: desolve(diff(y,x) + y - 1, y)
-        e^(-x)*(e^x + c)
+        (c + e^x)*e^(-x)
         sage: f = desolve(diff(y,x) + y - 1, y, ics=[10,2]); f
-        e^(-x)*(e^x + e^10)
+        (e^10 + e^x)*e^(-x)
         sage: plot(f)
 
     We can also solve second-order differential equations.
@@ -73,16 +73,16 @@ def desolve(de, dvar, ics=None, ivar=None):
         sage: desolve(de, y)
         k1*e^x + k2*e^(-x) - x
         sage: f = desolve(de, y, [10,2,1]); f
-        (e^10*y(10) + 8*e^10)*e^(-x)/2 + (y(10) + 12)*e^(x - 10)/2 - x
-        sage: f(x=10).expand()
+        1/2*(y(10) + 12)*e^(x - 10) + 1/2*(e^10*y(10) + 8*e^10)*e^(-x) - x
+        sage: f(x=10).expand().simplify()
         y(10)
-        sage: diff(f,x)(x=10).expand()
+        sage: diff(f,x)(x=10).expand().simplify()
         1
 
     AUTHOR: David Joyner (1-2006)
             Robert Bradshaw (10-2008)
     """
-    if isinstance(de, SymbolicEquation):
+    if is_SymbolicEquation(de):
         de = de.lhs() - de.rhs()
     # for backwards compatibility
     if isinstance(dvar, list):
@@ -100,12 +100,12 @@ def desolve(de, dvar, ics=None, ivar=None):
     def to_eqns(lhs, exprs):
         eqns = []
         for lhs, expr in zip(lhs, exprs):
-            if isinstance(expr, SymbolicEquation):
+            if is_SymbolicEquation(expr):
                 eqns.append(expr)
             else:
                 if lhs == dvar and len(exprs) == 2:
                     ivar_ic = exprs[0] # figure this out...
-                    lhs = lhs._f(ivar_ic)
+                    lhs = lhs.subs(lhs.default_variable()==ivar_ic)
                 eqns.append(lhs == expr)
         return eqns
     if ics is not None:
@@ -185,7 +185,7 @@ def desolve_laplace(de,vars,ics=None):
         f(x)
         sage: de = lambda y: diff(y,x,x) - 2*diff(y,x) + y
         sage: desolve_laplace(de(f(x)),["x","f"])
-        "x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x"
+        "x*%e^x*('at('diff('f(x),x,1),x=0))-'f(0)*x*%e^x+'f(0)*%e^x"
         sage: desolve_laplace(de(f(x)),["x","f"],[0,1,2])
          'x*%e^x+%e^x'
 
@@ -196,14 +196,13 @@ def desolve_laplace(de,vars,ics=None):
 
     AUTHOR: David Joyner (1-2006,8-2007)
     """
-    maxima("de:"+de._repr_()+"=0;")
     if ics!=None:
         d = len(ics)
         for i in range(0,d-1):
-            ic = "atvalue(diff("+vars[1]+"("+vars[0]+"),"+str(vars[0])+","+str(i)+"),"+str(vars[0])+"="+str(ics[0])+","+str(ics[1+i])+")"
+            ic = "atvalue(diff('"+vars[1]+"("+vars[0]+"),"+str(vars[0])+","+str(i)+"),"+str(vars[0])+"="+str(ics[0])+","+str(ics[1+i])+")"
             maxima(ic)
             #print i,ic
-    cmd = "desolve("+de._repr_()+","+vars[1]+"("+vars[0]+"));"
+    cmd = "desolve("+de._maxima_init_()+",'"+vars[1]+"("+vars[0]+"));"
     return maxima(cmd).rhs()._maxima_init_()
 
 def desolve_system(des, vars, ics=None, ivar=None):
@@ -225,12 +224,12 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: de1 = diff(x,t) + y - 1 == 0
         sage: de2 = diff(y,t) - x + 1 == 0
         sage: desolve_system([de1, de2], [x,y])
-        [x(t) == (1 - y(0))*sin(t) + (x(0) - 1)*cos(t) + 1,
+        [x(t) == (x(0) - 1)*cos(t) - (y(0) - 1)*sin(t) + 1,
          y(t) == (x(0) - 1)*sin(t) + (y(0) - 1)*cos(t) + 1]
 
     Now we give some initial conditions:
         sage: sol = desolve_system([de1, de2], [x,y], ics=[0,1,2]); sol
-        [x(t) == 1 - sin(t), y(t) == cos(t) + 1]
+        [x(t) == -sin(t) + 1, y(t) == cos(t) + 1]
         sage: solnx, solny = sol[0].rhs(), sol[1].rhs()
         sage: plot([solnx,solny],0,1)
         sage: parametric_plot((solnx,solny),0,1)
@@ -239,7 +238,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
     """
     ivars = set([])
     for i, de in enumerate(des):
-        if not isinstance(de, SymbolicEquation):
+        if not is_SymbolicEquation(de):
             des[i] = de == 0
         ivars = ivars.union(set(de.variables()))
     if ivar is None:
@@ -266,7 +265,6 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
 
 def desolve_system_strings(des,vars,ics=None):
-
     """
     Solves any size system of 1st order odes using maxima. Initials conditions
     are optional.
@@ -298,14 +296,13 @@ def desolve_system_strings(des,vars,ics=None):
         sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]
         sage: vars = ["s","x","y"]
         sage: desolve_system_strings(des,vars)
-        ['(1-y(0))*sin(s)+(x(0)-1)*cos(s)+1', '(x(0)-1)*sin(s)+(y(0)-1)*cos(s)+1']
+        ["(1-'y(0))*sin(s)+('x(0)-1)*cos(s)+1", "('x(0)-1)*sin(s)+('y(0)-1)*cos(s)+1"]
         sage: ics = [0,1,-1]
         sage: soln = desolve_system_strings(des,vars,ics); soln
         ['2*sin(s)+1', '1-2*cos(s)']
-        sage: solnx = lambda s: RR(eval(soln[0].replace("s","s")))
-        sage: solnx(3)
+        sage: solnx, solny = map(SR, soln)
+        sage: RR(solnx(s=3))
         1.28224001611973
-        sage: solny = lambda s: RR(eval(soln[1].replace("s","s")))
         sage: P1 = plot([solnx,solny],0,1)
         sage: P2 = parametric_plot((solnx,solny),0,1)
 
@@ -315,18 +312,18 @@ def desolve_system_strings(des,vars,ics=None):
     AUTHOR: David Joyner (3-2006, 8-2007)
     """
     d = len(des)
-    dess = [de._repr_() + "=0" for de in des]
+    dess = [de._maxima_init_() + "=0" for de in des]
     for i in range(d):
         cmd="de:" + dess[int(i)] + ";"
         maxima.eval(cmd)
     desstr = "[" + ",".join(dess) + "]"
     d = len(vars)
-    varss = list(vars[i] + "(" + vars[0] + ")" for i in range(1,d))
+    varss = list("'" + vars[i] + "(" + vars[0] + ")" for i in range(1,d))
     varstr = "[" + ",".join(varss) + "]"
-    if ics!=None:
+    if ics is not None:
         #d = len(ics) ## must be same as len(des)
         for i in range(1,d):
-            ic = "atvalue(" + vars[int(i)] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[int(i)]) + ")"
+            ic = "atvalue('" + vars[i] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
             maxima.eval(ic)
     cmd = "desolve(" + desstr + "," + varstr + ");"
     soln = maxima(cmd)

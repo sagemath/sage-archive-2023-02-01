@@ -179,7 +179,7 @@ REFERENCES:
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
-from sage.calculus.all import log, sqrt
+from sage.functions.all import log, sqrt
 
 def codesize_upper_bound(n,d,q):
     r"""

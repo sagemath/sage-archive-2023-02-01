@@ -2781,8 +2781,7 @@ def verify_same(a, b):
         sage: verify_same(1, 2)
         Traceback (most recent call last):
         ...
-            assert(a == b)
-        AssertionError
+        AssertionError: Expected 1 == 2
         sage: verify_same(1, 1r)
         Traceback (most recent call last):
         ...
@@ -2816,9 +2815,9 @@ def verify_same(a, b):
         return
     from sage.rings.all import is_RealIntervalFieldElement, is_ComplexIntervalFieldElement
     if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
-        assert(cmp(a, b) == 0)
+        assert(cmp(a, b) == 0), "Expected %s == %s" % (a, b)
     else:
-        assert(a == b)
+        assert(a == b), "Expected %s == %s" % (a, b)
 
 def verify_si_answer(x, answer, preparse):
     r"""

@@ -1253,9 +1253,8 @@ ext_modules = [
     ## sage.symbolic
     ##
     ################################
-
-    Extension('sage.symbolic.constants',
-              sources = ['sage/symbolic/constants.pyx'],
+    Extension('sage.symbolic.constants_c',
+              sources = ['sage/symbolic/constants_c.pyx'],
               language = 'c++',
               libraries = ["pynac"]),
 
@@ -1266,6 +1265,11 @@ ext_modules = [
 
     Extension('sage.symbolic.function',
               sources = ['sage/symbolic/function.pyx'],
+              language = 'c++',
+              libraries = ["pynac"]),
+
+    Extension('sage.symbolic.power_helper',
+              sources = ['sage/symbolic/power_helper.pyx'],
               language = 'c++',
               libraries = ["pynac"]),
 

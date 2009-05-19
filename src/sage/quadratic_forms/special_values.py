@@ -8,8 +8,7 @@ from sage.rings.all import RealField
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.functions.constants import pi, I
-from sage.calculus.calculus import sqrt, SymbolicExpressionRing
+from sage.symbolic.constants import pi, I
 from sage.rings.real_mpfr import is_RealField
 from sage.misc.functional import denominator, numerator
 from sage.rings.infinity import infinity
@@ -35,22 +34,23 @@ def gamma__exact(n):
         sage: gamma__exact(1/2)
         sqrt(pi)
         sage: gamma__exact(3/2)
-        sqrt(pi)/2
+        1/2*sqrt(pi)
         sage: gamma__exact(5/2)
-        3*sqrt(pi)/4
+        3/4*sqrt(pi)
         sage: gamma__exact(7/2)
-        15*sqrt(pi)/8
+        15/8*sqrt(pi)
 
         sage: gamma__exact(-1/2)
         -2*sqrt(pi)
         sage: gamma__exact(-3/2)
-        4*sqrt(pi)/3
+        4/3*sqrt(pi)
         sage: gamma__exact(-5/2)
-        -8*sqrt(pi)/15
+        -8/15*sqrt(pi)
         sage: gamma__exact(-7/2)
-        16*sqrt(pi)/105
+        16/105*sqrt(pi)
 
     """
+    from sage.all import sqrt
     ## SANITY CHECK
     if (not n in QQ) or (denominator(n) > 2):
         raise TypeError, "Oops!  You much give an integer or half-integer argument."
@@ -180,6 +180,7 @@ def quadratic_L_function__exact(n, d):
         True
 
     """
+    from sage.all import SR, sqrt
     if n<=0:
         k = 1-n
         return -QuadraticBernoulliNumber(k,d)/k
@@ -197,7 +198,6 @@ def quadratic_L_function__exact(n, d):
                 GS = sqrt(f)
             else:
                 GS = I * sqrt(f)
-            SR = SymbolicExpressionRing()
             ans = SR(ZZ(-1)**(1+(n-delta)/2))
             ans *= (2*pi/f)**n
             ans *= GS     ## Evaluate the Gauss sum here! =0
@@ -223,10 +223,10 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
         sage: for i in range(5):
         ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
         L(1, (-4/.)):  0.000049999999500000024999996962707
-        L(3, (-4/.)):  4.9999997000000374637816570842e-13
-        L(5, (-4/.)):  4.9999992370601592951889007864e-21
-        L(7, (-4/.)):  2.8398992587956424994822228350e-29
-        L(9, (-4/.)):  3.1554436208840472216469142611e-30
+        L(3, (-4/.)):  4.9999997000000374953360932931e-13
+        L(5, (-4/.)):  4.9999992362712983899678889809e-21
+        L(7, (-4/.)):  2.9187853493177436800233956915e-29
+        L(9, (-4/.)):  0.00000000000000000000000000000
 
         sage: ## Testing the accuracy of the negative special values
         sage: ## ---- THIS FAILS SINCE THE DIRICHLET SERIES DOESN'T CONVERGE HERE! ----

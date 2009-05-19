@@ -9,7 +9,6 @@
 
 #include "ccobject.h"
 #include <pynac/ginac.h>
-
 #include <string>
 
 using namespace GiNaC;
@@ -201,6 +200,11 @@ PyObject* _to_PyString_latex(const T *x)
   std::ostringstream instore;
   instore << latex << (*x);
   return PyString_FromString(instore.str().data());
+}
+
+constant* GConstant_construct(void* mem, char* name, char* texname, unsigned domain)
+{
+  return new(mem) constant(name, ConstantEvalf, texname, domain);
 }
 
 #define ASSIGN_WRAP(x,y) x = y

@@ -91,7 +91,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         sage: QuaternionAlgebra(QQ[sqrt(2)](-1), -5)
         Quaternion Algebra (-1, -5) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
         sage: QuaternionAlgebra(sqrt(-1), sqrt(-3))
-        Quaternion Algebra (I, sqrt(3)*I) with base ring Symbolic Ring
+        Quaternion Algebra (I, sqrt(-3)) with base ring Symbolic Ring
         sage: QuaternionAlgebra(0,0)
         Traceback (most recent call last):
         ...

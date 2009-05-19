@@ -11,6 +11,7 @@ systems['Axiom'] = ['sage.interfaces.axiom']
 systems['ECM'] = ['sage.interfaces.ecm']
 systems['scipy'] = ['scipy']
 systems['numpy'] = ['numpy']
+systems['ginac'] = ['sage.symbolic']
 systems['Maple'] = ['sage.interfaces.maple']
 systems['Mathematica'] = ['sage.interfaces.mathematica']
 systems['MuPAD'] = ['sage.interfaces.mupad']
@@ -28,7 +29,7 @@ systems['R'] = ['sage.interfaces.r']
 systems['KASH'] = ['sage.interfaces.kash']
 systems['Linbox'] = ['sage.libs.linbox']
 systems['Symmetrica'] = ['sage.libs.symmetrica']
-systems['NTL'] = ['sage.libs.ntl', '_ntl',
+systems['NTL'] = ['sage.libs.ntl',
                   'sage.rings.finite_field_ntl_gf2e']
 systems['FLINT'] = ['_flint']
 systems['GMP'] = ['sage.rings.integer.Integer']
@@ -49,12 +50,15 @@ def get_systems(cmd):
     could miss some dependancies as well.
 
     INPUT:
-       cmd -- a string to run
 
-    EXAMPLES:
+    - ``cmd`` - a string to run
+
+    EXAMPLES::
+
         sage: from sage.misc.citation import get_systems
+        sage: s = get_systems('integrate(x^2, x)'); #priming coercion model
         sage: get_systems('integrate(x^2, x)')
-        ['Maxima']
+        ['ginac', 'Maxima']
         sage: R.<x,y,z> = QQ[]
         sage: I = R.ideal(x^2+y^2, z^2+y)
         sage: get_systems('I.primary_decomposition()')

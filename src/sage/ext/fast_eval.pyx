@@ -1379,7 +1379,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         pass
 
     try:
-        from sage.calculus.calculus import SR
+        from sage.symbolic.ring import SR
         return fast_float(SR(f), *vars)
     except TypeError:
         pass

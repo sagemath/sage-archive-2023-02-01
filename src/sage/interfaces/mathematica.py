@@ -416,9 +416,16 @@ remote connection to a server running Mathematica -- for hints, type
              allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')
 
-    def function_call(self, function, args=None, kwds=None):
-        args, kwds = self._convert_args_kwds(args, kwds)
-        return self.new("%s[%s]"%(function, ",".join([s.name() for s in args])))
+    def _function_call_string(self, function, args, kwds):
+        """
+        Returns the string used to make function calls.
+
+        EXAMPLES::
+
+            sage: mathematica._function_call_string('Sin', ['x'], [])
+            'Sin[x]'
+        """
+        return "%s[%s]"%(function, ",".join(args))
 
     def _left_list_delim(self):
         return "{"

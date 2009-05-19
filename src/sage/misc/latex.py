@@ -315,6 +315,24 @@ class Latex:
 
         return LatexExpr(str_function(str(x)))
 
+    def _relation_symbols(self):
+        """
+        Returns a dictionary whose keys are attributes of the
+        :mod:`operator` module and whose values are the corresponding
+        LaTeX expressions.
+
+        EXAMPLES::
+
+            sage: import operator
+            sage: latex._relation_symbols()[operator.ge]
+            ' \\geq '
+        """
+        import operator
+        return {operator.lt:' < ', operator.le:' \\leq ',
+                operator.eq:' = ', operator.ne:' \\neq ',
+                operator.ge:' \\geq ', operator.gt:' > '}
+
+
     def _latex_preparse(self, s, locals):
         """
         Replace instances of '\sage{x}' in s with the LaTeX version of

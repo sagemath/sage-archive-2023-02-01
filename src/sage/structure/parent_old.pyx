@@ -59,6 +59,7 @@ cdef class Parent(parent.Parent):
         # TODO: many classes don't call this at all, but __new__ crashes SAGE
 #        if len(coerce_from) > 0:
 #            print type(self), coerce_from
+        self.init_coerce(False)
         self._coerce_from_list = list(coerce_from)
         self._coerce_from_hash = {}
         self._action_list = list(actions)

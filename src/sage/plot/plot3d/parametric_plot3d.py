@@ -8,7 +8,6 @@ from texture import Texture
 from sage.plot.misc import ensure_subs
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
-import sage.calculus.calculus
 
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_style=None, **kwds):
     r"""
@@ -599,8 +598,8 @@ def adapt_if_symbolic(f):
     This function is used internally by the plot commands for
     efficiency reasons only.
     """
-    from sage.calculus.calculus import is_SymbolicExpression, SR
-    if sum([is_SymbolicExpression(a) for a in f]) > 0:
+    from sage.symbolic.all import is_Expression, SR
+    if sum([is_Expression(a) for a in f]) > 0:
         g = [SR(a) for a in f]
         vars = list(set(sum([list(a.variables()) for a in g], [])))
         vars.sort()
@@ -631,9 +630,11 @@ def adapt_to_callable(f, nargs=None):
     OUTPUT: functions, expected arguments
     """
     try:
-        if sum([sage.calculus.calculus.is_CallableSymbolicExpression(z) for z in f]):
-            # Sum to get common universe; this works since f is callable, and summing
-            # gets the arguments in the right order.
+        from sage.symbolic.callable import is_CallableSymbolicExpression
+        if sum([is_CallableSymbolicExpression(z) for z in f]):
+            # Sum to get common universe; this works since f is
+            # callable, and summing gets the arguments in the right
+            # order.
             vars = sum(f).args()
         else:
             # Otherwise any free variable names in any order

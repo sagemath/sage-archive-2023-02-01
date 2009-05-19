@@ -1,13 +1,11 @@
 
 from random import random
-from sage.calculus.calculus import floor
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.rings.arith import legendre_symbol
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
-from sage.calculus.calculus import sqrt
 from sage.misc.functional import squarefree_part
 
 def sgn(x):
@@ -89,6 +87,7 @@ def is_triangular_number(n):
     elif n == 0:
         return ZZ(0)
     else:
+        from sage.functions.all import sqrt
         ## Try to solve for the integer a
         try:
             disc_sqrt = ZZ(sqrt(1+8*n))
@@ -173,6 +172,7 @@ def extend_to_primitive(A_input):
         return D
 
 def least_quadratic_nonresidue(p):
+    from sage.functions.all import floor
     """
     Returns the smallest positive integer quadratic non-residue in Z/pZ for primes p>2.
 

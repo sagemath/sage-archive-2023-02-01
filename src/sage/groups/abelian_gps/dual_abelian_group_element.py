@@ -54,7 +54,6 @@ from sage.misc.misc import prod, add
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from abelian_group import AbelianGroup
 from sage.misc.functional import exp
-from sage.functions.constants import pi
 from sage.rings.complex_field import is_ComplexField
 
 
@@ -268,6 +267,7 @@ class DualAbelianGroupElement(MonoidElement):
         invs = self.parent().invariants()
         N = LCM(invs)
         if is_ComplexField(F):
+            from sage.symbolic.constants import pi
             I = F.gen()
             PI = F(pi)
             ans = prod([exp(2*PI*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])

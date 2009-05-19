@@ -1,20 +1,12 @@
+from sage.structure.sage_object cimport SageObject
 
-cdef class SFunction:
-    cdef unsigned int serial
-    cdef object name
-    cdef int nargs
-
-    cdef object eval_f
-    cdef object evalf_f
-    cdef object conjugate_f
-    cdef object real_part_f
-    cdef object imag_part_f
-    cdef object derivative_f
-    cdef object power_f
-    cdef object series_f
-    cdef object print_f
-    cdef object print_latex_f
-    cdef object latex_name
+cdef class SFunction(SageObject):
+    cdef unsigned int _serial
+    cdef object _name
+    cdef object _ginac_name
+    cdef object _latex_name
+    cdef int _nargs
+    cdef dict __dict__
 
     # cache hash value
     cdef long _hash_(self)
@@ -23,3 +15,14 @@ cdef class SFunction:
 
     # common initialization from __init__ and __setstate__
     cdef _init_(self)
+
+    cdef object _eval_
+    cdef object _evalf_
+    cdef object _conjugate_
+    cdef object _real_part_
+    cdef object _imag_part_
+    cdef object _derivative_
+    cdef object _power_
+    cdef object _series_
+    cdef object _print_
+    cdef object _print_latex_

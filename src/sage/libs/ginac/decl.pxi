@@ -20,6 +20,10 @@ cdef extern from "ginac_wrap.h":
         unsigned int gethash()
         int compare(GBasic other)
 
+    ctypedef struct GConstant "constant":
+        unsigned get_serial()
+
+
     ctypedef struct GSymbol "symbol":
         pass
 
@@ -116,6 +120,12 @@ cdef extern from "ginac_wrap.h":
     GEx g_ne "NE_WRAP" (GEx left, GEx right) except +
     GEx g_ge "GE_WRAP" (GEx left, GEx right) except +
 
+    #Domains
+    unsigned domain_complex "GiNaC::domain::complex"
+    unsigned domain_real "GiNaC::domain::real"
+    unsigned domain_positive "GiNaC::domain::positive"
+    unsigned domain_infinity "GiNaC::domain::infinity"
+
     # Constants
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
@@ -123,6 +133,13 @@ cdef extern from "ginac_wrap.h":
     GEx g_UnsignedInfinity "UnsignedInfinity"
     GEx g_Infinity "Infinity"
     GEx g_mInfinity "-Infinity"
+
+    GConstant* GConstant_construct(void *mem, char* name, char* texname, unsigned domain)
+    bint is_a_constant "is_a<constant>" (GEx e)
+    void GConstant_destruct "Destruct<constant>"(GConstant *mem) except +
+    GConstant* GConstant_construct_str "Construct_p<constant, char*>" \
+            (void *mem, char* name) except +
+
 
     # I is not a constant, but a numeric object
     # we declare it here for easy reference
@@ -177,6 +194,7 @@ cdef extern from "ginac_wrap.h":
     bint is_a_add "is_a<add>" (GEx e)
     bint is_a_mul "is_a<mul>" (GEx e)
     bint is_a_power "is_a<power>" (GEx e)
+    bint is_a_fderivative "is_a<fderivative>" (GEx e)
     bint is_a_function "is_a<function>" (GEx e)
     bint is_a_ncmul "is_a<ncmul>" (GEx e)
 
@@ -259,7 +277,11 @@ cdef extern from "ginac_wrap.h":
         unsigned get_serial()
         char* get_name "get_name().c_str" ()
 
+    ctypedef struct GFDerivative "fderivative":
+        GParamSet get_parameter_set()
+
     GFunction ex_to_function "ex_to<function>" (GEx ex)
+    GFDerivative ex_to_fderivative "ex_to<fderivative>" (GEx ex)
 
     GEx g_function_evalv(unsigned int serial, GExVector) except +
     GEx g_function_eval0(unsigned int serial) except +

@@ -28,9 +28,9 @@ explicit calls to maxima or other systems.
 
     sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
     sage: a = e^(pi*sqrt(163)); a
-    e^(sqrt(163)*pi)
+    e^(pi*sqrt(163))
     sage: print RealField(150)(a)
-    2.6253741264076874399999999999925007259719819e17
+    2.6253741264076874399999999999925007259719820e17
 
 ::
 
@@ -76,12 +76,12 @@ explicit calls to maxima or other systems.
     sage: # (not exactly ok) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
     sage: a = sqrt(14+3*sqrt(3+2*sqrt(5-12*sqrt(3-2*sqrt(2)))))
     sage: b = 3+sqrt(2)
-    sage: print a, b
-    sqrt(3 sqrt(2 sqrt(5 - 12 sqrt(3 - 2 sqrt(2))) + 3) + 14)                                  sqrt(2) + 3
-    sage: print bool(a==b)
+    sage: a, b
+    (sqrt(3*sqrt(2*sqrt(-12*sqrt(-2*sqrt(2) + 3) + 5) + 3) + 14), sqrt(2) + 3)
+    sage: bool(a==b)
     False
-    sage: print float(a-b)
-    1.7763568394e-15
+    sage: abs(float(a-b)) < 1e-10
+    True
     sage: # 2*Infinity-3=Infinity.
     sage: 2*infinity-3 == infinity
     True
@@ -114,12 +114,12 @@ explicit calls to maxima or other systems.
     sage: f = (exp(x)-1)/(exp(x/2)+1)
     sage: g = exp(x/2)-1
     sage: f
-    (e^x - 1)/(e^(x/2) + 1)
+    (e^x - 1)/(e^(1/2*x) + 1)
     sage: g
-    e^(x/2) - 1
-    sage: print f(x=10.0), g(x=10.0)
-    147.4131591025766 147.4131591025766
-    sage: print bool(f == g)
+    e^(1/2*x) - 1
+    sage: f(x=10.0).n(53), g(x=10.0).n(53)
+    (147.413159102577, 147.413159102577)
+    sage: bool(f == g)
     True
 
 ::
@@ -185,21 +185,13 @@ explicit calls to maxima or other systems.
 ::
 
     sage: # (YES) Partial fraction decomposition of (x^2+2*x+3)/(x^3+4*x^2+5*x+2)
-    sage: f = (x^2+2*x+3)/(x^3+4*x^2+5*x+2)
-    sage: print f
-                                      2
-                                     x  + 2 x + 3
-                                  -------------------
-                                   3      2
-                                  x  + 4 x  + 5 x + 2
+    sage: f = (x^2+2*x+3)/(x^3+4*x^2+5*x+2); f
+    (x^2 + 2*x + 3)/(x^3 + 4*x^2 + 5*x + 2)
 
 ::
 
-    sage: print f.partial_fraction()
-                                 3       2        2
-                               ----- - ----- + --------
-                               x + 2   x + 1      2
-                                               (x + 1)
+    sage: f.partial_fraction()
+    -2/(x + 1) + 2/(x + 1)^2 + 3/(x + 2)
 
 ::
 
@@ -238,8 +230,8 @@ explicit calls to maxima or other systems.
     sage: # (NO) Solve the inequality (x-1)*...*(x-5)<0.
     sage: eqn = prod(x-i for i in range(1,5 +1)) < 0
     sage: # but don't know how to solve
-    sage: print eqn
-                      (x - 5) (x - 4) (x - 3) (x - 2) (x - 1) < 0
+    sage: eqn
+    (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) < 0
 
 ::
 
@@ -265,18 +257,16 @@ explicit calls to maxima or other systems.
 
     sage: # (YES) Sqrt(997)-(997^3)^(1/6)=0
     sage: a = sqrt(997) - (997^3)^(1/6)
-    sage: print a
-                                           0
-    sage: print bool(a == 0)
+    sage: a.simplify()
+    0
+    sage: bool(a == 0)
     True
 
 ::
 
     sage: # (YES) Sqrt(99983)-99983^3^(1/6)=0
     sage: a = sqrt(99983) - (99983^3)^(1/6)
-    sage: print a
-                           sqrt(99983) - sqrt(13) sqrt(7691)
-    sage: print bool(a==0)
+    sage: bool(a==0)
     True
     sage: float(a)
     1.1368683772...e-13
@@ -287,14 +277,12 @@ explicit calls to maxima or other systems.
 
     sage: # (YES) (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3))-6 = 0
     sage: ## same issue as above -- can only do using number fields
-    sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6
-    sage: print a
-                   1/3    1/3 3   1/3    1/3
-                     (4    + 2   )  - 6 (4    + 2   ) - 6
-    sage: print bool(a==0)
+    sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6; a
+    (2^(1/3) + 4^(1/3))^3 - 6*2^(1/3) - 6*4^(1/3) - 6
+    sage: bool(a==0)
     True
-    sage: print float(a)
-    3.5527136788e-15
+    sage: abs(float(a)) < 1e-10
+    True
     sage: ## but we can do it using number fields.
     sage: reset('x')
     sage: k.<b> = NumberField(x^3-2)
@@ -323,14 +311,8 @@ explicit calls to maxima or other systems.
     True
     sage: abs(float(g(x=0))) < 1e-10
     True
-    sage: print g
-                             2 x    pi
-                          sec (- + ---)            2
-                               2    4           sec (x)
-                          -------------- - -----------------
-                                x    pi                2
-                          2 tan(- + ---)   sqrt(1 - tan (x))
-                                2    4
+    sage: g
+    -(tan(x)^2 + 1)/sqrt(-tan(x)^2 + 1) + 1/2*(tan(1/4*pi + 1/2*x)^2 + 1)/tan(1/4*pi + 1/2*x)
 
 ::
 
@@ -338,14 +320,12 @@ explicit calls to maxima or other systems.
     sage: var('r')
     r
     sage: f = log( (2*sqrt(r) + 1) / sqrt(4*r  + 4*sqrt(r) +  1))
-    sage: print f
-                                      2 sqrt(r) + 1
-                            log(-------------------------)
-                                sqrt(4 r + 4 sqrt(r) + 1)
-    sage: print bool(f == 0)
+    sage: f
+    log((2*sqrt(r) + 1)/sqrt(4*r + 4*sqrt(r) + 1))
+    sage: bool(f == 0)
     False
-    sage: print [float(f(r=i)) for i in [0.1,0.3,0.5]]
-    [0.0, 0.0, 0.0]
+    sage: [abs(float(f(r=i))) < 1e-10 for i in [0.1,0.3,0.5]]
+    [True, True, True]
 
 ::
 
@@ -353,53 +333,43 @@ explicit calls to maxima or other systems.
     sage: # (4*r+4*Sqrt(r)+1)^(Sqrt(r)/(2*Sqrt(r)+1))*(2*Sqrt(r)+1)^(2*Sqrt(r)+1)^(-1)-2*Sqrt(r)-1=0, assuming r>0.
     sage: assume(r>0)
     sage: f = (4*r+4*sqrt(r)+1)^(sqrt(r)/(2*sqrt(r)+1))*(2*sqrt(r)+1)^(2*sqrt(r)+1)^(-1)-2*sqrt(r)-1
-    sage: print f
-                                 1                   sqrt(r)
-                           -------------              -------------
-                           2 sqrt(r) + 1              2 sqrt(r) + 1
-            (2 sqrt(r) + 1)          (4 r + 4 sqrt(r) + 1)
-                                                                    - 2 sqrt(r) - 1
+    sage: f
+    (2*sqrt(r) + 1)^(1/(2*sqrt(r) + 1))*(4*r + 4*sqrt(r) + 1)^(sqrt(r)/(2*sqrt(r) + 1)) - 2*sqrt(r) - 1
     sage: bool(f == 0)
     False
-    sage: [float(f(r=i)) for i in [0.1,0.3,0.5]]
-    [0.0, 0.0, -2.2204460492503131e-16]
+    sage: [abs(float(f(r=i))) < 1e-10 for i in [0.1,0.3,0.5]]
+    [True, True, True]
 
 ::
 
     sage: # (YES) Obtain real and imaginary parts of Ln(3+4*I).
-    sage: a = log(3+4*I)
-    sage: print a
-                                     log(4  I + 3)
-    sage: print a.real()
-                                        log(5)
-    sage: print a.imag()
-                                             4
-                                      arctan(-)
-                                             3
+    sage: a = log(3+4*I); a
+    log(4*I + 3)
+    sage: a.real()
+    log(5)
+    sage: a.imag()
+    arctan(4/3)
 
 ::
 
     sage: # (YES) Obtain real and imaginary parts of Tan(x+I*y)
-    sage: a = tan(x + I*y)
-    sage: print a
-                                     tan( I y + x)
-    sage: print a.real()
-                                       sin(2 x)
-                                 --------------------
-                                 cosh(2 y) + cos(2 x)
-    sage: print a.imag()
-                                      sinh(2 y)
-                                 --------------------
-                                 cosh(2 y) + cos(2 x)
+    sage: z = var('z')
+    sage: a = tan(z); a
+    tan(z)
+    sage: a.real()
+    tan(real_part(z))/(tan(real_part(z))^2*tan(imag_part(z))^2 + 1)
+    sage: a.imag()
+    tanh(imag_part(z))/(tan(real_part(z))^2*tan(imag_part(z))^2 + 1)
+
 
 ::
 
     sage: # (YES) Simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi.
-    sage: f = log(exp(z))
-    sage: # (except it does it even without the constraint)
     sage: assume(-pi < imag(z))
     sage: assume(imag(z) <= pi)
-    sage: f
+    sage: f = log(exp(z)); f
+    log(e^z)
+    sage: f.simplify()
     z
     sage: forget()
 
@@ -409,26 +379,29 @@ explicit calls to maxima or other systems.
     sage: assume(real(x) > 0, real(y) > 0)
     sage: n = var('n')
     sage: f = x^(1/n)*y^(1/n)-(x*y)^(1/n)
-    sage: print f
-                                           0
+    sage: f.simplify()
+    0
     sage: forget()
 
 ::
 
-    sage: # (??) Transform equations, (x==2)/2+(1==1)=>x/2+1==2.
-    sage: # This doesn't make any sense, in my opinion.  Adding equations
+    sage: # (YES) Transform equations, (x==2)/2+(1==1)=>x/2+1==2.
+    sage: eq1 = x == 2
+    sage: eq2 = SR(1) == SR(1)
+    sage: eq1/2 + eq2
+    1/2*x + 1 == 2
 
 ::
 
     sage: # (SOMEWHAT) Solve Exp(x)=1 and get all solutions.
-    sage: solve(exp(x) == 1)
+    sage: solve(exp(x) == 1, x)
     [x == 0]
 
 ::
 
     sage: # (SOMEWHAT) Solve Tan(x)=1 and get all solutions.
-    sage: solve(tan(x) == 1)
-    [x == pi/4]
+    sage: solve(tan(x) == 1, x)
+    [x == 1/4*pi]
 
 ::
 
@@ -436,7 +409,7 @@ explicit calls to maxima or other systems.
     sage: # x+y+z==6,2*x+y+2*z==10,x+3*y+z==10
     sage: # First symbolically:
     sage: solve([x+y+z==6, 2*x+y+2*z==10, x+3*y+z==10], x,y,z)
-    [[x == 4 - r1, y == 2, z == r1]]
+    [[x == -r1 + 4, y == 2, z == r1]]
 
 ::
 
@@ -462,8 +435,8 @@ explicit calls to maxima or other systems.
     [  1   c c^2 c^3]
     [  1   d d^2 d^3]
     sage: d = m.determinant()
-    sage: print d.factor()
-    (b - a) (a - c) (b - c) (a - d) (b - d) (d - c)
+    sage: d.factor()
+    (c - d)*(b - d)*(b - c)*(a - d)*(a - c)*(a - b)
 
 ::
 
@@ -507,12 +480,10 @@ explicit calls to maxima or other systems.
     sage: # OK Verify some standard limits found by L'Hopital's rule:
     sage: #   Verify(Limit(x,Infinity) (1+1/x)^x, Exp(1));
     sage: #   Verify(Limit(x,0) (1-Cos(x))/x^2, 1/2);
-    sage: print limit( (1+1/x)^x, x = oo)
+    sage: limit( (1+1/x)^x, x = oo)
     e
-    sage: print limit( (1-cos(x))/(x^2), x = 1/2)
-                                               1
-                                     4 - 4 cos(-)
-                                               2
+    sage: limit( (1-cos(x))/(x^2), x = 1/2)
+    -4*cos(1/2) + 4
 
 ::
 
@@ -547,7 +518,7 @@ explicit calls to maxima or other systems.
     sage: var('v,c')
     (v, c)
     sage: taylor(1/sqrt(1-v^2/c^2), v, 0, 7)
-    1 + v^2/(2*c^2) + 3*v^4/(8*c^4) + 5*v^6/(16*c^6)
+    1/2*v^2/c^2 + 3/8*v^4/c^4 + 5/16*v^6/c^6 + 1
 
 ::
 
@@ -566,14 +537,15 @@ explicit calls to maxima or other systems.
 ::
 
     sage: # (YES) Taylor expansion of Ln(x)^a*Exp(-b*x) at x=1.
-    E = EllipticCurve([1,2,3/4,7,19]); E
-    (x - 1)^a/e^b - ((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - ((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b)
+    sage: a,b = var('a,b')
+    sage: taylor(log(x)^a*exp(-b*x), x, 1, 3)
+    -1/48*(x - 1)^3*((6*b + 5)*(x - 1)^a*a^2 + (x - 1)^a*a^3 + 8*(x - 1)^a*b^3 + 2*(6*b^2 + 5*b + 3)*(x - 1)^a*a)*e^(-b) + 1/24*(x - 1)^2*((12*b + 5)*(x - 1)^a*a + 3*(x - 1)^a*a^2 + 12*(x - 1)^a*b^2)*e^(-b) - 1/2*(x - 1)*((x - 1)^a*a + 2*(x - 1)^a*b)*e^(-b) + (x - 1)^a*e^(-b)
 
 ::
 
     sage: # (YES) Taylor expansion of Ln(Sin(x)/x) at x=0.
     sage: taylor(log(sin(x)/x), x, 0, 10)
-    -x^2/6 - x^4/180 - x^6/2835 - x^8/37800 - x^10/467775
+    -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
 
 ::
 
@@ -603,28 +575,25 @@ explicit calls to maxima or other systems.
     sage: #        Deriv(x,n) (x^2-1)^n );
     sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
     sage: P = lambda n, x: simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
-    sage: print P(4,x).expand()
-                                       4       2
-                                   35 x    15 x    3
-                                   ----- - ----- + -
-                                     8   4     8
+    sage: P(4,x).expand()
+    35/8*x^4 - 15/4*x^2 + 3/8
 
 ::
 
     sage: # (YES) Define the polynomial p=Sum(i,1,5,a[i]*x^i).
     sage: # symbolically
-    sage: ps = sum(var('a%s'%i)*x^i for i in range(1,6))
-    sage: print 'symbolic\n',ps
-    symbolic
-                             5   4   3   2
-                         a5 x  + a4 x  + a3 x  + a2 x  + a1 x
+    sage: ps = sum(var('a%s'%i)*x^i for i in range(1,6)); ps
+    a5*x^5 + a4*x^4 + a3*x^3 + a2*x^2 + a1*x
+    sage: ps.parent()
+    Symbolic Ring
+
     sage: # algebraically
     sage: R = PolynomialRing(QQ,5,names='a')
     sage: S.<x> = PolynomialRing(R)
-    sage: p = S(list(R.gens()))*x
-    sage: print 'algebraic\n',p
-    algebraic
+    sage: p = S(list(R.gens()))*x; p
     a4*x^5 + a3*x^4 + a2*x^3 + a1*x^2 + a0*x
+    sage: p.parent()
+    Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a0, a1, a2, a3, a4 over Rational Field
 
 ::
 
@@ -634,7 +603,7 @@ explicit calls to maxima or other systems.
     sage: # We use the trick of evaluating the algebraic poly at a symbolic variable:
     sage: restore('x')
     sage: p(x)
-    x*(x*(x*(x*(a4*x + a3) + a2) + a1) + a0)
+    ((((a4*x + a3)*x + a2)*x + a1)*x + a0)*x
 
 ::
 

@@ -171,9 +171,9 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: a = matrix([[pi, sin(x)], [cos(x), 1/e]]); a
             [    pi sin(x)]
-            [cos(x)   e^-1]
+            [cos(x) e^(-1)]
             sage: a._mathematica_init_()
-            '{{Pi, Sin[x]}, {Cos[x], (E) ^ (-1)}}'
+            '{{Pi, Sin[x]}, {Cos[x], Exp[-1]}}'
         """
         return '{' + ', '.join([v._mathematica_init_() for v in self.rows()]) + '}'
 

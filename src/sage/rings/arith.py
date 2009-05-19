@@ -2441,7 +2441,7 @@ def binomial(x,m):
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
         sage: n=var('n'); binomial(n,2)
-        (n - 1)*n/2
+        1/2*(n - 1)*n
         sage: n=var('n'); binomial(n,n)
         1
         sage: n=var('n'); binomial(n,n-1)
@@ -2489,7 +2489,7 @@ def binomial(x,m):
     # this for us.
     if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
                       sage.rings.real_mpfr.RealLiteral)):
-        from sage.calculus.calculus import gamma
+        from sage.functions.all import gamma
         return gamma(x+1)/gamma(P(m+1))/gamma(x-m+1)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
@@ -3085,8 +3085,8 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
-    import sage.calculus.calculus
-    import sage.functions.constants
+    from sage.symbolic.expression import Expression
+
     # if x is a SymbolicExpression, try coercing it to a real number
     if not bits is None:
         try:
@@ -3096,8 +3096,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
     elif isinstance(x, float):
         from real_double import RDF
         x = RDF(x)
-    elif isinstance(x, (sage.calculus.calculus.SymbolicExpression,
-                        sage.functions.constants.Constant)):
+    elif isinstance(x, Expression):
         try:
             x = sage.rings.real_mpfr.RealField(53)(x)
         except TypeError:
@@ -3586,11 +3585,9 @@ def falling_factorial(x, a):
         sage: CC(a)
         0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
-        (I - 2)*(I - 1)*I*(I + 1)
-        sage: expand(falling_factorial(1+I, 4))
         4*I + 2
         sage: falling_factorial(I, 4)
-        (I - 3)*(I - 2)*(I - 1)*I
+        -10
 
     ::
 
@@ -3614,7 +3611,7 @@ def falling_factorial(x, a):
     """
     if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
-    from sage.calculus.calculus import gamma
+    from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
 
 def rising_factorial(x, a):
@@ -3669,8 +3666,6 @@ def rising_factorial(x, a):
     ::
 
         sage: a = rising_factorial(I, 4); a
-        I*(I + 1)*(I + 2)*(I + 3)
-        sage: expand(a)
         -10
 
     See falling_factorial(I, 4).
@@ -3687,7 +3682,7 @@ def rising_factorial(x, a):
     """
     if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
-    from sage.calculus.calculus import gamma
+    from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
 
 

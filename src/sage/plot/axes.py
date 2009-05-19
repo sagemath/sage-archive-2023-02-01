@@ -787,12 +787,15 @@ class GridLines(SageObject):
             for entry in self.__gridlines[i]:
                 kwds = copy(self.__gridlinesstyle[i])
                 if hasattr(entry,'__len__'):
-                    if len(entry) == 2:
-                        val = entry[0]
+                    if isinstance(entry, (list, tuple)) and len(entry) == 2:
+                        val = float(entry[0])
                         rgbcolor_keyword_support(entry[1])
                         kwds.update(entry[1])
+                    else:
+                        val = float(entry)
+                        kwds = copy(self.__gridlinesstyle[i])
                 else:
-                    val = entry
+                    val = float(entry)
                     kwds = copy(self.__gridlinesstyle[i])
                 new_list.append([val,kwds])
             new_gridlines.append(new_list)

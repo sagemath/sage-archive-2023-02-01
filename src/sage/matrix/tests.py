@@ -42,6 +42,8 @@ Division by a scalar:
     sage: matrix(CC, 2, 2, [1, 1, 1, 1]) / I
     [-1.0*I -1.0*I]
     [-1.0*I -1.0*I]
+    sage: _.parent()
+    Full MatrixSpace of 2 by 2 dense matrices over Symbolic Ring
 
 We test an example det computation where linbox gave an incorrect
 result:

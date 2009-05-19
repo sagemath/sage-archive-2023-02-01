@@ -592,7 +592,7 @@ class Maxima(Expect):
             Is  a  positive or negative?
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
-            2*b^2*arctan((2*(b*x + a)^(1/3) + a^(1/3))/(sqrt(3)*a^(1/3)))/(3*sqrt(3)*a^(7/3)) - b^2*log((b*x + a)^(2/3) + a^(1/3)*(b*x + a)^(1/3) + a^(2/3))/(9*a^(7/3)) + 2*b^2*log((b*x + a)^(1/3) - a^(1/3))/(9*a^(7/3)) + (4*b^2*(b*x + a)^(5/3) - 7*a*b^2*(b*x + a)^(2/3))/(6*a^2*(b*x + a)^2 - 12*a^3*(b*x + a) + 6*a^4)
+            2/9*sqrt(3)*b^2*arctan(1/3*(2*(b*x + a)^(1/3) + a^(1/3))*sqrt(3)/a^(1/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
             sage: var('x, n')
             (x, n)
             sage: integral(x^n,x)
@@ -755,7 +755,7 @@ class Maxima(Expect):
         if self._expect is None: return
         r = randrange(2147483647)
         s = marker + str(r+1)
-        cmd = ''';sconcat("%s",(%s+1));\n'''%(marker,r)
+        cmd = '''0;sconcat("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
@@ -992,6 +992,17 @@ class Maxima(Expect):
         """
         return 'false'
 
+    def _equality_symbol(self):
+        """
+        Returns the equality symbol in Maxima.
+
+        EXAMPLES::
+
+             sage: maxima._equality_symbol()
+             '='
+        """
+        return '='
+
     def function(self, args, defn, rep=None, latex=None):
         """
         Return the Maxima function with given arguments and definition.
@@ -1071,8 +1082,8 @@ class Maxima(Expect):
 
         EXAMPLES::
 
-            sage: maxima.set('x', '2')
-            sage: maxima.get('x')
+            sage: maxima.set('xxxxx', '2')
+            sage: maxima.get('xxxxx')
             '2'
         """
         if not isinstance(value, str):
@@ -1087,36 +1098,36 @@ class Maxima(Expect):
             #out = self._before()
             #self._error_check(cmd, out)
 
-    def get(self, var):
-        """
-        Get the string value of the variable var.
-
-        EXAMPLES::
-
-            sage: maxima.set('x', '2')
-            sage: maxima.get('x')
-            '2'
-        """
-        s = self._eval_line('%s;'%var)
-        return s
-
     def clear(self, var):
         """
         Clear the variable named var.
 
         EXAMPLES::
 
-            sage: maxima.set('x', '2')
-            sage: maxima.get('x')
+            sage: maxima.set('xxxxx', '2')
+            sage: maxima.get('xxxxx')
             '2'
-            sage: maxima.clear('x')
-            sage: maxima.get('x')
-            'x'
+            sage: maxima.clear('xxxxx')
+            sage: maxima.get('xxxxx')
+            'xxxxx'
         """
         try:
             self._expect.send('kill(%s)$'%var)
         except (TypeError, AttributeError):
-            pass
+             pass
+
+    def get(self, var):
+        """
+        Get the string value of the variable var.
+
+        EXAMPLES::
+
+            sage: maxima.set('xxxxx', '2')
+            sage: maxima.get('xxxxx')
+            '2'
+        """
+        s = self._eval_line('%s;'%var)
+        return s
 
     def console(self):
         r"""
@@ -1671,18 +1682,18 @@ class MaximaElement(ExpectElement):
             sage: b = a._sage_(); b
             sqrt(2) + 2.5
             sage: type(b)
-            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            <type 'sage.symbolic.expression.Expression'>
 
         We illustrate an automatic coercion::
 
             sage: c = b + sqrt(3); c
-            sqrt(3) + sqrt(2) + 2.5
+            sqrt(2) + sqrt(3) + 2.5
             sage: type(c)
-            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            <type 'sage.symbolic.expression.Expression'>
             sage: d = sqrt(3) + b; d
-            sqrt(3) + sqrt(2) + 2.5
+            sqrt(2) + sqrt(3) + 2.5
             sage: type(d)
-            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            <type 'sage.symbolic.expression.Expression'>
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         #return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
@@ -1712,7 +1723,7 @@ class MaximaElement(ExpectElement):
             sage: ComplexField(200)(maxima('sqrt(-2)'))
             1.4142135623730950488016887242096980785696718753769480731767*I
             sage: N(sqrt(-2), 200)
-            1.4142135623730950488016887242096980785696718753769480731767*I
+            8.0751148893563733350506651837615871941533119425962889089783e-62 + 1.4142135623730950488016887242096980785696718753769480731767*I
         """
         return C(self._sage_())
 
@@ -2119,7 +2130,8 @@ class MaximaElement(ExpectElement):
 
             sage: y,d = var('y,d')
             sage: latex(maxima(derivative(ceil(x*y*d), d,x,x,y)))
-            {{{\it \partial}^4}\over{{\it \partial}\,d\,{\it \partial}\,x^2\,  {\it \partial}\,y}}\,\left \lceil d\,x\,y \right \rceil
+            d^3\,\left({{{\it \partial}^4}\over{{\it \partial}\,d^4}}\,  {\it ceil}\left(d , x , y\right)\right)\,x^2\,y^3+5\,d^2\,\left({{  {\it \partial}^3}\over{{\it \partial}\,d^3}}\,{\it ceil}\left(d , x   , y\right)\right)\,x\,y^2+4\,d\,\left({{{\it \partial}^2}\over{  {\it \partial}\,d^2}}\,{\it ceil}\left(d , x , y\right)\right)\,y
+
 
             sage: latex(maxima(d/(d-2)))
             {{d}\over{d-2}}
@@ -2613,7 +2625,8 @@ def is_MaximaElement(x):
     return isinstance(x, MaximaElement)
 
 # An instance
-maxima = Maxima(script_subdirectory=None)
+maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true'],
+                script_subdirectory=None)
 
 def reduce_load_Maxima():
     """

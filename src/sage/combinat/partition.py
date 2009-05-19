@@ -223,7 +223,6 @@ from sage.interfaces.all import gap, gp
 from sage.rings.all import QQ, ZZ, infinity, factorial, gcd
 from sage.misc.all import prod, sage_eval
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.calculus.all import ceil
 import sage.combinat.misc as misc
 import sage.combinat.skew_partition
 from sage.rings.integer import Integer
@@ -313,6 +312,7 @@ def from_core_and_quotient(core, quotient):
         sage: partition.from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
     """
+    from sage.functions.all import ceil
     length = len(quotient)
     k = length*max( [ceil(len(core)/length),len(core)] + [len(q) for q in quotient] ) + length
     v = [ core[i]-(i+1)+1 for i in range(len(core))] + [ -i + 1 for i in range(len(core)+1,k+1) ]

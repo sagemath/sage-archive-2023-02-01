@@ -1616,12 +1616,10 @@ class BooleanMonomialMonoid(Monoid_class):
 
         INPUT:
 
-
-        -  ``other`` - element to convert,
-           - if ``None`` a BooleanMonomial representing 1 is returned
-           - only ``BooleanPolynomials`` with the same parent ring
-             as ``self`` which have a single monomial is converted
-
+        - ``other`` - element to convert, if ``None`` a
+          BooleanMonomial representing 1 is returned only
+          ``BooleanPolynomials`` with the same parent ring as ``self``
+          which have a single monomial is converted
 
         EXAMPLES::
 
@@ -3065,7 +3063,7 @@ cdef class BooleanPolynomial(MPolynomial):
         Evaluation of polynomials can be used fully symbolic::
 
             sage: f(x=var('a'),y=var('b'),z=var('c'))
-            c + a*b + 1
+            a*b + c + 1
             sage: f(var('a'),var('b'),1)
             a*b
         """
@@ -3148,12 +3146,9 @@ cdef class BooleanPolynomial(MPolynomial):
         This method can work fully symbolic::
 
             sage: f.subs(x=var('a'),y=var('b'),z=var('c'))
-            b*c + c + a*b + 1
-
-        ::
-
+            a*b + b*c + c + 1
             sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
-            b*c + c + a*b + 1
+            a*b + b*c + c + 1
         """
         P = self._parent
 

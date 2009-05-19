@@ -1,4 +1,4 @@
-from calculus import var as _var
+from sage.symbolic.ring import var as _var
 
 a = _var('a')
 b = _var('b')

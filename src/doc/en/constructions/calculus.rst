@@ -25,14 +25,9 @@ Differentiation:
     sage: f = x^3 * e^(k*x) * sin(w*x); f
     x^3*e^(k*x)*sin(w*x)
     sage: f.diff(x)
-    k*x^3*e^(k*x)*sin(w*x) + 3*x^2*e^(k*x)*sin(w*x) + w*x^3*e^(k*x)*cos(w*x)
-    sage: print diff(f, x)
-               3   k x               2   k x               3   k x
-            k x   e    sin(w x) + 3 x   e    sin(w x) + w x   e    cos(w x)
+    k*x^3*e^(k*x)*sin(w*x) + w*x^3*e^(k*x)*cos(w*x) + 3*x^2*e^(k*x)*sin(w*x)
     sage: latex(f.diff(x))
-    {{{k {x}^{3} } {e}^{{k x}} } \sin \left( {w x} \right)}
-    + {{{3 {x}^{2} } {e}^{{k x}} } \sin \left( {w x} \right)}
-    + {{{w {x}^{3} } {e}^{{k x}} } \cos \left( {w x} \right)}
+    k x^{3} e^{k*x} \sin\left(w x\right) + w x^{3} e^{k*x} \cos\left(w x\right) + 3 \, x^{2} e^{k*x} \sin\left(w x\right)
 
 If you type ``view(f.diff('x'))`` another window will open up
 displaying the compiled output. In the notebook, you can enter
@@ -99,7 +94,7 @@ Taylor series:
     (f0, k, x)
     sage: g = f0/sinh(k*x)^4
     sage: g.taylor(x, 0, 3)
-    f0/(k^4*x^4) - 2*f0/(3*k^2*x^2) + 11*f0/45 - 62*k^2*f0*x^2/945
+    -62/945*f0*k^2*x^2 + 11/45*f0 - 2/3*f0/(k^2*x^2) + f0/(k^4*x^4)
     sage: maxima(g).powerseries('x',0)
     16*f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*k^(2*i1-1)*x^(2*i1-1)/(2*i1)!,i1,0,inf))^4
 
@@ -113,7 +108,7 @@ The Maclaurin and power series of
 
     sage: f = log(sin(x)/x)
     sage: f.taylor(x, 0, 10)
-    -x^2/6 - x^4/180 - x^6/2835 - x^8/37800 - x^10/467775
+    -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
     sage: [bernoulli(2*i) for i in range(1,7)]
     [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
     sage: maxima(f).powerseries(x,0)
@@ -133,12 +128,12 @@ Sage can integrate some simple functions on its own:
 
     sage: f = x^3
     sage: f.integral()
-    x^4/4
+    1/4*x^4
     sage: integral(x^3,x)
-    x^4/4
+    1/4*x^4
     sage: f = x*sin(x^2)
     sage: integral(f,x)
-    -cos(x^2)/2
+    -1/2*cos(x^2)
 
 Sage can also compute symbolic definite integrals involving limits.
 
@@ -147,17 +142,8 @@ Sage can also compute symbolic definite integrals involving limits.
     sage: var('x, k, w')
     (x, k, w)
     sage: f = x^3 * e^(k*x) * sin(w*x)
-    sage: print f.integrate(x)
-          6      3  4      5  2    7   3       6      2  4      4  2      6   2
-    (((k w  + 3 k  w  + 3 k  w  + k ) x  + (3 w  + 3 k  w  - 3 k  w  - 3 k ) x
-                4       3  2      5         4       2  2      4    k x
-     + (- 18 k w  - 12 k  w  + 6 k ) x - 6 w  + 36 k  w  - 6 k )  e    sin(w x)
-            7      2  5      4  3    6     3         5       3  3      5     2
-     + ((- w  - 3 k  w  - 3 k  w  - k  w) x  + (6 k w  + 12 k  w  + 6 k  w) x
-           5       2  3       4              3       3      k x
-     + (6 w  - 12 k  w  - 18 k  w) x - 24 k w  + 24 k  w)  e    cos(w x))
-       8      2  6      4  4      6  2    8
-    /(w  + 4 k  w  + 6 k  w  + 4 k  w  + k )
+    sage: f.integrate(x)
+    -(((k^6*w + 3*k^4*w^3 + 3*k^2*w^5 + w^7)*x^3 - 24*k^3*w + 24*k*w^3 - 6*(k^5*w + 2*k^3*w^3 + k*w^5)*x^2 + 6*(3*k^4*w + 2*k^2*w^3 - w^5)*x)*e^(k*x)*cos(w*x) - ((k^7 + 3*k^5*w^2 + 3*k^3*w^4 + k*w^6)*x^3 - 6*k^4 + 36*k^2*w^2 - 6*w^4 - 3*(k^6 + k^4*w^2 - k^2*w^4 - w^6)*x^2 + 6*(k^5 - 2*k^3*w^2 - 3*k*w^4)*x)*e^(k*x)*sin(w*x))/(k^8 + 4*k^6*w^2 + 6*k^4*w^4 + 4*k^2*w^6 + w^8)
     sage: integrate(1/x^2, x, 1, infinity)
     1
 
@@ -212,13 +198,14 @@ where :math:`f` is a piecewise defined function, can
     sage: f2(x) = 5-x^2
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
     sage: f.trapezoid(4)
-    Piecewise defined function with 4 parts, [[(0, 1/2), x/2],
-    [(1/2, 1), 9*(x - 1/2)/2 + 1/4], [(1, 3/2), (x - 1)/2 + 5/2],
-    [(3/2, 2), 11/4 - 7*(x - 3/2)/2]]
+    Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x],
+    [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2],
+    [(3/2, 2), -7/2*x + 8]]
     sage: f.riemann_sum_integral_approximation(6,mode="right")
     19/6
     sage: f.integral()
-    Piecewise defined function with 2 parts, [[(0, 1), x |--> x^3/3], [(1, 2), x |--> (15*x - x^3)/3 - 13/3]]
+    Piecewise defined function with 2 parts,
+    [[(0, 1), x |--> 1/3*x^3], [(1, 2), x |--> -1/3*x^3 + 5*x - 13/3]]
     sage: f.integral(definite=True)
     3
 
@@ -241,7 +228,7 @@ computation.
     sage: f2(x) = 1-x
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
     sage: f.laplace(x, s)
-    -e^(-s)/s - e^(-s)/s^2 + (s + 1)*e^(-(2*s))/s^2 + 1/s
+    (s + 1)*e^(-2*s)/s^2 - e^(-s)/s + 1/s - e^(-s)/s^2
 
 For other "reasonable" functions, Laplace transforms can be
 computed using the Maxima interface:
@@ -252,7 +239,7 @@ computed using the Maxima interface:
     (k, s, t)
     sage: f = 1/exp(k*t)
     sage: f.laplace(t,s)
-     1/(s + k)
+    1/(k + s)
 
 is one way to compute LT's and
 
@@ -262,14 +249,8 @@ is one way to compute LT's and
     (s, t)
     sage: f = t^5*exp(t)*sin(t)
     sage: L = laplace(f, t, s); L
-    360*(2*s - 2)/(s^2 - 2*s + 2)^4 - 480*(2*s - 2)^3/(s^2 - 2*s + 2)^5
-    + 120*(2*s - 2)^5/(s^2 - 2*s + 2)^6
-    sage: print L
-                                             3                 5
-               360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
-              --------------- - --------------- + ---------------
-                2           4     2           5     2           6
-              (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
+    3840*(s - 1)^5/(s^2 - 2*s + 2)^6 - 3840*(s - 1)^3/(s^2 - 2*s + 2)^5 +
+    720*(s - 1)/(s^2 - 2*s + 2)^4
 
 is another way.
 
@@ -386,7 +367,7 @@ illustrating how the Gibbs phenomenon is mollified).
     sage: f2 = lambda x: 2
     sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
     sage: f.fourier_series_cosine_coefficient(5,pi)
-    -3/(5*pi)
+    -3/5/pi
     sage: f.fourier_series_sine_coefficient(2,pi)
     -3/pi
     sage: f.fourier_series_partial_sum(3,pi)

@@ -451,7 +451,7 @@ cdef class Parser:
 
             sage: p = Parser(make_var=var)
             sage: p.parse("a*b^c - 3a")
-            a*b^c - 3*a
+            b^c*a - 3*a
 
             sage: R.<x> = QQ[]
             sage: p = Parser(make_var = {'x': x })
@@ -462,7 +462,7 @@ cdef class Parser:
 
             sage: p = Parser(make_float=RR, make_var=var, make_function={'foo': (lambda x: x*x+x)})
             sage: p.parse("1.5 + foo(b)")
-            b^2 + b + 1.5
+            b^2 + b + 1.50000000000000
             sage: p.parse("1.9").parent()
             Real Field with 53 bits of precision
         """
@@ -505,7 +505,7 @@ cdef class Parser:
             sage: from sage.misc.parser import Parser
             sage: p = Parser(make_var=var)
             sage: p.parse_expression('a-3b^2')
-            a - 3*b^2
+            -3*b^2 + a
         """
         cdef Tokenizer tokens = Tokenizer(s)
         expr = self.p_expr(tokens)
@@ -523,7 +523,7 @@ cdef class Parser:
             sage: p.parse_sequence("1,2,3")
             [1, 2, 3]
             sage: p.parse_sequence("[1,2,(a,b,c+d)]")
-            [1, 2, (a, b, d + c)]
+            [1, 2, (a, b, c + d)]
             sage: p.parse_sequence("13")
             13
         """
@@ -713,11 +713,11 @@ cdef class Parser:
             sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_expr(Tokenizer("a+b"))
-            b + a
+            a + b
             sage: p.p_expr(Tokenizer("a"))
             a
             sage: p.p_expr(Tokenizer("a - b + 4*c - d^2"))
-            -d^2 + 4*c - b + a
+            -d^2 + a - b + 4*c
             sage: p.p_expr(Tokenizer("a - -3"))
             a + 3
             sage: p.p_expr(Tokenizer("a + 1 == b"))
@@ -752,7 +752,7 @@ cdef class Parser:
             sage: p.p_term(Tokenizer("-a * b + c"))
             -a*b
             sage: p.p_term(Tokenizer("a*(b-c)^2"))
-            a*(b - c)^2
+            (b - c)^2*a
             sage: p.p_term(Tokenizer("-3a"))
             -3*a
         """
@@ -833,7 +833,7 @@ cdef class Parser:
             operand2 = self.p_factor(tokens)
             return operand1 ** operand2
         elif token == "!":
-            from sage.calculus.calculus import factorial
+            from sage.functions.all import factorial
             operand1 = factorial(operand1)
             if tokens.peek() == '^':
                 tokens.next()
@@ -937,9 +937,9 @@ cdef class Parser:
             sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_arg(Tokenizer("a+b"))
-            b + a
+            a + b
             sage: p.p_arg(Tokenizer("val=a+b"))
-            ('val', b + a)
+            ('val', a + b)
         """
         cdef int token = tokens.next()
         if token == NAME and tokens.peek() == '=':

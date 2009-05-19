@@ -435,8 +435,8 @@ cdef void late_import():
     Permutation_class = sage.combinat.permutation.Permutation_class
     Permutations = sage.combinat.permutation.Permutations
 
-    import sage.calculus.calculus
-    sqrt = sage.calculus.calculus.Function_sqrt()
+    import sage.functions.all
+    sqrt = sage.functions.all.sqrt
 
     import sage.misc.misc
     prod = sage.misc.misc.prod

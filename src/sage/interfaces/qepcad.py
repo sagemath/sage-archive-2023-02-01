@@ -67,7 +67,7 @@ What is the projection onto the $x$ axis of this ellipse?  First we
 construct a formula asking this question.
 
 sage: F = qf.exists(y, ellipse == 0); F
-(E y)[y^2 + 2 x y + y + 3 x^2 - x - 7 = 0]
+(E y)[3 x^2 + 2 x y + y^2 - x + y - 7 = 0]
 
 Then we run qepcad to get the answer.
 
@@ -1657,17 +1657,17 @@ class qepcad_formula_factory:
             sage: test_qf(qf.atomic(a*b*c <= c^3))
             (a b c <= c^3, frozenset(['a', 'c', 'b']))
             sage: test_qf(qf.atomic(x+y^2, '!=', a+b))
-            (y^2 + x /= b + a, frozenset(['y', 'x', 'b', 'a']))
+            (y^2 + x /= a + b, frozenset(['y', 'x', 'b', 'a']))
             sage: test_qf(qf.atomic(x, operator.lt))
             (x < 0, frozenset(['x']))
         """
         if isinstance(lhs, qformula):
             return lhs
 
-        from sage.calculus.equations import is_SymbolicEquation
+        from sage.symbolic.expression import is_SymbolicEquation
         if is_SymbolicEquation(lhs):
             rhs = lhs.rhs()
-            op = lhs._op
+            op = lhs.operator()
             lhs = lhs.lhs()
 
         op = self._normalize_op(op)
@@ -1765,7 +1765,7 @@ class qepcad_formula_factory:
             sage: qf.not_(a > b)
             [~a > b]
             sage: qf.not_(a^2 + b^2)
-            [~b^2 + a^2 = 0]
+            [~a^2 + b^2 = 0]
             sage: qf.not_(qf.and_(a > 0, b < 0))
             [~[a > 0 /\ b < 0]]
         """
@@ -1837,9 +1837,9 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.exists(a, a^2 + b > b^2 + a)
-            (E a)[b + a^2 > b^2 + a]
+            (E a)[a^2 + b > b^2 + a]
             sage: qf.exists((a, b), a^2 + b^2 < 0)
-            (E a)(E b)[b^2 + a^2 < 0]
+            (E a)(E b)[a^2 + b^2 < 0]
             sage: qf.E(b, b^2 == a)
             (E b)[b^2 = a]
         """
@@ -1863,9 +1863,9 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.forall(a, a^2 + b > b^2 + a)
-            (A a)[b + a^2 > b^2 + a]
+            (A a)[a^2 + b > b^2 + a]
             sage: qf.forall((a, b), a^2 + b^2 > 0)
-            (A a)(A b)[b^2 + a^2 > 0]
+            (A a)(A b)[a^2 + b^2 > 0]
             sage: qf.A(b, b^2 != a)
             (A b)[b^2 /= a]
         """
@@ -1890,7 +1890,7 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.infinitely_many(a, a^2 + b > b^2 + a)
-            (F a)[b + a^2 > b^2 + a]
+            (F a)[a^2 + b > b^2 + a]
             sage: qf.F(b, b^2 != a)
             (F b)[b^2 /= a]
         """
@@ -1915,7 +1915,7 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.all_but_finitely_many(a, a^2 + b > b^2 + a)
-            (G a)[b + a^2 > b^2 + a]
+            (G a)[a^2 + b > b^2 + a]
             sage: qf.G(b, b^2 != a)
             (G b)[b^2 /= a]
         """
@@ -1941,7 +1941,7 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.connected_subset(a, a^2 + b > b^2 + a)
-            (C a)[b + a^2 > b^2 + a]
+            (C a)[a^2 + b > b^2 + a]
             sage: qf.C(b, b^2 != a)
             (C b)[b^2 /= a]
         """
@@ -1970,7 +1970,7 @@ class qepcad_formula_factory:
             (a, b)
             sage: qf = qepcad_formula
             sage: qf.exactly_k(1, x, x^2 + a*x + b == 0)
-            (X1 x)[x^2 + a x + b = 0]
+            (X1 x)[a x + x^2 + b = 0]
             sage: qf.exactly_k(0, b, a*b == 1)
             (A b)[~a b = 1]
         """
@@ -2448,7 +2448,7 @@ class QepcadCell:
             {'x': 1.618033988749895?}
         """
         points = self.sample_point()
-        # from sage.calculus.calculus.var import var
+        # from sage.symbolic.ring import var
         # vars = [var(v) for v in self._parent._varlist]
         vars = self._parent._varlist
 

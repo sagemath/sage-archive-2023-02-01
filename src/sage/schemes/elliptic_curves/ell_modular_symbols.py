@@ -63,7 +63,6 @@ from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
 from sage.interfaces.all import gp
 from sage.misc.all import verbose
-from sage.calculus.calculus import sqrt
 
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
@@ -356,7 +355,7 @@ class ModularSymbol(SageObject):
         where `\Omega^{-}_E` is the least positive imaginary part of a
         non-real period of `E`.
         """
-
+        from sage.functions.all import sqrt
         # the computation of the L-value could take a lot of time,
         # but then the conductor is so large
         # that the computation of modular symbols for E took even longer

@@ -793,7 +793,7 @@ class ContinuedFraction(FieldElement):
         """
         return pari(self._x)
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Return list representation for other systems corresponding to
         this continued fraction.

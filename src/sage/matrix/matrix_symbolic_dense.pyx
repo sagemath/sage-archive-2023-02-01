@@ -6,16 +6,15 @@ pointer to a Maxima object.
 """
 
 
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
 cimport matrix_dense
 cimport matrix
 
 cdef maxima
-from sage.calculus.calculus import maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, SymbolicVariable, var_cmp
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
 
 cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     r"""
@@ -162,7 +161,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: cmp(m,m)
             0
             sage: cmp(m,3)
-            -1
+            1
         """
         return self._richcmp(right, op)
 
@@ -205,6 +204,22 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima + (<Matrix_symbolic_dense>right)._maxima
         return M
+
+    cdef int _cmp_c_impl(self, Element right) except -2:
+        """
+        Compare self and right.
+
+        Currently the corresponding maxima matrices are expanded and compared.
+        We example first, since, eg., this would fail otherwise::
+
+            sage: m = matrix(SR,2,[1..4]); n = m^2
+            sage: exp(m+n) - exp(m)*exp(n) == 0       # indirect test
+            True
+        """
+        # use temp vars to avoid garbage collection issues.
+        a = self._maxima.expand()
+        b = (<Matrix_symbolic_dense>right)._maxima.expand()
+        return cmp(a,b)
 
     def __neg__(self):
         """
@@ -462,7 +477,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         EXAMPLES:
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
-            (a - t)*(d - t) - b*c
+            (d - t)*(a - t) - b*c
             sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
             x^5 - 65*x^4 - 250*x^3
 
@@ -488,10 +503,11 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         EXAMPLE:
             sage: a=matrix(SR,[[1,2],[3,4]])
             sage: a.eigenvalues()
-            [(5 - sqrt(33))/2, (sqrt(33) + 5)/2]
+            [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
         """
-        tmp = SymbolicVariable('tmp_var')
+        from sage.symbolic.ring import var
+        tmp = var('tmp_var')
         sols = self.charpoly(tmp).expand().solve(tmp)
         if solution_set:
             return sols
@@ -521,14 +537,15 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [0 x]
             [x 0]
             sage: m.exp()
-            [e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2]
-            [e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2]
+            [1/2*(e^(2*x) + 1)*e^(-x) 1/2*(e^(2*x) - 1)*e^(-x)]
+            [1/2*(e^(2*x) - 1)*e^(-x) 1/2*(e^(2*x) + 1)*e^(-x)]
             sage: exp(m)
-            [e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2]
-            [e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2]
+            [1/2*(e^(2*x) + 1)*e^(-x) 1/2*(e^(2*x) - 1)*e^(-x)]
+            [1/2*(e^(2*x) - 1)*e^(-x) 1/2*(e^(2*x) + 1)*e^(-x)]
             sage: m.exp().expand()
-            [e^x/2 + e^(-x)/2 e^x/2 - e^(-x)/2]
-            [e^x/2 - e^(-x)/2 e^x/2 + e^(-x)/2]
+            [ 1/2*e^(-x) + 1/2*e^x -1/2*e^(-x) + 1/2*e^x]
+            [-1/2*e^(-x) + 1/2*e^x  1/2*e^(-x) + 1/2*e^x]
+
 
         Exp works on 0x0 and 1x1 matrices:
             sage: m = matrix(SR,0,[]); m
@@ -544,7 +561,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         e^m e^n$ (but non-commuting matrices need not):
             sage: m = matrix(SR,2,[1..4]); n = m^2
             sage: a = exp(m+n) - exp(m)*exp(n)
-            sage: bool(a == 0)
+            sage: a == 0
             True
 
         The input matrix must be square:
@@ -561,10 +578,10 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         Another example involving the reversed identity matrix, which we clumsily create.
             sage: m = identity_matrix(SR,4); m = matrix(list(reversed(m.rows()))) * x
             sage: exp(m)
-            [e^(-x)*(e^(2*x) + 1)/2                      0                      0 e^(-x)*(e^(2*x) - 1)/2]
-            [                     0 e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2                      0]
-            [                     0 e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2                      0]
-            [e^(-x)*(e^(2*x) - 1)/2                      0                      0 e^(-x)*(e^(2*x) + 1)/2]
+            [1/2*(e^(2*x) + 1)*e^(-x)                        0                        0 1/2*(e^(2*x) - 1)*e^(-x)]
+            [                       0 1/2*(e^(2*x) + 1)*e^(-x) 1/2*(e^(2*x) - 1)*e^(-x)                        0]
+            [                       0 1/2*(e^(2*x) - 1)*e^(-x) 1/2*(e^(2*x) + 1)*e^(-x)                        0]
+            [1/2*(e^(2*x) - 1)*e^(-x)                        0                        0 1/2*(e^(2*x) + 1)*e^(-x)]
 
         """
         if not self.is_square():
@@ -656,7 +673,9 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         EXAMPLES:
             sage: M = matrix(SR, 4, 4, range(16)) - var('t')
             sage: (~M*M)[0,0]
-            (-((10 - t)*(15 - t) - 154)*(5 - t) + 6*(9*(15 - t) - 143) - 7*(126 - 13*(10 - t)))*t/((-((10 - t)*(15 - t) - 154)*(5 - t) + 6*(9*(15 - t) - 143) - 7*(126 - 13*(10 - t)))*t - 4*((10 - t)*(15 - t) - 154) + 6*(8*(15 - t) - 132) - 7*(112 - 12*(10 - t)) + 2*((132 - 8*(15 - t))*(5 - t) + 4*(9*(15 - t) - 143) - 28) + 3*((112 - 12*(10 - t))*(5 - t) - 4*(126 - 13*(10 - t)) + 24)) + 4*((15 - t)*(t - 10) + 2*(9*(15 - t) - 143) - 3*(126 - 13*(10 - t)) + 154)/((-((10 - t)*(15 - t) - 154)*(5 - t) + 6*(9*(15 - t) - 143) - 7*(126 - 13*(10 - t)))*t - 4*((10 - t)*(15 - t) - 154) + 6*(8*(15 - t) - 132) - 7*(112 - 12*(10 - t)) + 2*((132 - 8*(15 - t))*(5 - t) + 4*(9*(15 - t) - 143) - 28) + 3*((112 - 12*(10 - t))*(5 - t) - 4*(126 - 13*(10 - t)) + 24)) + 8*(6*(15 - t) - 2*((5 - t)*(15 - t) - 91) + 3*(14*(5 - t) - 78) - 98)/((-((10 - t)*(15 - t) - 154)*(5 - t) + 6*(9*(15 - t) - 143) - 7*(126 - 13*(10 - t)))*t - 4*((10 - t)*(15 - t) - 154) + 6*(8*(15 - t) - 132) - 7*(112 - 12*(10 - t)) + 2*((132 - 8*(15 - t))*(5 - t) + 4*(9*(15 - t) - 143) - 28) + 3*((112 - 12*(10 - t))*(5 - t) - 4*(126 - 13*(10 - t)) + 24)) + 12*(7*(10 - t) - 3*((5 - t)*(10 - t) - 54) + 2*(11*(5 - t) - 63) - 66)/((-((10 - t)*(15 - t) - 154)*(5 - t) + 6*(9*(15 - t) - 143) - 7*(126 - 13*(10 - t)))*t - 4*((10 - t)*(15 - t) - 154) + 6*(8*(15 - t) - 132) - 7*(112 - 12*(10 - t)) + 2*((132 - 8*(15 - t))*(5 - t) + 4*(9*(15 - t) - 143) - 28) + 3*((112 - 12*(10 - t))*(5 - t) - 4*(126 - 13*(10 - t)) + 24))
+            -((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 12*(3*(t - 10)*(t - 5) + 29*t - 150)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 16*((t - 15)*(t - 5) + 24*t - 75)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 4*((t - 15)*(t - 10) + 57*t - 150)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600)
+            sage: expand((~M*M)[0,0])
+            t^4/(t^4 - 30*t^3 - 80*t^2) - 30*t^3/(t^4 - 30*t^3 - 80*t^2) - 80*t^2/(t^4 - 30*t^3 - 80*t^2)
             sage: (~M * M).simplify_rational()
             [1 0 0 0]
             [0 1 0 0]
@@ -690,17 +709,15 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         EXAMPLES:
             sage: M = matrix(2, 2, range(4)) - var('x')
             sage: M*M
-            [        x^2 + 2         3 - 2*x]
-            [2*(3 - x) - 2*x   (3 - x)^2 + 2]
+            [      x^2 + 2      -2*x + 3]
+            [     -4*x + 6 (x - 3)^2 + 2]
             sage: (M*M).expand()
-            [       x^2 + 2        3 - 2*x]
-            [       6 - 4*x x^2 - 6*x + 11]
+            [       x^2 + 2       -2*x + 3]
+            [      -4*x + 6 x^2 - 6*x + 11]
         """
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima.expand()
         return M
-
-
 
     def variables(self, vars=tuple([])):
         """
@@ -715,7 +732,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: m.variables()
             (x,)
             sage: m = matrix([[a, b+c], [x^2, y^2+2]]); m
-            [      a   c + b]
+            [      a   b + c]
             [    x^2 y^2 + 2]
             sage: m.variables()
             (a, b, c, x, y)
@@ -742,14 +759,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [    x^2 y^2 + 2]
             sage: m.number_of_arguments()
             3
-
-            sage: M = MatrixSpace(SR,2,2)
-            sage: m = M(sin+1)
-            sage: m.variables()
-            ()
-            sage: m.number_of_arguments()
-            1
-
         """
         if self.__number_of_args is not None:
             return self.__number_of_args
@@ -774,13 +783,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: M = MatrixSpace(SR,2,2)
             sage: M(x).arguments()
             (x,)
-            sage: M(x+sin).arguments()
+            sage: M(x+sin(x)).arguments()
             (x,)
-
-            sage: M(sin+1).arguments()
-            ()
-            sage: M(sin+1).number_of_arguments()
-            1
         """
         return self.variables()
 
@@ -790,46 +794,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: var('x,y,z')
             (x, y, z)
             sage: M = MatrixSpace(SR,2,2)
-            sage: h = M(sin+cos)
-            sage: h
-            [sin + cos         0]
-            [        0 sin + cos]
-            sage: h(1)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            [sin(1) + cos(1)               0]
-            [              0 sin(1) + cos(1)]
-            sage: h(x)
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
-            sage: h = 3*M(sin)
-            sage: h(1)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            [3*sin(1)        0]
-            [       0 3*sin(1)]
-            sage: h(x)
-            [3*sin(x)        0]
-            [       0 3*sin(x)]
-
-            sage: M(sin+1)(1)
-            [sin(1) + 1          0]
-            [         0 sin(1) + 1]
-            sage: M(x+sin)(5)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            [sin(5) + 5          0]
-            [         0 sin(5) + 5]
-
-            sage: h = M((sin(x)+cos(x)).function(x))
-            sage: h
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
-            sage: h(1)
-            [sin(1) + cos(1)               0]
-            [              0 sin(1) + cos(1)]
-            sage: h(x)
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
-
             sage: h = M(sin(x)+cos(x))
             sage: h
             [sin(x) + cos(x)               0]
@@ -838,6 +802,18 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [sin(1) + cos(1)               0]
             [              0 sin(1) + cos(1)]
             sage: h(x=x)
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+
+            sage: h = M((sin(x)+cos(x)).function(x))
+            sage: h
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+            sage: h(1)
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            [sin(1) + cos(1)               0]
+            [              0 sin(1) + cos(1)]
+            sage: h(x)
             [sin(x) + cos(x)               0]
             [              0 sin(x) + cos(x)]
 
@@ -948,9 +924,9 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [(x - 2, 1), (x - 1, 1)]
             sage: a = matrix(SR, 5, [1..5^2])
             sage: a.fcp()
-            x^3 * (x^2 - 65*x - 250)
+            (x^2 - 65*x - 250) * x^3
             sage: list(a.fcp())
-            [(x, 3), (x^2 - 65*x - 250, 1)]
+            [(x^2 - 65*x - 250, 1), (x, 3)]
 
         """
         return Factorization(self.charpoly(var).factor_list())

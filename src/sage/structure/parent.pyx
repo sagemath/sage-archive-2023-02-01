@@ -296,11 +296,16 @@ cdef class Parent(category_object.CategoryObject):
     #############################################################################
     def __contains__(self, x):
         r"""
-        True if there is an element of self that is equal to x under ==,
-        or if x is already an element of self.
+        True if there is an element of self that is equal to x under
+        ==, or if x is already an element of self.  Also, True in other
+        cases involving the Symbolic Ring, which is handled specially.
 
         For many structures we test this by using :meth:`__call__` and
         then testing equality between x and the result.
+
+        The Symbolic Ring is treated differently because it is
+        ultra-permissive about letting other rings coerce in, but
+        ultra-strict about doing comparisons.
 
         EXAMPLES::
 
@@ -324,8 +329,17 @@ cdef class Parent(category_object.CategoryObject):
             False
             sage: sqrt(2) in CC
             True
+            sage: pi in RR
+            True
+            sage: pi in CC
+            True
+            sage: pi in RDF
+            True
+            sage: pi in CDF
+            True
         """
-        if parent_c(x) == self:
+        P = parent_c(x)
+        if P is self or P == self:
             return True
         try:
             x2 = self(x)
@@ -337,8 +351,14 @@ cdef class Parent(category_object.CategoryObject):
             elif EQ:
                 return True
             else:
-                from sage.calculus.equations import SymbolicEquation
-                if isinstance(EQ, SymbolicEquation):
+                from sage.symbolic.expression import is_Expression
+                if is_Expression(EQ):  # if comparing gives an Expression, then it must be an equation.
+                    # We return *true* here, even though the equation
+                    # EQ must have evaluated to False for us to get to
+                    # this point. The reason is because... in practice
+                    # SR is ultra-permissive about letting other rings
+                    # coerce in, but ultra-strict about doing
+                    # comparisons.
                     return True
                 return False
         except (TypeError, ValueError):
@@ -852,6 +872,8 @@ cdef class Parent(category_object.CategoryObject):
         """
         cdef Parent R
         for R in v:
+            if R is None:
+                continue
             if R is S:
                 return self.coerce_map_from(R)
             connecting = R.coerce_map_from(S)

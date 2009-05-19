@@ -443,8 +443,7 @@ class GraphPlot(SageObject):
             dist = self._options['dist']*2
             loop_size = self._options['loop_size']
             max_dist = self._options['max_dist']
-            from sage.calculus.calculus import SymbolicVariable
-            from sage.calculus.calculus import sqrt as Sqrt
+            from sage.functions.all import sqrt
             for (a,b) in tmp:
                 if a == b:
                     # Loops

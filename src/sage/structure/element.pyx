@@ -1175,40 +1175,49 @@ cdef class RingElement(ModuleElement):
 
     def __pow__(self, n, dummy):
         """
-        Retern the (integral) power of self.
+        Return the (integral) power of self.
 
         EXAMPLE::
 
             sage: a = Integers(389)['x']['y'](37)
-            sage: a^2
+            sage: p = sage.structure.element.RingElement.__pow__
+            sage: p(a,2)
             202
-            sage: a^388
+            sage: p(a,2,1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: __pow__ dummy argument not used
+            sage: p(a,388)
             1
-            sage: a^(2^120)
+            sage: p(a,2^120)
             81
-            sage: a^0
+            sage: p(a,0)
             1
-            sage: a^1 == a
+            sage: p(a,1) == a
             True
-            sage: a^2 * a^3 == a^5
+            sage: p(a,2) * p(a,3) == p(a,5)
             True
-            sage: (a^3)^2 == a^6
+            sage: p(a,3)^2 == p(a,6)
             True
-            sage: a^57 * a^43 == a^100
+            sage: p(a,57) * p(a,43) == p(a,100)
             True
-            sage: a^(-1) == 1/a
+            sage: p(a,-1) == 1/a
             True
-            sage: a^200 * a^(-64) == a^136
+            sage: p(a,200) * p(a,-64) == p(a,136)
             True
-
-        TESTS::
-
-            sage: 2r**(SR(2)-1-1r)
-            1
-            sage: 2r**(SR(1/2))
+            sage: p(2, 1/2)
             Traceback (most recent call last):
             ...
             NotImplementedError: non-integral exponents not supported
+
+        TESTS::
+
+        These aren't testing this code, but they are probably good to have around.
+
+            sage: 2r**(SR(2)-1-1r)
+            1
+            sage: 2r^(1/2)
+            sqrt(2)
         """
         if dummy is not None:
             raise RuntimeError, "__pow__ dummy argument not used"
@@ -2836,9 +2845,14 @@ cdef generic_power_c(a, nn, one):
     try:
         n = PyNumber_Index(nn)
     except TypeError:
-        raise NotImplementedError, "non-integral exponents not supported"
+        try:
+            # Try harder, since many things coerce to Integer.
+            from sage.rings.integer import Integer
+            n = int(Integer(nn))
+        except TypeError:
+            raise NotImplementedError, "non-integral exponents not supported"
 
-    # Its better to test first the equality to zero of the exponent. Indeed,
+    # It's better to test first the equality to zero of the exponent. Indeed,
     # the following tests tree allows us be sure that "non a" is never called
     # if n is not 0, so that we can deals with this particular case before
     # calling generic_power. It is needed to handle the case of semi-groups

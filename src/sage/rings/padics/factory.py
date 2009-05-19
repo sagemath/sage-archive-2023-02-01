@@ -894,8 +894,8 @@ def Qq(q, prec = twenty, type = 'capped-rel', modulus = None, names=None,
             halt = Integer(halt)
         if isinstance(names, (list, tuple)):
             names = names[0]
-        from sage.calculus.all import is_SymbolicExpression
-        if not (modulus is None or is_Polynomial(modulus) or is_SymbolicExpression(modulus)):
+        from sage.symbolic.all import is_Expression
+        if not (modulus is None or is_Polynomial(modulus) or is_Expression(modulus)):
             raise TypeError, "modulus must be a polynomial"
         if names is not None and not isinstance(names, str):
             names = str(names)
@@ -1921,8 +1921,8 @@ def Zq(q, prec = twenty, type = 'capped-abs', modulus = None, names=None,
             halt = Integer(halt)
         if isinstance(names, (list, tuple)):
             names = names[0]
-        from sage.calculus.all import is_SymbolicExpression
-        if not (modulus is None or is_Polynomial(modulus) or is_SymbolicExpression(modulus)):
+        from sage.symbolic.all import is_Expression
+        if not (modulus is None or is_Polynomial(modulus) or is_Expression(modulus)):
             raise TypeError, "modulus must be a polynomial"
         if names is not None and not isinstance(names, str):
             names = str(names)
@@ -2136,9 +2136,9 @@ class pAdicExtension_class(UniqueFactory):
             print_max_unram_terms = base._printer._max_unram_terms()
         if print_max_terse_terms is None:
             print_max_terse_terms = base._printer._max_terse_terms()
-        from sage.calculus.all import is_SymbolicExpression
+        from sage.symbolic.all import is_Expression
         if check:
-            if is_SymbolicExpression(premodulus):
+            if is_Expression(premodulus):
                 if len(premodulus.variables()) != 1:
                     raise ValueError, "symbolic expression must be in only one variable"
                 modulus = premodulus.polynomial(base)
@@ -2213,7 +2213,7 @@ class pAdicExtension_class(UniqueFactory):
             # and also by the precision of polynomial with the leading term removed (for shifting).
             # The code below is to determine the correct prec for the extension, and possibly to obtain
             # the information needed to shift right with full precision from the premodulus.
-            if is_SymbolicExpression(premodulus):
+            if is_Expression(premodulus):
                 # Here we assume that the output of coeffs is sorted in increasing order by exponent:
                 coeffs = premodulus.coeffs()
                 preseed = premodulus / coeffs[-1][0]

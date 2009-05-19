@@ -156,6 +156,8 @@ def _inverse_mod_generic(elt, I):
     y = sum([b[j,i+n] * R.gens()[i] * v[j] for i in xrange(n) for j in xrange(n)])
     return y
 
+__pynac_pow = False
+
 cdef class NumberFieldElement(FieldElement):
     """
     An element of a number field.
@@ -241,11 +243,7 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         sage.rings.field_element.FieldElement.__init__(self, parent)
-        from sage.rings.number_field import number_field_rel
-        if isinstance(parent, number_field_rel.NumberField_relative):
-            self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
-        else:
-            self.__fld_numerator, self.__fld_denominator = parent.polynomial_ntl()
+        self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
 
         cdef ZZ_c coeff
         if isinstance(f, (int, long, Integer_sage)):
@@ -578,6 +576,9 @@ cdef class NumberFieldElement(FieldElement):
             raise IndexError, "index must be between 0 and degree minus 1."
         return self.polynomial()[n]
 
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
@@ -757,6 +758,16 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.number_field().complex_embeddings(prec)[i](self)
 
+    def _complex_double_(self, CDF):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: CDF(a)
+            1.0*I
+        """
+        return CDF(self.complex_embedding())
+
     def is_totally_positive(self):
         """
         Returns True if self is positive for all real embeddings of its
@@ -871,7 +882,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             try:
                 # This is what integers, rationals do...
-                from sage.calculus.calculus import SR, sqrt
+                from sage.all import SR, sqrt
                 return sqrt(SR(self))
             except TypeError:
                 raise ValueError, "%s not a square in %s"%(self, self._parent)
@@ -905,17 +916,37 @@ cdef class NumberFieldElement(FieldElement):
 
     def __pow__(base, exp, dummy):
         """
+        EXAMPLES::
 
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: sqrt2^2
+            2
+            sage: sqrt2^5
+            4*sqrt2
+            sage: (1+sqrt2)^100
+            66992092050551637663438906713182313772*sqrt2 + 94741125149636933417873079920900017937
+            sage: (1+sqrt2)^-1
+            sqrt2 - 1
+
+        If the exponent is not integral, perform this operation in
+        the symbolic ring::
+
+            sage: sqrt2^(1/5)
+            2^(1/10)
+            sage: sqrt2^sqrt2
+            2^(1/2*sqrt(2))
+
+        TESTS::
+
+            sage: 2^I
+            2^I
         """
-        if not PY_TYPE_CHECK(base, NumberFieldElement):
-            from sage.calculus.calculus import SR
-            return base**SR(exp)
+        if (PY_TYPE_CHECK(base, NumberFieldElement) and
+            (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
+            return generic_power_c(base, exp, None)
         else:
-            if PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ:
-                return generic_power_c(base, exp, None)
-            else:
-                from sage.calculus.calculus import SR
-                return SR(base)**exp
+            from sage.symbolic.power_helper import try_symbolic_power
+            return try_symbolic_power(base, exp)
 
     cdef void _reduce_c_(self):
         """
@@ -1298,7 +1329,8 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
             sage: b = SR(a); b
-            (sqrt(31)/(6*sqrt(3)) + 1/2)^(1/3) - 1/(3*(sqrt(31)/(6*sqrt(3)) + 1/2)^(1/3))
+            (1/18*sqrt(3)*sqrt(31) + 1/2)^(1/3) - 1/3/(1/18*sqrt(3)*sqrt(31) + 1/2)^(1/3)
+
             sage: (b^3 + b - 1).simplify_radical()
             0
 
@@ -1313,24 +1345,28 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<zeta> = CyclotomicField(19)
             sage: SR(zeta)
-            e^(2*I*pi/19)
+            e^(2/19*I*pi)
+            sage: CC(zeta)
+            0.945817241700635 + 0.324699469204683*I
+            sage: CC(SR(zeta))
+            0.945817241700635 + 0.324699469204683*I
+
             sage: SR(zeta^5 + 2)
-            e^(10*I*pi/19) + 2
+            e^(2/19*I*pi)*e^(8/19*I*pi) + 2
 
         For degree greater than 5, sometimes Galois theory prevents a
-        closed-form solution::
+        closed-form solution.  In this case, a numerical approximation
+        is used::
 
             sage: K.<a> = NumberField(x^5-x+1, embedding=-1)
             sage: SR(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to solve by radicals.
+            -1.1673040153
 
         ::
 
             sage: K.<a> = NumberField(x^6-x^3-1, embedding=1)
             sage: SR(a)
-            (sqrt(5) + 1)^(1/3)/2^(1/3)
+            1/2*(sqrt(5) + 1)^(1/3)*2^(2/3)
         """
         if self.__symbolic is None:
 
@@ -1352,11 +1388,9 @@ cdef class NumberFieldElement(FieldElement):
 
             if isinstance(K, number_field.NumberField_cyclotomic):
                 # solution by radicals may be difficult, but we have a closed form
-                from sage.calculus.calculus import exp
-                from sage.rings.complex_field import ComplexField
-                from sage.rings.real_mpfr import RR
+                from sage.all import exp, I, pi, ComplexField, RR
                 CC = ComplexField(53)
-                two_pi_i = 2 * SR.pi()*SR(-1).sqrt()
+                two_pi_i = 2 * pi * I
                 k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
                 gen_image = exp(k*two_pi_i/K._n())
                 if self is gen:
@@ -1503,6 +1537,13 @@ cdef class NumberFieldElement(FieldElement):
             False
         """
         return QQ[var](self._coefficients())
+
+    def __hash__(self):
+        """
+        Return hash of this number field element, which is just the
+        hash of the underlying polynomial.
+        """
+        return hash(self.polynomial())
 
     def _coefficients(self):
         """

@@ -1462,11 +1462,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: x,y,z = var('x,y,z')
             sage: 2^(x+y+z)
-            2^(z + y + x)
+            2^(x + y + z)
             sage: 2^(1/2)
             sqrt(2)
             sage: 2^(-1/2)
-            1/sqrt(2)
+            1/2*sqrt(2)
 
         TESTS::
 
@@ -1497,10 +1497,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             nn = PyNumber_Index(n)
         except TypeError:
             try:
-                s = parent_c(n)(self)
-                return s**n
-            except AttributeError:
-                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+                nn = Integer(n)
+            except TypeError:
+                try:
+                    s = parent_c(n)(self)
+                    return s**n
+                except AttributeError:
+                    raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
@@ -1827,12 +1830,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return RealField(prec)(self).log(m)
         if type(m)==Integer and type(self)==Integer and m**(self.exact_log(m))==self:
             return self.exact_log(m)
-        from sage.calculus.calculus import SymbolicComposition
-        from sage.calculus.calculus import SR
-        from sage.calculus.calculus import function_log
+
+        from sage.symbolic.all import SR
+        from sage.functions.log import function_log
         if m is None:
-            return SymbolicComposition(function_log,SR(self))
-        return SymbolicComposition(function_log,SR(self))/SymbolicComposition(function_log,SR(m))
+            return function_log(self, hold=True)
+        return function_log(self, hold=True)/function_log(m, hold=True)
 
     def exp(self, prec=None):
         r"""
@@ -1867,8 +1870,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: y.exp(prec=53) # default RealField precision
             +infinity
         """
-        from sage.calculus.calculus import exp
-        return exp(self,prec)
+        from sage.functions.all import exp
+        return exp(self, prec)
 
     def prime_to_m_part(self, m):
         """
@@ -3750,7 +3753,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         P = sage.libs.pari.gen.pari
         return P.new_gen_from_mpz_t(self.value)
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Return canonical string to coerce this integer to any other math
         software, i.e., just the string representation of this integer in
@@ -3962,7 +3965,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(0).sqrt(all=True)
             [0]
             sage: type(Integer(5).sqrt())
-            <class 'sage.calculus.calculus.SymbolicComposition'>
+            <type 'sage.symbolic.expression.Expression'>
             sage: type(Integer(5).sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type(Integer(-5).sqrt(prec=53))
@@ -3974,7 +3977,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) < 0:
             if not extend:
                 raise ValueError, "square root of negative number not an integer"
-            from sage.calculus.calculus import sqrt
+            from sage.functions.all import sqrt
             return sqrt._do_sqrt(self, prec=prec, all=all)
 
         cdef int non_square
@@ -3990,11 +3993,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if non_square:
             if not extend:
                 raise ValueError, "square root of %s not an integer"%self
-            from sage.calculus.calculus import sqrt
+            from sage.functions.all import sqrt
             return sqrt._do_sqrt(self, prec=prec, all=all)
 
         if prec:
-            from sage.calculus.calculus import sqrt
+            from sage.functions.all import sqrt
             return sqrt._do_sqrt(self, prec=prec, all=all)
 
         if all:

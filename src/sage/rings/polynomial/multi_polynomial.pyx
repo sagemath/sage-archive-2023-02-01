@@ -138,6 +138,24 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise TypeError
 
+    def _symbolic_(self, R):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x^3 + y
+            sage: g = f._symbolic_(SR); g
+            x^3 + y
+            sage: g(x=2,y=2)
+            10
+
+            sage: g = SR(f)
+            sage: g(x=2,y=2)
+            10
+        """
+        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        return self.subs(**d)
+
     def _polynomial_(self, R):
         var = R.variable_name()
         if var in self._parent.variable_names():

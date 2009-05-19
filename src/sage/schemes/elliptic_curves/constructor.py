@@ -28,7 +28,8 @@ import sage.rings.all as rings
 
 from sage.structure.sequence import Sequence
 from sage.structure.element import parent
-from sage.calculus.calculus import SR, SymbolicEquation
+from sage.symbolic.ring import SR
+from sage.symbolic.expression import is_SymbolicEquation
 
 
 def EllipticCurve(x=None, y=None, j=None):
@@ -154,8 +155,8 @@ def EllipticCurve(x=None, y=None, j=None):
         return EllipticCurve_from_j(j)
     assert x is not None
 
-    if isinstance(x, SymbolicEquation):
-        x = x.left() - x.right()
+    if is_SymbolicEquation(x):
+        x = x.lhs() - x.rhs()
 
     if parent(x) is SR:
         x = x._polynomial_(rings.QQ['x', 'y'])

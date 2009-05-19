@@ -9,28 +9,29 @@ EXAMPLES: We illustrate each of the calculus functional functions.
     0
     sage: a = var('a')
     sage: derivative(x^a + sin(x), x)
-    cos(x) + a*x^(a - 1)
+    a*x^(a - 1) + cos(x)
     sage: diff(x^a + sin(x), x)
-    cos(x) + a*x^(a - 1)
+    a*x^(a - 1) + cos(x)
     sage: derivative(x^a + sin(x), x)
-    cos(x) + a*x^(a - 1)
+    a*x^(a - 1) + cos(x)
     sage: integral(a*x*sin(x), x)
-    a*(sin(x) - x*cos(x))
+    -(x*cos(x) - sin(x))*a
     sage: integrate(a*x*sin(x), x)
-    a*(sin(x) - x*cos(x))
+    -(x*cos(x) - sin(x))*a
     sage: limit(a*sin(x)/x, x=0)
     a
     sage: taylor(a*sin(x)/x, x, 0, 4)
-    a - a*x^2/6 + a*x^4/120
+    1/120*a*x^4 - 1/6*a*x^2 + a
     sage: expand( (x-a)^3 )
-    x^3 - 3*a*x^2 + 3*a^2*x - a^3
+    -a^3 + 3*a^2*x - 3*a*x^2 + x^3
     sage: laplace( e^(x+a), x, a)
     e^a/(a - 1)
     sage: inverse_laplace( e^a/(a-1), x, a)
     ilt(e^a/(a - 1), x, a)
 """
 
-from calculus import SR, SymbolicExpression, CallableSymbolicExpression
+from calculus import SR
+from sage.symbolic.expression import Expression
 
 def simplify(f):
     r"""
@@ -45,20 +46,6 @@ def simplify(f):
 
     In fact, printing `f` yields the same thing - i.e., the
     simplified form.
-
-    ::
-
-        sage: f
-        I
-
-    Nonetheless `f` and ``simplify(f)`` have a
-    different type; one remembers that it is constructed as a sum, and
-    the other is really just the simplified expression::
-
-        sage: type(f)
-        <class 'sage.calculus.calculus.SymbolicArithmetic'>
-        sage: type(simplify(f))
-        <class 'sage.calculus.calculus.SymbolicConstant'>
     """
     try:
         return f.simplify()
@@ -78,9 +65,9 @@ def derivative(f, *args, **kwds):
 
         sage: f(x,y) = x*y + sin(x^2) + e^(-x)
         sage: f
-        (x, y) |--> x*y + sin(x^2) + e^(-x)
+        (x, y) |--> x*y + e^(-x) + sin(x^2)
         sage: derivative(f, x)
-        (x, y) |--> y + 2*x*cos(x^2) - e^(-x)
+        (x, y) |--> 2*x*cos(x^2) + y - e^(-x)
         sage: derivative(f, y)
         (x, y) |--> x
 
@@ -106,9 +93,9 @@ def derivative(f, *args, **kwds):
         (a, x)
         sage: f = exp(sin(a - x^2))/x
         sage: derivative(f, x)
-        -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - e^(-sin(x^2 - a))/x^2
+        -2*e^(sin(-x^2 + a))*cos(-x^2 + a) - e^(sin(-x^2 + a))/x^2
         sage: derivative(f, a)
-        cos(x^2 - a)*e^(-sin(x^2 - a))/x
+        e^(sin(-x^2 + a))*cos(-x^2 + a)/x
 
     Syntax for repeated differentiation::
 
@@ -143,7 +130,7 @@ def derivative(f, *args, **kwds):
         return f.derivative(*args, **kwds)
     except AttributeError:
         pass
-    if not isinstance(f, SymbolicExpression):
+    if not isinstance(f, Expression):
         f = SR(f)
     return f.derivative(*args, **kwds)
 
@@ -158,7 +145,7 @@ def integral(f, *args, **kwds):
         sage: integral(sin(x), x)
         -cos(x)
         sage: integral(sin(x)^2, x, pi, 123*pi/2)
-        121*pi/4
+        121/4*pi
         sage: integral( sin(x), x, 0, pi)
         2
 
@@ -179,19 +166,13 @@ def integral(f, *args, **kwds):
 
     ::
 
-        sage: print integral(x/(x^3-1), x)
-                                         2 x + 1
-                       2          arctan(-------)
-                  log(x  + x + 1)        sqrt(3)    log(x - 1)
-                - --------------- + ------------- + ----------
-                         6             sqrt(3)          3
+        sage: integral(x/(x^3-1), x)
+        1/3*sqrt(3)*arctan(1/3*(2*x + 1)*sqrt(3)) + 1/3*log(x - 1) - 1/6*log(x^2 + x + 1)
 
     ::
 
         sage: print integral( exp(-x^2), x )
-                               sqrt( pi) erf(x)
-                               ----------------
-                                      2
+        1/2*sqrt(pi)*erf(x)
 
     We define the Gaussian, plot and integrate it numerically and
     symbolically::
@@ -202,7 +183,7 @@ def integral(f, *args, **kwds):
         sage: numerical_integral(f, -4, 4)                    # random output
         (0.99993665751633376, 1.1101527003413533e-14)
         sage: integrate(f, x)
-        x |--> erf(x/sqrt(2))/2
+        x |--> 1/2*erf(1/2*sqrt(2)*x)
 
     You can have Sage calculate multiple integrals. For example,
     consider the function `exp(y^2)` on the region between the
@@ -210,7 +191,7 @@ def integral(f, *args, **kwds):
     value of the integral on this region using the command::
 
         sage: area = integral(integral(exp(y^2),x,0,y),y,0,1); area
-        e/2 - 1/2
+        1/2*e - 1/2
         sage: float(area)
         0.85914091422952255
 
@@ -227,30 +208,18 @@ def integral(f, *args, **kwds):
 
     Sage is unable to do anything with the following integral::
 
-        sage: print integral( exp(-x^2)*log(x), x )
-                              /      2
-                              [   - x
-                              I  e     log(x) dx
-                              ]
-                              /
+        sage: integral( exp(-x^2)*log(x), x )
+        integrate(e^(-x^2)*log(x), x)
 
-    Sage does not know how to compute this integral either.
-
-    ::
+    Sage does not know how to compute this integral either::
 
         sage: print integral( exp(-x^2)*ln(x), x, 0, oo)
-                              inf
-                             /         2
-                             [      - x
-                             I     e     log(x) dx
-                             ]
-                             /
-                              0
+        integrate(e^(-x^2)*log(x), x, 0, +Infinity)
 
     This definite integral is easy::
 
         sage: integral( ln(x)/x, x, 1, 2)
-        log(2)^2/2
+        1/2*log(2)^2
 
     Sage can't do this elliptic integral (yet)::
 
@@ -271,7 +240,7 @@ def integral(f, *args, **kwds):
         integrate(abs(x), x, 0, a)
         sage: assume(a>0)
         sage: integral(abs(x), x, 0, a)
-        a^2/2
+        1/2*a^2
         sage: forget()      # forget the assumptions.
 
     We integrate and differentiate a huge mess::
@@ -289,6 +258,8 @@ def integral(f, *args, **kwds):
          -5.5511151231257827e-17,
          -5.5511151231257827e-17,
          -6.9388939039072284e-17]
+        sage: h.factor()
+        0
         sage: bool(h == 0)
         True
     """
@@ -297,8 +268,7 @@ def integral(f, *args, **kwds):
     except AttributeError:
         pass
 
-
-    if not isinstance(f, SymbolicExpression):
+    if not isinstance(f, Expression):
         f = SR(f)
     return f.integral(*args, **kwds)
 
@@ -351,9 +321,9 @@ def limit(f, dir=None, taylor=False, **argv):
     it unevaluated::
 
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-        limit(e^x^2 - e^x^2*erf(x), x, +Infinity)
+        limit(-e^(x^2)*erf(x) + e^(x^2), x, +Infinity)
     """
-    if not isinstance(f, SymbolicExpression):
+    if not isinstance(f, Expression):
         f = SR(f)
     return f.limit(dir=dir, taylor=taylor, **argv)
 
@@ -380,11 +350,11 @@ def taylor(f, v, a, n):
         sage: var('x,k,n')
         (x, k, n)
         sage: taylor (sqrt (1 - k^2*sin(x)^2), x, 0, 6)
-        1 - k^2*x^2/2 - (3*k^4 - 4*k^2)*x^4/24 - (45*k^6 - 60*k^4 + 16*k^2)*x^6/720
+        -1/720*(45*k^6 - 60*k^4 + 16*k^2)*x^6 - 1/24*(3*k^4 - 4*k^2)*x^4 - 1/2*k^2*x^2 + 1
         sage: taylor ((x + 1)^n, x, 0, 4)
-        1 + n*x + (n^2 - n)*x^2/2 + (n^3 - 3*n^2 + 2*n)*x^3/6 + (n^4 - 6*n^3 + 11*n^2 - 6*n)*x^4/24
+        1/24*(n^4 - 6*n^3 + 11*n^2 - 6*n)*x^4 + 1/6*(n^3 - 3*n^2 + 2*n)*x^3 + 1/2*(n^2 - n)*x^2 + n*x + 1
     """
-    if not isinstance(f, SymbolicExpression):
+    if not isinstance(f, Expression):
         f = SR(f)
     return f.taylor(v=v,a=a,n=n)
 
@@ -393,10 +363,6 @@ def expand(x, *args, **kwds):
     """
     EXAMPLES::
 
-        sage: a = (1+I)*(2-sqrt(3)*I); a
-        (I + 1)*(2 - sqrt(3)*I)
-        sage: expand(a)
-        -sqrt(3)*I + 2*I + sqrt(3) + 2
         sage: a = (x-1)*(x^2 - 1); a
         (x - 1)*(x^2 - 1)
         sage: expand(a)
@@ -435,85 +401,18 @@ def expand(x, *args, **kwds):
         sage: tt1 = -1/sqrt(3);
         sage: t2 = sqrt(3)/6;
         sage: float(t1)
-        -0.57735026918962584
+        -0.577350269189625...
         sage: float(tt1)
-        -0.57735026918962584
+        -0.577350269189625...
         sage: float(t2)
         0.28867513459481287
         sage: float(expand(t1 + t2))
         -0.288675134594812...
         sage: float(expand(tt1 + t2))
-        -0.28867513459481292
+        -0.288675134594812...
     """
     try:
         return x.expand(*args, **kwds)
     except AttributeError:
         return x
-
-
-def laplace(f, t, s):
-    r"""
-    Attempts to compute and return the Laplace transform of
-    ``self`` with respect to the variable `t` and
-    transform parameter `s`. If this function cannot find a
-    solution, a delayed function is returned.
-
-    The function that is returned may be be viewed as a function of
-    `s`.
-
-    EXAMPLES::
-
-        sage: var('a,s,t')
-        (a, s, t)
-        sage: f = exp (2*t + a) * sin(t) * t; f
-        t*e^(2*t + a)*sin(t)
-        sage: L = laplace(f, t, s); L
-        e^a*(2*s - 4)/(s^2 - 4*s + 5)^2
-        sage: inverse_laplace(L, s, t)
-        t*e^(2*t + a)*sin(t)
-
-    Unable to compute solution::
-
-        sage: laplace(1/s, s, t)
-        laplace(1/s, s, t)
-    """
-    if not isinstance(f, SymbolicExpression):
-        f = SR(f)
-    return f.laplace(t,s)
-
-def inverse_laplace(f, t, s):
-    r"""
-    Attempts to compute and return the inverse Laplace transform of
-    ``self`` with respect to the variable `t` and
-    transform parameter `s`. If this function cannot find a
-    solution, a delayed function is returned, which is called
-    ``ilt``.
-
-    EXAMPLES::
-
-        sage: f(t) = t*cos(t)
-        sage: s = var('s')
-        sage: L = laplace(f, t, s); L
-        t |--> 2*s^2/(s^2 + 1)^2 - 1/(s^2 + 1)
-        sage: inverse_laplace(L, s, t)
-        t |--> t*cos(t)
-        sage: print inverse_laplace(1/(s^3+1), s, t)
-                           sqrt(3) t        sqrt(3) t
-                       sin(---------)   cos(---------)      - t
-                  t/2          2                2          e
-                 e    (-------------- - --------------) + -----
-                          sqrt(3)             3             3
-
-    No explicit inverse Laplace transform, so one is returned formally
-    as a function ``ilt``.
-
-    ::
-
-        sage: inverse_laplace(cos(s), s, t)
-        ilt(cos(s), s, t)
-    """
-    if not isinstance(f, SymbolicExpression):
-        f = SR(f)
-    return f.inverse_laplace(t,s)
-
 

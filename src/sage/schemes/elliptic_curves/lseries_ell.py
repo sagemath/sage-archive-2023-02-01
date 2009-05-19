@@ -13,7 +13,6 @@ import sage.functions.transcendental as transcendental
 R = RealField()
 Q = RationalField()
 C = ComplexField()
-import sage.functions.constants as constants
 import sage.misc.all as misc
 
 class Lseries_ell(SageObject):
@@ -534,7 +533,8 @@ class Lseries_ell(SageObject):
     #    if abs(s.imag()) < R(0.0000000000001):
     #        return self(s.real())
     #    N = self.__E.conductor()
-    #    pi = R(constants.pi)
+    #    from sage.symbolic.constants import pi
+    #    pi = R(pi)
     #    Gamma = transcendental.gamma
     #    Gamma_inc = transcendental.gamma_inc
     #    a = self.__E.anlist(prec)

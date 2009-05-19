@@ -429,7 +429,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
-        return (self.log() * right).exp()
+        return (self.log() * self.parent()(right)).exp()
 
     def _magma_init_(self, magma):
         r"""
@@ -444,6 +444,39 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.16666666666666666666666666670 + 2.50000000000000000000000000000*$.1
         """
         return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.center().real(), self.center().imag())
+
+    def _interface_init_(self, I=None):
+        """
+        Raise a TypeError.
+
+        This function would return the string representation of self
+        that makes sense as a default representation of a complex
+        interval in other computer algebra systems. But, most other
+        computer algebra systems do not support interval arithmetic,
+        so instead we just raise a TypeError.
+
+        Define the appropriate _cas_init_ function if there is a
+        computer algebra system you would like to support.
+
+        EXAMPLES::
+
+            sage: n = CIF(1.3939494594)
+            sage: n._interface_init_()
+            Traceback (most recent call last):
+            ...
+            TypeError
+
+        Here's a conversion to Maxima happens, which results in a type
+        error::
+
+            sage: a = CIF(2.3)
+            sage: maxima(a)
+            Traceback (most recent call last):
+            ...
+            TypeError
+        """
+        raise TypeError
+
 
     def _sage_input_(self, sib, coerce):
         r"""
@@ -569,7 +602,100 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         raise TypeError, "can't convert complex interval to complex"
 
     def __richcmp__(left, right, int op):
+        """
+        As with the real interval fields this never returns false positives.
+        Thus, `a == b` is True iff both `a` and `b` represent the same
+        one-point interval. Likewise `a != b` is True iff `x != y` for all
+        `x \in a, y \in b`.
+
+        EXAMPLES::
+
+            sage: CIF(0) == CIF(0)
+            True
+            sage: CIF(0) == CIF(1)
+            False
+            sage: CIF.gen() == CIF.gen()
+            True
+            sage: CIF(0) == CIF.gen()
+            False
+            sage: CIF(0) != CIF(1)
+            True
+            sage: -CIF(-3).sqrt() != CIF(-3).sqrt()
+            True
+
+        These intervals overlap, but contain unequal points::
+
+            sage: CIF(3).sqrt() == CIF(3).sqrt()
+            False
+            sage: CIF(3).sqrt() != CIF(3).sqrt()
+            False
+
+        In the future, complex interval elements may be unordered,
+        but or backwards compatability we order them lexographically::
+
+            sage: CDF(-1) < -CDF.gen() < CDF.gen() < CDF(1)
+            True
+            sage: CDF(1) >= CDF(1) >= CDF.gen() >= CDF.gen() >= 0 >= -CDF.gen() >= CDF(-1)
+            True
+        """
         return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        cdef ComplexIntervalFieldElement lt, rt
+        lt = left
+        rt = right
+        if op == 2: #==
+            # intervals a == b iff a<=b and b <= a
+            # (this gives a result with two comparisons, where the
+            # obvious approach would use three)
+            return mpfr_lessequal_p(&lt.__re.right, &rt.__re.left) \
+                and mpfr_lessequal_p(&rt.__re.right, &lt.__re.left) \
+                and mpfr_lessequal_p(&lt.__im.right, &rt.__im.left) \
+                and mpfr_lessequal_p(&rt.__im.right, &lt.__im.left)
+        elif op == 3: #!=
+            return mpfr_less_p(&lt.__re.right, &rt.__re.left) \
+                or mpfr_less_p(&rt.__re.right, &lt.__re.left) \
+                or mpfr_less_p(&lt.__im.right, &rt.__im.left) \
+                or mpfr_less_p(&rt.__im.right, &lt.__im.left)
+        else:
+            # Eventually we probably want to disable comparison of complex
+            # intervals, just like python complexes will be unordered.
+            ## raise TypeError, "no ordering relation is defined for complex numbers"
+            diff = left - right
+            real_diff = diff.real()
+            imag_diff = diff.imag()
+            if op == 0: #<
+                return real_diff < 0 or (real_diff == 0 and imag_diff < 0)
+            elif op == 1: #<=
+                return real_diff < 0 or (real_diff == 0 and imag_diff <= 0)
+            elif op == 4: #>
+                return real_diff > 0 or (real_diff == 0 and imag_diff > 0)
+            elif op == 5: #>=
+                return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
+
+    def __cmp__(left, right):
+        """
+        Intervals are compared lexicographically on the 4-tuple
+        (x.real().lower(), x.real().upper(), x.imag().lower(), x.imag().upper())
+
+        EXAMPLES::
+
+            sage: a = CIF(RIF(0,1), RIF(0,1))
+            sage: b = CIF(RIF(0,1), RIF(0,2))
+            sage: c = CIF(RIF(0,2), RIF(0,2))
+            sage: cmp(a, b)
+            -1
+            sage: cmp(b, c)
+            -1
+            sage: cmp(a, c)
+            -1
+            sage: cmp(a, a)
+            0
+            sage: cmp(b, a)
+            1
+        """
+        return (<Element>left)._cmp(right)
+
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         """

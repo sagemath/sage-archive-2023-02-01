@@ -359,9 +359,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
             sage: eqn = symbolic_expression(E); eqn
             y^2 + y == x^3 - x^2 - 10*x - 20
-            sage: print eqn
-                                      2        3    2
-                                     y  + y == x  - x  - 10 x - 20
 
         We verify that the given point is on the curve::
 
@@ -372,58 +369,55 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         We create a single expression::
 
-            sage: F = eqn.lhs() - eqn.rhs(); print F
-                                      2        3    2
-                                     y  + y - x  + x  + 10 x + 20
+            sage: F = eqn.lhs() - eqn.rhs(); F
+            -x^3 + x^2 + y^2 + 10*x + y + 20
             sage: y = var('y')
-            sage: print F.solve(y)
-            [
-                                  3      2
-                        - sqrt(4 x  - 4 x  - 40 x - 79) - 1
-                    y == -----------------------------------
-                                         2,
-                                 3      2
-                         sqrt(4 x  - 4 x  - 40 x - 79) - 1
-                     y == ---------------------------------
-                                         2
-            ]
+            sage: F.solve(y)
+            [y == -1/2*sqrt(4*x^3 - 4*x^2 - 40*x - 79) - 1/2,
+             y == 1/2*sqrt(4*x^3 - 4*x^2 - 40*x - 79) - 1/2]
 
         You can also solve for x in terms of y, but the result is
         horrendous. Continuing with the above example, we can explicitly
         find points over random fields by substituting in values for x::
 
-            sage: v = F.solve(y)[0].rhs()
-            sage: print v
-                                            3      2
-                                  - sqrt(4 x  - 4 x  - 40 x - 79) - 1
-                                  -----------------------------------
-                                                   2
+            sage: v = F.solve(y)[0].rhs(); v
+            -1/2*sqrt(4*x^3 - 4*x^2 - 40*x - 79) - 1/2
             sage: v = v.function(x)
             sage: v(3)
-            (-sqrt(127)*I - 1)/2
+            -1/2*sqrt(-127) - 1/2
             sage: v(7)
-            (-sqrt(817) - 1)/2
+            -1/2*sqrt(817) - 1/2
             sage: v(-7)
-            (-sqrt(1367)*I - 1)/2
+            -1/2*sqrt(-1367) - 1/2
             sage: v(sqrt(2))
-            (-sqrt(-32*sqrt(2) - 87) - 1)/2
+            -1/2*sqrt(-32*sqrt(2) - 87) - 1/2
 
         We can even do arithmetic with them, as follows::
 
             sage: E2 = E.change_ring(SR); E2
-            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Symbolic Ring
-            sage: P = E2.point((3, v(3), 1), check=False)
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Symbolic Ring
+            sage: P = E2.point((3, v(3), 1), check=False) # the check=False option doesn't verify that y^2 = f(x)
             sage: P
-            (3 : (-sqrt(127)*I - 1)/2 : 1)
+            (3 : -1/2*sqrt(-127) - 1/2 : 1)
             sage: P + P
-            (-756/127 : (sqrt(127)*I + 1)/2 + 12507*I/(127*sqrt(127)) - 1 : 1)
+            (-756/127 : 41143/32258*sqrt(-127) - 1/2 : 1)
 
         We can even throw in a transcendental::
 
             sage: w = E2.point((pi,v(pi),1), check=False); w
-            (pi : (-sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1)/2 : 1)
+            (pi : -1/2*sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1/2 : 1)
+            sage: x, y, z = w; ((y^2 + y) - (x^3 - x^2 - 10*x - 20)).expand()
+            0
+
             sage: 2*w
-            ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - (3*pi^2 - 2*pi - 10)*(-(3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1 : 1)
+            (-2*pi + (2*pi - 3*pi^2 + 10)^2/(-40*pi + 4*pi^3 - 4*pi^2 - 79) + 1 : (2*pi - 3*pi^2 + 10)*(3*pi - (2*pi - 3*pi^2 + 10)^2/(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1)/sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) + 1/2*sqrt(-40*pi + 4*pi^3 - 4*pi^2 - 79) - 1/2 : 1)
+
+            sage: x, y, z = 2*w; temp = ((y^2 + y) - (x^3 - x^2 - 10*x - 20))
+
+        This is a point on the curve::
+
+            sage: bool(temp == 0)
+            True
         """
         a = [SR(x) for x in self.a_invariants()]
         x, y = SR.var('x, y')

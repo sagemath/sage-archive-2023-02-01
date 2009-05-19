@@ -108,7 +108,6 @@ from sage.rings.finite_field import FiniteField as GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.plot.all import polygon, text
-from sage.calculus.calculus import sin, cos
 pi = RDF.pi()
 
 
@@ -141,6 +140,7 @@ def yproj(x,y,z,r):
   return z*r[2] - (x*r[1] + y*r[2])*r[0]
 
 def rotation_list(tilt,turn):
+    from sage.functions.all import sin, cos
     return [ sin(tilt*pi/180.0), sin(turn*pi/180.0), cos(tilt*pi/180.0), cos(turn*pi/180.0) ]
 
 def polygon_plot3d(points, tilt=30, turn=30, **kwargs):

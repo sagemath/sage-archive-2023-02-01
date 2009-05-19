@@ -5,7 +5,7 @@ from sage.rings.real_mpfr import RealField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer_ring import IntegerRing, ZZ
-from sage.calculus.calculus import sqrt, floor, ceil
+from sage.functions.all import sqrt, floor, ceil
 
 from sage.interfaces.gp import gp
 

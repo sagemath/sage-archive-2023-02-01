@@ -276,7 +276,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return self
         if isinstance(x, str):
             return PrincipalIdealDomain.__getitem__(self, x)
-        from sage.calculus.all import is_SymbolicVariable
+        from sage.symbolic.all import is_SymbolicVariable
 
         if is_SymbolicVariable(x):
             return PrincipalIdealDomain.__getitem__(self, repr(x))

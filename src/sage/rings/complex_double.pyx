@@ -353,7 +353,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         Thus the sum of a CDF and a symbolic object is symbolic::
 
             sage: a = pi + CDF.0; a
-            1.0*I + pi
+            pi + 1.0*I
             sage: parent(a)
             Symbolic Ring
 
@@ -813,7 +813,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return complex(self._complex.dat[0], self._complex.dat[1])
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Returns self formatted as a string, suitable as input to another
         computer algebra system. (This is the default function used for
@@ -829,7 +829,7 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         # Sending to another computer algebra system is slow anyway, right?
-        return CC(self)._interface_init_()
+        return CC(self)._interface_init_(I)
 
     def __repr__(self):
         """
@@ -1343,7 +1343,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.2)^x
             1.2^x
             sage: CDF(1.2)^(x^n + n^x)
-            1.2^(x^n + n^x)
+            1.2^(n^x + x^n)
         """
         try:
             return z._pow_(a)

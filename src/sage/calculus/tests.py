@@ -9,8 +9,8 @@ Compute the Christoffel symbol.
     (r, t, theta, phi)
     sage: m = matrix(SR, [[(1-1/r),0,0,0],[0,-(1-1/r)^(-1),0,0],[0,0,-r^2,0],[0,0,0,-r^2*(sin(theta))^2]])
     sage: print m
-    [          1 - 1/r                 0                 0                 0]
-    [                0      -1/(1 - 1/r)                 0                 0]
+    [         -1/r + 1                 0                 0                 0]
+    [                0       1/(1/r - 1)                 0                 0]
     [                0                 0              -r^2                 0]
     [                0                 0                 0 -r^2*sin(theta)^2]
 
@@ -26,49 +26,42 @@ Compute the Christoffel symbol.
 ::
 
     sage: christoffel(3,3,2, [t,r,theta,phi], m)
-    -cos(theta)*sin(theta)
+    -sin(theta)*cos(theta)
     sage: X = christoffel(1,1,1,[t,r,theta,phi],m)
-    sage: print X
-                                     1
-                                     - - 1
-                                     r
-                                 -------------
-                                        1 2  2
-                                 2 (1 - -)  r
-                                        r
-    sage: print X.rational_simplify()
-                                       1
-                                 - ----------
-                                      2
-                                   2 r  - 2 r
+    sage: X
+     1/2/((1/r - 1)*r^2)
+    sage: X.rational_simplify()
+     -1/2/(r^2 - r)
 
 Some basic things::
 
     sage: f(x,y) = x^3 + sinh(1/y)
     sage: f
-    (x, y) |--> sinh(1/y) + x^3
+    (x, y) |--> x^3 + sinh(1/y)
     sage: f^3
-    (x, y) |--> (sinh(1/y) + x^3)^3
+    (x, y) |--> (x^3 + sinh(1/y))^3
     sage: (f^3).expand()
-    (x, y) |--> sinh(1/y)^3 + 3*x^3*sinh(1/y)^2 + 3*x^6*sinh(1/y) + x^9
+    (x, y) |--> x^9 + 3*x^6*sinh(1/y) + 3*x^3*sinh(1/y)^2 + sinh(1/y)^3
 
 A polynomial over a symbolic base ring::
 
     sage: R = SR[x]
     sage: f = R([1/sqrt(2), 1/(4*sqrt(2))])
     sage: f
-    1/(4*sqrt(2))*x + 1/sqrt(2)
+    1/8*sqrt(2)*x + 1/2*sqrt(2)
     sage: -f
-    -1/(4*sqrt(2))*x - 1/sqrt(2)
+    -1/8*sqrt(2)*x - 1/2*sqrt(2)
     sage: (-f).degree()
     1
 
-Something that was a printing bug. This tests that we print the
-simplified version using ASCII art::
+A big product.  Notice that simplifying simplifies the product further::
 
     sage: A = exp(I*pi/5)
-    sage: print A*A*A*A*A*A*A*A*A*A
-                                           1
+    sage: b = A*A*A*A*A*A*A*A*A*A
+    sage: b
+    e^(8/5*I*pi)*e^(2/5*I*pi)
+    sage: b.simplify()
+    1
 
 We check a statement made at the beginning of Friedlander and
 Joshi's book on Distributions::
@@ -77,15 +70,17 @@ Joshi's book on Distributions::
     sage: g(x) = cos(x) + x^3
     sage: u = f(x+t) + g(x-t)
     sage: u
-    sin((x + t)^2) + cos(x - t) + (x - t)^3
+    -(t - x)^3 + sin((t + x)^2) + cos(-t + x)
     sage: u.diff(t,2) - u.diff(x,2)
     0
 
 Restoring variables after they have been turned into functions::
 
     sage: x = function('x')
-    sage: sin(x).variables()
-    ()
+    sage: type(x)
+    <type 'sage.symbolic.function.SFunction'>
+    sage: x(2/3)
+    x(2/3)
     sage: restore('x')
     sage: sin(x).variables()
     (x,)
@@ -95,45 +90,37 @@ from some Mathematica docs::
 
     sage: var('x n a')
     (x, n, a)
-    sage: diff(x^n, x)
+    sage: diff(x^n, x)        # the output looks funny, but is correct
     n*x^(n - 1)
     sage: diff(x^2 * log(x+a), x)
-    2*x*log(x + a) + x^2/(x + a)
+    2*x*log(a + x) + x^2/(a + x)
     sage: derivative(arctan(x), x)
     1/(x^2 + 1)
     sage: derivative(x^n, x, 3)
     (n - 2)*(n - 1)*n*x^(n - 3)
     sage: derivative( function('f')(x), x)
-    diff(f(x), x, 1)
+    D[0](f)(x)
     sage: diff( 2*x*f(x^2), x)
-    2*x*diff(f(x^2), x, 1) + 2*f(x^2)
-    sage: print integrate( 1/(x^4 - a^4), x)
-                                                           x
-                                                    arctan(-)
-                            log(x + a)   log(x - a)    a
-                          - ---------- + ---------- - -------
-                                  3        3          3
-                               4 a          4 a    2 a
+    4*x^2*D[0](f)(x^2) + 2*f(x^2)
+    sage: integrate( 1/(x^4 - a^4), x)
+    1/4*log(-a + x)/a^3 - 1/4*log(a + x)/a^3 - 1/2*arctan(x/a)/a^3
     sage: expand(integrate(log(1-x^2), x))
-    x*log(1 - x^2) + log(x + 1) - log(x - 1) - 2*x
+    x*log(-x^2 + 1) - 2*x - log(x - 1) + log(x + 1)
     sage: integrate(log(1-x^2)/x, x)
-    log(x)*log(1 - x^2) + polylog(2, 1 - x^2)/2
+    log(-x^2 + 1)*log(x) + 1/2*polylog2(-x^2 + 1)
     sage: integrate(exp(1-x^2),x)
-    sqrt(pi)*e*erf(x)/2
+    1/2*sqrt(pi)*e*erf(x)
     sage: integrate(sin(x^2),x)
-    sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
+    1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
+
     sage: integrate((1-x^2)^n,x)
-    integrate((1 - x^2)^n, x)
+    integrate((-x^2 + 1)^n, x)
     sage: integrate(x^x,x)
     integrate(x^x, x)
-    sage: print integrate(1/(x^3+1),x)
-                                             2 x - 1
-                           2          arctan(-------)
-                      log(x  - x + 1)        sqrt(3)    log(x + 1)
-                    - --------------- + ------------- + ----------
-                             6             sqrt(3)          3
+    sage: integrate(1/(x^3+1),x)
+    1/3*sqrt(3)*arctan(1/3*(2*x - 1)*sqrt(3)) + 1/3*log(x + 1) - 1/6*log(x^2 - x + 1)
     sage: integrate(1/(x^3+1), x, 0, 1)
-    (6*log(2) + sqrt(3)*pi)/18 + sqrt(3)*pi/18
+    1/9*pi*sqrt(3) + 1/3*log(2)
 
 ::
 
@@ -175,22 +162,22 @@ Maple documentation::
     sage: diff(sin(x), x, 3)
     -cos(x)
     sage: diff(x*sin(cos(x)), x)
-    sin(cos(x)) - x*sin(x)*cos(cos(x))
+    -x*sin(x)*cos(cos(x)) + sin(cos(x))
     sage: diff(tan(x), x)
-    sec(x)^2
+    tan(x)^2 + 1
     sage: f = function('f'); f
     f
     sage: diff(f(x), x)
-    diff(f(x), x, 1)
+    D[0](f)(x)
     sage: diff(f(x,y), x, y)
-    diff(f(x, y), x, 1, y, 1)
+    D[0, 1](f)(x, y)
     sage: diff(f(x,y), x, y) - diff(f(x,y), y, x)
     0
     sage: g = function('g')
     sage: var('x y z')
     (x, y, z)
     sage: diff(g(x,y,z), x,z,z)
-    diff(g(x, y, z), x, 1, z, 2)
+    D[0, 2, 2](g)(x, y, z)
     sage: integrate(sin(x), x)
     -cos(x)
     sage: integrate(sin(x), x, 0, pi)
@@ -208,9 +195,9 @@ Maple documentation::
 ::
 
     sage: integrate( x/(x^3-1), x)
-    -log(x^2 + x + 1)/6 + arctan((2*x + 1)/sqrt(3))/sqrt(3) + log(x - 1)/3
+    1/3*sqrt(3)*arctan(1/3*(2*x + 1)*sqrt(3)) + 1/3*log(x - 1) - 1/6*log(x^2 + x + 1)
     sage: integrate(exp(-x^2), x)
-    sqrt(pi)*erf(x)/2
+    1/2*sqrt(pi)*erf(x)
     sage: integrate(exp(-x^2)*log(x), x)       # todo: maple can compute this exactly.
     integrate(e^(-x^2)*log(x), x)
     sage: f = exp(-x^2)*log(x)
@@ -226,11 +213,11 @@ We verify several standard differentiation rules::
     sage: function('f, g')
     (f, g)
     sage: diff(f(t)*g(t),t)
-    f(t)*diff(g(t), t, 1) + g(t)*diff(f(t), t, 1)
+    D[0](f)(t)*g(t) + f(t)*D[0](g)(t)
     sage: diff(f(t)/g(t), t)
-    diff(f(t), t, 1)/g(t) - f(t)*diff(g(t), t, 1)/g(t)^2
+    D[0](f)(t)/g(t) - f(t)*D[0](g)(t)/g(t)^2
     sage: diff(f(t) + g(t), t)
-    diff(g(t), t, 1) + diff(f(t), t, 1)
+    D[0](f)(t) + D[0](g)(t)
     sage: diff(c*f(t), t)
-    c*diff(f(t), t, 1)
+    c*D[0](f)(t)
 """

@@ -33,14 +33,14 @@ AlgebraicNumber = None
 AlgebraicReal = None
 AA = None
 QQbar = None
-NSR = None
+SR = None
 CDF = CLF = RLF = None
 def late_import():
     global NumberFieldElement_quadratic
     global AlgebraicNumber_base
     global AlgebraicNumber
     global AlgebraicReal
-    global AA, QQbar, NSR
+    global AA, QQbar, SR
     global CLF, RLF, CDF
     if NumberFieldElement_quadratic is None:
         import sage.rings.number_field.number_field_element_quadratic as nfeq
@@ -52,7 +52,7 @@ def late_import():
         AA = sage.rings.qqbar.AA
         QQbar = sage.rings.qqbar.QQbar
         import sage.symbolic.ring
-        NSR = sage.symbolic.ring.NSR
+        SR = sage.symbolic.ring.SR
         from real_lazy import CLF, RLF
         from complex_double import CDF
 
@@ -312,7 +312,7 @@ class ComplexField_class(field.Field):
         if is_ComplexField(S) and S._prec >= self._prec:
             return self._generic_convert_map(S)
         late_import()
-        if S in [AA, QQbar, CLF, RLF, NSR] or (S == CDF and self._prec <= 53):
+        if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
             return self._generic_convert_map(S)
         return self._coerce_map_via([CLF], S)
 

@@ -245,7 +245,7 @@ cdef class SageObject:
             s = self.__getattribute__('_%s_init_'%nm)()
         else:
             try:
-              s = self._interface_init_()
+              s = self._interface_init_(I)
             except:
                 raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
                   (repr(self), I)
@@ -257,7 +257,7 @@ cdef class SageObject:
                 pass
         return X
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         return repr(self)
 
     def _interface_is_cached_(self):
@@ -276,7 +276,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _gap_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.gap
+        I = sage.interfaces.gap.gap
+        return self._interface_init_(I)
 
     def _gp_(self, G=None):
         if G is None:
@@ -294,7 +296,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _kash_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.kash
+        I = sage.interfaces.kash.kash
+        return self._interface_init_(I)
 
     def _axiom_(self, G=None):
         if G is None:
@@ -303,7 +307,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _axiom_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.axiom
+        I = sage.interfaces.axiom.axiom
+        return self._interface_init_(I)
 
     def _fricas_(self, G=None):
         if G is None:
@@ -321,7 +327,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _maxima_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.maxima
+        I = sage.interfaces.maxima.maxima
+        return self._interface_init_(I)
 
     def _magma_init_(self, magma):
         """
@@ -376,7 +384,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _macaulay2_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.macaulay2
+        I = sage.interfaces.macaulay2.macaulay2
+        return self._interface_init_(I)
 
     def _maple_(self, G=None):
         if G is None:
@@ -385,7 +395,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _maple_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.maple
+        I = sage.interfaces.maple.maple
+        return self._interface_init_(I)
 
     def _mathematica_(self, G=None):
         if G is None:
@@ -394,7 +406,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _mathematica_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.mathematica
+        I = sage.interfaces.mathematica.mathematica
+        return self._interface_init_(I)
 
     def _octave_(self, G=None):
         if G is None:
@@ -403,7 +417,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _octave_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.octave
+        I = sage.interfaces.octave.octave
+        return self._interface_init_(I)
 
     def _r_init_(self):
         """
@@ -420,7 +436,9 @@ cdef class SageObject:
             sage: a._r_init_()
             '2/3'
         """
-        return self._interface_init_()
+        import sage.interfaces.r
+        I = sage.interfaces.r.r
+        return self._interface_init_(I)
 
     def _singular_(self, G=None, have_ring=False):
         if G is None:
@@ -429,7 +447,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _singular_init_(self, have_ring=False):
-        return self._interface_init_()
+        import sage.interfaces.singular
+        I = sage.interfaces.singular.singular
+        return self._interface_init_(I)
 
     # PARI (slightly different, since is via C library, hence instance is unique)
     def _pari_(self):
@@ -449,7 +469,8 @@ cdef class SageObject:
         return x
 
     def _pari_init_(self):
-        return self._interface_init_()
+        from sage.interfaces.gp import gp
+        return self._interface_init_(gp)
 
 
 ##################################################################
@@ -723,7 +744,7 @@ def unpickle_all(dir, debug=False):
         sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
         sage: sage.structure.sage_object.unpickle_all(std)
         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
-        Successfully unpickled 483 objects.
+        Successfully unpickled 572 objects.
         Failed to unpickle 0 objects.
     """
     i = 0

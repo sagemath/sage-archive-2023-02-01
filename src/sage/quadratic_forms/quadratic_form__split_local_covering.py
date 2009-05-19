@@ -14,7 +14,7 @@ from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
 #from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
-from sage.calculus.calculus import sqrt, floor, ceil
+from sage.functions.all import sqrt, floor, ceil
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.functional import round

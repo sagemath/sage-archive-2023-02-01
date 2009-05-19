@@ -22,7 +22,6 @@ Please only use them through IntegerListsLex.
 #*****************************************************************************
 
 import generator
-from sage.calculus.calculus import floor as flr
 from sage.rings.arith import binomial
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
@@ -544,7 +543,7 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.upper_bound(0, infinity, f(0), f(5), -infinity, -2)
         9
     """
-
+    from sage.functions.all import floor as flr
     if max_length < infinity:
         return sum( [ ceiling(j) for j in range(max_length)] )
     elif max_slope < 0 and ceiling(1) < infinity:

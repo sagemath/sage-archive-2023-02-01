@@ -56,7 +56,7 @@ usuelles ; en voici quelques exemples choisis :
     sage: sin(5.135)
     -0.912021158525540
     sage: sin(pi/3)
-    sqrt(3)/2
+    1/2*sqrt(3)
 
 Comme le montre le dernier de ces exemples, certaines expressions
 mathématiques renvoient des valeurs 'exactes' plutôt que des

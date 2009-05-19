@@ -177,6 +177,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cdef number_field(self):
         return self._parent
 
+    def _maxima_init_(self, I=None):
+        """
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: f = 1 + a
+            sage: f._maxima_init_()
+            '1+%i*1'
+        """
+        a = self.parent().gen()
+        if a**2 == -1:
+            x0, x1 = self
+            return str(x0) + "+" + "%i*" + str(x1)
+        else:
+            NumberFieldElement_absolute._maxima_init_(self, I)
+
     def __copy__(self):
         r"""
         Returns a new copy of self.
@@ -729,6 +745,16 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 # We must override everything that makes uses of self.__numerator/__denominator
 #################################################################################
 
+    def __hash__(self):
+        """
+        Return hash of this number field element, which is just the
+        hash of the underlying polynomial.
+        """
+        return hash(self.polynomial())
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(self, Element _right) except -2:
         """
         EXAMPLES:
@@ -799,6 +825,128 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
+    def real(self):
+        r"""
+        Returns the real part of self, which is either self (if self lives
+        it a totally real field) or a rational number.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: sqrt2.real()
+            sqrt2
+            sage: K.<a> = QuadraticField(-3)
+            sage: a.real()
+            0
+            sage: (a + 1/2).real()
+            1/2
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: a.real()
+            -1/2
+            sage: parent(a.real())
+            Rational Field
+            sage: K.<i> = QuadraticField(-1)
+            sage: i.real()
+            0
+        """
+        cdef Rational res
+        if mpz_sgn(self.D.value) > 0:
+            return self # totally real
+        else:
+            res = <Rational>PY_NEW(Rational)
+            mpz_set(mpq_numref(res.value), self.a)
+            mpz_set(mpq_denref(res.value), self.denom)
+            mpq_canonicalize(res.value)
+            return res
+
+    def imag(self):
+        r"""
+        Returns the imaginary part of self.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: sqrt2.imag()
+            0
+            sage: parent(sqrt2.imag())
+            Rational Field
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: i.imag()
+            1
+            sage: parent(i.imag())
+            Rational Field
+
+            sage: K.<a> = NumberField(x^2 + x + 1, embedding=CDF.0)
+            sage: a.imag()
+            1/2*sqrt3
+            sage: a.real()
+            -1/2
+            sage: SR(a)
+            1/2*I*sqrt(3) - 1/2
+            sage: bool(I*a.imag() + a.real() == a)
+            True
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-9, embedding=-CDF.0)
+            sage: a.imag()
+            -3
+            sage: parent(a.imag())
+            Rational Field
+
+        """
+        if mpz_sgn(self.D.value) > 0:
+            return PY_NEW(Rational) # = 0
+        embedding =  self._parent.coerce_embedding()
+        cdef Integer negD = -self.D
+        cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
+        mpz_set_ui(q.b, 1)
+        mpz_set_ui(q.denom, 1)
+        from sage.rings.complex_double import CDF
+        cdef bint standard_embedding = embedding is None or self._parent._standard_embedding
+        cdef Rational res
+        if mpz_cmp_ui(negD.value, 1) == 0 or negD.is_square():
+            # D = -1 is the most common case we'll see here
+            if embedding is None:
+                raise ValueError, "Embedding must be specified."
+            res = <Rational>PY_NEW(Rational)
+            if mpz_cmp_ui(negD.value, 1) == 0:
+                mpz_set(mpq_numref(res.value), self.b)
+            else:
+                mpz_sqrt(mpq_numref(res.value), negD.value)
+                mpz_mul(mpq_numref(res.value), mpq_numref(res.value), self.b)
+            mpz_set(mpq_denref(res.value), self.denom)
+            mpq_canonicalize(res.value)
+            if not standard_embedding:
+                mpq_neg(res.value, res.value)
+            return res
+        else:
+            # avoid circular import
+            if embedding is None:
+                from number_field import NumberField
+                K = NumberField(QQ['x'].gen()**2 - negD, 'sqrt%s' % negD)
+            else:
+                from number_field import QuadraticField
+                K = QuadraticField(negD, 'sqrt%s' % negD)
+            q = K(0)
+            mpz_set(q.denom, self.denom)
+            if standard_embedding:
+                mpz_set(q.b, self.b)
+            else:
+                mpz_neg(q.b, self.b)
+            return q
+
+    def __abs__(self):
+        """
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2+1, embedding=CDF.gen())
+            sage: abs(a+1)
+            sqrt(2)
+        """
+        from sage.functions.all import sqrt
+        return sqrt(self.imag()**2 + self.real()**2)
 
     def _coefficients(self):
         """

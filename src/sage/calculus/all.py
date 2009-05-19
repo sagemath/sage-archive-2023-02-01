@@ -1,36 +1,19 @@
-from equations import (is_SymbolicEquation,
-                       forget, assume, assumptions,
-                       solve, solve_mod)
-
-from calculus import (SymbolicExpressionRing,
-                      is_SymbolicExpressionRing,
-                      is_SymbolicExpression,
-                      is_SymbolicVariable,
-                      CallableSymbolicExpressionRing,
-                      is_CallableSymbolicExpressionRing,
-                      is_CallableSymbolicExpression,
-                      SR,
-                      sin, cos, sec, csc, cot, tan, log, erf, sqrt,
-                      tanh, sinh, cosh, coth, sech, csch, ln,
-                      asin, acos, atan,
-                      asinh, acosh, atanh, acoth, asech, acsch,
-                      acot, acsc, asec,
-                      arcsin, arccos, arctan,
-                      arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch,
-                      arccot, arccsc, arcsec,
-                      ceil, floor, gamma, factorial,
-                      polylog, dilog,
-                      abs_symbolic, exp,
-                      is_SymbolicExpression,
-                      is_SymbolicExpressionRing)
+## from calculus import (SymbolicExpressionRing,
+##                       is_SymbolicExpressionRing,
+##                       is_SymbolicExpression,
+##                       is_SymbolicVariable,
+##                       CallableSymbolicExpressionRing,
+##                       is_CallableSymbolicExpressionRing,
+##                       is_CallableSymbolicExpression,
+##                       is_SymbolicExpression,
+##                       is_SymbolicExpressionRing)
 
 from calculus import maxima as maxima_calculus
-
+from calculus import (laplace, inverse_laplace,
+                      limit, lim, clear_functions)
 
 from functional import (diff, derivative,
-                        laplace, inverse_laplace,
                         expand,
-                        integrate, limit, lim,
                         taylor, simplify)
 
 from functions import (wronskian,jacobian)
@@ -46,11 +29,15 @@ def symbolic_expression(x):
     Create a symbolic expression from x.
 
     INPUT:
-        x -- an object
-    OUTPUT:
-        a symbolic expression.
 
-    EXAMPLES:
+    - ``x`` - an object
+
+    OUTPUT:
+
+    - a symbolic expression.
+
+    EXAMPLES::
+
         sage: a = symbolic_expression(3/2); a
         3/2
         sage: type(a)
@@ -68,10 +55,26 @@ def symbolic_expression(x):
         True
         sage: a.parent()
         Symbolic Ring
+
+    This may not always return an element of SR.
+
+    ::
+
+        sage: E = EllipticCurve('15a'); E
+        Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
+        sage: symbolic_expression(E)
+        y^2 + x*y + y == x^3 + x^2 - 10*x - 10
+        sage: symbolic_expression(E) in SR
+        False
+
     """
     from sage.symbolic.expression import Expression
+    from sage.symbolic.ring import SR
     if isinstance(x, Expression):
         return x
-    return SR(x)
+    elif hasattr(x, '_symbolic_'):
+        return x._symbolic_(SR)
+    else:
+        return SR(x)
 
 import desolvers

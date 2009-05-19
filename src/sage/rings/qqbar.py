@@ -120,7 +120,7 @@ We can coerce from symbolic expressions:
     sage: AA(I)
     Traceback (most recent call last):
     ...
-    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+    TypeError: Illegal initializer for algebraic number
     sage: QQbar(I * golden_ratio)
     1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)
@@ -236,7 +236,8 @@ We can find the absolute value and norm of an algebraic number exactly.
 complex conjugate; this is the algebraic definition of norm, if we
 view QQbar as AA[I].)
 
-    sage: r = QQbar((-8)^(1/3)); r
+    sage: R.<x> = QQ[]
+    sage: r = (x^3 + 8).roots(QQbar, multiplicities=False)[2]; r
     1.000000000000000? + 1.732050807568878?*I
     sage: r.abs() == 2
     True
@@ -286,9 +287,9 @@ verify it.
     sage: lhs
     2.642040335819351?e44
     sage: rhs
-    2.64204033581936?e44
+    2.642040335819351?e44
     sage: lhs - rhs
-    0.?e30
+    0.?e29
     sage: lhs == rhs
     True
     sage: lhs - rhs
@@ -507,8 +508,8 @@ is_SymbolicExpressionRing = None
 def late_import():
     global is_SymbolicExpressionRing
     if is_SymbolicExpressionRing is None:
-        import sage.calculus.calculus
-        is_SymbolicExpressionRing = sage.calculus.calculus.is_SymbolicExpressionRing
+        import sage.symbolic.ring
+        is_SymbolicExpressionRing = sage.symbolic.ring.is_SymbolicExpressionRing
 
 class AlgebraicField_common(sage.rings.ring.Field):
     def default_interval_prec(self):
@@ -546,7 +547,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
             sage: x = polygen(SR)
             sage: p = (x - sqrt(-5)) * (x - sqrt(3)); p
-            x^2 + (-sqrt(5)*I - sqrt(3))*x + sqrt(3)*sqrt(5)*I
+            x^2 + (-sqrt(-5) - sqrt(3))*x + sqrt(-5)*sqrt(3)
             sage: p = QQbar.common_polynomial(p)
             sage: a = QQbar.polynomial_root(p, CIF(RIF(-0.1, 0.1), RIF(2, 3))); a
             0.?e-18 + 2.236067977499790?*I
@@ -5552,7 +5553,7 @@ def _init_qqbar():
     ZZX_x = ZZ['x'].gen()
 
 # This is used in the _algebraic_ method of the golden_ratio constant,
-# in sage/functions/constants.py
+# in sage/symbolic/constants.py
 AA_golden_ratio = None
 
 def get_AA_golden_ratio():

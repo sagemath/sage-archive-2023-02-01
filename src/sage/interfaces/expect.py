@@ -34,6 +34,7 @@ import os
 import weakref
 import time
 import gc
+import operator
 from random import randrange
 
 ########################################################
@@ -1123,6 +1124,21 @@ If this all works, you can then make calls like:
     def _greaterthan_symbol(self):
         return '>'
 
+    def _relation_symbols(self):
+        """
+        Returns a dictionary with operators as the keys and their
+        string representation as the values.
+
+        EXAMPLES::
+
+            sage: import operator
+            sage: symbols = mathematica._relation_symbols()
+            sage: symbols[operator.eq]
+            '=='
+        """
+        return dict([(operator.eq, self._equality_symbol()), (operator.ne, "!="),
+                     (operator.lt, self._lessthan_symbol()), (operator.le, "<="),
+                     (operator.gt, self._greaterthan_symbol()), (operator.ge, ">=")])
 
     ############################################################
     #         Functions for working with variables.
@@ -1271,8 +1287,21 @@ If this all works, you can then make calls like:
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
-        return self.new("%s(%s)"%(function, ",".join([s.name() for s in args]+
-                                                     ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
+        s = self._function_call_string(function,
+                                       [s.name() for s in args],
+                                       ['%s=%s'%(key,value.name()) for key, value in kwds.items()])
+        return self.new(s)
+
+    def _function_call_string(self, function, args, kwds):
+        """
+        Returns the string used to make function calls.
+
+        EXAMPLES::
+
+            sage: maxima._function_call_string('diff', ['f(x)', 'x'], [])
+            'diff(f(x),x)'
+        """
+        return "%s(%s)"%(function, ",".join(list(args) + list(kwds)))
 
     def call(self, function_name, *args, **kwds):
         return self.function_call(function_name, args, kwds)
@@ -1287,14 +1316,15 @@ If this all works, you can then make calls like:
 
     def __cmp__(self, other):
         """
-        Compare to pseudo-tty interfaces. To interfaces compare equal if
-        and only if they are identical objects (this is a critical
-        constrait so that caching of representations of objects in
-        interfaces works correctly). Otherwise they are never equal.
+        Compare two pseudo-tty interfaces. Two interfaces compare
+        equal if and only if they are identical objects (this is a
+        critical constrait so that caching of representations of
+        objects in interfaces works correctly). Otherwise they are
+        never equal.
 
         EXAMPLES::
 
-            sage: sage.calculus.calculus.maxima == maxima
+            sage: Maxima() == maxima
             False
             sage: maxima == maxima
             True

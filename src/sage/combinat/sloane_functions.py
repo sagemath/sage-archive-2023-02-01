@@ -1,8 +1,9 @@
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
-EXAMPLES: Type sloane.[tab] to see a list of the sequences that are
-defined.
+EXAMPLES:
+
+Type sloane.[tab] to see a list of the sequences that are defined.
 
 ::
 
@@ -107,7 +108,6 @@ import inspect
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
-import sage.calculus.all as calculus
 from sage.functions.all import prime_pi
 import partition
 from sage.rings.integer import Integer as Integer_class
@@ -286,7 +286,6 @@ import sage.rings.arith as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
-from sage.functions.constants import e
 from sage.libs.pari.gen import pari
 from sage.combinat import combinat
 from sage.misc.misc import prod
@@ -5154,7 +5153,8 @@ class A001405(SloaneSequence):
             sage: [sloane.A001405._eval(n) for n in range(10)]
             [1, 1, 2, 3, 6, 10, 20, 35, 70, 126]
         """
-        return arith.binomial(n, int(calculus.floor(n//2)))
+        from sage.functions.all import floor
+        return arith.binomial(n, int(floor(n//2)))
 
 class A000292(SloaneSequence):
     def __init__(self):

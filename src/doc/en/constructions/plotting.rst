@@ -128,14 +128,6 @@ A light green trisectrix of Maclaurin:
     ...   (1-4*cos(-pi/2+pi*i/100)^2)] for i in range(1,100)]
     sage: p = line(L, rgbcolor=(1/4,1,1/8))
 
-A green lemniscate of Bernoulli:
-
-::
-
-    sage: v = [(1/cos(-pi/2+pi*i/100), tan(-pi/2+pi*i/100)) for i in range(201)]
-    sage: L = [(a/(a^2+b^2), b/(a^2+b^2)) for a,b in v]
-    sage: p = line(L, rgbcolor=(1/4,3/4,1/8))
-
 
 .. index:: plot;curve using surf
 

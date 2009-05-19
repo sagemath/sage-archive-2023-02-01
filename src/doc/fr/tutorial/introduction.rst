@@ -46,18 +46,14 @@ tutoriel est le bon endroit où commencer. Voici quelques exemples :
     sage: E.rank()
     1
 
-    sage: k = 1/(sqrt(3)*I + 3/4 + sqrt(73)*5/9); print k
-                                           1
-                              ---------------------------
-                                           5 sqrt(73)   3
-                              sqrt(3)  I + ---------- + -
-                                               9        4
+    sage: k = 1/(sqrt(3)*I + 3/4 + sqrt(73)*5/9); k
+    1/(I*sqrt(3) + 5/9*sqrt(73) + 3/4)
     sage: N(k)
     0.165495678130644 - 0.0521492082074256*I
     sage: N(k,30)      # 30 "bits"
     0.16549568 - 0.052149208*I
     sage: latex(k)
-    \frac{1}{{\sqrt{ 3 } i} + \frac{{5 \sqrt{ 73 }}}{9} + \frac{3}{4}}
+    \frac{1}{I \, \sqrt{3} + \frac{5}{9} \, \sqrt{73} + \frac{3}{4}}
 
 Installation
 ============

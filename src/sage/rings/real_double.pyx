@@ -688,7 +688,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._parent
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Returns self formatted as a string, suitable as input to another
         computer algebra system. (This is the default function used for
@@ -1579,7 +1579,7 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
-            (-2.3)^(y^3 + sin(x) + x)
+            (-2.3)^(y^3 + x + sin(x))
             sage: RDF('-2.3')^x
             (-2.3)^x
         """

@@ -19,7 +19,6 @@ Ribbon Tableaux
 from combinat import CombinatorialObject, CombinatorialClass
 import skew_tableau, permutation, partition, skew_partition
 from sage.rings.all import QQ, ZZ
-import sage.calculus.calculus
 import functools
 from sage.combinat.words.words import Words
 
@@ -526,8 +525,9 @@ def spin_polynomial(part,weight,length):
         sage: spin_polynomial([[6]*6, [3,3]], [4,4,2], 3)
         3*t^9 + 5*t^8 + 9*t^7 + 6*t^6 + 3*t^5
     """
+    from sage.symbolic.ring import var
     sp = spin_polynomial_square(part,weight,length)
-    t = sage.calculus.calculus.var('t')
+    t = var('t')
     c = sp.coeffs()
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 

@@ -2097,7 +2097,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries(10^6)
             sage: v.randomize('lognormal').mean()
             1.647351973...
-            sage: e^0.5
+            sage: exp(0.5)
             1.648721270...
 
         A log-normal distribution can be simply thought of as the logarithm

@@ -217,7 +217,7 @@ def implicit_plot(f, xrange, yrange, **options):
     (plot_points=200 looks even better, but it's about 16 times slower.)
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
-    from sage.calculus.equations import is_SymbolicEquation
+    from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
         if f.operator() != operator.eq:
             raise ValueError, "input to implicit plot must be function or equation"
@@ -310,19 +310,20 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
 def equify(f, variables = None):
     """
-    Returns the equation rewritten as a symbolic function to give negative values when True,
-    positive when False.
+    Returns the equation rewritten as a symbolic function to give
+    negative values when True, positive when False.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.contour_plot import equify
         sage: var('x, y')
         (x, y)
         sage: equify(x^2 < 2)
         x |--> x^2 - 2
         sage: equify(x^2 > 2)
-        x |--> 2 - x^2
+        x |--> -x^2 + 2
         sage: equify(x*y > 1)
-        (x, y) |--> 1 - x*y
+        (x, y) |--> -x*y + 1
         sage: equify(y > 0, (x,y))
         (x, y) |--> -y
     """

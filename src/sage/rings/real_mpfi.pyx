@@ -653,6 +653,24 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         return __create__RealIntervalField_version0, (self.__prec, self.sci_not)
 
+    def random_element(self, *args):
+        """
+        Returns a random element of self. Any arguments are passed onto
+        the random element function in real field.
+
+        By default, this is uniformly distributed in `[-1, 1]`.
+
+        EXAMPLES::
+
+            sage: RIF.random_element()
+            -0.30607732607725314?
+            sage: RIF.random_element()
+            -0.075929193054320221?
+            sage: RIF.random_element(-100, 100)
+            -83.808125490023344?
+        """
+        return self(self._middle_field().random_element(*args))
+
     def gen(self, i=0):
         if i == 0:
             return self(1)
@@ -728,7 +746,32 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         return self.__prec
 
     def prec(self):
+        """
+        Returns the precision of this field (in bits).
+
+        EXAMPLES::
+
+            sage: RIF.prec()
+            53
+            sage: RealIntervalField(200).prec()
+            200
+        """
         return self.__prec
+
+    def to_prec(self, prec):
+        """
+        Returns a real interval field to the given precision.
+
+        EXAMPLES::
+
+            sage: RIF.to_prec(200)
+            Real Interval Field with 200 bits of precision
+            sage: RIF.to_prec(20)
+            Real Interval Field with 20 bits of precision
+            sage: RIF.to_prec(53) is RIF
+            True
+        """
+        return RealIntervalField(prec)
 
     def _magma_init_(self, magma):
         r"""
@@ -909,7 +952,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = RealIntervalField(428)(factorial(100)/exp(2)); a
             1.26303298005073195998439505058085204028142920134742241494671502106333548593576383141666758300089860337889002385197008191910406895?e157
             sage: a.diameter()
-            3.1364249297386517141045969994953263236588371094306826888961103474959002344191899147063056507500286786379396422813182492881735297e-129
+            4.7046373946079775711568954992429894854882556641460240333441655212438503516287848720594584761250430179569094634219773739322602945e-129
 
         Type: RealIntervalField? for many more examples.
         """
@@ -969,9 +1012,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 ix = a
                 ix1 = b
                 mpfi_interv_si(self.value, ix, ix1)
-            else:  # generic fallback -- coerce both endpoints to reals.
-                rn = self._parent._lower_field()(a)
-                rn1 =self._parent._upper_field()(b)
+            else:  # generic fallback
+                rn  = self._parent(a).lower()
+                rn1 = self._parent(b).upper()
                 mpfi_interv_fr(self.value, <mpfr_t> rn.value, <mpfr_t> rn1.value)
 
         elif isinstance(x, sage.rings.qqbar.AlgebraicReal):
@@ -979,10 +1022,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_set(self.value, d.value)
 
         else:
-            import sage.calculus.calculus
+            from sage.symbolic.expression import Expression
 
-            if isinstance(x, sage.calculus.calculus.SymbolicExpression):
-                d = x._mpfr_(self._parent)
+            if isinstance(x, Expression):
+                d = x._real_mpfi_(self._parent)
                 mpfi_set(self.value, d.value)
 
             elif isinstance(x, str):
@@ -1051,7 +1094,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return "%s!%s" % (self.parent()._magma_init_(magma), self.center())
 
-    def _interface_init_(self):
+    def _interface_init_(self, I=None):
         """
         Raise a TypeError.
 
@@ -1072,17 +1115,17 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             ...
             TypeError
 
-        Here a conversion to Maxima happens implicitly, which results in a
-        type error::
+        Here's a conversion to Maxima happens, which results in a type
+        error::
 
             sage: a = RealInterval('2.3')
-            sage: erf(a)
+            sage: maxima(a)
             Traceback (most recent call last):
             ...
             TypeError
         """
         raise TypeError
-        #return self.str(10, no_sci=True)
+
 
     def _sage_input_(self, sib, coerce):
         r"""
@@ -1106,7 +1149,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: RIF(-sqrt(3), -sqrt(2))._sage_input_(sib, False)
-            {call: {atomic:RIF}({unop:- {call: {atomic:RR}({atomic:1.7320508075688772})}}, {unop:- {call: {atomic:RR}({atomic:1.4142135623730951})}})}
+            {call: {atomic:RIF}({unop:- {call: {atomic:RR}({atomic:1.7320508075688774})}}, {unop:- {call: {atomic:RR}({atomic:1.4142135623730949})}})}
         """
         # Interval printing could often be much prettier,
         # but I'm feeling lazy :)
@@ -3693,6 +3736,115 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_atanh(x.value, self.value)
         _sig_off
         return x
+
+    # We implement some inverses in the obvious way (so they will
+    # usually not be perfectly rounded).  This gets us closer to the
+    # API of RealField.
+
+    def sec(self):
+        r"""
+        Returns the secant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).sec()
+            -2.40299796172238098975460040142?
+        """
+        return ~self.cos()
+
+    def csc(self):
+        r"""
+        Returns the cosecant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).csc()
+            1.099750170294616466756697397026?
+        """
+        return ~self.sin()
+
+    def cot(self):
+        r"""
+        Returns the cotangent of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).cot()
+            -0.457657554360285763750277410432?
+        """
+        return ~self.tan()
+
+    def sech(self):
+        r"""
+        Returns the hyperbolic secant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).sech()
+            0.265802228834079692120862739820?
+        """
+        return ~self.cosh()
+
+    def csch(self):
+        r"""
+        Returns the hyperbolic cosecant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).csch()
+            0.275720564771783207758351482163?
+        """
+        return ~self.sinh()
+
+    def coth(self):
+        r"""
+        Returns the hyperbolic cotangent of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).coth()
+            1.03731472072754809587780976477?
+        """
+        return ~self.tanh()
+
+    def arcsech(self):
+        r"""
+        Returns the inverse hyperbolic secant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(0.5).arcsech()
+            1.316957896924816708625046347308?
+            sage: (0.5).arcsech()
+            1.31695789692482
+        """
+        return (~self).arccosh()
+
+    def arccsch(self):
+        r"""
+        Returns the inverse hyperbolic cosecant of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).arccsch()
+            0.481211825059603447497758913425?
+            sage: (2.0).arccsch()
+            0.481211825059603
+        """
+        return (~self).arcsinh()
+
+    def arccoth(self):
+        r"""
+        Returns the inverse hyperbolic cotangent of this number.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(100)(2).arccoth()
+            0.549306144334054845697622618462?
+            sage: (2.0).arccoth()
+            0.549306144334055
+        """
+        return (~self).arctanh()
 
     def algdep(self, n):
         """

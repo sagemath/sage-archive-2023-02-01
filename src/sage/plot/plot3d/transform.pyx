@@ -182,6 +182,7 @@ def rotate_arbitrary(v, double theta):
 
         Symbolic rotation matrices about X and Y axis:
             sage: def rotX(theta): return matrix(SR, 3, 3, [1, 0, 0,  0, cos(theta), -sin(theta), 0, sin(theta), cos(theta)])
+
             sage: def rotZ(theta): return matrix(SR, 3, 3, [cos(theta), -sin(theta), 0,  sin(theta), cos(theta), 0, 0, 0, 1])
 
         Normalizing $y$ so that $|v|=1$. Perhaps there is a better
@@ -208,11 +209,15 @@ def rotate_arbitrary(v, double theta):
         Now go back to the original coordinate system.
             sage: m = rotZ(-s) * m
             sage: m = rotX(-t) * m
-            sage: m = m.simplify_rational()
+
+        And simplify every single entry (which is more effective that simplify
+        the whole matrix like above):
+
+            sage: m = m.parent()([x.simplify_rational() for x in m._list()])
             sage: m
-            [                                              (1 - cos(theta))*x^2 + cos(theta)                  (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1) - sin(theta)*sqrt(z^2)          (sin(theta)*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) + (1 - cos(theta))*x*z^2)/z]
-            [                 sin(theta)*sqrt(z^2) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                                 (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1 (-(cos(theta) - 1)*z*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) - sin(theta)*x*z)/sqrt(z^2)]
-            [        (-sin(theta)*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) - (cos(theta) - 1)*x*z^2)/z  (sin(theta)*x*z - (cos(theta) - 1)*z*sqrt(-z^2 - x^2 + 1)*sqrt(z^2))/sqrt(z^2)                                               (1 - cos(theta))*z^2 + cos(theta)]
+            [                                             -(cos(theta) - 1)*x^2 + cos(theta)                 -(cos(theta) - 1)*sqrt(-x^2 - z^2 + 1)*x - sqrt(z^2)*sin(theta)         -((cos(theta) - 1)*x*z^2 - sqrt(-x^2 - z^2 + 1)*sqrt(z^2)*sin(theta))/z]
+            [                -(cos(theta) - 1)*sqrt(-x^2 - z^2 + 1)*x + sqrt(z^2)*sin(theta)                                 (cos(theta) - 1)*x^2 + (cos(theta) - 1)*z^2 + 1 -((cos(theta) - 1)*sqrt(-x^2 - z^2 + 1)*sqrt(z^2)*z + x*z*sin(theta))/sqrt(z^2)]
+            [        -((cos(theta) - 1)*x*z^2 + sqrt(-x^2 - z^2 + 1)*sqrt(z^2)*sin(theta))/z -((cos(theta) - 1)*sqrt(-x^2 - z^2 + 1)*sqrt(z^2)*z - x*z*sin(theta))/sqrt(z^2)                                              -(cos(theta) - 1)*z^2 + cos(theta)]
 
 
         Re-expressing some entries in terms of y and resolving the absolute

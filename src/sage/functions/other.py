@@ -1,0 +1,757 @@
+"""
+Other functions
+"""
+from sage.symbolic.function import SFunction, PrimitiveFunction
+from sage.symbolic.expression import Expression
+from sage.libs.pari.gen import pari
+from sage.symbolic.all import SR
+from sage.rings.all import Integer, Rational, RealField, CC, RR
+from sage.misc.latex import latex
+import math
+
+one_half = SR(1)/2
+
+class Function_erf(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        The error function, defined as
+        `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
+
+        Sage currently only implements the error function (via a call to
+        PARI) when the input is real.
+
+        EXAMPLES::
+
+            sage: erf(2)
+            erf(2)
+            sage: erf(2).n()
+            0.995322265018953
+            sage: loads(dumps(erf))
+            erf
+        """
+        PrimitiveFunction.__init__(self, "erf", latex=r"\text{erf}",
+                                   approx=lambda x: float(1 - pari(float(x)).erfc()))
+
+    def _evalf_(self, x, prec=0):
+        """
+        EXAMPLES::
+
+            sage: erf(2).n()
+            0.995322265018953
+            sage: erf(2).n(150)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: erf not implemented for precision higher than 53
+        """
+        if prec > 53:
+            raise NotImplementedError, "erf not implemented for precision higher than 53"
+        else:
+            return RealField(prec)(1 - pari(float(x)).erfc())
+
+erf = Function_erf()
+
+class Function_abs(PrimitiveFunction):
+    def __init__(self):
+        """
+        The absolute value function.
+
+        EXAMPLES::
+
+            sage: var('x y')
+            (x, y)
+            sage: abs(x)
+            abs(x)
+            sage: abs(x^2 + y^2)
+            abs(x^2 + y^2)
+            sage: abs(-2)
+            2
+            sage: sqrt(x^2)
+            sqrt(x^2)
+            sage: abs(sqrt(x))
+            abs(sqrt(x))
+        """
+        PrimitiveFunction.__init__(self, "abs", latex=r"\mathrm{abs}",
+                                   approx=lambda x: float(x.__abs__()))
+
+    def _latex_composition(self, x):
+        """
+        EXAMPLES::
+
+            sage: f = sage.functions.other.Function_abs()
+            sage: latex(f)
+            \mathrm{abs}
+            sage: latex(abs(x))
+            \left| x \right|
+        """
+        return "\\left| " + latex(x) + " \\right|"
+
+    def _complex_approx_(self, x):
+        """
+        EXAMPLES::
+
+            sage: complex(abs(3*I))
+            (3+0j)
+            sage: abs_symbolic._complex_approx_(complex(3*I))
+            (3+0j)
+        """
+        return complex(x.__abs__())
+
+    __call__ = SFunction.__call__
+
+abs = abs_symbolic = Function_abs()
+
+class Function_ceil(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        The ceiling function.
+
+        The ceiling of `x` is computed in the following manner.
+
+
+        #. The ``x.ceil()`` method is called and returned if it
+           is there. If it is not, then Sage checks if `x` is one of
+           Python's native numeric data types. If so, then it calls and
+           returns ``Integer(int(math.ceil(x)))``.
+
+        #. Sage tries to convert `x` into a
+           ``RealIntervalField`` with 53 bits of precision. Next,
+           the ceilings of the endpoints are computed. If they are the same,
+           then that value is returned. Otherwise, the precision of the
+           ``RealIntervalField`` is increased until they do match
+           up or it reaches ``maximum_bits`` of precision.
+
+        #. If none of the above work, Sage returns a
+           ``Expression`` object.
+
+
+        EXAMPLES::
+
+            sage: a = ceil(2/5 + x)
+            sage: a
+            ceil(x + 2/5)
+            sage: a(x=4)
+            5
+            sage: a(x=4.0)
+            5
+            sage: ZZ(a(x=3))
+            4
+            sage: a = ceil(x^3 + x + 5/2); a
+            ceil(x^3 + x + 5/2)
+            sage: a.simplify()
+            ceil(x^3 + x + 1/2) + 2
+            sage: a(x=2)
+            13
+
+        ::
+
+            sage: ceil(log(8)/log(2))
+            3
+
+        ::
+
+            sage: ceil(5.4)
+            6
+            sage: type(ceil(5.4))
+            <type 'sage.rings.integer.Integer'>
+
+        ::
+
+            sage: ceil(factorial(50)/exp(1))
+            11188719610782480504630258070757734324011354208865721592720336801
+            sage: ceil(SR(10^50 + 10^(-50)))
+            100000000000000000000000000000000000000000000000001
+            sage: ceil(SR(10^50 - 10^(-50)))
+            100000000000000000000000000000000000000000000000000
+
+            sage: ceil(sec(e))
+            -1
+        """
+        PrimitiveFunction.__init__(self, "ceil", latex=r"\text{ceil}",
+                                   approx=math.ceil,
+                                   conversions=dict(maxima='ceiling'))
+
+    def _latex_composition(self, x):
+        r"""
+        EXAMPLES:
+            sage: latex(ceil(x))
+            \left \lceil x \right \rceil
+        """
+        return r"\left \lceil %s \right \rceil"%latex(x)
+
+    def __call__(self, x, maximum_bits=20000):
+        try:
+            return x.ceil()
+        except AttributeError:
+            if isinstance(x, (int, long)):
+                return Integer(x)
+            elif isinstance(x, (float, complex)):
+                return Integer(int(math.ceil(x)))
+
+        x_original = x
+
+        from sage.rings.all import RealIntervalField
+        #If x can be coerced into a real interval, then we should
+        #try increasing the number of bits of precision until
+        #we get the ceiling at each of the endpoints is the same.
+        #The precision will continue to be increased up to maximum_bits
+        #of precision at which point it will raise a value error.
+        bits = 53
+        try:
+            x_interval = RealIntervalField(bits)(x)
+            upper_ceil = x_interval.upper().ceil()
+            lower_ceil = x_interval.lower().ceil()
+
+            while upper_ceil != lower_ceil and bits < maximum_bits:
+                bits += 100
+                x_interval = RealIntervalField(bits)(x)
+                upper_ceil = x_interval.upper().ceil()
+                lower_ceil = x_interval.lower().ceil()
+
+            if bits < maximum_bits:
+                return lower_ceil
+            else:
+                try:
+                    return ceil(SR(x).full_simplify())
+                except ValueError:
+                    pass
+                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
+
+        except TypeError:
+            #If x cannot be coerced into a RealField, then
+            #it should be left as a symbolic expression.
+            return SFunction.__call__(self, SR(x_original))
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: ceil(x).subs(x==7.5)
+            8
+            sage: ceil(x)
+            ceil(x)
+        """
+        try:
+            obj = x.pyobject()
+            return SR(ceil(obj))
+        except TypeError:
+            pass
+        return None
+
+ceil = Function_ceil()
+
+
+class Function_floor(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        The floor function.
+
+        The floor of `x` is computed in the following manner.
+
+
+        #. The ``x.floor()`` method is called and returned if
+           it is there. If it is not, then Sage checks if `x` is one
+           of Python's native numeric data types. If so, then it calls and
+           returns ``Integer(int(math.floor(x)))``.
+
+        #. Sage tries to convert `x` into a
+           ``RealIntervalField`` with 53 bits of precision. Next,
+           the floors of the endpoints are computed. If they are the same,
+           then that value is returned. Otherwise, the precision of the
+           ``RealIntervalField`` is increased until they do match
+           up or it reaches ``maximum_bits`` of precision.
+
+        #. If none of the above work, Sage returns a
+           symbolic ``Expression`` object.
+
+
+        EXAMPLES::
+
+            sage: floor(5.4)
+            5
+            sage: type(floor(5.4))
+            <type 'sage.rings.integer.Integer'>
+            sage: var('x')
+            x
+            sage: a = floor(5.4 + x); a
+            floor(x + 5.40000000000000)
+            sage: a.simplify()
+            floor(x + 0.4) + 5
+            sage: a(x=2)
+            7
+
+        ::
+
+            sage: floor(log(8)/log(2))
+            3
+
+        ::
+
+            sage: floor(factorial(50)/exp(1))
+            11188719610782480504630258070757734324011354208865721592720336800
+            sage: floor(SR(10^50 + 10^(-50)))
+            100000000000000000000000000000000000000000000000000
+            sage: floor(SR(10^50 - 10^(-50)))
+            99999999999999999999999999999999999999999999999999
+            sage: floor(int(10^50))
+            100000000000000000000000000000000000000000000000000
+        """
+        PrimitiveFunction.__init__(self, "floor", latex=r"\text{floor}",
+                                   approx=math.floor)
+
+    def _latex_composition(self, x):
+        r"""
+        EXAMPLES:
+            sage: latex(floor(x))
+            \left \lfloor x \right \rfloor
+        """
+        return r"\left \lfloor %s \right \rfloor"%latex(x)
+
+    def __call__(self, x, maximum_bits=20000):
+        try:
+            return x.floor()
+        except AttributeError:
+            if isinstance(x, (int, long)):
+                return Integer(x)
+            elif isinstance(x, (float, complex)):
+                return Integer(int(math.floor(x)))
+
+        x_original = x
+
+        from sage.rings.all import RealIntervalField
+
+        #If x can be coerced into a real interval, then we should
+        #try increasing the number of bits of precision until
+        #we get the floor at each of the endpoints is the same.
+        #The precision will continue to be increased up to maximum_bits
+        #of precision at which point it will raise a value error.
+        bits = 53
+        try:
+            x_interval = RealIntervalField(bits)(x)
+            upper_floor = x_interval.upper().floor()
+            lower_floor = x_interval.lower().floor()
+
+            while upper_floor != lower_floor and bits < maximum_bits:
+                bits += 100
+                x_interval = RealIntervalField(bits)(x)
+                upper_floor = x_interval.upper().floor()
+                lower_floor = x_interval.lower().floor()
+
+            if bits < maximum_bits:
+                return lower_floor
+            else:
+                try:
+                    return floor(SR(x).full_simplify())
+                except ValueError:
+                    pass
+                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+
+        except TypeError:
+            #If x cannot be coerced into a RealField, then
+            #it should be left as a symbolic expression.
+            return SFunction.__call__(self, SR(x_original))
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: floor(x).subs(x==7.5)
+            7
+            sage: floor(x)
+            floor(x)
+        """
+        try:
+            obj = x.pyobject()
+            return obj.floor()
+        except (TypeError, AttributeError):
+            pass
+        return None
+
+floor = Function_floor()
+
+class Function_gamma(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        The Gamma function.
+
+        EXAMPLES::
+
+            sage: gamma(CDF(0.5,14))
+            -4.05370307804e-10 - 5.77329983455e-10*I
+            sage: gamma(CDF(I))
+            -0.154949828302 - 0.498015668118*I
+            sage: gamma(11) == factorial(10)
+            True
+            sage: gamma(6)
+            120
+            sage: gamma(1/2)
+            sqrt(pi)
+            sage: gamma(-1)
+            Infinity
+            sage: gamma(I)
+            gamma(I)
+            sage: gamma(x/2)(x=5)
+            3/4*sqrt(pi)
+            sage: plot(gamma(x),(x,1,5))
+
+        TESTS:
+
+        We verify that we can convert this function to Maxima and
+        convert back to Sage::
+
+            sage: z = var('z')
+            sage: maxima(gamma(z)).sage()
+            gamma(z)
+        """
+        PrimitiveFunction.__init__(self, "gamma", latex=r'\Gamma')
+
+    def __call__(self, x):
+        """
+        EXAMPLES::
+
+            sage: gamma(6)
+            120
+            sage: gamma(float(6))
+            120.000000000000
+            sage: gamma(x)
+            gamma(x)
+
+        ::
+
+            sage: gamma(pi)
+            gamma(pi)
+            sage: gamma(QQbar(I))
+            -0.154949828301811 - 0.498015668118356*I
+            sage: Q.<i> = NumberField(x^2+1)
+            sage: gamma(i)
+            -0.154949828301811 - 0.498015668118356*I
+            sage: gamma(int(5))
+            24
+        """
+        from sage.structure.element import is_Element
+        try:
+            return x.gamma()
+        except AttributeError:
+            pass
+        if isinstance(x, (int, long)):
+            return Integer(x).gamma()
+        if is_Element(x) and x.parent() is SR:
+            return SFunction.__call__(self, x)
+        if isinstance(x, float):
+            return RR(x).gamma()
+        return CC(x).gamma()
+
+gamma = Function_gamma()
+
+class Function_factorial(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        Returns the factorial of `n`.
+
+        INPUT:
+
+
+        -  ``n`` - an integer, or symbolic expression
+
+        -  ``algorithm`` - string (default: 'gmp')
+
+        -  ``'gmp'`` - use the GMP C-library factorial
+           function
+
+        -  ``'pari'`` - use PARI's factorial function This
+           option has no effect if n is a symbolic expression.
+
+
+        OUTPUT: an integer or symbolic expression
+
+        EXAMPLES::
+
+            sage: x = var('x')
+            sage: factorial(0)
+            1
+            sage: factorial(4)
+            24
+            sage: factorial(10)
+            3628800
+            sage: factorial(6) == 6*5*4*3*2
+            True
+            sage: f = factorial(x + factorial(x)); f
+            factorial(x + factorial(x))
+            sage: f(x=3)
+            362880
+            sage: factorial(x)^2
+            factorial(x)^2
+
+        ::
+
+            sage: factorial(-32)
+            Traceback (most recent call last):
+            ...
+            ValueError: factorial -- must be nonnegative
+
+        TESTS: We verify that we can convert this function to Maxima and
+        bring it back into Sage.
+
+        ::
+
+            sage: z = var('z')
+            sage: factorial._maxima_init_()
+            'factorial'
+            sage: maxima(factorial(z))
+            z!
+            sage: _.sage()
+            factorial(z)
+            sage: k = var('k',ns=1)
+            sage: factorial(k)
+            factorial(k)
+
+            sage: factorial._approx_(3.14)
+            7.173269190187...
+        """
+        PrimitiveFunction.__init__(self, "factorial", latex="!",
+                                   conversions=dict(maxima='factorial'),
+                                   approx=lambda x: gamma(x+1))
+
+
+    def _latex_composition(self, n):
+        r"""
+        Returns the LaTeX code when this function is applied to an object.
+
+        EXAMPLES::
+
+            sage: latex(factorial(x))
+            x!
+            sage: latex(factorial(2*x))
+            \left(2 \, x\right)!
+            sage: latex(factorial(sin(x)))
+            \sin\left(x\right)!
+            sage: latex(factorial(sqrt(x+1)))
+            \left(\sqrt{x + 1}\right)!
+            sage: latex(factorial(sqrt(x)))
+            \sqrt{x}!
+            sage: latex(factorial(x^(2/3)))
+            \left(x^{\frac{2}{3}}\right)!
+        """
+        n = latex(n)
+        if ' ' in n or '/' in n or '+' in n or '-' in n or '*' in n or '^' in n:
+            n = "\\left(" + n + "\\right)"
+        return n + '!'
+
+    def __call__(self, n, **kwds):
+        """
+        This first tries to call the factorial function in
+        sage.rings.arith, and if that fails, it returns a
+        symbolic ``Expression`` object.
+
+        EXAMPLES::
+
+            sage: factorial(4)
+            24
+            sage: factorial(x)
+            factorial(x)
+        """
+        from sage.rings.arith import factorial
+        try:
+            return factorial(n, **kwds)
+        except (TypeError, ValueError), err:
+            if 'nonnegative' in str(err):
+                raise
+            try:
+                return n.factorial()
+            except AttributeError:
+                pass
+
+        return SFunction.__call__(self, SR(n))
+
+factorial = Function_factorial()
+
+
+class Function_sqrt(PrimitiveFunction):
+    def __init__(self):
+        """
+        The square root function. This is a symbolic square root.
+
+        EXAMPLES::
+
+            sage: sqrt(-1)
+            I
+            sage: sqrt(2)
+            sqrt(2)
+            sage: sqrt(2)^2
+            2
+            sage: sqrt(4)
+            2
+            sage: sqrt(4,all=True)
+            [2, -2]
+            sage: sqrt(x^2)
+            sqrt(x^2)
+        """
+        PrimitiveFunction.__init__(self, "sqrt", latex=r"\sqrt",
+                                   approx=math.sqrt)
+
+    def _evalf_(self, x, prec=0):
+        """
+        EXAMPLES::
+
+            sage: sqrt(2).n()
+            1.41421356237310
+        """
+        return x.n(prec=prec).sqrt()
+
+    def _do_sqrt(self, x, prec=None, extend=True, all=False):
+        """
+        Used internally to compute the square root of x.
+
+        INPUT:
+
+        -  ``x`` - a number
+
+        -  ``prec`` - None (default) or a positive integer
+           (bits of precision) If not None, then compute the square root
+           numerically to prec bits of precision.
+
+        -  ``extend`` - bool (default: True); this is a place
+           holder, and is always ignored since in the symbolic ring everything
+           has a square root.
+
+        -  ``extend`` - bool (default: True); whether to extend
+           the base ring to find roots. The extend parameter is ignored if
+           prec is a positive integer.
+
+        -  ``all`` - bool (default: False); whether to return
+           a list of all the square roots of x.
+
+
+        EXAMPLES::
+
+            sage: sqrt._do_sqrt(3)
+            sqrt(3)
+            sage: sqrt._do_sqrt(3,prec=10)
+            1.7
+            sage: sqrt._do_sqrt(3,prec=100)
+            1.7320508075688772935274463415
+            sage: sqrt._do_sqrt(3,all=True)
+            [sqrt(3), -sqrt(3)]
+
+        Note that the extend parameter is ignored in the symbolic ring::
+
+            sage: sqrt._do_sqrt(3,extend=False)
+            sqrt(3)
+        """
+        from sage.rings.all import RealField, ComplexField
+        if prec:
+            if x >= 0:
+                 return RealField(prec)(x).sqrt(all=all)
+            else:
+                 return ComplexField(prec)(x).sqrt(all=all)
+        if x == -1:
+            from sage.symbolic.constants import I
+            z = I
+        else:
+            z = SR(x) ** one_half
+
+        if all:
+            if z:
+                return [z, -z]
+            else:
+                return [z]
+        return z
+
+    def __call__(self, x, *args, **kwds):
+        """
+        INPUT:
+
+        -  ``x`` - a number
+
+        -  ``prec`` - integer (default: None): if None, returns
+           an exact square root; otherwise returns a numerical square root if
+           necessary, to the given bits of precision.
+
+        -  ``extend`` - bool (default: True); this is a place
+           holder, and is always ignored or passed to the sqrt function for x,
+           since in the symbolic ring everything has a square root.
+
+        -  ``all`` - bool (default: False); if True, return all
+           square roots of self, instead of just one.
+        """
+        if isinstance(x, float):
+            return math.sqrt(x)
+        try:
+            return x.sqrt(*args, **kwds)
+        except AttributeError:
+            pass
+        return self._do_sqrt(x, *args, **kwds)
+
+sqrt = Function_sqrt()
+
+############################
+# Real and Imaginary Parts #
+############################
+class Function_real_part(PrimitiveFunction):
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: loads(dumps(real_part))
+            real_part
+        """
+        PrimitiveFunction.__init__(self, "real_part",
+                                   conversions=dict(maxima='realpart'))
+
+
+    def __call__(self, x):
+        """
+        Return the real part of x.
+
+        EXAMPLES::
+
+            sage: z = 1+2*I
+            sage: real(z)
+            1
+            sage: real(5/3)
+            5/3
+            sage: a = 2.5
+            sage: real(a)
+            2.50000000000000
+            sage: type(real(a))
+            <type 'sage.rings.real_mpfr.RealLiteral'>
+        """
+        #Try to all the .real() method
+        try:
+            return x.real()
+        except AttributeError:
+            pass
+
+        try:
+            return x.real_part()
+        except AttributeError:
+            pass
+
+        #Try to coerce x into RR.  If that
+        #succeeds, then we can just return x
+        try:
+            rdf_x = RR(x)
+            return x
+        except TypeError:
+            pass
+
+        return SFunction.__call__(self, x)
+
+real = real_part = Function_real_part()
+
+class Function_imag_part(PrimitiveFunction):
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: z = 1+2*I
+            sage: imaginary(z)
+            2
+            sage: imag(z)
+            2
+            sage: loads(dumps(imag_part))
+            imag_part
+        """
+        PrimitiveFunction.__init__(self, "imag_part",
+                                   conversions=dict(maxima='imagpart'))
+
+imag = imag_part = imaginary = Function_imag_part()

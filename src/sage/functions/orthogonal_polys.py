@@ -317,9 +317,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, ZZ, CDF, RDF
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
-from sage.calculus.calculus import sqrt
-
-from functions import *
+from sage.calculus.calculus import maxima
 
 _done = False
 def _init():
@@ -391,6 +389,7 @@ def gen_laguerre(n,a,x):
         sage: gen_laguerre(3,0,x)
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
     """
+    from sage.functions.all import sqrt
     _init()
     return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
 
@@ -417,14 +416,15 @@ def gen_legendre_P(n,m,x):
         sage: gen_legendre_P(2, 0, t) == legendre_P(2, t)
         True
         sage: gen_legendre_P(3, 1, t)
-        (3/2 - 15*t^2/2)*sqrt(1 - t^2)
+        -3/2*sqrt(-t^2 + 1)*(5*t^2 - 1)
         sage: gen_legendre_P(4, 3, t)
-        sqrt(1 - t^2)*(105*t^3 - 105*t)
+        (105*t^3 - 105*t)*sqrt(-t^2 + 1)
         sage: gen_legendre_P(7, 3, I).expand()
         -16695*sqrt(2)
         sage: gen_legendre_P(4, 1, 2.5)
         -583.562373654533*I
     """
+    from sage.functions.all import sqrt
     _init()
     if m.mod(2).is_zero() or m.is_one():
         return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
@@ -444,16 +444,17 @@ def gen_legendre_Q(n,m,x):
 
         sage: P.<t> = QQ[]
         sage: gen_legendre_Q(2,0,t)
-        (3*log((-t - 1)/(t - 1))*t^2 - 6*t - log((-t - 1)/(t - 1)))/4
+        3/4*t^2*log((-t - 1)/(t - 1)) - 3/2*t - 1/4*log((-t - 1)/(t - 1))
         sage: gen_legendre_Q(2,0,t) - legendre_Q(2, t)
         0
         sage: gen_legendre_Q(3,1,0.5)
         2.49185259170895
         sage: gen_legendre_Q(0, 1, x)
-        -1/sqrt(1 - x^2)
+        -1/sqrt(-x^2 + 1)
         sage: gen_legendre_Q(2, 4, x).factor()
         48*x/((x - 1)^2*(x + 1)^2)
     """
+    from sage.functions.all import sqrt
     if m <= n:
         _init()
         return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
@@ -494,7 +495,7 @@ def hermite(n,x):
         8*y^6 - 12*y^2
         sage: w = var('w')
         sage: hermite(3,2*w)
-        -24*w*(1 - 8*w^2/3)
+        8*(8*w^2 - 3)*w
     """
     _init()
     return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
@@ -561,7 +562,7 @@ def legendre_P(n,x):
         sage: legendre_P(3, 1.1)
         1.67750000000000
         sage: legendre_P(3, 1 + I)
-        7*I/2 - 13/2
+        7/2*I - 13/2
         sage: legendre_P(3, MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
         [-179  242]
         [-484  547]
@@ -582,11 +583,11 @@ def legendre_Q(n,x):
 
         sage: P.<t> = QQ[]
         sage: legendre_Q(2, t)
-        (3*log((-t - 1)/(t - 1))*t^2 - 6*t - log((-t - 1)/(t - 1)))/4
+        3/4*t^2*log((-t - 1)/(t - 1)) - 3/2*t - 1/4*log((-t - 1)/(t - 1))
         sage: legendre_Q(3, 0.5)
         -0.198654771479482
         sage: legendre_Q(4, 2)
-        (1329*log(-3) - 1460)/48
+        443/16*I*pi + 443/16*log(3) - 365/12
         sage: legendre_Q(4, 2.0)
         NaN
     """

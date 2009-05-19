@@ -138,7 +138,7 @@ cdef class NumberField(Field):
         We compute the Minkowski bound for $\QQ[\sqrt[3]{2}]$:
             sage: K = QQ[2^(1/3)]
             sage: B = K.minkowski_bound(); B
-            16*sqrt(3)/(3*pi)
+            16/3*sqrt(3)/pi
             sage: B.n()
             2.94042077558289
             sage: int(B)
@@ -161,7 +161,7 @@ cdef class NumberField(Field):
         _, s = self.signature()
         n = self.degree()
         d = self.discriminant().abs().sqrt()
-        from sage.functions.constants import pi
+        from sage.symbolic.constants import pi
         if s > 0:
             return d * (4/pi)**s * n.factorial() / (n**n)
         else:
@@ -184,7 +184,7 @@ cdef class NumberField(Field):
         field, where the Minkowski bound is much better:
             sage: K = QQ[sqrt(5)]
             sage: K.minkowski_bound()
-            sqrt(5)/2
+            1/2*sqrt(5)
             sage: K.minkowski_bound().n()
             1.11803398874989
             sage: K.bach_bound()
@@ -196,7 +196,7 @@ cdef class NumberField(Field):
         degree field, where the Bach bound is much better:
             sage: K = CyclotomicField(37)
             sage: K.minkowski_bound().n()
-            7.50857335698545e14
+            7.50857335698544e14
             sage: K.bach_bound().n()
             191669.304126267
 

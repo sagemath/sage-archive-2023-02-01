@@ -55,7 +55,7 @@ just a few examples:
     sage: sin(5.135)
     -0.912021158525540
     sage: sin(pi/3)
-    sqrt(3)/2
+    1/2*sqrt(3)
 
 As the last example shows, some mathematical expressions return
 'exact' values, rather than numerical approximations. To get a

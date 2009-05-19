@@ -3632,6 +3632,9 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return infinity.infinity
 
+    def absolute_polynomial_ntl(self):
+        return self.polynomial_ntl()
+
     def polynomial_ntl(self):
         """
         Return defining polynomial of this number field as a pair, an ntl
@@ -6843,6 +6846,18 @@ class NumberField_quadratic(NumberField_absolute):
         # crash Sage: see #5316).  Overwrite them with correct values.
         self._zero_element = self(0)
         self._one_element =  self(1)
+
+        emb = self.coerce_embedding()
+        if emb is None:
+            self._standard_embedding = True
+        else:
+            rootD = number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1)))
+            if D > 0:
+                from sage.rings.real_double import RDF
+                self._standard_embedding = RDF.has_coerce_map_from(self) and RDF(rootD) > 0
+            else:
+                from sage.rings.complex_double import CDF
+                self._standard_embedding = CDF.has_coerce_map_from(self) and CDF(rootD).imag() > 0
 
     def _coerce_map_from_(self, K):
         """

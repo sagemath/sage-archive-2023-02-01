@@ -228,11 +228,11 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         (1.00...,  1.00..., 1.00...)
 
     """
-    from sage.calculus.calculus import SymbolicExpression
+    from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
     import scipy
     from scipy import optimize
-    if isinstance(func,SymbolicExpression):
+    if isinstance(func, Expression):
         var_list=func.variables()
         var_names=map(str,var_list)
         fast_f=fast_callable(func, vars=var_names, domain=float)
@@ -258,7 +258,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         elif algorithm=="powell":
             min= optimize.fmin_powell(f,map(float,x0),**args)
         elif algorithm=="ncg":
-            if isinstance(func,SymbolicExpression):
+            if isinstance(func, Expression):
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
@@ -328,12 +328,12 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
           (-10.0, 10.0)
 
     """
-    from sage.calculus.calculus import SymbolicExpression
+    from sage.symbolic.expression import Expression
     import scipy
     from scipy import optimize
     function_type=type(lambda x,y: x+y)
 
-    if isinstance(func,SymbolicExpression):
+    if isinstance(func, Expression):
         var_list=func.variables()
         var_names=map(str,var_list)
         fast_f=func._fast_float_(*var_names)
@@ -476,7 +476,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         We can also use a python function for the model:
           sage: def f(x, a, b, c): return a * sin(b * x - c)
           sage: find_fit(data, f, parameters = [a, b, c], variables = [x], solution_dict = True)
-          {a: 1.21..., c: 0.19..., b: 0.49...}
+          {a: 1.21..., b: 0.49..., c: 0.19...}
 
         We search for a formula for the n-th prime number:
           sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
@@ -498,18 +498,21 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
     if data.ndim != 2:
         raise ValueError, "data has to be a two dimensional table of floating point numbers"
 
-    from sage.calculus.calculus import SymbolicExpression, CallableSymbolicExpression
-    if isinstance(model, CallableSymbolicExpression):
-        parameters = list(model.variables())
-        variables = list(model.arguments())
-        for v in variables:
-            parameters.remove(v)
+    from sage.symbolic.expression import Expression
+
+    if isinstance(model, Expression):
+        if variables is None:
+            variables = list(model.arguments())
+        if parameters is None:
+            parameters = list(model.variables())
+            for v in variables:
+                parameters.remove(v)
 
     if data.shape[1] != len(variables) + 1:
         raise ValueError, "each row of data needs %d entries, only %d entries given" % (len(variables) + 1, data.shape[1])
 
-    if parameters == None or len(parameters) == 0 or \
-       variables == None or len(variables) == 0:
+    if parameters is None or len(parameters) == 0 or \
+       variables is None or len(variables) == 0:
         raise ValueError, "no variables given"
 
     if initial_guess == None:
@@ -526,7 +529,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
     if len(initial_guess) != len(parameters):
         raise ValueError, "length of initial_guess does not coincide with the number of parameters"
 
-    if isinstance(model, SymbolicExpression):
+    if isinstance(model, Expression):
         var_list = variables + parameters
         var_names = map(str, var_list)
         func = model._fast_float_(*var_names)

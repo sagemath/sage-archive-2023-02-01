@@ -35,7 +35,6 @@ little endian, but is consistent with most cryptographic literature.
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.matrix.constructor import Matrix
-from sage.misc.functional import log as log_b
 from sage.misc.misc_c import prod as mul
 from sage.modules.free_module_element import vector
 from sage.rings.finite_field_element import is_FiniteFieldElement
@@ -96,12 +95,12 @@ class SBox(SageObject):
 
         self._S = S
 
-        length = log_b(len(S),2)
+        length = ZZ(len(S)).exact_log(2)
         if length != int(length):
             TypeError, "lookup table length is not a power of 2."
 
         self.m = int(length)
-        self.n = int(log_b(max(S)+1,2))
+        self.n = ZZ(max(S)+1).exact_log(2)
         self._F = GF(2)
         self._big_endian = kwargs.get("big_endian",True)
 

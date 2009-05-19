@@ -1,7 +1,7 @@
 
 from copy import deepcopy
 from sage.matrix.constructor import matrix
-from sage.calculus.calculus import floor
+from sage.functions.all import floor
 from sage.misc.mrange import mrange
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ

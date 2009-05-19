@@ -197,6 +197,6 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     slope_options = {'headaxislength': 0, 'headlength': 0, 'pivot': 'middle'}
     slope_options.update(kwds)
 
-    from sage.calculus.calculus import sqrt
+    from sage.functions.all import sqrt
     norm = sqrt((f**2+1))
     return plot_vector_field((1/norm, f/norm), xrange, yrange, **slope_options)

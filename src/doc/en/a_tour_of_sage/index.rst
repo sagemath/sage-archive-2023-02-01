@@ -40,7 +40,7 @@ Here we integrate a simple function.
 
     sage: x = var('x')   # create a symbolic variable
     sage: integrate(sqrt(x)*sqrt(1+x), x)
-    -log(sqrt(x + 1)/sqrt(x) + 1)/8 + log(sqrt(x + 1)/sqrt(x) - 1)/8 + ((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/(4*(x + 1)^2/x^2 - 8*(x + 1)/x + 4)
+    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1)
 
 This asks Sage to solve a quadratic equation. The symbol ``==``
 represents equality in Sage.
@@ -49,7 +49,7 @@ represents equality in Sage.
 
     sage: a = var('a')
     sage: S = solve(x^2 + x == a, x); S
-    [x == (-sqrt(4*a + 1) - 1)/2, x == (sqrt(4*a + 1) - 1)/2]
+    [x == -1/2*sqrt(4*a + 1) - 1/2, x == 1/2*sqrt(4*a + 1) - 1/2]
 
 The result is a list of equalities.
 
@@ -58,7 +58,7 @@ The result is a list of equalities.
 ::
 
     sage: S[0].rhs()
-    (-sqrt(4*a + 1) - 1)/2
+    -1/2*sqrt(4*a + 1) - 1/2
     sage: show(plot(sin(x) + sin(1.6*x), 0, 40))
 
 .. image:: sin_plot.*

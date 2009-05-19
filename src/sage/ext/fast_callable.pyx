@@ -370,7 +370,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fp(e, pi, sqrt(2))
         -98.0015640336
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
-        -1*e*pi^2 - pi^2 - 6*e^2 - 3*sqrt(2)*e - 2*e
+        -pi^2*e - pi^2 - 3*sqrt(2)*e - 2*e - 6*e^2
         sage: n(symbolic_result)
         -98.0015640336293
 
@@ -390,7 +390,7 @@ def fast_callable(x, domain=None, vars=None,
         vars = et._etb._vars
     else:
         if vars is None or len(vars) == 0:
-            from sage.calculus.calculus import SR, PrimitiveFunction, CallableSymbolicExpression
+            from sage.symbolic.all import SR, PrimitiveFunction, is_CallableSymbolicExpressionRing, is_Expression
             # XXX This is pretty gross... there should be a "callable_variables"
             # method that does all this.
             vars = x.variables()
@@ -400,9 +400,7 @@ def fast_callable(x, domain=None, vars=None,
             # Failing to specify the variables is deprecated for any
             # symbolic expression, except for PrimitiveFunction and
             # CallableSymbolicExpression.
-            ok_sr = isinstance(x, PrimitiveFunction) or isinstance(x, CallableSymbolicExpression)
-
-            if x.parent() is SR and not ok_sr:
+            if is_Expression(x) and not is_CallableSymbolicExpressionRing(x.parent()):
                 if expect_one_var and len(vars) <= 1:
                     if len(vars) == 0:
                         vars = ['EXTRA_VAR0']
@@ -911,8 +909,8 @@ cdef class Expression:
             return ExpressionIPow(es._etb, s, o)
         else:
             # I really don't like this, but I can't think of a better way
-            from sage.calculus.calculus import is_SymbolicExpression
-            if is_SymbolicExpression(o) and o in ZZ:
+            from sage.symbolic.expression import is_Expression
+            if is_Expression(o) and o in ZZ:
                 es = s
                 return ExpressionIPow(es._etb, s, ZZ(o))
             else:
@@ -1525,7 +1523,7 @@ cpdef get_builtin_functions():
         'sin'
     """
     # We delay building builtin_functions to break a circular import
-    # between sage.calculus and this file.
+    # between sage.functions and this file.
     global builtin_functions
     if builtin_functions is not None:
         return builtin_functions
@@ -1541,13 +1539,13 @@ cpdef get_builtin_functions():
         operator.pow: 'pow',
         }
     # not handled: atan2, log2, log10
-    import sage.calculus.all as calc_all
+    import sage.functions.all as func_all
     for fn in ('sqrt', 'ceil', 'floor',
                'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
                'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
                'asinh', 'acosh', 'atanh', 'exp', 'log'):
-        builtin_functions[getattr(calc_all, fn)] = fn
-    builtin_functions[calc_all.abs_symbolic] = 'abs'
+        builtin_functions[getattr(func_all, fn)] = fn
+    builtin_functions[func_all.abs_symbolic] = 'abs'
     return builtin_functions
 
 cpdef generate_code(Expression expr, stream):
@@ -1577,7 +1575,7 @@ cpdef generate_code(Expression expr, stream):
         sage: type(v)
         <type 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
         sage: v(7)
-        8*(pi + 7)
+        8*pi + 56
 
     TESTS:
         sage: def my_sin(x): return sin(x)
@@ -1651,7 +1649,7 @@ cpdef generate_code(Expression expr, stream):
         [('load_arg', 0), ('load_arg', 1), ('py_call', <function my_norm at 0x...>, 2), 'return']
         sage: fc = fast_callable(expr)
         sage: fc(3.0r)
-        4.0*(pi + 3.0)
+        4.00000000000000*pi + 12.0000000000000
         sage: fc = fast_callable(x+3, domain=ZZ)
         sage: fc(4)
         7
@@ -2221,7 +2219,7 @@ cdef class Wrapper:
 
         EXAMPLES:
             sage: fast_callable(cos(x)*x, vars=[x], domain=RDF).op_list()
-            [('load_arg', 0), 'cos', ('load_arg', 0), 'mul', 'return']
+            [('load_arg', 0), ('load_arg', 0), 'cos', 'mul', 'return']
         """
         return op_list(self._orig_args, self._metadata)
 

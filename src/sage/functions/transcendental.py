@@ -30,16 +30,9 @@ from sage.rings.all import (is_RealNumber, RealField,
                             is_ComplexNumber, ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
 
-from sage.calculus.calculus import PrimitiveFunction, SymbolicComposition, SR
+from sage.symbolic.function import PrimitiveFunction, SR
 
 import sage.plot.all
-
-def __prep_num(x):
-    if isinstance(x, sage.rings.complex_number.ComplexNumber):
-        x = str(x).replace("i","I")
-    else:
-        x = str(x)
-    return x
 
 CC = complex_field.ComplexField()
 I = CC.gen(0)
@@ -154,6 +147,8 @@ def zeta(s):
         sage: zeta(RR(2))
         1.6449340668482264364724151666460251892189499012067984377356
         sage: zeta(I)
+        zeta(I)
+        sage: zeta(I).n()
         0.00330022368532410 - 0.418155449141322*I
     """
     try:
@@ -364,28 +359,24 @@ class DickmanRhoComputer(PrimitiveFunction):
     Dickman's function is the continuous function satisfying the
     differential equation
 
-
     .. math::
 
          x \rho'(x) + \rho(x-1) = 0
-
-
 
     with initial conditions `\rho(x)=1` for
     `0 \le x \le 1`. It is useful in estimating the frequency
     of smooth numbers as asymptotically
 
-
     .. math::
 
          \Psi(a, a^{1/s}) \sim a \rho(s)
 
-
-
     where `\Psi(a,b)` is the number of `b`-smooth
     numbers less than `a`.
 
-    ALGORITHM: Dickmans's function is analytic on the interval
+    ALGORITHM:
+
+    Dickmans's function is analytic on the interval
     `[n,n+1]` for each integer `n`. To evalute at
     `n+t, 0 \le t < 1`, a power series is recursively computed
     about `n+1/2` using the differential equation stated above.
@@ -415,7 +406,9 @@ class DickmanRhoComputer(PrimitiveFunction):
       Solutions to some Classical Differential-Difference Equations."
       Mathematics of Computation, Vol. 53, No. 187 (1989).
     """
-    _cur_prec = 0
+    def __init__(self):
+      PrimitiveFunction.__init__(self, "dickman_rho", approx=self.approximate)
+      self._cur_prec = 0
 
     def __call__(self, x):
         """
@@ -430,7 +423,7 @@ class DickmanRhoComputer(PrimitiveFunction):
             try:
                 x = RR(x)
             except (TypeError, ValueError):
-                return SymbolicComposition(self, SR(x))
+                return PrimitiveFunction.__call__(self, SR(x))
         if x < 0:
             return x.parent()(0)
         elif x <= 1:
@@ -457,13 +450,11 @@ class DickmanRhoComputer(PrimitiveFunction):
 
         INPUT:
 
-
         -  ``n`` - the lower endpoint of the interval for which
            this power series holds
 
         -  ``abs_prec`` - the absolute precision of the
            resulting power series
-
 
         EXAMPLES::
 
@@ -484,7 +475,6 @@ class DickmanRhoComputer(PrimitiveFunction):
 
         INPUT:
 
-
         -  ``n`` - the lower endpoint of the interval for which
            this power series holds
 
@@ -493,7 +483,6 @@ class DickmanRhoComputer(PrimitiveFunction):
 
         -  ``cache_ring`` - for internal use, caches the power
            series at this precision.
-
 
         EXAMPLES::
 
@@ -536,12 +525,9 @@ class DickmanRhoComputer(PrimitiveFunction):
         r"""
         Approximate using de Bruijn's formula
 
-
         .. math::
 
              \rho(x) \sim \frac{exp(-x \xi + Ei(\xi))}{\sqrt{2\pi x}\xi}
-
-
 
         which is asymptotically equal to Dickman's function, and is much
         faster to compute.
@@ -570,8 +556,5 @@ class DickmanRhoComputer(PrimitiveFunction):
             xi -= y/dydxi
             y = (exp(xi)-1.0)/xi - x
         return (-x*xi + RR(xi).eint()).exp() / (sqrt(2*pi*x)*xi)
-
-    def _repr_(self, simplify=False):
-        return "dickman_rho"
 
 dickman_rho = DickmanRhoComputer()

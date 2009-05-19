@@ -41,7 +41,7 @@ import sea
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 import ell_point
-from sage.calculus.calculus import log
+from sage.functions.all import log
 from sage.rings.arith import integer_ceil, integer_floor, gcd
 from sage.structure.sequence import Sequence
 

@@ -24,9 +24,9 @@ from sage.graphs.graph import Graph
 from sage.rings.arith import factorial, binomial
 from permutation import Permutations
 from sage.rings.all import Integer, is_RealNumber
-from sage.calculus.all import floor, ceil
 from subset import Subsets
-import functools
+from sage.functions.all import ceil
+import functools, math
 
 def create_set_partition_function(letter, k):
     """
@@ -36,11 +36,12 @@ def create_set_partition_function(letter, k):
         sage: create_set_partition_function('A', 3)
         Set partitions of {1, ..., 3, -1, ..., -3}
     """
+    from sage.functions.all import floor
     if isinstance(k, (int, Integer)):
         if k > 0:
             return globals()['SetPartitions' + letter + 'k_k'](k)
     elif is_RealNumber(k):
-        if k - floor(k) == 0.5:
+        if k - math.floor(k) == 0.5:
             return globals()['SetPartitions' + letter + 'khalf_k'](floor(k))
 
     raise ValueError, "k must be an integer or an integer + 1/2"

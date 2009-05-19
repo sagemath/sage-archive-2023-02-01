@@ -707,10 +707,10 @@ Pour évaluer des inégalités symboliques, utilisez ``bool`` :
 
 ::
 
-    sage: 3.1+2*I<4+3*I
-    2*I + 3.1 < 3*I + 4
-    sage: bool(3.1+2*I<4+3*I)
-    False
+    sage: x < x + 1
+    x < x + 1
+    sage: bool(x < x + 1)
+    True
 
 Lorsque l'on cherche à comparer des objets de types différents, Sage
 essaie le plus souvent de trouver une coercition canonique des deux

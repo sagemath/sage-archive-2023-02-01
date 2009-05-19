@@ -806,8 +806,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             #    return padics.matrix_padic_capped_relative_dense
             # the default
             else:
-                from sage.calculus.calculus import SR   # causes circular imports
-                if R == SR:
+                from sage.symbolic.ring import SR   # causes circular imports
+                if R is SR:
                     import matrix_symbolic_dense
                     return matrix_symbolic_dense.Matrix_symbolic_dense
                 return matrix_generic_dense.Matrix_generic_dense
@@ -1362,7 +1362,9 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     try:
         m0.inverse()
         res = False
-    except ZeroDivisionError:
+    except (ZeroDivisionError, RuntimeError):
+        #FIXME: Make pynac throw a ZeroDivisionError on division by
+        #zero instead of a runtime Error
         res = True
     assert(res)
     if checkrank:

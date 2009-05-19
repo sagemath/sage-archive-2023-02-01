@@ -16,8 +16,6 @@ import sage.modular.dirichlet as dirichlet
 
 from sage.rings.all import ComplexField, RealField, Integer
 
-from sage.functions.constants import pi
-
 from sage.rings.all import (bernoulli, CyclotomicField, prime_range,
                             is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
@@ -332,6 +330,7 @@ def eisenstein_series_lseries(weight, prec=53,
     """
     f = eisenstein_series_qexp(weight,prec)
     from sage.lfunctions.all import Dokchitser
+    from sage.symbolic.constants import pi
     key = (prec, max_imaginary_part, max_asymp_coeffs)
     j = weight
     L = Dokchitser(conductor = 1,

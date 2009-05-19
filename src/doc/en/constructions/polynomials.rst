@@ -246,22 +246,21 @@ Sage also performs symbolic manipulation:
 
     sage: var('x,y,z')
     (x, y, z)
-    sage: f = (x + 3*y + x^2*y)^3
-    sage: print f
-                                     2             3
-                                   (x  y + 3 y + x)
+    sage: f = (x + 3*y + x^2*y)^3; f
+    (x^2*y + x + 3*y)^3
     sage: f(x=1,y=2,z=3)
     729
     sage: f.expand()
-    x^6*y^3 + 9*x^4*y^3 + 27*x^2*y^3 + 27*y^3 + 3*x^5*y^2 + 18*x^3*y^2 +
-    27*x*y^2 + 3*x^4*y + 9*x^2*y + x^3
+    x^6*y^3 + 3*x^5*y^2 + 9*x^4*y^3 + 3*x^4*y + 18*x^3*y^2 +
+    27*x^2*y^3 +
+    x^3 + 9*x^2*y + 27*x*y^2 + 27*y^3
     sage: f(x = 5/z)
-    (5/z + 25*y/z^2 + 3*y)^3
+    (3*y + 25*y/z^2 + 5/z)^3
     sage: g = f.subs(x = 5/z); g
-    (5/z + 25*y/z^2 + 3*y)^3
+    (3*y + 25*y/z^2 + 5/z)^3
     sage: h = g.rational_simplify(); h
-    (27*y^3*z^6 + 135*y^2*z^5 + (675*y^3 + 225*y)*z^4 + (2250*y^2 + 125)*z^3 +
-    (5625*y^3 + 1875*y)*z^2 + 9375*y^2*z + 15625*y^3)/z^6
+    (27*y^3*z^6 + 135*y^2*z^5 + 225*(3*y^3 + y)*z^4 + 125*(18*y^2 + 1)*z^3 +
+    1875*(3*y^3 + y)*z^2 + 15625*y^3 + 9375*y^2*z)/z^6
 
 Roots of multivariate polynomials
 =================================

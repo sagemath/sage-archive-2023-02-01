@@ -108,8 +108,8 @@ class ComplexIntervalField_class(field.Field):
         0.333333333333333333333333333334? + 0.666666666666666666666666666667?*I
 
     We can load and save complex numbers and the complex field.
-        sage: loads(z.dumps()) == z
-        True
+        sage: cmp(loads(z.dumps()), z)
+        0
         sage: loads(CIF.dumps()) == CIF
         True
         sage: k = ComplexIntervalField(100)
@@ -132,6 +132,7 @@ class ComplexIntervalField_class(field.Field):
         False
         sage: CIF == 1.1
         False
+        sage: CIF = ComplexIntervalField(53)
 
     """
     def __init__(self, prec=53):
@@ -139,13 +140,52 @@ class ComplexIntervalField_class(field.Field):
         ParentWithGens.__init__(self, self._real_field(), ('I',), False)
 
     def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+            loads(dumps(CIF)) == CIF
+        """
         return ComplexIntervalField, (self._prec, )
 
     def is_exact(self):
+        """
+        The complex interval field is not exact.
+
+        EXAMPLES::
+
+            sage: CIF.is_exact()
+            False
+        """
         return False
 
     def prec(self):
+        """
+        Returns the precision of self (in bits).
+
+        EXAMPLES::
+
+            sage: CIF.prec()
+            53
+            sage: ComplexIntervalField(200).prec()
+            200
+        """
         return self._prec
+
+    def to_prec(self, prec):
+        """
+        Returns a complex interval field with the given precision.
+
+        EXAMPLES::
+
+            sage: CIF.to_prec(150)
+            Complex Interval Field with 150 bits of precision
+            sage: CIF.to_prec(15)
+            Complex Interval Field with 15 bits of precision
+            sage: CIF.to_prec(53) is CIF
+            True
+        """
+        return ComplexIntervalField(prec)
 
     def _magma_init_(self, magma):
         r"""
@@ -243,6 +283,11 @@ class ComplexIntervalField_class(field.Field):
             if isinstance(x, NumberFieldElement_quadratic) and list(x.parent().polynomial()) == [1, 0, 1]:
                 (re, im) = list(x)
                 return complex_interval.ComplexIntervalFieldElement(self, re, im)
+
+            try:
+                return x._complex_mpfi_( self )
+            except AttributeError:
+                pass
             try:
                 return x._complex_mpfr_field_( self )
             except AttributeError:
@@ -264,7 +309,7 @@ class ComplexIntervalField_class(field.Field):
                 return self(x)
         except AttributeError:
             pass
-        if hasattr(x, '_complex_mpfr_field_'):
+        if hasattr(x, '_complex_mpfr_field_') or hasattr(x, '_complex_mpfi_'):
             return self(x)
         return self._coerce_try(x, self._real_field())
 
@@ -281,6 +326,22 @@ class ComplexIntervalField_class(field.Field):
         if n != 0:
             raise IndexError, "n must be 0"
         return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
+
+    def random_element(self, *args):
+        """
+        Create a random element of self. Simply chooses the real and
+        imaginary part randomly, passing arguments to the underlying
+        real interval field.
+
+        EXAMPLES::
+
+            sage: CIF.random_element()
+            -0.30607732607725314? - 0.075929193054320221?*I
+            sage: CIF.random_element(10, 20)
+            10.809593725498833? + 13.964968616713041?*I
+        """
+        return self._real_field().random_element(*args) \
+            + self.gen() * self._real_field().random_element(*args)
 
     def is_field(self):
         """

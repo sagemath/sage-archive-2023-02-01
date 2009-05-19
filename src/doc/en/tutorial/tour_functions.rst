@@ -57,7 +57,7 @@ differentiated, and integrated.
        sage: Dg(3)
        6
        sage: type(g)
-       <class 'sage.calculus.calculus.CallableSymbolicExpression'>
+       <type 'sage.symbolic.expression.Expression'>
        sage: plot(g, 0, 2)
 
 Note that while ``g`` is a callable symbolic expression, ``g(x)`` is a
@@ -69,8 +69,10 @@ illustration.
 
 ::
 
+       sage: g(x)
+       x^2
        sage: type(g(x))
-       <class 'sage.calculus.calculus.SymbolicArithmetic'>
+       <type 'sage.symbolic.expression.Expression'>
        sage: g(x).derivative()
        2*x
        sage: plot(g(x), 0, 2)
@@ -81,10 +83,10 @@ and with a little help, differentiated, and integrated.
 ::
 
        sage: type(sin)
-       <class 'sage.calculus.calculus.Function_sin'>
+       <class 'sage.functions.trig.Function_sin'>
        sage: plot(sin, 0, 2)
        sage: type(sin(x))
-       <class 'sage.calculus.calculus.SymbolicComposition'>
+       <type 'sage.symbolic.expression.Expression'>
        sage: plot(sin(x), 0, 2)
 
 By itself, ``sin`` cannot be differentiated, at least not to produce
@@ -94,7 +96,9 @@ By itself, ``sin`` cannot be differentiated, at least not to produce
 
        sage: f = sin
        sage: f.derivative()
-       0
+       Traceback (most recent call last):
+       ...
+       AttributeError: ...
 
 Using ``f = sin(x)`` instead of ``sin`` works, but it is probably even
 better to use ``f(x) = sin(x)`` to define a callable symbolic
@@ -128,7 +132,7 @@ multi-line function defined by ``h``.  The reason? In the command
 ::
 
        sage: type(x<2)
-       <class 'sage.calculus.equations.SymbolicEquation'>
+       <type 'sage.symbolic.expression.Expression'>
 
 When a symbolic equation is evaluated, as in the definition of ``h``,
 if it is not obviously true, then it returns False.  Thus ``h(x)``
@@ -159,9 +163,9 @@ The problem: ``g(3)``, for example, returns an error, saying
 ::
 
        sage: type(f)
-       <class 'sage.calculus.calculus.SymbolicVariable'>
+       <type 'sage.symbolic.expression.Expression'>
        sage: type(g)
-       <class 'sage.calculus.calculus.SymbolicConstant'>
+       <type 'sage.symbolic.expression.Expression'>
 
 ``g`` is not a function, it's a constant, so it has no variables
 associated to it, and you can't plug anything into it.
@@ -179,7 +183,7 @@ The solution: there are several options.
          sage: g(3)
          1
          sage: type(g)
-         <class 'sage.calculus.calculus.CallableSymbolicExpression'>
+         <type 'sage.symbolic.expression.Expression'>
 
 - Or with ``f`` as defined originally, define ``g`` to be a symbolic
   expression.
@@ -193,7 +197,7 @@ The solution: there are several options.
          sage: g(3)
          1
          sage: type(g)
-         <class 'sage.calculus.calculus.CallableSymbolicExpression'>
+         <type 'sage.symbolic.expression.Expression'>
 
 - Or with ``f`` and ``g`` as defined originally, specify the variable
   for which you are substituting.

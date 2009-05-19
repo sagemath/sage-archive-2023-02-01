@@ -53,7 +53,6 @@ import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
 from sage.misc.all import verbose
-import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
@@ -2854,10 +2853,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.Lambda(1.4+0.5*I, 50)
             -0.354172680517... + 0.874518681720...*I
         """
+        from sage.all import pi
+
         s = C(s)
         N = self.conductor()
-        pi = R(constants.pi)
-        from sage.calculus.calculus import gamma as Gamma
+        pi = R(pi)
+        from sage.functions.all import gamma as Gamma
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
@@ -5679,8 +5680,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             roots.remove(e3)
             e1,e2 = roots
 
+        from sage.all import pi
         e = R(1).exp()
-        pi = R(constants.pi)
+        pi = R(pi)
 
         M = self.height_pairing_matrix(mw_base)
         mw_base, U = self.lll_reduce(mw_base,M)

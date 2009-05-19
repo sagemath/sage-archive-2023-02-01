@@ -4,6 +4,9 @@ import  sage.structure.element
 
 cimport integer
 
+cpdef rational_power_parts(a, b, factor_limit=?)
+
+
 cdef class Rational(sage.structure.element.FieldElement):
     cdef mpq_t value
 

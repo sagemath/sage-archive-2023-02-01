@@ -66,8 +66,7 @@ from sage.rings.arith import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC, I
-from sage.calculus.all import sin, cos
-from sage.functions.constants import pi
+from sage.functions.all import sin, cos
 from sage.gsl.fft import FastFourierTransform
 from sage.gsl.dwt import WaveletTransform
 
@@ -311,9 +310,10 @@ class IndexedSequence(SageObject):
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
             <BLANKLINE>
-            Indexed sequence: [e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1, e^(2*I*pi/5)*cos(8*pi/5) + e^(4*I*pi/5)*cos(6*pi/5) + e^(-(4*I*pi/5))*cos(4*pi/5) + e^(-(2*I*pi/5))*cos(2*pi/5) + 1]
-                indexed by [0, 1, 2, 3, 4]
+            Indexed sequence: [1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1]
+            indexed by [0, 1, 2, 3, 4]
         """
+        from sage.symbolic.constants import pi
         F = self.base_ring()   ## elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)
@@ -336,6 +336,7 @@ class IndexedSequence(SageObject):
             Indexed sequence: [1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I]
                 indexed by [0, 1, 2, 3, 4]
         """
+        from sage.symbolic.constants import pi
         F = self.base_ring()   ## elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)

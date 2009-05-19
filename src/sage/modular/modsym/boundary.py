@@ -925,14 +925,19 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         g.append(c)
         self._known_gens_repr.append("[%s]"%c)
 
-        # Does cusp class vanish because of - relations? (See note at top
-        # of file.)
+        #
+        # Does cusp class vanish because of minus relations? Here
+        # this can only happen when (u,v) is congruent to (-u, -v),
+        # which happens when 2*v is 0 mod N, and 2*u is 0 mod
+        # gcd(v,N). Note that since u and v are coprime, this just
+        # means that gcd(v,N) is 1 or 2.
+        #
         if k % 2 != 0:
             (u, v) = (c.numerator(), c.denominator())
             if (2*v) % N == 0:
-                if (2*u) % v.gcd(N) == 0:
-                    self._is_zero.append(len(g)-1)
-                    return self(0)
+                if v.gcd(N).divides(2):
+                   self._is_zero.append(len(g) - 1)
+                   return self(0)
 
         # Does class vanish because of sign relations?  The relevant
         # relations are
@@ -1115,6 +1120,18 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
             -[1/11],
             [1/11],
             -[1/11]]
+
+        These test that :trac:`6072` is fixed. ::
+
+            sage: G = GammaH(8,[3])
+
+            sage: B2 = G.modular_symbols(weight=2).boundary_space()
+            sage: B2._coerce_cusp(Cusp(1/4))
+            [1/4]
+
+            sage: B3 = G.modular_symbols(weight=3).boundary_space()
+            sage: B3._coerce_cusp(Cusp(1/4))
+            0
         """
         N    = self.level()
         k    = self.weight()
@@ -1137,14 +1154,19 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
         g.append(c)
         self._known_gens_repr.append("[%s]"%c)
 
-        # Does cusp class vanish because of - relations? (See note at top
-        # of file.)
+        # Does cusp class vanish because of - relations? Here this
+        # happens whenever 2*v is 0 mod N, and for some h in H, we
+        # have that u*(h+1) is 0 mod gcd(v,N). Since u and v are
+        # coprime, this means we must have h+1 is 0 mod gcd(v,N).
+
         if k % 2 != 0:
             (u, v) = (c.numerator(), c.denominator())
             if (2*v) % N == 0:
-                if (2*u) % v.gcd(N) == 0:
-                    self._is_zero.append(len(g)-1)
-                    return self(0)
+                d = v.gcd(N)
+                for h in self.group()._list_of_elements_in_H():
+                    if d.divides(h + 1):
+                        self._is_zero.append(len(g) - 1)
+                        return self(0)
 
         # Does class vanish because of sign relations?  The relevant
         # relations are

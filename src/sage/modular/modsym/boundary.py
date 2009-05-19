@@ -1,20 +1,20 @@
 r"""
 Space of boundary modular symbols.
 
-Used mainly for computing the cuspidal subspace of modular symbols.
+Used mainly for computing the cuspidal subspace of modular symbols. The space
+of boundary symbols of sign 0 is isomorphic as a Hecke module to the dual of
+the space of Eisenstein series, but this does not give a useful method of
+computing Eisenstein series, since there is no easy way to extract the constant
+terms.
 
-We represent boundary modular symbols as a sum of Manin symbols of
-the form `[P, u/v]`, where `u/v` is a cusp for our
-group `G`. The group of boundary modular symbols naturally
-embeds into a vector space `B_k(G)` (see Stein, section
-8.4, or Merel, section 1.4, where this space is called
-`\CC[\Gamma \backslash \QQ]_k`, for a definition),
-which is a finite dimensional `\QQ` vector space of
-dimension equal to the number of cusps for `G`. The
-embedding takes `[P, u/v]` to
-`P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
-pairs [(u,v)] with u, v coprime. On `B_k(G)`, we have the
-relations
+We represent boundary modular symbols as a sum of Manin symbols of the form
+`[P, u/v]`, where `u/v` is a cusp for our group `G`. The group of boundary
+modular symbols naturally embeds into a vector space `B_k(G)` (see Stein,
+section 8.4, or Merel, section 1.4, where this space is called `\CC[\Gamma
+\backslash \QQ]_k`, for a definition), which is a finite dimensional `\QQ`
+vector space of dimension equal to the number of cusps for `G`. The embedding
+takes `[P, u/v]` to `P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
+pairs `[(u,v)]` with u, v coprime. On `B_k(G)`, we have the relations
 
 .. math::
 
@@ -29,45 +29,45 @@ for all `\gamma \in G` and
 
 for all `\lambda \in \QQ^\times`.
 
-It's possible for these relations to kill a class, i.e., for a pair
-[(u,v)] to be 0. For example, when N=4, u=1, v=2 and k=3 then
-(-1,-2) is equivalent mod Gamma_1(4) to (1,2) since v=-v (mod 4)
-and u=-u (mod 2). But since k is odd, [(-1,-2)] is also equivalent
-to -[(1,2)]. Thus this symbol is equivalent to its negative, hence
-0 (notice that this wouldn't be the case in char 2). See also prop
-2.30 of Stein's Ph.D. thesis.
+It's possible for these relations to kill a class, i.e., for a pair `[(u,v)]`
+to be 0. For example, when `N=4` and `k=3` then `(-1,-2)` is equivalent mod
+`\Gamma_1(4)` to `(1,2)` since `2=-2 \bmod 4` and `1=-1 \bmod 2`. But since `k`
+is odd, `[(-1,-2)]` is also equivalent to `-[(1,2)]`. Thus this symbol is
+equivalent to its negative, hence 0 (notice that this wouldn't be the case in
+characteristic 2). This happens for any irregular cusp when the weight is odd;
+there are no irregular cusps on `\Gamma_1(N)` except when `N = 4`, but there
+can be more on `\Gamma_H` groups. See also prop 2.30 of Stein's Ph.D. thesis.
 
-In addition, in the case that our space is of sign 1 or -1, we also
-have the relation `[(-u,v)] = sign*[(u,v)]`. This relation
-can also combine with the above to kill a cusp class - for
-instance, take (u,v) = (1,3) for Gamma1(5). Then since the cusp 1/3
-is `Gamma_1(5)` equivalent to the cusp -1/3, we have that
-[(1,3)] = [(-1,3)]. Now, on the minus subspace, we also have that
-[(-1,3)] = -[(1,3)], which means this class must vanish. Notice
-that this cannot be used to show that [(1,0)] or [(0,1)] is 0.
-
-.. note::
-
-   Special care must be taken when working with the images of the
-   cusps 0 and `\infty` in `B_k(G)`. For all cusps
-   *except* 0 and `\infty`, multiplying the cusp by -1
-   corresponds to taking [(u,v)] to [(-u,v)] in `B_k(G)`.  This
-   means that [(u,v)] is equivalent to [(-u,v)] whenever u/v is
-   equivalent to -u/v, except in the case of 0 and `\infty`.  We
-   have the following conditions for [(1,0)] and [(0,1)]:
-
-   - [(0,1)] = sign \* [(0,1)], so [(0,1)] is 0 exactly when the sign
-     is -1.
-
-   - [(1,0)] = sign \* [(-1,0)] and [(1,0)] = (-1)\*\*k \* [(-1,0)],
-     so [(1,0)] = 0 whenever sign != (-1)\*\*k.
+In addition, in the case that our space is of sign `\sigma = 1` or `-1`, we
+also have the relation `[(-u,v)] = \sigma \cdot [(u,v)]`. This relation can
+also combine with the above to kill a cusp class - for instance, take (u,v) =
+(1,3) for `\Gamma_1(5)`. Then since the cusp `\tfrac{1}{3}` is
+`\Gamma_1(5)`-equivalent to the cusp `-\tfrac{1}{3}`, we have that `[(1,3)] =
+[(-1,3)]`. Now, on the minus subspace, we also have that `[(-1,3)] = -[(1,3)]`,
+which means this class must vanish. Notice that this cannot be used to show
+that `[(1,0)]` or `[(0,1)]` is 0.
 
 .. note::
 
-   For all the spaces of boundary symbols below, no work is done to
-   determine the cusps for G at creation time. Instead, cusps are
-   added as they are discovered in the course of computation. As a
-   result, the rank of a space can change as a computation proceeds.
+   Special care must be taken when working with the images of the cusps 0 and
+   `\infty` in `B_k(G)`. For all cusps *except* 0 and `\infty`, multiplying the
+   cusp by -1 corresponds to taking `[(u,v)]` to `[(-u,v)]` in `B_k(G)`.  This
+   means that `[(u,v)]` is equivalent to `[(-u,v)]` whenever `\tfrac{u}{v}` is
+   equivalent to `-\tfrac{u}{v}`, except in the case of 0 and `\infty`.  We
+   have the following conditions for `[(1,0)]` and `[(0,1)]`:
+
+   - `[(0,1)] = \sigma \cdot [(0,1)]`, so `[(0,1)]` is 0 exactly when `\sigma =
+     -1`.
+
+   - `[(1,0)] = \sigma \cdot [(-1,0)]` and `[(1,0)] = (-1)^k [(-1,0)]`, so
+     `[(1,0)] = 0` whenever `\sigma \ne (-1)^k`.
+
+.. note::
+
+   For all the spaces of boundary symbols below, no work is done to determine
+   the cusps for G at creation time. Instead, cusps are added as they are
+   discovered in the course of computation. As a result, the rank of a space
+   can change as a computation proceeds.
 
 REFERENCES:
 
@@ -192,6 +192,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             z[i] = c
         return repr_lincomb(g, z)
 
+    # can't inherit arithmetic operations from HeckeModule, because basis
+    # dimension might change!
+
     def _add_(self, other):
         """
         Return self + other. Assumes that other is a BoundarySpaceElement.
@@ -200,9 +203,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
             sage: B = ModularSymbols(Gamma1(16), 4).boundary_space()
             sage: x = B(Cusp(2/7)) ; y = B(Cusp(13/16))
-            sage: x + y
+            sage: x + y # indirect doctest
             [2/7] + [13/16]
-            sage: x + x
+            sage: x + x # indirect doctest
             2*[2/7]
         """
         z = dict(other.__x)
@@ -221,9 +224,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
             sage: B = ModularSymbols(Gamma1(16), 4).boundary_space()
             sage: x = B(Cusp(2/7)) ; y = B(Cusp(13/16))
-            sage: x - y
+            sage: x - y # indirect doctest
             [2/7] - [13/16]
-            sage: x - x
+            sage: x - x # indirect doctest
             0
         """
         z = dict(self.__x)
@@ -243,9 +246,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
             sage: B = ModularSymbols(Gamma1(16), 4).boundary_space()
             sage: x = B(Cusp(2/7))
-            sage: x*5
+            sage: x*5 # indirect doctest
             5*[2/7]
-            sage: x*-3/5
+            sage: x*-3/5 # indirect doctest
             -3/5*[2/7]
         """
         x = {}
@@ -262,9 +265,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
             sage: B = ModularSymbols(Gamma1(16), 4).boundary_space()
             sage: x = B(Cusp(13/16))
-            sage: 11*x
+            sage: 11*x # indirect doctest
             11*[13/16]
-            sage: 1/3*x
+            sage: 1/3*x # indirect doctest
             1/3*[13/16]
         """
         x = {}
@@ -280,9 +283,9 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
 
             sage: B = ModularSymbols(Gamma1(16), 4).boundary_space()
             sage: x = B(Cusp(2/7))
-            sage: -x
+            sage: -x # indirect doctest
             -[2/7]
-            sage: -x + x
+            sage: -x + x # indirect doctest
             0
         """
         return self*(-1)
@@ -342,10 +345,20 @@ class BoundarySpace(hecke.HeckeModule_generic):
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
     def __cmp__(self, other):
+        """
+        EXAMPLE::
+
+            sage: B2 = ModularSymbols(11, 2).boundary_space()
+            sage: B4 = ModularSymbols(11, 4).boundary_space()
+            sage: B2 == B4
+            False
+            sage: B2 == ModularSymbols(17, 2).boundary_space()
+            False
+        """
         if type(self) != type(other):
             return cmp(type(self), type(other))
         else:
-            return cmp( (self.group(), self.character()), (other.group(), other.character()) )
+            return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )
 
     def _known_cusps(self):
         """

@@ -313,7 +313,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         B, basis, mod = relation_matrix.compute_presentation(
                 self.manin_symbols(), self.sign(),
-                self.base_ring(), self.weight())
+                self.base_ring())
         self._manin_generators = self.manin_symbols().manin_symbol_list()
         self._manin_basis = basis
         self._manin_gens_to_basis = B

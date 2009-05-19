@@ -33,6 +33,16 @@ import sage.misc.latex as latex
 _print_mode = "manin"
 
 def is_ModularSymbolsElement(x):
+    r"""
+    Return True if x is an element of a modular symbols space.
+
+    EXAMPLES::
+
+        sage: sage.modular.modsym.element.is_ModularSymbolsElement(ModularSymbols(11, 2).0)
+        True
+        sage: sage.modular.modsym.element.is_ModularSymbolsElement(13)
+        False
+    """
     return isinstance(x, ModularSymbolsElement)
 
 def set_modsym_print_mode(mode="manin"):
@@ -40,7 +50,6 @@ def set_modsym_print_mode(mode="manin"):
     Set the mode for printing of elements of modular symbols spaces.
 
     INPUT:
-
 
     -  ``mode`` - a string. The possibilities are as
        follows:
@@ -53,6 +62,20 @@ def set_modsym_print_mode(mode="manin"):
 
     -  ``'vector'`` - as vectors on the basis for the
        ambient space
+
+    OUTPUT: none
+
+    EXAMPLE::
+
+        sage: M = ModularSymbols(13, 8)
+        sage: x = M.0 + M.1 + M.14
+        sage: set_modsym_print_mode('manin'); x
+        [X^5*Y,(1,11)] + [X^5*Y,(1,12)] + [X^6,(1,11)]
+        sage: set_modsym_print_mode('modular'); x
+        1610510*X^6*{-1/11, 0} - 248832*X^6*{-1/12, 0} + 893101*X^5*Y*{-1/11, 0} - 103680*X^5*Y*{-1/12, 0} + 206305*X^4*Y^2*{-1/11, 0} - 17280*X^4*Y^2*{-1/12, 0} + 25410*X^3*Y^3*{-1/11, 0} - 1440*X^3*Y^3*{-1/12, 0} + 1760*X^2*Y^4*{-1/11, 0} - 60*X^2*Y^4*{-1/12, 0} + 65*X*Y^5*{-1/11, 0} - X*Y^5*{-1/12, 0} + Y^6*{-1/11, 0}
+        sage: set_modsym_print_mode('vector'); x
+        (1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+        sage: set_modsym_print_mode()
     """
     mode = str(mode).lower()
     if not (mode in ['manin', 'modular', 'vector']):
@@ -62,7 +85,13 @@ def set_modsym_print_mode(mode="manin"):
 
 class ModularSymbolsElement(hecke.HeckeModuleElement):
     """
-    An element of a space of modular symbol.
+    An element of a space of modular symbols.
+
+    TESTS::
+
+        sage: x = ModularSymbols(3, 12).cuspidal_submodule().gen(0)
+        sage: x == loads(dumps(x))
+        True
     """
     def __init__(self, parent, x, check=True):
         """
@@ -74,6 +103,16 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         -  ``x`` - a free module element that represents the
            modular symbol in terms of a basis for the ambient space (not in
            terms of a basis for parent!)
+
+        EXAMPLE::
+
+            sage: S = ModularSymbols(11, sign=1).cuspidal_submodule()
+            sage: S(vector([0,1]))
+            (1,9)
+            sage: S(vector([1,0]))
+            Traceback (most recent call last):
+            ...
+            TypeError: x does not coerce to an element of this Hecke module
         """
         if check:
             if not isinstance(parent, ambient.ModularSymbolsAmbient):
@@ -84,16 +123,40 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
                 raise TypeError, "x (of degree %s) must be of degree the same as the degree of the parent (of degree %s)."%(x.degree(), parent.degree())
         hecke.HeckeModuleElement.__init__(self, parent, x)
 
-    def __is_compatible(self, other):
-        return isinstance(other, ModularSymbolsElement) and self.parent() == other.parent()
-
-    def _add_(self, right):
-        return ModularSymbolsElement(self.parent(), self.element() + right.element(), check=False)
-
     def __cmp__(self, other):
+        r""" Standard comparison function.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(11, 2)
+            sage: M.0 == M.1 # indirect doctest
+            False
+            sage: M.0 == (M.1 + M.0 - M.1)
+            True
+            sage: M.0 == ModularSymbols(13, 2).0
+            False
+            sage: M.0 == 4
+            False
+        """
         return self.element().__cmp__(other.element())
 
     def _repr_(self):
+        r"""
+        String representation of self. The output will depend on the global
+        modular symbols print mode setting controlled by the function
+        ``set_modsym_print_mode``.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(13, 4)
+            sage: set_modsym_print_mode('manin'); M.0._repr_()
+            '[X^2,(0,1)]'
+            sage: set_modsym_print_mode('modular'); M.0._repr_()
+            'X^2*{0, Infinity}'
+            sage: set_modsym_print_mode('vector'); M.0._repr_()
+            '(1, 0, 0, 0, 0, 0, 0, 0)'
+            sage: set_modsym_print_mode()
+        """
         if _print_mode == "vector":
             return str(self.element())
         elif _print_mode == "manin":
@@ -105,8 +168,25 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         return misc.repr_lincomb(v, c)
 
     def _latex_(self):
+        r"""
+        LaTeX representation of self. The output will be determined by the print mode setting set using ``set_modsym_print_mode``.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(11, 2)
+            sage: x = M.0 + M.2; x
+            (1,0) + (1,9)
+            sage: set_modsym_print_mode('manin'); latex(x) # indirect doctest
+            (1,0) + (1,9)
+            sage: set_modsym_print_mode('modular'); latex(x) # indirect doctest
+            \left\{\frac{-1}{9}, 0\right\} + \left\{\infty, 0\right\}
+            sage: set_modsym_print_mode('vector'); latex(x) # indirect doctest
+            \left(1,0,1\right)
+            sage: set_modsym_print_mode()
+        """
+
         if _print_mode == "vector":
-            return latex(self.element())
+            return self.element()._latex_()
         elif _print_mode == "manin":
             m = self.manin_symbol_rep()
         elif _print_mode == "modular":
@@ -115,23 +195,99 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         v = [x[1] for x in m]
         return latex.repr_lincomb(v, c)
 
+    def _add_(self, right):
+        r"""
+        Sum of self and other.
 
-    # TODO -- use module machinery
-    def __mul__(self, right):
-        return ModularSymbolsElement(self.parent(), self.element()*right)
+        EXAMPLE::
 
-    def __neg__(self):
-        return ModularSymbolsElement(self.parent(), -self.element())
+            sage: M = ModularSymbols(3, 12)
+            sage: x = M.0; y = M.1; z = x + y; z # indirect doctest
+            [X^8*Y^2,(1,2)] + [X^9*Y,(1,0)]
+            sage: z.parent() is M
+            True
+        """
+        return ModularSymbolsElement(self.parent(), self.element() + right.element(), check=False)
 
-    def _sub_(self, right):
-        return ModularSymbolsElement(self.parent(), self.element() - right.element())
+    def _rmul_(self, other):
+        r"""
+        Right-multiply self by other.
 
-    def coordinate_vector(self):
-        if self.parent().is_ambient():
-            return self.element()
-        return self.parent().embedded_vector_space().coordinate_vector(self.element())
+        EXAMPLE::
+
+            sage: M = ModularSymbols(3, 12)
+            sage: x = M.0; z = x*3; z # indirect doctest
+            3*[X^8*Y^2,(1,2)]
+            sage: z.parent() is M
+            True
+            sage: z*Mod(1, 17)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Modular Symbols space of dimension 8 for Gamma_0(3) of weight 12 with sign 0 over Rational Field' and 'Ring of integers modulo 17'
+        """
+        return ModularSymbolsElement(self.parent(), self.element()*other, check=False)
+
+    def _lmul_(self, left):
+        r"""
+        Left-multiply self by other.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(3, 12)
+            sage: x = M.0; z = 3*x; z # indirect doctest
+            3*[X^8*Y^2,(1,2)]
+            sage: z.parent() is M
+            True
+            sage: Mod(1, 17)*z
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Ring of integers modulo 17' and 'Modular Symbols space of dimension 8 for Gamma_0(3) of weight 12 with sign 0 over Rational Field'
+        """
+        return ModularSymbolsElement(self.parent(), left*self.element(), check=False)
+
+    def _neg_(self):
+        r"""
+        Multiply by -1.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(3, 12)
+            sage: x = M.0; z = -x; z # indirect doctest
+            -[X^8*Y^2,(1,2)]
+            sage: z.parent() is M
+            True
+        """
+        return ModularSymbolsElement(self.parent(), -self.element(), check=False)
+
+    def _sub_(self, other):
+        r"""
+        Subtract other from self.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(3, 12)
+            sage: x = M.0; y = M.1; z = y-x; z # indirect doctest
+            -[X^8*Y^2,(1,2)] + [X^9*Y,(1,0)]
+            sage: z.parent() is M
+            True
+        """
+        return ModularSymbolsElement(self.parent(), self.element() - other.element(), check=False)
+
+#   this clearly hasn't worked for some time -- the method embedded_vector_space doesn't exist -- DL 2009-05-18
+#    def coordinate_vector(self):
+#        if self.parent().is_ambient():
+#            return self.element()
+#        return self.parent().embedded_vector_space().coordinate_vector(self.element())
 
     def list(self):
+        r"""
+        Return a list of the coordinates of self in terms of a basis for the ambient space.
+
+        EXAMPLE::
+
+            sage: ModularSymbols(37, 2).0.list()
+            [1, 0, 0, 0, 0]
+        """
         return self.element().list()
 
     def manin_symbol_rep(self):
@@ -139,6 +295,11 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         Returns a representation of self as a formal sum of Manin symbols.
 
         (The result is cached for future use.)
+
+        EXAMPLE::
+
+            sage: ModularSymbols(37, 4).0.manin_symbol_rep()
+            [X^2,(0,1)]
         """
         try:
             return self.__manin_symbols
@@ -158,6 +319,11 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         symbols.
 
         (The result is cached for future use.)
+
+        EXAMPLE::
+
+            sage: ModularSymbols(37, 4).0.modular_symbol_rep()
+            X^2*{0, Infinity}
         """
         try:
             return self.__modular_symbols

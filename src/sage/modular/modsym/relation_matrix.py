@@ -1,5 +1,9 @@
 """
-Relation matrices for ambient modular symbols spaces.
+Relation matrices for ambient modular symbols spaces
+
+This file contains functions that are used by the various ambient modular
+symbols classes to compute presentations of spaces in terms of generators and
+relations, using the standard methods based on Manin symbols.
 """
 
 #*****************************************************************************
@@ -124,18 +128,20 @@ def modI_relations(syms, sign):
 
     INPUT:
 
-
     -  ``syms`` - ManinSymbols
 
     -  ``sign`` - int (either -1, 0, or 1)
 
-
     OUTPUT:
-
 
     -  ``rels`` - set of pairs of pairs (j, s), where if
        mod[i] = (j,s), then x_i = s\*x_j (mod S relations)
 
+    EXAMPLE::
+
+        sage: L = sage.modular.modsym.manin_symbols.ManinSymbolList_gamma1(4, 3)
+        sage: sage.modular.modsym.relation_matrix.modI_relations(L, 1)
+        set([((14, 1), (20, 1)), ((0, 1), (0, -1)), ((7, 1), (7, -1)), ((9, 1), (3, -1)), ((3, 1), (9, -1)), ((16, 1), (22, 1)), ((10, 1), (4, -1)), ((1, 1), (1, -1)), ((19, 1), (19, 1)), ((8, 1), (2, -1)), ((12, 1), (12, 1)), ((20, 1), (14, 1)), ((21, 1), (15, 1)), ((5, 1), (11, -1)), ((15, 1), (21, 1)), ((22, 1), (16, 1)), ((6, 1), (6, -1)), ((2, 1), (8, -1)), ((17, 1), (23, 1)), ((4, 1), (10, -1)), ((18, 1), (18, 1)), ((11, 1), (5, -1)), ((23, 1), (17, 1)), ((13, 1), (13, 1))])
 
     .. warning::
 
@@ -155,32 +161,43 @@ def modI_relations(syms, sign):
     misc.verbose("finished creating I relations",tm)
     return rels
 
-def T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse):
-    """
+def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
+    r"""
     Compute a matrix whose echelon form gives the quotient by 3-term T
-    relations.
+    relations. Despite the name, this is used for all modular symbols spaces
+    (including those with character and those for `\Gamma_1` and `\Gamma_H`
+    groups), not just `\Gamma_0`.
 
     INPUT:
 
-
     -  ``syms`` - ManinSymbols
 
-    -  ``mod`` - list that gives quotient modulo some
-       two-term relations, i.e., the S relations, and if sign is nonzero,
-       the I relations.
+    -  ``mod`` - list that gives quotient modulo some two-term relations, i.e.,
+       the S relations, and if sign is nonzero, the I relations.
 
     -  ``field`` - base_ring
 
-    -  ``weight`` - int
-
+    -  ``sparse`` - (True or False) whether to use sparse rather than dense
+       linear algebra
 
     OUTPUT: A sparse matrix whose rows correspond to the reduction of
     the T relations modulo the S and I relations.
+
+    EXAMPLE::
+
+        sage: from sage.modular.modsym.relation_matrix import *
+        sage: L = sage.modular.modsym.manin_symbols.ManinSymbolList_gamma_h(GammaH(36, [17,19]), 2)
+        sage: modS = sparse_2term_quotient(modS_relations(L), 216, QQ)
+        sage: T_relation_matrix_wtk_g0(L, modS, QQ, False)
+        72 x 216 dense matrix over Rational Field
+        sage: T_relation_matrix_wtk_g0(L, modS, GF(17), True)
+        72 x 216 sparse matrix over Finite Field of size 17
     """
     tm = misc.verbose()
     row = 0
     entries = {}
     already_seen = set()
+    w = syms.weight()
     for i in xrange(len(syms)):
         if i in already_seen:
             continue
@@ -188,7 +205,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse):
         j0, s0 = mod[i]
         v = {j0:s0}
         for j, s in iT_plus_iTT:
-            if weight==2: already_seen.add(j)
+            if w==2: already_seen.add(j)
             j0, s0 = mod[j]
             s0 = s*s0
             if v.has_key(j0):
@@ -214,11 +231,10 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     INPUT:
 
-
     -  ``syms`` - a ManinSymbols object
 
     -  ``relation_matrix`` - as output by
-       __compute_T_relation_matrix(self, mod)
+       ``__compute_T_relation_matrix(self, mod)``
 
     -  ``mod`` - quotient of modular symbols modulo the
        2-term S (and possibly I) relations
@@ -228,9 +244,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     -  ``sparse`` - (bool): whether or not matrix should be
        sparse
 
-
     OUTPUT:
-
 
     -  ``matrix`` - a matrix whose ith row expresses the
        Manin symbol generators in terms of a basis of Manin symbols
@@ -238,6 +252,14 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
        the matrix need not be integers.
 
     -  ``list`` - integers i, such that the Manin symbols `x_i` are a basis.
+
+    EXAMPLE::
+
+        sage: from sage.modular.modsym.relation_matrix import *
+        sage: L = sage.modular.modsym.manin_symbols.ManinSymbolList_gamma1(4, 3)
+        sage: modS = sparse_2term_quotient(modS_relations(L), 24, GF(3))
+        sage: gens_to_basis_matrix(L, T_relation_matrix_wtk_g0(L, modS, GF(3), 24), modS, GF(3), True)
+        (24 x 2 sparse matrix over Finite Field of size 3, [13, 23])
     """
     if not sage.matrix.all.is_Matrix(relation_matrix):
         raise TypeError, "relation_matrix must be a matrix"
@@ -305,14 +327,12 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     return B, basis
 
-
-def compute_presentation(syms, sign, field, weight, sparse=None):
+def compute_presentation(syms, sign, field, sparse=None):
     r"""
     Compute the presentation for self, as a quotient of Manin symbols
     modulo relations.
 
     INPUT:
-
 
     -  ``syms`` - manin_symbols.ManinSymbols
 
@@ -320,11 +340,8 @@ def compute_presentation(syms, sign, field, weight, sparse=None):
 
     -  ``field`` - a field
 
-    -  ``weight`` - integer weight
-
 
     OUTPUT:
-
 
     -  sparse matrix whose rows give each generator
        in terms of a basis for the quotient
@@ -337,7 +354,6 @@ def compute_presentation(syms, sign, field, weight, sparse=None):
 
 
     ALGORITHM:
-
 
     #. Let `S = [0,-1; 1,0], T = [0,-1; 1,-1]`, and
        `I = [-1,0; 0,1]`.
@@ -371,23 +387,88 @@ def compute_presentation(syms, sign, field, weight, sparse=None):
        uniquely expresses each of the n Manin symbols in terms of a subset
        of Manin symbols, modulo the relations. This subset of Manin
        symbols is a basis for the quotient by the relations.
+
+
+    EXAMPLE::
+
+        sage: L = sage.modular.modsym.manin_symbols.ManinSymbolList_gamma0(8,2)
+        sage: sage.modular.modsym.relation_matrix.compute_presentation(L, 1, GF(9,'a'), True)
+        ([2 0 0]
+        [1 0 0]
+        [0 0 0]
+        [0 2 0]
+        [0 0 0]
+        [0 0 2]
+        [0 0 0]
+        [0 2 0]
+        [0 0 0]
+        [0 1 0]
+        [0 1 0]
+        [0 0 1], [1, 9, 11], [(1, 2), (1, 1), (0, 0), (9, 2), (0, 0), (11, 2), (0, 0), (9, 2), (0, 0), (9, 1), (9, 1), (11, 1)])
     """
     if sparse is None:
-        if weight >= 6:
+        if syms.weight() >= 6:
             sparse = False
         else:
             sparse = True
-    R, mod = relation_matrix_wtk_g0(syms, sign, field, weight, sparse)
+    R, mod = relation_matrix_wtk_g0(syms, sign, field, sparse)
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 
-def relation_matrix_wtk_g0(syms, sign, field, weight, sparse):
+def relation_matrix_wtk_g0(syms, sign, field, sparse):
+    r"""
+    Compute the matrix of relations. Despite the name, this is used for all
+    spaces (not just for Gamma0). For a description of the algorithm, see the
+    docstring for ``compute_presentation``.
+
+    INPUT:
+
+    - ``syms``: sage.modular.modsym.manin_symbols.ManinSymbolList object
+
+    - ``sign``: integer (0, 1 or -1)
+
+    - ``field``: the base field (non-field base rings not supported at present)
+
+    - ``sparse``: (True or False) whether to use sparse arithmetic.
+
+    Note that ManinSymbolList objects already have a specific weight, so there
+    is no need for an extra ``weight`` parameter.
+
+    OUTPUT: a pair (R, mod) where
+
+    - R is a matrix as output by ``T_relation_matrix_wtk_g0``
+
+    - mod is a set of 2-term relations as output by ``sparse_2term_quotient``
+
+    EXAMPLE::
+
+        sage: L =  sage.modular.modsym.manin_symbols.ManinSymbolList_gamma0(8,2)
+        sage: A = sage.modular.modsym.relation_matrix.relation_matrix_wtk_g0(L, 0, GF(2), True); A
+        ([0 0 0 0 0 0 0 0 1 0 0 0]
+        [0 0 0 0 0 0 0 0 1 1 1 0]
+        [0 0 0 0 0 0 1 0 0 1 1 0]
+        [0 0 0 0 0 0 1 0 0 0 0 0],
+         [(1, 1),
+          (1, 1),
+          (8, 1),
+          (10, 1),
+          (6, 1),
+          (11, 1),
+          (6, 1),
+          (9, 1),
+          (8, 1),
+          (9, 1),
+          (10, 1),
+          (11, 1)])
+        sage: A[0].is_sparse()
+        True
+    """
     rels = modS_relations(syms)
     if sign != 0:
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms,sign))
     mod = sparse_2term_quotient(rels, len(syms), field)
-    R = T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse)
+    R = T_relation_matrix_wtk_g0(syms, mod, field, sparse)
     return R, mod
 
 def sparse_2term_quotient(rels, n, F):

@@ -1215,6 +1215,8 @@ def repr_lincomb(symbols, coeffs):
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
         '-t\\text{a} + \\left(t - 2\\right)\\text{s} + \\left(t^{12} + 2\\right)\\text{}'
+        sage: repr_lincomb(['a', 'b'], [1,1])
+        '\\text{a} + \\text{b}'
     """
     s = ""
     first = True
@@ -1225,7 +1227,10 @@ def repr_lincomb(symbols, coeffs):
         b = latex(symbols[i])
         if c != 0:
             if c == 1:
-                s += b
+                if not first:
+                    s += " + " + b
+                else:
+                    s += b
             else:
                 coeff = coeff_repr(c)
                 if not first:

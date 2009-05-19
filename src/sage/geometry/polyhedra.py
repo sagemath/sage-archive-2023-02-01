@@ -927,6 +927,26 @@ class Polyhedron(SageObject):
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         return IndexFaceSet([q[1] for q in tri_faces], self.vertices(), enclosed = True, rgbcolor = rgbcolor, **kwds)
 
+    def simplicial_complex(self):
+        """
+        Returns a simplicial complex from a triangulation of the polytope.
+
+        Warning: This first triangulates the polytope using
+        ``triangulated_facial_incidences``, and this function may fail
+        in dimensions greater than 3.
+
+        OUTPUT:
+            A simplicial complex.
+
+        EXAMPLES:
+            sage: p = polytopes.cuboctahedron()
+            sage: sc = p.simplicial_complex()
+            sage: sc
+            Simplicial complex with 13 vertices and 20 facets
+            """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        return SimplicialComplex(vertex_set = self.n_vertices(), maximal_faces = [x[1] for x in self.triangulated_facial_incidences()])
+
     def lrs_volume(self, verbose = False):
         """
         Computes the volume of a polytope using David Avis's lrs program.

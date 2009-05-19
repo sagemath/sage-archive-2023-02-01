@@ -215,7 +215,7 @@ class Category_in_ambient(uniq1, Category):
         return set([self.__ambient])
 
 
-class Category_module(Category_over_base_ring, AbelianCategory):
+class Category_module(AbelianCategory, Category_over_base_ring):
     def __init__(self,  base, name=None):
         Category_over_base_ring.__init__(self, base, name)
 
@@ -514,13 +514,15 @@ class AbelianMonoids(Category_uniq):
 #############################################################
 # AbelianGroup
 #############################################################
-class AbelianGroups(Category_uniq, AbelianCategory):
+class AbelianGroups(AbelianCategory, Category_uniq):
     """
     The category of all abelian groups.
 
     EXAMPLES:
         sage: AbelianGroups()
         Category of abelian groups
+        sage: AbelianGroups().is_abelian()
+        True
     """
 
     def __reduce__(self):
@@ -839,6 +841,9 @@ class RingModules(Category_module):
 
         sage: Modules(Integers(9))
         Category of ring modules over Ring of integers modulo 9
+
+        sage: Modules(ZZ[x]).is_abelian()
+        True
     """
 
 

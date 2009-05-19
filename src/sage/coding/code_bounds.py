@@ -1,6 +1,9 @@
 r"""
 Bounds for Parameters of Codes
 
+This module provided some upper and lower bounds for the parameters
+of codes.
+
 AUTHORS:
 
 - David Joyner (2006-07): initial implementation.
@@ -11,8 +14,7 @@ AUTHORS:
 - David Joyner (2006-07): fixed dimension_upper_bound to return an
   integer, added example to elias_bound_asymp.
 
-This module provided some upper and lower bounds for the parameters
-of codes.
+- " (2009-05): removed all calls to Guava but left it as an option.
 
 Let `F` be a finite field (we denote the finite field with
 `q` elements by `\GF{q}`).
@@ -101,11 +103,9 @@ Sage, you can determine the best known estimates for this number in
 (1) Indirectly, using minimum_distance_lower_bound(n,k,F) and
 minimum_distance_upper_bound(n,k,F) (both of which which connect
 to the internet using Steven Sivek's linear_code_bound(q,n,k))
-(2) codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q),
-which use GUAVA's UpperBound( n, d, q )
+(2) codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q).
 
 This module implements:
-
 
 -  codesize_upper_bound(n,d,q), for the best known (as of May,
    2006) upper bound A(n,d) for the size of a code of length n,
@@ -181,26 +181,39 @@ from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
 from sage.functions.all import log, sqrt
 
-def codesize_upper_bound(n,d,q):
+def codesize_upper_bound(n,d,q,method=None):
     r"""
-    Returns the best known upper bound `A(n,d)=A_q(n,d)` for
-    the size of a code of length n, minimum distance d over a field of
-    size q. The function first checks for trivial cases (like d=1 or
-    n=d), and if the value is in the built-in table. Then it calculates
-    the minimum value of the upper bound using the methods of
-    Singleton, Hamming, Johnson, Plotkin and Elias. If the code is
-    binary, `A(n, 2\ell-1) = A(n+1,2\ell)`, so the function
-    takes the minimum of the values obtained from all methods for the
-    parameters `(n, 2\ell-1)` and `(n+1, 2\ell)`.
+    This computes the minimum value of the upper bound using the
+    methods of Singleton, Hamming, Plotkin and Elias.
 
-    Wraps GUAVA's UpperBound( n, d, q ).
+    If method="gap" then this returns the best known upper
+    bound `A(n,d)=A_q(n,d)` for the size of a code of length n,
+    minimum distance d over a field of size q. The function first
+    checks for trivial cases (like d=1 or n=d), and if the value
+    is in the built-in table. Then it calculates the minimum value
+    of the upper bound using the methods of Singleton, Hamming,
+    Johnson, Plotkin and Elias. If the code is binary,
+    `A(n, 2\ell-1) = A(n+1,2\ell)`, so the function
+    takes the minimum of the values obtained from all methods for the
+    parameters `(n, 2\ell-1)` and `(n+1, 2\ell)`. This
+    wraps GUAVA's UpperBound( n, d, q ).
 
     EXAMPLES::
-
         sage: codesize_upper_bound(10,3,2)
+        93
+        sage: codesize_upper_bound(10,3,2,method="gap")
         85
+
     """
-    return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
+    if method=="gap":
+        return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
+    else:
+        eub = elias_upper_bound(n,q,d)
+        gub = griesmer_upper_bound(n,q,d)
+        hub = hamming_upper_bound(n,q,d)
+        pub = plotkin_upper_bound(n,q,d)
+        sub = singleton_upper_bound(n,q,d)
+        return min([eub,gub,hub,pub,sub])
 
 def dimension_upper_bound(n,d,q):
     r"""
@@ -218,8 +231,8 @@ def dimension_upper_bound(n,d,q):
 
 def volume_hamming(n,q,r):
     r"""
-    Returns number of elements in a Hamming ball of radius r in
-    `\GF{q}^n`.
+    Returns number of elements in a Hamming ball of radius r in `\GF{q}^n`.
+    Agrees with Guava's SphereContent(n,r,GF(q)).
 
     EXAMPLES::
 
@@ -242,37 +255,71 @@ def gilbert_lower_bound(n,q,d):
     ans=q**n/volume_hamming(n,q,d-1)
     return ans
 
-def plotkin_upper_bound(n,q,d):
+def plotkin_upper_bound(n,q,d, method=None):
     r"""
     Returns Plotkin upper bound for number of elements in the largest
-    code of minimum distance d in `\GF{q}^n`. Wraps
-    GAP's UpperBoundPlotkin.
+    code of minimum distance d in `\GF{q}^n`.
+
+    The method="gap" option wraps Guava's UpperBoundPlotkin.
 
     EXAMPLES::
-
         sage: plotkin_upper_bound(10,2,3)
         192
+        sage: plotkin_upper_bound(10,2,3,method="gap")  # requires optional GAP package
+        192
     """
+    if method=="gap":
+        ans=gap.eval("UpperBoundPlotkin(%s,%s,%s)"%(n,d,q))
+        #print "calling Guava ..."
+        return QQ(ans)
+    else:
+        t = 1 - 1/q
+        if (q==2) and (n == 2*d) and (d%2 == 0):
+            return 4*d
+        elif (q==2) and (n == 2*d + 1) and (d%2 == 1):
+            return 4*d + 4
+        elif d > t*n:
+            return int(d/( d - t*n))
+        elif d < t*n + 1:
+            fact = (d-1) / t
+            if RR(fact)==RR(int(fact)):
+                fact = int(fact) + 1
+            return int(d/( d - t * fact)) * q**(n - fact)
 
-    ans=gap.eval("UpperBoundPlotkin(%s,%s,%s)"%(n,d,q))
-    return QQ(ans)
-
-def griesmer_upper_bound(n,q,d):
+def griesmer_upper_bound(n,q,d,method=None):
     r"""
     Returns the Griesmer upper bound for number of elements in the
     largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundGriesmer.
 
     EXAMPLES::
-
         sage: griesmer_upper_bound(10,2,3)
         128
+        sage: griesmer_upper_bound(10,2,3,method="gap")  # requires optional GAP package
+        128
     """
+    if method=="gap":
+        #print "calling Guava ..."
+        ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
+        return QQ(ans)
+    else:
+        den = 1
+        s = 0
+        k = 0
+        add = 0
+        while s <= n:
+            if not(add == 1):
+                if d%den==0:
+                    add = int(d/den)
+		else:
+                    add = int(d/den)+1
+            s = s + add
+            den = den * q
+            k = k + 1
+        return q**(k-1)
 
-    ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
-    return QQ(ans)
 
-def elias_upper_bound(n,q,d):
+def elias_upper_bound(n,q,d,method=None):
     r"""
     Returns the Elias upper bound for number of elements in the largest
     code of minimum distance d in `\GF{q}^n`. Wraps
@@ -282,10 +329,27 @@ def elias_upper_bound(n,q,d):
 
         sage: elias_upper_bound(10,2,3)
         232
-    """
+        sage: elias_upper_bound(10,2,3,method="gap")
+        232
 
-    ans=gap.eval("UpperBoundElias(%s,%s,%s)"%(n,d,q))
-    return QQ(ans)
+    """
+    r = 1-1/q
+    if method=="gap":
+        #print "calling Guava ..."
+        ans=gap.eval("UpperBoundElias(%s,%s,%s)"%(n,d,q))
+        return QQ(ans)
+    else:
+        def ff(n,d,w,q):
+	    return r*n*d*q**n/((w**2-2*r*n*w+r*n*d)*volume_hamming(n,q,w));
+    def get_list(n,d,q):
+        I = []
+        for i in range(1,int(r*n)+1):
+	    if i**2-2*r*n*i+r*n*d>0:
+	        I.append(i)
+	    return I
+    I = get_list(n,d,q)
+    bnd = min([ff(n,d,w,q) for w in I])
+    return int(bnd)
 
 def hamming_upper_bound(n,q,d):
     r"""
@@ -318,9 +382,7 @@ def hamming_upper_bound(n,q,d):
         sage: hamming_upper_bound(10,2,3)
         93
     """
-
-    ans=gap.eval("UpperBoundHamming(%s,%s,%s)"%(n,d,q))
-    return QQ(ans)
+    return int((q**n)/(volume_hamming(n, q, int((d-1)/2))))
 
 def singleton_upper_bound(n,q,d):
     r"""
@@ -343,13 +405,10 @@ def singleton_upper_bound(n,q,d):
     (MDS).
 
     EXAMPLES::
-
         sage: singleton_upper_bound(10,2,3)
         256
     """
-
-    ans=gap.eval("UpperBoundSingleton(%s,%s,%s)"%(n,d,q))
-    return QQ(ans)
+    return q**(n - d + 1)
 
 def gv_info_rate(n,delta,q):
     """
@@ -378,7 +437,8 @@ def gv_bound_asymp(delta,q):
     Computes the asymptotic GV bound for the information rate, R.
 
     EXAMPLES::
-
+        sage: RDF(gv_bound_asymp(1/4,2))
+        0.188721875541
         sage: f = lambda x: gv_bound_asymp(x,2)
         sage: plot(f,0,1)
     """
@@ -390,7 +450,8 @@ def hamming_bound_asymp(delta,q):
     Computes the asymptotic Hamming bound for the information rate.
 
     EXAMPLES::
-
+        sage: RDF(hamming_bound_asymp(1/4,2))
+        0.4564355568
         sage: f = lambda x: hamming_bound_asymp(x,2)
         sage: plot(f,0,1)
     """
@@ -401,7 +462,8 @@ def singleton_bound_asymp(delta,q):
     Computes the asymptotic Singleton bound for the information rate.
 
     EXAMPLES::
-
+        sage: singleton_bound_asymp(1/4,2)
+        3/4
         sage: f = lambda x: singleton_bound_asymp(x,2)
         sage: plot(f,0,1)
     """

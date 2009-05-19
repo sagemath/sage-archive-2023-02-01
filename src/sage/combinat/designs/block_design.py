@@ -223,7 +223,7 @@ def HadamardDesign(n):
     - [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
       their links, London Math. Soc., 1991.
     """
-    from sage.combinat.combinat import hadamard_matrix
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
     from sage.matrix.constructor import matrix
     H = hadamard_matrix(n+1)
     H1 = H.matrix_from_columns(range(1,n+1))

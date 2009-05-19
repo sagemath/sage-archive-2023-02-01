@@ -128,6 +128,12 @@ defined using properties of the zeros of `C`.
   http://en.wikipedia.org/wiki/Walsh_code
 
 Please see the docstrings below for further details.
+
+REFERENCES::
+
+    ..[HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+      Codes, Cambridge Univ. Press, 2003.
+
 """
 ############################################################################
 ## Copyright David Joyner, 2007. wdjoyner@gmail.com.
@@ -544,10 +550,6 @@ def BCHCode(n,delta,F,b=0):
         sage: C = BCHCode(26, 5, GF(5), b=1); C
         Linear code of length 26, dimension 10 over Finite Field of size 5
 
-    REFERENCES:
-
-    - [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
-      Codes, Cambridge Univ. Press, 2003.
     """
     from sage.misc.misc import srange
     q = F.order()
@@ -1164,7 +1166,7 @@ def RandomLinearCode(n,k,F):
     class. The construction is probabilistic but should only fail
     extremely rarely.
 
-    INPUT: Integers n,k, with nk1, and a finite field F
+    INPUT: Integers n,k, with `n>k`, and a finite field F
 
     OUTPUT: Returns a "random" linear code with length n, dimension k
     over field F.
@@ -1212,8 +1214,7 @@ def ReedSolomonCode(n,k,F,pts = None):
        {\rm deg}(f)<k \right\}.
 
 
-    `C` is a `[n, k, n-k+1]` code. (In particular,
-    `C` is MDS.)
+    `C` is a `[n, k, n-k+1]` code. (In particular, `C` is MDS.)
 
     INPUT: n : the length k : the dimension F : the base ring pts :
     (optional) list of n points in F (if None then Sage picks n of them
@@ -1313,7 +1314,7 @@ def ToricCode(P,F):
     `x^e = x_1^{e_1}...x_d^{e_d}`), where
     `eval_T (f(x)) = (f(t_1),...,f(t_n))`, and where
     `T=\{t_1,...,t_n\}`. This function returns the toric
-    codes discussed in [J].
+    codes discussed in [J]_.
 
     INPUT:
 
@@ -1351,11 +1352,10 @@ def ToricCode(P,F):
 
     - David Joyner (07-2006)
 
-    REFERENCES:
+    REFERENCES::
 
-    - [J] D. Joyner, Toric codes over finite fields, Applicable
-      Algebra in Engineering, Communication and Computing, 15, (2004),
-      p. 63-79
+    ..[J] D. Joyner, Toric codes over finite fields, Applicable
+      Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]

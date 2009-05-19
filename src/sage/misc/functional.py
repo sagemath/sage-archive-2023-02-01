@@ -757,6 +757,18 @@ def numerical_approx(x, prec=None, digits=None):
 
         sage: (pi^2 + e).n()
         12.5878862295484
+
+    TESTS::
+
+        sage: numerical_approx(I)
+        1.00000000000000*I
+        sage: x = QQ['x'].gen()
+        sage: F.<k> = NumberField(x^2+2, embedding=sqrt(CC(2))*CC.0)
+        sage: numerical_approx(k)
+        1.41421356237309*I
+
+        sage: type(numerical_approx(CC(1/2)))
+        <type 'sage.rings.complex_number.ComplexNumber'>
     """
     if prec is None:
         if digits is None:
@@ -768,10 +780,12 @@ def numerical_approx(x, prec=None, digits=None):
     except AttributeError:
         from sage.rings.complex_double import is_ComplexDoubleElement
         from sage.rings.complex_number import is_ComplexNumber
-        if is_ComplexNumber(x) or is_ComplexDoubleElement(x):
-            return sage.rings.complex_field.ComplexField(prec)(x)
-        else:
-            return sage.rings.real_mpfr.RealField_constructor(prec)(x)
+        if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
+            try:
+                return sage.rings.real_mpfr.RealField_constructor(prec)(x)
+            except TypeError:
+                pass
+        return sage.rings.complex_field.ComplexField(prec)(x)
 
 n = numerical_approx
 N = numerical_approx

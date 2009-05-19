@@ -78,6 +78,27 @@ We mix Singular variables with symbolic variables:
     sage: expand((u + v + a + b + c)^2)
     a^2 + 2*a*b + 2*a*c + b^2 + 2*b*c + c^2 + (2*u + 2*v)*a + (2*u + 2*v)*b + (2*u + 2*v)*c + u^2 + 2*u*v + v^2
 
+TESTS:
+
+Test jacobian on pynac expressions. #5546 ::
+
+    sage: var('x,y', ns=1)
+    (x, y)
+    sage: f = x + y
+    sage: jacobian(f, [x,y])
+    [1 1]
+
+
+Test if matrices work #5546 ::
+
+    sage: var('x,y,z', ns=1)
+    (x, y, z)
+    sage: M = matrix(2,2,[x,y,z,x])
+    sage: v = vector([x,y])
+    sage: M * v
+    (x^2 + y^2, x*y + x*z)
+    sage: v*M
+    (x^2 + y*z, 2*x*y)
 
 """
 
@@ -90,12 +111,14 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
-from sage.symbolic.function cimport new_SFunction_from_serial
+from sage.symbolic.function import get_sfunction_from_serial
 
 
 from sage.rings.rational import Rational  # Used for sqrt.
 
 from sage.calculus.calculus import CallableSymbolicExpressionRing
+
+from sage.misc.derivative import multi_derivative
 
 cdef class Expression(CommutativeRingElement):
     cpdef object pyobject(self):
@@ -123,6 +146,77 @@ cdef class Expression(CommutativeRingElement):
         Delete memory occupied by this expression.
         """
         GEx_destruct(&self._gobj)
+
+    def __getstate__(self):
+        """
+        Returns a tuple describing the state of this expression for pickling.
+
+        This should return all information that will be required to unpickle
+        the object. The functionality for unpickling is implemented in
+        __setstate__().
+
+        In order to pickle Expression objects, we return a tuple containing
+
+         * 0  - as pickle version number
+                in case we decide to change the pickle format in the feature
+         * names of symbols of this expression
+         * a string representation of self stored in a Pynac archive.
+
+        TESTS::
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: t = 2*x*y^z+3
+            sage: s = dumps(t)
+
+            sage: t.__getstate__()
+            (0,
+             ['x', 'y', 'z'],
+             ...)
+
+        """
+        cdef GArchive ar
+        ar.archive_ex(self._gobj, "sage_ex")
+        ar_str = GArchive_to_str(&ar)
+        return (0, map(repr, self.variables()), ar_str)
+
+    def __setstate__(self, state):
+        """
+        Initializes the state of the object from data saved in a pickle.
+
+        During unpickling __init__ methods of classes are not called, the saved
+        data is passed to the class via this function instead.
+
+        TESTS::
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: t = 2*x*y^z+3
+            sage: u = loads(dumps(t)) # indirect doctest
+            sage: u
+            2*y^z*x + 3
+            sage: bool(t == u)
+            True
+            sage: u.subs(x=z)
+            2*y^z*z + 3
+
+            sage: loads(dumps(x.parent()(2)))
+            2
+        """
+        # check input
+        if state[0] != 0 or len(state) != 3:
+            raise ValueError, "unknown state information"
+        # set parent
+        self._set_parent(ring.NSR)
+        # get variables
+        cdef GExList sym_lst
+        for name in state[1]:
+            sym_lst.append_sym(get_symbol(name))
+
+        # initialize archive
+        cdef GArchive ar
+        GArchive_from_str(&ar, state[2], len(state[2]))
+
+        # extract the expression from the archive
+        GEx_construct_ex(&self._gobj, ar.unarchive_ex(sym_lst, <unsigned>0))
 
     # TODO: The keyword argument simplify is for compatibility with
     # old symbolics, once the switch is complete, it should be removed
@@ -165,11 +259,18 @@ cdef class Expression(CommutativeRingElement):
             -I
             sage: y + 3*(x^(-1))
             y + 3/x
+
+        Printing the exp function::
+
+            sage: x.parent(1).exp()
+            e
+            sage: x.exp()
+            e^x
         """
         return GEx_to_str(&self._gobj)
 
     def _latex_(self):
-        """
+        r"""
         Return string representation of this symbolic expression.
 
         EXAMPLES:
@@ -179,17 +280,26 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x,y,z',ns=1)
             (x, y, z)
             sage: latex(y + 3*(x^(-1)))
-            y + 3\frac{1}{x}
+            y + 3 \, \frac{1}{x}
             sage: latex(x^(y+z^(1/y)))
             x^{z^{\frac{1}{y}} + y}
             sage: latex(1/sqrt(x+y))
             \frac{1}{\sqrt{x + y}}
             sage: latex(sin(x*(z+y)^x))
-            \sin({(y + z)}^{x} x)
+            \sin\left({(y + z)}^{x} x\right)
             sage: latex(3/2*(x+y)/z/y)
-            \frac{3}{2} \frac{{(x + y)}}{y z}
+            \frac{3}{2} \, \frac{{(x + y)}}{y z}
             sage: latex((2^(x^y)))
             2^{x^{y}}
+            sage: latex(abs(x))
+            {\left|x\right|}
+            sage: latex((x*y).conjugate())
+            \bar{x} \bar{y}
+
+        Check spacing of coefficients of mul expressions (#3202)::
+
+            sage: latex(2*3^x)
+            2 \, 3^{x}
 
         """
         return GEx_to_str_latex(&self._gobj)
@@ -253,27 +363,95 @@ cdef class Expression(CommutativeRingElement):
             return n
         return sage.rings.rational.Rational(n)
 
+    cpdef _eval_self(self, R):
+        """
+        Evaluate this expression numerically, and try to coerce it to R.
+
+        EXAMPLES::
+
+            sage: var('x,y,z',ns=1)
+            (x, y, z)
+            sage: sin(x).subs(x=5)._eval_self(RR)
+            -0.958924274663138
+            sage: gamma(x).subs(x=I)._eval_self(CC)
+            -0.154949828301811 - 0.498015668118356*I
+            sage: x._eval_self(CC)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+        """
+        cdef GEx res = self._gobj.evalf(0, R.prec())
+        if is_a_numeric(res):
+            return R(py_object_from_numeric(res))
+        else:
+            raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
+
     def _mpfr_(self, R):
         """
-        This is a very preliminary conversion to real numbers.  It
-        doesn't unwind an expression, so is fairly useless.
+        Return a numerical approximation to this expression in the RealField R.
 
-        EXAMPLES:
+        The precision of the approximation is determined by the precision of
+        the input R.
+
+        EXAMPLES::
+
             sage: var('x',ns=1); S = parent(x)
             x
             sage: RealField(200)(S(1/11))
             0.090909090909090909090909090909090909090909090909090909090909
 
-        This illustrates that this function is not done yet:
             sage: a = S(3).sin(); a
             sin(3)
             sage: RealField(200)(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: self must be a numeric expression
+            0.14112000805986722210074480280811027984693326425226558415188
+            sage: a._mpfr_(RealField(100))
+            0.14112000805986722210074480281
         """
-        # TODO: This is *not* good enough.
-        return R(self.pyobject())
+        return self._eval_self(R)
+
+    def _complex_mpfr_field_(self, R):
+        """
+        Return a numerical approximation to this expression in the given
+        ComplexField R.
+
+        The precision of the approximation is determined by the precision of
+        the input R.
+
+        EXAMPLES::
+
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: ComplexField(200)(S(1/11))
+            0.090909090909090909090909090909090909090909090909090909090909
+            sage: zeta(x).subs(x=I)._complex_mpfr_field_(ComplexField(70))
+            0.0033002236853241028742 - 0.41815544914132167669*I
+            sage: gamma(x).subs(x=I)._complex_mpfr_field_(ComplexField(60))
+            -0.15494982830181069 - 0.49801566811835604*I
+            sage: log(x).subs(x=I)._complex_mpfr_field_(ComplexField(50))
+            1.5707963267949*I
+
+        """
+        return self._eval_self(R)
+
+    def _complex_double_(self, R):
+        """
+        Return a numerical approximation to this expression in the given
+        Complex Double Field R.
+
+        EXAMPLES::
+
+            sage: var('x',ns=1); S = parent(x)
+            x
+            sage: CDF(S(1/11))
+            0.0909090909091
+            sage: zeta(x).subs(x=I)._complex_double_(CDF)
+            0.00330022368532 - 0.418155449141*I
+            sage: gamma(x).subs(x=I)._complex_double_(CDF)
+            -0.154949828302 - 0.498015668118*I
+            sage: log(x).subs(x=I)._complex_double_(CDF)
+            1.57079632679*I
+        """
+        return self._eval_self(R)
 
     def __float__(self):
         """
@@ -296,9 +474,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: float() argument must be a string or a number
             sage: float(SR(RIF(2)))
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a number
+            2.0
         """
         cdef bint success
         cdef double ans = GEx_to_double(self._gobj, &success)
@@ -326,6 +502,16 @@ cdef class Expression(CommutativeRingElement):
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
+
+        TESTS:
+
+        Test if exceptions during hashing are handled properly::
+
+            sage: t = S(matrix(2,2,range(4)))
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
         """
         return self._gobj.gethash()
 
@@ -527,6 +713,52 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: incompatible relations
+
+            sage: x + oo
+            +Infinity
+            sage: x - oo
+            -Infinity
+            sage: x + unsigned_infinity
+            Infinity
+            sage: x - unsigned_infinity
+            Infinity
+
+            sage: nsr = x.parent()
+            sage: nsr(oo) + nsr(oo)
+            +Infinity
+            sage: nsr(-oo) + nsr(-oo)
+            -Infinity
+            sage: nsr(oo) - nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: Infinity - Infinity encountered.
+            sage: nsr(-oo) - nsr(-oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: Infinity - Infinity encountered.
+
+            sage: nsr(unsigned_infinity) + nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            sage: nsr(unsigned_infinity) - nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            sage: nsr(oo) + nsr(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            sage: nsr(oo) - nsr(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            sage: nsr(unsigned_infinity) + nsr(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+
+
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -572,6 +804,11 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: incompatible relations
+
+            sage: x - oo
+            -Infinity
+            sage: oo - x
+            +Infinity
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -638,6 +875,23 @@ cdef class Expression(CommutativeRingElement):
             sage: (y-1)*(y-2)
             (y - 2)*(y - 1)
 
+            sage: x*oo
+            +Infinity
+            sage: x*unsigned_infinity
+            Infinity
+            sage: -x*oo
+            -Infinity
+
+            sage: nsr = x.parent()
+            sage: nsr(oo)*nsr(oo)
+            +Infinity
+            sage: nsr(-oo)*nsr(oo)
+            -Infinity
+            sage: nsr(oo)*nsr(-oo)
+            -Infinity
+            sage: nsr(unsigned_infinity)*nsr(oo)
+            Infinity
+
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -691,6 +945,45 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: incompatible relations
+
+            sage: x/oo
+            0
+            sage: oo/x
+            +Infinity
+
+            sage: nsr = x.parent()
+            sage: nsr(oo)/nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: 0*infinity encountered.
+
+            sage: nsr(-oo)/nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: 0*infinity encountered.
+
+            sage: nsr(oo)/nsr(-oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: 0*infinity encountered.
+
+            sage: nsr(oo)/nsr(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: 0*infinity encountered.
+
+            sage: nsr(unsigned_infinity)/nsr(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: 0*infinity encountered.
+
+            sage: nsr(0)/nsr(oo)
+            0
+
+            sage: nsr(0)/nsr(unsigned_infinity)
+            0
+
+
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -781,6 +1074,26 @@ cdef class Expression(CommutativeRingElement):
             sage: k = GF(7)
             sage: f = expand((k(1)*x^5 + k(1)*x^2 + k(2))^7); f
             x^35 + x^14 + 2
+
+            sage: x^oo
+            Traceback (most recent call last):
+            ...
+            RuntimeError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            sage: S(oo)^2
+            +Infinity
+            sage: S(-oo)^2
+            +Infinity
+            sage: S(-oo)^3
+            -Infinity
+            sage: S(unsigned_infinity)^2
+            Infinity
+
+        Test powers of exp::
+
+            sage: S(2).exp()^5
+            e^10
+            sage: x.exp()^5
+            e^(5*x)
         """
         cdef Expression nexp = self.coerce_in(exp)
         cdef GEx x
@@ -792,7 +1105,48 @@ cdef class Expression(CommutativeRingElement):
             x = g_pow(self._gobj, nexp._gobj)
         return new_Expression_from_GEx(x)
 
-    def diff(self, symb, deg=1):
+    def derivative(self, *args):
+        """
+        Returns the derivative of this expressions with respect to the variables
+        supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        .. seealso::
+
+            :meth:`_derivative`
+
+        EXAMPLES::
+            sage: var("x y", ns=1)
+            (x, y)
+            sage: t = (x^2+y)^2
+            sage: t.derivative(x)
+            4*(x^2 + y)*x
+            sage: t.derivative(x, 2)
+            12*x^2 + 4*y
+            sage: t.derivative(x, 2, y)
+            4
+            sage: t.derivative(y)
+            2*x^2 + 2*y
+
+        ::
+
+            sage: t = sin(x+y^2)*tan(x*y)
+            sage: t.derivative(x)
+            (tan(x*y)^2 + 1)*y*sin(y^2 + x) + cos(y^2 + x)*tan(x*y)
+            sage: t.derivative(y)
+            (tan(x*y)^2 + 1)*x*sin(y^2 + x) + 2*y*cos(y^2 + x)*tan(x*y)
+
+        TESTS:
+            sage: t.derivative()
+            Traceback (most recent call last):
+            ...
+            ValueError: No differentiation variable specified.
+        """
+        return multi_derivative(self, args)
+
+    def _derivative(self, symb=None, deg=1):
         """
         Return the deg-th (partial) derivative of self with respect to symb.
 
@@ -800,14 +1154,26 @@ cdef class Expression(CommutativeRingElement):
             sage: var("x y", ns=1)
             (x, y)
             sage: b = (x+y)^5
-            sage: b.diff(x, 2)
+            sage: b._derivative(x, 2)
             20*(x + y)^3
 
             sage: from sage.symbolic.function import function as myfunc
             sage: foo = myfunc('foo',2)
-            sage: foo(x^2,x^2).diff(x)
-            2*x*D[0](foo)(x^2,x^2) + 2*x*D[1](foo)(x^2,x^2)
+            sage: foo(x^2,x^2)._derivative(x)
+            2*x*D[0](foo)(x^2, x^2) + 2*x*D[1](foo)(x^2, x^2)
+
+        TESTS:
+            Raise error if no variable is specified::
+            sage: b._derivative()
+            Traceback (most recent call last):
+            ...
+            ValueError: No differentiation variable specified.
         """
+        if symb is None:
+            # we specify a default value of None for symb and check for it here
+            # to return more helpful error messages when no variable is
+            # given by the multi_derivative framework
+            raise ValueError, "No differentiation variable specified."
         if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
                 or deg < 1:
             raise TypeError, "argument deg should be an integer >1."
@@ -1119,6 +1485,29 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
 
+            # substitutions with infinity
+            sage: (x/y).subs(y=oo)
+            0
+            sage: (x/y).subs(x=oo)
+            +Infinity
+            sage: (x*y).subs(x=oo)
+            +Infinity
+            sage: (x^y).subs(x=oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: power::eval(): pow(Infinity, x) for non numeric x is not defined.
+            sage: (x^y).subs(y=oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            sage: (x+y).subs(x=oo)
+            +Infinity
+            sage: (x-y).subs(y=oo)
+            -Infinity
+            sage: gamma(x).subs(x=-1)
+            Infinity
+            sage: 1/gamma(x).subs(x=-1)
+            0
         """
         cdef dict sdict = {}
         if in_dict is not None:
@@ -1343,10 +1732,11 @@ cdef class Expression(CommutativeRingElement):
                 if fn is None:
                     raise NotImplementedError, "Sage equivalent of this special function is not implemented."
                 return fn
-            else: # else, return a new SFunction object with the same serial
-                return new_SFunction_from_serial(serial,
-                        <char *>ex_to_function(self._gobj).get_name(),
-                        g_registered_functions().index(serial).get_nparams())
+            else: # else, look up the serial in the sfunction database
+                res = get_sfunction_from_serial(serial)
+                if res is None:
+                    raise RuntimeError, "cannot find SFunction in table"
+                return res
 
         # self._gobj is either a symbol, constant or numeric
         return None
@@ -1430,9 +1820,45 @@ cdef class Expression(CommutativeRingElement):
         """
         Return a numerical approximation of self.
 
+        ALIAS: .numerical_approx()
+
+        EXAMPLES::
+
+            sage: var('x', ns=1)
+            x
+            sage: sin(x).subs(x=5).n()
+            -0.958924274663138
+            sage: sin(x).subs(x=5).n(100)
+            -0.95892427466313846889315440616
+            sage: sin(x).subs(x=5).n(digits=50)
+            -0.95892427466313846889315440615599397335246154396460
+            sage: zeta(x).subs(x=2).numerical_approx(digits=50)
+            1.6449340668482264364724151666460251892189499012068
+
+        TESTS::
+
+        We test the evaluation of different infinities available in pynac::
+            sage: t = x - oo; t
+            -Infinity
+            sage: t.n()
+            -Infinity
+            sage: t = x + oo; t
+            +Infinity
+            sage: t.n()
+            +Infinity
+            sage: t = x - unsigned_infinity; t
+            Infinity
+            sage: t.n()
+            Infinity
         """
-        # TODO: prec and digits parameters
-        return new_Expression_from_GEx(self._gobj.evalf(0))
+        if prec is None:
+            if digits is None:
+                prec = 53
+            else:
+                prec = int((digits+1) * 3.32192) + 1
+        return new_Expression_from_GEx(self._gobj.evalf(0, prec))
+
+    numerical_approx = n
 
     def function(self, *args):
         """
@@ -1722,6 +2148,8 @@ cdef class Expression(CommutativeRingElement):
             csgn(x)
             sage: SR(CDF.0).csgn()
             1
+            sage: SR(I).csgn()
+            1
         """
         return new_Expression_from_GEx(g_csgn(self._gobj))
 
@@ -1729,21 +2157,21 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the complex conjugate of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); SR = x.parent()
             sage: SR(CDF.0).conjugate()
-            -I
+            -1.0*I
             sage: x.conjugate()
             conjugate(x)
             sage: SR(RDF(1.5)).conjugate()
             1.5
             sage: SR(float(1.5)).conjugate()
             1.5
-            sage: I = SR(CDF.0)
-            sage: I.conjugate()
+            sage: SR(I).conjugate()
             -I
             sage: ( 1+I  + (2-3*I)*x).conjugate()
-            (2.0 + 3.0*I)*conjugate(x) + 1.0 - I
+            (3*I + 2)*conjugate(x) + 1 - I
         """
         return new_Expression_from_GEx(self._gobj.conjugate())
 
@@ -1755,6 +2183,8 @@ cdef class Expression(CommutativeRingElement):
             sage: x = var('x', ns=1); SR = x.parent()
             sage: x.real_part()
             real_part(x)
+            sage: SR(2+3*I).real_part()
+            2
             sage: SR(CDF(2,3)).real_part()
             2.0
             sage: SR(CC(2,3)).real_part()
@@ -1770,6 +2200,8 @@ cdef class Expression(CommutativeRingElement):
             sage: x = var('x', ns=1); SR = x.parent()
             sage: x.imag_part()
             imag_part(x)
+            sage: SR(2+3*I).imag_part()
+            3
             sage: SR(CC(2,3)).imag_part()
             3.00000000000000
             sage: SR(CDF(2,3)).imag_part()
@@ -1793,7 +2225,8 @@ cdef class Expression(CommutativeRingElement):
 
     def sin(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
             sage: sin(x^2 + y^2)
@@ -1803,7 +2236,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(S(1))
             sin(1)
             sage: sin(S(RealField(150)(1)))
+            sin(1.0000000000000000000000000000000000000000000)
+
+        In order to get a numeric approximation use .n()::
+
+            sage: sin(S(1)).n(150)
             0.84147098480789650665250232163029899962256306
+
         """
         return new_Expression_from_GEx(g_sin(self._gobj))
 
@@ -1811,7 +2250,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the cosine of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
             sage: cos(x^2 + y^2)
@@ -1821,17 +2261,23 @@ cdef class Expression(CommutativeRingElement):
             sage: cos(S(1))
             cos(1)
             sage: cos(S(RealField(150)(1)))
+            cos(1.0000000000000000000000000000000000000000000)
+
+        In order to get a numeric approximation use .n()::
+
+            sage: cos(S(1)).n(150)
             0.54030230586813971740093660744297660373231042
-            sage: S(RR(1)).cos()
+            sage: S(RR(1)).cos().n()
             0.540302305868140
-            sage: S(float(1)).cos()
-            0.54030230586813977
+            sage: S(float(1)).cos().n()
+            0.540302305868140
         """
         return new_Expression_from_GEx(g_cos(self._gobj))
 
     def tan(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x, y', ns=1); S = parent(x)
             (x, y)
             sage: tan(x^2 + y^2)
@@ -1839,10 +2285,15 @@ cdef class Expression(CommutativeRingElement):
             sage: tan(sage.symbolic.constants.pi/2)
             Traceback (most recent call last):
             ...
-            ValueError: simple pole at 1/2*Pi
+            ValueError: simple pole at 1/2*pi
             sage: tan(S(1))
             tan(1)
             sage: tan(S(RealField(150)(1)))
+            tan(1.0000000000000000000000000000000000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: tan(S(1)).n(150)
             1.5574077246549022305069748074583601730872508
         """
         try:
@@ -1855,16 +2306,25 @@ cdef class Expression(CommutativeRingElement):
         Return the arcsin of x, i.e., the number y between -pi and pi
         such that sin(y) == x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); SR = x.parent()
             sage: x.arcsin()
             arcsin(x)
             sage: SR(0.5).arcsin()
+            arcsin(0.500000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: SR(0.5).arcsin().n()
             0.523598775598299
+
             sage: SR(0.999).arcsin()
-            1.52607123962616
+            arcsin(0.999000000000000)
             sage: SR(-0.999).arcsin()
-            -1.52607123962616
+            -arcsin(0.999000000000000)
+            sage: SR(0.999).arcsin().n()
+            1.52607123962616
         """
         return new_Expression_from_GEx(g_asin(self._gobj))
 
@@ -1872,15 +2332,21 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the arc cosine of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.arccos()
             arccos(x)
             sage: S(1).arccos()
             0
             sage: S(1/2).arccos()
-            1/3*Pi
+            1/3*pi
             sage: S(0.4).arccos()
+            arccos(0.400000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(0.4).arccos().n()
             1.15927948072741
             sage: plot(lambda x: S(x).arccos(), -1,1)
         """
@@ -1890,15 +2356,21 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the arc tangent of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.arctan()
             arctan(x)
             sage: S(1).arctan()
-            1/4*Pi
+            1/4*pi
             sage: S(1/2).arctan()
             arctan(1/2)
             sage: S(0.5).arctan()
+            arctan(0.500000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(0.5).arctan().n()
             0.463647609000806
             sage: plot(lambda x: S(x).arctan(), -20,20)
         """
@@ -1908,21 +2380,29 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the inverse of the 2-variable tan function on self and x.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y', ns=1); S = parent(x)
             (x, y)
             sage: x.arctan2(y)
             arctan2(x, y)
             sage: S(1/2).arctan2(1/2)
-            1/4*Pi
+            1/4*pi
             sage: maxima.eval('atan2(1/2,1/2)')
             '%pi/4'
 
-        TESTS:
-        We compare a bunch of different evaluation points between
-        Sage and Maxima:
             sage: S(-0.7).arctan2(S(-0.6))
-            -Pi + 0.862170054667226
+            -pi + arctan(1.16666666666667)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(-0.7).arctan2(S(-0.6)).n()
+            -2.27942259892257
+
+        TESTS:
+
+        We compare a bunch of different evaluation points between
+        Sage and Maxima::
 
             sage: float(S(0.7).arctan2(0.6))
             0.8621700546672264
@@ -1951,10 +2431,12 @@ cdef class Expression(CommutativeRingElement):
             sage: S(0).arctan2(0)
             0
 
-            sage: S(CDF(0,1)).arctan2(1)
+            sage: S(I).arctan2(1)
             arctan2(I, 1)
+            sage: S(CDF(0,1)).arctan2(1)
+            arctan2(1.0*I, 1)
             sage: S(1).arctan2(CDF(0,1))
-            arctan2(1, I)
+            arctan2(1, 1.0*I)
         """
         cdef Expression nexp = self.coerce_in(x)
         return new_Expression_from_GEx(g_atan2(self._gobj, nexp._gobj))
@@ -1965,7 +2447,8 @@ cdef class Expression(CommutativeRingElement):
 
         We have $\sinh(x) = (e^{x} - e^{-x})/2$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.sinh()
             sinh(x)
@@ -1974,13 +2457,23 @@ cdef class Expression(CommutativeRingElement):
             sage: S(0).sinh()
             0
             sage: S(1.0).sinh()
+            sinh(1.00000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(1.0).sinh().n()
             1.17520119364380
             sage: maxima('sinh(1.0)')
             1.175201193643801
+
             sage: S(1.0000000000000000000000000).sinh()
+            sinh(1.0000000000000000000000000)
+            sage: S(1).sinh().n(90)
             1.1752011936438014568823819
             sage: S(RIF(1)).sinh()
-            1.175201193643802?
+            sinh(1)
+            sage: S(RIF(1)).sinh().n()
+            1.17520119364380
             sage: plot(lambda x: S(x).sinh(), -1, 1)
         """
         return new_Expression_from_GEx(g_sinh(self._gobj))
@@ -1991,7 +2484,8 @@ cdef class Expression(CommutativeRingElement):
 
         We have $\sinh(x) = (e^{x} + e^{-x})/2$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.cosh()
             cosh(x)
@@ -2000,13 +2494,22 @@ cdef class Expression(CommutativeRingElement):
             sage: S(0).cosh()
             1
             sage: S(1.0).cosh()
+            cosh(1.00000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(1.0).cosh().n()
             1.54308063481524
             sage: maxima('cosh(1.0)')
             1.543080634815244
             sage: S(1.0000000000000000000000000).cosh()
+            cosh(1.0000000000000000000000000)
+            sage: S(1).cosh().n(90)
             1.5430806348152437784779056
             sage: S(RIF(1)).cosh()
-            1.543080634815244?
+            cosh(1)
+            sage: S(RIF(1)).cosh().n()
+            1.54308063481524
             sage: plot(lambda x: S(x).cosh(), -1, 1)
         """
         return new_Expression_from_GEx(g_cosh(self._gobj))
@@ -2017,7 +2520,8 @@ cdef class Expression(CommutativeRingElement):
 
         We have $\tanh(x) = \sinh(x) / \cosh(x)$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.tanh()
             tanh(x)
@@ -2026,6 +2530,11 @@ cdef class Expression(CommutativeRingElement):
             sage: S(0).tanh()
             0
             sage: S(1.0).tanh()
+            tanh(1.00000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(1.0).tanh().n()
             0.761594155955765
             sage: maxima('tanh(1.0)')
             .7615941559557649
@@ -2037,7 +2546,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the inverse hyperbolic sine of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.arcsinh()
             arcsinh(x)
@@ -2046,11 +2556,16 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1).arcsinh()
             arcsinh(1)
             sage: S(1.0).arcsinh()
+            arcsinh(1.00000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(1.0).arcsinh().n()
             0.881373587019543
             sage: maxima('asinh(1.0)')
             0.881373587019543
 
-        Sage automatically applies certain identies:
+        Sage automatically applies certain identies::
             sage: S(3/2).arcsinh().cosh()
             1/2*sqrt(13)
         """
@@ -2060,15 +2575,21 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the inverse hyperbolic cosine of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.arccosh()
             arccosh(x)
             sage: S(0).arccosh()
-            0.5*I*Pi
+            1/2*I*pi
             sage: S(1/2).arccosh()
             arccosh(1/2)
             sage: S(CDF(1/2)).arccosh()
+            arccosh(0.5)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(CDF(1/2)).arccosh().n()
             1.0471975512*I
             sage: maxima('acosh(0.5)')
             1.047197551196598*%i
@@ -2079,7 +2600,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the inverse hyperbolic tangent of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.arctanh()
             arctanh(x)
@@ -2088,6 +2610,11 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1/2).arctanh()
             arctanh(1/2)
             sage: S(0.5).arctanh()
+            arctanh(0.500000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(0.5).arctanh().n()
             0.549306144334055
             sage: S(0.5).arctanh().tanh()
             0.500000000000000
@@ -2101,7 +2628,8 @@ cdef class Expression(CommutativeRingElement):
         Return exponential function of self, i.e., e to the
         power of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x', ns=1); S = x.parent()
             sage: x.exp()
             e^x
@@ -2110,11 +2638,18 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1/2).exp()
             e^(1/2)
             sage: S(0.5).exp()
+            e^0.500000000000000
+
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(0.5).exp().n()
             1.64872127070013
-            sage: S(0.5).exp().log()
-            0.500000000000000
             sage: math.exp(0.5)
             1.6487212707001282
+
+            sage: S(0.5).exp().log()
+            0.500000000000000
             sage: plot(lambda x: S(x).exp(), -2,1)
         """
         return new_Expression_from_GEx(g_exp(self._gobj))
@@ -2123,7 +2658,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the logarithm of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x, y = var('x, y', ns=1); S = x.parent()
             sage: x.log()
             log(x)
@@ -2138,6 +2674,11 @@ cdef class Expression(CommutativeRingElement):
             sage: S(1/2).log()
             log(1/2)
             sage: S(0.5).log()
+            log(0.500000000000000)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(0.5).log().n()
             -0.693147180559945
             sage: S(0.5).log().exp()
             0.500000000000000
@@ -2149,19 +2690,28 @@ cdef class Expression(CommutativeRingElement):
 
     def zeta(self):
         """
-        EXAMPLES:
+        EXAMPLES::
             sage: x, y = var('x, y', ns=1); S = x.parent()
             sage: (x/y).zeta()
             zeta(x/y)
             sage: S(2).zeta()
-            1/6*Pi^2
+            1/6*pi^2
             sage: S(3).zeta()
             zeta(3)
             sage: S(CDF(0,1)).zeta()
-            0.00330022368532-0.418155449141*I
+            zeta(1.0*I)
+            sage: S(CDF(0,1)).zeta().n()
+            0.00330022368532 - 0.418155449141*I
             sage: CDF(0,1).zeta()
             0.00330022368532 - 0.418155449141*I
             sage: plot(lambda x: S(x).zeta(), -10,10).show(ymin=-3,ymax=3)
+
+        TESTS::
+
+            sage: t = S(1).zeta(); t
+            zeta(1)
+            sage: t.n()
+            Infinity
         """
         _sig_on
         cdef GEx x = g_zeta(self._gobj)
@@ -2240,9 +2790,16 @@ cdef class Expression(CommutativeRingElement):
             sage: S(10).gamma()
             362880
             sage: S(10.0r).gamma()
+            gamma(10.0)
+
+        Use .n() to get a numerical approximation::
+
+            sage: S(10.0r).gamma().n()
             362880.000000000
             sage: S(CDF(1,1)).gamma()
-            0.498015668118-0.154949828302*I
+            gamma(1.0 + 1.0*I)
+            sage: S(CDF(1,1)).gamma().n()
+            0.498015668118 - 0.154949828302*I
 
             sage: gp('gamma(1+I)') # 32-bit
             0.4980156681183560427136911175 - 0.1549498283018106851249551305*I

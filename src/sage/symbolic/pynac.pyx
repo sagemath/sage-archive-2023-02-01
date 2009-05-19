@@ -19,11 +19,13 @@ include "../libs/ginac/decl.pxi"
 from sage.structure.element import Element
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr import RR, RealField
+from sage.rings.real_mpfr import RR, RealField_constructor
 from sage.rings.all import CC
 from sage.calculus.all import SR
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
+from sage.symbolic.function import get_sfunction_from_serial
+from sage.symbolic.function cimport SFunction
 
 import constants
 import ring
@@ -32,10 +34,14 @@ import ring
 # Symbolic function helpers
 #################################################################
 
+# We declare the functions defined below as extern here, to prevent Cython
+# from generating separate declarations for them which confuse g++
 cdef extern from *:
     object exvector_to_PyTuple(GExVector seq)
     GEx pyExpression_to_ex(object res) except *
     object ex_to_pyExpression(GEx juice)
+    object paramset_to_PyTuple(GParamSet juice)
+    int py_get_ginac_serial()
 
 cdef public object ex_to_pyExpression(GEx juice):
     """
@@ -75,6 +81,21 @@ cdef public GEx pyExpression_to_ex(object res) except *:
         raise TypeError, "eval function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
     return (<Expression>t)._gobj
 
+cdef public object paramset_to_PyTuple(GParamSet s):
+    """
+    Converts a std::multiset<unsigned> to a PyTuple.
+
+    Used to pass a list of parameter numbers with respect to which a function
+    is differentiaed to the printing functions py_print_fderivative and
+    py_latex_fderivative.
+    """
+    cdef GParamSetIter itr = s.begin()
+    res = []
+    while itr.is_not_equal(s.end()):
+        res.append(itr.obj())
+        itr.inc()
+    return res
+
 cdef int GINAC_FN_SERIAL = 0
 
 cdef set_ginac_fn_serial():
@@ -87,7 +108,7 @@ cdef set_ginac_fn_serial():
     global GINAC_FN_SERIAL
     GINAC_FN_SERIAL = g_registered_functions().size()
 
-def get_ginac_serial():
+cdef public int py_get_ginac_serial():
     """
     Returns the number of C++ level functions defined by GiNaC.
 
@@ -96,19 +117,370 @@ def get_ginac_serial():
         sage: get_ginac_serial() >= 40
         True
     """
+    global GINAC_FN_SERIAL
+    return GINAC_FN_SERIAL
+
+def get_ginac_serial():
+    global GINAC_FN_SERIAL
     return GINAC_FN_SERIAL
 
 #################################################################
 # Printing helpers
 #################################################################
 
+# We declare the functions defined below as extern here, to prevent Cython
+# from generating separate declarations for them which confuse g++
 cdef extern from *:
-    char* py_latex(object o) except +
+    stdstring* py_latex(object o) except +
+    stdstring* py_latex_variable(char* var_name) except +
+    stdstring* py_print_function(unsigned id, object args) except +
+    stdstring* py_latex_function(unsigned id, object args) except +
+    stdstring* py_print_fderivative(unsigned id, object params, object args) except +
+    stdstring* py_latex_fderivative(unsigned id, object params, object args) except +
 
-cdef public char* py_latex(object o) except +:
+cdef public stdstring* py_latex(object o) except +:
     from sage.misc.latex import latex
     s = latex(o)
-    return s
+    return string_from_pystr(s)
+
+cdef stdstring* string_from_pystr(object py_str):
+    """
+    Creates a C++ string with the same contents as the given python string.
+
+    Used when passing string output to pynac for printing, since we don't want
+    to mess with reference counts of the python objects and we cannot guarantee
+    they won't be garbage collected before the output is printed.
+    """
+    cdef char *t_str = PyString_AsString(py_str)
+    cdef Py_ssize_t slen = len(py_str)
+    cdef stdstring* sout = stdstring_construct_cstr(t_str, slen)
+    return sout
+
+cdef public stdstring* py_latex_variable(char* var_name) except +:
+    """
+    Returns a c++ string containing the latex representation of the given
+    variable name.
+
+    Real work is done by the function sage.misc.latex.latex_variable_name.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_latex_variable_for_doctests
+        sage: py_latex_variable = py_latex_variable_for_doctests
+
+        sage: py_latex_variable('a')
+        a
+        sage: py_latex_variable('abc')
+        \mbox{abc}
+        sage: py_latex_variable('a_00')
+        a_{00}
+        sage: py_latex_variable('sigma_k')
+        \sigma_{k}
+        sage: py_latex_variable('sigma389')
+        \sigma_{389}
+        sage: py_latex_variable('beta_00')
+        \beta_{00}
+    """
+    cdef Py_ssize_t slen
+    from sage.misc.latex import latex_variable_name
+    py_vlatex = latex_variable_name(var_name)
+    return string_from_pystr(py_vlatex)
+
+def py_latex_variable_for_doctests(x):
+    cdef stdstring* ostr = py_latex_variable(PyString_AsString(x))
+    print(ostr.c_str())
+    stdstring_delete(ostr)
+
+def py_print_function_pystring(id, args, fname_paren=False):
+    """
+    Return a string with the representation of the symbolic function specified
+    by the given id applied to args.
+
+    INPUT:
+
+        id --   serial number of the corresponding symbolic function
+        params -- Set of parameter numbers with respect to which to take
+                    the derivative.
+        args -- arguments of the function.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_print_function_pystring
+        sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
+        sage: var('x,y,z',ns=1)
+         (x, y, z)
+        sage: foo = function('foo', 2)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_print_function_pystring(i, (x,y))
+        'foo(x, y)'
+        sage: py_print_function_pystring(i, (x,y), True)
+        '(foo)(x, y)'
+        sage: def my_print(*args): return "my args are: " + ', '.join(map(repr, args))
+        sage: foo = function('foo', 2, print_func=my_print)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_print_function_pystring(i, (x,y))
+        'my args are: x, y'
+    """
+    cdef SFunction func = get_sfunction_from_serial(id)
+    # This function is called from two places, from function::print in pynac
+    # and from py_print_fderivative. function::print checks if the serial
+    # belongs to a function defined at the C++ level. There are no C++ level
+    # functions that return an instance of fderivative when derivated. Hence,
+    # func will never be None.
+    assert(func is not None)
+
+    # if function has a custom print function call it
+    if func.print_f is not None:
+        res = func.print_f(*args)
+        # make sure the output is a string
+        if res is None:
+            return ""
+        if not isinstance(res, str):
+            return str(res)
+        return res
+
+    # otherwise use default output
+    if fname_paren:
+        olist = ['(', func.name, ')']
+    else:
+        olist = [func.name]
+    olist.extend(['(', ', '.join(map(repr, args)), ')'])
+    return ''.join(olist)
+
+cdef public stdstring* py_print_function(unsigned id, object args) except +:
+    return string_from_pystr(py_print_function_pystring(id, args))
+
+def py_latex_function_pystring(id, args, fname_paren=False):
+    """
+    Return a string with the latex representation of the symbolic function
+    specified by the given id applied to args.
+
+    See documentation of py_print_function_pystring for more information.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_latex_function_pystring
+        sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
+        sage: var('x,y,z',ns=1)
+         (x, y, z)
+        sage: foo = function('foo', 2)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_function_pystring(i, (x,y^z))
+        '\\mbox{foo}\\left(x, y^{z}\\right)'
+        sage: py_latex_function_pystring(i, (x,y^z), True)
+         '\\left(\\mbox{foo}\\right)\\left(x, y^{z}\\right)'
+
+    Test latex_name::
+
+        sage: foo = function('foo', 2, latex_name=r'\mathrm{bar}')
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_function_pystring(i, (x,y^z))
+        '\\mbox{\\mathrm{bar}}\\left(x, y^{z}\\right)'
+
+    Test custom func::
+
+        sage: def my_print(*args): return "my args are: " + ', '.join(map(repr, args))
+        sage: foo = function('foo', 2, print_latex_func=my_print)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_function_pystring(i, (x,y^z))
+        'my args are: x, y^z'
+
+
+    """
+    cdef SFunction func = get_sfunction_from_serial(id)
+    # This function is called from two places, from function::print in pynac
+    # and from py_latex_fderivative. function::print checks if the serial
+    # belongs to a function defined at the C++ level. There are no C++ level
+    # functions that return an instance of fderivative when derivated. Hence,
+    # func will never be None.
+    assert(func is not None)
+
+    # if function has a custom print function call it
+    if func.print_latex_f:
+        res = func.print_latex_f(*args)
+        # make sure the output is a string
+        if res is None:
+            return ""
+        if not isinstance(res, str):
+            return str(res)
+        return res
+
+    # otherwise, use the latex name if defined
+    if func.latex_name:
+        name = func.latex_name
+    else:
+        name = func.name # if latex_name is not defined, use default name
+    if fname_paren:
+        olist = [r'\left(', r'\mbox{', name, '}', r'\right)']
+    else:
+        olist = [r'\mbox{', name, '}']
+    # print the arguments
+    olist.extend([r'\left(', ', '.join([x._latex_() for x in args]),
+        r'\right)'] )
+    return ''.join(olist)
+
+cdef public stdstring* py_latex_function(unsigned id, object args) except +:
+    return string_from_pystr(py_latex_function_pystring(id, args))
+
+cdef public stdstring* py_print_fderivative(unsigned id, object params,
+        object args) except +:
+    """
+    Return a string with the representation of the derivative of the symbolic
+    function specified by the given id, lists of params and args.
+
+    INPUT:
+
+        id --   serial number of the corresponding symbolic function
+        params -- Set of parameter numbers with respect to which to take
+                    the derivative.
+        args -- arguments of the function.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative
+        sage: var('x,y,z',ns=1)
+        (x, y, z)
+        sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
+        sage: foo = function('foo', 2)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_print_fderivative(i, (0, 1, 0, 1), (x, y^z))
+        D[0, 1, 0, 1](foo)(x, y^z)
+
+    Test custom print function::
+
+        sage: def my_print(*args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
+        sage: foo = function('foo', 2, print_func=my_print)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_print_fderivative(i, (0, 1, 0, 1), (x, y^z))
+        D[0, 1, 0, 1]func_with_args(x, y^z)
+
+
+    """
+    ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
+    fstr = py_print_function_pystring(id, args, True)
+    py_res = ostr + fstr
+    return string_from_pystr(py_res)
+
+def py_print_fderivative_for_doctests(id, params, args):
+    cdef stdstring* ostr = py_print_fderivative(id, params, args)
+    print(ostr.c_str())
+    stdstring_delete(ostr)
+
+cdef public stdstring* py_latex_fderivative(unsigned id, object params,
+        object args) except +:
+    """
+    Return a string with the latex representation of the derivative of the
+    symbolic function specified by the given id, lists of params and args.
+
+    See documentation of py_print_fderivative for more information.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative
+        sage: var('x,y,z',ns=1)
+        (x, y, z)
+        sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
+        sage: foo = function('foo', 2)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
+        D[0, 1, 0, 1]\left(\mbox{foo}\right)\left(x, y^{z}\right)
+
+    Test latex_name::
+
+        sage: foo = function('foo', 2, latex_name=r'\mathrm{bar}')
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
+        D[0, 1, 0, 1]\left(\mbox{\mathrm{bar}}\right)\left(x, y^{z}\right)
+
+    Test custom func::
+
+        sage: def my_print(*args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
+        sage: foo = function('foo', 2, print_latex_func=my_print)
+        sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
+        ...     if get_sfunction_from_serial(i) == foo: break
+
+        sage: get_sfunction_from_serial(i) == foo
+        True
+        sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
+        D[0, 1, 0, 1]func_with_args(x, y^z)
+
+    """
+    ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
+    fstr = py_latex_function_pystring(id, args, True)
+    py_res = ostr + fstr
+    return string_from_pystr(py_res)
+
+def py_latex_fderivative_for_doctests(id, params, args):
+    cdef stdstring* ostr = py_latex_fderivative(id, params, args)
+    print(ostr.c_str())
+    stdstring_delete(ostr)
+
+#################################################################
+# Archive helpers
+#################################################################
+
+cdef extern from *:
+    stdstring* py_dumps(object o) except +
+    object py_loads(object s) except +
+    object py_get_sfunction_from_serial(unsigned s) except +
+    unsigned py_get_serial_from_sfunction(SFunction f) except +
+
+from sage.structure.sage_object import loads, dumps
+cdef public stdstring* py_dumps(object o) except +:
+    s = dumps(o, compress=False)
+    # pynac archive format terminates atoms with zeroes.
+    # since pickle output can break the archive format
+    # we use the base64 data encoding
+    import base64
+    s = base64.b64encode(s)
+    return string_from_pystr(s)
+
+cdef public object py_loads(object s) except +:
+    import base64
+    s = base64.b64decode(s)
+    return loads(s)
+
+cdef public object py_get_sfunction_from_serial(unsigned s) except +:
+    return get_sfunction_from_serial(s)
+
+cdef public unsigned py_get_serial_from_sfunction(SFunction f) except +:
+    return f.serial
 
 #################################################################
 # Modular helpers
@@ -116,6 +488,8 @@ cdef public char* py_latex(object o) except +:
 
 from sage.structure.element cimport Element
 
+# We declare the functions defined below as extern here, to prevent Cython
+# from generating separate declarations for them which confuse g++
 cdef extern from *:
     int py_get_parent_char(object o) except *
 
@@ -145,7 +519,7 @@ cdef extern from *:
     bint py_is_prime(object x)
     object py_numer(object x)
     object py_denom(object x)
-    object py_float(object x)
+    object py_float(object x, int prec) except +
     object py_RDF_from_double(double x)
     object py_factorial(object x)
     object py_doublefactorial(object x)
@@ -182,9 +556,12 @@ cdef extern from *:
     object py_li2(object x)
     object py_psi(object x)
     object py_psi2(object x, object y)
-    object py_eval_pi(long int)
-    object py_eval_euler_gamma(long int)
-    object py_eval_catalan(long int)
+    object py_eval_pi(int)
+    object py_eval_euler_gamma(int)
+    object py_eval_catalan(int)
+    object py_eval_unsigned_infinity()
+    object py_eval_infinity()
+    object py_eval_neg_infinity()
     object py_integer_from_long(long int)
     object py_integer_from_python_obj(object x)
 
@@ -453,8 +830,45 @@ cdef public object py_denom(object n):
     except AttributeError:
         return 1
 
-cdef public object py_float(object n):
-    return float(n)
+cdef public object py_float(object n, int prec) except +:
+    """
+    Evaluate pynac numeric objects numerically.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_float_for_doctests as py_float
+        sage: py_float(I, 10)
+        1.0*I
+        sage: py_float(pi, 100)
+        3.1415926535897932384626433833
+        sage: py_float(CDF(10), 53)
+        10.0
+        sage: type(py_float(CDF(10), 53))
+        <type 'sage.rings.complex_double.ComplexDoubleElement'>
+        sage: py_float(CC(1/2), 53)
+        0.500000000000000
+        sage: type(py_float(CC(1/2), 53))
+        <type 'sage.rings.complex_number.ComplexNumber'>
+    """
+    if isinstance(n, (int, long, float)):
+        return RealField_constructor(prec)(n)
+    from sage.structure.coerce import parent
+    if hasattr(parent(n), 'to_prec'):
+        return parent(n).to_prec(prec)(n)
+    from sage.misc.functional import numerical_approx
+    return numerical_approx(n, prec)
+
+def py_float_for_doctests(n, prec):
+    """
+    This function is for testing py_float.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_float_for_doctests
+        sage: py_float_for_doctests(pi, 80)
+        3.1415926535897932384626
+    """
+    return py_float(n, prec)
 
 # TODO: Optimize this
 from sage.rings.real_double import RDF
@@ -533,23 +947,112 @@ cdef public object py_cos(object x):
         return cos(float(x))
 
 cdef public object py_zeta(object x):
+    """
+    Return the value of the zeta function at the given value.
+
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF,
+    different from 1.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_zeta_for_doctests as py_zeta
+        sage: py_zeta(CC.0)
+        0.00330022368532410 - 0.418155449141322*I
+        sage: py_zeta(CDF(5))
+        1.03692775514
+        sage: py_zeta(RealField(100)(5))
+        1.0369277551433699263313654865
+    """
     try:
         return x.zeta()
     except AttributeError:
-        return RR(x).zeta()
+        pass
+    # zeta() evaluates it's argument before calling this, so we should never
+    # end up here. Precision is not a problem here, since zeta() passes that
+    # on when it calls evalf() on the argument.
+    raise RuntimeError, "py_zeta() received non evaluated argument"
+
+def py_zeta_for_doctests(x):
+    """
+    This function is for testing py_zeta().
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_zeta_for_doctests
+        sage: py_zeta_for_doctests(CC.0)
+        0.00330022368532410 - 0.418155449141322*I
+    """
+    return py_zeta(x)
 
 cdef public object py_exp(object x):
+    """
+    Return the value of the exp function at the given value.
+
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_exp_for_doctests as py_exp
+        sage: py_exp(CC(1))
+        2.71828182845905
+        sage: py_exp(CC(.5*I))
+        0.877582561890373 + 0.479425538604203*I
+    """
     try:
         return x.exp()
     except AttributeError:
-        return RR(x).exp()
+        pass
+    # exp() evaluates it's argument before calling this, so we should never
+    # end up here. Precision is not a problem here, since exp() passes that
+    # on when it calls evalf() on the argument.
+    raise RuntimeError, "py_exp() received non evaluated argument"
+
+def py_exp_for_doctests(x):
+    """
+    This function tests py_exp.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_exp_for_doctests
+        sage: py_exp_for_doctests(CC(2))
+        7.38905609893065
+    """
+    return py_exp(x)
 
 cdef public object py_log(object x):
+    """
+    Return the value of the log function at the given value.
+
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_log_for_doctests as py_log
+        sage: py_log(CC(e))
+        1.00000000000000
+        sage: py_log(CC.0)
+        1.57079632679490*I
+    """
     try:
         return x.log()
     except AttributeError:
-        return RR(x).log()
+        pass
+    # log() evaluates it's argument before calling this, so we should never
+    # end up here. Precision is not a problem here, since log() passes that
+    # on when it calls evalf() on the argument.
+    raise RuntimeError, "py_log() received non evaluated argument"
 
+def py_log_for_doctests(x):
+    """
+    This function tests py_log.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_log_for_doctests
+        sage: py_log_for_doctests(CC(e))
+        1.00000000000000
+    """
+    return py_log(x)
 
 cdef public object py_tan(object x):
     try:
@@ -712,19 +1215,137 @@ cdef public object py_psi2(object x, object y):
 # Constants
 ##################################################################
 
-cdef int prec(long ndigits):
-    return <int>((ndigits+1) * 3.32192 + 1)
+cdef public object py_eval_pi(int prec):
+    """
+    Return the value of pi with the given precision.
 
-cdef public object py_eval_pi(long ndigits):
-    return RealField(prec(ndigits)).pi()
+    TESTS::
 
-cdef public object py_eval_euler_gamma(long ndigits):
-    return RealField(prec(ndigits)).euler_constant()
+        sage: from sage.symbolic.pynac import py_eval_pi_for_doctests as py_eval_pi
+        sage: py_eval_pi(50)
+        3.1415926535898
+        sage: py_eval_pi(100)
+        3.1415926535897932384626433833
+    """
+    return RealField_constructor(prec).pi()
 
-cdef public object py_eval_catalan(long ndigits):
-    return RealField(prec(ndigits)).catalan_constant()
+def py_eval_pi_for_doctests(prec):
+    """
+    This function tests py_eval_pi.
 
+    EXAMPLES::
 
+        sage: from sage.symbolic.pynac import py_eval_pi_for_doctests
+        sage: py_eval_pi_for_doctests(40)
+        3.1415926536
+    """
+    return py_eval_pi(prec)
+
+cdef public object py_eval_euler_gamma(int prec):
+    """
+    Return the value of euler_gamma with the given precision.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_eval_euler_gamma_for_doctests as py_eval_euler_gamma
+        sage: py_eval_euler_gamma(50)
+        0.57721566490153
+        sage: py_eval_euler_gamma(100)
+        0.57721566490153286060651209008
+    """
+    return RealField_constructor(prec).euler_constant()
+
+def py_eval_euler_gamma_for_doctests(prec):
+    """
+    This function tests py_eval_euler_gamma.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_eval_euler_gamma_for_doctests
+        sage: py_eval_euler_gamma_for_doctests(40)
+        0.57721566490
+    """
+    return py_eval_euler_gamma(prec)
+
+cdef public object py_eval_catalan(int prec):
+    """
+    Return the value of catalan with the given precision.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_eval_catalan_for_doctests as py_eval_catalan
+        sage: py_eval_catalan(50)
+        0.91596559417722
+        sage: py_eval_catalan(100)
+        0.91596559417721901505460351493
+    """
+    return RealField_constructor(prec).catalan_constant()
+
+def py_eval_catalan_for_doctests(prec):
+    """
+    This function tests py_eval_catalan.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_eval_catalan_for_doctests
+        sage: py_eval_catalan_for_doctests(40)
+        0.91596559418
+    """
+    return py_eval_catalan(prec)
+
+cdef public object py_eval_unsigned_infinity():
+    """
+    Returns unsigned_infinity.
+    """
+    from sage.rings.infinity import unsigned_infinity
+    return unsigned_infinity
+
+def py_eval_unsigned_infinity_for_doctests():
+    """
+    This function tests py_eval_unsigned_infinity.
+
+    TESTS::
+        sage: from sage.symbolic.pynac import py_eval_unsigned_infinity_for_doctests as py_eval_unsigned_infinity
+        sage: py_eval_unsigned_infinity()
+        Infinity
+    """
+    return py_eval_unsigned_infinity()
+
+cdef public object py_eval_infinity():
+    """
+    Returns positive infinity, i.e., oo.
+    """
+    from sage.rings.infinity import infinity
+    return infinity
+
+def py_eval_infinity_for_doctests():
+    """
+    This function tests py_eval_infinity.
+
+    TESTS::
+        sage: from sage.symbolic.pynac import py_eval_infinity_for_doctests as py_eval_infinity
+        sage: py_eval_infinity()
+        +Infinity
+    """
+    return py_eval_infinity()
+
+cdef public object py_eval_neg_infinity():
+    """
+    Returns minus_infinity.
+    """
+    from sage.rings.infinity import minus_infinity
+    return minus_infinity
+
+def py_eval_neg_infinity_for_doctests():
+    """
+    This function tests py_eval_neg_infinity.
+
+    TESTS::
+        sage: from sage.symbolic.pynac import py_eval_neg_infinity_for_doctests as py_eval_neg_infinity
+        sage: py_eval_neg_infinity()
+        -Infinity
+    """
+    return py_eval_neg_infinity()
 
 ##################################################################
 # Constructors
@@ -750,8 +1371,18 @@ ginac_pyinit_Integer(sage.rings.integer.Integer)
 import sage.rings.real_double
 ginac_pyinit_Float(sage.rings.real_double.RDF)
 
-from sage.rings.complex_double import CDF
-ginac_pyinit_I(CDF.gen())
+def init_pynac_I():
+    """
+    Initialize the numeric I object in pynac. We use the generator of QQ(i).
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.all import I
+    from sage.rings.number_field.number_field import NumberField
+    x = QQ['x'].gen()
+    K = NumberField(x**2 + 1, 'I', embedding=I)
+    ginac_pyinit_I(K.gen())
+
+init_pynac_I()
 
 
 set_ginac_fn_serial()

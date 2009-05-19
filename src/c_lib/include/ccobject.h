@@ -84,8 +84,14 @@ bool _equal(T lhs, T rhs)
 }
 
 template <class T>
-void _from_str(T* dest, char* src){
+void _from_str(T* dest, const char* src){
   std::istringstream out(src);
+  out >> *dest;
+}
+
+template <class T>
+void _from_str_len(T* dest, const char* src, unsigned int len){
+  std::istringstream out(std::string(src, len));
   out >> *dest;
 }
 
@@ -94,7 +100,10 @@ PyObject* _to_PyString(const T *x)
 {
   std::ostringstream instore;
   instore << (*x);
-  return PyString_FromString(instore.str().data());
+  std::string instr = instore.str();
+  // using PyString_FromString truncates the output if whitespace is
+  // encountered so we use Py_BuildValue and specify the length
+  return Py_BuildValue("s#",instr.c_str(), instr.size());
 }
 
 #endif

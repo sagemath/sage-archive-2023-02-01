@@ -45,6 +45,7 @@ cdef extern from "ginac_wrap.h":
     ctypedef struct GExList "GiNaC::lst":
         GExListIter begin()
         GExListIter end()
+        GExList append_sym "append" (GSymbol e)
 
     ctypedef struct GEx "ex":
         unsigned int gethash()        except +
@@ -70,7 +71,7 @@ cdef extern from "ginac_wrap.h":
         int nops()                    except +
         GEx op(int i)                 except +
         GEx eval(int level)           except +
-        GEx evalf(int level)          except +
+        GEx evalf(int level, int prec) except +
         GEx conjugate()               except +
         GEx real_part()               except +
         GEx imag_part()               except +
@@ -119,6 +120,13 @@ cdef extern from "ginac_wrap.h":
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
     GEx g_Euler "Euler"
+    GEx g_UnsignedInfinity "UnsignedInfinity"
+    GEx g_Infinity "Infinity"
+    GEx g_mInfinity "-Infinity"
+
+    # I is not a constant, but a numeric object
+    # we declare it here for easy reference
+    GEx g_I "I"
 
     # Destructor and constructor
     void GEx_destruct "Destruct<ex>"(GEx *mem) except +
@@ -138,6 +146,16 @@ cdef extern from "ginac_wrap.h":
 
     bint is_a_symbol "is_a<symbol>" (GEx e)
     GSymbol ex_to_symbol "ex_to<symbol>" (GEx e)
+
+    ctypedef struct GParamSetIter "paramset::const_iterator":
+        void inc "operator++" ()
+        unsigned obj "operator*" ()
+        bint is_not_equal "operator!=" (GParamSetIter i)
+
+    ctypedef struct GParamSet "paramset":
+        GParamSetIter begin()
+        GParamSetIter end()
+        int size()
 
     ctypedef struct GExVector "exvector":
         void push_back(GEx)
@@ -173,6 +191,28 @@ cdef extern from "ginac_wrap.h":
 
     GSymbol get_symbol(char* s)              except +
     GEx g_collect_common_factors "collect_common_factors" (GEx e) except +
+
+    # standard library string
+    ctypedef struct stdstring "std::string":
+        stdstring assign(char* s, Py_ssize_t l)
+        char* c_str()
+        unsigned int size()
+        char at(unsigned int ind)
+
+    stdstring* stdstring_construct_cstr \
+            "new std::string" (char* s, unsigned int l)
+    void stdstring_delete "Delete<std::string>"(stdstring* s)
+
+    # Archive
+    ctypedef struct GArchive "archive":
+        void archive_ex(GEx e, char* name) except +
+        GEx unarchive_ex(GExList sym_lst, unsigned ind) except +
+        void printraw "printraw(std::cout); " (int t)
+
+    object GArchive_to_str "_to_PyString<archive>"(GArchive *s)
+    void GArchive_from_str "_from_str_len<archive>"(GArchive *ar, char* s,
+            unsigned int l)
+
 
     GEx g_abs "GiNaC::abs" (GEx x)           except +
     GEx g_step "GiNaC::step" (GEx x)	     except +  # step function
@@ -258,7 +298,12 @@ cdef extern from "ginac_wrap.h":
         GFunctionOpt derivative_func(object f)
         GFunctionOpt power_func(object f)
         GFunctionOpt series_func(object f)
-        GFunctionOpt print_func(object f)
+        GFunctionOpt latex_name(char* name)
+        void set_print_latex_func(object f)
+        void set_print_dflt_func(object f)
+        char* get_name()
+        char* get_latex_name()
+
 
     ctypedef struct GFunctionOptVector "vector<function_options>":
         int size()

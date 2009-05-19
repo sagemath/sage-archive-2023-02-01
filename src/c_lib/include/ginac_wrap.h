@@ -14,17 +14,6 @@
 
 using namespace GiNaC;
 
-
-const symbol & get_symbol(const std::string & s)
-{
-    static std::map<std::string, symbol> directory;
-    std::map<std::string, symbol>::iterator i = directory.find(s);
-    if (i != directory.end())
-        return i->second;
-    else
-        return directory.insert(std::make_pair(s, symbol(s))).first->second;
-}
-
 void list_symbols(const ex& e, std::set<ex, ex_is_less> &s)
 {
     if (is_a<symbol>(e)) {
@@ -158,7 +147,7 @@ double GEx_to_double(ex& e, int* success) {
          *AND* sets success to true on success, and false on failure
          if e is not coercible to a double
   */
-  ex f = e.evalf();
+  ex f = e.evalf(0, 53);
   if (is_a<numeric>(f)) {
     *success = true;
     return (ex_to<numeric>(f)).to_double();

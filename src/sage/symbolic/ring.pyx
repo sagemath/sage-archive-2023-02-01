@@ -50,7 +50,8 @@ cdef class NSymbolicRing(Ring):
     cdef _coerce_c_impl(self, other):
         """
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.symbolic.ring import NSR
             sage: NSR._coerce_(int(5))
             5
@@ -61,17 +62,29 @@ cdef class NSymbolicRing(Ring):
             sage: NSR._coerce_(5.0)
             5.00000000000000
 
-        An interval arithmetic number:
+        An interval arithmetic number::
+
             sage: NSR._coerce_(RIF(pi))
             3.141592653589794?
 
-        A number modulo 7:
+        A number modulo 7::
+
             sage: a = NSR._coerce_(Mod(3,7)); a
             3
             sage: a^2
             2
+
+        TESTS::
+
+            sage: si = NSR.coerce(I)
+            sage: si^2
+            -1
+            sage: bool(si == CC.0)
+            True
         """
-        from sage.functions.constants import pi, catalan, euler_gamma
+        from sage.functions.constants import pi, catalan, euler_gamma, I
+        from sage.rings.infinity import infinity, minus_infinity, \
+                unsigned_infinity
         cdef GEx exp
 
         if isinstance(other, int):
@@ -82,14 +95,22 @@ cdef class NSymbolicRing(Ring):
             GEx_construct_pyobject(exp, other)
         elif isinstance(other, RealNumber):
             GEx_construct_pyobject(exp, other)
-        elif isinstance(other, RingElement):
-            GEx_construct_pyobject(exp, other)
+        elif other is I:
+            return new_Expression_from_GEx(g_I)
         elif other is pi:
             return new_Expression_from_GEx(g_Pi)
         elif other is catalan:
             return new_Expression_from_GEx(g_Catalan)
         elif other is euler_gamma:
             return new_Expression_from_GEx(g_Euler)
+        elif other is infinity:
+            return new_Expression_from_GEx(g_Infinity)
+        elif other is minus_infinity:
+            return new_Expression_from_GEx(g_mInfinity)
+        elif other is unsigned_infinity:
+            return new_Expression_from_GEx(g_UnsignedInfinity)
+        elif isinstance(other, RingElement):
+            GEx_construct_pyobject(exp, other)
         else:
             raise TypeError
         return new_Expression_from_GEx(exp)

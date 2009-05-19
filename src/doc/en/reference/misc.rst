@@ -15,6 +15,7 @@ Miscellaneous
    sage/misc/functional
    sage/misc/latex
    sage/misc/latex_macros
+   sage/misc/lazy_attribute
    sage/misc/log
    sage/misc/persist
    sage/misc/func_persist

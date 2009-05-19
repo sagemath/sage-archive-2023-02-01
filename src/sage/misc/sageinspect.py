@@ -521,6 +521,12 @@ def sage_getsourcelines(obj, is_binary=False):
     - William Stein
     - Extensions by Nick Alexander
     """
+
+    try:
+        return obj._sage_src_lines_()
+    except (AttributeError, TypeError):
+        pass
+
     # Check if we deal with instance
     if isclassinstance(obj):
         obj=obj.__class__

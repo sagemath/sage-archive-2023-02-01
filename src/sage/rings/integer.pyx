@@ -960,6 +960,29 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return int(mpz_sizeinbase(self.value, 2))
 
+    def trailing_zero_bits(self):
+        """
+        Return the number of trailing zero bits in self, i.e.
+        the exponent of the largest power of 2 dividing self.
+
+        EXAMPLES::
+
+            sage: 11.trailing_zero_bits()
+            0
+            sage: (-11).trailing_zero_bits()
+            0
+            sage: (11<<5).trailing_zero_bits()
+            5
+            sage: (-11<<5).trailing_zero_bits()
+            5
+            sage: 0.trailing_zero_bits()
+            0
+
+        """
+        if mpz_sgn(self.value) == 0:
+            return int(0)
+        return int(mpz_scan1(self.value, 0))
+
     cdef _digits_naive(self,Integer base,digits):
         """
         This function should have identical semantics to the
@@ -3808,6 +3831,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return -sib.name('ZZ')(sib.int(-self))
             else:
                 return sib.name('ZZ')(sib.int(self))
+
+    def sqrtrem(self):
+        r"""
+        Return (s, r) where s is the integer square root of self and
+        r is the remainder such that `\text{self} = s^2 + r`.
+        Raises ``ValueError`` if self is negative.
+
+        EXAMPLES::
+
+            sage: 25.sqrtrem()
+            (5, 0)
+            sage: 27.sqrtrem()
+            (5, 2)
+            sage: 0.sqrtrem()
+            (0, 0)
+
+        ::
+
+            sage: Integer(-102).sqrtrem()
+            Traceback (most recent call last):
+            ...
+            ValueError: square root of negative integer not defined.
+
+        """
+        if mpz_sgn(self.value) < 0:
+            raise ValueError, "square root of negative integer not defined."
+        cdef Integer s = PY_NEW(Integer)
+        cdef Integer r  = PY_NEW(Integer)
+        mpz_sqrtrem(s.value, r.value, self.value)
+        return s, r
 
     def isqrt(self):
         r"""

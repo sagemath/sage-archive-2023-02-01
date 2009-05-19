@@ -2,6 +2,8 @@ from factorization import Factorization
 
 from sequence      import Sequence, seq
 
+from unique_representation import UniqueRepresentation
+
 from sage_object   import SageObject
 
 from element import (\

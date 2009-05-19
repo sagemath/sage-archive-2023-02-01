@@ -4823,8 +4823,8 @@ cdef void fast_tp_dealloc(PyObject* o):
 
         # Here we free any extra memory used by the mpz_t by
         # setting it to a single limb.
-        if (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 1:
-            _mpz_realloc(<mpz_t *>( <char *>o + mpz_t_offset), 1)
+        if (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 10:
+            _mpz_realloc(<mpz_t *>( <char *>o + mpz_t_offset), 10)
 
         # It's cheap to zero out an integer, so do it here.
         (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_size = 0

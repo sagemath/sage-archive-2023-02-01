@@ -36,7 +36,7 @@ AUTHOR:
 ########################################################################
 
 from sage.structure.sage_object import SageObject
-from sage.misc.all import SAGE_TMP, tmp_filename
+from sage.misc.all import SAGE_TMP, tmp_filename, union
 from sage.misc.functional import norm
 from random import randint
 from sage.rings.all import Integer, QQ, ZZ
@@ -47,6 +47,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.plot.plot3d.shapes2 import point3d, polygon3d
 from sage.plot.plot import line
+from sage.combinat.posets.posets import Poset
 from sage.combinat.combinat import permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.package import is_package_installed
@@ -448,7 +449,7 @@ class Polyhedron(SageObject):
         if self._vertices != []:
             temp_poly_object = vert_to_ieq(self._vertices, rays = self._rays, cdd_type = self._cdd_type)
             self._linearities = temp_poly_object._linearity
-            self._ieqs = temp_poly_object._inequalities
+            self._ieqs = temp_poly_object._ieqs
             self._facial_incidences = temp_poly_object._facial_incidences
             self._facial_adjacencies = temp_poly_object._facial_adjacencies
             return self._ieqs
@@ -470,7 +471,7 @@ class Polyhedron(SageObject):
         EXAMPLES:
             sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
             sage: permuta3.vertex_adjacencies()[0:3]
-            [[3, [5, 1, 9]], [5, [3, 4, 11]], [16, [22, 10, 17]]]
+            [[0, [6, 2, 1]], [1, [3, 0, 7]], [2, [4, 8, 0]]]
         """
         try:
             return self._vertex_adjacencies
@@ -481,11 +482,15 @@ class Polyhedron(SageObject):
                     self._vertices = temp_poly_object._vertices
                     self._vertex_incidences = temp_poly_object._vertex_incidences
                     self._vertex_adjacencies = temp_poly_object._vertex_adjacencies
+                    self._vertex_adjacencies.sort()
                     return self._vertex_adjacencies
                 # avoid changing vertex indexing
                 vdict = dict([[temp_poly_object._vertices.index(self._vertices[ind]), ind] for ind in range(len(self._vertices))])
-                self._vertex_incidences = [[vdict[vi[0]],vi[1]] for vi in temp_poly_object._vertex_incidences]
+                fdict = dict([[temp_poly_object._ieqs.index(self._ieqs[ind]), ind] for ind in range(len(self._ieqs))])
+                self._vertex_incidences = [[vdict[vi[0]],[fdict[f] for f in vi[1]]] for vi in temp_poly_object._vertex_incidences]
                 self._vertex_adjacencies = [[vdict[vi[0]],[vdict[q] for q in vi[1]]] for vi in temp_poly_object._vertex_adjacencies]
+                self._vertex_adjacencies.sort()
+                self._vertex_incidences.sort()
                 return self._vertex_adjacencies
             else:
                 if self._vertices == []:
@@ -494,6 +499,21 @@ class Polyhedron(SageObject):
                     dummy = self.ieqs()
                     return self.vertex_adjacencies()
 
+    def vertex_incidences(self):
+        """
+        EXAMPLES:
+            sage: from sage.geometry.polyhedra import polytopes
+            sage: p = polytopes.n_simplex(3)
+            sage: p.vertex_incidences()
+	    [[0, [0, 1, 3]], [1, [0, 2, 3]], [2, [1, 2, 3]], [3, [0, 1, 2]]]
+        """
+        try:
+            return self._vertex_incidences
+        except AttributeError:
+            # force computation by computing adjacencies
+            adj = self.vertex_adjacencies()
+            return self._vertex_incidences
+
     def facial_adjacencies(self):
         """
         Returns a list of face indices and the indices of faces adjacent to them.
@@ -501,9 +521,7 @@ class Polyhedron(SageObject):
         EXMAPLES:
             sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
             sage: permuta3.facial_adjacencies()[0:3]
-            [[0, [1, 2, 3, 8, 12, 13, 14]],
-            [1, [0, 2, 9, 13, 14]],
-            [2, [0, 1, 3, 4, 5, 9, 14]]]
+            [[0, [1, 2, 3, 8, 12, 13]], [1, [0, 2, 9, 13]], [2, [0, 1, 3, 4, 5, 9]]]
         """
         try:
             return self._facial_adjacencies
@@ -631,6 +649,156 @@ class Polyhedron(SageObject):
                     temp.append(0)
             m.append(temp)
         return matrix(ZZ,m)
+
+    def _vertex_face_set(self, vertex_indices):
+        """
+        Returns the maximal list of facet indices whose intersection contains
+        the given vertices, i.e. a list of all the facets which contain all of
+        the given vertices.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[0, 0, 0], [0, 0, 1], [0, 1, 1], [1, 0, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0]])
+            sage: p._vertex_face_set([2])
+	    [1, 2, 4, 5]
+        """
+        vertex_indices.sort()
+        if vertex_indices == []:
+            return range(self.n_facets())
+        vis = self.vertex_incidences()
+        vi0 = vertex_indices[0]
+        faces = []
+        for aface in vis[vi0][1]:
+            if all([aface in vis[y][1] for y in vertex_indices[1:]]):
+                faces.append(aface)
+        return faces
+
+    def _face_vertex_set(self, face_indices):
+        """
+        Returns the maximal list of vertex indices whose intersection contains
+        the given faces.
+
+        EXAMPLES:
+            sage: from sage.geometry.polyhedra import polytopes
+            sage: p= polytopes.icosahedron()
+            sage: p._face_vertex_set([0])
+            [1, 3, 8]
+        """
+        if face_indices == []:
+            return range(self.n_vertices())
+        fis = self.facial_incidences()
+        fi0 = face_indices[0]
+        verts = []
+        try:
+            for avert in fis[fi0][1]:
+                if all([avert in fis[y][1] for y in face_indices[1:]]):
+                    verts.append(avert)
+        except IndexError, e:
+            print face_indices
+            print fis
+            print fi0
+            print fis[fi0][1]
+            print face_indices[1]
+            print fis[face_indices[1]]
+            print e
+            raise TypeError
+        return verts
+
+    def _v_closure(self, vertex_indices):
+        """
+        Returns the list of vertex indices for the vertices in the smallest
+        face containing the input vertices.
+
+        EXAMPLES:
+            sage: p = polytopes.n_cube(3)
+            sage: p._v_closure([1,2])
+	    [4, 5, 6, 7]
+        """
+        return self._face_vertex_set(self._vertex_face_set(vertex_indices))
+
+    def _f_closure(self, face_indices):
+        """
+        Returns the list of face indices for the faces incident on the set of
+        vertices contained in all of the input faces.
+
+        EXAMPLES:
+            sage: p = polytopes.cuboctahedron()
+            sage: p._f_closure([0,2])
+	    [0, 1, 2, 6]
+        """
+        return self._vertex_face_set(self._face_vertex_set(face_indices))
+
+    def face_lattice(self):
+        """
+        Computes the face-lattice poset.  Elements are tuples of (vertices,
+        facets) - i.e. this keeps track of both the vertices in each face,
+        and all the facets containing them.
+
+        EXAMPLES:
+            sage: c5_10 = Polyhedron(vertices = [[i,i^2,i^3,i^4,i^5] for i in range(1,11)])
+            sage: c5_10_fl = c5_10.face_lattice()
+            sage: [len(x) for x in c5_10_fl.level_sets()]
+            [1, 10, 45, 100, 105, 42, 1]
+
+        TESTS:
+            sage: c5_20 = Polyhedron(vertices = [[i,i^2,i^3,i^4,i^5] for i in range(1,21)]) #long time
+            sage: c5_20_fl = c5_20.face_lattice() # long time
+            sage: [len(x) for x in c5_20_fl.level_sets()] #long time
+            [1, 20, 190, 580, 680, 272, 1]
+
+        REFERENCES:
+            'Computing the Face Lattice of a Polytope from its Vertex-Facet
+            Incidences', by V. Kaibel and M.E. Pfetsch.
+        """
+        try:
+            return self._face_lattice
+        except AttributeError:
+            pass
+        fis = self.facial_incidences()
+        # dictionary of the form: (vertices,faces):(upper cover keys)
+        f_l_dict = {(None,None):[(tuple([x]),tuple(self._vertex_face_set([x]))) for x in range(self.n_vertices())]}
+        todolist = f_l_dict.values()[0][:]
+        while todolist != []:
+            todo = todolist.pop()
+            f_l_dict[todo] = []
+            candidates = []
+            for aface in todo[1]:
+                candidates = union(candidates + fis[aface][1])
+            candidates = [x for x in candidates if not x in todo[0]]
+            minimals = []
+            if candidates == []:
+                f_l_dict[todo].append((tuple(range(self.n_vertices())),tuple(range(self.n_facets()))))
+            while candidates != []:
+                c = candidates[0]
+                closure = self._v_closure(list(todo[0])+[c])
+                clos_comp = [x for x in closure if not x in list(todo[0])+[c]]
+                clos_comp = [x for x in clos_comp if x in candidates+minimals]
+                if clos_comp == []:
+                    minimals.append(c)
+                    candidates.remove(c)
+                    newelm = (tuple(closure), tuple(self._vertex_face_set(closure)))
+                    f_l_dict[todo].append(newelm)
+                    if not f_l_dict.has_key(newelm):
+                        todolist.append(newelm)
+                else:
+                    candidates.remove(c)
+        self._face_lattice = Poset(f_l_dict)
+        return self._face_lattice
+
+    def f_vector(self):
+        """
+        Returns the f-vector of the polytope as a list.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [0, 0, 0]])
+            sage: p.f_vector()
+            [1, 7, 12, 7, 1]
+        """
+        try:
+            return self._f_vector
+        except AttributeError:
+            pass
+        self._f_vector = [len(x) for x in self.face_lattice().level_sets()]
+        return self._f_vector
 
     def graph(self):
         """
@@ -1107,7 +1275,7 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
     EXAMPLES:
         sage: a = vert_to_ieq([[1,2,3],[1,2,2],[1,2,4]])
         sage: a._facial_adjacencies
-        [[0, [1, 2, 3]], [1, [0, 2, 3]]]
+        [[0, [1]], [1, [0]]]
         sage: a.vertices()
         [[1, 2, 2], [1, 2, 4]]
     """
@@ -1200,11 +1368,12 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
                 pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
                 post = a_line.split(':')[1]
                 post = cdd_convert(post)
+                post = [face_index for face_index in post if not face_index in linearity_indices]
                 post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
                 adjacencies.append([pre,post])
     poly_obj = Polyhedron(vertices = vertices, cdd_type = cdd_type)
     poly_obj._linearity = linearities
-    poly_obj._inequalities = hieqs
+    poly_obj._ieqs = hieqs
     poly_obj._facial_incidences = incidences
     poly_obj._facial_adjacencies = adjacencies
     return poly_obj
@@ -1256,20 +1425,20 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
     in_str = 'H-representation\n'
     if linearities != []:
         in_str += 'linearity ' + str(len(linearities)) + ' '
-        for index in range(len(linearities)):
+        for index in range(len(in_list),len(linearities)+len(in_list)):
             in_str += str(index+1) + ' '
     in_str += '\n'
     in_str += 'begin\n'
     in_str += str(len(in_list)+len(linearities)) + ' ' + str(in_length) + ' ' + cdd_type + '\n'
+    for ieq in in_list:
+        for numb in ieq:
+            in_str += str(numb) + ' '
+        in_str += '\n'
     if linearities != []:
         for lin in linearities:
             for numb in lin:
                 in_str += str(numb) + ' '
             in_str += '\n'
-    for ieq in in_list:
-        for numb in ieq:
-            in_str += str(numb) + ' '
-        in_str += '\n'
     in_str += 'end\n'
     in_filename = tmp_filename()
     in_file = file(in_filename,'w')
@@ -1291,8 +1460,12 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
     incidences = []
     adjacencies = []
     if verbose: print ans
+    linearity_indices = []
     for index in range(len(ans_lines)):
         a_line = ans_lines[index]
+        if a_line.find('linearity') != -1:
+            linearity_indices = a_line.split('  ')[1]
+            linearity_indices = [int(x) for x in linearity_indices.split(' ')]
         if a_line.find('V-representation') != -1:
             vert_index = index+1
         if a_line.find('incidence') != -1:
@@ -1320,7 +1493,7 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
             pre = cdd_convert(pre)[0] - 1 # subtract to make indexing pythonic
             post = a_line.split(':')[1]
             post = cdd_convert(post)
-            post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
+            post = [face_index - 1 for face_index in post if not face_index in linearity_indices] # subtract to make indexing pythonic
             incidences.append([pre,post])
     # read the vertex-vertex adjacencies (edges)
     for index in range(adj_index+2,len(ans_lines)):
@@ -1335,7 +1508,7 @@ def ieq_to_vert(in_list, linearities = [], cdd_type = 'rational', verbose = Fals
             adjacencies.append([pre,post])
     poly_obj = Polyhedron()
     poly_obj._linearities = linearities
-    poly_obj._inequalities = in_list
+    poly_obj._ieqs = in_list
     poly_obj._vertex_incidences = incidences
     poly_obj._vertex_adjacencies = adjacencies
     poly_obj._vertices = verts

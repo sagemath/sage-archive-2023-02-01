@@ -1326,7 +1326,7 @@ class LatticePolytopeClass(SageObject):
             keys += " -P"
         if not hodge_numbers:
             keys += " -p"
-        try:
+        if hasattr(self, "_npkeys"):
             oldkeys = self._npkeys
             if oldkeys == keys:
                 return self._nef_partitions
@@ -1339,8 +1339,6 @@ class LatticePolytopeClass(SageObject):
                 return Sequence([p for p in self._nef_partitions if
                     (keep_projections or not p._is_projection)
                     and (keep_products or not p._is_product)], cr=True)
-        except AttributeError:
-            pass
         self._read_nef_partitions(self.nef_x(keys))
         self._npkeys = keys
         return self._nef_partitions

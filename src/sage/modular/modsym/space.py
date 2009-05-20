@@ -907,8 +907,10 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
     def _q_expansion_module(self, prec, algorithm='hecke'):
         """
-        Return module spanned by the `q`-expansions corresponding
-        to self.
+        Return module spanned by the `q`-expansions corresponding to self. See
+        the docstring for ``q_expansion_module`` (without underscore) for
+        further details. Note that this will not work if ``algorithm=eigen``
+        and the sign is 0.
 
         EXAMPLE::
 
@@ -916,7 +918,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Vector space of degree 4 and dimension 1 over Finite Field in a of size 2^2
             Basis matrix:
             [0 1 0 1]
-            sage: ModularSymbols(11, 2, base_ring=QuadraticField(-7,'b')).cuspidal_submodule()._q_expansion_module(prec=4, algorithm="eigen")
+            sage: ModularSymbols(11, 2, base_ring=QuadraticField(-7,'b'), sign=1).cuspidal_submodule()._q_expansion_module(prec=4, algorithm="eigen")
             Vector space of degree 4 and dimension 1 over Number Field in b with defining polynomial x^2 + 7
             Basis matrix:
             [ 0  1 -2 -1]
@@ -943,13 +945,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
             EXAMPLE::
 
-                sage: ModularSymbols(11, 4, base_ring=QuadraticField(-7,'b')).cuspidal_submodule()._q_expansion_module(prec=5, algorithm="eigen") # indirect doctest
+                sage: ModularSymbols(11, 4, base_ring=QuadraticField(-7,'b'),sign=1).cuspidal_submodule()._q_expansion_module(prec=5, algorithm="eigen") # indirect doctest
                 Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7
                 Basis matrix:
                 [ 0  1  0  3 -6]
                 [ 0  0  1 -4  2]
-
-
             """
             X = f.padded_list(prec)
             d = A.dimension()

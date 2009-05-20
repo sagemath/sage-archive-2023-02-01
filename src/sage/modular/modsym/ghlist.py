@@ -22,7 +22,6 @@ List of coset represenatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`.
 
 import sage.rings.arith as arith
 import p1list
-from sage.structure.sage_object import SageObject
 
 class GHlist:
     r"""

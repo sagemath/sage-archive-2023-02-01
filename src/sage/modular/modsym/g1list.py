@@ -20,7 +20,6 @@ List of coset represenatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`.
 #*****************************************************************************
 
 import sage.rings.arith as arith
-from sage.structure.sage_object import SageObject
 
 class G1list:
     r"""

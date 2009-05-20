@@ -56,10 +56,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         x, y, z = self.local_analytic_interpolation(P, Q)
         dt = x.derivative() / y
+#        print "dt", dt
         integrals = []
         for f in F:
+#            print "f", f
             f_dt = f(x,y) * dt
-            I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree())]) # \int_0^1 f dt
+#            print "f_dt", f_dt
+            I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree()+1)]) # \int_0^1 f dt
+#            print "I", I
             integrals.append(I)
 #            integrals.append(f_dt.integral()(1))
         return integrals
@@ -171,11 +175,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     coleman_integrals_on_basis_hyperelliptic = coleman_integrals_on_basis
 
 
-    def monsky_washnitzer_gens(self):
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
-        S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
-        return S.gens()
-
     def invariant_differential(self):
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
@@ -217,6 +216,20 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         42*71 + 63*71^2 + 55*71^3 + O(71^4)
         sage: w.integrate(P, R) + w.integrate(P1, R1)
         O(71^4)
+
+    A simple example, integrating dx::
+
+        sage: R.<x> = QQ['x']
+        sage: E= HyperellipticCurve(x^3-4*x+4)
+        sage: K = Qp(5,10)
+        sage: EK = E.change_ring(K)
+        sage: P = EK(2, 2)
+        sage: Q = EK.teichmuller(P)
+        sage: x, y = EK.monsky_washnitzer_gens()
+        sage: EK.coleman_integral(x.diff(), P, Q)
+        5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: Q[0] - P[0]
+        5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
         """
         # TODO: implement jacobians and show the relationship directly
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
@@ -226,7 +239,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         f, vec = w.reduce_fast()
         basis_values = self.coleman_integrals_on_basis(P, Q)
         dim = len(basis_values)
-        return f(P[0], P[1]) - f(Q[0], Q[1]) + sum([vec[i] * basis_values[i] for i in range(dim)]) # this is just a dot product...
+        return f(Q[0], Q[1]) - f(P[0], P[1]) + sum([vec[i] * basis_values[i] for i in range(dim)]) # this is just a dot product...
 
 
 

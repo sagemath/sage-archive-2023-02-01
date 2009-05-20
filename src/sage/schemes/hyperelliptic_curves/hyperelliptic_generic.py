@@ -266,3 +266,9 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         f, h = self._hyperelliptic_polynomials
         return 'HyperellipticCurve(%s, %s)'%(f._magma_init_(magma), h._magma_init_(magma))
+
+
+    def monsky_washnitzer_gens(self):
+        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+        S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
+        return S.gens()

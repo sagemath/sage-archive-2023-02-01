@@ -1813,6 +1813,9 @@ def MonskyWashnitzerDifferentialRing(base_ring):
 
 
 class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
+
+    _p = None
+
     def __init__(self, Q, R=None, invert_y=True):
         if R is None:
             R = Q.base_ring()
@@ -2369,7 +2372,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         f = S(0)
         reduced = self
         for j in range(self.min_pow_y()+1, 0):
-            if p.divides(j):
+            if p is not None and p.divides(j):
                 cs = [R(QQ(a)/j) for a in reduced.extract_pow_y(j-1)]
             else:
                 j_inverse = ~R(j)
@@ -2392,6 +2395,23 @@ class MonskyWashnitzerDifferential(ModuleElement):
     def reduce_neg_y_fast(self, even_degree_only=False):
         """
         Use homology relations to eliminate negative powers of y.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x, y = E.monsky_washnitzer_gens()
+            sage: (y^-1).diff().reduce_neg_y_fast()
+            ((y^-1)*1, 0 dx/2y)
+            sage: (y^-5*x^2+y^-1*x).diff().reduce_neg_y_fast()
+            ((y^-1)*x + (y^-5)*x^2, 0 dx/2y)
+
+        It leaves non-negative powers of y alone::
+
+            sage: y.diff()
+            ((-3)*1 + 5*x^4) dx/2y
+            sage: y.diff().reduce_neg_y_fast()
+            (0, ((-3)*1 + 5*x^4) dx/2y)
         """
 #        prof = Profiler()
 #        prof("reduce setup")
@@ -2408,18 +2428,19 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
 #        prof("loop %s"%self.min_pow_y())
         forms = []
+        p = S._p
         for j in range(self.min_pow_y()+1, 0):
             if (even_degree_only and j % 2 == 0) or coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
                 # this is a total hack to deal with the fact that we're using
                 # rational numbers to approximate fixed precision p-adics
-                if j % 3 == 1:
+                if p is not None and j % 3 == 1:
                     try:
                         v = coeffs[j-offset-1]
                         for kk in range(len(v)):
                             a = v[kk]
-                            ppow = S._p**max(-a.valuation(S._p), 0)
+                            ppow = p**max(-a.valuation(S._p), 0)
                             v[kk] = ((a * ppow) % S._prec_cap) / ppow
                     except AttributeError:
                         pass
@@ -2506,7 +2527,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                     dg = g.diff()
 #                    print reduced, " - ", dg
                     denom = dg.extract_pow_y(j)[i]
-                    if p.divides(denom):
+                    if p is not None and p.divides(denom):
                         R = c.parent()
                         c = R(QQ(c)/QQ(denom))
                     else:
@@ -2521,6 +2542,24 @@ class MonskyWashnitzerDifferential(ModuleElement):
     def reduce_pos_y_fast(self, even_degree_only=False):
         """
         Use homology relations to eliminate positive powers of y.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^3-4*x+4)
+            sage: x, y = E.monsky_washnitzer_gens()
+            sage: y.diff().reduce_pos_y_fast()
+            (y*1, 0 dx/2y)
+            sage: (y^2).diff().reduce_pos_y_fast()
+            (y^2*1, 0 dx/2y)
+            sage: (y^2*x).diff().reduce_pos_y_fast()
+            (y^2*x, 0 dx/2y)
+            sage: (y^92*x).diff().reduce_pos_y_fast()
+            (y^92*x, 0 dx/2y)
+            sage: w = (y^3 + x).diff()
+            sage: w += w.parent()(x)
+            sage: w.reduce_pos_y_fast()
+            (y^3*1 + x, x dx/2y)
         """
         S = self.parent().base_ring()
         R = S.base_ring()
@@ -2529,11 +2568,11 @@ class MonskyWashnitzerDifferential(ModuleElement):
         coeffs, offset = self.coeffs(R)
         V = coeffs[0].parent()
         zeroV = V(0)
-        forms = [zeroV] * 2
+        forms = [V(0), V(0)]
 
         for j in range(self.max_pow_y(), -1, -1):
 
-            if (even_degree_only and j % 2 == 1) or coeffs[j-offset].is_zero():
+            if (even_degree_only and j % 2 == 1) or (j > 0 and coeffs[j-offset].is_zero()):
                 forms.append(zeroV)
                 continue
 
@@ -2597,10 +2636,29 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Use homology relations to find `a` and `f` such
         that `self = a + df` where `a` is given in terms of
         the `x^i dx/2y`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^3-4*x+4)
+            sage: x, y = E.monsky_washnitzer_gens()
+            sage: x.diff().reduce_fast()
+            (x, (0, 0))
+            sage: y.diff().reduce_fast()
+            (y*1, (0, 0))
+            sage: (y^-1).diff().reduce_fast()
+            ((y^-1)*1, (0, 0))
+            sage: (y^-11).diff().reduce_fast()
+            ((y^-11)*1, (0, 0))
+            sage: (x*y^2).diff().reduce_fast()
+            (y^2*x, (0, 0))
         """
 #        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
+
         f1, reduced = self.reduce_neg_y_fast(even_degree_only)
         f2, reduced = reduced.reduce_pos_y_fast(even_degree_only)
+#        f1, reduced = self.reduce_neg_y()
+#        f2, reduced = reduced.reduce_pos_y()
 
         v = reduced.extract_pow_y(0)
         v.pop()

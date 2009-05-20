@@ -536,9 +536,11 @@ def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False, style="lattice
 
     In the coroot style the Lie group or Lie algebra is treated as
     semisimple, so you lose the distinction between GL(n) and
-    SL(n). It gives you output that is comparable to that
-    in Tables of Dimensions, Indices and Branching Rules for
-    Representations of Simple Lie Algebras (Marcel Dekker, 1981).
+    SL(n); you also some information about representations of E6
+    and E7 for the same reason. The coroot style gives you output
+    that is comparable to that in Tables of Dimensions, Indices
+    and Branching Rules for Representations of Simple Lie Algebras
+    (Marcel Dekker, 1981).
 
     EXAMPLES::
 
@@ -642,6 +644,9 @@ class WeylCharacterRing_class(Algebra):
         self._cache = cache
         if cache:
             self._irreducibles={}
+        if ct.is_irreducible() and ct[0] == 'E':
+            self._v0 = self._space([0,0,0,0,0,0,1,1])
+            self._v1 = self._space([0,0,0,0,0,-2,1,-1])
 
     def __call__(self, *args):
         """
@@ -705,7 +710,13 @@ class WeylCharacterRing_class(Algebra):
 
         # if style == "coroots" and type == 'A' subtract a power of det to put self in SL(r+1,CC)
         if self._style == "coroots":
-            x = self.coerce_to_sl(x)
+            if self._cartan_type.is_irreducible() and self._cartan_type[0] == 'E':
+                if self._rank == 6:
+                    x = self.coerce_to_e6(x)
+                elif self._rank == 7:
+                    x = self.coerce_to_e7(x)
+            else:
+                x = self.coerce_to_sl(x)
 
         alphacheck = self._space.simple_coroots()
         vp = [x.inner_product(alphacheck[i]) for i in self._cartan_type.index_set()]
@@ -725,8 +736,18 @@ class WeylCharacterRing_class(Algebra):
 
     def coerce_to_sl(self, x):
         """
-        For type ['A',r], this coerces an element of the ambient space into SL(r+1,CC)
-        by subtracting a (possibly fractional) power of the determinant.
+        For type ['A',r], this coerces an element of the ambient space into the
+        root space by orthogonal projection. The root space has codimension one
+        and corresponds to the Lie algebra of SL(r+1,CC), whereas the full weight
+        space corresponds to the Lie algebra of GL(r+1,CC). So this operation
+        corresponds to multiplication by a (possibly fractional) power of the
+        determinant to give a weight determinant one.
+
+        EXAMPLES::
+
+            sage: A2=WeylCharacterRing("A2")
+            sage: [A2.coerce_to_sl(fw) for fw in A2.fundamental_weights()]
+            [(2/3, -1/3, -1/3), (1/3, 1/3, -2/3)]
         """
         if self._cartan_type.is_atomic():
             if self._cartan_type[0] == 'A':
@@ -740,6 +761,24 @@ class WeylCharacterRing_class(Algebra):
                     s = self._space.ambient_spaces()[i].det(sum(xv[shifts[i]:shifts[i+1]])/(types[i][1]+1))
                     x = x - self._space.inject_weights(i, s)
         return x
+
+    def coerce_to_e7(self, x):
+        """
+        For type E8, this orthogonally projects an element of the E8 root
+        lattice into the E7 root lattice. This operation on weights
+        corresponds to intersection with the semisimple subgroup E7.
+        """
+        ret = x - (x.inner_product(self._v0)/2)*self._v0
+        return ret
+
+    def coerce_to_e6(self, x):
+        """
+        For type E7 or E8, orthogonally projects an element of the root lattice
+        into the E6 root lattice. This operation on weights corresponds to
+        intersection with the semisimple subgroup E7.
+        """
+        x = x - (x.inner_product(self._v0)/2)*self._v0
+        return  x - (x.inner_product(self._v1)/6)*self._v1
 
     def __repr__(self):
         """
@@ -817,6 +856,17 @@ class WeylCharacterRing_class(Algebra):
             Finite family {1: (0, 1, -1), 2: (1, -2, 1)}
         """
         return self._space.simple_coroots()
+
+    def highest_root(self):
+        """
+        Returns the highest_root.
+
+        EXAMPLES::
+
+            sage: WeylCharacterRing("G2").highest_root()
+             (2, -1, -1)
+        """
+        return self._space.highest_root()
 
     def positive_roots(self):
         """
@@ -944,7 +994,7 @@ class WeylCharacterRing_class(Algebra):
     def irr_repr(self, hwv):
         """
         Return a string representing the irreducible character with highest
-        weight vectr hwv.
+        weight vector hwv.
 
         EXAMPLES::
 
@@ -1081,38 +1131,47 @@ def branch_weyl_character(chi, R, S, rule="default"):
        ['C',r] => ['C',r-1]
        ['D',r] => ['A',r-1]
        ['D',r] => ['D',r-1]
-       ['E',r] => ['A',r-1] r = 6,7,8 (not implemented yet)
-       ['E',r] => ['D',r-1] r = 6,7,8 (not implemented yet)
-       ['E',r] => ['E',r-1] r = 6,7 (not implemented yet)
+       ['E',r] => ['A',r-1] r = 7,8
+       ['E',r] => ['D',r-1] r = 6,7,8
+       ['E',r] => ['E',r-1]
        F4 => B3
        F4 => C3
        G2 => A1 (short root)
 
-    The other Levi branching rule from G2 => A1 corresponding to the
-    long root is available by first branching G_2 => A_2 then A2 => A1.
+    Not all Levi subgroups are maximal subgroups. If the Levi is not
+    maximal there may or may not be a preprogrammed rule="levi" for
+    it. If there is not, the branching rule may still be obtained by going
+    through an intermediate subgroup that is maximal using rule="extended".
+    Thus the other Levi branching rule from G2 => A1 corresponding to the
+    long root is available by first branching G2 => A_2 then A2 => A1.
+    Similarly the branching rules to the Levi subgroup::
+
+       ['E',r] => ['A',r-1] r = 6,7,8
+
+    may be obtained by first branching E6=>A5xA1, E7=>A7 or E8=>A8.
 
     AUTOMORPHIC TYPE. If the Dynkin diagram has a symmetry, then there
     is an automorphism that is a special case of a branching rule.
     There is also an exotic "triality" automorphism of D4 having order
-    3. Use rule="automorphic" or (for D4) rule="triality"
+    3. Use rule="automorphic" or (for D4) rule="triality"::
 
-    ['A',r] => ['A',r]
-    ['D',r] => ['D',r]
-    E6 => E6 (not implemented yet)
+        ['A',r] => ['A',r]
+        ['D',r] => ['D',r]
+        E6 => E6
 
     SYMMETRIC TYPE. Related to the automorphic type, when either
     the Dynkin diagram or the extended diagram has a symmetry
     there is a branching rule to the subalgebra (or subgroup) of
     invariants under the automorphism. Use rule="symmetric".
     The last branching rule, D4=>G2 is not to a maximal subgroup
-    since D4=>B3=>G2, but it is included for convenience.
+    since D4=>B3=>G2, but it is included for convenience. ::
 
-    ['A',2r+1] => ['B',r]
-    ['A',2r] => ['C',r]
-    ['A',2r] => ['D',r]
-    ['D',r] => ['B',r-1]
-    E6 => F4
-    D4 => G2
+        ['A',2r+1] => ['B',r]
+        ['A',2r] => ['C',r]
+        ['A',2r] => ['D',r]
+        ['D',r] => ['B',r-1]
+        E6 => F4
+        D4 => G2
 
     EXTENDED TYPE. If removing a node from the extended Dynkin diagram
     results in a Dynkin diagram, then there is a branching rule. Use
@@ -1120,20 +1179,14 @@ def branch_weyl_character(chi, R, S, rule="default"):
     for some rules that are not of this type, mainly involving type B,
     such as D6 => B3xB3.
 
-    G2 => A2
-    ['B',r] => ['D',r]
-    F4 => B4
-    E7 => A7 (not implemented yet)
-    E8 => A8 (not implemented yet)
+    Here is the extended Dynkin diagram for D6::
 
-    Here is the extended Dynkin diagram for D6:
-
-        0       6
-        O       O
-        |       |
-        |       |
-    O---O---O---O---O
-    1   2   3   4   6
+            0       6
+            O       O
+            |       |
+            |       |
+        O---O---O---O---O
+        1   2   3   4   6
 
     Removing the node 3 results in an embedding D3xD3 -> D6. This
     corresponds to the embedding SO(6)xSO(6) -> SO(12), and is of
@@ -1147,15 +1200,27 @@ def branch_weyl_character(chi, R, S, rule="default"):
     where O(a) = ['D',r] (a=2r) or ['B',r] (a=2r+1)
     and Sp(2r)=['C',r].
 
-    TENSOR: There are branching rules
+    The following rules are implemented as special cases of rule="extended". ::
 
-    ['A', rs-1] => ['A',r-1] x ['A',s-1]
-    ['B',2rs+r+s] => ['B',r] x ['B',s]
-    ['D',2rs+s] => ['B',r] x ['D',s]
-    ['D',2rs] => ['D',r] x ['D',s]
-    ['D',2rs] => ['C',r] x ['C',s]
-    ['C',2rs+s] => ['B',r] x ['C',s]
-    ['C',2rs] => ['C',r] x ['D',s].
+        E6 => A5xA1, A2xA2xA2
+        E7 => A7, D6xA1, A3xA3xA1
+        E8 => A8, D8, E7xA1, A4xA4, D5xA3, E6xA2
+        F4 => B4, C3xA1, A2xA2, A3xA1
+        G2 => A1xA1
+
+    Note that E8 has only a limited number of representations of reasonably low
+    degree.
+
+    TENSOR: There are branching rules:
+    ::
+
+        ['A', rs-1] => ['A',r-1] x ['A',s-1]
+        ['B',2rs+r+s] => ['B',r] x ['B',s]
+        ['D',2rs+s] => ['B',r] x ['D',s]
+        ['D',2rs] => ['D',r] x ['D',s]
+        ['D',2rs] => ['C',r] x ['C',s]
+        ['C',2rs+s] => ['B',r] x ['C',s]
+        ['C',2rs] => ['C',r] x ['D',s].
 
     corresponding to the tensor product homomorphism. For type
     A, the homomorphism is GL(r) x GL(s) -> GL(rs). For the
@@ -1168,23 +1233,22 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     The corresponding branching rules are obtained using rule="tensor".
 
-
     SYMMETRIC POWER: The k-th symmetric and exterior power homomorphisms
     map GL(n) --> GL(binomial(n+k-1,k)) and GL(binomial(n,k)). The
     corresponding branching rules are not implemented but a special
     case is. The k-th symmetric power homomorphism SL(2) --> GL(k+1)
     has its image inside of SO(2r+1) if k=2r and inside of Sp(2r) if
-    k=2r-1. Hence there are branching rules
+    k=2r-1. Hence there are branching rules::
 
-    ['B',r] => A1
-    ['C',r] => A1
+        ['B',r] => A1
+        ['C',r] => A1
 
     and these may be obtained using the rule "symmetric_power".
 
-    MISCELLANEOUS: Use rule="miscellaneous" for the following rules.
+    MISCELLANEOUS: Use rule="miscellaneous" for the following rules::
 
-    B3 => G2
-    F4 => G2xA1 (not implemented yet)
+        B3 => G2
+        F4 => G2xA1 (not implemented yet)
 
     BRANCHING RULES FROM PLETHYSMS
 
@@ -1194,15 +1258,15 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     ISOMORPHIC TYPE: Although not usually referred to as a branching
     rule, the effects of the accidental isomorphisms may be handled
-    using rule="isomorphic"
+    using rule="isomorphic"::
 
-    B2 => C2
-    C2 => B2
-    A3 => D3
-    D3 => A3
-    D2 => A1xA1
-    B1 => A1
-    C1 => A1
+        B2 => C2
+        C2 => B2
+        A3 => D3
+        D3 => A3
+        D2 => A1xA1
+        B1 => A1
+        C1 => A1
 
     EXAMPLES: (Levi type)
 
@@ -1222,7 +1286,9 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: D4 = WeylCharacterRing("D4")
         sage: D5 = WeylCharacterRing("D5")
         sage: G2 = WeylCharacterRing("G2")
-        sage: F4 = WeylCharacterRing("F4") # long time
+        sage: F4 = WeylCharacterRing("F4",style="coroots") # long time
+        sage: E6=WeylCharacterRing("E6",style="coroots")
+        sage: D5=WeylCharacterRing("D5",style="coroots")
         sage: [B3(w).branch(A2,rule="levi") for w in B3.fundamental_weights()]
         [A2(0,0,-1) + A2(0,0,0) + A2(1,0,0),
          A2(0,-1,-1) + A2(0,0,-1) + A2(0,0,0) + A2(1,0,-1) + A2(1,0,0) + A2(1,1,0),
@@ -1263,6 +1329,28 @@ def branch_weyl_character(chi, R, S, rule="default"):
          D4(1/2,1/2,1/2,-1/2) + D4(1/2,1/2,1/2,1/2)]
         sage: G2(1,0,-1).branch(A1,rule="levi")
          A1(0,-1) + A1(1,-1) + A1(1,0)
+        sage: E6=WeylCharacterRing("E6",style="coroots") # long time
+        sage: D5=WeylCharacterRing("D5",style="coroots") # long time
+        sage: fw = E6.fundamental_weights() # long time
+        sage: [E6(fw[i]).branch(D5,rule="levi") for i in [1,2,6]] # long time
+        [D5(0,0,0,0,0) + D5(0,0,0,0,1) + D5(1,0,0,0,0),
+         D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(0,0,0,0,1) + D5(0,1,0,0,0),
+         D5(0,0,0,0,0) + D5(0,0,0,1,0) + D5(1,0,0,0,0)]
+        sage: E7=WeylCharacterRing("E7",style="coroots") # long time
+        sage: D6=WeylCharacterRing("D6",style="coroots") # long time
+        sage: fw = E7.fundamental_weights() # long time
+        sage: [E7(fw[i]).branch(D6,rule="levi") for i in [1,2,7]] # long time
+        [3*D6(0,0,0,0,0,0) + 2*D6(0,0,0,0,1,0) + D6(0,1,0,0,0,0),
+         3*D6(0,0,0,0,0,1) + 2*D6(1,0,0,0,0,0) + 2*D6(0,0,1,0,0,0) + D6(1,0,0,0,1,0),
+         D6(0,0,0,0,0,1) + 2*D6(1,0,0,0,0,0)]
+        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True) # long time
+        sage: E8=WeylCharacterRing("E8",style="coroots",cache=True) # long time
+        sage: D7=WeylCharacterRing("D7",style="coroots",cache=True) # long time
+        sage: E8(1,0,0,0,0,0,0,0).branch(D7,rule="levi") # long time
+         3*D7(0,0,0,0,0,0,0) + 2*D7(0,0,0,0,0,1,0) + 2*D7(0,0,0,0,0,0,1) + 2*D7(1,0,0,0,0,0,0)
+         + D7(0,1,0,0,0,0,0) + 2*D7(0,0,1,0,0,0,0) + D7(0,0,0,1,0,0,0) + D7(1,0,0,0,0,1,0) + D7(1,0,0,0,0,0,1) + D7(2,0,0,0,0,0,0)
+        sage: E8(0,0,0,0,0,0,0,1).branch(D7,rule="levi") # long time
+         D7(0,0,0,0,0,0,0) + D7(0,0,0,0,0,1,0) + D7(0,0,0,0,0,0,1) + 2*D7(1,0,0,0,0,0,0) + D7(0,1,0,0,0,0,0)
         sage: [F4(fw).branch(B3,rule="levi") for fw in F4.fundamental_weights()] # long time
          [B3(0,0,0) + 2*B3(1/2,1/2,1/2) + 2*B3(1,0,0) + B3(1,1,0),
          B3(0,0,0) + 6*B3(1/2,1/2,1/2) + 5*B3(1,0,0) + 7*B3(1,1,0) + 3*B3(1,1,1)
@@ -1310,8 +1398,6 @@ def branch_weyl_character(chi, R, S, rule="default"):
         [B3(0,0,0) + B3(1,0,0), B3(1,0,0) + B3(1,1,0), B3(1/2,1/2,1/2), B3(1/2,1/2,1/2)]
         sage: [D4(x).branch(G2,rule="symmetric") for x in D4.fundamental_weights()]
         [G2(0,0,0) + G2(1,0,-1), 2*G2(1,0,-1) + G2(2,-1,-1), G2(0,0,0) + G2(1,0,-1), G2(0,0,0) + G2(1,0,-1)]
-        sage: E6=WeylCharacterRing("E6",style="coroots") # long time
-        sage: F4=WeylCharacterRing("F4",style="coroots") # long time
         sage: [E6(fw).branch(F4,rule="symmetric") for fw in E6.fundamental_weights()] # long time
         [F4(0,0,0,0) + F4(0,0,0,1),
          F4(0,0,0,1) + F4(1,0,0,0),
@@ -1337,7 +1423,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
          B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0) + B4(1,1,0,0) + B4(1,1,1,0) + B4(3/2,1/2,1/2,1/2),
          B4(0,0,0,0) + B4(1/2,1/2,1/2,1/2) + B4(1,0,0,0)]
 
-        sage: E6 = WeylCharacterRing("E6", style="coroots")
+        sage: E6 = WeylCharacterRing("E6", style="coroots") # long time
         sage: A2xA2xA2=WeylCharacterRing("A2xA2xA2",style="coroots")
         sage: A5xA1=WeylCharacterRing("A5xA1",style="coroots")
         sage: G2 = WeylCharacterRing("G2", style="coroots")
@@ -1351,6 +1437,14 @@ def branch_weyl_character(chi, R, S, rule="default"):
          A5xA1(0,0,0,1,0,0) + A5xA1(1,0,0,0,0,1)
         sage: E6(1,0,0,0,0,0).branch(A2xA2xA2, rule="extended") # long time
          A2xA2xA2(0,0,0,1,1,0) + A2xA2xA2(0,1,1,0,0,0) + A2xA2xA2(1,0,0,0,0,1)
+        sage: E7=WeylCharacterRing("E7",style="coroots") # long time
+        sage: A7=WeylCharacterRing("A7",style="coroots") # long time
+        sage: E7(1,0,0,0,0,0,0).branch(A7,rule="extended") # long time
+         A7(0,0,0,1,0,0,0) + A7(1,0,0,0,0,0,1)
+        sage: E8=WeylCharacterRing("E8",cache=true,style="coroots") # long time
+        sage: D8=WeylCharacterRing("D8",cache=true,style="coroots") # long time
+        sage: E8(0,0,0,0,0,0,0,1).branch(D8,rule="extended") # long time
+         D8(0,0,0,0,0,0,1,0) + D8(0,1,0,0,0,0,0,0)
         sage: F4(1,0,0,0).branch(A1xC3,rule="extended") # long time
          A1xC3(0,2,0,0) + A1xC3(1,0,0,1) + A1xC3(2,0,0,0)
         sage: G2(0,1).branch(A1xA1, rule="extended")
@@ -1403,6 +1497,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     EXAMPLES: (Symmetric Power)
 
+    ::
+
         sage: A1=WeylCharacterRing("A1",style="coroots")
         sage: B3=WeylCharacterRing("B3",style="coroots")
         sage: C3=WeylCharacterRing("C3",style="coroots")
@@ -1446,6 +1542,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     In cases like this you might prefer style="coroots".
 
+    ::
+
         sage: A3 = WeylCharacterRing("A3",style="coroots")
         sage: D3 = WeylCharacterRing("D3",style="coroots")
         sage: [D3(fw) for fw in D3.fundamental_weights()]
@@ -1462,7 +1560,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     This is a general rule that includes any branching rule
     from types A,B,C or D as a special case. Thus it could be
     used in place of the above rules and would give the same
-    results.
+    results. However it is most useful when branching from G
+    to a maximal subgroup H such that rank(H) < rank(G)-1.
 
     We consider a homomorphism H --> G where G is one of
     SL(r+1), SO(2r+1), Sp(2r) or SO(2r). The function
@@ -1476,6 +1575,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     us consider the symmetric fifth power representation
     of SL(2).
 
+    ::
+
         sage: A1=WeylCharacterRing("A1",style="coroots")
         sage: chi=A1([5])
         sage: chi.degree()
@@ -1488,6 +1589,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     SL(2) --> Sp(6), and there is a corresponding
     branching rule C3 => A1.
 
+    ::
+
         sage: C3 = WeylCharacterRing("C3",style="coroots")
         sage: sym5rule = branching_rule_from_plethysm(chi,"C3")
         sage: [C3(hwv).branch(A1,rule=sym5rule) for hwv in C3.fundamental_weights()]
@@ -1496,6 +1599,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     This is identical to the results we would obtain using
     rule="symmetric_power". The next example gives a branching
     not available by other standard rules.
+
+    ::
 
         sage: G2 = WeylCharacterRing("G2",style="coroots")
         sage: D7 = WeylCharacterRing("D7",style="coroots")
@@ -1520,6 +1625,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     type is the root system to be branched to, and rule is the
     branching rule.
 
+    ::
+
         sage: D4 = WeylCharacterRing("D4",style="coroots")
         sage: D2xD2 = WeylCharacterRing("D2xD2",style="coroots")
         sage: A1xA1xA1xA1 = WeylCharacterRing("A1xA1xA1xA1",style="coroots")
@@ -1538,10 +1645,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
     Arrange the embedding so that a Cartan subalgebra U of H is
     contained in a Cartan subalgebra T of G. There is thus
     a mapping from the weight spaces Lie(T)* --> Lie(U)*.
-    The embedding must be chosen in such a way that the
-    restriction of the image of the positive Weyl chamber
-    in Lie(T)* is contained in the positive Weyl chamber
-    in Lie(U)*.
+    Two embeddings will produce identical branching rules if they
+    differ by an element of the Weyl group of H.
 
     The RULE is this map Lie(T)* = G.space() to Lie(U)* = H.space(),
     which you may implement as a function. As an example, let
@@ -1556,14 +1661,21 @@ def branch_weyl_character(chi, R, S, rule="default"):
     that is, [x0,x1,x2,x3] -> [x0-x3,x1-x2]. Hence we may
     encode the rule:
 
-    def rule(x):
-        return [x[0]-x[3],x[1]-x[2]]
+
+    ::
+
+       def rule(x):
+           return [x[0]-x[3],x[1]-x[2]]
 
     or simply:
 
-    rule = lambda x : [x[0]-x[3],x[1]-x[2]]
+    ::
+
+        rule = lambda x : [x[0]-x[3],x[1]-x[2]]
 
     EXAMPLES::
+
+    ::
 
         sage: A3 = WeylCharacterRing(['A',3])
         sage: C2 = WeylCharacterRing(['C',2])
@@ -1590,7 +1702,14 @@ def branch_weyl_character(chi, R, S, rule="default"):
     mdict = {}
     for k in chi._mdict:
         if S._style == "coroots":
-            h = S.coerce_to_sl(S._space(rule(list(k.to_vector()))))
+            if S._cartan_type.is_atomic() and S._cartan_type[0] == 'E':
+                if S._cartan_type[1] == 6:
+                    h = S._space(rule(list(k.to_vector())))
+                    h = S.coerce_to_e6(h)
+                elif S._cartan_type[1] == 7:
+                    h = S.coerce_to_e7(S._space(rule(list(k.to_vector()))))
+            else:
+                h = S.coerce_to_sl(S._space(rule(list(k.to_vector()))))
         else:
             h = S._space(rule(list(k.to_vector())))
         if h in mdict:
@@ -1624,8 +1743,7 @@ def get_branching_rule(Rtype, Stype, rule):
             raise ValueError, "Incompatible ranks"
         if Rtype[0] == 'A':
             if Stype.is_compound():
-                if all(ct[0]=='A' for ct in stypes) \
-                       and rdim == sdim:
+                if all(ct[0]=='A' for ct in stypes) and rdim == sdim:
                     return lambda x : x
                 else:
                     raise ValueError, "Rule not found"
@@ -1643,15 +1761,30 @@ def get_branching_rule(Rtype, Stype, rule):
                 return lambda x : x
             else:
                 raise ValueError, "Rule not found"
-        elif Rtype[0] == 'E' and Stype[0] in ['A','D','E']:
-            raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
+        elif Rtype[0] == 'E':
+            if Stype.is_atomic():
+                if Stype[0] == 'D':
+                    if r == 6:
+                        return lambda x : [-x[4],-x[3],-x[2],-x[1],-x[0]]
+                    if r == 7:
+                        return lambda x : [-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]]
+                    if r == 8:
+                        return lambda x : [-x[6],-x[5],-x[4],-x[3],-x[2],-x[1],-x[0]]
+                elif r in [7,8] and Stype[0] == 'E':
+                    return lambda x : x
+                elif Stype[0] == 'A':
+                    if r == 6:
+                        raise NotImplementedError, """A5 Levi is not maximal. Branch to A5xA1 (rule="extended")."""
+                    if r == 7:
+                        raise NotImplementedError, """A5 Levi is not maximal. Branch to A5xA1 (rule="extended")."""
+            raise NotImplementedError, "Not implemented yet"
         elif Rtype[0] == 'F' and s == 3:
             if Stype[0] == 'B':
                 return lambda x : list(x)[1:]
             elif Stype[0] == 'C':
                 return lambda x : [x[1]-x[0],x[2]+x[3],x[2]-x[3]]
             else:
-                raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
+                raise NotImplementedError, "Not implemented yet"
         elif Rtype[0] == 'G' and Stype[0] == 'A':
             return lambda x : list(x)[1:]
         else:
@@ -1659,8 +1792,6 @@ def get_branching_rule(Rtype, Stype, rule):
     elif rule == "automorphic":
         if not Rtype == Stype:
             raise ValueError, "Cartan types must agree for automorphic branching rule"
-        elif Rtype[0] == 'E' and r == 6:
-            raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
         elif Rtype[0] == 'A':
             def rule(x) : y = [-i for i in x]; y.reverse(); return y
             return rule
@@ -1668,7 +1799,15 @@ def get_branching_rule(Rtype, Stype, rule):
             def rule(x) : x[len(x)-1] = -x[len(x)-1]; return x
             return rule
         elif Rtype[0] == 'E' and r == 6:
-            raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
+            M = matrix(QQ,[(3, 3, 3, -3, 0, 0, 0, 0), \
+                           (3, 3, -3, 3, 0, 0, 0, 0), \
+                           (3, -3, 3, 3, 0, 0, 0, 0), \
+                           (-3, 3, 3, 3, 0, 0, 0, 0), \
+                           (0, 0, 0, 0, -3, -3, -3, 3), \
+                           (0, 0, 0, 0, -3, 5, -1, 1), \
+                           (0, 0, 0, 0, -3, -1, 5, 1), \
+                           (0, 0, 0, 0, 3, 1, 1, 5)])/6
+            return lambda x : tuple(M*vector(x))
         else:
             raise ValueError, "No automorphism found"
     elif rule == "triality":
@@ -1693,6 +1832,8 @@ def get_branching_rule(Rtype, Stype, rule):
         else:
             raise ValueError, "Rule not found"
     elif rule == "extended":
+        if not s == r:
+            raise ValueError, """Ranks should be equal for rule="extended" """
         if Stype.is_compound():
             if Rtype[0] in ['B','D'] and all(t[0] in ['B','D'] for t in stypes):
                 if Rtype[0] == 'D':
@@ -1709,12 +1850,12 @@ def get_branching_rule(Rtype, Stype, rule):
                     return lambda x : x[:s]
                 else:
                     raise ValueError, "Rule not found"
-            elif Rtype[0] == 'C'  and s == r:
+            elif Rtype[0] == 'C':
                 if all(t[0] == Rtype[0] for t in stypes):
                     return lambda x : x
-            elif Rtype[0] == 'E' and s == r:
+            elif Rtype[0] == 'E':
                 if r == 6:
-                    if stypes[0][0] == 'A' and stypes[0][1] == 5:
+                    if stypes[0][0] == 'A' and stypes[0][1] == 5: # need doctest
                         if stypes[1][0] == 'A' and stypes[1][1] == 1:
                             M = matrix(QQ,[(-3, -3, -3, -3, -3, -5, -5, 5), \
                                            (-9, 3, 3, 3, 3, 1, 1, -1), \
@@ -1725,7 +1866,7 @@ def get_branching_rule(Rtype, Stype, rule):
                                            (-3, -3, -3, -3, -3, -1, 11, 1), \
                                            (3, 3, 3, 3, 3, 1, 1, 11)])/12
                             return lambda x : tuple(M*vector(x))
-                    if len(stypes) == 3 and all(x[0] == 'A' and x[1] == 2 for x in stypes):
+                    if len(stypes) == 3 and all(x[0] == 'A' and x[1] == 2 for x in stypes): # need doctest
                         M = matrix(QQ,[(0, 0, -2, -2, -2, -2, -2, 2), \
                                        (-3, 3, 1, 1, 1, 1, 1, -1), \
                                        (3, -3, 1, 1, 1, 1, 1, -1), \
@@ -1736,7 +1877,64 @@ def get_branching_rule(Rtype, Stype, rule):
                                        (3, 3, 1, 1, 1, -1, -1, 1), \
                                        (-3, -3, 1, 1, 1, -1, -1, 1)])/6
                         return lambda x : tuple(M*vector(x))
-            elif Rtype[0] == 'F' and s == r:
+                elif r == 7:
+                    if stypes[0][0] == 'D' and stypes[0][1] == 6 and stypes[1][0] == 'A' and stypes[1][1] == 1:
+                        return lambda x : [x[5],x[4],x[3],x[2],x[1],x[0],x[6],x[7]] # need doctest
+                    elif stypes[0][0] == 'A' and stypes[1][0] == 'A':
+                        if stypes[0][1] == 5 and stypes[1][1] == 2:
+                            M = matrix(QQ,[(5, 1, 1, 1, 1, 1, 0, 0), \
+                                           (-1, -5, 1, 1, 1, 1, 0, 0), \
+                                           (-1, 1, -5, 1, 1, 1, 0, 0), \
+                                           (-1, 1, 1, -5, 1, 1, 0, 0), \
+                                           (-1, 1, 1, 1, -5, 1, 0, 0), \
+                                           (-1, 1, 1, 1, 1, -5, 0, 0), \
+                                           (1, -1, -1, -1, -1, -1, 0, -6), \
+                                           (1, -1, -1, -1, -1, -1, -6, 0), \
+                                           (-2, 2, 2, 2, 2, 2, -3, -3)])/6
+                            return lambda x : tuple(M*vector(x))
+                        if len(stypes) == 3 and stypes[2][0] == 'A' and [stypes[0][1],stypes[1][1],stypes[2][1]] == [3,3,1]: # need doctest
+                            M = matrix(QQ, [(0, 0, -1, -1, -1, -1, 2, -2), \
+                                            (0, 0, -1, -1, -1, -1, -2, 2), \
+                                            (-2, 2, 1, 1, 1, 1, 0, 0), \
+                                            (2, -2, 1, 1, 1, 1, 0, 0), \
+                                            (0, 0, -1, -1, -1, 3, 0, 0), \
+                                            (0, 0, -1, -1, 3, -1, 0, 0), \
+                                            (0, 0, -1, 3, -1, -1, 0, 0), \
+                                            (0, 0, 3, -1, -1, -1, 0, 0), \
+                                            (2, 2, 0, 0, 0, 0, -2, -2), \
+                                            (-2, -2, 0, 0, 0, 0, -2, -2)])/4
+                            return lambda x : tuple(M*vector(x))
+                elif r == 8:
+                    if stypes[0][0] == 'A' and stypes[1][0] == 'A':
+                        if stypes[0][1] == 7 and stypes[1][1] == 1:
+                            raise NotImplementedError, "Not maximal: first branch to E7xA1"
+                        elif stypes[0][1] == 4 and stypes[1][1] == 4:
+                            M = matrix(QQ,[(0, 0, 0, -4, -4, -4, -4, 4), \
+                                           (-5, 5, 5, 1, 1, 1, 1, -1), \
+                                           (5, -5, 5, 1, 1, 1, 1, -1), \
+                                           (5, 5, -5, 1, 1, 1, 1, -1), \
+                                           (-5, -5, -5, 1, 1, 1, 1, -1), \
+                                           (0, 0, 0, -8, 2, 2, 2, -2), \
+                                           (0, 0, 0, 2, -8, 2, 2, -2), \
+                                           (0, 0, 0, 2, 2, -8, 2, -2), \
+                                           (0, 0, 0, 2, 2, 2, -8, -2), \
+                                           (0, 0, 0, 2, 2, 2, 2, 8)])/10
+                            return lambda x : tuple(M*vector(x))
+                        elif len(stypes)==3:
+                            if stypes[0][1] == 5 and stypes[1][0] == 2 and stypes[2][0] == 1:
+                                raise NotImplementedError, "Not maximal: first branch to A7xA1"
+                    elif stypes[0][0] == 'D' and stypes[1][0] == 'A':
+                        if stypes[0][1] == 5 and stypes[1][1] == 3:
+                            raise NotImplementedError, "Not maximal: first branch to D8 then D5xD3=D5xA3"
+                    elif stypes[0][0] == 'E' and stypes[1][0] == 'A':
+                        if stypes[0][1] == 6 and stypes[1][1] == 2:
+                            return lambda x : [x[0],x[1],x[2],x[3],x[4], \
+                                               (x[5]+x[6]-x[7])/3,(x[5]+x[6]-x[7])/3,(-x[5]-x[6]+x[7])/3, \
+                                               (-x[5]-x[6]-2*x[7])/3,(-x[5]+2*x[6]+x[7])/3,(2*x[5]-x[6]+x[7])/3]
+                        elif stypes[0][1] == 7 and stypes[1][1] == 1:
+                            return lambda x : [x[0],x[1],x[2],x[3],x[4],x[5],(x[6]-x[7])/2,(-x[6]+x[7])/2,(-x[6]-x[7])/2,(x[6]+x[7])/2]
+                raise ValueError, "Rule not found"
+            elif Rtype[0] == 'F':
                 if stypes[0][0] == 'C' and stypes[0][1] == 3:
                     if stypes[1][0] == 'A' and stypes[1][1] == 1:
                         return lambda x : [x[0]-x[1],x[2]+x[3],x[2]-x[3],(-x[0]-x[1])/2,(x[0]+x[1])/2]
@@ -1753,21 +1951,46 @@ def get_branching_rule(Rtype, Stype, rule):
                     return lambda x : tuple(M*vector(x))
                 else:
                     raise ValueError, "Rule not found"
-            elif Rtype[0] == 'G' and s == r:
+            elif Rtype[0] == 'G':
                 if all(t[0] == 'A' and t[1] == 1 for t in stypes):
                     return lambda x : [(x[1]-x[2])/2,-(x[1]-x[2])/2, x[0]/2, -x[0]/2]
             else:
                 raise ValueError, "Rule not found"
-        elif Rtype[0] == 'B' and Stype[0] == 'D' and s == r:
-            return lambda x : x
-        elif Rtype[0] == 'G' and Stype[0] == 'A' and s == r:
-            return lambda x : [(x[0]-x[2])/3, (-x[1]+x[2])/3, (-x[0]+x[1])/3]
-        elif Rtype[0] == 'F' and Stype[0] == 'B' and s == r:
-            return lambda x : [-x[0], x[1], x[2], x[3]]
-        elif Rtype[0] == 'E' and Stype[0] == 'E' and s == r and r >= 7:
-            raise NotImplementedError, "Exceptional branching rules are yet to be implemented"
-        else:
-            raise ValueError, "Rule not found"
+        else: # irreducible Stype
+            if Rtype[0] == 'B' and Stype[0] == 'D':
+                return lambda x : x
+            elif Rtype[0] == 'E':
+                if r == 7:
+                    if Stype[0] == 'A':
+                        M = matrix(QQ, [(-1, -1, -1, -1, -1, -1, 2, -2), \
+                                        (-1, -1, -1, -1, -1, -1, -2, 2), \
+                                        (-3, 1, 1, 1, 1, 1, 0, 0), \
+                                        (1, -3, 1, 1, 1, 1, 0, 0), \
+                                        (1, 1, -3, 1, 1, 1, 0, 0), \
+                                        (1, 1, 1, -3, 1, 1, 0, 0), \
+                                        (1, 1, 1, 1, -3, 1, 2, 2), \
+                                        (1, 1, 1, 1, 1, -3, 2, 2)])/4
+                        return lambda x : tuple(M*vector(x))
+                elif r == 8:
+                    if Stype[0] == 'D':
+                        return lambda x : [-x[7],x[6],x[5],x[4],x[3],x[2],x[1],x[0]]
+                    elif Stype[0] == 'A':
+                        M = matrix([(-2, -2, -2, -2, -2, -2, -2, 2), \
+                                    (-5, 1, 1, 1, 1, 1, 1, -1), \
+                                    (1, -5, 1, 1, 1, 1, 1, -1), \
+                                    (1, 1, -5, 1, 1, 1, 1, -1), \
+                                    (1, 1, 1, -5, 1, 1, 1, -1), \
+                                    (1, 1, 1, 1, -5, 1, 1, -1), \
+                                    (1, 1, 1, 1, 1, -5, 1, -1), \
+                                    (1, 1, 1, 1, 1, 1, -5, -1), \
+                                    (1, 1, 1, 1, 1, 1, 1, 5)])/6 # doctest needed
+                        return lambda x : tuple(M*vector(x))
+            elif Rtype[0] == 'F' and Stype[0] == 'B' and s == r:
+                return lambda x : [-x[0], x[1], x[2], x[3]]
+            elif Rtype[0] == 'G' and Stype[0] == 'A' and s == r:
+                return lambda x : [(x[0]-x[2])/3, (-x[1]+x[2])/3, (-x[0]+x[1])/3]
+            else:
+                raise ValueError, "Rule not found"
     elif rule == "isomorphic":
         if r != s:
             raise ValueError, "Incompatible ranks"

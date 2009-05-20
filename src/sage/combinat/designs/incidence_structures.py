@@ -475,11 +475,11 @@ class IncidenceStructure(object):
             (True, [2, 7, 3, 1])
             sage: BD.block_design_checker(2, 7, 3, 1)
             True
-            sage: BD = WittDesign(9)        # requires optional gap package
-            sage: BD.is_block_design()      # requires optional gap package
+            sage: BD = WittDesign(9)        # requires optional gap package 'design'
+            sage: BD.is_block_design()      # requires optional gap package 'design'
             (True, [2, 9, 3, 1])
-            sage: BD = WittDesign(12)       # requires optional gap package
-            sage: BD.is_block_design()      # requires optional gap package
+            sage: BD = WittDesign(12)       # requires optional gap package 'design'
+            sage: BD.is_block_design()      # requires optional gap package 'design'
             (True, [5, 12, 6, 1])
             sage: BD = AffineGeometryDesign(3, 1, GF(2))
             sage: BD.is_block_design()
@@ -573,7 +573,7 @@ class IncidenceStructure(object):
 
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.points_from_gap()      # requires optional gap package
+            sage: BD.points_from_gap()      # requires optional gap package 'design'
             [1, 2, 3, 4, 5, 6, 7]
         """
         from sage.interfaces.gap import gap, GapElement

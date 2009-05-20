@@ -265,7 +265,7 @@ def plotkin_upper_bound(n,q,d, method=None):
     EXAMPLES::
         sage: plotkin_upper_bound(10,2,3)
         192
-        sage: plotkin_upper_bound(10,2,3,method="gap")  # requires optional GAP package
+        sage: plotkin_upper_bound(10,2,3,method="gap")  # requires optional GAP package Guava
         192
     """
     if method=="gap":
@@ -295,7 +295,7 @@ def griesmer_upper_bound(n,q,d,method=None):
     EXAMPLES::
         sage: griesmer_upper_bound(10,2,3)
         128
-        sage: griesmer_upper_bound(10,2,3,method="gap")  # requires optional GAP package
+        sage: griesmer_upper_bound(10,2,3,method="gap")  # requires optional GAP package Guava
         128
     """
     if method=="gap":

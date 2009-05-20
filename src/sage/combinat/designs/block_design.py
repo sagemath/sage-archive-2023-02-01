@@ -90,8 +90,8 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
-        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), method="gap")      # requires optional gap package
-        sage: BD.is_block_design()                                     # requires optional gap package
+        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), method="gap") # requires optional gap package 'design'
+        sage: BD.is_block_design()                                     # requires optional gap package 'design'
         (True, [2, 7, 3, 1])
     """
     q = F.order()
@@ -184,15 +184,15 @@ def WittDesign(n):
 
     EXAMPLES::
 
-        sage: BD = WittDesign(9)   # requires optional gap package
-        sage: BD.parameters()      # requires optional gap package
+        sage: BD = WittDesign(9)   # requires optional gap package 'design'
+        sage: BD.parameters()      # requires optional gap package 'design'
         (2, 9, 3, 1)
-        sage: BD                   # requires optional gap package
+        sage: BD                   # requires optional gap package 'design'
         Incidence structure with 9 points and 12 blocks
-        sage: print BD             # requires optional gap package
+        sage: print BD             # requires optional gap package 'design'
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
-        sage: BD = WittDesign(12)  # requires optional gap package
-        sage: BD.parameters(t=5)   # requires optional gap package
+        sage: BD = WittDesign(12)  # requires optional gap package 'design'
+        sage: BD.parameters(t=5)   # requires optional gap package 'design'
         (5, 12, 6, 1)
     """
     from sage.interfaces.gap import gap, GapElement

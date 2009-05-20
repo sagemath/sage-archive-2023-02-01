@@ -288,7 +288,7 @@ def wtdist_gap(Gmat, F):
 
         sage: Gstr = 'Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]'
         sage: F = GF(2)
-        sage: sage.coding.linear_code.wtdist_gap(Gstr, F)  # requires optional GAP package
+        sage: sage.coding.linear_code.wtdist_gap(Gstr, F)
         [1, 0, 0, 7, 7, 0, 0, 1]
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary
@@ -339,7 +339,7 @@ def min_wt_vec_gap(Gmat,n,k,F,method=None):
         sage: Gstr = "Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]"
         sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,7,4,GF(2))
         (0, 1, 0, 1, 0, 1, 0)
-        sage: min_wt_vec_gap(Gstr,7,4,GF(2),method="guava")    # requires optional GAP package
+        sage: min_wt_vec_gap(Gstr,7,4,GF(2),method="guava")    # requires optional GAP package Guava
         (0, 1, 0, 1, 0, 1, 0)
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
@@ -388,9 +388,9 @@ def best_known_linear_code(n,k,F):
 
     EXAMPLES::
 
-        sage: best_known_linear_code(10,5,GF(2))    # long time and requires optional GAP package
+        sage: best_known_linear_code(10,5,GF(2))    # long time and requires optional GAP package Guava
         Linear code of length 10, dimension 5 over Finite Field of size 2
-        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")     # long time and requires optional GAP package
+        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")     # long time and requires optional GAP package Guava
         'a linear [10,5,4]2..4 shortened code'
 
     This means that best possible binary linear code of length 10 and
@@ -1107,7 +1107,7 @@ class LinearCode(module.Module):
         EXAMPLES::
 
             sage: C = HammingCode(5,GF(2))
-            sage: C.covering_radius()  # requires optional GAP package
+            sage: C.covering_radius()  # requires optional GAP package Guava
             1
         """
         F = self.base_ring()
@@ -1165,7 +1165,7 @@ class LinearCode(module.Module):
             (1, 0, 0, 1, 1)
             sage: C.decode(v, method="nearest neighbor")
             (1, 0, 0, 1, 1)
-            sage: C.decode(v, method="guava")  # requires optional GAP package
+            sage: C.decode(v, method="guava")  # requires optional GAP package Guava
             (1, 0, 0, 1, 1)
 
         Does not work for very long codes since the syndrome table grows
@@ -1756,10 +1756,10 @@ class LinearCode(module.Module):
             Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
             sage: C.permutation_automorphism_group(method="partition")
             Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
-            sage: C.permutation_automorphism_group(method="gap")   # requires optional GAP package
+            sage: C.permutation_automorphism_group(method="gap")
             Permutation Group with generators [(1,2)(3,4), (1,3)(2,4)]
             sage: C = TernaryGolayCode()
-            sage: C.permutation_automorphism_group(method="gap")   # requires optional GAP package
+            sage: C.permutation_automorphism_group(method="gap")
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
 
         However, the option ``method="gap+verbose"``, will
@@ -2171,7 +2171,7 @@ class LinearCode(module.Module):
             [1, 0, 0, 30, 15, 18]
             sage: C = HammingCode(3,GF(2)); C
             Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: C.spectrum(method="leon")   # requires optional GAP package
+            sage: C.spectrum(method="leon")   # requires optional GAP package Guava
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C.spectrum(method="gap")
             [1, 0, 0, 7, 7, 0, 0, 1]
@@ -2179,15 +2179,15 @@ class LinearCode(module.Module):
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C = HammingCode(3,GF(3)); C
             Linear code of length 13, dimension 10 over Finite Field of size 3
-            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package
+            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package Guava
             True
             sage: C = HammingCode(2,GF(5)); C
             Linear code of length 6, dimension 4 over Finite Field of size 5
-            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package
+            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package Guava
             True
             sage: C = HammingCode(2,GF(7)); C
             Linear code of length 8, dimension 6 over Finite Field of size 7
-            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package
+            sage: C.spectrum() == C.spectrum(method="leon")   # requires optional GAP package Guava
             True
 
         """

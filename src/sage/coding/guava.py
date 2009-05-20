@@ -142,9 +142,9 @@ def RandomLinearCodeGuava(n,k,F):
         Returns a "random" linear code with length n, dimension k over field F.
 
     EXAMPLES::
-        sage: C = RandomLinearCode(30,15,GF(2)); C      # requires optional package
+        sage: C = RandomLinearCodeGuava(30,15,GF(2)); C      # requires optional package
         Linear code of length 30, dimension 15 over Finite Field of size 2
-        sage: C = RandomLinearCode(10,5,GF(4,'a')); C      # requires optional package
+        sage: C = RandomLinearCodeGuava(10,5,GF(4,'a')); C      # requires optional package
         Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (11-2005)

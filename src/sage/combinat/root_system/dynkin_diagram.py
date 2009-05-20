@@ -275,8 +275,8 @@ def extended_dynkin_diagram_ascii_art(t):
     elif t[0] == 'D':
         if r == 4:
             return "    O 4\n    |\n    |\nO---O---O\n1   |2  3\n    |\n    O 0\nD4~"
-        ret = "  0 O"+(4*(r-4))*" "+"O "+(r-1).__repr__()+"\n"
-        ret += "    |"+(4*(r-4))*" "+"|\n    |"+(4*(r-4))*" "+"|\n"
+        ret = "  0 O"+(4*(r-4)-1)*" "+"O "+(r-1).__repr__()+"\n"
+        ret += "    |"+(4*(r-4)-1)*" "+"|\n    |"+(4*(r-4)-1)*" "+"|\n"
         ret += (r-2)*"O---"+"O\n"
         for i in range(1,r-1):
             ret += i.__repr__()+"   "

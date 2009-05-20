@@ -298,6 +298,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx']),
 
+    Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx']),
+
     ################################
     ##
     ## sage.gsl

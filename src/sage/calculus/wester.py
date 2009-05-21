@@ -209,7 +209,7 @@ explicit calls to maxima or other systems.
     sage: # (YES) Assuming x>y, y>0, deduce 2*x^2>2*y^2.
     sage: forget()
     sage: assume(x>y, y>0)
-    sage: print assumptions()
+    sage: print list(sorted(assumptions()))
     [x > y, y > 0]
     sage: print bool(2*x^2 > 2*y^2)
     True

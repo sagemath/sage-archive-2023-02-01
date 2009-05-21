@@ -6,6 +6,7 @@ Miscellaneous
 .. toctree::
    :maxdepth: 2
 
+   sage/misc/abstract_method
    sage/misc/misc
    sage/misc/package
    sage/misc/explain_pickle

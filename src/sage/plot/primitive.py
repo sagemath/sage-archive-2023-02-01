@@ -106,6 +106,8 @@ class GraphicPrimitive(SageObject):
         if 'alpha' in options:
             options_3d['opacity'] = options['alpha']
             del options['alpha']
+        if 'zorder' in options:
+            del options['zorder']
         if len(options) != 0:
             raise NotImplementedError, "Unknown plot3d equivalent for %s" % ", ".join(options.keys())
         return options_3d

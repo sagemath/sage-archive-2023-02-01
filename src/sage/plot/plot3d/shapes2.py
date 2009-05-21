@@ -104,6 +104,89 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         w._set_extra_kwds(kwds)
         return w
 
+@options(opacity=1, color="red", aspect_ratio=[1,1,1], thickness=2)
+def bezier3d(path, **options):
+    """
+    Draws a 3-dimensional bezier path.  Input is similar to bezier_path, but each
+    point in the path and each control point is required to have 3 coordinates.
+
+    INPUT:
+
+    -  ``path`` - a list of curves, which each is a list of points. See further
+        detail below.
+
+    -  ``thickness`` - (default: 2)
+
+    -  ``color`` - a word that describes a color
+
+    -  ``opacity`` - (default: 1) if less than 1 then is
+       transparent
+
+    -  ``aspect_ratio`` - (default:[1,1,1])
+
+    The path is a list of curves, and each curve is a list of points.
+    Each point is a tuple (x,y,z).
+
+    The first curve contains the endpoints as the first and last point
+    in the list.  All other curves assume a starting point given by the
+    last entry in the preceding list, and take the last point in the list
+    as their opposite endpoint.  A curve can have 0, 1 or 2 control points
+    listed between the endpoints.  In the input example for path below,
+    the first and second curves have 2 control points, the third has one,
+    and the fourth has no control points:
+
+    path = [[p1, c1, c2, p2], [c3, c4, p3], [c5, p4], [p5], ...]
+
+    In the case of no control points, a striaght line will be drawn
+    between the two endpoints.  If one control point is supplied, then
+    the curve at each of the endpoints will be tangent to the line from
+    that endpoint to the control point.  Similarly, in the case of two
+    control points, at each endpoint the curve will be tangent to the line
+    connecting that endpoint with the control point immediately after or
+    immediately preceding it in the list.
+
+    So in our example above, the curve between p1 and p2 is tangent to the
+    line through p1 and c1 at p1, and tangent to the line through p2 and c2
+    at p2.  Similarly, the curve between p2 and p3 is tangent to line(p2,c3)
+    at p2 and tangent to line(p3,c4) at p3.  Curve(p3,p4) is tangent to
+    line(p3,c5) at p3 and tangent to line(p4,c5) at p4.  Curve(p4,p5) is a
+    straight line.
+
+    EXAMPLES:
+        sage: path = [[(0,0,0),(.5,.1,.2),(.75,3,-1),(1,1,0)],[(.5,1,.2),(1,.5,0)],[(.7,.2,.5)]]
+        sage: b = bezier3d(path, color='green')
+        sage: b
+
+    To construct a simple curve, create a list containing a single list:
+
+        sage: path = [[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]]
+        sage: curve = bezier3d(path, thickness=5, color='blue')
+        sage: curve
+    """
+    import parametric_plot3d as P3D
+    from sage.modules.free_module_element import vector
+    from sage.calculus.calculus import var
+
+    p0 = vector(path[0][-1])
+    t = var('t')
+    if len(path[0]) > 2:
+        B = (1-t)**3*vector(path[0][0])+3*t*(1-t)**2*vector(path[0][1])+3*t**2*(1-t)*vector(path[0][-2])+t**3*p0
+        G = P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
+    else:
+        G = line3d([path[0][0], p0], color=options['color'], thickness=options['thickness'], opacity=options['opacity'])
+
+    for curve in path[1:]:
+        if len(curve) > 1:
+            p1 = vector(curve[0])
+            p2 = vector(curve[-2])
+            p3 = vector(curve[-1])
+            B = (1-t)**3*p0+3*t*(1-t)**2*p1+3*t**2*(1-t)*p2+t**3*p3
+            G += P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
+        else:
+            G += line3d([p0,curve[0]], color=options['color'], thickness=options['thickness'], opacity=options['opacity'])
+        p0 = curve[-1]
+    return G
+
 @rename_keyword(alpha='opacity')
 @options(opacity=1, color=(0,0,1))
 def polygon3d(points, **options):

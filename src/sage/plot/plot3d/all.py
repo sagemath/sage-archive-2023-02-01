@@ -6,7 +6,7 @@ from list_plot3d       import list_plot3d
 
 from platonic          import tetrahedron, cube, octahedron, dodecahedron, icosahedron
 
-from shapes2           import sphere, line3d, polygon3d, point3d, text3d
+from shapes2           import sphere, line3d, polygon3d, point3d, text3d, bezier3d
 
 from shapes            import arrow3d
 

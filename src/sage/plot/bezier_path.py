@@ -15,11 +15,11 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.plot.primitive import GraphicPrimitive
+from sage.plot.primitive import GraphicPrimitive_xydata
 from sage.plot.misc import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 
-class BezierPath(GraphicPrimitive):
+class BezierPath(GraphicPrimitive_xydata):
     """
     Path of Bezier Curves graphics primitive.
     """
@@ -41,7 +41,7 @@ class BezierPath(GraphicPrimitive):
             codes += (len(curve))*[len(curve)+1]
         self.codes = codes
         self.vertices = np.array(vertices, np.float)
-        GraphicPrimitive.__init__(self, options)
+        GraphicPrimitive_xydata.__init__(self, options)
 
     def _allowed_options(self):
         """
@@ -63,7 +63,57 @@ class BezierPath(GraphicPrimitive):
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'zorder':'The layer level in which to draw',
-                                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+
+    def _plot3d_options(self, options=None):
+        """
+        Updates BezierPath options to those allowed by 3d implementation.
+
+        EXAMPLES:
+
+            sage: from sage.plot.bezier_path import BezierPath
+            sage: B = BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
+            sage: B._plot3d_options()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Invalid 3d line style: dashed
+            sage: B = BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'fill':False, 'thickness':2})
+            sage: B._plot3d_options()
+            {'thickness': 2}
+        """
+        if options == None:
+            options = dict(self.options())
+        options_3d = {}
+        if 'thickness' in options:
+            options_3d['thickness'] = options['thickness']
+            del options['thickness']
+        if 'fill' in options:
+            if options['fill']:
+                raise NotImplementedError, "Invalid 3d fill style.  Must set fill to False."
+            del options['fill']
+        if 'linestyle' in options:
+            if options['linestyle'] != 'solid':
+                raise NotImplementedError, "Invalid 3d line style: %s" % options['linestyle']
+            del options['linestyle']
+        options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
+        return options_3d
+
+    def plot3d(self, **kwds):
+        """
+        Returns a 3d plot (Jmol) of the bezier path.  Since a BezierPath primitive contains
+        only x,y coordinates, the path will be drawn in the z=0 plane.  To create a bezier path
+        with nonzero z coordinates in the path and control points, use the constructor bezier3d
+        instead of bezier_path.
+
+        EXAMPLES:
+            sage: b = bezier_path([[(0,0),(0,1),(1,0)]])
+            sage: b.plot3d()
+            sage: bezier3d([[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]])
+        """
+        from sage.plot.plot3d.shapes2 import bezier3d
+        options = self._plot3d_options()
+        options.update(kwds)
+        return bezier3d([[(x,y,0) for x,y in self.path[i]] for i in range(len(self.path))], **options)
 
     def _repr_(self):
         return "Bezier path from %s to %s"%(self.path[0][0],self.path[-1][-1])

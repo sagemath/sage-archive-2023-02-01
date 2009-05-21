@@ -728,7 +728,7 @@ If this all works, you can then make calls like:
             sage: singular(2+3)
             5
             sage: singular._before()
-            'print(sage...);\r\n5\r\n'
+            'print(sage...);\r\n5\r'
         """
         return self._expect.before
 

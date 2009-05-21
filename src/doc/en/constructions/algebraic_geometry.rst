@@ -385,9 +385,9 @@ to Singular or Singular itself. Both are illustrated below.
        sage: singular.eval("intvec G = 4,4,4,0,0,0;")
        ''
        sage: singular.eval("def R = X[1][2];")
-       ''
+       'def R = HC[1][2];'
        sage: singular.eval("setring R;")
-       ''
+       'setring R;'
        sage: print singular.eval("list LG = BrillNoether(G,X);")
        Forms of degree 6 :
        28
@@ -428,7 +428,7 @@ command.
 
     sage: singular.LIB('brnoeth.lib')
     sage: singular.eval("ring s = 2,(x,y),lp;")
-    ''
+    'ring s = 2,(x,y),lp;'
     sage: print singular.eval("list HC = Adj_div(x3+y2+y);")
     Computing affine singular points ...
     Computing all points at infinity ...
@@ -445,11 +445,11 @@ command.
     Total number of rational places : NrRatPl = 9
 
     sage: singular.eval("intvec G = 5;")      # the rational divisor G = 5*HC[3][1]
-    ''
+    'intvec G = 5;'
     sage: singular.eval("def R = HC[1][2];")
-    ''
+    'def R = HC[1][2];'
     sage: singular.eval("setring R;")
-    ''
+    'setring R;'
 
 The vector :math:`G` represents the divisor
 "5 times the point at infinity".

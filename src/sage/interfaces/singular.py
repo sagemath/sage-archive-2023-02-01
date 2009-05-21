@@ -342,7 +342,7 @@ class Singular(Expect):
             sage: singular == loads(dumps(singular))
             True
         """
-        prompt = '> '
+        prompt = '\n> '
         Expect.__init__(self,
                         name = 'singular',
                         prompt = prompt,

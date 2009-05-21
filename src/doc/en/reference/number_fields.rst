@@ -9,3 +9,4 @@ Algebraic Number Fields
    sage/rings/number_field/number_field_ideal
    sage/rings/number_field/class_group
    sage/rings/number_field/galois_group
+   sage/rings/qqbar

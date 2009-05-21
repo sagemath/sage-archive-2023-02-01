@@ -1,6 +1,14 @@
 r"""
 Format Sage documentation for viewing with IPython and the notebook
 
+AUTHORS:
+
+- William Stein (2005): initial version.
+- Nick Alexander (2007): nodetex functions
+- Nick Alexander (2008): search_src, search_def improvements
+- Martin Albrecht (2008-03-21): parse LaTeX description environments in sagedoc
+- J. H. Palmieri (2009-04-11): fix for #5754 plus doctests
+- Dan Drake (2009-05-21): refactor search_* functions, use system `find' instead of sage -grep
 """
 
 #*****************************************************************************

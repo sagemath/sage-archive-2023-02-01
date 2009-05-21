@@ -497,7 +497,6 @@ class ReferenceBuilder(DocBuilder):
             import sage.all
             __import__(module_name)
         except ImportError, err:
-            raise
             print "Warning: could not import %s"%module_name
             print err
             return "UNABLE TO IMPORT MODULE"

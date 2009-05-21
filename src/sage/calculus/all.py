@@ -41,32 +41,29 @@ def symbolic_expression(x):
         sage: a = symbolic_expression(3/2); a
         3/2
         sage: type(a)
-        <class 'sage.calculus.calculus.SymbolicConstant'>
+        <type 'sage.symbolic.expression.Expression'>
         sage: R.<x> = QQ[]; type(x)
         <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
         sage: a = symbolic_expression(2*x^2 + 3); a
         2*x^2 + 3
         sage: type(a)
-        <class 'sage.calculus.calculus.SymbolicPolynomial'>
-        sage: from sage.calculus.calculus import is_SymbolicExpression
-        sage: is_SymbolicExpression(a)
+        <type 'sage.symbolic.expression.Expression'>
+        sage: from sage.symbolic.expression import is_Expression
+        sage: is_Expression(a)
         True
         sage: a in SR
         True
         sage: a.parent()
         Symbolic Ring
 
-    This may not always return an element of SR.
-
-    ::
+    Note that equations exist in the symbolic ring::
 
         sage: E = EllipticCurve('15a'); E
         Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
         sage: symbolic_expression(E)
-        y^2 + x*y + y == x^3 + x^2 - 10*x - 10
+        x*y + y^2 + y == x^3 + x^2 - 10*x - 10
         sage: symbolic_expression(E) in SR
-        False
-
+        True
     """
     from sage.symbolic.expression import Expression
     from sage.symbolic.ring import SR

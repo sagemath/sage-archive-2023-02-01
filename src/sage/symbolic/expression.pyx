@@ -6,9 +6,8 @@
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-
 """
-EXAMPLES:
+Symbolic Expressions
 
 RELATIONAL EXPRESSIONS:
 
@@ -2172,7 +2171,7 @@ cdef class Expression(CommutativeRingElement):
             5/2*x^2*sin(1) - 2*x^2*cos(1) - 7*x*sin(1) + 5*x*cos(1) + 11/2*sin(1) - 3*cos(1)
 
         Following the GiNaC tutorial, we use John Machin's amazing
-        formula `\pi = 16 \atan(1/5) - 4 \atan(1/239)` to compute
+        formula `\pi = 16 \tan^{-1}(1/5) - 4 \tan^{-1}(1/239)` to compute
         digits of `\pi`. We expand the arc tangent around 0 and insert
         the fractions 1/5 and 1/239.
 

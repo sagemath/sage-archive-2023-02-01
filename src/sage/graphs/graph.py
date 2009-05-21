@@ -6279,26 +6279,7 @@ class GenericGraph(SageObject):
 
             sage: from sage.graphs.graph_plot import graphplot_options
             sage: list(sorted(graphplot_options.iteritems()))
-            [('color_by_label', 'Whether or not to color the edges by their label values.'),
-            ('dist', 'The distance between multiedges.'),
-            ('edge_colors', 'Dictionary of edge coloring.'),
-            ('edge_labels', 'Whether or not to draw edge labels.'),
-            ('edge_style', 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".'),
-            ('graph_border', 'Whether or not to draw a frame around the graph.'),
-            ('heights', 'Dictionary specifying height (y positions) for vertices.'),
-            ('iterations', 'The number of times to execute the spring layout algorithm.'),
-            ('layout', 'A specified layout style-- one of "spring", "circular", "tree".'),
-            ('loop_size', 'The radius of the smallest loop.'),
-            ('max_dist', 'The max distance range to allow multiedges.'),
-            ('partition', 'A partition of the vertex set.  (Draws each cell of vertices in a different color).'),
-            ('pos', 'The position dictionary of vertices'),
-            ('save_pos', 'Whether or not to save the computed position for the graph.'),
-            ('tree_orientation', 'The direction of tree branches-- "up" or "down".'),
-            ('tree_root', 'A vertex designation for drawing trees.'),
-            ('vertex_colors', 'Dictionary of vertex coloring.'),
-            ('vertex_labels', 'Whether or not to draw vertex labels.'),
-            ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
-            ('vertex_size', 'The size to draw the vertices.')]
+            [...]
 
             sage: from math import sin, cos, pi
             sage: P = graphs.PetersenGraph()

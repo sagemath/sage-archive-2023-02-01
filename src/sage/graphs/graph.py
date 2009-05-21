@@ -284,20 +284,46 @@ Database
 There is a database available for searching for graphs that satisfy
 a certain set of parameters, including number of vertices and
 edges, density, maximum and minimum degree, diameter, radius, and
-connectivity. If you wish to search a database of graphs by
-parameter, type
+connectivity. To see a list of all search parameter keywords broken
+down by their designated table names, type
 
 ::
 
-    sage: graphs_query.[tab]             # not tested
+    sage: graph_db_info()
+    {...}
 
-and hit ``tab``.
+For more details on datatypes or keyword input, enter
 
 ::
 
-    sage: gq = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
-    sage: L = gq.get_graphs_list()
-    sage: graphs_list.show_graphs(L)
+    sage: GraphQuery?    # not tested
+
+The results of a query can be viewed with the show method, or can be
+viewed individually by iterating through the results:
+
+::
+
+    sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
+    sage: Q.show()
+    Graph6
+    --------------------
+    F@?]O
+    F@OKg
+    F?`po
+    F?gqg
+    FIAHo
+    F@R@o
+    FA_pW
+    FGC{o
+    FEOhW
+
+Show each graph as you iterate through the results:
+
+::
+
+    sage: for g in Q:
+    ...     show(g)
+
 
 Visualization
 -------------

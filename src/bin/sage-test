@@ -61,8 +61,7 @@ def skip(F):
         print "%s (skipping) -- nodoctest.py file in directory"%sage_test_command(F)
         return True
 
-    if G == "all.py" or "__init__.py" in G \
-          or 'nodoctest' in open(G).read()[:50]:
+    if 'nodoctest' in open(G).read()[:50]:
         return True
 
     sys.stdout.write("%-60s"%sage_test_command(F)+"\n")

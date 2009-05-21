@@ -1,4 +1,4 @@
-"""
+r"""
 Backtracking
 
 This library contains generic tools for constructing large sets whose
@@ -6,9 +6,9 @@ elements can be enumerated by exploring a search space with a (lazy)
 tree or graph structure.
 
  - SearchForest:
-   Depth first search through a tree descrived by a `child` function
+   Depth first search through a tree described by a `children` function
  - GenericBacktracker:
-   Depth first search through a tree descrived by a `child` function, with branch pruning, ...
+   Depth first search through a tree described by a `children` function, with branch pruning, ...
  - TransitiveIdeal:
    Depth first search through a graph described by a `neighbours` relation
  - TransitiveIdealGraded:
@@ -38,7 +38,7 @@ The code needs to be standardized once the choice is done.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 class GenericBacktracker(object):
-    """
+    r"""
     A generic backtrack tool for exploring a search space organized as
     a tree, with branch pruning, ...
 
@@ -47,7 +47,7 @@ class GenericBacktracker(object):
     """
 
     def __init__(self, initial_data, initial_state):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.combinat.backtrack import GenericBacktracker
@@ -59,7 +59,7 @@ class GenericBacktracker(object):
         self._initial_state = initial_state
 
     def __iter__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.combinat.permutation import PatternAvoider
@@ -95,24 +95,32 @@ class GenericBacktracker(object):
                 stack.append( self._rec(obj, state) )
 
 
-def search_forest_iterator(roots, childs):
-    """
+def search_forest_iterator(roots, children):
+    r"""
     INPUT:
 
      - ``roots``: a list (or iterable)
 
-     - ``childs``: a function returning a list (or iterable)
+     - ``children``: a function returning a list (or iterable)
 
     Returns an iterator on the nodes of the forest having the given
-    roots, and where ``child(x)`` returns the childs of the node ``x``
-    of the forest.
+    roots, and where ``children(x)`` returns the children of the node ``x``
+    of the forest.  Note that every node of the tree is returned,
+    not simply the leaves.
 
-    EXAMPLES::
+    EXAMPLES:
+
+        Search tree where leaves are binary sequences of length 3::
 
         sage: from sage.combinat.backtrack import search_forest_iterator
         sage: list(search_forest_iterator([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else []))
         [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
 
+        Search tree where leaves are ordered sequences of length 2 from a 4-set::
+
+        sage: from sage.combinat.backtrack import search_forest_iterator
+        sage: list(search_forest_iterator([[]], lambda l: [l + [i] for i in range(4) if i not in l] if len(l) < 2 else []))
+        [[], [0], [0, 1], [0, 2], [0, 3], [1], [1, 0], [1, 2], [1, 3], [2], [2, 0], [2, 1], [2, 3], [3], [3, 0], [3, 1], [3, 2]]
     """
 
     #Invariant: stack[i] contains an iterator for the siblings of the i-th node of the current branch
@@ -129,43 +137,53 @@ def search_forest_iterator(roots, childs):
             continue
 
         yield node
-        stack.append( iter(childs(node)) )
+        stack.append( iter(children(node)) )
 
 from sage.combinat.combinat import CombinatorialClass
 class SearchForest(CombinatorialClass):
-    """
+    r"""
     INPUT::
 
      - ``roots``: a list (or iterable)
 
-     - ``childs``: a function returning a list (or iterable)
+     - ``children``: a function returning a list (or iterable)
 
     Returns the set of nodes of the forest having the given roots, and
-    where ``child(x)`` returns the childs of the node ``x`` of the forest.
+    where ``children(x)`` returns the children of the node ``x`` of the forest.
 
     See also ``GenericBacktracker``, ``TransitiveIdeal``, and ``TransitiveIdealGraded``.
 
-    EXAMPLES::
+    EXAMPLES:
+
+        A generator object for binary sequencences of length 3, listed::
 
         sage: list(SearchForest([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else []))
         [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
+
+        A generator object for ordered sequences of length 2 from a 4-set, sampled::
+
+        sage: tb = SearchForest([[]], lambda l: [l + [i] for i in range(4) if i not in l] if len(l) < 2 else [])
+        sage: tb[0]
+        []
+        sage: tb[16]
+        [3, 2]
     """
-    def __init__(self, roots, childs):
-        """
+    def __init__(self, roots, children):
+        r"""
         TESTS::
 
             sage: C = SearchForest((1,), lambda x: [x+1])
             sage: C._roots
             (1,)
-            sage: C._childs
+            sage: C._children
             <function <lambda> at ...>
 
         """
         self._roots = roots
-        self._childs = childs
+        self._children = children
 
     def _repr_(self):
-        """
+        r"""
         TESTS::
             sage: SearchForest((1,), lambda x: [x+1])	# Todo: improve!
             An enumerated set
@@ -173,7 +191,7 @@ class SearchForest(CombinatorialClass):
         return "An enumerated set"
 
     def __iter__(self):
-        """
+        r"""
         Returns an iterator on the elements of self.
 
         EXAMPLES::
@@ -195,10 +213,10 @@ class SearchForest(CombinatorialClass):
             sage: loads(dumps(C))
             An enumerated set
         """
-        return search_forest_iterator(self._roots, self._childs)
+        return search_forest_iterator(self._roots, self._children)
 
 class TransitiveIdeal():
-    """
+    r"""
     Generic tool for constructing ideals of a relation.
 
     INPUT::
@@ -264,7 +282,7 @@ class TransitiveIdeal():
 
     """
     def __init__(self, succ, generators):
-        """
+        r"""
         TESTS::
 
             sage: C = TransitiveIdeal(factor, (1, 2, 3))
@@ -278,7 +296,7 @@ class TransitiveIdeal():
         self._generators = generators
 
     def __iter__(self):
-        """
+        r"""
         Returns an iterator on the elements of self.
 
         TESTS::
@@ -310,7 +328,7 @@ class TransitiveIdeal():
 
 
 class TransitiveIdealGraded(TransitiveIdeal):
-    """
+    r"""
     Generic tool for constructing ideals of a relation.
 
     INPUT::
@@ -370,7 +388,7 @@ class TransitiveIdealGraded(TransitiveIdeal):
 
     """
     def __init__(self, succ, generators):
-        """
+        r"""
         TESTS::
 
             sage: C = TransitiveIdealGraded(factor, (1, 2, 3))
@@ -384,7 +402,7 @@ class TransitiveIdealGraded(TransitiveIdeal):
         self._generators = generators
 
     def __iter__(self):
-        """
+        r"""
         Returns an iterator on the elements of self.
 
         TESTS::

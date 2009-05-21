@@ -1874,3 +1874,140 @@ def is_in_string(line, pos):
                     in_double_quote = False
         i += 1
     return in_quote()
+
+def modify_for_nested_pickle(cls, name_prefix, module):
+    r"""
+    Modify the subclasses of the given class to be picklable, by
+    giving them a mangled name and putting the mangled name in the
+    module namespace.
+
+    INPUTS:
+
+    - ``cls`` - The class to modify.
+
+    - ``name_prefix`` - The prefix to prepend to the class name.
+
+    - ``module`` - The module object to modify with the mangled name.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import *
+        sage: class A(object):
+        ...       class B(object):
+        ...           pass
+        ...
+        sage: module = sys.modules['__main__']
+        sage: A.B.__name__
+        'B'
+        sage: getattr(module, 'A.B', 'Not found')
+        'Not found'
+        sage: modify_for_nested_pickle(A, 'A', sys.modules['__main__'])
+        sage: A.B.__name__
+        'A.B'
+        sage: getattr(module, 'A.B', 'Not found')
+        <class '__main__.A.B'>
+    """
+
+    for (name, v) in cls.__dict__.iteritems():
+        if isinstance(v, type):
+            if v.__name__ == name and v.__module__ == module.__name__ and getattr(module, name, None) is not v:
+                # OK, probably this is a nested class.
+                dotted_name = name_prefix + '.' + name
+                v.__name__ = dotted_name
+                setattr(module, dotted_name, v)
+                modify_for_nested_pickle(v, dotted_name, module)
+
+def nested_pickle(cls):
+    r"""
+    This decorator takes a class that potentially contains nested classes.
+    For each such nested class, its name is modified to a new illegal
+    identifier, and that name is set in the module.  For example, if
+    you have::
+
+        class A:
+            class B:
+                pass
+        nested_pickle(A)
+
+    then the name of class B will be modified to 'A.B', and the 'A.B'
+    attribute of the module will be set to class B.
+
+    (In Python 2.6, decorators work with classes; then @nested_pickle
+    should work as a decorator.)
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import *
+        sage: loads(dumps(MainClass.NestedClass())) # indirect doctest
+        <sage.misc.misc.MainClass.NestedClass object at 0x...>
+    """
+    modify_for_nested_pickle(cls, cls.__name__, sys.modules[cls.__module__])
+    return cls
+
+class MainClass(object):
+    r"""
+    A simple class to test nested_pickle.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import *
+        sage: loads(dumps(MainClass()))
+        <sage.misc.misc.MainClass object at 0x...>
+    """
+    class NestedClass(object):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.misc.misc import *
+            sage: loads(dumps(MainClass.NestedClass()))
+            <sage.misc.misc.MainClass.NestedClass object at 0x...>
+        """
+        class NestedSubClass(object):
+            r"""
+            EXAMPLES::
+
+                sage: from sage.misc.misc import *
+                sage: loads(dumps(MainClass.NestedClass.NestedSubClass()))
+                <sage.misc.misc.MainClass.NestedClass.NestedSubClass object at 0x...>
+                sage: getattr(sage.misc.misc, 'MainClass.NestedClass.NestedSubClass')
+                <class 'sage.misc.misc.MainClass.NestedClass.NestedSubClass'>
+                sage: MainClass.NestedClass.NestedSubClass.__name__
+                'MainClass.NestedClass.NestedSubClass'
+            """
+            pass
+
+nested_pickle(MainClass)
+
+class SubClass(MainClass):
+    r"""
+    A simple class to test nested_pickle.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import *
+        sage: loads(dumps(SubClass.NestedClass()))
+        <sage.misc.misc.MainClass.NestedClass object at 0x...>
+    """
+    pass
+
+nested_pickle(SubClass)
+
+class CopiedClass(object):
+    r"""
+    A simple class to test nested_pickle.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import *
+        sage: loads(dumps(CopiedClass.NestedClass()))
+        <sage.misc.misc.MainClass.NestedClass object at 0x...>
+        sage: loads(dumps(CopiedClass.NestedSubClass()))
+        <sage.misc.misc.MainClass.NestedClass.NestedSubClass object at 0x...>
+        sage: loads(dumps(SubClass()))
+        <sage.misc.misc.SubClass object at 0x...>
+    """
+    NestedClass = MainClass.NestedClass
+    NestedSubClass = MainClass.NestedClass.NestedSubClass
+    SubClass = SubClass
+
+nested_pickle(CopiedClass)

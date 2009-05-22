@@ -7241,9 +7241,9 @@ def refine_embedding(e, prec=None):
     -  ``e`` - an embedding of a number field into either
        RR or CC (with some precision)
 
-    -  ``prec`` - (default None) the desired precision; if
-       None, current precision is doubled.
-
+    - ``prec`` - (default None) the desired precision; if None,
+       current precision is doubled; if Infinity, the equivalent
+       embedding into either ``QQbar`` or ``AA`` is returned.
 
     EXAMPLES::
 
@@ -7255,6 +7255,50 @@ def refine_embedding(e, prec=None):
         sage: e25 = refine_embedding(e10, prec=25)
         sage: e25.codomain().precision()
         25
+
+    An example where we extend a real enmbedding into ``AA``::
+
+        sage: K.<a> = NumberField(x^3-2)
+        sage: K.signature()
+        (1, 1)
+        sage: e = K.embeddings(RR)[0]; e
+        Ring morphism:
+        From: Number Field in a with defining polynomial x^3 - 2
+        To:   Real Field with 53 bits of precision
+        Defn: a |--> 1.25992104989487
+        sage: e = refine_embedding(e,Infinity); e
+        Ring morphism:
+        From: Number Field in a with defining polynomial x^3 - 2
+        To:   Algebraic Real Field
+        Defn: a |--> 1.259921049894873?
+
+    Now we can obtain abitrary precision values with no trouble::
+
+        sage: RealField(150)(e(a))
+        1.2599210498948731647672106072782283505702515
+        sage: _^3
+        2.0000000000000000000000000000000000000000000
+        sage: RealField(200)(e(a^2-3*a+7))
+        4.8076379022835799804500738174376232086807389337953290695624
+
+    Complex enmbeddings can be extended into ``QQbar``::
+
+        sage: e = K.embeddings(CC)[0]; e
+        Ring morphism:
+        From: Number Field in a with defining polynomial x^3 - 2
+        To:   Complex Field with 53 bits of precision
+        Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+        sage: e = refine_embedding(e,Infinity); e
+        Ring morphism:
+        From: Number Field in a with defining polynomial x^3 - 2
+        To:   Algebraic Field
+        Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
+        sage: ComplexField(200)(e(a))
+        -0.62996052494743658238360530363911417528512573235075399004099 - 1.0911236359717214035600726141898088813258733387403009407036*I
+        sage: e(a)^3
+        2
+
+
     """
     K = e.domain()
     RC = e.codomain()
@@ -7266,9 +7310,15 @@ def refine_embedding(e, prec=None):
 
     # We first compute all the embeddings at the new precision:
     if sage.rings.real_mpfr.is_RealField(RC):
-        elist = K.real_embeddings(prec)
+        if prec==sage.rings.infinity.Infinity:
+            elist = K.embeddings(sage.rings.qqbar.AA)
+        else:
+            elist = K.real_embeddings(prec)
     else:
-        elist = K.complex_embeddings(prec)
+        if prec==sage.rings.infinity.Infinity:
+            elist = K.embeddings(sage.rings.qqbar.QQbar)
+        else:
+            elist = K.complex_embeddings(prec)
 
     # Now we determine which is an extension of the old one; this
     # relies on the fact that coercing a high-precision root into a

@@ -2373,7 +2373,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         reduced = self
         for j in range(self.min_pow_y()+1, 0):
             if p is not None and p.divides(j):
-                cs = [R(QQ(a)/j) for a in reduced.extract_pow_y(j-1)]
+                cs = [a/j for a in reduced.extract_pow_y(j-1)]
             else:
                 j_inverse = ~R(j)
                 cs = [a*j_inverse for a in reduced.extract_pow_y(j-1)]
@@ -2527,11 +2527,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                     dg = g.diff()
 #                    print reduced, " - ", dg
                     denom = dg.extract_pow_y(j)[i]
-                    if p is not None and p.divides(denom):
-                        R = c.parent()
-                        c = R(QQ(c)/QQ(denom))
-                    else:
-                        c /= denom
+                    c /= denom
                     c = g.parent()(c)
                     f += c * g
                     reduced -= c * dg
@@ -2624,7 +2620,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             x, y = self.parent().base_ring().gens()
             g = y
             dg = g.diff()
-            c = g.parent()(QQ(c)/QQ(dg.extract_pow_y(0)[n-1])) # TODO: fix when we have fast p-adics
+            c = g.parent()(c/dg.extract_pow_y(0)[n-1])
             f += c * g
             a -= c * dg
 #            print g, dg

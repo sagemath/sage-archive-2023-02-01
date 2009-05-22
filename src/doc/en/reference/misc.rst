@@ -8,6 +8,7 @@ Miscellaneous
 
    sage/misc/misc
    sage/misc/package
+   sage/misc/explain_pickle
    sage/misc/getusage
    sage/misc/mrange
    sage/misc/dist

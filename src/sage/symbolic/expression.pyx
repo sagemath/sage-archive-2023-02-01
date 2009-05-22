@@ -199,6 +199,24 @@ cdef class Expression(CommutativeRingElement):
             raise TypeError, "self must be a numeric expression"
         return py_object_from_numeric(self._gobj)
 
+    def __init__(self, SR, x=0):
+        """
+        Nearly all expressions are created by calling new_Expression_from_*,
+        but we need to make sure this at least doesn't leave self._gobj
+        uninitalized and segfault.
+
+        TESTS::
+
+            sage: sage.symbolic.expression.Expression(SR)
+            0
+            sage: sage.symbolic.expression.Expression(SR, 5)
+            5
+        """
+        cdef GEx exp
+        GEx_construct_pyobject(exp, x)
+        GEx_construct_ex(&self._gobj, exp)
+        self._parent = SR
+
     def __dealloc__(self):
         """
         Delete memory occupied by this expression.
@@ -592,7 +610,7 @@ cdef class Expression(CommutativeRingElement):
             3
         """
         try:
-            return int(repr(self))
+            return int(self.pyobject())
         except (ValueError, TypeError):
             #FIXME:  This should be fixed so that it does something
             #smarter to handle the log(8)/log(2) case
@@ -1439,7 +1457,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0).is_unit()
             False
         """
-        if self.__nonzero__():
+        if not not self:
             return True
         if self == 0:
             return False
@@ -1483,6 +1501,9 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: incompatible relations
+
+            sage: (x < 1) + (y <= 2)
+            x + y < 3
 
             sage: x + oo
             +Infinity
@@ -1532,13 +1553,14 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
+        cdef operators op
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
-                if relational_operator(left._gobj) != relational_operator(_right._gobj):
-                    raise TypeError, "incompatible relations"
+                op = compatible_relation(relational_operator(left._gobj),
+                                         relational_operator(_right._gobj))
                 x = relational(gadd(left._gobj.lhs(), _right._gobj.lhs()),
                                gadd(left._gobj.rhs(), _right._gobj.rhs()),
-                               relational_operator(left._gobj))
+                               op)
             else:
                 x = relational(gadd(left._gobj.lhs(), _right._gobj),
                                gadd(left._gobj.rhs(), _right._gobj),
@@ -1586,11 +1608,11 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression _right = <Expression>right
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
-                if relational_operator(left._gobj) != relational_operator(_right._gobj):
-                    raise TypeError, "incompatible relations"
+                op = compatible_relation(relational_operator(left._gobj),
+                                         relational_operator(_right._gobj))
                 x = relational(gsub(left._gobj.lhs(), _right._gobj.lhs()),
                                gsub(left._gobj.rhs(), _right._gobj.rhs()),
-                               relational_operator(left._gobj))
+                               op)
             else:
                 x = relational(gsub(left._gobj.lhs(), _right._gobj),
                                gsub(left._gobj.rhs(), _right._gobj),
@@ -1673,11 +1695,11 @@ cdef class Expression(CommutativeRingElement):
         cdef operators o
         if is_a_relational(left._gobj):
             if is_a_relational(_right._gobj):
-                if relational_operator(left._gobj) != relational_operator(_right._gobj):
-                    raise TypeError, "incompatible relations"
+                op = compatible_relation(relational_operator(left._gobj),
+                                         relational_operator(_right._gobj))
                 x = relational(gmul(left._gobj.lhs(), _right._gobj.lhs()),
                                gmul(left._gobj.rhs(), _right._gobj.rhs()),
-                               relational_operator(left._gobj))
+                               op)
             else:
                 o = relational_operator(left._gobj)
                 x = relational(gmul(left._gobj.lhs(), _right._gobj),
@@ -1769,11 +1791,11 @@ cdef class Expression(CommutativeRingElement):
         try:
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
-                    if relational_operator(left._gobj) != relational_operator(_right._gobj):
-                        raise TypeError, "incompatible relations"
+                    op = compatible_relation(relational_operator(left._gobj),
+                                             relational_operator(_right._gobj))
                     x = relational(gdiv(left._gobj.lhs(), _right._gobj.lhs()),
                                    gdiv(left._gobj.rhs(), _right._gobj.rhs()),
-                                   relational_operator(left._gobj))
+                                   op)
                 else:
                     o = relational_operator(left._gobj)
                     x = relational(gdiv(left._gobj.lhs(), _right._gobj),
@@ -2588,7 +2610,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(5)
             Traceback (most recent call last):
             ...
-            TypeError: subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression
+            TypeError: subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression
 
             # substitutions with infinity
             sage: (x/y).subs(y=oo)
@@ -2619,7 +2641,7 @@ cdef class Expression(CommutativeRingElement):
             if isinstance(in_dict, Expression):
                 return self._subs_expr(in_dict)
             if not isinstance(in_dict, dict):
-                raise TypeError, "subs takes either a single keyword argument, or a dictionary, or a symbolic relational expression"
+                raise TypeError, "subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression"
             sdict = in_dict
 
         if kwds:
@@ -5926,3 +5948,30 @@ cdef inline ExpressionIterator new_ExpIter_from_Expression(Expression ex):
     m._ind = 0
     m._len  = ex._gobj.nops()
     return m
+
+
+cdef operators compatible_relation(operators lop, operators rop) except <operators>-1:
+    """
+    TESTS::
+
+        sage: var('a,b,x,y')
+        (a, b, x, y)
+        sage: (x < a) + (y <= b)     # indirect doctest
+        x + y < a + b
+        sage: (x >= 4) * (y > 7)
+        x*y > 28
+    """
+    if lop == rop:
+        return lop
+    elif lop == not_equal or rop == not_equal:
+        raise TypeError, "incompatible relations"
+    elif lop == equal:
+       return rop
+    elif rop == equal:
+       return lop
+    elif (lop in [less, less_or_equal] and rop in [less, less_or_equal]):
+       return less
+    elif (lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]):
+       return greater
+    else:
+        raise TypeError, "incompatible relations"

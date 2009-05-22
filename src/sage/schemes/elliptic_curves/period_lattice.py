@@ -23,15 +23,15 @@ First we try a real embedding::
 
     sage: emb = K.embeddings(RealField())[0]
     sage: L = E.period_lattice(emb); L
-    Period lattice associated to Elliptic Curve defined by y^2  = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+    Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
     From: Number Field in a with defining polynomial x^3 - 2
-    To:   Real Field with 53 bits of precision
-    Defn: a |--> 1.25992104989487
+    To:   Algebraic Real Field
+    Defn: a |--> 1.259921049894873?
 
 The first basis period is real::
 
     sage: L.basis()
-    (3.8145297721785..., 1.90726488608927 + 1.34047785962440*I)
+    (3.81452977217855, 1.90726488608927 + 1.34047785962440*I)
     sage: L.is_real()
     True
 
@@ -48,8 +48,8 @@ Next a complex embedding::
     sage: L = E.period_lattice(emb); L
     Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
     From: Number Field in a with defining polynomial x^3 - 2
-    To:   Complex Field with 53 bits of precision
-    Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+    To:   Algebraic Field
+    Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
 
 In this case, the basis `\omega_1`, `\omega_2` is always normalised so
 that `\tau = \omega_1/\omega_2` is in the fundamental region in the
@@ -60,7 +60,7 @@ upper half plane::
     sage: L.is_real()
     False
     sage: tau = w1/w2; tau
-    0.38769450503287... + 1.30821088214407*I
+    0.387694505032876 + 1.30821088214407*I
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
@@ -79,7 +79,9 @@ AUTHORS:
 """
 
 from sage.modules.free_module import FreeModule_generic_pid
-from sage.rings.all import ZZ, QQ, RealField, ComplexField, is_RealField, PolynomialRing
+from sage.rings.all import ZZ, QQ, RealField, ComplexField, is_RealField, PolynomialRing, QQbar, AA
+from sage.rings.number_field.number_field import refine_embedding
+from sage.rings.infinity import Infinity
 
 class PeriodLattice(FreeModule_generic_pid):
     """
@@ -140,28 +142,30 @@ class PeriodLattice_ell(PeriodLattice):
             sage: emb = K.embeddings(RealField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = PeriodLattice_ell(E,emb); L
-            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+            Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Real Field with 53 bits of precision
-            Defn: a |--> 1.25992104989487
+            To:   Algebraic Real Field
+            Defn: a |--> 1.259921049894873?
 
             sage: emb = K.embeddings(ComplexField())[0]
             sage: L = PeriodLattice_ell(E,emb); L
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Complex Field with 53 bits of precision
-            Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+            To:   Algebraic Field
+            Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
         """
         self.E = E
         K = E.base_field()
         if embedding is None:
-            embs = K.embeddings(RealField())
+            embs = K.embeddings(AA)
             real = len(embs)>0
             if not real:
-                embs = K.embeddings(ComplexField())
+                embs = K.embeddings(QQbar)
             embedding = embs[0]
         else:
-            real = is_RealField(embedding.codomain()) or embedding(K.gen()).is_real()
+            embedding = refine_embedding(embedding,Infinity)
+            real = embedding(K.gen()).imag().is_zero()
+
         self.embedding = embedding
         self.real_flag = 0
         if real:
@@ -187,10 +191,10 @@ class PeriodLattice_ell(PeriodLattice):
             sage: emb = K.embeddings(RealField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb); L
-            Period lattice associated to Elliptic Curve defined by y^2  = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
+            Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Real Field with 53 bits of precision
-            Defn: a |--> 1.25992104989487
+            To:   Algebraic Real Field
+            Defn: a |--> 1.259921049894873?
         """
         if self.E.base_field() is QQ:
             return "Period lattice associated to %s"%(self.E)
@@ -261,30 +265,17 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.is_real()
             False
             sage: tau = w1/w2; tau
-            0.38769450503287... + 1.30821088214407*I
+            0.387694505032876 + 1.30821088214407*I
         """
-        if prec is None:
-            prec = RealField().precision()
-
         # We divide into two cases: (1) Q, or a number field with a
         # real embedding; (2) a number field with a complex embedding.
         # In each case the periods are computed by a different
         # internal function.
 
-        # We first refine the precision of the embedding if necessary,
-        # and then compute the periods.
-
-        if self.E.base_field() is QQ:
-            if prec != self.embedding.codomain().precision():
-                self.embedding = QQ.embeddings(RealField(prec))[0]
-        else:
-            from sage.rings.number_field.number_field import refine_embedding
-            self.embedding = refine_embedding(self.embedding,prec)
-
         if self.is_real():
-            return self._compute_periods_real(algorithm=algorithm)
+            return self._compute_periods_real(prec=prec, algorithm=algorithm)
         else:
-            return self._compute_periods_complex()
+            return self._compute_periods_complex(prec=prec)
 
     def normalised_basis(self, prec=None, algorithm='sage'):
         r"""
@@ -331,7 +322,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.is_real()
             False
             sage: tau = w1/w2; tau
-            0.38769450503287... + 1.30821088214407*I
+            0.387694505032876 + 1.30821088214407*I
         """
         w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
         if self.real_flag:
@@ -339,11 +330,15 @@ class PeriodLattice_ell(PeriodLattice):
         return periods
 
 
-    def _compute_periods_real(self, algorithm='sage'):
+    def _compute_periods_real(self, prec=None, algorithm='sage'):
         r"""
         Internal function to compute the periods (real embedding case).
 
         INPUT:
+
+
+        - `prec` (int or ``None`` (default)) -- floating point
+          precision (in bits); if None, use the default precision.
 
         - `algorithm` (string, default 'sage') -- choice of implementation between
           - `pari`: use the pari library
@@ -357,22 +352,23 @@ class PeriodLattice_ell(PeriodLattice):
         the form `\ZZ\omega_1 + \ZZ\omega_2`, `\omega_1` is real and
         `\omega_1/\omega_2` has real part either `0` or `frac{1}{2}`.
 
-        .. note::
-
-           The precision is taken from that of the current embedding.
-
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,1,0,a,a])
-            sage: embs = K.embeddings(ComplexField(100))
+            sage: embs = K.embeddings(CC)
             sage: Ls = [E.period_lattice(e) for e in embs]
             sage: [L.is_real() for L in Ls]
             [False, False, True]
-            sage: Ls[0]._compute_periods_real()
-            (5.0044623666386449956027794076, 2.5022311833193224978013897038 + 2.5856094662444337042877901304*I)
+            sage: Ls[2]._compute_periods_real(100)
+            (3.8145297721785450936365098936,
+            1.9072648860892725468182549468 + 1.3404778596244020196600112394*I)
+            sage: Ls[2]._compute_periods_real(100, algorithm='pari')
+            (3.8145297721785450936365098936,
+            -1.9072648860892725468182549468 + 1.3404778596244020196600112394*I)
         """
-        prec = self.embedding.codomain().precision()
+        if prec is None:
+            prec = RealField().precision()
         R = RealField(prec)
         C = ComplexField(prec)
 
@@ -382,7 +378,7 @@ class PeriodLattice_ell(PeriodLattice):
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
-            E_pari = pari([self.embedding(ai).real() for ai in self.E.a_invariants()]).ellinit(precision=prec)
+            E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit(precision=prec)
             periods = E_pari.omega().python()
             return (R(periods[0]), C(periods[1]))
 
@@ -391,26 +387,38 @@ class PeriodLattice_ell(PeriodLattice):
 
         f = self.E.two_division_polynomial()
 
-        if self.real_flag == 1:
-            if self.E.base_field() is QQ:
-                ei = PolynomialRing(R,'x')(list(f)).roots(multiplicities=False)
-            else:
-                ei = PolynomialRing(R,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
+        if self.real_flag == 1: # positive discriminant
+            # We cannot coerce directly from K to AA:
+            ei = PolynomialRing(AA,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
             ei.sort()
             e1, e2, e3 = ei # e1 < e2 < e3
             a = (e3-e1).sqrt() #
             b = (e3-e2).sqrt() # all real
-            c = (e2-e1).sqrt() #
+            c = (e2-e1).sqrt()
+
+            # Up to now everything has been exact in AA, but now we
+            # must go transcendental.  Only now is the desired
+            # precision used!
             pi = R.pi()
+            a = R(a)
+            b = R(b)
+            c = R(c)
             w1 = R(pi/a.agm(b))   # real
             w2 = C(0,pi/a.agm(c)) # pure imaginary
         else:
-            ei = PolynomialRing(C,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
+            # We cannot coerce directly from K to QQbar:
+            ei = PolynomialRing(QQbar,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
             ei.sort(cmp=lambda z1,z2:cmp(z1.imag(),z2.imag()))
             e1, e3, e2 = ei # so e3 is real
             a = (e3-e1).sqrt()
             c = (e2-e1).sqrt()
+            # Up to now everything has been exact in AA, but now we
+            # must go transcendental.  Only now is the desired
+            # precision used!
+
             pi = C.pi()
+            a = C(a)
+            c = C(c)
             w1 = R(pi/a.abs().agm(a.real().abs())) # real & positive
             w2 = C(pi*C.gen()/a.agm(c))
             w2 = C(w1/2,w2.imag().abs())
@@ -419,12 +427,14 @@ class PeriodLattice_ell(PeriodLattice):
 
         return (w1,w2)
 
-    def _compute_periods_complex(self):
+    def _compute_periods_complex(self, prec=None):
         r"""
         Internal function to compute the periods (complex embedding case).
+
         INPUT:
 
-        - `prec` (int) -- floating point precision (in bits).
+        - `prec` (int or ``None`` (default)) -- floating point precision (in bits); if None,
+          use the default precision.
 
         OUTPUT:
 
@@ -432,29 +442,33 @@ class PeriodLattice_ell(PeriodLattice):
         the form `\ZZ\omega_1 + \ZZ\omega_2` and `(\omega_1/\omega_2)`
         is in te fundamental region of the upper half plane.
 
-        .. note::
-
-           The precision is taken from that of the current embedding.
-
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,1,0,a,a])
-            sage: embs = K.embeddings(ComplexField(100))
+            sage: embs = K.embeddings(CC)
             sage: Ls = [E.period_lattice(e) for e in embs]
             sage: [L.is_real() for L in Ls]
             [False, False, True]
-            sage: Ls[2]._compute_periods_complex()
+            sage: Ls[2]._compute_periods_complex(100)
             (1.9072648860892725468182549468 - 1.3404778596244020196600112394*I, -1.9072648860892725468182549468 - 1.3404778596244020196600112394*I)
         """
-        prec = self.embedding.codomain().precision()
+        if prec is None:
+            prec = RealField().precision()
         C = ComplexField(prec)
+
         f = self.E.two_division_polynomial()
-        e1, e2, e3 = PolynomialRing(C,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
+        e1, e2, e3 = PolynomialRing(QQbar,'x')([self.embedding(c) for c in list(f)]).roots(multiplicities=False)
         a = (e3-e1).sqrt()
         b = (e3-e2).sqrt()
         c = (e2-e1).sqrt()
+        # Up to now everything has been exact in AA, but now we
+        # must go transcendental.  Only now is the desired
+        # precision used!
         pi = C.pi()
+        a = C(a)
+        b = C(b)
+        c = C(c)
         w1 = pi/a.agm(b)
         w2 = pi*C.gen()/a.agm(c)
         w1w2, mat = normalise_periods(w1,w2)
@@ -507,7 +521,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: f = EllipticCurve('11a')
             sage: f.period_lattice().basis()
-            (1.26920930427955, 0.634604652139775 + 1.458816616938...*I)
+            (1.26920930427955, 0.634604652139775 + 1.45881661693850*I)
             sage: f.period_lattice().is_rectangular()
             False
 
@@ -535,8 +549,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-        - ``prec`` (dfault ``None``) -- real precision in bits (default
-          real precision if ``None``)
+        - ``prec`` (int or ``None`` (default)) -- real precision in
+          bits (default real precision if ``None``)
 
         .. note::
 
@@ -568,8 +582,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-        - ``prec`` (default ``None``) -- real precision in bits
-          (default real precision if ``None``)
+        - ``prec`` (int or ``None``(default)) -- real precision in
+          bits (default real precision if ``None``)
 
         OUTPUT:
 
@@ -624,7 +638,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: L = E.period_lattice(K.embeddings(CC)[0])
             sage: L.omega()
-            8.80694160502648
+            8.80694160502647
         """
         if self.is_real():
             n_components = (self.real_flag+3)//2
@@ -638,8 +652,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-        - ``prec`` (default ``None``) -- real precision in bits
-          (default real precision if ``None``).
+        - ``prec`` (int or ``None``(default)) -- real precision in
+          bits (default real precision if ``None``).
 
         - ``normalised`` (bool, default None) -- if True and the
           embedding is real, use the normalised basis (see
@@ -672,9 +686,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L = EllipticCurve('11a1').period_lattice()
             sage: L.basis_matrix()
             [ 1.26920930427955 0.000000000000000]
-            [0.634604652139775  1.458816616938...]
+            [0.634604652139775  1.45881661693850]
             sage: L.basis_matrix(normalised=True)
-            [0.634604652139775 -1.458816616938...]
+            [0.634604652139775 -1.45881661693850]
             [-1.26920930427955 0.000000000000000]
 
         ::
@@ -705,14 +719,14 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-        - ``prec`` (deafult: ``None``) -- real precision in bits
-          (default real precision if ``None``).
+        - ``prec`` (int or ``None``(default)) -- real precision in
+          bits (default real precision if ``None``).
 
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().complex_area()
-            7.3381327407895...
+            7.33813274078958
 
         ::
 
@@ -722,7 +736,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [E.period_lattice(emb).is_real() for emb in K.embeddings(CC)]
             [False, False, True]
             sage: [E.period_lattice(emb).complex_area() for emb in embs]
-            [6.0279689476669..., 6.0279689476669..., 5.1132927044834...]
+            [6.02796894766694, 6.02796894766694, 5.11329270448346]
         """
         w1,w2 = self.basis(prec)
         return (w1*w2.conjugate()).imag().abs()

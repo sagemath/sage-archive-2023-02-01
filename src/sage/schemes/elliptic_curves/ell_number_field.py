@@ -1190,6 +1190,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``embedding`` - an embedding of the base number field into `\RR` or `\CC`.
 
+        .. note::
+
+           The precision of the embedding is ignored: we only use the
+           given embedding to determine which embedding into ``QQbar``
+           to use.  Once the lattice has been initialized, periods can
+           be computed to arbitrary precision.
+
+
         EXAMPLES:
 
         First define a field with two real embeddings::
@@ -1204,20 +1212,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.period_lattice(embs[0])
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Complex Field with 53 bits of precision
-            Defn: a |--> -0.629960524947436 - 1.09112363597172*I
+            To:   Algebraic Field
+            Defn: a |--> -0.6299605249474365? - 1.091123635971722?*I
 
             sage: E.period_lattice(embs[1])
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Complex Field with 53 bits of precision
-            Defn: a |--> -0.629960524947436 + 1.09112363597172*I
+            To:   Algebraic Field
+            Defn: a |--> -0.6299605249474365? + 1.091123635971722?*I
 
             sage: E.period_lattice(embs[2])
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + a*x + 2 over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
             From: Number Field in a with defining polynomial x^3 - 2
-            To:   Complex Field with 53 bits of precision
-            Defn: a |--> 1.25992104989487
+            To:   Algebraic Field
+            Defn: a |--> 1.259921049894873?
 
         Although the original embeddings have only the default
         precision, we can obtain the basis with higher precision
@@ -1225,7 +1233,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: L=E.period_lattice(embs[0])
             sage: L.basis()
-            (1.86405007647981 - 0.903761485143226*I, -0.1493446331439... - 2.066195462729...*I)
+            (1.86405007647981 - 0.903761485143226*I, -0.149344633143919 - 2.06619546272945*I)
 
             sage: L.basis(prec=100)
             (1.8640500764798108425920506200 - 0.90376148514322594749786960975*I, -0.14934463314391922099120107422 - 2.0661954627294548995621225062*I)

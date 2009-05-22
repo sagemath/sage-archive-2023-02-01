@@ -4507,22 +4507,32 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return g, s, t
 
-
-    cdef _lshift(self, long int n):
-        """
-        Shift self n bits to the left, i.e., quickly multiply by
-        `2^n`.
-        """
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-
-        _sig_on
-        if n < 0:
-            mpz_fdiv_q_2exp(x.value, self.value, -n)
+    cdef _shift_helper(Integer self, y, int sign):
+        cdef long n
+        if PyInt_CheckExact(y):
+            n = PyInt_AS_LONG(y)
         else:
-            mpz_mul_2exp(x.value, self.value, n)
-        _sig_off
-        return x
+            if not PY_TYPE_CHECK(y, Integer):
+                try:
+                    y = Integer(y)
+                except TypeError:
+                    raise TypeError, "unsupported operands for " + ("<<" if sign==1 else ">>")
+                except ValueError:
+                    return bin_op(self, y, operator.lshift if sign==1 else operator.rshift)
+            if mpz_fits_slong_p((<Integer>y).value):
+                n = mpz_get_si((<Integer>y).value)
+            elif sign * mpz_sgn((<Integer>y).value) < 0:
+                # Doesn't fit in a long so shifting to the right by this much will be 0.
+                return PY_NEW(Integer)
+            else:
+                n = y # will raise appropreate overflow error
+        cdef Integer z = <Integer>PY_NEW(Integer)
+        n *= sign
+        if n < 0:
+            mpz_fdiv_q_2exp(z.value, self.value, -n)
+        else:
+            mpz_mul_2exp(z.value, self.value, n)
+        return z
 
     def __lshift__(x,y):
         """
@@ -4540,30 +4550,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operands for <<
+
+            sage: 32 << (4/2)
+            128
+
+        A negative shift to the left is treated as a right shift::
+
+            sage: 128 << -2
+            32
+            sage: 128 << (-2^100)
+            0
         """
-        try:
-            if not PY_TYPE_CHECK(x, Integer):
-                x = Integer(x)
-            elif not PY_TYPE_CHECK(y, Integer):
-                y = Integer(y)
-            return (<Integer>x)._lshift(long(y))
-        except TypeError:
-            raise TypeError, "unsupported operands for <<"
-        if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
-            return (<Integer>x)._lshift(long(y))
-        return bin_op(x, y, operator.lshift)
-
-    cpdef _rshift_(Integer self, long int n):
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-
-        _sig_on
-        if n < 0:
-            mpz_mul_2exp(x.value, self.value, -n)
-        else:
-            mpz_fdiv_q_2exp(x.value, self.value, n)
-        _sig_off
-        return x
+        if not PY_TYPE_CHECK(x, Integer):
+            return x << int(y)
+        return (<Integer>x)._shift_helper(y, 1)
 
     def __rshift__(x, y):
         """
@@ -4579,19 +4579,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operands for >>
-        """
-        try:
-            if not PY_TYPE_CHECK(x, Integer):
-                x = Integer(x)
-            elif not PY_TYPE_CHECK(y, Integer):
-                y = Integer(y)
-            return (<Integer>x)._rshift_(long(y))
-        except TypeError:
-            raise TypeError, "unsupported operands for >>"
+            sage: 10^5 >> 10^100
+            0
 
-        #if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
-        #    return (<Integer>x)._rshift(long(y))
-        #return bin_op(x, y, operator.rshift)
+        A negative shift to the right is treated as a left shift::
+
+            sage: 8 >> -2
+            32
+        """
+        if not PY_TYPE_CHECK(x, Integer):
+            return x >> int(y)
+        return (<Integer>x)._shift_helper(y, -1)
+
+# _lshift and _rshift_ should either be removed or standardized
+
+    cdef _lshift(self, long int n):
+        """
+        Shift self n bits to the left, i.e., quickly multiply by
+        `2^n`.
+        """
+        cdef Integer x
+        x = <Integer> PY_NEW(Integer)
+
+        if n < 0:
+            mpz_fdiv_q_2exp(x.value, self.value, -n)
+        else:
+            mpz_mul_2exp(x.value, self.value, n)
+        return x
+
+    cpdef _rshift_(Integer self, long int n):
+        cdef Integer x
+        x = <Integer> PY_NEW(Integer)
+
+        if n < 0:
+            mpz_mul_2exp(x.value, self.value, -n)
+        else:
+            mpz_fdiv_q_2exp(x.value, self.value, n)
+        return x
 
     cdef _and(Integer self, Integer other):
         cdef Integer x

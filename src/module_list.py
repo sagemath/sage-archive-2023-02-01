@@ -741,6 +741,10 @@ ext_modules = [
     Extension('sage.misc.session',
               sources = ['sage/misc/session.pyx']),
 
+    Extension('sage.misc.darwin_utilities',
+            sources = ['sage/misc/darwin_memory_usage.c',
+                       'sage/misc/darwin_utilities.pyx'],
+            depends = ['sage/misc/darwin_memory_usage.h']),
 
     ################################
     ##

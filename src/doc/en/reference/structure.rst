@@ -12,6 +12,7 @@ Basic Structures
    sage/structure/unique_representation
    sage/structure/mutability
    sage/structure/sequence
+   sage/structure/element_wrapper
 
    sage/sets/set
    sage/sets/primes

@@ -110,6 +110,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(matrix(GF(2),[[1,0,1],[0,1,1]]))
+            sage: B.run()
             sage: B.automorphism_group()
             ([[0, 2, 1], [1, 0, 2]], 6, [0, 1])
             sage: B.canonical_relabeling()

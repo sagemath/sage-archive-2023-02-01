@@ -87,6 +87,26 @@ cdef class MatrixStruct:
             sage_free(self.output)
 
     def display(self):
+        """
+        Display the matrix, and associated data.
+
+        EXAMPLE::
+
+            sage: from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+            sage: M = MatrixStruct(Matrix(GF(5), [[0,1,1,4,4],[0,4,4,1,1]]))
+            sage: M.display()
+            [0 1 1 4 4]
+            [0 4 4 1 1]
+            <BLANKLINE>
+            01100
+            00011
+            1
+            <BLANKLINE>
+            00011
+            01100
+            4
+
+        """
         print self.matrix
         print
         cdef int i,j=0

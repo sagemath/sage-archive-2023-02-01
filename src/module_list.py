@@ -295,11 +295,14 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx']),
 
+    Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx']),
+
     Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx']),
 
-    Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx']),
+    Extension('sage.groups.perm_gps.partn_ref.refinement_python',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_python.pyx']),
 
     ################################
     ##

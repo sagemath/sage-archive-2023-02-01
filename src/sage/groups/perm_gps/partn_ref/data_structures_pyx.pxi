@@ -322,7 +322,7 @@ cdef inline int PS_print_partition(PartitionStack *PS, int k):
         if PS.levels[i] <= k:
             s += '|'
         else:
-            s += ','
+            s += ' '
     s = s[:-1] + ')'
     print s
 
@@ -470,7 +470,7 @@ def PS_represent(partition=[[6],[3,4,8,7],[1,9,5],[0,2]], splits=[6,1,8,2]):
         sage: PS_represent()
         Allocating PartitionStack...
         Allocation passed:
-        (0,1,2,3,4,5,6,7,8,9)
+        (0 1 2 3 4 5 6 7 8 9)
         Checking that entries are in order and correct level.
         Everything seems in order, deallocating.
         Deallocated.
@@ -479,7 +479,7 @@ def PS_represent(partition=[[6],[3,4,8,7],[1,9,5],[0,2]], splits=[6,1,8,2]):
         entries -> [6, 3, 4, 8, 7, 1, 9, 5, 0, 2]
         levels -> [0, 10, 10, 10, 0, 10, 10, 0, 10, -1]
         depth = 0, degree = 10
-        (6|3,4,8,7|1,9,5|0,2)
+        (6|3 4 8 7|1 9 5|0 2)
         Checking PS_is_discrete:
         False
         Checking PS_num_cells:
@@ -489,23 +489,23 @@ def PS_represent(partition=[[6],[3,4,8,7],[1,9,5],[0,2]], splits=[6,1,8,2]):
         Checking PS_is_fixed, fixed elements are:
         [6]
         Copying PartitionStack:
-        (6|3,4,8,7|1,9,5|0,2)
+        (6|3 4 8 7|1 9 5|0 2)
         Checking for consistency.
         Everything is consistent.
         Clearing copy:
-        (0,3,4,8,7,1,9,5,6,2)
+        (0 3 4 8 7 1 9 5 6 2)
         Splitting point 6 from original:
         0
-        (6|3,4,8,7|1,9,5|0,2)
+        (6|3 4 8 7|1 9 5|0 2)
         Splitting point 1 from original:
         5
-        (6|3,4,8,7|1|5,9|0,2)
+        (6|3 4 8 7|1|5 9|0 2)
         Splitting point 8 from original:
         1
-        (6|8|3,4,7|1|5,9|0,2)
+        (6|8|3 4 7|1|5 9|0 2)
         Splitting point 2 from original:
         8
-        (6|8|3,4,7|1|5,9|2|0)
+        (6|8|3 4 7|1|5 9|2|0)
         Getting permutation from PS2->PS:
         [6, 1, 0, 8, 3, 9, 2, 7, 4, 5]
         Finding first smallest:

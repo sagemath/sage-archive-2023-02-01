@@ -814,11 +814,11 @@ cdef class PrimitiveFunction(SFunction):
 
     def __call__(self, x, hold=False):
         """
-        Evaluates this function at *x*.  First, it checks to see if *x*
-        is a float in which case it calls :meth:`_approx_`.  Next,
-        it checks to see if *x* has an attribute with the same name
-        as.  If both of those fail, then it returns the symbolic version
-        provided by :class:`SFunction`.
+        Evaluates this function at *x*.  First, it checks to see if
+        *x* is a float in which case it calls :meth:`_approx_`.  Next,
+        it checks to see if *x* has an attribute with the same name as
+        this function.  If both of those fail, then it returns the
+        symbolic version provided by :class:`SFunction`.
 
         EXAMPLES::
 

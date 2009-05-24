@@ -471,8 +471,10 @@ class Constant(object):
     def _singular_(self, singular):
         """
         Returns the constant as a string in Singular. Since Singular
-        does not have floating point numbers, we simply return the
-        constant as a string.
+        does not always support floating point numbers, we simply
+        return the constant as a string.  (Singular allows floating point
+        numbers if the current ring has floating point coefficients,
+        but not otherwise.)
 
         EXAMPLES::
 
@@ -825,7 +827,7 @@ class GoldenRatio(Constant):
             sage: loads(dumps(golden_ratio))
             golden_ratio
         """
-        conversions = dict(mathematica='N[(1+Sqrt[5])/2]', gp='(1+sqrt(5))/2',
+        conversions = dict(mathematica='(1+Sqrt[5])/2', gp='(1+sqrt(5))/2',
                            maple='(1+sqrt(5))/2', maxima='(1+sqrt(5))/2',
                            pari='(1+sqrt(5))/2', octave='(1+sqrt(5))/2',
                            kash='(1+Sqrt(5))/2')
@@ -937,7 +939,7 @@ class Log2(Constant):
             sage: loads(dumps(log2))
             log2
         """
-        conversions = dict(mathematica='N[Log[2]]', kash='Log(2)',
+        conversions = dict(mathematica='Log[2]', kash='Log(2)',
                            maple='log(2)', maxima='log(2)', gp='log(2)',
                            pari='log(2)', octave='log(2)')
         Constant.__init__(self, name, conversions=conversions,

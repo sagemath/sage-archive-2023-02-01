@@ -42,7 +42,7 @@ import weakref
 #########################################################################################
 def is_CallableSymbolicExpressionRing(x):
     """
-    Return True if x is a callable symbolic expression.
+    Return True if x is a callable symbolic expression ring.
 
     INPUT:
 

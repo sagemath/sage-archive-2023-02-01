@@ -3,7 +3,7 @@ Conversion of symbolic expressions to other types
 
 This module provides routines for converting new symbolic expressions
 to other types.  Primarily, it provides a class :class:`Converter`
-which will walk to expression tree and make calls to methods
+which will walk the expression tree and make calls to methods
 overridden by subclasses.
 """
 ###############################################################################
@@ -24,6 +24,17 @@ from sage.rings.number_field.number_field_element_quadratic import NumberFieldEl
 GaussianField = I.pyobject().parent()
 
 class FakeExpression(object):
+    r"""
+    Pynac represents `x/y` as `xy^{-1}`.  Often, tree-walkers would prefer
+    to see divisions instead of multiplications and negative exponents.
+    To allow for this (since Pynac internally doesn't have division at all),
+    there is a possibility to pass use_fake_div=True; this will rewrite
+    an Expression into a mixture of Expression and FakeExpression nodes,
+    where the FakeExpression nodes are used to represent divisions.
+    These nodes are intended to act sufficiently like Expression nodes
+    that tree-walkers won't care about the difference.
+    """
+
     def __init__(self, operands, operator):
         """
         EXAMPLES::
@@ -173,7 +184,8 @@ class Converter(object):
             ...
             NotImplementedError: derivative
 
-        We can set a default value for by setting the ``ex`` attribute::
+        We can set a default value for the argument by setting
+        the ``ex`` attribute::
 
             sage: c.ex = SR(2)
             sage: c()
@@ -1428,7 +1440,7 @@ class RingConverter(Converter):
 class SubstituteFunction(Converter):
     def __init__(self, ex, original, new):
         """
-        A class that walks the tree and replaces on occurrence of a
+        A class that walks the tree and replaces occurrences of a
         function with another.
 
         EXAMPLES::

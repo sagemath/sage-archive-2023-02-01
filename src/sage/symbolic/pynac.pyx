@@ -48,7 +48,7 @@ cdef extern from *:
 
 cdef public object ex_to_pyExpression(GEx juice):
     """
-    Convert given GiNaC::ex object to a python Expression class.
+    Convert given GiNaC::ex object to a python Expression instance.
 
     Used to pass parameters to custom power and series functions.
     """
@@ -89,7 +89,7 @@ cdef public object paramset_to_PyTuple(GParamSet s):
     Converts a std::multiset<unsigned> to a PyTuple.
 
     Used to pass a list of parameter numbers with respect to which a function
-    is differentiaed to the printing functions py_print_fderivative and
+    is differentiated to the printing functions py_print_fderivative and
     py_latex_fderivative.
     """
     cdef GParamSetIter itr = s.begin()
@@ -290,8 +290,8 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
         sage: from sage.symbolic.pynac import py_print_function_pystring
         sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
-        sage: var('x,y,z',ns=1)
-         (x, y, z)
+        sage: var('x,y,z')
+        (x, y, z)
         sage: foo = function('foo', 2)
         sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
         ...     if get_sfunction_from_serial(i) == foo: break
@@ -352,8 +352,8 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
         sage: from sage.symbolic.pynac import py_latex_function_pystring
         sage: from sage.symbolic.function import function, get_sfunction_from_serial, get_ginac_serial
-        sage: var('x,y,z',ns=1)
-         (x, y, z)
+        sage: var('x,y,z')
+        (x, y, z)
         sage: foo = function('foo', 2)
         sage: for i in range(get_ginac_serial(), get_ginac_serial()+50):
         ...     if get_sfunction_from_serial(i) == foo: break
@@ -1178,7 +1178,7 @@ cdef public object py_zeta(object x):
         return x.zeta()
     except AttributeError:
         pass
-    # zeta() evaluates it's argument before calling this, so we should never
+    # zeta() evaluates its argument before calling this, so we should never
     # end up here. Precision is not a problem here, since zeta() passes that
     # on when it calls evalf() on the argument.
     raise RuntimeError, "py_zeta() received non evaluated argument"
@@ -1213,7 +1213,7 @@ cdef public object py_exp(object x):
         return x.exp()
     except AttributeError:
         pass
-    # exp() evaluates it's argument before calling this, so we should never
+    # exp() evaluates its argument before calling this, so we should never
     # end up here. Precision is not a problem here, since exp() passes that
     # on when it calls evalf() on the argument.
     raise RuntimeError, "py_exp() received non evaluated argument"
@@ -1248,7 +1248,7 @@ cdef public object py_log(object x):
         return x.log()
     except AttributeError:
         pass
-    # log() evaluates it's argument before calling this, so we should never
+    # log() evaluates its argument before calling this, so we should never
     # end up here. Precision is not a problem here, since log() passes that
     # on when it calls evalf() on the argument.
     raise RuntimeError, "py_log() received non evaluated argument"

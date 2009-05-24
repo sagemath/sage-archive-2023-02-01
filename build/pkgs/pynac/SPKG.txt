@@ -31,6 +31,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.6 (Burcin Erocal, May 6th, 2009) ===
+ * Fix error handling in Number_T::hash().
+ * Add support for archiving numeric and function objects.
+ * Fix comparison bug in mul.
+ * Fix gcc warnings about conversion of strings to char*.
+ * Change exp to not prints exponents of 1.
+ * Add power method to exp so that (e^x)^y -> e^(x*y).
+
 === pynac-0.1.5 (Burcin Erocal, April 13th, 2009) ===
  * Change printing of pi (Pi -> pi)
  * Delay evaluation of special functions until .evalf() is called

@@ -23,7 +23,10 @@
 
 // ADDED FOR SAGE; this gets us nearly 20% speedup already for (x+y+z)^10.
 #include "Python.h"
-extern "C" PyObject* py_binomial_int(int n, unsigned int k);
+extern "C" {
+	PyObject* py_binomial_int(int n, unsigned int k);
+	PyObject* py_rational_power_parts(PyObject* basis, PyObject* exp);
+}
 
 
 #include <vector>
@@ -564,17 +567,22 @@ ex power::eval(int level) const
 					--q;
 				}
 				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
-					if (num_basis->is_rational() && !num_basis->is_integer()) {
-						// try it for numerator and denominator separately, in order to
-						// partially simplify things like (5/8)^(1/3) -> 1/2*5^(1/3)
-						const numeric bnum = num_basis->numer();
-						const numeric bden = num_basis->denom();
-						const numeric res_bnum = bnum.power(*num_exponent);
-						const numeric res_bden = bden.power(*num_exponent);
-						if (res_bnum.is_integer())
-							return (new mul(power(bden,-*num_exponent),res_bnum))->setflag(status_flags::dynallocated | status_flags::evaluated);
-						if (res_bden.is_integer())
-							return (new mul(power(bnum,*num_exponent),res_bden.inverse()))->setflag(status_flags::dynallocated | status_flags::evaluated);
+					if (num_basis->is_rational()) {
+				// call rational_power_parts
+				// for a^b return c,d such that a^b = c*d^b
+				PyObject* restuple = py_rational_power_parts(
+						num_basis->to_pyobject(), num_exponent->to_pyobject());
+				if(!restuple) {
+					throw(std::runtime_error("power::eval, error in rational_power_parts"));
+				}
+				PyObject *newbasis = PyTuple_GetItem(restuple,1);
+				PyObject *ppower = PyTuple_GetItem(restuple,0);
+				const ex t = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
+				if (PyObject_IsTrue(PyTuple_GetItem(restuple, 2))) {
+					return t;
+				}
+				return (new mul(t, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
+				
 					}
 					return this->hold();
 				} else {

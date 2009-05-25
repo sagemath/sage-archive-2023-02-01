@@ -6,6 +6,7 @@
 
    sage/plot/plot3d/examples
    sage/plot/plot3d/parametric_plot3d
+   sage/plot/plot3d/implicit_plot3d
    sage/plot/plot3d/list_plot3d
    sage/plot/plot3d/plot3d
    sage/plot/plot3d/platonic

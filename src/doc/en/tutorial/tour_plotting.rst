@@ -139,11 +139,45 @@ plot:
 Three-Dimensional Plots
 -----------------------
 
-Sage produces three-dimensional plots using an open source package
-called [Jmol]_. Here are a few examples:
+Sage can also be used to create three-dimensional plots. In both
+the notebook and the REPL, these plots will be displayed by default
+using the open source package [Jmol]_, which supports interactively
+rotating and zooming the figure with the mouse.
 
-Yellow Whitney's umbrella
-http://en.wikipedia.org/wiki/Whitney_umbrella:
+Use ``plot3d`` to graph a function of the form `f(x, y) = z`:
+
+::
+
+    sage: x, y = var('x,y')
+    sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+
+Alternatively, you can use ``parametric_plot3d`` to graph a
+parametric surface where each of `x, y, z` is determined by
+a function of one or two variables (the parameters, typically
+`u` and `v`). The previous plot can be expressed parametrically
+as follows:
+
+::
+
+    sage: u, v = var('u, v')
+    sage: f_x(u, v) = u
+    sage: f_y(u, v) = v
+    sage: f_z(u, v) = u^2 + v^2
+    sage: parametric_plot3d([f_x, f_y, f_z], (u, -2, 2), (v, -2, 2))
+
+The third way to plot a 3D surface in Sage is ``implicit_plot3d``,
+which graphs a contour of a function like `f(x, y, z) = 0` (this
+defines a set of points). We graph a sphere using the classical
+formula:
+
+::
+
+    sage: x, y, z = var('x, y, z')
+    sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (-2, 2), (-2, 2), (-2, 2))
+
+Here are some more examples:
+
+`Yellow Whitney's umbrella <http://en.wikipedia.org/wiki/Whitney_umbrella>`__:
 
 ::
 
@@ -154,11 +188,7 @@ http://en.wikipedia.org/wiki/Whitney_umbrella:
     sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1),
     ...   frame=False, color="yellow")
 
-
-Once you have evaluated ``parametric_plot3d``, so that the plot is visible,
-you can click and drag on it to rotate the figure.
-
-Cross cap http://en.wikipedia.org/wiki/Cross-cap:
+`Cross cap <http://en.wikipedia.org/wiki/Cross-cap>`__:
 
 ::
 
@@ -179,6 +209,14 @@ Twisted torus:
     sage: fz = sin(u)+2*cos(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ...   frame=False, color="red")
+
+Lemniscate:
+
+::
+
+    sage: x, y, z = var('x,y,z')
+    sage: f(x, y, z) = 4*x^2 * (x^2 + y^2 + z^2 + z) + y^2 * (y^2 + z^2 - 1)
+    sage: implicit_plot3d(f, (x, -0.5, 0.5), (y, -1, 1), (z, -1, 1))
 
 
 .. [Jmol] Jmol: an open-source Java viewer for chemical structures in 3D http://www.jmol.org/

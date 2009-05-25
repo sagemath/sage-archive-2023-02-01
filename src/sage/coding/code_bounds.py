@@ -201,7 +201,7 @@ def codesize_upper_bound(n,d,q,method=None):
     EXAMPLES::
         sage: codesize_upper_bound(10,3,2)
         93
-        sage: codesize_upper_bound(10,3,2,method="gap")
+        sage: codesize_upper_bound(10,3,2,method="gap")  # requires optional GAP package Guava
         85
 
     """
@@ -329,7 +329,7 @@ def elias_upper_bound(n,q,d,method=None):
 
         sage: elias_upper_bound(10,2,3)
         232
-        sage: elias_upper_bound(10,2,3,method="gap")
+        sage: elias_upper_bound(10,2,3,method="gap")  # requires optional GAP package Guava
         232
 
     """

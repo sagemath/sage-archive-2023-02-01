@@ -466,7 +466,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError
 
-        Here's a conversion to Maxima happens, which results in a type
+        Here a conversion to Maxima happens, which results in a type
         error::
 
             sage: a = CIF(2.3)

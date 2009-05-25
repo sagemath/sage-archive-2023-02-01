@@ -39,10 +39,10 @@ Division by a scalar:
     sage: matrix(QQ['x,y'], 2, 2, [1, 1, 1, 1]) / x
     [1/x 1/x]
     [1/x 1/x]
-    sage: matrix(CC, 2, 2, [1, 1, 1, 1]) / I
+    sage: A = matrix(CC, 2, 2, [1, 1, 1, 1]) / I; A
     [-1.00000000000000*I -1.00000000000000*I]
     [-1.00000000000000*I -1.00000000000000*I]
-    sage: _.parent()
+    sage: A.parent()
     Full MatrixSpace of 2 by 2 dense matrices over Symbolic Ring
 
 We test an example det computation where linbox gave an incorrect

@@ -114,7 +114,7 @@ def jacobian(functions, variables):
         sage: jacobian(g, (x,y))
         [2*x - 2*y      -2*x]
 
-    The Jacobian of the Jacobian should give us the "second derivative", the Hessian matrix::
+    The Jacobian of the Jacobian should give us the "second derivative", which is the Hessian matrix::
 
         sage: jacobian(jacobian(g, (x,y)), (x,y))
         [ 2 -2]

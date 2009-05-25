@@ -39,7 +39,7 @@ You can plot piecewise-defined functions:
     sage: f3 = lambda x:exp(x)
     sage: f4 = lambda x:sin(2*x)
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-    sage: P = f.plot()
+    sage: f.plot()
 
 Other function plots can be produced as well:
 
@@ -92,7 +92,7 @@ A blue conchoid of Nicomedes:
 
     sage: L = [[1+5*cos(pi/2+pi*i/100), tan(pi/2+pi*i/100)*\
     ...   (1+5*cos(pi/2+pi*i/100))] for i in range(1,100)]
-    sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
+    sage: line(L, rgbcolor=(1/4,1/8,3/4))
 
 A blue hypotrochoid (3 leaves):
 
@@ -101,7 +101,7 @@ A blue hypotrochoid (3 leaves):
     sage: n = 4; h = 3; b = 2
     sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),\
     ...   n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
-    sage: p = line(L, rgbcolor=(1/4,1/4,3/4))
+    sage: line(L, rgbcolor=(1/4,1/4,3/4))
 
 A blue hypotrochoid (4 leaves):
 
@@ -110,7 +110,7 @@ A blue hypotrochoid (4 leaves):
     sage: n = 6; h = 5; b = 2
     sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),\
     ...   n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
-    sage: p = line(L, rgbcolor=(1/4,1/4,3/4))
+    sage: line(L, rgbcolor=(1/4,1/4,3/4))
 
 A red limaçon of Pascal:
 
@@ -118,7 +118,7 @@ A red limaçon of Pascal:
 
     sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))]\
     ...   for i in range(-100,101)]
-    sage: p = line(L, rgbcolor=(1,1/4,1/2))
+    sage: line(L, rgbcolor=(1,1/4,1/2))
 
 A light green trisectrix of Maclaurin:
 
@@ -126,7 +126,16 @@ A light green trisectrix of Maclaurin:
 
     sage: L = [[2*(1-4*cos(-pi/2+pi*i/100)^2),10*tan(-pi/2+pi*i/100)*\
     ...   (1-4*cos(-pi/2+pi*i/100)^2)] for i in range(1,100)]
-    sage: p = line(L, rgbcolor=(1/4,1,1/8))
+    sage: line(L, rgbcolor=(1/4,1,1/8))
+
+
+A green lemniscate of Bernoulli (we omit i==100 since that would give a 0 division error):
+
+::
+
+    sage: v = [(1/cos(-pi/2+pi*i/100), tan(-pi/2+pi*i/100)) for i in range(1,200) if i!=100 ]
+    sage: L = [(a/(a^2+b^2), b/(a^2+b^2)) for a,b in v]
+    sage: line(L, rgbcolor=(1/4,3/4,1/8))
 
 
 .. index:: plot;curve using surf

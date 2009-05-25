@@ -339,7 +339,13 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     -  ``b`` - (optional) upper endpoint of definite
        integral
 
-    - ``algorithm`` - (default: 'maxima')
+    - ``algorithm`` - (default: 'maxima')  one of
+
+              - 'maxima' - use maxima (the default)
+
+              - 'sympy' - use sympy (also in Sage)
+
+              - 'mathematica_free' - use http://integrals.wolfram.com/
 
     EXAMPLES::
 
@@ -438,17 +444,35 @@ def integral(expression, v=None, a=None, b=None, algorithm='maxima'):
     We integrate the same function in both Mathematica and Sage (via
     Maxima)::
 
+        sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z
         sage: g = mathematica(f)                           # optional  -- requires mathematica
-        sage: print g                                      # optional
+        sage: print g                                      # optional -- requires mathematica
                   z        2
                  y  + Sin[x ]
-        sage: print g.Integrate(x)                         # optional
+        sage: print g.Integrate(x)                         # optional -- requires mathematica
                     z        Pi                2
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
         y^z*x + 1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
+
+    Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
+    over the internet (deos NOT require a mathematica license!)::
+
+        sage: _ = var('x, y, z')
+        sage: f = sin(x^2) + y^z
+        sage: f.integrate(algorithm="mathematica_free")       # optional -- requires internet
+        sqrt(pi)*sqrt(1/2)*fresnels(sqrt(2)*x/sqrt(pi)) + y^z*x
+
+    We can also use Sympy::
+
+        sage: _ = var('x, y, z')
+        sage: (x^y-z).integrate(y)
+        -y*z + x^y/log(x)
+        sage: (x^y-z).integrate(y,algorithm="sympy")
+        -y*z + x^y/log(x)
+
 
     We integrate the above function in maple now::
 
@@ -1301,7 +1325,7 @@ def function(s, *args):
         sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
         -(sin(a) - cos(a))*b
 
-    In Sage 4.0, basic arithmetic with unevaluated functions is not
+    In Sage 4.0, basic arithmetic with unevaluated functions is no
     longer supported::
 
         sage: x = var('x')
@@ -1374,8 +1398,7 @@ def dummy_limit(*args):
 
 def dummy_diff(*args):
     """
-    This function is called when when 'diff' appears in a Maxima
-    string.
+    This function is called when 'diff' appears in a Maxima string.
 
     EXAMPLES::
 

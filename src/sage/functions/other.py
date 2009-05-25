@@ -190,11 +190,11 @@ class Function_ceil(PrimitiveFunction):
         x_original = x
 
         from sage.rings.all import RealIntervalField
-        #If x can be coerced into a real interval, then we should
-        #try increasing the number of bits of precision until
-        #we get the ceiling at each of the endpoints is the same.
-        #The precision will continue to be increased up to maximum_bits
-        #of precision at which point it will raise a value error.
+        # If x can be coerced into a real interval, then we should
+        # try increasing the number of bits of precision until
+        # we get the ceiling at each of the endpoints is the same.
+        # The precision will continue to be increased up to maximum_bits
+        # of precision at which point it will raise a value error.
         bits = 53
         try:
             x_interval = RealIntervalField(bits)(x)
@@ -217,8 +217,8 @@ class Function_ceil(PrimitiveFunction):
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
 
         except TypeError:
-            #If x cannot be coerced into a RealField, then
-            #it should be left as a symbolic expression.
+            # If x cannot be coerced into a RealField, then
+            # it should be left as a symbolic expression.
             return SFunction.__call__(self, SR(x_original))
 
     def _eval_(self, x):
@@ -319,11 +319,11 @@ class Function_floor(PrimitiveFunction):
 
         from sage.rings.all import RealIntervalField
 
-        #If x can be coerced into a real interval, then we should
-        #try increasing the number of bits of precision until
-        #we get the floor at each of the endpoints is the same.
-        #The precision will continue to be increased up to maximum_bits
-        #of precision at which point it will raise a value error.
+        # If x can be coerced into a real interval, then we should
+        # try increasing the number of bits of precision until
+        # we get the floor at each of the endpoints is the same.
+        # The precision will continue to be increased up to maximum_bits
+        # of precision at which point it will raise a value error.
         bits = 53
         try:
             x_interval = RealIntervalField(bits)(x)
@@ -346,8 +346,8 @@ class Function_floor(PrimitiveFunction):
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
 
         except TypeError:
-            #If x cannot be coerced into a RealField, then
-            #it should be left as a symbolic expression.
+            # If x cannot be coerced into a RealField, then
+            # it should be left as a symbolic expression.
             return SFunction.__call__(self, SR(x_original))
 
     def _eval_(self, x):

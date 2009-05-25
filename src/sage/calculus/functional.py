@@ -171,7 +171,7 @@ def integral(f, *args, **kwds):
 
     ::
 
-        sage: print integral( exp(-x^2), x )
+        sage: integral( exp(-x^2), x )
         1/2*sqrt(pi)*erf(x)
 
     We define the Gaussian, plot and integrate it numerically and
@@ -213,7 +213,7 @@ def integral(f, *args, **kwds):
 
     Sage does not know how to compute this integral either::
 
-        sage: print integral( exp(-x^2)*ln(x), x, 0, oo)
+        sage: integral( exp(-x^2)*ln(x), x, 0, oo)
         integrate(e^(-x^2)*log(x), x, 0, +Infinity)
 
     This definite integral is easy::

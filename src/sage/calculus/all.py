@@ -1,13 +1,3 @@
-## from calculus import (SymbolicExpressionRing,
-##                       is_SymbolicExpressionRing,
-##                       is_SymbolicExpression,
-##                       is_SymbolicVariable,
-##                       CallableSymbolicExpressionRing,
-##                       is_CallableSymbolicExpressionRing,
-##                       is_CallableSymbolicExpression,
-##                       is_SymbolicExpression,
-##                       is_SymbolicExpressionRing)
-
 from calculus import maxima as maxima_calculus
 from calculus import (laplace, inverse_laplace,
                       limit, lim, clear_functions)

@@ -755,6 +755,9 @@ class Maxima(Expect):
         if self._expect is None: return
         r = randrange(2147483647)
         s = marker + str(r+1)
+
+        # The 0; *is* necessary... it comes up in certain rare cases
+        # that are revealed by extensive testing.  Don't delete it. -- william stein
         cmd = '''0;sconcat("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:

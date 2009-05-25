@@ -84,9 +84,9 @@ def function(s, *args):
     .. note::
 
        The new function is both returned and automatically injected
-       into the global namespace.  If you use var in library code, it
-       is better to use sage.calculus.calculus.function, since it
-       won't touch the global namespace.
+       into the global namespace.  If you use this function in library
+       code, it is better to use sage.calculus.calculus.function,
+       since it won't touch the global namespace.
 
     EXAMPLES::
 
@@ -158,10 +158,10 @@ def clear_vars():
     from sage.symbolic.ring import is_SymbolicVariable
     for i in range(65,65+26) + range(97,97+26):
         if G.has_key(chr(i)) and is_SymbolicVariable(G[chr(i)]):
-            #We check to see if there is a corresponding pyobject
-            #associated with the expression.  This will work for
-            #constants which we want to keep by will fail for
-            #variables that we want to delete.
+            # We check to see if there is a corresponding pyobject
+            # associated with the expression.  This will work for
+            # constants which we want to keep, but will fail for
+            # variables that we want to delete.
             try:
                 G[chr(i)].pyobject()
             except TypeError:

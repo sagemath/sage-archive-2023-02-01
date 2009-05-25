@@ -2448,8 +2448,6 @@ class QepcadCell:
             {'x': 1.618033988749895?}
         """
         points = self.sample_point()
-        # from sage.symbolic.ring import var
-        # vars = [var(v) for v in self._parent._varlist]
         vars = self._parent._varlist
 
         return dict([(vars[i], points[i]) for i in range(len(points))])

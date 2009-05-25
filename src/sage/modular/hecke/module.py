@@ -854,7 +854,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
         Each factor in the decomposition is a Hecke submodule obtained as
         the kernel of `f(T_n)^r` acting on self, where n is
-        coprime to the level and `r=1`. If anemic if False, instead
+        coprime to the level and `r=1`. If anemic is False, instead
         choose `r` so that `f(X)^r` exactly divides the
         characteristic polynomial.
 

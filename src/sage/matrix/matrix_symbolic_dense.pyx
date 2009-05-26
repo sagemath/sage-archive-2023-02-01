@@ -172,18 +172,13 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
         """
-        from sage.symbolic.ring import var
-        tmp = var('tmp_var')
-        sols = self.charpoly(tmp).expand().solve(tmp)
-        if solution_set:
-            return sols
-        else:
-            values = []
-            for sol in sols:
-                if sol.left() != tmp or tmp in sol.right().variables():
-                    raise ValueError, "Unable to symbolically extract eigenvalues, use solution_set=True option."
-                values.append(sol.right())
-            return values
+        if solution_set is not False:
+            import sage.misc.misc
+            sage.misc.misc.deprecation("solution_set parameter is deprecated")
+        maxima_evals = self._maxima_(maxima).eigenvalues()._sage_()
+        if len(maxima_evals)==0:
+            raise ArithmeticError, "could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible"
+        return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
     def exp(self):
         r"""
@@ -607,4 +602,3 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
                     new_entries.append( entry )
 
         return self.parent(new_entries)
-

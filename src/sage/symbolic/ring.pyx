@@ -114,15 +114,21 @@ cdef class SymbolicRing(CommutativeRing):
             if R in [int, float, long, complex]:
                 return True
 
-            import numpy
-            if R in [numpy.float, numpy.float32, numpy.float64, numpy.float128,
-                     numpy.complex, numpy.complex64, numpy.complex128,
-                     numpy.complex256]:
-                return NumpyToSRMorphism(R, self)
+            if 'numpy' in R.__module__:
+                import numpy
+                basic_types = [numpy.float, numpy.float32, numpy.float64,
+                               numpy.complex, numpy.complex64, numpy.complex128]
+                if hasattr(numpy, 'float128'):
+                    basic_types += [numpy.float128, numpy.complex256]
+                if R in basic_types:
+                    return NumpyToSRMorphism(R, self)
 
-            from sympy.core.basic import Basic
-            if issubclass(R, Basic):
-                return UnderscoreSageMorphism(R, self)
+            if 'sympy' in R.__module__:
+                from sympy.core.basic import Basic
+                if issubclass(R, Basic):
+                    return UnderscoreSageMorphism(R, self)
+
+            return False
         else:
             from sage.rings.real_mpfr import mpfr_prec_min
 

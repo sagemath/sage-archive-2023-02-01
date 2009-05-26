@@ -40,8 +40,8 @@ Division by a scalar:
     [1/x 1/x]
     [1/x 1/x]
     sage: matrix(CC, 2, 2, [1, 1, 1, 1]) / I
-    [-1.0*I -1.0*I]
-    [-1.0*I -1.0*I]
+    [-1.00000000000000*I -1.00000000000000*I]
+    [-1.00000000000000*I -1.00000000000000*I]
     sage: _.parent()
     Full MatrixSpace of 2 by 2 dense matrices over Symbolic Ring
 

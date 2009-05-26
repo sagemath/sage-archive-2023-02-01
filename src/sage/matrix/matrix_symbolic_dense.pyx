@@ -3,97 +3,156 @@ Symbolic matrices
 
 Matrices with symbolic entries.  The underlying representation is a
 pointer to a Maxima object.
+
+
+EXAMPLES::
+
+    sage: matrix(SR, 2, 2, range(4))
+    [0 1]
+    [2 3]
+    sage: matrix(SR, 2, 2, var('t'))
+    [t 0]
+    [0 t]
+
+Arithmetic::
+
+    sage: -matrix(SR, 2, range(4))
+    [ 0 -1]
+    [-2 -3]
+    sage: m = matrix(SR, 2, [1..4]); sqrt(2)*m
+    [  sqrt(2) 2*sqrt(2)]
+    [3*sqrt(2) 4*sqrt(2)]
+    sage: m = matrix(SR, 4, [1..4^2])
+    sage: m * m
+    [ 90 100 110 120]
+    [202 228 254 280]
+    [314 356 398 440]
+    [426 484 542 600]
+
+    sage: m = matrix(SR, 3, [1, 2, 3]); m
+    [1]
+    [2]
+    [3]
+    sage: m.transpose() * m
+    [14]
+
+Computing inverses::
+
+    sage: M = matrix(SR, 2, var('a,b,c,d'))
+    sage: ~M
+    [-b*c/((b*c/a - d)*a^2) + 1/a            b/((b*c/a - d)*a)]
+    [           c/((b*c/a - d)*a)               -1/(b*c/a - d)]
+    sage: (~M*M).simplify_rational()
+    [1 0]
+    [0 1]
+    sage: M = matrix(SR, 3, 3, range(9)) - var('t')
+    sage: (~M * M).simplify_rational()
+    [1 0 0]
+    [0 1 0]
+    [0 0 1]
+
+    sage: matrix(SR, 1, 1, 1).inverse()
+    [1]
+    sage: matrix(SR, 0, 0).inverse()
+    []
+    sage: matrix(SR, 3, 0).inverse()
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: self must be a square matrix
+
+
+Test pickling::
+
+    sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
+    [sqrt(2)       3]
+    [     pi       e]
+    sage: loads(dumps(m))   # implicitly calls _unpickle
+    [sqrt(2)       3]
+    [     pi       e]
+
+Comparison::
+
+    sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+    sage: cmp(m,m)
+    0
+    sage: cmp(m,3) != 0
+    True
+    sage: m = matrix(SR,2,[1..4]); n = m^2
+    sage: (exp(m+n) - exp(m)*exp(n)).simplify_rational() == 0       # indirect test
+    True
+
+
+Determinant::
+
+    sage: M = matrix(SR, 2, 2, [x,2,3,4])
+    sage: M.determinant()
+    4*x - 6
+    sage: M = matrix(SR, 3,3,range(9))
+    sage: M.det()
+    0
+    sage: t = var('t')
+    sage: M = matrix(SR, 2, 2, [cos(t), sin(t), -sin(t), cos(t)])
+    sage: M.det()
+    sin(t)^2 + cos(t)^2
+
+Permanents::
+
+    sage: M = matrix(SR, 2, 2, [x,2,3,4])
+    sage: M.permanent()
+    4*x + 6
+
+Rank::
+
+    sage: M = matrix(SR, 5, 5, range(25))
+    sage: M.rank()
+    2
+    sage: M = matrix(SR, 5, 5, range(25)) - var('t')
+    sage: M.rank()
+    5
+
+    .. warning::
+
+        :meth:`rank` may return the wrong answer if it cannot determine that a
+        matrix element that is equivalent to zero is indeed so.
+
+Copying symbolic matrices:
+
+    sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+    sage: n = copy(m)
+    sage: n[0,0] = sin(1)
+    sage: m
+    [sqrt(2)       3]
+    [     pi       e]
+    sage: n
+    [sin(1)      3]
+    [    pi      e]
+
+Conversion to Maxima::
+
+    sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+    sage: m._maxima_()
+    matrix([sqrt(2),3],[%pi,%e])
+
 """
 
 
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
-cimport matrix_dense
+cimport matrix_generic_dense
 cimport matrix
 
 cdef maxima
 
 from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
 
-cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
-    r"""
-    The \class{Matrix_generic_dense} class derives from \class{Matrix}, and
-    defines functionality for dense matrices over any base ring.
-    Matrices are represented by a list of elements in the base ring,
-    and element access operations are implemented in this class.
-    """
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __new__   (not needed)
-    # x * __init__
-    #   * __dealloc__   (not needed)
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
-    def __init__(self, parent, entries, copy, bint coerce):
-        """
-        Create a symbolic matrix, which is internally represented
-        by a maxima matrix.
-
-        EXAMPES:
-            sage: matrix(SR, 2, 2, range(4))
-            [0 1]
-            [2 3]
-            sage: matrix(SR, 2, 2, var('t'))
-            [t 0]
-            [0 t]
-        """
-        matrix.Matrix.__init__(self, parent)
-        self.__variables = None
-        self._simp = None
-
-        cdef Py_ssize_t i, n
-
-        if entries is None:
-            entries = 0
-
-        if not isinstance(entries, list):
-            try:
-                x = parent.base_ring()(entries)
-                is_list = 0
-                coerce = 0
-            except TypeError:
-                try:
-                    entries = list(entries)
-                    is_list = 1
-                except TypeError:
-                    raise TypeError, "entries must be coercible to a list or the basering"
-
-        else:
-            is_list = 1
-
-        if is_list:
-            n = self._nrows * self._ncols
-            if len(entries) != n:
-                raise TypeError, "entries has the wrong length"
-
-            if coerce:
-                R = parent.base_ring()
-                for i from 0 <= i < n:
-                    entries[i] = R(entries[i])
-            self.set_from_list(entries)
-
-        else:
-            if x != parent.base_ring()(0):
-                if self._nrows != self._ncols:
-                    raise TypeError, "nonzero scalar matrix must be square"
-                self._maxima = maxima(x) * maxima.ident(self._nrows)
-            else:
-                self._maxima = maxima.zeromatrix(self._nrows, self._ncols)
-
+cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
     def _new_c(self):
         """
         Called when creating a new matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: matrix(SR,0)   # this implicitly calls _new_c
             []
         """
@@ -101,406 +160,13 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         matrix.Matrix.__init__(M, self._parent)
         return M
 
-    cdef set_from_list(self, entries):
-        """
-        Set a matrix from a list of entries, all known to be in the symbolic ring.
-        """
-        s = ','.join(['[' + ','.join([z._maxima_init_() for z in entries[i:i+self._ncols]]) + ']' for
-                      i from 0 <= i < self._ncols*self._nrows by self._ncols])
-        self._maxima = maxima('matrix(%s)'%s)
-
-    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        """
-        Set the i,j entry without bounds checking.
-        """
-        maxima.setelmx(value, i+1, j+1, self._maxima)
-
-    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        """
-        Get the i,j entry without bounds checking.
-        """
-        entry = symbolic_expression_from_maxima_string(maxima.eval("%s[%s,%s]" % (self._maxima._name, i+1, j+1)))
-        return self._parent.base_ring()(entry)
-
-    def _pickle(self):
-        """
-        Used when serializing a symbolic matrix.
-
-        EXAMPLES:
-            sage: M = matrix(SR, 2, 2, range(4))
-            sage: type(M)
-            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
-            sage: loads(dumps(M)) == M         # implicitly calls _pickle
-            True
-        """
-        return self._list(), 0
-
-    def _unpickle(self, data, int version):
-        """
-        Used when de-serializing a symbolic matrix.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
-            [sqrt(2)       3]
-            [     pi       e]
-            sage: loads(dumps(m))   # implicitly calls _unpickle
-            [sqrt(2)       3]
-            [     pi       e]
-        """
-        if version == 0:
-            self.set_from_list(data)
-        else:
-            raise RuntimeError, "unknown matrix version"
-
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        """
-        Called implicitly when doing comparisons.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-            sage: cmp(m,m)
-            0
-            sage: cmp(m,3)
-            1
-        """
-        return self._richcmp(right, op)
-
-    def __hash__(self):
-        """
-        Return hash of this matrix.
-
-        NOTE: The hash of a symbolic matrix agrees with its hash in Maxima.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
-            [sqrt(2)       3]
-            [     pi       e]
-            sage: hash(m) #random due to architecture dependence
-            1532248127            # 32-bit
-            1653238849131003967   # 64-bit
-            sage: m.__hash__() #random due to architecture dependence
-            1532248127            # 32-bit
-            1653238849131003967   # 64-bit
-            sage: hash(maxima(m)) #random due to architecture dependence
-            1532248127            # 32-bit
-            1653238849131003967   # 64-bit
-        """
-        return hash(self._maxima)
-
-    ########################################################################
-    # LEVEL 2 functionality
-    # x * cdef _add_
-    #   * cdef _mul_
-    #   * cdef _cmp_c_impl
-    # x * __neg__
-    # x * __invert__
-    # x * __copy__
-    # x * _multiply_classical
-    # x * _list -- copy of the list of underlying elements
-    #   * _dict -- copy of the sparse dictionary of underlying elements
-    ########################################################################
-
-    cpdef ModuleElement _add_(self, ModuleElement right):
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima + (<Matrix_symbolic_dense>right)._maxima
-        return M
-
-    cdef int _cmp_c_impl(self, Element right) except -2:
-        """
-        Compare self and right.
-
-        Currently the corresponding maxima matrices are expanded and compared.
-        We example first, since, eg., this would fail otherwise::
-
-            sage: m = matrix(SR,2,[1..4]); n = m^2
-            sage: exp(m+n) - exp(m)*exp(n) == 0       # indirect test
-            True
-        """
-        # use temp vars to avoid garbage collection issues.
-        a = self._maxima.expand()
-        b = (<Matrix_symbolic_dense>right)._maxima.expand()
-        return cmp(a,b)
-
-    def __neg__(self):
-        """
-        Return the negative of this matrix.
-
-        EXAMPLES:
-            sage: -matrix(SR, 2, range(4))
-            [ 0 -1]
-            [-2 -3]
-        """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = -self._maxima
-        return M
-
-    def __invert__(self):
-        """
-        Return the inverse of this matrix.
-
-        EXAMPLES:
-            sage: M = matrix(SR, 2, var('a,b,c,d'))
-            sage: ~M
-            [ d/(a*d - b*c) -b/(a*d - b*c)]
-            [-c/(a*d - b*c)  a/(a*d - b*c)]
-            sage: M = matrix(SR, 3, 3, range(9)) - var('t')
-            sage: (~M * M).simplify_rational()
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-
-        TESTS:
-            sage: matrix(SR, 1, 1, 1).inverse()
-            [1]
-            sage: matrix(SR, 0, 0).inverse()
-            []
-            sage: matrix(SR, 3, 0).inverse()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self must be a square matrix
-        """
-        if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
-        if self._nrows == 0: # work around maxima
-            return self.copy()
-        if self._nrows == 1: # work around maxima
-            res = self.copy()
-            res[0,0]= ~res[0,0]
-            return res
-        cdef Matrix_symbolic_dense M = self._new_c()
-        try:
-            M._maxima = self._maxima.invert()
-        except TypeError:
-            raise ZeroDivisionError, "singular matrix"
-        return M
-
-    def __copy__(self):
-        """
-        Make a copy of this matrix.
-
-        EXAMPLES:
-        We make a copy of a matrix and change one entry:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-            sage: n = copy(m)
-            sage: n[0,0] = sin(1)
-            sage: m
-            [sqrt(2)       3]
-            [     pi       e]
-            sage: n
-            [sin(1)      3]
-            [    pi      e]
-        """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.copymatrix()
-        if self.subdivisions is not None:
-            M.subdivide(*self.get_subdivisions())
-        return M
-
-    def _multiply_classical(left, Matrix_symbolic_dense right):
-        """
-        Multiply this matrix by another matrix.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 4, [1..4^2])
-            sage: m * m              # _multiply_classical is called implicitly
-            [ 90 100 110 120]
-            [202 228 254 280]
-            [314 356 398 440]
-            [426 484 542 600]
-
-            sage: m = matrix(SR, 3, [1, 2, 3]); m
-            [1]
-            [2]
-            [3]
-            sage: m.transpose() * m
-            [14]
-        """
-        if left._ncols != right._nrows:
-            raise IndexError, "Number of columns of left must equal number of rows of other."
-        cdef Matrix_symbolic_dense M = Matrix_symbolic_dense.__new__(Matrix_symbolic_dense, 0, 0, 0)
-        P = left.matrix_space(left._nrows, right._ncols)
-        matrix.Matrix.__init__(M, P)
-
-        res = left._maxima.dot(right._maxima)
-
-        #Since maxima doesn't return a 1x1 matrix when multiplying
-        #a 1xn and a nx1 matrix, we need to wrap it in a matrix.
-        if left._nrows == 1 and right._ncols == 1:
-            res = res.parent().matrix([res])
-
-        M._maxima = res
-        return M
-
-    def _list(self):
-        r"""
-        Return cached underlying list of entries of self.
-
-        It is dangerous to use this if you change it! -- instead use
-        \code{self.list()} which returns a copy.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
-            [sqrt(2)       3]
-            [     pi       e]
-            sage: v = m._list(); v
-            [sqrt(2), 3, pi, e]
-            sage: w = m.list(); w
-            [sqrt(2), 3, pi, e]
-
-        We now illustrate the caching behavior of \code{list} versus \code{_list}.
-            sage: v[0] = 10
-            sage: m._list()
-            [10, 3, pi, e]
-            sage: m.list()
-            [10, 3, pi, e]
-            sage: w[0] = 100
-            sage: m.list()
-            [10, 3, pi, e]
-            sage: m._list()
-            [10, 3, pi, e]
-        """
-        l = self.fetch('_list')
-        if not l is None: return l
-        v = [self.get_unsafe(i,j) for i from 0 <= i < self._nrows for j from 0 <= j < self._ncols]
-        self.cache('_list', v)
-        return v
-
-    cpdef ModuleElement _lmul_(self, RingElement right):
-        """
-        Multiply a scalar times a matrix efficiently.
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [1..4]); sqrt(2)*m
-            [  sqrt(2) 2*sqrt(2)]
-            [3*sqrt(2) 4*sqrt(2)]
-        """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = right._maxima_() * self._maxima
-        return M
-
-
-    ########################################################################
-    # LEVEL 3 functionality (Optional)
-    #  x * cdef _sub_
-    #    * __deepcopy__
-    #    * __invert__
-    #  x * _multiply_classical
-    #    * Matrix windows -- only if you need strassen for that base
-    #    * Other functions (list them here):
-    ########################################################################
-
-    cpdef ModuleElement _sub_(self, ModuleElement right):
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima - (<Matrix_symbolic_dense>right)._maxima
-        return M
-
-    def _maxima_(self, session=None):
-        """
-        Return maxima version of this matrix.
-
-        INPUT:
-            session -- Maxima session.  If None, returns the session sage.calculus.calculus.maxima.
-
-        OUTPUT:
-            a maxima object with parent session
-
-        EXAMPLES:
-            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-            sage: m._maxima_()
-            matrix([sqrt(2),3],[%pi,%e])
-
-        Now put the same matrix in a completely different Maxima sesssion:
-            sage: m._maxima_(maxima)
-            matrix([sqrt(2),3],[%pi,%e])
-        """
-        if session is None:
-            return self._maxima
-        else:
-            return session(repr(self._maxima))
-
-    def determinant(self):
-        """
-        Returns the determinant of self, as calculated by
-        maxima using a Gaussian elimination-like algorithm.
-
-        EXAMPLES:
-            sage: M = matrix(SR, 2, 2, [x,2,3,4])
-            sage: M.determinant()
-            4*x - 6
-            sage: M = matrix(SR, 3,3,range(9))
-            sage: M.det()
-            0
-            sage: t = var('t')
-            sage: M = matrix(SR, 2, 2, [cos(t), sin(t), -sin(t), cos(t)])
-            sage: M.det()
-            sin(t)^2 + cos(t)^2
-        """
-        if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
-        if self._nrows ==0:
-            return self._parent.base_ring()(1)
-        det = repr(self._maxima.determinant())
-        return self._parent.base_ring()(symbolic_expression_from_maxima_string(det))
-
-    def permanent(self):
-        """
-        Returns the permanent of self.
-
-        EXAMPLES:
-            sage: M = matrix(SR, 2, 2, [x,2,3,4])
-            sage: M.permanent()
-            4*x + 6
-        """
-        perm = repr(self._maxima.permanent())
-        return self._parent.base_ring()(symbolic_expression_from_maxima_string(perm))
-
-    def rank(self):
-        """
-        EXAMPLES:
-            sage: M = matrix(SR, 5, 5, range(25))
-            sage: M.rank()
-            2
-            sage: M = matrix(SR, 5, 5, range(25)) - var('t')
-            sage: M.rank()
-            5
-
-        WARNING: rank may return the wrong answer if it cannot determine that
-                 a matrix element that is equivalent to zero is indeed so.
-        """
-        rank = repr(self._maxima.rank())
-        return self._parent.base_ring()(symbolic_expression_from_maxima_string(rank))
-
-    def charpoly(self, var='x'):
-        """
-        Compute the characteristic polynomial of self, using maxima.
-
-        EXAMPLES:
-            sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
-            sage: M.charpoly('t')
-            (d - t)*(a - t) - b*c
-            sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
-            x^5 - 65*x^4 - 250*x^3
-
-        """
-        # Maxima has the definition det(matrix-xI) instead of
-        # det(xI-matrix), which is what Sage uses elsewhere.  We
-        # correct for the discrepancy.
-        if self.nrows() % 2 == 0:
-            res = repr(self._maxima.charpoly(var))
-        else:
-            res = repr(-self._maxima.charpoly(var))
-
-        return self._parent.base_ring()(symbolic_expression_from_maxima_string(res))
-
-#    def echelonize(self, **kwds):
-#        self._maxima = self._maxima.echelon()
-
     def eigenvalues(self, solution_set=False):
         """
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: a=matrix(SR,[[1,2],[3,4]])
             sage: a.eigenvalues()
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
@@ -522,9 +188,10 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     def exp(self):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix
-        $$
-             e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
-        $$
+
+        .. math::
+
+           e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
         This function depends on maxima's matrix exponentiation
         function, which does not deal well with floating point
@@ -532,7 +199,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         be rounded automatically to rational numbers during the
         computation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(SR,2, [0,x,x,0]); m
             [0 x]
             [x 0]
@@ -542,12 +210,9 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: exp(m)
             [1/2*(e^(2*x) + 1)*e^(-x) 1/2*(e^(2*x) - 1)*e^(-x)]
             [1/2*(e^(2*x) - 1)*e^(-x) 1/2*(e^(2*x) + 1)*e^(-x)]
-            sage: m.exp().expand()
-            [ 1/2*e^(-x) + 1/2*e^x -1/2*e^(-x) + 1/2*e^x]
-            [-1/2*e^(-x) + 1/2*e^x  1/2*e^(-x) + 1/2*e^x]
 
+        Exp works on 0x0 and 1x1 matrices::
 
-        Exp works on 0x0 and 1x1 matrices:
             sage: m = matrix(SR,0,[]); m
             []
             sage: m.exp()
@@ -557,25 +222,38 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: m.exp()
             [e^2]
 
-        Commuting matrices $m, n$ have the property that $e^{m+n} =
-        e^m e^n$ (but non-commuting matrices need not):
+        Commuting matrices $m, n$ have the property that
+        `e^{m+n} = e^m e^n` (but non-commuting matrices need not)::
+
             sage: m = matrix(SR,2,[1..4]); n = m^2
+            sage: m*n
+            [ 37  54]
+            [ 81 118]
+            sage: n*m
+            [ 37  54]
+            [ 81 118]
+
             sage: a = exp(m+n) - exp(m)*exp(n)
-            sage: a == 0
+            sage: a.simplify_rational() == 0
             True
 
-        The input matrix must be square:
+        The input matrix must be square::
+
             sage: m = matrix(SR,2,3,[1..6]); exp(m)
             Traceback (most recent call last):
             ...
             ValueError: exp only defined on square matrices
 
-        In this example we take the symbolic answer and make it numerical at the end:
+        In this example we take the symbolic answer and make it
+        numerical at the end::
+
             sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
             [346.557487298 661.734590934]
             [354.500673715 677.424782765]
 
-        Another example involving the reversed identity matrix, which we clumsily create.
+        Another example involving the reversed identity matrix, which
+        we clumsily create::
+
             sage: m = identity_matrix(SR,4); m = matrix(list(reversed(m.rows()))) * x
             sage: exp(m)
             [1/2*(e^(2*x) + 1)*e^(-x)                        0                        0 1/2*(e^(2*x) - 1)*e^(-x)]
@@ -588,34 +266,81 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             raise ValueError, "exp only defined on square matrices"
         if self.nrows() == 0:
             return self
-        cdef Matrix_symbolic_dense M = self._new_c()
         # Maxima's matrixexp function chokes on floating point numbers
         # so we automatically convert floats to rationals by passing
         # keepfloat: false
-        z = maxima('matrixexp(%s), keepfloat: false'%self._maxima.name())
+        m = self._maxima_(maxima)
+        z = maxima('matrixexp(%s), keepfloat: false'%m.name())
         if self.nrows() == 1:
-            # We do the following, because Maxima stupidly exp's 1x1 matrices into non-matrices!
-            M._maxima = maxima('matrix([%s])'%z.name())
-        else:
-            M._maxima = z
-        return M
+            # We do the following, because Maxima stupidly exp's 1x1
+            # matrices into non-matrices!
+            z = maxima('matrix([%s])'%z.name())
 
+        return z._sage_()
 
-    #############################################
-    # Simplification commands
-    #############################################
+    def charpoly(self, var='x'):
+        """
+        Compute the characteristic polynomial of self, using maxima.
+
+        EXAMPLES:
+            sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
+            sage: M.charpoly('t')
+            (d - t)*(a - t) - b*c
+            sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
+            x^5 - 65*x^4 - 250*x^3
+
+        """
+        # Maxima has the definition det(matrix-xI) instead of
+        # det(xI-matrix), which is what Sage uses elsewhere.  We
+        # correct for the discrepancy.
+        cp = self._maxima_(maxima).charpoly(var)._sage_()
+        if self.nrows() % 2 == 1:
+            cp = -cp
+        return cp
+
+    def fcp(self, var='x'):
+        """
+        Return the factorization of the characteristic polynomial of self.
+
+        INPUT:
+
+        - ``var`` - (default: 'x') name of variable of charpoly
+
+        EXAMPLES::
+
+            sage: a = matrix(SR,[[1,2],[3,4]])
+            sage: a.fcp()
+            x^2 - 5*x - 2
+            sage: [i for i in a.fcp()]
+            [(x^2 - 5*x - 2, 1)]
+            sage: a = matrix(SR,[[1,0],[0,2]])
+            sage: a.fcp()
+            (x - 2) * (x - 1)
+            sage: [i for i in a.fcp()]
+            [(x - 2, 1), (x - 1, 1)]
+            sage: a = matrix(SR, 5, [1..5^2])
+            sage: a.fcp()
+            (x^2 - 65*x - 250) * x^3
+            sage: list(a.fcp())
+            [(x^2 - 65*x - 250, 1), (x, 3)]
+
+        """
+        return Factorization(self.charpoly(var).factor_list())
+
     def is_simplified(self):
         """
         Return True if self is the result of running simplify() on a symbolic
         matrix.  This has the semantics of 'has_been_simplified'.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
             [      z       1]
             [    x^2 y^2 + 2]
             sage: m.is_simplified()
+            doctest:...: DeprecationWarning: is_simplified is deprecated
             False
             sage: ms = m.simplify(); ms
             [      z       1]
@@ -624,16 +349,18 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: m.is_simplified()
             False
             sage: ms.is_simplified()
-            True
+            False
         """
-
-        return self._simp is self
+        import sage.misc.misc
+        sage.misc.misc.deprecation("is_simplified is deprecated")
+        return False
 
     def simplify(self):
         """
         Simplifies self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
@@ -643,54 +370,46 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [      z       1]
             [    x^2 y^2 + 2]
         """
-        if self._simp is not None:
-            return self._simp
-
-        S = self.parent()([x.simplify() for x in self.list()])
-        S._simp = S
-        self._simp = S
-        return S
+        return self.parent()([x.simplify() for x in self.list()])
 
 
     def simplify_trig(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: theta = var('theta')
             sage: M = matrix(SR, 2, 2, [cos(theta), sin(theta), -sin(theta), cos(theta)])
             sage: ~M
-            [ cos(theta)/(sin(theta)^2 + cos(theta)^2) -sin(theta)/(sin(theta)^2 + cos(theta)^2)]
-            [ sin(theta)/(sin(theta)^2 + cos(theta)^2)  cos(theta)/(sin(theta)^2 + cos(theta)^2)]
+            [-sin(theta)^2/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta)^2) + 1/cos(theta)                    -sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))]
+            [                    sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))                                           1/(sin(theta)^2/cos(theta) + cos(theta))]
             sage: (~M).simplify_trig()
             [ cos(theta) -sin(theta)]
             [ sin(theta)  cos(theta)]
         """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.trigexpand().trigsimp()
-        return M
+        return self._maxima_(maxima).trigexpand().trigsimp()._sage_()
 
     def simplify_rational(self):
         """
-        EXAMPLES:
-            sage: M = matrix(SR, 4, 4, range(16)) - var('t')
+        EXAMPLES::
+
+            sage: M = matrix(SR, 3, 3, range(9)) - var('t')
             sage: (~M*M)[0,0]
-            -((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 12*(3*(t - 10)*(t - 5) + 29*t - 150)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 16*((t - 15)*(t - 5) + 24*t - 75)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600) + 4*((t - 15)*(t - 10) + 57*t - 150)/(4*(t - 15)*(t - 10) + 8*(t - 5)*(2*t + 3) + 12*(t - 5)*(3*t - 2) - ((t - 5)*((t - 15)*(t - 10) - 154) - 145*t - 20)*t + 360*t - 600)
+            -(3*((6/t + 7)/((t - 3/t - 4)*t) + 2/t)*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8) - 1/t - 3/((t - 3/t - 4)*t^2))*t + 3*(6/t + 7)*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((t - 3/t - 4)*((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8)) + 6*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8) - 3/((t - 3/t - 4)*t)
             sage: expand((~M*M)[0,0])
-            t^4/(t^4 - 30*t^3 - 80*t^2) - 30*t^3/(t^4 - 30*t^3 - 80*t^2) - 80*t^2/(t^4 - 30*t^3 - 80*t^2)
+            1
             sage: (~M * M).simplify_rational()
-            [1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.fullratsimp()
-        return M
+        return self._maxima_(maxima).fullratsimp()._sage_()
 
     def factor(self):
         """
         Operates pointwise on each element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = matrix(SR, 2, 2, x^2 - 2*x + 1); M
             [x^2 - 2*x + 1             0]
             [            0 x^2 - 2*x + 1]
@@ -698,15 +417,14 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [(x - 1)^2         0]
             [        0 (x - 1)^2]
         """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.factor()
-        return M
+        return self._maxima_(maxima).factor()._sage_()
 
     def expand(self):
         """
         Operates pointwise on each element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = matrix(2, 2, range(4)) - var('x')
             sage: M*M
             [      x^2 + 2      -2*x + 3]
@@ -715,15 +433,16 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [       x^2 + 2       -2*x + 3]
             [      -4*x + 6 x^2 - 6*x + 11]
         """
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.expand()
-        return M
+        from sage.misc.misc import attrcall
+        return self.apply_map(attrcall('expand'))
 
-    def variables(self, vars=tuple([])):
+
+    def variables(self):
         """
         Returns the variables of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('a,b,c,x,y')
             (a, b, c, x, y)
             sage: m = matrix([[x, x+2], [x^2, x^2+2]]); m
@@ -737,47 +456,16 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: m.variables()
             (a, b, c, x, y)
         """
-        if self.__variables is not None:
-            return self.__variables
-
-        vars = list(set(sum([list(op.variables()) for op in self.list()], list(vars))))
-
+        vars = list(set(sum([op.variables() for op in self.list()], ())))
         vars.sort(var_cmp)
-        vars = tuple(vars)
-        self.__variables = vars
-        return vars
-
-    def number_of_arguments(self):
-        """
-        Returns the number of arguments that self can take.
-
-        EXAMPLES:
-            sage: var('a,b,c,x,y')
-            (a, b, c, x, y)
-            sage: m = matrix([[a, (x+y)/(x+y)], [x^2, y^2+2]]); m
-            [      a       1]
-            [    x^2 y^2 + 2]
-            sage: m.number_of_arguments()
-            3
-        """
-        if self.__number_of_args is not None:
-            return self.__number_of_args
-
-        variables = self.variables()
-        if not self.is_simplified():
-            n = self.simplify().number_of_arguments()
-        else:
-            # We need to do this maximum to correctly handle the case where
-            # self is something like (sin+1)
-            n = max( max([i.number_of_arguments() for i in self.list()]+[0]), len(variables) )
-        self.__number_of_args = n
-        return n
+        return tuple(vars)
 
     def arguments(self):
         """
         Returns a tuple of the arguments that self can take.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: M = MatrixSpace(SR,2,2)
@@ -788,9 +476,26 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         """
         return self.variables()
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments that self can take.
+
+        EXAMPLES::
+
+            sage: var('a,b,c,x,y')
+            (a, b, c, x, y)
+            sage: m = matrix([[a, (x+y)/(x+y)], [x^2, y^2+2]]); m
+            [      a       1]
+            [    x^2 y^2 + 2]
+            sage: m.number_of_arguments()
+            3
+        """
+        return len(self.variables())
+
     def __call__(self, *args, **kwargs):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: M = MatrixSpace(SR,2,2)
@@ -876,7 +581,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             if args:
                 from sage.misc.misc import deprecation
                 deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
-
             #Get all the variables
             variables = list( self.arguments() )
 
@@ -904,29 +608,3 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
         return self.parent(new_entries)
 
-    def fcp(self, var='x'):
-        """
-        Return the factorization of the characteristic polynomial of self.
-
-        INPUT:
-            var -- (default: 'x') name of variable of charpoly
-
-        EXAMPLES:
-            sage: a = matrix(SR,[[1,2],[3,4]])
-            sage: a.fcp()
-            x^2 - 5*x - 2
-            sage: [i for i in a.fcp()]
-            [(x^2 - 5*x - 2, 1)]
-            sage: a = matrix(SR,[[1,0],[0,2]])
-            sage: a.fcp()
-            (x - 2) * (x - 1)
-            sage: [i for i in a.fcp()]
-            [(x - 2, 1), (x - 1, 1)]
-            sage: a = matrix(SR, 5, [1..5^2])
-            sage: a.fcp()
-            (x^2 - 65*x - 250) * x^3
-            sage: list(a.fcp())
-            [(x^2 - 65*x - 250, 1), (x, 3)]
-
-        """
-        return Factorization(self.charpoly(var).factor_list())

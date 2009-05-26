@@ -286,7 +286,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 Py_INCREF(z); PyList_SET_ITEM(v, p, z)   #   Basically this is "v.append(z)"
                 p = p + 1
 
-        A = Matrix_generic_dense.__new__(Matrix_generic_dense, 0, 0 ,0)
+        A = left.__class__.__new__(left.__class__, 0, 0 ,0)
         matrix.Matrix.__init__(A, P)
         A._entries = v
         return A

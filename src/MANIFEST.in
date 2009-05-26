@@ -1,22 +1,21 @@
-recursive-include * *.c *.h *.pyx *.pyxe *.pxd *.pxi *.cc *.txt *.tex *.i *.d 00*
+recursive-include * *.c *.h *.pyx *.pxd *.pxi *.cc *.txt *.tex *.i *.d 00*
 recursive-include doc *.rst *.py
-include c_lib c_lib/* c_lib/src/* install
-include sage-push spkg-dist spkg-install spkg-delauto
-include build.py clib.py sagebuild.py setupnb.py module_list.py
-include MANIFEST.in README.txt .hgignore .hg .hg/* bundle export
-include mercurial-howto.txt pull test_changed bundle export
-include sage/libs/gmp/__init__.py sage/matrix/padics/__init__.py
-include .hgtags bundle export mercurial-howto.txt
-include sage/server/notebook/templates/*.html sage/dsage/web/index.html
-include sage/dsage/README.markdown sage/dsage/README.html
-include sage/dsage/web/index.html sage/libs/linbox/matrix_rational_dense_linbox.cpp
-include sage/rings/padics/polynomial/__init__.py
-include sage/rings/padics/polynomial/all.py sage/numerical/test.py
-include sage/dsage/web/static/* sage/schemes/hyperelliptic_curves/hypellfrob/README
-include sage/schemes/hyperelliptic_curves/hypellfrob/README sage/rings/bernmm/README.txt
+include c_lib c_lib/* c_lib/src/*
+include MANIFEST.in README.txt
+include .hgignore .hg .hg/* .hgtags
+include bundle export install pull sage-push
+include module_list.py
+include spkg-debian-maybe spkg-delauto spkg-dist spkg-install
+include sage/libs/gmp/__init__.py
+include sage/libs/linbox/matrix_rational_dense_linbox.cpp
+include sage/matrix/padics/__init__.py
+include sage/numerical/test.py
+include sage/rings/bernmm/README.txt
 include sage/rings/bernmm/bernmm-test.cpp
+include sage/rings/polynomial/padics/__init__.py
+include sage/schemes/hyperelliptic_curves/hypellfrob/README
+include sage/server/notebook/templates/*.html
 include doc/common/templates/layout.html
-include doc/en/constructions/const.rest
 include doc/en/numerical_sage/errors
 include doc/en/tutorial/Makefile
 include doc/en/website/templates/index.html

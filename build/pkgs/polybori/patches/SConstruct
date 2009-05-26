@@ -1224,6 +1224,9 @@ if 'install' in COMMAND_LINE_TARGETS:
     env.AlwaysBuild(ipboribin)
     env.Alias('install', ipboribin)
 
+    # we dump the flags for reuse by Sage
+    opts.Save(InstPath("flags.conf"), env)
+
 env.Alias('prepare-devel', devellibs + readabledevellibs)
 env.Alias('prepare-install', [pyroot, DocPath()])
 

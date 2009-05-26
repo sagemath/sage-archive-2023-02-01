@@ -213,7 +213,7 @@ class ode_solver(object):
 
          Lets try a system
 
-         y_0'=y_2*y_3
+         y_0'=y_1*y_2
          y_1'=-y_0*y_2
          y_2'=-.51*y_0*y_1
 

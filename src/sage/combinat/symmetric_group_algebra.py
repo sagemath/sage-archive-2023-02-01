@@ -170,7 +170,10 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             sage: QS3.jucys_murphy(2)
             [2, 1, 3]
             sage: QS3.jucys_murphy(3)
-            [1, 3, 2] + [2, 1, 3]
+            [1, 3, 2] + [3, 2, 1]
+            sage: QS5 = SymmetricGroupAlgebra(QQ, 5)
+            sage: QS5.jucys_murphy(4)
+            [1, 2, 4, 3, 5] + [1, 4, 3, 2, 5] + [4, 2, 3, 1, 5]
         """
         res = self(0)
 
@@ -179,8 +182,8 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
         for i in range(1, k):
             p = range(1, self.n+1)
-            p[i-1] = i+1
-            p[i] = i
+            p[i-1] = k
+            p[k-1] = i
             res += self(p)
         return res
 

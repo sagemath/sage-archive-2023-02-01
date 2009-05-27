@@ -18,3 +18,4 @@ Cryptography
 
    sage/crypto/mq/sr
    sage/crypto/mq/mpolynomialsystem
+   sage/crypto/mq/sbox

@@ -1681,11 +1681,11 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.elliptic_logarithm()  # 100 bits
             0.27656204014107061464076203097
 
-        However, the native algorithm 'sage' has trouble with
-        precision in this example::
+        The native algorithm 'sage' used to have trouble with
+        precision in this example, but no longer::
 
             sage: P.elliptic_logarithm(algorithm='sage')  # 100 bits
-            0.2765620401410710087007...
+            0.27656204014107061464076203097
 
         This shows that the bug reported at \#4901 has been fixed::
 
@@ -1783,97 +1783,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if algorithm <> 'sage':
             raise ValueError, "algorithm must be either 'pari' or 'sage'"
 
-        ai = [emb(a) for a in E.a_invariants()]
-        ER = EllipticCurve(ai) # defined over RR
-        real_roots = ER.two_division_polynomial().roots(RR,multiplicities=False)
-        xP, yP = self[0], self[1]
-        wP = 2*yP+E.a1()*xP+E.a3()
-        connected = emb(E.discriminant()) < 0
-
-        if connected: #Connected Case
-            # Here we use formulae equivalent to those in Cohen, but better
-            # behaved when roots are close together
-
-            # For some curves (e.g. 3314b3) the default precision is not enough!
-            while len(real_roots)!=1:
-                precision*=2
-                RR=rings.RealField(precision)
-                emb = refine_embedding(emb,precision)
-                ai = [emb(a) for a in E.a_invariants()]
-                ER = EllipticCurve(ai) # defined over RR
-                real_roots = ER.two_division_polynomial().roots(RR,multiplicities=False)
-            try:
-                assert len(real_roots) == 1
-            except:
-                raise ValueError, ' none or more than one real root despite disc < 0'
-            x,y,w = emb(xP), emb(yP), emb(wP)
-            e1 = real_roots[0]
-            roots = ER.two_division_polynomial().roots(rings.ComplexField(precision),multiplicities=False)
-            roots.remove(e1)
-            e2,e3 = roots
-            pi = RR.pi()
-
-            zz = (e1-e2).sqrt() # complex
-            beta = (e1-e2).abs()
-            a = 2*zz.abs()
-            b = 2*zz.real();
-            c = (x-e1+beta)/((x-e1).sqrt())
-            while (a - b)/a > 0.5**(precision-1):
-                a,b,c = (a + b)/2, (a*b).sqrt(), (c + (c**2 + b**2 - a**2).sqrt())/2
-            z = (a/c).arcsin()
-            if w*((x-e1)*(x-e1)-beta*beta) >= 0:
-                z = pi - z
-            if w>0:
-                z += pi
-            z /= a
-            return z
-
-        else:                    #Disconnected Case, disc > 0
-            # For some curves (e.g. 2370i5) the default precision is not enough!
-            while len(real_roots)!=3:
-                precision*=2
-                RR=rings.RealField(precision)
-                emb = refine_embedding(emb,precision)
-                ai = [emb(a) for a in E.a_invariants()]
-                ER = EllipticCurve(ai) # defined over RR
-                real_roots = ER.two_division_polynomial().roots(RR,multiplicities=False)
-
-            real_roots.sort() # increasing order
-            real_roots.reverse() # decreasing order e1>e2>e3
-            try:
-                assert len(real_roots) == 3
-            except:
-                raise ValueError, ' none or more than one real root despite disc < 0'
-            e1, e2, e3 = real_roots
-            w1, w2 = E.period_lattice(emb).basis(precision)
-            x,y,w = emb(xP), emb(yP), emb(wP)
-            on_egg = (x < e1)
-            a1,a2,a3 = ai[:3]
-
-            # if P is on the "egg" (connected component), replace it by P+T3
-            # where T3=(e3,y3) is a 2-torsion point on
-            # the egg coming from w2/2 on the lattice
-
-            if on_egg:
-                y3 = -(a1*e3+a3)/2
-                lam = (y-y3)/(x-e3)
-                x3 = lam*(lam+a1)-a2-x-e3
-                y = lam*(x-x3)-y-a1*x3-a3
-                x = x3
-                w = 2*y+a1*x+a3
-
-            a = (e1 - e3).sqrt()
-            b = (e1 - e2).sqrt()
-            c = (x - e3).sqrt()
-            while (a - b)/a > 0.5**(precision-1):
-                a,b,c = (a + b)/2, (a*b).sqrt(), (c + (c**2 + b**2 - a**2).sqrt())/2
-
-            z = (a/c).arcsin()/a
-            if w > 0:
-                z = w1 - z
-            if on_egg:
-                z = z + w2/2
-            return z
+        return self.curve().period_lattice(emb).elliptic_logarithm(self,precision)
 
     def padic_elliptic_logarithm(self, p, absprec=20):
         r"""

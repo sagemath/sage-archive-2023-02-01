@@ -7343,6 +7343,8 @@ def refine_embedding(e, prec=None):
     """
     K = e.domain()
     RC = e.codomain()
+    if RC in (sage.rings.qqbar.AA, sage.rings.qqbar.QQbar):
+        return e
     prec_old = RC.precision()
     if prec is None:
         prec = 2*prec_old

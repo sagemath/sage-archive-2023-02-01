@@ -401,7 +401,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
                               stdout=PIPE))
 
     strip = len(os.environ['SAGE_ROOT'] + path) + 2
-    r = '\n'.join([l[strip:] for l in cmds[-1].communicate()[0].splitlines()])
+    r = '\n'.join([l[strip:].lstrip("/") for l in cmds[-1].communicate()[0].splitlines()])
 
     if not interact:
         return r

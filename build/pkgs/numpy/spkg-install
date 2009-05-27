@@ -23,12 +23,6 @@ if [ $UNAME = "CYGWIN" ]; then
     cp patches/cygwin-lapack_lite-setup.py src/numpy/linalg/setup.py
 fi
 
-# copying some files to kill annoying deprecation warnings - those should be removed
-# once scipy 0.7 ships - if that day ever comes :)
-echo " Copying patches to quiet deprecation warnings"
-cp patches/arrayobject.c src/numpy/core/src/arrayobject.c
-cp patches/numpytest.py src/numpy/testing/numpytest.py
-
 cd src
 
 echo "[DEFAULT]" > site.cfg

@@ -11,6 +11,15 @@ from numpy.distutils.misc_util import msvc_runtime_library
 
 compilers = ['GnuFCompiler', 'Gnu95FCompiler']
 
+TARGET_R = re.compile("Target: ([a-zA-Z0-9_\-]*)")
+
+# XXX: do we really need to check for target ? If the arch is not supported,
+# the return code should be != 0
+_R_ARCHS = {"ppc": r"^Target: (powerpc-.*)$",
+    "i686": r"^Target: (i686-.*)$",
+    "x86_64": r"^Target: (i686-.*)$",
+    "ppc64": r"^Target: (powerpc-.*)$",}
+
 class GnuFCompiler(FCompiler):
     compiler_type = 'gnu'
     compiler_aliases = ('g77',)
@@ -87,20 +96,28 @@ class GnuFCompiler(FCompiler):
     def get_flags_linker_so(self):
         opt = self.linker_so[1:]
         if sys.platform=='darwin':
-            # MACOSX_DEPLOYMENT_TARGET must be at least 10.3. This is
-            # a reasonable default value even when building on 10.4 when using
-            # the official Python distribution and those derived from it (when
-            # not broken).
             target = os.environ.get('MACOSX_DEPLOYMENT_TARGET', None)
-            if target is None or target == '':
-                target = '10.3'
-            major, minor = target.split('.')
-            if int(minor) < 3:
-                minor = '3'
-                warnings.warn('Environment variable '
-                    'MACOSX_DEPLOYMENT_TARGET reset to %s.%s' % (major, minor))
-            os.environ['MACOSX_DEPLOYMENT_TARGET'] = '%s.%s' % (major,
-                minor)
+            # If MACOSX_DEPLOYMENT_TARGET is set, we simply trust the value
+            # and leave it alone.  But, distutils will complain if the
+            # environment's value is different from the one in the Python
+            # Makefile used to build Python.  We let disutils handle this
+            # error checking.
+            if not target:
+                # If MACOSX_DEPLOYMENT_TARGET is not set in the environment,
+                # we try to get it first from the Python Makefile and then we
+                # fall back to setting it to 10.3 to maximize the set of
+                # versions we can work with.  This is a reasonable default
+                # even when using the official Python dist and those derived
+                # from it.
+                import distutils.sysconfig as sc
+                g = {}
+                filename = sc.get_makefile_filename()
+                sc.parse_makefile(filename, g)
+                target = g.get('MACOSX_DEPLOYMENT_TARGET', '10.3')
+                os.environ['MACOSX_DEPLOYMENT_TARGET'] = target
+                if target == '10.3':
+                    s = 'Env. variable MACOSX_DEPLOYMENT_TARGET set to 10.3'
+                    warnings.warn(s)
 
             opt.extend(['-undefined', 'dynamic_lookup', '-bundle'])
         else:
@@ -131,10 +148,10 @@ class GnuFCompiler(FCompiler):
                 # if windows and not cygwin, libg2c lies in a different folder
                 if sys.platform == 'win32' and not d.startswith('/usr/lib'):
                     d = os.path.normpath(d)
-                    if not os.path.exists(os.path.join(d, 'libg2c.a')):
+                    if not os.path.exists(os.path.join(d, "lib%s.a" % self.g2c)):
                         d2 = os.path.abspath(os.path.join(d,
                                                           '../../../../lib'))
-                        if os.path.exists(os.path.join(d2, 'libg2c.a')):
+                        if os.path.exists(os.path.join(d2, "lib%s.a" % self.g2c)):
                             opt.append(d2)
                 opt.append(d)
         return opt
@@ -179,106 +196,10 @@ class GnuFCompiler(FCompiler):
         return opt
 
     def get_flags_arch(self):
-        opt = []
+        return []
         # Note that sse flags and so on lead to gfortran code that segfaults, so disable arch flags
         return opt
 
-        if sys.platform == 'darwin':
-            # Since Apple doesn't distribute a GNU Fortran compiler, we
-            # can't add -arch ppc or -arch i386, as only their version
-            # of the GNU compilers accepts those.
-            for a in '601 602 603 603e 604 604e 620 630 740 7400 7450 750'\
-                    '403 505 801 821 823 860'.split():
-                if getattr(cpu,'is_ppc%s'%a)():
-                    opt.append('-mcpu='+a)
-                    opt.append('-mtune='+a)
-                    break
-            return opt
-
-        # default march options in case we find nothing better
-        if cpu.is_i686():
-            march_opt = '-march=i686'
-        elif cpu.is_i586():
-            march_opt = '-march=i586'
-        elif cpu.is_i486():
-            march_opt = '-march=i486'
-        elif cpu.is_i386():
-            march_opt = '-march=i386'
-        else:
-            march_opt = ''
-
-        gnu_ver =  self.get_version()
-
-        if gnu_ver >= '0.5.26': # gcc 3.0
-            if cpu.is_AthlonK6():
-                march_opt = '-march=k6'
-            elif cpu.is_AthlonK7():
-                march_opt = '-march=athlon'
-
-        if gnu_ver >= '3.1.1':
-            if cpu.is_AthlonK6_2():
-                march_opt = '-march=k6-2'
-            elif cpu.is_AthlonK6_3():
-                march_opt = '-march=k6-3'
-            elif cpu.is_AthlonMP():
-                march_opt = '-march=athlon-mp'
-                # there's also: athlon-tbird, athlon-4, athlon-xp
-            elif cpu.is_Nocona():
-                march_opt = '-march=nocona'
-            elif cpu.is_Core2():
-                march_opt = '-march=nocona'
-            elif cpu.is_Xeon() and cpu.is_64bit():
-                march_opt = '-march=nocona'
-            elif cpu.is_Prescott():
-                march_opt = '-march=prescott'
-            elif cpu.is_PentiumIV():
-                march_opt = '-march=pentium4'
-            elif cpu.is_PentiumIII():
-                march_opt = '-march=pentium3'
-            elif cpu.is_PentiumM():
-                march_opt = '-march=pentium3'
-            elif cpu.is_PentiumII():
-                march_opt = '-march=pentium2'
-
-        if gnu_ver >= '3.4':
-            # Actually, I think these all do the same things
-            if cpu.is_Opteron():
-                march_opt = '-march=opteron'
-            elif cpu.is_Athlon64():
-                march_opt = '-march=athlon64'
-            elif cpu.is_AMD64():
-                march_opt = '-march=k8'
-
-        if gnu_ver >= '3.4.4':
-            if cpu.is_PentiumM():
-                march_opt = '-march=pentium-m'
-        # Future:
-        # if gnu_ver >= '4.3':
-        #    if cpu.is_Core2():
-        #        march_opt = '-march=core2'
-
-        # Note: gcc 3.2 on win32 has breakage with -march specified
-        if '3.1.1' <= gnu_ver <= '3.4' and sys.platform=='win32':
-            march_opt = ''
-
-        if march_opt:
-            opt.append(march_opt)
-
-        # other CPU flags
-        if gnu_ver >= '3.1.1':
-            if cpu.has_mmx(): opt.append('-mmmx')
-            if cpu.has_3dnow(): opt.append('-m3dnow')
-
-        if gnu_ver > '3.2.2':
-            if cpu.has_sse2(): opt.append('-msse2')
-            if cpu.has_sse(): opt.append('-msse')
-        if gnu_ver >= '3.4':
-            if cpu.has_sse3(): opt.append('-msse3')
-        if cpu.is_Intel():
-            opt.append('-fomit-frame-pointer')
-            if cpu.is_32bit():
-                opt.append('-malign-double')
-        return opt
 
 class Gnu95FCompiler(GnuFCompiler):
     compiler_type = 'gnu95'
@@ -327,53 +248,80 @@ class Gnu95FCompiler(GnuFCompiler):
     # Note that this is here instead of GnuFCompiler as gcc < 4 uses a
     # different output format (which isn't as useful) than gcc >= 4,
     # and we don't have to worry about g77 being universal (as it can't be).
-    def target_architecture(self, extra_opts=()):
-        """Return the architecture that the compiler will build for.
-        This is most useful for detecting universal compilers in OS X."""
-        extra_opts = list(extra_opts)
-        status, output = exec_command(self.compiler_f90 + ['-v'] + extra_opts,
-                                      use_tee=False)
-        if status == 0:
-            m = re.match(r'(?m)^Target: (.*)$', output)
-            if m:
-                return m.group(1)
-        return None
+    def _can_target(self, cmd, arch):
+        """Return true is the compiler support the -arch flag for the given
+        architecture."""
+        newcmd = cmd[:]
+        newcmd.extend(["-arch", arch, "-v"])
+        st, out = exec_command(" ".join(newcmd))
+        if st == 0:
+            for line in out.splitlines():
+                m = re.search(_R_ARCHS[arch], line)
+                if m:
+                    return True
+        return False
 
-    def is_universal_compiler(self):
-        """Return True if this compiler can compile universal binaries
-        (for OS X).
-
-        Currently only checks for i686 and powerpc architectures (no 64-bit
-        support yet).
-        """
-        if sys.platform != 'darwin':
-            return False
-        i686_arch = self.target_architecture(extra_opts=['-arch', 'i686'])
-        if not i686_arch or not i686_arch.startswith('i686-'):
-            return False
-        ppc_arch = self.target_architecture(extra_opts=['-arch', 'ppc'])
-        if not ppc_arch or not ppc_arch.startswith('powerpc-'):
-            return False
-        return True
-
-    def _add_arches_for_universal_build(self, flags):
-        if self.is_universal_compiler():
-            flags[:0] = ['-arch', 'i686', '-arch', 'ppc']
-        return flags
+    def _universal_flags(self, cmd):
+        """Return a list of -arch flags for every supported architecture."""
+        if not sys.platform == 'darwin':
+            return []
+        arch_flags = []
+        for arch in ["ppc", "i686"]:
+            if self._can_target(cmd, arch):
+                arch_flags.extend(["-arch", arch])
+        return arch_flags
 
     def get_flags(self):
         flags = GnuFCompiler.get_flags(self)
-        return self._add_arches_for_universal_build(flags)
+        arch_flags = self._universal_flags(self.compiler_f90)
+        if arch_flags:
+            flags[:0] = arch_flags
+        return flags
 
     def get_flags_linker_so(self):
         flags = GnuFCompiler.get_flags_linker_so(self)
-        return self._add_arches_for_universal_build(flags)
+        arch_flags = self._universal_flags(self.linker_so)
+        if arch_flags:
+            flags[:0] = arch_flags
+        return flags
+
+    def get_library_dirs(self):
+        opt = GnuFCompiler.get_library_dirs(self)
+        if sys.platform == 'win32':
+            c_compiler = self.c_compiler
+            if c_compiler and c_compiler.compiler_type == "msvc":
+                target = self.get_target()
+                if target:
+                    d = os.path.normpath(self.get_libgcc_dir())
+                    root = os.path.join(d, os.pardir, os.pardir, os.pardir, os.pardir)
+                    mingwdir = os.path.normpath(os.path.join(root, target, "lib"))
+                    full = os.path.join(mingwdir, "libmingwex.a")
+                    if os.path.exists(full):
+                        opt.append(mingwdir)
+        return opt
 
     def get_libraries(self):
         opt = GnuFCompiler.get_libraries(self)
         if sys.platform == 'darwin':
             opt.remove('cc_dynamic')
+        if sys.platform == 'win32':
+            c_compiler = self.c_compiler
+            if c_compiler and c_compiler.compiler_type == "msvc":
+                if "gcc" in opt:
+                    i = opt.index("gcc")
+                    opt.insert(i+1, "mingwex")
+                    opt.insert(i+1, "mingw32")
         return opt
+
+    def get_target(self):
+        status, output = exec_command(self.compiler_f77 +
+                                      ['-v'],
+                                      use_tee=0)
+        if not status:
+            m = TARGET_R.search(output)
+            if m:
+                return m.group(1)
+        return ""
 
 class Sage_FCompiler_1(Gnu95FCompiler):
     compiler_type = 'gnu95'

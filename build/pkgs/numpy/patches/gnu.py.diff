@@ -1,5 +1,5 @@
---- gnu.py.orig	2008-08-27 03:18:34.000000000 -0700
-+++ gnu.py	2008-08-27 03:18:03.000000000 -0700
+--- src/numpy/distutils/fcompiler/gnu.py	2009-04-05 03:09:20.000000000 -0500
++++ patches/gnu.py	2009-05-27 16:38:25.000000000 -0500
 @@ -5,6 +5,7 @@
  
  from numpy.distutils.cpuinfo import cpu
@@ -8,20 +8,21 @@
  from numpy.distutils.exec_command import exec_command
  from numpy.distutils.misc_util import msvc_runtime_library
  
-@@ -179,6 +180,9 @@
+@@ -196,6 +197,9 @@
  
      def get_flags_arch(self):
-         opt = []
+         return []
 +        # Note that sse flags and so on lead to gfortran code that segfaults, so disable arch flags
 +        return opt
 +
-         if sys.platform == 'darwin':
-             # Since Apple doesn't distribute a GNU Fortran compiler, we
-             # can't add -arch ppc or -arch i386, as only their version
-@@ -371,6 +375,160 @@
-             opt.remove('cc_dynamic')
-         return opt
  
+ class Gnu95FCompiler(GnuFCompiler):
+     compiler_type = 'gnu95'
+@@ -318,6 +322,160 @@
+             if m:
+                 return m.group(1)
+         return ""
++        
 +class Sage_FCompiler_1(Gnu95FCompiler):
 +    compiler_type = 'gnu95'
 +#    def matcher(pat,ignore,start):
@@ -175,7 +176,6 @@
 +        return ['-g']
 +
 +
-+
+ 
  if __name__ == '__main__':
      from distutils import log
-     log.set_verbosity(2)

@@ -1,4 +1,4 @@
---- src/numpy/linalg/setup.py	2008-09-25 18:10:08.000000000 -0500
+--- src/numpy/linalg/setup.py	2009-03-29 06:24:21.000000000 -0500
 +++ patches/cygwin-lapack_lite-setup.py	2008-09-25 22:43:28.000000000 -0500
 @@ -27,7 +27,8 @@
                                      'zlapack_lite.c', 'dlapack_lite.c',

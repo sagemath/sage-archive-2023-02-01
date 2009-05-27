@@ -642,6 +642,12 @@ if [ $1 = '-ba-force' ]; then
    exit $?
 fi
 
+if [ $1 = '-sync-build' -o $1 = '--sync-build' ]; then
+   shift
+   python "$SAGE_LOCAL"/bin/sage-sync-build.py "$@"
+   exit $?
+fi
+
 if [ $1 = '-clone' -o $1 = "--clone" ]; then
    shift
    time sage-clone "$@"

@@ -41,11 +41,12 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('_quadpack',
                          sources=['_quadpackmodule.c'],
                          libraries=['quadpack', 'linpack_lite', 'mach','f95'],library_dirs=[GCC_LIB_DIR])
+                         depends=['quadpack.h','__quadpack.h'])
     # odepack
     libs = ['odepack','linpack_lite','mach']
 
     # Remove libraries key from blas_opt
-    if blas_opt.has_key('libraries'):    # key doesn't exist on OS X ...
+    if 'libraries' in blas_opt:    # key doesn't exist on OS X ...
         libs.extend(blas_opt['libraries'])
     newblas = {}
     for key in blas_opt.keys():
@@ -61,7 +62,9 @@ def configuration(parent_package='',top_path=None):
     libs.append('f95')
     config.add_extension('_odepack',
                          sources=['_odepackmodule.c'],
-                         libraries=libs,  **newblas)
+                         libraries=libs,
+                         depends=['__odepack.h','multipack.h'],
+                         **newblas)
 
     # vode
     config.add_extension('vode',

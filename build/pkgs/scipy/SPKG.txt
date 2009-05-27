@@ -4,8 +4,12 @@
  * William Stein
  * Josh Kantor
  * Michael Abshoff
+ * Jason Grout
 
 == Changelog ==
+
+=== scipy-0.7.0 (Jason Grout; 27 May 2009) ===
+ * upgrade to scipy 0.7.0
 
 === scipy-20071020-0.6.p4 (William Stein; July 11, 2008) ===
  * bump version to force recompile since we improved the numpy distutils.

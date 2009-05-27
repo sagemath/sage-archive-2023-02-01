@@ -22,7 +22,8 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('_minpack',
                          sources=['_minpackmodule.c'],
                          libraries=['minpack','f95'],
-                         library_dirs=[GCC_LIB_DIR])
+                         library_dirs=[GCC_LIB_DIR],
+                         depends=["minpack.h","__minpack.h"])
 
     config.add_library('rootfind',
                        sources=[join('Zeros','*.c')],
@@ -40,7 +41,8 @@ def configuration(parent_package='',top_path=None):
 
     sources=['moduleTNC.c','tnc.c']
     config.add_extension('moduleTNC',
-                         sources=[join('tnc',x) for x in sources])
+                         sources=[join('tnc',x) for x in sources],
+                         depends=[join('tnc','tnc.h')])
 
     config.add_extension('_cobyla',
                          sources=[join('cobyla',x) for x in ['cobyla.pyf',
@@ -50,7 +52,14 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('minpack2',
                          sources=[join('minpack2',x) for x in sources])
 
+    sources = ['slsqp.pyf', 'slsqp_optmz.f']
+    config.add_extension('_slsqp', sources=[join('slsqp', x) for x in sources])
+
+    config.add_extension('_nnls', sources=[join('nnls', x) \
+                                          for x in ["nnls.f","nnls.pyf"]])
+
     config.add_data_dir('tests')
+    config.add_data_dir('benchmarks')
     return config
 
 if __name__ == '__main__':

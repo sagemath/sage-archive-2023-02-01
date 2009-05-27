@@ -1530,10 +1530,9 @@ cdef class TimeSeries:
             return float(1)
         if len(v0) == 1:
             return v1[0]/v0[0]
-        import scipy.stats
-        slope,intercept, _,_,_ = scipy.stats.linregress(v0,v1)
-        return slope
-
+        import numpy
+        coeffs = numpy.polyfit(v0,v1,1)
+        return coeffs[0]
 
     def min(self, bint index=False):
         """

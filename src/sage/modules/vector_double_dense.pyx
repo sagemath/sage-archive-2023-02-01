@@ -579,11 +579,10 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.mean()
             4.0 + 5.0*I
         """
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.stats
-        return self._sage_dtype(scipy.stats.mean(self._vector_numpy))
+        global numpy
+        if numpy is None:
+            import numpy
+        return self._sage_dtype(numpy.mean(self._vector_numpy))
 
     def variance(self, population=True):
         """
@@ -600,19 +599,18 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v.variance(population=False)
             6.66666666667
             sage: w.variance()
-            -15.0*I
+            15.0
             sage: w.variance(population=False)
-            -13.3333333333*I
+            13.3333333333
         """
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.stats
+        global numpy
+        if numpy is None:
+            import numpy
 
-        if population is False:
-            return self._sage_dtype(scipy.stats.samplevar(self._vector_numpy))
+        if population is True:
+            return self._sage_dtype(numpy.var(self._vector_numpy, ddof=1))
         else:
-            return self._sage_dtype(scipy.stats.var(self._vector_numpy))
+            return self._sage_dtype(numpy.var(self._vector_numpy, ddof=0))
 
     def standard_deviation(self, population=True):
         """
@@ -629,19 +627,18 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v.standard_deviation(population=False)
             2.58198889747
             sage: w.standard_deviation()
-            2.73861278753 - 2.73861278753*I
+            3.87298334621
             sage: w.standard_deviation(population=False)
-            2.58198889747 - 2.58198889747*I
+            3.6514837167
         """
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.stats
+        global numpy
+        if numpy is None:
+            import numpy
 
-        if population is False:
-            return self._sage_dtype(scipy.stats.samplestd(self._vector_numpy))
+        if population is True:
+            return self._sage_dtype(numpy.std(self._vector_numpy, ddof=1))
         else:
-            return self._sage_dtype(scipy.stats.std(self._vector_numpy))
+            return self._sage_dtype(numpy.std(self._vector_numpy, ddof=0))
 
 
     def stats_kurtosis(self):

@@ -212,7 +212,6 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     import scipy
     from random import random
     from scipy import interpolate
-    from scipy import stats
     from plot3d import plot3d
 
     if len(v)<3:
@@ -222,7 +221,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     y=[float(p[1]) for p in v]
     z=[float(p[2]) for p in v]
 
-    corr_matrix=stats.corrcoef(x,y)
+    corr_matrix=numpy.corrcoef(x,y)
 
     if corr_matrix[0,1] > .9 or corr_matrix[0,1] <  -.9:
         # If the x,y coordinates lie in a one-dimensional subspace

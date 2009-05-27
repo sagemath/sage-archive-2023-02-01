@@ -119,17 +119,7 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
         sage: find_maximum_on_interval(f, 0,5, tol=0.1, maxfun=10)
         (0.561090323458..., 0.857926501456...)
     """
-    def g(z):
-        r"""
-        Returns the negative of the input function f. Finding the maximum
-        of f(z) on [a,b] is equivalent to finding th minimum of -f(z) on
-        [a,b].
-
-        EXAMPLES:
-
-        """
-        return -f(z)
-    minval, x = find_minimum_on_interval(g, a=a, b=b, tol=tol, maxfun=maxfun)
+    minval, x = find_minimum_on_interval(lambda z: -f(z), a=a, b=b, tol=tol, maxfun=maxfun)
     return -minval, x
 
 def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):

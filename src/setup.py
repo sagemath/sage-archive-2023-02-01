@@ -672,7 +672,7 @@ code = setup(name = 'sage',
                      'sage.structure',
                      'sage.structure.proof'
                      ],
-      scripts = ['spkg-debian-maybe'],
+      scripts = [],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

@@ -40,7 +40,7 @@ def configuration(parent_package='',top_path=None):
 
     config.add_extension('_quadpack',
                          sources=['_quadpackmodule.c'],
-                         libraries=['quadpack', 'linpack_lite', 'mach','f95'],library_dirs=[GCC_LIB_DIR])
+                         libraries=['quadpack', 'linpack_lite', 'mach','f95'],library_dirs=[GCC_LIB_DIR],
                          depends=['quadpack.h','__quadpack.h'])
     # odepack
     libs = ['odepack','linpack_lite','mach']

@@ -65,6 +65,10 @@ sage-support group]].
 
 == Changelog ==
 
+=== sagetex-2.1.1 (Dan Drake, 28 May 2009) ===
+
+ * Update to version 2.1.1, which adds pause/unpause support.
+
 === sagetex-2.0.2 (Dan Drake, 21 Apr 2008) ===
 
  * Update source, improve spkg-check.

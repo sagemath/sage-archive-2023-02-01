@@ -50,6 +50,7 @@ class GaloisGroup_v1(SageObject):
         sage: G.number_field()
         Number Field in a with defining polynomial x^3 - 2
     """
+
     def __init__(self, group, number_field):
         """
         Create a Galois group.
@@ -157,7 +158,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         The 'arithmetical' features (decomposition and ramification groups,
         Artin symbols etc) are only available for Galois fields.
-
     """
 
     def __init__(self, number_field, names=None):
@@ -189,12 +189,33 @@ class GaloisGroup_v2(PermutationGroup_generic):
         g = self._pari_gc.galoisinit()
         self._pari_data = g
 
-        # We cheat here, and initialise self as a permutation group, later going back to
-        # change self.gens() (!) because we want the elements of self to be of type GaloisGroupElement.
-        PermutationGroup_generic.__init__(self, g[5])
+        PermutationGroup_generic.__init__(self, sorted(g[6]))
 
-        self._gens = [self(x, check=False) for x in g[6]]
-        self._elts = [self(x, check=False) for x in g[5]]
+        # PARI computes all the elements of self anyway, so we might as well store them
+        self._elts = sorted([self(x, check=False) for x in g[5]])
+
+    def _element_class(self):
+        r"""
+        Return the class to be used for creating elements of this group, which
+        is GaloisGroupElement.
+
+        EXAMPLE::
+
+            sage: F.<z> = CyclotomicField(7)
+            sage: G = F.galois_group()
+            sage: G._element_class()
+            <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
+
+        We test that a method inherited from PermutationGroup_generic returns
+        the right type of element (see trac #133)::
+
+            sage: phi = G.random_element()
+            sage: type(phi)
+            <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
+            sage: phi(z) # random
+            z^3
+        """
+        return GaloisGroupElement
 
     def __call__(self, x, check=True):
         r""" Create an element of self from x. Here x had better be one of:
@@ -541,11 +562,11 @@ class GaloisGroupElement(PermutationGroupElement):
 
         sage: L.<v> = NumberField(x^3 - 2); G = L.galois_group(names='y')
         sage: G[1]
-        (1,4,6)(2,5,3)
+        (1,2)(3,4)(5,6)
         sage: G[1](v)
-        -1/126*y^4 + 8/63*y
-        sage: G[1]( G[1](v) )
         1/84*y^4 + 13/42*y
+        sage: G[1]( G[1](v) )
+        -1/252*y^4 - 55/126*y
     """
 
     @cached_method
@@ -613,10 +634,7 @@ class GaloisGroupElement(PermutationGroupElement):
             sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
             [(1,2)(3,4)(5,6), (1,3)(2,6)(4,5), (1,5)(2,4)(3,6)]
         """
-        if not isinstance(other, GaloisGroupElement):
-            return cmp(type(self), type(other))
-        else:
-            return cmp(self.list(), other.list())
+        return cmp(self.list(), other.list())
 
 
 

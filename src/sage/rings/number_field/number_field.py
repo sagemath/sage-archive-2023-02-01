@@ -3067,7 +3067,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G = k.galois_group(names='c'); G
             Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - x + 1
             sage: G.gen(0)
-            (1,3,4)(2,6,5)
+            (1,2)(3,5)(4,6)
 
         With type ``'pari'``::
 

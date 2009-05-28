@@ -28,8 +28,8 @@ any element of G to any element of the field:
     sage: G.order()
     6
     sage: G.gens()
-    [(1,4,6)(2,5,3), (1,2)(3,4)(5,6)]
-    sage: f = G.0; f(alpha)
+    [(1,2)(3,4)(5,6), (1,4,6)(2,5,3)]
+    sage: f = G.1; f(alpha)
     1/36*alpha^4 + 1/18*alpha
 
 Some more advanced number-theoretical tools are available via G:

@@ -10,7 +10,7 @@ MPIR is a fork of GMP. See www.mpir.org
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
+ * William Stein
 
 == Upstream Contact ==
 
@@ -25,6 +25,9 @@ MPIR is a fork of GMP. See www.mpir.org
  * This is a svn checkout. Note that on MacIntel OSX one has to remove a number of files due to PIC issues. The problem will be fixed upstream.
 
 == Changelog ==
+
+=== gmp-mpir-1.1.2 (William Stein, May 28, 2009) ===
+ * Update to the latest MPIR 1.1.2 release
 
 === gmp-mpir-1.1.1 (Michael Abshoff, April 29th, 2009) ===
  * Update to the latest MPIR 1.1.1 release

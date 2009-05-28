@@ -944,7 +944,8 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(x)
             2013265920
             sage: hash(x^y)
-            4043309056
+            4043309056      # 64-bit
+            -251658240      # 32-bit
 
         The hash of an object in Python or its coerced version into
         the symbolic ring is the same::
@@ -4393,7 +4394,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.5).arctanh().tanh()
             0.500000000000000
             sage: maxima('atanh(0.5)')
-            .5493061443340548
+            .5493061443340...
         """
         return new_Expression_from_GEx(self._parent, g_atanh(self._gobj))
 

@@ -1310,6 +1310,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     Or we can just pass in symbolic expressions, as long as they can be
     coerced into ``QQbar``::
+
         sage: number_field_elements_from_algebraics((sqrt(7), sqrt(9), sqrt(11)))
         (Number Field in a with defining polynomial y^4 - 9*y^2 + 1, [-a^3 + 8*a, 3, -a^3 + 10*a], Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 9*y^2 + 1

@@ -8,7 +8,6 @@ import types
 from sage.rings.all import Integer
 
 from reference import parallel_iter as p_iter_reference
-from sage.dsage.interface import dsage_interface
 import multiprocessing
 
 def normalize_input(a):
@@ -73,18 +72,26 @@ class parallel:
         """
         # The default p_iter is currently the reference implementation.
         # This may change.
+        self.p_iter = None
+
         if isinstance(p_iter, (int, long, Integer)):
             self.p_iter = multiprocessing.pyprocessing(p_iter)
         elif p_iter == 'multiprocessing':
             self.p_iter = multiprocessing.pyprocessing()
-        elif isinstance(p_iter, dsage_interface.BlockingDSage):
-            self.p_iter = p_iter.parallel_iter
         elif p_iter == 'reference':
             self.p_iter = p_iter_reference
+        elif isinstance(p_iter, str):
+            raise ValueError, "unknown iterator '%s'" % p_iter
         else:
-            if isinstance(p_iter, str):
-                raise ValueError, "unknown iterator '%s'" % p_iter
-            self.p_iter = p_iter
+            try:
+                from dsage.interface import dsage_interface
+                if isinstance(p_iter, dsage_interface.BlockingDSage):
+                    self.p_iter = p_iter.parallel_iter
+            except ImportError:
+                pass
+
+            if self.p_iter is None:
+                self.p_iter = p_iter
 
     def __call__(self, f):
         """

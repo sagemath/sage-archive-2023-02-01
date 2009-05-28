@@ -33,12 +33,17 @@ public_pem  = conf_path + '/public.pem'
 def notebook_setup(self=None):
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
-    print "Using dsage certificates."
-    dsage = os.path.join(DOT_SAGE, 'dsage')
-    import sage.dsage.all
-    sage.dsage.all.dsage.setup()
-    shutil.copyfile(dsage + '/cacert.pem', private_pem)
-    shutil.copyfile(dsage + '/pubcert.pem', public_pem)
+
+    try:
+        import dsage.all
+        print "Using dsage certificates."
+        dsage = os.path.join(DOT_SAGE, 'dsage')
+        sage.dsage.all.dsage.setup()
+        shutil.copyfile(dsage + '/cacert.pem', private_pem)
+        shutil.copyfile(dsage + '/pubcert.pem', public_pem)
+    except ImportError:
+        pass
+
     print "Successfully configured notebook."
 
 def notebook_twisted(self,

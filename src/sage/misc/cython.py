@@ -46,6 +46,7 @@ def atlas():
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
                 '%s/local/include/python%s/'%(SAGE_ROOT, sys.version[:3]), \
+                '%s/local/lib/python%s/site-packages/numpy/core/include'%(SAGE_ROOT, sys.version[:3]), \
                 '%s/devel/sage/sage/ext/'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl/'%SAGE_ROOT]

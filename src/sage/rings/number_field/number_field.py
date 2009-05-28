@@ -2528,7 +2528,8 @@ class NumberField_generic(number_field_base.NumberField):
             [Number Field in c0 with defining polynomial x^3 - 2,
              Number Field in c1 with defining polynomial x^6 - 40*x^3 + 1372]
 
-            Let's get the maps as well:
+        Let's get the maps as well::
+
             sage: Q1.<a> = NumberField(x^2 + 2, 'b').extension(x^2 + 3, 'c').absolute_field()
             sage: Q2.<b> = NumberField(x^2 + 3, 'a').extension(x^2 + 5, 'c').absolute_field()
             sage: Q1.composite_fields(Q2)
@@ -2554,7 +2555,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: Q2_into_F(b) + k*Q1_into_F(a) == F.gen()
             True
 
-            Let's check something about the "other" composite field:
+        Let's check something about the "other" composite field::
 
             sage: F, Q1_into_F, Q2_into_F, k = Q1.composite_fields(Q2, both_maps=True)[1]
             sage: Q1_into_F.domain() is Q1
@@ -5084,14 +5085,14 @@ class NumberField_absolute(NumberField_generic):
               Defn: a |--> -a
             ]
 
-            Here's a larger example, that would take some time if we found
-            roots instead of using PARI's specialized machinery:
+        Here's a larger example, that would take some time if we found
+        roots instead of using PARI's specialized machinery::
 
             sage: K = NumberField(x^6 - x^4 - 2*x^2 + 1, 'a')
             sage: len(K.automorphisms())
             2
 
-            `L` is the Galois closure of `K`:
+        `L` is the Galois closure of `K`::
 
             sage: L = NumberField(x^24 - 84*x^22 + 2814*x^20 - 15880*x^18 - 409563*x^16 - 8543892*x^14 + 25518202*x^12 + 32831026956*x^10 - 672691027218*x^8 - 4985379093428*x^6 + 320854419319140*x^4 + 817662865724712*x^2 + 513191437605441, 'a')
             sage: len(L.automorphisms())

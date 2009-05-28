@@ -1485,16 +1485,17 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         If ``absprec`` is ``None``, returns if ``self`` is equal to
         ``right`` modulo the precision cap.
 
-        EXAMPLES:
-        sage: R = Zp(5,5)
-        sage: S.<x> = R[]
-        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-        sage: W.<w> = R.ext(f)
-        sage: a = W(47); b = W(47 + 25)
-        sage: a.is_equal_to(b)
-        False
-        sage: a.is_equal_to(b, 7)
-        True
+        EXAMPLES::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: a = W(47); b = W(47 + 25)
+            sage: a.is_equal_to(b)
+            False
+            sage: a.is_equal_to(b, 7)
+            True
         """
         # Should be sped up later
         return (self - right).is_zero(absprec)

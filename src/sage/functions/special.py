@@ -550,6 +550,7 @@ def airy_ai(x):
        1.20742359495287099
 
    REFERENCE:
+
    - Abramowitz and Stegun: Handbook of Mathematical Functions,
      http://www.math.sfu.ca/~cbm/aands/
 

@@ -22,4 +22,4 @@ networking application included with Sage.
    :maxdepth: 2
 
    sage/server/wiki/moin
-   sage/dsage/dsage
+   dsage

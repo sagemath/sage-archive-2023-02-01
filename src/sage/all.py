@@ -100,6 +100,7 @@ from sage.server.all     import *
 import sage.tests.all as tests
 
 try:
+    import dsage.dsage
     from dsage.all      import *
 except ImportError:
     pass

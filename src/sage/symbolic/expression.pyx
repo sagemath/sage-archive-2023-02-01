@@ -1263,8 +1263,20 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: bool(1 + x^2 != 2 + x*x)
             True
+            sage: bool(SR(oo) == SR(oo))
+            True
+            sage: bool(-SR(oo) == SR(oo))
+            False
+            sage: bool(-SR(oo) != SR(oo))
+            True
         """
         if self.is_relational():
+            #If both the left hand side and right hand side are wrappers
+            #around Sage objects, then we should do the comparison directly
+            #with those objects
+            if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
+                return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+
             res = relational_to_bool(self._gobj)
             if res:
                 return True

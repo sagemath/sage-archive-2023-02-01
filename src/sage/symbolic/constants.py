@@ -276,6 +276,23 @@ class Constant(object):
         from sage.symbolic.pynac import register_symbol
         register_symbol(self.expression(), self._conversions)
 
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.constants import Constant
+            sage: p = Constant('p')
+            sage: s = Constant('s')
+            sage: p == p
+            True
+            sage: p == s
+            False
+            sage: p != s
+            True
+        """
+        return (self.__class__ == other.__class__ and
+                self._name == other._name)
+
     def __reduce__(self):
         """
         Adds support for pickling constants.

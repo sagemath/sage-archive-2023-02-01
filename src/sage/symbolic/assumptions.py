@@ -1,6 +1,6 @@
 from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import is_SymbolicVariable
-_assumptions = {}
+_assumptions = []
 
 class GenericDeclaration(SageObject):
 
@@ -97,7 +97,7 @@ class GenericDeclaration(SageObject):
 
         if not self in _assumptions:
             maxima.activate(self._context)
-            _assumptions[self] = True
+            _assumptions.append(self)
 
     def forget(self):
         """
@@ -116,8 +116,8 @@ class GenericDeclaration(SageObject):
         """
         from sage.calculus.calculus import maxima
         try:
-            _assumptions.pop(self)
-        except KeyError:
+            _assumptions.remove(self)
+        except ValueError:
             return
         if self._context is not None:
             maxima.deactivate(self._context)
@@ -223,7 +223,7 @@ def forget(*args):
         [y > 0]
         sage: assume(y, 'even')
         sage: assumptions()
-        [y is even, y > 0]
+        [y > 0, y is even]
         sage: cos(y*pi).simplify()
         1
         sage: forget()
@@ -267,7 +267,7 @@ def assumptions():
         sage: assumptions()
         []
     """
-    return sorted(list(_assumptions))
+    return list(_assumptions)
 
 def _forget_all():
     """
@@ -299,8 +299,8 @@ def _forget_all():
     except TypeError:
         pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
-    for x in _assumptions.keys():
+    for x in _assumptions:
         if isinstance(x, GenericDeclaration):
             # these don't show up in facts()
             x.forget()
-    _assumptions = {}
+    _assumptions = []

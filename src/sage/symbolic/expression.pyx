@@ -1069,7 +1069,7 @@ cdef class Expression(CommutativeRingElement):
         if not self in _assumptions:
             m = self._maxima_init_assume_()
             maxima.assume(m)
-            _assumptions[self] = True
+            _assumptions.append(self)
 
     def forget(self):
         """
@@ -1094,8 +1094,8 @@ cdef class Expression(CommutativeRingElement):
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
-            _assumptions.pop(self)
-        except KeyError:
+            _assumptions.remove(self)
+        except ValueError:
             pass
 
     def _maxima_init_assume_(self):

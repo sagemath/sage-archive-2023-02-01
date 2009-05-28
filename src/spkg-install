@@ -90,6 +90,9 @@ if [ -d "$DEVEL/sage-main" ]; then
     # Note that deleting files from build/* during spkg-install
     # is safe, since at worst it increases build time.  -- William Stein
     rm -f build/*/sage/symbolic/constants*
+    rm -f build/sage/symbolic/constants*
+
+    sage -sync-build
 
     # Pull in changes from the archive just downloaded.
     hg pull "$CUR"

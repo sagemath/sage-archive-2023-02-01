@@ -1932,7 +1932,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         If neither ``P``, ``K`` nor ``C`` are provided, a random pair
         (``P``, ``K``) will be generated. If ``P`` and ``C`` are
-        provided no ``K``needs to be provided.
+        provided no ``K`` needs to be provided.
 
         INPUT:
 

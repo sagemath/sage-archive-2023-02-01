@@ -7,7 +7,7 @@ of `\mathbb{Z}_p` with fixed modulus precision.
 For the parent class see ``padic_extension_leaves.pyx``.
 
 The underlying implementation is through NTL's ``ZZ_pX`` class.  Each
-element contains the following data::
+element contains the following data:
 
 - ``value`` (``ZZ_pX_c``) -- An ntl ``ZZ_pX`` storing the value.  The
   varible `x` is the uniformizer in the case of eisenstein extensions.
@@ -1527,7 +1527,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         Returns a list giving a series representation of ``self``.
 
         - If ``lift_mode == 'simple' or 'smallest'``, the returned list will
-        consist of
+          consist of
 
           + integers (in the eisenstein case) or
 
@@ -1542,15 +1542,15 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             generator (in the unramified case).
 
         - If ``lift_mode == 'simple'``, all integers will be in the range
-        `[0,p-1]`,
+          `[0,p-1]`,
 
         - If ``lift_mode == 'smallest'`` they will be in the range `[(1-p)/2,
-        p/2]`.
+          p/2]`.
 
         - If ``lift_mode == 'teichmuller'``, returns a list of
-          ``pAdicZZpXCRElements``, all of which are Teichmuller
-          representatives and such that ``self`` is the sum of that
-          list times powers of the uniformizer.
+          ``pAdicZZpXCRElements``, all of which are Teichmuller representatives
+          and such that ``self`` is the sum of that list times powers of the
+          uniformizer.
 
         EXAMPLES::
 

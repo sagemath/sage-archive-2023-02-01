@@ -5404,24 +5404,23 @@ class NumberField_absolute(NumberField_generic):
         over the absolute field `\QQ(\alpha)` or the domain of `alpha`, along
         with isomorphisms from `K` to self and from self to `K`.
 
-        INPUT::
+        INPUT:
 
-        -  ``alpha`` - an element of self  or an embedding of a subfield into self
+        - ``alpha`` - an element of self  or an embedding of a subfield into
+          self
+        - ``names`` - 2-tuple of names of generator for output field K and the
+          subfield QQ(alpha) names[0] generators K and names[1] QQ(alpha).
 
-        -  ``names`` - 2-tuple of names of generator for output
-           field K and the subfield QQ(alpha) names[0] generators K and
-           names[1] QQ(alpha).
+        OUTPUT:
 
-
-        OUTPUT::
-
-            K   -- relative number field
+        K -- relative number field
 
         Also, \code{K.structure()} returns from_K and to_K, where
         from_K is an isomorphism from K to self and to_K is an isomorphism
         from self to K.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^10 - 2)
             sage: L.<c,d> = K.relativize(a^4 + a^2 + 2); L
             Number Field in c with defining polynomial x^2 - 1/5*d^4 + 8/5*d^3 - 23/5*d^2 + 7*d - 18/5 over its base field
@@ -5439,8 +5438,8 @@ class NumberField_absolute(NumberField_generic):
             sage: from_L(to_L(a^4 + a^2 + 2))
             a^4 + a^2 + 2
 
-            The following demonstrates distinct embeddings of a subfield into
-            a larger field:
+        The following demonstrates distinct embeddings of a subfield into a
+        larger field::
 
             sage: K.<a> = NumberField(x^4 + 2*x^2 + 2)
             sage: K0 = K.subfields(2)[0][0]; K0
@@ -5459,8 +5458,8 @@ class NumberField_absolute(NumberField_generic):
             sage: L2.base_field() is K0
             True
 
-            Here we see that with the different embeddings, the relative norms
-            are different:
+        Here we see that with the different embeddings, the relative norms are
+        different::
 
             sage: a0 = K0.gen()
             sage: L1_into_K, K_into_L1 = L1.structure()
@@ -5483,7 +5482,8 @@ class NumberField_absolute(NumberField_generic):
             False
 
         TESTS:
-            We can relativize over the whole field:
+
+        We can relativize over the whole field::
 
             sage: K.<a> = NumberField(x^4 + 2*x^2 + 2)
             sage: K.relativize(K.gen(), 'a')
@@ -5491,7 +5491,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.relativize(2*K.gen(), 'a')
             Number Field in a0 with defining polynomial x - 1/2*a1 over its base field
 
-            We can relativize over the prime field:
+        We can relativize over the prime field::
 
             sage: L = K.relativize(K(1), 'a'); L
             Number Field in a0 with defining polynomial x^4 + 2*x^2 + 2 over its base field
@@ -5507,7 +5507,7 @@ class NumberField_absolute(NumberField_generic):
             sage: L.base_field().base_field()
             Rational Field
 
-            We can relativize over a relative field:
+        We can relativize over a relative field::
 
             sage: K.<z> = CyclotomicField(16)
             sage: L, L_into_K, _ = K.subfields(4)[0]; L
@@ -5534,9 +5534,9 @@ class NumberField_absolute(NumberField_generic):
               To:   Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
               Defn: z |--> a0)
 
-            We can relativize over a really large field.  This requires great
-            care to not factor or do any operation that would trigger a pari
-            nfinit() internally.
+        We can relativize over a really large field.  This requires great care
+        to not factor or do any operation that would trigger a pari nfinit()
+        internally::
 
             sage: K.<a> = CyclotomicField(3^3*2^3)
             sage: R = K.relativize(a^(3^2), 't'); R

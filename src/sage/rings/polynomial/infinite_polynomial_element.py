@@ -22,8 +22,10 @@ Using the generators, we can create elements as follows::
     -2*y4^4 + y4*x3 + x3^3
 
 Any Infinite Polynomial Ring ``X`` is equiped with a monomial ordering.
-We only consider monomial orderings in which
+We only consider monomial orderings in which:
+
     ``X.gen(i)[m] < X.gen(j)[n]`` `\iff` ``i<j``, or ``i==j`` and ``m<n``
+
 Under this restriction, the monomial ordering can be lexicographic (default), degree
 lexicographic, or degree reverse lexicographic. Here, the ordering is lexicographic,
 and elements can be compared as usual::

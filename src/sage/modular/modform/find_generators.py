@@ -12,13 +12,9 @@ AUTHORS:
 import random
 
 from sage.rings.all             import Integer, QQ, infinity
-from sage.misc.mrange           import cartesian_product_iterator
 from sage.misc.misc             import prod, verbose
 from sage.modular.congroup import Gamma0
 from constructor                import ModularForms
-from sage.matrix.constructor    import Matrix
-from sage.rings.polynomial.all  import PolynomialRing
-from string                     import lowercase
 from sage.structure.sage_object import SageObject
 
 def span_of_series(v, prec=None, basis=False):
@@ -29,21 +25,22 @@ def span_of_series(v, prec=None, basis=False):
     the list (as determined by a prec method).
 
     INPUT:
-        v    -- a list of power series
-        prec -- optional; if given then the series do not have to be
-                of finite precision, and will be considered to have
-                precision prec.
-        basis -- (default: False) if True the input is assumed to
-                determine linearly independent vectors, and
-                the resulting free module has that as basis.
 
+    - v -- a list of power series
+    - prec -- optional; if given then the series do not have to be of finite
+      precision, and will be considered to have precision prec.
+    - basis -- (default: False) if True the input is assumed to determine
+      linearly independent vectors, and the resulting free module has that as
+      basis.
 
     OUTPUT:
-          A free module of rank prec over the base ring of the forms
-          (actually, of the first form in the list).  If the list is
-          empty, the free module is over QQ.
+
+    A free module of rank prec over the base ring of the forms
+    (actually, of the first form in the list).  If the list is
+    empty, the free module is over QQ.
 
     EXAMPLES:
+
     An example involving modular forms::
 
         sage: from sage.modular.modform.find_generators import span_of_series
@@ -58,7 +55,7 @@ def span_of_series(v, prec=None, basis=False):
         [ 1  0 12 12 12]
         [ 0  1 -2 -1  2]
 
-    Next we make sure the vector give a basis::
+    Next we make sure the vectors give a basis::
 
         sage: span_of_series(v,basis=True)
         Vector space of degree 5 and dimension 2 over Rational Field
@@ -130,11 +127,12 @@ def multiply_forms_to_weight(forms, weight, stop_dim=None):
     together the given forms.
 
     INPUT:
-        forms -- list of pairs (k, f) with k an integer and f a power series
-        weight -- an integer
-        stop_dim -- integer (optional): if set to an integer and we find that
-                    the series so far span a space of at least this dimension,
-                    then stop multiplying more forms together.
+
+    - forms -- list of pairs (k, f) with k an integer and f a power series
+    - weight -- an integer
+    - stop_dim -- integer (optional): if set to an integer and we find that the
+      series so far span a space of at least this dimension, then stop
+      multiplying more forms together.
 
     EXAMPLES::
 
@@ -215,8 +213,9 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
     - ``start_weight`` -- an integer (default: 2)
 
     OUTPUT:
-        a list of pairs (k, f), where f is the q-expansion
-        of a modular form of weight k.
+
+    a list of pairs (k, f), where f is the q-expansion of a modular form of
+    weight k.
 
     EXAMPLES::
 

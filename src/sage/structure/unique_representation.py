@@ -24,7 +24,7 @@ class UniqueRepresentation:
     Classes derived from UniqueRepresentation inherit a unique
     representation behavior for their instances.
 
-    EXAMPLES::
+    EXAMPLES:
 
     The short story: to construct a class whose instances have a
     unique representation behavior one just have to do::
@@ -79,7 +79,7 @@ class UniqueRepresentation:
     subclasses. Its implementation is also more technical, which leads
     to some subtleties.
 
-    EXAMPLES::
+    EXAMPLES:
 
     We start with a simple class whose constructor takes a single
     value as argument (TODO: find a more meaningful example)::
@@ -416,7 +416,7 @@ class UniqueRepresentation:
 
     .. rubric: Mixing super types and super classes
 
-    TESTS::
+    TESTS:
 
     For the record, this test did fail with previous implementation
     attempts::

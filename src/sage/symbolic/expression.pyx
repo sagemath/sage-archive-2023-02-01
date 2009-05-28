@@ -3961,7 +3961,7 @@ cdef class Expression(CommutativeRingElement):
     real = real_part
 
     def imag_part(self):
-        """
+        r"""
         Return the imaginary part of this symbolic expression.
 
         EXAMPLES::
@@ -3990,7 +3990,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.imag_part()
             arctan2(real_part(b) + imag_part(a), real_part(a) - imag_part(b))
 
-        TESTS:
+        TESTS::
 
             sage: x = var('x')
             sage: x.imag_part()

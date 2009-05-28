@@ -33,6 +33,7 @@ guarantee that the computation of Groebner bases will terminate in this case.
 
 In either case, the variables of a Infinite Polynomial Ring X are ordered
 according to the following rule:
+
   ``X.gen(i)[m] < X.gen(j)[n]`` if and only if ``i<j or (i==j and m<n)``
 
 We provide a 'dense' and a 'sparse' implementation. In the dense implementation,
@@ -393,16 +394,17 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         Comparison of two variable names
 
         INPUT:
-            ``x,y`` should both be strings of the form ``a+str(n)``, where
-            a is a single character appearing in the list of generator names,
-            and n is an integer
+
+        - ``x,y`` should both be strings of the form ``a+str(n)``, where a is a
+          single character appearing in the list of generator names, and n is
+          an integer
 
         RETURN:
-            -1,0,1 if x<y, x==y, x>y, respectively, where the order
-            is defined as follows:
-              x<y `\\iff` the letter ``x[0]`` is earlier in the list of
-              generator names of self than ``y[0]``,
-              or (``x[0]==y[0]`` and ``int(x[1:])<int(y[1:])``)
+
+        -1,0,1 if x<y, x==y, x>y, respectively, where the order is defined as
+        follows: x<y `\\iff` the letter ``x[0]`` is earlier in the list of
+        generator names of self than ``y[0]``, or (``x[0]==y[0]`` and
+        ``int(x[1:])<int(y[1:])``)
 
         EXAMPLES::
 

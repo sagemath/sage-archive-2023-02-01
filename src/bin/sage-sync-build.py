@@ -43,12 +43,18 @@ try:
 except KeyError:
     raise RuntimeError, "no SAGE_ROOT defined!"
 
-def check_file(relative_path, filename, verbose=False):
+def check_file(relative_path, filename, special_source_files=None, verbose=False):
     """
     Takes a relative path and a filename, where the path
     is relative to $SAGE_ROOT/devel/sage/build, and
     decides whether or not the corresponding source file
     still exists in $SAGE_ROOT/devel/sage/sage.
+
+    We assume that all .o and .so files are originally created from
+    Cython source files, and look for the corresponding .pyx
+    file. However, if the file does not have a corresponding .pyx, but
+    a source file with the same name occurs in special_source_files,
+    we return True.
 
     Returns True if the corresponding source file still exists,
     and False otherwise. If verbose is True, it explains what
@@ -57,6 +63,12 @@ def check_file(relative_path, filename, verbose=False):
     # set the stub of the path to the source file
     source_path = relative_path[relative_path.find(slash + 'sage')+1:]
     file_to_check = sage_main_repo + slash + source_path
+
+    # process the special source files
+    files_to_ignore = []
+    for f in special_source_files:
+        p, n = os.path.split(f)
+        files_to_ignore.append(sage_main_repo + slash + p + slash + n[:n.find(dot)])
 
     # look for the appropriate source file.
     if filename.endswith(dot + 'pyc'):
@@ -77,13 +89,18 @@ def check_file(relative_path, filename, verbose=False):
             return True
     elif filename.endswith(dot + 'o') or filename.endswith(dot + 'so'):
         file_to_check += filename.split(dot)[0]
-        if os.path.exists(file_to_check + dot + 'c') or \
-               os.path.exists(file_to_check + dot + 'cc') or \
-               os.path.exists(file_to_check + dot + 'cpp'):
+
+        # first, look for a cython source file
+        if os.path.exists(file_to_check + dot + 'pyx'):
+            return True
+        # next, try for one of the special source files
+        elif (file_to_check in files_to_ignore):
             return True
         else:
             if verbose:
-                print "Cannot find source file for file %s."%(file_to_check, relative_path + filename)
+                print
+                print file_to_check
+                print "Cannot find source file for file %s."%(relative_path + filename)
             return False
 
     else:
@@ -103,13 +120,40 @@ def clean_tree(prune_directories=True, dry_run=False, verbose=False):
     # move to the root of the sage_main repository
     os.chdir(sage_main_repo)
 
+    # there are several files that need to be treated
+    # differently, since they correspond to .o or .so files
+    # which are *not* created from .pyx files.
+    non_cython_source_ls = []
+
+    # we need to monkey with the path a bit to load the
+    # appropriate lists of modules
+    sys.path.append(os.getcwd())
+    from module_list import ext_modules
+    return_dir = os.getcwd()
+    os.chdir('sage/ext')
+    sys.path.append(os.getcwd())
+    from gen_interpreters import modules as gen_modules
+    os.chdir(return_dir)
+    sys.path.pop()
+    sys.path.pop()
+
+    # finally build the list of special source files to
+    # keep track of
+    for x in ext_modules + gen_modules:
+        for y in x.sources:
+            if not y.endswith(dot + 'pyx'):
+                non_cython_source_ls.append(y)
+
+
     # start walking the directory tree. we explicitly set
     # topdown=False, so that we can prune empty directories as we
     # encounter them.
     w = os.walk('build', topdown=False)
     for path, dirs, files in w:
         for filename in files:
-            found = check_file(path + os.path.sep, filename, verbose=verbose)
+            found = check_file(path + os.path.sep, filename,
+                               special_source_files=non_cython_source_ls,
+                               verbose=verbose)
             if not found:
                 if dry_run:
                     print "Remove file: %s"%(path + slash + filename)

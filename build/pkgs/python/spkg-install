@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+B1;2000;0c#!/usr/bin/env bash
 ###########################################
 ## Python
 ###########################################
@@ -28,6 +28,12 @@ fi
 cp patches/pkgutil.py src/Lib/pkgutil.py
 if [ $? -ne 0 ]; then
     echo "Error copying patched pkgutil.py"
+    exit 1
+fi
+
+cp patches/sdist.py src/Lib/distutils/command/sdist.py
+if [ $? -ne 0 ]; then
+    echo "Error copying patched sdist.py"
     exit 1
 fi
 

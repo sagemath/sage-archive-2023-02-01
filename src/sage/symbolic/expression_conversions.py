@@ -1117,13 +1117,16 @@ class FastFloatConverter(Converter):
 
             sage: f = sqrt(x)._fast_float_('x'); f.op_list()
             ['load 0', 'call sqrt(1)']
+
+            sage: f = (1/2*x)._fast_float_('x'); f.op_list()
+            ['load 0', 'push 0.5', 'mul']
         """
         operands = ex.operands()
         if operator is _operator.neg:
             return operator(self(operands[0]))
 
         from sage.rings.all import Rational
-        if operands[1] == Rational(((1,2))):
+        if operator is _operator.pow and operands[1] == Rational(((1,2))):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
         fops = map(self, operands)

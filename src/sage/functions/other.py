@@ -231,10 +231,17 @@ class Function_ceil(PrimitiveFunction):
             ceil(x)
         """
         try:
-            obj = x.pyobject()
-            return SR(ceil(obj))
+            x = x.pyobject()
         except TypeError:
-            pass
+            return None
+
+        try:
+            return x.ceil()
+        except AttributeError:
+            if isinstance(x, (int, long)):
+                return Integer(x)
+            elif isinstance(x, (float, complex)):
+                return Integer(int(math.ceil(x)))
         return None
 
 ceil = Function_ceil()
@@ -360,10 +367,17 @@ class Function_floor(PrimitiveFunction):
             floor(x)
         """
         try:
-            obj = x.pyobject()
-            return obj.floor()
-        except (TypeError, AttributeError):
-            pass
+            x = x.pyobject()
+        except TypeError:
+            return None
+
+        try:
+            return x.floor()
+        except AttributeError:
+            if isinstance(x, (int, long)):
+                return Integer(x)
+            elif isinstance(x, (float, complex)):
+                return Integer(int(math.floor(x)))
         return None
 
 floor = Function_floor()

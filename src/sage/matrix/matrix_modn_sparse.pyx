@@ -975,6 +975,15 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [4 5 6]
             sage: a.lift().parent()
             Full MatrixSpace of 2 by 3 sparse matrices over Integer Ring
+
+        Subdivisions are preserved when lifting::
+
+            sage: a.subdivide([], [1,1]); a
+            [1||2 3]
+            [4||5 6]
+            sage: a.lift()
+            [1||2 3]
+            [4||5 6]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_integer_sparse L
@@ -1001,5 +1010,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             for j from 0 <= j < A_row.num_nonzero:
                 L_row.positions[j] = A_row.positions[j]
                 mpz_init_set_si(L_row.entries[j], A_row.entries[j])
+        L.subdivide(self.get_subdivisions())
         return L
 

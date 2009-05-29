@@ -1284,6 +1284,27 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [  2   3]
             sage: b.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+        TESTS:
+
+        Make sure that subdivisions are preserved when changing rings::
+
+            sage: a = matrix(QQ, 3, range(9))
+            sage: a.subdivide(2,1); a
+            [0|1 2]
+            [3|4 5]
+            [-+---]
+            [6|7 8]
+            sage: a.change_ring(ZZ).change_ring(QQ)
+            [0|1 2]
+            [3|4 5]
+            [-+---]
+            [6|7 8]
+            sage: a.change_ring(GF(3))
+            [0|1 2]
+            [0|1 2]
+            [-+---]
+            [0|1 2]
         """
         if not is_Ring(R):
             raise TypeError, "R must be a ring"
@@ -1294,6 +1315,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             A, d = self._clear_denom()
             if d != 1:
                 raise TypeError, "matrix has denominators so can't change to ZZ."
+            A.subdivide(self.get_subdivisions())
             return A
         elif is_IntegerModRing(R) and R.order() < MAX_MODULUS:
             b = R.order()
@@ -1301,9 +1323,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if gcd(b,d) != 1:
                 raise TypeError, "matrix denominator not coprime to modulus"
             B = A._mod_int(b)
-            return (1/(B.base_ring()(d))) * B
+            C = (1/(B.base_ring()(d))) * B
+            C.subdivide(self.get_subdivisions())
+            return C
         else:
-            return matrix_dense.Matrix_dense.change_ring(self, R)
+            D = matrix_dense.Matrix_dense.change_ring(self, R)
+            D.subdivide(self.get_subdivisions())
+            return D
 
 
 

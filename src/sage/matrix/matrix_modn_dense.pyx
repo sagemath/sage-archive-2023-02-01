@@ -1761,6 +1761,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [4 5 6]
             sage: a.lift().parent()
             Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+
+        Subdivisions are preserved when lifting::
+
+            sage: a.subdivide([], [1,1]); a
+            [1||2 3]
+            [4||5 6]
+            sage: a.lift()
+            [1||2 3]
+            [4||5 6]
         """
         cdef Py_ssize_t i, j
 
@@ -1776,6 +1785,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             for j from 0 <= j < self._ncols:
                 mpz_init_set_si(L_row[j], A_row[j])
         L._initialized = 1
+        L.subdivide(self.get_subdivisions())
         return L
 
 

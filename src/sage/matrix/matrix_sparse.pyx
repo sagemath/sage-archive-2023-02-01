@@ -29,6 +29,33 @@ cdef class Matrix_sparse(matrix.Matrix):
         return 0
 
     def change_ring(self, ring):
+        """
+        Return the matrix obtained by coercing the entries of this matrix
+        into the given ring.
+
+        Always returns a copy (unless self is immutable, in which case
+        returns self).
+
+        EXAMPLES:
+
+            sage: A = matrix(QQ['x,y'], 2, [0,-1,2*x,-2], sparse=True); A
+            [  0  -1]
+            [2*x  -2]
+            sage: A.change_ring(QQ['x,y,z'])
+            [  0  -1]
+            [2*x  -2]
+
+        Subdivisions are preserved when changing rings::
+
+            sage: A.subdivide([2],[]); A
+            [  0  -1]
+            [2*x  -2]
+            [-------]
+            sage: A.change_ring(RR['x,y'])
+            [                 0  -1.00000000000000]
+            [2.00000000000000*x  -2.00000000000000]
+            [-------------------------------------]
+        """
         if not is_Ring(ring):
             raise TypeError, "input must be a ring"
         if ring is self._base_ring:
@@ -37,7 +64,9 @@ cdef class Matrix_sparse(matrix.Matrix):
             return self.copy()
 
         M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse_c())
-        return M(self.dict(), coerce=True, copy=False)
+        mat = M(self.dict(), coerce=True, copy=False)
+        mat.subdivide(self.get_subdivisions())
+        return mat
 
     def __copy__(self):
         """

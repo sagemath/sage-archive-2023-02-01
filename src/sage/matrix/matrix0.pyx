@@ -1459,6 +1459,17 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             TypeError: matrix has denominators so can't change to ZZ.
+
+        Changing rings preserves subdivisions::
+
+            sage: A.subdivide([1], []); A
+            [1/2 1/3]
+            [-------]
+            [1/3 1/4]
+            sage: A.change_ring(GF(25,'a'))
+            [3 2]
+            [---]
+            [2 4]
         """
         if not is_Ring(ring):
             raise TypeError, "ring must be a ring"
@@ -1472,7 +1483,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             return self._change_ring(ring)
         except (AttributeError, NotImplementedError):
             M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
-            return M(self.list(), coerce=True, copy=False)
+            mat = M(self.list(), coerce=True, copy=False)
+            mat.subdivide(self.get_subdivisions())
+            return mat
 
     def _matrix_(self, R):
         """

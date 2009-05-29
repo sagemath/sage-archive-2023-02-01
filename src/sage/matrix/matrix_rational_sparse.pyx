@@ -596,6 +596,14 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             sage: a.dense_matrix()
             [1 2]
             [3 4]
+
+        Check that subdivisions are preserved when converting between
+        dense and sparse matrices::
+
+            sage: a.subdivide([1,1], [2])
+            sage: b = a.dense_matrix().sparse_matrix().dense_matrix()
+            sage: b.get_subdivisions() == a.get_subdivisions()
+            True
         """
         cdef Matrix_rational_dense B
         cdef mpq_vector* v
@@ -605,6 +613,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             v = &(self._matrix[i])
             for j from 0 <= j < v.num_nonzero:
                 mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
+        B.subdivide(self.get_subdivisions())
         return B
 
 ##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,

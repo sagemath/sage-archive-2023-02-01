@@ -16,19 +16,19 @@ item  dft  -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
            * a sequence (as above) indexed by a finite AbelianGroup
-           * a sequnce (as above) indexed by a complete set of representatives of
+           * a sequence (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite permutation group
-           * a sequnce (as above) indexed by a complete set of representatives of
+           * a sequence (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite matrix group
 \item  idft -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
 \item dct, dst  (for discrete Fourier/Cosine/Sine transform)
 \item convolution (in convolution and convolution_periodic)
-\item  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
+\item  fft, ifft - (fast Fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
          using William Stein's FastFourierTransform class
 \item  dwt, idwt - (fast wavelet transforms) wrapping GSL's gsl_dwt_forward, gsl_dwt_backward
-         using Joshua Kantor's WaveletTransform class. Allows for waveltes of
+         using Joshua Kantor's WaveletTransform class. Allows for wavelets of
          type: "haar", "daubechies", "daubechies_centered",
           "haar_centered", "bspline", "bspline_centered".
 \end{itemize}
@@ -573,7 +573,7 @@ class IndexedSequence(SageObject):
     def dwt(self,other="haar",wavelet_k=2):
         """
         Wraps the gsl WaveletTransform.forward in dwt.pyx (written
-        by Johua Kantor). Assumes the length of the sample is a power of 2.
+        by Joshua Kantor). Assumes the length of the sample is a power of 2.
         Uses the GSL function gsl_wavelet_transform_forward.
 
         other -- the wavelet_type:   the name of the type of wavelet,

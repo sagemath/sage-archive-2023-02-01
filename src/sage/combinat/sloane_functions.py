@@ -530,6 +530,62 @@ class A000005(SloaneSequence):
         """
         return arith.number_of_divisors(n)
 
+class A000008(SloaneSequence):
+    def __init__(self):
+        r"""
+        Number of ways of making change for n cents using coins of 1, 2, 5, 10 cents.
+
+        INPUT:
+
+        -  ``n`` - non negative integer
+
+        OUTPUT:
+
+        -  ``integer`` - function value
+
+        EXAMPLES::
+
+            sage: a = sloane.A000008;a
+            Number of ways of making change for n cents using coins of 1, 2, 5, 10 cents.
+            sage: a(0)
+            1
+            sage: a(1)
+            1
+            sage: a(13)
+            16
+            sage: a.list(14)
+            [1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16]
+
+        AUTHOR:
+
+        - J. Gaski (2009-05-29)
+        """
+        SloaneSequence.__init__(self, offset=0)
+
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: sloane.A000008._repr_()
+            'Number of ways of making change for n cents using coins of 1, 2, 5, 10 cents.'
+        """
+        return "Number of ways of making change for n cents using coins of 1, 2, 5, 10 cents."
+
+
+    def _eval(self, n):
+        """
+        EXAMPLES::
+
+            sage: [sloane.A000008._eval(n) for n in range(14)]
+            [1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16]
+        """
+        from sage.rings.big_oh import O
+        R, x = QQ[['x']].objgen()
+        p = 1/((1-x)*(1-x**2)*(1-x**5)*(1-x**10)+O(x**(n+4)))
+        return ZZ(p.coefficients()[n])
+
+
 class A000009(SloaneSequence):
     def __init__(self):
         r"""

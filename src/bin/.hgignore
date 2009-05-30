@@ -105,6 +105,7 @@ lie
 linbox-config
 lisp
 lore
+llldiff
 mailmail
 manhole
 maxima
@@ -268,7 +269,6 @@ ms_print
 rules
 sage
 sagemath.install
-spkg-debian-maybe
 pygmentize
 rst2html.py
 rst2latex.py

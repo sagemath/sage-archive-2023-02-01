@@ -4191,7 +4191,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(0.7).arctan2(0.6))
             0.8621700546672264
             sage: maxima('atan2(0.7,0.6)')
-            .8621700546672264
+            .862170054667226...
             sage: float(SR(0.7).arctan2(-0.6))
             2.2794225989225669
             sage: maxima('atan2(0.7,-0.6)')
@@ -4199,7 +4199,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(-0.7).arctan2(0.6))
             -0.8621700546672264
             sage: maxima('atan2(-0.7,0.6)')
-            -.8621700546672264
+            -.862170054667226...
             sage: float(SR(-0.7).arctan2(-0.6))
             -2.2794225989225669
             sage: maxima('atan2(-0.7,-0.6)')

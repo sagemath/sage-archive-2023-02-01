@@ -60,7 +60,7 @@ class Disk(GraphicPrimitive):
 
         EXAMPLES::
 
-            sage: D = disk((2,3), 1, (pi/2, pi), fill=False, rgbcolor='red', alpha=.5)
+            sage: D = disk((2,3), 1, (pi/2, pi), fill=False, color='red', alpha=.5)
             sage: D[0].x
             2.0
             sage: D[0].r
@@ -84,7 +84,7 @@ class Disk(GraphicPrimitive):
         Returns a dictionary with the bounding box data.
 
         EXAMPLES:
-            sage: D = disk((5,4), 1, (pi/2, pi), rgbcolor=(0,0,0))
+            sage: D = disk((5,4), 1, (pi/2, pi))
             sage: d = D.get_minmax_data()
             sage: d['xmin']
             4.0
@@ -137,7 +137,7 @@ class Disk(GraphicPrimitive):
         """
         TESTS::
 
-            sage: D = disk((2,-1), 2, (0, pi), rgbcolor='black', thickness=3, fill=False); D
+            sage: D = disk((2,-1), 2, (0, pi), thickness=3, fill=False); D
         """
         import matplotlib.patches as patches
         options = self.options()
@@ -208,6 +208,7 @@ class Disk(GraphicPrimitive):
             from line import Line
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
+@rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0)
 def disk(point, radius, angle, **options):
     r"""
@@ -222,15 +223,21 @@ def disk(point, radius, angle, **options):
 
     Make some dangerous disks::
 
-        sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
-        sage: tr = disk((0.0,0.0), 1, (0, pi/2), rgbcolor=(1,1,0))
-        sage: tl = disk((0.0,0.0), 1, (pi/2, pi), rgbcolor=(0,0,0))
-        sage: br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), rgbcolor=(0,0,0))
+        sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
+        sage: tr = disk((0.0,0.0), 1, (0, pi/2), color='yellow')
+        sage: tl = disk((0.0,0.0), 1, (pi/2, pi), color='black')
+        sage: br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), color='black')
         sage: P  = tl+tr+bl+br
-        sage: P.show(figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
+        sage: P.show(aspect_ratio=1,xmin=-2,xmax=2,ymin=-2,ymax=2)
 
     To correct the aspect ratio of certain graphics, it is necessary
-    to show with a ``figsize`` of square dimensions::
+    to show with a ``aspect_ratio`` of one::
+
+        sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
+        sage: bl.show(aspect_ratio=1)
+
+    You can also acheive the same aspect ratio by specifying a ``figsize``
+    with square dimensions::
 
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
         sage: bl.show(figsize=[5,5])

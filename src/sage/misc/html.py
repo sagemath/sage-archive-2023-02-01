@@ -193,10 +193,10 @@ class HTML:
             <th>Functions</th>
             </tr>
             <tr class ="row-a">
-            <td><span class="math">\sin \left( x \right)</span></td>
+            <td><span class="math">\sin\left(x\right)</span></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">\cos \left( x \right)</span></td>
+            <td><span class="math">\cos\left(x\right)</span></td>
             </tr>
             </tbody>
             </table>
@@ -237,7 +237,7 @@ class HTML:
             sage: html._table_columns(["a",1, sin(x)])
             <td>a</td>
             <td><span class="math">1</span></td>
-            <td><span class="math">\sin \left( x \right)</span></td>
+            <td><span class="math">\sin\left(x\right)</span></td>
 
             sage: html._table_columns("a", header = True)
             <th>a</th>

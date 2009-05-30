@@ -53,7 +53,7 @@ AUTHORS:
 ##########################################################################
 
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.plot.all import polygon, line
+from sage.plot.all import polygon, line, text
 from sage.plot.plot import Graphics
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -157,10 +157,12 @@ class IndexedSequence(SageObject):
         """
         return "Indexed sequence: "+str(self.list())+"\n    indexed by "+str(self.index_object())
 
-    def plot_histogram(self):
+    def plot_histogram(self, clr=(0,0,1),eps = 0.4):
         """
         Plots the histogram plot of the sequence, which is assumed to be real
         or from a finite field, with a real indexing set I coercible into RR.
+        Options are clr, which is an rgb value, and eps, which is the spacig between the
+        bars.
 
         EXAMPLES:
             sage: J = range(3)
@@ -170,12 +172,14 @@ class IndexedSequence(SageObject):
 
         Now type show(P) to view this in a browser.
         """
+        #from sage.plot.misc import text
         F = self.base_ring()   ## elements must be coercible into RR
         I = self.index_object()
         N = len(I)
         S = self.list()
-        P = [polygon([[RR(I[i]),0],[RR(I[i]),RR(S[i])],[RR(I[i+1]),RR(S[i])],[RR(I[i+1]),0],[RR(I[i]),0]], rgbcolor=(1,0,0)) for i in range(N-1)]
-        return sum(P)
+        P = [polygon([[RR(I[i])-eps,0],[RR(I[i])-eps,RR(S[i])],[RR(I[i])+eps,RR(S[i])],[RR(I[i])+eps,0],[RR(I[i]),0]], rgbcolor=clr) for i in range(N)]
+        T = [text(str(I[i]),(RR(I[i]),-0.8),fontsize=15,rgbcolor=(1,0,0)) for i in range(N)]
+        return sum(P)+sum(T)
 
     def plot(self):
         """

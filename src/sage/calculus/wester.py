@@ -292,27 +292,26 @@ explicit calls to maxima or other systems.
 
 ::
 
-    sage: # (YES) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
-    sage: # Yes, in that the thing is clearly not equal to 0!
-    sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
+    sage: # (NO, except numerically) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
+    # Sage uses the maxima convention when comparing symbolic expressions and
+    # returns True only when it can prove equality. Thus, in this case, we get
+    # False even though the equality holds.
+    sage: f = log(tan(x/2 + pi/4)) - arcsinh(tan(x))
     sage: bool(f == 0)
     False
     sage: [float(f(x=i/10)) for i in range(1,5)]
-    [-0.0003367004075408...,
-     -0.002777800409662...,
-     -0.00989099409140...,
-     -0.025411145508414...]
+    [5.5511151231257827e-17, -5.5511151231257827e-17, -5.5511151231257827e-17, -1.6653345369377348e-16]
 
 ::
 
-    sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
+    sage: # Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
     sage: g = f.derivative()
     sage: abs(float(f(x=0))) < 1e-10
     True
     sage: abs(float(g(x=0))) < 1e-10
     True
     sage: g
-    -(tan(x)^2 + 1)/sqrt(-tan(x)^2 + 1) + 1/2*(tan(1/4*pi + 1/2*x)^2 + 1)/tan(1/4*pi + 1/2*x)
+    -sqrt(tan(x)^2 + 1) + 1/2*(tan(1/4*pi + 1/2*x)^2 + 1)/tan(1/4*pi + 1/2*x)
 
 ::
 

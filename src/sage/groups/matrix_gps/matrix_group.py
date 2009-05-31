@@ -452,6 +452,25 @@ class MatrixGroup_gap(MatrixGroup_generic):
             sage: G.list()[0] in G
             True
 
+        An example over a ring (see trac 5241)::
+
+            sage: M1 = matrix(ZZ,2,[[-1,0],[0,1]])
+            sage: M2 = matrix(ZZ,2,[[1,0],[0,-1]])
+            sage: M3 = matrix(ZZ,2,[[-1,0],[0,-1]])
+            sage: MG = MatrixGroup([M1, M2, M3])
+            sage: MG.list()
+            [[-1  0]
+            [ 0 -1], [-1  0]
+            [ 0  1], [ 1  0]
+            [ 0 -1], [1 0]
+            [0 1]]
+            sage: MG.list()[1]
+            [-1  0]
+            [ 0  1]
+            sage: MG.list()[1].parent()
+            Matrix group over Integer Ring with 3 generators:
+            [[[-1, 0], [0, 1]], [[1, 0], [0, -1]], [[-1, 0], [0, -1]]]
+
         ::
 
             sage: GL(2,ZZ).list()
@@ -466,6 +485,14 @@ class MatrixGroup_gap(MatrixGroup_generic):
             pass
         if not self.is_finite():
             raise ValueError, "group must be finite"
+
+        MS = self.matrix_space()
+        if not self.base_ring().is_field():
+            s = self._gap_().Elements().str(use_file=True)
+            es = eval(s)
+            v = [MatrixGroupElement(MS(x), self, check=False) for x in es]
+            self.__list = v
+            return list(v)
 
         # Get basic properties of the field over which we are working
         F = self.field_of_definition()
@@ -490,7 +517,6 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
         # Finally, create the matrix space in which all these matrices live,
         # and make each element as a MatrixGroupElement.
-        MS = self.matrix_space()
         v = [MatrixGroupElement(MS(x), self, check=False) for x in v]
         self.__list = v
         return list(v)

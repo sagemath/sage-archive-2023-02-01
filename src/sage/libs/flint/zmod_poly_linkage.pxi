@@ -79,8 +79,21 @@ cdef inline int celement_set(zmod_poly_t res, zmod_poly_t a, unsigned long n) ex
         False
         sage: y == x
         True
+
+        sage: R.<x> = PolynomialRing(Integers(121))
+        sage: S.<y> = PolynomialRing(Integers(11))
+        sage: S(50*x)
+        6*y
+        sage: R(S(50*x))
+        6*x
     """
-    zmod_poly_set(res, a)
+    cdef unsigned long i
+    if a.p <= n:
+        zmod_poly_set(res, a)
+    else:
+        zmod_poly_zero(res)
+        for i from 0 <= i < a.length:
+            zmod_poly_set_coeff_ui(res, i, zmod_poly_get_coeff_ui(a, i) % n)
 
 cdef inline int celement_set_si(zmod_poly_t res, long i, unsigned long n) except -2:
     """

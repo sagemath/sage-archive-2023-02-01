@@ -981,13 +981,19 @@ def sqrt(x):
     """
     Return a square root of x.
 
+    This function (``numerical_sqrt``) is deprecated.  Use ``sqrt(x,
+    prec=n)`` instead.
+
     EXAMPLES::
 
-        sage: sqrt(10.1)
+        sage: numerical_sqrt(10.1)
+        doctest:1: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
         3.17804971641414
-        sage: sqrt(9)
+        sage: numerical_sqrt(9)
         3
     """
+    from sage.misc.misc import deprecation
+    deprecation("numerical_sqrt is deprecated, use sqrt(x, prec=n) instead")
     try: return x.sqrt()
     except (AttributeError, ValueError):
         try:

@@ -204,6 +204,16 @@ def process_docstring_aliases(app, what, name, obj, options, docstringlines):
     if hasattr(obj, '__name__') and obj.__name__ != basename:
         docstringlines[:] = ['See :obj:`%s`.' % name]
 
+def process_directives(app, what, name, obj, options, docstringlines):
+    """
+    Remove 'nodetex' and other directives from the first line of any
+    docstring where they appear.
+    """
+    first_line = docstringlines[0]
+    directives = [ d.lower() for d in first_line.split(',') ]
+    if 'nodetex' in directives:
+        docstringlines.pop(0)
+
 def process_docstring_cython(app, what, name, obj, options, docstringlines):
     """
     Remove Cython's filename and location embedding.
@@ -242,4 +252,5 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
 
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
+    app.connect('autodoc-process-docstring', process_directives)
     app.connect('autodoc-process-docstring', process_docstring_module_title)

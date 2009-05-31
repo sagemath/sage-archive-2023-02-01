@@ -66,7 +66,7 @@ build()
 
     $MAKE
     if [ $? -ne 0 ]; then
-        echo "Error building GMP."
+        echo "Error building MPIR."
         exit 1
     fi
 
@@ -77,7 +77,7 @@ build()
     $MAKE install
     if [ $? -ne 0 ]; then
         if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.
-            echo "Error installing GMP."
+            echo "Error installing MPIR."
             exit 1
         fi
     fi
@@ -86,7 +86,7 @@ build()
     $MAKE install-gmpcompat
     if [ $? -ne 0 ]; then
         if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.
-            echo "Error installing GMP."
+            echo "Error installing MPIR."
             exit 1
         fi
     fi
@@ -98,12 +98,11 @@ cd src
 build
 
 if ! [ $? -eq 0 ]; then
-    echo "Failed to build shared GMP library."
+    echo "Failed to build shared MPIR library."
     exit 1
 fi
 
-#uncomment the line below to avoid running the test suite.
-#this should be done in all final releases
-#exit 0
-#cd ..; ./spkg-check
+# comment out the line below to avoid running the test suite, which
+# should be done in all final releases
+cd ..; ./spkg-check
 

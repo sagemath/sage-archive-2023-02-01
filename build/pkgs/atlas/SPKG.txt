@@ -30,6 +30,9 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p2 (William Stein, May 31, 2009) ===
+ * Change SAGE_SIMD_MODE --> SAGE_FAT_BINARY
+
 === atlas-3.8.3.p1 (Michael Abshoff, April 17th, 2009) ===
  * Introduce SAGE_SIMD_MODE. If set to SSE2 only use SSE1 and SSE2 instructions (#5219)
  * Detect Atom CPUs as Core2 (#5741)

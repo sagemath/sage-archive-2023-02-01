@@ -40,7 +40,11 @@ config()
 	# -t 0: disable threading for now.
         # -A: select arch where 21 is Hammer
         # -V: select SIMD extensions, i.e. 24 is SSE1 + SSE2
-	if [ "$SAGE_SIMD_MODE" = "SSE2" ]; then
+	if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+           # Currently in fat mode we just fall back to SSE2.  In the long run, we will build
+           # both an sse2 and sse3, and install them somewhere, and switch to the best one
+           # at runtime.
+           echo "Sage fat binary mode set"
            echo "Building SSE2 only Hammer binary"
            SIMD_FLAGS="-V 24 -A 21"; export SIMD_FLAGS
         else

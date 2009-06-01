@@ -57,4 +57,7 @@ from spike_function import spike_function
 
 from prime_pi import prime_pi
 
+from wigner import (Wigner3j, ClebschGordan, Racah, Wigner6j,
+                    Wigner9j, Gaunt)
+
 from generalized import (dirac_delta, heaviside, unit_step)

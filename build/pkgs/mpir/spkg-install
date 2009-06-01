@@ -54,6 +54,22 @@ build()
                 remove_pic_osx_32_bit
             fi
         fi;;
+
+    Linux)
+        if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+           # For now we do the same thing -- namely "--enable-fat" --
+           # on both 64-bit and 32-bit, though this is likely to
+           # change.
+           if [ "`uname -m`" = "i386" ]; then
+                echo "** Building with FAT Binary Support (32-bit) **"
+                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
+           fi
+           if [ "`uname -m`" = "x86_64" ]; then
+                echo "** Building with FAT Binary Support (64-bit) **"
+                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
+           fi
+        fi
+
     esac
 
     export ABI CFLAGS CXXFLAGS

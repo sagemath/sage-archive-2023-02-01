@@ -60,7 +60,7 @@ class Disk(GraphicPrimitive):
 
         EXAMPLES::
 
-            sage: D = disk((2,3), 1, (pi/2, pi), fill=False, color='red', alpha=.5)
+            sage: D = disk((2,3), 1, (pi/2, pi), fill=False, color='red', thickness=1, alpha=.5)
             sage: D[0].x
             2.0
             sage: D[0].r
@@ -137,7 +137,7 @@ class Disk(GraphicPrimitive):
         """
         TESTS::
 
-            sage: D = disk((2,-1), 2, (0, pi), thickness=3, fill=False); D
+            sage: D = disk((2,-1), 2, (0, pi), color='black', thickness=3, fill=False); D
         """
         import matplotlib.patches as patches
         options = self.options()
@@ -246,6 +246,9 @@ def disk(point, radius, angle, **options):
     that option when using ``fill=False``::
 
         sage: disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=False, thickness=2)
+
+    The previous two examples also illustrate using ``hue`` and ``rgbcolor``
+    as ways of specifying the color of the graphic.
 
     We can also use this command to plot three-dimensional disks parallel
     to the `xy`-plane.

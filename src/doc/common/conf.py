@@ -209,6 +209,8 @@ def process_directives(app, what, name, obj, options, docstringlines):
     Remove 'nodetex' and other directives from the first line of any
     docstring where they appear.
     """
+    if len(docstringlines) == 0:
+        return
     first_line = docstringlines[0]
     directives = [ d.lower() for d in first_line.split(',') ]
     if 'nodetex' in directives:

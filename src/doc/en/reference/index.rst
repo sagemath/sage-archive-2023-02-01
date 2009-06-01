@@ -57,6 +57,7 @@ Enjoy Sage!
    networking
    cryptography
    combinat/index
+   numerical
    probability
    categories
    monoids

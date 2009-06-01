@@ -2,30 +2,40 @@
 Numerical Root Finding and Optimization
 
 AUTHOR:
-    -- William Stein (2007)
+
+- William Stein (2007): initial version
 """
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
 def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
     """
-    Numerically find a root of f on the closed interval [a,b]
-    (or [b,a]) if possible, where f is a function in the one variable.
+    Numerically find a root of ``f`` on the closed interval `[a,b]`
+    (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
+
 
     INPUT:
-        f -- a function of one variable or symbolic equality
-        a, b -- endpoints of the interval
-        xtol, rtol -- the routine converges when a root is known
-                to lie within xtol of the value return. Should be
-                >= 0.  The routine modifies this to take into
-                account the relative precision of doubles.
-        maxiter -- integer; if convergence is not achieved in
-                maxiter iterations, an error is raised. Must be >= 0.
-        full_output -- bool (default: False), if True, also return
-                object that contains information about convergence.
+
+    - ``f`` -- a function of one variable or symbolic equality
+
+    - ``a``, ``b`` -- endpoints of the interval
+
+    - ``xtol``, ``rtol`` -- the routine converges when a root is known
+      to lie within ``xtol`` of the value return. Should be `\geq 0`.
+      The routine modifies this to take into account the relative precision
+      of doubles.
+
+    - ``maxiter`` -- integer; if convergence is not achieved in
+      ``maxiter`` iterations, an error is raised. Must be `\geq 0`.
+
+    - ``full_output`` -- bool (default: ``False``), if ``True``, also return
+      object that contains information about convergence.
+
 
     EXAMPLES:
-    An example involving an algebraic polynomial function.
+
+    An example involving an algebraic polynomial function::
+
         sage: R.<x> = QQ[]
         sage: f = (x+17)*(x-3)*(x-1/8)^3
         sage: find_root(f, 0,4)
@@ -36,18 +46,21 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
         -17.0
 
     In Pomerance book on primes he asserts that the famous Riemann
-    Hypothesis is equivalent to the statement that the function f(x)
-    defined below is positive for all $x\geq 2.01$
+    Hypothesis is equivalent to the statement that the function `f(x)`
+    defined below is positive for all `x \geq 2.01`::
+
         sage: def f(x):
         ...       return sqrt(x) * log(x) - abs(Li(x) - prime_pi(x))
 
-    We find where $f$ equals, i.e., what value that is slightly smaller
-    than $2.01$ that could have been used in the formulation of the Riemann
-    Hypothesis:
+    We find where `f` equals, i.e., what value that is slightly smaller
+    than `2.01` that could have been used in the formulation of the Riemann
+    Hypothesis::
+
         sage: find_root(f, 2, 4, rtol=0.0001)
         2.0082590205656166
 
-    This agrees with the plot:
+    This agrees with the plot::
+
         sage: plot(f,2,2.01)
     """
     try:
@@ -92,13 +105,14 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
 
 def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     """
-    Numerically find the maximum of the expression f on the interval
-    [a,b] (or [b,a]) along with the point at which the maximum is attained.
+    Numerically find the maximum of the expression `f` on the interval
+    `[a,b]` (or `[b,a]`) along with the point at which the maximum is attained.
 
-    See the documentation for \code{find_minimum_on_interval}
+    See the documentation for :meth:`.find_minimum_on_interval`
     for more details.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: f = lambda x: x*cos(x)
         sage: find_maximum_on_interval(f, 0,5)
         (0.561096338191..., 0.8603335890...)
@@ -120,21 +134,31 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
 
 def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     """
-    Numerically find the minimum of the expression self on the
-    interval [a,b] (or [b,a]) and the point at which it attains that
-    minimum.  Note that self must be a function of (at most) one
+    Numerically find the minimum of the expression ``self`` on the
+    interval `[a,b]` (or `[b,a]`) and the point at which it attains that
+    minimum.  Note that ``self`` must be a function of (at most) one
     variable.
 
+
     INPUT:
-        a,b -- endpoints of interval on which to minimize self.
-        tol -- the convergence tolerance
-        maxfun -- maximum function evaluations
+
+    - ``a``, ``b`` -- endpoints of interval on which to minimize self.
+
+    - ``tol`` -- the convergence tolerance
+
+    - ``maxfun`` -- maximum function evaluations
+
 
     OUTPUT:
-        minval -- (float) the minimum value that self takes on in the interval [a,b]
-        x -- (float) the point at which self takes on the minimum value
 
-    EXAMPLES:
+    - ``minval`` -- (float) the minimum value that self takes on in the
+      interval `[a,b]`
+
+    - ``x`` -- (float) the point at which self takes on the minimum value
+
+
+    EXAMPLES::
+
         sage: f = lambda x: x*cos(x)
         sage: find_minimum_on_interval(f, 1, 5)
         (-3.28837139559..., 3.4256184695...)
@@ -146,10 +170,15 @@ def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
         sage: find_minimum_on_interval(f, 1, 15)
         (-9.4772942594..., 9.5293344109...)
 
-    ALGORITHM: Uses scipy.optimize.fminbound which uses Brent's method.
+
+    ALGORITHM:
+
+    Uses scipy.optimize.fminbound which uses Brent's method.
+
 
     AUTHOR:
-         -- William Stein (2007-12-07)
+
+    - William Stein (2007-12-07)
     """
     try:
         return f.find_minimum_on_interval(a=a, b=b, tol=tol,maxfun=maxfun)
@@ -163,37 +192,47 @@ def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
 
 def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     r"""
-    This function is an interface to a variety of algorithms for computing the minimum of
-    a function of several variables.
+    This function is an interface to a variety of algorithms for computing
+    the minimum of a function of several variables.
+
 
     INPUT:
-       func - Either a symbolic function or a Python function whose argument is a tuple with n components
 
-       x0 - Initial point for finding minimum.
+    - ``func`` -- Either a symbolic function or a Python function whose
+      argument is a tuple with `n` components
 
-       gradient - Optional gradient function. This will be computed automatically for symbolic functions.
+    - ``x0`` -- Initial point for finding minimum.
 
-                  For Python functions, it allows the use of algorithms requiring derivatives.  It should
-                  accept a tuple of arguments and return a numpy array containing the partial derivatives
-                  at that point.
+    - ``gradient`` -- Optional gradient function. This will be computed
+      automatically for symbolic functions.  For Python functions, it allows
+      the use of algorithms requiring derivatives.  It should accept a
+      tuple of arguments and return a numpy array containing the partial
+      derivatives at that point.
 
-       hessian -  Optional hessian function. This will be computed automatically for symbolic functions.
+    - ``hessian`` --  Optional hessian function. This will be computed
+      automatically for symbolic functions. For Python functions, it allows
+      the use of algorithms requiring derivatives. It should accept a tuple
+      of arguments and return a numpy array containing the second partial
+      derivatives of the function.
 
-                  For Python functions, it allows the use of algorithms requiring derivatives. It should accept
-                  a tuple of arguments and return a numpy array containing the 2nd partial derivatives
-                  of the function.
+    - ``algorithm`` -- String specifying algorithm to use. Options are
+      ``'default'`` (for Python functions, the simplex method is the default)
+      (for symbolic functions bfgs is the default):
 
-       algorithm - String specifying algorithm to use. Options are
-                   "default" (for Python functions, the simplex method is the default)
-                             (for symbolic functions bfgs is the default)
-                   "simplex"
-                   "powell"
-                   "bfgs" - (broyden-fletcher-goldfarb-shannon) - requires gradient
-                   "cg" - (conjugate-gradient) -requires gradient
-                   "ncg" - (newton-conjugate gradient) - requires gradient and hessian
+       - ``'simplex'``
+
+       - ``'powell'``
+
+       - ``'bfgs'`` -- (broyden-fletcher-goldfarb-shannon) requires
+         ``gradient``
+
+       - ``'cg'`` -- (conjugate-gradient) requires gradient
+
+       - ``'ncg'`` -- (newton-conjugate gradient) requires gradient and hessian
 
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: vars=var('x y z')
         sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
         sage: minimize(f,[.1,.3,.4],disp=0)
@@ -202,14 +241,15 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
         (0.9999999..., 0.999999..., 0.999999...)
 
-      Same example with just Python functions:
+    Same example with just Python functions::
 
         sage: def rosen(x): # The Rosenbrock function
         ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
         sage: minimize(rosen,[.1,.3,.4],disp=0)
         (1.00..., 1.00..., 1.00...)
 
-      Same example with a pure Python function and a Python function to compute the gradient
+    Same example with a pure Python function and a Python function to
+    compute the gradient::
 
         sage: def rosen(x): # The Rosenbrock function
         ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
@@ -226,7 +266,6 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         ...      return der
         sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
         (1.00...,  1.00..., 1.00...)
-
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
@@ -270,63 +309,78 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     r"""
     Minimize a function with constraints.
 
+
     INPUT:
-       func - Either a symbolic function, or a Python function whose argument is a tuple with n components
 
-       cons - constraints. This should be either a function or list of functions that must be positive.
-              Alternatively, the constraints can be specified as a list of intervals that define the
-              region we are minimizing in.
+    - ``func`` -- Either a symbolic function, or a Python function whose
+      argument is a tuple with n components
 
-              If the constraints are specified as functions, the functions should be functions of a tuple
-              with n components (assuming n variables).
+    - ``cons`` -- constraints. This should be either a function or list of
+      functions that must be positive. Alternatively, the constraints can
+      be specified as a list of intervals that define the region we are
+      minimizing in. If the constraints are specified as functions, the
+      functions should be functions of a tuple with `n` components
+      (assuming `n` variables). If the constraints are specifed as a list
+      of intervals and there are no constraints for a given variable, that
+      component can be (``None``, ``None``).
 
-              If the constraints are specifed as a list of intervals and there are no constraints for a given
-              variable, that component can be (None,None).
+    - ``x0`` -- Initial point for finding minimum
 
-       x0 - Initial point for finding minimum
+    - ``algorithm`` -- Optional, specify the algorithm to use:
 
-       algorithm - Optional, specify the algorithm to use:
-                   "default"  - default choices
-                   "l-bfgs-b" - only effective, if you specify bound constraints
-                                Ref.: C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778: L-BFGS-B,
-                                      FORTRAN routines for large scale bound constrained optimization (1997),
-                                      ACM Transactions on Mathematical Software, Vol 23, Num. 4, pp. 550 - 560.
+      - ``'default'``  -- default choices
 
-       gradient - Optional gradient function. This will be computed automatically for symbolic functions.
-                  This is only used when the constraints are specified as a list of intervals.
+      - ``'l-bfgs-b'`` -- only effective if you specify bound constraints.
+        See [ZBN97]_.
 
-      EXAMPLES:
-        Let us maximize $x+y-50$  subject to the following constraints: $50*x+24*y<=2400$,
-        $30*x+33*y<=2100$, $x>=45$, and $y>=5$.
+    - ``gradient`` -- Optional gradient function. This will be computed
+      automatically for symbolic functions. This is only used when the
+      constraints are specified as a list of intervals.
 
-          sage: y = var('y')
-          sage: f = lambda p: -p[0]-p[1]+50
-          sage: c_1 = lambda p: p[0]-45
-          sage: c_2 = lambda p: p[1]-5
-          sage: c_3 = lambda p: -50*p[0]-24*p[1]+2400
-          sage: c_4 = lambda p: -30*p[0]-33*p[1]+2100
-          sage: a = minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
-          sage: a
-          (45.0, 6.25)
 
-        Let's find a minimum of sin(x*y):
+    EXAMPLES:
 
-          sage: x,y = var('x y')
-          sage: f = sin(x*y)
-          sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
-          (4.8..., 4.8...)
+    Let us maximize `x + y - 50` subject to the following constraints:
+    `50x + 24y \leq 2400`, `30x + 33y \leq 2100`, `x \geq 45`,
+    and `y \geq 5`::
 
-        Check, if L-BFGS-B finds the same minimum:
-          sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
-          (4.7..., 4.9...)
+        sage: y = var('y')
+        sage: f = lambda p: -p[0]-p[1]+50
+        sage: c_1 = lambda p: p[0]-45
+        sage: c_2 = lambda p: p[1]-5
+        sage: c_3 = lambda p: -50*p[0]-24*p[1]+2400
+        sage: c_4 = lambda p: -30*p[0]-33*p[1]+2100
+        sage: a = minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
+        sage: a
+        (45.0, 6.25)
 
-        Rosenbrock funcion, [http://en.wikipedia.org/wiki/Rosenbrock_function]:
-          sage: from scipy.optimize import rosen, rosen_der
-          sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
-          (-10.0, 10.0)
-          sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
-          (-10.0, 10.0)
+    Let's find a minimum of `\sin(xy)`::
 
+        sage: x,y = var('x y')
+        sage: f = sin(x*y)
+        sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
+        (4.8..., 4.8...)
+
+    Check, if L-BFGS-B finds the same minimum::
+
+        sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
+        (4.7..., 4.9...)
+
+    Rosenbrock funcion, [http://en.wikipedia.org/wiki/Rosenbrock_function]::
+
+        sage: from scipy.optimize import rosen, rosen_der
+        sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
+        (-10.0, 10.0)
+        sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
+        (-10.0, 10.0)
+
+
+    REFERENCES:
+
+    .. [ZBN97] C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778:
+      L-BFGS-B, FORTRAN routines for large scale bound constrained
+      optimization. ACM Transactions on Mathematical Software, Vol 23, Num. 4,
+      pp.550--560, 1997.
     """
     from sage.symbolic.expression import Expression
     import scipy
@@ -366,33 +420,47 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
 def linear_program(c,G,h,A=None,b=None):
     """
-     Solves the dual linear programs:
+    Solves the dual linear programs:
 
-     \begin{itemize}
-       \item Minimize  $c'*x$ subject to $G*x + s = h$, $A*x=b$, and $s>=0$ where
-       ' denotes transpose.
-       \item Maximize  $-h'*z - b'*y$ subject to $G'*z + A'*y + c = 0$ and $z>=0$.
-     \end{itemize}
+    - Minimize  `c'x` subject to `Gx + s = h`, `Ax = b`, and `s \geq 0` where
+      `'` denotes transpose.
+
+    - Maximize  `-h'z - b'y` subject to `G'z + A'y + c = 0` and `z \geq 0`.
+
 
     INPUT:
-        c - a vector
-        G - a matrix
-        h - a vector
-        A - a matrix
-        b - a vector
 
-        These can be over any field that can be turned into a floating point number.
+    - ``c`` -- a vector
+
+    - ``G`` -- a matrix
+
+    - ``h`` -- a vector
+
+    - ``A`` -- a matrix
+
+    - ``b`` --- a vector
+
+    These can be over any field that can be turned into a floating point
+    number.
+
 
     OUTPUT:
-        A dictionary sol with keys x,s,y,z corresponding to the variables above
 
-        sol['x'] - the solution to the linear program
-        sol['s'] - the slack variables for the solution
-        sol['z'] , sol['y'] - solutions to the dual program
+    A dictionary ``sol`` with keys ``x``, ``s``, ``y``, ``z`` corresponding
+    to the variables above:
+
+    - ``sol['x']`` -- the solution to the linear program
+
+    - ``sol['s']`` -- the slack variables for the solution
+
+    - ``sol['z']``, ``sol['y']`` -- solutions to the dual program
+
 
     EXAMPLES:
-      First, we minimize $-4x_1 - 5x_2$ subject to $2x_1 + x_2 <=3$,  $x_1 +  2x_2 <=3$,
-      $x_1 >= 0$, and $x_2 >= 0$.
+
+    First, we minimize `-4x_1 - 5x_2` subject to `2x_1 + x_2 \leq 3`,
+    `x_1 +  2x_2 \leq 3`, `x_1 \geq 0`, and `x_2 \geq 0`::
+
         sage: c=vector(RDF,[-4,-5])
         sage: G=matrix(RDF,[[2,1],[1,2],[-1,0],[0,-1]])
         sage: h=vector(RDF,[3,3,0,0])
@@ -400,15 +468,15 @@ def linear_program(c,G,h,A=None,b=None):
         sage: sol['x']
         (0.999..., 1.000...)
 
-      Next, we maximize $x+y-50$ subject to $50*x+24*y<=2400$, $30*x+33*y<=2100$, $x>=45$,
-      and $y>=5$.
+    Next, we maximize `x+y-50` subject to `50x + 24y \leq 2400`,
+    `30x + 33y \leq 2100`, `x \geq 45`, and `y \geq 5`::
+
         sage: v=vector([-1.0,-1.0,-1.0])
         sage: m=matrix([[50.0,24.0,0.0],[30.0,33.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0]])
         sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
         sage: sol=linear_program(v,m,h)
         sage: sol['x']
         (45.000000..., 6.2499999...3, 1.00000000...)
-
     """
     from cvxopt.base import matrix as m
     from cvxopt import solvers
@@ -431,59 +499,76 @@ def linear_program(c,G,h,A=None,b=None):
 
 def find_fit(data, model, initial_guess = None, parameters = None, variables = None, solution_dict = False):
     r"""
-    Finds numerical estimates for the parameters of the function model to give a best fit to data.
+    Finds numerical estimates for the parameters of the function model to
+    give a best fit to data.
+
 
     INPUT:
-       data - A two dimensional table of floating point numbers of the form
-              [[x_{1,1}, x_{1,2}, \ldots, x_{1,k}, f_1],
-               [x_{2,1}, x_{2,2}, \ldots, x_{2,k}, f_2],
-               \ldots,
-               [x_{n,1}, x_{n,2}, \ldots, x_{n,k}, f_n]]
-              given as either a list of lists, matrix, or numpy array.
 
-       model - Either a symbolic expression, symbolic function, or a Python function.
-               model has to be a function of the variables (x_1, x_2, \ldots, x_k) and
-               free parameters (a_1, a_2, \ldots, a_l).
+    - ``data`` -- A two dimensional table of floating point numbers of the
+      form `[[x_{1,1}, x_{1,2}, \ldots, x_{1,k}, f_1],
+      [x_{2,1}, x_{2,2}, \ldots, x_{2,k}, f_2],
+      \ldots,
+      [x_{n,1}, x_{n,2}, \ldots, x_{n,k}, f_n]]` given as either a list of
+      lists, matrix, or numpy array.
 
-       initial_guess - (default: None) Initial estimate for the parameters (a_1, a_2, \ldots, a_l),
-                       given as either a list, tuple, vector or numpy array.
-                       If None the default estimate for each parameter is 1.
+    - ``model`` -- Either a symbolic expression, symbolic function, or a
+      Python function. ``model`` has to be a function of the variables
+      `(x_1, x_2, \ldots, x_k)` and free parameters
+      `(a_1, a_2, \ldots, a_l)`.
 
-       parameters - (default: None) A list of the parameters (a_1, a_2, \ldots, a_l),
-                    If model is a symbolic function it is ignored, and the free parameters
-                    of the symbolic function are used.
+    - ``initial_guess`` -- (default: ``None``) Initial estimate for the
+      parameters `(a_1, a_2, \ldots, a_l)`, given as either a list, tuple,
+      vector or numpy array. If ``None``, the default estimate for each
+      parameter is `1`.
 
-       variables - (default: None) A list of the variables (x_1, x_2, \ldots, x_k).
-                   If model is a symbolic function it is ignored, and the variables of
-                   the symbolic function are used.
+    - ``parameters`` -- (default: ``None``) A list of the parameters
+      `(a_1, a_2, \ldots, a_l)`. If model is a symbolic function it is
+      ignored, and the free parameters of the symbolic function are used.
 
-       solution_dict - (default: False) if True, return the solution
-                       as a dictionary rather than an equation.
+    - ``variables`` -- (default: ``None``) A list of the variables
+      `(x_1, x_2, \ldots, x_k)`. If model is a symbolic function it is
+      ignored, and the variables of the symbolic function are used.
 
-      EXAMPLES:
-        First we create some datapoints of a sine function with some random perturbations:
-          sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]
-          sage: var('a, b, c, x')
-          (a, b, c, x)
+    - ``solution_dict`` -- (default: ``False``) if ``True``, return the
+      solution as a dictionary rather than an equation.
 
-        We define a function with free parameters $a$, $b$ and $c$:
-          sage: model(x) = a * sin(b * x - c)
 
-        We search for the parameters that give the best fit to the data:
-          sage: find_fit(data, model)
-          [a == 1.21..., b == 0.49..., c == 0.19...]
+    EXAMPLES:
 
-        We can also use a python function for the model:
-          sage: def f(x, a, b, c): return a * sin(b * x - c)
-          sage: find_fit(data, f, parameters = [a, b, c], variables = [x], solution_dict = True)
-          {a: 1.21..., b: 0.49..., c: 0.19...}
+    First we create some datapoints of a sine function with some random
+    perturbations::
 
-        We search for a formula for the n-th prime number:
-          sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
-          sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
-          [a == 1.11..., b == 1.24...]
+        sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]
+        sage: var('a, b, c, x')
+        (a, b, c, x)
 
-      ALGORITHM: Uses scipy.optimize.leastsq which in turn uses MINPACK's lmdif and lmder algorithms.
+    We define a function with free parameters `a`, `b` and `c`::
+
+        sage: model(x) = a * sin(b * x - c)
+
+    We search for the parameters that give the best fit to the data::
+
+        sage: find_fit(data, model)
+        [a == 1.21..., b == 0.49..., c == 0.19...]
+
+    We can also use a Python function for the model::
+
+        sage: def f(x, a, b, c): return a * sin(b * x - c)
+        sage: find_fit(data, f, parameters = [a, b, c], variables = [x], solution_dict = True)
+        {a: 1.21..., b: 0.49..., c: 0.19...}
+
+    We search for a formula for the `n`-th prime number::
+
+        sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
+        sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
+        [a == 1.11..., b == 1.24...]
+
+
+    ALGORITHM:
+
+    Uses ``scipy.optimize.leastsq`` which in turn uses MINPACK's lmdif and
+    lmder algorithms.
     """
     import numpy
 

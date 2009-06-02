@@ -698,7 +698,7 @@ def nintegral(ex, x, a, b,
     ::
 
         sage: numerical_integral(f, 0, 1)
-        (0.52848223225314706, 6.8392846084921134e-07)
+        (0.52848223225314706, 6.83928460...e-07)
 
     Note that in exotic cases where floating point evaluation of the
     expression leads to the wrong value, then the output can be

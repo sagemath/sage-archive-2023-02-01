@@ -763,8 +763,8 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^2 + 1)
-            sage: CDF(a)
-            1.0*I
+            sage: abs(CDF(a))
+	    1.0
         """
         return CDF(self.complex_embedding())
 

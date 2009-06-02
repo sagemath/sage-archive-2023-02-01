@@ -30,6 +30,9 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p3 (William Stein, June 2, 2009) ===
+ * Fix so SAGE_FAT_BINARY *only* used on x86 boxes.
+
 === atlas-3.8.3.p2 (William Stein, May 31, 2009) ===
  * Change SAGE_SIMD_MODE --> SAGE_FAT_BINARY
 

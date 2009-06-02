@@ -40,15 +40,18 @@ config()
 	# -t 0: disable threading for now.
         # -A: select arch where 21 is Hammer
         # -V: select SIMD extensions, i.e. 24 is SSE1 + SSE2
+        SIMD_FLAGS=""
 	if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-           # Currently in fat mode we just fall back to SSE2.  In the long run, we will build
-           # both an sse2 and sse3, and install them somewhere, and switch to the best one
-           # at runtime.
-           echo "Sage fat binary mode set"
-           echo "Building SSE2 only Hammer binary"
-           SIMD_FLAGS="-V 24 -A 21"; export SIMD_FLAGS
-        else
-           SIMD_FLAGS=""; export SIMD_FLAGS
+           if [ "`uname -p`" = "i386" -o "`uname -p`" = "x86_64" ]; then
+              # Currently in fat mode we just fall back to SSE2.  In the long run, we will build
+              # both an sse2 and sse3, and install them somewhere, and switch to the best one
+              # at runtime.
+              echo "Sage 'fat' binary mode set"
+              echo "Building SSE2 only Hammer binary"
+              echo "NOTE: This can result in a Sage that is significantly slower at certain numerical linear algebra"
+              echo "since full FAT binary support has not been implemented yet."
+              SIMD_FLAGS="-V 24 -A 21"
+           fi
         fi
 	../src/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
 	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth $SIMD_FLAGS

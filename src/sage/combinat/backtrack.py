@@ -5,21 +5,25 @@ This library contains generic tools for constructing large sets whose
 elements can be enumerated by exploring a search space with a (lazy)
 tree or graph structure.
 
- - SearchForest:
-   Depth first search through a tree described by a `children` function
- - GenericBacktracker:
-   Depth first search through a tree described by a `children` function, with branch pruning, ...
- - TransitiveIdeal:
-   Depth first search through a graph described by a `neighbours` relation
- - TransitiveIdealGraded:
-   Breath first search through a graph described by a `neighbours` relation
+- :class:`~sage.combinat.backtrack.SearchForest`: Depth first search through a
+  tree described by a ``children`` function.
+- :class:`~sage.combinat.backtrack.GenericBacktracker`: Depth first search
+  through a tree described by a ``children`` function, with branch pruning,
+  etc.
+- :class:`~sage.combinat.backtrack.TransitiveIdeal`: Depth first search through a
+  graph described by a ``neighbours`` relation.
+- :class:`~sage.combinat.backtrack.TransitiveIdealGraded`: Breath first search
+  through a graph described by a ``neighbours`` relation.
 
-Todo: find a good and consistent naming scheme!!! Do we want to
-emphasize the underlying graph/tree structure? The branch&bound
-aspect? The transitive closure of a relation point of view?
+TODO:
 
-Todo: do we want TransitiveIdeal(relation, generators) or TransitiveIdeal(generators, relation)?
-The code needs to be standardized once the choice is done.
+#. Find a good and consistent naming scheme! Do we want to emphasize the
+   underlying graph/tree structure? The branch & bound aspect? The transitive
+   closure of a relation point of view?
+
+#. Do we want ``TransitiveIdeal(relation, generators)`` or
+   ``TransitiveIdeal(generators, relation)``?  The code needs to be standardized once
+   the choice is made.
 
 """
 #*****************************************************************************
@@ -39,11 +43,12 @@ The code needs to be standardized once the choice is done.
 #*****************************************************************************
 class GenericBacktracker(object):
     r"""
-    A generic backtrack tool for exploring a search space organized as
-    a tree, with branch pruning, ...
+    A generic backtrack tool for exploring a search space organized as a tree,
+    with branch pruning, etc.
 
-    See also ``SearchForest`` and ``TransitiveIdeal`` for handling
-    simple special cases.
+    See also :class:`~sage.combinat.backtrack.SearchForest` and
+    :class:`~sage.combinat.backtrack.TransitiveIdeal` for handling simple
+    special cases.
     """
 
     def __init__(self, initial_data, initial_state):
@@ -97,26 +102,25 @@ class GenericBacktracker(object):
 
 def search_forest_iterator(roots, children):
     r"""
-    INPUT:
-
-     - ``roots``: a list (or iterable)
-
-     - ``children``: a function returning a list (or iterable)
-
     Returns an iterator on the nodes of the forest having the given
     roots, and where ``children(x)`` returns the children of the node ``x``
     of the forest.  Note that every node of the tree is returned,
     not simply the leaves.
 
+    INPUT:
+
+    - ``roots``: a list (or iterable)
+    - ``children``: a function returning a list (or iterable)
+
     EXAMPLES:
 
-        Search tree where leaves are binary sequences of length 3::
+    Search tree where leaves are binary sequences of length 3::
 
         sage: from sage.combinat.backtrack import search_forest_iterator
         sage: list(search_forest_iterator([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else []))
         [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
 
-        Search tree where leaves are ordered sequences of length 2 from a 4-set::
+    Search tree where leaves are ordered sequences of length 2 from a 4-set::
 
         sage: from sage.combinat.backtrack import search_forest_iterator
         sage: list(search_forest_iterator([[]], lambda l: [l + [i] for i in range(4) if i not in l] if len(l) < 2 else []))
@@ -142,25 +146,26 @@ def search_forest_iterator(roots, children):
 from sage.combinat.combinat import CombinatorialClass
 class SearchForest(CombinatorialClass):
     r"""
-    INPUT::
+    Returns the set of nodes of the forest having the given roots, and where
+    ``children(x)`` returns the children of the node ``x`` of the forest.
 
-     - ``roots``: a list (or iterable)
+    See also :class:`~sage.combinat.backtrack.GenericBacktracker`,
+    :class:`~sage.combinat.backtrack.TransitiveIdeal`, and
+    :class:`~sage.combinat.backtrack.TransitiveIdealGraded`.
 
-     - ``children``: a function returning a list (or iterable)
+    INPUT:
 
-    Returns the set of nodes of the forest having the given roots, and
-    where ``children(x)`` returns the children of the node ``x`` of the forest.
-
-    See also ``GenericBacktracker``, ``TransitiveIdeal``, and ``TransitiveIdealGraded``.
+    - ``roots``: a list (or iterable)
+    - ``children``: a function returning a list (or iterable)
 
     EXAMPLES:
 
-        A generator object for binary sequencences of length 3, listed::
+    A generator object for binary sequencences of length 3, listed::
 
         sage: list(SearchForest([[]], lambda l: [l+[0], l+[1]] if len(l) < 3 else []))
         [[], [0], [0, 0], [0, 0, 0], [0, 0, 1], [0, 1], [0, 1, 0], [0, 1, 1], [1], [1, 0], [1, 0, 0], [1, 0, 1], [1, 1], [1, 1, 0], [1, 1, 1]]
 
-        A generator object for ordered sequences of length 2 from a 4-set, sampled::
+    A generator object for ordered sequences of length 2 from a 4-set, sampled::
 
         sage: tb = SearchForest([[]], lambda l: [l + [i] for i in range(4) if i not in l] if len(l) < 2 else [])
         sage: tb[0]
@@ -185,6 +190,7 @@ class SearchForest(CombinatorialClass):
     def _repr_(self):
         r"""
         TESTS::
+
             sage: SearchForest((1,), lambda x: [x+1])	# Todo: improve!
             An enumerated set
         """
@@ -219,10 +225,9 @@ class TransitiveIdeal():
     r"""
     Generic tool for constructing ideals of a relation.
 
-    INPUT::
+    INPUT:
 
     - ``relation``: a function (or callable) returning a list (or iterable)
-
     - ``generators``: a list (or iterable)
 
     Returns the set `S` of elements that can be obtained by repeated
@@ -238,7 +243,8 @@ class TransitiveIdeal():
     relation. The memory complexity is the depth, that is the maximal
     distance between a generator and an element of `S`.
 
-    See also ``SearchForest` and ``TransitiveIdealGraded``.
+    See also :class:`~sage.combinat.backtrack.SearchForest` and
+    :class:`~sage.combinat.backtrack.TransitiveIdealGraded`.
 
     EXAMPLES::
 
@@ -261,8 +267,8 @@ class TransitiveIdeal():
         sage: [p for p in TransitiveIdeal(lambda x:[x],[Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
         [[2, 1, 3, 4], [3, 1, 2, 4]]
 
-    We now illustrates that the enumeration is done lazily, by depth
-    first search::
+    We now illustrate that the enumeration is done lazily, by depth first
+    search::
 
         sage: C = TransitiveIdeal(lambda x: [x-1, x+1], (-10, 0, 10))
         sage: f = C.__iter__()
@@ -331,10 +337,9 @@ class TransitiveIdealGraded(TransitiveIdeal):
     r"""
     Generic tool for constructing ideals of a relation.
 
-    INPUT::
+    INPUT:
 
     - ``relation``: a function (or callable) returning a list (or iterable)
-
     - ``generators``: a list (or iterable)
 
     Returns the set `S` of elements that can be obtained by repeated
@@ -351,7 +356,8 @@ class TransitiveIdealGraded(TransitiveIdeal):
     the relation. The memory complexity is the depth, that is the
     maximal distance between a generator and an element of `S`.
 
-    See also ``SearchForest` and ``TransitiveIdeal``.
+    See also :class:`~sage.combinat.backtrack.SearchForest` and
+    :class:`~sage.combinat.backtrack.TransitiveIdeal`.
 
     EXAMPLES::
 

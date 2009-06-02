@@ -26,6 +26,9 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.p1 (William Stein, June 2, 2009) ===
+ * Update to latest MPIR 1.2 pre-release
+
 === mpir-1.2.p0 (William Stein, May 31, 2009) ===
  * add support for SAGE_FAT_BINARY flag
 

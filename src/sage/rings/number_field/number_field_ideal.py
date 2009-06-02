@@ -202,8 +202,7 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Return True if x is an element of this ideal.
 
-        This function is called (indirectly) when the \code{in}
-        operator is used.
+        This function is called (indirectly) when the ``in`` operator is used.
 
         EXAMPLES::
 
@@ -707,9 +706,9 @@ class NumberFieldIdeal(Ideal_generic):
         r"""
         Return True if this ideal is principal.
 
-        Since it uses the PARI method \code{bnfisprincipal}, specify
-        \code{proof=True} (this is the default setting) to prove the
-        correctness of the output.
+        Since it uses the PARI method ``bnfisprincipal``, specify
+        ``proof=True`` (this is the default setting) to prove the correctness
+        of the output.
 
         EXAMPLES:
 

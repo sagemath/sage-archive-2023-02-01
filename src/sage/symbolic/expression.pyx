@@ -940,13 +940,6 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: x, y = var("x y")
-            sage: hash(x)
-            2013265920
-            sage: hash(x^y)
-            4043309056      # 64-bit
-            -251658240      # 32-bit
-
         The hash of an object in Python or its coerced version into
         the symbolic ring is the same::
 
@@ -956,8 +949,18 @@ cdef class Expression(CommutativeRingElement):
             4
             sage: hash(19/23)
             4
-            sage: hash(x+y)   # random -- the hash for some expression is unfortunately random
-            1631713410
+
+        The hash for symbolic expressions are unfortunately random. Here we
+        only test that the hash() function returns without error, and that
+        the return type is correct::
+
+            sage: x, y = var("x y")
+            sage: t = hash(x); type(t)
+            <type 'int'>
+            sage: t = hash(x^y); type(t)
+            <type 'int'>
+            sage: type(hash(x+y))
+            <type 'int'>
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -1372,6 +1375,11 @@ cdef class Expression(CommutativeRingElement):
             [False, False, False, True, True, True]
             sage: [op(pi, pi).test_relation() for op in all_relations]
             [True, True, False, True, False, False]
+
+            sage: s = 'some_very_long_variable_name_which_will_definitely_collide_if_we_use_a_reasonable_length_bound_for_a_hash_that_respects_lexicographic_order'
+            sage: t1, t2 = var(','.join([s+'1',s+'2']))
+            sage: (t1 == t2).test_relation()
+            False
         """
         cdef int k, eq_count = 0
         cdef bint is_interval

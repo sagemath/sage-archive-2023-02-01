@@ -556,7 +556,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
         sage: def f(x, a, b, c): return a * sin(b * x - c)
         sage: find_fit(data, f, parameters = [a, b, c], variables = [x], solution_dict = True)
-        {a: 1.21..., b: 0.49..., c: 0.19...}
+        {c: 0.19..., b: 0.49..., a: 1.21...}
 
     We search for a formula for the `n`-th prime number::
 

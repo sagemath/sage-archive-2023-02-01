@@ -186,10 +186,15 @@ class Order(IntegralDomain):
             Order in Number Field in a with defining polynomial x^2 + 2
             sage: (3,15)*R
             Fractional ideal (3)
+
+        The zero ideal is handled properly::
+
+            sage: R.ideal(0)
+            Ideal (0) of Number Field in a with defining polynomial x^2 + 2
         """
         if not self.is_maximal():
             raise NotImplementedError, "ideals of non-maximal orders not yet supported."
-        I = self.number_field().fractional_ideal(*args, **kwds)
+        I = self.number_field().ideal(*args, **kwds)
         if not I.is_integral():
             raise ValueError, "ideal must be integral; use fractional_ideal to create a non-integral ideal."
         return I

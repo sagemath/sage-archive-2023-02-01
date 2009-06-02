@@ -1,22 +1,20 @@
 r"""
 Free modules
 
-Sage supports computation with free modules over an arbitrary
-commutative ring. Nontrivial functionality is available over
-`\ZZ` and fields. All free modules over an integral
-domain are equipped with an embedding in an ambient vector space
-and an inner product, which you can specify and change.
+Sage supports computation with free modules over an arbitrary commutative ring.
+Nontrivial functionality is available over `\ZZ`, fields, and some principal
+ideal domains (e.g. `\QQ[x]` and rings of integers of number fields). All free
+modules over an integral domain are equipped with an embedding in an ambient
+vector space and an inner product, which you can specify and change.
 
-Create the free module of rank `n` over an arbitrary
-commutative ring `R` using the command
-``FreeModule(R,n)``. Equivalently, ``R^n``
-also creates that free module.
+Create the free module of rank `n` over an arbitrary commutative ring `R` using
+the command ``FreeModule(R,n)``. Equivalently, ``R^n`` also creates that free
+module.
 
-The following example illustrates the creation of both a vector
-space and a free module over the integers and a submodule of it.
-Use the functions ``FreeModule``, ``span``
-and member functions of free modules to create free modules.
-*Do not use the FreeModulexxx constructors directly.*
+The following example illustrates the creation of both a vector space and a
+free module over the integers and a submodule of it.  Use the functions
+``FreeModule``, ``span`` and member functions of free modules to create free
+modules.  *Do not use the FreeModule_xxx constructors directly.*
 
 EXAMPLES::
 
@@ -358,6 +356,10 @@ class FreeModuleFactory(UniqueFactory):
 
         elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
             return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+
+        elif isinstance(base_ring, sage.rings.number_field.order.Order) \
+            and base_ring.is_maximal() and base_ring.class_number() == 1:
+                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
         elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
             return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
@@ -2131,9 +2133,13 @@ class FreeModule_generic_pid(FreeModule_generic):
         if self.rank() < other.rank():
             return sage.rings.infinity.infinity
 
-        A = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C)
-        return abs(A.determinant())
-
+        a = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C).determinant()
+        if sage.rings.integer_ring.is_IntegerRing(self.base_ring()):
+            return a.abs()
+        elif isinstance(self.base_ring, sage.rings.number_field.order.Order):
+            return self.base_ring().ideal(a).norm()
+        else:
+            raise NotImplementedError
 
     def intersection(self, other):
         r"""
@@ -2198,6 +2204,17 @@ class FreeModule_generic_pid(FreeModule_generic):
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1/2   0 1/2]
+
+        We intersect two modules over the ring of integers of a number field::
+
+            sage: L.<w> = NumberField(x^2 - x + 2)
+            sage: OL = L.ring_of_integers()
+            sage: V = L**3; W1 = V.span([[0,w/5,0], [1,0,-1/17]], OL); W2 = V.span([[0,(1-w)/5,0]], OL)
+            sage: W1.intersection(W2)
+            Free module of degree 3 and rank 1 over Maximal Order in Number Field in w with defining polynomial x^2 - x + 2
+            Echelon basis matrix:
+            [  0 2/5   0]
+
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError, "other must be a free module"
@@ -2229,7 +2246,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
-        K  = S.integer_kernel()
+        K  = S.integer_kernel(self.base_ring())
         n  = int(V1.dimension())
         B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
         return self.span(B, check=False)
@@ -2479,17 +2496,19 @@ class FreeModule_generic_pid(FreeModule_generic):
             ...
             ArithmeticError: Argument gens (= [(1, -1, 0)]) does not generate a submodule of self.
 
-        Next we try to create a submodule of a free module over the
-        principal ideal domain `\QQ[x]` (general HNF
-        needed)::
+        Next we create a submodule of a free module over the principal ideal
+        domain `\QQ[x]`, which uses the general Hermite normal form functionality::
 
             sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
             sage: M = FreeModule(R, 3)
             sage: B = M.basis()
-            sage: W = M.submodule([x*B[0], 2*B[1]- x*B[2]])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
+            sage: W = M.submodule([x*B[0], 2*B[1]- x*B[2]]); W
+            Free module of degree 3 and rank 2 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [ x  0  0]
+            [ 0  2 -x]
+            sage: W.ambient_module()
+            Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -2626,16 +2645,16 @@ class FreeModule_generic_pid(FreeModule_generic):
             True
 
         Next we try to create a submodule of a free module over the
-        principal ideal domain `\QQ[x]` (general HNF
-        needed)::
+        principal ideal domain `\QQ[x]`, using our general Hermite normal form implementation::
 
             sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
             sage: M = FreeModule(R, 3)
             sage: B = M.basis()
-            sage: W = M.submodule_with_basis([x*B[0], 2*B[1]- x*B[2]])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: echelon form over Univariate Polynomial Ring in x over Rational Field not yet implemented
+            sage: W = M.submodule_with_basis([x*B[0], 2*B[0]- x*B[2]]); W
+            Free module of degree 3 and rank 2 over Univariate Polynomial Ring in x over Rational Field
+            User basis matrix:
+            [ x  0  0]
+            [ 2  0 -x]
         """
         V = self.span_of_basis(basis=basis, check=check, already_echelonized=already_echelonized)
         if check:

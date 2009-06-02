@@ -1735,12 +1735,17 @@ cdef class Matrix(matrix1.Matrix):
 
         Elementary row operations do not change the right kernel, since they
         are left multiplication by an invertible matrix, so we
-        instead compute the kernel of the row echelon form.  More
-        precisely, there is a basis vector of the kernel that
-        corresponds to each non-pivot column.  That vector has a 1 at the
-        non-pivot column, 0's at all other non-pivot columnss, and for each
-        pivot column, the negative of the entry at the non-pivot column in
-        the row with that pivot element.
+        instead compute the kernel of the row echelon form. When the base ring
+        is a field, then there is a basis vector of the kernel that corresponds
+        to each non-pivot column. That vector has a 1 at the non-pivot column,
+        0's at all other non-pivot columns, and for each pivot column, the
+        negative of the entry at the non-pivot column in the row with that
+        pivot element.
+
+        Over a non-field base ring, we still have a version of echelon form --
+        Hermite normal form -- but the above does not work, since the pivot
+        entries might not be 1. Hence if the base ring is a PID, we use the
+        Smith normal form of the matrix.
 
         .. note::
 
@@ -1824,6 +1829,21 @@ cdef class Matrix(matrix1.Matrix):
             Vector space of degree 500 and dimension 0 over Rational Field
             Basis matrix:
             0 x 500 dense matrix over Rational Field
+
+        Right kernel of a matrix defined over a principal ideal domain which is
+        not ZZ or a field. This invokes the general Smith normal form routine,
+        rather than echelon form which is less suitable in this case.
+
+        ::
+
+            sage: L.<w> = NumberField(x^2 - x + 2)
+            sage: OL = L.ring_of_integers()
+            sage: m = matrix(OL, [2, w])
+            sage: m.right_kernel()
+            Free module of degree 2 and rank 1 over Maximal Order in Number Field in w with defining polynomial x^2 - x + 2
+            Echelon basis matrix:
+            [    -1 -w + 1]
+
         """
         K = self.fetch('right_kernel')
         if not K is None:
@@ -1856,24 +1876,38 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('right_kernel', Z)
             return Z
 
-        E = self.echelon_form(*args, **kwds)
-        pivots = E.pivots()
-        pivots_set = set(pivots)
-        basis = []
-        V = R ** self.ncols()
-        ONE = R(1)
-        for i in xrange(self._ncols):
-            if not (i in pivots_set):
-                v = V(0)
-                v[i] = ONE
-                for r in range(len(pivots)):
-                    v[pivots[r]] = -E[r,i]
-                basis.append(v)
-        W = V.submodule(basis)
-        if W.dimension() != len(basis):
-            raise RuntimeError, "bug in right_kernel function in matrix2.pyx -- basis from echelon form is not a basis."
-        self.cache('right_kernel', W)
-        return W
+        if R.is_field():
+            E = self.echelon_form(*args, **kwds)
+            pivots = E.pivots()
+            pivots_set = set(pivots)
+            basis = []
+            V = R ** self.ncols()
+            ONE = R(1)
+            for i in xrange(self._ncols):
+                if not (i in pivots_set):
+                    v = V(0)
+                    v[i] = ONE
+                    for r in range(len(pivots)):
+                        v[pivots[r]] = -E[r,i]
+                    basis.append(v)
+            W = V.submodule(basis)
+            if W.dimension() != len(basis):
+                raise RuntimeError, "bug in right_kernel function in matrix2.pyx -- basis from echelon form is not a basis."
+            self.cache('right_kernel', W)
+            return W
+
+        if R.is_integral_domain():
+            d, u, v = self.smith_form()
+            ker = []
+            for i in xrange(self.ncols()):
+                if (i >= self.nrows()) or d[i][i] == 0:
+                    ker.append( v.column(i) )
+            W = (R**self.ncols()).submodule(ker)
+            self.cache('right_kernel', W)
+            return W
+
+        else:
+            raise NotImplementedError, "Don't know how to compute kernels over %s" % R
 
     def left_kernel(self, *args, **kwds):
         r"""
@@ -2060,18 +2094,18 @@ cdef class Matrix(matrix1.Matrix):
             return C.row_module()
 
 
-    def integer_kernel(self):
+    def integer_kernel(self, ring=ZZ):
         """
-        Return the integral kernel of this matrix.
+        Return the kernel of this matrix over the given ring (which should be
+        either the base ring, or a PID whose fraction field is the base ring).
 
         Assume that the base field of this matrix has a numerator and
         denominator functions for its elements, e.g., it is the rational
         numbers or a fraction field. This function computes a basis over
         the integers for the kernel of self.
 
-        When kernels are implemented for matrices over general PID's, this
-        function will compute kernels over PID's of matrices over the
-        fraction field of the PID. (todo)
+        If the matrix is not coercible into QQ, then the PID itself should be
+        given as a second argument, as in the third example below.
 
         EXAMPLES::
 
@@ -2090,6 +2124,17 @@ cdef class Matrix(matrix1.Matrix):
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
             [0 1]
+
+        An example over a bigger ring::
+
+            sage: L.<w> = NumberField(x^2 - x + 2)
+            sage: OL = L.ring_of_integers()
+            sage: A = matrix(L, 2, [1, w/2])
+            sage: A.integer_kernel(OL)
+            Free module of degree 2 and rank 1 over Maximal Order in Number Field in w with defining polynomial x^2 - x + 2
+            Echelon basis matrix:
+            [    -1 -w + 1]
+
         """
         try:
             A, _ = self._clear_denom()
@@ -2097,8 +2142,7 @@ cdef class Matrix(matrix1.Matrix):
         except AttributeError:
             d = self.denominator()
             A = self*d
-            R = d.parent()
-            M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+            M = matrix_space.MatrixSpace(ring, self.nrows(), self.ncols())(A)
             return M.kernel()
 
     def image(self):
@@ -3520,10 +3564,10 @@ cdef class Matrix(matrix1.Matrix):
         Echelonize self in place, where the base ring of self is assumed to
         be a ring (not a field).
 
-        Right now this *only* works over ZZ; otherwise a
-        ``NotImplementedError`` is raised. In the special case
-        of sparse matrices over ZZ it makes them dense, gets the echelon
-        form of the dense matrix, then sets self equal to the result.
+        Right now this *only* works over ZZ and some principal ideal domains;
+        otherwise a ``NotImplementedError`` is raised. In the special case of
+        sparse matrices over ZZ it makes them dense, gets the echelon form of
+        the dense matrix, then sets self equal to the result.
 
         EXAMPLES::
 
@@ -3536,9 +3580,20 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  2  3  4]
             [ 0  4  8 12]
             [ 0  0  0  0]
+
+            sage: L.<w> = NumberField(x^2 - x + 2)
+            sage: OL = L.ring_of_integers()
+            sage: m = matrix(OL, 2, 2, [1,2,3,4+w])
+            sage: m.echelon_form()
+            [    1    -2]
+            [    0 w - 2]
+            sage: m.echelon_form(transformation=True)
+            ([    1    -2]
+            [    0 w - 2], [-3*w - 2    w + 1]
+            [      -3        1])
         """
         self.check_mutability()
-        cdef Matrix d
+        cdef Matrix d, a
         cdef Py_ssize_t r, c
         if self._base_ring == ZZ:
             if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
@@ -3552,7 +3607,21 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('in_echelon_form', True)
             return
         else:
-            raise NotImplementedError, "echelon form over %s not yet implemented"%self.base_ring()
+            try:
+                a, d, p = self._echelon_form_PID()
+            except TypeError:
+                raise NotImplementedError, "echelon form over %s not yet implemented"%self.base_ring()
+
+            for c from 0 <= c < self.ncols():
+               for r from 0 <= r < self.nrows():
+                    self.set_unsafe(r, c, d.get_unsafe(r,c))
+            self.clear_cache()
+            self.cache('pivots', p)
+            self.cache('in_echelon_form', True)
+            if kwds.has_key('transformation') and kwds['transformation']:
+                return a
+            else:
+                return
 
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
@@ -3665,7 +3734,7 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 if not (algorithm in ['classical', 'strassen']):
                     kwds['algorithm'] = algorithm
-                self._echelonize_ring(**kwds)
+                return self._echelonize_ring(**kwds)
         except ArithmeticError, msg:
             raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
@@ -3700,17 +3769,27 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
         """
         x = self.fetch('echelon_form')
-        if not x is None:
-            return x
+        if x is not None:
+            if not (kwds.has_key('transformation') and kwds['transformation']):
+                return x
+            y = self.fetch('echelon_transformation')
+            if y:
+                return x, y
+
         E = self.copy()
         if algorithm == 'default':
-            E.echelonize(cutoff=cutoff)
+            v = E.echelonize(cutoff=cutoff, **kwds)
         else:
-            E.echelonize(algorithm = algorithm, cutoff=cutoff)
+            v = E.echelonize(algorithm = algorithm, cutoff=cutoff, **kwds)
         E.set_immutable()  # so we can cache the echelon form.
         self.cache('echelon_form', E)
+        if v is not None:
+            self.cache('echelon_transformation', v)
         self.cache('pivots', E.pivots())
-        return E
+        if v is not None and (kwds.has_key('transformation') and kwds['transformation']):
+            return E, v
+        else:
+            return E
 
     def _echelon_classical(self):
         """
@@ -5627,6 +5706,115 @@ cdef class Matrix(matrix1.Matrix):
         dp, up, vp = _smith_diag(d)
         return dp,up*u,v*vp
 
+    def _echelon_form_PID(self):
+        r"""
+        Return a triple (left, a, pivots) where left*self == a and a is row
+        echelon form (which in this case we define to mean Hermite normal
+        form).
+
+        When ideals of the base ring have a "small_residue" method (as is the
+        case for number field ideals), we use this to reduce entries above each
+        column pivot.
+
+        AUTHOR:
+
+        - David Loeffler (2009-06-01)
+
+        EXAMPLES::
+
+            sage: L.<a> = NumberField(x^3 - 2)
+            sage: OL = L.ring_of_integers()
+
+        We check some degenerate cases::
+
+            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            ([], [], [])
+            sage: r * m == s and r.det() == 1
+            True
+            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            ([], [], [])
+            sage: r * m == s and r.det() == 1
+            True
+            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            ([1], [], [])
+            sage: r * m == s and r.det() == 1
+            True
+
+        A 2x2 matrix::
+
+            sage: m = matrix(OL, 2, 2, [1,0, a, 2]); r,s,p = m._echelon_form_PID(); (r,s,p)
+            ([ 1  0]
+            [-a  1],
+            [1 0]
+            [0 2],
+            [0, 1])
+            sage: r * m == s and r.det() == 1
+            True
+
+        A larger example::
+
+            sage: m = matrix(OL, 3, 5, [a^2 - 3*a - 1, a^2 - 3*a + 1, a^2 + 1, -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1, 2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3, -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a])
+            sage: r,s,p = m._echelon_form_PID()
+            sage: s[2]
+            (0, 0, -3*a^2 - 18*a + 34, -68*a^2 + 134*a - 53, -111*a^2 + 275*a - 90)
+            sage: r * m == s and r.det() == 1
+            True
+
+        """
+        if self.ncols() == 0:
+            return self.new_matrix(self.nrows(), self.nrows(), 1), self, []
+
+        if self.nrows() == 0:
+            return self.new_matrix(self.nrows(), self.nrows(), 1), self, []
+
+        if self.nrows() == 1:
+            if self.is_zero():
+                return self.new_matrix(self.nrows(), self.nrows(), 1), self, []
+            else:
+                return self.new_matrix(self.nrows(), self.nrows(), 1), self, [0]
+
+        R = self.base_ring()
+
+        # data type checks on R
+        if not R.is_integral_domain():
+            raise TypeError, "Generic echelon form only defined over integral domains"
+        if not R.is_exact():
+            raise NotImplementedError, "Echelon form over generic non-exact rings not implemented at present"
+
+        left_mat, a = _generic_clear_column(self)
+        assert left_mat * self == a
+
+        if a[0,0] != 0:
+            aa = a.submatrix(1, 1)
+            s, t, pivs = aa._echelon_form_PID()
+            left_mat = s.new_matrix(1,1,[1]).block_sum(s) * left_mat
+            a = left_mat * self
+            pivs = [0] + [x + 1 for x in pivs]
+
+        else:
+            aa = a.submatrix(0, 1)
+            s, t, pivs = aa._echelon_form_PID()
+            left_mat = s * left_mat
+            a = left_mat * self
+            pivs = [x+1 for x in pivs]
+
+
+        try:
+            for i in xrange(1, len(pivs)):
+                y = a[i][pivs[i]]
+                I = R.ideal(y)
+                s = a[0][pivs[i]]
+                t = I.small_residue(s)
+                v = R( (s-t) / y)
+
+                left_mat.add_multiple_of_row(0, i, -v)
+                a.add_multiple_of_row(0, i, -v)
+                assert left_mat * self == a
+        except AttributeError: # on I.small_residue
+            pass
+
+        return left_mat, a, pivs
+
     # end of Matrix class methods
 
 def _smith_diag(d):
@@ -5693,55 +5881,50 @@ def _smith_diag(d):
                 dp = newlmat*dp*newrmat
     return dp, left, right
 
-def _smith_onestep(m):
+def _generic_clear_column(m):
     r"""
-    Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
-    the same base ring as m, such that a \* m \* c = b, a and c have
-    determinant 1, and the zeroth row and column of b have no nonzero
-    entries except b[0,0].
+    Reduce the first column of m to canonical form -- that is, all entries
+    below the first are nonzero -- by multiplying on the left by invertible
+    matrices over the given base ring.  This assumes that the base ring is a
+    PID. Returns a pair (left, a) where left*self = a and a has first column in
+    canonical form.
 
-    EXAMPLE::
+    If the first column is zero, then this function doesn't do anything very
+    exciting.
 
-        sage: from sage.matrix.matrix2 import _smith_onestep
-        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
-        sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
-        sage: a,b,c = _smith_onestep(m); b
-        [         1          0          0]
-        [         0          w      w + 3]
-        [         0          0 -56*w - 85]
-        sage: a * m * c == b
+    Used by the smith_form and hermite_form methods.
+
+    EXAMPLES::
+
+        sage: L.<w> = NumberField(x^2 - x + 2)
+        sage: OL = L.ring_of_integers(); w = OL(w)
+        sage: m = matrix(OL, 8, 4, [2*w - 2, 2*w + 1, -2, w, 2, -2,-2*w - 2, -2*w + 2, -w + 2, 2*w + 1, -w + 2, -w - 2, -2*w, 2*w, -w+ 2, w - 1, -2*w + 2, 2*w + 2, 2*w - 1, -w, 2*w + 2, -w + 2, 2, 2*w -1, w - 4, -2*w - 2, 2*w - 1, 0, 6, 7, 2*w + 1, 14])
+        sage: s,t = m.echelon_form(transformation=True); t*m == s # indirect doctest
         True
+        sage: s[0]
+        (w, 0, 0, 0)
     """
+    if m.nrows() <= 1 or m.ncols() <= 0:
+        return m.new_matrix(m.nrows(), m.nrows(), 1), m
+
     a = m.copy()
-    R = m.base_ring()
     left_mat = m.new_matrix(m.nrows(), m.nrows(), 1)
-    right_mat = m.new_matrix(m.ncols(), m.ncols(), 1)
-
-    if m == 0 or (m.nrows() <= 1 and m.ncols() <= 1):
-        return left_mat, m, right_mat
-
-    # preparation: if column 0 is zero, swap it with the first nonzero column
-    j = 0
-    while a.column(j) == 0: j += 1
-    if j > 0:
-        right_mat[0,0] = right_mat[j,j] = 0
-        right_mat[0,j] = 1
-        right_mat[j,0] = -1
-        a = a*right_mat
-        if m * right_mat != a:
-            raise ArithmeticError
+    R = m.base_ring()
 
     # case 1: if a_{0, 0} = 0 and a_{k, 0} != 0 for some k, swap rows 0 and k.
     if a[0, 0] == 0:
-        k = 1
-        while a[k, 0] == 0: k += 1 # this will terminate, because of the previous step
+        k = 0
+        while a[k, 0] == 0:
+            k += 1
+            if k == a.nrows(): # first column is zero
+                return left_mat, a
+        # k is now first row such that a[k, 0] is nonzero
         left_mat[0,0] = 0
         left_mat[k,k] = 0
         left_mat[0,k] = 1
         left_mat[k,0] = -1
         a = left_mat*a
-        if left_mat * m * right_mat != a:
+        if left_mat * m != a:
             raise ArithmeticError, "Something went wrong"
 
     # case 2: if there is an entry at position (k,j) such that a_{0,j}
@@ -5800,7 +5983,7 @@ def _smith_onestep(m):
             a = newlmat*a
             I = R.ideal(a[0,0])
             left_mat = newlmat*left_mat
-            if left_mat * m * right_mat != a:
+            if left_mat * m != a:
                 raise ArithmeticError
 
     # now everything in column 0 is divisible by the pivot
@@ -5808,8 +5991,52 @@ def _smith_onestep(m):
         s = R( a[i, 0]/a[0, 0])
         a.add_multiple_of_row(i, 0, -s )
         left_mat.add_multiple_of_row(i, 0, -s)
-    if left_mat * m * right_mat != a:
+    if left_mat * m != a:
         raise ArithmeticError
+
+    return left_mat, a
+
+def _smith_onestep(m):
+    r"""
+    Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
+    the same base ring as m, such that a \* m \* c = b, a and c have
+    determinant 1, and the zeroth row and column of b have no nonzero
+    entries except b[0,0].
+
+    EXAMPLE::
+
+        sage: from sage.matrix.matrix2 import _smith_onestep
+        sage: OE = NumberField(x^2 - x + 2,'w').ring_of_integers()
+        sage: w = OE.ring_generators()[0]
+        sage: m = matrix(OE, 3,3,[1,0,7,2,w, w+17, 13+8*w, 0, 6])
+        sage: a,b,c = _smith_onestep(m); b
+        [         1          0          0]
+        [         0          w      w + 3]
+        [         0          0 -56*w - 85]
+        sage: a * m * c == b
+        True
+    """
+
+    a = m.copy()
+    left_mat = m.new_matrix(m.nrows(), m.nrows(), 1)
+    right_mat = m.new_matrix(m.ncols(), m.ncols(), 1)
+
+    if m == 0 or (m.nrows() <= 1 and m.ncols() <= 1):
+        return left_mat, m, right_mat
+
+    # preparation: if column 0 is zero, swap it with the first nonzero column
+    j = 0
+    while a.column(j) == 0: j += 1
+    if j > 0:
+        right_mat[0,0] = right_mat[j,j] = 0
+        right_mat[0,j] = 1
+        right_mat[j,0] = -1
+        a = a*right_mat
+        if m * right_mat != a:
+            raise ArithmeticError
+
+    left_mat, a = _generic_clear_column(a)
+    assert left_mat * m * right_mat == a
 
     # test if everything to the right of the pivot in row 0 is good as well
     isdone = True
@@ -5825,7 +6052,6 @@ def _smith_onestep(m):
         right_mat = right_mat* s.transpose()
 
     return left_mat, a, right_mat
-
 
 def _dim_cmp(x,y):
     """

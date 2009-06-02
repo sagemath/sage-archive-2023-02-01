@@ -1301,15 +1301,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
       sage: tinv(CDF, sparse=False)
       sage: tinv(CyclotomicField(7), sparse=True)
       sage: tinv(CyclotomicField(7), sparse=False)
-
-   TODO: As soon as rank of sparse matrix over QQ['x,y'] is implemented,
-   please remove the following test and the ``checkrank=False`` in the next one:
-
-      sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=True)(1).rank()
-      Traceback (most recent call last):
-      ...
-      NotImplementedError: echelon form over Multivariate Polynomial Ring in x, y over Rational Field not yet implemented
-      sage: tinv(QQ['x,y'], sparse=True, checkrank=False)
+      sage: tinv(QQ['x,y'], sparse=True)
 
 
    TODO: As soon as rank of dense matrix over QQ['x,y'] is implemented,

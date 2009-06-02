@@ -788,3 +788,180 @@ class SBox(SageObject):
         P = PolynomialRing(k,'x')
         return P.lagrange_polynomial(l)
 
+    def cnf(self, xi=None, yi=None, format=None):
+        """
+        Return a representation of this S-Box in conjuctive normal
+        form.
+
+        This function examines the truth tables for each output bit of
+        the S-Box and thus has complexity `n * 2^m` for an ``m x n``
+        S-Box.
+
+        INPUT:
+
+        - ``xi`` - indices for the input variables (default: ``1...m``)
+
+        - ``yi`` - indices for the output variables (default: ``m+1 ... m+n``)
+
+        - ``format`` - output format, see below (default: ``None``)
+
+        FORMATS:
+
+        - ``None`` - return a list of tuples of integers where each
+          tuple represents a clause, the absolute value of an integer
+          represents a variable and the sign of an integer indicates
+          inversion.
+
+        - ``symbolic`` - a string that can be parsed by the
+          ``SymbolicLogic`` package.
+
+        - ``dimacs`` - a string in DIMACS format which is the gold
+          standard for SAT-solver input (cf. http://www.satlib.org/).
+
+        - ``dimacs_headless`` - a string in DIMACS format, but without
+          the header. This is useful for concatenation of outputs.
+
+        EXAMPLE:
+
+        We give a very small example to explain the output format::
+
+            sage: S = mq.SBox(1,2,0,3); S
+            (1, 2, 0, 3)
+            sage: cnf = S.cnf(); cnf
+            [(1, 2, -3),  (1, 2, 4),
+             (1, -2, 3),  (1, -2, -4),
+             (-1, 2, -3), (-1, 2, -4),
+             (-1, -2, 3), (-1, -2, 4)]
+
+        This output completely describes the S-Box. For instance, we
+        can check that ``S([0,1]) -> [1,0]`` satisfies every clause if
+        the first input bit corresponds to the index ``1`` and the
+        last output bit corresponds to the index ``3`` in the
+        output.
+
+        We can convert this representation to the DIMACS format::
+
+            sage: print S.cnf(format='dimacs')
+            p cnf 4 8
+            1 2 -3 0
+            1 2 4 0
+            1 -2 3 0
+            1 -2 -4 0
+            -1 2 -3 0
+            -1 2 -4 0
+            -1 -2 3 0
+            -1 -2 4 0
+
+        For concatenation we can strip the header::
+
+            sage: print S.cnf(format='dimacs_headless')
+            1 2 -3 0
+            1 2 4 0
+            1 -2 3 0
+            1 -2 -4 0
+            -1 2 -3 0
+            -1 2 -4 0
+            -1 -2 3 0
+            -1 -2 4 0
+
+        This might be helpful in combination with the ``xi`` and
+        ``yi`` parameter to assign indices manually::
+
+            sage: print S.cnf(xi=[10,20],yi=[30,40], format='dimacs_headless')
+            10 20 -30 0
+            10 20 40 0
+            10 -20 30 0
+            10 -20 -40 0
+            -10 20 -30 0
+            -10 20 -40 0
+            -10 -20 30 0
+            -10 -20 40 0
+
+        We can also return a string which is parse-able by the
+        ``SymbolicLogic`` package::
+
+            sage: log = SymbolicLogic()
+            sage: s = log.statement(S.cnf(format='symbolic'))
+            sage: log.truthtable(s)[1:]
+            [['False', 'False', 'False', 'False', 'False'],
+             ['False', 'False', 'False', 'True', 'False'],
+             ['False', 'False', 'True', 'False', 'False'],
+             ['False', 'False', 'True', 'True', 'True'],
+             ['False', 'True', 'False', 'False', 'True'],
+             ['False', 'True', 'False', 'True', 'True'],
+             ['False', 'True', 'True', 'False', 'True'],
+             ['False', 'True', 'True', 'True', 'True'],
+             ['True', 'False', 'False', 'False', 'True'],
+             ['True', 'False', 'False', 'True', 'True'],
+             ['True', 'False', 'True', 'False', 'True'],
+             ['True', 'False', 'True', 'True', 'True'],
+             ['True', 'True', 'False', 'False', 'True'],
+             ['True', 'True', 'False', 'True', 'True'],
+             ['True', 'True', 'True', 'False', 'True'],
+             ['True', 'True', 'True', 'True', 'True']]
+
+
+        This function respects endianness of the S-Box::
+
+            sage: S = mq.SBox(1,2,0,3, big_endian=False); S
+            (1, 2, 0, 3)
+            sage: cnf = S.cnf(); cnf
+            [(1, 2, -4), (1, 2, 3),
+             (-1, 2, 4), (-1, 2, -3),
+             (1, -2, -4), (1, -2, -3),
+             (-1, -2, 4), (-1, -2, 3)]
+
+        TESTS:
+
+            sage: S = mq.SBox(1,2,0,3, big_endian=False)
+            sage: S.cnf([1000,1001,1002], [2000,2001,2002])
+            Traceback (most recent call last):
+            ...
+            TypeError: first arg required to have length 2, got 3 instead.
+        """
+        m, n = self.m, self.n
+
+        if xi is None:
+            xi = [i+1 for i in range(m)]
+
+        if yi is None:
+            yi = [m+i+1 for i in range(n)]
+
+        if len(xi) != m:
+            raise TypeError("first arg required to have length %d, got %d instead."%(m,len(xi)))
+
+        if len(xi) != n:
+            raise TypeError("second arg required to have length %d, got %d instead."%(n,len(yi)))
+
+        output_bits = range(n)
+        if not self._big_endian:
+            output_bits = list(reversed(output_bits))
+
+        C = [] # the set of clauses
+        for e in xrange(2**m):
+            x = self.to_bits(e)
+            y = self(x) # evaluate at x
+            for output_bit in output_bits: # consider each bit
+                clause = [(-1)**(int(v)) * i for v,i in zip(x, xi)]
+                clause.append( (-1)**(1-int(y[output_bit])) *  yi[output_bit] )
+                C.append(tuple(clause))
+
+        if format is None:
+            return C
+        elif format == 'symbolic':
+            gd = self.ring().gens()
+            formula = []
+            for clause in C:
+                clause = "|".join([str(gd[abs(v)-1]).replace("-","~") for v in clause])
+                formula.append("("+clause+")")
+            return " & ".join(formula)
+
+        elif format.startswith('dimacs'):
+            if format == "dimacs_headless":
+                header = ""
+            else:
+                header = "p cnf %d %d\n"%(m+n,len(C))
+            values = " 0\n".join([" ".join(map(str,line)) for line in C])
+            return header + values + " 0\n"
+        else:
+            raise ValueError("Format '%s' not supported."%(format,))

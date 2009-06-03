@@ -1,5 +1,5 @@
 r"""
-S-Boxes and Their Algebraic Representations.
+S-Boxes and Their Algebraic Representations
 """
 
 from sage.combinat.integer_vector import IntegerVectors
@@ -38,7 +38,7 @@ class SBox(SageObject):
     Note that by default bits are interpreted in big endian
     order. This is not consistent with the rest of Sage, which has a
     strong bias towards little endian, but is consistent with most
-    cryptographic literature.::
+    cryptographic literature::
 
         sage: S([0,0,0,1])
         [0, 1, 0, 1]
@@ -236,10 +236,10 @@ class SBox(SageObject):
         """
         Apply substitution to ``X``.
 
-        If X is a list, it is interpreted as a sequence of bits
+        If ``X`` is a list, it is interpreted as a sequence of bits
         depending on the bit order of this S-box.
 
-        INPUT::
+        INPUT:
 
         - ``X`` - either an integer, a tuple of `\GF{2}` elements of
           length ``len(self)`` or a finite field element in
@@ -374,7 +374,7 @@ class SBox(SageObject):
         The rows of ``A`` encode the differences ``Delta I`` of the
         input and the columns encode the difference ``Delta O`` for
         the output. The bits are ordered according to the endianess of
-        this S-box. The value at ``A[Delta I,Delta O]`` encoded how
+        this S-box. The value at ``A[Delta I,Delta O]`` encodes how
         often ``Delta O`` is the actual output difference given
         ``Delta I`` as input difference.
 
@@ -469,7 +469,7 @@ class SBox(SageObject):
             [ 0 -2  2  0 -2  0  0 -2]
 
         According to this matrix the first bit of the input is equal
-        to the third bit of the output 6 out of 8 times.::
+        to the third bit of the output 6 out of 8 times::
 
             sage: for i in srange(8): print S.to_bits(i)[0] == S.to_bits(S(i))[2]
             False
@@ -645,7 +645,7 @@ class SBox(SageObject):
 
         We can get a direct representation by computing a
         lexicographical Groebner basis with respect to the right
-        variable ordering, i.e. a variable orderings where the output
+        variable ordering, i.e. a variable ordering where the output
         bits are greater than the input bits::
 
             sage: P.<y0,y1,y2,x0,x1,x2> = PolynomialRing(GF(2),6,order='lex')

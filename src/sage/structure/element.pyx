@@ -412,6 +412,32 @@ cdef class Element(sage_object.SageObject):
         import sage.misc.functional
         return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
 
+    def _mpmath_(self, prec, rounding):
+        """
+        Evaluates numerically and returns an mpmath number.
+        Used as fallback for conversion by mpmath.mpmathify().
+
+            sage: from sage.libs.mpmath.all import mp, mpmathify
+            sage: mp.dps = 30
+            sage: 25._mpmath_(53,'n')
+            mpf('25.0')
+            sage: mpmathify(3+4*I)
+            mpc(real='3.0', imag='4.0')
+            sage: mpmathify(1+pi)
+            mpf('4.14159265358979323846264338327933')
+            sage: (1+pi)._mpmath_(10, 'n')
+            mpf('4.140625')
+            sage: (1+pi)._mpmath_(mp.prec, 'n')
+            mpf('4.14159265358979323846264338327933')
+
+        """
+        v = self.n(prec)
+        from sage.libs.mpmath.all import make_mpf, make_mpc
+        if hasattr(v, "_mpf_"):
+            return make_mpf(v._mpf_)
+        else:
+            return make_mpc(v._mpc_)
+
     def substitute(self,in_dict=None,**kwds):
         """
         This is an alias for self.subs().

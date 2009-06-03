@@ -422,6 +422,10 @@ ext_modules = [
               libraries = ["symmetrica"],
               depends = [SAGE_ROOT + "/local/include/symmetrica/def.h"]),
 
+    Extension('sage.libs.mpmath.utils',
+              sources = ["sage/libs/mpmath/utils.pyx"],
+              libraries = ['mpfr', 'gmp']),
+
         ###################################
         ##
         ## sage.libs.cremona

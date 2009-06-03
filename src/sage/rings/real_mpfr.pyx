@@ -131,6 +131,8 @@ import operator
 from sage.libs.pari.gen import PariInstance, gen
 from sage.libs.pari.gen cimport PariInstance, gen
 
+from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+
 from integer import Integer
 from integer cimport Integer
 from rational import Rational
@@ -2268,6 +2270,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpz_clear(mantissa)
 
         return gen
+
+    @property
+    def _mpf_(self):
+        """
+        Returns representation of self as data for an mpmath.mpf.
+
+            sage: RR(-1.5)._mpf_
+            (1, 3, -1, 2)
+
+        """
+        return mpfr_to_mpfval(self.value)
 
     def exact_rational(self):
         """

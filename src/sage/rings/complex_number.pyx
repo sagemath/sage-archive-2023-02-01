@@ -32,6 +32,8 @@ import sage.misc.misc
 import integer
 import infinity
 
+from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+
 include "../ext/stdsage.pxi"
 
 cdef mp_rnd_t rnd
@@ -468,6 +470,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             <type 'sage.libs.pari.gen.gen'>
         """
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
+
+    @property
+    def _mpc_(self):
+        """
+        Returns representation of self as data for an mpmath.mpc.
+
+            sage: CC(1,2)._mpc_
+            ((0, 1, 0, 1), (0, 1, 1, 1))
+
+        """
+        re = mpfr_to_mpfval(self.__re)
+        im = mpfr_to_mpfval(self.__im)
+        return re, im
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef ComplexNumber x

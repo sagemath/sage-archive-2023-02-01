@@ -137,6 +137,11 @@ class Minimog():
         sage: from sage.games.hexad import *
         sage: Minimog(type="shuffle")
         Minimog of type shuffle
+        sage: M = Minimog(type = "modulo11")
+        sage: M.minimog
+        [        0         3 +Infinity         2]
+        [        5         9         8        10]
+        [        4         1         6         7]
 
     """
     def __init__(self, type="shuffle"):
@@ -220,6 +225,37 @@ class Minimog():
 
     def __repr__(self):
         return "Minimog of type %s"%self.type
+
+    def __str__(self):
+        """
+
+        EXAMPLES::
+            sage: M = Minimog(type="modulo11")
+            sage: print M
+            Minimog of type modulo11 associated to
+             [        0         3 +Infinity         2]
+            [        5         9         8        10]
+            [        4         1         6         7]
+
+        """
+        return "Minimog of type %s associated to\n %s"%(self.type,self.minimog)
+
+    def _latex_(self):
+        """
+        Prints latex code.
+
+        EXAMPLES::
+            sage: M = Minimog(type="modulo11")
+            sage: latex(M)
+            Minimog of type modulo11 associated to
+             $\left(\begin{array}{rrrr}
+            0 & 3 & +\infty & 2 \\
+            5 & 9 & 8 & 10 \\
+            4 & 1 & 6 & 7
+            \end{array}\right)$
+        """
+        from sage.misc.latex import latex
+        return "Minimog of type %s associated to\n $%s$"%(self.type, latex(self.minimog))
 
     def print_kitten(self):
         """
@@ -423,7 +459,7 @@ class Minimog():
         OUTPUT::
            hexad containing S \union \{x0\} of some type
 
-        NOTE:: 3 ``points at infinity" = {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
+        NOTE:: 3 "points at infinity" = {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
         Theorem (Curtis, Conway): Each hexads is of exactly one of the following types:
            0. $\{3 ``points at infinity''\}\cup \{{\rm any\ line}\}$,
@@ -445,6 +481,9 @@ class Minimog():
             ([2, 3, 4, 5, 8, 11], ['lines (1, 2)', 'picture 1'])
             sage: M.find_hexad([0,1,2,4,6])
             ([0, 1, 2, 4, 6, 8], ['line 1', 'picture 1'])
+            sage: M = Minimog(type="modulo11")
+            sage: M.find_hexad([1,2,3,4,SR(infinity)])
+            ([+Infinity, 2, 3, 4, 1, 10], ['square 8', 'picture 0'])
 
         AUTHOR::
            David Joyner (2006-05)
@@ -553,13 +592,16 @@ class Minimog():
         The winning strategy (given below) for this game is due to Conway and Ryba.
         There is a Steiner system $S(5,6,12)$ of hexads in the set $\{0,1,...,11\}$.
         This Steiner system is associated to the MINIMOG of in the "shuffle numbering"
-        rather than the "modulo $11$ labeling''.
+        rather than the "modulo $11$ labeling".
 
         Proposition (Ryba, Conway)   For this Steiner system, the winning strategy is to choose a
         move which is a hexad from this system.
 
 
         EXAMPLES::
+            sage: M = Minimog(type="modulo11")
+            sage: M.blackjack_move([0,2,3,6,1,10])
+            '6 --> 5. The total went from 22 to 21.'
             sage: M = Minimog(type="shuffle")
             sage: M.blackjack_move([0,2,4,6,7,11])
             '4 --> 3. The total went from 30 to 29.'
@@ -581,7 +623,7 @@ class Minimog():
             sage: M.blackjack_move([0,2,3,6,7,9])
             '7 --> 1. The total went from 27 to 21.'
 
-        You have now won. SAGE will even tell you so:
+        You have now won. Sage will even tell you so:
 
             sage: M.blackjack_move([0,2,3,6,1,9])
             'No move possible. Shuffle the deck and redeal.'

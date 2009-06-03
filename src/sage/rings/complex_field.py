@@ -233,7 +233,7 @@ class ComplexField_class(field.Field):
             return cmp(type(self), type(other))
         return cmp(self._prec, other._prec)
 
-    def __call__(self, x, im=None):
+    def __call__(self, x=None, im=None):
         """
         EXAMPLES::
 
@@ -251,7 +251,16 @@ class ComplexField_class(field.Field):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
+
+        In the absence of arguments we return zero::
+
+            sage: a = CC(); a
+            0
+            sage: a.parent()
+            Complex Field with 53 bits of precision
         """
+        if x is None:
+            return self.zero_element()
         # we leave this here to handle the imaginary parameter
         if im is not None:
             x = x, im

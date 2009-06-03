@@ -2475,7 +2475,21 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def match(self, pattern):
         """
-        See http://www.ginac.de/tutorial/Pattern-matching-and-advanced-substitutions.html
+        Check if self matches the given pattern.
+
+        INPUT:
+
+        -  ``pattern`` - a symbolic expression, possibly containing wildcards
+           to match for
+
+        OUTPUT:
+
+        - None - if there is no match
+        - a dictionary mapping the wildcards to the matching values if a match
+          was found. Note that the dictionary is empty if there were no
+          wildcards in the given pattern.
+
+        See also http://www.ginac.de/tutorial/Pattern-matching-and-advanced-substitutions.html
 
         EXAMPLES::
 
@@ -2483,42 +2497,56 @@ cdef class Expression(CommutativeRingElement):
             (x, y, z, a, b, c, d, e, f)
             sage: w0 = SR.wild(0); w1 = SR.wild(1); w2 = SR.wild(2)
             sage: ((x+y)^a).match((x+y)^a)
-            True
-            sage: ((x+y)^a).match((x+y)^b)
-            False
+            {}
+            sage: print ((x+y)^a).match((x+y)^b)
+            None
             sage: ((x+y)^a).match(w0^w1)
-            True
-            sage: ((x+y)^a).match(w0^w0)
-            False
+            {$1: a, $0: x + y}
+            sage: print ((x+y)^a).match(w0^w0)
+            None
             sage: ((x+y)^(x+y)).match(w0^w0)
-            True
+            {$0: x + y}
             sage: ((a+b)*(a+c)).match((a+w0)*(a+w1))
-            True
+            {$1: c, $0: b}
             sage: ((a+b)*(a+c)).match((w0+b)*(w0+c))
-            True
-            sage: ((a+b)*(a+c)).match((w0+w1)*(w0+w2))    # surprising?
-            False
+            {$0: a}
+            sage: print ((a+b)*(a+c)).match((w0+w1)*(w0+w2))    # surprising?
+            None
             sage: (a*(x+y)+a*z+b).match(a*w0+w1)
-            True
-            sage: (a+b+c+d+e+f).match(c)
-            False
+            {$1: a*z + b, $0: x + y}
+            sage: print (a+b+c+d+e+f).match(c)
+            None
             sage: (a+b+c+d+e+f).has(c)
             True
             sage: (a+b+c+d+e+f).match(c+w0)
-            True
+            {$0: a + b + d + e + f}
             sage: (a+b+c+d+e+f).match(c+e+w0)
-            True
+            {$0: a + b + d + f}
             sage: (a+b).match(a+b+w0)
-            True
-            sage: (a*b^2).match(a^w0*b^w1)
-            False
+            {$0: 0}
+            sage: print (a*b^2).match(a^w0*b^w1)
+            None
             sage: (a*b^2).match(a*b^w1)
-            True
+            {$1: 2}
             sage: (x*x.arctan2(x^2)).match(w0*w0.arctan2(w0^2))
-            True
+            {$0: x}
         """
         cdef Expression p = self.coerce_in(pattern)
-        return self._gobj.match(p._gobj)
+        cdef GExList mlst
+        cdef bint res = self._gobj.match(p._gobj, mlst)
+        if not res:
+            return None
+
+        cdef dict rdict = {}
+        cdef GExListIter itr = mlst.begin()
+        cdef GExListIter lstend = mlst.end()
+        while itr.is_not_equal(lstend):
+            key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
+            val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
+            rdict[key] = val
+            itr.inc()
+        return rdict
+
 
     def find(self, pattern):
         """

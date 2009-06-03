@@ -44,6 +44,17 @@ class Function_exp(PrimitiveFunction):
         -  ``prec`` - integer (default: None): if None, returns
            an exact exponential; otherwise returns a numerical exponential if
            necessary, to the given bits of precision.
+
+        EXAMPLES::
+
+            sage: exp(pi*I/2)
+            I
+            sage: exp(pi*I)
+            -1
+            sage: exp(8*pi*I)
+            1
+            sage: exp(7*pi*I/2)
+            -I
         """
         if isinstance(x, float):
             return self._approx_(x)

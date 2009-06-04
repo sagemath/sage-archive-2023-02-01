@@ -171,9 +171,19 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
             [2, 1, 3]
             sage: QS3.jucys_murphy(3)
             [1, 3, 2] + [3, 2, 1]
+
+            sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: j3 = QS4.jucys_murphy(3); j3
+            [1, 3, 2, 4] + [3, 2, 1, 4]
+            sage: j4 = QS4.jucys_murphy(4); j4
+            [1, 2, 4, 3] + [1, 4, 3, 2] + [4, 2, 3, 1]
+            sage: j3*j4 == j4*j3
+            True
+
             sage: QS5 = SymmetricGroupAlgebra(QQ, 5)
             sage: QS5.jucys_murphy(4)
             [1, 2, 4, 3, 5] + [1, 4, 3, 2, 5] + [4, 2, 3, 1, 5]
+
         """
         res = self(0)
 

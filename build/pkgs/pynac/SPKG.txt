@@ -33,6 +33,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.8 (Burcin Erocal, June 4, 2009) ===
+ * Add error handling for py_get_constant
+ * Simplify exp(a)*exp(b) -> exp(a+b)
+ * Revert previous changes to symbol::calchash
+
+=== pynac-0.1.7.p0 (William Stein, June 1, 2009) ===
+ * Fix typo in spkg-install found by Mariah Lenox.
+
 === pynac-0.1.7 (Mike Hansen, et al. May 18, 2009) ===
  * Many fixes needed to make Pynac work as the default system for
    symbolic manipulation in Sage.

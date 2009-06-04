@@ -1,4 +1,4 @@
-"""
+r"""
 Unit Groups of Number Fields
 
 EXAMPLES::
@@ -143,10 +143,10 @@ class UnitGroup(AbelianGroup_class):
 
         INPUT:
 
-        - number_field - a number field
-        - proof - boolean (default True): proof flag
+        - ``number_field`` - a number field
+        - ``proof`` - boolean (default True): proof flag
 
-        The proof flag is passed to pari via the pari_bnf() function
+        The proof flag is passed to pari via the ``pari_bnf()`` function
         which computes the unit group.  See the documentation for the
         number_field module.
 
@@ -211,8 +211,8 @@ class UnitGroup(AbelianGroup_class):
 
         INPUT:
 
-        - u -- Any object from which an element of the unit group's number
-          field K may be constructed; an error is raised if an element of K
+        - ``u`` -- Any object from which an element of the unit group's number
+          field `K` may be constructed; an error is raised if an element of `K`
           cannot be constructed from u, or if the element constructed is not a
           unit.
 
@@ -255,7 +255,7 @@ class UnitGroup(AbelianGroup_class):
 
     def _coerce_impl(self, x):
         """
-        Canonical coercion of x into this unit group.
+        Canonical coercion of ``x`` into this unit group.
 
         EXAMPLES:
 
@@ -303,9 +303,11 @@ class UnitGroup(AbelianGroup_class):
 
     def gen(self, i=0):
         """
-        Return the i-th generator for this unit group.
+        Return the `i`'th generator for this unit group.
 
-        NOTE: i=0 gives the torsion generator, i.e. a primitive root of unity.
+        .. note::
+
+           `i=0` gives the torsion generator, i.e. a primitive root of unity.
 
         EXAMPLES::
 
@@ -489,17 +491,17 @@ class UnitGroup(AbelianGroup_class):
 
 
     def log(self, u):
-        """
-        Return the exponents of the unit u with respect to group generators.
+        r"""
+        Return the exponents of the unit ``u`` with respect to group generators.
 
         INPUT:
 
-        - u -- Any object from which an element of the unit group's number
-          field K may be constructed; an error is raised if an element of K
+        - ``u`` -- Any object from which an element of the unit group's number
+          field `K` may be constructed; an error is raised if an element of `K`
           cannot be constructed from u, or if the element constructed is not a
           unit.
 
-        OUTPUT: a list of integers giving the exponents of u with
+        OUTPUT: a list of integers giving the exponents of ``u`` with
         respect to the unit group's basis.
 
         EXAMPLES::
@@ -523,17 +525,17 @@ class UnitGroup(AbelianGroup_class):
         return self(u).list()
 
     def exp(self, exponents):
-        """
+        r"""
         Return unit with given exponents with respect to group generators.
 
         INPUT:
 
-        - u -- Any object from which an element of the unit group's number
-          field K may be constructed; an error is raised if an element of K
-          cannot be constructed from u, or if the element constructed is not a
-          unit.
+        - ``u`` -- Any object from which an element of the unit
+          group's number field `K` may be constructed; an error is
+          raised if an element of `K` cannot be constructed from u, or
+          if the element constructed is not a unit.
 
-        OUTPUT: a list of integers giving the exponents of u with
+        OUTPUT: a list of integers giving the exponents of ``u`` with
         respect to the unit group's basis.
 
         EXAMPLES::

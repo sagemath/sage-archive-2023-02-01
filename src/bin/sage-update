@@ -202,7 +202,6 @@ def do_update():
     download_file("standard/deps")
     download_file("standard/newest_version")
     os.system('chmod +x newest_version')
-    download_file("standard/README.txt")
 
 if __name__ ==  '__main__':
     try:

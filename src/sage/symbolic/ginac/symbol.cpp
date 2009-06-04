@@ -337,42 +337,10 @@ bool symbol::is_equal_same_type(const basic & other) const
 
 unsigned symbol::calchash() const
 {
-  // SAGE -- instead of some random hash, which results in variables
-  // printing and being stored in confusing nondeterministic order as
-  // in Ginac, we use a hash designed to make variables print in a
-  // sensible order.  In particular we turn the characters of the
-  // variable name into an unsigned integer, basically by viewing
-  // them as giving a base 256 encoded number. 
-  //
-  // We do this instead of overloading compare because it is FAST -- the
-  // hash is computed once and for all, then all future compares are
-  // essentially instant.  This is likely an extremely time-critical part of
-  // ginac judging by the benchmarking code in ex.h.
-  // 
-  // WARNING: We hash strings to 32-bit ints; the result is that
-  // variable names up to 4 characters are sorted lexicographically
-  // automatically by their hash.  Longer names with same first 4
-  // characters result in a hash collision, which of course will take
-  // a tiny bit longer.  This is correctly dealt with in the
-  // compare_same_type function above.
-  // -- William Stein
-
-  hashvalue = 0;
-  unsigned int b = 16777216;   // 2^32 / 256
-  unsigned int m = (name.length() < 4) ? name.length() : 4;   // = min(4, name.length())
-  for (int i=0; i < m; i++) {
-    hashvalue += (int)name[i]*b;
-    b /= 256;
-  }
-  setflag(status_flags::hash_calculated);
-  return hashvalue;
-  
   // Original code
-  /*
     hashvalue = golden_ratio_hash((p_int)tinfo() ^ serial);
     setflag(status_flags::hash_calculated);
     return hashvalue;
-  */
 }
 
 //////////

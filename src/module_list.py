@@ -1259,31 +1259,36 @@ ext_modules = [
     Extension('sage.symbolic.constants_c',
               sources = ['sage/symbolic/constants_c.pyx'],
               language = 'c++',
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
     Extension('sage.symbolic.expression',
               sources = ['sage/symbolic/expression.pyx'],
               language = 'c++',
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
     Extension('sage.symbolic.function',
               sources = ['sage/symbolic/function.pyx'],
               language = 'c++',
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
     Extension('sage.symbolic.power_helper',
               sources = ['sage/symbolic/power_helper.pyx'],
-              language = 'c++',
-              libraries = ["pynac"]),
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
+              language = 'c++'),
 
     Extension('sage.symbolic.pynac',
               sources = ['sage/symbolic/pynac.pyx'],
               language = 'c++',
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
     Extension('sage.symbolic.ring',
               sources = ['sage/symbolic/ring.pyx'],
               language = 'c++',
+              depends = [SAGE_ROOT + "/local/include/pynac/ginac.h"],
               libraries = ["pynac"]),
 
 

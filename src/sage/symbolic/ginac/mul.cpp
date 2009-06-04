@@ -38,6 +38,8 @@
 #include "symbol.h"
 #include "compiler.h"
 #include "constant.h"
+#include "function.h"
+#include "inifcns.h"
 
 namespace GiNaC {
 
@@ -572,9 +574,24 @@ ex mul::eval(int level) const
 		                ex_to<numeric>(addref.overall_coeff).
 		                mul_dyn(ex_to<numeric>(overall_coeff)))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
+	} else if ((seq_size==1) && 
+			is_ex_the_function((*seq.begin()).rest, exp) &&
+			!(*seq.begin()).coeff.is_equal(_ex1) ) {
+		// even though exp defines a power simplification rule,
+		// it is possible to end up with i->coeff != 1, e.g.,
+		// as a result of construct_from_2_ex
+		ex new_exp = pow((*seq.begin()).rest, (*seq.begin()).coeff);
+		if (is_a<numeric>(new_exp)) {
+			return ex_to<numeric>(overall_coeff).mul(
+					ex_to<numeric>(new_exp));
+		}
+		return (new mul(new_exp, ex_to<numeric>(overall_coeff))
+			       )->setflag(status_flags::dynallocated);
 	} else if ((seq_size >= 2) && (! (flags & status_flags::expanded))) {
 		// Strip the content and the unit part from each term. Thus
 		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)2
+		// also handles exp(a)*exp(b) -> exp(a+b) and
+		// various combinations of infinity
 
 		epvector::const_iterator last = seq.end();
 		epvector::const_iterator i = seq.begin();
@@ -582,6 +599,12 @@ ex mul::eval(int level) const
 		std::auto_ptr<epvector> s(new epvector);
 		numeric oc = *_num1_p;
 		bool something_changed = false;
+		// in order to simplify exp(a)*exp(b) -> exp(a + b)
+		// we keep track of the final exp argument
+		ex exp_arg = _ex0;
+		// for efficiency we only modify the expression for the exp
+		// simplification above if there is more than one exp
+		unsigned exp_count = 0;
 		// we use pval to store the previously encountered infinity type
 		//  0 means we have 1/infinity
 		//  1 means we didn't run into infinity
@@ -619,11 +642,52 @@ ex mul::eval(int level) const
 				else
 					pval = NegInfinity;
 			}
-			if (likely(! (is_a<add>(i->rest) && i->coeff.is_equal(_ex1)))) {
+			if (likely(! ((is_a<add>(i->rest) && 
+					i->coeff.is_equal(_ex1)) ||
+					is_ex_the_function(i->rest, exp)) 
+					 )) {
 				// power::eval has such a rule, no need to handle powers here
 				++i;
 				continue;
 			}
+			if (is_ex_the_function(i->rest, exp)) {
+				// if the power of first exp is != 1 we still
+				// have to modify the arguments list
+				// incrementing exp_count one more will
+				// trigger this
+				if (exp_count == 0 && !i->coeff.is_equal(_ex1)){
+					s->push_back(*i);
+					exp_count += 1;
+				}
+				exp_count += 1;
+				exp_arg += i->rest.op(0)*i->coeff;
+				if (exp_count > 1) {
+					// there is more than one exp,
+					// we will change the structure of this
+					// mul instance, create a new epvector
+					// for the argument if there isn't one
+					// already so we can skip this and
+					// future exp's
+
+					if (! something_changed) {
+						s->reserve(seq_size);
+						something_changed = true;
+					}
+
+					while ((j!=i) && (j!=last)) {
+						s->push_back(*j);
+						++j;
+					}
+					++i;
+					++j;
+					continue;
+				}
+				
+				// first encounter of an exp, just continue
+				++i;
+				continue;
+			} else {
+
 
 			// XXX: What is the best way to check if the polynomial is a primitive? 
 			numeric c = i->rest.integer_content();
@@ -670,6 +734,7 @@ ex mul::eval(int level) const
 
 			++i;
 			++j;
+			}
 		}
 		if (!pval.is_equal(_ex1)) {
 			if (!ex_to<numeric>(overall_coeff).is_real()) {
@@ -686,6 +751,37 @@ ex mul::eval(int level) const
 			while (j!=last) {
 				s->push_back(*j);
 				++j;
+			}
+			if (exp_count > 1) {
+				// there was more than one exp
+				// find the already existing exp in the args
+				epvector::iterator prev_exp;
+				prev_exp = s->begin();
+				while( prev_exp != s->end() ) {
+					if (is_ex_the_function(prev_exp->rest,
+								exp))
+						break;
+					++prev_exp;
+				}
+				if (prev_exp == s->end())
+					throw(std::runtime_error("Cannot find previous exp while simplifying mul"));
+
+				// see what the new value of exp will be
+				ex new_exp = exp(exp_arg);
+				if (is_a<numeric>(new_exp)) {
+					// if it is a numeric
+					// multiply overall coeff with the new
+					// value, remove the existing exp
+					s->erase(prev_exp);
+					oc = oc.mul(ex_to<numeric>(new_exp));
+				} else {
+					// just set prev_exp to the new value
+					prev_exp->rest = new_exp;
+					prev_exp->coeff = _ex1;
+				}
+			}
+			if (s->empty()) {
+				return ex_to<numeric>(overall_coeff).mul_dyn(oc);
 			}
 			return (new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc))
 			       )->setflag(status_flags::dynallocated);

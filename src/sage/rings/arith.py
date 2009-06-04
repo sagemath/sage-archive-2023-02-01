@@ -2155,7 +2155,7 @@ def odd_part(n):
         122529844256906551386796875
     """
     n = ZZ(n)
-    return n._rshift_(n.valuation(2))
+    return n._shift_helper(n.valuation(2), -1)
 
 def prime_to_m_part(n,m):
     """

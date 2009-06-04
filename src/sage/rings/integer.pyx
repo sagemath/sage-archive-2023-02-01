@@ -4507,36 +4507,75 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return g, s, t
 
-    cdef _shift_helper(Integer self, y, int sign):
+    cpdef _shift_helper(Integer self, y, int sign):
+        """
+        Function used to compute left and right shifts of integers.
+        Shifts self y bits to the left if sign is 1, and to the right
+        if sign is -1.
+
+        WARNING: This function does no error checking. In particular,
+        it assumes that sign is either 1 or -1,
+
+        EXAMPLES::
+
+            sage: n = 1234
+            sage: factor(n)
+            2 * 617
+            sage: n._shift_helper(1, 1)
+            2468
+            sage: n._shift_helper(1, -1)
+            617
+            sage: n._shift_helper(100, 1)
+            1564280840681635081446931755433984
+            sage: n._shift_helper(100, -1)
+            0
+            sage: n._shift_helper(-100, 1)
+            0
+            sage: n._shift_helper(-100, -1)
+            1564280840681635081446931755433984
+        """
         cdef long n
+
         if PyInt_CheckExact(y):
+            # For a Python int, we can just use the Python/C API.
             n = PyInt_AS_LONG(y)
         else:
+            # If it's not already an Integer, try to convert it.
             if not PY_TYPE_CHECK(y, Integer):
                 try:
                     y = Integer(y)
                 except TypeError:
-                    raise TypeError, "unsupported operands for " + ("<<" if sign==1 else ">>")
+                    raise TypeError, "unsupported operands for %s: %s, %s"%(("<<" if sign == 1 else ">>"), self, y)
                 except ValueError:
-                    return bin_op(self, y, operator.lshift if sign==1 else operator.rshift)
+                    return bin_op(self, y, operator.lshift if sign == 1 else operator.rshift)
+
+            # If y wasn't a Python int, it's now an Integer, so set n
+            # accordingly.
             if mpz_fits_slong_p((<Integer>y).value):
                 n = mpz_get_si((<Integer>y).value)
             elif sign * mpz_sgn((<Integer>y).value) < 0:
-                # Doesn't fit in a long so shifting to the right by this much will be 0.
+                # Doesn't fit in a long so shifting to the right by
+                # this much will be 0.
                 return PY_NEW(Integer)
             else:
-                n = y # will raise appropreate overflow error
-        cdef Integer z = <Integer>PY_NEW(Integer)
+                # Doesn't fit in a long so shifting to the left by
+                # this much will raise appropriate overflow error
+                n = y
+
+        # Decide which way we're shifting
         n *= sign
+
+        # Now finally call into MPIR to do the shifting.
+        cdef Integer z = <Integer>PY_NEW(Integer)
         if n < 0:
             mpz_fdiv_q_2exp(z.value, self.value, -n)
         else:
             mpz_mul_2exp(z.value, self.value, n)
         return z
 
-    def __lshift__(x,y):
+    def __lshift__(x, y):
         """
-        Shift x y bits to the left.
+        Shift x to the left by y bits.
 
         EXAMPLES::
 
@@ -4549,7 +4588,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 1 << 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for <<
+            TypeError: unsupported operands for <<: 1, 2.5000...
 
             sage: 32 << (4/2)
             128
@@ -4561,12 +4600,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 128 << (-2^100)
             0
         """
+        # note that x need not be self -- int(3) << ZZ(2) will
+        # dispatch this function
         if not PY_TYPE_CHECK(x, Integer):
             return x << int(y)
         return (<Integer>x)._shift_helper(y, 1)
 
     def __rshift__(x, y):
         """
+        Shift x to the right by y bits.
+
         EXAMPLES::
 
             sage: 32 >> 2
@@ -4578,7 +4621,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 1 >> 2.5
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operands for >>
+            TypeError: unsupported operands for >>: 1, 2.5000...
             sage: 10^5 >> 10^100
             0
 
@@ -4587,35 +4630,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 8 >> -2
             32
         """
+        # note that x need not be self -- int(3) >> ZZ(2) will
+        # dispatch this function
         if not PY_TYPE_CHECK(x, Integer):
             return x >> int(y)
         return (<Integer>x)._shift_helper(y, -1)
-
-# _lshift and _rshift_ should either be removed or standardized
-
-    cdef _lshift(self, long int n):
-        """
-        Shift self n bits to the left, i.e., quickly multiply by
-        `2^n`.
-        """
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-
-        if n < 0:
-            mpz_fdiv_q_2exp(x.value, self.value, -n)
-        else:
-            mpz_mul_2exp(x.value, self.value, n)
-        return x
-
-    cpdef _rshift_(Integer self, long int n):
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-
-        if n < 0:
-            mpz_mul_2exp(x.value, self.value, -n)
-        else:
-            mpz_fdiv_q_2exp(x.value, self.value, n)
-        return x
 
     cdef _and(Integer self, Integer other):
         cdef Integer x

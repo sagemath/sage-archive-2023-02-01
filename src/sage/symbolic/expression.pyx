@@ -1692,6 +1692,32 @@ cdef class Expression(CommutativeRingElement):
             sage: (y-1)*(y-2)
             (y - 2)*(y - 1)
 
+        Check for simplifications when multiplying instances of exp::
+
+            sage: exp(x)*exp(y)
+            e^(x + y)
+            sage: exp(x)^2*exp(y)
+            e^(2*x + y)
+            sage: x^y*exp(x+y)*exp(-y)
+            x^y*e^x
+            sage: x^y*exp(x+y)*(x+y)*(2*x+2*y)*exp(-y)
+            2*(x + y)^2*x^y*e^x
+            sage: x^y*exp(x+y)*(x+y)*(2*x+2*y)*exp(-y)*exp(z)^2
+            2*(x + y)^2*x^y*e^(x + 2*z)
+            sage: 1/exp(x)
+            e^(-x)
+            sage: exp(x)/exp(y)
+            e^(x - y)
+            sage: A = exp(I*pi/5)
+            sage: t = A*A*A*A; t
+            e^(4/5*I*pi)
+            sage: t*A
+            -1
+            sage: b = -x*A; c = b*b; c
+            x^2*e^(2/5*I*pi)
+            sage: u = -t*A; u
+            1
+
             sage: x*oo
             +Infinity
             sage: -x*oo

@@ -22,7 +22,8 @@ TODO:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.calculus.calculus import SR, sqrt
+from sage.symbolic.ring import SR
+from sage.functions.all import sqrt
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations
@@ -83,14 +84,14 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         [ 0  0  0  1  0]
         [ 0  0  0  0 -1]
         sage: orth([1,3,2,4,5])
-        [        1         0         0         0         0]
-        [        0      -1/2 sqrt(3)/2         0         0]
-        [        0 sqrt(3)/2       1/2         0         0]
-        [        0         0         0      -1/2 sqrt(3)/2]
-        [        0         0         0 sqrt(3)/2       1/2]
+        [          1           0           0           0           0]
+        [          0        -1/2 1/2*sqrt(3)           0           0]
+        [          0 1/2*sqrt(3)         1/2           0           0]
+        [          0           0           0        -1/2 1/2*sqrt(3)]
+        [          0           0           0 1/2*sqrt(3)         1/2]
         sage: orth([1,2,4,3,5])
-        [       -1/3 2*sqrt(2)/3           0           0           0]
-        [2*sqrt(2)/3         1/3           0           0           0]
+        [       -1/3 2/3*sqrt(2)           0           0           0]
+        [2/3*sqrt(2)         1/3           0           0           0]
         [          0           0           1           0           0]
         [          0           0           0           1           0]
         [          0           0           0           0          -1]
@@ -568,8 +569,8 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             [ 1  0]
             [ 0 -1]
             sage: orth.representation_matrix_for_simple_transposition(2)
-            [     -1/2 sqrt(3)/2]
-            [sqrt(3)/2       1/2]
+            [       -1/2 1/2*sqrt(3)]
+            [1/2*sqrt(3)         1/2]
 
             sage: norm = SymmetricGroupRepresentation([2,1], "seminormal")
             sage: norm.representation_matrix_for_simple_transposition(1)
@@ -620,8 +621,8 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             [ 1  0]
             [ 0 -1]
             sage: orth._representation_matrix_uncached(Permutation([1,3,2]))
-            [     -1/2 sqrt(3)/2]
-            [sqrt(3)/2       1/2]
+            [       -1/2 1/2*sqrt(3)]
+            [1/2*sqrt(3)         1/2]
 
         ::
 
@@ -653,8 +654,8 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             [ 1  0]
             [ 0 -1]
             sage: orth.representation_matrix(Permutation([1,3,2]))
-            [     -1/2 sqrt(3)/2]
-            [sqrt(3)/2       1/2]
+            [       -1/2 1/2*sqrt(3)]
+            [1/2*sqrt(3)         1/2]
 
         ::
 
@@ -751,7 +752,7 @@ class YoungRepresentation_Orthogonal(YoungRepresentation_generic):
             sage: from sage.combinat.symmetric_group_representations import YoungRepresentation_Orthogonal
             sage: orth = YoungRepresentation_Orthogonal([2,1])
             sage: orth._2x2_matrix_entries(1/2)
-            (-1/2, sqrt(3)/2, sqrt(3)/2, 1/2)
+            (-1/2, 1/2*sqrt(3), 1/2*sqrt(3), 1/2)
         """
         return (-beta, sqrt(1-beta**2), sqrt(1-beta**2), beta)
 

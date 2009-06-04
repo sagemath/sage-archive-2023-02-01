@@ -482,7 +482,7 @@ class Minimog():
             sage: M.find_hexad([0,1,2,4,6])
             ([0, 1, 2, 4, 6, 8], ['line 1', 'picture 1'])
             sage: M = Minimog(type="modulo11")
-            sage: M.find_hexad([1,2,3,4,SR(infinity)])
+            sage: M.find_hexad([1,2,3,4,SR(infinity)]) # random (machine dependent?) order
             ([+Infinity, 2, 3, 4, 1, 10], ['square 8', 'picture 0'])
 
         AUTHOR::

@@ -5482,14 +5482,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x*cos(x)
             sage: f.find_minimum_on_interval(1, 5)
-            (-3.2883713955908962, 3.4256184695...)
+            (-3.288371395590..., 3.4256184695...)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
-            (-3.288371361890984, 3.42575079030572)
+            (-3.288371361890..., 3.4257507903...)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
-            (-3.2883708459837844, 3.4250840220...)
+            (-3.288370845983..., 3.4250840220...)
             sage: show(f.plot(0, 20))
             sage: f.find_minimum_on_interval(1, 15)
-            (-9.4772942594797929, 9.5293344109...)
+            (-9.477294259479..., 9.5293344109...)
 
         ALGORITHM:
 

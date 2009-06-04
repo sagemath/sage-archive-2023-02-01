@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.2.5.p0 (Mike Hansen, June 4th, 2009) ===
+ * Fix build issues found in #6209.
+
 === flint-1.2.5 (Michael Abshoff, April 29th, 2009) ===
  * Update to latest upstream FLINT with reenabled znpoly 0.9.
 

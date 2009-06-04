@@ -67,6 +67,7 @@ FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
 cp patches/makefile src/
+cp patches/fpmz.c src/
 
 cd src
 

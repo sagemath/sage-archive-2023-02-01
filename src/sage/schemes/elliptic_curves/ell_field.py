@@ -18,6 +18,8 @@ import ell_generic
 import sage.rings.all as rings
 from constructor import EllipticCurve
 
+from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
+
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     base_field = ell_generic.EllipticCurve_generic.base_ring
@@ -534,3 +536,37 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         return D
 
 
+    def isogeny(self, kernel, codomain=None, degree=None, model=None, algorithm=None):
+        r"""
+        Returns an elliptic curve isogeny from self.
+        This redirects to the EllipticCurveIsogeny constructor.
+        See the EllipticCurveIsogeny class for more information.
+
+        EXAMPLES:
+
+            sage: F = GF(2^5, 'alpha'); alpha = F.gen()
+            sage: E = EllipticCurve(F, [1,0,1,1,1])
+            sage: R.<x> = F[]
+            sage: phi = E.isogeny(x+1)
+            sage: phi.rational_maps()
+            ((x^2 + x + 1)/(x + 1), (x^2*y + x)/(x^2 + 1))
+
+        """
+        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, algorithm)
+
+
+    def isogeny_codomain(self, kernel, degree=None, algorithm=None):
+        r"""
+        Returns the codomain of the isogeny from self with givien kernel.
+        This redirects to the isogeny_codomain_from_kernel function,
+        see that function for more information.
+
+        EXAMPLES:
+
+            sage: E = EllipticCurve('17a1')
+            sage: R.<x> = QQ[]
+            sage: E2 = E.isogeny_codomain(x - 11/4); E2
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 1461/16*x - 19681/64 over Rational Field
+
+        """
+        return isogeny_codomain_from_kernel(self, kernel, degree=None, algorithm=None)

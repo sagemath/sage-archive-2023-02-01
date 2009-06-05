@@ -5718,7 +5718,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: sin(x).nintegral(x,0,3)
-            (1.989992496600445, 2.209335488557113e-14, 21, 0)
+            (1.989992496600..., 2.209335488557...e-14, 21, 0)
         """
         from sage.calculus.calculus import nintegral
         return nintegral(self, *args, **kwds)

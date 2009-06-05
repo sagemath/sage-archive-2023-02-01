@@ -1379,20 +1379,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    cdef _floordiv(Integer self, Integer other):
-        cdef Integer x
-        x = PY_NEW(Integer)
-
-        _sig_on
-        mpz_fdiv_q(x.value, self.value, other.value)
-        _sig_off
-
-        return x
-
-
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of `\frac{self}{other}`.
+        Computes the whole part of `\frac{x}{y}`.
 
         EXAMPLES::
 
@@ -1410,7 +1399,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z // 0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: other must be nonzero
+            ZeroDivisionError: Integer division by zero
             sage: 101 // int(5)
             20
             sage: 100 // int(-3)
@@ -1424,12 +1413,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: [a // int(b) for a,b in signs] == control
             True
+            sage: [int(a) // b for a,b in signs] == control
+            True
         """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
         if PY_TYPE(x) is PY_TYPE(y):
             if not mpz_sgn((<Integer>y).value):
-                raise ZeroDivisionError, "other must be nonzero"
+                raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
                 _sig_on
                 mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
@@ -1443,7 +1434,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if yy > 0:
                 mpz_fdiv_q_ui(z.value, (<Integer>x).value, yy)
             elif yy == 0:
-                raise ZeroDivisionError, "other must be nonzero"
+                raise ZeroDivisionError, "Integer division by zero"
             else:
                 res = mpz_fdiv_q_ui(z.value, (<Integer>x).value, -yy)
                 mpz_neg(z.value, z.value)
@@ -2360,7 +2351,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __mod__(x, y):
         r"""
-         Returns self modulo the modulus.
+         Returns x modulo y.
 
          EXAMPLES::
 
@@ -2388,12 +2379,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: [int(a) % b for a,b in signs] == control
             True
+
+        This example caused trouble in trac #6083::
+
+            sage: a = next_prime(2**31)
+            sage: b = Integers(a)(100)
+            sage: a % b
+            59
          """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
+
+        # first case: Integer % Integer
         if PY_TYPE(x) is PY_TYPE(y):
             if not mpz_sgn((<Integer>y).value):
-                raise ZeroDivisionError, "other must be nonzero"
+                raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:
                 _sig_on
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
@@ -2402,20 +2402,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
 
+        # next: Integer % python int
         elif PyInt_CheckExact(y):
             yy = PyInt_AS_LONG(y)
             if yy > 0:
                 mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
             elif yy == 0:
-                raise ZeroDivisionError, "other must be nonzero"
+                raise ZeroDivisionError, "Integer modulo by zero"
             else:
                 res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -yy)
                 if res:
                     mpz_sub_ui(z.value, z.value, -yy)
             return z
 
+        # all other cases
         else:
-            return bin_op(x, y, operator.mod)
+            try:
+                # we explicitly try coercing both to ZZ here to
+                # avoid infinite loops in some cases (such as
+                # Integers and Integers(n)), see trac #6083
+                x = integer(x)
+                y = integer(y)
+                return x % y
+            except ValueError:
+                return bin_op(x, y, operator.mod)
 
 
     def quo_rem(Integer self, other):
@@ -2448,7 +2458,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.quo_rem(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: other (=0) must be nonzero
+            ZeroDivisionError: Integer division by zero
 
             sage: a = ZZ.random_element(10**50)
             sage: b = ZZ.random_element(10**15)
@@ -2465,7 +2475,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if d > 0:
                 mpz_fdiv_qr_ui(q.value, r.value, self.value, d)
             elif d == 0:
-                raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+                raise ZeroDivisionError, "Integer division by zero"
             else:
                 res = mpz_fdiv_qr_ui(q.value, r.value, self.value, -d)
                 mpz_neg(q.value, q.value)
@@ -2477,7 +2487,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if not PY_TYPE_CHECK_EXACT(other, Integer):
                 other = Integer(other)
             if mpz_sgn((<Integer>other).value) == 0:
-                raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+                raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
                 _sig_on
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)

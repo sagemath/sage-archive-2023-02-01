@@ -288,12 +288,12 @@ class FormalSum(ModuleElement):
 
     def __iter__(self):
         """
-        EXAMPLES::       indirect doctest
+        EXAMPLES::
 
-            sage: for z in FormalSum([(1,2), (5, 'a'), (-3, 7)]): print z
-            (5, 'a')
+            sage: for z in FormalSum([(1,2), (5, 1000), (-3, 7)]): print z
             (1, 2)
             (-3, 7)
+            (5, 1000)
         """
         return iter(self._data)
 
@@ -301,16 +301,16 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: v = FormalSum([(1,2), (5, 'a'), (-3, 7)]); v
-            5*a + 2 - 3*7
-            sage: v[0]         # indirect doctest
-            (5, 'a')
-            sage: v[1]
+            sage: v = FormalSum([(1,2), (5, 1000), (-3, 7)]); v
+            2 - 3*7 + 5*1000
+            sage: v[0]
             (1, 2)
-            sage: v[2]
+            sage: v[1]
             (-3, 7)
+            sage: v[2]
+            (5, 1000)
             sage: list(v)
-            [(5, 'a'), (1, 2), (-3, 7)]
+            [(1, 2), (-3, 7), (5, 1000)]
         """
         return self._data[n]
 
@@ -318,9 +318,9 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: v = FormalSum([(1,2), (5, 'a'), (-3, 7)]); v
-            5*a + 2 - 3*7
-            sage: len(v)            # indirect test
+            sage: v = FormalSum([(1,2), (5, 1000), (-3, 7)]); v
+            2 - 3*7 + 5*1000
+            sage: len(v)
             3
         """
         return len(self._data)
@@ -342,7 +342,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: latex(FormalSum([(1,2), (5, 8/9), (-3, 7)]))  # indirect doctest
+            sage: latex(FormalSum([(1,2), (5, 8/9), (-3, 7)]))
             5\cdot \frac{8}{9} + 2 - 3\cdot 7
         """
         symbols = [z[1] for z in self]
@@ -357,7 +357,7 @@ class FormalSum(ModuleElement):
             3 + 2*5
             sage: b = FormalSum([(1,3),(2,7)]); b
             3 + 2*7
-            sage: a < b                                      # indirect doctest
+            sage: a < b
             True
             sage: b < a
             False
@@ -372,7 +372,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: -FormalSum([(1,3),(2,5)])                # indirect doctest
+            sage: -FormalSum([(1,3),(2,5)])
             -3 - 2*5
         """
         return self.__class__([(-c, s) for (c, s) in self._data], check=False, parent=self.parent())
@@ -390,7 +390,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: -3*FormalSum([(1,3/7),(-2,5)])      # indirect doctest
+            sage: -3*FormalSum([(1,3/7),(-2,5)])
             -3*3/7 + 6*5
         """
         return self.__class__([(c*s, x) for (c, x) in self], check=False, parent=self.parent())
@@ -399,7 +399,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: FormalSum([(1,3/7),(-2,5)])*(-3)      # indirect doctest
+            sage: FormalSum([(1,3/7),(-2,5)])*(-3)
             -3*3/7 + 6*5
         """
         return self.__class__([(s*c, x) for (c, x) in self], check=False, parent=self.parent())

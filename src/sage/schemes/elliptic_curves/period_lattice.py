@@ -935,7 +935,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         sage: L = E.period_lattice(K.embeddings(ComplexField())[0])
         sage: L.ei()
-        [-1.000000000000000? + 0.?e-18*I,
+        [-1.000000000000000? + 0.?e-1...*I,
         -0.9720806486198328? - 0.561231024154687?*I,
         0.9720806486198328? + 0.561231024154687?*I]
         """
@@ -979,6 +979,11 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_logarithm(Q, prec=96)
             1.931128271542559442488585220
 
+        Note that this is actually the inverse of the Weierstrass isomorphism::
+
+            sage: pari(E).ellztopoint(_)
+            [3.00000000000000 + 0.E-18*I, 5.00000000000000 + 0.E-18*I]
+
         An example with negative discriminant, and a torsion point::
 
             sage: E = EllipticCurve('11a1')
@@ -1002,7 +1007,6 @@ class PeriodLattice_ell(PeriodLattice):
             [5334.003952567705? - 1.964393150436?e-6*I, 5334.003952567705? + 1.964393150436?e-6*I, -10668.25790513541?]
             sage: L.elliptic_logarithm(P,prec=100)
             0.27656204014107061464076203097
-
 
         """
         if not P.curve() is self.E:

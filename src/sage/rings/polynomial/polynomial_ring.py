@@ -1294,10 +1294,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
     def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=None):
         """
-        Return the Lagrange interpolation polynomial in self associated to
+        Return the Lagrange interpolation polynomial in ``self`` associated to
         the given list of points.
 
-        Given a list of points, i.e. tuples of elements of self's base
+        Given a list of points, i.e. tuples of elements of ``self``'s base
         ring, this function returns the interpolation polynomial in the
         Lagrange form.
 
@@ -1315,7 +1315,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
           - If ``algorithm='neville'`` then adapt Neville's method as described
             on page 144 of [BF05]_ to recursively generate the Lagrange
-            interpolation polynomilal. Neville's method generates
+            interpolation polynomial. Neville's method generates
             a table of approximating polynomials, where the last row of that
             table contains the `n`-th Lagrange interpolation polynomial. The
             adaptation implemented by this method is to only generate the
@@ -1332,7 +1332,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
           polynomial.
 
 
-        EXAMPLE:
+        EXAMPLES:
 
         By default, we use the method of divided-difference::
 

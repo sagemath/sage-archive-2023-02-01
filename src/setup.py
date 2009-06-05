@@ -223,6 +223,178 @@ def execute_list_of_commands(command_list):
         execute_list_of_commands_in_serial(command_list)
     print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
 
+#############################################
+###### Parallel gcc execution
+######
+######  This code is responsible for making
+###### distutils spawn compilation threads
+###### in parallel. TODO: EXPLAIN
+######
+#############################################
+
+from distutils.command.build_ext import build_ext
+from distutils.dep_util import newer_group
+from types import ListType, TupleType
+from distutils import log
+
+class sage_build_ext(build_ext):
+
+    def build_extensions(self):
+        # First, sanity-check the 'extensions' list
+        self.check_extensions_list(self.extensions)
+
+        if not os.environ.has_key('MAKE'):
+            ncpus = 1
+        else:
+            MAKE = os.environ['MAKE']
+            z = [w[2:] for w in MAKE.split() if w.startswith('-j')]
+            if len(z) == 0:  # no command line option
+                ncpus = 1
+            else:
+                # Determine number of cpus from command line argument.
+                # Also, use the OS to cap the number of cpus, in case
+                # user annoyingly makes a typo and asks to use 10000
+                # cpus at once.
+                try:
+                    ncpus = int(z[0])
+                    n = 2*number_of_threads()
+                    if n:  # prevent dumb typos.
+                        ncpus = min(ncpus, n)
+                except ValueError:
+                    ncpus = 1
+
+        import time
+        t = time.time()
+
+        # See if we're trying out the experimental parallel build
+        # code.
+        if ncpus > 1 and os.environ.has_key('SAGE_PARALLEL_DIST'):
+            extensions_to_compile = []
+            for ext in self.extensions:
+                need_to_compile, p = self.prepare_extension(ext)
+                if need_to_compile:
+                    extensions_to_compile.append(p)
+
+            if extensions_to_compile:
+               from processing import Pool
+               p = Pool(min(ncpus, len(extensions_to_compile)))
+               for r in p.imap(self.build_extension, extensions_to_compile):
+                   pass
+
+        else:
+            for ext in self.extensions:
+                need_to_compile, p = self.prepare_extension(ext)
+                if need_to_compile:
+                    self.build_extension(p)
+
+        print "Total time spent compiling C/C++ extensions: ", time.time() - t, "seconds."
+
+    def prepare_extension(self, ext):
+        sources = ext.sources
+        if sources is None or type(sources) not in (ListType, TupleType):
+            raise DistutilsSetupError, \
+                  ("in 'ext_modules' option (extension '%s'), " +
+                   "'sources' must be present and must be " +
+                   "a list of source filenames") % ext.name
+        sources = list(sources)
+
+        fullname = self.get_ext_fullname(ext.name)
+        if self.inplace:
+            # ignore build-lib -- put the compiled extension into
+            # the source tree along with pure Python modules
+
+            modpath = string.split(fullname, '.')
+            package = string.join(modpath[0:-1], '.')
+            base = modpath[-1]
+
+            build_py = self.get_finalized_command('build_py')
+            package_dir = build_py.get_package_dir(package)
+            ext_filename = os.path.join(package_dir,
+                                        self.get_ext_filename(base))
+        else:
+            ext_filename = os.path.join(self.build_lib,
+                                        self.get_ext_filename(fullname))
+        depends = sources + ext.depends
+        if not (self.force or newer_group(depends, ext_filename, 'newer')):
+            log.debug("skipping '%s' extension (up-to-date)", ext.name)
+            need_to_compile = False
+        else:
+            log.info("building '%s' extension", ext.name)
+            need_to_compile = True
+
+        return need_to_compile, (sources, ext, ext_filename)
+
+    def build_extension(self, p):
+
+        sources, ext, ext_filename = p
+
+        # First, scan the sources for SWIG definition files (.i), run
+        # SWIG on 'em to create .c files, and modify the sources list
+        # accordingly.
+        sources = self.swig_sources(sources, ext)
+
+        # Next, compile the source code to object files.
+
+        # XXX not honouring 'define_macros' or 'undef_macros' -- the
+        # CCompiler API needs to change to accommodate this, and I
+        # want to do one thing at a time!
+
+        # Two possible sources for extra compiler arguments:
+        #   - 'extra_compile_args' in Extension object
+        #   - CFLAGS environment variable (not particularly
+        #     elegant, but people seem to expect it and I
+        #     guess it's useful)
+        # The environment variable should take precedence, and
+        # any sensible compiler will give precedence to later
+        # command line args.  Hence we combine them in order:
+        extra_args = ext.extra_compile_args or []
+
+        macros = ext.define_macros[:]
+        for undef in ext.undef_macros:
+            macros.append((undef,))
+
+        objects = self.compiler.compile(sources,
+                                        output_dir=self.build_temp,
+                                        macros=macros,
+                                        include_dirs=ext.include_dirs,
+                                        debug=self.debug,
+                                        extra_postargs=extra_args,
+                                        depends=ext.depends)
+
+        # XXX -- this is a Vile HACK!
+        #
+        # The setup.py script for Python on Unix needs to be able to
+        # get this list so it can perform all the clean up needed to
+        # avoid keeping object files around when cleaning out a failed
+        # build of an extension module.  Since Distutils does not
+        # track dependencies, we have to get rid of intermediates to
+        # ensure all the intermediates will be properly re-built.
+        #
+        self._built_objects = objects[:]
+
+        # Now link the object files together into a "shared object" --
+        # of course, first we have to figure out all the other things
+        # that go into the mix.
+        if ext.extra_objects:
+            objects.extend(ext.extra_objects)
+        extra_args = ext.extra_link_args or []
+
+        # Detect target language, if not provided
+        language = ext.language or self.compiler.detect_language(sources)
+
+        self.compiler.link_shared_object(
+            objects, ext_filename,
+            libraries=self.get_libraries(ext),
+            library_dirs=ext.library_dirs,
+            runtime_library_dirs=ext.runtime_library_dirs,
+            extra_postargs=extra_args,
+            export_symbols=self.get_export_symbols(ext),
+            debug=self.debug,
+            build_temp=self.build_temp,
+            target_lang=language)
+
+
+
 
 #############################################
 ###### Dependency checking
@@ -673,6 +845,8 @@ code = setup(name = 'sage',
                      'sage.structure.proof'
                      ],
       scripts = [],
+
+      cmdclass = { 'build_ext': sage_build_ext },
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

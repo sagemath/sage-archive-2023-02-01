@@ -162,22 +162,22 @@ class HTML:
             <tr class ="row-a">
             <td><span class="math">0</span></td>
             <td><span class="math">0</span></td>
-            <td><span class="math">True</span></td>
+            <td><span class="math">\mbox{\rm True}</span></td>
             </tr>
             <tr class ="row-b">
             <td><span class="math">0</span></td>
             <td><span class="math">1</span></td>
-            <td><span class="math">False</span></td>
+            <td><span class="math">\mbox{\rm False}</span></td>
             </tr>
             <tr class ="row-a">
             <td><span class="math">1</span></td>
             <td><span class="math">0</span></td>
-            <td><span class="math">False</span></td>
+            <td><span class="math">\mbox{\rm False}</span></td>
             </tr>
             <tr class ="row-b">
             <td><span class="math">1</span></td>
             <td><span class="math">1</span></td>
-            <td><span class="math">True</span></td>
+            <td><span class="math">\mbox{\rm True}</span></td>
             </tr>
             </tbody>
             </table>

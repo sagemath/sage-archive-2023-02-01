@@ -303,17 +303,24 @@ class Latex:
         self.__density = density
 
     def __call__(self, x):
+        """
+        EXAMPLES::
+
+            sage: latex(True)
+            \mbox{\rm True}
+        """
         if hasattr(x, '_latex_'):
             return LatexExpr(x._latex_())
 
-        for k, f in latex_table.iteritems():
-            if isinstance(x, k):
-                return LatexExpr(f(x))
+        try:
+            f = latex_table[type(x)]
+            return LatexExpr(f(x))
 
-        if x is None:
-            return LatexExpr("\\mbox{\\rm None}")
+        except KeyError:
+            if x is None:
+                return LatexExpr("\\mbox{\\mathrm{None}}")
 
-        return LatexExpr(str_function(str(x)))
+            return LatexExpr(str_function(str(x)))
 
     def _relation_symbols(self):
         """

@@ -102,7 +102,8 @@ default listening address for Mecurial.
 
 Finally, if you want to apply a patch file (perhaps you've
 downloaded a patch from the Trac server for review), use the
-command ``hg_sage.patch('filename')`` or ``hg_sage.apply('filename')``.
+command ``hg_sage.patch('filename')`` (or
+``hg_sage.apply('filename')`` for hg bundle files).
 
 Using Mercurial with Other Sage Repositories
 ============================================
@@ -111,8 +112,6 @@ Sage includes these Mercurial repositories:
 
 
 -  SAGE_ROOT/devel/sage-\* : the Sage library source code
-
--  SAGE_ROOT/devel/doc-\* : the Sage documentation
 
 -  SAGE_ROOT/data/extcode : external system code, i.e., code
    included with Sage that is written for the systems with which Sage

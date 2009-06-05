@@ -280,7 +280,7 @@ you hopefully will understand why.
 **No Support Discussions**: The trac installation is not meant to
 be a system to track down problems when using Sage. Tickets should
 be clearly a bug and not "I tried to do X and I couldn't get it to
-work. How do I do this?". That is usually not a bug in Sage and it
+work. How do I do this?" That is usually not a bug in Sage and it
 is likely that sage-support can answer that question for you. If
 it turns out that you did hit a bug, somebody will open a concise
 and to-the-point ticket.
@@ -288,8 +288,7 @@ and to-the-point ticket.
 **No Closing Or Invalidating**: Unless you have admin powers in
 trac (which includes all the people who have ever done releases of
 Sage), do not close tickets unless you are explicitly told to do so.
-Since we have email notification now, this has become less of an
-issue. If you think that a ticket is invalid or has been fixed,
+If you think that a ticket is invalid or has been fixed,
 just comment on it and the current release manager will take a
 look and close it if appropriate.
 
@@ -297,9 +296,7 @@ look and close it if appropriate.
 times, tickets that fall into this category usually ran afoul to
 some of the other rules listed above. An example would be to
 "Make Sage the best CAS in the world". There is no metric to
-measure this properly and it is highly subjective. The ultimate
-goal of Sage development is world domination, but please don't open
-a ticket for that.
+measure this properly and it is highly subjective.
 
 Milestones vs. Releases
 =======================

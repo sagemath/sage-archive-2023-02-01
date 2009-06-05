@@ -492,7 +492,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         """
         return self._N
 
-    def qexp(self, n):
+    def q_expansion(self, n):
         r"""
         The q-expansion of self at the cusp at infinity.
 
@@ -516,10 +516,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: EtaProduct(36, {6:6, 2:-6}).qexp(10)
+            sage: EtaProduct(36, {6:6, 2:-6}).q_expansion(10)
             q + 6*q^3 + 27*q^5 + 92*q^7 + 279*q^9 + O(q^11)
             sage: R.<q> = ZZ[[]]
-            sage: EtaProduct(2,{2:24,1:-24}).qexp(100) == delta_qexp(101)(q^2)/delta_qexp(101)(q)
+            sage: EtaProduct(2,{2:24,1:-24}).q_expansion(100) == delta_qexp(101)(q^2)/delta_qexp(101)(q)
             True
         """
         R,q = PowerSeriesRing(ZZ, 'q').objgen()
@@ -532,6 +532,20 @@ class EtaGroupElement(MultiplicativeGroupElement):
             if self.r(d) != 0:
                 pr *= eta(q**d)**self.r(d)
         return pr*q**(self._sumDR / ZZ(24))*( R(1).add_bigoh(n))
+
+    def qexp(self, n):
+        """
+        Alias for ``self.q_expansion()``.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(36, {6:8, 3:-8})
+            sage: e.qexp(10)
+            q + 8*q^4 + 36*q^7 + O(q^10)
+            sage: e.qexp(30) == e.q_expansion(30)
+            True
+        """
+        return self.q_expansion(n)
 
     def order_at_cusp(self, cusp):
         r"""

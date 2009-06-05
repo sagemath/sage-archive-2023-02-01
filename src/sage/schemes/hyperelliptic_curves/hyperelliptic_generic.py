@@ -115,7 +115,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: C.hyperelliptic_polynomials()
             (x^3 + x - 1, 1/5*x^3)
         """
-        if K == None:
+        if K is None:
             return self._hyperelliptic_polynomials
         else:
             f, h = self._hyperelliptic_polynomials

@@ -141,8 +141,8 @@ def cantor_reduction_simple(a, b, f, genus):
         (1)
     """
     a2 = (f - b**2) // a
-    a2 *= 1/a2.leading_coefficient()
-    b2 = -b.mod(a2);
+    a2 = a2.monic()
+    b2 = -b % (a2);
     if a2.degree() == a.degree():
         # XXX
         assert a2.degree() == genus+1
@@ -194,12 +194,11 @@ def cantor_reduction(a, b, f, h, genus):
         g1 = a.degree()
         x = a.parent().gen()
         r = (x**2 + h[g1]*x - f[2*g1]).roots()[0][0]
-        b = b + r*(x**g1 - (x**g1).mod(a))
+        b = b + r*(x**g1 - (x**g1) % (a))
         k = f - h*b - b**2
-    assert k.mod(a) == 0
-    a = k // a
-    a /= a.leading_coefficient()
-    b = -(b+h).mod(a)
+    assert k % (a) == 0
+    a = (k // a).monic()
+    b = -(b+h) % (a)
     if a.degree() > genus:
         return cantor_reduction(a, b, f, h, genus)
     return (a, b)
@@ -247,17 +246,17 @@ def cantor_composition_simple(D1,D2,f,genus):
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1)
         a = (a1 // d)**2
-        b = (b1 + h3*((f - b1**2) // d)).mod(a)
+        b = (b1 + h3*((f - b1**2) // d)) % (a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
             a = a1*a2
-            b = (b2 + h2*a2*(b1-b2)).mod(a)
+            b = (b2 + h2*a2*(b1-b2)) % (a)
         else:
             d, l, h3 = d0.xgcd(b1 + b2)
             a = (a1*a2) // (d**2)
-            b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)).mod(a)
-    a *= 1/a.leading_coefficient()
+            b = ((b2 + l*h2*(b1-b2)*(a2 // d)) + h3*((f - b2**2) // d)) % (a)
+    a =a.monic()
     return (a, b)
 
 def cantor_composition(D1,D2,f,h,genus):
@@ -287,6 +286,23 @@ def cantor_composition(D1,D2,f,h,genus):
         (x + 6*a + 6, y + 2)
         sage: 7*8297*Q # indirect doctest
         (1)
+
+        A test over a prime field:
+
+        sage: F = GF(next_prime(10^30))
+        sage: x = F['x'].gen()
+        sage: f = x^7 + x^2 + 1
+        sage: H = HyperellipticCurve(f, 2*x); H
+        Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
+        sage: J = H.jacobian()(F); J
+        verbose 0 (919: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+        Set of points of Jacobian of Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1 defined over Finite Field of size 1000000000000000000000000000057
+        sage: Q = J(H.lift_x(F(1))); Q
+        (x + 1000000000000000000000000000056, y + 1000000000000000000000000000056)
+        sage: 10*Q # indirect doctest
+        (x^3 + 150296037169838934997145567227*x^2 + 377701248971234560956743242408*x + 509456150352486043408603286615, y + 514451014495791237681619598519*x^2 + 875375621665039398768235387900*x + 861429240012590886251910326876)
+        sage: 7*8297*Q
+        (x^3 + 35410976139548567549919839063*x^2 + 26230404235226464545886889960*x + 681571430588959705539385624700, y + 999722365017286747841221441793*x^2 + 262703715994522725686603955650*x + 626219823403254233972118260890)
     """
     a1, b1 = D1
     a2, b2 = D2
@@ -294,22 +310,22 @@ def cantor_composition(D1,D2,f,h,genus):
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1 + h)
         a = (a1 // d)**2;
-        b = (b1 + h3*((f-h*b1-b1**2) // d)).mod(a)
+        b = (b1 + h3*((f-h*b1-b1**2) // d)) % (a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
             a = a1*a2;
-            b = (b2 + h2*a2*(b1-b2)).mod(a)
+            b = (b2 + h2*a2*(b1-b2)) % (a)
         else:
             e0 = b1+b2+h
             if e0 == 0:
                 a = (a1*a2) // (d0**2)
-                b = (b2 + h2*(b1-b2)*(a2 // d0)).mod(a)
+                b = (b2 + h2*(b1-b2)*(a2 // d0)) % (a)
             else:
                 d, l, h3 = d0.xgcd(e0)
                 a = (a1*a2) // (d**2)
-                b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)).mod(a)
-    a *= 1/a.leading_coefficient()
+                b = (b2 + l*h2*(b1-b2)*(a2 // d) + h3*((f-h*b2-b2**2) // d)) % (a)
+    a = a.monic()
     return (a, b)
 
 class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism):
@@ -348,8 +364,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         SchemeMorphism.__init__(self, parent)
         if check:
             C = parent.curve()
-            K = parent.value_ring()
-            f, h = C.hyperelliptic_polynomials(K)
+            f, h = C.hyperelliptic_polynomials()
             a, b = polys
             if not (b**2 + h*b - f)%a == 0:
                 raise ValueError, \
@@ -655,12 +670,11 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             return self
         polys = self.__polys
         X = self.parent()
-        K = X.value_ring()
-        f, h = X.curve().hyperelliptic_polynomials(K)
-        if h == 0:
+        f, h = X.curve().hyperelliptic_polynomials()
+        if h.is_zero():
             D = (polys[0],-polys[1])
         else:
-            D = (polys[0],-polys[1]-h.mod(polys[0]))
+            D = (polys[0],-polys[1]-h % (polys[0]))
         return JacobianMorphism_divisor_class_field(X, D, check=False)
 
     def _add_(self,other):
@@ -682,8 +696,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         """
         X = self.parent()
         C = X.curve()
-        K = X.value_ring()
-        f, h = C.hyperelliptic_polynomials(K)
+        f, h = C.hyperelliptic_polynomials()
         genus = C.genus()
         if h == 0:
             D = cantor_composition_simple(self.__polys, other.__polys, f, genus)

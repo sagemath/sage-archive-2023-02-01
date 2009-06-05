@@ -75,7 +75,7 @@ class Superincreasing(SageObject):
     super-increasing sequence.
 
     If ``seq`` is ``None``, then construct an empty sequence. By
-    defintion, this empty sequence is not super-increasing.
+    definition, this empty sequence is not super-increasing.
 
 
     INPUT:
@@ -104,12 +104,12 @@ class Superincreasing(SageObject):
         Constructing a super-increasing sequence object from ``seq``.
 
         If ``seq`` is ``None``, then construct an empty sequence. By
-        defintion, this empty sequence is not super-increasing.
+        definition, this empty sequence is not super-increasing.
 
 
         INPUT:
 
-        - ``seq`` -- (default: None) a non-empty sequence.
+        - ``seq`` -- (default: ``None``) a non-empty sequence.
 
 
         EXAMPLES::
@@ -180,7 +180,6 @@ class Superincreasing(SageObject):
         INPUT:
 
         - ``N`` -- integer; the target value to search for.
-        - ``seq`` -- the non-empty sequence in which to search.
 
 
         OUTPUT:

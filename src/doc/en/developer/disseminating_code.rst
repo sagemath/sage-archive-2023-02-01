@@ -8,13 +8,13 @@ issue. Here are some of the available avenues of communication and
 tools to aid in that communication:
 
 
--  the Google group ``sage-support``, at
+-  The Google group ``sage-support``, at
    http://groups.google.com/group/sage-support. This group gives help
    and support to those who have problems with Sage (installation,
    syntax, etc). The IRC channel #sage-support on freenode serves the
    same purpose.
 
--  the Google group ``sage-devel``, at
+-  The Google group ``sage-devel``, at
    http://groups.google.com/group/sage-devel. This list is for Sage
    development and is about programming, design and technical issues.
    This is a great place to post questions about whether certain
@@ -25,10 +25,10 @@ tools to aid in that communication:
    on freenode.
 
 -  Mercurial: this is the source control system that is included
-   with SAGE. Use this to produce patches for Sage. See
+   with Sage. Use this to produce patches for Sage. See
    :ref:`chapter-mercurial` for a full discussion of Mercurial.
 
--  the Sage trac server, at http://trac.sagemath.org/sage_trac/:
+-  The Sage trac server, at http://trac.sagemath.org/sage_trac/:
    this is where you should post bugs, patches for bugs, additions to
    the Sage library, etc. See :ref:`chapter-trac` for more information.
 

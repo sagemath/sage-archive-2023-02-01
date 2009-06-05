@@ -41,7 +41,7 @@ Mercurial to clone the current repository and call the result
 symlink ``sage --> sage-myver`` is made.
 
 (You can also do, e.g., ``sage -clone -r 1250 oldver``, to
-get a clone of Sage but as it was at revision 1250. Of course,
+get a clone of Sage as it was at revision 1250. Of course,
 dependency issues could make old versions not work (e.g., maybe an
 old Sage library won't compile with the latest Singular library,
 which is what is installed elsewhere in SAGE_ROOT). From within Sage,
@@ -102,7 +102,7 @@ default listening address for Mecurial.
 
 Finally, if you want to apply a patch file (perhaps you've
 downloaded a patch from the Trac server for review), use the
-command ``hg_sage.patch('filename')``.
+command ``hg_sage.patch('filename')`` or ``hg_sage.apply('filename')``.
 
 Using Mercurial with Other Sage Repositories
 ============================================
@@ -128,14 +128,9 @@ corresponding commands for each of the repositories:
 
 -  use ``hg_sage`` for the Sage library
 
--  use ``hg_doc`` for the Sage documentation
-
 -  use ``hg_extcode`` for the external system code
 
 -  use ``hg_scripts`` for the Sage shell scripts
 
-
-To produce patches for Sage's documentation, for example, use the
-same method as outlined above, but with commands like
-``hg_doc.status()``, ``hg_doc.commit()``, etc.
-
+Since version 3.4, both the Sage library and documentation repositories
+are managed by the command ``hg_sage``.

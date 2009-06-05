@@ -67,6 +67,25 @@ else to do.
 Hit the "Preview" button to make sure everything looks okay, and
 then hit "Submit ticket".
 
+If you don't have an account on the trac system to report directly,
+you are still encouraged to report any possible bug to the
+``sage-devel`` mailing list at ``sage-devel@googlegroups.com``.
+The list is moderated for new users and requires subscription.
+In your bug report to ``sage-devel``, make sure to include the
+following information:
+
+- **operating system**, as precise as possible and architecture
+  (32-bit, 64-bit, ...)
+
+- affected version: the exact **version number** and the downloaded
+  package (source, precompiled, image or an upgrade from a previous
+  version (which one?))
+
+- provide a **reproducible example** and/or define the steps to
+  reproduce the erroneous behaviour.
+
+Thank you in advance for reporting bugs to improve Sage in the future!
+
 Guidelines for Opening Tickets
 ==============================
 
@@ -114,6 +133,38 @@ explained in the previous sections) describing the issue and your
 solution, attach your patch, and give it a summary of the form
 ``[with patch, needs review] description of bug goes here``.
 
+The following are some other relevant issues:
+
+- Every bug fixed should result in a doctest.
+
+- Cooperative debugging via IRC is faster by at least an order of
+  magnitude. If you haven't learned how to use IRC, please do so.
+  If you have problems using IRC because of firewalls, but you do
+  have an account on sage.math, you can use irssi via ssh there. If
+  you have a flaky connection, you can use it together with screen.
+
+- This is not an issue with defects, but there are many enhancements
+  possible for Sage and too few developers to implement all the
+  good ideas. But it is useful to keep ideas in a central place
+  because in the Google groups they tend to get lost once they drop
+  off the first page.
+
+- If you are a developer, be nice and try to solve a stale/old
+  ticket every once in a while.
+
+- Some people regularly do triage. Triage in this context means
+  that we look at new bugs and classify them according to our
+  perceived priority. It is very likely that different people will
+  see priorities of bugs very differently from us, so please let
+  us know if you see a problem with specific tickets.
+
+- **Patches Preferred**: Patches are easier to review, edit and
+  can be merged without affecting the history. So we greatly prefer
+  patches over Mercurial bundles. If you do have a large number of
+  patches, a bundle can still be better than patches. One
+  alternative to bundles is to use Mercurial queues to flatten the
+  history. That might or might not be desirable.
+
 Reviewing Patches
 =================
 
@@ -140,17 +191,37 @@ Now ask yourself questions like these:
 -  When you run it in Sage, does it fix the problem reported on the
    ticket?
 
--  Does it fail to introduce any new problems?
+-  Does it introduce any new problems?
 
 -  Is it documented sufficiently, including both explanations and
    doctests? (This is **very** important: all code in Sage must have
    doctests, so even if the patch is for code which didn't have a
-   doctest before, the new version must include one.)
+   doctest before, the new version must include one.) In particular,
+   all new code must be **100% doctested**. Use the command
+   ``sage -coverage <files>`` to see the coverage percentage of
+   ``<files>``.
 
 -  In particular, is there a doctest illustrating that the bug has
    been fixed? If a function used to give the wrong answer and this
    patch fixes that, then if possible, it should include a doctest
    illustrating its new success.
+
+-  If the patch claims to speed up some computation, does the ticket
+   contain code examples to illustrate the claim? The ticket should
+   explain the speed efficiency before applying the patch. It should
+   also explain the speed efficiency gained after applying the patch.
+   In both the "before" and "after" explanation, there should be
+   code samples to illustrate the claims. It is not sufficient to
+   just mention that the patch results in a speed-up of up to x
+   percent or y factor.
+
+-  Does the reference manual build without errors? You can test the
+   reference manual using the command
+   ``sage -docbuild reference html``.
+
+-  Do all doctests pass without errors? You can test the Sage
+   library with ``make test`` or ``make ptest`` (edit the number
+   of threads in ``$SAGE_ROOT/makefile`` before using ``ptest``).
 
 
 If the answers to these and other such reasonable questions are
@@ -160,21 +231,10 @@ summary from ``[with patch, needs review] description of bug`` to
 ``[with patch, positive review] description of bug``. If you feel
 there are issues with the patch, explain them in the comment box,
 and change the summary to
-{[with patch, negative review]
-description of bug}, or
-{[with patch, needs work]
-description of bug}, or
-{[with patch, positive review pending fixes]
-description of bug},
+``[with patch, needs work] description of bug``, or
+``[with patch, positive review pending fixes] description of bug``,
 or something similar. Browse the tickets on the trac server to see
 how things are done.
-
-By the way, if you review a patch which deals with the Sage
-manuals, say, instead of the source code, then you need to use
-``hg_doc.patch('filename')`` instead of
-``hg_sage.patch('filename')`` to apply it, and you need to
-follow the directions in :ref:`chapter-sage_manuals` to build the new
-documentation.
 
 Closing Tickets
 ===============
@@ -182,4 +242,102 @@ Closing Tickets
 Don't close tickets. That is the job of the acting Sage release
 manager. If you feel strongly that a ticket should be closed or
 deleted, send email to the current release manager explaining the
-situation.
+situation. You can also comment on the ticket, explaining why it
+should be closed.
+
+Reasons to Invalidate Tickets
+=============================
+
+**One Issue Per Ticket**: A ticket must cover only one issue
+and should not be a laundry list of unrelated issues. If a ticket
+covers more than one issue, we cannot close it and while some of
+the patches have been applied to a given release, the ticket would
+remain in limbo.
+
+**No Patch Bombs**: Code that goes into Sage is peer reviewed. If
+you show up with an 80,000 lines of code bundle that completely
+rips out a subsystem and replaces it with something else, you can
+imagine that the review process will be a little tedious. These
+huge patch bombs are problematic for several reasons and we prefer
+small, gradual changes that are easy to review and apply. This is
+not always possible (e.g. coercion rewrite), but it is still highly
+recommended that you avoid this style of development unless there
+is no way around it.
+
+**Sage Specific**: Sage's philosophy is that we ship everything
+(or close to it) in one source ball to make debugging possible.
+You can imagine the combinatorial explosion we would have to deal
+with if you replaced only ten components of Sage with external
+packages. Once you start replacing some of the more essential
+components of Sage that are commonly packaged (e.g. Pari, GAP,
+lisp, gmp), it is no longer a problem that belongs in our tracker.
+If your distribution's Pari package is buggy for example, file a
+bug report with them. We are usually willing and able to solve
+the problem, but there are no guarantees that we will help you
+out. Looking at the open number of tickets that are Sage specific,
+you hopefully will understand why.
+
+**No Support Discussions**: The trac installation is not meant to
+be a system to track down problems when using Sage. Tickets should
+be clearly a bug and not "I tried to do X and I couldn't get it to
+work. How do I do this?". That is usually not a bug in Sage and it
+is likely that sage-support can answer that question for you. If
+it turns out that you did hit a bug, somebody will open a concise
+and to-the-point ticket.
+
+**No Closing Or Invalidating**: Unless you have admin powers in
+trac (which includes all the people who have ever done releases of
+Sage), do not close tickets unless you are explicitly told to do so.
+Since we have email notification now, this has become less of an
+issue. If you think that a ticket is invalid or has been fixed,
+just comment on it and the current release manager will take a
+look and close it if appropriate.
+
+**Solution Must Be Achievable**: Tickets must be achievable. Many
+times, tickets that fall into this category usually ran afoul to
+some of the other rules listed above. An example would be to
+"Make Sage the best CAS in the world". There is no metric to
+measure this properly and it is highly subjective. The ultimate
+goal of Sage development is world domination, but please don't open
+a ticket for that.
+
+Milestones vs. Releases
+=======================
+
+Milestones are usually goals to be met while working toward a
+release. In Sage's trac, we use milestones instead of releases, but
+unless somebody volunteers to clean up all the old milestones, we
+will stick with the current model. It doesn't make a whole lot of
+difference if we use milestone instead of release.
+
+Finely grained releases are good. Release early and often is the way
+to go, especially as more and more patches are coming in.
+
+It is a good idea to make a big release and schedule at least one
+more bug fix release after that to sort out the inevitable
+"doctest X is broken on distribution Y and compiler Z" problem.
+Given the number of compilers and operating systems out there, one
+has to be realistic to expect problems. A compile farm would
+certainly help to catch issues early.
+
+Assigning Tickets
+=================
+
+- Each ticket must have a milestone assigned.
+
+- If a ticket has a patch or spkg that is ready to be reviewed,
+  assign it against the current milestone.
+
+- Defect vs. enhancement vs. task: this can be tricky, but a defect
+  should be something that leads to an exception or a mathematically
+  wrong result.
+
+- If you are unsure to whom to assign the ticket, assign it to somebody.
+
+- Certain categories have default people who get assigned all
+  issues.
+
+- If you have been assigned a ticket, you should either accept it
+  or assign it back to somebody or tba. Many people do not accept
+  pending tickets at the moment. You have accepted a ticket if your
+  name has a star next to it.

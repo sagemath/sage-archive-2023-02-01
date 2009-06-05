@@ -62,7 +62,7 @@ rings.
 Headings of Sage Library Code Files
 ===================================
 
-The top of each Sage code file should follows this format:
+The top of each Sage code file should follow this format:
 
 ::
 
@@ -224,8 +224,8 @@ contains the implementation for :math:`$\ZZ$`.
 
 All code included with Sage must be licensed under the GPLv2+ or a
 less restrictive license (e.g., the BSD license). It is very
-important that you include your name in the AUTHOR log so
-that everybody who submits code to Sage to receive proper credit [2]_.
+important that you include your name in the AUTHORS log so
+that everybody who submits code to Sage receives proper credit [2]_.
 (If ever you feel you are not receiving proper credit for anything
 you submit to Sage, please let the development team know!)
 
@@ -264,7 +264,13 @@ following information:
    ``ALGORITHM: Uses Pari``.
 
 -  A NOTES block for special notes (optional). Include information
-   such as references, purpose etc.
+   such as purpose etc.
+
+- A REFERENCES block to list books or papers (optional). This block serves
+  a similar purpose to a list of references in a research paper, or a
+  bibliography in a monograph. If your method, function or class uses an
+  algorithm that can be found in a standard reference, you should list
+  that reference under this block.
 
 -  An AUTHORS block (optional, but encouraged for important
    functions, so users can see from the docstring who wrote it and
@@ -336,7 +342,7 @@ indentation:
 You are strongly encouraged to:
 
 
--  Use nice LaTeX formating everywhere. If you use backslashes,
+-  Use nice LaTeX formatting everywhere. If you use backslashes,
    either use double backslashes or place an r right before the first
    triple opening quote. For example,
 
@@ -558,7 +564,7 @@ documentation, keep the following points in mind:
    must not be the first argument to ``sage``.) Use this to
    include doctests that require optional packages. For example, the
    docstring for ``_magma_init_`` in the class
-   ``EllipticCurve_finite_field`` from the
+   ``EllipticCurve_finite_field`` from the file
    ``SAGE_ROOT/devel/sage/sage/schemes/elliptic_curves/ell_finite_field.py``
    contains
 

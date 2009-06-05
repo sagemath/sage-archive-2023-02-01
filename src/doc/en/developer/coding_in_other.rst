@@ -206,7 +206,7 @@ The PARI C-library Interface
 
 (This chapter was written by Martin Albrecht.)
 
-Here is the step-by-step guide to adding a new PARI functions to
+Here is the step-by-step guide to adding new PARI functions to
 Sage. We use the Frobenius form of a matrix as an example.
 
 Some heavy lifting for matrices over integers is implemented using
@@ -439,11 +439,11 @@ Sage already has classes for each of these.
 A "hard" example is left as an exercise! Here are a few ideas.
 
     Write a wrapper for GAP's ``FreeLieAlgebra`` function (or,
-    more generally, all the finitely presented Lie algebra fuunctions
+    more generally, all the finitely presented Lie algebra functions
     in GAP). This would require creating new Python objects.
 
     Write a wrapper for GAP's ``FreeGroup`` function (or, more
-    generally, all the finitely presented groups fuunctions in GAP).
+    generally, all the finitely presented groups functions in GAP).
     This would require writing some new Python objects.
 
     Write a wrapper for GAP's character tables. Though this could be
@@ -811,7 +811,7 @@ You can create Sage pseudo-tty interfaces that allow Sage to work
 with almost any command-line program, and which don't require any
 modification or extensions to that program. They are also
 surprisingly fast and flexible (given how they work!), because all
-IO is buffered, and because interaction between Sage and the
+I/O is buffered, and because interaction between Sage and the
 command line program can be non-blocking (asynchronous); this is
 because they all derive from the Sage class ``Expect``, which
 handles the communication between Sage and the external process.

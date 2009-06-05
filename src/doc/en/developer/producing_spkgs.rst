@@ -26,7 +26,7 @@ discourage confusion. In particular, you can type
          tar jxvf mypackage-version.spkg
 
 to extract one and see what is inside.  If you want to create a
-new .spkg file, you should start by looking at some old ones; in a
+new .spkg file, you should start by looking at some old ones. In a
 source code distribution of Sage, the standard ones can be found in
 ``SAGE_ROOT/spkg/standard``, or you can download .spkg files from
 http://sagemath.org/download-packages.html.

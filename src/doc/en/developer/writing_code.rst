@@ -39,7 +39,7 @@ specialized C/C++ libraries like LinBox, IML and M4RI.
 
 .. Say something about GSL, Matplotlib, Maxima, MWRANK, NetworkX, NTL, Numpy
 
-Sage is not just about gathering together functionality, it is
+Sage is not just about gathering together functionality. It is
 about providing a clear, systematic and consistent way to access a
 large number of algorithms, in a coherent framework that makes
 sense mathematically. In the design of Sage, the semantics of

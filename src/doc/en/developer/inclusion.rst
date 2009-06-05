@@ -6,20 +6,20 @@ must meet the following requirements:
 
 
 -  **License**. The license must be a GPL version 2+ compatible
-   license. (This will be publicly revisited around Jan 15, 2009.)
+   license.
 
--  **Build Support**. The code must build on our supported
+-  **Build Support**. The code must build on the following supported
    architectures and compilers (and intended port targets):
 
 
-   -  Linux: x86, x8664, Itanium, ppc, ppc64, Sparc (gcc 3.4-4.3)
+   -  Linux: x86, x86_64, Itanium, ppc, ppc64, Sparc (gcc 3.4--4.3)
 
-   -  Apple Mac OS X: ppc, ppc64, x86, x86-64 (Xcode 2.5+)
+   -  Apple Mac OS X: ppc, ppc64, x86, x86_64 (Xcode 2.5+)
 
-   -  Microsoft Windows: x86, x8664 MSVC 2005/Intel Fortran (MinGW or
+   -  Microsoft Windows: x86, x86_64 MSVC 2005/Intel Fortran (MinGW or
       Cygwin support is insufficient!)
 
-   -  Solaris 10: Sparc, x86, x8664 (Sun Forte 12)
+   -  Solaris 10: Sparc, x86, x86_64 (Sun Forte 12)
 
 
    Remarks:
@@ -32,8 +32,8 @@ must meet the following requirements:
       share the burden.
 
 
-   Potential future ports include FreeBSD (x86, x86-64), OpenBSD (x86,
-   x86-64), HPUX (Itanium), AIX (PPC64), and ARM (OSX).
+   Potential future ports include FreeBSD (x86, x86_64), OpenBSD (x86,
+   x86_64), HPUX (Itanium), AIX (PPC64), and ARM (OSX).
 
 -  **Quality**. The code should be "better" than any other
    available code (that passes the two above criteria), and the

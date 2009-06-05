@@ -278,9 +278,11 @@ def wtdist_gap(Gmat, n, F):
     -  ``Gmat`` - a string representing a GAP generator
        matrix G of a linear code.
 
+    -  ``n`` - an integer > 1 representing the number of columns of G
+      (i.e., the length of the linear code).
+
     -  ``F`` - a (Sage) finite field - the base field of
        the code.
-
 
     OUTPUT: Returns the spectrum of the associated code.
 

@@ -7795,7 +7795,11 @@ cdef class gen(sage.structure.element.RingElement):
         if n%2 == 1:
             n = n + 1
         _sig_on
-        return self.new_gen(ellwp0(self.g, t0, flag, prec, (n+2)/2))
+        try:
+            dprec = prec_words_to_dec(z.precision())
+        except AttributeError:
+            dprec = prec
+        return self.new_gen(ellwp0(self.g, t0, flag, dprec, (n+2)/2))
 
     def ellchangepoint(self, y):
         """

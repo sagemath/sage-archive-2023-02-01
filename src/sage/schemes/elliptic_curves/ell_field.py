@@ -539,8 +539,32 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     def isogeny(self, kernel, codomain=None, degree=None, model=None, algorithm=None):
         r"""
         Returns an elliptic curve isogeny from self.
-        This redirects to the EllipticCurveIsogeny constructor.
-        See the EllipticCurveIsogeny class for more information.
+        This redirects to the EllipticCurveIsogeny constructor, see that function for more information.
+
+        INPUT:
+
+        - ``kernel``    - a kernel, either a list of points in self, or a kernel polynomial.
+                          If initiating from a domain/codomain, this must be set to None.
+        - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is None,
+                          then this must be the codomain of a seperable normalized isogeny,
+                          furthermore, ``degree`` must be the degree of the isogeny from self to ``codomain``.
+                          If ``kernel`` is not None, then this must be isomorphic to the codomain of the
+                          normalized seperable isogeny defined by ``kernel``,
+                          in this case, the isogeny is post composed with an isomorphism so that this parameter is the codomain.
+        - ``degree``    - an integer (default:None).
+                          If ``kernel`` is None, then this is the degree of the isogeny from self to ``codomain``.
+                          If ``kernel`` is not None, then this is used to determine wether or not to skip a gcd
+                          of the kernel polynomial with the two torsion polynomial of self.
+        - ``model``     - a string (defaul:None).  Only supported variable is "minimal", in which case if
+                          self is a curve over the rationals, then the codomain is set to be the unique global minimum model.
+        - ``algorithm`` - a string (default:None).  If this parameter is None, then the algorithm is determined from the input.
+                          The valid values are "velu" and "kohel".  If "velu" is set, then kernel must be a list of points in self
+                          that define a kernel of an isogeny.  If "kohel" is set, then the kernel must be either a kernel polynomial
+                          or a list of coefficients of a kernel polynomial.
+
+        OUTPUT:
+
+        (elliptic curve isogeny) the isogeny initialized from the parameters.
 
         EXAMPLES:
 
@@ -560,6 +584,19 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         Returns the codomain of the isogeny from self with givien kernel.
         This redirects to the isogeny_codomain_from_kernel function,
         see that function for more information.
+
+        INPUT:
+
+        - ``kernel`` - Either a list of points in the kernel of the isogeny, or a kernel polynomial (specified as a either a univariate polynomial or a coefficient list.)
+
+        - ``degree`` - an integer, (default:None) optionally specified degree of the kernel.
+
+        - ``algorithm`` - See the options in the constructor of the EllipticCurveIsogeny class.
+
+        OUTPUT:
+
+        (elliptic curve) the codomain of the seperable normalized isogeny from this kernel
+
 
         EXAMPLES:
 

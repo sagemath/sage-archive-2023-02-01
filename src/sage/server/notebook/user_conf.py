@@ -3,9 +3,9 @@
 
 import conf
 
-defaults = {'max_history_length':500,
+defaults = {'max_history_length':1000,
             'default_system':'sage',
-            'autosave_interval':3*60,   # (in seconds)
+            'autosave_interval':60*60,   # 1 hour in seconds
             'default_pretty_print': False
             }
 

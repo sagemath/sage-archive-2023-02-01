@@ -145,9 +145,9 @@ The following are some other relevant issues:
 
 - This is not an issue with defects, but there are many enhancements
   possible for Sage and too few developers to implement all the
-  good ideas. But it is useful to keep ideas in a central place
-  because in the Google groups they tend to get lost once they drop
-  off the first page.
+  good ideas. The trac server is useful for keeping ideas
+  in a central place because in the Google groups they tend to get
+  lost once they drop off the first page.
 
 - If you are a developer, be nice and try to solve a stale/old
   ticket every once in a while.
@@ -241,7 +241,7 @@ Closing Tickets
 
 Don't close tickets. That is the job of the acting Sage release
 manager. If you feel strongly that a ticket should be closed or
-deleted, send email to the current release manager explaining the
+deleted, send an email to the current release manager explaining the
 situation. You can also comment on the ticket, explaining why it
 should be closed.
 

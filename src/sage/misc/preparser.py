@@ -54,6 +54,8 @@ A hex literal:
     'Integer(0x2e3)'
     sage: 0xA
     10
+    sage: 0xe
+    14
 
 Raw and hex works correctly:
     sage: type(0xa1)

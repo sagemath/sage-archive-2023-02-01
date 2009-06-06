@@ -84,6 +84,7 @@ import mod5family
 from sage.rings.all import (
     PowerSeriesRing, LaurentSeriesRing, O,
     infinity as oo,
+    ZZ, QQ,
     Integer,
     Integers,
     IntegerRing, RealField,
@@ -3171,23 +3172,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def modular_parametrization(self):
         r"""
-        Computes and returns the modular parametrization of this elliptic
-        curve.
-
-        The curve is converted to a minimal model.
-
-        OUTPUT: A list of two Laurent series [X(x),Y(x)] of degrees -2, -3
-        respectively, which satisfy the equation of the (minimal model of
-        the) elliptic curve. There are modular functions on
-        `\Gamma_0(N)` where `N` is the conductor.
-
-        X.deriv()/(2\*Y+a1\*X+a3) should equal f(q)dq/q where f is
-        self.q_expansion().
+        Returns the modular parametrization of this elliptic curve, which is
+        a map from `X_0(N)` to self, where `N` is the conductor of self.
 
         EXAMPLES::
 
+            sage: E = EllipticCurve('15a')
+            sage: phi = E.modular_parametrization(); phi
+            Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
+            sage: z = 0.1 + 0.2j
+            sage: phi(z)
+            (8.20822465478531 - 13.1562816054682*I : -8.79855099049365 + 69.4006129342200*I : 1.00000000000000)
+
+        This map is actually a map on `X_0(N)`, so equivalent representatives
+        in the upper half plane map to the same point::
+
+            sage: Gamma0(15).gen(5)
+            [-7 -1]
+            [15  2]
+            sage: phi((-7*z-1)/(15*z+2))
+            (8.20822465478524 - 13.1562816054681*I : -8.79855099049343 + 69.4006129342194*I : 1.00000000000000)
+
+        We can also get a series expansion of this modular parameterization::
+
             sage: E=EllipticCurve('389a1')
-            sage: X,Y=E.modular_parametrization()
+            sage: X,Y=E.modular_parametrization().power_series()
             sage: X
             q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2365*q^15 + 3463*q^16 + 4508*q^17 + O(q^18)
             sage: Y
@@ -3198,20 +3207,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: q = X.parent().gen()
             sage: E.defining_polynomial()(X,Y,1) + O(q^11) == 0
             True
-
-        Note that below we have to change variable from x to q
-
-        ::
-
-            sage: a1,_,a3,_,_=E.a_invariants()
-            sage: f=E.q_expansion(17)
-            sage: q=f.parent().gen()
-            sage: f/q == (X.derivative()/(2*Y+a1*X+a3))
-            True
         """
-        R = LaurentSeriesRing(RationalField(),'q')
-        XY = self.pari_mincurve().elltaniyama()
-        return [1/R(1/XY[0]),1/R(1/XY[1])]
+        return ModularParameterization(self)
 
     def congruence_number(self):
         r"""
@@ -5275,6 +5272,147 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__heegner_sha_an[(D,prec)] = sha_an
         return sha_an
 
+    def _heegner_forms_list(self, D):
+        """
+        Returns a list of quadratic forms corresponding to Heegner points
+        with discriminant `D`. Specifically, given a quadratic form
+        `f = Ax^2 + Bxy + Cy^2` we let `\tau_f` be a root of `Ax^2 + Bx + C`
+        and the discriminant `\Delta(\tau_f) = \Delta(f) = D` must be
+        invariant under multiplication by `N`, the conductor of self.
+
+            `\Delta(N\tau_f) = \Delta(\tau_f) = \Delta(f) = D`
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E._heegner_forms_list(-7)
+            [37*x^2 + 17*x*y + 2*y^2, 37*x^2 + 57*x*y + 22*y^2]
+            sage: E = EllipticCurve('389a')
+            sage: E._heegner_forms_list(-7)
+            [389*x^2 + 185*x*y + 22*y^2, 389*x^2 + 593*x*y + 226*y^2]
+            sage: E._heegner_forms_list(-55)
+            [389*x^2 + 201*x*y + 26*y^2, 778*x^2 + 201*x*y + 13*y^2, 5057*x^2 + 201*x*y + 2*y^2, 389*x^2 + 577*x*y + 214*y^2, 778*x^2 + 577*x*y + 107*y^2, 41623*x^2 + 577*x*y + 2*y^2]
+        """
+        from sage.quadratic_forms.all import BinaryQF
+        N = self.conductor()
+        all = []
+        seen = []
+        betas = Integers(4*N)(D).sqrt(all=True)
+        for b  in set([(beta % (2*N)).lift() for beta in betas]):
+            R = (b**2-D)//(4*N)
+            for d in R.divisors():
+                f = BinaryQF([d*N, b, R//d])
+                fr = f.reduced_form()
+                if fr not in seen:
+                    seen.append(fr)
+                    all.append(f)
+            seen = []
+        return all
+
+    def _heegner_best_tau(self, D, prec=None):
+        """
+        Given a discrimanent `D`, find the Heegner point `\tau` in the
+        upper half plane with largest imaginary part (which is optimal
+        for evaluating the modular parametrization). If the optional
+        parameter ``prec`` is give, return `\tau` to ``prec`` bits of
+        precision, otherwise return it exactly as a symbolic object.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E._heegner_best_tau(-7)
+            1/74*sqrt(-7) - 17/74
+            sage: EllipticCurve('389a')._heegner_best_tau(-11)
+            1/778*sqrt(-11) - 355/778
+        """
+        best = None
+        for f in self._heegner_forms_list(D):
+            if best is None or f[1] < best[1]:
+                best = f
+        A, B, C = best
+        return (-B + best.discriminant().sqrt(prec=prec)) / (2*A)
+
+    def heegner_point(self, D, prec=None, max_prec=2000):
+        """
+        Returns the heegner point of this curve and the quadratic imaginary
+        field `K=\QQ(\sqrt{D})`. If the optional parameter ``prec`` is give,
+        it is computed with ``prec`` bits of working precision, otherwise it
+        attempts to recognize it exactly over the Hilbert class field of `K`.
+        In this  latter case, the answer is *not* proveably correct but a
+        strong consistancy check is made.
+
+        INPUT::
+
+            D        -- a Heegner discriminant
+
+            prec     -- (default: None) the working precision
+
+            max_prec -- (default: 2000) the maximum precision to use when
+                        when attempting to compute the Heegner point exactly.
+
+        OUTPUT::
+
+            The heegner point `P` over a number field (if ``prec`` is None) or the complex
+            field to ``prec`` digits of precision.
+
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.heegner_discriminants_list(10)
+            [-7, -11, -40, -47, -67, -71, -83, -84, -95, -104]
+            sage: E.heegner_point(-7)
+            (0 : 0 : 1)
+            sage: P = E.heegner_point(-40); P
+            (a : -a + 1 : 1)
+            sage: P = E.heegner_point(-47); P
+            (a : -a^4 - a : 1)
+            sage: P[0].parent()
+            Number Field in a with defining polynomial x^5 - x^4 + x^3 + x^2 - 2*x + 1
+
+        Working out the details manually::
+
+            sage: P = E.heegner_point(-47, prec=200)
+            sage: f = algdep(P[0], 5); f
+            x^5 - x^4 + x^3 + x^2 - 2*x + 1
+            sage: f.discriminant().factor()
+            47^2
+        """
+        if not self.satisfies_heegner_hypothesis(D):
+            raise ValueError, "D (=%s) must satisfy the Heegner hypothesis" % D
+        if prec is None:
+            prec = 53
+            K = number_field.QuadraticField(D, 'a')
+            relative_degree = K.class_number()
+            while True:
+                for ext in [1,2]:
+                    degree = ext*relative_degree
+                    P = self.heegner_point(D, prec)
+                    f = arith.algdep(P[0], degree)
+                    if not f.is_irreducible():
+                        continue
+                    f /= f.leading_coefficient()
+                    if f.degree() == 1:
+                        # It is actually over K
+                        pts = self.change_ring(K).lift_x(-f[0], all=True)
+                        pts.sort(cmp=lambda R, S: cmp(abs(R[1]-P[1]), abs(S[1]-P[1])))
+                        return pts[0]
+                    H = number_field.NumberField(f, 'a', embedding=P[0])
+                    disc = H.discriminant()
+                    # H must be unramified outside of D
+                    res = disc
+                    for p, e in arith.factor(D):
+                        v, res = res.val_unit(p)
+                    if res in [1, -1]:
+                        pts = self.change_ring(H).lift_x(H.gen(), all=True)
+                        pts.sort(cmp=lambda R, S: cmp(abs(R[1]-P[1]), abs(S[1]-P[1]))) # choose the correct lift
+                        return pts[0]
+                if prec >= max_prec:
+                    raise ValueError, "Not enough precision (%s) to get heegner point exactly, try passing a larger max_prec." % (prec)
+                prec = max(2*prec, max_prec)
+        else:
+            tau = self._heegner_best_tau(D, prec)
+            return self.modular_parametrization()(tau)
 
     #################################################################################
 
@@ -6768,3 +6906,162 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
             RPi[i] = RPi[i-1] + RgensN[i]
 
     return xs
+
+
+class ModularParameterization:
+    """
+    This class represents the modular parametrization of an elliptic curve
+
+        `\phi_E: X_0(N) \rightarrow E`.
+
+    Evaluation is done by passing through the lattice representation of `E`.
+    """
+    def __init__(self, E):
+        """
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.ell_rational_field import ModularParameterization
+            sage: phi = ModularParameterization(EllipticCurve('389a'))
+            sage: phi(CC.0/5)
+            (27.1965586309057 : -144.727322178983 : 1.00000000000000)
+        """
+        self._E = E
+
+    def E(self):
+        """
+        Returns the curve associated to this modular parametrization.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('15a')
+            sage: phi = E.modular_parametrization()
+            sage: phi.E() is E
+            True
+        """
+        return self._E
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: E = EllipticCurve('37a')
+            sage: phi = E.modular_parametrization()
+            sage: phi
+            Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: phi.__repr__()
+            'Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field'
+        """
+        return "Modular parameterization from the upper half plane to %s" % self._E
+
+    def __call__(self, z, prec=None):
+        """
+        Evaluate self at a point `z \in `X_0(N) where `z` is given by a
+        representative in the upper half plane. All computations done with ``prec``
+        bits of precision. If ``prec`` is not given, use the precision of `z`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: phi = E.modular_parametrization()
+            sage: phi((sqrt(7)*I - 17)/74, 53)
+            (-3.44405199344475e-16 - 1.69572887583947e-16*I : 3.44405199344530e-16 + 1.69572887583947e-16*I : 1.00000000000000)
+
+        Verify that the mapping is invariant under the action of `\Gamma_0(N)`
+        on the upper half plane::
+
+            sage: E = EllipticCurve('11a')
+            sage: phi = E.modular_parametrization()
+            sage: tau = CC((1+1j)/5)
+            sage: phi(tau)
+            (-3.92181329652811 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
+            sage: phi(tau+1)
+            (-3.92181329652810 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
+            sage: phi((6*tau+1) / (11*tau+2))
+            (-3.92181329652853 - 12.2578555525369*I : 44.9649874434897 + 14.3257120944671*I : 1.00000000000000)
+
+        ALGORITHM:
+
+            Integrate the modular form attached to this elliptic curve from
+            `z` to `\infty` to get a point on the lattice representation of
+            `E`, then use the Weierstrass `\wp` function to map it to the
+            curve itself.
+        """
+        if prec is None:
+            try:
+                prec = z.parent().prec()
+            except AttributeError:
+                prec = 53
+        CC = ComplexField(prec)
+        if z in QQ:
+            raise NotImplementedError
+        z = CC(z)
+        if z.imag() <= 0:
+            raise ValueError, "Point must be in the upper half plane"
+        # TODO: for very small imaginary part, maybe try to transform under
+        # \Gamma_0(N) to a better representative?
+        q = (2*CC.gen()*CC.pi()*z).exp()
+        nterms = (-prec/q.abs().log2()).ceil()
+        # Use Horner's rule to sum the integral of the the form
+        enumerated_an = list(enumerate(self._E.anlist(nterms)))[1:]
+        lattice_point = 0
+        for n, an in reversed(enumerated_an):
+            lattice_point += an/n
+            lattice_point *= q
+        # Map to E via Weierstrass P
+        E2 = self._E.change_ring(CC)
+        from sage.interfaces.all import gp
+        gp.set_real_precision((CC.prec()+10)//3)
+        e = gp(E2)
+        w = list(e.ellztopoint(lattice_point))
+        return E2.point([CC(repr(w[0])), CC(repr(w[1])), CC(1)], check=False)
+
+    def power_series(self):
+        r"""
+        Computes and returns the power series of this modular parametrization.
+
+        The curve must be a a minimal model.
+
+        OUTPUT: A list of two Laurent series [X(x),Y(x)] of degrees -2, -3
+        respectively, which satisfy the equation of the elliptic curve.
+        There are modular functions on `\Gamma_0(N)` where `N` is the
+        conductor.
+
+        X.deriv()/(2\*Y+a1\*X+a3) should equal f(q)dq/q where f is
+        self.E().q_expansion().
+
+        EXAMPLES::
+
+            sage: E=EllipticCurve('389a1')
+            sage: phi = E.modular_parametrization()
+            sage: X,Y = phi.power_series()
+            sage: X
+            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2365*q^15 + 3463*q^16 + 4508*q^17 + O(q^18)
+            sage: Y
+            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 - 861*q^7 - 1383*q^8 - 2218*q^9 - 3472*q^10 - 5451*q^11 - 8447*q^12 - 13020*q^13 - 20083*q^14 - 29512*q^15 - 39682*q^16 + O(q^17)
+
+        The following should give 0, but only approximately::
+
+            sage: q = X.parent().gen()
+            sage: E.defining_polynomial()(X,Y,1) + O(q^11) == 0
+            True
+
+        Note that below we have to change variable from x to q
+
+        ::
+
+            sage: a1,_,a3,_,_=E.a_invariants()
+            sage: f=E.q_expansion(17)
+            sage: q=f.parent().gen()
+            sage: f/q == (X.derivative()/(2*Y+a1*X+a3))
+            True
+        """
+#        from sage.libs.all import pari
+#        old_prec = pari.get_series_precision()
+#        pari.set_series_precision(prec)
+        R = LaurentSeriesRing(RationalField(),'q')
+        if not self._E.is_minimal():
+            raise NotImplementedError, "Only implemented for minimal curves."
+        XY = self._E.pari_mincurve().elltaniyama()
+#        pari.set_series_precision(old_prec)
+        return 1/R(1/XY[0]),1/R(1/XY[1])
+

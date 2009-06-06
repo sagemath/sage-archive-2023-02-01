@@ -212,6 +212,16 @@ ext_modules = [
     Extension('sage.functions.prime_pi',
         sources = ['sage/functions/prime_pi.pyx']),
 
+     ################################
+     ##
+     ## sage.games
+     ##
+     ################################
+
+     Extension('sage.games.sudoku_backtrack',
+               sources = ['sage/games/sudoku_backtrack.pyx']),
+
+
     ################################
     ##
     ## sage.graphs

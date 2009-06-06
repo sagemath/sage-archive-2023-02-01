@@ -120,8 +120,7 @@ for i in {FLINT/,FLINT/zn_poly/src/}; do
 	fi
 done
 
-#uncomment the line below to avoid running the test suite.
+#comment the line below to avoid running the test suite.
 #this should be done in all final releases
-#exit 0
-cd ..; ./spkg-check
+#cd ..; ./spkg-check
 

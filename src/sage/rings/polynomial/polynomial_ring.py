@@ -1418,15 +1418,28 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         # use the method of divided-difference
         if algorithm == "divided_difference":
+            # Evaluate in nested form, similar to Horner's method. This is
+            # more efficient than evaluation using the definition of
+            # Lagrange interpolation polynomial by means of divided
+            # difference.
             n = len(points)
             F = self.divided_difference(points)
-            P = 0
-            for i in xrange(n):
-                prod = 1
-                for j in xrange(i):
-                    prod *= (var - points[j][0])
-                P += (F[i] * prod)
+            P = F[n-1]
+            for i in xrange(n-2, -1, -1):
+                P *= (var - points[i][0])
+                P += F[i]
             return P
+
+            # Evaluate using the definition of Lagrange interpolation
+            # polynomial by means of divided difference. This is slow
+            # compared to that above, which is in nested form.
+#             P = 0
+#             for i in xrange(n):
+#                 prod = 1
+#                 for j in xrange(i):
+#                     prod *= (var - points[j][0])
+#                 P += (F[i] * prod)
+#             return P
 
         # using Neville's method for recursively generating the
         # Lagrange interpolation polynomial

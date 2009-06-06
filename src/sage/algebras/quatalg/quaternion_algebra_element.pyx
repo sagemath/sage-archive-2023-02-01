@@ -841,6 +841,18 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
             -1/2 - 10/3*i - 2/3*j - 4/5*k
             sage: A(vector([1,2/3,3/4,4/5]))
             1 + 2/3*i + 3/4*j + 4/5*k
+
+        ::
+
+            sage: QA = QuaternionAlgebra(QQ, -1, -1)
+            sage: foo = QA(3.0); foo
+            3
+            sage: parent(foo)
+            Quaternion Algebra (-1, -1) with base ring Rational Field
+            sage: foo[0]
+            3
+            sage: parent(foo[0])
+            Rational Field
         """
         self._parent = parent
 

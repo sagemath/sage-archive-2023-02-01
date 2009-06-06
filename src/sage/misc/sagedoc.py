@@ -169,11 +169,11 @@ def format(s):
         sage: format(identity_matrix(2).rook_vector.__doc__[115:184])
         'Let `A` be a general `m` by `n`\n        (0,1)-matrix with `m <= n`. '
 
-    If the first line of the string is 'nodetex', don't modify any TeX
-    commands::
+    If the first line of the string is 'nodetex', remove 'nodetex' but
+    don't modify any TeX commands::
 
         sage: format("nodetex\n`x \\geq y`")
-        'nodetex\n`x \\geq y`'
+        '\n`x \\geq y`'
 
     Testing a string enclosed in triple angle brackets::
 
@@ -219,6 +219,9 @@ def format(s):
 
     if 'nodetex' not in directives:
         s = detex(s)
+    else:
+        # strip the 'nodetex' directive from s
+        s = s.replace('nodetex', '', 1)
     return s
 
 def format_src(s):

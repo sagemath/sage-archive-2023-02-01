@@ -415,6 +415,8 @@ def kappa(alpha):
 e_cache = {}
 def e(tableau, star=0):
     """
+    The unnormalized Young projection operator.
+
     EXAMPLES::
 
         sage: from sage.combinat.symmetric_group_algebra import e
@@ -422,6 +424,12 @@ def e(tableau, star=0):
         [1, 2] + [2, 1]
         sage: e([[1],[2]])
         [1, 2] - [2, 1]
+
+    There are differing conventions for the order of the symmetrizers
+    and antisymmetrizers.  This example illustrates our conventions::
+
+        sage: e([[1,2],[3]])
+        [1, 2, 3] + [2, 1, 3] - [3, 1, 2] - [3, 2, 1]
     """
     t = Tableau(tableau)
     if star:
@@ -431,18 +439,24 @@ def e(tableau, star=0):
     permutation_options['mult'] = 'l2r'
 
     if t in e_cache:
-        res =  e_cache[t]
+        res = e_cache[t]
     else:
-        rs = t.row_stabilizer()
-        cs = t.column_stabilizer()
+        rs = t.row_stabilizer().list()
+        cs = t.column_stabilizer().list()
         n = t.size()
 
         QSn = SymmetricGroupAlgebra(QQ, n)
+        one = QQ(1)
+        P = permutation.Permutation
 
-        res = 0
-        for h in rs:
-            for v in cs:
-                res += v.sign() * QSn( (h*v).list() )
+        rd = dict((P(h), one) for h in rs)
+        sym = QSn._from_dict(rd)
+
+        cd = dict((P(v), v.sign()*one) for v in cs)
+        antisym = QSn._from_dict(cd)
+
+        res = antisym*sym
+
         e_cache[t] = res
 
     permutation_options['mult'] = mult
@@ -451,6 +465,8 @@ def e(tableau, star=0):
 ehat_cache = {}
 def e_hat(tab, star=0):
     """
+    The Young projection operator, an idempotent in the rational group algebra.
+
     EXAMPLES::
 
         sage: from sage.combinat.symmetric_group_algebra import e_hat
@@ -458,6 +474,12 @@ def e_hat(tab, star=0):
         1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
         sage: e_hat([[1],[2]])
         1/2*[1, 2] - 1/2*[2, 1]
+
+    There are differing conventions for the order of the symmetrizers
+    and antisymmetrizers.  This example illustrates our conventions::
+
+        sage: e_hat([[1,2],[3]])
+        1/3*[1, 2, 3] + 1/3*[2, 1, 3] - 1/3*[3, 1, 2] - 1/3*[3, 2, 1]
     """
     t = Tableau(tab)
     if star:

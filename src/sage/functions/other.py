@@ -686,12 +686,29 @@ class Function_sqrt(PrimitiveFunction):
 
         -  ``all`` - bool (default: False); if True, return all
            square roots of self, instead of just one.
+
+        EXAMPLES:
+
+        This illustrates that the bug reported in #6171 has been fixed::
+
+            sage: a = 1.1
+            sage: a.sqrt(prec=100)  # this is supposed to fail
+            Traceback (most recent call last):
+            ...
+            TypeError: sqrt() got an unexpected keyword argument 'prec'
+            sage: sqrt(a, prec=100)
+            1.0488088481701515469914535137
+            sage: sqrt(4.00, prec=250)
+            2.0000000000000000000000000000000000000000000000000000000000000000000000000
         """
         if isinstance(x, float):
             return math.sqrt(x)
         try:
             return x.sqrt(*args, **kwds)
-        except AttributeError:
+        # The following includes TypeError to catch cases where sqrt
+        # is called with a "prec" keyword, for example, but the sqrt
+        # method for x doesn't accept such a keyword.
+        except (AttributeError, TypeError):
             pass
         return self._do_sqrt(x, *args, **kwds)
 

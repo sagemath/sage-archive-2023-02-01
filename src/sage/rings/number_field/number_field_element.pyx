@@ -763,8 +763,8 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: k.<a> = NumberField(x^2 + 1)
-            sage: CDF(a)
-            1.0*I
+            sage: abs(CDF(a))
+	    1.0
         """
         return CDF(self.complex_embedding())
 
@@ -1352,7 +1352,7 @@ cdef class NumberFieldElement(FieldElement):
             0.945817241700635 + 0.324699469204683*I
 
             sage: SR(zeta^5 + 2)
-            e^(2/19*I*pi)*e^(8/19*I*pi) + 2
+            e^(10/19*I*pi) + 2
 
         For degree greater than 5, sometimes Galois theory prevents a
         closed-form solution.  In this case, a numerical approximation

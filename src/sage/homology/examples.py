@@ -137,7 +137,7 @@ class SimplicialSurface(SimplicialComplex):
         if (not S.is_pure()) or (S.dimension() != 2):
             raise ValueError, "This does not appear to be a surface."
         else:
-            SimplicialComplex.__init__(self, S._vertex_set, S.facets)
+            SimplicialComplex.__init__(self, S._vertex_set, S._facets)
 
     def connected_sum(self, other):
         """
@@ -183,16 +183,16 @@ class SimplicialSurface(SimplicialComplex):
             {0: 0, 1: Z x C2, 2: 0}
         """
         # first find a 2-simplex to remove from each surface
-        keep_left = self.facets[0]
-        keep_right = other.facets[0]
+        keep_left = self._facets[0]
+        keep_right = other._facets[0]
         # construct the set of vertices:
         left = set(self.vertices()).difference(set(keep_left))
         right = set(other.vertices()).difference(set(keep_right))
         vertex_set = ([0,1,2] + ["L" + str(v) for v in left]
                       + ["R" + str(v) for v in right])
         # construct the set of facets:
-        left = set(self.facets).difference(set([keep_left]))
-        right = set(other.facets).difference(set([keep_right]))
+        left = set(self._facets).difference(set([keep_left]))
+        right = set(other._facets).difference(set([keep_right]))
         facet_set = ([[rename_vertex(v, keep=list(keep_left))
                        for v in face] for face in left]
                      + [[rename_vertex(v, keep=list(keep_right), left=False)

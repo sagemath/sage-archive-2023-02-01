@@ -1108,7 +1108,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M(R([0,1,1,0,0,0,-4,-2,-12]).add_bigoh(9))
             Traceback (most recent call last):
             ...
-            ArithmeticError: vector is not in free module
+            ValueError: q-expansion does not correspond to a form in self
 
         ::
 
@@ -1133,7 +1133,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 return f
 
             try:
-                if x.parent()._has_natural_inclusion_map_to(self):
+                if x.parent()._has_natural_inclusion_map_to(self.ambient()):
                     W = self._q_expansion_module()
                     return self(x.q_expansion(W.degree()))
             except NotImplementedError:
@@ -1143,7 +1143,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif rings.is_PowerSeries(x):
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
-                x_potential = W.coordinates(x.padded_list(W.degree()))
+                try:
+                    x_potential = W.coordinates(x.padded_list(W.degree()))
+                except ArithmeticError:
+                    raise ValueError, "q-expansion does not correspond to a form in self"
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
                 x_potential = element.ModularFormElement(self, x_potential)
                 for i in range(int(W.degree()), x.prec()):
@@ -1152,9 +1155,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 return x_potential
             else:
                 raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
-        if check:
-            x = self.free_module()(x)
-        return element.ModularFormElement(self, x)
+        return element.ModularFormElement(self, self.free_module()(x,check))
 
     def __cmp__(self, x):
         """
@@ -1197,125 +1198,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return cmp(self.dimension(), x.dimension())
         else:
             return cmp(self.free_module(), x.free_module())
-
-
-    def __contains__(self, x):
-        """
-        True if x is an element or submodule of self.
-
-        TODO: This function is still *quite* rudimentary. If self is
-        ambient, it checks containment. Otherwise, it throws a
-        NotImplementedError.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(11,2) ; N = ModularForms(6,4)
-            sage: M.__contains__(M)
-            True
-            sage: M.__contains__(N)
-            False
-            sage: N.__contains__(N.cuspidal_submodule())
-            True
-            sage: M.__contains__(N.cuspidal_submodule())
-            False
-            sage: M.cuspidal_submodule().__contains__(N)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-            sage: M.__contains__(M.0)
-            True
-            sage: M.__contains__(N.0)
-            False
-        """
-        from sage.modular.modform.element import is_ModularFormElement
-        if is_ModularFormElement(x):
-            try:
-                self(x)
-                return True
-            except TypeError:
-                return False
-
-        from sage.modular.modform.constructor import canonical_parameters as params
-        if self.is_ambient() and x.is_ambient():
-            return params(self.character(), self.level(),
-                          self.weight(), self.base_ring()) == \
-                   params(x.character(), x.level(), x.weight(), x.base_ring())
-        if self.is_ambient():
-            P = x.ambient_module()
-            return params(self.character(), self.level(),
-                          self.weight(), self.base_ring()) == \
-                   params(P.character(), P.level(), P.weight(), P.base_ring())
-        raise NotImplementedError
-
-    def __create_newspace(self, basis, level, t, is_cuspidal):
-        """
-        Create a newspace as a subspace of self based on the input data.
-
-        EXAMPLES::
-
-            sage: N = ModularForms(6,4)
-            sage: N._ModularFormsSpace__create_newspace( [(1,0,0,0,0)], N.level(), 1, True)
-            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-        """
-        V = self.free_module().submodule(basis, check=False)
-        S = submodule.ModularFormsSubmodule(self.ambient_module(), V)
-        S.__newspace_params = {'level':level, 't':t}
-        S.__is_cuspidal = is_cuspidal
-        S.__is_eisenstein = not is_cuspidal
-        return S
-
-    def __newspace_bases(self):
-        """
-        Find bases for all new subspaces of self.
-
-        EXAMPLES::
-
-            sage: N = ModularForms(6,4)
-            sage: N._ModularFormsSpace__newspace_bases()
-            [(6, 1, True, [(1, 0, 0, 0, 0)]),
-            (1, 6, False, [(0, 1, 0, 0, 0)]),
-            (1, 3, False, [(0, 0, 1, 0, 0)]),
-            (1, 2, False, [(0, 0, 0, 1, 0)]),
-            (1, 1, False, [(0, 0, 0, 0, 1)])]
-        """
-        if hasattr(self, "__newspace_bases_list"):
-            return self.__newspace_bases_list
-        assert self.is_ambient()
-        V = self.free_module()
-        eps, k, N = self.__character, self.weight(), self.level()
-        # First the cuspidal new spaces.
-        m = eps.conductor()
-        levels = [M for M in rings.divisors(N) if M%m==0]
-        levels.reverse()
-        B = []; i = 0
-        for M in levels:
-            if arithgroup.is_Gamma0(self.group()):
-                n = self.group().restrict(M).dimension_new_cusp_forms(k)
-            else:
-                n = self.group().restrict(M).dimension_new_cusp_forms(k, eps = eps.restrict(M))
-            for t in rings.divisors(N/M):
-                basis = [V.gen(i+j) for j in range(n)]
-                if len(basis) > 0:
-                    B.append((M, t, True, basis))
-                i += n
-        # Now the Eisenstein series
-        #x = [0 for _ in range(len(levels))]
-        x = {}
-        for E in self.eisenstein_series():  # count number of e.s. of each level
-            Mt = (E.new_level(), E.t())
-            if not x.has_key(Mt):
-                x[Mt] = 1
-            else:
-                x[Mt] += 1
-        k = x.keys()
-        k.sort()
-        k.reverse()
-        for M, t in k:
-            n = x[(M,t)]
-            B.append((M, t, False, [V.gen(i+j) for j in range(n)]))
-            i += n
-        self.__newspace_bases_list = B
-        return self.__newspace_bases_list
 
     def span_of_basis(self, B):
         """
@@ -1613,10 +1495,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             if self.__is_cuspidal == True:
                 return self
+            if self.__cuspidal_submodule != None:
+                return self.__cuspidal_submodule
         except AttributeError:
             pass
-        if self.__cuspidal_submodule != None:
-            return self.__cuspidal_submodule
         if self.is_ambient():
             # By definition the cuspidal submodule of the ambient space
             # is spanned by the first n standard basis vectors, where
@@ -1629,7 +1511,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__cuspidal_submodule = S
             return S
         C = self.ambient_module().cuspidal_submodule()
-        S = self.intersect(C)
+        S = self.intersection(C)
         if S.dimension() < self.dimension():
             self.__is_cuspidal = False
             self.__cuspidal_submodule = S
@@ -1730,38 +1612,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         raise NotImplementedError
 
-    def newspaces(self):
-        r"""
-        This function returns a list of submodules `S(M,t)` and
-        `E(M,t)`, corresponding to levels `M` dividing
-        `N` and integers `t` dividing `N/M`, such
-        that self is the direct sum of these spaces, if possible. Here
-        `S(M,t)` is by definition the image under
-        `f(q) \mapsto f(q^t)` of the new submodule of cusp forms of
-        level `M`, and similarly `E(M,t)` is the image of
-        Eisenstein series.
-
-        Notes: (1) the submodules `S(M,t)` need not be stable under
-        Hecke operators of index dividing `N/M`. (2) Since self can
-        be an arbitrary submodule, there's no guarantee any
-        `S(M,t)` or `E(M,t)` is in self, so the return list
-        could be empty.
-
-        EXAMPLES::
-
-            sage: N = ModularForms(6,4)
-            sage: N.newspaces()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-        #V = self.embedded_submodule()
-        #return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
-        #        for M, t, is_cuspidal, B in self.ambient_module().__newspace_bases() \
-        #        if contains_each(V, B)]
-
-
     def newforms(self, names=None):
         """
         Return all newforms in the cuspidal subspace of self.
@@ -1828,7 +1678,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__eisenstein_submodule = E
             return E
         A = self.ambient_module().eisenstein_submodule()
-        E = self.intersect(A)
+        E = self.intersection(A)
         if E.dimension() < self.dimension():
             self.__is_eisenstein = False
             self.__eisenstein_submodule = E

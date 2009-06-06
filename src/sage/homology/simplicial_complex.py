@@ -699,8 +699,8 @@ class SimplicialComplex(SageObject):
         # now record the attributes for self
         # self._vertex_set: the Simplex formed by the vertices
         self._vertex_set = vertices
-        # self.facets: list of facets
-        self.facets = good_faces
+        # self._facets: list of facets
+        self._facets = good_faces
         # self._faces: dictionary of dictionaries of faces.  The main
         # dictionary is keyed by subcomplexes, and each value is a
         # dictionary keyed by dimension.  This should be empty until
@@ -738,7 +738,7 @@ class SimplicialComplex(SageObject):
             True
         """
         if (self.vertices() == right.vertices() and
-            set(self.facets) == set(right.facets)):
+            set(self._facets) == set(right._facets)):
             return 0
         else:
             return -1
@@ -775,8 +775,16 @@ class SimplicialComplex(SageObject):
             sage: Y = SimplicialComplex(5, [[0,2], [1,4]])
             sage: Y.maximal_faces()
             {(1, 4), (0, 2)}
+
+        ``facets`` is a synonym for ``maximal_faces``::
+
+            sage: S = SimplicialComplex(2, [[0,1], [0,1,2]])
+            sage: S.facets()
+            {(0, 1, 2)}
         """
-        return Set(self.facets)
+        return Set(self._facets)
+
+    facets = maximal_faces
 
     def faces(self, subcomplex=None):
         """
@@ -809,11 +817,11 @@ class SimplicialComplex(SageObject):
             for i in range(-1,self.dimension()+1):
                 Faces[i] = set([])
                 sub_facets[i] = set([])
-            for f in self.facets:
+            for f in self._facets:
                 dim = f.dimension()
                 Faces[dim].add(f)
             if subcomplex is not None:
-                for g in subcomplex.facets:
+                for g in subcomplex._facets:
                     dim = g.dimension()
                     Faces[dim].discard(g)
                     sub_facets[dim].add(g)
@@ -953,7 +961,7 @@ class SimplicialComplex(SageObject):
             sage: X.dimension()
             1
         """
-        return max([face.dimension() for face in self.facets])
+        return max([face.dimension() for face in self._facets])
 
     def is_pure(self):
         """
@@ -974,7 +982,7 @@ class SimplicialComplex(SageObject):
             sage: X.is_pure()
             True
         """
-        dims = [face.dimension() for face in self.facets]
+        dims = [face.dimension() for face in self._facets]
         return max(dims) == min(dims)
 
     def product(self, right, rename_vertices=True):
@@ -1036,8 +1044,8 @@ class SimplicialComplex(SageObject):
                 else:
                     vertices.append((v,w))
         facets = []
-        for f in self.facets:
-            for g in right.facets:
+        for f in self._facets:
+            for g in right._facets:
                 facets.extend(f.product(g, rename_vertices))
         return SimplicialComplex(vertices, facets)
 
@@ -1086,8 +1094,8 @@ class SimplicialComplex(SageObject):
         else:
             vertex_set = tuple(self._vertex_set) + tuple(right.vertices())
         facets = []
-        for f in self.facets:
-            for g in right.facets:
+        for f in self._facets:
+            for g in right._facets:
                 facets.append(f.join(g, rename_vertices))
         return SimplicialComplex(vertex_set, facets)
 
@@ -1579,18 +1587,18 @@ class SimplicialComplex(SageObject):
             raise ValueError, "The face to be added is not a subset of the vertex set."
         else:
             face_is_maximal = True
-            for other in self.facets:
+            for other in self._facets:
                 if face_is_maximal:
                     face_is_maximal = not new_face.is_face(other)
             if face_is_maximal:
                 # remove any old facets which are no longer maximal
-                Facets = list(self.facets)
-                for old_face in self.facets:
+                Facets = list(self._facets)
+                for old_face in self._facets:
                     if old_face.is_face(new_face):
                         Facets.remove(old_face)
                 # add new_face to facet list
                 Facets.append(new_face)
-                self.facets = Facets
+                self._facets = Facets
                 # update self._faces if necessary
                 if None in self._faces:
                     all_new_faces = SimplicialComplex(self.vertices(),
@@ -1630,7 +1638,7 @@ class SimplicialComplex(SageObject):
         else:
             X = self.alexander_dual()
             X.add_face(self._complement(face))
-            self.facets = X.alexander_dual().facets
+            self._facets = X.alexander_dual()._facets
             if None in self._faces:
                 s = Simplex(face)
                 bad_faces = SimplicialComplex(self.vertices(), [s]).faces()
@@ -1663,7 +1671,7 @@ class SimplicialComplex(SageObject):
         """
         faces = []
         s = Simplex(simplex)
-        for f in self.facets:
+        for f in self._facets:
             if s.is_face(f):
                 faces.append(Simplex(list(f.set().difference(s.set()))))
         return SimplicialComplex(self.vertices(), faces)
@@ -1799,7 +1807,7 @@ class SimplicialComplex(SageObject):
             sage: Y.minimal_nonfaces()
             {(1, 3), (0, 2)}
         """
-        complements = [self._complement(facet) for facet in self.facets]
+        complements = [self._complement(facet) for facet in self._facets]
         return Set(self._transpose_simplices(*complements))
 
     def _stanley_reisner_base_ring(self, base_ring=ZZ):
@@ -2000,7 +2008,7 @@ class SimplicialComplex(SageObject):
             sage: X.n_skeleton(2)
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
-        facets = filter(lambda f: f.dimension()<n, self.facets)
+        facets = filter(lambda f: f.dimension()<n, self._facets)
         facets.extend(self.n_faces(n))
         return SimplicialComplex(self.vertices(), facets)
 
@@ -2043,7 +2051,7 @@ class SimplicialComplex(SageObject):
             {0: 0, 1: 0, 2: 0}
         """
         vertices = self.vertices()
-        facets = [self.facets[0]]
+        facets = [self._facets[0]]
         return self._enlarge_subcomplex(SimplicialComplex(vertices, facets), verbose=verbose)
 
     def _enlarge_subcomplex(self, subcomplex, verbose=False):
@@ -2084,16 +2092,16 @@ class SimplicialComplex(SageObject):
             sage: L = T._enlarge_subcomplex(S)
             sage: L
             Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 8 facets
-            sage: L.facets
-            [(0, 1), (1, 2), (0, 2), (1, 2, 4), (1, 3, 4), (1, 3, 6), (0, 1, 5), (1, 5, 6)]
+            sage: L.facets()
+            {(0, 1, 5), (1, 3, 6), (1, 2), (1, 2, 4), (1, 3, 4), (0, 2), (1, 5, 6), (0, 1)}
             sage: L.homology()
             {0: 0, 1: Z, 2: 0}
         """
         if subcomplex in self.__enlarged:
             return self.__enlarged[subcomplex]
-        faces = filter(lambda x: x not in subcomplex.facets, self.facets)
+        faces = filter(lambda x: x not in subcomplex._facets, self._facets)
         done = False
-        new_facets = list(subcomplex.facets)
+        new_facets = list(subcomplex._facets)
         while not done:
             done = True
             remove_these = []
@@ -2105,8 +2113,8 @@ class SimplicialComplex(SageObject):
                 for a in new_facets:
                     int_facets.append(a.set().intersection(f_set))
                 intersection = SimplicialComplex(self.vertices(), int_facets)
-                if not intersection.facets[0].is_empty():
-                    if (len(intersection.facets) == 1 or
+                if not intersection._facets[0].is_empty():
+                    if (len(intersection._facets) == 1 or
                         intersection == intersection._contractible_subcomplex()):
                         new_facets.append(f)
                         remove_these.append(f)
@@ -2152,7 +2160,7 @@ class SimplicialComplex(SageObject):
         vertex_limit = 45
         facet_limit = 55
         vertices = self.vertices()
-        facets = Set(self.facets)
+        facets = Set(self._facets)
         vertex_string = "with vertex set %s" % vertices
         if len(vertex_string) > vertex_limit:
             vertex_string = "with %s vertices" % str(1+vertices.dimension())

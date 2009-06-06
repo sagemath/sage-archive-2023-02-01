@@ -363,6 +363,10 @@ class Gap(Expect):
 
         if self.__use_workspace_cache and self.__make_workspace:
             self.eval('SaveWorkspace("%s");'%WORKSPACE)
+        # Now, as self._expect exists, we can compile some useful pattern:
+        self._compiled_full_pattern = self._expect.compile_pattern_list(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
+                              '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
+        self._compiled_small_pattern = self._expect.compile_pattern_list('@J')
 
     def _continuation_prompt(self):
         """
@@ -585,9 +589,7 @@ class Gap(Expect):
             error_outputs = []
             current_outputs = normal_outputs
             while True:
-                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
-                              '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+',
-                              '@x','@z'])
+                x = E.expect_list(self._compiled_full_pattern)
                 current_outputs.append(E.before)
                 if x == 0:   # @p
                     if E.after != '@p1.':
@@ -616,7 +618,7 @@ class Gap(Expect):
                 elif x==10: #@n normal output line
                     current_outputs = normal_outputs;
                 elif x==11: #@r echoing input
-                    E.expect('@J')
+                    E.expect_list(self._compiled_small_pattern)
                 elif x==12: #@sN shouldn't happen
                     print "Warning: this should never happen"
                 elif x==13: #@w GAP is trying to send a Window command

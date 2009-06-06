@@ -1127,6 +1127,35 @@ table.cell_output_box {
   padding:0px;
 }
 
+table.table_form * td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+table.table_form * th {
+    background: #a6ba4e;
+    height: 29px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #FFF;
+    text-align: left;
+}
+
+
+table.table_form * tr.row-a {
+  background: #F8F8F8;
+  text-align: left;
+}
+
+table.table_form * tr.row-b {
+  background: #EFEFEF;
+  text-align: left;
+}
+
 /*table.cell_output_box:hover {
   background-color: #fafafa;
 }

@@ -149,12 +149,14 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
 
+    This should plot concentric circles centered at the origin.
+        sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1)).show(aspect_ratio=1)
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
     g = g[0]
-    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
-                              for y in xsrange(yrange[0], yrange[1], ystep)]
+    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
+                              for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
 
     g = Graphics()
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
@@ -255,6 +257,9 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     An even more complicated plot:
         sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=100)
 
+    A disk centered at the origin:
+        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1)).show(aspect_ratio=1)
+
     A plot with more than one condition:
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
@@ -284,8 +289,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
 
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid(f, xrange, yrange, plot_points)
 
-    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
-                                             for y in xsrange(yrange[0], yrange[1], ystep)], g)
+    xy_data_arrays = map(lambda g: [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
+                                             for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)], g)
 
     xy_data_array = map(lambda *rows: map(lambda *vals: mangle_neg(vals), *rows), *xy_data_arrays)
 

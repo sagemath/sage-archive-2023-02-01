@@ -59,8 +59,6 @@ A big product.  Notice that simplifying simplifies the product further::
     sage: A = exp(I*pi/5)
     sage: b = A*A*A*A*A*A*A*A*A*A
     sage: b
-    e^(8/5*I*pi)*e^(2/5*I*pi)
-    sage: b.simplify()
     1
 
 We check a statement made at the beginning of Friedlander and

@@ -124,6 +124,12 @@ cdef class Parent(category_object.CategoryObject):
     """
     Parents are the Sage/mathematical analogues of container objects
     in computer science.
+
+    Internal invariants:
+     - self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+       Ensures that self.__call__ passes down the parent properly to self._element_constructor.
+       See #5979.
+
     """
 
     def __init__(self, base=None, *, categories=[], element_constructor=None, gens=None, names=None, normalize=True, **kwds):
@@ -258,12 +264,41 @@ cdef class Parent(category_object.CategoryObject):
         By default this will dispatch as quickly as possible to
         :meth:`_element_constructor_` though faster pathways are
         possible if so desired.
+
+        TESTS:
+
+        We check that the invariant::
+
+		self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+
+        is preserved (see #5979)::
+
+            sage: class MyParent(Parent):
+            ...       def _element_constructor_(self, x):
+            ...           print self, x
+            ...           return sage.structure.element.Element(parent = self)
+            ...       def _repr_(self):
+            ...           return "my_parent"
+            ...
+            sage: my_parent = MyParent()
+            sage: x = my_parent("bla")
+            my_parent bla
+            sage: x.parent()	     # indirect doctest
+            my_parent
+
+            sage: x = my_parent()    # shouldn't this one raise an error?
+            my_parent 0
+            sage: x = my_parent(3)   # todo: not implemented  why does this one fail???
+            my_parent 3
+
+
         """
         if self._element_constructor is None:
             # Neither __init__ nor _populate_coercion_lists_ have been called...
             try:
                 assert callable(self._element_constructor_)
                 self._element_constructor = self._element_constructor_
+                self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
             except (AttributeError, AssertionError):
                 raise NotImplementedError
         cdef Py_ssize_t i
@@ -695,6 +730,8 @@ cdef class Parent(category_object.CategoryObject):
           is useful if parents are unique, or element_constructor is a
           bound method (this latter case can be detected
           automatically).
+
+
         """
         self.init_coerce(False)
 

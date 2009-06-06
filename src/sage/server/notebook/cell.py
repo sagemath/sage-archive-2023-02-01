@@ -1662,6 +1662,9 @@ class Cell(Cell_generic):
         r = max(1, number_of_rows(t.strip(), ncols))
 
         if do_print:
+            if 'hide' in self.percent_directives():
+                return ''
+
             tt = escape(t).replace('\n','<br>').replace('  ',' &nbsp;') + '&nbsp;'
             s += '<div class="cell_input_print">%s</div>'%tt
         else:

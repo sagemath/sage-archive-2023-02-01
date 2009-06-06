@@ -431,13 +431,7 @@ def solve(f, *args, **kwds):
          [x == 1/2*I*sqrt(3) - 1/2, y == 1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)],
          [x == 0, y == -1],
          [x == 0, y == 1]]
-        sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True); solutions
-        [{x: -1/2*I*sqrt(3) - 1/2, y: -1/2*sqrt(-I*sqrt(3) + 3)*sqrt(2)},
-         {x: -1/2*I*sqrt(3) - 1/2, y: 1/2*sqrt(-I*sqrt(3) + 3)*sqrt(2)},
-         {x: 1/2*I*sqrt(3) - 1/2, y: -1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)},
-         {x: 1/2*I*sqrt(3) - 1/2, y: 1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)},
-         {x: 0, y: -1},
-         {x: 0, y: 1}]
+        sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
         sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
         -0.500 - 0.866*I , -1.27 + 0.341*I
         -0.500 - 0.866*I , 1.27 - 0.341*I
@@ -555,8 +549,11 @@ def solve_mod(eqns, modulus, solution_dict = False):
 
     We can solve with respect to a bigger modulus if it consists only of small prime factors::
 
-        sage: solve_mod([5*x + y == 3, 2*x - 3*y == 9], 3*5*7*11*19*23*29, solution_dict = True)
-        [{x: 12915279, y: 8610183}]
+        sage: [d] = solve_mod([5*x + y == 3, 2*x - 3*y == 9], 3*5*7*11*19*23*29, solution_dict = True)
+        sage: d[x]
+        12915279
+        sage: d[y]
+        8610183
 
     We solve an simple equation modulo 2::
 

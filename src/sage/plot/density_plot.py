@@ -118,6 +118,10 @@ def density_plot(f, xrange, yrange, **options):
         sage: density_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4), cmap='jet', plot_points=100)
 
 
+    This should show a "spotlight" right on the origin.
+        sage: x,y = var('x,y')
+        sage: density_plot(1/(x^10+y^10), (x, -10, 10), (y, -10, 10))
+
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
     variables x,y.
@@ -127,8 +131,8 @@ def density_plot(f, xrange, yrange, **options):
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
     g = g[0]
-    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep)]
-                              for y in xsrange(yrange[0], yrange[1], ystep)]
+    xy_data_array = [[g(x, y) for x in xsrange(xrange[0], xrange[1], xstep, include_endpoint=True)]
+                              for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
 
     g = Graphics()
     g.add_primitive(DensityPlot(xy_data_array, xrange, yrange, options))

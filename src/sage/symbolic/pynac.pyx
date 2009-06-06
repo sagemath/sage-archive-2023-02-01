@@ -1374,10 +1374,50 @@ cdef public object py_abs(object x):
     return abs(x)
 
 cdef public object py_mod(object x, object n):
-    try:
-        return x % n
-    except TypeError:
-        return x
+    """
+    Return x mod n. Both x and n are assumed to be integers.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_mod_for_doctests as py_mod
+        sage: py_mod(I.parent(5), 4)
+        1
+        sage: py_mod(3, -2)
+        -1
+        sage: py_mod(3/2, 2)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+
+
+    Note: The original code for this function in GiNaC checks if the arguments
+    are integers, and returns 0 otherwise. We omit this check, since all the
+    calls to py_mod are preceeded by an integer check. We also raise an error
+    if converting the arguments to integers fails, since silently returning 0
+    would hide possible misuses of this function.
+
+    Regarding the sign of the return value, the CLN reference manual says:
+
+        If x and y are both >= 0, mod(x,y) = rem(x,y) >= 0. In general,
+        mod(x,y) has the sign of y or is zero, and rem(x,y) has the sign of
+        x or is zero.
+
+    This matches the behavior of the % operator for integers in Sage.
+    """
+    return Integer(x) % Integer(n)
+
+def py_mod_for_doctests(x, n):
+    """
+    This function is a python wrapper so py_mod can be tested. The real tests
+    are in the docstring for py_mod.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_mod_for_doctests
+        sage: py_mod_for_doctests(5, 2)
+        1
+    """
+    return py_mod(x, n)
 
 cdef public object py_smod(object a, object b):
     # Modulus (in symmetric representation).

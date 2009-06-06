@@ -196,6 +196,53 @@ def _test_mpz_set_longlong(long long v):
     mpz_set_longlong(z.value, v)
     return z
 
+cdef _digits_naive(mpz_t v,l,int offset,Integer base,digits):
+    """
+    This method fills in digit entries in the list, l, using the most
+    basic digit algorithm -- repeat division by base.
+
+    INTPUT:
+
+    - ``v`` - the value whose digits we want to put into the list
+
+    - ``l`` - the list to file
+
+    - ``offset`` - offset from the beginning of the list that we want
+      to fill at
+
+    - ``base`` -- the base to which we finding digits
+
+    - ``digits`` - a python sequence type with objects to use for digits
+                 note that python negative index semantics are relied upon
+
+    AUTHORS:
+
+    - Joel B. Mohler (2009-01-16)
+    """
+    cdef mpz_t mpz_value
+    cdef mpz_t mpz_res  # used on one side of the 'if'
+    cdef Integer z      # used on the other side of the 'if'
+
+    mpz_init(mpz_value)
+    mpz_set(mpz_value, v)
+
+    # we aim to avoid sage Integer creation if possible
+    if digits is None:
+        while mpz_cmp_si(mpz_value,0):
+            z = PY_NEW(Integer)
+            mpz_tdiv_qr(mpz_value, z.value, mpz_value, base.value)
+            l[offset] = z
+            offset += 1
+    else:
+        mpz_init(mpz_res)
+        while mpz_cmp_si(mpz_value,0):
+            mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, base.value)
+            l[offset] = digits[mpz_get_si(mpz_res)]
+            offset += 1
+        mpz_clear(mpz_res)
+
+    mpz_clear(mpz_value)
+
 cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
     """
     INTPUT:
@@ -214,19 +261,20 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
       method digits digits - a python sequence type with objects to
       use for digits note that python negative index semantics are
       relied upon
+
+    AUTHORS:
+
+    - Joel B. Mohler (2008-03-13)
     """
     cdef mpz_t mpz_res
     cdef mpz_t mpz_quot
     cdef Integer temp
     cdef int v_int
-    if power_index == -1:
-        if digits is None:
-            temp = PY_NEW(Integer)
-            mpz_set(temp.value, v)
-            l[offset] = temp
-        else:
-            v_int = mpz_get_si(v)
-            l[offset] = digits[v_int]
+    if power_index < 5:
+        # It turns out that simple repeated division is very fast for relatively few digits.
+        # I don't think this is a real algorithmic statement, it's an annoyance introduced by memory allocation.
+        # I think that manual memory management with mpn_* would make the divide & conquer approach even faster, but the code would be much more complicated.
+        _digits_naive(v,l,offset,power_list[0],digits)
     else:
         mpz_init(mpz_quot)
         mpz_init(mpz_res)
@@ -983,45 +1031,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return int(0)
         return int(mpz_scan1(self.value, 0))
 
-    cdef _digits_naive(self,Integer base,digits):
-        """
-        This function should have identical semantics to the
-        ``digits`` method of ``self``.
-
-        Although, the name may imply the opposite, it can actually be quite
-        fast for small values!
-
-        EXAMPLE::
-
-            sage: 9346184691964619824.digits(base=1000) #indirect doc-test
-            [824, 619, 964, 691, 184, 346, 9]
-        """
-        cdef mpz_t mpz_value
-        cdef mpz_t mpz_res  # used on one side of the 'if'
-        cdef Integer z      # used on the other side of the 'if'
-        cdef object l = []
-
-        mpz_init(mpz_value)
-        mpz_set(mpz_value, self.value)
-
-        l = []
-        # we aim to avoid sage Integer creation if possible
-        if digits is None:
-            while mpz_cmp_si(mpz_value,0):
-                z = PY_NEW(Integer)
-                mpz_tdiv_qr(mpz_value, z.value, mpz_value, base.value)
-                PyList_Append(l, z)
-        else:
-            mpz_init(mpz_res)
-            while mpz_cmp_si(mpz_value,0):
-                mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, base.value)
-                PyList_Append(l, digits[mpz_get_si(mpz_res)])
-            mpz_clear(mpz_res)
-
-        mpz_clear(mpz_value)
-
-        return l
-
     def digits(self, base=10, digits=None, padto=0):
         r"""
         Return a list of digits for self in the given base in little endian
@@ -1121,29 +1130,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - Joel B. Mohler (2008-03-02):  significantly rewrote this entire function
         """
-        if base < 2:
-            raise ValueError, "base must be >= 2"
-
         cdef Integer _base
         cdef Integer self_abs = self
         cdef int power_index = 0
+        cdef list power_list
+        cdef list l
         cdef int i
         cdef size_t s
+
+        if PY_TYPE_CHECK(base, Integer):
+            _base = <Integer>base
+        else:
+            _base = Integer(base)
+
+        if mpz_cmp_si(_base.value,2) < 0:
+            raise ValueError, "base must be >= 2"
 
         if mpz_sgn(self.value) < 0:
             self_abs = -self
 
         if mpz_sgn(self.value) == 0:
-                l = []
-        elif base == 2:
+            l = [the_integer_ring._zero_element if digits is None else digits[0]]*padto
+        elif mpz_cmp_si(_base.value,2) == 0:
             s = mpz_sizeinbase(self.value, 2)
             if digits:
                 o = digits[1]
                 z = digits[0]
             else:
-                o = the_integer_ring._one_element if self > 0 else -the_integer_ring._one_element
+                if mpz_sgn(self.value) == 1:
+                    o = the_integer_ring._one_element
+                else:
+                    o = -the_integer_ring._one_element
                 z = the_integer_ring._zero_element
-            l = [z]*s
+            l = [z]*(s if s >= padto else padto)
             for i from 0<= i < s:
                 if mpz_tstbit(self_abs.value,i):  # mpz_tstbit seems to return 0 for the high-order bit of negative numbers?!
                     l[i] = o
@@ -1152,68 +1171,63 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if s > 256:
                 _sig_on
 
-            if PY_TYPE_CHECK(base, Integer):
-                _base = <Integer>base
+            #   We use a divide and conquer approach (suggested
+            # by the prior author, malb?, of the digits method)
+            # here: for base b, compute b^2, b^4, b^8,
+            # ... (repeated squaring) until you get larger
+            # than your number; then compute (n // b^256,
+            # n % b ^ 256) (if b^512 > number) to split
+            # the number in half and recurse
+
+            #   Pre-computing the exact number of digits up-front is actually faster (especially for large
+            # values of self) than trimming off trailing zeros after the fact.  It also seems that it would
+            # avoid duplicating the list in memory with a list-slice.
+            z = the_integer_ring._zero_element if digits is None else digits[0]
+            s = self_abs.exact_log(_base)
+            l = [z]*(s+1 if s+1 >= padto else padto)
+
+            # set up digits for optimal access once we get inside the worker functions
+            if not digits is None:
+                # list objects have fastest access in the innermost loop
+                if not PyList_CheckExact(digits):
+                    digits = [digits[i] for i in range(_base)]
+            elif mpz_cmp_ui(_base.value,s) < 0 and mpz_cmp_ui(_base.value,10000):
+                # We can get a speed boost by pre-allocating digit values in big cases
+                # We do this we have more digits than the base and the base is not too
+                # extremely large (currently, "extremely" means larger than 10000 --
+                # that's very arbitrary.)
+                if mpz_sgn(self.value) > 0:
+                    digits = [Integer(i) for i in range(_base)]
+                else:
+                    # All the digits will be negated in the recursive function.
+                    # we'll just compensate for python index semantics
+                    digits = [Integer(i) for i in range(-_base,0)]
+                    digits[0] = the_integer_ring._zero_element
+
+            if s < 40:
+                _digits_naive(self.value,l,0,_base,digits)
             else:
-                _base = Integer(base)
+                # count the bits of s
+                i = 0
+                while s != 0:
+                    s >>= 1
+                    i += 1
 
-            #    It turns out that it is much faster to use simple division for small numbers.  Some
-            # benchmarking helps to define what "small" means in this case.  Here's a very simplistic
-            # interpretation of what the benchmark told me, but I think it actually should cut off
-            # depending on some ratio of bit-size of self to bit-size of base.
-            if s > 2500:
-                #   We use a divide and conquer approach (suggested
-                # by the prior author, malb?, of the digits method)
-                # here: for base b, compute b^2, b^4, b^8,
-                # ... (repeated squaring) until you get larger
-                # than your number; then compute (n // b^256,
-                # n % b ^ 256) (if b^512 > number) to split
-                # the number in half and recurse
-
-                # set up digits for optimal access once we get inside the worker functions
-                if not digits is None:
-                    # list objects have fastest access in the innermost loop
-                    if not PyList_CheckExact(digits):
-                        digits = [digits[i] for i in range(_base)]
-                elif base < 100:  # 100 is arbitrary -- we get a speed boost by pre-allocating digit values in big cases
-                    if mpz_sgn(self.value) > 0:
-                        digits = [Integer(i) for i in range(_base)]
-                    else:
-                        # All the digits will be negated in the recursive function.
-                        # we'll just compensate for python index semantics
-                        digits = [Integer(i) for i in range(-_base,0)]
-                        digits[0] = the_integer_ring._zero_element
-
-                power_list = []
-                bp = _base
-                while bp <= self_abs:
-                    power_index += 1
-                    #print power_list
-                    power_list.append(bp)
-                    bp = bp**2
+                power_list = [_base]*i
+                for power_index from 1 <= power_index < i:
+                    power_list[power_index] = power_list[power_index-1]**2
 
                 #   Note that it may appear that the recursive calls to _digit_internal would be assigning
                 # list elements i in l for anywhere from 0<=i<(1<<power_index).  However, this is not
                 # the case due to the optimization of skipping assigns assigning zero.
-                #   Pre-computing the exact number of digits up-front is actually faster (for large values of self)
-                # than trimming off trailing zeros after the fact.  It also seems that it would avoid duplicating
-                # the list in memory with a list-slice.
-                z = the_integer_ring._zero_element if digits is None else digits[0]
-                l = [z]*self.ndigits(_base)
-
-                _digits_internal(self.value,l,0,power_index-1,power_list,digits)
-            else:
-                l = self._digits_naive(_base,digits)
+                _digits_internal(self.value,l,0,i-1,power_list,digits)
 
             if s > 256:
                 _sig_off
 
-        if digits is None:
-            zero = the_integer_ring._zero_element     # value for padding
-        else:
-            zero = digits[0]                          # value for padding
-
-        return l+[zero]*(padto-len(l))                # padding with zero
+        # padding should be taken care of with-in the function
+        # all we need to do is return
+        return l
 
     def ndigits(self, base=10):
         """
@@ -1246,9 +1260,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.ndigits()
             10000000
         """
-        if self == 0:
-            return 0
-        return self.abs().exact_log(base) + 1
+        cdef Integer temp
+        if mpz_cmp_si(self.value,0) == 0:
+            temp = PY_NEW(Integer)
+            mpz_set_ui(temp.value,0)
+            return temp
+        elif mpz_cmp_si(self.value,0) > 0:
+            temp=self.exact_log(base)
+            mpz_add_ui(temp.value,temp.value,1)
+            return temp
+        else:
+            return self.abs().exact_log(base) + 1
 
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
@@ -1645,6 +1667,167 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 raise ValueError, "%s is not a %s power"%(self,integer_ring.ZZ(n).ordinal_str())
 
+    cpdef size_t _exact_log_log2_iter(self,Integer m):
+        """
+        This is only for internal use only.  You should expect it to crash and burn for
+        negative or other malformed input.  In particular, if the base `2\leq m<4` the log2
+        approximation of m is 1 and certain input causes endless loops.  Along these lines,
+        it is clear that this function is most useful for m with a relatively large number
+        of bits.
+
+        For ``small`` values (which I'll leave quite ambiguous), this function is a fast
+        path for exact log computations.  Any integer division with such input tends to
+        dominate the runtime.  Thus we avoid division entirely in this function.
+
+        AUTHOR::
+
+        - Joel B. Mohler (2009-04-10)
+
+        EXAMPLES::
+
+            sage: Integer(125)._exact_log_log2_iter(4)
+            3
+            sage: Integer(5^150)._exact_log_log2_iter(5)
+            150
+        """
+        cdef size_t n_log2
+        cdef size_t m_log2
+        cdef size_t l_min
+        cdef size_t l_max
+        cdef size_t l
+        cdef Integer result
+        cdef mpz_t accum
+        cdef mpz_t temp_exp
+
+        if mpz_cmp_si(m.value,4)<0:
+            raise ValueError, "This is undefined or possibly non-convergent with this algorithm."
+
+        n_log2=mpz_sizeinbase(self.value,2)-1
+        m_log2=mpz_sizeinbase(m.value,2)-1
+        l_min=n_log2/(m_log2+1)
+        l_max=n_log2/m_log2
+        if l_min != l_max:
+            _sig_on
+            mpz_init(accum)
+            mpz_init(temp_exp)
+            mpz_set_ui(accum,1)
+            l = 0
+            while l_min != l_max:
+                #print "self=...",m,l_min,l_max
+                if l_min + 1 == l_max:
+                    mpz_pow_ui(temp_exp,m.value,l_min+1-l)
+                    mpz_mul(accum,accum,temp_exp) # this might over-shoot and make accum > self, but we'll know that it's only over by a factor of m^1.
+                    if mpz_cmp(self.value,accum) >= 0:
+                        l_min += 1
+                    break
+                mpz_pow_ui(temp_exp,m.value,l_min-l)
+                mpz_mul(accum,accum,temp_exp)
+                l = l_min
+
+                #Let x=n_log2-(mpz_sizeinbase(accum,2)-1) and y=m_log2.  Now, with x>0 and y>0, we have the
+                #following observation.  If floor((x-1)/(y+1))=0, then x-1<y+1 which implies that x/y<1+2/y.
+                #So long as y>=2, this means that floor(x/y)<=1.  This shows that this iteration is forced to
+                #converge for input m>=4.  If m=3, we can find input so that floor((x-1)/(y+1))=0 and floor(x/y)=2
+                #which results in non-convergence.
+
+                # We need the additional '-1' in the l_min computation because mpz_sizeinbase(accum,2)-1 is smaller than the true log_2(accum)
+                l_min=l+(n_log2-(mpz_sizeinbase(accum,2)-1)-1)/(m_log2+1)
+                l_max=l+(n_log2-(mpz_sizeinbase(accum,2)-1))/m_log2
+            mpz_clear(temp_exp)
+            mpz_clear(accum)
+            _sig_off
+        return l_min
+
+    cpdef size_t _exact_log_mpfi_log(self,m):
+        """
+        This is only for internal use only.  You should expect it to crash and burn for
+        negative or other malformed input.
+
+        I avoid using this function until the input is large.  The overhead associated
+        with computing the floating point log entirely dominates the runtime for small values.
+        Note that this is most definitely not an artifact of format conversion.  Tricks
+        with log2 approximations and using exact integer arithmetic are much better for
+        small input.
+
+        AUTHOR::
+
+        - Joel B. Mohler (2009-04-10)
+
+        EXAMPLES::
+
+            sage: Integer(125)._exact_log_mpfi_log(3)
+            4
+            sage: Integer(5^150)._exact_log_mpfi_log(5)
+            150
+        """
+        cdef int i
+        cdef list pow_2_things
+        cdef int pow_2
+        cdef size_t upper,lower,middle
+
+        import real_mpfi
+        R=real_mpfi.RIF
+
+        rif_self = R(self)
+
+        _sig_on
+        rif_m = R(m)
+        rif_log = rif_self.log()/rif_m.log()
+        # upper is *greater* than the answer
+        try:
+            upper = rif_log.upper().ceiling()
+        except:
+            # ceiling is probably Infinity
+            # I'm not sure what to do now
+            upper = 0
+        lower = rif_log.lower().floor()
+        # since the log function is monotonic increasing, lower and upper bracket our desired answer
+
+        # if upper - lower == 1: "we are done"
+        if upper - lower == 2:
+            # You could test it by checking rif_m**(lower+1), but I think that's a waste of time since it won't be conclusive
+            # We must test with exact integer arithmetic which takes all the bits of self into account.
+            if self >= m**(lower+1):
+                return lower + 1
+            else:
+                return lower
+        elif upper - lower > 2:
+            # this case would only happen in cases with extremely large 'self'
+            rif_m = R(m)
+            min_power = rif_m**lower
+            middle = upper-lower
+            pow_2 = 0
+            while middle != 0:
+                middle >>= 1
+                pow_2 += 1
+            # if middle was an exact power of 2, adjust down
+            if (1 << (pow_2-1)) == upper-lower:
+                pow_2 -= 1
+            #print upper, lower, pow_2
+            pow_2_things = [rif_m]*pow_2
+            for i from 1<=i<pow_2:
+                pow_2_things[i] = pow_2_things[i-1]**2
+            for i from pow_2>i>=0:
+                middle = lower + int(2)**i
+                #print "Upper:  %i;  Lower:  %i;  Middle:  %i" % (upper,lower, middle)
+                exp = min_power*pow_2_things[i]
+                if exp > rif_self:
+                    upper = middle
+                elif exp < rif_self:
+                    lower = middle
+                    min_power = exp
+                else:
+                    if m**middle <= self:
+                        return middle
+                    else:
+                        return lower
+        _sig_off
+
+        if upper == 0:
+            raise ValueError, "The input for exact_log is too large and support is not implemented."
+
+        return lower
+
     def exact_log(self, m):
         r"""
         Returns the largest integer `k` such that
@@ -1663,10 +1846,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         AUTHORS:
 
         - David Harvey (2006-09-15)
-
-        TODO: - Currently this is extremely stupid code (although it should
-        always work). Someone needs to think about doing this properly by
-        estimating errors in the log function etc.
+        - Joel B. Mohler (2009-04-08) -- rewrote this to handle small cases
+               and/or easy cases up to 100x faster..
 
         EXAMPLES::
 
@@ -1680,6 +1861,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: Integer(1).exact_log(5)
             0
+            sage: Integer(178^1700).exact_log(178)
+            1700
+            sage: Integer(178^1700-1).exact_log(178)
+            1699
+            sage: Integer(178^1700+1).exact_log(178)
+            1700
+            sage: # we need to exercise the large base code path too
+            sage: Integer(1780^1700-1).exact_log(1780)
+            1699
+
+            sage: # The following are very very fast.
+            sage: # Note that for base m a perfect power of 2, we get the exact log by counting bits.
+            sage: n=2983579823750185701375109835; m=32
+            sage: n.exact_log(m)
+            18
+            sage: # The next is a favorite of mine.  The log2 approximate is exact and immediately provable.
+            sage: n=90153710570912709517902579010793251709257901270941709247901209742124;m=213509721309572
+            sage: n.exact_log(m)
+            4
 
         ::
 
@@ -1705,63 +1905,70 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
-        m = Integer(m)
-        if mpz_sgn(self.value) <= 0:
-            raise ValueError, "self must be positive"
-        if m < 2:
+        cdef Integer _m
+        cdef Integer result
+        cdef size_t n_log2
+        cdef size_t m_log2
+        cdef size_t guess # this will contain the final answer
+        cdef bint guess_filled = 0  # this variable is only used in one branch below.
+        cdef mpz_t z
+        if PY_TYPE_CHECK(m,Integer):
+            _m=<Integer>m
+        else:
+            _m=<Integer>Integer(m)
+
+        if mpz_sgn(self.value) <= 0 or mpz_sgn(_m.value) <= 0:
+            raise ValueError, "both self and m must be positive"
+        if mpz_cmp_si(_m.value,2) < 0:
             raise ValueError, "m must be at least 2"
 
-        if m <= 256:
+        n_log2=mpz_sizeinbase(self.value,2)-1
+        m_log2=mpz_sizeinbase(_m.value,2)-1
+        if mpz_divisible_2exp_p(_m.value,m_log2):
+            # Here, m is a power of 2 and the correct answer is found by a log 2 approximation.
+            guess = n_log2/m_log2 # truncating division
+        elif n_log2/(m_log2+1) == n_log2/m_log2:
+            # In this case, we have an upper bound and lower bound which give the same anwer, thus, the correct answer.
+            guess = n_log2/m_log2
+        elif m_log2 < 8: # i.e. m<256
             # if the base m is at most 256, we can use mpz_sizeinbase
             # to get the following guess which is either the exact
             # log, or 1+ the exact log
-            guess = Integer(mpz_sizeinbase(self.value, m)) - 1
-            # if the base is 2, the guess is always correct
-            if m == 2:
-                return guess
+            guess = mpz_sizeinbase(self.value, mpz_get_si(_m.value)) - 1
 
-            # otherwise, we need to compare self and m^guess
-            # this is time-consuming for large integers, so we start by
-            # doing a rough comparison using interval arithmetic
-            # (suggested by David Harvey and Carl Witty)
-            # "for randomly distributed integers, the chance of this
-            # interval-based comparison failing is absurdly low"
-            import real_mpfi
-            approx_compare = real_mpfi.RIF(m)**guess
-            if self > approx_compare:
-                return guess
-            elif self < approx_compare:
-                return guess - one
-            # if we reach this point, we're in an absurdly low-probability
-            # case; we "manually" compare self and m^guess
-            compare = Integer(m)**guess
-            if self >= compare:
-                return guess
-            else:
-                return guess - one
+            # we've already excluded the case when m is an exact power of 2
 
-        # if we are here, then the base m is bigger than 256
-        # TODO: optimize this
-        import real_mpfr
-        R = real_mpfr.RealField(53)
-        guess = R(self).log(base = m).floor()
-        power = Integer(m) ** guess
-
-        while power > self:
-            power = power / m
-            guess = guess - 1
-
-        if power == self:
-            return guess
-
-        while power < self:
-            power = power * m
-            guess = guess + 1
-
-        if power == self:
-            return guess
+            if n_log2/m_log2 > 8000:
+                # If we have a very large number of digits, it can be a nice
+                # shortcut to test the guess using interval arithmetic.
+                # (suggested by David Harvey and Carl Witty)
+                # "for randomly distributed integers, the chance of this
+                # interval-based comparison failing is absurdly low"
+                import real_mpfi
+                approx_compare = real_mpfi.RIF(m)**guess
+                if self > approx_compare:
+                    guess_filled = 1
+                elif self < approx_compare:
+                    guess_filled = 1
+                    guess =  guess - 1
+            if not guess_filled:
+                # At this point, either
+                #  1)  self is close enough to a perfect power of m that we need an exact comparison, or
+                #  2)  the numbers are small enough that converting to the interval field is more work than the exact comparison.
+                compare = _m**guess
+                if self < compare:
+                    guess = guess - 1
+        elif n_log2 < 5000:
+            # for input with small exact log, it's very fast to work in exact integer arithmetic starting from log2 approximations
+            guess = self._exact_log_log2_iter(_m)
         else:
-            return guess - 1
+            # finally, we are out of easy cases
+            # this subroutine uses interval arithmetic to guess and check the exact log.
+            guess = self._exact_log_mpfi_log(_m)
+
+        result = <Integer>PY_NEW(Integer)
+        mpz_set_ui(result.value,guess)
+        return result
 
     def log(self, m=None, prec=None):
         r"""

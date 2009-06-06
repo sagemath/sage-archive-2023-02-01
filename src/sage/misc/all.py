@@ -160,6 +160,8 @@ from randstate import seed, set_random_seed, initial_seed, current_randstate
 
 from prandom import *
 
+from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
+
 ##########################################################################
 def benchmark(n=-1):
     """

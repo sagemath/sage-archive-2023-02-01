@@ -940,13 +940,6 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: x, y = var("x y")
-            sage: hash(x)
-            2013265920
-            sage: hash(x^y)
-            4043309056      # 64-bit
-            -251658240      # 32-bit
-
         The hash of an object in Python or its coerced version into
         the symbolic ring is the same::
 
@@ -956,8 +949,18 @@ cdef class Expression(CommutativeRingElement):
             4
             sage: hash(19/23)
             4
-            sage: hash(x+y)   # random -- the hash for some expression is unfortunately random
-            1631713410
+
+        The hash for symbolic expressions are unfortunately random. Here we
+        only test that the hash() function returns without error, and that
+        the return type is correct::
+
+            sage: x, y = var("x y")
+            sage: t = hash(x); type(t)
+            <type 'int'>
+            sage: t = hash(x^y); type(t)
+            <type 'int'>
+            sage: type(hash(x+y))
+            <type 'int'>
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -1372,6 +1375,11 @@ cdef class Expression(CommutativeRingElement):
             [False, False, False, True, True, True]
             sage: [op(pi, pi).test_relation() for op in all_relations]
             [True, True, False, True, False, False]
+
+            sage: s = 'some_very_long_variable_name_which_will_definitely_collide_if_we_use_a_reasonable_length_bound_for_a_hash_that_respects_lexicographic_order'
+            sage: t1, t2 = var(','.join([s+'1',s+'2']))
+            sage: (t1 == t2).test_relation()
+            False
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -1683,6 +1691,32 @@ cdef class Expression(CommutativeRingElement):
             # check if comparison of constant terms in pynac add objects work
             sage: (y-1)*(y-2)
             (y - 2)*(y - 1)
+
+        Check for simplifications when multiplying instances of exp::
+
+            sage: exp(x)*exp(y)
+            e^(x + y)
+            sage: exp(x)^2*exp(y)
+            e^(2*x + y)
+            sage: x^y*exp(x+y)*exp(-y)
+            x^y*e^x
+            sage: x^y*exp(x+y)*(x+y)*(2*x+2*y)*exp(-y)
+            2*(x + y)^2*x^y*e^x
+            sage: x^y*exp(x+y)*(x+y)*(2*x+2*y)*exp(-y)*exp(z)^2
+            2*(x + y)^2*x^y*e^(x + 2*z)
+            sage: 1/exp(x)
+            e^(-x)
+            sage: exp(x)/exp(y)
+            e^(x - y)
+            sage: A = exp(I*pi/5)
+            sage: t = A*A*A*A; t
+            e^(4/5*I*pi)
+            sage: t*A
+            -1
+            sage: b = -x*A; c = b*b; c
+            x^2*e^(2/5*I*pi)
+            sage: u = -t*A; u
+            1
 
             sage: x*oo
             +Infinity
@@ -5482,14 +5516,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x*cos(x)
             sage: f.find_minimum_on_interval(1, 5)
-            (-3.2883713955908962, 3.4256184695...)
+            (-3.288371395590..., 3.4256184695...)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
-            (-3.288371361890984, 3.42575079030572)
+            (-3.288371361890..., 3.4257507903...)
             sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
-            (-3.2883708459837844, 3.4250840220...)
+            (-3.288370845983..., 3.4250840220...)
             sage: show(f.plot(0, 20))
             sage: f.find_minimum_on_interval(1, 15)
-            (-9.4772942594797929, 9.5293344109...)
+            (-9.477294259479..., 9.5293344109...)
 
         ALGORITHM:
 
@@ -5684,7 +5718,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: sin(x).nintegral(x,0,3)
-            (1.989992496600445, 2.209335488557113e-14, 21, 0)
+            (1.989992496600..., 2.209335488557...e-14, 21, 0)
         """
         from sage.calculus.calculus import nintegral
         return nintegral(self, *args, **kwds)

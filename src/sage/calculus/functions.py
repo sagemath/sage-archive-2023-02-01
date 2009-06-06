@@ -64,7 +64,7 @@ def wronskian(*args):
     Example where one of the functions is constant::
 
         sage: wronskian(1, e^(-x), e^(2*x))
-        -6*e^(-x)*e^(2*x)
+        -6*e^x
 
     NOTES:
 

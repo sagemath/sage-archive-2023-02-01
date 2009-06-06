@@ -30,6 +30,6 @@ htmlhelp_basename = name
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
   ('index', name+'.tex', u'Sage Installation Guide',
-   u'The Sage Group', 'manual'),
+   u'The Sage Development Team', 'manual'),
 ]
 

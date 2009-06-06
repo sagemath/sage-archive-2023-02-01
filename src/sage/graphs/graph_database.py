@@ -476,6 +476,45 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
                                 self.__query_string__ = re.sub('SELECT.*WHERE ', disp_str + join_str + \
                                                                                                 'WHERE ', self.__query_string__)
 
+    def query_iterator(self):
+        """
+        Returns an iterator over the results list of the GraphQuery.
+
+        EXAMPLE::
+
+            sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
+            sage: for g in Q:
+            ...     print g.graph6_string()
+            F@?]O
+            F@OKg
+            F?`po
+            F?gqg
+            FIAHo
+            F@R@o
+            FA_pW
+            FGC{o
+            FEOhW
+
+            sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
+            sage: it = iter(Q)
+            sage: while True:
+            ...     try: print it.next().graph6_string()
+            ...     except StopIteration: break
+            F@?]O
+            F@OKg
+            F?`po
+            F?gqg
+            FIAHo
+            F@R@o
+            FA_pW
+            FGC{o
+            FEOhW
+
+        """
+        return iter(self.get_graphs_list())
+
+    __iter__ = query_iterator
+
     def show(self, max_field_size=20, with_picture=False):
         """
         Displays the results of a query in table format.

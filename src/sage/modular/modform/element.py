@@ -16,6 +16,7 @@ import sage.rings.all as rings
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
+from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
 
 def is_ModularFormElement(x):
@@ -1133,14 +1134,14 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         EXAMPLES::
 
             sage: EllipticCurve('11a1').modular_form()._compute_element()
-            [1, 0]
+            (1, 0)
             sage: EllipticCurve('389a1').modular_form()._compute_element()
-            [1, -2, -2, 2, -3, 4, -5, 0, 1, 6, -4, -4, -3, 10, 6, -4, -6, -2, 5, -6, 10, 8, -4, 0, 4, 6, 4, -10, -6, -12, 4, 8, 0]
+            (1, -2, -2, 2, -3, 4, -5, 0, 1, 6, -4, -4, -3, 10, 6, -4, -6, -2, 5, -6, 10, 8, -4, 0, 4, 6, 4, -10, -6, -12, 4, 8, 0)
         """
         M = self.parent()
         S = M.cuspidal_subspace()
 ##        return S.find_in_space( self.__E.q_expansion( S.q_expansion_basis()[0].prec() ) ) + [0] * ( M.dimension() - S.dimension() )
-        return S.find_in_space( self.__E.q_expansion( S.sturm_bound() ) ) + [0] * ( M.dimension() - S.dimension() )
+        return vector(S.find_in_space( self.__E.q_expansion( S.sturm_bound() ) ) + [0] * ( M.dimension() - S.dimension() ))
 
     def _compute_q_expansion(self, prec):
         r"""

@@ -44,7 +44,8 @@ cdef class DefaultConvertMap(Map):
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return self._codomain.__element_constructor(self._codomain, x)
+                    # This line is apparently never used in any tests (hivert, 2009-04-28)
+                    return self._codomain._element_constructor(self._codomain, x)
                 else:
                     return self._codomain._element_constructor(self._codomain, x, **kwds)
             else:

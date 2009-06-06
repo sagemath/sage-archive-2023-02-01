@@ -1130,7 +1130,10 @@ class FreeModule_generic(module.Module):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            A = MAT(self.basis())
+            if self.is_ambient():
+                A = MAT.identity_matrix()
+            else:
+                A = MAT(self.basis())
             A.set_immutable()
             self.__basis_matrix = A
             return A
@@ -2048,6 +2051,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: M.basis_matrix()
             [ 1 -1]
             [ 1  0]
+
+        See #3699:
+            sage: K = FreeModule(ZZ, 2000)
+            sage: I = K.basis_matrix()
         """
         try:
             return self.__basis_matrix
@@ -2055,7 +2062,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_field(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            A = MAT(self.basis())
+            if self.is_ambient():
+                A = MAT.identity_matrix()
+            else:
+                A = MAT(self.basis())
             A.set_immutable()
             self.__basis_matrix = A
             return A

@@ -2753,6 +2753,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def is_unit(self):
         return mpfr_sgn(self.value) != 0
 
+    def is_real(self):
+        return True
+
     def __nonzero__(self):
         return mpfr_sgn(self.value) != 0
 

@@ -90,9 +90,9 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
             sage: hasattr(f, '_HeckeModuleElement__element')
             False
             sage: f._compute_element()
-            [1, 0]
+            (1, 0)
             sage: f.element()
-            [1, 0]
+            (1, 0)
             sage: hasattr(f, '_HeckeModuleElement__element')
             True
         """
@@ -193,3 +193,83 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
             (0, 0, 4)
         """
         return self.parent()(self.element() - right.element())
+
+    def is_cuspidal(self):
+        r"""
+        Return True if this element is cuspidal.
+
+        EXAMPLES::
+
+            sage: M = ModularForms(2, 22); M.0.is_cuspidal()
+            True
+            sage: (M.0 + M.4).is_cuspidal()
+            False
+            sage: EllipticCurve('37a1').newform().is_cuspidal()
+            True
+
+        It works for modular symbols too::
+
+            sage: M = ModularSymbols(19,2)
+            sage: M.0.is_cuspidal()
+            False
+            sage: M.1.is_cuspidal()
+            True
+        """
+        return (self in self.parent().ambient().cuspidal_submodule())
+
+    def is_eisenstein(self):
+        r"""
+        Return True if this element is Eisenstein. This makes sense for both
+        modular forms and modular symbols.
+
+        EXAMPLES::
+
+            sage: CuspForms(2,8).0.is_eisenstein()
+            False
+            sage: M = ModularForms(2,8);(M.0  + M.1).is_eisenstein()
+            False
+            sage: M.1.is_eisenstein()
+            True
+            sage: ModularSymbols(19,4).0.is_eisenstein()
+            False
+            sage: EllipticCurve('37a1').newform().is_eisenstein()
+            False
+        """
+        return (self in self.parent().ambient().eisenstein_submodule())
+
+    def is_new(self, p=None):
+        r"""
+        Return True if this element is p-new. If p is None, return True if the
+        element is new.
+
+        EXAMPLE::
+
+            sage: CuspForms(22, 2).0.is_new(2)
+            False
+            sage: CuspForms(22, 2).0.is_new(11)
+            True
+            sage: CuspForms(22, 2).0.is_new()
+            False
+        """
+        return (self in self.parent().new_submodule(p))
+
+    def is_old(self, p=None):
+        r"""
+        Return True if this element is p-old. If p is None, return True if the
+        element is old.
+
+        EXAMPLE::
+
+            sage: CuspForms(22, 2).0.is_old(11)
+            False
+            sage: CuspForms(22, 2).0.is_old(2)
+            True
+            sage: CuspForms(22, 2).0.is_old()
+            True
+            sage: EisensteinForms(144, 2).1.is_old()
+            False
+            sage: EisensteinForms(144, 2).1.is_old(2) # not implemented
+            False
+        """
+        return (self in self.parent().old_submodule(p))
+

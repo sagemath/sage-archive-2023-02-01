@@ -35,7 +35,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         sage: var('x,y,z')
         (x, y, z)
-        sage: implicit_plot3d((x^2 + y^2 + z^2), (-2, 2), (-2, 2), (-2, 2), plot_points=60, contour=[1,3,5], \
+
+    A simple sphere::
+
+        sage: implicit_plot3d(x^2+y^2+z^2==4, (x, -3, 3), (y, -3,3), (z, -3,3))
+
+    A nested set of spheres with a hole cut out::
+
+        sage: implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], \
         ...                   region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2).show(viewer='tachyon')
 
     A very pretty example from http://iat.ubalt.edu/summers/math/platsol.htm::
@@ -43,7 +50,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: T = RDF(golden_ratio)
         sage: p = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
         sage: r = 4.77
-        sage: implicit_plot3d(p, (-r, r), (-r, r), (-r, r), plot_points=40).show(viewer='tachyon')
+        sage: implicit_plot3d(p, (x, -r, r), (y, -r, r), (z, -r, r), plot_points=40).show(viewer='tachyon')
 
     As I write this (but probably not as you read it), it's almost Valentine's
     day, so let's try a heart (from http://mathworld.wolfram.com/HeartSurface.html)
@@ -52,18 +59,18 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         sage: p = (x^2+9/4*y^2+z^2-1)^3-x^2*z^3-9/(80)*y^2*z^3
         sage: r = 1.5
-        sage: implicit_plot3d(p, (-r,r), (-r,r), (-r,r), plot_points=80, color='red', smooth=False).show(viewer='tachyon')
+        sage: implicit_plot3d(p, (x, -r,r), (y, -r,r), (z, -r,r), plot_points=80, color='red', smooth=False).show(viewer='tachyon')
 
     The same examples also work with the default Jmol viewer; for example::
 
         sage: T = RDF(golden_ratio)
         sage: p = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
         sage: r = 4.77
-        sage: implicit_plot3d(p, (-r, r), (-r, r), (-r, r), plot_points=40).show()
+        sage: implicit_plot3d(p, (x, -r, r), (y, -r, r), (z, -r, r), plot_points=40).show()
 
     Here we use smooth=True with a Tachyon graph::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (-2, 2), (-2, 2), (-2, 2), contour=4, smooth=True)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, smooth=True)
 
     We explicitly specify a gradient function (in conjunction with smooth=True)
     and invert the normals::
@@ -71,7 +78,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: gx = lambda x, y, z: -(2*x + y^2 + z^2)
         sage: gy = lambda x, y, z: -(x^2 + 2*y + z^2)
         sage: gz = lambda x, y, z: -(x^2 + y^2 + 2*z)
-        sage: implicit_plot3d(x^2+y^2+z^2, (-2, 2), (-2, 2), (-2, 2), contour=4, \
+        sage: implicit_plot3d(x^2+y^2+z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, \
         ...       plot_points=40, smooth=True, gradient=(gx, gy, gz)).show(viewer='tachyon')
 
     A graph of two metaballs interacting with each other::
@@ -83,7 +90,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     A kind of saddle::
 
-        sage: implicit_plot3d(x^3 + y^2 - z^2, (-2, 2), (-2, 2), (-2, 2), plot_points=60, contour=0)
+        sage: implicit_plot3d(x^3 + y^2 - z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=0)
 
     A smooth surface with six radial openings::
 
@@ -202,16 +209,16 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     Test a separate resolution in the X direction; this should look like a
     regular sphere::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (-2, 2), (-2, 2), (-2, 2), plot_points=(10, 40, 40), contour=4)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=(10, 40, 40), contour=4)
 
     Test using different plot ranges in the different directions; this should
     generate half of a sphere::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (0, 2), (-2, 2), (-2, 2), contour=4)
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, 0, 2), (y, -2, 2), (z, -2, 2), contour=4)
 
     Extra keyword arguments will be passed to show()::
 
-        sage: implicit_plot3d(x^2 + y^2 + z^2, (-2, 2), (-2, 2), (-2, 2), contour=4, viewer='tachyon')
+        sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, viewer='tachyon')
     """
 
     # These options aren't fully implemented yet:

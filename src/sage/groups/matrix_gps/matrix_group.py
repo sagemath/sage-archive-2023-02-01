@@ -326,29 +326,61 @@ class MatrixGroup_gap(MatrixGroup_generic):
             return True
         return self._gap_().IsFinite().bool()
 
-    def order(self):
+    def cardinality(self):
         """
+        Implements :meth:`EnumeratedSets.ParentMethods.cardinality`.
+
         EXAMPLES::
 
             sage: G = Sp(4,GF(3))
-            sage: G.order()
+            sage: G.cardinality()
             51840
             sage: G = SL(4,GF(3))
-            sage: G.order()
+            sage: G.cardinality()
             12130560
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.order()
+            sage: G.cardinality()
             480
             sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
-            sage: G.order()
+            sage: G.cardinality()
             +Infinity
         """
         g = self._gap_()
         if g.IsFinite().bool():
             return integer.Integer(gap(self).Size())
         return infinity
+
+    def order(self):
+        """
+        Backward compatibility alias for :meth:`.cardinality`.
+
+        Might be deprecated in the future.
+
+        EXAMPLES::
+
+            sage: G = Sp(4,GF(3))
+            sage: G.order()
+            51840
+        """
+        return self.cardinality()
+
+    def __len__(self):
+        """
+        __len__ has been removed ! to get the number of element in a
+        matrix group, use :meth:`.cardinality`.
+
+        EXAMPLES::
+
+            sage: G = GO(3,GF(5))
+            sage: len(G)
+            Traceback (most recent call last):
+            ...
+            AttributeError: __len__ has been removed; use .cardinality() instead
+
+        """
+        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
 
     def gens(self):
         """
@@ -440,7 +472,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
             sage: F = GF(3)
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
             sage: G = MatrixGroup(gens)
-            sage: G.order()
+            sage: G.cardinality()
             24
             sage: v = G.list()
             sage: len(v)
@@ -545,23 +577,23 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
     """
     Python class for matrix groups over a finite field.
     """
-    def order(self):
+    def cardinality(self):
         """
         EXAMPLES::
 
             sage: G = Sp(4,GF(3))
-            sage: G.order()
+            sage: G.cardinality()
             51840
             sage: G = SL(4,GF(3))
-            sage: G.order()
+            sage: G.cardinality()
             12130560
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.order()
+            sage: G.cardinality()
             480
             sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
-            sage: G.order()
+            sage: G.cardinality()
             +Infinity
         """
         return integer.Integer(gap(self).Size())
@@ -617,7 +649,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             sage: G
             Matrix group over Finite Field of size 5 with 2 generators:
              [[[1, 0], [0, 1]], [[1, 2], [3, 4]]]
-            sage: G.order()
+            sage: G.cardinality()
             8
             sage: G(1)
             [1 0]
@@ -758,7 +790,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: g2 = MS(eval(str(GG.GeneratorsOfGroup()[2]).replace("\n","")))
             sage: g3 = MS(eval(str(GG.GeneratorsOfGroup()[3]).replace("\n","")))
             sage: G = MatrixGroup([g1, g2, g3])
-            sage: G.order()
+            sage: G.cardinality()
             21499084800
             sage: set_random_seed(0); current_randstate().set_seed_gap()
             sage: G.as_permutation_group()
@@ -778,7 +810,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         F = self.base_ring()
         if not(F.is_finite()):
             raise NotImplementedError, "Base ring must be finite."
-        q = F.order()
+        q = F.cardinality()
         gens = self.gens()
         n = self.degree()
         MS = MatrixSpace(F,n,n)
@@ -830,7 +862,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         F = self.base_ring()
         if not(F.is_finite()):
             raise NotImplementedError, "Base ring must be finite."
-        q = F.order()
+        q = F.cardinality()
         gens = self.gens()
         n = self.degree()
         MS = MatrixSpace(F,n,n)
@@ -962,7 +994,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: MS = MatrixSpace(QQ, 2, 2)
             sage: gen1 = [[1/a,(q-1)/a],[1/a, -1/a]]; gen2 = [[1,0],[0,-1]]; gen3 = [[-1,0],[0,1]]
             sage: G = MatrixGroup([MS(gen1),MS(gen2),MS(gen3)])
-            sage: G.order()
+            sage: G.cardinality()
             12
             sage: G.invariant_generators()
             [x1^2 + 3*x2^2, x1^6 + 15*x1^4*x2^2 + 15*x1^2*x2^4 + 33*x2^6]
@@ -1027,14 +1059,14 @@ class MatrixGroup_gens(MatrixGroup_gap):
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
         Lgens = ','.join((x.name() for x in A))
         PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
-        if q == 0 or (q > 0 and self.order()%q != 0):
+        if q == 0 or (q > 0 and self.cardinality()%q != 0):
             ReyName = 't'+singular._next_var_name()
             singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
             IRName = 't'+singular._next_var_name()
             singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
             OUT = [singular.eval(IRName+'[1,%d]'%(j)) for j in range(1,1+singular('ncols('+IRName+')'))]
             return [PR(gen) for gen in OUT]
-        if self.order()%q == 0:
+        if self.cardinality()%q == 0:
             PName = 't'+singular._next_var_name()
             SName = 't'+singular._next_var_name()
             singular.eval('matrix %s,%s=invariant_ring(%s)'%(PName,SName,Lgens))
@@ -1072,7 +1104,7 @@ class MatrixGroup_gens_finite_field(MatrixGroup_gens, MatrixGroup_gap_finite_fie
 ##         L = [gap(A) for A in gp_gens]
 ##         sL = ','.join(str(x) for x in L)
 ##         if is_FiniteField(F):
-##             q = F.order()
+##             q = F.cardinality()
 ##             gap.eval("cl:=ConjugacyClasses(Group(["+sL+"]))")
 ##             m = eval(gap.eval("Length(cl)"))
 ##             gap.eval("reps:=List(cl,x->Representative(x))")

@@ -11,7 +11,7 @@ from sage.calculus.predefined import x
 
 sage_mode = 'notebook'
 
-from sage.misc.latex import Latex, pretty_print_default, typeset, JSMath
+from sage.misc.latex import Latex, pretty_print_default, JSMath
 latex = Latex(density=130)
 latex_debug = Latex(debug=True, density=130)
 slide = Latex(slide=True, density=256)

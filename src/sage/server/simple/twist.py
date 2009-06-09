@@ -183,7 +183,6 @@ class LoginResource(resource.Resource):
         session_id = "%x" % random.randint(1, 1 << 128)
         session = SessionObject(session_id, username, worksheet)
         sessions[session_id] = session
-        sessions['test'] = session
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
@@ -197,6 +196,7 @@ class LogoutResource(resource.Resource):
         session.worksheet.quit()
         shutil.rmtree(session.worksheet.directory())
         status = session.get_status()
+        del sessions[ctx.args['session'][0]]
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
 class InterruptResource(resource.Resource):

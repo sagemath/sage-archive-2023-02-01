@@ -26,6 +26,12 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-1.2.p3 (Nick Alexander, June 9, 2009) ===
+ * Update to latest MPIR 1.2 final release.
+
+=== mpir-1.2.p2 (William Stein, June 4, 2009) ===
+ * Update to latest MPIR 1.2 pre-release
+
 === mpir-1.2.p1 (William Stein, June 2, 2009) ===
  * Update to latest MPIR 1.2 pre-release
 

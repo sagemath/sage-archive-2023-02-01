@@ -1,16 +1,24 @@
-r"""nodoctest
+r"""
+Simple Sage API
+
 This module provides a very simple API for interacting with a Sage session
-over http. It runs in as part of the notebook server.
+over http. It runs as part of the notebook server.
 
-NOTE:
-    The exact data in the JSON header may vary over time (for example, further
-    data may be added), but should remain backwards compatable if it is being
-    parsed as JSON data.
+.. note::
 
+    The exact data in the JSON header may vary over time (for example,
+    further data may be added), but should remain backwards compatable
+    if it is being parsed as JSON data.
 
 TESTS:
 
-Start the notebook.
+Here's a usage example which demonstrates all the features of this
+server/API.
+
+Start the notebook server.
+
+::
+
     sage: from sage.server.misc import find_next_available_port
     sage: port = find_next_available_port(9000, verbose=False)
     sage: from sage.server.notebook.notebook_object import test_notebook
@@ -19,12 +27,15 @@ Start the notebook.
     ...
     Notebook started.
 
-Import urllib:
+Now here's what you can do on the client side. Import `urllib
+<http://docs.python.org/library/urllib.html>`_ and define a convenience
+function::
+
     sage: import urllib, re
     sage: def get_url(url): h = urllib.urlopen(url); data = h.read(); h.close(); return data
 
+Login to a new session::
 
-Login to a new session:
     sage: sleep(1)
     sage: login_page = get_url('http://localhost:%s/simple/login?username=admin&password=%s' % (port, passwd))
     sage: print login_page # random session id
@@ -34,7 +45,8 @@ Login to a new session:
     ___S_A_G_E___
     sage: session = re.match(r'.*"session": "([^"]*)"', login_page, re.DOTALL).groups()[0]
 
-Run a command:
+Run a command::
+
     sage: sleep(0.5)
     sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=2*2' % (port, session))
     {
@@ -45,7 +57,14 @@ Run a command:
     ___S_A_G_E___
     4
 
-Do a longer-running example:
+This API returns information as a string, the first part of which is a
+`JSON-encoded <http://www.json.org/>`_ dictionary. The second part --
+after the separator ``___S_A_G_E___`` -- is the text of the output. To
+parse output, you just need to split the string and parse the JSON data
+into your local format.
+
+Do a longer-running example::
+
     sage: n = next_prime(10^25)*next_prime(10^30)
     sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=factor(%s)&timeout=0.1' % (port, session, n))
     {
@@ -55,7 +74,8 @@ Do a longer-running example:
     }
     ___S_A_G_E___
 
-Get the status of the computation:
+Get the status of the computation::
+
     sage: print get_url('http://localhost:%s/simple/status?session=%s&cell=2' % (port, session))
     {
     "status": "computing",
@@ -64,10 +84,13 @@ Get the status of the computation:
     }
     ___S_A_G_E___
 
-Interrupt the computation:
+Interrupt the computation::
+
     sage: _ = get_url('http://localhost:%s/simple/interrupt?session=%s' % (port, session))
 
-Test out getting files:
+You can download files that your code creates on the remote server. Here
+we write a file, and then download it to our client::
+
     sage: code = "h = open('a.txt', 'w'); h.write('test'); h.close()"
     sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=%s' % (port, session, urllib.quote(code)))
     {
@@ -80,9 +103,18 @@ Test out getting files:
     sage: print get_url('http://localhost:%s/simple/file?session=%s&cell=3&file=a.txt' % (port, session))
     test
 
-Log out:
+When you are done, log out::
+
     sage: _ = get_url('http://localhost:%s/simple/logout?session=%s' % (port, session))
     sage: nb.dispose()
+
+.. warning::
+
+    It's important that your code log out the session. Otherwise, it is
+    very easy to create an unintentional denial-of-service attack by
+    having the server accumulate a large number of idle worksheets which
+    consume a lot of memory and make the server unresponsive!
+
 """
 
 #############################################################################
@@ -117,9 +149,10 @@ def late_import():
 
 def simple_jsonize(data):
     """
-    This may be replaced by a JSON spkg."
+    This will be replaced by a JSON spkg when Python 2.6 gets into Sage.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.server.simple.twist import simple_jsonize
         sage: print simple_jsonize({'a': [1,2,3], 'b': "yep"})
         { "a": [1, 2, 3], "b": "yep" }
@@ -153,7 +186,8 @@ class SessionObject:
         Return a dictionary to be returned (in JSON format) representing
         the status of self.
 
-        TEST:
+        TEST::
+
             sage: from sage.server.simple.twist import SessionObject
             sage: s = SessionObject(id=1, username=None, worksheet=None)
             sage: s.get_status()
@@ -290,7 +324,8 @@ class StatusResource(CellResource):
 
 class FileResource(resource.Resource):
     """
-    This differs from the rest as it does not print a header, just the raw file data.
+    This differs from the rest as it does not print a header, just the
+    raw file data.
     """
     def render(self, ctx):
         try:

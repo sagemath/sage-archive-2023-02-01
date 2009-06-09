@@ -17,3 +17,5 @@ The Sage Notebook
 
    sage/server/support
    sage/server/introspect
+
+   sage/server/simple/twist

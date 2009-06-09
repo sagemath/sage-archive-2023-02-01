@@ -223,14 +223,24 @@ def execute_list_of_commands(command_list):
         execute_list_of_commands_in_serial(command_list)
     print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
 
-#############################################
-###### Parallel gcc execution
-######
-######  This code is responsible for making
-###### distutils spawn compilation threads
-###### in parallel. TODO: EXPLAIN
-######
-#############################################
+########################################################################
+##
+## Parallel gcc execution
+##
+## This code is responsible for making distutils dispatch the calls to
+## build_ext in parallel. Since distutils doesn't seem to do this by
+## default, we create our own extension builder and override the
+## appropriate methods.  Unfortunately, in distutils, the logic of
+## deciding whether an extension needs to be recompiled and actually
+## making the call to gcc to recompile the extension are in the same
+## function. As a result, we can't just override one function and have
+## everything magically work. Instead, we split this work between two
+## functions. This works fine for our application, but it means that
+## we can't use this modification to make the other parts of Sage that
+## build with distutils call gcc in parallel.
+##
+########################################################################
+
 
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
@@ -243,6 +253,8 @@ class sage_build_ext(build_ext):
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
 
+        # We require MAKE to be set to decide how many cpus are
+        # requested.
         if not os.environ.has_key('MAKE'):
             ncpus = 1
         else:
@@ -266,15 +278,18 @@ class sage_build_ext(build_ext):
         import time
         t = time.time()
 
-        # See if we're trying out the experimental parallel build
-        # code.
-        if ncpus > 1 and os.environ.has_key('SAGE_PARALLEL_DIST'):
+        if ncpus > 1:
+
+            # First, decide *which* extensions need rebuilt at
+            # all.
             extensions_to_compile = []
             for ext in self.extensions:
                 need_to_compile, p = self.prepare_extension(ext)
                 if need_to_compile:
                     extensions_to_compile.append(p)
 
+            # If there were any extensions that needed to be
+            # rebuilt, dispatch them using pyprocessing.
             if extensions_to_compile:
                from processing import Pool
                p = Pool(min(ncpus, len(extensions_to_compile)))

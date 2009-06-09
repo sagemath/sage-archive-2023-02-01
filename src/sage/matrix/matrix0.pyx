@@ -3610,6 +3610,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: self is not invertible
+
+        Check to make sure that trac #2256 is still fixed::
+
+            sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
+            sage: N = ~M
+            sage: (N*M).norm()
+            1.0
         """
         if not self.base_ring().is_field():
             try:
@@ -3631,10 +3638,36 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ArithmeticError, "self must be a square matrix"
         if self.nrows()==0:
             return self
+
         A = self.augment(self.parent().identity_matrix())
         B = A.echelon_form()
-        if B[self._nrows - 1,  self._ncols - 1] != 1:
-            raise ZeroDivisionError, "self is not invertible"
+
+        # Now we want to make sure that B is of the form [I|X], in
+        # which case X is the inverse of self. We can simply look at
+        # the lower right entry of the left half of B, and make sure
+        # that it's 1.
+        #
+        # However, doing this naively causes trouble over inexact
+        # fields -- see trac #2256. The *right* thing to do would
+        # probably be to make sure that self.det() is nonzero. That
+        # doesn't work here, because our det over an arbitrary field
+        # just does expansion by minors and is unusable for even 10x10
+        # matrices over CC. Instead, we choose a different band-aid:
+        # we check to make sure that the lower right entry isn't
+        # 0. Since we're over a field, we know that it *should* be
+        # either 1 or 0. This can still cause trouble, but it's
+        # significantly better than it was before.
+        #
+        # Over exact rings, of course, we still want the old
+        # behavior.
+
+        if self.base_ring().is_exact():
+            if B[self._nrows-1, self._ncols-1] != 1:
+                raise ZeroDivisionError, "self is not invertible"
+        else:
+            if not B[self._nrows-1, self._ncols-1]:
+                raise ZeroDivisionError, "self is not invertible"
+
         return B.matrix_from_columns(range(self._ncols, 2*self._ncols))
 
     def __pos__(self):

@@ -2350,6 +2350,14 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: y_coords = [sin(t)^3 for t in srange(0, 2*pi, 0.02)]
         sage: list_plot(zip(x_coords, y_coords))
 
+    If instead you try to pass the two lists as separate arguments,
+    you will get an error message::
+
+        sage: list_plot(x_coords, y_coords)
+        Traceback (most recent call last):
+        ...
+        TypeError: The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'.
+
     TESTS:
     We check to see that the x/y min/max data are set correctly.
 
@@ -2364,6 +2372,8 @@ def list_plot(data, plotjoined=False, **kwargs):
     from sage.plot.all import line, point
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
+    if isinstance(plotjoined, (list, tuple)):
+        raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
     if plotjoined:
         P = line(data, **kwargs)
     else:

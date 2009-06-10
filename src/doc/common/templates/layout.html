@@ -1,6 +1,11 @@
 {% extends "!layout.html" %}
 
 {% block rootrellink %}
-    <img src="_static/sage_logo.png" title="Sage Logo">
+    <img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo">
     {{ super() }}
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{{ pathto('_static/jsmath/easy/load.js', 1) }}"></script>
+    <link rel="icon" href="{{ pathto('_static/sageicon.png', 1) }}" type="image/x-icon" />
 {% endblock %}

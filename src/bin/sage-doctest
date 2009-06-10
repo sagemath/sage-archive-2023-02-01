@@ -7,16 +7,33 @@
 # preparsing, optional doctests, random behavior, etc.
 ####################################################################
 
-# the default timeout for doctests: 6 minutes (in seconds)
-TIMEOUT      = 6 * 60
-# the timeout value for long doctests: 30 minutes (in seconds)
-TIMEOUT_LONG = 30 * 60
-# the timeout for doctests running under valgrind tools: unreasonably long
-TIMEOUT_VALGRIND = 1024*1024
-
 # System imports
 import os, re, sys, signal, time, shutil, tempfile, random
 
+# if any of the following environment variables are set, use them for
+# the timeout lengths.
+TIMEOUT = os.getenv('SAGE_TIMEOUT')
+TIMEOUT_LONG = os.getenv('SAGE_TIMEOUT_LONG')
+TIMEOUT_VALGRIND = os.getenv('SAGE_TIMEOUT_VALGRIND')
+
+if TIMEOUT is None:
+    # the default timeout for doctests: 6 minutes (in seconds)
+    TIMEOUT = 6 * 60
+else:
+    # output from os.getenv is a string: convert to a number
+    TIMEOUT = float(TIMEOUT)
+
+if TIMEOUT_LONG is None:
+    # the timeout value for long doctests: 30 minutes (in seconds)
+    TIMEOUT_LONG = 30 * 60
+else:
+    TIMEOUT_LONG = float(TIMEOUT_LONG)
+
+if TIMEOUT_VALGRIND is None:
+    # the timeout for doctests running under valgrind tools: unreasonably long
+    TIMEOUT_VALGRIND = 1024 * 1024
+else:
+    TIMEOUT_VALGRIND = float(TIMEOUT_VALGRIND)
 
 long_time          = False
 only_optional      = False

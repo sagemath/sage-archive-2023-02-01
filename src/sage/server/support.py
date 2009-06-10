@@ -88,10 +88,13 @@ def help(obj):
     TESTS::
 
         sage: import numpy.linalg
+        sage: import os, sage.misc.misc ; current_dir = os.getcwd()
+        sage: os.chdir(sage.misc.misc.tmp_dir('server_doctest'))
         sage: sage.server.support.help(numpy.linalg.norm)
         <html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
         &nbsp;&nbsp;&nbsp;<a target='_new' href='cell://docs-....html'>Click to open help window</a>&nbsp;&nbsp;&nbsp;
         <br></font></tr></td></table></html>
+        sage: os.chdir(current_dir)
     """
     from pydoc import resolve, html, describe
     import sage.server.notebook.interact as interact

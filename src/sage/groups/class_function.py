@@ -35,6 +35,8 @@ class ClassFunction(SageObject):
         sage: values  = [1, -1, 1, -1]
         sage: chi = ClassFunction(G, values); chi
         Character of Cyclic group of order 4 as a permutation group
+        sage: loads(dumps(chi)) == chi
+        True
 
     AUTHOR: Franco Saliola (November 2008)
     """
@@ -105,6 +107,52 @@ class ClassFunction(SageObject):
         """
         for v in self._gap_classfunction:
             yield self._base_ring(v)
+
+    def __cmp__(self, other):
+        r"""
+        Rich comparison for class functions.
+
+        Compares groups and then the values of the class function on the
+        conjugacy classes. Otherwise, compares types of objects.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
+            sage: chi = G.character([1, 1, 1, 1, 1, 1, 1])
+            sage: H = PermutationGroup([[(1,2,3),(4,5)]])
+            sage: xi = H.character([1, 1, 1, 1, 1, 1])
+            sage: chi == chi
+            True
+            sage: xi == xi
+            True
+            sage: xi == chi
+            False
+            sage: chi < xi
+            False
+            sage: xi < chi
+            True
+
+        """
+        if isinstance(other, ClassFunction):
+            return cmp((self._group, self.values()),
+                       (other._group, other.values()))
+        else:
+            return cmp(type(self), type(other))
+
+    def __reduce__(self):
+        r"""
+        Add pickle support.
+
+        EXAMPLES::
+
+            sage: G = GL(2,7)
+            sage: values = list(gap(G).CharacterTable().Irr()[2])
+            sage: chi = ClassFunction(G, values)
+            sage: loads(dumps(chi)) == chi
+            True
+
+        """
+        return ClassFunction, (self._group, self.values())
 
     def domain(self):
         r"""

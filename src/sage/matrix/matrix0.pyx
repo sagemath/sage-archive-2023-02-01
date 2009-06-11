@@ -3006,6 +3006,76 @@ cdef class Matrix(sage.structure.element.Matrix):
                 tmp.append(j)
         return tmp
 
+    def multiplicative_order(self):
+        """
+        Return the multiplicative order of this matrix, which must
+        therefore be invertible.
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(59),3,[10,56,39,53,56,33,58,24,55])
+            sage: A.multiplicative_order()
+            580
+            sage: (A^580).is_one()
+            True
+
+        ::
+
+            sage: B = matrix(GF(10007^3,'b'),0)
+            sage: B.multiplicative_order()
+            1
+
+        ::
+
+            sage: C = matrix(GF(2^10,'c'),2,3,[1]*6)
+            sage: C.multiplicative_order()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be invertible ...
+
+        ::
+
+            sage: D = matrix(IntegerModRing(6),3,[5,5,3,0,2,5,5,4,0])
+            sage: D.multiplicative_order()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ... only ... over finite fields
+
+        ::
+
+            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
+            sage: (E^E.multiplicative_order()).is_one()
+            True
+
+        REFERENCES:
+
+        - Frank Celler and C. R. Leedham-Green, "Calculating the Order of an Invertible Matrix", 1997
+
+        """
+        if not self.is_invertible():
+            raise ArithmeticError,"self must be invertible to have a multiplicative order"
+        K = self.base_ring()
+        if not (K.is_field() and K.is_finite()):
+            raise NotImplementedError,"multiplicative order is only implemented for matrices over finite fields"
+        from sage.rings.integer import Integer
+        from sage.groups.generic import order_from_multiple
+        P = self.minimal_polynomial()
+        if P.degree()==0: #the empty square matrix
+            return 1
+        R = P.parent()
+        P = P.factor()
+        q = K.cardinality()
+        p = K.characteristic()
+        a = 0
+        res = Integer(1)
+        for f,m in P:
+            a = max(a,m)
+            S = R.quotient(f,'y')
+            res = res._lcm(order_from_multiple(S.gen(),q**f.degree()-1,operation='*'))
+        ppart = p**Integer(a).exact_log(p)
+        if ppart<a: ppart*=p
+        return res*ppart
+
     ###################################################
     # Arithmetic
     ###################################################

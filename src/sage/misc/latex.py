@@ -43,6 +43,60 @@ from misc import tmp_dir, graphics_filename
 import sage_eval
 from sage.misc.misc import SAGE_DOC
 
+_have_latex = None
+def have_latex():
+    """
+    Return True if this computer has the program latex.
+
+    The first time it is run, this function caches its result in the
+    variable ``_have_latex``, and any subsequent time, it just
+    checks the value of the variable.
+
+    If this computer doesn't have latex installed, you may obtain it
+    from http://ctan.org/.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import have_latex
+        sage: have_latex() # random
+        True
+        sage: sage.misc.latex._have_latex is None
+        False
+        sage: sage.misc.latex._have_latex == have_latex()
+        True
+    """
+    global _have_latex
+    if _have_latex is None:
+        _have_latex = not bool(os.system('which latex >/dev/null'))
+    return _have_latex
+
+_have_pdflatex = None
+def have_pdflatex():
+    """
+    Return True if this computer has the program pdflatex.
+
+    The first time it is run, this function caches its result in the
+    variable ``_have_pdflatex``, and any subsequent time, it just
+    checks the value of the variable.
+
+    If this computer doesn't have pdflatex installed, you may obtain it
+    from http://ctan.org/.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import have_pdflatex
+        sage: have_pdflatex() # random
+        True
+        sage: sage.misc.latex._have_pdflatex is None
+        False
+        sage: sage.misc.latex._have_pdflatex == have_pdflatex()
+        True
+    """
+    global _have_pdflatex
+    if _have_pdflatex is None:
+        _have_pdflatex = not bool(os.system('which pdflatex >/dev/null'))
+    return _have_pdflatex
+
 _have_dvipng = None
 def have_dvipng():
     """
@@ -58,8 +112,6 @@ def have_dvipng():
     EXAMPLES::
 
         sage: from sage.misc.latex import have_dvipng
-        sage: sage.misc.latex._have_dvipng is None
-        True
         sage: have_dvipng() # random
         True
         sage: sage.misc.latex._have_dvipng is None
@@ -88,8 +140,6 @@ def have_convert():
     EXAMPLES::
 
         sage: from sage.misc.latex import have_convert
-        sage: sage.misc.latex._have_convert is None
-        True
         sage: have_convert() # random
         True
         sage: sage.misc.latex._have_convert is None
@@ -349,11 +399,19 @@ def _run_latex_(filename, debug=False, density=150,
         sage: file = os.path.join(base, "temp.tex")
         sage: O = open(file, 'w')
         sage: O.write(_latex_file_([ZZ[x], RR])); O.close()
-        sage: _run_latex_(file)
+        sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
     if pdflatex is None:
         pdflatex = _Latex_prefs._option["pdflatex"]
+    if not pdflatex and not have_latex():
+        print "Error: LaTeX does not seem to be installed.  Download it from"
+        print "ctan.org and try again."
+        return "Error"
+    if pdflatex and not have_pdflatex():
+        print "Error: PDFLaTeX does not seem to be installed.  Download it from"
+        print "ctan.org and try again."
+        return "Error"
     # if png output + latex, check to see if dvipng or convert is installed.
     if png:
         if not pdflatex and not (have_dvipng() or have_convert()):
@@ -1497,7 +1555,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], "zz.png", do_in_background=False)
+        sage: png(ZZ[x], "zz.png", do_in_background=False) # random - error if no latex
     """
     import sage.plot.all
     if sage.plot.all.is_Graphics(x):

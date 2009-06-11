@@ -1,42 +1,38 @@
 """
-Educational versions of Groebner basis algorithms.
+Educational Versions of Groebner Basis Algorithms.
 
-Following
-
-    [BW93] Thomas Becker and Volker Weispfenning. Groebner Bases - A
-           Computational Approach To Commutative Algebra. Springer,
-           New York 1993.
-
-the original Buchberger algorithm (c.f. algorithm GROEBNER in [BW93])
-and an improved version of Buchberger's algorithm (c.g. algorithm
-GROEBNERNEW2 in [BW93]) are presented.
+Following [BW93]_ the original Buchberger algorithm (c.f. algorithm
+GROEBNER in [BW93]_) and an improved version of Buchberger's algorithm
+(c.g. algorithm GROEBNERNEW2 in [BW93]_) are implemented.
 
 No attempt was made to optimize either algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
-Groebner basis in \SAGE efficently use the \code{groebner_basis}
+Groebner basis in Sage efficently use the ``groebner_basis()``
 method on multivariate polynomial objects.
 
-NOTE: the notion of 'term' and 'monomial' in [BW93] is swapped
-from the notion of those words in \SAGE (or the other way around,
-however you prefer it). In \SAGE a term is a monomial multiplied by a
-coefficient, while in [BW93] a monomial is a term multiplied by a
-coefficient. Also, what is called LM (the leading monomial) in \SAGE
-is called HT (the head term) in [BW93].
+
+.. note::
+
+   The notion of 'term' and 'monomial' in [BW93]_ is swapped from the
+   notion of those words in Sage (or the other way around, however you
+   prefer it). In Sage a term is a monomial multiplied by a
+   coefficient, while in [BW93]_ a monomial is a term multiplied by a
+   coefficient. Also, what is called LM (the leading monomial) in
+   Sage is called HT (the head term) in [BW93]_.
 
 EXAMPLES:
-    Consider Katsura-6 w.r.t. a $degrevlex$ ordering.
+
+Consider Katsura-6 w.r.t. a ``degrevlex`` ordering.::
 
     sage: from sage.rings.polynomial.toy_buchberger import *
     sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(GF(32003),10)
     sage: I = sage.rings.ideal.Katsura(P,6)
 
     sage: g1 = buchberger(I)
-
     sage: g2 = buchberger_improved(I)
-
     sage: g3 = I.groebner_basis()
 
-    All algorithms actually compute a Groebner basis:
+All algorithms actually compute a Groebner basis::
 
     sage: Ideal(g1).basis_is_groebner()
     True
@@ -45,12 +41,12 @@ EXAMPLES:
     sage: Ideal(g3).basis_is_groebner()
     True
 
-    The results are correct:
+The results are correct::
 
     sage: Ideal(g1) == Ideal(g2) == Ideal(g3)
     True
 
-    If get_verbose() is $>= 1$ a protocol is provided:
+If ``get_verbose()`` is `>= 1` a protocol is provided::
 
     sage: set_verbose(1)
     sage: P.<a,b,c> = PolynomialRing(GF(127),3)
@@ -60,7 +56,8 @@ EXAMPLES:
     sage: I
     Ideal (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a, 2*a*b + 2*b*c - b) of Multivariate Polynomial Ring in a, b, c over Finite Field of size 127
 
-    The original Buchberger algorithm performs 15 useless reductions to zero for this example:
+The original Buchberger algorithm performs 15 useless reductions to
+zero for this example::
 
     sage: buchberger(I)
     (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a) => -2*b^2 - 6*b*c - 6*c^2 + b + 2*c
@@ -120,7 +117,7 @@ EXAMPLES:
     15 reductions to zero.
     [a + 2*b + 2*c - 1, -22*c^3 + 24*c^2 - 60*b - 62*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, -2*b^2 - 6*b*c - 6*c^2 + b + 2*c, -5*b*c - 6*c^2 - 63*b + 2*c]
 
-    The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero:
+The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero:
 
     sage: buchberger_improved(I)
     (b^2 - 26*c^2 - 51*b + 51*c, b*c + 52*c^2 + 38*b + 25*c) => 11*c^3 - 12*c^2 + 30*b + 31*c
@@ -132,8 +129,15 @@ EXAMPLES:
     1 reductions to zero.
     [a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c, b*c + 52*c^2 + 38*b + 25*c]
 
+REFERENCES:
+
+.. [BW93] Thomas Becker and Volker Weispfenning. *Groebner Bases - A
+  Computational Approach To Commutative Algebra*. Springer, New York
+  1993.
+
 AUTHOR:
-    -- Martin Albrecht (2007-05-24): initial version
+
+- Martin Albrecht (2007-05-24): initial version
 """
 
 from sage.misc.misc import get_verbose
@@ -148,17 +152,20 @@ spol = lambda f,g: LCM(LM(f),LM(g)) // LT(f) * f - LCM(LM(f),LM(g)) // LT(g) * g
 def buchberger(F):
     """
     The original version of Buchberger's algorithm as presented in
-    [BW93], page 214.
+    [BW93]_, page 214.
 
     INPUT:
-        F -- an ideal in a multivariate polynomial ring
+
+    - ``F`` - an ideal in a multivariate polynomial ring
 
     OUTPUT:
         a Groebner basis for F
 
-    NOTE: The verbosity of this function may be controlled with a
-    \code{set_verbose()} call. Any value >=1 will result in this
-    function printing intermediate bases.
+    .. note::
+
+       The verbosity of this function may be controlled with a
+       ``set_verbose()`` call. Any value >=1 will result in this
+       function printing intermediate bases.
 
     """
     G = set(F.gens())
@@ -190,17 +197,23 @@ def buchberger(F):
 def buchberger_improved(F):
     """
     An improved version of Buchberger's algorithm as presented in
-    [BW93], page 232.
+    [BW93]_, page 232.
+
+    This variant uses the Gebauer-Moeller Installation to apply
+    Buchberger's first and second criterion to avoid useless pairs.
 
     INPUT:
-        F -- an ideal in a multivariate polynomial ring
+
+    - ``F`` - an ideal in a multivariate polynomial ring
 
     OUTPUT:
         a Groebner basis for F
 
-    NOTE: The verbosity of this function may be controlled with a
-    \code{set_verbose()} call. Any value >=1 will result in this
-    function printing intermediate Groebner bases.
+    .. note::
+
+       The verbosity of this function may be controlled with a
+       ``set_verbose()`` call. Any value ``>=1`` will result in this
+       function printing intermediate Groebner bases.
     """
     F = inter_reduction(F.gens())
 
@@ -235,19 +248,21 @@ def buchberger_improved(F):
 
 def update(G,B,h):
     """
-    Update $G$ using the list of critical pairs $B$ and the polynomial
-    $h$ as presented in [BW93], page 230. For this, Buchberger's first
-    and second criterion are tested.
+    Update ``G`` using the list of critical pairs ``B`` and the
+    polynomial ``h`` as presented in [BW93]_, page 230. For this,
+    Buchberger's first and second criterion are tested.
+
+    This function implements the Gebauer-Moeller Installation.
 
     INPUT:
-        G -- an intermediate Groebner basis
-        B -- a list of critical pairs
-        h -- a polynomial
+
+    - ``G`` - an intermediate Groebner basis
+    - ``B`` - a list of critical pairs
+    - ``h`` - a polynomial
 
     OUTPUT:
         a tuple of an intermediate Groebner basis and a list of
         critical pairs
-
     """
     R = h.parent()
 
@@ -301,7 +316,8 @@ def select(P):
     The normal selection strategy
 
     INPUT:
-        P -- a list of critical pairs
+
+    - ``P`` - a list of critical pairs
 
     OUTPUT:
         an element of P
@@ -311,19 +327,21 @@ def select(P):
 
 def inter_reduction(Q):
     """
-    If $Q$ is the set $(f_1, ..., f_n)$ this method
-    returns $(g_1, ..., g_s)$ such that:
+    If ``Q`` is the set `(f_1, ..., f_n)` this method
+    returns `(g_1, ..., g_s)` such that:
 
-    * $(f_1,...,f_n) = (g_1,...,g_s)$
-    * $LT(g_i) != LT(g_j)$ for all $i != j$
-    * $LT(g_i)$ does not divide $m$ for all monomials m of
-      $\{g_1,...,g_{i-1},g_{i+1},...,g_s\}$
-    * $LC(g_i) == 1$ for all $i$.
+    - `<f_1,...,f_n> = <g_1,...,g_s>`
+    - `LM(g_i) != LM(g_j)` for all `i != j`
+    - `LM(g_i)` does not divide `m` for all monomials `m` of
+      `\{g_1,...,g_{i-1}, g_{i+1},...,g_s\}`
+    - `LC(g_i) == 1` for all `i`.
 
     INPUT:
-        Q -- a set of polynomials
 
-    EXAMPLE:
+    - ``Q`` - a set of polynomials
+
+    EXAMPLE::
+
         sage: from sage.rings.polynomial.toy_buchberger import inter_reduction
         sage: inter_reduction(set())
         set([])

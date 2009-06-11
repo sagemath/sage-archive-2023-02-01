@@ -56,10 +56,7 @@ include "../../libs/singular/singular-cdefs.pxi"
 
 from sage.structure.parent_base cimport ParentWithBase
 
-from sage.libs.singular.singular cimport Conversion
-
-cdef Conversion co
-co = Conversion()
+from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
 
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
@@ -82,7 +79,7 @@ cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     l = []
 
     for j from 0 <= j < IDELEMS(i):
-        p = co.new_MP(parent, p_Copy(i.m[j], r))
+        p = new_MP(parent, p_Copy(i.m[j], r))
         l.append( p )
 
     return Sequence(l, check=False, immutable=True)
@@ -232,6 +229,18 @@ def interred_libsingular(I):
 
     INPUT:
         I -- a SAGE ideal
+
+    EXAMPLE::
+
+        sage: P.<x,y,z> = PolynomialRing(ZZ)
+        sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )
+        sage: I.interreduced_basis()
+        [9*y^2 - y*z + 1, x^2 - 3*y, z^3 - x, y^3 - x*y]
+
+        sage: P.<x,y,z> = PolynomialRing(QQ)
+        sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )
+        sage: I.interreduced_basis()
+        [y^2 - 1/9*y*z + 1/9, x^2 - 3*y, z^3 - x, y*z^2 - 81*x*y - 9*y - z]
     """
     global singular_options
 
@@ -258,13 +267,14 @@ def interred_libsingular(I):
 
 
     # divide head by coefficents
-    for j from 0 <= j < IDELEMS(result):
-        p = result.m[j]
-        n = p_GetCoeff(p,r)
-        n = nInvers(n)
-        result.m[j] = pp_Mult_nn(p, n, r)
-        p_Delete(&p,r)
-        n_Delete(&n,r)
+    if r.ringtype == 0:
+        for j from 0 <= j < IDELEMS(result):
+            p = result.m[j]
+            n = p_GetCoeff(p,r)
+            n = nInvers(n)
+            result.m[j] = pp_Mult_nn(p, n, r)
+            p_Delete(&p,r)
+            n_Delete(&n,r)
 
     id_Delete(&i,r)
 
@@ -272,3 +282,5 @@ def interred_libsingular(I):
 
     id_Delete(&result,r)
     return res
+
+

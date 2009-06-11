@@ -1,5 +1,5 @@
 """
-Multivariate Polynomials
+Generic Multivariate Polynomials
 
 AUTHORS:
 

@@ -29,10 +29,7 @@ include "sage/ext/python.pxi"
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
-from sage.libs.singular.singular cimport Conversion
-
-cdef Conversion co
-co = Conversion()
+from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
 
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
@@ -203,7 +200,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         # we are transposing here also
         for r from 0 <= r < IDELEMS(m):
             for c from 0 <= c < m.rank:
-                p = co.new_MP(R, pTakeOutComp1(&m.m[r], c+1))
+                p = new_MP(R, pTakeOutComp1(&m.m[r], c+1))
                 self.set_unsafe(r,c,p)
             for c from m.rank <= c < self._ncols:
                 self.set_unsafe(r,c,R._zero_element)
@@ -543,7 +540,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                 p = singclap_det(m)
                 _sig_off
                 id_Delete(<ideal**>&m, _ring)
-            d = co.new_MP(R, p)
+            d = new_MP(R, p)
 
         elif can_convert_to_singular(self.base_ring()):
             d = R(self._singular_().det())

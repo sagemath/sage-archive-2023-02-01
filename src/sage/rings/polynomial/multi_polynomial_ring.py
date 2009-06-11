@@ -1,17 +1,10 @@
 r"""
-Multivariate Polynomial Rings
+Multivariate Polynomial Rings over Generic Rings
 
 Sage implements multivariate polynomial rings through several
-backends. The generic implementation used the classes
-``PolyDict`` and ``ETuple`` to construct a
-dictionary with exponent tuples as keys and coefficients as
-values.
-
-Additionally, specialized and optimized implementations are
-provided for multivariate polynomials over `\QQ` and
-`\GF{p}`. These are implemented in the classes
-``MPolynomialRing_libsingular`` and
-``MPolynomial_libsingular``
+backends. This generic implementation uses the classes ``PolyDict``
+and ``ETuple`` to construct a dictionary with exponent tuples as keys
+and coefficients as values.
 
 AUTHORS:
 
@@ -31,8 +24,8 @@ AUTHORS:
 
 EXAMPLES:
 
-We construct the Frobenius morphism on
-`\mbox{\rm F}_{5}[x,y,z]` over `\GF{5}`::
+We construct the Frobenius morphism on `\GF{5}[x,y,z]` over
+`\GF{5}`::
 
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])
@@ -130,7 +123,7 @@ class MPolynomialRing_macaulay2_repr:
         return self.base_ring().is_exact()
 
 
-class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
+class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_singular_repr, MPolynomialRing_generic):
     """
     Multivariable polynomial ring.
 
@@ -142,6 +135,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
         True
     """
     def __init__(self, base_ring, n, names, order):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         # Construct the generators
@@ -155,6 +149,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
+        self._has_singular = can_convert_to_singular(self)
 
     def _monomial_order_function(self):
         return self.__monomial_order_function
@@ -467,13 +462,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
 class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       MPolynomialRing_polydict,
-                                      PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
-        self._has_singular = can_convert_to_singular(self)
 
     def is_integral_domain(self):
         return True

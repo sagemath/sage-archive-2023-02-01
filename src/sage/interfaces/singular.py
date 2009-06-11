@@ -376,6 +376,12 @@ class Singular(Expect):
         # Load some standard libraries.
         self.lib('general')   # assumed loaded by misc/constants.py
 
+        # these options are required by the new coefficient rings
+        # supported by Singular 3-1-0.
+        self.option("redTail")
+        self.option("redThrough")
+        self.option("intStrategy")
+
     def __reduce__(self):
         """
         EXAMPLES::

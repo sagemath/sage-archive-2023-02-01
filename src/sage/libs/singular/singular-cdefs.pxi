@@ -91,6 +91,39 @@ cdef extern from "libsingular.h":
         napoly *n
         int s
 
+    ctypedef struct n_Procs_s:
+
+        number* nDiv(number *, number *)
+        number* nAdd(number *, number *)
+        number* nSub(number *, number *)
+        number* nMul(number *, number *)
+
+        void    (*nNew)(number* * a)
+        number*  (*nInit)(int i)
+        number*  (*nPar)(int i)
+        int     (*nParDeg)(number* n)
+        int     (*nSize)(number* n)
+        int     (*nInt)(number* n)
+        int     (*nDivComp)(number* a,number* b)
+        number*  (*nGetUnit)(number* a)
+        number*  (*nExtGcd)(number* a, number* b, number* *s, number* *t)
+
+        number*  (*nNeg)(number* a)
+        number*  (*nInvers)(number* a)
+        number*  (*nCopy)(number* a)
+        number*  (*nRePart)(number* a)
+        number*  (*nImPart)(number* a)
+        void    (*nWrite)(number* a)
+        void    (*nNormalize)(number* a)
+
+        bint (*nDivBy)(number* a, number* b)
+        bint (*nEqual)(number* a,number* b)
+        bint (*nIsZero)(number* a)
+        bint (*nIsOne)(number* a)
+        bint (*nIsMOne)(number* a)
+        bint (*nGreaterZero)(number* a)
+        void (*nPower)(number* a, int i, number* * result)
+
     # rings
 
     ctypedef struct ring "ip_sring":
@@ -108,7 +141,12 @@ cdef extern from "libsingular.h":
         short N # number of variables
         short P # number of parameters
         int ch # charactersitic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        unsigned int ringtype # field etc.
+        mpz_t ringflaga
+        unsigned long ringflagb
         int pCompIndex # index of components
+
+        n_Procs_s*    cf
 
     # available ring orders
 
@@ -209,6 +247,7 @@ cdef extern from "libsingular.h":
 
 
 
+    void *omAlloc(size_t size)
 
     # calloc
 
@@ -292,6 +331,11 @@ cdef extern from "libsingular.h":
     # set the coefficient n for the current list element p in r
 
     int p_SetCoeff(poly *p, number *n, ring *r)
+
+    # set the coefficient n for the current list element p in r
+    # without deleting the current coefficient first
+
+    int p_SetCoeff0(poly *p, number *n, ring *r)
 
     # get the coefficient of the current list element p in r
 
@@ -615,6 +659,20 @@ cdef extern from "libsingular.h":
 
     # map Q -> Q(a)
     number *naMap00(number *c)
+
+
+    # init integer
+    number *nrzInit(int i)
+
+    # init ZmodN from GMP
+    number *nrnMapGMP(number *v)
+
+    #init 2^m from a long
+    number *nr2mMapZp(number *)
+
+
+    # get C int from ZmodN
+    int nrnInt(number *v)
 
     # ideal constructor
 

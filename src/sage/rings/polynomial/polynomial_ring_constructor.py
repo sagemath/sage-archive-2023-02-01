@@ -397,7 +397,10 @@ def _multi_variate(base_ring, names, n, sparse, order):
             except ( TypeError, NotImplementedError ):
                 R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
-        R = m.MPolynomialRing_polydict(base_ring, n, names, order)
+        try:
+            R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        except ( TypeError, NotImplementedError ):
+            R = m.MPolynomialRing_polydict(base_ring, n, names, order)
 
     _save_in_cache(key, R)
     return R

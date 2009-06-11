@@ -1,3 +1,4 @@
+
 .. _ch:polynomial-rings:
 
 Polynomial Rings
@@ -13,15 +14,21 @@ Polynomial Rings
    sage/rings/polynomial/polynomial_quotient_ring_element
 
    sage/rings/polynomial/term_order
+   sage/rings/polynomial/multi_polynomial_libsingular
+
    sage/rings/polynomial/multi_polynomial_ring
    sage/rings/polynomial/multi_polynomial_element
    sage/rings/polynomial/infinite_polynomial_ring
    sage/rings/polynomial/infinite_polynomial_element
 
    sage/rings/polynomial/multi_polynomial_ideal
+
    sage/rings/polynomial/symmetric_ideal
    sage/rings/polynomial/symmetric_reduction
+
+   sage/rings/polynomial/toy_buchberger
    sage/rings/polynomial/toy_variety
+   sage/rings/polynomial/toy_d_basis
 
    sage/rings/polynomial/pbori
 

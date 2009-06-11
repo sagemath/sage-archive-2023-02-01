@@ -687,14 +687,13 @@ cdef class Polynomial_template(Polynomial):
         celement_delete(gen, _parent)
         return r
 
-    def _singular_(self, singular=singular_default, have_ring=False, force=False):
+    def _singular_(self, singular=singular_default, have_ring=False):
         r"""
         Return \Singular representation of this polynomial
 
         INPUT:
             singular -- \Singular interpreter (default: default interpreter)
             have_ring -- set to True if the ring was already set in \Singular
-            force -- ignored.
 
         EXAMPLE:
             sage: P.<x> = PolynomialRing(GF(7))
@@ -703,7 +702,7 @@ cdef class Polynomial_template(Polynomial):
             3*x^2+2*x-2
         """
         if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+            self.parent()._singular_(singular).set_ring() #this is expensive
         return singular(self._singular_init_())
 
     def _derivative(self, var=None):

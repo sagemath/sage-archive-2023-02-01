@@ -2374,6 +2374,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              b^2 + 4/3*b*c - 1/3*b + c^2 - 1/3*c,
              b*c - 1/10*b + 6/5*c^2 - 2/5*c,
              b + 30*c^3 - 79/7*c^2 + 3/7*c,
+             c^6 - 79/210*c^5 - 229/2100*c^4 + 121/2520*c^3 + 1/3150*c^2 - 11/12600*c,
              c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         but that ``toy:buchberger2`` does.

@@ -1,22 +1,7 @@
---- ../src/Singular/Makefile.in	2009-04-23 01:46:09.000000000 -0700
-+++ src.Singular.Makefile.in	2009-05-13 11:22:01.519569832 -0700
-@@ -101,7 +101,7 @@
- #
- # Handle libSINGULAR stuff
- #
--LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
-+LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
- 
- SO_SUFFIX = so
- #LIBSINGULAR_FLAGS = -export-dynamic 
-@@ -123,10 +123,17 @@
- 
- ifeq ($(SINGUNAME),ix86-Win)
- SO_SUFFIX = dll
--LIBSINGULAR_FLAGS = --shared
--LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
-+LIBSINGULAR_FLAGS = -shared
-+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc  -lhtmlhelp
+--- ../src/Singular/Makefile.in	2009-05-20 10:44:37.000000000 +0100
++++ src.Singular.Makefile.in	2009-06-11 11:23:38.000000000 +0100
+@@ -130,6 +130,12 @@
+ LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc  -lhtmlhelp
  endif
  
 +ifeq ($(SINGUNAME),ix86-SunOS)
@@ -24,7 +9,6 @@
 +LIBSINGULAR_FLAGS = -shared
 +LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 +endif
-+
 +
  #
  # End libSINGULAR

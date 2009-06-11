@@ -2,13 +2,15 @@
 
 == Patches ==
 
- * assert.h
- * kernel.Makefile.in
- * src.Singular.Makefile.in
- * fac_distrib.cc (should be in upstream past singular-3-0-4-4-20080711)
- * kernel/mminit.cc: Work around problem with the wrong free being picked causing double frees
+ * assert.h: logic seems to be broken on some platforms
+ * src.Singular.Makefile.in: adding SunOS for libSingular
+ * kernel.rmodulon.cc: simple bugfix
+ * mminit.cc: Work around problem with the wrong free being picked causing double frees
 
 == Releases ==
+
+=== singular-3-1-0-4-20090611 (Martin Albrecht, June 11th, 2009) ===
+ * new upstream release which makes some of our fixes redundant
 
 === singular-3-1-0-2-20090512 (Martin Albrecht, May 12th, 2009) ===
  * new upstream release

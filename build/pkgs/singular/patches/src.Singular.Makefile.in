@@ -64,11 +64,13 @@ DEFS		= -DNDEBUG -DOM_NDEBUG -D@SING_UNAME@ @DEFS@
 LDFLAGS2	= @LDFLAGS@
 ifneq ($(SINGUNAME),ix86-Win)
 LDFLAGS		= -L../kernel -lkernel @LDFLAGS@
-LDFLAGSG	= -L../kernel -lkernel-g @LDFLAGS@
+LDFLAGSG	= -L../kernel -lkernel_g @LDFLAGS@
+LDFLAGSP	= -L../kernel -lkernel_p @LDFLAGS@
 else
 ## -L/usr/local/lib -L../modules/python --> PySingular
 LDFLAGS		= -L../kernel -L/bin -lkernel @LDFLAGS@ -L/usr/local/lib -L../modules/python
-LDFLAGSG	= -L../kernel -L/bin -lkernel-g @LDFLAGS@
+LDFLAGSG	= -L../kernel -L/bin -lkernel_g @LDFLAGS@
+LDFLAGSP	= -L../kernel -L/bin -lkernel_p @LDFLAGS@
 endif
 LD_DYN_FLAGS	= @LD_DYN_FLAGS@
 SFLAGS		= @SFLAGS@
@@ -90,6 +92,7 @@ STATIC_LDFLAGS	= @STATIC_LDFLAGS@
 ifneq ($(SINGUNAME),ix86-Win)
 LIBS		= -lm @NEED_LIBS@
 LIBSG		= -lm @NEED_LIBSG@
+LIBSP		= -lm @NEED_LIBSG@
 else
 LIBS		= -lsingfac -lsingcf -lntl  -static -lreadline -lhtmlhelp -Xlinker -Bdynamic -lgmp -lomalloc_ndebug -lncurses
 ## -lpython_module -lpython2.4 /usr/local/lib/libboost_python-gcc-d-1_32.dll
@@ -132,7 +135,6 @@ SO_SUFFIX  = so
 LIBSINGULAR_FLAGS = -shared
 LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
 endif
-
 
 #
 # End libSINGULAR
@@ -550,8 +552,8 @@ uninstallbin:
 ## clean targest
 ##
 mostlyclean:
-	-rm -f Singular Singular-static Singulara Singularg Singularp Singularb libparse feOpt*.inc
-	-rm -f *.o *.og core *.op *.ot Singulart *.od *.so* *.dl_o*
+	-rm -f Singular Singular-static Singularg Singularp libparse feOpt*.inc
+	-rm -f *.o *.og core *.op *.so* *.dl_o*
 	-rm -f ESingular* TSingular*
 
 clean: mostlyclean
@@ -687,6 +689,7 @@ $(OBJG2) : %.og: %.c
 
 Singularg${S_EXT}: scanner.cc  $(OBJG)  $(DL_LIBSG)\
            iparith.og mpsr_Tok.og claptmpl.og tesths.cc version.h
+	(cd ../kernel;make libkernel_g.a;make install;cd ../Singular)
 	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -o Singularg${S_EXT} \
 	tesths.cc iparith.og mpsr_Tok.og claptmpl.og $(OBJG) ${LDFLAGSG} ${LIBSG} -lomalloc ../kernel/mmalloc.og \
 	${LD_DYN_FLAGS} ${LD_LIBC}
@@ -706,15 +709,91 @@ ESingularg: mod2.h feOpt.cc version.h emacs.cc \
 	${CXXG} ${CXXFLAGSG} ${CPPFLAGS} -DESINGULAR -g ${DEFSG} -o ESingularg emacs.cc ../kernel/fegetopt.og ${LDFLAGS} ${LIBS} -lomalloc ../kernel/mmalloc.og
 
 ##
+## .op files for having -O and -g pg object versions available at the same time
+##
+
+OBJP1 := $(CXXSOURCES:.cc=.op)
+OBJP2 := $(CSOURCES:.c=.op)
+
+OBJP=$(OBJP1) $(OBJP2)
+
+DL_TAILP=\"sop\"
+
+
+ifeq ($(DL_KERNEL),1)
+
+OBJP := $(OBJP) $(DL_KERNEL_SOURCES:.cc=.op)
+DL_LIBSP := $(MPSR_SO:%.so=%.sop) $(DBMSR_SO:%.so=%.sop)
+
+else
+
+OBJP := $(OBJP) $(STATIC_SOURCES:.cc=.op) $(COMMON_SOURCES:.cc=.op)
+DL_LIBSP=
+
+endif
+
+
+##
+## compiler and linker options for profiling version
+##
+
+CCP		= ${CC}
+CXXP		= ${CXX}
+
+CFLAGSP		= -g -pg -O -Wall -Wno-unused ${PIPE}
+CXXFLAGSG	= -g -pg -O -Wall -Wno-unused ${PIPE}
+CXXTEMPLFLAGSP	= -fno-implicit-templates
+DEFSP		= -D@SING_UNAME@ @DEFS@ -DDL_TAIL=$(DL_TAILP)
+
+##
+## Profiling Targets
+##
+
+%.dl_op: %.cc
+	${CXXP} ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} ${SFLAGS} -c $< -o $@
+
+mpsr.sop: $(MPSR_SOURCES:.cc=.dl_op)
+	${CXXP} ${CXXFLAGSP} ${SFLAGS} ${SLDFLAGS} ${LDFLAGS} -o $@ $^ ${MP_LIBS} ${GLIBC_DYN_FIX}
+
+dbmsr.sop: $(DBMSR_SOURCES:.cc=.dl_op)
+	${CXXP} ${CXXFLAGSP} ${SFLAGS} ${SLDFLAGS} ${LDFLAGS} -o $@ $^ ${MP_LIBS}
+
+claptmpl.op: claptmpl.cc mod2.h
+	$(CXXP)  ${CXXFLAGSP} ${CPPFLAGS} ${DEFSP} -c $< -o $@
+
+%.op: %.cc
+	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -c $< -o $@
+
+$(OBJP2) : %.op: %.c
+	$(CCP)  ${CFLAGSP} ${CPPFLAGS} ${DEFSP} -c $< -o $@
+
+Singularp${S_EXT}: scanner.cc  $(OBJP)  $(DL_LIBSP)\
+           iparith.op mpsr_Tok.op claptmpl.op tesths.cc version.h
+	(cd ../kernel;make libkernel_p.a;make install;cd ../Singular)
+	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -o Singularp${S_EXT} \
+	tesths.cc iparith.op mpsr_Tok.op claptmpl.op $(OBJP) ${LDFLAGSP} ${LIBSP} -lomalloc_p ../kernel/mmalloc.op \
+	${LD_DYN_FLAGS} ${LD_LIBC}
+
+iparith.op: iparith.inc iparith.cc
+	$(CXXP)  ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -c iparith.cc -o iparith.op
+
+mpsr_Tok.op: iparith.inc mpsr_Tok.cc
+	$(CXXP) ${CXXFLAGSP} ${CPPFLAGS} ${CXXTEMPLFLAGSP} ${DEFSP} -c mpsr_Tok.cc -o mpsr_Tok.op
+
+installp: Singularp
+	${MKINSTALLDIRS} ${bindir}
+	${INSTALL_PROGRAM} Singularp ${bindir}
+
+##
 ## dependencies
 ##
 
 %.dd: %.cc mod2.h
-	echo $(@:.dd=.og) $(@:.dd=_d.cc) $(@:.dd=.dl_o) $(@:.dd=.dl_og)" " \\ > $@
+	echo $(@:.dd=.og) $(@:.dd=.op) $(@:.dd=.dl_o) $(@:.dd=.dl_og)  $(@:.dd=.dl_op)" " \\ > $@
 	$(CXXM) -DGENTABLE ${CPPFLAGS} ${DEFSG} $< >> $@
 
 %.d: %.c mod2.h
-	echo $(@:.d=.og) $(@:.dd=_d.c)" " \\ > $@
+	echo $(@:.d=.og) $(@:.d=.op)" " \\ > $@
 	$(CCM) ${CPPFLAGS} ${DEFSG} $< >> $@
 
 depend:   $(CXXSOURCES:.cc=.dd) $(ESOURCES:.cc=.dd) $(CSOURCES:.c=.d) mod2.h claptmpl.dd

@@ -1,7 +1,7 @@
 /****************************************
 *  Computer Algebra System SINGULAR     *
 ****************************************/
-/* $Id: rmodulon.cc,v 1.33 2009/05/06 12:53:49 Singular Exp $ */
+/* $Id: rmodulon.cc,v 1.34 2009/05/22 13:18:12 Singular Exp $ */
 /*
 * ABSTRACT: numbers modulo n
 */

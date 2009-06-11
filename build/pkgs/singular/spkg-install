@@ -86,11 +86,8 @@ patch()
     # work-around patches
     cp patches/mminit.cc src/kernel/
     cp patches/assert.h src/factory/
-    cp patches/kernel.Makefile.in src/kernel/Makefile.in
-    cp patches/kernel.rintegers.cc src/kernel/rintegers.cc
     cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
-    cp patches/Singular.libsingular.h src/Singular/libsingular.h
 }
 
 distclean()

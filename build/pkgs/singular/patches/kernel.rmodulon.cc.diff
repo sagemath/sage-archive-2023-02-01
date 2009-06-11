@@ -1,20 +1,11 @@
---- kernel.rmodulon.cc	2009-05-16 07:20:49.000000000 +0100
-+++ ../src/kernel/rmodulon.cc	2009-05-06 13:53:49.000000000 +0100
+--- ../src/kernel/rmodulon.cc	2009-05-22 14:18:12.000000000 +0100
++++ kernel.rmodulon.cc	2009-06-11 11:20:03.000000000 +0100
 @@ -69,7 +69,7 @@
   */
  int nrnInt(number &n)
  {
--  return (int) mpz_get_si( (int_number) n);
-+  return (int) mpz_get_si( (int_number) &n);
+-  return (int) mpz_get_si( (int_number) &n);
++  return (int) mpz_get_si( (int_number) n);
  }
  
  /*
-@@ -214,7 +214,7 @@
- 
- BOOLEAN nrnGreaterZero (number k)
- {
--  return 0 < mpz_cmp_si((int_number) k, 0);
-+  return 0 <= mpz_cmp_si((int_number) k, 0);
- }
- 
- BOOLEAN nrnIsUnit (number a)

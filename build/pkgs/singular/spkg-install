@@ -88,6 +88,7 @@ patch()
     cp patches/assert.h src/factory/
     cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
+    cp patches/Singular.libsingular.h src/Singular/libsingular.h
 }
 
 distclean()

@@ -1,0 +1,12 @@
+--- ../src/Singular/libsingular.h	2009-05-22 14:16:49.000000000 +0100
++++ Singular.libsingular.h	2009-06-11 12:42:22.000000000 +0100
+@@ -23,5 +23,9 @@
+ 
+ int siInit(char *);
+ 
++/* we need this function in Sage*/
++number nr2mMapZp(number from);
++
++
+ #endif //SINGULAR__H
+ 

@@ -1,146 +1,56 @@
---- ../src/makefile	2009-04-18 02:10:53.000000000 -0700
-+++ makefile	2009-06-04 10:49:02.110714820 -0700
-@@ -22,7 +22,7 @@
+--- /home/ncalexan/releases/flint-1.3.0/makefile	2009-06-10 04:36:55.000000000 -0700
++++ makefile	2009-06-10 15:01:43.274840561 -0700
+@@ -1,3 +1,5 @@
++# sage depends on the NTL interface, so we include it in the flint library
++
+ LIBDIR=$(PREFIX)/lib
+ INCLUDEDIR=$(PREFIX)/include
+ DOCDIR=$(PREFIX)/doc
+@@ -22,7 +24,8 @@
  
  CPP = $(FLINT_CPP) 
  
--LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lm
-+LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm 
+-LIBS = -L$(FLINT_GMP_LIB_DIR) $(FLINT_LINK_OPTIONS) -fopenmp -lgmp -lpthread -lm
++# add NTL options so that NTL interface links properly
++LIBS = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -fopenmp -lgmp -lpthread -lntl -lm 
  
- LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -lgmp -lpthread -lntl -lm 
+ LIBS2 = -L$(FLINT_GMP_LIB_DIR) -L$(FLINT_NTL_LIB_DIR) $(FLINT_LINK_OPTIONS) -fopenmp -lgmp -lpthread -lntl -lm 
  
-@@ -66,7 +66,8 @@
- 	theta.h \
- 	zmod_mat.h \
+@@ -68,7 +71,8 @@
  	mpz_mat.h \
--	d_mat.h
-+	d_mat.h \
+ 	d_mat.h \
+ 	F_mpz.h \
+-	QS/tinyQS.h
++	QS/tinyQS.h \
 +	NTL-interface.h
  
  ####### library object files
  
-@@ -105,13 +106,14 @@
- 	theta.o \
- 	zmod_mat.o \
- 	mpz_mat.o \
--	d_mat.o
-+	d_mat.o \
+@@ -114,13 +118,14 @@
+ 	poly.o \
+ 	sieve.o \
+ 	linear_algebra.o \
+-	block_lanczos.o
++	block_lanczos.o \
 +	NTL-interface.o
  
  QS: mpQS
  
  tune: ZmodF_mul-tune mpz_poly-tune 
  
--test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test zmod_mat-test
-+test: mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test zmod_mat-test NTL-interface-test
+-test: F_mpz-test mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test zmod_mat-test
++test: F_mpz-test mpn_extras-test fmpz_poly-test fmpz-test ZmodF-test ZmodF_poly-test mpz_poly-test ZmodF_mul-test long_extras-test zmod_poly-test zmod_mat-test NTL-interface-test
  
  check: test
- 	./mpn_extras-test
-@@ -134,10 +136,10 @@
- library: $(FLINT_LIB)
- 
- libflint.dylib: $(FLINTOBJ)
--	$(CC) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
-+	$(CPP) -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
- 
- libflint.dylib64: $(FLINTOBJ)
--	$(CC) -m64 -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
-+	$(CPP) -m64 -single_module -fPIC -dynamiclib -o libflint.dylib $(FLINTOBJ) $(LIBS)
- 
- libflint.dll: $(FLINTOBJ)
- 	$(CC) -fPIC -shared -o libflint.dll $(FLINTOBJ) $(LIBS)
-@@ -178,10 +180,10 @@
- 	$(CC) $(CFLAGS) -DNDEBUG -o mulmid_ks.o -c zn_poly/src/mulmid_ks.c
- 	
- pmf.o: zn_poly/src/pmf.c $(HEADERS)
--	$(CC) $(CFLAGS) -DNEBUG -o pmf.o -c zn_poly/src/pmf.c
-+	$(CC) $(CFLAGS) -DNDEBUG -o pmf.o -c zn_poly/src/pmf.c
- 	
- pmfvec_fft.o: zn_poly/src/pmfvec_fft.c $(HEADERS)
--	$(CC) $(CFLAGS) -DNEBUG -o pmfvec_fft.o -c zn_poly/src/pmfvec_fft.c
-+	$(CC) $(CFLAGS) -DNDEBUG -o pmfvec_fft.o -c zn_poly/src/pmfvec_fft.c
- 	
- tuning.o: zn_poly/src/tuning.c $(HEADERS)
- 	$(CC) $(CFLAGS) -DNDEBUG -o tuning.o -c zn_poly/src/tuning.c
-@@ -337,55 +339,55 @@
- ####### test program targets
- 
- mpn_extras-test: mpn_extras-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) mpn_extras-test.o test-support.o -o mpn_extras-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) mpn_extras-test.o test-support.o -o mpn_extras-test $(FLINTOBJ) $(LIBS)
- 
- fmpz_poly-test: fmpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) fmpz_poly-test.o test-support.o -o fmpz_poly-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) fmpz_poly-test.o test-support.o -o fmpz_poly-test $(FLINTOBJ) $(LIBS)
- 
- fmpz-test: fmpz-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) fmpz-test.o test-support.o -o fmpz-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) fmpz-test.o test-support.o -o fmpz-test $(FLINTOBJ) $(LIBS)
- 
- F_mpz-test: F_mpz-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) F_mpz-test.o test-support.o -o F_mpz-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) F_mpz-test.o test-support.o -o F_mpz-test $(FLINTOBJ) $(LIBS)
- 
- ZmodF-test: ZmodF-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) ZmodF-test.o test-support.o -o ZmodF-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) ZmodF-test.o test-support.o -o ZmodF-test $(FLINTOBJ) $(LIBS)
- 
- ZmodF_poly-test: ZmodF_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) ZmodF_poly-test.o test-support.o -o ZmodF_poly-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) ZmodF_poly-test.o test-support.o -o ZmodF_poly-test $(FLINTOBJ) $(LIBS)
- 
- mpz_poly-test: mpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) mpz_poly-test.o test-support.o -o mpz_poly-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) mpz_poly-test.o test-support.o -o mpz_poly-test $(FLINTOBJ) $(LIBS)
- 
- F_mpz_mat-test: F_mpz_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) F_mpz_mat-test.o test-support.o -o F_mpz_mat-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) F_mpz_mat-test.o test-support.o -o F_mpz_mat-test $(FLINTOBJ) $(LIBS)
- 
- F_mpz_LLL_fast_d-test: F_mpz_LLL_fast_d-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) F_mpz_LLL_fast_d-test.o test-support.o -o F_mpz_LLL_fast_d-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) F_mpz_LLL_fast_d-test.o test-support.o -o F_mpz_LLL_fast_d-test $(FLINTOBJ) $(LIBS)
- 	
- ZmodF_mul-test: ZmodF_mul-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) ZmodF_mul-test.o test-support.o -o ZmodF_mul-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) ZmodF_mul-test.o test-support.o -o ZmodF_mul-test $(FLINTOBJ) $(LIBS)
- 
- long_extras-test: long_extras.o long_extras-test.o test-support.o memory-manager.o
--	$(CC) $(CFLAGS) long_extras.o long_extras-test.o test-support.o memory-manager.o -o long_extras-test $(LIBS)
-+	$(CPP) $(CFLAGS) long_extras.o long_extras-test.o test-support.o memory-manager.o -o long_extras-test $(LIBS)
- 
- packed_vec-test: packed_vec-test.o test-support.o $(FLINTOBJ) $(HEADERS) 
--	$(CC) $(CFLAGS) packed_vec-test.o test-support.o -o packed_vec-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) packed_vec-test.o test-support.o -o packed_vec-test $(FLINTOBJ) $(LIBS)
- 
- zmod_poly-test: zmod_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) zmod_poly-test.o test-support.o -o zmod_poly-test $(FLINTOBJ) $(LIBS)
- 
- zmod_mat-test: zmod_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) zmod_mat-test.o test-support.o -o zmod_mat-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) zmod_mat-test.o test-support.o -o zmod_mat-test $(FLINTOBJ) $(LIBS)
- 
- F_zmod_mat-test: F_zmod_mat-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) F_zmod_mat-test.o test-support.o -o F_zmod_mat-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) F_zmod_mat-test.o test-support.o -o F_zmod_mat-test $(FLINTOBJ) $(LIBS)
- 
+ 	./F_mpz-test
+@@ -397,8 +402,9 @@
  F_mpz_poly-test: F_mpz_poly-test.o test-support.o $(FLINTOBJ) $(HEADERS)
--	$(CC) $(CFLAGS) F_mpz_poly-test.o test-support.o -o F_mpz_poly-test $(FLINTOBJ) $(LIBS)
-+	$(CPP) $(CFLAGS) F_mpz_poly-test.o test-support.o -o F_mpz_poly-test $(FLINTOBJ) $(LIBS)
+ 	$(CC) $(CFLAGS) F_mpz_poly-test.o test-support.o -o F_mpz_poly-test $(FLINTOBJ) $(LIBS)
  
++# NTL interface is linked in the library
  NTL-interface-test: NTL-interface.o NTL-interface-test.o test-support.o $(FLINTOBJ) $(HEADERS)
 -	$(CPP) $(CFLAGS) NTL-interface-test.o NTL-interface.o test-support.o $(FLINTOBJ) -o NTL-interface-test $(LIBS2)
 +	$(CPP) $(CFLAGS) NTL-interface-test.o test-support.o $(FLINTOBJ) -o NTL-interface-test $(LIBS2)
  
  ####### tuning program object files
  
-@@ -503,7 +505,7 @@
- 	$(CPP) $(CFLAGS) -o NTL-profile NTL-profile.c NTL-profile-tables.o test-support.o $(PROFOBJ) $(LIB) -lntl
- 
- zmod_poly-profile: zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ)
--	$(CC) $(CFLAGS) -o zmod_poly-profile zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ) $(LIBS)
-+	$(CC) $(CFLAGS) -o zmod_poly-profile zmod_poly.o zmod_poly-profile.o zmod_poly-profile-tables.o $(PROFOBJ) $(LIBS)
- 
- bernoulli-profile: bernoulli-profile.o bernoulli-profile-tables.o $(PROFOBJ)
- 	$(CC) $(CFLAGS) -o bernoulli-profile zmod_poly.o bernoulli-profile.o bernoulli-profile-tables.o $(PROFOBJ) $(LIBS)

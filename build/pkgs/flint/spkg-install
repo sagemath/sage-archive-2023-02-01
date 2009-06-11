@@ -51,7 +51,7 @@ FLINT_GMP_LIB_DIR="$SAGE_LOCAL"/lib/
 FLINT_NTL_INCLUDE_DIR="$SAGE_LOCAL"/include
 FLINT_NTL_LIB_DIR="$SAGE_LOCAL"/lib/
 
-# What is QD??
+# What is QD?? possibly quad double?
 FLINT_QD_LIB_DIR="$SAGE_LOCAL"/include
 FLINT_QD_INCLUDE_DIR="$SAGE_LOCAL"/include
 
@@ -66,8 +66,10 @@ export FLINT_NTL_LIB_DIR
 FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
+# Patched makefile that links NTL interface into the flint library.
+# This is not an officially supported option because flint is pure C
+# and the NTL interface requires C++.
 cp patches/makefile src/
-cp patches/fmpz.c src/
 
 cd src
 
@@ -122,5 +124,5 @@ done
 
 #comment the line below to avoid running the test suite.
 #this should be done in all final releases
-#cd ..; ./spkg-check
+cd ..; ./spkg-check
 

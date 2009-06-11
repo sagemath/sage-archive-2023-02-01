@@ -32,6 +32,9 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.3.0 (Nick Alexander, June 9th, 2009) ===
+ * Update to latest upstream FLINT, 1.3.0.
+
 === flint-1.2.5.p0 (Mike Hansen, June 4th, 2009) ===
  * Fix build issues found in #6209.
 

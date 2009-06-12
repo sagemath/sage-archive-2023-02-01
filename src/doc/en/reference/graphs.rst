@@ -9,3 +9,4 @@ Graph Theory
    sage/graphs/graph_isom
    sage/graphs/graph_database
    sage/graphs/graph_list
+   sage/graphs/graph_latex

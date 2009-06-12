@@ -2371,7 +2371,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('toy:buchberger')
             [a^2 - a + 2*b^2 + 2*c^2,
              a*b + b*c - 1/2*b, a + 2*b + 2*c - 1,
-             b^2 + 4/3*b*c - 1/3*b + c^2 - 1/3*c,
+             b^2 + 3*b*c - 1/2*b + 3*c^2 - c,
              b*c - 1/10*b + 6/5*c^2 - 2/5*c,
              b + 30*c^3 - 79/7*c^2 + 3/7*c,
              c^6 - 79/210*c^5 - 229/2100*c^4 + 121/2520*c^3 + 1/3150*c^2 - 11/12600*c,

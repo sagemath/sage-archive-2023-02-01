@@ -326,9 +326,27 @@ class sage_build_ext(build_ext):
             package_dir = build_py.get_package_dir(package)
             ext_filename = os.path.join(package_dir,
                                         self.get_ext_filename(base))
+            relative_ext_filename = self.get_ext_filename(base)
         else:
             ext_filename = os.path.join(self.build_lib,
                                         self.get_ext_filename(fullname))
+            relative_ext_filename = self.get_ext_filename(fullname)
+
+        # while dispatching the calls to gcc in parallel, we sometimes
+        # hit a race condition where two separate build_ext objects
+        # try to create a given directory at the same time; whoever
+        # loses the race then seems to throw an error, saying that
+        # the directory already exists. so, instead of fighting to
+        # fix the race condition, we simply make sure the entire
+        # directory tree exists now, while we're processing the
+        # extensions in serial.
+        relative_ext_dir = os.path.split(relative_ext_filename)[0]
+        prefixes = ['', self.build_lib, self.build_temp]
+        for prefix in prefixes:
+            path = os.path.join(prefix, relative_ext_dir)
+            if not os.path.exists(path):
+                os.makedirs(path)
+
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' extension (up-to-date)", ext.name)

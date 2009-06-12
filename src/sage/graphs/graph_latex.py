@@ -101,14 +101,14 @@ def check_tkz_graph():
         if not have_tkzgraph:
             print 'Warning: tkz-graph.sty is not part'
             print "of this computer's TeX installation."
-            print 'These packages are required to'
+            print 'This package is required to'
             print 'render graphs in LaTeX.  Visit'
             print 'http://altermundus.com/pages/graph.html'
         have_tkzberge = not bool(os.system('kpsewhich tkz-berge.sty > /dev/null'))
         if not have_tkzberge:
             print 'Warning: tkz-berge.sty is not part'
             print "of this computer's TeX installation."
-            print 'These packages are required to'
+            print 'This package is required to'
             print 'render graphs in LaTeX.  Visit'
             print 'http://altermundus.com/pages/graph.html'
     _checked_tkz_graph = True
@@ -258,8 +258,12 @@ class GraphLatex(SageObject):
         For precise details consult the documentation for the
         ``tkz-graph`` package.
 
-        - tkz_style - a pre-defined ``tkz-graph`` style such as
-          "Art" or "Normal"
+        - tkz_style - a pre-defined ``tkz-graph`` style such as "Art"
+          or "Normal".  Currently, the recognized styles are "Shade",
+          "Art", "Normal", "Dijkstra", "Welsh", "Classic", and
+          "Simple".  Any other value will not give an error, but if
+          you run ``latex`` on the graph, then an unrecognized style
+          will be treated as "Normal".
 
         EXAMPLES:
 

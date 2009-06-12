@@ -414,7 +414,7 @@ message.
 
 If you don't have any exceptions explicitly listed (as a tuple),
 your code will catch absolutely anything, including
-``ctrl-C`` and alarms, and this will lead to confusion. Also,
+``ctrl-C``, typos in the code, and alarms, and this will lead to confusion. Also,
 this might catch real errors which should be propagated to the
 user.
 
@@ -478,6 +478,39 @@ file.
 It is important to try to make ``from sage.all import *`` as
 fast as possible, since this is what dominates the Sage startup
 time, and controlling the top-level imports helps to do this.
+
+Creating a New Directory
+========================
+
+If you want to create a new directory in the Sage library
+``SAGE_ROOT/devel/sage`` (say, ``measure_theory``), that directory
+should contain an empty file ``__init__.py`` in addition to whatever
+files you want to add (say, ``borel_measure.py`` and
+``banach_tarski.py``), and also a file ``all.py`` listing imports from
+that directory.  The file ``all.py`` might look like this::
+
+    from borel_measure import BorelMeasure
+
+    from banach_tarski import BanachTarskiParadox
+
+Then in the file ``SAGE_ROOT/devel/sage/sage/all.py``, add a line ::
+
+    from sage.measure_theory.all  import *
+
+Finally, add the directory name ("measure_theory") to the ``packages``
+list in the Distutils section of the file
+``SAGE_ROOT/devel/sage/setup.py``: add a line ::
+
+    'sage.measure_theory',
+
+between ::
+
+    'sage.matrix',
+
+and ::
+
+    'sage.media',
+
 
 Using Optional Packages
 =======================

@@ -86,7 +86,7 @@ there are 4 equations in 3 unknowns).::
 However, when we compute the Groebner basis of I (defined over `\ZZ`), we
 note that there is a certain integer in the ideal which is not 1.::
 
-    sage: d_basis(I)
+    sage: d_basis(I) # random -- waiting on upstream singular fixes at #6051
     [x + 170269749119, y + 2149906854, z + ..., 282687803443]
 
 Now for each prime `p` dividing this integer 282687803443, the Groebner

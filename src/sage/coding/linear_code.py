@@ -344,8 +344,11 @@ def min_wt_vec_gap(Gmat,n,k,F,method=None):
         sage: Gstr = "Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]"
         sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,7,4,GF(2))
         (0, 1, 0, 1, 0, 1, 0)
-        sage: min_wt_vec_gap(Gstr,7,4,GF(2),method="guava")    # requires optional GAP package Guava
-        (0, 1, 0, 1, 0, 1, 0)
+
+        This output is different but still a minimum weight vector:
+
+        sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,7,4,GF(2),method="guava")    # requires optional GAP package Guava
+        (0, 0, 1, 0, 1, 1, 0)
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
 

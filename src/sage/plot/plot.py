@@ -7,67 +7,65 @@ rendering is done using the matplotlib Python library.
 The following graphics primitives are supported:
 
 
--  arrow - an arrow from a min point to a max point.
+-  :func:`arrow() <sage.plot.arrow.arrow>` - an arrow from a min point to a max point.
 
--  circle - a circle with given radius
+-  :func:`circle() <sage.plot.circle.circle>` - a circle with given radius
 
--  disk - a filled disk (i.e. a sector or wedge of a circle)
+-  :func:`disk() <sage.plot.disk.disk>` - a filled disk (i.e. a sector or wedge of a circle)
 
--  line - a line determined by a sequence of points (this need not
+-  :func:`line() <sage.plot.line.line>` - a line determined by a sequence of points (this need not
    be straight!)
 
--  point - a point
+-  :func:`point() <sage.plot.point.point>` - a point
 
--  text - some text
+-  :func:`text() <sage.plot.text.text>` - some text
 
--  polygon - a filled polygon
+-  :func:`polygon() <sage.plot.polygon.polygon>` - a filled polygon
 
 
 The following plotting functions are supported:
 
 
--  plot - plot of a function or other Sage object (e.g., elliptic
+-  :func:`plot` - plot of a function or other Sage object (e.g., elliptic
    curve).
 
--  parametric_plot
+-  :func:`parametric_plot`
 
--  implicit_plot
+-  :func:`implicit_plot`
 
--  polar_plot
+-  :func:`polar_plot`
 
--  region_plot
+-  :func:`region_plot`
 
--  list_plot
+-  :func:`list_plot`
 
--  scatter_plot
+-  :func:`scatter_plot`
 
--  bar_chart
+-  :func:`bar_chart`
 
--  contour_plot
+-  :func:`contour_plot`
 
--  density_plot
+-  :func:`density_plot`
 
--  plot_vector_field
+-  :func:`plot_vector_field`
 
--  plot_slope_field
+-  :func:`plot_slope_field`
 
--  matrix_plot
+-  :func:`matrix_plot`
 
--  complex_plot
+-  :func:`complex_plot`
 
--  graphics_array
+-  :func:`graphics_array`
 
 
 The following miscellaneous Graphics functions are included:
 
 
--  Graphics
+-  :func:`Graphics`
 
--  is_Graphics
+-  :func:`is_Graphics`
 
--  rgbcolor
-
--  hue
+-  :func:`hue`
 
 
 Type ``?`` after each primitive in Sage for help and examples.
@@ -1866,8 +1864,8 @@ def plot(funcs, *args, **kwds):
         sage: E = EllipticCurve([0,-1])
         sage: plot(E, (1, 4), rgbcolor=hue(0.6))
 
-    We can change the line style to one of '--' (two hyphens, yielding
-    dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted)::
+    We can change the line style to one of ``'--'`` (two hyphens, yielding
+    dashed), ``'-.'`` (dash dot), ``'-'`` (solid), ``'steps'``, ``':'`` (dotted)::
 
         sage: plot(sin(x), 0, 10, linestyle='-.')
 

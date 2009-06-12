@@ -1,3 +1,6 @@
+"""
+Arrows
+"""
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,

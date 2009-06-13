@@ -1,3 +1,7 @@
+"""
+Complex Plots
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>,
 #
@@ -45,21 +49,28 @@ cdef inline double mag_to_lightness(double r):
     Tweak this to adjust how the magnitude affects the color.
 
     INPUT:
-        r - a non-negative real number
+
+    - ``r`` - a non-negative real number
+
     OUTPUT:
-        a value between -1 (black) and +1 (white), inclusive
+
+    A value between `-1` (black) and `+1` (white), inclusive.
     """
     return atan(log(r+1)) * (4/PI) - 1
 
 def complex_to_rgb(z_values):
     """
     INPUT:
-        z_values -- A grid of complex numbers, as a list of lists
+
+    - ``z_values`` -- A grid of complex numbers, as a list of lists
 
     OUTPUT:
-        An NxMx3 floating point Numpy array X, where X[i,j] is an (r,g,b) tuple.
 
-    EXAMPLES:
+    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    ``X[i,j]`` is an (r,g,b) tuple.
+
+    EXAMPLES::
+
         sage: from sage.plot.complex_plot import complex_to_rgb
         sage: complex_to_rgb([[0, 1, 1000]])
         array([[[ 0.        ,  0.        ,  0.        ],
@@ -142,7 +153,8 @@ def complex_to_rgb(z_values):
 class ComplexPlot(GraphicPrimitive):
     def __init__(self, z_values, xrange, yrange, options):
         """
-        TESTS:
+        TESTS::
+
             sage: p = complex_plot(lambda z: z^2-1, (-2, 2), (-2, 2))
         """
         self.xrange = xrange
@@ -157,7 +169,8 @@ class ComplexPlot(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: p = complex_plot(lambda z: z, (-1, 2), (-3, 4))
             sage: sorted(p.get_minmax_data().items())
             [('xmax', 2.0), ('xmin', -1.0), ('ymax', 4.0), ('ymin', -3.0)]
@@ -167,7 +180,8 @@ class ComplexPlot(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        TESTS:
+        TESTS::
+
             sage: isinstance(complex_plot(lambda z: z, (-1,1), (-1,1))[0]._allowed_options(), dict)
             True
         """
@@ -176,7 +190,8 @@ class ComplexPlot(GraphicPrimitive):
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: isinstance(complex_plot(lambda z: z, (-1,1), (-1,1))[0]._repr_(), str)
             True
         """
@@ -184,7 +199,8 @@ class ComplexPlot(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         """
-        TESTS:
+        TESTS::
+
             sage: complex_plot(lambda x: x^2, (-5, 5), (-5, 5))
         """
         options = self.options()
@@ -195,45 +211,56 @@ class ComplexPlot(GraphicPrimitive):
 @options(plot_points=100, interpolation='catrom')
 def complex_plot(f, xrange, yrange, **options):
     r"""
-
-    \code{complex_plot} takes a complex function of one variables,
-    $f(z)$ and plots output of the function over the specified
-    xrange and yrange as demonstrated below. The magnitude of the
+    ``complex_plot`` takes a complex function of one variables,
+    `f(z)` and plots output of the function over the specified
+    ``xrange`` and ``yrange`` as demonstrated below. The magnitude of the
     output is indicated by the brightness (with zero being black and
     infinity being white) while the argument is represented by the
     hue (with red being positive real, and increasing through orange,
     yellow, ... as the argument increases.
 
-      complex_plot(f, (xmin, xmax), (ymin, ymax), ...)
+    ``complex_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 
     INPUT:
-        f -- a function of a single complex value $x+iy$
-        (xmin, xmax) -- 2-tuple, the range of x values
-        (ymin, ymax) -- 2-tuple, the range of y values
+
+    - ``f`` -- a function of a single complex value `x + iy`
+
+    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values
+
+    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values
+
     The following inputs must all be passed in as named parameters:
-        plot_points   -- integer (default: 100); number of points to plot
-                         in each direction of the grid
-        interpolation -- string (default: 'catrom'), the interpolation
-                         method to use: bilinear, bicubic, spline16, spline36,
-                         quadric, gaussian, sinc, bessel, mitchell, lanczos,
-                         catrom, hermite, hanning, hamming, kaiser
+
+    - ``plot_points`` -- integer (default: 100); number of points to plot
+      in each direction of the grid
+
+    - ``interpolation`` -- string (default: ``'catrom'``), the interpolation
+      method to use: ``'bilinear'``, ``'bicubic'``, ``'spline16'``,
+      ``'spline36'``, ``'quadric'``, ``'gaussian'``, ``'sinc'``,
+      ``'bessel'``, ``'mitchell'``, ``'lanczos'``, ``'catrom'``,
+      ``'hermite'``, ``'hanning'``, ``'hamming'``, ``'kaiser'``
 
 
     EXAMPLES:
-    Here we plot a couple of simple functions:
+
+    Here we plot a couple of simple functions::
+
         sage: complex_plot(sqrt, (-5, 5), (-5, 5))
         sage: complex_plot(sin, (-5, 5), (-5, 5))
         sage: complex_plot(log, (-10, 10), (-10, 10))
         sage: complex_plot(exp, (-10, 10), (-10, 10))
 
-    A function with some nice zeros and a pole:
+    A function with some nice zeros and a pole::
+
         sage: f(z) = z^5 + z - 1 + 1/z
         sage: complex_plot(f, (-3, 3), (-3, 3))
 
-    Here is the identy, useful for seeing what values map to what colors:
+    Here is the identy, useful for seeing what values map to what colors::
+
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3))
 
-    The Riemann Zeta function:
+    The Riemann Zeta function::
+
         sage: complex_plot(zeta, (-30,30), (-30,30))
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid

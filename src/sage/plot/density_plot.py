@@ -1,3 +1,7 @@
+"""
+Density Plots
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -40,7 +44,8 @@ class DensityPlot(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y = var('x,y')
             sage: f(x, y) = x^2 + y^2
             sage: d = density_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
@@ -55,7 +60,8 @@ class DensityPlot(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        TESTS:
+        TESTS::
+
             sage: isinstance(density_plot(x, (-2,3), (1,10))[0]._allowed_options(), dict)
             True
         """
@@ -65,7 +71,8 @@ class DensityPlot(GraphicPrimitive):
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: isinstance(density_plot(x, (-2,3), (1,10))[0]._repr_(), str)
             True
         """
@@ -83,48 +90,61 @@ class DensityPlot(GraphicPrimitive):
 @options(plot_points=25, cmap='gray', interpolation='catrom')
 def density_plot(f, xrange, yrange, **options):
     r"""
-
-    \code{density_plot} takes a function of two variables, $f(x,y)$
+    ``density_plot`` takes a function of two variables, `f(x,y)`
     and plots the height of of the function over the specified
-    xrange and yrange as demonstrated below.
+    ``xrange`` and ``yrange`` as demonstrated below.
 
-      density_plot(f, (xmin, xmax), (ymin, ymax), ...)
+    ``density_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 
     INPUT:
-        f -- a function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values OR 3-tuple (x,xmin,xmax)
-        (ymin, ymax) -- 2-tuple, the range of y values OR 3-tuple (y,ymin,ymax)
+
+    - ``f`` -- a function of two variables
+
+    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
+      ``(x,xmin,xmax)``
+
+    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
+      ``(y,ymin,ymax)``
+
     The following inputs must all be passed in as named parameters:
-        plot_points   -- integer (default: 25); number of points to plot
-                         in each direction of the grid
-        cmap          -- a colormap (type cmap_help() for more information).
-        interpolation -- string (default: 'catrom'), the interpolation
-                         method to use: bilinear, bicubic, spline16, spline36,
-                         quadric, gaussian, sinc, bessel, mitchell, lanczos,
-                         catrom, hermite, hanning, hamming, kaiser
+
+    - ``plot_points`` -- integer (default: 25); number of points to plot
+      in each direction of the grid
+
+    - ``cmap`` -- a colormap (type ``cmap_help()`` for more information).
+
+    - ``interpolation`` -- string (default: ``'catrom'``), the interpolation
+      method to use: ``'bilinear'``, ``'bicubic'``, ``'spline16'``,
+      ``'spline36'``, ``'quadric'``, ``'gaussian'``, ``'sinc'``,
+      ``'bessel'``, ``'mitchell'``, ``'lanczos'``, ``'catrom'``,
+      ``'hermite'``, ``'hanning'``, ``'hamming'``, ``'kaiser'``
 
 
     EXAMPLES:
-    Here we plot a simple function of two variables:
+
+    Here we plot a simple function of two variables::
+
         sage: x,y = var('x,y')
         sage: density_plot(sin(x)*sin(y), (x, -2, 2), (y, -2, 2))
 
 
-    Here we change the ranges and add some options:
+    Here we change the ranges and add some options::
+
         sage: density_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), interpolation='sinc', plot_points=100)
 
+    An even more complicated plot::
 
-    An even more complicated plot.
         sage: density_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4), cmap='jet', plot_points=100)
 
+    This should show a "spotlight" right on the origin::
 
-    This should show a "spotlight" right on the origin.
         sage: x,y = var('x,y')
         sage: density_plot(1/(x^10+y^10), (x, -10, 10), (y, -10, 10))
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
-    variables x,y.
+    variables `x`, `y`::
+
         sage: density_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
         sage: density_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
     """

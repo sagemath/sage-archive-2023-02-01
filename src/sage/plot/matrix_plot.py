@@ -1,3 +1,7 @@
+"""
+Matrix Plots
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -34,7 +38,8 @@ class MatrixPlot(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
             [('xmax', 4), ('xmin', 0), ('ymax', 3), ('ymin', 0)]
@@ -64,43 +69,49 @@ def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
 
-    Each ($i$th, $j$th) matrix element is given a different
+    Each (`i`-th, `j`-th) matrix element is given a different
     color value depending on its relative size compared
     to the other elements in the matrix.
 
     The tick marks drawn on the frame axes denote the
-    ($i$th, $j$th) element of the matrix.
+    (`i`-th, `j`-th) element of the matrix.
 
     EXAMPLES:
 
-    A matrix over ZZ colored with different grey levels:
+    A matrix over `\ZZ` colored with different grey levels::
 
         sage: matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
 
-    Here we make a random matrix over RR and use cmap='hsv'
-    to color the matrix elements different RGB colors:
+    Here we make a random matrix over `\RR` and use ``cmap='hsv'``
+    to color the matrix elements different RGB colors::
 
         sage: matrix_plot(random_matrix(RDF, 50), cmap='hsv')
 
-    Another random plot, but over GF(389):
+    Another random plot, but over `\GF{389}`::
+
         sage: m = random_matrix(GF(389), 10)
         sage: matrix_plot(m, cmap='Oranges')
 
-    It also works if you lift it to the polynomial ring:
+    It also works if you lift it to the polynomial ring::
+
         sage: matrix_plot(m.change_ring(GF(389)['x']), cmap='Oranges')
 
-    Here we plot a random sparse matrix:
+    Here we plot a random sparse matrix::
+
         sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
         sage: matrix_plot(sparse)
 
-    Plotting lists of lists also works:
+    Plotting lists of lists also works::
+
         sage: matrix_plot([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
 
-    As does plotting of numpy arrays:
+    As does plotting of numpy arrays::
+
         sage: import numpy
         sage: matrix_plot(numpy.random.rand(10, 10))
 
-    TESTS:
+    TESTS::
+
         sage: P.<t> = RR[]
         sage: matrix_plot(random_matrix(P, 3, 3))
         Traceback (most recent call last):

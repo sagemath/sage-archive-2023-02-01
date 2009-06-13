@@ -1,3 +1,7 @@
+"""
+Scatter Plots
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -26,7 +30,8 @@ class ScatterPlot(GraphicPrimitive):
         """
         Scatter plot graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: import numpy
             sage: from sage.plot.scatter_plot import ScatterPlot
             sage: ScatterPlot(numpy.array([0,1,2]), numpy.array([3.5,2,5.1]), {'facecolor':'white', 'marker':'s'})
@@ -40,7 +45,8 @@ class ScatterPlot(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: s = scatter_plot([[0,1],[2,4],[3.2,6]])
             sage: d = s.get_minmax_data()
             sage: d['xmin']
@@ -55,9 +61,11 @@ class ScatterPlot(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        Return the dictionary of allowed options for the scatter plot graphics primitive.
+        Return the dictionary of allowed options for the scatter plot
+        graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.scatter_plot import ScatterPlot
             sage: list(sorted(ScatterPlot([-1,2], [17,4], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the marker border is.'),
@@ -82,7 +90,8 @@ class ScatterPlot(GraphicPrimitive):
         """
         Text representation of a scatter plot graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: import numpy
             sage: from sage.plot.scatter_plot import ScatterPlot
             sage: ScatterPlot(numpy.array([0,1,2]), numpy.array([3.5,2,5.1]), {})
@@ -108,15 +117,23 @@ def scatter_plot(datalist, **options):
     plotting options.
 
     INPUT:
-        datalist -- a list of tuples (x,y)
-        alpha -- default: 1
-        markersize -- default: 50
-        marker -- default: 'o'
-        facecolor -- default: '#fec7b8'
-        edgecolor -- default: 'black'
-        zorder -- default: 5
 
-    EXAMPLES:
+    - ``datalist`` -- a list of tuples ``(x,y)``
+
+    - ``alpha`` -- default: 1
+
+    - ``markersize`` -- default: 50
+
+    - ``marker`` -- default: ``'o'``
+
+    - ``facecolor`` -- default: ``'#fec7b8'``
+
+    - ``edgecolor`` -- default: ``'black'``
+
+    - ``zorder`` -- default: 5
+
+    EXAMPLES::
+
         sage: s = scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
         sage: s
 
@@ -130,4 +147,3 @@ def scatter_plot(datalist, **options):
         ydata = data[:,1]
         g.add_primitive(ScatterPlot(xdata, ydata, options=options))
     return g
-

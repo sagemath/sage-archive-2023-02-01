@@ -1,3 +1,7 @@
+"""
+Contour Plots
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -36,7 +40,8 @@ class ContourPlot(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y = var('x,y')
             sage: f(x,y) = x^2 + y^2
             sage: d = contour_plot(f, (3, 6), (3, 6))[0].get_minmax_data()
@@ -44,7 +49,6 @@ class ContourPlot(GraphicPrimitive):
             3.0
             sage: d['ymin']
             3.0
-
         """
         from sage.plot.plot import minmax_data
         return minmax_data(self.xrange, self.yrange, dict=True)
@@ -90,66 +94,75 @@ class ContourPlot(GraphicPrimitive):
 @options(plot_points=25, fill=True, cmap='gray', contours=None)
 def contour_plot(f, xrange, yrange, **options):
     r"""
-
-    \code{contour_plot} takes a function of two variables, $f(x,y)$
+    ``contour_plot`` takes a function of two variables, `f(x,y)`
     and plots contour lines of the function over the specified
-    xrange and yrange as demonstrated below.
+    ``xrange`` and ``yrange`` as demonstrated below.
 
-      contour_plot(f, (xmin, xmax), (ymin, ymax), ...)
+    ``contour_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 
     INPUT:
-        f -- a function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values OR 3-tuple (x,xmin,xmax)
-        (ymin, ymax) -- 2-tuple, the range of y values OR 3-tuple (y,ymin,ymax)
+
+    - ``f`` -- a function of two variables
+
+    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
+      ``(x,xmin,xmax)``
+
+    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
+      ``(y,ymin,ymax)``
+
     The following inputs must all be passed in as named parameters:
-        plot_points  -- integer (default: 25); number of points to plot
-                        in each direction of the grid
-        fill         -- bool (default: True), whether to color in the area
-                        between contour lines
-        cmap         -- a colormap (default: 'gray'), the name of
-                        a predefined colormap, a list of colors
-                        or an instance of a matplotlib Colormap.
-                        Type: import matplotlib.cm; matplotlib.cm.datad.keys()
-                        for available colormap names.
-        contours     -- integer or list of numbers (default: None):
-                        If a list of numbers is given, then this specifies
-                        the contour levels to use.  If an integer is given,
-                        then this many contour lines are used, but the
-                        exact levels are determined automatically.
-                        If None is passed (or the option is not given),
-                        then the number of contour lines is determined
-                        automatically, and is usually about 5.
+
+    - ``plot_points``  -- integer (default: 25); number of points to plot
+      in each direction of the grid
+
+    - ``fill`` -- bool (default: ``True``), whether to color in the area
+      between contour lines
+
+    - ``cmap`` -- a colormap (default: ``'gray'``), the name of
+      a predefined colormap, a list of colors or an instance of a matplotlib
+      Colormap. Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
+      for available colormap names.
+
+    - ``contours`` -- integer or list of numbers (default: ``None``):
+      If a list of numbers is given, then this specifies the contour levels
+      to use.  If an integer is given, then this many contour lines are
+      used, but the exact levels are determined automatically. If ``None``
+      is passed (or the option is not given), then the number of contour
+      lines is determined automatically, and is usually about 5.
 
 
     EXAMPLES:
 
-    Here we plot a simple function of two variables:
+    Here we plot a simple function of two variables::
+
         sage: x,y = var('x,y')
         sage: contour_plot(cos(x^2+y^2), (x, -4, 4), (y, -4, 4))
 
+    Here we change the ranges and add some options::
 
-    Here we change the ranges and add some options:
         sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=100)
 
+    An even more complicated plot::
 
-    An even more complicated plot.
         sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=100)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
     example, the plot is rotated 90 degrees because we switch the
-    variables x,y.
+    variables x,y::
+
         sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
         sage: contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
 
+    We can play with the contour levels::
 
-    We can play with the contour levels.
         sage: f(x,y) = x^2 + y^2
         sage: contour_plot(f, (-2, 2), (-2, 2))
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
 
-    This should plot concentric circles centered at the origin.
+    This should plot concentric circles centered at the origin::
+
         sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1)).show(aspect_ratio=1)
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
@@ -165,39 +178,48 @@ def contour_plot(f, xrange, yrange, **options):
 @options(plot_points=50, contours=(0,0), fill=False)
 def implicit_plot(f, xrange, yrange, **options):
     r"""
-    \code{implicit_plot} takes a function of two variables, $f(x,y)$
-    and plots the curve $f(x,y)=0$ over the specified
-    xrange and yrange as demonstrated below.
+    ``implicit_plot`` takes a function of two variables, `f(x,y)`
+    and plots the curve `f(x,y) = 0` over the specified
+    ``xrange`` and ``yrange`` as demonstrated below.
 
-      implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)
+    ``implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 
-      implicit_plot(f, (x, xmin, xmax), (y, ymin, ymax), ...)
+    ``implicit_plot(f, (x, xmin, xmax), (y, ymin, ymax), ...)``
 
     INPUT:
-        f -- a function of two variables or equation in two variables
-        (xmin, xmax) -- 2-tuple, the range of x values or (x,xmin,xmax)
-        (ymin, ymax) -- 2-tuple, the range of y values or (y,ymin,ymax)
+
+    - ``f`` -- a function of two variables or equation in two variables
+
+    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values or ``(x,xmin,xmax)``
+
+    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values or ``(y,ymin,ymax)``
 
     The following inputs must all be passed in as named parameters:
-        plot_points  -- integer (default: 50); number of points to plot
-                        in each direction of the grid
-        fill         -- boolean (default: False); if True, fill the region $f(x,y)<0$.
+
+    - ``plot_points`` -- integer (default: 50); number of points to plot
+      in each direction of the grid
+
+    - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
+      `f(x,y) < 0`.
 
 
     EXAMPLES:
 
-    A simple circle with a radius of 2:
+    A simple circle with a radius of 2::
+
         sage: var("x y")
         (x, y)
         sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
 
-    You can also plot an equation:
+    You can also plot an equation::
+
         sage: var("x y")
         (x, y)
         sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
 
-    We can define a level-$n$ approximation of the boundary of the
-    Mandelbrot set.
+    We can define a level-`n` approximation of the boundary of the
+    Mandelbrot set::
+
         sage: def mandel(n):
         ...       c = polygen(CDF, 'c')
         ...       z = 0
@@ -208,15 +230,20 @@ def implicit_plot(f, xrange, yrange, **options):
         ...           return val.norm() - 4
         ...       return f
 
-    The first-level approximation is just a circle.
+    The first-level approximation is just a circle::
+
         sage: implicit_plot(mandel(1), (-3, 3), (-3, 3)).show(aspect_ratio=1)
 
-    A third-level approximation starts to get interesting.
+    A third-level approximation starts to get interesting::
+
         sage: implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5)).show(aspect_ratio=1)
 
     The seventh-level approximation is a degree 64 polynomial, and
-    implicit_plot does a pretty good job on this part of the curve.
-    (plot_points=200 looks even better, but it's about 16 times slower.)
+    ``implicit_plot`` does a pretty good job on this part of the curve.
+    (``plot_points=200`` looks even better, but it's about 16 times slower.)
+
+    ::
+
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
     """
     from sage.symbolic.expression import is_SymbolicEquation
@@ -229,53 +256,74 @@ def implicit_plot(f, xrange, yrange, **options):
 @options(plot_points=25, incol='blue', outcol='white', bordercol=None)
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol):
     r"""
-    \code{region_plot} takes a boolean function of two variables, $f(x,y)$
+    ``region_plot`` takes a boolean function of two variables, `f(x,y)`
     and plots the region where f is True over the specified
-    xrange and yrange as demonstrated below.
+    ``xrange`` and ``yrange`` as demonstrated below.
 
-      region_plot(f, (xmin, xmax), (ymin, ymax), ...)
+    ``region_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 
     INPUT:
-        f -- a boolean function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values OR 3-tuple (x,xmin,xmax)
-        (ymin, ymax) -- 2-tuple, the range of y values OR 3-tuple (y,ymin,ymax)
-        plot_points  -- integer (default: 25); number of points to plot
-                        in each direction of the grid
-        incol        -- a color (default: 'blue'), the color inside the region
-        outcol       -- a color (default: 'white'), the color of the outside of the region
-        bordercol    -- a color (default: None), the color of the border (incol if not specified)
+
+    - ``f`` -- a boolean function of two variables
+
+    - ``(xmin, xmax)`` -- 2-tuple, the range of ``x`` values OR 3-tuple
+      ``(x,xmin,xmax)``
+
+    - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values OR 3-tuple
+      ``(y,ymin,ymax)``
+
+    - ``plot_points``  -- integer (default: 25); number of points to plot
+      in each direction of the grid
+
+    - ``incol`` -- a color (default: ``'blue'``), the color inside the region
+
+    - ``outcol`` -- a color (default: ``'white'``), the color of the outside
+      of the region
+
+    - ``bordercol`` -- a color (default: ``None``), the color of the border
+      (``incol`` if not specified)
 
     EXAMPLES:
 
-    Here we plot a simple function of two variables:
+    Here we plot a simple function of two variables::
+
         sage: x,y = var('x,y')
         sage: region_plot(cos(x^2+y^2) <= 0, (x, -3, 3), (y, -3, 3))
 
-    Here we play with the colors:
+    Here we play with the colors::
+
         sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
 
-    An even more complicated plot:
+    An even more complicated plot::
+
         sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10), incol='yellow', bordercol='black', plot_points=100)
 
-    A disk centered at the origin:
+    A disk centered at the origin::
+
         sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1)).show(aspect_ratio=1)
 
-    A plot with more than one condition:
+    A plot with more than one condition::
+
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
-    Since it doesn't look very good, let's increase plot_points:
+    Since it doesn't look very good, let's increase plot_points::
+
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400).show(aspect_ratio=1) #long time
 
-    The first quadrant of the unit circle:
+    The first quadrant of the unit circle::
+
         sage: region_plot([y>0, x>0, x^2+y^2<1], (-1.1, 1.1), (-1.1, 1.1), plot_points = 400).show(aspect_ratio=1)
 
-    Here is another plot:
+    Here is another plot::
+
         sage: region_plot(x*(x-1)*(x+1)+y^2<0, (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
-    If we want to keep only the region where x is positive:
+    If we want to keep only the region where x is positive::
+
         sage: region_plot([x*(x-1)*(x+1)+y^2<0, x>-1], (x, -3, 2), (y, -3, 3), incol='lightblue', bordercol='gray', plot_points=50)
 
-    Here we have a cut circle:
+    Here we have a cut circle::
+
         sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200).show(aspect_ratio=1) #long time
     """
 
@@ -347,9 +395,11 @@ def equify(f, variables = None):
 
 def mangle_neg(vals):
     """
-    Returns the product of all values in vals positive if any of the values is positive.
+    Returns the product of all values in vals positive if any of the
+    values is positive.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.contour_plot import mangle_neg
         sage: mangle_neg([-1.2, -0.74, -2.56, -1.01])
         -2.29601280000000

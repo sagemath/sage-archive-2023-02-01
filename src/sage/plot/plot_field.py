@@ -133,7 +133,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
     and plots vector arrows of the function over the specified ranges, with
     xrange being of xvar between xmin and xmax, and yrange similarly (see below).
 
-    plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
+    ``plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))``
 
     EXAMPLES:
 
@@ -181,7 +181,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     representative points `(x_i,y_i)` between xmin, xmax, and ymin, ymax
     respectively, plots a line with slope `f(x_i,y_i)` (see below).
 
-    plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))
+    ``plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))``
 
     EXAMPLES:
 

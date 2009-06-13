@@ -1,3 +1,7 @@
+"""
+Bar Charts
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -23,7 +27,8 @@ class BarChart(GraphicPrimitive):
     """
     Graphics primitive that represents a bar chart.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.bar_chart import BarChart
         sage: g = BarChart(range(4), [1,3,2,0], {}); g
         BarChart defined by a 4 datalist
@@ -32,9 +37,10 @@ class BarChart(GraphicPrimitive):
     """
     def __init__(self, ind, datalist, options):
         """
-        Initialize a BarChart primitive.
+        Initialize a ``BarChart`` primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.bar_chart import BarChart
             sage: BarChart(range(3), [10,3,5], {'width':0.7})
             BarChart defined by a 3 datalist
@@ -48,11 +54,12 @@ class BarChart(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        Return the allowed options with descriptions for this graphics primitive.
-        This is used in displaying an error message when the user gives an option
-        that doesn't make sense.
+        Return the allowed options with descriptions for this graphics
+        primitive. This is used in displaying an error message when the
+        user gives an option that doesn't make sense.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.bar_chart import BarChart
             sage: g = BarChart(range(4), [1,3,2,0], {})
             sage: list(sorted(g._allowed_options().iteritems()))
@@ -70,7 +77,8 @@ class BarChart(GraphicPrimitive):
         """
         Return text representation of this bar chart graphics primitive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.bar_chart import BarChart
             sage: g = BarChart(range(4), [1,3,2,0], {})
             sage: g._repr_()
@@ -80,11 +88,14 @@ class BarChart(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         """
-        Render this bar chart graphics primitive on a matplotlib subplot object.
+        Render this bar chart graphics primitive on a matplotlib subplot
+        object.
 
         EXAMPLES:
+
         This rendering happens implicitly when the following command
-        is executed:
+        is executed::
+
             sage: bar_chart([1,2,10])
         """
         options = self.options()
@@ -104,13 +115,17 @@ def bar_chart(datalist, **options):
     Support for more datalists in progress.
 
     EXAMPLES:
-    A bar_chart with blue bars:
+
+    A bar_chart with blue bars::
+
         sage: bar_chart([1,2,3,4])
 
-    A bar_chart with thinner bars:
+    A bar_chart with thinner bars::
+
         sage: bar_chart([x^2 for x in range(1,20)], width=0.2)
 
-    A bar_chart with negative values and red bars:
+    A bar_chart with negative values and red bars::
+
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
     """
     dl = len(datalist)

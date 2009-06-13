@@ -1907,9 +1907,9 @@ def modify_for_nested_pickle(cls, name_prefix, module):
         sage: getattr(module, 'A.B', 'Not found')
         <class '__main__.A.B'>
     """
-
+    import types
     for (name, v) in cls.__dict__.iteritems():
-        if isinstance(v, type):
+        if isinstance(v, (type, types.ClassType)):
             if v.__name__ == name and v.__module__ == module.__name__ and getattr(module, name, None) is not v:
                 # OK, probably this is a nested class.
                 dotted_name = name_prefix + '.' + name
@@ -1924,16 +1924,52 @@ def nested_pickle(cls):
     identifier, and that name is set in the module.  For example, if
     you have::
 
-        class A:
-            class B:
-                pass
-        nested_pickle(A)
+        sage: from sage.misc.misc import nested_pickle
+        sage: module = sys.modules['__main__']
+        sage: class A(object):
+        ...       class B:
+        ...           pass
+        sage: nested_pickle(A)
+        <class '__main__.A'>
 
     then the name of class B will be modified to 'A.B', and the 'A.B'
-    attribute of the module will be set to class B.
+    attribute of the module will be set to class B::
 
-    (In Python 2.6, decorators work with classes; then @nested_pickle
-    should work as a decorator.)
+        sage: A.B.__name__
+        'A.B'
+        sage: getattr(module, 'A.B', 'Not found')
+        <class __main__.A.B at ...>
+
+    In Python 2.6, decorators work with classes; then @nested_pickle
+    should work as a decorator:
+
+        sage: @nested_pickle    # todo: not implemented
+        ...   class A2(object):
+        ...       class B:
+        ...           pass
+        sage: A2.B.__name__    # todo: not implemented
+        'A2.B'
+        sage: getattr(module, 'A2.B', 'Not found')    # todo: not implemented
+        <class __main__.A2.B at ...>
+
+    Finaly, we check that one can use a metaclass to ensure
+    nested_pickle is called on any derived subclass::
+
+        sage: class NestedClassMetaclass(type):
+        ...       def __init__(self, *args):
+        ...           nested_pickle(self)
+        ...
+        sage: class ASuperClass(object):
+        ...       __metaclass__ = NestedClassMetaclass
+        ...
+        sage: class A3(ASuperClass):
+        ...       class B(object):
+        ...           pass
+        ...
+        sage: A3.B.__name__
+        'A3.B'
+        sage: getattr(module, 'A3.B', 'Not found')
+        <class '__main__.A3.B'>
 
     EXAMPLES::
 

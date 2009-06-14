@@ -33,6 +33,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.8.p0 (Burcin Erocal, June 14, 2009) ===
+ * Fix serios bug in comparison of mul and pow objects.
+ * Conjugates of symbolic functions no longer just apply conjutage to the
+   arguments
+ * Latex printing of exp now works correctly.
+ * Better error handling for calls to python printing functions.
+ * polylog prints as Li to match Sage.
+
 === pynac-0.1.8 (Burcin Erocal, June 4, 2009) ===
  * Add error handling for py_get_constant
  * Simplify exp(a)*exp(b) -> exp(a+b)

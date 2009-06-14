@@ -510,7 +510,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((2^(x^y)))
             2^{x^{y}}
             sage: latex(abs(x))
-            \left| x \right|
+            {\left| x \right|}
             sage: latex((x*y).conjugate())
             \bar{x} \bar{y}
 
@@ -543,15 +543,6 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}
         """
-        o = self.operator()
-        if hasattr(o, '_latex_composition'):
-            return o._latex_composition(* self.operands())
-        if is_a_relational(self._gobj):
-            from sage.misc.latex import latex
-            return "%s %s %s" %(latex(self.lhs()),
-                                latex._relation_symbols()[self.operator()],
-                                latex(self.rhs()))
-
         return self._parent._latex_element_(self)
 
     def _mathml_(self):

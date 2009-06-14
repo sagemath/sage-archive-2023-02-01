@@ -30,6 +30,13 @@ class Function_exp(PrimitiveFunction):
             12.182493960703473
             sage: exp(RDF('2.5'))
             12.1824939607
+
+        TEST::
+
+            sage: latex(exp(sqrt(x)))
+            e^{\sqrt{x}}
+            sage: latex(exp)
+            \exp
         """
         PrimitiveFunction.__init__(self, "exp", latex=r"\exp",
                                    conversions=dict(maxima='exp'),
@@ -225,21 +232,13 @@ class Function_polylog(PrimitiveFunction):
 
             sage: loads(dumps(polylog))
             polylog
+
+            sage: latex(polylog(5, x))
+            \mbox{Li}_{5}(x)
         """
         PrimitiveFunction.__init__(self, "polylog", nargs=2)
 
     __call__ = SFunction.__call__
-
-    def _latex_composition(self, n, x):
-        """
-        Return Latex representation of this polylogarithm.
-
-        EXAMPLES::
-
-            sage: latex(polylog(5, x))
-            \text{Li}_{5}(x)
-        """
-        return "\\text{Li}_{%s}(%s)"%(n, x)
 
     def _maxima_init_evaled_(self, *args):
         """

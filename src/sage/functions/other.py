@@ -69,21 +69,15 @@ class Function_abs(PrimitiveFunction):
             sqrt(x^2)
             sage: abs(sqrt(x))
             abs(sqrt(x))
-        """
-        PrimitiveFunction.__init__(self, "abs", latex=r"\mathrm{abs}",
-                                   approx=lambda x: float(x.__abs__()))
-
-    def _latex_composition(self, x):
-        """
-        EXAMPLES::
 
             sage: f = sage.functions.other.Function_abs()
             sage: latex(f)
             \mathrm{abs}
             sage: latex(abs(x))
-            \left| x \right|
+            {\left| x \right|}
         """
-        return "\\left| " + latex(x) + " \\right|"
+        PrimitiveFunction.__init__(self, "abs", latex=r"\mathrm{abs}",
+                                   approx=lambda x: float(x.__abs__()))
 
     def _complex_approx_(self, x):
         """
@@ -165,16 +159,17 @@ class Function_ceil(PrimitiveFunction):
 
             sage: ceil(sec(e))
             -1
+
+            sage: latex(ceil(x))
+            \left \lceil x \right \rceil
         """
-        PrimitiveFunction.__init__(self, "ceil", latex=r"\text{ceil}",
+        PrimitiveFunction.__init__(self, "ceil",
                                    approx=math.ceil,
                                    conversions=dict(maxima='ceiling'))
 
-    def _latex_composition(self, x):
+    def _print_latex_(self, x):
         r"""
         EXAMPLES:
-            sage: latex(ceil(x))
-            \left \lceil x \right \rceil
         """
         return r"\left \lceil %s \right \rceil"%latex(x)
 
@@ -302,10 +297,10 @@ class Function_floor(PrimitiveFunction):
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
         """
-        PrimitiveFunction.__init__(self, "floor", latex=r"\text{floor}",
+        PrimitiveFunction.__init__(self, "floor",
                                    approx=math.floor)
 
-    def _latex_composition(self, x):
+    def _print_latex_(self, x):
         r"""
         EXAMPLES:
             sage: latex(floor(x))
@@ -521,17 +516,6 @@ class Function_factorial(PrimitiveFunction):
 
             sage: factorial._approx_(3.14)
             7.173269190187...
-        """
-        PrimitiveFunction.__init__(self, "factorial", latex="!",
-                                   conversions=dict(maxima='factorial'),
-                                   approx=lambda x: gamma(x+1))
-
-
-    def _latex_composition(self, n):
-        r"""
-        Returns the LaTeX code when this function is applied to an object.
-
-        EXAMPLES::
 
             sage: latex(factorial(x))
             x!
@@ -545,11 +529,14 @@ class Function_factorial(PrimitiveFunction):
             \sqrt{x}!
             sage: latex(factorial(x^(2/3)))
             \left(x^{\frac{2}{3}}\right)!
+
+            sage: latex(factorial)
+            \mbox{factorial}
         """
-        n = latex(n)
-        if ' ' in n or '/' in n or '+' in n or '-' in n or '*' in n or '^' in n:
-            n = "\\left(" + n + "\\right)"
-        return n + '!'
+        PrimitiveFunction.__init__(self, "factorial", latex='\mbox{factorial}',
+                                   conversions=dict(maxima='factorial'),
+                                   approx=lambda x: gamma(x+1))
+
 
     def __call__(self, n, **kwds):
         """

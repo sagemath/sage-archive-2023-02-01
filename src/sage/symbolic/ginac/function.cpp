@@ -1704,7 +1704,7 @@ ex function::conjugate() const
 	const function_options & opt = registered_functions()[serial];
 
 	if (opt.conjugate_f==0) {
-		return exprseq::conjugate();
+		return conjugate_function(*this).hold();
 	}
 
 	if (opt.python_func && PyCallable_Check((PyObject*)opt.conjugate_f)) {

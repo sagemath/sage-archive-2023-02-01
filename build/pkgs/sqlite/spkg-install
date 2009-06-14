@@ -28,6 +28,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ `uname` = "SunOS" ]; then
+   # Linking libpthread is not necessary in Solaris 10
+   # as all the functionality is in libc. Due to what is probably a libtool
+   # bug, it is necessary to avoid linking libpthread in Solaris.
+   sed 's/LIBPTHREAD=-lpthread/LIBPTHREAD=/g' Makefile > Makefile.no_pthread
+   mv Makefile.no_pthread  Makefile
+fi
+
 make
 
 if [ $? -ne 0 ]; then

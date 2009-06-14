@@ -1,4 +1,19 @@
 SQLite
+=== sqlite-3.5.3.p4 (David Kirkby, June 13th, 2009) ===
+ * Fixed a bug that prevented sqlite building on the Sun T5240
+ t2.math.washington.edu running Solaris 10 update 4 with gcc version
+ 4.4.0.
+
+ Linking libpthread before libc caused the problem. Changing the order
+ of linking avoided it, but is not easy to do, as the order is
+ determined by libtool. However, libpthread is not necessary on Solaris
+ 10. There is *probably* a libtool bug that is the real cause. The bug
+ fix is implemented by striping libpthread out of the Makefile with sed.
+
+ Thanks are due to Nicolas Williams (Nicolas.Williams@sun.com) who made
+ me aware libpthread was not necessary, as its functionality was moved
+ to libc in Solaris 10, with libpthread only provided for backwards
+ compatibility.
 
 === sqlite-3.5.3.p3 (Michael Abshoff, May 19th, 2008) ===
  * add 64 bit OSX build support

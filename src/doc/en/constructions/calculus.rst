@@ -27,7 +27,7 @@ Differentiation:
     sage: f.diff(x)
     k*x^3*e^(k*x)*sin(w*x) + w*x^3*e^(k*x)*cos(w*x) + 3*x^2*e^(k*x)*sin(w*x)
     sage: latex(f.diff(x))
-    k x^{3} e^{k*x} \sin\left(w x\right) + w x^{3} e^{k*x} \cos\left(w x\right) + 3 \, x^{2} e^{k*x} \sin\left(w x\right)
+    k x^{3} e^{k x} \sin\left(w x\right) + w x^{3} e^{k x} \cos\left(w x\right) + 3 \, x^{2} e^{k x} \sin\left(w x\right)
 
 If you type ``view(f.diff('x'))`` another window will open up
 displaying the compiled output. In the notebook, you can enter

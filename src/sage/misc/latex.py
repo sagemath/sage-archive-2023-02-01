@@ -476,7 +476,9 @@ def _run_latex_(filename, debug=False, density=150,
     density = int(1.4 * density / 1.3)
     convert = 'sage-native-execute convert -density %sx%s -trim %s.%s %s.png %s '%\
         (density,density, filename, suffix, filename, redirect)
-    #
+
+    e = 1 # it is possible to get through the following commands
+          # without running a program, so in that case we force error
     if pdflatex:
         if png:
             cmd = ' && '.join([lt, convert])

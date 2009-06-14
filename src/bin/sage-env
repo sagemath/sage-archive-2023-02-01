@@ -272,14 +272,6 @@ if [ "$MAKEFLAGS" != "" ]; then
     MFLAGS="$MAKEFLAGS"  && export MFLAGS
 fi
 
-# If the language encoding isn't set, set it to be US, since
-# Sage is currently mainly a US program, and leaving this off
-# leads to some really confusing errors -- see trac #276
-
-if [ "$LANG" = "" ]; then
-    LANG="en_US.UTF-8"  && export LANG
-fi
-
 # Export variable names.
 export SHAREDFLAGS
 export UNAME
@@ -293,7 +285,6 @@ echo "CC=$CC"
 echo "CFLAGS=$CFLAGS"
 echo "CXX=$CXX"
 echo "CXXFLAGS=$CXXFLAGS"
-echo "LANG=$LANG"
 echo "LD=$LD"
 echo "LDFLAGS=$LDFLAGS"
 echo "LN=$LN"

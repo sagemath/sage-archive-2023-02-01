@@ -89,6 +89,9 @@ class Function_sec(PrimitiveFunction):
             sec(1/2)
             sage: sec(0.5)
             1.13949392732455
+
+            sage: latex(sec(x))
+            \sec\left(x\right)
         """
         PrimitiveFunction.__init__(self, "sec", latex=r"\sec",
                                    approx=lambda x: 1/math.cos(x))
@@ -140,6 +143,9 @@ class Function_csc(PrimitiveFunction):
             csc(1/2)
             sage: csc(0.5)
             2.08582964293349
+
+            sage: latex(csc(x))
+            \csc\left(x\right)
         """
         PrimitiveFunction.__init__(self, "csc", latex=r"\csc",
                                    approx=lambda x: 1/math.sin(x))
@@ -190,6 +196,9 @@ class Function_cot(PrimitiveFunction):
             cot(1/2)
             sage: cot(0.5)
             1.83048772171245
+
+            sage: latex(cot(x))
+            \cot\left(x\right)
         """
         PrimitiveFunction.__init__(self, "cot", latex=r"\cot",
                                    approx=lambda x: 1/math.tan(x))

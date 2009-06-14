@@ -127,7 +127,7 @@ cdef class SFunction(SageObject):
             my args are: x, y^z
             sage: foo = nfunction('t', 2, latex_name='foo')
             sage: latex(foo(x,y^z))
-            \mbox{foo}\left(x, y^{z}\right)
+            foo\left(x, y^{z}\right)
 
 
         TESTS::

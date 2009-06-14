@@ -18,7 +18,7 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 from other import ( ceil, floor, gamma, factorial,
                     abs_symbolic, erf, sqrt,
                     real_part, real,
-                    imag_part, imag, imaginary)
+                    imag_part, imag, imaginary, conjugate)
 
 from log import (exp, log, ln, polylog, dilog)
 

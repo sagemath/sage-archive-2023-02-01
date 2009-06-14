@@ -232,20 +232,25 @@ cot = Function_cot()
 class Function_arcsin(PrimitiveFunction):
     def __init__(self):
         """
-        The inverse of the hyperbolic sine function.
+        The arcsine function.
 
         EXAMPLES::
 
-            sage: arcsinh(0.5)
-            0.481211825059603
-            sage: arcsinh(1/2)
-            arcsinh(1/2)
-            sage: arcsinh(1 + 1.0*I)
-            1.06127506190504 + 0.666239432492515*I
+            sage: arcsin(0.5)
+            0.523598775598299
+            sage: arcsin(1/2)
+            1/6*pi
+            sage: arcsin(1 + 1.0*I)
+            0.666239432492515 + 1.06127506190504*I
+
+        TESTS::
+
+            sage: arcsin(x).operator()
+            arcsin
         """
         PrimitiveFunction.__init__(self, 'arcsin', latex=r"\sin^{-1}",
-                                   approx=math.asin,
-                                   conversions=dict(maxima='asin'))
+                approx=math.asin,
+                conversions=dict(maxima='asin', ginac='asin'))
 arcsin = asin = Function_arcsin()
 
 class Function_arccos(PrimitiveFunction):
@@ -261,10 +266,15 @@ class Function_arccos(PrimitiveFunction):
             1/3*pi
             sage: arccos(1 + 1.0*I)
             0.904556894302381 - 1.06127506190504*I
+
+        TESTS::
+
+            sage: arccos(x).operator()
+            arccos
         """
         PrimitiveFunction.__init__(self, 'arccos', latex=r"\cos^{-1}",
-                                   approx=math.acos,
-                                   conversions=dict(maxima='acos', ginac='acos'))
+                approx=math.acos,
+                conversions=dict(maxima='acos', ginac='acos'))
 
     def _evalf_(self, x, prec=0):
         """
@@ -290,6 +300,11 @@ class Function_arctan(PrimitiveFunction):
             0.463647609001
             sage: arctan(1 + I)
             arctan(I + 1)
+
+        TESTS::
+
+            sage: arctan(x).operator()
+            arctan
         """
         PrimitiveFunction.__init__(self, "arctan", latex=r'\tan^{-1}',
                                    approx=math.atan,

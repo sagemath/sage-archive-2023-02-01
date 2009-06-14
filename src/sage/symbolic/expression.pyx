@@ -3092,16 +3092,7 @@ cdef class Expression(CommutativeRingElement):
 
             # if operator is a special function defined by us
             # find the python equivalent and return it
-            res = None
-            if serial < get_ginac_serial():
-                from sage.symbolic.function import get_sfunction_map
-                res = get_sfunction_map()[serial]
-                if res is None:
-                    pass
-                    #raise NotImplementedError, "Sage equivalent of this special function is not implemented."
-
-            if res is None:
-                res = get_sfunction_from_serial(serial)
+            res = get_sfunction_from_serial(serial)
             if res is None:
                 raise RuntimeError, "cannot find SFunction in table"
 

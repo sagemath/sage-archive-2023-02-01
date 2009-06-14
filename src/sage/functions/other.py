@@ -416,7 +416,8 @@ class Function_gamma(PrimitiveFunction):
             sage: maxima(gamma(z)).sage()
             gamma(z)
         """
-        PrimitiveFunction.__init__(self, "gamma", latex=r'\Gamma')
+        PrimitiveFunction.__init__(self, "gamma", latex=r'\Gamma',
+                conversions=dict(ginac='tgamma'))
 
     def __call__(self, x):
         """
@@ -786,3 +787,31 @@ class Function_imag_part(PrimitiveFunction):
                                    conversions=dict(maxima='imagpart'))
 
 imag = imag_part = imaginary = Function_imag_part()
+
+
+############################
+# Complex Conjugate        #
+############################
+class Function_conjugate(PrimitiveFunction):
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: x.conjugate()
+            conjugate(x)
+            sage: latex(conjugate(x))
+            \bar{x}
+            sage: f = function('f')
+            sage: latex(f(x).conjugate())
+            \bar{\mbox{f}\left(x\right)}
+            sage: x.conjugate().conjugate()
+            x
+            sage: x.conjugate().operator()
+            conjugate
+            sage: x.conjugate().operator() == conjugate
+            True
+
+        """
+        PrimitiveFunction.__init__(self, "conjugate")
+
+conjugate = Function_conjugate()

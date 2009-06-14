@@ -179,10 +179,15 @@ class Function_arcsinh(HyperbolicFunction):
             sage: arcsinh._approx_(0.5)
             0.48121182505960347
 
+        TESTS::
+
+            sage: arcsinh(x).operator()
+            arcsinh
+
         """
         PrimitiveFunction.__init__(self, "arcsinh", latex=r"\sinh^{-1}",
-                                   approx=lambda x: float(pari(float(x)).asinh()),
-                                   conversions=dict(maxima='asinh'))
+                               approx=lambda x: float(pari(float(x)).asinh()),
+                               conversions=dict(maxima='asinh', ginac='asinh'))
 
 arcsinh = asinh = Function_arcsinh()
 
@@ -213,10 +218,15 @@ class Function_arccosh(HyperbolicFunction):
             sage: arccosh(CC(0.5))
             1.04719755119660*I
 
+        TESTS::
+
+            sage: arccosh(x).operator()
+            arccosh
+
         """
         PrimitiveFunction.__init__(self, "arccosh", latex=r"\cosh^{-1}",
-                                   approx=lambda x: float(pari(float(x)).acosh()),
-                                   conversions=dict(maxima='acosh'))
+                           approx=lambda x: float(pari(float(x)).acosh()),
+                           conversions=dict(maxima='acosh', ginac="acosh"))
 
 arccosh = acosh = Function_arccosh()
 
@@ -234,10 +244,15 @@ class Function_arctanh(HyperbolicFunction):
             sage: arctanh(1 + I*1.0)
             0.402359478108525 + 1.01722196789785*I
 
+        TESTS::
+
+            sage: arctanh(x).operator()
+            arctanh
+
         """
         PrimitiveFunction.__init__(self, "arctanh", latex=r"\tanh^{-1}",
-                                   approx=lambda x: float(pari(float(x)).atanh()),
-                                   conversions=dict(maxima='atanh'))
+                           approx=lambda x: float(pari(float(x)).atanh()),
+                           conversions=dict(maxima='atanh', ginac='atanh'))
 
 arctanh = atanh = Function_arctanh()
 

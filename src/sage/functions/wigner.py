@@ -42,14 +42,6 @@ from sage.rings.integer_mod import Mod
 _Factlist=[1]
 
 def _calc_factlist(nn):
-    if nn>=len(_Factlist):
-        for ii in range(len(_Factlist),nn+1):
-            _Factlist.append(_Factlist[ii-1]*ii)
-            #_Factlist.append(factorial(ii))
-    #return _Factlist
-
-
-def test_calc_factlist(nn):
     r"""
     Function calculates a list of precomputed factorials in order to
     massively accelerate future calculations of the various
@@ -68,12 +60,16 @@ def test_calc_factlist(nn):
 
     Calculate list of factorials:
 
-        sage: from sage.functions.wigner import test_calc_factlist
-        sage: test_calc_factlist(10)
+        sage: from sage.functions.wigner import _calc_factlist
+        sage: _calc_factlist(10)
         [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800]
     """
-    _calc_factlist(nn)
-    return _Factlist[:nn+1]
+    if nn>=len(_Factlist):
+        for ii in range(len(_Factlist),nn+1):
+            _Factlist.append(_Factlist[ii-1]*ii)
+            #_Factlist.append(factorial(ii))
+    return _Factlist[:Integer(nn)+1]
+
 
 
 
@@ -353,6 +349,15 @@ def _bigDeltacoeff(aa,bb,cc,prec=None):
 
     double - Value of the Delta coefficient
 
+
+    EXAMPLES:
+
+    Simple examples:
+
+        sage: from sage.functions.wigner import _bigDeltacoeff
+        sage: _bigDeltacoeff(1,1,1)
+        1/2*sqrt(1/6)
+
     """
 
     if(int(aa+bb-cc)!=(aa+bb-cc)):
@@ -384,36 +389,6 @@ def _bigDeltacoeff(aa,bb,cc,prec=None):
     else:
         res=ressqrt
     return res
-
-
-def test_bigDeltacoeff(aa,bb,cc,prec=None):
-    r"""
-    Test for the Delta coefficient of the 3 angular momenta for
-    Racah symbols. Also checks that the differences are of integer
-    value.
-
-    INPUT:
-
-     - aa - first angular momentum, integer or half integer
-     - bb - second angular momentum, integer or half integer
-     - cc - third angular momentum, integer or half integer
-     - prec - precision of the sqrt() calculation
-
-    OUTPUT:
-
-    double - Value of the Delta coefficient
-
-    EXAMPLES:
-
-    Simple examples:
-
-        sage: from sage.functions.wigner import test_bigDeltacoeff
-        sage: test_bigDeltacoeff(1,1,1)
-        1/2*sqrt(1/6)
-
-    """
-
-    return _bigDeltacoeff(aa,bb,cc,prec)
 
 
 

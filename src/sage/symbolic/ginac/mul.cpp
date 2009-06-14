@@ -1167,7 +1167,7 @@ int mul::compare_pow(const power &other) const
 	if (cmpval != 0) {
 		return cmpval;
 	}
-	if (seq.size() == 1 && overall_coeff.is_equal(_ex_1))
+	if (seq.size() == 1 && overall_coeff.is_equal(_ex1))
 		return 0;
 	return 1;
 }

@@ -855,6 +855,74 @@ class Order(IntegralDomain):
             return 0
         return cmp(self._module_rep, other._module_rep)
 
+    def random_element(self, *args, **kwds):
+        """
+        Return a random element of this order.
+
+        INPUT:
+
+        - ``args``, ``kwds`` -- parameters passed to the random
+          integer function.  See the documentation for
+          ``ZZ.random_element()`` for details.
+
+        OUTPUT:
+
+        A random element of this order, computed as a random
+        `\ZZ`-linear combination of the basis.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: OK = K.ring_of_integers()
+            sage: OK.random_element() # random output
+            -2*a^2 - a - 2
+            sage: OK.random_element(distribution="uniform") # random output
+            -a^2 - 1
+            sage: OK.random_element(-10,10) # random output
+            -10*a^2 - 9*a - 2
+            sage: K.order(a).random_element() # random output
+            a^2 - a - 3
+
+        ::
+
+            sage: K.<z> = CyclotomicField(17)
+            sage: OK = K.ring_of_integers()
+            sage: OK.random_element() # random output
+            z^15 - z^11 - z^10 - 4*z^9 + z^8 + 2*z^7 + z^6 - 2*z^5 - z^4 - 445*z^3 - 2*z^2 - 15*z - 2
+            sage: OK.random_element().is_integral()
+            True
+            sage: OK.random_element().parent() is OK
+            True
+
+        A relative example::
+
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: OK = K.ring_of_integers()
+            sage: OK.random_element() # random output
+            (42221/2*b + 61/2)*a + 7037384*b + 7041
+            sage: OK.random_element().is_integral() # random output
+            True
+            sage: OK.random_element().parent() is OK # random output
+            True
+
+        An example in a non-maximal order::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: R = K.ring_of_integers()
+            sage: A = K.order(a)
+            sage: A.index_in(R)
+            2
+            sage: R.random_element() # random output
+            -39/2*a - 1/2
+            sage: A.random_element() # random output
+            2*a - 1
+            sage: A.random_element().is_integral()
+            True
+            sage: A.random_element().parent() is A
+            True
+        """
+        return sum([ZZ.random_element(*args, **kwds)*a for a in self.gens()])
+
     def absolute_degree(self):
         r"""
         Returns the absolute degree of this order, ie the degree of this order over `\ZZ`.

@@ -68,7 +68,9 @@ protected:
 
 	// new virtual functions which can be overridden by derived classes
 protected:
-	void do_print(const print_context & c, unsigned level) const;
+	void print_rel(const print_context & c, unsigned level, bool latex) const;
+	void do_print_dflt(const print_context & c, unsigned level) const;
+	void do_print_latex(const print_context & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
 
 public:

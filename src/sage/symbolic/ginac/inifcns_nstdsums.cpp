@@ -1629,7 +1629,7 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 	} else {
 		x = lst(x_);
 	}
-	c.s << "\\mbox{polylog}_{";
+	c.s << "\\mbox{Li}_{";
 	lst::const_iterator itm = m.begin();
 	(*itm).print(c);
 	itm++;

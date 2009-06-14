@@ -1206,6 +1206,9 @@ void function::print(const print_context & c, unsigned level) const
 		} else {
 			throw(std::runtime_error("print context must be either latex or dflt"));
 		}
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::print(): python print function raised exception"));
+		}
 		c.s<<*sout;
 		delete sout;
 		Py_DECREF(args);

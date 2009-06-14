@@ -137,8 +137,13 @@ static void exp_print(const ex & arg, const print_context & c,
 	if (!arg.is_equal(*_num1_p)) {
 		c.s<<"^";
 		std::stringstream tstream;
-		print_dflt tcontext(tstream, c.options);
-		arg.print(tcontext);
+		print_context *tcontext_p;
+		if (latex) {
+			tcontext_p = new print_latex(tstream, c.options);
+		} else {
+			tcontext_p = new print_dflt(tstream, c.options);
+		}
+		arg.print(*tcontext_p);
 		std::string argstr = tstream.str();
 		bool parenthesis = ((argstr.find(' ') != std::string::npos)||
 				(argstr.find('+') != std::string::npos) ||

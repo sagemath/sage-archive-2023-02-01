@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <sstream>
 
 #include "inifcns.h"
 #include "ex.h"
@@ -202,7 +203,7 @@ static ex abs_eval(const ex & arg)
 
 static void abs_print_latex(const ex & arg, const print_context & c)
 {
-	c.s << "{\\left|"; arg.print(c); c.s << "\\right|}";
+	c.s << "{\\left| "; arg.print(c); c.s << " \\right|}";
 }
 
 static void abs_print_csrc_float(const ex & arg, const print_context & c)
@@ -731,7 +732,23 @@ static void factorial_print_dflt_latex(const ex & x, const print_context & c)
 		is_exactly_a<function>(x)) {
 		x.print(c); c.s << "!";
 	} else {
-		c.s << "\\left("; x.print(c); c.s << "\\right)!";
+		std::stringstream tstream;
+		print_latex tcontext(tstream, c.options);
+		x.print(tcontext);
+		std::string argstr = tstream.str();
+		bool parenthesis = ((argstr.find(' ') != std::string::npos)||
+				(argstr.find('+') != std::string::npos) ||
+				(argstr.find('-') != std::string::npos) ||
+				(argstr.find('/') != std::string::npos) ||
+				(argstr.find('*') != std::string::npos) ||
+				(argstr.find('^') != std::string::npos));
+		if (parenthesis)
+			c.s << "\\left(";
+
+		c.s << argstr;
+		if (parenthesis)
+			c.s << "\\right)";
+		c.s<<"!";
 	}
 }
 

@@ -32,7 +32,8 @@
 namespace GiNaC {
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(relational, basic,
-  print_func<print_context>(&relational::do_print).
+  print_func<print_context>(&relational::do_print_dflt).
+  print_func<print_latex>(&relational::do_print_latex).
   print_func<print_tree>(&relational::do_print_tree).
   print_func<print_python_repr>(&relational::do_print_python_repr))
 
@@ -109,15 +110,59 @@ static void print_operator(const print_context & c, relational::operators o)
 	c.s << " ";
 }
 
-void relational::do_print(const print_context & c, unsigned level) const
+static void print_operator_latex(const print_context & c, 
+		relational::operators o)
+{
+  c.s << " ";
+	switch (o) {
+	case relational::equal:
+		c.s << "=";
+		break;
+	case relational::not_equal:
+		c.s << "\\neq";
+		break;
+	case relational::less:
+		c.s << "<";
+		break;
+	case relational::less_or_equal:
+		c.s << "\\leq";
+		break;
+	case relational::greater:
+		c.s << ">";
+		break;
+	case relational::greater_or_equal:
+		c.s << "\\geq";
+		break;
+	default:
+		c.s << "(INVALID RELATIONAL OPERATOR)";
+		break;
+	}
+	c.s << " ";
+}
+
+void relational::print_rel(const print_context & c, unsigned level, 
+		bool latex) const
 {
 	if (precedence() <= level)
 		c.s << "(";
 	lh.print(c, precedence());
-	print_operator(c, o);
+	if (latex)
+		print_operator_latex(c, o);
+	else
+		print_operator(c, o);
 	rh.print(c, precedence());
 	if (precedence() <= level)
 		c.s << ")";
+}
+
+void relational::do_print_dflt(const print_context & c, unsigned level) const
+{
+	print_rel(c, level, false);
+}
+
+void relational::do_print_latex(const print_context & c, unsigned level) const
+{
+	print_rel(c, level, true);
 }
 
 void relational::do_print_python_repr(const print_python_repr & c, unsigned level) const

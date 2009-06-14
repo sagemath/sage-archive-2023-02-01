@@ -110,6 +110,15 @@ Test if matrices work #5546 ::
     sage: v*M
     (x^2 + y*z, 2*x*y)
 
+Test if comparison bugs from #6256 are fixed::
+
+    sage: t = exp(sqrt(x)); u = 1/t
+    sage: t*u
+    1
+    sage: t + u
+    e^sqrt(x) + e^(-sqrt(x))
+    sage: t
+    e^sqrt(x)
 """
 
 include "../ext/interrupt.pxi"

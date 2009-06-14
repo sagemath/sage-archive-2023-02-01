@@ -25,6 +25,9 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p9 (William Stein, June 14, 2009) ===
+ * use $MAKE environment variable so that parallel build works
+
 === rubiks-20070912.p8 (Michael Abshoff, September 1st, 2008) ===
  * work around install problem on Solaris
 

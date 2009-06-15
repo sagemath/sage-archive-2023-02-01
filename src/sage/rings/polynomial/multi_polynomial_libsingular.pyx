@@ -371,6 +371,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 25213521351515232
             sage: type(P)
             <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict'>
+
+            sage: P.<x,y,z> = PolynomialRing(Integers(2^32),order='lex')
+            sage: P(2^32-1)
+            4294967295
         """
         cdef char **_names
         cdef char *_name
@@ -454,7 +458,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if ch.is_power_of(2):
                 exponent = ch.nbits() -1
                 if is_64_bit:
-                    if exponent <= 62: ringtype = 1
+                    # it seems Singular uses ints somewhere
+                    # internally, cf. #6051 (Sage) and #138 (Singular)
+                    if exponent <= 30: ringtype = 1
                     else: ringtype = 3
                 else:
                     if exponent <= 30: ringtype = 1

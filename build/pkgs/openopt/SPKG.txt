@@ -1,0 +1,27 @@
+= OpenOpt =
+
+== Description ==
+
+OpenOpt 0.24, a free Python-written numerical optimization framework
+with some own solvers and connections to tens of 3rd party ones, has
+been released.
+
+== Maintainers ==
+
+ * William Stein
+
+== Upstream Contact ==
+
+ * Author: Dmitrey Kroshko
+ * Email: dmitrey.kroshko@scipy.org
+ * Website: ftp://ftp.linux.kiev.ua/pub/projects/openopt/download/
+
+== Dependencies ==
+
+  None?
+
+== Releases ==
+
+=== openopt-0.24 (William Stein, June 15, 2009) ===
+ * make the first version
+

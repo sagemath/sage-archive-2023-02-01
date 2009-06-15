@@ -211,7 +211,7 @@ class ComplexPlot(GraphicPrimitive):
 @options(plot_points=100, interpolation='catrom')
 def complex_plot(f, xrange, yrange, **options):
     r"""
-    ``complex_plot`` takes a complex function of one variables,
+    ``complex_plot`` takes a complex function of one variable,
     `f(z)` and plots output of the function over the specified
     ``xrange`` and ``yrange`` as demonstrated below. The magnitude of the
     output is indicated by the brightness (with zero being black and
@@ -255,7 +255,7 @@ def complex_plot(f, xrange, yrange, **options):
         sage: f(z) = z^5 + z - 1 + 1/z
         sage: complex_plot(f, (-3, 3), (-3, 3))
 
-    Here is the identy, useful for seeing what values map to what colors::
+    Here is the identity, useful for seeing what values map to what colors::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3))
 

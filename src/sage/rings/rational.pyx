@@ -883,7 +883,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
            See also ``val_unit()`` which returns the pair `(e,m)`.
 
-        Examples::
+        EXAMPLES::
 
             sage: x = -5/9
             sage: x.valuation(5)

@@ -37,10 +37,10 @@ def notebook_setup(self=None):
     try:
         import dsage.all
         print "Using dsage certificates."
-        dsage = os.path.join(DOT_SAGE, 'dsage')
-        sage.dsage.all.dsage.setup()
-        shutil.copyfile(dsage + '/cacert.pem', private_pem)
-        shutil.copyfile(dsage + '/pubcert.pem', public_pem)
+        path = os.path.join(DOT_SAGE, 'dsage')
+        dsage.all.dsage.setup()
+        shutil.copyfile(path + '/cacert.pem', private_pem)
+        shutil.copyfile(path + '/pubcert.pem', public_pem)
     except ImportError:
         pass
 

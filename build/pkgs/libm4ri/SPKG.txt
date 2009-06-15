@@ -20,6 +20,9 @@ Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Releases ==
 
+=== libm4ri-20090615 (Martin Albrecht, June 15th, 2009) ===
+ * new upstream release with bugfixes and new functionality (nullspace)
+
 === libm4ri-20090512 (Martin Albrecht, May 12th, 2009) ===
  * new upstream release with API changes
 

@@ -8,6 +8,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+unset RM
+
 cd src
 
 $MAKE clean

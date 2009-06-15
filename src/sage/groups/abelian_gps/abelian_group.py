@@ -607,6 +607,26 @@ class AbelianGroup_class(group.AbelianGroup):
             self.__exponent = e
             return e
 
+
+    def identity(self):
+        r"""
+        Return the identity element of this group.
+
+        EXAMPLES::
+
+            sage: G = AbelianGroup([2,2])
+            sage: e = G.identity()
+            sage: e
+            1
+            sage: g = G.gen(0)
+            sage: g*e
+            f0
+            sage: e*g
+            f0
+        """
+        return self(1)
+
+
     def _group_notation(self, eldv):
         v = []
         for x in eldv:

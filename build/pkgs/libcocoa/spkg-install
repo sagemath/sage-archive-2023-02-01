@@ -1,37 +1,75 @@
 #!/usr/bin/env python
 
-import os, sys
+import os, shutil, sys
 
-if os.environ['DELETE_TMP']=="1":
-    print "Please build Cocoalib with 'sage -i -m cocoalib...', i.e, use the -m option."
+# Move the extracted sources to SAGE_ROOT/local/cocoalib...
+
+CUR    = os.path.abspath(os.curdir)
+TARGET = os.environ['SAGE_LOCAL'] + "/lib/" + os.path.split(CUR)[1].lstrip('lib')
+if os.path.exists(TARGET):
+    print "Plese manually remove the directory %s, then reinstall cocoalib"%TARGET
+    print "We make you do this manually, since you might have changed examples"
+    print "there, and we don't want to delete your work."
     sys.exit(1)
 
-os.chdir('src')
+shutil.move(CUR, TARGET)
+
+# Do the following so that the Sage build system doesn't complain when
+# trying to delete the tmp build directory.
+os.makedirs(CUR)
+
+# Change into the src directory, and build in place.
+os.chdir(TARGET + '/src')
+
+print "Doing the build in the following directory:"
+print TARGET
+
+# Script to print and run a command.
+# We don't bother checking exit codes, since they don't seem useful yet with cocoalib!
 
 def run(cmd):
     print cmd
-    if not os.system(cmd):
-        print "WARNING doing: %s"%cmd
+    os.system(cmd)
 
-run('./configure --prefix=$SAGE_LOCAL --with-libgmp=$SAGE_LOCAL/lib/libgmp.dylib')
+
+# First configure.  There is no "make install" for cocoalib, so notice
+# that there is no --prefix given below. Also, note that cocoalib's
+# custom configure script requires the exact name -- not just path --
+# of the gmp=mpir dynamic library, which is why we have to determine
+# the extension of that library below.
+
+if os.uname()[0] == 'Darwin':
+    ext = "dylib"
+else:
+    # We're not supporting Windows/Cygwin yet!
+    ext = "so"
+
+run('./configure  --with-libgmp=$SAGE_LOCAL/lib/libgmp.%s'%ext)
+
+
+# Run make, which mysteriously happens to also run a test suite, which fails.
 
 print "Now running Make"
 run('make')
 
-print "There are known test failures that should be listed above.  These might be"
-print "because Sage uses MPIR instead of GMP which has different xgcd behavior."
+print "There are known test failures that should be listed above."
+print "They are literally 'not yet implemented' errors from the"
+print "CoCOA library.   I.e., CoCOA releases purposely don't pass"
+print "their own test suite at present."
 
+# If it couldn't even build cocoa, then bail with a huge error.
 if not os.path.exists('lib/libcocoa.a'):
     print "Error libcocoa.a did not build."
     sys.exit(1)
 
-print "libcocoa.a built"
+# It "succeeded".  Tell users how they can play with the result.
+print "libcocoa.a built!\n"
 print "-"*70
-print "To play with libcocoa, type 'sage -sh', then cd to the directory"
-print "   " + os.path.abspath('.') + '/examples'
-print "and try making and running some of the examples."
-print "When you're done, it is completely safe to delete directory:"
+print "\nTo play with libcocoa, type 'sage -sh', then cd to the directory\n"
+print "   " + os.path.abspath(os.curdir) + '/examples'
+print "\nand try making and running some of the examples."
+print "When you're done, it is completely safe to delete directory:\n"
 print "   " + os.path.abspath('..')
-print "-"*70
+print "\n"+"-"*70
 sys.exit(0)
 

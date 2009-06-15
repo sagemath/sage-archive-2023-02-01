@@ -1,0 +1,25 @@
+= LIBCOCOA =
+
+== Description ==
+
+CoCoALib is a GPL C++ library for doing Computations in Commutative Algebra.
+
+== Maintainers ==
+
+ * William Stein
+
+== Upstream Contact ==
+
+ * Author: John Abbott et al.
+ * Email: abbott@dima.unige.it
+ * Website: http://cocoa.dima.unige.it/cocoalib/
+
+== Dependencies ==
+
+  MPIR
+
+== Releases ==
+
+=== libcocoa-0.9930 (William Stein, June 15, 2009) ===
+ * make the first version that is enough for Sage users to build and play with
+

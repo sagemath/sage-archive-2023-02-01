@@ -2089,8 +2089,10 @@ cdef class NumberFieldElement(FieldElement):
         The function can be applied to elements in relative number fields::
 
             sage: L.<b> = K.extension(x^2 - 3)
-            sage: [L(6).valuation(P) for P in L.primes_above(6)]
-            [2, 2, 4]
+            sage: [L(6).valuation(P) for P in L.primes_above(2)]
+            [4]
+            sage: [L(6).valuation(P) for P in L.primes_above(3)]
+            [2, 2]
         """
         from number_field_ideal import is_NumberFieldIdeal
         from sage.rings.infinity import infinity

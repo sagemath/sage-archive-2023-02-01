@@ -1959,12 +1959,12 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if degree is not None:
             degree = ZZ(degree)
-        facs = [ (id.residue_class_degree(), id) for id in self.prime_factors(x) ]
+        facs = [ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ]
         facs.sort() # sorts on residue_class_degree(), lowest first
         if degree is None:
-            return [ id for d, id in facs ]
+            return [ id for d, n, id in facs ]
         else:
-            return [ id for d, id in facs if d == degree ]
+            return [ id for d, n, id in facs if d == degree ]
 
     def prime_above(self, x, degree=None):
         r"""

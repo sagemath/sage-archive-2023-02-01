@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+import os, sys
+
+if os.environ['DELETE_TMP']=="1":
+    print "Please build Cocoalib with 'sage -i -m cocoalib...', i.e, use the -m option."
+    sys.exit(1)
+
+os.chdir('src')
+
+def run(cmd):
+    print cmd
+    if not os.system(cmd):
+        print "WARNING doing: %s"%cmd
+
+run('./configure --prefix=$SAGE_LOCAL --with-libgmp=$SAGE_LOCAL/lib/libgmp.dylib')
+
+print "Now running Make"
+run('make')
+
+print "There are known test failures that should be listed above.  These might be"
+print "because Sage uses MPIR instead of GMP which has different xgcd behavior."
+
+if not os.path.exists('lib/libcocoa.a'):
+    print "Error libcocoa.a did not build."
+    sys.exit(1)
+
+print "libcocoa.a built"
+print "-"*70
+print "To play with libcocoa, type 'sage -sh', then cd to the directory"
+print "   " + os.path.abspath('.') + '/examples'
+print "and try making and running some of the examples."
+print "When you're done, it is completely safe to delete directory:"
+print "   " + os.path.abspath('..')
+print "-"*70
+sys.exit(0)
+

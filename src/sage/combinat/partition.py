@@ -20,9 +20,9 @@ AUTHORS:
 - Dan Drake (2009-03-28): deprecate RestrictedPartitions and implement
   Partitions_parts_in
 
-EXAMPLES: There are 5 partitions of the integer 4.
+EXAMPLES:
 
-::
+There are 5 partitions of the integer 4::
 
     sage: Partitions(4).cardinality()
     5
@@ -30,17 +30,13 @@ EXAMPLES: There are 5 partitions of the integer 4.
     [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
 We can use the method .first() to get the 'first' partition of a
-number.
-
-::
+number::
 
     sage: Partitions(4).first()
     [4]
 
 Using the method .next(), we can calculate the 'next' partition.
-When we are at the last partition, None will be returned.
-
-::
+When we are at the last partition, None will be returned::
 
     sage: Partitions(4).next([4])
     [3, 1]
@@ -49,9 +45,7 @@ When we are at the last partition, None will be returned.
 
 We can use ``iter`` to get an object which iterates over the partitions one
 by one to save memory.  Note that when we do something like
-``for part in Partitions(4)`` this iterator is used in the background.
-
-::
+``for part in Partitions(4)`` this iterator is used in the background::
 
     sage: g = iter(Partitions(4))
 
@@ -95,9 +89,7 @@ of the partitions of 4 with parts at most 2::
 
 The min_part options is complementary to max_part and selects
 partitions having only 'large' parts. Here is the list of all
-partitions of 4 with each part at least 2.
-
-::
+partitions of 4 with each part at least 2::
 
     sage: Partitions(4, min_part=2).list()
     [[4], [2, 2]]
@@ -119,9 +111,7 @@ such that the second and third part are 1 when they exist::
 
 Finally, here are the partitions of 4 with [1,1,1] as an inner
 bound. Note that inner sets min_length to the length of its
-argument.
-
-::
+argument::
 
     sage: Partitions(4, inner=[1,1,1]).list()
     [[2, 1, 1], [1, 1, 1, 1]]
@@ -143,9 +133,7 @@ that the difference between two consecutive parts is between -3 and
     [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
 
 Partition objects can also be created individually with the
-Partition function.
-
-::
+Partition function::
 
     sage: Partition([2,1])
     [2, 1]
@@ -154,9 +142,7 @@ Once we have a partition object, then there are a variety of
 methods that we can use. For example, we can get the conjugate of a
 partition. Geometrically, the conjugate of a partition is the
 reflection of that partition through its main diagonal. Of course,
-this operation is an involution.
-
-::
+this operation is an involution::
 
     sage: Partition([4,1]).conjugate()
     [2, 1, 1, 1]
@@ -165,9 +151,7 @@ this operation is an involution.
 
 We can go back and forth between the exponential notations of a
 partition. The exponential notation can be padded with extra
-zeros.
-
-::
+zeros::
 
     sage: Partition([6,4,4,2,1]).to_exp()
     [1, 1, 0, 2, 0, 1]
@@ -180,48 +164,36 @@ zeros.
     sage: Partition([6,4,4,2,1]).to_exp(10)
     [1, 1, 0, 2, 0, 1, 0, 0, 0, 0]
 
-We can get the coordinates of the corners of a partition.
-
-::
+We can get the coordinates of the corners of a partition::
 
     sage: Partition([4,3,1]).corners()
     [[0, 3], [1, 2], [2, 0]]
 
-We can compute the r-core and r-quotient of a partition and build
-the partition back up from them.
+We can compute the core and quotient of a partition and build
+the partition back up from them::
 
-::
-
-    sage: Partition([6,3,2,2]).r_core(3)
+    sage: Partition([6,3,2,2]).core(3)
     [2, 1, 1]
-    sage: Partition([7,7,5,3,3,3,1]).r_quotient(3)
+    sage: Partition([7,7,5,3,3,3,1]).quotient(3)
     [[2], [1], [2, 2, 2]]
     sage: p = Partition([11,5,5,3,2,2,2])
-    sage: p.r_core(3)
+    sage: p.core(3)
     []
-    sage: p.r_quotient(3)
+    sage: p.quotient(3)
     [[2, 1], [4], [1, 1, 1]]
-    sage: Partition(core_and_quotient=([],[[2, 1], [4], [1, 1, 1]]))
+    sage: Partition(core=[],quotient=[[2, 1], [4], [1, 1, 1]])
     [11, 5, 5, 3, 2, 2, 2]
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.interfaces.all import gap, gp
 from sage.rings.all import QQ, ZZ, infinity, factorial, gcd
-from sage.misc.all import prod, sage_eval
+from sage.misc.all import prod
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.combinat.misc as misc
 import sage.combinat.skew_partition
@@ -237,82 +209,104 @@ import composition
 from integer_vector import IntegerVectors
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
+from sage.functions.other import ceil
 
-def Partition(l=None, exp=None, core_and_quotient=None):
+def Partition(mu=None, **keyword):
     """
-    Returns a partition object.
+    A partition is a weakly decreasing ordered sequence of non-negative
+    integers. This function returns a Sage partition object which can
+    be specified in one of the following ways::
 
-    Note that Sage uses the English convention for partitions and
-    tableaux.
+      * a list (the default)
+      * using exponential notation
+      * by beta numbers (TODO)
+      * specifying the core and the quotient
+      * specifying the core and the canonical quotient (TODO)
+
+    See the examples below.
+
+    Sage follows the usual python conventions when dealing with partitions,
+    so that the first part of the partition ``mu=Partition([4,3,2,2])`` is
+    ``mu[0]``, the second part is ``mu[1]`` and so on. As is usual, Sage ignores
+    trailing zeros at the end of partitions.
 
     EXAMPLES::
 
-        sage: Partition(exp=[2,1,1])
-        [3, 2, 1, 1]
-        sage: Partition(core_and_quotient=([2,1], [[2,1],[3],[1,1,1]]))
-        [11, 5, 5, 3, 2, 2, 2]
         sage: Partition([3,2,1])
         [3, 2, 1]
+        sage: Partition([3,2,1,0])
+        [3, 2, 1]
+        sage: Partition(exp=[2,1,1])
+        [3, 2, 1, 1]
+        sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
+        [11, 5, 5, 3, 2, 2, 2]
         sage: [2,1] in Partitions()
         True
         sage: [2,1,0] in Partitions()
         False
-        sage: Partition([2,1,0])
-        [2, 1]
         sage: Partition([1,2,3])
         Traceback (most recent call last):
         ...
         ValueError: [1, 2, 3] is not a valid partition
     """
-    number_of_arguments = 0
-    for arg in ['l', 'exp', 'core_and_quotient']:
-        if locals()[arg] is not None:
-            number_of_arguments += 1
-
-    if number_of_arguments != 1:
-        raise ValueError, "you must specify exactly one argument"
-
-    if l is not None:
-        l = [i for i in l if i != 0]
-        if l in Partitions_all():
-            return Partition_class(l)
+    if mu is not None and len(keyword)==0:
+        mu = [i for i in mu if i != 0]
+        if mu in Partitions_all():
+            return Partition_class(mu)
         else:
-            raise ValueError, "%s is not a valid partition"%l
-    elif exp is not None:
-        return from_exp(exp)
+            raise ValueError, "%s is not a valid partition"%mu
+    elif 'beta_numbers' in keyword and len(keyword)==1:
+        raise NotImplementedError
+    elif 'exp' in keyword and len(keyword)==1:
+        return from_exp(keyword['exp'])
+    elif 'core' in keyword and 'quotient' in keyword and len(keyword)==2:
+        return from_core_and_quotient(keyword['core'], keyword['quotient'])
+    elif 'core' in keyword and 'canonical_quotient' in keyword and len(keyword)==2:
+        raise NotImplementedError
+    elif 'core_and_quotient' in keyword and len(keyword)==1:
+        from sage.misc.misc import deprecation
+        deprecation('"core_and_quotient=(*)" is deprecated. Use "core=[*], quotient=[*]" instead.')
+        return from_core_and_quotient(*keyword['core_and_quotient'])
     else:
-        return from_core_and_quotient(*core_and_quotient)
+        raise ValueError, 'incorrect syntax for Partition()'
 
-
-def from_exp(a):
+def from_exp(exp):
     """
     Returns a partition from its list of multiplicities.
 
+    .. note::
+
+       This function is for internal use only;
+       use Partition(exp=*) instead.
+
     EXAMPLES::
 
-        sage: partition.from_exp([1,2,1])
+        sage: Partition(exp=[1,2,1])
         [3, 2, 2, 1]
     """
-
     p = []
-    for i in reversed(range(len(a))):
-        p += [i+1]*a[i]
-
+    for i in reversed(range(len(exp))):
+        p += [i+1]*exp[i]
     return Partition(p)
-
 
 def from_core_and_quotient(core, quotient):
     """
-    Returns a partition from its r-core and r-quotient.
+    ** This function is being deprecated - use Partition(core=*, quotient=*) instead **
+
+    Returns a partition from its core and quotient.
 
     Algorithm from mupad-combinat.
 
+    .. note::
+
+       This function is for internal use only;
+       use Partition(core=*, quotient=*) instead.
+
     EXAMPLES::
 
-        sage: partition.from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
+        sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
     """
-    from sage.functions.all import ceil
     length = len(quotient)
     k = length*max( [ceil(len(core)/length),len(core)] + [len(q) for q in quotient] ) + length
     v = [ core[i]-(i+1)+1 for i in range(len(core))] + [ -i + 1 for i in range(len(core)+1,k+1) ]
@@ -323,8 +317,7 @@ def from_core_and_quotient(core, quotient):
         new_w += [ w[i][j] for j in range(len(quotient[i]), len(w[i])) ]
     new_w.sort()
     new_w.reverse()
-    return filter(lambda x: x != 0, [new_w[i-1]+i-1 for i in range(1, len(new_w)+1)])
-
+    return Partition([new_w[i-1]+i-1 for i in range(1, len(new_w)+1)])
 
 class Partition_class(CombinatorialObject):
     def ferrers_diagram(self):
@@ -343,18 +336,6 @@ class Partition_class(CombinatorialObject):
             *****
             *****
             **
-            *
-            sage: pi = Partitions(10).list()[11] ## [6,1,1,1,1]
-            sage: print pi.ferrers_diagram()
-            ******
-            *
-            *
-            *
-            *
-            sage: pi = Partitions(10).list()[8] ## [6, 3, 1]
-            sage: print pi.ferrers_diagram()
-            ******
-            ***
             *
         """
         return '\n'.join(['*'*p for p in self])
@@ -390,11 +371,11 @@ class Partition_class(CombinatorialObject):
 
         return sage.combinat.skew_partition.SkewPartition([self[:], p])
 
-    def power(self,k):
+    def power(self, k):
         """
-        partition_power( pi, k ) returns the partition corresponding to
-        the `k`-th power of a permutation with cycle structure pi
-        (thus describes the powermap of symmetric groups).
+        Returns the cycle type of the `k`-th power of any permutation
+        with cycle type ``self`` (thus describes the powermap of
+        symmetric groups).
 
         Wraps GAP's PowerPartition.
 
@@ -507,16 +488,13 @@ class Partition_class(CombinatorialObject):
 
     def sign(self):
         r"""
-        partition_sign( pi ) returns the sign of a permutation with cycle
-        structure given by the partition pi.
+        Returns the sign of any permutation with cycle type ``self``.
 
         This function corresponds to a homomorphism from the symmetric
         group `S_n` into the cyclic group of order 2, whose kernel
         is exactly the alternating group `A_n`. Partitions of sign
         `1` are called even partitions while partitions of sign
         `-1` are called odd.
-
-        Wraps GAP's SignPartition.
 
         EXAMPLES::
 
@@ -577,8 +555,7 @@ class Partition_class(CombinatorialObject):
 
         - http://en.wikipedia.org/wiki/Zolotarev's_lemma
         """
-        ans=gap.eval("SignPartition(%s)"%(self))
-        return sage_eval(ans)
+        return (-1)**(self.size()-self.length())
 
     def up(self):
         r"""
@@ -791,7 +768,6 @@ class Partition_class(CombinatorialObject):
             sage: Partition([5,4,2,1,1,1]).associated().associated()
             [5, 4, 2, 1, 1, 1]
         """
-
         return self.conjugate()
 
     def arm(self, i, j):
@@ -1265,7 +1241,7 @@ class Partition_class(CombinatorialObject):
     def centralizer_size(self, t=0, q=0):
         """
         Returns the size of the centralizer of any permutation of cycle type
-        p. If m_i is the multiplicity of i as a part of p, this is given
+        ``self``. If m_i is the multiplicity of i as a part of p, this is given
         by `\prod_i (i^m[i])*(m[i]!)`. Including the optional
         parameters t and q gives the q-t analog which is the former product
         times `\prod_{i=1}^{length(p)} (1 - q^{p[i]}) / (1 - t^{p[i]}).`
@@ -1292,7 +1268,7 @@ class Partition_class(CombinatorialObject):
     def aut(self):
         r"""
         Returns a factor for the number of permutations with cycle type
-        self. self.aut() returns
+        ``self``. self.aut() returns
         `1^{j_1}j_1! \cdots n^{j_n}j_n!` where `j_k`
         is the number of parts in self equal to k.
 
@@ -1416,27 +1392,48 @@ class Partition_class(CombinatorialObject):
 
     def r_core(self, length):
         """
-        Returns the r-core of the partition p. The construction of the
-        r-core can be visualized by repeatedly removing border strips of
-        size r from p until this is no longer possible. The remaining
-        partition is the r-core.
+        This function is deprecated.
 
         EXAMPLES::
 
             sage: Partition([6,3,2,2]).r_core(3)
+            doctest:1: DeprecationWarning: r_core is deprecated. Please use core instead.
             [2, 1, 1]
-            sage: Partition([]).r_core(3)
+
+        Please use :meth:`core` instead::
+
+            sage: Partition([6,3,2,2]).core(3)
+            [2, 1, 1]
+
+        """
+        from sage.misc.misc import deprecation
+        deprecation('r_core is deprecated. Please use core instead.')
+        return self.core(length)
+
+    def core(self, length):
+        """
+        Returns the core of the partition -- in the literature the core is
+        commonly referred to as the `k`-core, `p`-core, `r`-core, ... . The
+        construction of the core can be visualized by repeatedly removing
+        border strips of size `r` from ``self`` until this is no longer possible.
+        The remaining partition is the core.
+
+        EXAMPLES::
+
+            sage: Partition([6,3,2,2]).core(3)
+            [2, 1, 1]
+            sage: Partition([]).core(3)
             []
-            sage: Partition([8,7,7,4,1,1,1,1,1]).r_core(3)
+            sage: Partition([8,7,7,4,1,1,1,1,1]).core(3)
             [2, 1, 1]
 
         TESTS::
 
-            sage: Partition([3,3,3,2,1]).r_core(3)
+            sage: Partition([3,3,3,2,1]).core(3)
             []
-            sage: Partition([10,8,7,7]).r_core(4)
+            sage: Partition([10,8,7,7]).core(4)
             []
-            sage: Partition([21,15,15,9,6,6,6,3,3]).r_core(3)
+            sage: Partition([21,15,15,9,6,6,6,3,3]).core(3)
             []
         """
         p = self
@@ -1463,35 +1460,56 @@ class Partition_class(CombinatorialObject):
 
     def r_quotient(self, length):
         """
-        Returns the r-quotient of the partition p. The r-quotient is a list
-        of r partitions, constructed in the following way. Label each cell
-        in p with its content, modulo r. Let R_i be the set of rows ending
-        in a box labelled i, and C_i be the set of columns ending in a box
-        labelled i. Then the jth component of the r-quotient of p is the
-        partition defined by intersecting R_j with C_j+1.
+        This function is deprecated.
 
         EXAMPLES::
 
-            sage: Partition([7,7,5,3,3,3,1]).r_quotient(3)
+            sage: Partition([6,3,2,2]).r_quotient(3)
+            doctest:1: DeprecationWarning: r_quotient is deprecated. Please use quotient instead.
+            [[], [], [2, 1]]
+
+        Please use :meth:`quotient` instead::
+
+            sage: Partition([6,3,2,2]).quotient(3)
+            [[], [], [2, 1]]
+        """
+        from sage.misc.misc import deprecation
+        deprecation('r_quotient is deprecated. Please use quotient instead.')
+        return self.quotient(length)
+
+    def quotient(self, length):
+        """
+        Returns the quotient of the partition  -- in the literature the
+        core is commonly referred to as the `k`-core, `p`-core, `r`-core, ... . The
+        quotient is a list of `r` partitions, constructed in the following
+        way. Label each cell in `p` with its content, modulo `r`. Let `R_i` be
+        the set of rows ending in a box labelled `i`, and `C_i` be the set of
+        columns ending in a box labelled `i`. Then the `j`-th component of the
+        quotient of `p` is the partition defined by intersecting `R_j` with
+        `C_j+1`.
+
+        EXAMPLES::
+
+            sage: Partition([7,7,5,3,3,3,1]).quotient(3)
             [[2], [1], [2, 2, 2]]
 
         TESTS::
 
-            sage: Partition([8,7,7,4,1,1,1,1,1]).r_quotient(3)
+            sage: Partition([8,7,7,4,1,1,1,1,1]).quotient(3)
             [[2, 1], [2, 2], [2]]
-            sage: Partition([10,8,7,7]).r_quotient(4)
+            sage: Partition([10,8,7,7]).quotient(4)
             [[2], [3], [2], [1]]
-            sage: Partition([6,3,3]).r_quotient(3)
+            sage: Partition([6,3,3]).quotient(3)
             [[1], [1], [2]]
-            sage: Partition([3,3,3,2,1]).r_quotient(3)
+            sage: Partition([3,3,3,2,1]).quotient(3)
             [[1], [1, 1], [1]]
-            sage: Partition([6,6,6,3,3,3]).r_quotient(3)
+            sage: Partition([6,6,6,3,3,3]).quotient(3)
             [[2, 1], [2, 1], [2, 1]]
-            sage: Partition([21,15,15,9,6,6,6,3,3]).r_quotient(3)
+            sage: Partition([21,15,15,9,6,6,6,3,3]).quotient(3)
             [[5, 2, 1], [5, 2, 1], [7, 3, 2]]
-            sage: Partition([21,15,15,9,6,6,3,3]).r_quotient(3)
+            sage: Partition([21,15,15,9,6,6,3,3]).quotient(3)
             [[5, 2], [5, 2, 1], [7, 3, 1]]
-            sage: Partition([14,12,11,10,10,10,10,9,6,4,3,3,2,1]).r_quotient(5)
+            sage: Partition([14,12,11,10,10,10,10,9,6,4,3,3,2,1]).quotient(5)
             [[3, 3], [2, 2, 1], [], [3, 3, 3], [1]]
         """
         p = self
@@ -3984,25 +4002,15 @@ def ferrers_diagram(pi):
 
     EXAMPLES::
 
-        sage: print ferrers_diagram([5,5,2,1])
+        sage: print Partition([5,5,2,1]).ferrers_diagram()
         *****
         *****
         **
         *
-        sage: pi = partitions_list(10)[30] ## [6,1,1,1,1]
-        sage: print ferrers_diagram(pi)
-        ******
-        *
-        *
-        *
-        *
-        sage: pi = partitions_list(10)[33] ## [6, 3, 1]
-        sage: print ferrers_diagram(pi)
-        ******
-        ***
-        *
     """
-    return '\n'.join(['*'*p for p in pi])
+    from sage.misc.misc import deprecation
+    deprecation('"ferrers_diagram deprecated. Use Partition(pi).ferrers_diagram() instead')
+    return Partition(pi).ferrers_diagram()
 
 
 def ordered_partitions(n,k=None):
@@ -4243,7 +4251,7 @@ def number_of_partitions_tuples(n,k):
 def partition_power(pi,k):
     """
     partition_power( pi, k ) returns the partition corresponding to
-    the `k`-th power of a permutation with cycle structure pi
+    the `k`-th power of a permutation with cycle structure ``pi``
     (thus describes the powermap of symmetric groups).
 
     Wraps GAP's PowerPartition.
@@ -4277,7 +4285,9 @@ def partition_power(pi,k):
 
 def partition_sign(pi):
     r"""
-    partition_sign( pi ) returns the sign of a permutation with cycle
+    ** This function is being deprecated -- use Partition(*).sign() instead.  **
+
+    Partition( pi ).sign() returns the sign of a permutation with cycle
     structure given by the partition pi.
 
     This function corresponds to a homomorphism from the symmetric
@@ -4286,13 +4296,13 @@ def partition_sign(pi):
     `1` are called even partitions while partitions of sign
     `-1` are called odd.
 
-    Wraps GAP's SignPartition.
+    This function is deprecated: use Partition( pi ).sign() instead.
 
     EXAMPLES::
 
-        sage: partition_sign([5,3])
+        sage: Partition([5,3]).sign()
         1
-        sage: partition_sign([5,2])
+        sage: Partition([5,2]).sign()
         -1
 
     Zolotarev's lemma states that the Legendre symbol
@@ -4322,7 +4332,7 @@ def partition_sign(pi):
         sage: p = PermutationGroupElement('(1, 2, 4, 8, 5, 10, 9, 7, 3, 6)')
         sage: p.sign()
         -1
-        sage: partition_sign([10])
+        sage: Partition([10]).sign()
         -1
         sage: kronecker_symbol(11,2)
         -1
@@ -4338,7 +4348,7 @@ def partition_sign(pi):
         1
         sage: kronecker_symbol(3,11)
         1
-        sage: partition_sign([5,1,1,1,1,1])
+        sage: Partition([5,1,1,1,1,1]).sign()
         1
 
     In both cases, Zolotarev holds.
@@ -4347,26 +4357,29 @@ def partition_sign(pi):
 
     - http://en.wikipedia.org/wiki/Zolotarev's_lemma
     """
-    ans=gap.eval("SignPartition(%s)"%(pi))
-    return sage_eval(ans)
+    from sage.misc.misc import deprecation
+    deprecation('"partition_sign deprecated. Use Partition(pi).sign() instead')
+    return Partition(pi).sign()
 
 def partition_associated(pi):
     """
+    ** This function is being deprecated -- use Partition(*).conjugate() instead.  **
+
     partition_associated( pi ) returns the "associated" (also called
     "conjugate" in the literature) partition of the partition pi which
     is obtained by transposing the corresponding Ferrers diagram.
 
     EXAMPLES::
 
-        sage: partition_associated([2,2])
+        sage: Partition([2,2]).conjugate()
         [2, 2]
-        sage: partition_associated([6,3,1])
+        sage: Partition([6,3,1]).conjugate()
         [3, 2, 2, 1, 1, 1]
-        sage: print ferrers_diagram([6,3,1])
+        sage: print Partition([6,3,1]).ferrers_diagram()
         ******
         ***
         *
-        sage: print ferrers_diagram([3,2,2,1,1,1])
+        sage: print Partition([6,3,1]).conjugate().ferrers_diagram()
         ***
         **
         **
@@ -4374,5 +4387,7 @@ def partition_associated(pi):
         *
         *
     """
-    return list(Partition(pi).conjugate())
+    from sage.misc.misc import deprecation
+    deprecation('"partition_associated deprecated. Use Partition(pi).conjugte() instead')
+    return Partition(pi).conjugate()
 

@@ -143,7 +143,7 @@ def RibbonTableaux(shape, weight, length):
     """
     if shape in partition.Partitions():
         shape = partition.Partition(shape)
-        shape = skew_partition.SkewPartition([shape, shape.r_core(length)])
+        shape = skew_partition.SkewPartition([shape, shape.core(length)])
     else:
         shape = skew_partition.SkewPartition(shape)
 
@@ -881,7 +881,7 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
             sage: a = SkewPartition([[8,7,6,5,1,1],[2,1,1]])
             sage: weight = [3,3,2]
             sage: k = 3
-            sage: s = SemistandardMultiSkewTableaux(a.r_quotient(k),weight)
+            sage: s = SemistandardMultiSkewTableaux(a.quotient(k),weight)
             sage: len(s.list())
             34
             sage: RibbonTableaux(a,weight,k).cardinality()

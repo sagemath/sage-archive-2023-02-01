@@ -452,22 +452,28 @@ class SkewPartition_class(CombinatorialObject):
         return G
 
 
-    def r_quotient(self, k):
+    def r_quotient(self, length):
+      """ *** deprecate *** """
+      from sage.misc.misc import deprecation
+      deprecation('r_quotient is deprecated. Use quotient instead.')
+      return self.quotient(self,length)
+
+    def quotient(self, k):
         """
         The quotient map extended to skew partitions.
 
         EXAMPLES::
 
-            sage: SkewPartition([[3, 3, 2, 1], [2, 1]]).r_quotient(2)
+            sage: SkewPartition([[3, 3, 2, 1], [2, 1]]).quotient(2)
             [[[3], []], [[], []]]
         """
         ## k-th element is the skew partition built using the k-th partition of the
         ## k-quotient of the outer and the inner partition.
         ## This bijection is only defined if the inner and the outer partition
         ## have the same core
-        if self.inner().r_core(k) == self.outer().r_core(k):
-            rqinner = self.inner().r_quotient(k)
-            rqouter = self.outer().r_quotient(k)
+        if self.inner().core(k) == self.outer().core(k):
+            rqinner = self.inner().quotient(k)
+            rqouter = self.outer().quotient(k)
             return [ SkewPartition_class([rqouter[i],rqinner[i]]) for i in range(k) ]
         else:
             raise ValueError, "quotient map is only defined for skew partitions with inner and outer partitions having the same core"

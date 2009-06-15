@@ -1909,9 +1909,9 @@ class AttrCallObject(object):
         """
         TESTS::
 
-            sage: f = attrcall('r_core', 3)
+            sage: f = attrcall('core', 3)
             sage: loads(dumps(f))
-            *.r_core(3)
+            *.core(3)
         """
         self.name = name
         self.args = args
@@ -1924,7 +1924,7 @@ class AttrCallObject(object):
 
         EXAMPLES::
 
-            sage: f = attrcall('r_core', 3)
+            sage: f = attrcall('core', 3)
             sage: f(Partition([4,2]))
             [4, 2]
         """
@@ -1937,8 +1937,8 @@ class AttrCallObject(object):
 
         EXAMPLES::
 
-            sage: attrcall('r_core', 3)
-            *.r_core(3)
+            sage: attrcall('core', 3)
+            *.core(3)
             sage: attrcall('hooks', flatten=True)
             *.hooks(flatten=True)
             sage: attrcall('hooks', 3, flatten=True)
@@ -1971,8 +1971,8 @@ def attrcall(name, *args, **kwds):
 
     EXAMPLES::
 
-        sage: f = attrcall('r_core', 3); f
-        *.r_core(3)
+        sage: f = attrcall('core', 3); f
+        *.core(3)
         sage: [f(p) for p in Partitions(5)]
         [[2], [1, 1], [1, 1], [3, 1, 1], [2], [2], [1, 1]]
     """

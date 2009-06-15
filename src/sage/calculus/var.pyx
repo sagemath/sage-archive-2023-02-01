@@ -72,14 +72,29 @@ def var(s, ns=True):
         G[repr(v)] = v
     return v
 
-def function(s, *args):
-    """
+def function(s, *args, **kwds):
+    r"""
     Create a formal symbolic function with the name *s*.
 
     INPUT:
 
     - ``s`` - a string, either a single variable name, or a space or
       comma separated list of variable names.
+
+    - ``**kwds`` - keyword arguments. Either one of the following two
+        keywords can be used to customize latex representation of
+        symbolic functions:
+
+            (1) latex_name=LaTeX
+                where ``LaTeX`` is any valid latex expression.
+                Ex: f = function('f', x, latex_name="\\mathcal{F}")
+                See EXAMPLES for more.
+
+            (2) print_latex_func=my_latex_print
+                where ``my_latex_print`` is any callable function
+                that returns a valid latex expression.
+                Ex: f = function('f', x, print_latex_func=my_latex_print)
+                See EXAMPLES for an explicit usage.
 
     .. note::
 
@@ -112,6 +127,23 @@ def function(s, *args):
         sage: k = g.diff(x); k
         (x, y) |--> 2*supersin(x)*D[0](supersin)(x)
 
+    Custom typesetting of symbolic functions in LaTeX::
+
+    (1) Either using latex_name keyword::
+
+        sage: riemann(x) = function('riemann', x, latex_name="\\mathcal{R}")
+        sage: latex(riemann(x))
+        \mathcal{R}\left(x\right)
+
+    (2) Or passing a custom callable function that returns a
+        latex expression::
+
+        sage: mu,nu = var('mu,nu')
+        sage: def my_latex_print(*args): return "\\psi_{%s}"%(', '.join(map(latex, args)))
+        sage: psi(mu,nu) = function('psi', mu, nu, print_latex_func=my_latex_print)
+        sage: latex(psi(mu,nu))
+        \psi_{\mu, \nu}
+
     In Sage 4.0, you must now use the :meth:`substitute_function`
     method to replace functions::
 
@@ -119,10 +151,10 @@ def function(s, *args):
         2*sin(x)*cos(x)
     """
     if len(args) > 0:
-        return function(s)(*args)
+        return function(s, **kwds)(*args)
 
     G = globals()  # this is the reason the code must be in Cython.
-    v = calculus.function(s)
+    v = calculus.function(s, **kwds)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

@@ -1303,7 +1303,7 @@ def var_cmp(x,y):
     """
     return cmp(repr(x), repr(y))
 
-def function(s, *args):
+def function(s, *args, **kwds):
     """
     Create a formal symbolic function with the name *s*.
 
@@ -1344,18 +1344,18 @@ def function(s, *args):
         return s
 
     if len(args) > 0:
-        return function(s)(*args)
+        return function(s, **kwds)(*args)
 
     s = str(s)
     if ',' in s:
-        return tuple([function(x.strip()) for x in s.split(',')])
+        return tuple([function(x.strip(), **kwds) for x in s.split(',')])
     elif ' ' in s:
-        return tuple([function(x.strip()) for x in s.split()])
+        return tuple([function(x.strip(), **kwds) for x in s.split()])
     try:
         return symbol_table['functions'][s]
     except KeyError:
         pass
-    f = SFunction(s)
+    f = SFunction(s, **kwds)
     symbol_table['functions'][s] = f
     return f
 

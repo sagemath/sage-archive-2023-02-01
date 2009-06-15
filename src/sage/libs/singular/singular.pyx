@@ -499,7 +499,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
 
         sage: P.<x,y,z> = Integers(2^32)[]
         sage: P(2^32-1)
-        -1
+        4294967295
 
         sage: P(3)
         3

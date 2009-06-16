@@ -11,6 +11,7 @@ if ($ver_string =~ m/G95/)
     copy("patches/setup.py.interpolate","src/scipy/interpolate/setup.py");
     copy("patches/setup.py.odr", "src/scipy/odr/setup.py");
     copy("patches/setup.py.stats", "src/scipy/stats/setup.py");
-    # The following two patches are temporary fixes already included upstream.
-    copy("patches/optimize.py","src/scipy/optimize/optimize.py");
 }
+
+# The following patch is a temporary fix already included upstream.
+copy("patches/optimize.py","src/scipy/optimize/optimize.py");

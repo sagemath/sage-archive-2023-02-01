@@ -392,19 +392,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
-            [Local data at Fractional ideal (-3*i - 2):
-            Reduction type: bad split multiplicative
-            Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
-            Minimal discriminant valuation: 2
-            Conductor exponent: 1
-            Kodaira Symbol: I2
-            Tamagawa Number: 2, Local data at Fractional ideal (2*i + 1):
+            [Local data at Fractional ideal (2*i + 1):
             Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
             Conductor exponent: 1
             Kodaira Symbol: I1
-            Tamagawa Number: 1]
+            Tamagawa Number: 1,
+            Local data at Fractional ideal (-3*i - 2):
+            Reduction type: bad split multiplicative
+            Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
+            Minimal discriminant valuation: 2
+            Conductor exponent: 1
+            Kodaira Symbol: I2
+            Tamagawa Number: 2]
             sage: E.local_data(K.ideal(3))
             Local data at Fractional ideal (3):
             Reduction type: good
@@ -805,12 +806,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a>=NumberField(x^2-5)
             sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
             sage: bad_primes = E.discriminant().support(); bad_primes
-            [Fractional ideal (7/2*a - 81/2),
+            [Fractional ideal (-a),
+            Fractional ideal (7/2*a - 81/2),
             Fractional ideal (a + 52),
-            Fractional ideal (-a),
             Fractional ideal (2)]
             sage: [E.kodaira_symbol(P) for P in bad_primes]
-            [I1, I1, I0, II]
+            [I0, I1, I1, II]
             sage: K.<a> = QuadraticField(-11)
             sage: E = EllipticCurve('11a1').change_ring(K)
             sage: [E.kodaira_symbol(P) for P in K(11).support()]

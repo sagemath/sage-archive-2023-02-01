@@ -63,6 +63,8 @@ def skip(F):
 
     if 'nodoctest' in open(G).read()[:50]:
         return True
+    if G.find('doc/output') != -1:
+        return True
 
     sys.stdout.write("%-60s"%sage_test_command(F)+"\n")
     sys.stdout.flush()

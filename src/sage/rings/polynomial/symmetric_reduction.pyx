@@ -20,10 +20,6 @@ THEORY:
        with `T N^P = M`. If there is no such permutation, return `p`
     3. Replace `p` by `p-T q^P` and continue with step 1.
 
-    .. [AB2007] M. Aschenbrenner, C. Hillar,
-       Finite generation of symmetric ideals.
-       Trans. Amer. Math. Soc. 359 (2007), no. 11, 5171--5192.
-
 
 When reducing one polynomial `p` with respect to a list `L` of
 other polynomials, there usually is a choice of order on which the

@@ -82,7 +82,7 @@ defined using properties of the zeros of `C`.
 - DuadicCodeEvenPair, DuadicCodeOddPair: Constructs the "even
   (resp. odd) pair" of duadic codes associated to the "splitting" S1,
   S2 of n. This is a special type of cyclic code whose generator is
-  determined by S1, S2. See chapter 6 in [HP].
+  determined by S1, S2. See chapter 6 in [HP]_.
 
 - HammingCode - the well-known Hamming code,
   http://en.wikipedia.org/wiki/Hamming_code
@@ -94,7 +94,7 @@ defined using properties of the zeros of `C`.
   residue codes of a given odd prime length and base ring either don't
   exist at all or occur as 4-tuples - a pair of
   "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-  then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+  then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
   quadratic residue mod n. Here they are constructed as"even-like"
   duadic codes associated the splitting (Q,N) mod n, where Q is the
   set of non-zero quadratic residues and N is the non-residues.
@@ -129,10 +129,10 @@ defined using properties of the zeros of `C`.
 
 Please see the docstrings below for further details.
 
-REFERENCES::
+REFERENCES:
 
-    ..[HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
-      Codes, Cambridge Univ. Press, 2003.
+.. [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+   Codes, Cambridge Univ. Press, 2003.
 
 """
 ############################################################################
@@ -306,7 +306,7 @@ def is_a_splitting(S1,S2,n):
         sage: C1.dual_code() == C2
         True
 
-    This is a special case of Theorem 6.4.3 in [HP].
+    This is a special case of Theorem 6.4.3 in [HP]_.
     """
     if Set(S1).union(Set(S2)) <> Set(range(1,n)):
         raise TypeError, "Lists must partition [1,2,...,n-1]."
@@ -799,7 +799,7 @@ def DuadicCodeOddPair(F,S1,S2):
         (Linear code of length 11, dimension 6 over Finite Field of size 3,
          Linear code of length 11, dimension 6 over Finite Field of size 3)
 
-    This is consistent with Theorem 6.1.3 in [HP].
+    This is consistent with Theorem 6.1.3 in [HP]_.
     """
     n = max(S1+S2)+1
     if not(is_a_splitting(S1,S2,n)):
@@ -865,7 +865,7 @@ def ExtendedQuadraticResidueCode(n,F):
     The extended quadratic residue code (or XQR code) is obtained from
     a QR code by adding a check bit to the last coordinate. (These
     codes have very remarkable properties such as large automorphism
-    groups and duality properties - see [HP], Section 6.6.3-6.6.4.)
+    groups and duality properties - see [HP]_, Section 6.6.3-6.6.4.)
 
     INPUT:
 
@@ -1066,7 +1066,7 @@ def QuadraticResidueCodeEvenPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
     quadratic residue mod n.
 
     They are constructed as "even-like" duadic codes associated the
@@ -1095,7 +1095,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         sage: C3 == C4.dual_code()
         True
 
-    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP].
+    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
     """
     q = F.order()
     Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
@@ -1112,7 +1112,7 @@ def QuadraticResidueCodeOddPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-    then (Theorem 6.6.2 in [HP]) a QR code exists over GF(q) iff q is a
+    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
     quadratic residue mod n.
 
     They are constructed as "odd-like" duadic codes associated the
@@ -1146,7 +1146,7 @@ def QuadraticResidueCodeOddPair(n,F):
         sage: C3x.is_self_dual()
         True
 
-    This is consistent with Theorem 6.6.14 in [HP].
+    This is consistent with Theorem 6.6.14 in [HP]_.
     """
     from sage.coding.code_constructions import is_a_splitting
     q = F.order()
@@ -1240,9 +1240,6 @@ def ReedSolomonCode(n,k,F,pts = None):
         3
 
     REFERENCES:
-
-    - [HP] W. C. Huffman, V. Pless, Fundamentals of
-      Error-Correcting Codes, Cambridge Univ. Press, 2003.
 
     - [W] http://en.wikipedia.org/wiki/Reed-Solomon
     """
@@ -1340,7 +1337,7 @@ def ToricCode(P,F):
          Linear code of length 16, dimension 9 over Finite Field of size 5
          sage: C.minimum_distance()
          6
-        sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
+         sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
          sage: C
          Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
 
@@ -1352,10 +1349,10 @@ def ToricCode(P,F):
 
     - David Joyner (07-2006)
 
-    REFERENCES::
+    REFERENCES:
 
-    ..[J] D. Joyner, Toric codes over finite fields, Applicable
-      Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
+    .. [J] D. Joyner, Toric codes over finite fields, Applicable
+       Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]

@@ -612,7 +612,7 @@ cdef class NumberFieldElement(FieldElement):
     def abs(self, prec=53, i=0):
         r"""
         Return the absolute value of this element with respect to the
-        `i`th complex embedding of parent, to the given precision.
+        `i`-th complex embedding of parent, to the given precision.
 
         If prec is 53 (the default), then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex

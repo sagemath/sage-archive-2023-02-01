@@ -239,6 +239,7 @@ module over `K`, or a permutation group acts on a set. These are
 discovered between steps 1 and 2 above.
 
 .. link
+
 ::
 
     sage: cm.explain(ZZ['x'], ZZ, operator.mul)

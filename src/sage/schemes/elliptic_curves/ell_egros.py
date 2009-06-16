@@ -58,23 +58,13 @@ listing the label of each:
     '256d1',
     '256d2']
 
-Secondly we try the same with `S={11}`; note the warning messages:
+Secondly we try the same with `S={11}`; note that warning messages are
+printed without proof=False (unless the optional database is
+installed: two of the auxiliary curves whose Mordell-Weil bases are
+required have conductors 13068 and 52272 so are in the databse):
 
-    sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([11])]
-    Failed to find S-integral points on  [0, 0, 0, 0, -25299648]
-    Failed to find S-integral points on  [0, 0, 0, 0, -278296128]
-    ['11a1',
-    '11a2',
-    '11a3',
-    '121a1',
-    '121a2',
-    '121b1',
-    '121b2',
-    '121c1',
-    '121c2',
-    '121d1',
-    '121d2',
-    '121d3']
+    sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([11], proof=False)]
+    ['11a1', '11a2', '11a3', '121a1', '121a2', '121b1', '121b2', '121c1', '121c2', '121d1', '121d2', '121d3']
 
 
 AUTHORS:

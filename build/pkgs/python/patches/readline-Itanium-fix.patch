@@ -1,19 +1,23 @@
---- src-2.5.1/Modules/readline.c	2007-01-22 08:10:27.000000000 -0800
-+++ patches/readline.c	2007-08-28 20:45:36.000000000 -0700
-@@ -31,10 +31,8 @@
+--- ../src/Modules/readline.c	2008-11-04 12:43:31.000000000 -0800
++++ readline.c	2009-06-16 17:18:44.000000000 -0700
+@@ -31,16 +31,11 @@
  #include <readline/readline.h>
  #include <readline/history.h>
  
 -#ifdef HAVE_RL_COMPLETION_MATCHES
 -#define completion_matches(x, y) \
 -	rl_completion_matches((x), ((rl_compentry_func_t *)(y)))
+-#else
+ #if defined(_RL_FUNCTION_TYPEDEF)
+ extern char **completion_matches(char *, rl_compentry_func_t *);
+ #else
+ extern char **completion_matches(char *, CPFunction *);
+ #endif
 -#endif
-+/* SAGE: The else clause above added by Kate Minola for SAGE. */
-+extern char ** completion_matches(const char *,rl_compentry_func_t *);
  
- 
- /* Exported function to send one line to readline's init file parser */
-@@ -678,7 +676,9 @@
+ static void
+ on_completion_display_matches_hook(char **matches,
+@@ -763,7 +758,10 @@
  	Py_XDECREF(endidx);
  	begidx = PyInt_FromLong((long) start);
  	endidx = PyInt_FromLong((long) end);
@@ -21,6 +25,7 @@
 +	/* return completion_matches(text, *on_completion); */
 +	/* SAGE: Fix by Kate Minola <kate01123@gmail.com> */
 +	return (char **) completion_matches(text, (rl_compentry_func_t *)*on_completion);
++
  }
  
  

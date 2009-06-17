@@ -27,7 +27,7 @@ build_pynac()
 {
     cd ${PYNACDIR}
     PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig; export PKG_CONFIG_PATH
-    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.5; export CPPFLAGS
+    CPPFLAGS=-I"$SAGE_LOCAL"/include/python2.6; export CPPFLAGS
     ./configure --disable-static --prefix=${SAGE_LOCAL}
     $MAKE
     if [ $? -ne 0 ]; then

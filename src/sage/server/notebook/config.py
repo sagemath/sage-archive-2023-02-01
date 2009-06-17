@@ -1,5 +1,7 @@
-"""nodoctest
-Customization of the Notebook
+"""
+Customization of the Notebook Keybindings
+
+This module is resposible for setting the keyboard bindings for the notebook.
 """
 
 #############################################################################

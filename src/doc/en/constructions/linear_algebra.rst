@@ -459,4 +459,4 @@ interface:
     sage: V3  = VectorSpace(QQ,3)
     sage: b   = V3([1,2,3])
     sage: octave.solve_linear_system(A,b)    # requires optional octave
-    [-0.33333299999999999, 0.66666700000000001, -3.5236600000000002e-18]
+    [-0.33333299999999999, 0.66666700000000001, 0]

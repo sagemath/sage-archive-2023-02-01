@@ -122,16 +122,6 @@ cd $SAGE_LOCAL/lib
 rm -rf python/python2.5 python/python python python2.4
 ln -s python2.5 python
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-    echo "Copying 64 bit OSX specific pymactoolbox.h"
-    cd $CUR
-    cp patches/pymactoolbox.h $SAGE_LOCAL/include/python2.5/
-    if [ $? -ne 0 ]; then
-        echo "Error copying patched pymactoolbox.h"
-        exit 1
-    fi
-fi
-
 # sleeping for three seconds so that parallel 'make install' catches up with the following test
 echo "Sleeping for three seconds before testing python"
 sleep 3

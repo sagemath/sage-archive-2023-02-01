@@ -155,9 +155,11 @@ developers) between parents. A coercion from one parent to another
 may be invoked implicitly, it should be obvious and natural (in both
 the mathematically rigorous and colloquial sense of the word). Up to
 inescapable rounding issues that arise with inexact representations,
-these coercion morphisms should all commute.
+these coercion morphisms should all commute.  In particular, if there
+are coercion maps `A \to B` and `B \to A`, then their composites
+must be the identity maps.
 
-They can be discovered via the :meth:`has_coerce_map_from` method, and
+Coercions can be discovered via the :meth:`has_coerce_map_from` method, and
 if needed explicitly invoked with the :meth:`coerce` method::
 
     sage: QQ.has_coerce_map_from(ZZ)
@@ -191,6 +193,10 @@ respectively. When we type ``a+b`` then
 
 4. Look for `Z` such that there is a coercion `\phi_A: A \rightarrow Z` and
    `\phi_B: B \rightarrow Z`, call `\phi_A` (a)._add_( `\phi_B` (b))
+
+These rules are evaluated in order; therefore if there are coercions
+in both directions, then the parent of a._add_b is A -- the parent
+of the left-hand operand is used in such cases.
 
 The same rules are used for subtraction, multiplication, and
 division. This logic is embedded in a coercion model object, which can

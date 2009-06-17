@@ -6418,7 +6418,7 @@ class GenericGraph(SageObject):
         - ``vertex_size`` - size of vertices displayed
 
         - ``vertex_shape`` - the shape to draw the vertices (Not
-          available for multiedge digraphs.
+          available for multiedge digraphs.)
 
         - ``graph_border`` - whether to include a box around the graph
 

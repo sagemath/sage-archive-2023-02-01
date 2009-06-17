@@ -5,7 +5,7 @@
 
 import os as _os, sys as _sys
 
-__version__ = "1.0.3"
+__version__ = "1.1.0"
 
 from _ctypes import Union, Structure, Array
 from _ctypes import _Pointer
@@ -17,32 +17,25 @@ from _ctypes import ArgumentError
 from struct import calcsize as _calcsize
 
 if __version__ != _ctypes_version:
-    raise Exception, ("Version number mismatch", __version__, _ctypes_version)
+    raise Exception("Version number mismatch", __version__, _ctypes_version)
 
 if _os.name in ("nt", "ce"):
     from _ctypes import FormatError
 
 DEFAULT_MODE = RTLD_LOCAL
+## if _os.name == "posix" and _sys.platform == "darwin":
+##     # On OS X 10.3, we use RTLD_GLOBAL as default mode
+##     # because RTLD_LOCAL does not work at least on some
+##     # libraries.  OS X 10.3 is Darwin 7, so we check for
+##     # that.
 
-# We don't care about this, since SAGE always uses Python >= 2.5.
-#if _os.name == "posix" and _sys.platform == "darwin":
-#    import gestalt
-
-    # gestalt.gestalt("sysv") returns the version number of the
-    # currently active system file as BCD.
-    # On OS X 10.4.6 -> 0x1046
-    # On OS X 10.2.8 -> 0x1028
-    # See also http://www.rgaros.nl/gestalt/
-    #
-    # On OS X 10.3, we use RTLD_GLOBAL as default mode
-    # because RTLD_LOCAL does not work at least on some
-    # libraries.
-
-#    if gestalt.gestalt("sysv") < 0x1040:
-#        DEFAULT_MODE = RTLD_GLOBAL
+##     if int(_os.uname()[2].split('.')[0]) < 8:
+##         DEFAULT_MODE = RTLD_GLOBAL
 
 from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, \
-     FUNCFLAG_PYTHONAPI as _FUNCFLAG_PYTHONAPI
+     FUNCFLAG_PYTHONAPI as _FUNCFLAG_PYTHONAPI, \
+     FUNCFLAG_USE_ERRNO as _FUNCFLAG_USE_ERRNO, \
+     FUNCFLAG_USE_LASTERROR as _FUNCFLAG_USE_LASTERROR
 
 """
 WINOLEAPI -> HRESULT
@@ -72,7 +65,7 @@ def create_string_buffer(init, size=None):
         buftype = c_char * init
         buf = buftype()
         return buf
-    raise TypeError, init
+    raise TypeError(init)
 
 def c_buffer(init, size=None):
 ##    "deprecated, use create_string_buffer instead"
@@ -82,8 +75,9 @@ def c_buffer(init, size=None):
     return create_string_buffer(init, size)
 
 _c_functype_cache = {}
-def CFUNCTYPE(restype, *argtypes):
-    """CFUNCTYPE(restype, *argtypes) -> function prototype.
+def CFUNCTYPE(restype, *argtypes, **kw):
+    """CFUNCTYPE(restype, *argtypes,
+                 use_errno=False, use_last_error=False) -> function prototype.
 
     restype: the result type
     argtypes: a sequence specifying the argument types
@@ -97,14 +91,21 @@ def CFUNCTYPE(restype, *argtypes):
     prototype((ordinal number, dll object)[, paramflags]) -> foreign function exported by ordinal
     prototype((function name, dll object)[, paramflags]) -> foreign function exported by name
     """
+    flags = _FUNCFLAG_CDECL
+    if kw.pop("use_errno", False):
+        flags |= _FUNCFLAG_USE_ERRNO
+    if kw.pop("use_last_error", False):
+        flags |= _FUNCFLAG_USE_LASTERROR
+    if kw:
+        raise ValueError("unexpected keyword argument(s) %s" % kw.keys())
     try:
-        return _c_functype_cache[(restype, argtypes)]
+        return _c_functype_cache[(restype, argtypes, flags)]
     except KeyError:
         class CFunctionType(_CFuncPtr):
             _argtypes_ = argtypes
             _restype_ = restype
-            _flags_ = _FUNCFLAG_CDECL
-        _c_functype_cache[(restype, argtypes)] = CFunctionType
+            _flags_ = flags
+        _c_functype_cache[(restype, argtypes, flags)] = CFunctionType
         return CFunctionType
 
 if _os.name in ("nt", "ce"):
@@ -115,16 +116,23 @@ if _os.name in ("nt", "ce"):
         _FUNCFLAG_STDCALL = _FUNCFLAG_CDECL
 
     _win_functype_cache = {}
-    def WINFUNCTYPE(restype, *argtypes):
+    def WINFUNCTYPE(restype, *argtypes, **kw):
         # docstring set later (very similar to CFUNCTYPE.__doc__)
+        flags = _FUNCFLAG_STDCALL
+        if kw.pop("use_errno", False):
+            flags |= _FUNCFLAG_USE_ERRNO
+        if kw.pop("use_last_error", False):
+            flags |= _FUNCFLAG_USE_LASTERROR
+        if kw:
+            raise ValueError("unexpected keyword argument(s) %s" % kw.keys())
         try:
-            return _win_functype_cache[(restype, argtypes)]
+            return _win_functype_cache[(restype, argtypes, flags)]
         except KeyError:
             class WinFunctionType(_CFuncPtr):
                 _argtypes_ = argtypes
                 _restype_ = restype
-                _flags_ = _FUNCFLAG_STDCALL
-            _win_functype_cache[(restype, argtypes)] = WinFunctionType
+                _flags_ = flags
+            _win_functype_cache[(restype, argtypes, flags)] = WinFunctionType
             return WinFunctionType
     if WINFUNCTYPE.__doc__:
         WINFUNCTYPE.__doc__ = CFUNCTYPE.__doc__.replace("CFUNCTYPE", "WINFUNCTYPE")
@@ -133,6 +141,7 @@ elif _os.name == "posix":
     from _ctypes import dlopen as _dlopen
 
 from _ctypes import sizeof, byref, addressof, alignment, resize
+from _ctypes import get_errno, set_errno
 from _ctypes import _SimpleCData
 
 def _check_size(typ, typecode=None):
@@ -193,6 +202,11 @@ class c_double(_SimpleCData):
     _type_ = "d"
 _check_size(c_double)
 
+class c_longdouble(_SimpleCData):
+    _type_ = "g"
+if sizeof(c_longdouble) == sizeof(c_double):
+    c_longdouble = c_double
+
 if _calcsize("l") == _calcsize("q"):
     # if long and long long have the same size, make c_longlong an alias for c_long
     c_longlong = c_long
@@ -243,27 +257,10 @@ class c_void_p(_SimpleCData):
 c_voidp = c_void_p # backwards compatibility (to a bug)
 _check_size(c_void_p)
 
-# This cache maps types to pointers to them.
-_pointer_type_cache = {}
+class c_bool(_SimpleCData):
+    _type_ = "?"
 
-def POINTER(cls):
-    try:
-        return _pointer_type_cache[cls]
-    except KeyError:
-        pass
-    if type(cls) is str:
-        klass = type(_Pointer)("LP_%s" % cls,
-                               (_Pointer,),
-                               {})
-        _pointer_type_cache[id(klass)] = klass
-        return klass
-    else:
-        name = "LP_%s" % cls.__name__
-        klass = type(_Pointer)(name,
-                               (_Pointer,),
-                               {'_type_': cls})
-        _pointer_type_cache[cls] = klass
-    return klass
+from _ctypes import POINTER, pointer, _pointer_type_cache
 
 try:
     from _ctypes import set_conversion_mode
@@ -299,25 +296,19 @@ else:
             buftype = c_wchar * init
             buf = buftype()
             return buf
-        raise TypeError, init
+        raise TypeError(init)
 
 POINTER(c_char).from_param = c_char_p.from_param #_SimpleCData.c_char_p_from_param
 
 # XXX Deprecated
 def SetPointerType(pointer, cls):
     if _pointer_type_cache.get(cls, None) is not None:
-        raise RuntimeError, \
-              "This type already exists in the cache"
-    if not _pointer_type_cache.has_key(id(pointer)):
-        raise RuntimeError, \
-              "What's this???"
+        raise RuntimeError("This type already exists in the cache")
+    if id(pointer) not in _pointer_type_cache:
+        raise RuntimeError("What's this???")
     pointer.set_type(cls)
     _pointer_type_cache[cls] = pointer
     del _pointer_type_cache[id(pointer)]
-
-
-def pointer(inst):
-    return POINTER(type(inst))(inst)
 
 # XXX Deprecated
 def ARRAY(typ, len):
@@ -338,14 +329,26 @@ class CDLL(object):
     <obj>['qsort'] -> callable object
 
     Calling the functions releases the Python GIL during the call and
-    reaquires it afterwards.
+    reacquires it afterwards.
     """
-    class _FuncPtr(_CFuncPtr):
-        _flags_ = _FUNCFLAG_CDECL
-        _restype_ = c_int # default, can be overridden in instances
+    _func_flags_ = _FUNCFLAG_CDECL
+    _func_restype_ = c_int
 
-    def __init__(self, name, mode=DEFAULT_MODE, handle=None):
+    def __init__(self, name, mode=DEFAULT_MODE, handle=None,
+                 use_errno=False,
+                 use_last_error=False):
         self._name = name
+        flags = self._func_flags_
+        if use_errno:
+            flags |= _FUNCFLAG_USE_ERRNO
+        if use_last_error:
+            flags |= _FUNCFLAG_USE_LASTERROR
+
+        class _FuncPtr(_CFuncPtr):
+            _flags_ = flags
+            _restype_ = self._func_restype_
+        self._FuncPtr = _FuncPtr
+
         if handle is None:
             self._handle = _dlopen(self._name, mode)
         else:
@@ -359,7 +362,7 @@ class CDLL(object):
 
     def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
-            raise AttributeError, name
+            raise AttributeError(name)
         func = self.__getitem__(name)
         setattr(self, name, func)
         return func
@@ -375,9 +378,7 @@ class PyDLL(CDLL):
     access Python API functions.  The GIL is not released, and
     Python exceptions are handled correctly.
     """
-    class _FuncPtr(_CFuncPtr):
-        _flags_ = _FUNCFLAG_CDECL | _FUNCFLAG_PYTHONAPI
-        _restype_ = c_int # default, can be overridden in instances
+    _func_flags_ = _FUNCFLAG_CDECL | _FUNCFLAG_PYTHONAPI
 
 if _os.name in ("nt", "ce"):
 
@@ -385,9 +386,7 @@ if _os.name in ("nt", "ce"):
         """This class represents a dll exporting functions using the
         Windows stdcall calling convention.
         """
-        class _FuncPtr(_CFuncPtr):
-            _flags_ = _FUNCFLAG_STDCALL
-            _restype_ = c_int # default, can be overridden in instances
+        _func_flags_ = _FUNCFLAG_STDCALL
 
     # XXX Hm, what about HRESULT as normal parameter?
     # Mustn't it derive from c_long then?
@@ -411,9 +410,8 @@ if _os.name in ("nt", "ce"):
         HRESULT error values are automatically raised as WindowsError
         exceptions.
         """
-        class _FuncPtr(_CFuncPtr):
-            _flags_ = _FUNCFLAG_STDCALL
-            _restype_ = HRESULT
+        _func_flags_ = _FUNCFLAG_STDCALL
+        _func_restype_ = HRESULT
 
 class LibraryLoader(object):
     def __init__(self, dlltype):
@@ -451,6 +449,7 @@ if _os.name in ("nt", "ce"):
         GetLastError = windll.kernel32.GetLastError
     else:
         GetLastError = windll.coredll.GetLastError
+    from _ctypes import get_last_error, set_last_error
 
     def WinError(code=None, descr=None):
         if code is None:
@@ -465,6 +464,8 @@ if sizeof(c_uint) == sizeof(c_void_p):
     c_size_t = c_uint
 elif sizeof(c_ulong) == sizeof(c_void_p):
     c_size_t = c_ulong
+elif sizeof(c_ulonglong) == sizeof(c_void_p):
+    c_size_t = c_ulonglong
 
 # functions
 
@@ -537,3 +538,9 @@ for kind in [c_ushort, c_uint, c_ulong, c_ulonglong]:
     elif sizeof(kind) == 4: c_uint32 = kind
     elif sizeof(kind) == 8: c_uint64 = kind
 del(kind)
+
+# XXX for whatever reasons, creating the first instance of a callback
+# function is needed for the unittests on Win64 to succeed.  This MAY
+# be a compiler bug, since the problem occurs only when _ctypes is
+# compiled with the MS SDK compiler.  Or an uninitialized variable?
+CFUNCTYPE(c_int)(lambda: None)

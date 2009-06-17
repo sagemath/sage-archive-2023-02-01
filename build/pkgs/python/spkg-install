@@ -119,8 +119,8 @@ patch
 build
 
 cd $SAGE_LOCAL/lib
-rm -rf python/python2.5 python/python python python2.4
-ln -s python2.5 python
+rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
+ln -s python2.6 python
 
 # sleeping for three seconds so that parallel 'make install' catches up with the following test
 echo "Sleeping for three seconds before testing python"

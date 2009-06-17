@@ -190,6 +190,10 @@ examples are covered here.
        sage: G = Graph(M); G
        Graph on 10 vertices
        sage: G.plot().show()    # or G.show()
+       sage: DiGraph(matrix(2,[0,0,-1,1]), format="incidence_matrix")
+       Traceback (most recent call last):
+       ...
+       ValueError: There must be two nonzero entries (-1 & 1) per column.
 
 
 Generators
@@ -8511,20 +8515,20 @@ class Graph(GenericGraph):
                     NZ = c.nonzero_positions()
                     positions.append(tuple(NZ))
                     if len(NZ) != 2:
-                        assert False, \
-                "There must be two nonzero entries (-1 & 1) per column."
+                        msg += "There must be two nonzero entries (-1 & 1) per column."
+                        assert False
                     L = uniq(c.list())
                     L.sort()
                     if L != [-1,0,1]:
-                        assert False, \
-                "Each column represents an edge: -1 goes to 1."
+                        msg += "Each column represents an edge: -1 goes to 1."
+                        assert False
                 if loops      is None: loops     = False
                 if weighted   is None: weighted  = False
                 if multiedges is None:
                     total = len(positions)
                     multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError, msg2:
-                raise ValueError(msg + str(msg2))
+            except AssertionError:
+                raise ValueError(msg)
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
@@ -10043,13 +10047,13 @@ class DiGraph(GenericGraph):
                 for c in data.columns():
                     NZ = c.nonzero_positions()
                     if len(NZ) != 2:
-                        assert False, \
-                "There must be two nonzero entries (-1 & 1) per column."
+                        msg += "There must be two nonzero entries (-1 & 1) per column."
+                        assert False
                     L = uniq(c.list())
                     L.sort()
                     if L != [-1,0,1]:
-                        assert False, \
-                "Each column represents an edge: -1 goes to 1."
+                        msg += "Each column represents an edge: -1 goes to 1."
+                        assert False
                     if c[NZ[0]] == -1:
                         positions.append(tuple(NZ))
                     else:
@@ -10059,8 +10063,8 @@ class DiGraph(GenericGraph):
                 if multiedges is None:
                     total = len(positions)
                     multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError, msg2:
-                raise ValueError(msg + msg2)
+            except AssertionError:
+                raise ValueError(msg)
             num_verts = data.nrows()
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()

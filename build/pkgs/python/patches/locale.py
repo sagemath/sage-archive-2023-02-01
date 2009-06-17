@@ -12,6 +12,7 @@
 """
 
 import sys, encodings, encodings.aliases
+import functools
 
 # Try importing the _locale module.
 #
@@ -89,10 +90,38 @@ except ImportError:
         """
         return s
 
+
+_localeconv = localeconv
+
+# With this dict, you can override some items of localeconv's return value.
+# This is useful for testing purposes.
+_override_localeconv = {}
+
+@functools.wraps(_localeconv)
+def localeconv():
+    d = _localeconv()
+    if _override_localeconv:
+        d.update(_override_localeconv)
+    return d
+
+
 ### Number formatting APIs
 
 # Author: Martin von Loewis
 # improved by Georg Brandl
+
+# Iterate over grouping intervals
+def _grouping_intervals(grouping):
+    for interval in grouping:
+        # if grouping is -1, we are done
+        if interval == CHAR_MAX:
+            return
+        # 0: re-use last group ad infinitum
+        if interval == 0:
+            while True:
+                yield last_interval
+        yield interval
+        last_interval = interval
 
 #perform the grouping from right to left
 def _group(s, monetary=False):
@@ -103,35 +132,41 @@ def _group(s, monetary=False):
         return (s, 0)
     result = ""
     seps = 0
-    spaces = ""
     if s[-1] == ' ':
-        sp = s.find(' ')
-        spaces = s[sp:]
-        s = s[:sp]
-    while s and grouping:
-        # if grouping is -1, we are done
-        if grouping[0] == CHAR_MAX:
+        stripped = s.rstrip()
+        right_spaces = s[len(stripped):]
+        s = stripped
+    else:
+        right_spaces = ''
+    left_spaces = ''
+    groups = []
+    for interval in _grouping_intervals(grouping):
+        if not s or s[-1] not in "0123456789":
+            # only non-digit characters remain (sign, spaces)
+            left_spaces = s
+            s = ''
             break
-        # 0: re-use last group ad infinitum
-        elif grouping[0] != 0:
-            #process last group
-            group = grouping[0]
-            grouping = grouping[1:]
-        if result:
-            result = s[-group:] + thousands_sep + result
-            seps += 1
-        else:
-            result = s[-group:]
-        s = s[:-group]
-        if s and s[-1] not in "0123456789":
-            # the leading string is only spaces and signs
-            return s + result + spaces, seps
-    if not result:
-        return s + spaces, seps
+        groups.append(s[-interval:])
+        s = s[:-interval]
     if s:
-        result = s + thousands_sep + result
-        seps += 1
-    return result + spaces, seps
+        groups.append(s)
+    groups.reverse()
+    return (
+        left_spaces + thousands_sep.join(groups) + right_spaces,
+        len(thousands_sep) * (len(groups) - 1)
+    )
+
+# Strip a given amount of excess padding from the given string
+def _strip_padding(s, amount):
+    lpos = 0
+    while amount and s[lpos] == ' ':
+        lpos += 1
+        amount -= 1
+    rpos = len(s) - 1
+    while amount and s[rpos] == ' ':
+        rpos -= 1
+        amount -= 1
+    return s[lpos:rpos+1]
 
 def format(percent, value, grouping=False, monetary=False, *additional):
     """Returns the locale-aware substitution of a %? specifier
@@ -156,14 +191,14 @@ def format(percent, value, grouping=False, monetary=False, *additional):
         decimal_point = localeconv()[monetary and 'mon_decimal_point'
                                               or 'decimal_point']
         formatted = decimal_point.join(parts)
-        while seps:
-            sp = formatted.find(' ')
-            if sp == -1: break
-            formatted = formatted[:sp] + formatted[sp+1:]
-            seps -= 1
+        if seps:
+            formatted = _strip_padding(formatted, seps)
     elif percent[-1] in 'diu':
+        seps = 0
         if grouping:
-            formatted = _group(formatted, monetary=monetary)[0]
+            formatted, seps = _group(formatted, monetary=monetary)
+        if seps:
+            formatted = _strip_padding(formatted, seps)
     return formatted
 
 import re, operator
@@ -620,6 +655,33 @@ locale_encoding_alias = {
 #    updated 'zh_cn.big5' -> 'zh_TW.eucTW' to 'zh_TW.big5'
 #    updated 'zh_tw' -> 'zh_TW.eucTW' to 'zh_TW.big5'
 #
+# MAL 2008-05-30:
+# Updated alias mapping to most recent locale.alias file
+# from X.org distribution using makelocalealias.py.
+#
+# These are the differences compared to the old mapping (Python 2.5
+# and older):
+#
+#    updated 'cs_cs.iso88592' -> 'cs_CZ.ISO8859-2' to 'cs_CS.ISO8859-2'
+#    updated 'serbocroatian' -> 'sh_YU.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sh' -> 'sh_YU.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sh_hr.iso88592' -> 'sh_HR.ISO8859-2' to 'hr_HR.ISO8859-2'
+#    updated 'sh_sp' -> 'sh_YU.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sh_yu' -> 'sh_YU.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sp' -> 'sp_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sp_yu' -> 'sp_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr@cyrillic' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr_sp' -> 'sr_SP.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sr_yu' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr_yu.cp1251@cyrillic' -> 'sr_YU.CP1251' to 'sr_CS.CP1251'
+#    updated 'sr_yu.iso88592' -> 'sr_YU.ISO8859-2' to 'sr_CS.ISO8859-2'
+#    updated 'sr_yu.iso88595' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr_yu.iso88595@cyrillic' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+#    updated 'sr_yu.microsoftcp1251@cyrillic' -> 'sr_YU.CP1251' to 'sr_CS.CP1251'
+#    updated 'sr_yu.utf8@cyrillic' -> 'sr_YU.UTF-8' to 'sr_CS.UTF-8'
+#    updated 'sr_yu@cyrillic' -> 'sr_YU.ISO8859-5' to 'sr_CS.ISO8859-5'
+
 locale_alias = {
     'a3':                                   'a3_AZ.KOI8-C',
     'a3_az':                                'a3_AZ.KOI8-C',
@@ -628,30 +690,46 @@ locale_alias = {
     'af_za':                                'af_ZA.ISO8859-1',
     'af_za.iso88591':                       'af_ZA.ISO8859-1',
     'am':                                   'am_ET.UTF-8',
+    'am_et':                                'am_ET.UTF-8',
     'american':                             'en_US.ISO8859-1',
     'american.iso88591':                    'en_US.ISO8859-1',
     'ar':                                   'ar_AA.ISO8859-6',
     'ar_aa':                                'ar_AA.ISO8859-6',
     'ar_aa.iso88596':                       'ar_AA.ISO8859-6',
     'ar_ae':                                'ar_AE.ISO8859-6',
+    'ar_ae.iso88596':                       'ar_AE.ISO8859-6',
     'ar_bh':                                'ar_BH.ISO8859-6',
+    'ar_bh.iso88596':                       'ar_BH.ISO8859-6',
     'ar_dz':                                'ar_DZ.ISO8859-6',
+    'ar_dz.iso88596':                       'ar_DZ.ISO8859-6',
     'ar_eg':                                'ar_EG.ISO8859-6',
     'ar_eg.iso88596':                       'ar_EG.ISO8859-6',
     'ar_iq':                                'ar_IQ.ISO8859-6',
+    'ar_iq.iso88596':                       'ar_IQ.ISO8859-6',
     'ar_jo':                                'ar_JO.ISO8859-6',
+    'ar_jo.iso88596':                       'ar_JO.ISO8859-6',
     'ar_kw':                                'ar_KW.ISO8859-6',
+    'ar_kw.iso88596':                       'ar_KW.ISO8859-6',
     'ar_lb':                                'ar_LB.ISO8859-6',
+    'ar_lb.iso88596':                       'ar_LB.ISO8859-6',
     'ar_ly':                                'ar_LY.ISO8859-6',
+    'ar_ly.iso88596':                       'ar_LY.ISO8859-6',
     'ar_ma':                                'ar_MA.ISO8859-6',
+    'ar_ma.iso88596':                       'ar_MA.ISO8859-6',
     'ar_om':                                'ar_OM.ISO8859-6',
+    'ar_om.iso88596':                       'ar_OM.ISO8859-6',
     'ar_qa':                                'ar_QA.ISO8859-6',
+    'ar_qa.iso88596':                       'ar_QA.ISO8859-6',
     'ar_sa':                                'ar_SA.ISO8859-6',
     'ar_sa.iso88596':                       'ar_SA.ISO8859-6',
     'ar_sd':                                'ar_SD.ISO8859-6',
+    'ar_sd.iso88596':                       'ar_SD.ISO8859-6',
     'ar_sy':                                'ar_SY.ISO8859-6',
+    'ar_sy.iso88596':                       'ar_SY.ISO8859-6',
     'ar_tn':                                'ar_TN.ISO8859-6',
+    'ar_tn.iso88596':                       'ar_TN.ISO8859-6',
     'ar_ye':                                'ar_YE.ISO8859-6',
+    'ar_ye.iso88596':                       'ar_YE.ISO8859-6',
     'arabic':                               'ar_AA.ISO8859-6',
     'arabic.iso88596':                      'ar_AA.ISO8859-6',
     'az':                                   'az_AZ.ISO8859-9E',
@@ -667,6 +745,7 @@ locale_alias = {
     'bg_bg.iso88595':                       'bg_BG.ISO8859-5',
     'bg_bg.koi8r':                          'bg_BG.KOI8-R',
     'bg_bg.microsoftcp1251':                'bg_BG.CP1251',
+    'bn_in':                                'bn_IN.UTF-8',
     'bokmal':                               'nb_NO.ISO8859-1',
     'bokm\xe5l':                            'nb_NO.ISO8859-1',
     'br':                                   'br_FR.ISO8859-1',
@@ -674,7 +753,12 @@ locale_alias = {
     'br_fr.iso88591':                       'br_FR.ISO8859-1',
     'br_fr.iso885914':                      'br_FR.ISO8859-14',
     'br_fr.iso885915':                      'br_FR.ISO8859-15',
+    'br_fr.iso885915@euro':                 'br_FR.ISO8859-15',
+    'br_fr.utf8@euro':                      'br_FR.UTF-8',
     'br_fr@euro':                           'br_FR.ISO8859-15',
+    'bs':                                   'bs_BA.ISO8859-2',
+    'bs_ba':                                'bs_BA.ISO8859-2',
+    'bs_ba.iso88592':                       'bs_BA.ISO8859-2',
     'bulgarian':                            'bg_BG.CP1251',
     'c':                                    'C',
     'c-french':                             'fr_CA.ISO8859-1',
@@ -687,6 +771,8 @@ locale_alias = {
     'ca_es':                                'ca_ES.ISO8859-1',
     'ca_es.iso88591':                       'ca_ES.ISO8859-1',
     'ca_es.iso885915':                      'ca_ES.ISO8859-15',
+    'ca_es.iso885915@euro':                 'ca_ES.ISO8859-15',
+    'ca_es.utf8@euro':                      'ca_ES.UTF-8',
     'ca_es@euro':                           'ca_ES.ISO8859-15',
     'catalan':                              'ca_ES.ISO8859-1',
     'cextend':                              'en_US.ISO8859-1',
@@ -696,7 +782,7 @@ locale_alias = {
     'croatian':                             'hr_HR.ISO8859-2',
     'cs':                                   'cs_CZ.ISO8859-2',
     'cs_cs':                                'cs_CZ.ISO8859-2',
-    'cs_cs.iso88592':                       'cs_CZ.ISO8859-2',
+    'cs_cs.iso88592':                       'cs_CS.ISO8859-2',
     'cs_cz':                                'cs_CZ.ISO8859-2',
     'cs_cz.iso88592':                       'cs_CZ.ISO8859-2',
     'cy':                                   'cy_GB.ISO8859-1',
@@ -722,10 +808,14 @@ locale_alias = {
     'de_at':                                'de_AT.ISO8859-1',
     'de_at.iso88591':                       'de_AT.ISO8859-1',
     'de_at.iso885915':                      'de_AT.ISO8859-15',
+    'de_at.iso885915@euro':                 'de_AT.ISO8859-15',
+    'de_at.utf8@euro':                      'de_AT.UTF-8',
     'de_at@euro':                           'de_AT.ISO8859-15',
     'de_be':                                'de_BE.ISO8859-1',
     'de_be.iso88591':                       'de_BE.ISO8859-1',
     'de_be.iso885915':                      'de_BE.ISO8859-15',
+    'de_be.iso885915@euro':                 'de_BE.ISO8859-15',
+    'de_be.utf8@euro':                      'de_BE.UTF-8',
     'de_be@euro':                           'de_BE.ISO8859-15',
     'de_ch':                                'de_CH.ISO8859-1',
     'de_ch.iso88591':                       'de_CH.ISO8859-1',
@@ -737,10 +827,14 @@ locale_alias = {
     'de_de.885915@euro':                    'de_DE.ISO8859-15',
     'de_de.iso88591':                       'de_DE.ISO8859-1',
     'de_de.iso885915':                      'de_DE.ISO8859-15',
+    'de_de.iso885915@euro':                 'de_DE.ISO8859-15',
+    'de_de.utf8@euro':                      'de_DE.UTF-8',
     'de_de@euro':                           'de_DE.ISO8859-15',
     'de_lu':                                'de_LU.ISO8859-1',
     'de_lu.iso88591':                       'de_LU.ISO8859-1',
     'de_lu.iso885915':                      'de_LU.ISO8859-15',
+    'de_lu.iso885915@euro':                 'de_LU.ISO8859-15',
+    'de_lu.utf8@euro':                      'de_LU.UTF-8',
     'de_lu@euro':                           'de_LU.ISO8859-15',
     'deutsch':                              'de_DE.ISO8859-1',
     'dutch':                                'nl_NL.ISO8859-1',
@@ -760,6 +854,7 @@ locale_alias = {
     'en_be':                                'en_BE.ISO8859-1',
     'en_be@euro':                           'en_BE.ISO8859-15',
     'en_bw':                                'en_BW.ISO8859-1',
+    'en_bw.iso88591':                       'en_BW.ISO8859-1',
     'en_ca':                                'en_CA.ISO8859-1',
     'en_ca.iso88591':                       'en_CA.ISO8859-1',
     'en_gb':                                'en_GB.ISO8859-1',
@@ -768,15 +863,20 @@ locale_alias = {
     'en_gb.iso885915':                      'en_GB.ISO8859-15',
     'en_gb@euro':                           'en_GB.ISO8859-15',
     'en_hk':                                'en_HK.ISO8859-1',
+    'en_hk.iso88591':                       'en_HK.ISO8859-1',
     'en_ie':                                'en_IE.ISO8859-1',
     'en_ie.iso88591':                       'en_IE.ISO8859-1',
     'en_ie.iso885915':                      'en_IE.ISO8859-15',
+    'en_ie.iso885915@euro':                 'en_IE.ISO8859-15',
+    'en_ie.utf8@euro':                      'en_IE.UTF-8',
     'en_ie@euro':                           'en_IE.ISO8859-15',
     'en_in':                                'en_IN.ISO8859-1',
     'en_nz':                                'en_NZ.ISO8859-1',
     'en_nz.iso88591':                       'en_NZ.ISO8859-1',
     'en_ph':                                'en_PH.ISO8859-1',
+    'en_ph.iso88591':                       'en_PH.ISO8859-1',
     'en_sg':                                'en_SG.ISO8859-1',
+    'en_sg.iso88591':                       'en_SG.ISO8859-1',
     'en_uk':                                'en_GB.ISO8859-1',
     'en_us':                                'en_US.ISO8859-1',
     'en_us.88591':                          'en_US.ISO8859-1',
@@ -792,6 +892,7 @@ locale_alias = {
     'en_za.iso885915':                      'en_ZA.ISO8859-15',
     'en_za@euro':                           'en_ZA.ISO8859-15',
     'en_zw':                                'en_ZW.ISO8859-1',
+    'en_zw.iso88591':                       'en_ZW.ISO8859-1',
     'eng_gb':                               'en_GB.ISO8859-1',
     'eng_gb.8859':                          'en_GB.ISO8859-1',
     'english':                              'en_EN.ISO8859-1',
@@ -827,6 +928,8 @@ locale_alias = {
     'es_es.88591':                          'es_ES.ISO8859-1',
     'es_es.iso88591':                       'es_ES.ISO8859-1',
     'es_es.iso885915':                      'es_ES.ISO8859-15',
+    'es_es.iso885915@euro':                 'es_ES.ISO8859-15',
+    'es_es.utf8@euro':                      'es_ES.UTF-8',
     'es_es@euro':                           'es_ES.ISO8859-15',
     'es_gt':                                'es_GT.ISO8859-1',
     'es_gt.iso88591':                       'es_GT.ISO8859-1',
@@ -855,6 +958,7 @@ locale_alias = {
     'es_sv.iso885915':                      'es_SV.ISO8859-15',
     'es_sv@euro':                           'es_SV.ISO8859-15',
     'es_us':                                'es_US.ISO8859-1',
+    'es_us.iso88591':                       'es_US.ISO8859-1',
     'es_uy':                                'es_UY.ISO8859-1',
     'es_uy.iso88591':                       'es_UY.ISO8859-1',
     'es_uy.iso885915':                      'es_UY.ISO8859-15',
@@ -875,6 +979,8 @@ locale_alias = {
     'eu_es':                                'eu_ES.ISO8859-1',
     'eu_es.iso88591':                       'eu_ES.ISO8859-1',
     'eu_es.iso885915':                      'eu_ES.ISO8859-15',
+    'eu_es.iso885915@euro':                 'eu_ES.ISO8859-15',
+    'eu_es.utf8@euro':                      'eu_ES.UTF-8',
     'eu_es@euro':                           'eu_ES.ISO8859-15',
     'fa':                                   'fa_IR.UTF-8',
     'fa_ir':                                'fa_IR.UTF-8',
@@ -884,6 +990,7 @@ locale_alias = {
     'fi_fi.88591':                          'fi_FI.ISO8859-1',
     'fi_fi.iso88591':                       'fi_FI.ISO8859-1',
     'fi_fi.iso885915':                      'fi_FI.ISO8859-15',
+    'fi_fi.iso885915@euro':                 'fi_FI.ISO8859-15',
     'fi_fi.utf8@euro':                      'fi_FI.UTF-8',
     'fi_fi@euro':                           'fi_FI.ISO8859-15',
     'finnish':                              'fi_FI.ISO8859-1',
@@ -898,6 +1005,8 @@ locale_alias = {
     'fr_be.88591':                          'fr_BE.ISO8859-1',
     'fr_be.iso88591':                       'fr_BE.ISO8859-1',
     'fr_be.iso885915':                      'fr_BE.ISO8859-15',
+    'fr_be.iso885915@euro':                 'fr_BE.ISO8859-15',
+    'fr_be.utf8@euro':                      'fr_BE.UTF-8',
     'fr_be@euro':                           'fr_BE.ISO8859-15',
     'fr_ca':                                'fr_CA.ISO8859-1',
     'fr_ca.88591':                          'fr_CA.ISO8859-1',
@@ -913,11 +1022,15 @@ locale_alias = {
     'fr_fr.88591':                          'fr_FR.ISO8859-1',
     'fr_fr.iso88591':                       'fr_FR.ISO8859-1',
     'fr_fr.iso885915':                      'fr_FR.ISO8859-15',
+    'fr_fr.iso885915@euro':                 'fr_FR.ISO8859-15',
+    'fr_fr.utf8@euro':                      'fr_FR.UTF-8',
     'fr_fr@euro':                           'fr_FR.ISO8859-15',
     'fr_lu':                                'fr_LU.ISO8859-1',
     'fr_lu.88591':                          'fr_LU.ISO8859-1',
     'fr_lu.iso88591':                       'fr_LU.ISO8859-1',
     'fr_lu.iso885915':                      'fr_LU.ISO8859-15',
+    'fr_lu.iso885915@euro':                 'fr_LU.ISO8859-15',
+    'fr_lu.utf8@euro':                      'fr_LU.UTF-8',
     'fr_lu@euro':                           'fr_LU.ISO8859-15',
     'fran\xe7ais':                          'fr_FR.ISO8859-1',
     'fre_fr':                               'fr_FR.ISO8859-1',
@@ -931,6 +1044,8 @@ locale_alias = {
     'ga_ie.iso88591':                       'ga_IE.ISO8859-1',
     'ga_ie.iso885914':                      'ga_IE.ISO8859-14',
     'ga_ie.iso885915':                      'ga_IE.ISO8859-15',
+    'ga_ie.iso885915@euro':                 'ga_IE.ISO8859-15',
+    'ga_ie.utf8@euro':                      'ga_IE.UTF-8',
     'ga_ie@euro':                           'ga_IE.ISO8859-15',
     'galego':                               'gl_ES.ISO8859-1',
     'galician':                             'gl_ES.ISO8859-1',
@@ -950,9 +1065,12 @@ locale_alias = {
     'gl_es':                                'gl_ES.ISO8859-1',
     'gl_es.iso88591':                       'gl_ES.ISO8859-1',
     'gl_es.iso885915':                      'gl_ES.ISO8859-15',
+    'gl_es.iso885915@euro':                 'gl_ES.ISO8859-15',
+    'gl_es.utf8@euro':                      'gl_ES.UTF-8',
     'gl_es@euro':                           'gl_ES.ISO8859-15',
     'greek':                                'el_GR.ISO8859-7',
     'greek.iso88597':                       'el_GR.ISO8859-7',
+    'gu_in':                                'gu_IN.UTF-8',
     'gv':                                   'gv_GB.ISO8859-1',
     'gv_gb':                                'gv_GB.ISO8859-1',
     'gv_gb.iso88591':                       'gv_GB.ISO8859-1',
@@ -1003,6 +1121,8 @@ locale_alias = {
     'it_it.88591':                          'it_IT.ISO8859-1',
     'it_it.iso88591':                       'it_IT.ISO8859-1',
     'it_it.iso885915':                      'it_IT.ISO8859-15',
+    'it_it.iso885915@euro':                 'it_IT.ISO8859-15',
+    'it_it.utf8@euro':                      'it_IT.UTF-8',
     'it_it@euro':                           'it_IT.ISO8859-15',
     'italian':                              'it_IT.ISO8859-1',
     'italian.iso88591':                     'it_IT.ISO8859-1',
@@ -1042,6 +1162,8 @@ locale_alias = {
     'kl_gl.iso88591':                       'kl_GL.ISO8859-1',
     'kl_gl.iso885915':                      'kl_GL.ISO8859-15',
     'kl_gl@euro':                           'kl_GL.ISO8859-15',
+    'km_kh':                                'km_KH.UTF-8',
+    'kn_in':                                'kn_IN.UTF-8',
     'ko':                                   'ko_KR.eucKR',
     'ko_kr':                                'ko_KR.eucKR',
     'ko_kr.euc':                            'ko_KR.eucKR',
@@ -1054,6 +1176,8 @@ locale_alias = {
     'kw_gb.iso885914':                      'kw_GB.ISO8859-14',
     'kw_gb.iso885915':                      'kw_GB.ISO8859-15',
     'kw_gb@euro':                           'kw_GB.ISO8859-15',
+    'ky':                                   'ky_KG.UTF-8',
+    'ky_kg':                                'ky_KG.UTF-8',
     'lithuanian':                           'lt_LT.ISO8859-13',
     'lo':                                   'lo_LA.MULELAO-1',
     'lo_la':                                'lo_LA.MULELAO-1',
@@ -1076,6 +1200,7 @@ locale_alias = {
     'mk_mk.cp1251':                         'mk_MK.CP1251',
     'mk_mk.iso88595':                       'mk_MK.ISO8859-5',
     'mk_mk.microsoftcp1251':                'mk_MK.CP1251',
+    'mr_in':                                'mr_IN.UTF-8',
     'ms':                                   'ms_MY.ISO8859-1',
     'ms_my':                                'ms_MY.ISO8859-1',
     'ms_my.iso88591':                       'ms_MY.ISO8859-1',
@@ -1093,11 +1218,15 @@ locale_alias = {
     'nl_be.88591':                          'nl_BE.ISO8859-1',
     'nl_be.iso88591':                       'nl_BE.ISO8859-1',
     'nl_be.iso885915':                      'nl_BE.ISO8859-15',
+    'nl_be.iso885915@euro':                 'nl_BE.ISO8859-15',
+    'nl_be.utf8@euro':                      'nl_BE.UTF-8',
     'nl_be@euro':                           'nl_BE.ISO8859-15',
     'nl_nl':                                'nl_NL.ISO8859-1',
     'nl_nl.88591':                          'nl_NL.ISO8859-1',
     'nl_nl.iso88591':                       'nl_NL.ISO8859-1',
     'nl_nl.iso885915':                      'nl_NL.ISO8859-15',
+    'nl_nl.iso885915@euro':                 'nl_NL.ISO8859-15',
+    'nl_nl.utf8@euro':                      'nl_NL.UTF-8',
     'nl_nl@euro':                           'nl_NL.ISO8859-15',
     'nn':                                   'nn_NO.ISO8859-1',
     'nn_no':                                'nn_NO.ISO8859-1',
@@ -1114,6 +1243,12 @@ locale_alias = {
     'no_no@euro':                           'no_NO.ISO8859-15',
     'norwegian':                            'no_NO.ISO8859-1',
     'norwegian.iso88591':                   'no_NO.ISO8859-1',
+    'nr':                                   'nr_ZA.ISO8859-1',
+    'nr_za':                                'nr_ZA.ISO8859-1',
+    'nr_za.iso88591':                       'nr_ZA.ISO8859-1',
+    'nso':                                  'nso_ZA.ISO8859-15',
+    'nso_za':                               'nso_ZA.ISO8859-15',
+    'nso_za.iso885915':                     'nso_ZA.ISO8859-15',
     'ny':                                   'ny_NO.ISO8859-1',
     'ny_no':                                'ny_NO.ISO8859-1',
     'ny_no.88591':                          'ny_NO.ISO8859-1',
@@ -1126,6 +1261,7 @@ locale_alias = {
     'oc_fr.iso88591':                       'oc_FR.ISO8859-1',
     'oc_fr.iso885915':                      'oc_FR.ISO8859-15',
     'oc_fr@euro':                           'oc_FR.ISO8859-15',
+    'pa_in':                                'pa_IN.UTF-8',
     'pd':                                   'pd_US.ISO8859-1',
     'pd_de':                                'pd_DE.ISO8859-1',
     'pd_de.iso88591':                       'pd_DE.ISO8859-1',
@@ -1161,6 +1297,7 @@ locale_alias = {
     'pt_pt.88591':                          'pt_PT.ISO8859-1',
     'pt_pt.iso88591':                       'pt_PT.ISO8859-1',
     'pt_pt.iso885915':                      'pt_PT.ISO8859-15',
+    'pt_pt.iso885915@euro':                 'pt_PT.ISO8859-15',
     'pt_pt.utf8@euro':                      'pt_PT.UTF-8',
     'pt_pt@euro':                           'pt_PT.ISO8859-15',
     'ro':                                   'ro_RO.ISO8859-2',
@@ -1179,13 +1316,19 @@ locale_alias = {
     'ru_ua.microsoftcp1251':                'ru_UA.CP1251',
     'rumanian':                             'ro_RO.ISO8859-2',
     'russian':                              'ru_RU.ISO8859-5',
+    'rw':                                   'rw_RW.ISO8859-1',
+    'rw_rw':                                'rw_RW.ISO8859-1',
+    'rw_rw.iso88591':                       'rw_RW.ISO8859-1',
     'se_no':                                'se_NO.UTF-8',
-    'serbocroatian':                        'sh_YU.ISO8859-2',
-    'sh':                                   'sh_YU.ISO8859-2',
+    'serbocroatian':                        'sr_CS.ISO8859-2',
+    'sh':                                   'sr_CS.ISO8859-2',
     'sh_hr':                                'sh_HR.ISO8859-2',
-    'sh_hr.iso88592':                       'sh_HR.ISO8859-2',
-    'sh_sp':                                'sh_YU.ISO8859-2',
-    'sh_yu':                                'sh_YU.ISO8859-2',
+    'sh_hr.iso88592':                       'hr_HR.ISO8859-2',
+    'sh_sp':                                'sr_CS.ISO8859-2',
+    'sh_yu':                                'sr_CS.ISO8859-2',
+    'si':                                   'si_LK.UTF-8',
+    'si_lk':                                'si_LK.UTF-8',
+    'sinhala':                              'si_LK.UTF-8',
     'sk':                                   'sk_SK.ISO8859-2',
     'sk_sk':                                'sk_SK.ISO8859-2',
     'sk_sk.iso88592':                       'sk_SK.ISO8859-2',
@@ -1196,8 +1339,8 @@ locale_alias = {
     'slovak':                               'sk_SK.ISO8859-2',
     'slovene':                              'sl_SI.ISO8859-2',
     'slovenian':                            'sl_SI.ISO8859-2',
-    'sp':                                   'sp_YU.ISO8859-5',
-    'sp_yu':                                'sp_YU.ISO8859-5',
+    'sp':                                   'sr_CS.ISO8859-5',
+    'sp_yu':                                'sr_CS.ISO8859-5',
     'spanish':                              'es_ES.ISO8859-1',
     'spanish.iso88591':                     'es_ES.ISO8859-1',
     'spanish_spain':                        'es_ES.ISO8859-1',
@@ -1205,21 +1348,35 @@ locale_alias = {
     'sq':                                   'sq_AL.ISO8859-2',
     'sq_al':                                'sq_AL.ISO8859-2',
     'sq_al.iso88592':                       'sq_AL.ISO8859-2',
-    'sr':                                   'sr_YU.ISO8859-5',
-    'sr@cyrillic':                          'sr_YU.ISO8859-5',
-    'sr_sp':                                'sr_SP.ISO8859-2',
-    'sr_yu':                                'sr_YU.ISO8859-5',
-    'sr_yu.cp1251@cyrillic':                'sr_YU.CP1251',
-    'sr_yu.iso88592':                       'sr_YU.ISO8859-2',
-    'sr_yu.iso88595':                       'sr_YU.ISO8859-5',
-    'sr_yu.iso88595@cyrillic':              'sr_YU.ISO8859-5',
-    'sr_yu.microsoftcp1251@cyrillic':       'sr_YU.CP1251',
-    'sr_yu.utf8@cyrillic':                  'sr_YU.UTF-8',
-    'sr_yu@cyrillic':                       'sr_YU.ISO8859-5',
+    'sr':                                   'sr_CS.ISO8859-5',
+    'sr@cyrillic':                          'sr_CS.ISO8859-5',
+    'sr@latn':                              'sr_CS.ISO8859-2',
+    'sr_cs.iso88592':                       'sr_CS.ISO8859-2',
+    'sr_cs.iso88592@latn':                  'sr_CS.ISO8859-2',
+    'sr_cs.iso88595':                       'sr_CS.ISO8859-5',
+    'sr_cs.utf8@latn':                      'sr_CS.UTF-8',
+    'sr_cs@latn':                           'sr_CS.ISO8859-2',
+    'sr_sp':                                'sr_CS.ISO8859-2',
+    'sr_yu':                                'sr_CS.ISO8859-5',
+    'sr_yu.cp1251@cyrillic':                'sr_CS.CP1251',
+    'sr_yu.iso88592':                       'sr_CS.ISO8859-2',
+    'sr_yu.iso88595':                       'sr_CS.ISO8859-5',
+    'sr_yu.iso88595@cyrillic':              'sr_CS.ISO8859-5',
+    'sr_yu.microsoftcp1251@cyrillic':       'sr_CS.CP1251',
+    'sr_yu.utf8@cyrillic':                  'sr_CS.UTF-8',
+    'sr_yu@cyrillic':                       'sr_CS.ISO8859-5',
+    'ss':                                   'ss_ZA.ISO8859-1',
+    'ss_za':                                'ss_ZA.ISO8859-1',
+    'ss_za.iso88591':                       'ss_ZA.ISO8859-1',
+    'st':                                   'st_ZA.ISO8859-1',
+    'st_za':                                'st_ZA.ISO8859-1',
+    'st_za.iso88591':                       'st_ZA.ISO8859-1',
     'sv':                                   'sv_SE.ISO8859-1',
     'sv_fi':                                'sv_FI.ISO8859-1',
     'sv_fi.iso88591':                       'sv_FI.ISO8859-1',
     'sv_fi.iso885915':                      'sv_FI.ISO8859-15',
+    'sv_fi.iso885915@euro':                 'sv_FI.ISO8859-15',
+    'sv_fi.utf8@euro':                      'sv_FI.UTF-8',
     'sv_fi@euro':                           'sv_FI.ISO8859-15',
     'sv_se':                                'sv_SE.ISO8859-1',
     'sv_se.88591':                          'sv_SE.ISO8859-1',
@@ -1244,9 +1401,15 @@ locale_alias = {
     'tl':                                   'tl_PH.ISO8859-1',
     'tl_ph':                                'tl_PH.ISO8859-1',
     'tl_ph.iso88591':                       'tl_PH.ISO8859-1',
+    'tn':                                   'tn_ZA.ISO8859-15',
+    'tn_za':                                'tn_ZA.ISO8859-15',
+    'tn_za.iso885915':                      'tn_ZA.ISO8859-15',
     'tr':                                   'tr_TR.ISO8859-9',
     'tr_tr':                                'tr_TR.ISO8859-9',
     'tr_tr.iso88599':                       'tr_TR.ISO8859-9',
+    'ts':                                   'ts_ZA.ISO8859-1',
+    'ts_za':                                'ts_ZA.ISO8859-1',
+    'ts_za.iso88591':                       'ts_ZA.ISO8859-1',
     'tt':                                   'tt_RU.TATAR-CYR',
     'tt_ru':                                'tt_RU.TATAR-CYR',
     'tt_ru.koi8c':                          'tt_RU.KOI8-C',
@@ -1268,6 +1431,11 @@ locale_alias = {
     'ur_pk.microsoftcp1256':                'ur_PK.CP1256',
     'uz':                                   'uz_UZ.UTF-8',
     'uz_uz':                                'uz_UZ.UTF-8',
+    'uz_uz.iso88591':                       'uz_UZ.ISO8859-1',
+    'uz_uz.utf8@cyrillic':                  'uz_UZ.UTF-8',
+    'uz_uz@cyrillic':                       'uz_UZ.UTF-8',
+    've':                                   've_ZA.UTF-8',
+    've_za':                                've_ZA.UTF-8',
     'vi':                                   'vi_VN.TCVN',
     'vi_vn':                                'vi_VN.TCVN',
     'vi_vn.tcvn':                           'vi_VN.TCVN',
@@ -1278,7 +1446,11 @@ locale_alias = {
     'wa_be':                                'wa_BE.ISO8859-1',
     'wa_be.iso88591':                       'wa_BE.ISO8859-1',
     'wa_be.iso885915':                      'wa_BE.ISO8859-15',
+    'wa_be.iso885915@euro':                 'wa_BE.ISO8859-15',
     'wa_be@euro':                           'wa_BE.ISO8859-15',
+    'xh':                                   'xh_ZA.ISO8859-1',
+    'xh_za':                                'xh_ZA.ISO8859-1',
+    'xh_za.iso88591':                       'xh_ZA.ISO8859-1',
     'yi':                                   'yi_US.CP1255',
     'yi_us':                                'yi_US.CP1255',
     'yi_us.cp1255':                         'yi_US.CP1255',
@@ -1296,6 +1468,10 @@ locale_alias = {
     'zh_tw':                                'zh_TW.big5',
     'zh_tw.big5':                           'zh_TW.big5',
     'zh_tw.euc':                            'zh_TW.eucTW',
+    'zh_tw.euctw':                          'zh_TW.eucTW',
+    'zu':                                   'zu_ZA.ISO8859-1',
+    'zu_za':                                'zu_ZA.ISO8859-1',
+    'zu_za.iso88591':                       'zu_ZA.ISO8859-1',
 }
 
 #

@@ -19,21 +19,19 @@ List the degree and discriminant of all fields in the database that
 have ramification at most at 2::
 
     sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]    # optional - jones_database
-    [(1, 1), (2, 8), (2, -4), (2, -8), (4, 2048), (4, -1024), (4, 512), (4, -2048), (4, 256), (4, 2048), (4, 2048)]
+    [(1, 1), (2, -4), (2, -8), (2, 8), (4, 256), (4, 512), (4, -1024), (4, -2048), (4, 2048), (4, 2048), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified
 outside 2::
 
     sage: [k.disc() for k in J.unramified_outside([2],2)]                # optional - jones_database
-
-    [8, -4, -8]
+    [-4, -8, 8]
 
 List the discriminants of cubic field in the database ramified
 exactly at 3 and 5::
 
     sage: [k.disc() for k in J.ramified_at([3,5],3)]                     # optional - jones_database
-
-    [-6075, -6075, -675, -135]
+    [-135, -675, -6075, -6075]
     sage: factor(6075)
     3^5 * 5^2
     sage: factor(675)
@@ -44,7 +42,11 @@ exactly at 3 and 5::
 List all fields in the database ramified at 101::
 
     sage: J.ramified_at(101)                                             # optional - jones_database
-    [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
+    [Number Field in a with defining polynomial x^2 - 101,
+     Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
+     Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
+     Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+     Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
 """
 
 #*****************************************************************************
@@ -106,7 +108,7 @@ class JonesDatabase:
 
     def _init(self, path):
         """
-        Create the database from scratch from the PARI files on John Jone's
+        Create the database from scratch from the PARI files on John Jones's
         web page, downloaded (e.g., via wget) to a local directory, which
         is specified as path above.
 
@@ -114,7 +116,7 @@ class JonesDatabase:
 
 
         -  ``path`` - (default works on William Stein install.)
-           path must be the path to Jone's Number_Fields directory
+           path must be the path to Jones's Number_Fields directory
            http://hobbes.la.asu.edu/Number_Fields These files should have
            been downloaded using wget.
 
@@ -145,23 +147,35 @@ class JonesDatabase:
             os.makedirs(JONESDATA)
         save(self.root, JONESDATA+ "/jones.sobj")
 
-    def unramified_outside(self, S, d=None):
+    def unramified_outside(self, S, d=None, var='a'):
         """
-        Return iterator over fields in the database of degree d unramified
+        Return all fields in the database of degree d unramified
         outside S. If d is omitted, return fields of any degree up to 6.
+        The fields are ordered by degree and discriminant.
+
         INPUT:
 
 
-        -  ``S`` - list or set of primes
+        -  ``S`` - list or set of primes, or a single prime
 
-        -  ``d`` - None (default) or an integer
+        -  ``d`` - None (default, in which case all fields of degree <= 6 are returned)
+           or a positive integer giving the degree of the number fields returned.
 
+        -  ``var'' - the name used for the generator of the number fields (default 'a').
 
         EXAMPLES::
 
             sage: J = JonesDatabase()             # requires optional package
-            sage: J.unramified_outside([101,119]) # requires optional package
-            [Number Field in a with defining polynomial x - 1, Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
+            sage: J.unramified_outside([101,109]) # requires optional package
+            [Number Field in a with defining polynomial x - 1,
+             Number Field in a with defining polynomial x^2 - 101,
+             Number Field in a with defining polynomial x^2 - 109,
+             Number Field in a with defining polynomial x^3 - x^2 - 36*x + 4,
+             Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
+             Number Field in a with defining polynomial x^4 - x^3 + 14*x^2 + 34*x + 393,
+             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
+             Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+             Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
         """
         try:
             S = list(S)
@@ -169,14 +183,37 @@ class JonesDatabase:
             S = [S]
         Z = []
         for X in powerset(S):
-            Z += [k for k in self.ramified_at(X, d)]
+            Z += self.ramified_at(X, d=d, var=var)
+        Z = [(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z]
         Z.sort()
-        return Z
+        return [z[-1] for z in Z]
 
     def __getitem__(self, S):
         return self.get(S)
 
     def get(self, S, var='a'):
+        """
+        Return all fields in the database ramified exactly at
+        the primes in S.
+
+        INPUT:
+
+        -  ``S`` - list or set of primes, or a single prime
+
+        -  ``var'' - the name used for the generator of the number fields (default 'a').
+
+        EXAMPLES::
+
+            sage: J = JonesDatabase()              # requires optional package
+            sage: J.get(163, var='z')              # requires optional package
+            [Number Field in z with defining polynomial x^2 + 163,
+             Number Field in z with defining polynomial x^3 - x^2 - 54*x + 169,
+             Number Field in z with defining polynomial x^4 - x^3 - 7*x^2 + 2*x + 9]
+            sage: J.get([3, 4])                   # requires optional package
+            Traceback (most recent call last):
+            ...
+            ValueError: S must be a list of primes
+        """
         if self.root is None:
             if os.path.exists(JONESDATA+ "/jones.sobj"):
                 self.root = load(JONESDATA+ "/jones.sobj")
@@ -186,6 +223,8 @@ class JonesDatabase:
             S = list(S)
         except TypeError:
             S = [S]
+        if not all([p.is_prime() for p in S]):
+            raise ValueError, "S must be a list of primes"
         S.sort()
         s = tuple(S)
         if not self.root.has_key(s):
@@ -195,27 +234,42 @@ class JonesDatabase:
     def ramified_at(self, S, d=None, var='a'):
         """
         Return all fields in the database of degree d ramified exactly at
-        the primes in S. INPUT:
+        the primes in S.  The fields are ordered by degree and discriminant.
 
+        INPUT:
 
         -  ``S`` - list or set of primes
 
-        -  ``d`` - None (default) or an integer
+        -  ``d`` - None (default, in which case all fields of degree <= 6 are returned)
+           or a positive integer giving the degree of the number fields returned.
 
+        -  ``var'' - the name used for the generator of the number fields (default 'a').
 
         EXAMPLES::
 
             sage: J = JonesDatabase()              # requires optional package
-            sage: J.ramified_at([101,119])         # requires optional package
+            sage: J.ramified_at([101,109])         # requires optional package
             []
-            sage: J.ramified_at([119])             # requires optional package
-            []
+            sage: J.ramified_at([109])             # requires optional package
+            [Number Field in a with defining polynomial x^2 - 109,
+             Number Field in a with defining polynomial x^3 - x^2 - 36*x + 4,
+             Number Field in a with defining polynomial x^4 - x^3 + 14*x^2 + 34*x + 393]
             sage: J.ramified_at(101)               # requires optional package
-            [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
+            [Number Field in a with defining polynomial x^2 - 101,
+             Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
+             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
+             Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+             Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+            sage: J.ramified_at((2, 5, 29), 3, 'c') # requires optional package
+            [Number Field in c with defining polynomial x^3 - x^2 - 8*x - 28,
+             Number Field in c with defining polynomial x^3 - x^2 + 10*x + 102,
+             Number Field in c with defining polynomial x^3 - x^2 + 97*x - 333,
+             Number Field in c with defining polynomial x^3 - x^2 - 48*x - 188]
         """
         Z = self.get(S, var=var)
         if d == None:
-            return Z
-        return [k for k in self[S] if k.degree() == d]
-
-
+            Z = [(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z]
+        else:
+            Z = [(k.discriminant().abs(), k.discriminant() > 0, k) for k in Z if k.degree() == d]
+        Z.sort()
+        return [z[-1] for z in Z]

@@ -9,16 +9,10 @@ check_error() {
     fi
 }
 # out-of-source build
-if [ -f "$SAGE_ROOT/local/bin/clisp.bin" ]; then
-  sed 's/ \$@/ "\$@"/' < $SAGE_ROOT/local/bin/clisp > clisp
-  chmod a+rx clisp
-  FRICAS_CLISP=`pwd`/clisp
-else
-  FRICAS_CLISP=clisp
-fi
+FRICAS_CLISP=ecl
 mkdir build-dir
 cd build-dir
-../src/configure --prefix=$SAGE_LOCAL --without-x --with-lisp="$FRICAS_CLISP" --with-lisp-flavor=clisp
+../src/configure --prefix=$SAGE_LOCAL --with-lisp="$FRICAS_CLISP"
 check_error "Failed to configure Axiom."
 make
 check_error "Failed to make Axiom."
@@ -26,7 +20,3 @@ check_error "Failed to make Axiom."
 #cp target/*/bin/asq $SAGE_LOCAL/bin && make install
 make install
 check_error "Failed to install Axiom."
-# force 'axiom' script to call AXIOMsys
-sed 's/sman \$otheropts -ws \$serverws/AXIOMsys/' < $SAGE_LOCAL/bin/axiom > tmpaxiom && mv tmpaxiom $SAGE_LOCAL/bin/axiom
-chmod a+x $SAGE_LOCAL/bin/axiom
-check_error "Failed to patch Axiom."

@@ -482,11 +482,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(float(1.0/0.0))
             Traceback (most recent call last):
             ...
-            OverflowError: cannot convert float infinity to long
+            OverflowError: cannot convert float infinity to integer
             sage: ZZ(float(0.0/0.0))
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert non-integral float to integer
+            ValueError: cannot convert float NaN to integer
         """
 
         # TODO: All the code below should somehow be in an external

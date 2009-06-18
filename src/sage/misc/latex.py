@@ -265,18 +265,6 @@ class LatexExpr(str):
         sage: LatexExpr("abc")
         abc
     """
-    def __init__(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.latex import LatexExpr
-            sage: LatexExpr(3.14)
-            3.14000000000000
-            sage: LatexExpr("abc")
-            abc
-        """
-        str.__init__(self, x)
-
     def __repr__(self):
         """
         EXAMPLES::

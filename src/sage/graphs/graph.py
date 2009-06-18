@@ -1849,7 +1849,7 @@ class GenericGraph(SageObject):
             sage: P = G.plot()
             Traceback (most recent call last):
             ...
-            TypeError: string indices must be integers
+            TypeError: string indices must be integers, not str
         """
         self._pos = pos
 

@@ -133,9 +133,6 @@ class gc_disabled(object):
         return False
 
 class AsciiArtString(str):
-    def __init__(self, x):
-        str.__init__(self, x)
-
     def __repr__(self):
         return str(self)
 

@@ -446,8 +446,8 @@ cdef class Matrix(matrix0.Matrix):
         typecodes::
 
             sage: import numpy
-            sage: numpy.typecodes
-            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'c', 'Complex': 'FDG', 'Integer': 'bhilqp'}
+            sage: sorted(numpy.typecodes.items())
+            [('All', '?bhilqpBHILQPfdgFDGSUVO'), ('AllFloat', 'fdgFDG'), ('AllInteger', 'bBhHiIlLqQpP'), ('Character', 'c'), ('Complex', 'FDG'), ('Float', 'fdg'), ('Integer', 'bhilqp'), ('UnsignedInteger', 'BHILQP')]
         """
         import numpy
         A = numpy.matrix(self.list(), dtype=dtype)

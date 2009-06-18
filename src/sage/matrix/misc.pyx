@@ -468,7 +468,7 @@ def hadamard_row_bound_mpfr(Matrix A):
         sage: b._hadamard_row_bound()
         Traceback (most recent call last):
         ...
-        OverflowError: math range error
+        OverflowError: cannot convert float infinity to integer
     """
     if not is_RealField(A.base_ring()):
         raise TypeError, "A must have base field an mpfr real field."

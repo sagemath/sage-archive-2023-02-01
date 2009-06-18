@@ -350,7 +350,7 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
                  [1,9,13,12,4],
                  [2,5,11,10,6],
                  [3,7,15,14,8]]
-    face_list = top_faces + [reversed([19-p for p in f]) for f in top_faces]
+    face_list = top_faces + [[19-p for p in reversed(f)] for f in top_faces]
 
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1,1,1]

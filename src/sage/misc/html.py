@@ -104,9 +104,6 @@ def math_parse(s):
     return t
 
 class HTMLExpr(str):
-    def __init__(self, x):
-        str.__init__(self, x)
-
     def __repr__(self):
         return str(self)
 

@@ -495,7 +495,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True,True)
-            <generator object at ...>
+            <generator object iterator_edges at ...>
         """
         if N is None:
             import networkx
@@ -707,7 +707,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True,True)
-            <generator object at ...>
+            <generator object iterator_edges at ...>
         """
         if labels:
             filter = lambda u,v,l: (u,v,l)
@@ -736,7 +736,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_in_edges([],True)
-            <generator object at ...>
+            <generator object iterator_in_edges at ...>
         """
         if labels:
             for e in self._nxg.in_edges_iter(vertices):
@@ -760,7 +760,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_out_edges([],True)
-            <generator object at ...>
+            <generator object iterator_out_edges at ...>
         """
         if labels:
             for e in self._nxg.out_edges_iter(vertices):
@@ -782,7 +782,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_nbrs(0)
-            <generator object at ...>
+            <generator object neighbors_iter at ...>
         """
         return self._nxg.neighbors_iter(v)
 

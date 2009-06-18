@@ -38,6 +38,9 @@ http://groups.google.com/group/fricas-devel/
 
 == Changelog ==
 
+=== fricas-1.0.6 (Adam Webb) ===
+ * update to FriCAS-1.0.6 release, switch to ecl
+
 === fricas-1.0.3 (Waldek Hebisch) ===
  * update to FriCAS-1.0.3 release, switch back to clisp, apply a patch
  to allow building without FFI

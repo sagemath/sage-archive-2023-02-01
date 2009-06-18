@@ -118,6 +118,6 @@ if ! [ $? -eq 0 ]; then
     exit 1
 fi
 
-# comment out the line below to avoid running the test suite, which
-# should be done in all final releases
-cd ..; ./spkg-check
+if [ "$SAGE_CHECK" = "yes" ]; then
+    cd ..; ./spkg-check
+fi

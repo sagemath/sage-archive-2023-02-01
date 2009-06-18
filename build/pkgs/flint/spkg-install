@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-./test_gcc_version.pl
+./test_gcc_version.sh
 if [ $? -ne 0 ]; then
    echo "GCC version less than 3.4.0"
    echo "Flint will not be able to compile successfully"
@@ -122,7 +122,6 @@ for i in {FLINT/,FLINT/zn_poly/src/}; do
 	fi
 done
 
-#comment the line below to avoid running the test suite.
-#this should be done in all final releases
-cd ..; ./spkg-check
-
+if [ "$SAGE_CHECK" = "yes" ]; then
+    cd ..; ./spkg-check
+fi

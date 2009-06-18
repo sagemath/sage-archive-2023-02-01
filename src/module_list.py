@@ -74,7 +74,7 @@ else:
 ### Commonly used include directories
 #########################################################
 
-numpy_include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']
+numpy_include_dirs = [SAGE_ROOT+'/local/lib/python/site-packages/numpy/core/include']
 
 #############################################################
 ### List of modules

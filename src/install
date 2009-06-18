@@ -17,7 +17,7 @@ PATH=$SAGE_ROOT/local/bin/:$PATH
 export PATH
 
 if [ -n "$SAGE_DEBIAN" ]; then
-    python2.5 setup.py install --root="$SAGE_ROOT/" --no-compile -O0
+    python setup.py install --root="$SAGE_ROOT/" --no-compile -O0
 else
     python setup.py install
 fi

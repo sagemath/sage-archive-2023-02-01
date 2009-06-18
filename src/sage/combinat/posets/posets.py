@@ -951,9 +951,9 @@ class FinitePoset(ParentWithBase):
 
             sage: [(v,P.rank(v)) for v in P]
             [(1234, 0),
-             (2134, 1),
+             (1243, 1),
             ...
-             (4231, 5),
+             (4312, 5),
              (4321, 6)]
         """
         if element is None:

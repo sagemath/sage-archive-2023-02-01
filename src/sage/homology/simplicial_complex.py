@@ -490,10 +490,10 @@ class Simplex(SageObject):
             sage: Simplex([0,1,2]) == Simplex(['a','b','c'])
             False
         """
-        if self.__set == other.__set:
-            return 0
-        else:
+        if not isinstance(other, Simplex) or self.__set != other.__set:
             return -1
+        else:
+            return 0
 
     def __hash__(self):
         """
@@ -2008,7 +2008,7 @@ class SimplicialComplex(SageObject):
             sage: P = SimplicialComplex(3, [[0, 1], [1,2], [2,3]]).face_poset(); P
             Finite poset containing 7 elements
             sage: P.list()
-            [(3,), (2,), (2, 3), (1,), (0,), (0, 1), (1, 2)]
+            [(3,), (2,), (2, 3), (1,), (0,), (1, 2), (0, 1)]
         """
         from sage.combinat.posets.posets import Poset
         covers = {}

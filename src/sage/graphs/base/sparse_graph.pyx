@@ -1489,6 +1489,8 @@ class SparseGraphBackend(CGraphBackend):
         cdef int l_int = check_edge_label(l, self.edge_labels)
         if l_int not in self.edge_labels:
             return
+        if l_int == 0:
+            l_int = self._cg.arc_label(u_int, v_int)
         if directed:
             self._cg.del_arc_label(u_int, v_int, l_int)
             self._cg_rev.del_arc_label(v_int, u_int, l_int)
@@ -1510,11 +1512,11 @@ class SparseGraphBackend(CGraphBackend):
             sage: D.add_edges([(0,1,1), (2,3,2), (4,5,3), (5,6,2)], False)
             sage: list(D.iterator_edges(range(9), True))
             [(0, 1, 1), (2, 3, 2), (4, 5, 3), (5, 6, 2)]
-            sage: D.del_edge(0,1,None,True)
+            sage: D.del_edge(0,1,None,True) # "None" is equivalent to not providing a label
             sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, 1), (2, 3, 2), (4, 5, 3), (5, 6, 2)]
-            sage: D.get_edge_label(1,0)
-            1
+            [(2, 3, 2), (4, 5, 3), (5, 6, 2)]
+            sage: D.get_edge_label(3,2)
+            2
 
         """
         cdef int l_int

@@ -73,7 +73,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
         sage: S = FiniteSemigroups().example(alphabet = ('a','b','c'))
         sage: S.cayley_graph(side="left", simple=True).plot()
         sage: S.j_transversal_of_idempotents()
-        ['cab', 'ca', 'ab', 'cb', 'a', 'c', 'b']
+        ['acb', 'ac', 'ab', 'bc', 'a', 'c', 'b']
 
     We conclude by running systematic tests on this semigroup::
 

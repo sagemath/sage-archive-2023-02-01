@@ -793,7 +793,7 @@ class GenericGraph(SageObject):
 
     ### Formats
 
-    def copy(self, implementation='networkx', sparse=None):
+    def copy(self, implementation='c_graph', sparse=None):
         """
         Creates a copy of the graph.
 
@@ -2250,9 +2250,9 @@ class GenericGraph(SageObject):
             sage: g=graphs.PetersenGraph()
             sage: o=g.eulerian_orientation()
             sage: o.in_degree()
-            [2, 2, 2, 2, 1, 2, 1, 1, 1, 1]
+            [2, 2, 2, 2, 2, 1, 1, 1, 1, 1]
             sage: o.out_degree()
-            [1, 1, 1, 1, 2, 1, 2, 2, 2, 2]
+            [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
         """
         from copy import copy
         g=copy(self)
@@ -2548,16 +2548,15 @@ class GenericGraph(SageObject):
 
             sage: g = graphs.PetersenGraph()
             sage: (g.is_planar(kuratowski=True))[1].adjacency_matrix()
-            [0 1 0 0 0 1 0 0 0 0]
-            [1 0 1 0 0 0 1 0 0 0]
-            [0 1 0 1 0 0 0 0 0 0]
-            [0 0 1 0 1 0 0 0 1 0]
-            [0 0 0 1 0 0 0 0 0 1]
-            [1 0 0 0 0 0 0 1 1 0]
-            [0 1 0 0 0 0 0 0 1 1]
-            [0 0 0 0 0 1 0 0 0 1]
-            [0 0 0 1 0 1 1 0 0 0]
-            [0 0 0 0 1 0 1 1 0 0]
+            [0 1 0 0 0 1 0 0 0]
+            [1 0 1 0 0 0 1 0 0]
+            [0 1 0 1 0 0 0 1 0]
+            [0 0 1 0 0 0 0 0 1]
+            [0 0 0 0 0 0 1 1 0]
+            [1 0 0 0 0 0 0 1 1]
+            [0 1 0 0 1 0 0 0 1]
+            [0 0 1 0 1 1 0 0 0]
+            [0 0 0 1 0 1 1 0 0]
 
         ::
 
@@ -5219,7 +5218,7 @@ class GenericGraph(SageObject):
             sage: G = Graph()
             sage: G.add_edge((1,2), 'label')
             sage: G.edges()
-            [((1, 2), 'label', None)]
+            [('label', (1, 2), None)]
 
         """
         if label is None:
@@ -5270,7 +5269,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES::
 
-            sage: G = graphs.CompleteGraph(19)
+            sage: G = graphs.CompleteGraph(19).copy(implementation='c_graph')
             sage: G.size()
             171
             sage: G.delete_edge( 1, 2 )
@@ -5282,22 +5281,24 @@ class GenericGraph(SageObject):
         Note that NetworkX accidentally deletes these edges, even though the
         labels do not match up::
 
-            sage: G.delete_edge( 9, 10, 'label' )
-            sage: G.delete_edge( (11, 12, 'label') )
-            sage: G.delete_edges( [ (13, 14, 'label') ] )
-            sage: G.size()
+            sage: N = graphs.CompleteGraph(19).copy(implementation='networkx')
+            sage: N.size()
+            171
+            sage: N.delete_edge( 1, 2 )
+            sage: N.delete_edge( (3, 4) )
+            sage: N.delete_edges( [ (5, 6), (7, 8) ] )
+            sage: N.size()
+            167
+            sage: N.delete_edge( 9, 10, 'label' )
+            sage: N.delete_edge( (11, 12, 'label') )
+            sage: N.delete_edges( [ (13, 14, 'label') ] )
+            sage: N.size()
             164
-            sage: G.has_edge( (11, 12) )
+            sage: N.has_edge( (11, 12) )
             False
 
         However, CGraph backends handle things properly::
 
-            sage: G = graphs.CompleteGraph(19).copy(implementation='c_graph')
-            sage: G.size()
-            171
-            sage: G.delete_edge( 1, 2 )
-            sage: G.delete_edge( (3, 4) )
-            sage: G.delete_edges( [ (5, 6), (7, 8) ] )
             sage: G.delete_edge( 9, 10, 'label' )
             sage: G.delete_edge( (11, 12, 'label') )
             sage: G.delete_edges( [ (13, 14, 'label') ] )
@@ -5306,16 +5307,21 @@ class GenericGraph(SageObject):
 
         ::
 
-            sage: D = graphs.CompleteGraph(19).to_directed(sparse=True)
+            sage: C = graphs.CompleteGraph(19).to_directed(sparse=True)
+            sage: C.size()
+            342
+            sage: C.delete_edge( 1, 2 )
+            sage: C.delete_edge( (3, 4) )
+            sage: C.delete_edges( [ (5, 6), (7, 8) ] )
+
+        Again, NetworkX deleting edges when it shouldn't::
+
+            sage: D = graphs.CompleteGraph(19).to_directed(sparse=True, implementation='networkx')
             sage: D.size()
             342
             sage: D.delete_edge( 1, 2 )
             sage: D.delete_edge( (3, 4) )
             sage: D.delete_edges( [ (5, 6), (7, 8) ] )
-            sage: C = D.copy(implementation='c_graph')
-
-        Again, NetworkX deleting edges when it shouldn't::
-
             sage: D.delete_edge( 9, 10, 'label' )
             sage: D.delete_edge( (11, 12, 'label') )
             sage: D.delete_edges( [ (13, 14, 'label') ] )
@@ -6042,7 +6048,7 @@ class GenericGraph(SageObject):
             2
             ...
             2
-            3
+            4
             sage: for i in G.degree_iterator(labels=True):
             ...    print i
             ((0, 1), 3)
@@ -6050,7 +6056,7 @@ class GenericGraph(SageObject):
             ((0, 0), 2)
             ...
             ((0, 3), 2)
-            ((0, 2), 3)
+            ((1, 1), 4)
 
         ::
 
@@ -6271,9 +6277,9 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(2)
             sage: S = C.subgraph(edge_property=(lambda e: e[0][0] == e[1][0]))
             sage: C.edges()
-            [('00', '01', None), ('10', '00', None), ('11', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('00', '10', None), ('01', '11', None), ('10', '11', None)]
             sage: S.edges()
-            [('00', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('10', '11', None)]
 
 
         The algorithm is not specified, then a reasonable choice is made for speed.
@@ -6407,9 +6413,9 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(2)
             sage: S = C._subgraph_by_adding(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
             sage: C.edges()
-            [('00', '01', None), ('10', '00', None), ('11', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('00', '10', None), ('01', '11', None), ('10', '11', None)]
             sage: S.edges()
-            [('00', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('10', '11', None)]
 
         TESTS: Properties of the graph are preserved.
 
@@ -6552,9 +6558,9 @@ class GenericGraph(SageObject):
             sage: C = graphs.CubeGraph(2)
             sage: S = C._subgraph_by_deleting(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
             sage: C.edges()
-            [('00', '01', None), ('10', '00', None), ('11', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('00', '10', None), ('01', '11', None), ('10', '11', None)]
             sage: S.edges()
-            [('00', '01', None), ('11', '10', None)]
+            [('00', '01', None), ('10', '11', None)]
 
         TESTS: Properties of the graph are preserved.
 
@@ -11420,7 +11426,7 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=[], weighted=None, implementation='networkx',
+                 boundary=[], weighted=None, implementation='c_graph',
                  sparse=True, vertex_labels=True, **kwds):
         """
         TESTS::
@@ -12682,7 +12688,7 @@ class Graph(GenericGraph):
 
     ### Constructors
 
-    def to_directed(self, implementation='networkx', sparse=None):
+    def to_directed(self, implementation='c_graph', sparse=None):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
@@ -12693,8 +12699,8 @@ class Graph(GenericGraph):
             Petersen graph: Digraph on 10 vertices
         """
         if sparse is None:
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            sparse = isinstance(self._backend, SparseGraphBackend)
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            sparse = (not isinstance(self._backend, DenseGraphBackend))
         D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
                     multiedges=self.allows_multiple_edges(),
                     implementation=implementation, sparse=sparse)
@@ -13209,13 +13215,13 @@ class Graph(GenericGraph):
             sage: for v in sorted(X.iterkeys()):
             ...    print v, X[v]
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
-            (0, 1) [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]
+            (0, 1) [[(0, 1), (0, 0)], [(0, 1), (1, 1)], [(0, 1), (0, 2)]]
             (0, 2) [[(0, 1), (0, 2)], [(1, 2), (0, 2)]]
             (1, 0) [[(1, 0), (0, 0)], [(1, 0), (1, 1)]]
             (1, 1) [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]]
-            (1, 2) [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]
+            (1, 2) [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]
             sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            [[[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]]
+            [[[(0, 1), (0, 0)], [(0, 1), (1, 1)], [(0, 1), (0, 2)]], [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
@@ -13738,7 +13744,7 @@ class DiGraph(GenericGraph):
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=[], weighted=None, implementation='networkx',
+                 boundary=[], weighted=None, implementation='c_graph',
                  sparse=True, vertex_labels=True, **kwds):
         """
         TESTS::
@@ -14153,7 +14159,7 @@ class DiGraph(GenericGraph):
         from copy import copy
         return copy(self)
 
-    def to_undirected(self, implementation='networkx', sparse=None):
+    def to_undirected(self, implementation='c_graph', sparse=None):
         """
         Returns an undirected version of the graph. Every directed edge
         becomes an edge.
@@ -14168,8 +14174,8 @@ class DiGraph(GenericGraph):
             [(0, 1), (0, 2)]
         """
         if sparse is None:
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            sparse = isinstance(self._backend, SparseGraphBackend)
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            sparse = (not isinstance(self._backend, DenseGraphBackend))
         G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
                   multiedges=self.allows_multiple_edges(), loops=self.allows_loops(),
                   implementation=implementation, sparse=sparse)

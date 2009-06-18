@@ -123,7 +123,12 @@ def do_patch_queue_editing(order):
 # Delete and order patches to apply.  Lines beginning with '#' are removed.
 """)
     f.close()
-    os.system("$EDITOR %s" % tmp_file)
+    if not os.environ.has_key('EDITOR'):
+        print "No $EDITOR variable present, using pico."
+        os.environ['EDITOR'] = 'pico'
+    res = os.system("$EDITOR %s" % tmp_file)
+    if res:
+        raise ValueError, "could not start editor, aborting."
 
     f =  open(tmp_file, 'r')
     patchnames = f.readlines()

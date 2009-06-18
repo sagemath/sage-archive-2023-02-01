@@ -1,0 +1,636 @@
+#!/usr/bin/env python
+
+##
+## merge patches from a ticket and optionally test
+## everything
+##
+## TODO:
+##  * add logging, maybe with files based on ticket number
+##  * write code that uses qsave in apply_patches below
+##  * more options for running tests (optional, etc.)
+##  * make the list of *what* to doctest load from a file
+##    instead of being hardcoded
+##  * make sphinx warnings show up as errors
+##
+
+import os, sys, getopt, shutil, urllib
+
+import sage
+import sage.misc
+import sage.misc.hg as hg
+
+##
+## various globals
+##
+SAGE_ROOT = os.environ['SAGE_ROOT']
+SAGE_COMMAND = os.path.join(SAGE_ROOT, 'sage')
+NUM_THREADS = 2
+SAGE_TRAC = 'http://trac.sagemath.org'
+TRAC_TICKET_PATH = '/sage_trac/ticket/'
+
+# TODO: load this from a file, convince make to do the same.
+DOCTEST_DIRS_RELATIVE = ['devel/sage/doc/common',
+                         'devel/sage/doc/en',
+                         'devel/sage/doc/fr',
+                         'devel/sage/sage' ]
+DOCTEST_DIRS = [ os.path.join(SAGE_ROOT, x) for x in DOCTEST_DIRS_RELATIVE ]
+
+
+
+repository_ls = [ hg.hg_sage, hg.hg_scripts, hg.hg_extcode, hg.hg_examples ]
+repositories = { 'sage': hg.hg_sage,
+                 'main': hg.hg_sage,
+                 'scripts': hg.hg_scripts,
+                 'bin': hg.hg_scripts,
+                 'extcode': hg.hg_extcode,
+                 'examples': hg.hg_examples }
+DEFAULT_REPOSITORY = repositories['sage']
+
+def all_patches(n):
+    """
+    Given a ticket number (either as a string or integer), return the list
+    of all patches stored on the Sage trac server on that ticket.
+    """
+    ticket_url = SAGE_TRAC + TRAC_TICKET_PATH + str(n)
+    print "Fetching %s ..."%ticket_url
+    try:
+        f = urllib.urlopen(ticket_url)
+    except IOError:
+        raise IOError, "could not fetch %s"%ticket_url
+
+    attachment_lines = []
+    for line in f.readlines():
+        if '/attachment/' in line:
+            attachment_lines.append(line)
+    f.close()
+
+    attachment_names = []
+    for x in attachment_lines:
+        beg = x.find('/sage_trac/')
+        end = x.find('" title')
+        if not end > beg >= 0:
+            continue
+        name = SAGE_TRAC + x[beg:end]
+        name = name.replace('/attachment/', '/raw-attachment/', 1)
+        if name not in attachment_names:
+            attachment_names.append(name)
+
+    return attachment_names
+
+def get_all_patches(patch_ls, directory=None, overwrite=False):
+    """
+    Given a list of patches, create a temporary directory and put all
+    the patches there. if a directory is given, use that instead.
+    """
+    if directory is None:
+        import sage.misc.misc as misc
+        directory = misc.tmp_dir('release')
+    else:
+        directory = os.path.abspath(directory)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    os.chdir(directory)
+    print "Fetching patches and storing in %s:"%directory
+
+    patch_files = []
+    for patch_url in patch_ls:
+        patch_filename = os.path.split(patch_url)[1]
+        if os.path.exists(patch_filename):
+            if overwrite:
+                os.remove(patch_filename)
+            else:
+                raise OSError, "patch file %s already exists"%(os.path.join(directory, patch_filename))
+        print "Fetching %s ..."%patch_url
+        try:
+            urllib.urlretrieve(patch_url, filename=patch_filename)
+        except IOError:
+            os.chdir('..')
+            shutil.rmtree(directory)
+            raise IOError, "error fetching %s"%patch_url
+        patch_files.append(patch_filename)
+
+    return patch_files, directory
+
+def do_patch_queue_editing(order):
+    import sage.misc.misc as misc
+    tmp_file = os.path.normpath(misc.tmp_filename())
+    f = open(tmp_file, 'w')
+    for patchname in order:
+        f.write(patchname + "\n")
+
+    f.write(r"""
+# Delete and order patches to apply.  Lines beginning with '#' are removed.
+""")
+    f.close()
+    os.system("$EDITOR %s" % tmp_file)
+
+    f =  open(tmp_file, 'r')
+    patchnames = f.readlines()
+    f.close()
+
+    new_order = []
+    for patchname in patchnames:
+        patchname = patchname.strip()
+        if (not patchname) or patchname.startswith('#'):
+            continue
+        if not patchname in order:
+            raise ValueError, "%s not a patchname in %s" % (patchname, order)
+        new_order.append(patchname)
+
+    if not new_order:
+        raise ValueError, "No patches to be applied -- aborting"
+
+    return new_order
+
+
+def apply_patches(patch_ls, patch_directory, order=None, dry_run=True, behavior='pop'):
+    """
+    Applies a list of patches to sage.
+    """
+    if order is None:
+        order = [ (x, DEFAULT_REPOSITORY) for x in patch_ls ]
+    else:
+        for i in range(len(order)):
+            item = order[i]
+            if isinstance(item, tuple):
+                if len(item) != 2 or (not isinstance(item[0], str)) or \
+                   (item[1] not in repository_ls):
+                    raise ValueError, "unknown patch %s"%item
+                repository = item[1]
+                item = item[0]
+            else:
+                repository = DEFAULT_REPOSITORY
+
+            if isinstance(item, str):
+                if not item in patch_ls:
+                    raise ValueError, "unknown patch %s"%item
+                order[i] = (item, repository)
+            else:
+                try:
+                    ind = int(item)
+                except ValueError:
+                    raise ValueError, "unknown patch %s"%item
+                if (0 > ind) or (ind > len(patch_ls)):
+                    raise IndexError, "no patch of index %s"%ind
+                order[i] = (patch_ls[ind], repository)
+
+    repos_used = {}
+    for _, repository in order:
+        repos_used[repository] = True
+    repos_used = repos_used.keys()
+
+    if dry_run:
+        for patch, repository in order:
+            print "applying patch %s/%s to repository %s"%(patch_directory, patch, repository.dir())
+        return
+
+    # make sure we have queues enabled in all the repos
+    for repo in repos_used:
+        res, error = repo('qinit', interactive=False)
+        if 'unknown command' in error:
+            raise NotImplementedError, "please enable Mercurial queues"
+        series, err = repo('qser', interactive=False)
+        if behavior == 'finish' and series != '':
+            # TODO: use qsave/qrestore to make this possible. not hard,
+            # but I need to make sure I understand what happens to the live
+            # changes when I do this. Or maybe just qtop?
+            #
+            # here's a way to get the appropriate revision number to save
+            # *after* we repo('qsave'):
+            # repo('tip', interactive=False)[0].split()[1].split(':')[0]
+            raise NotImplementedError, "cannot merge patches with nonempty queue series"
+
+    # start applying some patches
+    applied_patches = []
+    for patch, repo in order:
+        patch_filename = os.path.join(patch_directory, patch)
+        if not os.path.exists(patch_filename):
+            raise OSError, "could not find patch file" + patch_filename
+
+        # here we should use -n to prepend the patch number
+        msg, err = repo('qimport %s' % patch_filename, interactive=False)
+        if 'abort' in err:
+            if behavior == 'pop' or behavior == 'finish':
+                print "Popping patches from queue ..."
+                clear_queue(applied_patches, repos_used)
+            raise ValueError, "error applying patch %s"%patch_filename
+
+        msg, err = repo('qpush', interactive=False)
+        if 'abort' in err:
+            if behavior == 'pop' or behavior == 'finish':
+                print "Popping patches from queue ..."
+                clear_queue(applied_patches, repos_used)
+            raise ValueError, "error applying patch %s"%patch_filename
+
+        applied_patches.append((patch, repo))
+
+    return applied_patches, repos_used, order
+
+def commit_queue(repos_used):
+    """
+    Given a list of repositories, commit the queue in each into the
+    repository. (That is, call qfinish on each.)
+    """
+    for repo in repos_used:
+        msg, err = repo('qfinish -a', interactive=False)
+        if 'abort' in err:
+            raise OSError, "error committing to repository %s: %s"%(repo.dir(), err)
+
+def clear_queue(applied_patches, repos):
+    """
+    Given a list patch_ls, each entry of which is of the form (patch,
+    repo), qpop and qdelete each of them from the corresponding
+    repository.
+    """
+    for repo in repos:
+        msg, err = repo('qpop -a', interactive=False)
+        if 'abort' in err:
+            raise ValueError, "error popping patches from repository %s: %s"%(repo.dir(), err)
+
+    for patch, repo in applied_patches:
+        ## now the stack is clean, delete the patches
+        msg, err = repo('qdelete %s'%patch, interactive=False)
+        if 'abort' in err:
+            raise ValueError, "error deleting patch %s from repository %s: %s"%(patch, repo.dir(), err)
+
+#################################################################
+## Utility functions
+#################################################################
+
+def usage_message():
+    print
+    print "Usage: sage -merge <ticket_number>"
+    print "For more advanced usage, see the file %s/local/bin/sage-apply-ticket."%SAGE_ROOT
+    print
+
+
+def print_section(s, surrounding_lines=True):
+    """
+    Print a section heading for output. This is here because
+    I'm finnicky about making them uniform and want to change
+    them later at will.
+    """
+    if isinstance(s, str):
+        lines = s.splitlines()
+    elif isinstance(s, list):
+        lines = s
+    else:
+        raise ValueError, "unknown section header %s"%s
+    max_width = max([len(x) for x in lines])
+
+    sep_char = '='
+    left = ' >>> '
+    right = ' <<< '
+    print_width = max_width + len(left) + len(right)
+
+    if surrounding_lines: print
+    print sep_char*print_width
+    for line in lines:
+        left_gap = ' '*((max_width - len(line)) // 2)
+        right_gap = ' '*(max_width - len(line) - len(left_gap))
+        print "%s%s%s%s%s"%(left, left_gap, line, right_gap, right)
+    print sep_char*print_width
+    if surrounding_lines: print
+
+def get_touched_files_for_patches(patches, directory):
+    touched_files = []
+    for patch in patches:
+        filename = os.path.join(directory, patch)
+        f = open(filename)
+        import re
+        rx = re.compile(r'^\+\+\+ b/(.*?)\s') # boundary of a word
+
+        for line in f.readlines():
+            # line = line.replace('\t', ' ') # some diffs have tabs, which don't show up as word boundaries
+            m = rx.search(line)
+            if m:
+                # relative to SAGE_ROOT
+                touched_files.append('devel/sage/' + m.groups()[0])
+        f.close()
+    return touched_files
+
+#################################################################
+## Main functions
+#################################################################
+
+def merge_and_run(n,
+                  directory=None,
+                  overwrite=False,
+                  behavior='pop'):
+    """
+    Merge patches from ticket n and test the sage library.
+    Returns True when everything finishes cleanly, and raises
+    a ValueError otherwise.
+    """
+
+    import sage.misc.misc as misc
+    tmp_file = misc.tmp_filename()
+
+    print_section("Merging patches from ticket number %s."%n)
+
+    ## get the patches from the ticket
+    patch_url_ls = all_patches(n)
+    if len(patch_url_ls) == 0:
+        raise ValueError, "no patches to merge"
+
+    print "Found %s patches: "%len(patch_url_ls)
+    for patch_url in patch_url_ls:
+        print "  ", patch_url
+    print
+
+    old_patch_url_ls = patch_url_ls
+    if len(patch_url_ls) > 1:
+        print "I found more than one patch -- you need to edit the queue"
+        patch_url_ls = do_patch_queue_editing(patch_url_ls)
+
+    ## grab all patch files from trac
+    patches, directory = get_all_patches(patch_url_ls,
+                                         directory=directory,
+                                         overwrite=overwrite)
+
+    ## apply the patches to the various repos
+    applied_patches, repos_used, order = apply_patches(patches,
+                                                       directory,
+                                                       dry_run=False,
+                                                       behavior=behavior)
+
+
+    print_section('Rebuilding Sage')
+
+    ## now we test everything.
+    start_dir = os.getcwd()
+    os.chdir(SAGE_ROOT)
+
+    ## rebuild sage with the new changes.
+    res = os.system('sage -b')
+    if res:
+        if behavior == 'pop' or behavior == 'finish':
+            print "Popping patches from queue ..."
+            clear_queue(applied_patches, repos_used)
+        raise ValueError, "sage failed to build"
+
+    ## first, check that sage even starts up.
+    res = os.system('sage-starts')
+    if res:
+        if behavior == 'pop' or behavior == 'finish':
+            print "Popping patches from queue ..."
+            clear_queue(applied_patches, repos_used)
+        raise ValueError, "sage cannot start with patches applied"
+
+    if False:
+        print_section('Building Sage documentation')
+
+        # currently, we only check to see if the doc build script actually
+        # raised an exception.  i don't know if it's possible that it
+        # could do something else to signal bad behavior.
+        os.system("%s -docbuild all --jsmath html 2>&1 | tee -a %s"%(SAGE_COMMAND,
+                                                                     tmp_file))
+        f = open(tmp_file)
+        for line in f.readlines():
+            if line == 'Traceback (most recent call last):':
+                if behavior == 'pop' or behavior == 'finish':
+                    print "Popping patches from queue ..."
+                    clear_queue(applied_patches, repos_used)
+                f.close()
+                raise ValueError, "error building html documentation."
+        f.close()
+
+    test_success = None
+
+    if test_type == 'none':
+        test_success = True
+    else:
+        print_section('Running doctest suite')
+
+        if test_type == 'files':
+            files_to_test = get_touched_files_for_patches([ x[0] for x in applied_patches ], directory)
+        elif test_type == 'directory':
+            filenames = get_touched_files_for_patches([ x[0] for x in applied_patches ], directory)
+            directories = [ os.path.dirname(filename) for filename in filenames ]
+            files_to_test = directories
+            # things like touching module_list.py trigger an entire test when its not usually wanted
+            if 'devel/sage' in files_to_test:
+                files_to_test.remove('devel/sage')
+            # testing sage/rings and sage/rings/number_field ends up testing number_field twice
+            files_to_test.sort() # this orders shorter names before longer names
+            keepers = []
+            while files_to_test:
+                keeper = files_to_test.pop(0)
+                keepers.append(keeper)
+                files_to_test = [ f for f in files_to_test if not f.startswith(keeper) ]
+            files_to_test = keepers
+
+        elif test_type == 'long':
+            files_to_test = DOCTEST_DIRS
+        else:
+            raise ValueError, "unknown test type %s"%test_type
+
+        ## we run the docs and library individually, so that
+        ## we can produce better error messages.
+
+        files_to_test = ' '.join(list(set(files_to_test)))
+        test_command = '%s -tp %s -long %s' % (SAGE_COMMAND, NUM_THREADS, files_to_test)
+        print test_command
+        print
+
+        os.system(test_command + ' 2>&1 | tee -a %s' % tmp_file)
+        f = open(tmp_file)
+        line = f.readlines()[-3]
+        f.close()
+        if line == 'All tests passed!\n':
+            # in this case, tests succeeded
+            test_success = True
+        else:
+            # here, tests failed
+            test_success = False
+
+    if test_success:
+        # we want to either commit or leave the queue as-is for
+        # further testing
+        if behavior == 'leave':
+            print "All tests passed! Leaving patches in queue."
+        elif behavior == 'finish':
+            print "All tests passed! Committing queue to repository..."
+            commit_queue(repos_used)
+            print "All tests passed! Committing queue to repository... DONE"
+        elif behavior == 'pop':
+            print "All tests passed! Popping patches from queue ..."
+            clear_queue(applied_patches, repos_used)
+        return True
+    else:
+        # tests failed, so don't commit, but either leave tickets
+        # applied or clear the queue
+        if behavior == 'pop' or behavior == 'finish':
+            clear_queue(applied_patches, repos_used)
+        raise ValueError, "tests failed"
+
+
+def all_tickets(report='11'):
+    r"""
+    Return the list of all tickets with positive review.
+    """
+    url = SAGE_TRAC + '/sage_trac/report/' + report
+    print "Fetching %s ..." % url
+    try:
+        f = urllib.urlopen(url)
+    except IOError:
+        raise IOError, "could not fetch %s" % url
+
+    import re
+    number_regexp = re.compile('ticket/([0-9]+)"')
+    title_regexp = re.compile('positive review](.*)</a>$')
+    tickets = []
+    for line in f.readlines():
+        title_match = title_regexp.search(line)
+        if title_match:
+            title = title_match.groups()[0]
+            number = number_regexp.search(line).groups()[0]
+            tickets.append((number, title))
+
+    f.close()
+    return tickets
+
+def test_all_tickets():
+    ticket_ls = all_tickets(report='11')
+    working_tickets = []
+    untested_tickets = []
+    failed_tickets = []
+
+    for number, title in ticket_ls:
+        print_section('Testing ticket number %s'%number)
+        try:
+            merge_and_run(number, behavior='pop')
+            print "Ticket #%s passed!"%number
+            working_tickets.append(number)
+        except:
+            exception, msg, traceback = sys.exc_info()
+            if msg == 'no tickets to merge':
+                print "Ticket #%s had no attached files."%number
+                untested_tickets.append(number)
+            else:
+                print "Ticket #%s failed with %s: %s"%(number, exception.__name__, msg)
+                failed_tickets.append(number)
+
+    print
+    print "Tickets to merge: ", working_tickets
+    print "Tickets I couldn't test: ", untested_tickets
+    print "Tickets needing work: ", failed_tickets
+
+
+##
+## stuff to test:
+##
+## make ptestall
+## make ptestlong
+## sage -docbuild reference html
+## sage -docbuild reference pdf
+## sage -startuptime
+##
+
+#################################################################
+## actually execute
+#################################################################
+
+if __name__ == '__main__':
+
+    overwrite = False
+    directory = None
+    leave_or_finish_set = False
+    behavior = 'pop'
+    test_type = 'files'
+    test_options = [ 'none', 'files', 'directory', 'long' ]
+
+    if len(sys.argv) < 2:
+        usage_message()
+        sys.exit(1)
+
+    args, extra_args = getopt.getopt(sys.argv[2:], 'd:oflt:r:n:',
+                                     ['directory=', 'overwrite',
+                                      'finish', 'leave-in-queue', 'test=',
+                                      'repository=',
+                                      'num-threads='])
+
+    for arg, opt in args:
+        if arg in ['-d', '--directory']:
+            directory = os.path.abspath(opt)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            continue
+
+        if arg in ['-o', '--overwrite']:
+            overwrite = True
+            continue
+
+        if arg in ['-f', '--finish']:
+            if leave_or_finish_set:
+                print "Error: cannot combine options --finish and --leave-in-queue"
+                sys.exit(1)
+            behavior = 'finish'
+            leave_or_finish_set = True
+            continue
+
+        if arg in ['-l', '--leave-in-queue']:
+            if leave_or_finish_set:
+                print "Error: cannot combine options --finish and --leave-in-queue"
+                sys.exit(1)
+            behavior = 'leave'
+            leave_or_finish_set = True
+            continue
+
+        if arg in ['-t', '--test']:
+            for known in test_options:
+                if known.startswith(opt):
+                    test_type = known
+                    break
+            else:
+                print "Error: test type %s must be (a prefix of) one of %s" % (opt, test_options)
+                sys.exit(1)
+            continue
+
+        if arg in ['-r', '--repository']:
+            opt = opt.lower()
+            if not repositories.has_key(opt):
+                print "Error: repository %s must be one of %s" % (opt, repos.keys())
+                sys.exit(1)
+            DEFAULT_REPOSITORY = repositories[opt]
+            continue
+
+        if arg in ['-n', '--num-threads']:
+            try:
+                num = int(opt)
+            except ValueError:
+                print "Error: %s is not a valid number of threads"%opt
+                sys.exit(1)
+            NUM_THREADS = num
+            continue
+
+    ## make sure we got a ticket number to test, unless we were called with
+    ## -c, in which case we print and exit.
+    if sys.argv[1] in ['-c', '--candidates']:
+        ls = all_tickets(report='11')
+        ls.sort()
+        print_section('Tickets with positive review')
+        for number, title in ls:
+            print "#%4s: %s"%(number, title)
+        print
+        sys.exit(0)
+    elif sys.argv[1] in ['-a', '--all']:
+        test_all_tickets()
+        sys.exit(0)
+    else:
+        try:
+            num = int(sys.argv[1])
+        except:
+            print "Error: could not convert %s to a ticket number."%sys.argv[1]
+            sys.exit(1)
+
+    try:
+        # we don't need the return value from merge_and_run here
+        merge_and_run(num, overwrite=overwrite, directory=directory,
+                      behavior=behavior)
+        sys.exit(0)
+    except:
+        exc, msg, traceback = sys.exc_info()
+        print "Building failed with %s: %s"%(exc.__name__, msg)
+        sys.exit(1)

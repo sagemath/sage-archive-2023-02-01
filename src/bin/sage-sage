@@ -65,6 +65,7 @@ usage_advanced() {
     echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
     echo "  -maxima <..>  -- run Sage's Maxima with given arguments"
     echo "  -M2 <..>      -- run Sage's Macaulay2 with given arguments"
+    echo "  -merge        -- run Sage's automatic merge and test script"
     echo "  -min ...      -- do not populate global namespace (must be first option)"
     echo "  -mwrank <..>  -- run Sage's mwrank with given arguments"
     echo "  -np           -- run with no output prompts (useful for making doctests)"
@@ -447,6 +448,13 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
     exit $?
 fi
 
+if [ $1 = '-merge' ]; then
+    cd "$CUR"
+    shift
+    sage-apply-ticket "$@"
+    exit $?
+fi
+
 #####################################################################
 # Test coverage of a module?
 #####################################################################
@@ -454,14 +462,14 @@ fi
 if [ $1 = "-coverage" -o $1 = "--coverage" ]; then
    cd "$CUR"
    shift
-   sage-coverage $@
+   sage-coverage "$@"
    exit $?
 fi
 
 if [ $1 = "-coverageall" -o $1 = "--coverageall" ]; then
    cd "$CUR"
    shift
-   sage-coverageall $@
+   sage-coverageall "$@"
    exit $?
 fi
 

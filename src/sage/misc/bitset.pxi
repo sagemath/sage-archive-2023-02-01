@@ -321,15 +321,13 @@ cdef inline long bitset_first_in_complement(bitset_t a):
     Calculate the index of the first element not in the set.  If the set
     is full, returns -1.
     """
-    cdef long i
-    for i from 0 <= i < a.limbs - 1:
+    cdef long i, j = -1
+    for i from 0 <= i < a.limbs:
         if ~a.bits[i]:
-            return (i << index_shift) | _bitset_first_in_limb(~a.bits[i])
-    i = (((<unsigned long>1) << (a.size - (a.limbs-1)*8*sizeof(long))) - 1)
-    i = i & ~a.bits[a.limbs - 1]
-    if i:
-        return ((a.limbs - 1) << index_shift) | _bitset_first_in_limb(i)
-    return -1
+            j = (i << index_shift) | _bitset_first_in_limb(~a.bits[i])
+            break
+    if j >= a.size: j = -1
+    return j
 
 cdef inline long bitset_pop(bitset_t a) except -1:
     """

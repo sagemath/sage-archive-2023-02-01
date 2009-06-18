@@ -17,3 +17,7 @@ Modules
    sage/modules/free_module_morphism
 
    sage/modules/matrix_morphism
+
+   sage/modules/fg_pid/fgp_module
+   sage/modules/fg_pid/fgp_element
+   sage/modules/fg_pid/fgp_morphism

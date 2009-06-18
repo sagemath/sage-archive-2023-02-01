@@ -1,8 +1,21 @@
-###############################################################################
+r"""
+Quotients of finite rank free modules over a field.
+"""
+
+####################################################################################
+#       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-# A quotient of a free module over a field.
+#  Distributed under the terms of the GNU General Public License (GPL)
 #
-###############################################################################
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+####################################################################################
 
 from free_module import FreeModule_ambient_field
 
@@ -111,7 +124,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: Q._repr_()
             'Vector space quotient V/W of dimension 1 over Finite Field in a of size 3^2 where\nV: Vector space of degree 3 and dimension 2 over Finite Field in a of size 3^2\nUser basis matrix:\n[1 0 a]\n[a a 1]\nW: Vector space of degree 3 and dimension 1 over Finite Field in a of size 3^2\nBasis matrix:\n[    1     1 a + 2]'
         """
-        pi = self.__quo_map
         return "%s space quotient V/W of dimension %s over %s where\nV: %s\nW: %s"%(
             "Sparse vector" if self.is_sparse() else "Vector",
             self.dimension(), self.base_ring(),
@@ -306,7 +318,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
     def V(self):
         """
-        Given this quotient space $Q = V/W$, return V.
+        Given this quotient space $Q = V/W$, return $V$.
 
         EXAMPLES:
             sage: M = QQ^10 / [range(10), range(2,12)]
@@ -315,3 +327,27 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         return self.__domain
 
+    def cover(self):
+        """
+        Given this quotient space $Q = V/W$, return $V$.  This is the same as self.V().
+
+        EXAMPLES:
+            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M.cover()
+            Vector space of dimension 10 over Rational Field
+        """
+        return self.V()
+
+    def relations(self):
+        """
+        Given this quotient space $Q = V/W$, return $W$.  This is the same as self.W().
+
+        EXAMPLES:
+            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M.relations()
+            Vector space of degree 10 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
+            [ 0  1  2  3  4  5  6  7  8  9]
+        """
+        return self.W()

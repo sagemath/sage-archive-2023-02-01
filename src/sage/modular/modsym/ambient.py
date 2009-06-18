@@ -1959,10 +1959,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if check:
             if not free_module.is_FreeModule(M):
                 V = self.free_module()
-                if isinstance(M, (list,tuple)):
-                    M = V.span([V(x.element()) for x in M])
-                else:
-                    M = V.span(M)
+                if not isinstance(M, (list,tuple)):
+                    M = M.gens()
+                M = V.span([V(x.element()) for x in M])
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
 
     def twisted_winding_element(self, i, eps):

@@ -802,6 +802,7 @@ code = setup(name = 'sage',
                      'sage.misc',
 
                      'sage.modules',
+                     'sage.modules.fg_pid',
 
                      'sage.modular',
                      'sage.modular.arithgroup',

@@ -413,7 +413,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
                             cr=True, check=False)
         else:
             B = D.basis_matrix()
-            return Sequence([D.submodule((V.basis_matrix() * B).row_space(),
+            R = D.base_ring()
+            return Sequence([D.submodule((V.basis_matrix() * B).row_module(R),
                                          check=False) for V, _ in E],
                             cr=True, check=False)
 
@@ -475,7 +476,7 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
-            V = B.row_space()
+            V = B.row_module(D.base_ring())
         return self.domain().submodule(V, check=False)
 
     def image(self):
@@ -520,7 +521,7 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
-            V = B.row_space(self.domain().base_ring())
+            V = B.row_module(self.domain().base_ring())
         return self.codomain().submodule(V, check=False)
 
     def matrix(self):
@@ -573,8 +574,16 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             Free module morphism defined by the matrix
             [0 2]...
         """
+        D = self.domain()
+        if hasattr(D, 'coordinate_module'):
+            # We only have to do this in case the module supports
+            # alternative basis.  Some modules do, some modules don't.
+            V = D.coordinate_module(sub)
+        else:
+            V = sub.free_module()
+        A = self.matrix().restrict_domain(V)
         H = sub.Hom(self.codomain())
-        return H(self.matrix().restrict_domain(sub))
+        return H(A)
 
     def restrict_codomain(self, sub):
         """
@@ -600,9 +609,52 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             Domain: Ambient free module of rank 2 over the principal ideal domain ...
             Codomain: Free module of degree 2 and rank 1 over Integer Ring
             Echelon ...
+
+        An example in which the codomain equals the full ambient space, but
+        with a different basis::
+
+            sage: V = QQ^2
+            sage: W = V.span_of_basis([[1,2],[3,4]])
+            sage: phi = V.hom(matrix(QQ,2,[1,0,2,0]),W)
+            sage: phi.matrix()
+            [1 0]
+            [2 0]
+            sage: phi(V.0)
+            (1, 2)
+            sage: phi(V.1)
+            (2, 4)
+            sage: X = V.span([[1,2]]); X
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2]
+            sage: phi(V.0) in X
+            True
+            sage: phi(V.1) in X
+            True
+            sage: psi = phi.restrict_codomain(X); psi
+            Free module morphism defined by the matrix
+            [1]
+            [2]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis ...
+            sage: psi(V.0)
+            (1, 2)
+            sage: psi(V.1)
+            (2, 4)
+            sage: psi(V.0).parent() is X
+            True
         """
         H = self.domain().Hom(sub)
-        return H(self.matrix().restrict_codomain(sub.free_module()))
+        C = self.codomain()
+        if hasattr(C, 'coordinate_module'):
+            # We only have to do this in case the module supports
+            # alternative basis.  Some modules do, some modules don't.
+            V = C.coordinate_module(sub)
+        else:
+            V = sub.free_module()
+        return H(self.matrix().restrict_codomain(V))
+
 
     def restrict(self, sub):
         """
@@ -620,10 +672,42 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             Echelon ...
             Codomain: Free module of degree 2 and rank 1 over Integer Ring
             Echelon ...
+
+            sage: V = (QQ^2).span_of_basis([[1,2],[3,4]])
+            sage: phi = V.hom([V.0+V.1, 2*V.1])
+            sage: phi(V.1) == 2*V.1
+            True
+            sage: W = span([V.1])
+            sage: phi(W)
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [  1 4/3]
+            sage: psi = phi.restrict(W); psi
+            Free module morphism defined by the matrix
+            [2]
+            Domain: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis ...
+            Codomain: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis ...
+            sage: psi.domain() == W
+            True
+            sage: psi(W.0) == 2*W.0
+            True
         """
         if not self.is_endomorphism():
             raise ArithmeticError, "matrix morphism must be an endomorphism"
-        A = self.matrix().restrict(sub.free_module())
+        D = self.domain()
+        C = self.codomain()
+        if D is not C and (D.basis() != C.basis()):
+            # Tricky case when two bases for same space
+            return self.restrict_domain(sub).restrict_codomain(sub)
+        if hasattr(D, 'coordinate_module'):
+            # We only have to do this in case the module supports
+            # alternative basis.  Some modules do, some modules don't.
+            V = D.coordinate_module(sub)
+        else:
+            V = sub.free_module()
+        A = self.matrix().restrict(V)
         H = sage.categories.homset.End(sub, self.domain().category())
         return H(A)
 
@@ -688,13 +772,14 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
     def _repr_(self):
         """
-        Return string representation of this morphism (this is for
-        some reason currently not used at all).
+        Return string representation of this morphism (this gets overloaded in the derived class).
 
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom([3*V.0, 2*V.1])
             sage: phi._repr_()
+            'Free module morphism defined by the matrix\n[3 0]\n[0 2]\nDomain: Ambient free module of rank 2 over the principal ideal domain ...\nCodomain: Ambient free module of rank 2 over the principal ideal domain ...'
+            sage: sage.modules.matrix_morphism.MatrixMorphism._repr_(phi)
             'Morphism defined by the matrix\n[3 0]\n[0 2]'
         """
         if max(self.matrix().nrows(),self.matrix().ncols()) > 5:
@@ -703,4 +788,3 @@ class MatrixMorphism(MatrixMorphism_abstract):
         else:
             mat = str(self.matrix())
         return "Morphism defined by the matrix\n%s"%mat
-

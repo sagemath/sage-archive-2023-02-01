@@ -1793,7 +1793,7 @@ def absolute_order_from_module_generators(gens,
             # Then we move everything into that field, where
             # W does define an order.
             while True:
-                z = W.random_element()
+                z = V.random_element()
                 alpha = from_V(z)
                 if alpha.minpoly().degree() == W.rank():
                     break

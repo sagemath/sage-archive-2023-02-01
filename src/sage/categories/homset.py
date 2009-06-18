@@ -281,7 +281,7 @@ class Homset(Set_generic):
             from sage.categories.homset import Hom
             return CallMorphism(Hom(S, self))
         else:
-            return parent.Parent._generic_convert_map(self, S)
+            return Parent._generic_convert_map(self, S)
 
     def homset_category(self):
         """

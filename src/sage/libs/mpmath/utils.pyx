@@ -22,6 +22,8 @@ cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     With prec > 0, rounds the result in the desired direction
     if necessary.
 
+    EXAMPLES::
+
         sage: from mpmath.libmpf import from_man_exp
         sage: from_man_exp(-6, -1)
         (1, 3, 0, 2)
@@ -29,7 +31,6 @@ cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
         (1, 1, 1, 1)
         sage: from_man_exp(-6, -1, 1, 'u')
         (1, 1, 2, 1)
-
     """
     cdef Integer res
     cdef long bc
@@ -47,10 +48,11 @@ cpdef normalize(long sign, Integer man, exp, long bc, long prec, str rnd):
     """
     Create normalized mpf value tuple from full list of components.
 
+    EXAMPLES::
+
         sage: from mpmath.libmpf import normalize
         sage: normalize(0, 4, 5, 3, 53, 'n')
         (0, 1, 7, 1)
-
     """
     cdef long shift
     cdef unsigned long haverem
@@ -153,6 +155,8 @@ def mpmath_to_sage(x, prec):
     Convert any mpmath number (mpf or mpc) to a Sage RealNumber or
     ComplexNumber of the given precision.
 
+    EXAMPLES::
+
         sage: import sage.libs.mpmath.all as a
         sage: a.mpmath_to_sage(a.mpf('2.5'), 53)
         2.50000000000000
@@ -188,6 +192,8 @@ def sage_to_mpmath(x, prec):
     or ComplexNumber of the given precision into an mpmath mpf or mpc.
     Integers are currently converted to int.
 
+    EXAMPLES::
+
         sage: import sage.libs.mpmath.all as a
         sage: a.mp.dps = 15
         sage: print a.sage_to_mpmath(2/3, 53)
@@ -206,7 +212,6 @@ def sage_to_mpmath(x, prec):
         mpf('nan')
         sage: a.sage_to_mpmath(0, 53)
         0
-
     """
     from mpmath.mptypes import make_mpf, make_mpc
     cdef RealNumber y
@@ -215,16 +220,16 @@ def sage_to_mpmath(x, prec):
             return int(<Integer>x)
         try:
             if PY_TYPE_CHECK(x, RealNumber):
-                return make_mpf(x._mpf_)
+                return x._mpmath_()
             else:
-                y = RealField(prec)(x)
-                return make_mpf(y._mpf_)
+                x = RealField(prec)(x)
+                return x._mpmath_()
         except TypeError:
             if PY_TYPE_CHECK(x, ComplexNumber):
-                return make_mpc((<ComplexNumber>x)._mpc_)
+                return x._mpmath_()
             else:
                 x = ComplexField(prec)(x)
-                return make_mpc((<ComplexNumber>x)._mpc_)
+                return x._mpmath_()
     if PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list):
         return type(x)([sage_to_mpmath(v, prec) for v in x])
     return x
@@ -272,7 +277,6 @@ def call(func, *args, **kwargs):
         -1.00000000000000
         sage: a.call(a.gamma, infinity)
         +infinity
-
     """
     from mpmath import mp
     orig = mp.prec

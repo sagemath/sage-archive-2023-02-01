@@ -471,18 +471,25 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
 
-    @property
-    def _mpc_(self):
+    def _mpmath_(self, prec=None, rounding=None):
         """
-        Returns representation of self as data for an mpmath.mpc.
+        Returns an mpmath version of this CompleNumber.
 
-            sage: CC(1,2)._mpc_
-            ((0, 1, 0, 1), (0, 1, 1, 1))
+        .. note::
 
+           Currently, the rounding mode is ignored.
+
+        EXAMPLES::
+
+            sage: CC(1,2)._mpmath_()
+            mpc(real='1.0', imag='2.0')
         """
+        if prec is not None:
+            return self.n(prec=prec)._mpmath_()
+        from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)
-        return re, im
+        return make_mpc((re, im))
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef ComplexNumber x

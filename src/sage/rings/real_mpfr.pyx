@@ -2271,16 +2271,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         return gen
 
-    @property
-    def _mpf_(self):
+    def _mpmath_(self, prec=None, rounding=None):
         """
-        Returns representation of self as data for an mpmath.mpf.
+        Returns an mpmath version of this RealNumber.
 
-            sage: RR(-1.5)._mpf_
-            (1, 3, -1, 2)
+        .. note::
 
+           Currently the rounding mode is ignored.
+
+        EXAMPLES::
+
+            sage: RR(-1.5)._mpmath_()
+            mpf('-1.5')
         """
-        return mpfr_to_mpfval(self.value)
+        if prec is not None:
+            return self.n(prec=prec)._mpmath_()
+        from sage.libs.mpmath.all import make_mpf
+        return make_mpf(mpfr_to_mpfval(self.value))
 
     def exact_rational(self):
         """

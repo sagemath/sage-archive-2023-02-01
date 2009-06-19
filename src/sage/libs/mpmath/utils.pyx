@@ -170,6 +170,38 @@ def mpmath_to_sage(x, prec):
         NaN
         sage: a.mpmath_to_sage(a.mpf('0'), 53)
         0.000000000000000
+
+    A real example::
+
+        sage: RealField(100)(pi)
+        3.1415926535897932384626433833
+        sage: t = RealField(100)(pi)._mpmath_(); t
+        mpf('3.1415926535897932')
+        sage: a.mpmath_to_sage(t, 100)
+        3.1415926535897932384626433833
+
+    We can ask for more precision, but the result is undefined::
+
+        sage: a.mpmath_to_sage(t, 140) # random
+        3.1415926535897932384626433832793333156440
+        sage: ComplexField(140)(pi)
+        3.1415926535897932384626433832795028841972
+
+    A complex example::
+
+        sage: ComplexField(100)([0, pi])
+        3.1415926535897932384626433833*I
+        sage: t = ComplexField(100)([0, pi])._mpmath_(); t
+        mpc(real='0.0', imag='3.1415926535897932')
+        sage: sage.libs.mpmath.all.mpmath_to_sage(t, 100)
+        3.1415926535897932384626433833*I
+
+    Again, we can ask for more precision, but the result is undefined::
+
+        sage: sage.libs.mpmath.all.mpmath_to_sage(t, 140) # random
+        3.1415926535897932384626433832793333156440*I
+        sage: ComplexField(140)([0, pi])
+        3.1415926535897932384626433832795028841972*I
     """
     cdef RealNumber y
     cdef ComplexNumber z

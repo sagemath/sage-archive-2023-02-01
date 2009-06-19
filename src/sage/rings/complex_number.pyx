@@ -473,7 +473,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _mpmath_(self, prec=None, rounding=None):
         """
-        Returns an mpmath version of this CompleNumber.
+        Returns an mpmath version of this ComplexNumber.
 
         .. note::
 

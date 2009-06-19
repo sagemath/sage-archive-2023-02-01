@@ -33,6 +33,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.8.p1 (Mike Hansen, June 19, 2009) ===
+ * Updated build path to work with Python 2.6.
+
 === pynac-0.1.8.p0 (Burcin Erocal, June 14, 2009) ===
  * Fix serios bug in comparison of mul and pow objects.
  * Conjugates of symbolic functions no longer just apply conjutage to the

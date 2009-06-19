@@ -20,11 +20,10 @@ X/MIT
 == Dependencies ==
  * Python
 
-== Special Update/Build Instructions ==
-
-If Intel's ifort is installed a broken linker flag is added. Hence we copy over an ifort.py with that flag removed.
-
 == Changelog ==
+
+=== scons-1.2.0 (Mike Hansen, June 19th, 2009) ===
+ * Updated to 1.2.0.
 
 === scons-0.97.0d20071212 (Michael Abshoff, March 24th, 2008) ===
  * update to latest 0.97 snapshot release

@@ -8,9 +8,7 @@ fi
 
 cd src/
 
-cp ../patch/ifort.py engine/SCons/Tool
-
-rm -rf $SAGE_LOCAL/lib/scons-0.97
+rm -rf $SAGE_LOCAL/lib/scons-*
 
 python setup.py install
 

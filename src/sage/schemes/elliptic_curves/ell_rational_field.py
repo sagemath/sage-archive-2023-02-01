@@ -4477,7 +4477,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def eval_modular_form(self, points, prec):
         """
-        Evaluate the L-series of this elliptic curve at points in CC
+        Evaluate the modular form of this elliptic curve at points in CC
 
         INPUT:
 

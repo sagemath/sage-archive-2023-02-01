@@ -19,7 +19,7 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = [(1.0, f, f.number_of_arguments()) for f in sage.symbolic.pynac.symbol_table['functions'].values() if f.number_of_arguments() > 0 and 'elliptic' not in str(f) and 'dickman_rho' not in str(f)]
-full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime, merten, brun]]
+full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime, mertens, brun]]
 full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1), (0.2, full_functions)]
 
 def normalize_prob_list(pl, extra=()):

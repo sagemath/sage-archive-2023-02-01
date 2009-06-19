@@ -198,6 +198,10 @@ These rules are evaluated in order; therefore if there are coercions
 in both directions, then the parent of a._add_b is A -- the parent
 of the left-hand operand is used in such cases.
 
+These rules are evaluated in order; therefore if there are coercions
+in both directions, then the parent of a._add_b is A -- the parent
+of the left-hand operand is used in such cases.
+
 The same rules are used for subtraction, multiplication, and
 division. This logic is embedded in a coercion model object, which can
 be obtained and queried.

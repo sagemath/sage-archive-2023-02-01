@@ -51,6 +51,7 @@ def wiki(directory='sage_wiki',
     """
     if not os.path.exists(directory):
         wiki_create_instance(directory)
+    original_path = os.path.abspath(os.curdir)
     os.chdir(directory)
 
     moin = '%s/share/moin/'%misc.SAGE_LOCAL
@@ -85,7 +86,7 @@ application = makeApp(Config)
         ## Start up twisted
         print_open_msg(address, port)
         e = os.system('twistd -n --python twistedconf.py')
-        if not e:
+        if e:
             raise socket.error
 
 
@@ -97,6 +98,7 @@ application = makeApp(Config)
         else:
             break
 
+    os.chdir(original_path)
     return True
 
 
@@ -118,6 +120,7 @@ def wiki_simple_http(directory='sage_wiki',
 
     if not os.path.exists(directory):
         wiki_create_instance(directory)
+    original_path = os.path.abspath(os.curdir)
     os.chdir(directory)
 
     moin = '%s/share/moin/'%misc.SAGE_LOCAL
@@ -194,6 +197,6 @@ def wiki_simple_http(directory='sage_wiki',
         else:
             break
 
-
+    os.chdir(original_path)
     return True
 

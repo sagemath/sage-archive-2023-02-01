@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+PRIME_SIZE=7
+
+CCFLAGS_NO_SSE="-I$SAGE_LOCAL/include -Wall -O2 -fPIC -DRATPOINTS_MAX_BITS_IN_PRIME=$PRIME_SIZE"
+CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm"
+CCFLAGS3="-L. -lratpoints"
+
+if [ `uname` = "Darwin" ]; then
+    CCFLAGS1="$CCFLAGS_NO_SSE"
+    CCFLAGS="-fnested-functions"
+    echo "Building without SSE2 instructions (OS X)."
+else
+    CCFLAGS1="$CCFLAGS_NO_SSE -DUSE_SSE"
+    CCFLAGS=""
+fi
+
+export CCFLAGS1
+export CCFLAGS2
+export CCFLAGS3
+export CCFLAGS
+
+make
+
+if [ $? -ne 0 ]; then
+    if [ `uname` -ne "Darwin" ]; then
+        echo "Build failed. Trying without SSE2 instructions."
+        CCFLAGS1="$CCFLAGS_NO_SSE"; export CCFLAGS1
+        make
+    else
+        echo "Error building ratpoints"
+        exit 1
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Error building ratpoints"
+        exit 1
+    fi
+fi
+
+cp libratpoints.a "$SAGE_LOCAL"/lib/
+cp ratpoints.h "$SAGE_LOCAL"/include/
+

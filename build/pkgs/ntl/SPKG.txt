@@ -28,6 +28,10 @@ GPL
 
 == Changelog ==
 
+
+=== ntl-5.4.2.p8 (Mike Hansen, June 20th, 2009) ===
+ * Applied Peter Jeremy's FreeBSD fix at #5872.
+
 === ntl-5.4.2.p7 (Michael Abshoff, May 6th, 2009) ===
  * Add workaround fix for gcc 4.4 until we update to upstream
  * add spkg-check target

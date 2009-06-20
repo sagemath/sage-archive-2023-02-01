@@ -99,11 +99,11 @@ class PosetElement(Element):
         Do a comparison of ``self`` with ``other`` (for sorting
         lists of elements, etc.)
 
-        ..note::
+        .. note::
 
-        If both ``self`` and ``other`` have the same parent poset,
-        then the comparison is done in the poset. If the elements are
-        incomparable in the poset, then 1 is returned.
+           If both ``self`` and ``other`` have the same parent poset,
+           then the comparison is done in the poset. If the elements
+           are incomparable in the poset, then 1 is returned.
 
         TESTS::
 

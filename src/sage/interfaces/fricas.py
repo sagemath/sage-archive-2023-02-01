@@ -159,13 +159,25 @@ from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 class FriCAS(PanAxiom):
     """
-    The FriCAS interpreter interfaces.
-
-    TESTS::
-
-        sage: fricas == loads(dumps(fricas))
-        True
+    Interface to a FriCAS interpreter.
     """
+    def __init__(self, name='fricas', command='fricas -nox -noclef',
+                 script_subdirectory=None, logfile=None,
+                 server=None, server_tmpdir=None,
+                 init_code=[')lisp (si::readline-off)']):
+        """
+        Create an instance of the FriCAS interpreter.
+
+        TESTS::
+
+            sage: fricas == loads(dumps(fricas))
+            True
+        """
+        PanAxiom.__init__(self, name, command,
+                 script_subdirectory, logfile,
+                 server, server_tmpdir,
+                 init_code)
+
     def __repr__(self):
         """
         EXAMPLES::

@@ -1830,6 +1830,18 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
                 else:
                     size = 500
 
+                if self.worksheet().docbrowser():
+                    jmol_name = os.path.join(self.directory(), F)
+                    jmol_file = open(jmol_name, 'r')
+                    jmol_script = jmol_file.read()
+                    jmol_file.close()
+
+                    jmol_script = jmol_script.replace('defaultdirectory "', 'defaultdirectory "' + self.url_to_self() + '/')
+
+                    jmol_file = open(jmol_name, 'w')
+                    jmol_file.write(jmol_script)
+                    jmol_file.close()
+
                 #popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge</a>"""%url
                 #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
                 #script = '<script>jmol_popup("%s");</script>' % (url)

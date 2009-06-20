@@ -3,6 +3,9 @@ MAINTAINER:
 
 == Releases ==
 
+=== freetype-2.3.5.p1 (Mike Hansen, June 19th, 2009) ===
+ * Applied Peter Jeremy's fix from #5866.
+
 === freetype-2.3.5.p0 (Michael Abshoff, May 18th, 2008) ===
  * add OSX 64 bit build support
 

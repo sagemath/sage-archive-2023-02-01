@@ -14,19 +14,19 @@ fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL"
+GNUMAKE=${MAKE} ./configure --prefix="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     exit 1;
 fi;
 
-make
+${MAKE}
 
 if [ $? -ne 0 ]; then
     exit 1;
 fi;
 
-make install
+${MAKE} install
 
 if [ $? -ne 0 ]; then
     exit 1;

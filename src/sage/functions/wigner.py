@@ -75,9 +75,7 @@ def _calc_factlist(nn):
 
 def Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
     r"""
-    Calculate the Wigner 3j symbol
-
-    \left({j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop m_3} \right)
+    Calculate the Wigner 3j symbol Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
 
 
     NOTES:
@@ -86,33 +84,23 @@ def Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
 
     - invariant under any permutation of the columns (with the
       exception of a sign change where $J:=j_1+j_2+j_3$):
-      \begin{eqnarray}
-      \left({j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop m_3}\right)
-      &=&
-      \left({j_3 \atop m_3} {j_1 \atop m_1} {j_2 \atop m_2}\right)
-      =\left({j_2 \atop m_2} {j_3 \atop m_3} {j_1 \atop m_1}\right)
-      \qquad \mbox{cyclic}
-      &=&
-       (-)^{J}\left({j_3\atop m_3} {j_2\atop m_2} {j_1\atop m_1}\right)
-      =(-)^{J}\left({j_1\atop m_1} {j_3\atop m_3} {j_2\atop m_2}\right)
-      =(-)^{J}\left({j_2\atop m_2} {j_1\atop m_1} {j_3\atop m_3}\right)
-      \qquad\mbox{anti-cyclic}
-      \end{eqnarray}
+      Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
+          =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2)
+          =Wigner3j(j_2,j_3,j_1,m_2,m_3,m_1)
+          =(-)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1)
+          =(-)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
+          =(-)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i. e.
-      \begin{eqnarray}
-      \left({{j_1}\atop{m_1}} {{j_2}\atop{m_2}} {{j_3}\atop{m_3}}\right)
-      =
-      (-)^{J}
-      \left({j_1 \atop -m_1} {j_2 \atop -m_2}{j_3 \atop -m_3}\right)
-      \end{eqnarray}
+      Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
+         =(-)^J Wigner3j(j_1,j_2,j_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 additional symmetries based on
       the work by [Regge58]
 
     - zero for $j_1$, $j_2$, $j_3$ not fulfilling triangle relation
 
-    - zero for ${m_1}+{m_2}+{m_3}!= 0$
+    - zero for $m_1+m_2+m_3!= 0$
 
     - zero for violating any one of the conditions
       $j_1\ge|m_1|$,  $j_2\ge|m_2|$,  $j_3\ge|m_3|$
@@ -258,19 +246,15 @@ def ClebschGordan(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
     r"""
     Calculates the Clebsch-Gordan coefficient
 
-    $\left< j_1 m_1 \; j_2 m_2 | j_3 m_3 \right>$
+    $< j_1 m_1 \; j_2 m_2 | j_3 m_3 >$
 
 
     NOTES:
 
     The Clebsch-Gordan coefficient will be evaluated via its relation
     to Wigner 3j symbols:
-
-    \begin{eqnarray}
-    \left< j_1 m_1 \; j_2 m_2 | j_3 m_3 \right>=
-    (-1)^(j_1-j_2+m_3) \sqrt(2j_3+1)
-    \left({j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop -m_3}\right)
-    \end{eqnarray}
+    < j_1 m_1 \; j_2 m_2 | j_3 m_3 >
+        =(-1)^(j_1-j_2+m_3) \sqrt(2j_3+1) Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3)
 
     See also the documentation on Wigner 3j symbols which exhibit much
     higher symmetry relations that the Clebsch-Gordan coefficient.
@@ -402,11 +386,8 @@ def Racah(aa,bb,cc,dd,ee,ff,prec=None):
     NOTES:
 
     The Racah symbol is related to the Wigner 6j symbol:
-    \begin{eqnarray}
-    \left({j_1 \atop j_4} {j_2 \atop j_5} {j_3 \atop j_6} \right)
-    =
-    (-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
-    \end{eqnarray}
+    Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+        =(-1)^(j_1+j_2+j_4+j_5) W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     Please see the 6j symbol for its much richer symmetries and for
     additional properties.
@@ -491,49 +472,33 @@ def Racah(aa,bb,cc,dd,ee,ff,prec=None):
 
 def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
     r"""
-    Calculate the Wigner 6j symbol
-
-    \left({j_1 \atop j_4} {j_2 \atop j_5} {j_3 \atop j_6} \right)
+    Calculate the Wigner 6j symbol Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
 
 
     NOTES:
 
     The Wigner 6j symbol is related to the Racah symbol but exhibits
     more symmetries as detailed below.
-    \begin{eqnarray}
-    \left({j_1 \atop j_4} {j_2 \atop j_5} {j_3 \atop j_6} \right)
-    =
-    (-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
-    \end{eqnarray}
+    Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+        =(-1)^(j_1+j_2+j_4+j_5) W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     The Wigner 6j symbol obeys the following symmetry rules:
 
     - Wigner $6j$ symbols are left invariant under any permutation of
       the columns:
-      \begin{eqnarray}
-      \left({j_1 \atop j_4} {j_2 \atop j_5} {j_3 \atop j_6} \right)
-      &=&
-       \left({j_3 \atop j_6} {j_1 \atop j_4} {j_2 \atop j_5} \right)
-      =\left({j_2 \atop j_5} {j_3 \atop j_6} {j_2 \atop j_4} \right)
-      \qquad \mbox{cyclic} \\
-      &=&
-       \left({j_3 \atop j_6} {j_2 \atop j_5} {j_1 \atop j_4} \right)
-      =\left({j_1 \atop j_4} {j_3 \atop j_6} {j_2 \atop j_5} \right)
-      =\left({j_2 \atop j_5} {j_1 \atop j_4} {j_3 \atop j_6} \right)
-      \qquad \mbox{anti-cyclic}
-      \end{eqnarray}
+      Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+          =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5)
+          =Wigner6j(j_2,j_3,j_1,j_5,j_6,j_4)
+          =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4)
+          =Wigner6j(j_1,j_3,j_2,j_4,j_6,j_5)
+          =Wigner6j(j_2,j_1,j_3,j_5,j_4,j_6)
 
     - They are invariant under the exchange of the upper and lower
       arguments in each of any two columns, i. e.
-      \begin{eqnarray}
-      \left({j_1 \atop j_4} {j_2 \atop j_5} {j_3 \atop j_6} \right)
-      =
-      \left({j_1 \atop j_4} {j_5 \atop j_2} {j_6 \atop j_3} \right)
-      =
-      \left({j_4 \atop j_1} {j_2 \atop j_5} {j_6 \atop j_3} \right)
-      =
-      \left({j_4 \atop j_1} {j_5 \atop j_2} {j_3 \atop j_6} \right)
-      \end{eqnarray}
+      Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+          =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3)
+          =Wigner6j(j_4,j_2,j_6,j_1,j_5,j_3)
+          =Wigner6j(j_4,j_5,j_3,j_1,j_2,j_6)
 
     - additional 6 symmetries [Regge59] giving rise to 144 symmetries
       in total
@@ -631,14 +596,7 @@ def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
 def Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9,prec=None):
     r"""
     Calculate the Wigner 9j symbol
-
-    \left\{
-      \begin{matrix}
-        {j_1} & {j_2} & {j_3} \\
-        {j_4} & {j_5} & {j_6} \\
-        {j_7} & {j_8} & {j_9}
-      \end{matrix}
-    \right\}
+    Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9)
 
 
     ALGORITHM:
@@ -756,16 +714,11 @@ def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
     Calculate the Gaunt coefficient which is defined as the integral
     over three spherical harmonics:
 
-    \begin{eqnarray}
-    Y{j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop m_3}
-    &=&
-    \int Y_{l_1,m_1}(\Omega)
-    Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega)\; d\Omega \\
-    &=&
-    \sqrt{\frac{(2l_1+1)(2l_2+1)(2l_3+1)}{4\pi}}
-    \left({l_1 \atop 0  } {l_2 \atop 0  } {l_3 \atop   0} \right)
-    \left({l_1 \atop m_1} {l_2 \atop m_2} {l_3 \atop m_3} \right)
-    \end{eqnarray}
+    Y(j_1,j_2,j_3,m_1,m_2,m_3)
+        =\int Y_{l_1,m_1}(\Omega)
+         Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega
+        =\sqrt((2l_1+1)(2l_2+1)(2l_3+1)/(4\pi))
+         Y(j_1,j_2,j_3,0,0,0) Y(j_1,j_2,j_3,m_1,m_2,m_3)
 
 
     NOTES:
@@ -773,25 +726,16 @@ def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
     The Gaunt coefficient obeys the following symmetry rules:
 
     - invariant under any permutation of the columns
-      \begin{eqnarray}
-      Y{j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop m_3}
-      &=&
-       Y{j_3 \atop m_3} {j_1 \atop m_1} {j_2 \atop m_2}
-      =Y{j_2 \atop m_2} {j_3 \atop m_3} {j_1 \atop m_1}
-      \qquad \mbox{cyclic} \\
-      &=&
-       Y{j_3 \atop m_3} {j_2 \atop m_2} {j_1 \atop m_1}
-      =Y{j_1 \atop m_1} {j_3 \atop m_3} {j_2 \atop m_2}
-      =Y{j_2 \atop m_2} {j_1 \atop m_1} {j_3 \atop m_3}
-      \qquad\mbox{anti-cyclic}
-      \end{eqnarray}
+      Y(j_1,j_2,j_3,m_1,m_2,m_3)
+          =Y(j_3,j_1,j_2,m_3,m_1,m_2)
+          =Y(j_2,j_3,j_1,m_2,m_3,m_1)
+          =Y(j_3,j_2,j_1,m_3,m_2,m_1)
+          =Y(j_1,j_3,j_2,m_1,m_3,m_2)
+          =Y(j_2,j_1,j_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i.e.
-      \begin{eqnarray}
-      Y{j_1 \atop m_1} {j_2 \atop m_2} {j_3 \atop m_3}
-      =
-      Y{j_1 \atop -m_1} {j_2 \atop -m_2} {j_3 \atop -m_3}
-      \end{eqnarray}
+      Y(j_1,j_2,j_3,m_1,m_2,m_3)
+         =Y(j_1,j_2,j_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 Regge symmetries as inherited
       for the $3j$ symbols [Regge58]

@@ -29,6 +29,9 @@ See blow. This needs to be cleaned up for the 0.98.1 update (#5281)
 
 == Changelog ==
 
+=== tachyon-0.98beta.p9 (Mike Hansen, June 19th, 2009) ===
+ * Applied Peter Jeremy's fix at #5875.
+
 === tachyon-0.98beta.p8 (Michael Abshoff, February 15th, 2009) ===
  * changed Make-config to link against libpng12
 

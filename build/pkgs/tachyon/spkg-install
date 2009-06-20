@@ -43,6 +43,14 @@ if [ $UNAME = "Darwin" ]; then
     finished
 fi
 
+if [ $UNAME = "FreeBSD" ]; then
+    # Tachyon doesn't have a threaded option for FreeBSD (though it shouldn't
+    # be too difficult to add).  There's no need for an explicit 64-bit
+    # version since the only difference is a slight performance optimisation.
+    make bsd
+    finished
+fi
+
 if [ $UNAME = "Linux" ]; then
     GCCVERSION=`gcc -dumpversion`
     case $GCCVERSION in

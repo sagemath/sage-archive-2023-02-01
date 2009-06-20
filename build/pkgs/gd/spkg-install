@@ -14,6 +14,10 @@ rm "$SAGE_LOCAL"/lib/libgd.*
 
 cd src
 
+# Needed to correctly pickup libiconv on FreeBSD
+if [ `uname` = "FreeBSD" ] ; then
+   LDFLAGS="-L/usr/local/lib"; export LDFLAGS
+fi
 
 # needed to pick up zlib.h
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then

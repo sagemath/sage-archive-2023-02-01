@@ -61,6 +61,18 @@ elif [ $UNAME = "SunOS" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     LINBOX_BLAS="-lcblas -latlas"
 
+elif [ $UNAME = "FreeBSD" -a -f "${SAGE_LOCAL}/lib/libcblas.a" ]; then
+
+    echo "FreeBSD cblas"
+
+    LINBOX_BLAS="-lcblas -latlas"
+
+elif [ $UNAME = "FreeBSD" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
+
+    echo "FreeBSD cblas"
+
+    LINBOX_BLAS="-lcblas -latlas"
+
 else
     echo "WARNING WARNING"
     echo "WARNING WARNING"

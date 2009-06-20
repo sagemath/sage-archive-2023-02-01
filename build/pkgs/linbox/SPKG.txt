@@ -24,6 +24,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p0 (Mike Hansen, June 20th, 2008) ===
+ * Applied Peter Jeremy's FreeBSD fix at #5870.
+
 === linbox-1.1.6 (Clement Pernet, Sept 18th, 2008) ===
  * Upgrade to 1.1.6 release upstream
  * including the fixes of bugs related to cygwin (gcc-3.4, linking parameter

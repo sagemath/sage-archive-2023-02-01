@@ -28,7 +28,8 @@ Dan Drake (ddrake at member ams org)
 
 == Upstream Contact ==
 
-Author: Dan Drake. Web: [[http://www.bitbucket.org/ddrake/sagetex]].
+Author: Dan Drake. Web: [[http://www.bitbucket.org/ddrake/sagetex]] and
+[[http://mathsci.kaist.ac.kr/~drake]].
 
 == Dependencies ==
 
@@ -63,7 +64,20 @@ contains documentation and an example file. If you have problems or
 suggestions see [[http://groups.google.com/group/sage-support|the
 sage-support group]].
 
+Finally, note that you can actually use SageTeX without Sage! The
+{{{remote-sagetex.py}}} script uses any remote Sage server to do the
+computations for you. If you can't or don't want to install Sage on your
+computer, you can use the {{{remote-sagetex}}} script to use SageTeX,
+although if you are in such a situation, you probably want to get
+SageTeX [[http://tug.ctan.org/pkg/sagetex|from CTAN]] instead of
+downloading this spkg.
+
 == Changelog ==
+
+=== sagetex-2.2.1 (Dan Drake, 20 June 2009) ===
+
+ * Update to version 2.2.1, which includes the remote-sagetex script and
+   synchronizes with the current version available on CTAN.
 
 === sagetex-2.1.1 (Dan Drake, 28 May 2009) ===
 

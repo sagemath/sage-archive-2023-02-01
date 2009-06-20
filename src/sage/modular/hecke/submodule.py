@@ -22,6 +22,7 @@ Submodules of Hecke modules
 import sage.structure.factorization
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+from sage.misc.cachefunc import cached_method
 
 import sage.modules.all
 
@@ -98,7 +99,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
                 raise TypeError, "dual_free_module must be a free module"
             if dual_free_module.rank () != submodule.rank():
                 raise ArithmeticError, "dual_free_module must have the same rank as submodule"
-            self.__dual_free_module = dual_free_module
+            self.dual_free_module.set_cache(dual_free_module)
 
 
     def _repr_(self):
@@ -278,7 +279,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             raise ArithmeticError, "The degree of V must equal the rank of the ambient space."
         if V.rank() != self.rank():
             raise ArithmeticError, "The rank of V must equal the rank of self."
-        self.__dual_free_module = V
+        self.dual_free_module.set_cache(V)
 
 
     ################################
@@ -408,7 +409,6 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         if V.rank() + self.rank() == A.rank():
             C = A.submodule(V, check=False)
-            self.__complement = C
             return C
 
         # first attempt to compute the complement failed, we now try
@@ -425,7 +425,6 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if self.intersection(X).dimension() == 0:
                 C = C + X
         if C.rank() + self.rank() == A.rank():
-            self.__complement = C
             return C
 
         # failed miserably
@@ -479,6 +478,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         d = self.ambient_hecke_module().degeneracy_map(level, t)
         return d.restrict_domain(self)
 
+    @cached_method
     def dual_free_module(self, bound=None, anemic=True, use_star=True):
         r"""
         Compute embedded dual free module if possible. In general this
@@ -558,12 +558,10 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         A = self.ambient_hecke_module()
 
         if self.dimension() == 0:
-            self.__dual_free_module = A.zero_submodule()
-            return self.__dual_free_module
+            return A.zero_submodule()
 
         if A.dimension() == self.dimension():
-            self.__dual_free_module = A.free_module()
-            return self.__dual_free_module
+            return A.free_module()
 
         C = self.complement(bound=bound, anemic=anemic, use_star=use_star)
 

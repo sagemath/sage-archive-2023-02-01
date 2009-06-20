@@ -70,6 +70,8 @@ elif [ $UNAME = "CYGWIN" ]; then
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dll.a
 elif [ "$UNAME" = "OpenBSD" ]; then
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5.2
+elif [ "$UNAME" = "FreeBSD" ]; then
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so.5
 else
   DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
 fi
@@ -90,6 +92,10 @@ if [ -f $DYLIB_NAME -a -f $SAGE_LOCAL/lib/libreadline.a ]; then
   # Fix permissions.
   chmod 755 $SAGE_LOCAL/lib/libreadline.*
   chmod 755 $SAGE_LOCAL/lib/libhistory.*
+  if [ "$UNAME" = "FreeBSD" ]; then
+    ln -s libreadline.so.5 $SAGE_LOCAL/lib/libreadline.so
+    ln -s libhistory.so.5 $SAGE_LOCAL/lib/libhistory.so
+  fi
   exit 0
 else
   echo "Readline's build claims to have finished, but files that should have been built weren't."

@@ -27,6 +27,9 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
  * Deleted some files from the doc directory from the standard distro, since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
+=== readline-5.2.p7 (Mike Hansen, June 19th, 2009) ===
+ * Applied Peter Jeremy's fix from #5874.
+
 === readline-5.2.p6 (Michael Abshoff, February 2nd, 2009) ===
  * Deal with 64 bit OpenSUSE 11.1 (#4946)
 

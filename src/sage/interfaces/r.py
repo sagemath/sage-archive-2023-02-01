@@ -549,11 +549,14 @@ class R(Expect):
             sage: r.library('foobar')
             Traceback (most recent call last):
             ...
-            ImportError: there is no package called 'foobar'
+            ImportError: ...
         """
         ret = self.eval('require("%s")'%library_name)
-        if 'there is no package' in ret:
-            raise ImportError, "there is no package called '%s'"%library_name
+        # try hard to parse the message string in a locale-independent way
+        if 'Warning message' in ret:    # fortunately a locale-independent part
+            # not all warnings (e.g. "closing unused connection 3") are fatal
+            if 'library(' in ret:       # locale-independent key-word
+                raise ImportError, "%s"%ret
         else:
             try:
                 # We need to rebuild keywords!

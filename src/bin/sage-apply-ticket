@@ -59,13 +59,24 @@ def all_patches(n):
         raise IOError, "could not fetch %s"%ticket_url
 
     attachment_lines = []
+    comment_lines = []
+    found_dd = False
     for line in f.readlines():
         if '/attachment/' in line:
             attachment_lines.append(line)
+            comment_lines.append('')
+        if found_dd:
+            if len(attachment_lines) == 0:
+                raise RuntimeError, "Failure parsing trac... sorry"  #blame Tom
+            comment_lines[-1] = line.strip()
+            found_dd = False
+        if '<dd>' in line:
+            found_dd = True
     f.close()
 
     attachment_names = []
-    for x in attachment_lines:
+    comments = []
+    for x,y in zip(attachment_lines,comment_lines):
         beg = x.find('/sage_trac/')
         end = x.find('" title')
         if not end > beg >= 0:
@@ -74,8 +85,9 @@ def all_patches(n):
         name = name.replace('/attachment/', '/raw-attachment/', 1)
         if name not in attachment_names:
             attachment_names.append(name)
+            comments.append(y)
 
-    return attachment_names
+    return attachment_names, comments
 
 def get_all_patches(patch_ls, directory=None, overwrite=False):
     """
@@ -112,12 +124,14 @@ def get_all_patches(patch_ls, directory=None, overwrite=False):
 
     return patch_files, directory
 
-def do_patch_queue_editing(order):
+def do_patch_queue_editing(order,comments):
     import sage.misc.misc as misc
     tmp_file = os.path.normpath(misc.tmp_filename())
     f = open(tmp_file, 'w')
-    for patchname in order:
+    for patchname, comment in zip(order,comments):
         f.write(patchname + "\n")
+        if comment:
+            f.write("# " + comment + "\n")
 
     f.write(r"""
 # Delete and order patches to apply.  Lines beginning with '#' are removed.
@@ -315,6 +329,45 @@ def get_touched_files_for_patches(patches, directory):
         f.close()
     return touched_files
 
+def get_patches_with_users_help(n,
+                  directory=None,
+                  overwrite=False):
+
+
+    ## get the patches from the ticket
+    patch_url_ls,patch_comments = all_patches(n)
+    if len(patch_url_ls) == 0:
+        raise ValueError, "no patches to merge"
+
+    print "Found %s patches: "%len(patch_url_ls)
+    for patch_url in patch_url_ls:
+        print "  ", patch_url
+    print
+
+    old_patch_url_ls = patch_url_ls
+    if len(patch_url_ls) > 1:
+        print "I found more than one patch -- you need to edit the queue"
+        patch_url_ls = do_patch_queue_editing(patch_url_ls,patch_comments)
+
+    ## grab all patch files from trac
+    return get_all_patches(patch_url_ls,
+                           directory=directory,
+                           overwrite=overwrite)
+
+def collect_patches_for_run():
+    ticket_ls = all_tickets(report='11')
+
+    ticket_bundle = []
+
+    for number, title in ticket_ls:
+        try:
+            print_section('Fetching ticket number %s'%number)
+            patches, directory = get_patches_with_users_help(number)
+            ticket_bundle.append((number,title,patches,directory))
+        except:
+            print "failed"
+    return ticket_bundle
+
 #################################################################
 ## Main functions
 #################################################################
@@ -329,30 +382,17 @@ def merge_and_run(n,
     a ValueError otherwise.
     """
 
-    import sage.misc.misc as misc
-    tmp_file = misc.tmp_filename()
 
     print_section("Merging patches from ticket number %s."%n)
 
-    ## get the patches from the ticket
-    patch_url_ls = all_patches(n)
-    if len(patch_url_ls) == 0:
-        raise ValueError, "no patches to merge"
+    patches, directory = get_patches_with_users_help(n,directory,overwrite)
 
-    print "Found %s patches: "%len(patch_url_ls)
-    for patch_url in patch_url_ls:
-        print "  ", patch_url
-    print
+    return apply_and_test(patches,directory,behavior)
 
-    old_patch_url_ls = patch_url_ls
-    if len(patch_url_ls) > 1:
-        print "I found more than one patch -- you need to edit the queue"
-        patch_url_ls = do_patch_queue_editing(patch_url_ls)
 
-    ## grab all patch files from trac
-    patches, directory = get_all_patches(patch_url_ls,
-                                         directory=directory,
-                                         overwrite=overwrite)
+def apply_and_test(patches,directory,behavior):
+    import sage.misc.misc as misc
+    tmp_file = misc.tmp_filename()
 
     ## apply the patches to the various repos
     applied_patches, repos_used, order = apply_patches(patches,
@@ -496,16 +536,17 @@ def all_tickets(report='11'):
     f.close()
     return tickets
 
-def test_all_tickets():
+def test_all_tickets(behavior, email_address=None):
     ticket_ls = all_tickets(report='11')
     working_tickets = []
     untested_tickets = []
     failed_tickets = []
 
-    for number, title in ticket_ls:
+    ticket_bundle = collect_patches_for_run()
+    for number,title,patches,directory in ticket_bundle:
         print_section('Testing ticket number %s'%number)
         try:
-            merge_and_run(number, behavior='pop')
+            apply_and_test(patches,directory,behavior)
             print "Ticket #%s passed!"%number
             working_tickets.append(number)
         except:
@@ -621,7 +662,7 @@ if __name__ == '__main__':
         print
         sys.exit(0)
     elif sys.argv[1] in ['-a', '--all']:
-        test_all_tickets()
+        test_all_tickets(behavior=behavior)
         sys.exit(0)
     else:
         try:

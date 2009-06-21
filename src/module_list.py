@@ -226,9 +226,6 @@ ext_modules = [
               sources = ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']),
 
-    Extension('sage.graphs.graph_isom',
-              sources = ['sage/graphs/graph_isom.pyx']),
-
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx',
                          'sage/graphs/planarity/graphEmbed.c',

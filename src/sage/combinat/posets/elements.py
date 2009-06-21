@@ -78,6 +78,24 @@ class PosetElement(Element):
                 and self.element == other.element \
                 and self.vertex == other.vertex
 
+    def __ne__(self,other):
+        r"""
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P(0).__ne__(P(4))
+            True
+            sage: from sage.combinat.posets.elements import PosetElement
+            sage: PosetElement(P,0,3) != PosetElement(P,0,3)
+            False
+            sage: PosetElement(P,1,3) != PosetElement(P,0,3)
+            True
+            sage: PosetElement(P,0,2) != PosetElement(P,0,3)
+            True
+
+        """
+        return not (self.__eq__(other))
+
     def _cmp(self,other):
         """
         TESTS::
@@ -96,14 +114,22 @@ class PosetElement(Element):
 
     def __cmp__(self, other):
         r"""
-        Do a comparison of ``self`` with ``other`` (for sorting
-        lists of elements, etc.)
+        A default comparison of ``self`` with ``other``.
 
         .. note::
 
+           The rich comparison methods have been implemented for poset
+           elements, so when a user asks for ``x < y``, for example, rich
+           comparison is used (that is, ``x.__lt__(y)`` is returned). This
+           method is implemented because ``PosetElement`` inherits from
+           ``Element``, which requires ``__cmp__`` to enable sorting by the
+           ``cmp`` method.
+
            If both ``self`` and ``other`` have the same parent poset,
            then the comparison is done in the poset. If the elements
-           are incomparable in the poset, then 1 is returned.
+           are incomparable in the poset, then 1 is returned. Note that,
+           in particular, ``cmp(a,b) == cmp(b,a)`` if ``a`` and ``b`` are
+           incomparable in the poset.
 
         TESTS::
 
@@ -123,6 +149,8 @@ class PosetElement(Element):
             sage: cmp(P(0),P(0))
             0
             sage: cmp(P(1),P(2))
+            1
+            sage: cmp(P(2),P(1))
             1
         """
         if isinstance(other, type(self)):

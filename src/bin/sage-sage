@@ -40,11 +40,11 @@ usage_advanced() {
     echo "  -bdist VER    -- build a binary distribution of Sage"
     echo "  -branch       -- print the current Sage branch"
     echo "  -cleaner      -- run the Sage cleaner"
-    echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the Sage library from current branch"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -coverageall  -- give summary info about doctest coverage of all files in the Sage library"
     echo "  -crap sage-x.y.z.tar -- detect suspicious garbage in sage source distro"
+    echo "  -ecl [...]    -- run Common Lisp"
     echo "  -experimental -- list all experimental packages that can be downloaded"
     echo "  -gap <..>     -- run Sage's Gap with given arguments"
     echo "  -gdb          -- run Sage under the control of gdb"
@@ -284,17 +284,17 @@ if [ $1 = '-twistd'  -o $1 = '--twistd' ]; then
     exit $?
 fi
 
-if [ $1 = '-clisp'  -o $1 = '--clisp' ]; then
+if [ $1 = '-ecl'  -o $1 = '--ecl' ]; then
     cd "$CUR"
     shift
-    clisp "$@"
+    ecl "$@"
     exit $?
 fi
 
 if [ $1 = '-lisp'  -o $1 = '--lisp' ]; then
     cd "$CUR"
     shift
-    lisp "$@"
+    ecl "$@"
     exit $?
 fi
 

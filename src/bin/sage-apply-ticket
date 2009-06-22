@@ -368,6 +368,16 @@ def collect_patches_for_run():
             print "failed"
     return ticket_bundle
 
+def log_ticket(ticket,message,log={},init=False,return_log=False):
+    if init:
+        for k in log.keys():
+            del log[k]
+    else:
+        log[ticket] = message
+
+    if return_log:
+        return log
+
 #################################################################
 ## Main functions
 #################################################################
@@ -387,19 +397,45 @@ def merge_and_run(n,
 
     patches, directory = get_patches_with_users_help(n,directory,overwrite)
 
-    return apply_and_test(patches,directory,behavior)
+    return apply_and_test(n,patches,directory,behavior)
 
 
-def apply_and_test(patches,directory,behavior):
-    import sage.misc.misc as misc
-    tmp_file = misc.tmp_filename()
+def apply_and_test(n,patches,directory,behavior):
 
     ## apply the patches to the various repos
     applied_patches, repos_used, order = apply_patches(patches,
                                                        directory,
                                                        dry_run=False,
                                                        behavior=behavior)
+    try:
+        error = run_tests(patches,
+                          directory,
+                          behavior,
+                          applied_patches,
+                          repos_used,
+                          order)
+    except:
+        error = 'unexpected exception'
 
+    if error:
+        if behavior == 'pop' or behavior == 'finish':
+            print "Popping patches from queue ..."
+            clear_queue(applied_patches, repos_used)
+
+        log(n,'error, %s'%error)
+        raise ValueError, error
+    else:
+        log(n,'success')
+
+def run_tests(patches,
+              directory,
+              behavior,
+              applied_patches,
+              repos_used,
+              order):
+
+    import sage.misc.misc as misc
+    tmp_file = misc.tmp_filename()
 
     print_section('Rebuilding Sage')
 
@@ -410,18 +446,12 @@ def apply_and_test(patches,directory,behavior):
     ## rebuild sage with the new changes.
     res = os.system('sage -b')
     if res:
-        if behavior == 'pop' or behavior == 'finish':
-            print "Popping patches from queue ..."
-            clear_queue(applied_patches, repos_used)
-        raise ValueError, "sage failed to build"
+        return "sage failed to build"
 
     ## first, check that sage even starts up.
     res = os.system('sage-starts')
     if res:
-        if behavior == 'pop' or behavior == 'finish':
-            print "Popping patches from queue ..."
-            clear_queue(applied_patches, repos_used)
-        raise ValueError, "sage cannot start with patches applied"
+        return "sage cannot start with patches applied"
 
     if False:
         print_section('Building Sage documentation')
@@ -434,11 +464,8 @@ def apply_and_test(patches,directory,behavior):
         f = open(tmp_file)
         for line in f.readlines():
             if line == 'Traceback (most recent call last):':
-                if behavior == 'pop' or behavior == 'finish':
-                    print "Popping patches from queue ..."
-                    clear_queue(applied_patches, repos_used)
                 f.close()
-                raise ValueError, "error building html documentation."
+                return "error building html documentation."
         f.close()
 
     test_success = None
@@ -469,7 +496,7 @@ def apply_and_test(patches,directory,behavior):
         elif test_type == 'long':
             files_to_test = DOCTEST_DIRS
         else:
-            raise ValueError, "unknown test type %s"%test_type
+            return "unknown test type %s"%test_type
 
         ## we run the docs and library individually, so that
         ## we can produce better error messages.
@@ -502,13 +529,11 @@ def apply_and_test(patches,directory,behavior):
         elif behavior == 'pop':
             print "All tests passed! Popping patches from queue ..."
             clear_queue(applied_patches, repos_used)
-        return True
+        return None
     else:
         # tests failed, so don't commit, but either leave tickets
         # applied or clear the queue
-        if behavior == 'pop' or behavior == 'finish':
-            clear_queue(applied_patches, repos_used)
-        raise ValueError, "tests failed"
+        return "tests failed"
 
 
 def all_tickets(report='11'):
@@ -557,6 +582,13 @@ def test_all_tickets(behavior, email_address=None):
             else:
                 print "Ticket #%s failed with %s: %s"%(number, exception.__name__, msg)
                 failed_tickets.append(number)
+
+
+    print
+    print "Ticket Log"
+    log = log_ticket(None,None,return_log=True)
+    for n in log.keys():
+        print "#%s -- %s"%(n,log[n])
 
     print
     print "Tickets to merge: ", working_tickets

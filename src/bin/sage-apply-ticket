@@ -369,14 +369,14 @@ def collect_patches_for_run():
     return ticket_bundle
 
 def log_ticket(ticket,message,log={},init=False,return_log=False):
-    if init:
+    if return_log:
+        return log
+    elif init:
         for k in log.keys():
             del log[k]
     else:
         log[ticket] = message
 
-    if return_log:
-        return log
 
 #################################################################
 ## Main functions
@@ -422,10 +422,10 @@ def apply_and_test(n,patches,directory,behavior):
             print "Popping patches from queue ..."
             clear_queue(applied_patches, repos_used)
 
-        log(n,'error, %s'%error)
+        log_ticket(n,'error, %s'%error)
         raise ValueError, error
     else:
-        log(n,'success')
+        log_ticket(n,'success')
 
 def run_tests(patches,
               directory,

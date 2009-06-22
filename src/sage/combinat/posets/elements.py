@@ -127,9 +127,9 @@ class PosetElement(Element):
 
            If both ``self`` and ``other`` have the same parent poset,
            then the comparison is done in the poset. If the elements
-           are incomparable in the poset, then 1 is returned. Note that,
+           are incomparable in the poset, then 0 is returned. Note that,
            in particular, ``cmp(a,b) == cmp(b,a)`` if ``a`` and ``b`` are
-           incomparable in the poset.
+           equal or incomparable in the poset.
 
         TESTS::
 
@@ -141,7 +141,7 @@ class PosetElement(Element):
             sage: P(0).__cmp__(P(0))
             0
             sage: P(1).__cmp__(P(2))
-            1
+            0
             sage: cmp(P(0),P(4))
             -1
             sage: cmp(P(4),P(0))
@@ -149,14 +149,14 @@ class PosetElement(Element):
             sage: cmp(P(0),P(0))
             0
             sage: cmp(P(1),P(2))
-            1
+            0
             sage: cmp(P(2),P(1))
-            1
+            0
         """
         if isinstance(other, type(self)):
             r = self.parent().compare_elements(self,other)
             if r is None:
-                return 1
+                return 0
             else:
                 return r
         else:

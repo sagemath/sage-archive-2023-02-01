@@ -119,6 +119,11 @@ patch
 build
 
 cd $SAGE_LOCAL/lib
+
+if [ -d python2.5/site-packages ]; then
+   mv python2.5/site-packages python2.6/
+fi
+
 rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
 ln -s python2.6 python
 
@@ -127,13 +132,13 @@ echo "Sleeping for three seconds before testing python"
 sleep 3
 
 # Make sure sufficient crypto support is available in the built python.  This is critical.
-python -c "import md5"
+python -c "import hashlib"
 
 if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
-    echo "md5 module imported"
+    echo "hashlib module imported"
     exit 0
 else
-    echo "md5 module failed to import"
+    echo "hashlib module failed to import"
     exit 1
 fi
 

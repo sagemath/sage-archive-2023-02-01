@@ -13,6 +13,9 @@ rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
 cp patches/rlineimpl.py src/IPython/
 cp patches/ultraTB.py src/IPython/
 
+#Get rid of the usage of the deprecated Set
+cp patches/Magic.py src/IPython/
+
 cd src
 
 "$SAGE_ROOT"/local/bin/python setup.py install

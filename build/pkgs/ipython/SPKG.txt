@@ -40,8 +40,12 @@ ipython-user@scipy.org
  * src/IPython/ultraTB.py: We add two lines which cause IPython not to
    print blank lines for frames in tracebacks that occur within Cython
    extensions. This was trac ticket #5051.
+ * src/IPython/Magic.py: Replace Set with set due to deprecation.
 
 == Changelog ==
+
+=== ipython-0.9.1 (Mike Hansen, June 17th, 2009) ===
+ * Remove usage of Set.
 
 === ipython-0.9.1 (Mike Hansen, January 24th, 2009) ===
  * Update to IPython 0.9.1

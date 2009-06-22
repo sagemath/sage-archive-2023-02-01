@@ -571,7 +571,7 @@ def test_all_tickets(behavior, email_address=None):
     for number,title,patches,directory in ticket_bundle:
         print_section('Testing ticket number %s'%number)
         try:
-            apply_and_test(patches,directory,behavior)
+            apply_and_test(number,patches,directory,behavior)
             print "Ticket #%s passed!"%number
             working_tickets.append(number)
         except:

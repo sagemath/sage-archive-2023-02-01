@@ -790,7 +790,7 @@ class Function_conjugate(PrimitiveFunction):
             \bar{x}
             sage: f = function('f')
             sage: latex(f(x).conjugate())
-            \bar{\mbox{f}\left(x\right)}
+            \bar{f\left(x\right)}
             sage: x.conjugate().conjugate()
             x
             sage: x.conjugate().operator()

@@ -777,10 +777,10 @@ cdef class Parent(category_object.CategoryObject):
             if isinstance(action, Action):
                 if action.actor() is self:
                     self._action_list.append(action)
-                    self._action_list[action.domain(), action.operation(), action.is_left()] = action
+                    self._action_hash[action.domain(), action.operation(), action.is_left()] = action
                 elif action.domain() is self:
                     self._action_list.append(action)
-                    self._action_list[action.actor(), action.operation(), not action.is_left()] = action
+                    self._action_hash[action.actor(), action.operation(), not action.is_left()] = action
                 else:
                     raise ValueError, "Action must involve self"
             else:

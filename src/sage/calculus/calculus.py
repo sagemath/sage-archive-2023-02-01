@@ -1380,8 +1380,6 @@ def clear_functions():
         if not isinstance(f, PrimitiveFunction):
             del functions[name]
 
-_limit = SFunction('limit')
-
 def dummy_limit(*args):
     """
     This function is called to create formal wrappers of limits that
@@ -1419,6 +1417,159 @@ def dummy_diff(*args):
     for i in range(1, len(args), 2):
         args[i] = Integer(args[i])
     return f.diff(*args)
+
+def dummy_integrate(*args):
+    """
+    This function is called to create formal wrappers of integrals that
+    Maxima can't compute:
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_integrate
+        sage: f(x) = function('f',x)
+        sage: dummy_integrate(f(x), x)
+        integrate(f(x), x)
+        sage: a,b = var('a,b')
+        sage: dummy_integrate(f(x), x, a, b)
+        integrate(f(x), x, a, b)
+
+    """
+    if len(args) == 4:
+        return _integrate(args[0], var(repr(args[1])), SR(args[2]), SR(args[3]))
+    else:
+        return _integrate(args[0], var(repr(args[1])))
+
+def dummy_laplace(*args):
+    """
+    This function is called to create formal wrappers of laplace transforms
+    that Maxima can't compute:
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_laplace
+        sage: s,t = var('s,t')
+        sage: f(t) = function('f',t)
+        sage: dummy_laplace(f(t),t,s)
+        laplace(f(t), t, s)
+    """
+    return _laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+
+def dummy_inverse_laplace(*args):
+    """
+    This function is called to create formal wrappers of inverse laplace
+    transforms that Maxima can't compute:
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_inverse_laplace
+        sage: s,t = var('s,t')
+        sage: F(s) = function('F',s)
+        sage: dummy_inverse_laplace(F(s),s,t)
+        ilt(F(s), s, t)
+    """
+    return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+
+#######################################################
+#
+# Helper functions for printing latex expression
+#
+#######################################################
+
+def _limit_latex_(*args):
+    r"""
+    Return latex expression for limit of a symbolic function.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import _limit_latex_
+        sage: var('x,a')
+        (x, a)
+        sage: f(x) = function('f',x)
+        sage: _limit_latex_(f(x), x, a)
+        '\\lim_{x \\to a}\\, f\\left(x\\right)'
+
+    AUTHORS:
+
+    - Golam Mortuza Hossain (2009-06-15)
+    """
+    # Read f,x,a from arguments
+    f = args[0]
+    x = args[1]
+    a = args[2]
+    return "\\lim_{%s \\to %s}\\, %s"%(latex(x), latex(a), latex(f))
+
+def _integrate_latex_(*args):
+    r"""
+    Return LaTeX expression for integration of a symbolic function.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import _integrate_latex_
+        sage: var('x,a,b')
+        (x, a, b)
+        sage: f(x) = function('f',x)
+        sage: _integrate_latex_(f(x),x)
+        '\\int f\\left(x\\right)\\,{d x}'
+        sage: _integrate_latex_(f(x),x,a,b)
+        '\\int_{a}^{b} f\\left(x\\right)\\,{d x}'
+
+    AUTHORS:
+
+    - Golam Mortuza Hossain (2009-06-22)
+    """
+    f = args[0]
+    x = args[1]
+    # Check whether its a definite integral
+    if len(args) == 4:
+        a = args[2]
+        b = args[3]
+        return "\\int_{%s}^{%s} %s\\,{d %s}"%(latex(a), latex(b), latex(f), latex(x))
+    # Typeset as indefinite integral
+    return "\\int %s\\,{d %s}"%(latex(f), latex(x))
+
+def _laplace_latex_(*args):
+    r"""
+    Return LaTeX expression for Laplace transform of a symbolic function.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import _laplace_latex_
+        sage: var('s,t')
+        (s, t)
+        sage: f(t) = function('f',t)
+        sage: _laplace_latex_(f(t),t,s)
+        '\\mathcal{L}\\left(f\\left(t\\right), t, s\\right)'
+
+    AUTHORS:
+
+    - Golam Mortuza Hossain (2009-06-22)
+    """
+    return "\\mathcal{L}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+
+def _inverse_laplace_latex_(*args):
+    r"""
+    Return LaTeX expression for inverse Laplace transform of a symbolic function.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import _inverse_laplace_latex_
+        sage: var('s,t')
+        (s, t)
+        sage: F(s) = function('F',s)
+        sage: _inverse_laplace_latex_(F(s),s,t)
+        '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
+
+    AUTHORS:
+
+    - Golam Mortuza Hossain (2009-06-22)
+    """
+    return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+
+# Return un-evaluated expression as instances of SFunction class
+_limit = SFunction('limit', print_latex_func=_limit_latex_)
+_integrate = SFunction('integrate', print_latex_func=_integrate_latex_)
+_laplace = SFunction('laplace', print_latex_func=_laplace_latex_)
+_inverse_laplace = SFunction('ilt', print_latex_func=_inverse_laplace_latex_)
 
 ######################################i################
 
@@ -1514,6 +1665,9 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     # have to do this here, otherwise maxima_tick catches it
     syms['limit'] = dummy_limit
     syms['diff'] = dummy_diff
+    syms['integrate'] = dummy_integrate
+    syms['laplace'] = dummy_laplace
+    syms['ilt'] = dummy_inverse_laplace
 
     global is_simplified
     try:

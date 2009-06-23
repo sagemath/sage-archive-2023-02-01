@@ -1812,12 +1812,12 @@ common_varnames = ['alpha',
                    'omega',
                    'Omega']
 
-def latex_varify(a):
+def latex_varify(a, is_fname=False):
     r"""
     Convert a string ``a`` to a LaTeX string: if it's an element of
     ``common_varnames``, then prepend a backslash.  If ``a`` consists
     of a single letter, then return it.  Otherwise, return
-    "\\mbox{a}".
+    either "{\\rm a}" or "\\mbox{a}" if "is_fname" flag is True or False.
 
     INPUT:
 
@@ -1832,6 +1832,8 @@ def latex_varify(a):
         'w'
         sage: latex_varify('aleph')
         '\\mbox{aleph}'
+        sage: latex_varify('aleph', is_fname=True)
+        '{\\rm aleph}'
         sage: latex_varify('alpha')
         '\\alpha'
     """
@@ -1839,10 +1841,12 @@ def latex_varify(a):
         return "\\" + a
     elif len(a) == 1:
         return a
+    elif is_fname is True:
+        return '{\\rm %s}'%a
     else:
         return '\\mbox{%s}'%a
 
-def latex_variable_name(x):
+def latex_variable_name(x, is_fname=False):
     r"""
     Return latex version of a variable name.
 
@@ -1885,8 +1889,12 @@ def latex_variable_name(x):
         '\\sigma_{\\alpha}'
         sage: latex_variable_name('nothing1')
         '\\mbox{nothing}_{1}'
+        sage: latex_variable_name('nothing1', is_fname=True)
+        '{\\rm nothing}_{1}'
         sage: latex_variable_name('nothing_abc')
         '\\mbox{nothing}_{\\mbox{abc}}'
+        sage: latex_variable_name('nothing_abc', is_fname=True)
+        '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')
         '\\alpha_{\\beta_{\\gamma_{12}}}'
 
@@ -1914,10 +1922,10 @@ def latex_variable_name(x):
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)
         if suffix.strip("1234567890")!="":
-            suffix = latex_variable_name(suffix) # recurse to deal with recursive subscripts
-        return '%s_{%s}'%(latex_varify(prefix), suffix)
+            suffix = latex_variable_name(suffix, is_fname) # recurse to deal with recursive subscripts
+        return '%s_{%s}'%(latex_varify(prefix, is_fname), suffix)
     else:
-        return latex_varify(prefix)
+        return latex_varify(prefix, is_fname)
 
 class LatexExamples():
     r"""

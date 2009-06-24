@@ -25,7 +25,7 @@ l'exemple de GAP :
 GP/PARI
 =======
 
-PARI est un programme C compact, mature, et fortement optimisé
+PARI est un programme C compact, mature, fortement optimisé et
 spécialisé en théorie des nombres. Il possède deux
 interfaces très différentes utilisables depuis Sage :
 
@@ -46,7 +46,7 @@ différent.
     sage: pari('znprimroot(10007)')
     Mod(5, 10007)
 
-Dans le premier exemple, on démarre un instance de l'interpréteur GP et
+Dans le premier exemple, on démarre une instance de l'interpréteur GP et
 on lui envoie la chaîne ``'znprimroot(10007)'``. Il l'évalue, et affecte
 le résultat à une variable GP (ce qui occupe un espace qui ne sera pas
 libéré dans la mémoire du processus fils GP). La valeur de la variable

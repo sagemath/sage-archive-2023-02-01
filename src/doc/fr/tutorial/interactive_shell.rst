@@ -679,7 +679,7 @@ de relecture des objets ne nécessite (dans la plupart des cas) aucune
 programmation supplémentaire : il s'agit simplement une fonctionnalité de
 Python fournie par le langage depuis la base.
 
-Quasiment n'importe quel objet Sage ``x'' peut être enregistré sur le
+Quasiment n'importe quel objet Sage ``x`` peut être enregistré sur le
 disque, dans un format compressé, avec ``save(x, nom_de_fichier)`` (ou
 dans bien des cas ``x.save(nom_de_fichier)``). Pour recharger les
 objets, on utilise ``load(nom_de_fichier)``.

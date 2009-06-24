@@ -8,7 +8,7 @@ Pourquoi Python ?
 Les avantages de Python
 -----------------------
 
-Le langage d'implémentation de Sage de base est le langage Python (voir
+Le langage d'implémentation de la base de Sage est le langage Python (voir
 [Py]_), même si le code qui doit s'exécuter rapidement est écrit
 dans un langage compilé. Python présente plusieurs avantages :
 
@@ -46,7 +46,7 @@ dans un langage compilé. Python présente plusieurs avantages :
 -  **Débogueur :** Python comprend un débogueur. Ainsi, quand un
    programme échoue pour une raison quelconque, l'utilisateur peut
    consulter la trace complète de la pile d'exécution, inspecter l'état de
-   toute les variables pertinentes et se déplacer dans la pile.
+   toutes les variables pertinentes et se déplacer dans la pile.
 
 -  **Profileur :** Il existe un profileur Python, qui exécute le code et
    renvoie un rapport qui détaille combien de fois et pendant combien de
@@ -68,7 +68,7 @@ Le préprocesseur Sage et les différences entre Sage et Python
 -------------------------------------------------------------
 
 Certains aspects mathématiques de Python peuvent induire des confusions.
-Aussi, Sage se comporte-t-il différemment de Python à plusieurs égards.
+Aussi, Sage se comporte différemment de Python à plusieurs égards.
 
 
 -  **Notation de l'exponentiation :** ``**`` au lieu de ``^``. En Python,
@@ -124,8 +124,8 @@ Aussi, Sage se comporte-t-il différemment de Python à plusieurs égards.
        sage: int(2)/int(3)
        0
 
--  **Entiers longs :** Python possède supporte nativement les entiers de
-   précision arbitraire, en plus des int du langage C. Les entiers long
+-  **Entiers longs :** Python possède nativement un support pour les entiers de
+   précision arbitraire, en plus des int du langage C. Les entiers longs
    Python sont significativement plus lents que ceux que GMP fournit et
    sont marqués à l'affichage par un ``L`` qui les distingue des int (il
    est pas prévu de changer cela à court terme). Sage implémente les
@@ -134,7 +134,7 @@ Aussi, Sage se comporte-t-il différemment de Python à plusieurs égards.
 
 Plutôt que de modifier l'interpréteur Python (comme l'ont fait certaines
 personnes pour leurs projets internes), nous utilisons le langage Python
-exactement comme il est et écrivons un pré-parseur pour IPython de sorte
+exactement comme il est et rajoutons un pré-parseur pour IPython de sorte
 que la ligne de commande de IPython se comporte comme l'attend un
 mathématicien. Ceci signifie que tout code Python existant peut être
 utilisé sous Sage. Toutefois, il faut toujours respecter les règles
@@ -149,7 +149,7 @@ faut taper ``sage -python setup.py install``.)
 Comment puis-je contribuer ?
 ============================
 
-Si vous souhaitez contribuer à Sage, votre aide sera grandement
+Si vous souhaitez contribuer au developpement de Sage, votre aide sera grandement
 appréciée ! Cela peut aller de contributions substantielles en code au
 signalement de bogues en passant par l'enrichissement de la documentation.
 

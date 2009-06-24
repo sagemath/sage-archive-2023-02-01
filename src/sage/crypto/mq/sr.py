@@ -6,6 +6,13 @@ scale) AES variants over `\GF{2}` and `\GF{2^e}`. Also, Sage supports
 both the specification of SR as given in the papers [CMR05]_ and
 [CMR06]_ and a variant of SR* which is equivalent to AES.
 
+SR is a family of parameterizable variants of the AES suitable as a
+framework for comparing different cryptanalytic techniques that can be
+brought to bear on the AES. It is different from
+:class:`Mini-AES <sage.crypto.block_cipher.miniaes.MiniAES>`, whose
+purpose is as a teaching tool to help beginners understand the basic
+structure and working of the full AES.
+
 AUTHORS:
 
 - Martin Albrecht (2008,2009-01): usability improvements

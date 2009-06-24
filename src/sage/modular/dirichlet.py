@@ -925,11 +925,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: for s in all_jacobi_sums:
             ...       print s
             ([1], [1], 5)
-            ([1], [zeta6], 0)
-            ([1], [zeta6 - 1], 0)
-            ([1], [-1], 0)
-            ([1], [-zeta6], 0)
-            ([1], [-zeta6 + 1], 0)
+            ([1], [zeta6], -1)
+            ([1], [zeta6 - 1], -1)
+            ([1], [-1], -1)
+            ([1], [-zeta6], -1)
+            ([1], [-zeta6 + 1], -1)
             ([zeta6], [zeta6], -zeta42^7 + 3)
             ([zeta6], [zeta6 - 1], 2*zeta42^7 + 1)
             ([zeta6], [-1], -2*zeta42^7 - 1)
@@ -990,9 +990,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # If both are nontrivial, apply mult. formula:
         elif not self.is_trivial() and not char.is_trivial():
             return self.gauss_sum()*char.gauss_sum()/prod.gauss_sum()
-        # If exactly one is trivial, return 0
+        # If exactly one is trivial, return -1
         else:
-            return 0
+            return -1
 
     def kloosterman_sum(self, a=1,b=0):
         r"""

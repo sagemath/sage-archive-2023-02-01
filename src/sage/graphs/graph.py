@@ -7562,14 +7562,9 @@ class GenericGraph(SageObject):
             for j in range(n):
                 if G.has_edge(i,j):
                     CG.add_arc(i,j)
-        from sage.graphs.graph_isom import PartitionStack
-        nu = PartitionStack(partition)
-        alpha = []
-        for i in xrange(len(partition)):
-            alpha.append(sum([len(cell) for cell in partition[:i]]))
-        nu.refine(CG, alpha, n, (self._directed or self.has_loops()), True)
-        repr = nu.repr_at_k(1)
-        result = [[int(b) for b in a.split(',')] for a in repr[1:-1].split('|')]
+
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import coarsest_equitable_refinement
+        result = coarsest_equitable_refinement(CG, partition, G._directed)
         return [[perm_from[b] for b in cell] for cell in result]
 
     def automorphism_group(self, partition=None, translation=False,
@@ -7701,8 +7696,7 @@ class GenericGraph(SageObject):
             sage: G.automorphism_group(return_group=False, orbits=True)
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
         """
-        from sage.graphs.graph_isom import perm_group_elt
-        from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import perm_group_elt, search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
         dig = (self._directed or self.has_loops())
         if partition is None:
@@ -7836,18 +7830,9 @@ class GenericGraph(SageObject):
         if order:
             output.append(c)
         if orbits:
-            from sage.graphs.graph_isom import OrbitPartition
-            O = OrbitPartition(self.num_verts())
-            for gen in a:
-                O.incorporate_permutation(gen)
-            orbit_dict = {}
-            for i in range(self.num_verts()):
-                j = O.find(i)
-                if orbit_dict.has_key(j):
-                    orbit_dict[j].append(i)
-                else:
-                    orbit_dict[j] = [i]
-            output.append(orbit_dict.values())
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
+            output.append(get_orbits(a, self.num_verts()))
+
         # A Python switch statement!
         return { 0: None,
                  1: output[0],

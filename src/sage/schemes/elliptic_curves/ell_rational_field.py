@@ -3031,7 +3031,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def integral_short_weierstrass_model(self):
         r"""
-        Return a model of the form `y^2 = x^3 + a*x + b` for this
+        Return a model of the form `y^2 = x^3 + ax + b` for this
         curve with `a,b\in\ZZ`.
 
         EXAMPLES::
@@ -3051,7 +3051,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     # deprecated function replaced by integral_short_weierstrass_model, see trac 3974.
     def integral_weierstrass_model(self):
         r"""
-        Return a model of the form `y^2 = x^3 + a*x + b` for this
+        Return a model of the form `y^2 = x^3 + ax + b` for this
         curve with `a,b\in\ZZ`.
 
         Note that this function is deprecated, and that you should use
@@ -5725,9 +5725,37 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def integral_x_coords_in_interval(self,xmin,xmax):
         r"""
         Returns the set of integers `x` with `xmin\le x\le xmax` which are
-        `x`-coordinates of points on this curve.
+        `x`-coordinates of rational points on this curve.
+
+        INPUT:
+
+        - ``xmin``, ``xmax`` (integers) -- two integers.
+
+        OUTPUT:
+
+        (set) The set of integers `x` with `xmin\le x\le xmax` which
+        are `x`-coordinates of rational points on the elliptic curve.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0, 0, 1, -7, 6])
+            sage: xset = E.integral_x_coords_in_interval(-100,100)
+            sage: xlist = list(xset); xlist.sort(); xlist
+            [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
+
+        TODO: reimplement this using the much faster point searching
+        implemented in Stoll's ``ratpoints`` program.
+
         """
-        return set([x for x  in range(xmin,xmax) if self.is_x_coord(x)])
+        xmin=Integer(xmin)
+        xmax=Integer(xmax)
+        ans = set([])
+        x = xmin
+        while x<=xmax:
+            if self.is_x_coord(x):
+                ans.add(x)
+            x+=1
+        return ans
 
     def integral_points(self, mw_base='auto', both_signs=False, verbose=False):
         """
@@ -6062,7 +6090,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         b2_12 = b2/12
         if disc > 0:
             ##Points in egg have X(P) between e1 and e2 [X(P)=x(P)+b2/12]:
-            x_int_points = self.integral_x_coords_in_interval((e1-b2_12).ceil(), (e2-b2_12).floor()+1)
+            x_int_points = self.integral_x_coords_in_interval((e1-b2_12).ceil(), (e2-b2_12).floor())
             if verbose:
                 print 'x-coords of points on compact component with ',(e1-b2_12).ceil(),'<=x<=',(e2-b2_12).floor()
                 L = list(x_int_points) # to have the order

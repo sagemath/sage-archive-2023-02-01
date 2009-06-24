@@ -345,9 +345,12 @@ def get_patches_with_users_help(n,
     print
 
     old_patch_url_ls = patch_url_ls
-    if len(patch_url_ls) > 1:
-        print "I found more than one patch -- you need to edit the queue"
-        patch_url_ls = do_patch_queue_editing(patch_url_ls,patch_comments)
+
+    print "Please edit the queue before I apply"
+    patch_url_ls = do_patch_queue_editing(patch_url_ls,patch_comments)
+
+    if len(patch_url_ls) == 0:
+        raise ValueError, "no patches to merge"
 
     ## grab all patch files from trac
     return get_all_patches(patch_url_ls,
@@ -427,12 +430,19 @@ def apply_and_test(n,patches,directory,behavior):
     else:
         log_ticket(n,'success')
 
+def verbosity_command(command, tmp_file, verbose):
+    if verbose:
+        os.system("%s 2>&1 | tee -a %s"%(command, tmp_file))
+    else:
+        os.system("%s 2>&1 >> %s"%(command, tmp_file))
+
 def run_tests(patches,
               directory,
               behavior,
               applied_patches,
               repos_used,
-              order):
+              order,
+              verbose=False):
 
     import sage.misc.misc as misc
     tmp_file = misc.tmp_filename()
@@ -459,8 +469,8 @@ def run_tests(patches,
         # currently, we only check to see if the doc build script actually
         # raised an exception.  i don't know if it's possible that it
         # could do something else to signal bad behavior.
-        os.system("%s -docbuild all --jsmath html 2>&1 | tee -a %s"%(SAGE_COMMAND,
-                                                                     tmp_file))
+        verbosity_command("%s -docbuild all --jsmath html"%SAGE_COMMAND, tmp_file, verbose)
+
         f = open(tmp_file)
         for line in f.readlines():
             if line == 'Traceback (most recent call last):':
@@ -506,7 +516,9 @@ def run_tests(patches,
         print test_command
         print
 
-        os.system(test_command + ' 2>&1 | tee -a %s' % tmp_file)
+
+        verbosity_command(test_command, tmp_file, verbose)
+
         f = open(tmp_file)
         line = f.readlines()[-3]
         f.close()

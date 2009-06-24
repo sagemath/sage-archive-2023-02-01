@@ -293,6 +293,7 @@ class Magma(Expect):
         self.__ref = 0
         self.__available_var = []
         self.__cache = {}
+        self._preparse_colon_equals = False  # if set to try, all "=" become ":=" (some users really appreciate this)
 
     def __reduce__(self):
         """
@@ -463,6 +464,7 @@ class Magma(Expect):
             sage: magma.eval("a := %s;"%(10^10000))    # optional - magma
             "
         """
+        x = self._preparse(x)
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
@@ -470,6 +472,27 @@ class Magma(Expect):
         if 'Runtime error' in ans or 'User error' in ans:
             raise RuntimeError, "Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans)
         return ans
+
+    def _preparse(self, s):
+        """
+        All input gets preparsed by calling this function before it gets evaluated.
+
+        EXAMPLES::
+
+            sage: magma._preparse_colon_equals = False
+            sage: magma._preparse('a = 5')
+            'a = 5'
+            sage: magma._preparse_colon_equals = True
+            sage: magma._preparse('a = 5')
+            'a := 5'
+            sage: magma._preparse('a = 5; b := 7; c =a+b;')
+            'a := 5; b := 7; c :=a+b;'
+        """
+        try: # this is in a try/except only because of the possiblity of old pickled Magma interfaces.
+            if self._preparse_colon_equals:
+                s = s.replace(':=','=').replace('=',':=')
+        except AttributeError: pass
+        return s
 
     def _start(self):
         """

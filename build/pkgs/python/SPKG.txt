@@ -15,6 +15,7 @@ For more details see http://www.python.org/psf/license/
 == SPKG Maintainers ==
  * Michael Abshoff
  * William Stein
+ * Mike Hansen
 
 == Upstream Contact ==
 
@@ -34,6 +35,10 @@ There are a large number of cimmunity resources. For more details see http://www
  * Patch sdist.py: Make sure that sdist copies over the .hg directory.
 
 == Changelog ==
+
+=== python-2.6.2.p0 (Robert Miller June 25th, 2009) ===
+ * Fixed issue with "import _ssl"
+ * Help from Martin Albrecht and William Stein
 
 === python-2.6.2 (Mike Hansen June 19th, 2009) ===
  * Updated to Python 2.6.2.

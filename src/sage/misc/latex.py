@@ -25,7 +25,7 @@ special method ``_latex_(self)`` that returns a string.
 
 EMBEDDED_MODE = False
 
-COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\\usepackage[utf8]{inputenc}\n'
 
 LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
 
@@ -692,7 +692,7 @@ class Latex:
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(x)
+        O.write(x.encode('utf-8'))
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:

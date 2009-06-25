@@ -765,7 +765,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.add_vertex([])
             Traceback (most recent call last):
             ...
-            TypeError: list objects are unhashable
+            TypeError: unhashable type: 'list'
 
         ::
 
@@ -774,7 +774,7 @@ class CGraphBackend(GenericGraphBackend):
             sage: S.add_vertex([])
             Traceback (most recent call last):
             ...
-            TypeError: list objects are unhashable
+            TypeError: unhashable type: 'list'
 
         """
         if name is None:

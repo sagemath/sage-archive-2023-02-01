@@ -676,7 +676,7 @@ class Singular(Expect):
             0.02
         """
         if t:
-            return float(self.eval('timer-%d'%(int(1000*t))))/1000.0
+            return float(self.eval('timer-(%d)'%(int(1000*t))))/1000.0
         else:
             return float(self.eval('timer'))/1000.0
 

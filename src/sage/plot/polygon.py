@@ -18,7 +18,8 @@ Polygons
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive_xydata
-from sage.plot.misc import options, rename_keyword, to_mpl_color
+from sage.plot.misc import options, rename_keyword
+from sage.plot.colors import to_mpl_color
 
 class Polygon(GraphicPrimitive_xydata):
     """

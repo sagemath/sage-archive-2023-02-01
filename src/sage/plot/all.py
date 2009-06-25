@@ -1,8 +1,8 @@
 from plot import (Graphics, plot,
-                  hue, graphics_array,
+                  graphics_array,
                   list_plot, parametric_plot,
                   polar_plot,
-                  is_Graphics, rainbow,
+                  is_Graphics,
                   show_default)
 
 from line import line, line2d
@@ -25,4 +25,4 @@ from animate import Animation as animate
 
 from tachyon import Tachyon
 
-from misc import Color
+from colors import Color, hue, rainbow

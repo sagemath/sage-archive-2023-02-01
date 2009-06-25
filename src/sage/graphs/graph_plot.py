@@ -275,7 +275,7 @@ class GraphPlot(SageObject):
 
         if 'vertex_colors' not in self._options:
             if self._options['partition'] is not None:
-                from sage.plot.all import rainbow
+                from sage.plot.colors import rainbow
                 partition = self._options['partition']
                 l = len(partition)
                 R = rainbow(l)
@@ -682,7 +682,7 @@ class GraphPlot(SageObject):
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
 
-            sage: from sage.plot.plot import rainbow
+            sage: from sage.plot.colors import rainbow
             sage: C = graphs.CubeGraph(5)
             sage: R = rainbow(5)
             sage: edge_colors = {}

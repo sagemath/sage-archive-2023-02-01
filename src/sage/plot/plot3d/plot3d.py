@@ -73,7 +73,7 @@ from sage.plot.tri_plot import TrianglePlot
 from index_face_set import IndexFaceSet
 from shapes import arrow3d
 from base import Graphics3dGroup
-from sage.plot.plot import rainbow
+from sage.plot.colors import rainbow
 from texture import Texture, is_Texture
 
 from sage.ext.fast_eval import fast_float_arg, fast_float

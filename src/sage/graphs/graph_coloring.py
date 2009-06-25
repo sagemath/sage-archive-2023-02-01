@@ -15,7 +15,7 @@ AUTHORS:
 
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.all import Matrix, vector, QQ
-from sage.plot.plot import rainbow
+from sage.plot.colors import rainbow
 from chrompoly import chromatic_polynomial
 from graph_generators import GraphGenerators
 

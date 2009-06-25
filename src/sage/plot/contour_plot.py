@@ -19,7 +19,8 @@ Contour Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, rgbcolor, get_cmap
+from sage.plot.misc import options, rename_keyword
+from sage.plot.colors import rgbcolor, get_cmap
 from sage.misc.misc import verbose, xsrange
 import operator
 

@@ -36,6 +36,7 @@ cdef extern from "math.h":
     double atan(double)
     double log(double)
     double exp(double)
+    double sqrt(double)
     double PI
 
 cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
@@ -47,6 +48,10 @@ cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
 cdef inline double mag_to_lightness(double r):
     """
     Tweak this to adjust how the magnitude affects the color.
+    For instance, changing ``sqrt(r)`` to ``r`` will cause
+    anything near a zero to be much darker and poles to be
+    much lighter, while ``r**(.25)`` would cause the reverse
+    effect.
 
     INPUT:
 
@@ -55,8 +60,18 @@ cdef inline double mag_to_lightness(double r):
     OUTPUT:
 
     A value between `-1` (black) and `+1` (white), inclusive.
+
+    EXAMPLES:
+
+    This tests it implicitly::
+
+        sage: from sage.plot.complex_plot import complex_to_rgb
+        sage: complex_to_rgb([[0, 1, 10]])
+        array([[[ 0.        ,  0.        ,  0.        ],
+                [ 0.77172568,  0.        ,  0.        ],
+                [ 1.        ,  0.22134776,  0.22134776]]])
     """
-    return atan(log(r+1)) * (4/PI) - 1
+    return atan(log(sqrt(r)+1)) * (4/PI) - 1
 
 def complex_to_rgb(z_values):
     """
@@ -75,11 +90,11 @@ def complex_to_rgb(z_values):
         sage: complex_to_rgb([[0, 1, 1000]])
         array([[[ 0.        ,  0.        ,  0.        ],
                 [ 0.77172568,  0.        ,  0.        ],
-                [ 1.        ,  0.81697746,  0.81697746]]])
+                [ 1.        ,  0.64421177,  0.64421177]]])
         sage: complex_to_rgb([[0, 1j, 1000j]])
         array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.38586284,  0.        ,  0.77172568],
-                [ 0.90848873,  0.81697746,  1.        ]]])
+                [ 0.38586284,  0.77172568,  0.        ],
+                [ 0.82210588,  1.        ,  0.64421177]]])
     """
     import numpy
     cdef unsigned int i, j, imax, jmax
@@ -104,18 +119,18 @@ def complex_to_rgb(z_values):
             z = <ComplexDoubleElement>(zz if PY_TYPE_CHECK_EXACT(zz, ComplexDoubleElement) else CDF(zz))
             x, y = z._complex.dat[0], z._complex.dat[1]
             mag = hypot(x, y)
-            arg = atan2(y, x)
+            arg = atan2(y, x) # math module arctan has range from -pi to pi, so cut along negative x-axis
 
             lightness = mag_to_lightness(mag)
-            if lightness < 0:
+            if lightness < 0: # in hsv, variable value, full saturation (s=1, v=1+lightness)
                 bot = 0
                 top = (1+lightness)
-            else:
+            else: # in hsv, variable saturation, full value (v=1, s=1-lightness)
                 bot = lightness
                 top = 1
 
-            hue = -3*arg/PI
-            if hue < 0: hue += 6
+            hue = 3*arg/PI # Note that does same thing as colorsys module hsv_to_rgb for this setup, but in Cython
+            if hue < 0: hue += 6 # usual hsv hue is thus h=arg/(2*pi) for positive, h=arg/(2*PI)+1 for negative
             ihue = <int>hue
             if ihue == 0:
                 r = top
@@ -148,7 +163,6 @@ def complex_to_rgb(z_values):
 
     _sig_off
     return rgb
-
 
 class ComplexPlot(GraphicPrimitive):
     def __init__(self, z_values, xrange, yrange, options):
@@ -217,7 +231,7 @@ def complex_plot(f, xrange, yrange, **options):
     output is indicated by the brightness (with zero being black and
     infinity being white) while the argument is represented by the
     hue (with red being positive real, and increasing through orange,
-    yellow, ... as the argument increases.
+    yellow, ... as the argument increases).
 
     ``complex_plot(f, (xmin, xmax), (ymin, ymax), ...)``
 

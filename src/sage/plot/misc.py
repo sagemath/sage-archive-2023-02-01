@@ -1,6 +1,18 @@
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from functools import wraps
 from copy import copy
-from math import modf
 
 from sage.misc.misc import verbose
 
@@ -9,212 +21,6 @@ def ensure_subs(f):
         from sage.calculus.all import SR
         return SR(f)
     return f
-
-
-colors = {
-    "red"   : (1.0,0.0,0.0),
-    "orange": (1.0,.5,0.0),
-    "yellow": (1.0,1.0,0.0),
-    "green" : (0,1.0,0.0),
-    "blue"  : (0.0,0.0,1.0),
-    "purple": (.5,0.0,1.0),
-    "white" : (1.0,1.0,1.0),
-    "black" : (0.0,0.0,0.0),
-    'brown': (0.65, 0.165, 0.165),
-    "grey"  : (.5,.5,.5),
-    "gray"  : (.5,.5,.5),
-    "lightblue" : (0.4,0.4,1.0),
-    "automatic": (0.4,0.4,1.0)
-}
-
-def to_mpl_color(c):
-    """
-    Convert a tuple or string to a matplotlib rgb color tuple.
-
-    INPUT:
-        c -- string or 3-tuple
-
-    OUTPUT:
-        3-tuple of floats between 0 and 1.
-
-    EXAMPLES:
-        sage: from sage.plot.plot import to_mpl_color
-        sage: to_mpl_color('#fa0')
-        (1.0, 0.66666666666666663, 0.0)
-        sage: to_mpl_color('#ffffe1')
-        (1.0, 1.0, 0.88235294117647056)
-        sage: to_mpl_color('blue')
-        (0.0, 0.0, 1.0)
-        sage: to_mpl_color([1,1/2,1/3])
-        (1.0, 0.5, 0.33333333333333331)
-        sage: to_mpl_color([1,2,255])   # WARNING -- numbers are reduced mod 1!!
-        (1.0, 0.0, 0.0)
-    """
-    if isinstance(c, Color):
-        c = c.rgb()
-
-    if isinstance(c, str):
-        if len(c) > 0 and c[0] == '#':
-            # it is some sort of html like color, e.g, #00ffff or #ab0
-            h = c[1:]
-            if len(h) == 3:
-                h = '%s%s%s%s%s%s'%(h[0],h[0], h[1],h[1], h[2],h[2])
-            elif len(h) != 6:
-                raise ValueError, "color hex string (= '%s') must have length 3 or 6"%h
-            return tuple([eval('0x%s'%h[i:i+2])/float(255) for i in [0,2,4]])
-        else:
-            try:
-                return colors[c]
-            except KeyError:
-                raise ValueError, "unknown color '%s'"%c
-
-    elif isinstance(c, (list, tuple)):
-        c = list(c)
-        if len(c) != 3:
-            raise ValueError, "color tuple must have 3 entries, one for each RGB channel"
-        for i in range(len(c)):
-            s = float(c[i])
-            if s != 1:
-                s = modf(s)[0]
-                if s < 0:
-                    s += 1
-            c[i] = s
-
-    else:
-        raise TypeError, "c must be a list, tuple, or string"
-
-    return tuple(c)
-
-# If you change what this accepts, remember to change the documentation
-# about cmap where it is used and to test these classes.
-def get_cmap(cmap):
-    r"""
-    Returns the colormap corresponding to cmap.
-
-    INPUT:
-        cmap -- a colormap description (type cmap_help() for more information)
-
-    EXAMPLES:
-        sage: from sage.plot.misc import get_cmap
-        sage: get_cmap('jet')
-        <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
-        sage: get_cmap([(0,0,0), (0.5,0.5,0.5), (1,1,1)])
-        <matplotlib.colors.ListedColormap instance at 0x...>
-        sage: get_cmap(['green', 'lightblue', 'blue'])
-        <matplotlib.colors.ListedColormap instance at 0x...>
-        sage: get_cmap('jolies')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Color map jolies not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)
-        sage: get_cmap('mpl')
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Color map mpl not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)
-    """
-    #cm is the matplotlib color map module
-    from matplotlib import cm
-    from matplotlib.colors import ListedColormap, Colormap
-    if isinstance(cmap, Colormap):
-        return cmap
-    elif isinstance(cmap, str):
-        if not cmap in cm.datad.keys():
-            raise RuntimeError, "Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)"%cmap
-        return cm.__dict__[cmap]
-    elif isinstance(cmap, (list, tuple)):
-        cmap = map(rgbcolor, cmap)
-        return ListedColormap(cmap)
-
-def rgbcolor(c):
-    """
-    Return the rgbcolor corresponding to c, which can be a Color, tuple, or string.
-
-    INPUT:
-        c -- a Color, 3-tuple, or string (HTML hex color).
-
-    OUTPUT:
-        rgb tuple of floats between 0 and 1.
-    """
-    if isinstance(c, Color):
-        return c.rgb()
-    if isinstance(c, tuple):
-        return (float(c[0]), float(c[1]), float(c[2]))
-    if isinstance(c, str):
-        if len(c) == 7 and c[0] == '#':  # html hex color
-            # we use Integer instead of 0x eval for security reasons
-            return tuple([int(c[i:i+2], base=16)/float(256) for i in [1,3,5]])
-        try:
-            return colors[c]
-        except KeyError:
-            pass
-
-    raise ValueError, "unknown color '%s'"%c
-
-
-class Color:
-    def __init__(self, r='#0000ff', g=None, b=None):
-        """
-        A color object.
-
-        INPUT:
-            r,g,b -- either a triple of floats between 0 and 1, OR
-            r -- a color string or HTML color hex string
-
-        EXAMPLES:
-            sage: Color('purple')
-            RGB color (0.5, 0.0, 1.0)
-            sage: Color(0.5,0,1)
-            RGB color (0.5, 0.0, 1.0)
-            sage: Color('#8000ff')
-            RGB color (0.5, 0.0, 0.99609375)
-        """
-        if g is None and b is None:
-            self.__rgb = rgbcolor(r)
-        else:
-            self.__rgb = (float(r),float(g),float(b))
-
-    def __repr__(self):
-        """
-        Return string representation of this RGB color.
-
-        EXAMPLES:
-            sage: Color('#8000ff').__repr__()
-            'RGB color (0.5, 0.0, 0.99609375)'
-        """
-        return "RGB color %s"%(self.__rgb,)
-
-    def rgb(self):
-        """
-        Return underlying RGB tuple.
-
-        OUTPUT:
-            3-tuple
-
-        EXAMPLES:
-            sage: Color('#8000ff').rgb()
-            (0.5, 0.0, 0.99609375)
-        """
-        return self.__rgb
-
-    def html_color(self):
-        """
-        Return color formated as an HTML hex color.
-
-        OUTPUT:
-            string of length 7.
-
-        EXAMPLES:
-            sage: Color('yellow').html_color()
-            '#ffff00'
-        """
-        s = '#'
-        for z in self.__rgb:
-            h = '%x'%int(z*256)
-            if len(h) > 2:
-                h = 'ff'
-            elif len(h) == 1:
-                h = '0' + h
-            s += h
-        return s
 
 class suboptions(object):
     def __init__(self, name, **options):
@@ -227,7 +33,8 @@ class suboptions(object):
         The keyword arguments passed into the constructor are taken
         to be default for the name_options dictionary.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.misc import suboptions
             sage: s = suboptions('arrow', size=2)
             sage: s.name
@@ -242,7 +49,8 @@ class suboptions(object):
         """
         Returns a wrapper around func
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.misc import suboptions
             sage: def f(*args, **kwds): print list(sorted(kwds.items()))
             sage: f = suboptions('arrow', size=2)(f)
@@ -285,7 +93,8 @@ class options(object):
         can get at the original keyword arguments passed into the
         decorator.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.plot.misc import options
             sage: o = options(rgbcolor=(0,0,1))
             sage: o.options
@@ -301,7 +110,8 @@ class options(object):
 
     def __call__(self, func):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.misc import options
             sage: o = options(rgbcolor=(0,0,1))
             sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
@@ -329,7 +139,8 @@ class options(object):
             """
             Return the default options.
 
-            EXAMPLES:
+            EXAMPLES::
+
                 sage: from sage.plot.misc import options
                 sage: o = options(rgbcolor=(0,0,1))
                 sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
@@ -344,7 +155,8 @@ class options(object):
             """
             Reset the options to the defaults.
 
-            EXAMPLES:
+            EXAMPLES::
+
                 sage: from sage.plot.misc import options
                 sage: o = options(rgbcolor=(0,0,1))
                 sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))

@@ -20,7 +20,7 @@ TODO:
 
 """
 
-from plot import hue
+from colors import hue
 from math import sqrt
 from random import random
 

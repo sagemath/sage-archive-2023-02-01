@@ -6353,7 +6353,7 @@ class GenericGraph(SageObject):
              '#ff0000': [((1,4)(3,5), (1,5,4,2,3), (1,2,3,4,5)),
              ...]}
         """
-        from sage.plot.plot import rainbow
+        from sage.plot.colors import rainbow
         edge_labels = []
         for e in self.edge_iterator():
             i = 0
@@ -6590,7 +6590,7 @@ class GenericGraph(SageObject):
 
         ::
 
-            sage: from sage.plot.plot import rainbow
+            sage: from sage.plot.colors import rainbow
             sage: C = graphs.CubeGraph(5)
             sage: R = rainbow(5)
             sage: edge_colors = {}
@@ -6843,7 +6843,7 @@ class GenericGraph(SageObject):
         ::
 
             sage: P = graphs.PetersenGraph().to_directed()
-            sage: from sage.plot.all import rainbow
+            sage: from sage.plot.colors import rainbow
             sage: edges = P.edges()
             sage: R = rainbow(len(edges), 'rgbtuple')
             sage: edge_colors = {}

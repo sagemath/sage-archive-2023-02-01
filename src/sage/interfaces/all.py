@@ -1,6 +1,7 @@
 # interfaces to other interpreters
 
 from frobby import frobby
+from four_ti_2 import four_ti_2
 from axiom import Axiom, axiom, axiom_console
 from fricas import FriCAS, fricas, fricas_console
 

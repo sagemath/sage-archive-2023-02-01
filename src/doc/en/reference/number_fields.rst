@@ -14,4 +14,5 @@ Algebraic Number Fields
    sage/rings/number_field/class_group
    sage/rings/number_field/galois_group
    sage/rings/number_field/unit_group
+   sage/rings/number_field/small_primes_of_degree_one
    sage/rings/qqbar

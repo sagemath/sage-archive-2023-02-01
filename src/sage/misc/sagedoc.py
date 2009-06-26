@@ -7,8 +7,8 @@ AUTHORS:
 - Nick Alexander (2007): nodetex functions
 - Nick Alexander (2008): search_src, search_def improvements
 - Martin Albrecht (2008-03-21): parse LaTeX description environments in sagedoc
-- J. H. Palmieri (2009-04-11): fix for #5754 plus doctests
-- Dan Drake (2009-05-21): refactor search_* functions, use system `find' instead of sage -grep
+- \J. H. Palmieri (2009-04-11): fix for #5754 plus doctests
+- Dan Drake (2009-05-21): refactor search_* functions, use system 'find' instead of sage -grep
 """
 
 #*****************************************************************************
@@ -159,7 +159,7 @@ def detex(s):
     return s
 
 def format(s):
-    """
+    r"""
     Format Sage documentation ``s`` for viewing with IPython.
 
     This calls ``detex`` on ``s`` to convert LaTeX commands to plain
@@ -583,7 +583,7 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
 
 
 def format_search_as_html(what, r, search):
-    """
+    r"""
     Format the output from ``search_src``, ``search_def``, or
     ``search_doc`` as html, for use in the notebook.
 

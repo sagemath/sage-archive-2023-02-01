@@ -6,7 +6,7 @@ AUTHORS:
 - William Stein
 
 - William Stein (2006-04-26): added workaround for Windows where most
-  users's home directory has a space in it.
+  users' home directory has a space in it.
 
 - Robert Bradshaw (2007-09-20): Ellipsis range/iterator.
 """
@@ -910,6 +910,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         [(0, 0), (2, 2), (4, 4)]
 
     Including the endpoint::
+
         sage: srange(0, 10, step=2, include_endpoint=True)
         [0, 2, 4, 6, 8, 10]
         sage: srange(0, 10, step=3, include_endpoint=True)
@@ -1983,7 +1984,8 @@ def is_in_string(line, pos):
     Returns True if the character at position pos in line occurs
     within a string.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.misc import is_in_string
         sage: line = 'test(\'#\')'
         sage: is_in_string(line, line.rfind('#'))
@@ -2090,7 +2092,7 @@ def nested_pickle(cls):
         <class __main__.A.B at ...>
 
     In Python 2.6, decorators work with classes; then @nested_pickle
-    should work as a decorator:
+    should work as a decorator::
 
         sage: @nested_pickle    # todo: not implemented
         ...   class A2(object):
@@ -2170,6 +2172,7 @@ class MainClass(object):
             sage: loads(dumps(MainClass.NestedClass()))
             <sage.misc.misc.MainClass.NestedClass object at 0x...>
         """
+
         class NestedSubClass(object):
             r"""
             EXAMPLES::

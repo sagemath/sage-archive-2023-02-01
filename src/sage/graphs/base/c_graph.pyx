@@ -58,7 +58,7 @@ cdef class CGraph:
         INPUT:
          - ``n`` - integer
 
-        EXAMPLES::
+        EXAMPLES:
 
         Upon initialization, a SparseGraph or DenseGraph has the first
         ``nverts`` vertices::

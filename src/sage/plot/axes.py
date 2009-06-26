@@ -52,11 +52,19 @@ class Axes(SageObject):
         self.__draw_y_axis = True
 
     def _tasteful_ticks(self, minval, maxval):
-        """
+        r"""
         This function finds spacing for axes tick marks that are well spaced.
         Were 'well spaced' means for any given min and max values
         the tick spacing should look even and visually nice (tasteful).
 
+        TESTS:
+
+        The following tests that #5649 is fixed::
+
+        sage: from sage.plot.axes import Axes
+        sage: A = Axes()
+        sage: A._tasteful_ticks(2^(-20*10),2^(-20*1))
+        ([1.9999999999999999e-07,  3.9999999999999998e-07,  5.9999999999999997e-07,  7.9999999999999996e-07], 1.9999999999999999e-07, 1.9999999999999999e-07)
         """
         minval, maxval = float(minval), float(maxval)
         absmin, absmax = abs(minval), abs(maxval)
@@ -72,19 +80,28 @@ class Axes(SageObject):
 
             # Is the stepsize going to be < 1?
             if absmin < 1:
-                n = 0
-                s = str(absmin).split('.')[1]
-                for c in s:
-                    n+=1
-                    if c != '0':
-                        break
-                p = -(n-1)
-                d0 = eval(s[n-1])
-                #string may be of length 1
-                try:
-                    d1 = eval(s[n])
-                except IndexError:
-                    d1 = 0
+                if str(absmax).find('e') != -1: # numbers represented e.g. as 9e^-6
+                    s,exponent = str(absmin).split('e') # split number from the exponent
+                    p = eval(exponent) + 1
+                    d0 = eval(s[0])
+                    try:
+                        d1 = eval(s[2])
+                    except IndexError:
+                        d1 = eval("0")
+                else: # numbers represented e.g. as 0.0003
+                    n = 0
+                    s = str(absmin).split('.')[1]
+                    for c in s:
+                        n+=1
+                        if c != '0':
+                            break
+                    p = -(n-1)
+                    d0 = eval(s[n-1])
+                    #string may be of length 1
+                    try:
+                        d1 = eval(s[n])
+                    except IndexError:
+                        d1 = 0
 
             #the stepsize will be 1 or greater:
             else:
@@ -106,19 +123,28 @@ class Axes(SageObject):
                  dompos = True
             #is the stepsize going to be < 1?
             if absmax < 1:
-                n = 0
-                s = str(absmax).split('.')[1]
-                for c in s:
-                    n+=1
-                    if c != '0':
-                        break
-                p = -(n-1)
-                d0 = eval(s[n-1])
-                try:
-                    sn = s[n]
-                except IndexError:
-                    sn = "0"
-                d1 = eval(sn)
+                if str(absmax).find('e') != -1: # numbers represented e.g. as 9e^-6
+                    s,exponent = str(absmax).split('e')
+                    p = eval(exponent) + 1
+                    d0 = eval(s[0])
+                    try:
+                        d1 = eval(s[2])
+                    except IndexError:
+                        d1 = eval("0")
+                else: # numbers represented e.g. as 0.0003
+                    n = 0
+                    s = str(absmax).split('.')[1]
+                    for c in s:
+                        n+=1
+                        if c != '0':
+                            break
+                    p = -(n-1)
+                    d0 = eval(s[n-1])
+                    try:
+                        sn = s[n]
+                    except IndexError:
+                        sn = "0"
+                    d1 = eval(sn)
             #the stepsize will be 1 or greater:
             else:
                 if maxval >= 10:

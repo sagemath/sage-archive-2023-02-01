@@ -111,7 +111,22 @@ def Mod(n, m, parent=None):
 
         sage: mod(12,5)
         2
+
+    Illustrates that trac #5971 is fixed. Consider `n` modulo `m` when
+    `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0` is
+    is equivalent to `n` for any integer value of `n`::
+
+        sage: Mod(10, 0)
+        10
+        sage: a = randint(-100, 100)
+        sage: Mod(a, 0) == a
+        True
     """
+    # when m is zero, then ZZ/0ZZ is isomorphic to ZZ
+    if m == 0:
+        return n
+
+    # m is non-zero, so return n mod m
     cdef IntegerMod_abstract x
     x = IntegerMod(integer_mod_ring.IntegerModRing(m), n)
     if parent is None:

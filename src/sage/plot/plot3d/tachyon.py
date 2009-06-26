@@ -47,7 +47,7 @@ TODO:
 
 from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
-from colors import hue
+from sage.plot.colors import hue
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -988,4 +988,3 @@ class ParametricPlot:
 def tostr(s):
     if isinstance(s, str):
         return s
-    return ' %s %s %s '%(float(s[0]), float(s[1]), float(s[2]))

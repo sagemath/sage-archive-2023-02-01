@@ -105,7 +105,7 @@ from sage.plot.plot import hue
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.plot.tachyon import Tachyon
+from sage.plot.plot3d.tachyon import Tachyon
 from sage.rings.all import Integer, ZZ, QQ, gcd
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence

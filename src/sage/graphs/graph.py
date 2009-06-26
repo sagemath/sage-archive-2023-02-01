@@ -10979,12 +10979,12 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
         sage: from sage.graphs.graph import tachyon_vertex_plot
         sage: T,p = tachyon_vertex_plot(G)
         sage: type(T)
-        <class 'sage.plot.tachyon.Tachyon'>
+        <class 'sage.plot.plot3d.tachyon.Tachyon'>
         sage: type(p)
         <type 'dict'>
     """
     from math import sqrt
-    from sage.plot.tachyon import Tachyon
+    from sage.plot.plot3d.tachyon import Tachyon
 
     c = [0,0,0]
     r = []

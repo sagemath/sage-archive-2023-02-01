@@ -23,6 +23,6 @@ from complex_plot import complex_plot
 
 from animate import Animation as animate
 
-from tachyon import Tachyon
+from plot3d.tachyon import Tachyon
 
 from colors import Color, hue, rainbow

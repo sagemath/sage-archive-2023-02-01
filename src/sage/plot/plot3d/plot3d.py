@@ -69,7 +69,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.plot.tri_plot import TrianglePlot
+from tri_plot import TrianglePlot
 from index_face_set import IndexFaceSet
 from shapes import arrow3d
 from base import Graphics3dGroup

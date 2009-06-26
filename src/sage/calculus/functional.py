@@ -294,7 +294,7 @@ def limit(f, dir=None, taylor=False, **argv):
        limit is to be computed).
 
     -  ``taylor`` - (default: False); if True, use Taylor
-       series, which allows more integrals to be computed (but may also
+       series, which allows more limits to be computed (but may also
        crash in some obscure cases due to bugs in Maxima).
 
     -  ``\*\*argv`` - 1 named parameter

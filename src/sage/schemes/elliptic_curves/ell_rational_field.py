@@ -2819,8 +2819,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.period_lattice()
             Period lattice associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         """
-        from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
-        return PeriodLattice_ell(self)
+        try:
+            return self._period_lattice
+        except AttributeError:
+            from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
+            self._period_lattice = PeriodLattice_ell(self)
+            return self._period_lattice
 
     def elliptic_exponential(self, z, embedding=None):
         r"""
@@ -3191,7 +3195,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [-7 -1]
             [15  2]
             sage: phi((-7*z-1)/(15*z+2))
-            (8.20822465478524 - 13.1562816054681*I : -8.79855099049343 + 69.4006129342194*I : 1.00000000000000)
+            (8.20822465478524 - 13.1562816054681*I : -8.79855099049339 + 69.4006129342195*I : 1.00000000000000)
 
         We can also get a series expansion of this modular parameterization::
 
@@ -6964,7 +6968,7 @@ class ModularParameterization:
             sage: E = EllipticCurve('37a')
             sage: phi = E.modular_parametrization()
             sage: phi((sqrt(7)*I - 17)/74, 53)
-            (-3.44405199344475e-16 - 1.69572887583947e-16*I : 3.44405199344530e-16 + 1.69572887583947e-16*I : 1.00000000000000)
+            (-3.37746093871080e-16 - 2.21824021705058e-16*I : 3.33066907387547e-16 + 2.21719344273286e-16*I : 1.00000000000000)
 
         Verify that the mapping is invariant under the action of `\Gamma_0(N)`
         on the upper half plane::
@@ -6977,7 +6981,7 @@ class ModularParameterization:
             sage: phi(tau+1)
             (-3.92181329652810 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
             sage: phi((6*tau+1) / (11*tau+2))
-            (-3.92181329652853 - 12.2578555525369*I : 44.9649874434897 + 14.3257120944671*I : 1.00000000000000)
+            (-3.92181329652856 - 12.2578555525369*I : 44.9649874434898 + 14.3257120944670*I : 1.00000000000000)
 
         ALGORITHM:
 
@@ -7008,12 +7012,7 @@ class ModularParameterization:
             lattice_point += an/n
             lattice_point *= q
         # Map to E via Weierstrass P
-        E2 = self._E.change_ring(CC)
-        from sage.interfaces.all import gp
-        gp.set_real_precision((CC.prec()+10)//3)
-        e = gp(E2)
-        w = list(e.ellztopoint(lattice_point))
-        return E2.point([CC(repr(w[0])), CC(repr(w[1])), CC(1)], check=False)
+        return self._E.elliptic_exponential(lattice_point)
 
     def power_series(self):
         r"""

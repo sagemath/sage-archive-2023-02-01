@@ -26,13 +26,52 @@ from sage.misc.misc import verbose, xsrange
 
 class DensityPlot(GraphicPrimitive):
     """
-    Primitive class that initializes the
-    density_plot graphics type
+    Primitive class for the density plot graphics type.  See
+    ``density_plot?`` for help actually doing density plots.
+
+    INPUT:
+
+    - ``xy_data_array`` - list of lists giving evaluated values of the
+      function on the grid
+
+    - ``xrange`` - tuple of 2 floats indicating range for horizontal direction
+
+    - ``yrange`` - tuple of 2 floats indicating range for vertical direction
+
+    - ``options`` - dict of valid plot options to pass to constructor
+
+    EXAMPLES:
+
+    Note this should normally be used indirectly via `density_plot``::
+
+        sage: from sage.plot.density_plot import DensityPlot
+        sage: D = DensityPlot([[1,3],[2,4]],(1,2),(2,3),options={})
+        sage: D
+        DensityPlot defined by a 2 x 2 data grid
+        sage: D.yrange
+        (2, 3)
+        sage: D.options()
+        {}
+
+    TESTS:
+
+    We test creating a density plot::
+
+        sage: x,y = var('x,y')
+        sage: D = density_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),plot_points=121,cmap='hsv')
     """
     def __init__(self, xy_data_array, xrange, yrange, options):
         """
-        TESTS:
-            sage: dp = density_plot(x, (-2,3), (1,10))
+        Initializes base class DensityPlot.
+
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: D = density_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),plot_points=121,cmap='hsv')
+            sage: D[0].xrange
+            (-4.0, 4.0)
+            sage: D[0].options()['plot_points']
+            121
         """
         self.xrange = xrange
         self.yrange = yrange
@@ -54,32 +93,48 @@ class DensityPlot(GraphicPrimitive):
             3.0
             sage: d['ymin']
             3.0
-
         """
         from sage.plot.plot import minmax_data
         return minmax_data(self.xrange, self.yrange, dict=True)
 
     def _allowed_options(self):
         """
+        Return the allowed options for the DensityPlot class.
+
         TESTS::
 
             sage: isinstance(density_plot(x, (-2,3), (1,10))[0]._allowed_options(), dict)
             True
         """
         return {'plot_points':'How many points to use for plotting precision',
-                'cmap':"A colormap (type cmap_help() for more information).",
+                'cmap':"""the name of a predefined colormap,
+                       a list of colors or an instance of a
+                       matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
+                       for available colormap names.""",
                 'interpolation':'What interpolation method to use'}
 
     def _repr_(self):
         """
-        TESTS::
+        String representation of DensityrPlot primitive.
 
-            sage: isinstance(density_plot(x, (-2,3), (1,10))[0]._repr_(), str)
-            True
+        EXAMPLES::
+
+            sage: x,y = var('x,y')
+            sage: D = density_plot(x^2-y^2,(x,-2,2),(y,-2,2))
+            sage: d = D[0]; d
+            DensityPlot defined by a 25 x 25 data grid
         """
         return "DensityPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
+        """
+        TESTS:
+
+        A somewhat random plot, but fun to look at::
+
+            sage: x,y = var('x,y')
+            sage: density_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),plot_points=121,cmap='hsv')
+        """
         options = self.options()
         cmap = get_cmap(options['cmap'])
 
@@ -123,18 +178,24 @@ def density_plot(f, xrange, yrange, **options):
 
     EXAMPLES:
 
-    Here we plot a simple function of two variables::
+    Here we plot a simple function of two variables.  Note that
+    since the input function is an expression, we need to explicitly
+    declare the variables in 3-tuples for the range::
 
         sage: x,y = var('x,y')
         sage: density_plot(sin(x)*sin(y), (x, -2, 2), (y, -2, 2))
 
 
-    Here we change the ranges and add some options::
+    Here we change the ranges and add some options; note that here
+    ``f`` is callable (has variables declared), so we can use 2-tuple ranges::
 
-        sage: density_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), interpolation='sinc', plot_points=100)
+        sage: x,y = var('x,y')
+        sage: f(x,y) = x^2*cos(x*y)
+        sage: density_plot(f, (x,-10,5), (y, -5,5), interpolation='sinc', plot_points=100)
 
     An even more complicated plot::
 
+        sage: x,y = var('x,y')
         sage: density_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4), cmap='jet', plot_points=100)
 
     This should show a "spotlight" right on the origin::

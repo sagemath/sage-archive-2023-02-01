@@ -251,8 +251,17 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
         else:
             break
 
+def skip_NestedClass(app, what, name, obj, options, docstringlines):
+    """
+    Don't include the docstring for any class/function/object in
+    sage.misc.misc whose ``name`` contains "MainClass.NestedClass".
+    (This is to avoid some Sphinx warnings when processing
+    sage.misc.misc.)
+    """
+    return str(obj).find("sage.misc.misc") != -1 and name.find("MainClass.NestedClass") != -1
 
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
     app.connect('autodoc-process-docstring', process_directives)
     app.connect('autodoc-process-docstring', process_docstring_module_title)
+    app.connect('autodoc-skip-member', skip_NestedClass)

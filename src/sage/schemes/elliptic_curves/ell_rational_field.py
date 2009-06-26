@@ -2834,9 +2834,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        (tuple of complexes) The tuple `(x,y)` which is the image of
-        `z` modulo `L` under the Weierstrass parametrization `\CC/L
-        \to E(\CC)`.
+        The image of `z` modulo `L` under the Weierstrass parametrization
+        `\CC/L \to E(\CC)`.
 
         .. note::
 
@@ -2849,23 +2848,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P = E([0,2])
             sage: z = P.elliptic_logarithm() # default precision is 100 here
             sage: E.elliptic_exponential(z)
-            (-1.6171648557030742010940435588e-29, 2.0000000000000000000000000000)
+            (-1.6171648557030742010940435588e-29 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
             sage: z = E([0,2]).elliptic_logarithm(precision=200)
             sage: E.elliptic_exponential(z)
-            (-1.6490990486332025523931769742517329237564168247111092902718e-59,
-            2.0000000000000000000000000000000000000000000000000000000000)
+            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
 
         ::
 
             sage: E = EllipticCurve('389a')
             sage: Q=E([3,5])
             sage: E.elliptic_exponential(Q.elliptic_logarithm())
-            (3.0000000000000000000000000000, 5.0000000000000000000000000000)
+            (3.0000000000000000000000000000 : 5.0000000000000000000000000000 : 1.0000000000000000000000000000)
             sage: P = E([-1,1])
             sage: P.elliptic_logarithm()
             0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
             sage: E.elliptic_exponential(P.elliptic_logarithm())
-            (-1.0000000000000000000000000000, 1.0000000000000000000000000000)
+            (-1.0000000000000000000000000000 : 1.0000000000000000000000000000 : 1.0000000000000000000000000000)
 
         Some torsion examples::
 
@@ -2885,9 +2883,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1.39292799513138,
             0.0783137314443165 - 0.492840991709879*I,
             0.0783137314443168 + 0.492840991709879*I]
+
+        Observe that this is a group homomorphism (modulo rounding error)::
+
+            sage: z = CC.random_element()
+            sage: 2 * E.elliptic_exponential(z)
+            (2.04119347066305 - 1.10251372205166*I : 2.23105000976838 - 2.69795281735238*I : 1.00000000000000)
+            sage: E.elliptic_exponential(2 * z)
+            (2.04119347066305 - 1.10251372205167*I : 2.23105000976839 - 2.69795281735236*I : 1.00000000000000)
         """
-        x,y = self.period_lattice().elliptic_exponential(z)
-        return (x, y)
+        return self.period_lattice().elliptic_exponential(z)
 
     def lseries(self):
         """
@@ -5542,14 +5547,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if z.is_zero():
             return self(0)
-        xy = [t.real() for t in self.elliptic_exponential(z)]
+        expZ = self.elliptic_exponential(z)
+        xy = [t.real() for t in expZ[:2]]
         if max_denominator is None:
             xy = [t.simplest_rational() for t in xy]
         else:
             xy = [t.nearby_rational(max_denominator=max_denominator) for t in xy]
+        if any([abs(t.imag()) > 2*abs(t.real()-s) for s,t in zip(xy, expZ)]):
+            # non-trivial imaginary part
+            return None
         try:
             return self(xy)
-        except:
+        except TypeError:
             return None
 
     def integral_x_coords_in_interval(self,xmin,xmax):

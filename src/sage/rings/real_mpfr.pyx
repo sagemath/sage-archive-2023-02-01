@@ -1263,8 +1263,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return the real part of self.
 
         (Since self is a real number, this simply returns self.)
+
+        EXAMPLES::
+
+            sage: RR(2).real()
+            2.00000000000000
+            sage: RealField(200)(-4.5).real()
+            -4.5000000000000000000000000000000000000000000000000000000000
         """
         return self
+
+    def imag(self):
+        """
+        Return the imaginary part of self.
+
+        (Since self is a real number, this simply returns 0.)
+
+        EXAMPLES::
+
+            sage: RR.pi().imag()
+            0.000000000000000
+            sage: RealField(100)(2).imag()
+            0.00000000000000000000000000000
+        """
+        return self._parent(0)
 
     def parent(self):
         """

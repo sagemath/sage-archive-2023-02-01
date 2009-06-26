@@ -320,7 +320,7 @@ class PeriodLattice_ell(PeriodLattice):
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
             sage: L.elliptic_exponential(L(Q))
-            (3.00000000000000 : 5.00000000000000)
+            (3.00000000000000 : 5.00000000000000 : 1.00000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1108,7 +1108,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: z = L(P); z
             2.65289807021917
             sage: L.elliptic_exponential(z)
-            (1.83186799063151e-15 : 2.00000000000000)
+            (1.83186799063151e-15 : 2.00000000000000 : 1.00000000000000)
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,False)
@@ -1116,7 +1116,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: z = L(P,prec=200); z
             2.6528980702191653584337189314791830484705213985544997536510
             sage: L.elliptic_exponential(z)
-            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000)
+            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
         """
         C = z.parent()
         z_is_real = False
@@ -1156,14 +1156,8 @@ class PeriodLattice_ell(PeriodLattice):
             if self.real_flag and z_is_real:
                 x = x.real()
                 y = y.real()
-                R = x.parent()
-                ER = self.E.change_ring(R)
-                return EllipticCurvePoint_field(ER,(x,y),check=False)
-            else:
-                C= x.parent()
-                EC = self.E.change_ring(C)
-                return EllipticCurvePoint_field(EC,(x,y),check=False)
-
+            K = x.parent()
+            return self.E.change_ring(K).point((x,y,K(1)), check=False)
 
         if self.real_flag and z_is_real:
             x = x.real()

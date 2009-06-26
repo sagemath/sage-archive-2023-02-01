@@ -419,24 +419,60 @@ class Function_arcsec(PrimitiveFunction):
 
 arcsec = asec = Function_arcsec()
 
+class Function_arctan2(PrimitiveFunction):
+    def __init__(self):
+        """
+        The modified arctangent function.
 
-def arctan2(y, x):
-    r"""
-    Modified version of arctan function, since it is used by Maxima.
+        Returns the arc tangent (measured in radians) of `y/x`, where
+        unlike ``arctan(y/x)``, the signs of both ``x`` and ``y`` are
+        considered.
 
-    ``arctan2(y,x) = arctan(y/x)``
+        Note that the `y`-coordinate is by convention the first input.
 
-    This is mainly for internal use.
+        ``arctan2(y,x) = arctan(y/x)``
 
-    EXAMPLES::
+        EXAMPLES:
 
-        sage: arctan2(1,2)
-        arctan(1/2)
-        sage: float(arctan2(1,2))
-        0.46364760900080609
-        sage: arctan2(2,3)
-        arctan(2/3)
-    """
-    return arctan(y/x)
+        Note the difference between the two functions::
 
-atan2 = arctan2
+            sage: arctan2(1,-1)
+            3/4*pi
+            sage: arctan(1/-1)
+            -1/4*pi
+
+        This is consistent with Python and Maxima::
+
+            sage: maxima.atan2(1,-1)
+            3*%pi/4
+            sage: math.atan2(1,-1)
+            2.3561944901923448
+
+        More examples::
+
+            sage: arctan2(1,0)
+            1/2*pi
+            sage: arctan2(2,3)
+            arctan(2/3)
+            sage: arctan2(-1,-1)
+            -3/4*pi
+
+        Of course we can approximate as well::
+
+            sage: arctan2(-.5,1).n(100)
+            -0.46364760900080611621425623146
+
+        TESTS::
+
+            sage: x,y = var('x,y')
+            sage: arctan2(y,x).operator()
+            arctan2
+        """
+        PrimitiveFunction.__init__(self, "arctan2", nargs=2, latex=r'\arctan',
+                                   approx=math.atan2,
+                                   conversions=dict(maxima='atan2',
+                                                    ginac='atan2'))
+
+    __call__ = SFunction.__call__
+
+arctan2 = atan2 = Function_arctan2()

@@ -1277,16 +1277,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Return the imaginary part of self.
 
-        (Since self is a real number, this simply returns 0.)
+        (Since self is a real number, this simply returns exactly 0.)
 
         EXAMPLES::
 
             sage: RR.pi().imag()
-            0.000000000000000
+            0
             sage: RealField(100)(2).imag()
-            0.00000000000000000000000000000
+            0
         """
-        return self._parent(0)
+        return ZZ(0)
 
     def parent(self):
         """

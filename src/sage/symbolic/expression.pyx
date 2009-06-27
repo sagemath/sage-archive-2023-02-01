@@ -220,11 +220,20 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: sage.symbolic.expression.Expression(SR, 5)
             5
+
+        We test subclassing ``Expression``::
+
+            sage: from sage.symbolic.expression import Expression
+            sage: class exp_sub(Expression): pass
+            sage: f = function('f')
+            sage: t = f(x)
+            sage: u = exp_sub(SR, t)
+            sage: u.operator()
+            f
         """
-        cdef GEx exp
-        GEx_construct_pyobject(exp, x)
-        GEx_construct_ex(&self._gobj, exp)
         self._parent = SR
+        cdef Expression exp = self.coerce_in(x)
+        GEx_construct_ex(&self._gobj, exp._gobj)
 
     def __dealloc__(self):
         """

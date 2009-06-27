@@ -23,7 +23,7 @@ def abstract_method(f = None, optional = False):
     r"""
     Abstract methods
 
-    INPUT::
+    INPUT:
 
      - ``f``: a function
      - ``optional``: a boolean; defaults to False
@@ -37,7 +37,7 @@ def abstract_method(f = None, optional = False):
     declarations. It is used by the Sage categories for automated
     tests (see ``Sets.Parent.test_not_implemented``).
 
-    EXAMPLES::
+    EXAMPLES:
 
     We create a class with an abstract method::
 

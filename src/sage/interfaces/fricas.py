@@ -255,7 +255,35 @@ class FriCAS(PanAxiom):
         fricas_console()
 
 class FriCASElement(PanAxiomElement):
-    pass
+    def _sage_domain(self):
+        """
+        A helper function for converting FriCAS domains to the corresponding
+        Sage object.
+
+        EXAMPLES::
+
+            sage: fricas('Integer').sage() #optional - fricas
+            Integer Ring
+            sage: fricas('Fraction Integer').sage() #optional - fricas
+            Rational Field
+            sage: fricas('DoubleFloat').sage() #optional - fricas
+            Real Double Field
+
+        """
+        P = self._check_valid()
+        name = str(self)
+        if name == 'Integer':
+            from sage.rings.all import ZZ
+            return ZZ
+        elif name == 'DoubleFloat':
+            from sage.rings.all import RDF
+            return RDF
+        elif name.startswith('Fraction('):
+            name = name.lstrip('Fraction(')
+            name = name.rstrip(')')
+            return P(name)._sage_domain().fraction_field()
+
+        raise NotImplementedError
 
 class FriCASFunctionElement(PanAxiomFunctionElement):
     pass

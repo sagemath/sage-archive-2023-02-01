@@ -437,7 +437,9 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _fricas_init_(self):
-        return self._interface_init_()
+        import sage.interfaces.fricas
+        I = sage.interfaces.fricas.fricas
+        return self._interface_init_(I)
 
     def _maxima_(self, G=None):
         if G is None:

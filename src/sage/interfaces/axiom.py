@@ -474,6 +474,19 @@ class PanAxiom(Expect):
         out = "\n".join(line[i+1:] for line in outs[1:])
         return out
 
+    # define relational operators
+    def _equality_symbol(self):
+        """equality symbol
+
+        EXAMPLES::
+
+            sage: a = axiom(x==6); a    #optional axiom
+            x= 6
+            sage: a = fricas(x==6); a   #optional fricas
+            x= 6
+        """
+        return "="
+
 
 class Axiom(PanAxiom):
     def __reduce__(self):
@@ -685,7 +698,7 @@ class PanAxiomElement(ExpectElement):
             sage: two.comma(3,4)   #optional - fricas
             [2,3,4]
             sage: _.type()         #optional - fricas
-            Tuple PositiveInteger
+            Tuple(PositiveInteger)
 
         """
         P = self._check_valid()

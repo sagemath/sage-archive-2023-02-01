@@ -202,12 +202,12 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        arctanh(arctanh(-arcsech(v2)/csch(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^sinh(-cosh(-arcsinh((0.0574954975369 - 0.917809644424*I)*(v2^2 - 0.723896589334 - 0.799038508886*I)*v1))/(-(1.04308121136 - 1.20890075541*I)*v2 - (1.45598591076 + 0.129560576376*I)*e))
+        ceil(arctanh(-sinh(v2)/floor(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^sinh(arctan2(arcsinh((0.723896589334 + 0.799038508886*I)*(v2 + 0.913564344312 + 0.0898040160336*I)*v2), -1/v3)/(v3/v2 + 1.36062750308 - 1.05383406182*I))
         sage: random_expr(5, verbose=True)
-        About to apply exp to [pi]
-        About to apply <built-in function mul> to [e^pi, 1]
-        About to apply cosh to [e^pi]
-        cosh(e^pi)
+        About to apply sec to [1]
+        About to apply exp to [sec(1)]
+        About to apply <built-in function mul> to [e^sec(1), v1]
+        v1*e^sec(1)
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

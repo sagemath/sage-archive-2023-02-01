@@ -461,7 +461,7 @@ def apply_and_test(n,patches,directory,behavior,verbose=False,archive=False,orde
 
 def archive_log(ticketnum, tmp_file):
     dir = os.getcwd()
-    os.chdir(SAGE_ROOT)
+    os.chdir(SAGE_ROOT+'/tmp)
     os.system('cp %s %s-mergelog'%(tmp_file,ticketnum))
     os.system('tar -rf mergelog.tar %s-mergelog'%(ticketnum))
     os.system('rm %s-mergelog'%(ticketnum))
@@ -619,7 +619,7 @@ def test_all_tickets(behavior, verbose=False):
     untested_tickets = []
     failed_tickets = []
 
-    os.system('tar -cf %s/mergelog.tar COPYING.txt'%SAGE_ROOT) #I'd like to make an empty tar, but tar cowardly refuses
+    os.system('tar -cf %s/tmp/mergelog.tar COPYING.txt'%SAGE_ROOT) #I'd like to make an empty tar, but tar cowardly refuses
 
     ticket_bundle = collect_patches_for_run()
     for number,title,patches,directory,order in ticket_bundle:

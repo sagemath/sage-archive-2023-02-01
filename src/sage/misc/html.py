@@ -134,12 +134,12 @@ class HTML:
             sage: html('<hr>')
             <html><font color='black'><hr></font></html>
         """
-        return HTMLExpr(self._eval(s, globals, locals))
+        return HTMLExpr(self.eval(s, globals, locals))
 
-    def _eval(self, s, globals=None, locals=None):
+    def eval(self, s, globals=None, locals=None):
         """
         EXAMPLES:
-            sage: html._eval('<hr>')
+            sage: html.eval('<hr>')
             <html><font color='black'><hr></font></html>
             ''
         """

@@ -10,7 +10,8 @@ from sage.rings.real_double import RDF
 
 include "../ext/cdefs.pxi"
 include "../ext/interrupt.pxi"
-include "../ext/numpy.pxd"
+
+from numpy cimport *
 
 def integer_to_real_double_dense(Matrix_integer_dense A):
     """

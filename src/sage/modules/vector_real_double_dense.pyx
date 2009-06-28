@@ -28,7 +28,7 @@ AUTHORS:
 ##############################################################################
 from sage.rings.real_double import RDF
 
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 numpy=None
 scipy=None

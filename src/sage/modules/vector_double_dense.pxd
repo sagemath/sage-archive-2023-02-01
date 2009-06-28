@@ -1,11 +1,12 @@
 include '../ext/cdefs.pxi'
 
 cimport free_module_element
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 cdef class Vector_double_dense(free_module_element.FreeModuleElement):
     cdef object _numpy_dtype
-    cdef cnumpy.NPY_TYPES _numpy_dtypeint
+    # cdef cnumpy.NPY_TYPES _numpy_dtypeint
+    cdef int _numpy_dtypeint
     cdef object _python_dtype
     cdef object _sage_dtype
     cdef object _sage_vector_dtype

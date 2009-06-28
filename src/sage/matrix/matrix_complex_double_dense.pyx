@@ -39,7 +39,7 @@ AUTHORS:
 ##############################################################################
 from sage.rings.complex_double import CDF
 
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 numpy=None
 

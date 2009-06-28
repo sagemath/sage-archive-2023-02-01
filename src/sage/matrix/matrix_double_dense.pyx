@@ -45,7 +45,7 @@ from sage.modules.free_module_element import vector
 cimport sage.structure.element
 from matrix_space import MatrixSpace
 
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 numpy=None
 scipy=None
@@ -1246,7 +1246,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [1.0 2.0]
             [3.0 4.0]
         """
-        if self._matrix_numpy.shape != numpy_matrix.shape:
+        if (<object>self._matrix_numpy).shape != (<object>numpy_matrix).shape:
             raise ValueError, "matrix shapes are not the same"
         self._matrix_numpy = numpy_matrix.astype(self._numpy_dtype)
 

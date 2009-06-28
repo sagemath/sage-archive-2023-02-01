@@ -42,7 +42,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 numpy = None
 scipy = None

@@ -47,7 +47,7 @@ cdef extern from "math.h":
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
-cimport sage.ext.numpy as cnumpy
+cimport numpy as cnumpy
 
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF

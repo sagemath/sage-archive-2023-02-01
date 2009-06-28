@@ -104,10 +104,10 @@ def Ideal(*args, **kwds):
         sage: Ideal(2, 4, 6)
         Principal ideal (2) of Integer Ring
 
-    ::
-
     You have to provide enough information that Sage can figure out
     which ring to put the ideal in.
+
+    ::
 
         sage: I = Ideal([])
         Traceback (most recent call last):
@@ -137,11 +137,6 @@ def Ideal(*args, **kwds):
         sage: I = Ideal((4 + 3*x + x^2, 1 + x^2))
         sage: I == loads(dumps(I))
         True
-
-    ::
-
-        Sage: I = Ideal([])
-        u nable to determine whi  ch rin g to embed the ideal in
     """
     if len(args) == 0:
         raise ValueError, "need at least one argument"

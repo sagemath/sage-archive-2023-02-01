@@ -482,7 +482,8 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
     S -- a graph struct object, which contains scratch space, the graph in
         question, and some flags.
     cells_to_refine_by -- a list of pointers to cells to check degrees against
-        in refining the other cells (updated in place)
+        in refining the other cells (updated in place). Must be allocated to
+        length at least the degree of PS, since the array may grow
     ctrb_len -- how many cells in cells_to_refine_by
 
     OUTPUT:
@@ -998,7 +999,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
 
     # set up cells to refine by
     cdef int num_cells = len(partition)
-    cdef int *alpha = <int *>sage_malloc(num_cells * sizeof(int))
+    cdef int *alpha = <int *>sage_malloc(n * sizeof(int))
     if alpha is NULL:
         PS_clear(nu)
         sage_free(GS.scratch)

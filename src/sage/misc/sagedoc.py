@@ -7,8 +7,9 @@ AUTHORS:
 - Nick Alexander (2007): nodetex functions
 - Nick Alexander (2008): search_src, search_def improvements
 - Martin Albrecht (2008-03-21): parse LaTeX description environments in sagedoc
-- \J. H. Palmieri (2009-04-11): fix for #5754 plus doctests
+- John Palmieri (2009-04-11): fix for #5754 plus doctests
 - Dan Drake (2009-05-21): refactor search_* functions, use system 'find' instead of sage -grep
+- John Palmieri (2009-06-28): don't use 'find' -- use Python (os.walk, re.search) instead.
 """
 
 #*****************************************************************************
@@ -26,7 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os
+import os, re
 from subprocess import Popen, PIPE
 
 #('\\item', '*'), \
@@ -277,66 +278,7 @@ def format_src(s):
 
 ###############################
 
-def _findcmd(path, exts, what):
-    """
-    Return a list of strings that represent a command suitable for input
-    to Popen. The command uses the system ``find`` and ``grep`` commands
-    to search the Sage library.
-
-    INPUT:
-
-    - ``path`` - path to search, relative to ``$SAGE_ROOT``. You don't
-      need to start with a forward slash.
-    - ``exts`` - list of file extensions to search.
-    - ``what`` - search term passed to ``grep``.
-
-    OUTPUT:
-
-    A list of strings.
-
-    EXAMPLES::
-
-        sage: from sage.misc.sagedoc import _findcmd
-        sage: _findcmd('devel/sage/sage', ['py', 'pyx'], 'foo bar')
-        ['find',
-         .../devel/sage/sage/',
-         '(',
-         '-name',
-         '*.py',
-         '-o',
-         '-name',
-         '*.pyx',
-         ')',
-         '-exec',
-         'grep',
-         '-i',
-         '-H',
-         'foo bar',
-         '{}',
-         '+']
-       sage: _findcmd('devel/sage/doc/output', ['html'], 'xyz')
-       ['find',
-        .../devel/sage/doc/output/',
-        '(',
-        '-name',
-        '*.html',
-        ')',
-        '-exec',
-        'grep',
-        '-i',
-        '-H',
-        'xyz',
-        '{}',
-        '+']
-    """
-    extstr = '( ' + ' -o '.join(['-name *.%s' % ext for ext in exts]) + ' )'
-    # we add on "what" separately, since we need to respect spaces there.
-    return (r"""find %s/ %s -exec grep -i -H""" %
-         (os.environ['SAGE_ROOT'] + '/' + path,
-         extstr)).split() + [what, '{}', '+']
-
-
-def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
+def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
     r"""
     Search the Sage library or documentation for lines containing
     ``string`` and possibly some other terms. This function is used by
@@ -352,13 +294,14 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
     OUTPUT:
 
     If ``interact`` is ``False``, a string containing the results;
-    otherwise, the results are presented according to whether you are
-    using the notebook or command-line interface.
+    otherwise, there is no output and the results are presented
+    according to whether you are using the notebook or command-line
+    interface.
 
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc
-        sage: print _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False) # random # long time
+        sage: print _search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False) # random # long time
         misc/sagedoc.py:        sage: _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False)
         combinat/designs/incidence_structures.py:        M1 = self.incidence_matrix()
         combinat/designs/incidence_structures.py:        A = self.incidence_matrix()
@@ -376,7 +319,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
 
     ::
 
-        sage: len(_search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
+        sage: len(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
 
         sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)
@@ -386,77 +329,133 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
         True
     """
     if what == 'src':
-        path = 'devel/sage/sage/'
+        if module.find('sage') == 0:
+            module = module[4:].lstrip(".")  # remove 'sage' or 'sage.' from module
+            base_path = 'devel/sage/sage'
+        else:
+            base_path = 'devel/sage'
+        module = module.replace(".", "/")
         exts = ['py', 'pyx', 'pxd']
         title = 'Source Code'
     else:
-        path = 'devel/sage/doc/output/'
+        module = ''
+        base_path = 'devel/sage/doc/output/'
         exts = ['html']
         title = 'Documentation'
 
-    cmds = [Popen(_findcmd(path, exts, string), stdout=PIPE)]
-    for extra in [extra1, extra2, extra3, extra4, extra5]:
-        if extra:
-            cmds.append(Popen(['grep', '-i', extra], stdin=cmds[-1].stdout,
-                              stdout=PIPE))
-
-    strip = len(os.environ['SAGE_ROOT'] + path) + 2
-    r = '\n'.join([l[strip:].lstrip("/") for l in cmds[-1].communicate()[0].splitlines()])
+    base_path = os.path.join(os.environ['SAGE_ROOT'], base_path)
+    strip = len(base_path)
+    results = ''
+    for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
+        for f in files:
+            if re.search("\.(" + "|".join(exts) + ")$", f):
+                filename = os.path.join(dirpath, f)
+                if re.search(path_re, filename):
+                    match_list = filter(lambda s: re.search(string, s),
+                                        open(filename).read().splitlines())
+                    for extra in [extra1, extra2, extra3, extra4, extra5]:
+                        if extra:
+                            match_list = filter(lambda s: re.search(extra, s, re.MULTILINE),
+                                                match_list)
+                    for m in match_list:
+                        results += '\n' + ''.join([filename[strip:].lstrip("/"), ': ', m])
 
     if not interact:
-        return r
+        return results
+
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
         # format the search terms nicely
         terms = ('"%s"' % string) + ' '.join(['"%s"' % ex for ex in
           [extra1, extra2, extra3, extra4, extra5] if ex])
-        print format_search_as_html(title, r, terms)
+        print format_search_as_html(title, results, terms)
     else:
         # hard-code a 25-line screen into the pager; this works around a
         # problem with doctests: see
         # http://trac.sagemath.org/sage_trac/ticket/5806#comment:11
         from IPython.genutils import page
-        page(r, screen_lines = 25)
+        page(results, screen_lines = 25)
 
 
-def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
+def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
     r"""
     Search Sage library source code for lines containing ``string``.
     The search is not case sensitive.
-
-    The file paths in the output are relative to
-    ``$SAGE_ROOT/devel/sage/sage``.
 
     INPUT:
 
     - ``string`` - a string to find in the Sage source code.
 
-    - ``extra1``, ..., ``extra5`` - additional strings to require,
-      passed as arguments to grep
+    - ``extra1``, ..., ``extra5`` - additional strings to require when
+      searching.  Lines must match all of these, as well as ``string``.
 
-    - ``interact`` - if ``False``, will simply return a string with all
-      the matches. Otherwise, results will be displayed appropriately,
-      according to whether you are using the notebook or the
-      command-line interface. You should not ordinarily need to use
-      this.
+    - ``interact`` (optional, default ``True``) - if ``False``, return
+      a string with all the matches. Otherwise, this function returns
+      ``None``, and the results are displayed appropriately, according
+      to whether you are using the notebook or the command-line
+      interface. You should not ordinarily need to use this.
 
-    The ``string`` and ``extraN`` arguments are passed on to the system
-    ``grep``, so you can use whatever regular expressions ``grep``
-    supports. The matches will always be case-insensitive.
+    - ``path_re`` (optional, default '') - regular expression which
+      the filename (including the path) must match.
+
+    - ``module`` (optional, default 'sage') - the module in which to
+      search.  The default is 'sage', the entire Sage library.  If
+      ``module`` doesn't start with "sage", then the links in the
+      notebook output may not function.
+
+    The file paths in the output are relative to
+    ``$SAGE_ROOT/devel/sage/``.
+
+    The ``string`` and ``extraN`` arguments are treated as regular
+    expressions, as is ``path_re``, and errors will be raised if they
+    are invalid. The matches will always be case-insensitive.
 
     .. note::
 
         The ``extraN`` parameters are present only because
-        ``search_src(string, *extras, interact=None)``
+        ``search_src(string, *extras, interact=False)``
         is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: print search_src(" fetch(", "def", interact=False) # random # long time
+    First note that without using ``interact=False``, this function
+    produces no output, while with ``interact=False``, the output is a
+    string.  These examples almost all use this option.
+
+    You can search for "matrix" by typing ``search_src("matrix")``.
+    This particular search will produce many results::
+
+        sage: len(search_src("matrix", interact=False).splitlines()) # random # long time
+        9522
+
+    You can restrict to the Sage calculus code with
+    ``search_src("matrix", module="sage.calculus")``, and this
+    produces many fewer results::
+
+        sage: len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
+        26
+
+    Note that you can do tab completion on the ``module`` string.
+    Another way to accomplish a similar search::
+
+        sage: len(search_src("matrix", path_re="calc", interact=False).splitlines()) # random
+        26
+
+    The following produces an error because the string 'fetch(' is a
+    malformed regular expression::
+
+        sage: print search_src(" fetch(", "def", interact=False)
+        Traceback (most recent call last):
+        ...
+        error: unbalanced parenthesis
+
+    To fix this, *escape* the parenthesis with a backslash::
+
+        sage: print search_src(" fetch\(", "def", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
         matrix/matrix0.pxd:    cdef fetch(self, key)
 
-        sage: print search_src(" fetch(", "def", "pyx", interact=False) # random # long time
+        sage: print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
 
     A little recursive narcissism: let's do a doctest that searches for
@@ -466,36 +465,35 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
     ::
 
-        sage: print search_src('^ *sage[:] .*search_src(', interact=False) # long time
-        misc/sagedoc.py:        ... print search_src(" fetch(", "def", interact=False) # random # long time
-        misc/sagedoc.py:        ... print search_src(" fetch(", "def", "pyx", interact=False) # random # long time
-        misc/sagedoc.py:        ... print search_src('^ *sage[:] .*search_src(', interact=False) # long time
-        misc/sagedoc.py:        ... len(search_src("matrix", interact=False).splitlines()) > 10000 # long time
-        misc/sagedoc.py:        ... print search_src('matrix', 'column', 'row', '0', 'sub', 'start', interact=False) # random # long time
-
+        sage: print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
+        misc/sagedoc.py:        ... print search_src(" fetch(", "def", interact=False)
+        misc/sagedoc.py:        ... print search_src(" fetch\(", "def", interact=False) # random # long time
+        misc/sagedoc.py:        ... print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
+        misc/sagedoc.py:        ... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
+        misc/sagedoc.py:        ... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
+        misc/sagedoc.py:        ... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
 
     TESTS:
 
-    As of this writing, there's about 10900 lines in the Sage library that
+    As of this writing, there are about 9500 lines in the Sage library that
     contain "matrix"; it seems safe to assume we'll continue to have
-    over 10000 such lines::
+    over 9000 such lines::
 
-        sage: len(search_src("matrix", interact=False).splitlines()) > 10000 # long time
+        sage: len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         True
 
     Check that you can pass 5 parameters::
 
-        sage: print search_src('matrix', 'column', 'row', '0', 'sub', 'start', interact=False) # random # long time
+        sage: print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
         matrix/matrix0.pyx:598:        Get The 2 x 2 submatrix of M, starting at row index and column
         matrix/matrix0.pyx:607:        Get the 2 x 3 submatrix of M starting at row index and column index
         matrix/matrix0.pyx:924:        Set the 2 x 2 submatrix of M, starting at row index and column
         matrix/matrix0.pyx:933:        Set the 2 x 3 submatrix of M starting at row index and column
 
     """
-    return _search_src_or_doc('src', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact)
+    return _search_src_or_doc('src', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact, path_re=path_re, module=module)
 
-
-def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
+def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re=''):
     """
     Search Sage HTML documentation for lines containing ``string``. The
     search is not case sensitive.
@@ -505,36 +503,39 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
     INPUT:
 
-    - ``string`` - a string to find in the Sage source code.
+    - ``string`` - a string to find in the Sage documentation.
 
-    - ``extra1``, ..., ``extra5`` - additional strings to require,
-      passed as arguments to grep
+    - ``extra1``, ..., ``extra5`` - additional strings to require when
+      searching.  Lines must match all of these, as well as ``string``.
 
-    - ``interact`` - if ``False``, will simply return a string with all
-      the matches. Otherwise, results will be displayed appropriately,
-      according to whether you are using the notebook or the
-      command-line interface. You should not ordinarily need to use
-      this.
+    - ``interact`` (optional, default ``True``) - if ``False``, return
+      a string with all the matches. Otherwise, this function returns
+      ``None``, and the results are displayed appropriately, according
+      to whether you are using the notebook or the command-line
+      interface. You should not ordinarily need to use this.
 
-    The ``string`` and ``extraN`` arguments are passed on to the system
-    ``grep``, so you can use whatever regular expressions ``grep``
-    supports. The matches will always be case-insensitive.
+    - ``path_re`` (optional, default '') - regular expression which
+      the filename (including the path) must match.
+
+    The ``string`` and ``extraN`` arguments are treated as regular
+    expressions, as is ``path_re``, and errors will be raised if they
+    are invalid. The matches will always be case-insensitive.
 
     .. note::
 
         The ``extraN`` parameters are present only because
-        ``search_src(string, *extras, interact=None)``
+        ``search_src(string, *extras, interact=False)``
         is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
 
     EXAMPLES::
 
-        sage: search_doc('this creates a polynomial ring') # random # this function has no output: it just prints a string
+        sage: search_doc('creates a polynomial', path_re='tutorial', interact=False) # random
         html/en/tutorial/tour_polynomial.html:<p>This creates a polynomial ring and tells Sage to use (the string)
     """
-    return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact)
+    return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2, extra3=extra3, extra4=extra4, extra5=extra5, interact=interact, path_re=path_re)
 
 
-def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
+def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True, path_re='', module='sage'):
     r"""
     Search Sage library source code for function definitions containing
     ``name``. The search is not case sensitive.
@@ -543,17 +544,28 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
 
     - ``name`` - a string to find in the names of functions in the Sage
       source code.
+
     - ``extra1``, ..., ``extra4`` - additional strings to require, as
       in :func:`search_src`.
-    - ``interact`` - if ``False``, will simply return a string with all
-      the matches. Otherwise, results will be displayed appropriately,
-      according to whether you are using the notebook or the
-      command-line interface. You should not ordinarily need to use
-      this.
 
-    The ``string`` and ``extraN`` arguments are passed on to the system
-    ``grep``, so you can use whatever regular expressions ``grep``
-    supports. The matches will always be case-insensitive.
+    - ``interact`` (optional, default ``True``) - if ``False``, return
+      a string with all the matches. Otherwise, this function returns
+      ``None``, and the results are displayed appropriately, according
+      to whether you are using the notebook or the command-line
+      interface. You should not ordinarily need to use this.
+
+    - ``path_re`` (optional, default '') - regular expression which
+      the filename (including the path) must match.
+
+    - ``module`` (optional, default 'sage') - the module in which to
+      search.  The default is 'sage', the entire Sage library.  If
+      ``module`` doesn't start with "sage", then the links in the
+      notebook output may not function.
+
+
+    The ``string`` and ``extraN`` arguments are treated as regular
+    expressions, as is ``path_re``, and errors will be raised if they
+    are invalid. The matches will always be case-insensitive.
 
     .. note::
 
@@ -565,7 +577,7 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
     .. note::
 
         The ``extraN`` parameters are present only because
-        ``search_src(string, *extras, interact=None)``
+        ``search_src(string, *extras, interact=False)``
         is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
 
     EXAMPLES::
@@ -574,12 +586,12 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
         matrix/matrix0.pyx:    cdef fetch(self, key):
         matrix/matrix0.pxd:    cdef fetch(self, key)
 
-        sage: print search_def("fetch", "pyx", interact=False) # random # long time
+        sage: print search_def("fetch", path_re="pyx", interact=False) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
     """
-    return _search_src_or_doc('src', '^ *def.*%s' % name, extra1=extra1,
+    return _search_src_or_doc('src', '^ *[c]?def.*%s' % name, extra1=extra1,
                       extra2=extra2, extra3=extra3, extra4=extra4,
-                      extra5=extra5, interact=interact)
+                      extra5=extra5, interact=interact, path_re=path_re, module=module)
 
 
 def format_search_as_html(what, r, search):

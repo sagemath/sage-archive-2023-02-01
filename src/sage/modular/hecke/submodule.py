@@ -308,13 +308,10 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         """
         return self.__ambient
 
-    def complement(self, bound=None, anemic=False, use_star=False):
+    @cached_method
+    def complement(self, bound=None):
         """
-        Try to calculate a subspace X of the ambient space such that the
-        ambient space can be decomposed as a direct sum self + X with self and
-        X having disjoint support as modules over the Hecke algebra (or over
-        the anemic Hecke algebra, or the Hecke algebra extended by the star
-        involution.)
+        Return the largest Hecke-stable complement of this space.
 
         EXAMPLES::
 
@@ -326,86 +323,45 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: ME.complement()
             Modular Symbols subspace of dimension 17 of Modular Symbols space of dimension 18 for Gamma_0(128) of weight 2 with sign 1 over Rational Field
         """
-        try:
-            return self.__complement
-        except AttributeError:
-            pass
 
-        A = self.ambient_hecke_module()
+        if self.dual_free_module.is_in_cache():
+            D = self.dual_free_module()
+            V = D.basis_matrix().right_kernel()
+            return self.submodule(V, check=False)
 
-        if self.rank() == A.rank():
-            return A.zero_submodule()
+        if self.is_ambient():
+            return self.ambient_hecke_module().zero_submodule()
 
         if self.is_zero():
-            return A
+            return self.ambient_hecke_module()
 
-        if not hasattr(self, 'star_eigenvalues') or self.base_ring().characteristic() == 2:
-            use_star = False
-
-        misc.verbose("computing the complement of a module of rank %s in an ambient module of rank %s" % (self.rank(), self.ambient().rank()))
-        # if use_star but self has more than one star eigenvalue, do plus and
-        # minus subs separately
-        if use_star and len(self.star_eigenvalues()) > 1:
-            C1 = self.plus_submodule(compute_dual=False).complement(bound=bound, anemic=anemic,use_star=True)
-            C2 = self.minus_submodule(compute_dual=False).complement(bound=bound, anemic=anemic,use_star=True)
-            return C1.intersection(C2)
-        # from now on, if use_star is set then we know self is an eigenspace
-        # for sign.
-
-        if use_star:
-            sign = self.star_eigenvalues()[0]
-            if sign not in [1, -1]:
-                raise ArithmeticError, "Can't get here"
-            A_signed = A.sign_submodule(sign)
+        if self.is_full_hecke_module():
+            anemic = False
         else:
-            A_signed = A
-
-        if self.rank() == A_signed.rank():
-            if use_star:
-                return A.sign_submodule(-sign)
-            else:
-                raise RuntimeError, "Can't get here"
-
-        V = A_signed.free_module()
+            anemic = True
 
         # TODO: optimize in some cases by computing image of
         # complementary factor instead of kernel...?
+        misc.verbose("computing")
         N = self.level()
-        rank_target = V.rank() - self.rank()
-        misc.verbose("computing complement")
-        misc.verbose("rank of V is %s" % V.rank())
-        misc.verbose("want to reduce rank to %s" % rank_target)
-
-        found = False
+        A = self.ambient_hecke_module()
+        V = A.free_module()
         p = 2
         if bound is None:
             bound = A.hecke_bound()
         while True:
-            if self.rank() == A_signed.rank():
-                # easy case
-                V = V.zero_submodule()
-                break
             if anemic:
                 while N % p == 0: p = arith.next_prime(p)
             misc.verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
-            g = A_signed.hecke_polynomial(p)
             T = A.hecke_matrix(p)
-            W = T.kernel_on(V, poly=g//f, check=False)
-            if W.rank() < V.rank():
-                V = W
-                misc.verbose("reduced rank to %s" % V.rank())
-            if V.rank() == rank_target:
+            g = T.charpoly('x')
+            V = T.kernel_on(V, poly=g//f, check=False)
+            if V.rank() + self.rank() <= A.rank():
                 break
-            elif V.rank() < rank_target:
-                raise ArithmeticError, "Can't get here: reduced to rank that is too small!"
             p = arith.next_prime(p)
             if p > bound:  # to avoid computing hecke bound unless necessary
-                misc.verbose("Reached prime bound (%s)" % bound)
                 break
-
-        if use_star:
-            V = V + A.sign_submodule(-sign).free_module()
 
         if V.rank() + self.rank() == A.rank():
             C = A.submodule(V, check=False)
@@ -417,10 +373,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         # subspaces of self
         misc.verbose("falling back on naive algorithm")
         D = A.decomposition()
-        if use_star:
-            C = A.sign_submodule(-sign)
-        else:
-            C = A.zero_submodule()
+        C = A.zero_submodule()
         for X in D:
             if self.intersection(X).dimension() == 0:
                 C = C + X
@@ -428,7 +381,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             return C
 
         # failed miserably
-        raise RuntimeError, "Computation of complementary space of \n%s\n with basis matrix \n%s\n failed (cut down to rank %s, but should have cut down to rank %s)."%(self, self.basis_matrix(), V.rank(), A.rank()-self.rank())
+        raise RuntimeError, "Computation of complementary space failed (cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), A.rank()-self.rank())
+
 
     def degeneracy_map(self, level, t=1):
         """
@@ -478,18 +432,19 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         d = self.ambient_hecke_module().degeneracy_map(level, t)
         return d.restrict_domain(self)
 
+
     @cached_method
     def dual_free_module(self, bound=None, anemic=True, use_star=True):
         r"""
-        Compute embedded dual free module if possible. In general this
-        won't be possible, e.g., if this space is not Hecke equivariant,
-        possibly if it is not cuspidal, or if the characteristic is not 0.
-        In all these cases we raise a RuntimeError exception.
+        Compute embedded dual free module if possible. In general this won't be
+        possible, e.g., if this space is not Hecke equivariant, possibly if it
+        is not cuspidal, or if the characteristic is not 0. In all these cases
+        we raise a RuntimeError exception.
 
         If use_star is True (which is the default), we also use the +/-
         eigenspaces for the star operator to find the dual free module of self.
-        If the self does not have a star involution, or the base ring has
-        characteristic 2, then use_star will automatically be set to False.
+        If self does not have a star involution, use_star will automatically be
+        set to False.
 
         EXAMPLES::
 
@@ -533,27 +488,25 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.dual_free_module(use_star=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Computation of complementary space of
-            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0 over Rational Field
-            with basis matrix
-            [   0    1    0    0    0  1/2 -1/2]
-            [   0    0    1    0    1    0    0]
-            [   0    0    0    1    0 -1/2    0]
-            failed (cut down to rank 7, but should have cut down to rank 4).
+            RuntimeError: Computation of complementary space failed (cut down to rank 7, but should have cut down to rank 4).
             sage: S.dual_free_module().dimension() == S.dimension()
             True
 
-        We check that #5080 is fixed (which turns out to have been caused by a bug in this routine)::
+        We test that #5080 is fixed::
 
-            sage: EllipticCurve('128a').congruence_number() # indirect doctest
+            sage: EllipticCurve('128a').congruence_number()
             32
-        """
-        try:
-            return self.__dual_free_module
-        except AttributeError:
-            pass
 
-        misc.verbose("computing")
+        """
+
+        # if we know the complement we can read off the dual module
+        if self.complement.is_in_cache():
+            misc.verbose('This module knows its complement already -- cheating in dual_free_module')
+            C = self.complement()
+            V = C.basis_matrix().right_kernel()
+            return V
+
+        misc.verbose("computing dual")
 
         A = self.ambient_hecke_module()
 
@@ -563,12 +516,68 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         if A.dimension() == self.dimension():
             return A.free_module()
 
-        C = self.complement(bound=bound, anemic=anemic, use_star=use_star)
+        # ALGORITHM: Compute the char poly of each Hecke operator on
+        # the submodule, then use it to cut out a submodule of the
+        # dual.  If the dimension cuts down to the dimension of self
+        # terminate with success.  If it stays larger beyond the Sturm
+        # bound, raise a RuntimeError exception.
 
-        X = C.free_module().basis_matrix().right_kernel()
-        Y = self.ambient().dual_free_module().submodule(X)
-        self.__dual_free_module = Y
-        return Y
+        # In the case that the sign of self is not 1, we need to use
+        # the star involution as well as the Hecke operators in order
+        # to find the dual of self.
+        #
+        # Note that one needs to comment out the line caching the
+        # result of this computation below in order to get meaningful
+        # timings.
+
+        # If the star involution doesn't make sense for self, then we
+        # can't use it.
+        if not hasattr(self, 'star_eigenvalues'):
+            use_star = False
+
+        if use_star:
+            # If the star involution has both + and - eigenspaces on self,
+            # then we compute the dual on each eigenspace, then put them
+            # together.
+            if len(self.star_eigenvalues()) == 2:
+                V = self.plus_submodule(compute_dual = False).dual_free_module() + \
+                    self.minus_submodule(compute_dual = False).dual_free_module()
+                return V
+
+            # At this point, we know that self is an eigenspace for star.
+            V = A.sign_submodule(self.sign()).dual_free_module()
+        else:
+            V = A.free_module()
+
+        N = self.level()
+        p = 2
+        if bound is None:
+            bound = A.hecke_bound()
+        while True:
+            if anemic:
+                while N % p == 0: p = arith.next_prime(p)
+            misc.verbose("using T_%s"%p)
+            f = self.hecke_polynomial(p)
+            T = A.dual_hecke_matrix(p)
+            V = T.kernel_on(V, poly=f, check=False)
+            if V.dimension() <= self.dimension():
+                break
+            p = arith.next_prime(p)
+            if p > bound:
+                break
+
+        if V.rank() == self.rank():
+            return V
+        else:
+            # Failed to reduce V to the appropriate dimension
+            W = self.complement()
+            V2 = W.basis_matrix().right_kernel()
+            if V2.rank() == self.rank():
+                return V2
+            else:
+                raise RuntimeError, "Computation of embedded dual vector space failed " + \
+                  "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
+
 
     def free_module(self):
         """

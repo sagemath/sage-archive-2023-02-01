@@ -296,7 +296,10 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
     If ``interact`` is ``False``, a string containing the results;
     otherwise, there is no output and the results are presented
     according to whether you are using the notebook or command-line
-    interface.
+    interface. In the command-line interface, each line of the results
+    has the form ``filename:num:line of code``, where ``num`` is the
+    line number in ``filename`` and ``line of code`` is the line that
+    matched your search terms.
 
     EXAMPLES::
 
@@ -351,14 +354,17 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
             if re.search("\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
-                    match_list = filter(lambda s: re.search(string, s),
-                                        open(filename).read().splitlines())
+                    match_list = [(lineno, line) for lineno, line in
+                        enumerate(open(filename).read().splitlines(True)) if
+                        re.search(string, line)]
                     for extra in [extra1, extra2, extra3, extra4, extra5]:
                         if extra:
-                            match_list = filter(lambda s: re.search(extra, s, re.MULTILINE),
-                                                match_list)
-                    for m in match_list:
-                        results += '\n' + ''.join([filename[strip:].lstrip("/"), ': ', m])
+                            match_list = filter(lambda s: re.search(extra,
+                                s[1], re.MULTILINE), match_list)
+                    for num, line in match_list:
+                        results += ':'.join([filename[strip:].lstrip("/"),
+                                             str(num),
+                                             line])
 
     if not interact:
         return results
@@ -366,8 +372,8 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
         # format the search terms nicely
-        terms = ('"%s"' % string) + ' '.join(['"%s"' % ex for ex in
-          [extra1, extra2, extra3, extra4, extra5] if ex])
+        terms = ', '.join(['"%s"' % s for s in [string] + [extra1,
+                          extra2, extra3, extra4, extra5] if s])
         print format_search_as_html(title, results, terms)
     else:
         # hard-code a 25-line screen into the pager; this works around a
@@ -404,7 +410,10 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
       notebook output may not function.
 
     The file paths in the output are relative to
-    ``$SAGE_ROOT/devel/sage/``.
+    ``$SAGE_ROOT/devel/sage/``. In the command-line interface, each line
+    of the results has the form ``filename:num:line of code``, where
+    ``num`` is the line number in ``filename`` and ``line of code`` is
+    the line that matched your search terms.
 
     The ``string`` and ``extraN`` arguments are treated as regular
     expressions, as is ``path_re``, and errors will be raised if they
@@ -466,12 +475,15 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
     ::
 
         sage: print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
-        misc/sagedoc.py:        ... print search_src(" fetch(", "def", interact=False)
-        misc/sagedoc.py:        ... print search_src(" fetch\(", "def", interact=False) # random # long time
-        misc/sagedoc.py:        ... print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
-        misc/sagedoc.py:        ... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
-        misc/sagedoc.py:        ... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
-        misc/sagedoc.py:        ... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
+        misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) # random # long time
+        misc/sagedoc.py:... len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
+        misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) # random
+        misc/sagedoc.py:... print search_src(" fetch(", "def", interact=False)
+        misc/sagedoc.py:... print search_src(" fetch\(", "def", interact=False) # random # long time
+        misc/sagedoc.py:... print search_src(" fetch\(", "def", "pyx", interact=False) # random # long time
+        misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
+        misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
+        misc/sagedoc.py:... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
 
     TESTS:
 
@@ -521,6 +533,12 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
     expressions, as is ``path_re``, and errors will be raised if they
     are invalid. The matches will always be case-insensitive.
 
+    In the command-line interface, each line of the results
+    has the form ``filename:num:line of code``, where ``num`` is the
+    line number in ``filename`` and ``line of code`` is the line that
+    matched your search terms. This may not be very helpful for this
+    function, but we include it anyway.
+
     .. note::
 
         The ``extraN`` parameters are present only because
@@ -567,6 +585,11 @@ def search_def(name, extra1='', extra2='', extra3='', extra4='', extra5='', inte
     expressions, as is ``path_re``, and errors will be raised if they
     are invalid. The matches will always be case-insensitive.
 
+    In the command-line interface, each line of the results has the form
+    ``filename:num:line of code``, where ``num`` is the line number in
+    ``filename`` and ``line of code`` is the line that matched your
+    search terms.
+
     .. note::
 
         The regular expression used by this function only finds function
@@ -601,13 +624,15 @@ def format_search_as_html(what, r, search):
 
     INPUT:
 
-    - ``what`` - (string) what is being search
+    - ``what`` - (string) what was searched (source code or
+      documentation)
     - ``r`` - (string) the results of the search
     - ``search`` - (string) what was being searched for
 
-    This function parses ``r``: it should have the form 'FILENAME:
-    string' where FILENAME is the file in which the string, which
-    matched the search was found.  If FILENAME ends in '.html', then
+    This function parses ``r``: it should have the form ``FILENAME:
+    string`` where FILENAME is the file in which the string that matched
+    the search was found. Everything following the first colon is
+    ignored; we just use the filename. If FILENAME ends in '.html', then
     this is part of the documentation; otherwise, it is in the source
     code.  In either case, an appropriate link is created.
 

@@ -212,6 +212,49 @@ cdef extern from "libsingular.h":
 
     ctypedef struct omBin "omBin_s"
 
+    # pairs and polys for Groebner Strategy objects
+
+    ctypedef struct LObject:
+        pass
+
+    ctypedef struct TObject:
+        pass
+
+    # Groebner Strategy objects
+
+    ctypedef struct skStrategy:
+        int ak # free module rank
+        int sl # last index (inclusive)
+        int (*red)(LObject * L,skStrategy *strat)
+        void (*initEcart)(LObject *L)
+        int (*posInT)(TObject *T,int tl,LObject h) # return the required position in T
+        int (*posInL)(LObject *set, int length, LObject* L, skStrategy *strat) # return the required position in L
+        void (*enterS)(LObject h, int pos, skStrategy *strat, int atR) # enter into S
+        void (*initEcartPair)(LObject * h, poly *f, poly *g, int ecartF, int ecartG)
+        int (*posInLOld)(LObject * Ls, int Ll, LObject* Lo, skStrategy *strat)
+        LObject P
+        ideal *Shdl
+        ideal *D
+        ideal *M
+        poly ** S
+        int * ecartS
+        int * lenS
+        int * fromQ
+        unsigned long* sevS
+        unsigned long* sevT
+        TObject *T
+        LObject *L
+        LObject *B
+        poly*    kHEdge
+        poly*    kNoether
+        poly*    t_kHEdge
+        poly*    kNoetherTail()
+        poly*    t_kNoether
+        bint *NotUsedAxis
+        bint *pairtest
+        void *R
+        int *S_2_R
+
     #
     # GLOBAL VARIABLES
     #
@@ -269,7 +312,7 @@ cdef extern from "libsingular.h":
 
     void omFree(void *)
 
-
+    void omfree(void *)
 
 
     # construct ring with characteristic, number of vars and names
@@ -292,8 +335,8 @@ cdef extern from "libsingular.h":
 
     void rUnComplete(ring *r)
 
-    # after changing a ring struct, call thi
-
+    # after changing a ring struct, call this, computes internal
+    # representation for monomials etc.
     void rComplete(ring *r, int force)
 
     # deep copy of ring
@@ -380,6 +423,9 @@ cdef extern from "libsingular.h":
     # normalize p, needed e.g. for polynomials over the rationals
 
     void p_Normalize(poly *p, ring *r)
+
+    # makes it so that leading coefficient == 1
+    void pNorm(poly *p)
 
     # return -p, p is destroyed
 
@@ -751,6 +797,30 @@ cdef extern from "libsingular.h":
     # number for rows of matrix
 
     int MATROWS(matrix *)
+
+    # Groebner Strategy functions
+
+    void initBuchMoraCrit(skStrategy *strat)
+    void initEcartNormal (LObject* h)
+    void initEcartBBA (LObject* h)
+    void initEcartPairBba (LObject* Lp,poly *f,poly *g,int ecartF,int ecartG)
+
+    # init strat with F and Q
+    void initS (ideal *F, ideal *Q,skStrategy *strat)
+
+    void enterL (LObject *set,int *length, int *LSetmax, LObject p,int at)
+    void enterSBba (LObject p,int atS,skStrategy *strat, int atR)
+
+    skStrategy * new_skStrategy "new skStrategy"()
+    void * delete_skStrategy "delete "(skStrategy *doomed) # needs currRing
+
+    # test validity of strat
+    void kTest(skStrategy *strat)
+
+    # head reduction
+    poly *redNF(poly *p, int index, int nonorm, skStrategy *strat)
+    # tail reduction
+    poly *redtailBba(poly *p, int index, skStrategy *strat)
 
 cdef extern from "stairc.h":
     # Computes the monomial basis for R[x]/I

@@ -26,8 +26,9 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 #*****************************************************************************
 
 include "sage/ext/python.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
 
@@ -37,6 +38,10 @@ from sage.matrix.matrix2 cimport Matrix
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+
+from sage.libs.singular.decl cimport matrix, ring, intvec, poly, pTakeOutComp1, IDELEMS, rChangeCurrRing, p_Copy
+from sage.libs.singular.decl cimport mpNew, idMatrix2Module, id_Delete, smCallNewBareiss, smCheckDet, smCallDet
+from sage.libs.singular.decl cimport singclap_det, delete
 
 cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     """

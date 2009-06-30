@@ -1,9 +1,9 @@
 """
-Conversion routines from to SINGULAR's native data structures
+libSingular conversion routines and initialisation.
 
-AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
+AUTHOR:
 
-TODO: Figure out how to do the cdef public/extern stuff with C++
+- Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation
@@ -15,10 +15,26 @@ TODO: Figure out how to do the cdef public/extern stuff with C++
 
 include "sage/libs/ntl/decl.pxi"
 include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX
     long INT_MIN
+
+import os
+
+from sage.misc.misc_c import is_64_bit
+
+from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options
+from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
+from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
+from sage.libs.singular.decl cimport nlGetNom, nlGetDenom, nlDelete, nlInit2gmp
+from sage.libs.singular.decl cimport naIsOne, naIsOne, naIsZero, naPar, naInit, naAdd, naMult, naDelete, naMap00
+from sage.libs.singular.decl cimport napGetCoeff, napGetExp, napIter
+from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
+from sage.libs.singular.decl cimport siInit
+from sage.libs.singular.decl cimport nInt, n_Init
+from sage.libs.singular.decl cimport rChangeCurrRing
 
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -107,7 +123,7 @@ cdef Integer si2sa_ZZ(number *n, ring *_ring):
     z.set_from_mpz(<__mpz_struct*>n)
     return z
 
-cdef FiniteField_givaroElement si2sa_GFqGivaro(number *n, ring *_ring, FiniteField_givaro base):
+cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, FiniteField_givaro base):
     """
     TESTS::
 
@@ -143,9 +159,9 @@ cdef FiniteField_givaroElement si2sa_GFqGivaro(number *n, ring *_ring, FiniteFie
             a = ( e * base.objectptr.sage_generator() ) % order
             ret = base.objectptr.axpy(ret, c, a, ret)
         z = napIter(z)
-    return (<FiniteField_givaroElement>base._zero_element)._new_c(ret)
+    return (<FFgivE>base._zero_element)._new_c(ret)
 
-cdef FiniteField_ntl_gf2eElement si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base):
+cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base):
     """
     TESTS::
 
@@ -159,8 +175,8 @@ cdef FiniteField_ntl_gf2eElement si2sa_GFqNTLGF2E(number *n, ring *_ring, Finite
     """
     cdef napoly *z
     cdef int c, e
-    cdef FiniteField_ntl_gf2eElement a
-    cdef FiniteField_ntl_gf2eElement ret
+    cdef FFgf2eE a
+    cdef FFgf2eE ret
 
     if naIsZero(n):
         return base._zero_element
@@ -347,7 +363,7 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     naDelete(&a, _ring)
     return n1
 
-cdef number *sa2si_GFqNTLGF2E(FiniteField_ntl_gf2eElement elem, ring *_ring):
+cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     """
     cdef int i
@@ -510,7 +526,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
 
         sage: P(3)
         3
-
     """
     cdef long _d
     if _ring.ringtype == 1:
@@ -561,7 +576,7 @@ cdef number *sa2si(Element elem, ring * _ring):
         return sa2si_ZZ(elem, _ring)
 
     elif PY_TYPE_CHECK(elem._parent, FiniteField_givaro):
-        return sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FiniteField_givaroElement>elem).element ), _ring )
+        return sa2si_GFqGivaro( (<FiniteField_givaro>elem._parent).objectptr.convert(i, (<FFgivE>elem).element ), _ring )
 
     elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
         return sa2si_GFqPari(elem, _ring)
@@ -577,3 +592,91 @@ cdef number *sa2si(Element elem, ring * _ring):
         return sa2si_ZZmod(elem, _ring)
     else:
         raise ValueError, "cannot convert to SINGULAR number"
+
+# ==============
+# Initialisation
+# ==============
+
+cdef extern from "":
+    int unlikely(int)
+
+cdef extern from "dlfcn.h":
+    void *dlopen(char *, long)
+    char *dlerror()
+    void dlclose(void *handle)
+
+cdef extern from "dlfcn.h":
+    cdef long RTLD_LAZY
+    cdef long RTLD_GLOBAL
+
+cdef inline int overflow_check(long e) except -1:
+    """
+    Raises an ``OverflowError`` if e is > ``max_exponent_size``.
+
+    INPUT:
+
+    - ``e`` - some integer representing a degree.
+    """
+    if unlikely(e > max_exponent_size):
+        raise OverflowError("Exponent overflow (%d)."%(e))
+    return 0;
+
+# Our attempt at avoiding exponent overflows.
+cdef unsigned int max_exponent_size
+import sage.rings.memory
+
+cdef init_libsingular():
+    """
+    This initializes the SINGULAR library. This is a hack to some
+    extend.
+
+    SINGULAR has a concept of compiled extension modules similar to
+    Sage. For this, the compiled modules need to see the symbols from
+    the main programm. However, SINGULAR is a shared library in this
+    context these symbols are not known globally. The work around so
+    far is to load the library again and to specifiy ``RTLD_GLOBAL``.
+    """
+    global singular_options
+    global max_exponent_size
+
+    cdef void *handle = NULL
+
+    for extension in ["so", "dylib", "dll"]:
+        lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
+        if os.path.exists(lib):
+            handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
+            break
+
+    if handle == NULL:
+        print dlerror()
+        raise ImportError, "cannot load libSINGULAR library"
+
+    # load SINGULAR
+    siInit(lib)
+
+    # steal memory manager back or weird things may happen
+    sage.rings.memory.pmem_malloc()
+
+    dlclose(handle)
+
+    # we set some global Singular options
+    singular_options = singular_options | Sy_bit(OPT_REDSB) | Sy_bit(OPT_INTSTRATEGY) | Sy_bit(OPT_REDTAIL) | Sy_bit(OPT_REDTHROUGH)
+
+    On(SW_USE_NTL)
+    On(SW_USE_NTL_GCD_0)
+    On(SW_USE_NTL_GCD_P)
+    On(SW_USE_EZGCD)
+    Off(SW_USE_NTL_SORT)
+
+    if is_64_bit:
+        max_exponent_size = 1<<31-1;
+    else:
+        max_exponent_size = 1<<16-1;
+
+cdef inline unsigned long get_max_exponent_size():
+    global max_exponent_size
+    return max_exponent_size
+
+# call the init routine
+init_libsingular()
+

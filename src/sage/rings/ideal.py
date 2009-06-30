@@ -468,6 +468,40 @@ class Ideal_generic(MonoidElement):
         """
         return self.__gens
 
+    def gen(self, i):
+        """
+        Return the ``i``-th generator in the current basis of this ideal.
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: I = Ideal([x,y+1]); I
+            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: I.gen(1)
+            y + 1
+
+            sage: ZZ.ideal(5,10).gen()
+            5
+        """
+        return self.__gens[i]
+
+    def ngens(self):
+        """
+        Return the number of generators in the basis.
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: I = Ideal([x,y+1]); I
+            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: I.ngens()
+            2
+
+            sage: ZZ.ideal(5,10).ngens()
+            1
+        """
+        return len(self.__gens)
+
     def gens_reduced(self):
         r"""
         Same as gens() for this ideal, since there is currently no special

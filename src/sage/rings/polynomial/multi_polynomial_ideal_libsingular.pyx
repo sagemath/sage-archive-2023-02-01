@@ -41,6 +41,7 @@ Two examples from the Mathematica documentation (done in Sage):
 #
 #   Sage: System for Algebra and Geometry Experimentation
 #
+#       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -56,8 +57,14 @@ Two examples from the Mathematica documentation (done in Sage):
 #*****************************************************************************
 
 
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "../../libs/singular/singular-cdefs.pxi"
+
+from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCurrRing
+from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, Sy_bit, OPT_REDSB
+from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idRankFreeModule, kStd
+from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
+from sage.libs.singular.decl cimport nInvers, pp_Mult_nn, p_Delete, n_Delete
 
 from sage.structure.parent_base cimport ParentWithBase
 

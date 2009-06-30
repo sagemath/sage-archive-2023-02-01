@@ -1,11 +1,10 @@
-include "../../libs/singular/singular-cdefs.pxi"
+from sage.libs.singular.decl cimport poly, ring
 
-#cimport sage.rings.polynomial.multi_polynomial
-cimport multi_polynomial
+from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring_generic cimport MPolynomialRing_generic
 from sage.structure.parent cimport Parent
 
-cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
+cdef class MPolynomial_libsingular(MPolynomial):
     cdef poly *_poly
     cpdef _repr_short_(self)
     cpdef is_constant(self)

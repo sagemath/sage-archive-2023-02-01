@@ -440,6 +440,27 @@ ext_modules = [
               include_dirs = [SAGE_ROOT +'/local/include/singular'],
               depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
 
+    Extension('sage.libs.singular.polynomial',
+              sources = ['sage/libs/singular/polynomial.pyx'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              language="c++",
+              include_dirs = [SAGE_ROOT +'/local/include/singular'],
+              depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
+
+    Extension('sage.libs.singular.ring',
+              sources = ['sage/libs/singular/ring.pyx'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              language="c++",
+              include_dirs = [SAGE_ROOT +'/local/include/singular'],
+              depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
+
+    Extension('sage.libs.singular.groebner_strategy',
+              sources = ['sage/libs/singular/groebner_strategy.pyx'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              language="c++",
+              include_dirs = [SAGE_ROOT +'/local/include/singular'],
+              depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
+
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/%s"%s for s in ["symmetrica.pyx"]],
               include_dirs = ['/usr/include/malloc/'],

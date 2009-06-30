@@ -295,7 +295,7 @@ def cantor_composition(D1,D2,f,h,genus):
         sage: H = HyperellipticCurve(f, 2*x); H
         Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1
         sage: J = H.jacobian()(F); J
-        verbose 0 (919: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
+        verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
         Set of points of Jacobian of Hyperelliptic Curve over Finite Field of size 1000000000000000000000000000057 defined by y^2 + 2*x*y = x^7 + x^2 + 1 defined over Finite Field of size 1000000000000000000000000000057
         sage: Q = J(H.lift_x(F(1))); Q
         (x + 1000000000000000000000000000056, y + 1000000000000000000000000000056)

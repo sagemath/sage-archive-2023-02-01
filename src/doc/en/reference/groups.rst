@@ -7,6 +7,7 @@ Groups
    :maxdepth: 2
 
    sage/groups/group
+   sage/groups/generic
    sage/groups/abelian_gps/abelian_group
    sage/groups/abelian_gps/abelian_group_element
    sage/groups/abelian_gps/abelian_group_morphism

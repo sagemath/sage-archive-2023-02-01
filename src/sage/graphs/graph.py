@@ -204,9 +204,17 @@ type, for example::
 
     sage: for g in graphs(4):
     ...     print g.spectrum()
-    [0.0, 0.0, 0.0, 0.0]
-    ...
-    [-1.0, -1.0, -1.0, 3.0]
+    [0, 0, 0, 0]
+    [1, 0, 0, -1]
+    [1.414213562373095?, 0, 0, -1.414213562373095?]
+    [2, 0, -1, -1]
+    [1.732050807568878?, 0, 0, -1.732050807568878?]
+    [1, 1, -1, -1]
+    [1.618033988749895?, 0.618033988749895?, -0.618033988749895?, -1.618033988749895?]
+    [2.170086486626034?, 0.3111078174659819?, -1, -1.481194304092016?]
+    [2, 0, 0, -2]
+    [2.561552812808830?, 0, -1, -1.561552812808831?]
+    [3, -1, -1, -1]
 
 For some commonly used graphs to play with, type
 
@@ -7098,59 +7106,75 @@ class GenericGraph(SageObject):
     ### Spectrum
 
     def spectrum(self, laplacian=False):
-        """
-        Returns the spectrum of the graph, the eigenvalues of the adjacency
-        matrix
+        r"""
+        Returns a list of the eigenvalues of the adjacency matrix.
 
         INPUT:
 
+        -  ``laplacian`` - if ``True``, use the Laplacian matrix
+           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
 
-        -  ``laplacian`` - if True, use the Laplacian matrix
-           instead (see self.kirchhoff_matrix())
+        OUTPUT:
 
+        A list of the eigenvalues, including multiplicities, sorted
+        with the largest eigenvalue first.
 
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: P.spectrum()
-            [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
-
-        Due to numerical imprecision the first entry for the spectrum below
-        is zero or near zero::
-
+            [3, 1, 1, 1, 1, 1, -2, -2, -2, -2]
             sage: P.spectrum(laplacian=True)
-            [..., 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
-
-        ::
-
+            [5, 5, 5, 5, 2, 2, 2, 2, 2, 0]
             sage: D = P.to_directed()
             sage: D.delete_edge(7,9)
             sage: D.spectrum()
-            [-2.0, -2.0, -2.0, -1.7..., 0.8..., 1.0, 1.0, 1.0, 1.0, 2.9...]
+            [2.903211925911553?, 1, 1, 1, 1, 0.8060634335253695?, -1.709275359436923?, -2, -2, -2]
+
+        ::
+
+            sage: C = graphs.CycleGraph(8)
+            sage: C.spectrum()
+            [2, 1.414213562373095?, 1.414213562373095?, 0, 0, -1.414213562373095?, -1.414213562373095?, -2]
+
+        A digraph may have complex eigenvalues.  Previously, the complex parts
+        of graph eigenvalues were being dropped.  For a 3-cycle, we have::
+
+            sage: T = DiGraph({0:[1], 1:[2], 2:[0]})
+            sage: T.spectrum()
+            [1, -0.500000000000000? + 0.866025403784439?*I, -0.500000000000000? - 0.866025403784439?*I]
+
+        TESTS:
+
+        The Laplacian matrix of a graph is the negative of the adjacency matrix with the degree of each vertex on the diagonal.  So for a regular graph, if `\delta` is an eigenvalue of a regular graph of degree `r`, then `r-\delta` will be an eigenvalue of the Laplacian.  The Hoffman-Singleton graph is regular of degree 7, so the following will test both the Laplacian construction and the computation of eigenvalues. ::
+
+            sage: H = graphs.HoffmanSingletonGraph()
+            sage: evals = H.spectrum()
+            sage: lap = map(lambda x : 7 - x, evals)
+            sage: lap.sort(reverse=True)
+            sage: lap == H.spectrum(laplacian=True)
+            True
         """
-        from sage.matrix.constructor import matrix
-        from sage.rings.real_double import RDF
+        # Ideally the spectrum should return something like a Factorization object
+        # containing each eigenvalue once, along with its multiplicity.
+        # This function, returning a list. could then just be renamed "eigenvalues"
         if laplacian:
             M = self.kirchhoff_matrix()
         else:
-            M = self.am()
-        M = matrix(RDF, M.rows())
-        E = M.right_eigenvectors()[0]
-        v = [e.real() for e in E]
-        v.sort()
-        return v
+            M = self.adjacency_matrix()
+        evals = M.eigenvalues()
+        evals.sort(reverse=True)
+        return evals
 
     def characteristic_polynomial(self, var='x', laplacian=False):
-        """
+        r"""
         Returns the characteristic polynomial of the adjacency matrix of
         the (di)graph.
 
         INPUT:
 
-
-        -  ``laplacian`` - if True, use the Laplacian matrix
-           instead (see self.kirchhoff_matrix())
-
+        -  ``laplacian`` - if ``True``, use the Laplacian matrix
+           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
 
         EXAMPLES::
 
@@ -7163,45 +7187,210 @@ class GenericGraph(SageObject):
         if laplacian:
             return self.kirchhoff_matrix().charpoly(var=var)
         else:
-            return self.am().charpoly(var=var)
+            return self.adjacency_matrix().charpoly(var=var)
 
-    def eigenspaces(self, laplacian=False):
-        """
-        Returns the eigenspaces of the adjacency matrix of the graph.
+    def eigenvectors(self, laplacian=False):
+        r"""
+        Returns the *right* eigenvectors of the adjacency matrix of the graph.
 
         INPUT:
 
-
         -  ``laplacian`` - if True, use the Laplacian matrix
-           instead (see self.kirchhoff_matrix())
+           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
 
+        OUTPUT:
+
+        A list of triples.  Each triple begins with an eigenvalue of
+        the adjacency matrix of the graph.  This is followed by
+        a list of eigenvectors for the eigenvalue, when the
+        eigenvectors are placed on the right side of the matrix.
+        Together, the eigenvectors form a basis for the eigenspace.
+        The triple concludes with the algebraic multiplicity of
+        the eigenvalue.
+
+        For some graphs, the exact eigenspaces provided by
+        :meth:`eigenspaces` provide additional insight into
+        the structure of the eigenspaces.
 
         EXAMPLES::
 
-            sage: C = graphs.CycleGraph(5)
-            sage: E = C.eigenspaces()
-            sage: E[0][0]
-            -1.618...
-            sage: E[1][0]  # eigenspace computation is somewhat random
-            Vector space of degree 5 and dimension 1 over Real Double Field
-            User basis matrix:
-            [ 0.632... -0.632... -0.447... -0.013... 0.073...]
+            sage: P = graphs.PetersenGraph()
+            sage: P.eigenvectors()
+            [(3, [
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            ], 1), (-2, [
+            (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
+            (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
+            (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
+            (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
+            ], 4), (1, [
+            (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
+            (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
+            (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
+            (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
+            (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
+            ], 5)]
+
+        Eigenspaces for the Laplacian should be identical since the
+        Petersen graph is regular.  However, since the output also
+        contains the eigenvalues, the two outputs are slightly
+        different. ::
+
+            sage: P.eigenvectors(laplacian=True)
+            [(0, [
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            ], 1), (5, [
+            (1, 0, 0, 0, -1, -1, -1, 0, 1, 1),
+            (0, 1, 0, 0, -1, 0, -2, -1, 1, 2),
+            (0, 0, 1, 0, -1, 1, -1, -2, 0, 2),
+            (0, 0, 0, 1, -1, 1, 0, -1, -1, 1)
+            ], 4), (2, [
+            (1, 0, 0, 0, 0, 1, -1, 0, 0, -1),
+            (0, 1, 0, 0, 0, -1, 1, -1, 0, 0),
+            (0, 0, 1, 0, 0, 0, -1, 1, -1, 0),
+            (0, 0, 0, 1, 0, 0, 0, -1, 1, -1),
+            (0, 0, 0, 0, 1, -1, 0, 0, -1, 1)
+            ], 5)]
 
         ::
 
-            sage: D = C.to_directed()
-            sage: F = D.eigenspaces()
-            sage: abs(E[0][0] - F[0][0]) < 0.00001
-            True
+            sage: C = graphs.CycleGraph(8)
+            sage: C.eigenvectors()
+            [(2, [
+            (1, 1, 1, 1, 1, 1, 1, 1)
+            ], 1), (-2, [
+            (1, -1, 1, -1, 1, -1, 1, -1)
+            ], 1), (0, [
+            (1, 0, -1, 0, 1, 0, -1, 0),
+            (0, 1, 0, -1, 0, 1, 0, -1)
+            ], 2), (-1.414213562373095?, [(1, 0, -1, 1.414213562373095?, -1, 0, 1, -1.414213562373095?), (0, 1, -1.414213562373095?, 1, 0, -1, 1.414213562373095?, -1)], 2), (1.414213562373095?, [(1, 0, -1, -1.414213562373095?, -1, 0, 1, 1.414213562373095?), (0, 1, 1.414213562373095?, 1, 0, -1, -1.414213562373095?, -1)], 2)]
+
+        A digraph may have complex eigenvalues.  Previously, the complex parts
+        of graph eigenvalues were being dropped.  For a 3-cycle, we have::
+
+            sage: T = DiGraph({0:[1], 1:[2], 2:[0]})
+            sage: T.eigenvectors()
+            [(1, [
+            (1, 1, 1)
+            ], 1), (-0.500000000000000? - 0.866025403784439?*I, [(1, -0.500000000000000? - 0.866025403784439?*I, -0.500000000000000? + 0.866025403784439?*I)], 1), (-0.500000000000000? + 0.866025403784439?*I, [(1, -0.500000000000000? + 0.866025403784439?*I, -0.500000000000000? - 0.866025403784439?*I)], 1)]
         """
         if laplacian:
             M = self.kirchhoff_matrix()
         else:
-            M = self.am()
-        from sage.matrix.constructor import matrix
-        from sage.rings.real_double import RDF
-        M = matrix(RDF, M.rows())
-        return M.eigenspaces()
+            M = self.adjacency_matrix()
+        return M.right_eigenvectors()
+
+    def eigenspaces(self, laplacian=False):
+        r"""
+        Returns the *right* eigenspaces of the adjacency matrix of the graph.
+
+        INPUT:
+
+        -  ``laplacian`` - if True, use the Laplacian matrix
+           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
+
+        OUTPUT:
+
+        A list of pairs.  Each pair is an eigenvalue of the
+        adjacency matrix of the graph, followed by
+        the vector space that is the eigenspace for that eigenvalue,
+        when the eigenvectors are placed on the right of the matrix.
+
+        For some graphs, some of the the eigenspaces are described
+        exactly by vector spaces over a
+        :class:`~sage.rings.number_field.number_field.NumberField`.
+        For numerical eigenvectors use :meth:`eigenvectors`.
+
+        EXAMPLES::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.eigenspaces()
+            [
+            (3, Vector space of degree 10 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1 1 1 1 1 1 1 1 1]),
+            (-2, Vector space of degree 10 and dimension 4 over Rational Field
+            User basis matrix:
+            [ 1  0  0  0 -1 -1 -1  0  1  1]
+            [ 0  1  0  0 -1  0 -2 -1  1  2]
+            [ 0  0  1  0 -1  1 -1 -2  0  2]
+            [ 0  0  0  1 -1  1  0 -1 -1  1]),
+            (1, Vector space of degree 10 and dimension 5 over Rational Field
+            User basis matrix:
+            [ 1  0  0  0  0  1 -1  0  0 -1]
+            [ 0  1  0  0  0 -1  1 -1  0  0]
+            [ 0  0  1  0  0  0 -1  1 -1  0]
+            [ 0  0  0  1  0  0  0 -1  1 -1]
+            [ 0  0  0  0  1 -1  0  0 -1  1])
+            ]
+
+        Eigenspaces for the Laplacian should be identical since the
+        Petersen graph is regular.  However, since the output also
+        contains the eigenvalues, the two outputs are slightly
+        different. ::
+
+            sage: P.eigenspaces(laplacian=True)
+            [
+            (0, Vector space of degree 10 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1 1 1 1 1 1 1 1 1]),
+            (5, Vector space of degree 10 and dimension 4 over Rational Field
+            User basis matrix:
+            [ 1  0  0  0 -1 -1 -1  0  1  1]
+            [ 0  1  0  0 -1  0 -2 -1  1  2]
+            [ 0  0  1  0 -1  1 -1 -2  0  2]
+            [ 0  0  0  1 -1  1  0 -1 -1  1]),
+            (2, Vector space of degree 10 and dimension 5 over Rational Field
+            User basis matrix:
+            [ 1  0  0  0  0  1 -1  0  0 -1]
+            [ 0  1  0  0  0 -1  1 -1  0  0]
+            [ 0  0  1  0  0  0 -1  1 -1  0]
+            [ 0  0  0  1  0  0  0 -1  1 -1]
+            [ 0  0  0  0  1 -1  0  0 -1  1])
+            ]
+
+        Notice how one eigenspace below is described with a square root of
+        2.  For the two possible values (positive and negative) there is a
+        corresponding eigenspace.  ::
+
+            sage: C = graphs.CycleGraph(8)
+            sage: C.eigenspaces()
+            [
+            (2, Vector space of degree 8 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1 1 1 1 1 1 1]),
+            (-2, Vector space of degree 8 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -1  1 -1  1 -1  1 -1]),
+            (0, Vector space of degree 8 and dimension 2 over Rational Field
+            User basis matrix:
+            [ 1  0 -1  0  1  0 -1  0]
+            [ 0  1  0 -1  0  1  0 -1]),
+            (a3, Vector space of degree 8 and dimension 2 over Number Field in a3 with defining polynomial x^2 - 2
+            User basis matrix:
+            [  1   0  -1 -a3  -1   0   1  a3]
+            [  0   1  a3   1   0  -1 -a3  -1])
+            ]
+
+        A digraph may have complex eigenvalues and eigenvectors.
+        For a 3-cycle, we have::
+
+            sage: T = DiGraph({0:[1], 1:[2], 2:[0]})
+            sage: T.eigenspaces()
+            [
+            (1, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [1 1 1]),
+            (a1, Vector space of degree 3 and dimension 1 over Number Field in a1 with defining polynomial x^2 + x + 1
+            User basis matrix:
+            [      1      a1 -a1 - 1])
+            ]
+        """
+        if laplacian:
+            M = self.kirchhoff_matrix()
+        else:
+            M = self.adjacency_matrix()
+        return M.right_eigenspaces(algebraic_multiplicity=False)
 
     ### Automorphism and isomorphism
 

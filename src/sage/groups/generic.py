@@ -124,11 +124,22 @@ addition_names       = ( 'addition', 'plus', 'sum', '+')
 # This function was moved from sage/rings/arith.py
 #
 def power(a, m, one=1):
-    """
-    The m-th power of a, where m is a non-negative
-    integer and a is a Python object on which
-    multiplication is defined.  The exponentiation
-    is done using the standard binary powering algorithm.
+    r"""
+    Generic powering function.
+
+    INPUT:
+
+    - ``a`` -- any Python object on which multiplication is defined.
+
+    - ``m`` -- a non-negative integer.
+
+    OUTPUT:
+
+    The ``m``-th power of ``a``.
+
+    ALGORITHM:
+
+    Standard binary powering algorithm.
 
     EXAMPLES::
 
@@ -146,10 +157,12 @@ def power(a, m, one=1):
     return sage.structure.element.generic_power(a,m,one)
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
-    """
-    Returns n*a [or a**n], where n is any integer and a is a Python
-    object on which a group operaton such as addition or
+    r"""
+    Returns either `na` or `a^n`, where `n` is any integer and `a` is
+    a Python object on which a group operaton such as addition or
     multiplication is defined.  Uses the standard binary algorithm.
+
+    INPUT:  See the documentation for ``discrete_logarithm()``.
 
     EXAMPLES::
 
@@ -173,7 +186,7 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
         sage: multiple(x,-10)
         1/x^10
 
-    Idempotence is detected making this fast::
+    Idempotence is detected, making the following fast::
 
         sage: multiple(1,10^1000)
         1
@@ -260,11 +273,11 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
 #
 
 class multiples:
-    """
-    Return an iterator which runs through P0+i*P for i in range(n)
+    r"""
+    Return an iterator which runs through ``P0+i*P`` for ``i`` in ``range(n)``.
 
-    P and P0 must be Sage objects in some group; if the operation in
-    multiplcation then the returned values are P0*P**i.
+    ``P`` and ``P0`` must be Sage objects in some group; if the operation is
+    multiplcation then the returned values are instead ``P0*P**i``.
 
     EXAMPLES::
 
@@ -311,24 +324,24 @@ class multiples:
 
         INPUT:
 
-        - P - step value: any Sage object on which a binary
+        - ``P`` - step value: any Sage object on which a binary
                              operation is defined
-        - n - number of multiples: non-negative integer
-        - P0 - offset (default 0): Sage object which can be 'added' to P
-        - indexed - boolean (default False)
+        - ``n`` - number of multiples: non-negative integer
+        - ``P0`` - offset (default 0): Sage object which can be 'added' to P
+        - ``indexed`` - boolean (default False)
 
-        If indexed==False the iterator delivers P0+i*P (if
-        operation=='+') or P0*P**i (if
-        operation=='*'), for i in range(n) .
+          If ``indexed==False`` then the iterator delivers ``P0+i*P``
+          (if ``operation=='+'``) or ``P0*P**i`` (if
+          ``operation=='*'``), for ``i`` in ``range(n)``.
 
-        If indexed==True the iterator delivers tuples (i,P0+i*P)
-        or (i,P0*P**i)
+          If ``indexed==True`` then the iterator delivers tuples
+          ``(i,P0+i*P)`` or ``(i,P0*P**i)``.
 
-        - operation - string: '+' (default ) or '*' or other.
+        - ``operation`` - string: '+' (default ) or '*' or `other`.
 
-        If other, a function op() must be supplied (a
-        function of 2 arguments) defining the
-        group binary operation; also either P0 must be supplied.
+          If `other`, a function ``op()`` must be supplied (a function
+          of 2 arguments) defining the group binary operation; also
+          ``P0`` must be supplied.
         """
         if n<0:
             raise ValueError, 'n cannot be negative in multiples'
@@ -355,7 +368,11 @@ class multiples:
         self.bound = n
         self.indexed = indexed
 
+
     def next(self):
+        """
+        Returns the next item in this multiples iterator.
+        """
         if self.i >= self.bound:
             raise StopIteration
         i = self.i
@@ -367,6 +384,9 @@ class multiples:
         else:
             return val
     def __iter__(self):
+        """
+        Standard member function making this class an iterator.
+        """
         return self
 
 
@@ -374,12 +394,12 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     r"""
     Totally generic discrete baby-step giant-step function.
 
-    Solves n*a=b (or a^n=b) with lb<=n<=ub where bounds==(lb,ub),
-    raising an error if no such n exists.
+    Solves `na=b` (or `a^n=b`) with `lb\le n\le ub` where ``bounds==(lb,ub)``,
+    raising an error if no such `n` exists.
 
-    a and b must be elements of some group with given identity,
-    inverse of x given by inverse(x), and group operation on x,y by
-    op(x,y).
+    `a` and `b` must be elements of some group with given identity,
+    inverse of ``x`` given by ``inverse(x)``, and group operation on
+    ``x``, ``y`` by ``op(x,y)``.
 
     If operation is '*' or '+' then the other
     arguments are provided automatically; otherwise they must be
@@ -387,16 +407,18 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     INPUT:
 
-    - a    - group element
-    - b    - group element
-    - bounds - a 2-tuple of integers (lower,upper) with 0<=lower<=upper
-    - operation - string: '*', '+', 'other'
-    - identity - the identity element of the group
-    - inverse()  - function of 1 argument x returning inverse of x
-    - op() - function of 2 arguments x,y returning x*y in group
+    - ``a``    - group element
+    - ``b``    - group element
+    - ``bounds`` - a 2-tuple of integers ``(lower,upper)`` with ``0<=lower<=upper``
+    - ``operation`` - string: '*', '+', 'other'
+    - ``identity`` - the identity element of the group
+    - ``inverse()``  - function of 1 argument ``x`` returning inverse of ``x``
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
 
-    OUTPUT: Returns an integer `n` such that `a^n = b` (or `n*a = b`).
-    If no such `n` exists, this function raises a ValueError exception.
+    OUTPUT:
+
+    An integer `n` such that `a^n = b` (or `na = b`).  If no
+    such `n` exists, this function raises a ValueError exception.
 
     NOTE: This is a generalization of discrete logarithm.  One
     situation where this version is useful is to find the order of
@@ -404,7 +426,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     order (see the elliptic curve example below).
 
     ALGORITHM: Baby step giant step.  Time and space are soft
-    O(sqrt(n)) where n is the difference between upper and lower
+    `O(\sqrt{n})` where `n` is the difference between upper and lower
     bounds.
 
     EXAMPLES::
@@ -504,37 +526,39 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     raise ValueError, "Log of %s to the base %s does not exist in %s."%(b,a,bounds)
 
 def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
-    """
+    r"""
     Totally generic discrete log function.
 
-    a and base must be elements of some group with identity given by
-    identity, inverse of x by inverse(x), and group operation on x,y
-    by op(x,y).
+    INPUT:
+
+    - ``a``    - group element
+    - ``base`` - group element (the base)
+    - ``ord``  - integer (multiple of order of base, or ``None``)
+    - ``bounds`` - a priori bounds on the log
+    - ``operation`` - string: '*', '+', 'other'
+    - ``identity`` - the group's identity
+    - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
+
+    ``a`` and ``base`` must be elements of some group with identity
+    given by identity, inverse of ``x`` by ``inverse(x)``, and group
+    operation on ``x``, ``y`` by ``op(x,y)``.
 
     If operation is '*' or '+' then the other
     arguments are provided automatically; otherwise they must be
     provided by the caller.
 
-    WARNING: If x has a log method, it is likely to be vastly faster
-    than using this function.  E.g., if x is an integer modulo n, use
-    its log method instead!
-
-    INPUT:
-
-    - a    - group element
-    - base - group element (the base)
-    - ord  - integer (multiple of order of base, or None)
-    - bounds - a priori bounds on the log
-    - operation - string: '*', '+', 'other'
-    - identity - the group's identity
-    - inverse() - function of 1 argument x returning inverse of x
-    - op() - function of 2 arguments x,y returning x*y in group
-
-    OUTPUT: Returns an integer `n` such that `b^n = a` (or `n*b = a`),
-    assuming that ord is a multiple of the order of the base `b`.
-    If ord is not specified an attempt is made to compute it.
+    OUTPUT: Returns an integer `n` such that `b^n = a` (or `nb = a`),
+    assuming that ``ord`` is a multiple of the order of the base `b`.
+    If ``ord`` is not specified, an attempt is made to compute it.
 
     If no such `n` exists, this function raises a ValueError exception.
+
+    .. warning::
+
+       If ``x`` has a log method, it is likely to be vastly faster
+       than using this function.  E.g., if ``x`` is an integer modulo
+       `n`, use its log method instead!
 
     ALGORITHM: Pohlig-Hellman and Baby step giant step.
 
@@ -623,8 +647,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
 
     AUTHORS:
 
-        - William Stein and David Joyner (2005-01-05)
-        - John Cremona (2008-02-29) rewrite using dict() and make generic
+    - William Stein and David Joyner (2005-01-05)
+    - John Cremona (2008-02-29) rewrite using ``dict()`` and make generic
 
     """
     if ord == None:
@@ -846,18 +870,23 @@ def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity
 ################################################################
 
 def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
-    """
-    Function which solves the equation a*P=m*Q or P^a=Q^m.
+    r"""
+    Function which solves the equation ``a*P=m*Q`` or ``P^a=Q^m``.
 
-    Additive version: returns (a,m) with minimal m>0 such that
-    a*P==m*Q.  Special case: if <P> and <Q> intersect only in {0} then
-    (a,m)=(0,Q.additive_order()).
+    Additive version: returns `(a,m)` with minimal `m>0` such that
+    `aP=mQ`.  Special case: if `\left<P\right>` and `\left<Q\right>`
+    intersect only in `\{0\}` then `(a,m)=(0,n)` where `n` is
+    ``Q.additive_order()``.
 
-    Multiplicative version: returns (a,m) with minimal m>0 such that
-    P^a==Q^m.  Special case: if <P> and <Q> intersect only in {1} then
-    (a,m)=(0,Q.multiplicative_order()).
+    Multiplicative version: returns `(a,m)` with minimal `m>0` such
+    that `P^a=Q^m`.  Special case: if `\left<P\right>` and
+    `\left<Q\right>` intersect only in `\{1\}` then `(a,m)=(0,n)`
+    where `n` is ``Q.multiplicative_order()``.
 
-    Works in general finite abelian groups:  uses bsgs()
+    ALGORITHM:
+
+    Uses the generic ``bsgs()`` function, and so works in general
+    finite abelian groups.
 
     EXAMPLES:
 
@@ -872,7 +901,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         sage: P == 2*Q
         True
 
-    An multiplcative example (in a finite field's multiplicative group)::
+    A multiplcative example (in a finite field's multiplicative group)::
 
         sage: F.<a>=GF(3^6,'a')
         sage: a.multiplicative_order().factor()
@@ -941,31 +970,32 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
 
 def order_from_multiple(P, m, plist=None, operation='+',
                          identity=None, inverse=None, op=None):
-    """
-    Generic function to find order of P given a multiple of the order
+    r"""
+    Generic function to find order of a group element given a multiple
+    of its order.
 
     INPUT:
 
-    - P - a Sage object which is a group element
-    - m - a Sage integer which is a multiple of the order of P,
-            i.e. we require that m*P=0 (or P^m=1).
-    - plist - a list of the prime factors of m, or None in
-            which case this function will need to factor m.
-    - operation - string: '+' (default ) or
-                             '*' or other.
+    - ``P`` - a Sage object which is a group element
+    - ``m`` - a Sage integer which is a multiple of the order of ``P``,
+      i.e. we require that ``m*P=0`` (or ``P**m=1``).
+    - ``plist`` - a list of the prime factors of ``m``, or ``None``, in
+      which case this function will need to factor ``m``.
+    - ``operation`` - string: '+' (default ) or '*' or other.
+      If other, the following must be supplied:
 
-                     If other, the following must be supplied:
+      - ``identity``: the identity element for the group;
 
-                     identity: the identity element for the group;
+      - ``inverse()``: a function of one argument giving
+        the inverse of a group element;
 
-                     inverse(): a function of one argument giving
-                     the inverse of a group element;
+      - ``op()``: a function of 2 arguments defining
+        the group binary operation.
 
-                     op(): a function of 2 arguments defining
-                     the group binary operation.
+    .. note::
 
-    NOTE: It is more efficient for the caller to factor m and cache the
-    factors for subsequent calls.
+       It is more efficient for the caller to factor ``m`` and cache
+       the factors for subsequent calls.
 
     EXAMPLES::
 
@@ -1046,36 +1076,36 @@ def order_from_multiple(P, m, plist=None, operation='+',
 
 def order_from_bounds(P, bounds, d=None, operation='+',
                          identity=None, inverse=None, op=None):
-    """
-    Generic function to find order of P given bounds on group order.
-
-    upper and lower bounds for a multiple of the order (e.g. bounds on the
-    order of the group of which P is an element)
+    r"""
+    Generic function to find order of a group element, given only
+    upper and lower bounds for a multiple of the order (e.g. bounds on
+    the order of the group of which it is an element)
 
     INPUT:
 
-    - P      - a Sage object which is a group element
-    - bounds - a 2-tuple (lb,ub) such that m*P=0 (or P^m=1) for
-                  some m with lb<=m<=ub
-    - d      - (optional) a positive integer; only m which are
-        multiples of this will be considered.
-    - operation - string: '+' (default ) or
-                             '*' or other.
+    - ``P``      - a Sage object which is a group element
 
-                     If other, the following must be supplied:
+    - ``bounds`` - a 2-tuple ``(lb,ub)`` such that ``m*P=0`` (or
+      ``P**m=1``) for some ``m`` with ``lb<=m<=ub``.
 
-                     identity: the identity element for the group;
+    - ``d`` - (optional) a positive integer; only ``m`` which are
+      multiples of this will be considered.
 
-                     inverse(): a function of one argument giving
-                     the inverse of a group element;
+    - ``operation`` - string: '+' (default ) or '*' or other.
+      If other, the following must be supplied:
 
-                     op(): a function of 2 arguments defining
-                     the group binary operation.
+      - ``identity``: the identity element for the group;
+      - ``inverse()``: a function of one argument giving the inverse
+        of a group element;
+      - ``op()``: a function of 2 arguments defining the group binary
+        operation.
 
 
-    NOTE: Typically lb and ub will be bounds on the group order,
-    and from previous calculation we know that the group order is
-    divisible by d.
+    .. note::
+
+       Typically ``lb`` and ``ub`` will be bounds on the group order,
+       and from previous calculation we know that the group order is
+       divisible by ``d``.
 
     EXAMPLES::
 
@@ -1129,27 +1159,26 @@ def order_from_bounds(P, bounds, d=None, operation='+',
 
 def merge_points(P1,P2, operation='+',
                          identity=None, inverse=None, op=None):
-    """
-    Returns a group element whose order is the lcm of the given elements
+    r"""
+    Returns a group element whose order is the lcm of the given elements.
 
     INPUT:
 
-    - P1 - a pair (g1,n1) where g1 is a group element of order n1
-    - P2 - a pair (g2,n2) where g2 is a group element of order n2
-    - operation - string: '+' (default ) or '*' or other.
+    - ``P1`` -- a pair `(g_1,n_1)` where `g_1` is a group element of order `n_1`
+    - ``P2`` -- a pair `(g_2,n_2)` where `g_2` is a group element of order `n_2`
+    - ``operation`` -- string: '+' (default ) or '*' or other. If
+      other, the following must be supplied:
 
-                         If other, the following must be supplied:
-
-                         identity: the identity element for the group;
-
-                         inverse(): a function of one argument giving
-                         the inverse of a group element;
-
-                         op(): a function of 2 arguments defining
-                         the group binary operation.
+        - ``identity``: the identity element for the group;
+        - ``inverse()``: a function of one argument giving the inverse
+          of a group element;
+        - ``op()``: a function of 2 arguments defining the group
+           binary operation.
 
 
-    OUTPUT: A pair (g3,n3) where g3 has order n3=lcm(n1,n2)
+    OUTPUT:
+
+    A pair `(g_3,n_3)` where `g_3` has order `n_3=\hbox{lcm}(n_1,n_2)`.
 
     EXAMPLES::
 

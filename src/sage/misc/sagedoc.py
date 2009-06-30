@@ -363,7 +363,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='', extra4='',
                                 s[1], re.MULTILINE), match_list)
                     for num, line in match_list:
                         results += ':'.join([filename[strip:].lstrip("/"),
-                                             str(num),
+                                             str(num+1),
                                              line])
 
     if not interact:

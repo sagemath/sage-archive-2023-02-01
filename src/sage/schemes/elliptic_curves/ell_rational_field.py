@@ -5276,10 +5276,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__heegner_sha_an[(D,prec)] = sha_an
         return sha_an
 
-    def _heegner_forms_list(self, D):
+    def _heegner_forms_list(self, D, beta=None, expected_count=None):
         """
         Returns a list of quadratic forms corresponding to Heegner points
-        with discriminant `D`. Specifically, given a quadratic form
+        with discriminant `D` and a choice of `\beta` a square root of
+        `D` mod `4N`. Specifically, given a quadratic form
         `f = Ax^2 + Bxy + Cy^2` we let `\tau_f` be a root of `Ax^2 + Bx + C`
         and the discriminant `\Delta(\tau_f) = \Delta(f) = D` must be
         invariant under multiplication by `N`, the conductor of self.
@@ -5290,19 +5291,35 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('37a')
             sage: E._heegner_forms_list(-7)
-            [37*x^2 + 17*x*y + 2*y^2, 37*x^2 + 57*x*y + 22*y^2]
+            [37*x^2 + 17*x*y + 2*y^2]
+            sage: E._heegner_forms_list(-195)
+            [37*x^2 + 29*x*y + 7*y^2, 259*x^2 + 29*x*y + y^2, 111*x^2 + 177*x*y + 71*y^2, 2627*x^2 + 177*x*y + 3*y^2]
+            sage: E._heegner_forms_list(-195)[-1].discriminant()
+            -195
+            sage: len(E._heegner_forms_list(-195))
+            4
+            sage: QQ[sqrt(-195)].class_number()
+            4
+
             sage: E = EllipticCurve('389a')
             sage: E._heegner_forms_list(-7)
-            [389*x^2 + 185*x*y + 22*y^2, 389*x^2 + 593*x*y + 226*y^2]
-            sage: E._heegner_forms_list(-55)
-            [389*x^2 + 201*x*y + 26*y^2, 778*x^2 + 201*x*y + 13*y^2, 5057*x^2 + 201*x*y + 2*y^2, 389*x^2 + 577*x*y + 214*y^2, 778*x^2 + 577*x*y + 107*y^2, 41623*x^2 + 577*x*y + 2*y^2]
+            [389*x^2 + 185*x*y + 22*y^2]
+            sage: E._heegner_forms_list(-59)
+            [389*x^2 + 313*x*y + 63*y^2, 1167*x^2 + 313*x*y + 21*y^2, 3501*x^2 + 313*x*y + 7*y^2]
         """
-        from sage.quadratic_forms.all import BinaryQF
+        if expected_count is None:
+            expected_count = number_field.QuadraticField(D, 'a').class_number()
         N = self.conductor()
+        if beta is None:
+            beta = Integers(4*N)(D).sqrt(extend=False)
+        else:
+            assert beta**2 == Integers(4*N)(D)
+        from sage.quadratic_forms.all import BinaryQF
+        b = ZZ(beta) % (2*N)
         all = []
         seen = []
-        betas = Integers(4*N)(D).sqrt(all=True)
-        for b  in set([(beta % (2*N)).lift() for beta in betas]):
+        # TODO: This may give a sub-optimal list of forms.
+        while True:
             R = (b**2-D)//(4*N)
             for d in R.divisors():
                 f = BinaryQF([d*N, b, R//d])
@@ -5310,15 +5327,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 if fr not in seen:
                     seen.append(fr)
                     all.append(f)
-            seen = []
-        return all
+                    if len(all) == expected_count:
+                        return all
+            b += 2*N
 
     def _heegner_best_tau(self, D, prec=None):
         """
         Given a discrimanent `D`, find the Heegner point `\tau` in the
         upper half plane with largest imaginary part (which is optimal
         for evaluating the modular parametrization). If the optional
-        parameter ``prec`` is give, return `\tau` to ``prec`` bits of
+        parameter ``prec`` is given, return `\tau` to ``prec`` bits of
         precision, otherwise return it exactly as a symbolic object.
 
         EXAMPLES::
@@ -5328,18 +5346,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1/74*sqrt(-7) - 17/74
             sage: EllipticCurve('389a')._heegner_best_tau(-11)
             1/778*sqrt(-11) - 355/778
+            sage: EllipticCurve('389a')._heegner_best_tau(-11, prec=100)
+            -0.45629820051413881748071979434 + 0.0042630138693514136878083968338*I
         """
-        best = None
-        for f in self._heegner_forms_list(D):
-            if best is None or f[1] < best[1]:
-                best = f
-        A, B, C = best
-        return (-B + best.discriminant().sqrt(prec=prec)) / (2*A)
+        # We know that N|A, so A = N is optimal.
+        N = self.conductor()
+        b = ZZ(Integers(4*N)(D).sqrt(extend=False) % (2*N))
+        return (-b + D.sqrt(prec=prec)) / (2*N)
 
     def heegner_point(self, D, prec=None, max_prec=2000):
         """
         Returns the heegner point of this curve and the quadratic imaginary
-        field `K=\QQ(\sqrt{D})`. If the optional parameter ``prec`` is give,
+        field `K=\QQ(\sqrt{D})`. If the optional parameter ``prec`` is given,
         it is computed with ``prec`` bits of working precision, otherwise it
         attempts to recognize it exactly over the Hilbert class field of `K`.
         In this  latter case, the answer is *not* proveably correct but a

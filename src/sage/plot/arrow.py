@@ -378,9 +378,14 @@ def arrow(tailpoint=None, headpoint=None, path=None, **options):
 
         sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
 
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: arrow((-2, 2), (7,1), frame=True)
+        sage: arrow((-2, 2), (7,1)).show(frame=True)
     """
     from sage.plot.plot import Graphics
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     if headpoint is not None and tailpoint is not None:
         xtail, ytail = tailpoint
         xhead, yhead = headpoint

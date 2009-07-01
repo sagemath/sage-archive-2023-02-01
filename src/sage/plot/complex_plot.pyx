@@ -276,6 +276,11 @@ def complex_plot(f, xrange, yrange, **options):
     The Riemann Zeta function::
 
         sage: complex_plot(zeta, (-30,30), (-30,30))
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: complex_plot(lambda z: z, (-3, 3), (-3, 3), figsize=[1,1])
+        sage: complex_plot(lambda z: z, (-3, 3), (-3, 3)).show(figsize=[1,1]) # These are equivalent
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     cdef double x, y
@@ -289,5 +294,6 @@ def complex_plot(f, xrange, yrange, **options):
                                             for y in yrange_list]
     _sig_off
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ComplexPlot(z_values, xrange, yrange, options))
     return g

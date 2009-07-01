@@ -275,6 +275,11 @@ def circle(center, radius, **options):
 
         sage: C = circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
 
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: circle((0, 0), 2, figsize=[10,10]) # That circle is huge!
+        sage: circle((0, 0), 2).show(figsize=[10,10]) # These are equivalent
+
     TESTS:
 
     We cannot currently plot circles in more than three dimensions::
@@ -286,6 +291,7 @@ def circle(center, radius, **options):
     """
     from sage.plot.plot import Graphics
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Circle(center[0], center[1], radius, options))
     if len(center)==2:
         return g

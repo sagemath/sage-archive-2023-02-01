@@ -137,10 +137,15 @@ def scatter_plot(datalist, **options):
         sage: s = scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
         sage: s
 
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green', ymax=100)
+        sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green').show(ymax=100) # These are equivalent
     """
     import numpy
     from sage.plot.plot import Graphics
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     data = numpy.array(datalist, dtype='float')
     if len(data) != 0:
         xdata = data[:,0]

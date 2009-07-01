@@ -55,6 +55,14 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.options()
         {'cmap': 'winter'}
 
+    Extra options will get passed on to show(), as long as they are valid:
+        sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
+        sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
+
+    Extra options will get passed on to show(), as long as they are valid:
+        sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
+        sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
+
     TESTS:
 
     We test creating a matrix plot::
@@ -239,5 +247,6 @@ def matrix_plot(mat, **options):
     yrange = (0, xy_data_array.shape[0])
 
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(MatrixPlot(xy_data_array, xrange, yrange, options))
     return g

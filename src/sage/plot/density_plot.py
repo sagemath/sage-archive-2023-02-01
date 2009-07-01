@@ -209,6 +209,11 @@ def density_plot(f, xrange, yrange, **options):
 
         sage: density_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
         sage: density_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10), dpi=20)
+        sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10)).show(dpi=20) # These are equivalent
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
@@ -217,5 +222,6 @@ def density_plot(f, xrange, yrange, **options):
                               for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
 
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(DensityPlot(xy_data_array, xrange, yrange, options))
     return g

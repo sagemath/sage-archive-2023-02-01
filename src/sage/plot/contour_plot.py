@@ -241,6 +241,12 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: x,y = var('x,y')
         sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1)).show(aspect_ratio=1)
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: f(x, y) = cos(x) + sin(y)
+        sage: contour_plot(f, (0, pi), (0, pi), axes=False)
+        sage: contour_plot(f, (0, pi), (0, pi)).show(axes=False) # These are equivalent
     """
     from sage.plot.plot import Graphics, setup_for_eval_on_grid
     g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
@@ -249,6 +255,7 @@ def contour_plot(f, xrange, yrange, **options):
                               for y in xsrange(yrange[0], yrange[1], ystep, include_endpoint=True)]
 
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 

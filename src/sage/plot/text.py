@@ -222,6 +222,11 @@ def text(string, xy, **options):
         ...
         ValueError: use text3d instead for text in 3d
         sage: t = text3d("hi",(1,2,3))
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: text("MATH IS AWESOME", (0, 0), fontsize=40, axes=False)
+        sage: text("MATH IS AWESOME", (0, 0), fontsize=40).show(axes=False) # These are equivalent
     """
     try:
         x, y = xy
@@ -233,5 +238,6 @@ def text(string, xy, **options):
     options['rgbcolor'] = to_mpl_color(options['rgbcolor'])
     point = (float(x), float(y))
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore='fontsize'))
     g.add_primitive(Text(string, point, options))
     return g

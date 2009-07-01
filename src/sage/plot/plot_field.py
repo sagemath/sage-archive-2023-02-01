@@ -155,6 +155,11 @@ def plot_vector_field((f, g), xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: plot_vector_field( (-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x, -10, 10), (y, -10, 10))
         sage: plot_vector_field( (-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2), xmax=10)
+        sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
     """
     from sage.plot.plot import setup_for_eval_on_grid, Graphics
     z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
@@ -172,6 +177,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
     xvec_array = numpy.ma.masked_invalid(numpy.array(xvec_array, dtype=float))
     yvec_array = numpy.ma.masked_invalid(numpy.array(yvec_array, dtype=float))
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(PlotField(xpos_array, ypos_array, xvec_array, yvec_array, options))
     return g
 

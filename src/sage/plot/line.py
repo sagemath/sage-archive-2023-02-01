@@ -387,9 +387,14 @@ def line2d(points, **options):
         sage: line([])
         sage: line([(1,1)])
 
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: line([(0,1), (3,4)], figsize=[10, 2])
+        sage: line([(0,1), (3,4)]).show(figsize=[10, 2]) # These are equivalent
     """
     from sage.plot.plot import Graphics, xydata_from_point_list
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Line(xdata, ydata, options))
     return g

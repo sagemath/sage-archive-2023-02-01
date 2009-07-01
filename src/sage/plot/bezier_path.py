@@ -217,9 +217,15 @@ def bezier_path(path, **options):
         sage: path = [[(0,0),(.5,1),(1,0)]]
         sage: curve = bezier_path(path, linestyle='dashed', rgbcolor='green')
         sage: curve
+
+    Extra options will get passed on to show(), as long as they are valid:
+
+        sage: bezier_path([[(0,1),(.5,0),(1,1)]], fontsize=50)
+        sage: bezier_path([[(0,1),(.5,0),(1,1)]]).show(fontsize=50) # These are equivalent
     """
     from sage.plot.plot import Graphics
     g = Graphics()
+    g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(BezierPath(path, options))
     return g
 

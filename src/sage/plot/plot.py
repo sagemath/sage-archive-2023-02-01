@@ -407,6 +407,7 @@ class Graphics(SageObject):
         self.__tick_label_color = (0, 0, 0)
         self.__axes_width = 0.8
         self.__objects = []
+        self._extra_kwds = {}
 
     def set_aspect_ratio(self, ratio):
         """
@@ -1031,9 +1032,14 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5))
+            sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5), frame=True)
             sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), rgbcolor=(1,0,0))
             sage: g1 + g2  # displays the plot
+
+        TESTS::
+
+            sage: (g1 + g2)._extra_kwds # extra keywords to show are propagated
+            {'frame': True}
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1045,6 +1051,8 @@ class Graphics(SageObject):
         g = Graphics()
         g.__objects = self.__objects + other.__objects
         g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
+        g._extra_kwds.update(self._extra_kwds)
+        g._extra_kwds.update(other._extra_kwds)
         return g
 
     def add_primitive(self, primitive):
@@ -1082,12 +1090,68 @@ class Graphics(SageObject):
             g = g.translate(0,0,z)
         return g
 
-    def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
-             figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
-             fontsize=None, aspect_ratio=None,
-             gridlines=None, gridlinesstyle=None,
-             vgridlinesstyle=None, hgridlinesstyle=None, linkmode = False):
+    @classmethod
+    def _extract_kwds_for_show(cls, kwds, ignore=[]):
+        """
+        Extract keywords relevant to show() from the provided dictionary.
+
+        EXAMPLES::
+
+            sage: kwds = {'f': lambda x: x, 'xmin': 0, 'figsize': [1,1], 'plot_points': (40, 40)}
+            sage: G_kwds = Graphics._extract_kwds_for_show(kwds, ignore='xmin')
+            sage: kwds # Note how this action modifies the passed dictionary
+            {'xmin': 0, 'plot_points': (40, 40), 'f': <function <lambda> at ...>}
+            sage: G_kwds
+            {'figsize': [1, 1]}
+
+        This method is intended to be used with _set_extra_kwds(). Here is an
+        idiom to ensure the correct keywords will get passed on to show()::
+
+            sage: options = {} # Usually this will come from an argument
+            sage: g = Graphics()
+            sage: g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
+        """
+        result = {}
+        for option in cls.SHOW_OPTIONS:
+            if option not in ignore:
+                try:
+                    result[option] = kwds.pop(option)
+                except KeyError:
+                    pass
+        return result
+
+    def _set_extra_kwds(self, kwds):
+        """
+        Set a dictionary of keywords that will get passed on to show().
+
+        TESTS::
+
+            sage: g = Graphics()
+            sage: g._extra_kwds
+            {}
+            sage: g._set_extra_kwds({'figsize': [10,10]})
+            sage: g._extra_kwds
+            {'figsize': [10, 10]}
+            sage: g.show() # Now the (blank) plot will be extra large
+        """
+        self._extra_kwds = kwds
+
+    # This dictionary has the default values for the keywords to show(). When
+    # show is invoked with keyword arguments, those arguments are merged with
+    # this dictionary to create a set of keywords with the defaults filled in.
+    # Then, those keywords are passed on to save().
+
+    # NOTE: If you intend to use a new parameter in show(), you should update
+    # this dictionary to contain the default value for that parameter.
+
+    SHOW_OPTIONS = dict(xmin=None, xmax=None, ymin=None, ymax=None,
+                        figsize=DEFAULT_FIGSIZE, filename=None,
+                        dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
+                        fontsize=None, aspect_ratio=None,
+                        gridlines=None, gridlinesstyle=None,
+                        vgridlinesstyle=None, hgridlinesstyle=None)
+
+    def show(self, **kwds):
         """
         Show this graphics image with the default image viewer.
 
@@ -1282,40 +1346,32 @@ class Graphics(SageObject):
             sage: M = MatrixSpace(QQ,10).random_element()
             sage: matrix_plot(M).show(gridlines=True)
         """
+
+        # This option should not be passed on to save().
+        linkmode = kwds.pop('linkmode', False)
+
+        options = {}
+        options.update(self.SHOW_OPTIONS)
+        options.update(self._extra_kwds)
+        options.update(kwds)
+
         if DOCTEST_MODE:
-            self.save(DOCTEST_MODE_FILE,
-                      xmin, xmax, ymin, ymax, figsize,
-                      dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
-                      aspect_ratio=aspect_ratio, gridlines=gridlines,
-                      gridlinesstyle=gridlinesstyle,
-                      vgridlinesstyle=vgridlinesstyle,
-                      hgridlinesstyle=hgridlinesstyle)
-            return
-        if EMBEDDED_MODE:
-            if filename is None:
-                filename = sage.misc.misc.graphics_filename()
-            self.save(filename, xmin, xmax, ymin, ymax, figsize,
-                      dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
-                      aspect_ratio=aspect_ratio, gridlines=gridlines,
-                      gridlinesstyle=gridlinesstyle,
-                      vgridlinesstyle=vgridlinesstyle,
-                      hgridlinesstyle=hgridlinesstyle)
+            options.pop('filename')
+            self.save(DOCTEST_MODE_FILE, **options)
+        elif EMBEDDED_MODE:
+            if options['filename'] is None:
+                options['filename'] = sage.misc.misc.graphics_filename()
+            self.save(**options)
             if linkmode == True:
-                return "<img src='cell://%s'>"%filename
+                return "<img src='cell://%s'>" % options['filename']
             else:
-                html("<img src='cell://%s'>"%filename)
-                return
-        if filename is None:
-            filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,
-                  axes_labels=axes_labels,
-                  frame=frame, fontsize=fontsize,
-                  aspect_ratio=aspect_ratio,
-                  gridlines=gridlines,
-                  gridlinesstyle=gridlinesstyle,
-                  vgridlinesstyle=vgridlinesstyle,
-                  hgridlinesstyle=hgridlinesstyle)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
+                html("<img src='cell://%s'>" % options['filename'])
+        else:
+            if options['filename'] is None:
+                options['filename'] = sage.misc.misc.tmp_filename() + '.png'
+            self.save(**options)
+            os.system('%s %s 2>/dev/null 1>/dev/null &' % \
+                (sage.misc.viewer.browser(), options['filename']))
 
     def xmin(self, xmin=None):
         """
@@ -1931,6 +1987,11 @@ def plot(funcs, *args, **kwds):
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
 
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: plot(sin(x^2), (x, -3, 3), figsize=[8,2])
+        sage: plot(sin(x^2), (x, -3, 3)).show(figsize=[8,2]) # These are equivalent
+
     TESTS:
 
     We do not randomize the endpoints::
@@ -1985,6 +2046,8 @@ def plot(funcs, *args, **kwds):
         ...
         RuntimeError: Error in line(): option 'foo' not valid.
     """
+    G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
+
     original_opts = kwds.pop('__original_opts', {})
     do_show = kwds.pop('show',False)
     if hasattr(funcs, 'plot'):
@@ -2023,6 +2086,7 @@ def plot(funcs, *args, **kwds):
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
 
+    G._set_extra_kwds(G_kwds)
     if do_show:
         G.show()
     return G

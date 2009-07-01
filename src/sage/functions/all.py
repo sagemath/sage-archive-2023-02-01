@@ -56,3 +56,5 @@ from orthogonal_polys import (chebyshev_T,
 from spike_function import spike_function
 
 from prime_pi import prime_pi
+
+from generalized import (dirac_delta, heaviside, unit_step)

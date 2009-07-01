@@ -492,6 +492,20 @@ class SBox(SageObject):
         ncols = 1<<n
 
         def _walsh_transform(f):
+            """
+            Compute the Walsh transform of `f` in place.
+
+            EXAMPLE::
+
+                sage: S = mq.SBox(3,2,7,1)
+                sage: S.linear_approximation_matrix() # indirect doctest
+                [ 2 -1 -1  0  1  0  0 -1]
+                [ 0 -1 -1  2 -1  0  0  1]
+                [ 0  1 -1  0  1  0 -2  1]
+                [ 0 -1  1  0  1 -2  0  1]
+
+            NOTE: internal use only; we use the specific dimension of the S-Box.
+            """
             for ldk in xrange(1,m+1):
                 k  = 1<<ldk
                 kh = k//2

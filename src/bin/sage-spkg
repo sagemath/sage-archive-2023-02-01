@@ -240,11 +240,11 @@ fi
 echo "****************************************************"
 
 echo "****************************************************"
-echo "GCC Version"
-echo "gcc -v"
-gcc -v
+echo "CC Version"
+echo "$CC -v"
+$CC -v
 if [ $? -ne 0 ]; then
-   echo "Unable to determine gcc version."
+   echo "Unable to determine C compiler version."
 fi
 echo "****************************************************"
 

@@ -11,10 +11,11 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 == SPKG Maintainers ==
  * Michael Abshoff
  * Josh Kantor
+ * David Kirkby
 
 == Upstream Contact ==
 
-Atlas devel mainling list.
+Atlas devel mailing list.
 
 == Dependencies ==
 
@@ -27,8 +28,40 @@ Atlas devel mainling list.
  * patches/Make.top.patch: add make install target for shared libs
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
+ * Changes linker flags on Solaris if the Sun linker is used.
 
 == ChangeLog ==
+
+=== atlas-3.8.3.p5 (David Kirkby, June 24th 2009) ===
+ * Made a backup of ATLAS-build/lib/Makefile to ATLAS-build/lib/Makefile.orig
+ * Alter the flags in ATLAS-build/lib/Makefile with those that will work if the linker
+   used is the Sun linker. The default Makefile makes use of the GNU linker's
+   flags, such as "-shared" which is not acceptable to the Sun linker.
+
+   The patch is only applied if the operating system is Solaris, and the
+   linker is not the GNU linker. The flags charged are:
+   -shared ==> -G
+   -soname ==> -h
+   --whole-archive ==>  -z allextract
+   --no-whole-archive ==> -z defaultextract
+
+    NOTES:
+    1) Sun have a tool which accepts gcc flags, but calls the Sun compiler.
+    This patch might mess things up if that is used. Having never used the tool
+    it's impossible to be 100% sure of this. Anyway, that will be some time in
+    the future, so this patch can be removed.
+
+    2) The fact the linker flags are GNU specific has been reported to the ATLAS
+    maintainer, so they may fix this problem. In which case the patch could be
+    removed at a later date.
+  * Fixed a minor spelling mistake in this file
+
+=== atlas-3.8.3.p4 (David Kirkby, June 16th 2009) ===
+ * Change GuessSmallNB() in src/tune/blas/gemm/mmsearch.c
+   as suggested by Clint Whaley to return 28
+   on Solaris. This is ONLY A TEMPORARY FIX and once the real problem
+   in the function is sorted out, this fix will need to be removed. But
+   for now it permits ATLAS to build on a Sun T5240 with gcc-4.4.0.
 
 === atlas-3.8.3.p3 (William Stein, June 2, 2009) ===
  * Fix so SAGE_FAT_BINARY *only* used on x86 boxes.

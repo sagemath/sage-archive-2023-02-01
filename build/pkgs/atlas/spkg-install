@@ -3,6 +3,18 @@
 import os, random, sys, time
 
 ##############################################
+# Apply a TEMPORARY fix to allow ATLAS to build with
+# gcc 4.4.0 on Solaris. Implemented 16th June 2009, by David Kirkby.
+# One would expect to remove this within a couple of months,
+# once the underlying issue in ATLAS is resolved. The patch
+# forces
+
+import shutil
+if os.uname()[0] == 'SunOS':
+   shutil.copy2('patches/mmsearch-with-temp-Solaris-fix.c','src/tune/blas/gemm/mmsearch.c')
+##############################################
+
+##############################################
 ## Build ATLAS repeatedly up to 5 times until
 ## it works. Pause a random amount of time
 ## between each build attempt.

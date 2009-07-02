@@ -71,6 +71,33 @@ build()
 
 	# now build the shared libraries
 	cd lib
+        # If the Sun linker is used, alter the Makefile to be suitable for the"
+        # Sun linker.
+        if [ `uname` = "SunOS" ]; then
+          if [ "`ld  --version  2>&1  | grep GNU`" = "" ]; then
+             echo "The Makefile generated in ATLAS for building shared libraries"
+             echo "assumes the linker is the GNU linker, which it not true in"
+             echo "your setup. (It is generally considered better to use the"
+             echo "Sun linker in /usr/ccs/bin rather than the GNU linker from binutils)"
+             echo "The linker flags in `pwd`/Makefile will be changed. "
+             echo "'-shared' will be changed to '-G'"
+             echo "'-soname' will be changed to '-h'"
+             echo "'--whole-archive' will be changed to '-zallextract'"
+             echo "'--no-whole-archive' will be changed to '-zdefaultextract'"
+             echo "A copy of the original Makefile will be copied to Makefile.orig"
+             cp Makefile Makefile.orig
+             sed 's/-shared/-G/g' Makefile > makefile
+             sed 's/-soname/-h/g' makefile > Makefile
+             sed 's/--whole-archive/-z allextract/g' Makefile > makefile
+             sed 's/--no-whole-archive/-z defaultextract/g' makefile > Makefile
+             rm makefile
+          else
+             echo "WARNING You are using the GNU linker from 'binutils'"
+             echo "Generally it is considered better to use the Sun linker"
+             echo "but Sage has been built on Solaris using the GNU linker"
+          fi
+        fi
+
 	make shared cshared
         if [ $? -ne 0 ]; then
             echo "Building shared ATLAS libraris failed"

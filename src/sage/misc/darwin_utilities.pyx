@@ -1,34 +1,43 @@
+# darwin_utilities extension module built only on OS_X >= 10.5 (see end of module_list.py)
 
-IF UNAME_SYSNAME == "Darwin":
-    cdef extern from "darwin_memory_usage.h":
-        cdef unsigned long long darwin_virtual_size()
+cdef extern from "darwin_memory_usage.h":
+    cdef unsigned long long darwin_virtual_size()
 
 def darwin_memory_usage():
     r"""
-    On Darwin, returns the virtual size of the process in bytes. This will match what "top" reports
-    as the VSIZE. Raises on all other platforms
+    On Darwin >= 9 (i.e. OS X >= 10.5), returns the virtual size of the process in bytes.
+    This will match what "top" reports as the VSIZE.
+    Raises on all other platforms
 
     EXAMPLES
-        sage: from sage.misc.darwin_utilities import darwin_memory_usage
-        sage: if os.uname()[0] == 'Darwin':
+        sage: uname = os.uname()
+        sage: if uname[0] == 'Darwin' and not uname[2].startswith('8.'):
+        ...       from sage.misc.darwin_utilities import darwin_memory_usage
         ...       memory_usage = darwin_memory_usage()
 
 
-        sage: from sage.misc.darwin_utilities import darwin_memory_usage
-        sage: try:
-        ...     if os.uname()[0] != 'Darwin':
-        ...         memory_usage = darwin_memory_usage()
-        ...     else:
-        ...         raise NotImplementedError
-        ... except NotImplementedError:
-        ...     print "NotImplementedError"
-        NotImplementedError
+        sage: uname = os.uname()
+        sage: if uname[0] == 'Darwin' and uname[2].startswith('8.'):
+        ...       try:
+        ...           from sage.misc.darwin_utilities import darwin_memory_usage
+        ...           memory_usage = darwin_memory_usage()
+        ...           print "doctest failure!"
+        ...           print "darwin_memory_usage() not implemented on platform Darwin 8 (i.e. OS X 10.4)"
+        ...       except ImportError:
+        ...           pass
+
+
+        sage: uname = os.uname()
+        sage: if uname[0] != 'Darwin':
+        ...       try:
+        ...           from sage.misc.darwin_utilities import darwin_memory_usage
+        ...           memory_usage = darwin_memory_usage()
+        ...           print "doctest failure!"
+        ...           print "darwin_memory_usage() not implemented on platform %s"%uname[0]
+        ...       except ImportError:
+        ...           pass
+
 
     """
-    IF UNAME_SYSNAME == "Darwin":
-        return darwin_virtual_size()
-    ELSE:
-        import os
-        uname = os.uname()
-        platform_name = uname[0]
-        raise NotImplementedError, "darwin_memory_usage() not implemented on platform %s"%platform_name
+    return darwin_virtual_size()
+

@@ -1452,7 +1452,7 @@ class FGP_Module_class(Module):
             sage: A = (ZZ**2) / span([[4,0],[0,3]], ZZ)
             sage: hash(A)
             1328975982 # 32-bit
-
+            -7071641102956720018 # 64-bit
         """
         return hash( (self.V(), self.W()) )
 

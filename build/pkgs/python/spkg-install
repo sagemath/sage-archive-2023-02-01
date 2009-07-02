@@ -127,7 +127,7 @@ build
 cd $SAGE_LOCAL/lib
 
 if [ -d python2.5/site-packages ]; then
-   mv python2.5/site-packages python2.6/
+   mv python2.5/site-packages python2.6/site-packages-old
 fi
 
 rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5

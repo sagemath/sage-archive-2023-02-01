@@ -580,7 +580,7 @@ quelques premières valeurs qu'il prend.
 
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w
-    <generator object at 0x...>
+    <generator object <genexpr> at 0x...>
     sage: w.next()
     13
     sage: w.next()

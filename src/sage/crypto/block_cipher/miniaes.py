@@ -278,7 +278,7 @@ class MiniAES(SageObject):
 
         - ``key`` -- a secret key; this must be a 16-bit binary string
 
-        - ``algorithm`` -- (default: `"encrypt"``) a string; a flag to signify
+        - ``algorithm`` -- (default: ``"encrypt"``) a string; a flag to signify
           whether encryption or decryption is to be applied to the binary
           string ``B``. The encryption flag is ``"encrypt"`` and the decryption
           flag is ``"decrypt"``.
@@ -391,9 +391,12 @@ class MiniAES(SageObject):
         else:
             raise ValueError, "algorithm must be either 'encrypt' or 'decrypt'"
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Compare ``self`` with ``other``.
+
+        Mini-AES objects are the same if they have the same key size and
+        the same S-boxes.
 
         EXAMPLES::
 
@@ -402,18 +405,9 @@ class MiniAES(SageObject):
             sage: m == loads(dumps(m))
             True
         """
-        if (self._key_size == other._key_size) and \
-                (self._sboxE == other._sboxE) and \
-                (self._sboxD == other._sboxD) and \
-                (self._bin_to_GF == other._bin_to_GF) and \
-                (self._bin_to_int == other._bin_to_int) and \
-                (self._GF_to_bin == other._GF_to_bin) and \
-                (self._GF_to_int == other._GF_to_int) and \
-                (self._int_to_bin == other._int_to_bin) and \
-                (self._int_to_GF == other._int_to_GF):
-            return True
-        else:
-            return False
+        return ( (self._key_size == other._key_size) and
+                 (self._sboxE == other._sboxE) and
+                 (self._sboxD == other._sboxD) )
 
     def __repr__(self):
         r"""

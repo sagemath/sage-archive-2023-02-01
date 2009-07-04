@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+<TITLE>jsMath (Test):  jsMath Image Mode Test Page</TITLE>
+<!-- Copyright (c) 2007 by Davide P. Cervone.  All rights reserved. -->
+<!-- *Document-Format:  jsMath -->
+<!-- *Navigation-Data:-->
+</HEAD>
+<BODY>
+
+<!-- *Navigation-links -->
+<TABLE WIDTH="100%" BORDER="1" CELLPADDING="2" CELLSPACING="1">
+<TR><TD BGCOLOR="#B8B8B8"><TABLE WIDTH="100%" BORDER="0" CELLPADDING="0" CELLSPACING="0">
+<TR><TD WIDTH="20%" ALIGN="LEFT" NOWRAP></TD>
+<TD ALIGN="CENTER" WIDTH="60%"><!
+><NOBR><B><SMALL><A HREF="../welcome.html">jsMath</A> (Test)</SMALL></B></NOBR><!
+></TD>
+<TD ALIGN="RIGHT" WIDTH="20%" HEIGHT="25" NOWRAP><!
+></TD></TR></TABLE>
+</TD></TR></TABLE>
+<p>
+<!BR>
+
+<!-- *Begin-Document-Body -->
+
+<SCRIPT>
+  jsMath = {
+    Controls: {cookie: {scale: 133, font:'image', autofont:0}},
+    Parser: {prototype: {
+      macros: {warning: ["Macro","\\color{##00CC00}{\\rm jsMath\\ image\\ mode\\ appears\\ to\\ be\\  working!}",1]}
+    }}
+  }
+</SCRIPT>
+<SCRIPT SRC="../jsMath.js"></SCRIPT>
+<NOSCRIPT>
+<DIV STYLE="color:#CC0000; text-align:center">
+<B>Warning: <A HREF="http://www.math.union.edu/locate/jsMath">jsMath</A>
+requires JavaScript to process the mathematics on this page.<BR>
+If your browser supports JavaScript, be sure it is enabled.<B>
+</DIV>
+<HR>
+</NOSCRIPT>
+
+<BLOCKQUOTE>
+
+<H1>jsMath Image Mode Test Page</H1>
+
+If you see typeset mathematics below, then jsMath Image Mode is working.  If you see
+TeX code instead, jsMath Image Mode is not working for you.
+<p>
+<!------------------------------------------------------------------------>
+<HR>
+
+
+<DIV CLASS="math">
+\left(\, \sum_{k=1}^n a_k b_k \right)^2 \le
+\left(\, \sum_{k=1}^n a_k^2 \right) \left(\, \sum_{k=1}^n b_k^2 \right)
+</DIV>
+<p>
+
+<DIV CLASS="math" STYLE="color:red">
+\warning{ &nbsp; &nbsp; &nbsp; jsMath image mode is not working! &nbsp; &nbsp; &nbsp; }
+</DIV>
+
+<!------------------------------------------------------------------------>
+<HR>
+<p>
+If the mathematics does not show up properly, you may not have not
+installed the <A
+HREF="http://www.math.union.edu/locate/jsMath/download/jsMath.html">jsMath
+image fonts</A> file correctly.  Follow the instructions on the linked
+page.
+<p>
+
+Once you have jsMath working, go on to the <A HREF="sample.html">sample
+page</A> to see if <CODE>easy/load.js</CODE> is configured properly.
+
+</BLOCKQUOTE>
+
+<SCRIPT>
+jsMath.Controls.cookie.autofont = 0;
+jsMath.Controls.cookie.font = "image";
+jsMath.Process(document);
+</SCRIPT>
+
+<!-- *End-Document-Body -->
+
+<!-- *jsMath-Common-Footer -->
+<!BR><p>
+<HR SIZE="3">
+<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="0" WIDTH="98%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE"><TD BGCOLOR="#B8B8B8" WIDTH="50%">
+<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="8" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+
+<TD><IMG SRC="jsMath40.jpg" ALT="[HOME]" BORDER="1" WIDTH="40" HEIGHT="40" HSPACE="5"></TD>
+<TD><SMALL>jsMath web pages<BR>
+Created:  14 Feb 2007<BR>
+<!-- hhmts start -->
+Last modified:  Jun 16, 2007 8:56:17 AM
+<!-- hhmts end -->
+<BR>
+Comments to:  <A HREF="mailto:dpvc@union.edu"><CODE>dpvc@union.edu</CODE></A><BR>
+</SMALL></TD>
+
+</TR></TABLE></TD>
+<TD WIDTH="100%" BGCOLOR="#B8B8B8">&nbsp;</TD>
+</TR></TABLE>
+<HR SIZE="3">
+
+</BODY>
+</HTML>

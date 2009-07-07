@@ -280,3 +280,6 @@ rstpep2html.py
 sphinx-build
 sphinx-quickstart
 ncadoctest.pyc
+2to3
+ecl
+ecl-config

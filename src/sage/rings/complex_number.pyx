@@ -523,11 +523,22 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def norm(self):
         r"""
-        Returns the norm of self.
+        Returns the norm of this complex number. If `c = a + bi` is a
+        complex number, then the norm of `c` is defined as
 
-        `norm(a + bi) = a^2 + b^2`
+        .. MATH::
 
-        EXAMPLES: This indeed acts as the square function when the
+            \text{norm}(c) = \text{norm}(a + bi) = a^2 + b^2
+
+        The norm of a complex number is different from its absolute value.
+        The absolute value of a complex number is defined to be the square
+        root of its norm. A typical use of the complex norm is in the
+        integral domain `\ZZ[i]` of Gaussian integers, where the norm of
+        each Gaussian integer `c = a + bi` is defined as its complex norm.
+
+        EXAMPLES:
+
+        This indeed acts as the square function when the
         imaginary component of self is equal to zero::
 
             sage: a = ComplexNumber(2,1)

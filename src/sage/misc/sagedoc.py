@@ -123,7 +123,7 @@ itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
 itemreplace = r"* \1 \2"
 
 def detex(s):
-    """nodetex
+    r"""nodetex
     This strips LaTeX commands from a string; it is used by the
     ``format`` function to process docstrings for display from the
     command line interface.

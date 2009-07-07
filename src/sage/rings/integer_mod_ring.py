@@ -731,10 +731,38 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self.__pari_order
 
     def __call__(self, x):
+        """
+        TESTS::
+
+            sage: K2 = GF(2)
+            sage: K3 = GF(3)
+            sage: K8 = GF(8,'a')
+            sage: K8(5)
+            1
+            sage: K8('a+1')
+            a + 1
+            sage: K8(K2(1))
+            1
+
+        The following test refers to Trac Ticket number 6468::
+
+            sage: class foo_parent(Parent):
+            ...       pass
+            sage: class foo(RingElement):
+            ...       def lift(self):
+            ...           raise PariError
+            sage: P = foo_parent()
+            sage: F = foo(P)
+            sage: GF(2)(F)
+            Traceback (most recent call last):
+            ...
+            TypeError: error coercing to finite field
+
+        """
         try:
             return integer_mod.IntegerMod(self, x)
         except (NotImplementedError, PariError):
-            return TypeError, "error coercing to finite field"
+            raise TypeError, "error coercing to finite field"
         except TypeError:
             if sage.interfaces.all.is_GapElement(x):
                 from sage.interfaces.gap import gfq_gap_to_sage

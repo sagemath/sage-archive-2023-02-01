@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Lisp Interface
 
 EXAMPLES:
@@ -75,10 +75,10 @@ class Lisp(Expect):
                         # This is regexp of the input prompt.  If you can change
                         # it to be very obfuscated that would be better.   Even
                         # better is to use sequence numbers.
-                        prompt = '\[[0-9]+\]> ',
+                        prompt = '> ',
 
                         # This is the command that starts up your program
-                        command = "clisp-noreadline --silent -on-error abort",
+                        command = "ecl",
 
                         maxread = maxread,
                         server=server,
@@ -276,13 +276,13 @@ class Lisp(Expect):
 
         EXAMPLES:
             sage: lisp.console() #not tested
-              i i i i i i i       ooooo    o        ooooooo   ooooo   ooooo
-              I I I I I I I      8     8   8           8     8     o  8    8
-              I  \ `+' /  I      8         8           8     8        8    8
-               \  `-+-'  /       8         8           8      ooooo   8oooo
-                `-__|__-'        8         8           8           8  8
-                    |            8     o   8           8     o     8  8
-              ------+------       ooooo    8oooooo  ooo8ooo   ooooo   8
+            ECL (Embeddable Common-Lisp) ...
+            Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya
+            Copyright (C) 1993 Giuseppe Attardi
+            Copyright (C) 2000 Juan J. Garcia-Ripoll
+            ECL is free software, and you are welcome to redistribute it
+            under certain conditions; see file 'Copyright' for details.
+            Type :h for Help.  Top level.
             ...
         """
         lisp_console()
@@ -294,14 +294,14 @@ class Lisp(Expect):
 
         EXAMPLES:
             sage: lisp.version()
-            GNU CLISP ... (...) (built ...)
-            ...
+            'Version information is given by lisp.console().'
 
         """
-        import subprocess
-        p = subprocess.Popen('clisp --version', shell=True, stdin=subprocess.PIPE,
-                             stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        return AsciiArtString(p.stdout.read())
+#        import subprocess
+#        p = subprocess.Popen('ecl --version', shell=True, stdin=subprocess.PIPE,
+#                             stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+#        return AsciiArtString(p.stdout.read())
+        return "Version information is given by lisp.console()."
 
     def _object_class(self):
         """
@@ -376,9 +376,9 @@ class Lisp(Expect):
 
         EXAMPLES:
             sage: lisp.function_call('sin', ['2'])
-            0.9092974
+            0.90929741
             sage: lisp.sin(2)
-            0.9092974
+            0.90929741
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -532,16 +532,16 @@ def lisp_console():
     Spawn a new Lisp command-line session.
 
     EXAMPLES:
-        sage: lisp_console() #not tested
-          i i i i i i i       ooooo    o        ooooooo   ooooo   ooooo
-          I I I I I I I      8     8   8           8     8     o  8    8
-          I  \ `+' /  I      8         8           8     8        8    8
-           \  `-+-'  /       8         8           8      ooooo   8oooo
-            `-__|__-'        8         8           8           8  8
-                |            8     o   8           8     o     8  8
-          ------+------       ooooo    8oooooo  ooo8ooo   ooooo   8
+        sage: lisp.console() #not tested
+        ECL (Embeddable Common-Lisp) ...
+        Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya
+        Copyright (C) 1993 Giuseppe Attardi
+        Copyright (C) 2000 Juan J. Garcia-Ripoll
+        ECL is free software, and you are welcome to redistribute it
+        under certain conditions; see file 'Copyright' for details.
+        Type :h for Help.  Top level.
         ...
     """
-    os.system('clisp')
+    os.system('ecl')
 
 

@@ -23,8 +23,5 @@ include doc/en/a_tour_of_sage/eigen_plot.png
 include doc/en/a_tour_of_sage/sin_plot.png
 include doc/en/bordeaux_2008/birch.png
 include doc/en/bordeaux_2008/modpcurve.png
-include doc/common/static/favico.ico
-include doc/common/static/sageicon.png
-include doc/common/static/sagelogo.png
-include doc/common/static/jsmath/*
+recursive-include doc/common/static *
 

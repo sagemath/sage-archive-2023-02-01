@@ -262,7 +262,7 @@ def update(update_from_sage_main = False):
 ##############################################################################
 
 sage         = options.sage
-hg           = sage+" -hg"
+hg           = sage+" -hg --config 'extensions.hgext.mq='"
 sage_root    = get_sage_root()
 sage_version = get_sage_version()
 

@@ -23,7 +23,7 @@ else
     CCFLAGS=""
 fi
 
-if [ `uname` = "Darwin" -a "$SAGE64" != "" ]; then
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
     echo "Building with extra 64-bit flags for OS X"
     CCFLAGS="-m64 $CCFLAGS"
 fi

@@ -24,6 +24,16 @@ Also, you can instantly create a space of large dimension.
 ::
 
     sage: V = RDF^10000
+
+TESTS::
+
+    Test NumPy conversions::
+
+        sage: RDF(1).__array_interface__
+        {'typestr': '=f8'}
+        sage: import numpy
+        sage: numpy.array([RDF.pi()]).dtype
+        dtype('float64')
 """
 
 include '../ext/python_float.pxi'
@@ -510,6 +520,9 @@ cdef class RealDoubleElement(FieldElement):
     calculations were performed with true real numbers. This is due to
     the rounding errors inherent to finite precision calculations.
     """
+
+    __array_interface__ = {'typestr': '=f8'}
+
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 

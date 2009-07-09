@@ -162,6 +162,9 @@ cdef class RealNumber(sage.structure.element.RingElement)
 
 _re_skip_zeroes = re.compile(r'^(.+?)0*$')
 
+cdef object numpy_double_interface = {'typestr': '=f8'}
+cdef object numpy_object_interface = {'typestr': '|O'}
+
 #*****************************************************************************
 #
 #       External Python access to constants
@@ -940,6 +943,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
             10.500000000000000000000000000000000000000000000000000000000
         """
         return "%s!%s" % (self.parent()._magma_init_(magma), self)
+
+    property __array_interface__:
+        def __get__(self):
+            """
+            Used for NumPy conversion.
+
+            EXAMPLES::
+
+                sage: import numpy
+                sage: numpy.arange(10.0)
+                array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+                sage: numpy.array([1.0, 1.1, 1.2]).dtype
+                dtype('float64')
+                sage: numpy.array([1.000000000000000000000000000000000000]).dtype
+                dtype('object')
+            """
+            if (<RealField>self._parent).__prec <= 77: # max size of repr(float)
+                return numpy_double_interface
+            else:
+                return numpy_object_interface
+
 
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.

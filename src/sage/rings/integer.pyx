@@ -102,6 +102,25 @@ floating real field R.
     sage: RR = RealField(200)
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
+
+TESTS::
+
+Converts to NumPy::
+
+    sage: import numpy
+    sage: numpy.array([1, 2, 3]).dtype
+    dtype('int64')
+    sage: numpy.array([1,2,3,0.1]).dtype
+    dtype('float64')
+
+Explicitly use dtype=object for values larger than 64 bits::
+
+    sage: numpy.array([2^100])
+    Traceback (most recent call last):
+    ...
+    ValueError: setting an array element with a sequence.
+    sage: numpy.array([2^100], dtype=object)
+    array([1267650600228229401496703205376], dtype=object)
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -387,6 +406,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer('012')
         10
     """
+
+    __array_interface__ = {'typestr': '=i8'}
 
     # todo: It would be really nice if we could avoid the __new__ call.
     # It has python calling conventions, and our timing tests indicate the

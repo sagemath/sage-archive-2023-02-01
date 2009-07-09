@@ -92,6 +92,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         True
     """
 
+    # Enable when __complex__ is used by NumPy rather than expecting a float.
+    # __array_interface__ = {'typestr': '=c16'}
+
     cdef ComplexNumber _new(self):
         """
         Quickly creates a new initialized complex number with the same

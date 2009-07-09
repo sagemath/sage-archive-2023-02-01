@@ -588,6 +588,9 @@ cdef class ComplexDoubleElement(FieldElement):
     calculations were performed with true complex numbers. This is due
     to the rounding errors inherent to finite precision calculations.
     """
+    # Enable when __complex__ is used by NumPy rather than expecting a float.
+    # __array_interface__ = {'typestr': '=c16'}
+
     def __new__(self, real=None, imag=None):
         self._parent = _CDF
 

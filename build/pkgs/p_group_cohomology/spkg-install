@@ -1,0 +1,31 @@
+ #!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+SMALL_GROUPS=`cd $SAGE_ROOT/spkg/optional/; $SAGE_ROOT/spkg/standard/newest_version database_gap`
+if [ "$SMALL_GROUPS" = "" ]; then
+    echo "Failed to find SmallGroups library.  Please install the database_gap spkg"
+    exit 1
+fi
+
+cd src
+
+make
+if [ $? -ne 0 ]; then
+   echo "Error building pGroupCohomology."
+   exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+   echo "Error installing pGroupCohomology."
+   exit 1
+fi
+
+#rm pGroupCohomology/*.c
+DISTUTILS_DEBUG='debug'
+python setup.py install

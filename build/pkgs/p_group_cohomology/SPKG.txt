@@ -1,0 +1,69 @@
+= p_group_cohomology-1.0 =
+
+== Description ==
+
+Modular Cohomology Rings of Finite p-Groups
+
+The documentation of the package is provided at
+http://sage.math.washington.edu/home/SimonKing/Cohomology/
+
+== License ==
+
+Copyright (C) 2009 Simon A. King  <simon.king@uni-jena.de> and
+                   David J. Green <david.green@uni-jena.de>
+
+Distributed under the terms of the GNU General Public License (GPL)
+
+   This code is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+The full text of the GPL is available at:
+
+                http://www.gnu.org/licenses/
+
+== SPKG Maintainers ==
+
+Simon A. King <simon.king@uni-jena.de>
+
+== Upstream Contact ==
+
+Simon A. King  <simon.king@uni-jena.de>
+David J. Green <david.green@uni-jena.de>
+
+== Dependencies ==
+
+- The SmallGroups library needs to be installed.
+- For p-groups with a prime p>2, we require Singular at least in version 3-1-0.
+
+== Special Update/Build Instructions ==
+
+The package is very likely to neither work with OS X nor on Motorola processors
+(the latter due to endianness).
+
+Note that most of the code is original. Therefore we included the files from
+src into the Mercurial repository.
+
+The package includes a modified version of the Aachen C-MeatAxe. Since the
+changes are major, we included the modified sources into the Mercurial
+repository. A MeatAxe version that comes closest to what we started with
+is provided in the folder mtxoriginal.
+
+== Testing ==
+
+Our package does not provide a separate test suite for the MeatAxe C-library or
+David Green's routines for the computation of minimal projective resolutions.
+But it is of course equipped with extensive doc tests in the Cython code. The
+scripts ``spkg-check`` and ``spkg-check-details`` walk through all public
+methods of all classes in all modules of our package and performs the respective
+doc test. ``spkg-check`` runs over many doc tests at once, which is faster,
+but makes it sometimes difficult to find out which doc test actually failed.
+In contrast, ``spkg-check-details`` tells exactly which doc test failed, but
+takes much longer than ``spkg-check``. Both methods also check whether there
+is any method without a doc test.
+
+== Changelog ==
+
+  * first public version (July 2009)
+

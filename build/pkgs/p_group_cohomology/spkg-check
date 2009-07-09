@@ -1,0 +1,174 @@
+#!/usr/bin/env python
+
+import sage
+import sage.all
+from sage.all import walltime
+import inspect
+from sage.misc.randstate import set_random_seed
+
+def members_by_type(M,t):
+    L = dir(M)
+    if inspect.isclass(M) and len(inspect.getmro(M))>1:
+        H = inspect.getmro(M)[1]  # the parent of M in the class hierarchy
+        LA = [(getattr(M,X), X) for X in L if not (hasattr(H,X) and hasattr(getattr(H,X),'__doc__') and (getattr(H,X).__doc__ == getattr(M,X).__doc__))]  # only those methods that are not just inherited; inheritance is guessed by the doc strings
+    else:
+        LA = [(getattr(M,X), X) for X in L]
+    return [(X,Y) for X,Y in LA if (repr(type(X))=="<type '%s'>"%t) and is_member_of(X,M)]
+
+def is_member_of(X, M):
+    """
+    Return True if X is a member/method/... of M
+
+    If M is a class and X is a method that is inherited  from some other
+    class, then False is returned.
+    """
+    if repr(type(M))=="<type 'module'>":
+        return (hasattr(X,'__name__') and X.__name__.startswith(M.__name__)) or (hasattr(X,'__module__') and X.__module__==M.__name__)
+    if (repr(type(M))=="<type 'classobj'>") or (repr(type(M))=="<type 'instance'>") or (repr(type(M))=="<type 'type'>"):
+        return (repr(type(X))=="<type 'instancemethod'>") or (repr(type(X))=="<type 'method_descriptor'>")
+
+def package_tree(M, name=None):
+    """
+    OUTPUT:
+
+    A list. Item number zero is the object's fully qualified name.
+    Number one is its doc string. Number three is the list of its
+    children (modules, classes, instances, methods,...), if there
+    are any.
+    """
+    if name is None:
+        if hasattr(M,'__name__'):
+            name = M.__name__
+        else:
+            raise ValueError, "please tell me the name of %s"%M
+
+
+    members = members_by_type(M,'module') + members_by_type(M,'classobj') + members_by_type(M,'type') + members_by_type(M,'instance') + members_by_type(M,'instancemethod') + members_by_type(M,'method_descriptor')
+    for i in range(len(members)):
+        members[i] = package_tree(members[i][0],name=name+'.'+members[i][1])
+    return [name, getattr(M,'__doc__',''), members]
+
+def docstring_list(L, T):
+    """
+    L is changed in place, no return value. T is a package tree
+    """
+    L.append((T[0],T[1],len(T[2])))
+    for X in T[2]:
+        docstring_list(L, X)
+
+def recursive_doctests(M,name = None):
+    """
+    Given a module M, the function recursively tests all examples from M and its members.
+
+    OUTPUT:
+
+    A string (the result of running sage -t on the docstrings) and a
+    list of items without doc string.
+    """
+    from sage.all import tmp_filename
+    import os
+    from sage.all import SAGE_TMP
+    currdir = os.popen('pwd').read().split('\n')[0]
+    os.chdir(SAGE_TMP)
+    L = package_tree(M, name=name)
+    D = []
+    NO = [] # Dinge ohne Doc Test
+    docstring_list(D,L)
+    print "Testing the following items:"
+    for X in D:
+        print "  "+X[0]
+    print "Writing doc strings to '%s' and running 'sage -t -long -verbose'..."%(SAGE_TMP+'RecDoctest.py')
+    F = file('RecDoctest.py','w')
+    foo_counter = 0
+    for X in D:
+        foo_counter += 1
+        # If X refers to leaf in the package tree (i.e., a method!)
+        # and X has no doc string or its doc string has no tests:
+        if (X[1] is None or (not "sage: " in X[1])) and X[2]==0:
+            #print "Warning: No doc test in", X[0]
+            NO.append(X[0])
+        else:
+            # put every doc string into a separate fake function
+            F.write('def foo_%d():\n    """\n%s\n    """\n    return 0\n\n'%(foo_counter, X[1]))
+    F.close()
+    #Res = os.popen('sage -t -optional -long -verbose RecDoctest.py').read()
+    os.system('sage -t -optional -long -verbose RecDoctest.py > tmp_result')
+    tmp_f = file('tmp_result','r')
+    Res = tmp_f.read()
+    tmp_f.close()
+    if Res.split('\n')[-3]=='All tests passed!':
+        print 'All tests passed!'
+        Res = ''
+    os.chdir(currdir)
+    return Res,NO
+
+def single_doc_string(PACKAGE):
+    print "Doc Test for",PACKAGE.__name__
+    from sage.all import tmp_filename
+    import os
+    from sage.all import SAGE_TMP
+    currdir = os.popen('pwd').read().split('\n')[0]
+    os.chdir(SAGE_TMP)
+    F = file('RecDoctest.py','w')
+    F.write('"""\n%s\n"""'%(PACKAGE.__doc__))
+    F.close()
+    Res = os.popen('sage -t -optional -long -verbose RecDoctest.py').read()
+    if Res.split('\n')[-3]=='All tests passed!':
+        print 'All tests passed!'
+        Res = ''
+    os.chdir(currdir)
+    return Res
+
+def test_submodule(PACKAGE,modname):
+    START = getattr(PACKAGE,modname,None)
+    if START is None:
+        return True
+    print "Testing", START
+    O,NO = recursive_doctests(START, name=PACKAGE.__name__+'.'+modname)
+    if O or NO:
+        RES = open('%s_test.log'%(modname),'w')
+        if O:
+            print "Some doc tests resulted in errors."
+            RES.write(O)
+            RES.write("\n-------------------------------------------------------------\n")
+
+        if NO:
+            print "Some items lack a doc test"
+            RES.write("Warning: The following items had no doc tests\n")
+            for X in NO:
+                RES.write('  '+X+'\n')
+        RES.close()
+        print "Please see the protocol in '%s_test.log'"%(modname)
+        return False
+    return True
+
+if __name__ == '__main__':
+    import pGroupCohomology as BASIS
+    wt = walltime()
+    O = single_doc_string(BASIS)
+    problems = []
+    if O:
+        problems.append(BASIS.__name__)
+        RES = open('%s_test.log'%(BASIS.__name__),'w')
+        print "Some doc tests resulted in errors."
+        RES.write(O)
+        RES.write("\n-------------------------------------------------------------\n")
+        RES.close()
+        print "Please see the protocol in '%s_test.log'"%(BASIS.__name__)
+
+    print "Testing the following parts of %s:"%(BASIS.__name__)
+    MODULES = [X for X in dir(BASIS) if inspect.ismodule(getattr(BASIS,X)) and getattr(BASIS,X).__name__.startswith(BASIS.__name__)]
+    OTHERS = [X for X in dir(BASIS) if getattr(getattr(BASIS,X),'__module__','') == BASIS.__name__]
+    ITEMS = OTHERS + MODULES
+    print ITEMS
+    for X in ITEMS:
+        if not test_submodule(BASIS,X):
+            problems.append(X)
+    print "SUMMARY"
+    print "-------"
+    if not problems:
+        print "Congratulation! All tests passed!"
+    else:
+        print "Some doc tests failed or where missing."
+        print "Please check '*_test.log', with * in",problems
+    print "Total time: %2.2f min"%(walltime(wt)/60)

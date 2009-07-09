@@ -1,3 +1,6 @@
+r"""
+Dense univariate polynomials over `\RR`, implemented using MPFR
+"""
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 
@@ -24,7 +27,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __cinit__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: PolynomialRealDense(RR['x'])
             0
@@ -33,7 +37,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __init__(self, Parent parent, x=0, check=None, bint is_gen=False, construct=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: PolynomialRealDense(RR['x'], [1, int(2), RR(3), 4/1, pi])
             3.14159265358979*x^4 + 4.00000000000000*x^3 + 3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
@@ -89,7 +94,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2, 0, 1])
             sage: loads(dumps(f)) == f
@@ -116,7 +122,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __getitem__(self, ix):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], range(5)); f
             4.00000000000000*x^4 + 3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
@@ -127,7 +134,8 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f[5]
             0.000000000000000
 
-        Test slices:
+        Test slices::
+
             sage: R.<x> = RealField(10)[]
             sage: f = (x+1)^5; f
             1.0*x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
@@ -171,7 +179,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef Py_ssize_t degree(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [1, 2, 3]); f
             3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
@@ -182,10 +191,11 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef Polynomial truncate(self, long n):
         r"""
-        Returns the polynomial of degree $ < n$ which is equivalent to self
-        modulo $x^n$.
+        Returns the polynomial of degree `< n` which is equivalent to self
+        modulo `x^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RealField(10)['x'], [1, 2, 4, 8])
             sage: f.truncate(3)
@@ -212,7 +222,8 @@ cdef class PolynomialRealDense(Polynomial):
         """
         Truncate all high order coefficients below bound.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RealField(10)['x'], [10^-k for k in range(10)])
             sage: f
@@ -232,11 +243,12 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef shift(self, Py_ssize_t n):
         r"""
-        Returns this polynomial multiplied by the power $x^n$. If $n$
-        is negative, terms below $x^n$ will be discarded. Does not
+        Returns this polynomial multiplied by the power `x^n`. If `n`
+        is negative, terms below `x^n` will be discarded. Does not
         change this polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [1, 2, 3]); f
             3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
@@ -247,7 +259,8 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f.shift(-10)
             0
 
-        TESTS:
+        TESTS::
+
             sage: f = RR['x'](0)
             sage: f.shift(3).is_zero()
             True
@@ -271,7 +284,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def list(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [1, 0, -2]); f
             -2.00000000000000*x^2 + 1.00000000000000
@@ -289,7 +303,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __neg__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2,0,1])
             sage: -f
@@ -304,7 +319,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef ModuleElement _add_(left, ModuleElement _right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2,0,1]); f
             1.00000000000000*x^2 - 2.00000000000000
@@ -336,7 +352,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef ModuleElement _sub_(left, ModuleElement _right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-3,0,1]); f
             1.00000000000000*x^2 - 3.00000000000000
@@ -369,7 +386,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-5,0,0,1]); f
             1.00000000000000*x^3 - 5.00000000000000
@@ -390,10 +408,11 @@ cdef class PolynomialRealDense(Polynomial):
 
     cpdef RingElement _mul_(left, RingElement _right):
         """
-        Here we use the naive O(n^2) algorithm, as asymptotically faster algorithms such
+        Here we use the naive `O(n^2)` algorithm, as asymptotically faster algorithms such
         as Karatsuba can have very inaccurate results due to intermediat rounding errors.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [1e20, 1])
             sage: g = PolynomialRealDense(RR['x'], [1e30, 1])
@@ -427,7 +446,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def _derivative(self, var=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [pi, 0, 2, 1]);
             sage: f.derivative()
@@ -443,7 +463,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def integral(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [3, pi, 1])
             sage: f.integral()
@@ -458,9 +479,10 @@ cdef class PolynomialRealDense(Polynomial):
 
     def reverse(self):
         """
-        Returns $x^d self(1/x)$ where d is the degree of self.
+        Returns `x^d f(1/x)` where `d` is the degree of `f`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-3, pi, 0, 1])
             sage: f.reverse()
@@ -475,7 +497,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def quo_rem(self, PolynomialRealDense other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2, 0, 1])
             sage: g = PolynomialRealDense(RR['x'], [5, 1])
@@ -530,7 +553,8 @@ cdef class PolynomialRealDense(Polynomial):
         inherit instability of division in this inexact ring, the results may
         not be entirely stable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = RR[]
             sage: (x^3).gcd(x^5+1)
             1.00000000000000
@@ -542,7 +566,8 @@ cdef class PolynomialRealDense(Polynomial):
             1.00000000000000*x^2 + 6.00000000000000*x + 9.00000000000000
 
         Unless the division is exact (i.e. no rounding occurs) the returned gcd is
-        almost certain to be 1.
+        almost certain to be 1.::
+
             sage: f = (x+RR.pi())^2 * (x-1)
             sage: g = (x+RR.pi())^5
             sage: f.gcd(g)
@@ -569,7 +594,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def __call__(self, xx):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2, 0, 1])
             sage: f(10)
@@ -632,7 +658,8 @@ cdef class PolynomialRealDense(Polynomial):
 
     def change_ring(self, R):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: f = PolynomialRealDense(RR['x'], [-2, 0, 1.5])
             sage: f.change_ring(QQ)
@@ -657,7 +684,8 @@ cdef class PolynomialRealDense(Polynomial):
 
 def make_PolynomialRealDense(parent, data):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import make_PolynomialRealDense
         sage: make_PolynomialRealDense(RR['x'], [1,2,3])
         3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000

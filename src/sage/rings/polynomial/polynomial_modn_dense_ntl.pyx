@@ -1,10 +1,20 @@
 """
-Dense univariate polynomials over Z/nZ, implemented using NTL.
+Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
+
+This implementation is generally slower than the FLINT implentation in
+:mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by
+default when the modulus is small enough; but NTL does not require that `n` be
+``int``-sized, so we use it as default when `n` is too large for FLINT.
+
+Note that the classes :class:`Polynomial_dense_modn_ntl_zz` and
+:class:`Polynomial_dense_modn_ntl_ZZ` are different; the former is limited to
+moduli less than a certain bound, while the latter supports arbitrarily large
+moduli.
 
 AUTHORS:
-    -- Robert Bradshaw: Split off from polynomial_element_generic.py (2007-09)
-    -- Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 
+- Robert Bradshaw: Split off from polynomial_element_generic.py (2007-09)
+- Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 """
 
 ################################################################################
@@ -50,11 +60,10 @@ zz_p_max = NTL_SP_BOUND
 
 cdef class Polynomial_dense_mod_n(Polynomial):
     """
-    A dense polynomial over the integers modulo n, where n is composite.
+    A dense polynomial over the integers modulo n, where n is composite, with
+    the underlying arithmetic done using NTL.
 
-    Much of the underlying arithmetic is done using NTL.
-
-    EXAMPLES:
+    EXAMPLES::
 
         sage: R.<x> = PolynomialRing(Integers(16))
         sage: f = x^3 - x + 17
@@ -147,7 +156,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def _pari_(self, variable=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = PolynomialRing(IntegerModRing(17),"t").gen()
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
@@ -160,13 +170,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def ntl_ZZ_pX(self):
         r"""
-        Return underlying NTL representation of this polynomial.
-        Additional ``bonus'' functionality is available through this
-        function.
+        Return underlying NTL representation of this polynomial.  Additional
+        ''bonus'' functionality is available through this function.
 
-        WARNING:
-        You must call \code{ntl.set_modulus(ntl.ZZ(n))} before doing
-        arithmetic with this object!
+        .. warning::
+
+            You must call ``ntl.set_modulus(ntl.ZZ(n))`` before doing
+            arithmetic with this object!
         """
         return self.__poly
 
@@ -204,7 +214,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     cpdef RingElement _mul_(self, RingElement right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = PolynomialRing(Integers(100), 'x').0
             sage: (x - 2)*(x^2 - 8*x + 16)
             x^3 + 90*x^2 + 32*x + 68
@@ -228,8 +239,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def quo_rem(self, right):
         """
-        Returns a tuple (quotient, remainder) where
-            self = quotient*other + remainder.
+        Returns a tuple (quotient, remainder) where self = quotient*other +
+        remainder.
         """
         if not isinstance(right, Polynomial_dense_mod_n):
             right = self.parent()(right)
@@ -242,10 +253,11 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def shift(self, n):
         r"""
-        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
-        terms below $x^n$ will be discarded. Does not change this polynomial.
+        Returns this polynomial multiplied by the power `x^n`. If `n` is negative,
+        terms below `x^n` will be discarded. Does not change this polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(Integers(12345678901234567890))
             sage: p = x^2 + 2*x + 4
             sage: p.shift(0)
@@ -266,7 +278,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             True
 
         AUTHOR:
-            -- David Harvey (2006-08-06)
+
+        - David Harvey (2006-08-06)
         """
         if n == 0 or self.degree() < 0:
             return self
@@ -300,7 +313,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         Return a new copy of the list of the underlying
         elements of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: _.<x> = Integers(100)[]
             sage: f = x^3 + 3*x - 17
             sage: f.list()
@@ -313,16 +327,16 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         r"""
         Set the value of this polynomial directly from a vector or string.
 
-        Polynomials over the integers modulo n are stored internally
-        using NTL's ZZ_pX class.  Use this function to set the value
-        of this polynomial using the NTL constructor, which is
-        potentially \emph{very} fast.  The input v is either a vector
-        of ints or a string of the form '[ n1 n2 n3 ... ]' where the
-        ni are integers and there are no commas between them.  The
-        optimal input format is the string format, since that's what
+        Polynomials over the integers modulo n are stored internally using
+        NTL's ``ZZ_pX`` class.  Use this function to set the value of this
+        polynomial using the NTL constructor, which is potentially *very* fast.
+        The input v is either a vector of ints or a string of the form ``[ n1
+        n2 n3 ... ]`` where the ni are integers and there are no commas between
+        them. The optimal input format is the string format, since that's what
         NTL uses by default.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = PolynomialRing(Integers(100))
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n as poly_modn_dense
             sage: poly_modn_dense(R, ([1,-2,3]))
@@ -368,10 +382,11 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def small_roots(self, *args, **kwds):
         r"""
-        See \code{sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots}
+        See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
         for the documentation of this function.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: N = 10001
             sage: K = Zmod(10001)
             sage: P.<x> = PolynomialRing(K)
@@ -383,47 +398,44 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
 def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     r"""
-    Let $N$ be the characteristic of the base ring this polynomial
-    is defined over: \code{N = self.base_ring().characteristic()}.
+    Let `N` be the characteristic of the base ring this polynomial
+    is defined over: ``N = self.base_ring().characteristic()``.
     This method returns small roots of this polynomial modulo some
-    factor $b$ of $N$ with the constraint that $b >= N^\beta$.
-    Small in this context means that if $x$ is a root of $f$
-    modulo $b$ then $|x| < X$. This $X$ is either provided by the
-    user or the maximum $X$ is chosen such that this algorithm
-    terminates in polynomial time. If $X$ is chosen automatically
-    it is $X = ceil(1/2 N^{\beta^2/\delta - \epsilon})$.
-    The algorithm may also return some roots which are larger than $X$.
-    `This algorithm' in this context means Coppersmith's algorithm for
-    finding small roots using the LLL algorithm. The
-    implementation of this algorithm follows Alexander May's PhD
-    thesis referenced below.
+    factor `b` of `N` with the constraint that `b >= N^\beta`.
+    Small in this context means that if `x` is a root of `f`
+    modulo `b` then `|x| < X`. This `X` is either provided by the
+    user or the maximum `X` is chosen such that this algorithm
+    terminates in polynomial time. If `X` is chosen automatically
+    it is `X = ceil(1/2 N^{\beta^2/\delta - \epsilon})`.
+    The algorithm may also return some roots which are larger than `X`.
+    'This algorithm' in this context means Coppersmith's algorithm for finding
+    small roots using the LLL algorithm. The implementation of this algorithm
+    follows Alexander May's PhD thesis referenced below.
 
     INPUT:
-      X -- an absolute bound for the root (default: see above)
-      beta -- compute a root mod $b$ where $b$ is a factor of $N$
-               and $b >= N^\beta$.  (default: 1.0 => $b = N$)
-      epsilon -- the parameter $\epsilon$ described above
-                 (default: beta/8)
-      **kwds -- passed through to LLL method of
-                \code{Matrix_integer_dense}.
+
+    - ``X`` -- an absolute bound for the root (default: see above)
+    - ``beta`` -- compute a root mod `b` where `b` is a factor of `N` and `b
+      \ge N^\beta`. (Default: 1.0, so `b = N`.)
+    - ``epsilon`` -- the parameter `\epsilon` described above. (Default: `\beta/8`)
+    - ``**kwds`` -- passed through to method :meth:`Matrix_integer_dense.LLL() <sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL>`.
 
     EXAMPLES:
 
-    First consider a small example:
+    First consider a small example::
 
         sage: N = 10001
         sage: K = Zmod(10001)
         sage: P.<x> = PolynomialRing(K)
         sage: f = x^3 + 10*x^2 + 5000*x - 222
 
-    This polynomial has no roots without modular reduction
-    (i.e. over $\ZZ$):
+    This polynomial has no roots without modular reduction (i.e. over `\ZZ`)::
 
         sage: f.change_ring(ZZ).roots()
         []
 
-    To compute its roots we need to factor the modulus $N$ and use
-    the chinese remainder theorem:
+    To compute its roots we need to factor the modulus `N` and use the chinese
+    remainder theorem::
 
         sage: p,q = N.prime_divisors()
         sage: f.change_ring(GF(p)).roots()
@@ -434,34 +446,33 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
         sage: crt(4, 4, p, q)
         4
 
-    This root is quite small compared to $N$ so we can attempt to
-    recover it without factoring $N$ using Coppersmith's small root
-    method:
+    This root is quite small compared to `N`, so we can attempt to
+    recover it without factoring `N` using Coppersmith's small root
+    method::
 
         sage: f.small_roots()
         [4]
 
-    An application of this method is to consider RSA. We are using
-    512-bit RSA with public exponent $e=3$ to encrypt a 56-bit DES
-    key. Because it would be easy to attack this setting if no
-    padding was used we pad the key $K$ with 1s to get a large
-    number.
+    An application of this method is to consider RSA. We are using 512-bit RSA
+    with public exponent `e=3` to encrypt a 56-bit DES key. Because it would be
+    easy to attack this setting if no padding was used we pad the key `K` with
+    1s to get a large number::
 
         sage: Nbits, Kbits = 512, 56
         sage: e = 3
 
-    We choose two primes of size 256-bit each.
+    We choose two primes of size 256-bit each::
 
         sage: p = 2^256 + 2^8 + 2^5 + 2^3 + 1
         sage: q = 2^256 + 2^8 + 2^5 + 2^3 + 2^2 + 1
         sage: N = p*q
         sage: ZmodN = Zmod( N )
 
-    We choose a random key
+    We choose a random key::
 
         sage: K = ZZ.random_element(0, 2^Kbits)
 
-    and pad it with 512-56=456 1s
+    and pad it with 512-56=456 1s::
 
         sage: Kdigits = K.digits(2)
         sage: M = [0]*Kbits + [1]*(Nbits-Kbits)
@@ -469,26 +480,26 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
         sage: M = ZZ(M, 2)
 
-    Now we encrypt the resulting message:
+    Now we encrypt the resulting message::
 
         sage: C = ZmodN(M)^e
 
-    To recover $K$ we consider the following polynomial modulo $N$:
+    To recover `K` we consider the following polynomial modulo `N`::
 
         sage: P.<x> = PolynomialRing(ZmodN)
         sage: f = (2^Nbits - 2^Kbits + x)^e - C
 
-    and recover its small roots:
+    and recover its small roots::
 
         sage: Kbar = f.small_roots()[0]
         sage: K == Kbar
         True
 
-    The same algorithm can be used to factor $N = pq$ if partial
-    knowledge about $q$ is available. This example is from the
+    The same algorithm can be used to factor `N = pq` if partial
+    knowledge about `q` is available. This example is from the
     Magma handbook:
 
-    First, we set up $p$,$q$ and $N$.
+    First, we set up `p`, `q` and `N`::
 
         sage: length = 512
         sage: hidden = 110
@@ -496,17 +507,17 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
         sage: q = next_prime( round(pi.n()*p) )
         sage: N = p*q
 
-    Now we disturb the low 110 bits of $q$
+    Now we disturb the low 110 bits of `q`::
 
         sage: qbar = q + ZZ.random_element(0,2^hidden-1)
 
-    And try to recover $q$ from it:
+    And try to recover `q` from it::
 
         sage: F.<x> = PolynomialRing(Zmod(N))
         sage: f = x - qbar
 
-    We know that the error is $<= 2^{hidden}-1$ and that the modulus
-    we are looking for is $>= sqrt(N)$.
+    We know that the error is `\le 2^{\text{hidden}}-1` and that the modulus
+    we are looking for is `\ge \sqrt{N}`::
 
         sage: set_verbose(2)
         sage: d = f.small_roots(X=2^hidden-1, beta=0.5)[0] # time random
@@ -519,16 +530,15 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
         True
 
     REFERENCES:
-        Don Coppersmith. Finding a small root of a univariate
-            modular equation.  In Advances in Cryptology,
-            EuroCrypt 1996, volume 1070 of Lecture Notes in
-            Computer Science, p. 155--165. Springer, 1996.
-            http://cr.yp.to/bib/2001/coppersmith.pdf
 
-        Alexander May. New RSA Vulnerabilities Using Lattice
-            Reduction Methods.  PhD thesis, University of
-            Paderborn, 2003
-            http://www.informatik.tu-darmstadt.de/KP/publications/03/bp.ps
+    Don Coppersmith. *Finding a small root of a univariate modular equation.*
+       In Advances in Cryptology, EuroCrypt 1996, volume 1070 of Lecture
+       Notes in Computer Science, p. 155--165. Springer, 1996.
+       http://cr.yp.to/bib/2001/coppersmith.pdf
+
+    Alexander May. *New RSA Vulnerabilities Using Lattice Reduction Methods.*
+       PhD thesis, University of Paderborn, 2003.
+       http://www.informatik.tu-darmstadt.de/KP/publications/03/bp.ps
     """
     from sage.misc.misc import verbose
     from sage.matrix.constructor import Matrix
@@ -587,7 +597,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(5**21) ; S.<x> = R[]
             sage: S(1/4)
             357627868652344
@@ -635,7 +646,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         Returns the coefficients of self as efficiently as possible as a
         list of python ints.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(100)[]
             sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n as poly_modn_dense
             sage: f = poly_modn_dense(R,[5,0,0,1])
@@ -649,7 +661,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __getitem__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(100)[]
             sage: f = (x+2)^7
             sage: f[3]
@@ -669,7 +682,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         """
         Returns the monomials of self of degree i <= n < j.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(100)[]
             sage: f = (x+2)^7
             sage: f[3:6]
@@ -689,7 +703,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: (x+5) + (x^2 - 6)
             x^2 + x + 99
@@ -705,7 +720,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: (x+5) - (x^2 - 6)
             99*x^2 + x + 11
@@ -721,7 +737,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef RingElement _mul_(self, RingElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: (x+5) * (x^2 - 1)
             x^3 + 5*x^2 + 99*x + 95
@@ -740,7 +757,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: (x+5) * 3
             3*x + 15
@@ -755,7 +773,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: 3 * (x+5)
             3*x + 15
@@ -770,7 +789,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __pow__(Polynomial_dense_modn_ntl_zz self, ee, modulus):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(100)[]
             sage: (x-1)^5
             x^5 + 95*x^4 + 10*x^3 + 90*x^2 + 5*x + 99
@@ -821,10 +841,11 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def quo_rem(self, right):
         """
-        Returns $q$ and $r$, with the degree of $r$ less than the degree of $right$,
-        such that $q * right + r = self$.
+        Returns `q` and `r`, with the degree of `r` less than the degree of `right`,
+        such that `q * right + r = self`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(125)[]
             sage: f = x^5+1; g = (x+1)^2
             sage: q, r = f.quo_rem(g)
@@ -853,7 +874,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
         For q = n // d, we have deg(n - q*d) < deg(d)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(25)[]
             sage: f = x^7 + 1; g = x^2 - 1
             sage: q = f // g; q
@@ -875,7 +897,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __mod__(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(81)[]
             sage: f = x^7 + x + 1; g = x^3
             sage: r = f % g; r
@@ -897,10 +920,11 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def shift(self, n):
         """
-        Shift self to left by $n$, which is multiplication by $x^n$,
-        truncating if $n$ is negative.
+        Shift self to left by `n`, which is multiplication by `x^n`,
+        truncating if `n` is negative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^7 + x + 1
             sage: f.shift(1)
@@ -923,7 +947,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST:
+        TEST::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^5 + 2*x + 1
             sage: f << 3
@@ -935,7 +960,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST:
+        TEST::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^5 + 2*x + 1
             sage: f >> 3
@@ -953,10 +979,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        SEE ALSO:
-            self.derivative()
+        .. seealso:: :meth:`.derivative`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
             sage: f._derivative()
@@ -984,11 +1010,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def reverse(self):
         """
-        Reverses the coefficients of self. The reverse of f(x) is x^n f(1/x).
+        Reverses the coefficients of self. The reverse of `f(x)` is `x^n f(1/x)`.
 
         The degree will go down if the constant term is zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
             sage: f.reverse()
@@ -1006,7 +1033,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __nonzero__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
             sage: not f
@@ -1021,7 +1049,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         Returns the valuation of self, that is, the power of the
         lowest non-zero monomial of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10)[]
             sage: x.valuation()
             1
@@ -1040,7 +1069,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def degree(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
             sage: f.degree()
@@ -1053,9 +1083,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     cpdef Polynomial truncate(self, long n):
         """
-        Returns this polynomial mod $x^n$.
+        Returns this polynomial mod `x^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = sum(x^n for n in range(10)); f
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
@@ -1072,7 +1103,8 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         the basering of self, this is done directly in NTL, otherwise
         the generic Polynomial call code is used.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(100)[]
             sage: f = x^3+7
             sage: f(5)
@@ -1168,7 +1200,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __getitem__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^30)[]
             sage: f = (x+2)^7
             sage: f[3]
@@ -1202,7 +1235,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         """
         Returns the monomials of self of degree i <= n < j.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^30)[]
             sage: f = (x+2)^7
             sage: f[3:6]
@@ -1222,7 +1256,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: (x+5) + (x^2 - 6)
             x^2 + x + 999999999999999999999999999999
@@ -1238,7 +1273,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: (x+5) - (x^2 - 6)
             999999999999999999999999999999*x^2 + x + 11
@@ -1254,7 +1290,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef RingElement _mul_(self, RingElement _right):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: (x+5) * (x^2 - 1)
             x^3 + 5*x^2 + 999999999999999999999999999999*x + 999999999999999999999999999995
@@ -1273,7 +1310,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: (x+5) * 3
             3*x + 15
@@ -1289,7 +1327,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: 3 * (x+5)
             3*x + 15
@@ -1298,7 +1337,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __pow__(Polynomial_dense_modn_ntl_ZZ self, ee, modulus):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(10^30)[]
             sage: (x+1)^5
             x^5 + 5*x^4 + 10*x^3 + 10*x^2 + 5*x + 1
@@ -1344,10 +1384,11 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def quo_rem(self, right):
         """
-        Returns $q$ and $r$, with the degree of $r$ less than the degree of $right$,
-        such that $q * right + r = self$.
+        Returns `q` and `r`, with the degree of `r` less than the degree of `right`,
+        such that `q * right + r = self`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^30)[]
             sage: f = x^5+1; g = (x+1)^2
             sage: q, r = f.quo_rem(g)
@@ -1376,7 +1417,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         For q = n // d, we have deg(n - q*d) < deg(d)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^30)[]
             sage: f = x^7 + 1; g = x^2 - 1
             sage: q = f // g; q
@@ -1398,7 +1440,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __mod__(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(9^30)[]
             sage: f = x^7 + x + 1; g = x^3 - 1
             sage: r = f % g; r
@@ -1420,10 +1463,11 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def shift(self, n):
         """
-        Shift self to left by $n$, which is multiplication by $x^n$,
-        truncating if $n$ is negative.
+        Shift self to left by `n`, which is multiplication by `x^n`,
+        truncating if `n` is negative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(12^30)[]
             sage: f = x^7 + x + 1
             sage: f.shift(1)
@@ -1446,7 +1490,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST:
+        TEST::
+
             sage: R.<x> = Integers(14^30)[]
             sage: f = x^5 + 2*x + 1
             sage: f << 3
@@ -1458,7 +1503,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST:
+        TEST::
+
             sage: R.<x> = Integers(15^30)[]
             sage: f = x^5 + 2*x + 1
             sage: f >> 3
@@ -1477,10 +1523,10 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        SEE ALSO:
-            self.derivative()
+        .. seealso:: :meth:`.derivative`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(12^29)[]
             sage: f = x^4 + x + 5
             sage: f._derivative()
@@ -1509,11 +1555,13 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def reverse(self):
         """
-        Reverses the coefficients of self. The reverse of f(x) is x^n f(1/x).
+        Reverses the coefficients of self. The reverse of `f(x)` is `x^n
+        f(1/x)`.
 
         The degree will go down if the constant term is zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(12^29)[]
             sage: f = x^4 + 2*x + 5
             sage: f.reverse()
@@ -1534,7 +1582,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         Returns the valuation of self, that is, the power of the
         lowest non-zero monomial of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^50)[]
             sage: x.valuation()
             1
@@ -1555,7 +1604,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __nonzero__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = Integers(12^29)[]
             sage: f = x^4 + 1
             sage: not f
@@ -1567,7 +1617,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def degree(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(14^34)[]
             sage: f = x^4 - x - 1
             sage: f.degree()
@@ -1580,9 +1631,10 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     cpdef Polynomial truncate(self, long n):
         """
-        Returns this polynomial mod $x^n$.
+        Returns this polynomial mod `x^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(15^30)[]
             sage: f = sum(x^n for n in range(10)); f
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
@@ -1599,7 +1651,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         the basering of self, this is done directly in NTL, otherwise
         the generic Polynomial call code is used.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(10^30)[]
             sage: f = x^3+7
             sage: f(5)
@@ -1655,10 +1708,12 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
     def xgcd(self, right):
         r"""
-        Return the extended gcd of self and other, i.e., elements $r, s, t$ such that
-        $$
+        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
+
+        .. math::
+
            r = s \cdot self + t \cdot other.
-        $$
+
         """
         # copied from sage.structure.element.PrincipalIdealDomainElement due to lack of mult inheritance
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
@@ -1668,7 +1723,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
     def _xgcd(self, right):
         """
-        Return $g, u, v$ such that \code{g = u*self + v*right}.
+        Return ``g, u, v`` such that ``g = u*self + v*right``.
         """
         r, s, t = self.ntl_ZZ_pX().xgcd(right.ntl_ZZ_pX())
         return self.parent()(r, construct=True), self.parent()(s, construct=True), \
@@ -1680,11 +1735,15 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
         polynomial ring.
 
         INPUT:
-            other -- a polynomial
-        OUTPUT:
-            an element of the base ring of the polynomial ring
 
-        EXAMPLES:
+        - ``other`` -- a polynomial
+
+        OUTPUT:
+
+        an element of the base ring of the polynomial ring
+
+        EXAMPLES::
+
             sage: R.<x> = GF(19)['x']
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: r = f.resultant(g); r
@@ -1698,7 +1757,8 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
     def discriminant(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: _.<x> = PolynomialRing(GF(19))
             sage: f = x^3 + 3*x - 17
             sage: f.discriminant()

@@ -1,9 +1,28 @@
 """
-Univariate Polynomials over Z/nZ for n <= sys.maxint via FLINT.
+Dense univariate polynomials over `\ZZ/n\ZZ`, implemented using FLINT.
 
-AUTHOR:
-    -- Martin Albrecht (2009-01) another initial implementation
-    -- Burcin Erocal (2008-11) initial implementation
+This module gives a fast implementation of `(\ZZ/n\ZZ)[x]` whenever `n` is at
+most ``sys.maxint``. We use it by default in preference to NTL when the modulus
+is small, falling back to NTL if the modulus is too large, as in the example
+below.
+
+EXAMPLES::
+
+    sage: R.<a> = PolynomialRing(Integers(100))
+    sage: type(a)
+    <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
+    sage: R.<a> = PolynomialRing(Integers(5*2^64))
+    sage: type(a)
+    <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
+    sage: R.<a> = PolynomialRing(Integers(5*2^64), implementation="FLINT")
+    Traceback (most recent call last):
+    ...
+    ValueError: FLINT does not support modulus 92233720368547758080
+
+AUTHORS:
+
+- Burcin Erocal (2008-11) initial implementation
+- Martin Albrecht (2009-01) another initial implementation
 """
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
@@ -41,7 +60,8 @@ cdef extern from "zn_poly/zn_poly.h":
 cdef class Polynomial_zmod_flint(Polynomial_template):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(32003)[]
             sage: f = 24998*x^2 + 29761*x + 2252
         """
@@ -73,7 +93,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
     cdef _set_list(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<a>=GF(7)[]
             sage: P([2^60,0,1])
             a^2 + 1
@@ -102,7 +123,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
     def __getitem__(self, i):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(32003)[]
             sage: f = 24998*x^2 + 29761*x + 2252
             sage: f[100]
@@ -123,15 +145,16 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         Evaluate polynomial at x=a.
 
-        INPUT:
-            a -- ring element a; need not be in the coefficient
-                 ring of the polynomial.
-          -- or --
-            a dictionary for kwds:value pairs.  If the variable
-            name of the polynomial is a kwds it is substituted in;
-            otherwise this polynomial is returned unchanged.
+        INPUT: **either**
 
-        EXAMPLE:
+        - a -- ring element; need not be in the coefficient ring of the
+          polynomial.
+        - a dictionary for kwds:value pairs.  If the variable name of the
+          polynomial is a keyword it is substituted in; otherwise this
+          polynomial is returned unchanged.
+
+        EXAMPLE::
+
             sage: P.<x> = PolynomialRing(GF(7))
             sage: f= x^2 + 1
             sage: f(0)
@@ -156,12 +179,15 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         polynomial ring.
 
         INPUT:
-            other -- a polynomial
+
+        - other -- a polynomial
 
         OUTPUT:
-            an element of the base ring of the polynomial ring
 
-        EXAMPLES:
+        an element of the base ring of the polynomial ring
+
+        EXAMPLES::
+
             sage: R.<x> = GF(19)['x']
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: r = f.resultant(g); r
@@ -175,10 +201,11 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
     def small_roots(self, *args, **kwds):
         r"""
-        See \code{sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots}
+        See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
         for the documentation of this function.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: N = 10001
             sage: K = Zmod(10001)
             sage: P.<x> = PolynomialRing(K)
@@ -194,14 +221,18 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         Never use this unless you really know what you are doing.
 
         INPUT:
-            n -- degree
-            value -- coefficient
 
-        WARNING: This could easily introduce subtle bugs, since \Sage
-        assumes everywhere that polynomials are immutable.  It's OK to
-        use this if you really know what you're doing.
+        - n -- degree
+        - value -- coefficient
 
-        EXAMPLES:
+        .. warning::
+
+            This could easily introduce subtle bugs, since Sage assumes
+            everywhere that polynomials are immutable.  It's OK to use this if
+            you really know what you're doing.
+
+        EXAMPLES::
+
             sage: R.<x> = GF(7)[]
             sage: f = (1+2*x)^2; f
             4*x^2 + 4*x + 1
@@ -222,18 +253,21 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         r"""
         Returns the product of two polynomials using the zn_poly library.
 
-        See \url{http://www.math.harvard.edu/~dmharvey/zn_poly/} for
-        details on zn_poly.
+        See `\url{http://www.math.harvard.edu/~dmharvey/zn_poly/}` for details
+        on zn_poly.
 
         INPUT:
-           self: Polynomial
-           right: Polynomial (over same base ring as self)
 
-        OUTPUT: Polynomial
-           The product self*right.
+        - self: Polynomial
+        - right: Polynomial (over same base ring as self)
+
+        OUTPUT:
+
+        (Polynomial) the product self*right.
 
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = PolynomialRing(GF(next_prime(2^30)))
             sage: f = P.random_element(1000)
             sage: g = P.random_element(1000)
@@ -249,6 +283,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             -1
 
         ALGORITHM:
+
            uses David Harvey's zn_poly library.
 
         NOTE: This function is a technology preview. It might

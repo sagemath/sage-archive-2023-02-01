@@ -1,24 +1,5 @@
 """
 Polynomial Template for C/C++ Library Interfaces
-
-AUTHOR:
-    -- Robert Bradshaw (2008-10) original idea for templating
-    -- Martin Albrecht (2008-10) initial implementation
-
-This file implements a simple templating engine for linking univariate
-polynomials to their C/C++ library implementations. It requires a
-'linkage' file which implements the \code{celement_} functions (see
-\code{sage.libs.ntl.ntl_GF2X_linkage} for an example). Both parts are
-then pluygged together by inclusion of the linkage file when
-inheriting from this class. See
-\code{sage.rings.polynomial.polynomial_gf2x} for an example.
-
-We illustrate the generic glueing using univariate polynomials over
-GF(2).
-
-NOTE:
-Implementations using this template MUST implement coercion from base
-ring elements and \code{__getitem__}. See \code{Polynomial_GF2X} for an example.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
@@ -43,9 +24,36 @@ def make_element(parent, args):
     return parent(*args)
 
 cdef class Polynomial_template(Polynomial):
+    r"""
+    Template for interfacing to external C / C++ libraries for implementations of polynomials.
+
+    AUTHORS:
+
+    - Robert Bradshaw (2008-10): original idea for templating
+    - Martin Albrecht (2008-10): initial implementation
+
+    This file implements a simple templating engine for linking univariate
+    polynomials to their C/C++ library implementations. It requires a
+    'linkage' file which implements the ``celement_`` functions (see
+    :mod:`sage.libs.ntl.ntl_GF2X_linkage` for an example). Both parts are
+    then plugged together by inclusion of the linkage file when inheriting from
+    this class. See :mod:`sage.rings.polynomial.polynomial_gf2x` for an
+    example.
+
+    We illustrate the generic glueing using univariate polynomials over
+    `\mathop{\mathrm{GF}}(2)`.
+
+    .. note::
+
+        Implementations using this template MUST implement coercion from base
+        ring elements and ``__getitem__``. See
+        :class:`~sage.rings.polynomial.polynomial_gf2x.Polynomial_GF2X` for an
+        example.
+    """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: P(0)
             0
@@ -141,7 +149,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __reduce__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: loads(dumps(x)) == x
             True
@@ -150,7 +159,8 @@ cdef class Polynomial_template(Polynomial):
 
     def list(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x.list()
             [0, 1]
@@ -163,7 +173,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __dealloc__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: del x
         """
@@ -171,7 +182,8 @@ cdef class Polynomial_template(Polynomial):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x + 1
             x + 1
@@ -185,7 +197,8 @@ cdef class Polynomial_template(Polynomial):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x - 1
             x + 1
@@ -199,7 +212,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __neg__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: -x
             x
@@ -213,7 +227,8 @@ cdef class Polynomial_template(Polynomial):
 
     cpdef RingElement _mul_(self, RingElement right):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x*(x+1)
             x^2 + x
@@ -229,7 +244,8 @@ cdef class Polynomial_template(Polynomial):
         """
         Return the greatest common divisor of self and other.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: f = x*(x+1)
             sage: f.gcd(x+1)
@@ -253,7 +269,8 @@ cdef class Polynomial_template(Polynomial):
         """
         Computes extended gcd of self and other.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(7)[]
             sage: f = x*(x+1)
             sage: f.xgcd(x+1)
@@ -287,7 +304,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __floordiv__(self, right):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x//(x + 1)
             1
@@ -306,7 +324,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __mod__(self, other):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: (x^2 + 1) % x^2
             1
@@ -324,7 +343,8 @@ cdef class Polynomial_template(Polynomial):
 
     def quo_rem(self, right):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: f = x^2 + x + 1
             sage: f.quo_rem(x + 1)
@@ -348,7 +368,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __long__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: int(x)
             Traceback (most recent call last):
@@ -364,7 +385,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __nonzero__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: bool(x), x.is_zero()
             (True, False)
@@ -375,7 +397,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __richcmp__(left, right, int op):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x != 1
             True
@@ -388,14 +411,16 @@ cdef class Polynomial_template(Polynomial):
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
         """
         return celement_cmp(&(<Polynomial_template>left).x, &(<Polynomial_template>right).x, get_cparent((<Polynomial_template>left)._parent))
 
     def __hash__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: {x:1}
             {x: 1}
@@ -430,7 +455,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __pow__(self, ee, modulus):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: P.<x> = GF(2)[]
             sage: x^1000
@@ -481,7 +507,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __copy__(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: copy(x) is x
             False
@@ -498,7 +525,8 @@ cdef class Polynomial_template(Polynomial):
         """
         Returns the monomials of self of degree i <= n < j.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(100)[]
             sage: f = (x+2)^7
             sage: f[3:6]
@@ -522,7 +550,8 @@ cdef class Polynomial_template(Polynomial):
 
     def is_gen(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x.is_gen()
             True
@@ -537,7 +566,8 @@ cdef class Polynomial_template(Polynomial):
 
     def shift(self, int n):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: f = x^3 + x^2 + 1
             sage: f.shift(1)
@@ -567,7 +597,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __lshift__(self, int n):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: f = x^3 + x^2 + 1
             sage: f << 1
@@ -596,7 +627,8 @@ cdef class Polynomial_template(Polynomial):
 
     def __rshift__(self, int n):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x>>1
             1
@@ -629,7 +661,8 @@ cdef class Polynomial_template(Polynomial):
 
     def is_zero(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x.is_zero()
             False
@@ -638,7 +671,8 @@ cdef class Polynomial_template(Polynomial):
 
     def is_one(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: P(1).is_one()
             True
@@ -647,7 +681,8 @@ cdef class Polynomial_template(Polynomial):
 
     def degree(self):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x> = GF(2)[]
             sage: x.degree()
             1
@@ -659,10 +694,11 @@ cdef class Polynomial_template(Polynomial):
         return Integer(celement_len(&self.x, get_cparent((<Polynomial_template>self)._parent))-1)
 
     cpdef Polynomial truncate(self, long n):
-        """
-        Returns this polynomial mod $x^n$.
+        r"""
+        Returns this polynomial mod `x^n`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> =GF(2)[]
             sage: f = sum(x^n for n in range(10)); f
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
@@ -689,13 +725,15 @@ cdef class Polynomial_template(Polynomial):
 
     def _singular_(self, singular=singular_default, have_ring=False):
         r"""
-        Return \Singular representation of this polynomial
+        Return Singular representation of this polynomial
 
         INPUT:
-            singular -- \Singular interpreter (default: default interpreter)
-            have_ring -- set to True if the ring was already set in \Singular
 
-        EXAMPLE:
+        - ``singular`` -- Singular interpreter (default: default interpreter)
+        - ``have_ring`` -- set to True if the ring was already set in Singular
+
+        EXAMPLE::
+
             sage: P.<x> = PolynomialRing(GF(7))
             sage: f = 3*x^2 + 2*x + 5
             sage: singular(f)
@@ -713,10 +751,10 @@ cdef class Polynomial_template(Polynomial):
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        SEE ALSO:
-            self.derivative()
+        .. seealso:: :meth:`.derivative`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
             sage: f._derivative()

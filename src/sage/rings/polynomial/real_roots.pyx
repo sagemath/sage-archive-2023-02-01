@@ -2,36 +2,36 @@
 Isolate Real Roots of Real Polynomials
 
 AUTHOR:
-    -- Carl Witty (2007-09-19): initial version
+
+- Carl Witty (2007-09-19): initial version
 
 This is an implementation of real root isolation.  That is, given a
 polynomial with exact real coefficients, we compute isolating intervals
-for the real roots of the polynomial.  (Polynomials with
+for the real roots of the polynomial. (Polynomials with
 integer, rational, or algebraic real coefficients are supported.)
 
 We convert the polynomials into the Bernstein basis, and then use
 de Casteljau's algorithm and Descartes' rule of signs on the Bernstein
-basis polynomial (using interval arithmetic) to locate the roots.  The
+basis polynomial (using interval arithmetic) to locate the roots. The
 algorithm is similar to that in "A Descartes Algorithm for Polynomials
 with Bit-Stream Coefficients", by Eigenwillig, Kettner, Krandick, Mehlhorn,
 Schmitt, and Wolpert, but has three crucial optimizations over the
 algorithm in that paper:
 
-* Precision reduction: at certain points in the computation, we discard
-the low-order bits of the coefficients, widening the intervals.
+- Precision reduction: at certain points in the computation, we discard the
+  low-order bits of the coefficients, widening the intervals.
 
-* Degree reduction: at certain points in the computation, we find
-lower-degree polynomials that are approximately equal to our
-high-degree polynomial over the region of interest.
+- Degree reduction: at certain points in the computation, we find lower-degree
+  polynomials that are approximately equal to our high-degree polynomial over
+  the region of interest.
 
-* When the intervals are too wide to continue (either because of a
-too-low initial precision, or because of precision or degree
-reduction), and we need to restart with higher precision, we recall
-which regions have already been proven not to have any roots and do
-not examine them again.
+- When the intervals are too wide to continue (either because of a too-low
+  initial precision, or because of precision or degree reduction), and we need
+  to restart with higher precision, we recall which regions have already been
+  proven not to have any roots and do not examine them again.
 
 The best description of the algorithms used (other than this source
-code itself) is in the slides for my SAGE Days 4 talk, currently available
+code itself) is in the slides for my Sage Days 4 talk, currently available
 from http://www.sagemath.org:9001/days4schedule .
 """
 
@@ -173,7 +173,7 @@ include "../../ext/gmp.pxi"
 from sage.libs.mpfr cimport *
 
 cdef class interval_bernstein_polynomial:
-    """
+    r"""
     An interval_bernstein_polynomial is an approximation to an exact
     polynomial.  This approximation is in the form of a Bernstein
     polynomial (a polynomial given as coefficients over a Bernstein
@@ -181,8 +181,12 @@ cdef class interval_bernstein_polynomial:
 
     The Bernstein basis of degree n over the region [a .. b] is the
     set of polynomials
-      binomial(n, k) * (x-a)^k * (b-x)^{n-k} / (b-a)^n
-    for 0 <= k <= n.
+
+    .. math::
+
+      \binom{n}{k} (x-a)^k (b-x)^{n-k} / (b-a)^n
+
+    for `0 \le k \le n`.
 
     A degree-n interval Bernstein polynomial P with its region [a .. b] can
     represent an exact polynomial p in two different ways: it can
@@ -217,81 +221,78 @@ cdef class interval_bernstein_polynomial:
     Interval Bernstein polynomials are useful in finding real roots
     because of the following properties:
 
-    * Given an exact real polynomial p, we can compute an interval
-    Bernstein polynomial over an arbitrary region containing p.
+    - Given an exact real polynomial p, we can compute an interval Bernstein
+      polynomial over an arbitrary region containing p.
 
-    * Given an interval Bernstein polynomial P over [a .. c], where
-    a < b < c, we can compute interval Bernstein polynomials P1 over
-    [a .. b] and P2 over [b .. c], where P1 and P2 contain (or bound)
-    all polynomials that P contains (or bounds).
+    - Given an interval Bernstein polynomial P over [a .. c], where a < b < c,
+      we can compute interval Bernstein polynomials P1 over [a .. b] and P2
+      over [b .. c], where P1 and P2 contain (or bound) all polynomials that P
+      contains (or bounds).
 
-    * Given a degree-n interval Bernstein polynomial P over [a .. b],
-    and m < n, we can compute a degree-m interval Bernstein polynomial
-    P' over [a .. b] that bounds all polynomials that P bounds.
+    - Given a degree-n interval Bernstein polynomial P over [a .. b], and m <
+      n, we can compute a degree-m interval Bernstein polynomial P' over [a ..
+      b] that bounds all polynomials that P bounds.
 
-    * It is sometimes possible to prove that no polynomial bounded by
-    P over [a .. b] has any roots in [a .. b].  (Roughly, this
-    is possible when no polynomial contained by P has any complex roots
-    near the line segment [a .. b], where "near" is defined relative
-    to the length b-a.)
+    - It is sometimes possible to prove that no polynomial bounded by P over [a
+      .. b] has any roots in [a .. b].  (Roughly, this is possible when no
+      polynomial contained by P has any complex roots near the line segment [a
+      .. b], where "near" is defined relative to the length b-a.)
 
-    * It is sometimes possible to prove that every polynomial bounded
-    by P over [a .. b] with slope error E has exactly one root in
-    [a .. b].  (Roughly, this is possible when every polynomial contained
-    by P over [a .. b] has exactly one root in [a .. b], there are
-    no other complex roots near the line segment [a .. b], and every
-    polynomial contained in P has a derivative which is bounded
-    away from zero over [a .. b] by an amount which is large relative
-    to E.)
+    - It is sometimes possible to prove that every polynomial bounded by P over
+      [a .. b] with slope error E has exactly one root in [a .. b].  (Roughly,
+      this is possible when every polynomial contained by P over [a .. b] has
+      exactly one root in [a .. b], there are no other complex roots near the
+      line segment [a .. b], and every polynomial contained in P has a
+      derivative which is bounded away from zero over [a .. b] by an amount
+      which is large relative to E.)
 
-    * Starting from a sufficiently precise interval Bernstein polynomial,
-    it is always possible to split it into polynomials which provably
-    have 0 or 1 roots (as long as your original polynomial has no
-    multiple real roots).
+    - Starting from a sufficiently precise interval Bernstein polynomial, it is
+      always possible to split it into polynomials which provably have 0 or 1
+      roots (as long as your original polynomial has no multiple real roots).
 
     So a rough outline of a family of algorithms would be:
-    * Given a polynomial p, compute a region [a .. b] in which any
-    real roots must lie.
-    * Compute an interval Bernstein polynomial P containing p over [a .. b].
-    * Keep splitting P until you have isolated all the roots.
-    Optionally, reduce the degree or the precision of the interval
-    Bernstein polynomials at intermediate stages (to reduce computation time).
-    If this seems not to be working, go back and try again with
-    higher precision.
+
+    - Given a polynomial p, compute a region [a .. b] in which any real roots
+      must lie.
+    - Compute an interval Bernstein polynomial P containing p over [a .. b].
+    - Keep splitting P until you have isolated all the roots.  Optionally,
+      reduce the degree or the precision of the interval Bernstein polynomials
+      at intermediate stages (to reduce computation time).  If this seems not
+      to be working, go back and try again with higher precision.
 
     Obviously, there are many details to be worked out to turn this
     into a full algorithm, like:
-    * What initial precision is selected for computing P?
-    * How do you decide when to reduce the degree of intermediate polynomials?
-    * How do you decide when to reduce the precision of intermediate
-    polynomials?
-    * How do you decide where to split the interval Bernstein polynomial
-    regions?
-    * How do you decide when to give up and start over with higher
-    precision?
+
+    - What initial precision is selected for computing P?
+    - How do you decide when to reduce the degree of intermediate polynomials?
+    - How do you decide when to reduce the precision of intermediate
+      polynomials?
+    - How do you decide where to split the interval Bernstein polynomial
+      regions?
+    - How do you decide when to give up and start over with higher precision?
 
     Each set of answers to these questions gives a different algorithm
-    (potentially with very different performance characteristics),
-    but all of them can use this interval_bernstein_polynomial class
-    as their basic building block.
+    (potentially with very different performance characteristics), but all of
+    them can use this ``interval_bernstein_polynomial`` class as their basic
+    building block.
 
     To save computation time, all coefficients in an
-    interval_bernstein_polynomial share the same interval width.
-    (There is one exception: when creating an interval_bernstein_polynomial,
+    ``interval_bernstein_polynomial`` share the same interval width.
+    (There is one exception: when creating an ``interval_bernstein_polynomial``,
     the first and last coefficients can be marked as "known positive"
     or "known negative".  This has some of the same effect as having
     a (potentially) smaller interval width for these two coefficients,
     although it does not affect de Casteljau splitting.)
     To allow for widely varying coefficient magnitudes, all
     coefficients in an interval_bernstein_polynomial are scaled
-    by 2^n (where n may be positive, negative, or zero).
+    by `2^n` (where `n` may be positive, negative, or zero).
 
     There are two representations for interval_bernstein_polynomials,
-    integer and floating-point.  These are the two subclasses of
-    this class; interval_bernstein_polynomial itself is an abstract
+    integer and floating-point. These are the two subclasses of
+    this class; ``interval_bernstein_polynomial`` itself is an abstract
     class.
 
-    interval_bernstein_polynomial and its subclasses are not expected
+    ``interval_bernstein_polynomial`` and its subclasses are not expected
     to be used outside this file.
     """
 
@@ -350,7 +351,8 @@ cdef class interval_bernstein_polynomial:
         is determined at 1/2, then return (p1, p2, 1/2); otherwise,
         return None.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([50, 20, -90, -70, 200], error=5)
             sage: bp1, bp2, _ = bp.try_split(mk_context(), None)
@@ -382,7 +384,8 @@ cdef class interval_bernstein_polynomial:
         is determined at r, then return (p1, p2, r); otherwise,
         return None.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([50, 20, -90, -70, 200], error=5)
             sage: bp1, bp2, _ = bp.try_rand_split(mk_context(), None)
@@ -451,7 +454,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
     (Note that mk_ibpi is a simple helper function for creating
     elements of interval_bernstein_polynomial_integer in doctests.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bp = mk_ibpi([1, 2, 3], error=5); bp
         degree 2 IBP with 2-bit coefficients
@@ -472,17 +476,19 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         Initialize an interval_bernstein_polynomial_integer.
 
         INPUT:
-            coeffs -- a coefficient vector for a polynomial in Bernstein form
-            lower -- the lower bound of the region over which the Bernstein basis is defined
-            upper -- the upper bound of the region over which the Bernstein basis is defined
-            lsign -- the sign of the polynomial at lower, if known
-            usign -- the sign of the polynomial at upper, if known
-            error -- the maximum error in the Bernstein coefficients
-            scale_log2 -- the log2 of the scaling factor for the Bernstein coefficients
-            level -- the number of times we have performed degree reduction to get this polynomial
-            slope_err -- the maximum extra error in the derivative of this polynomial from degree reduction
 
-        EXAMPLES:
+        - ``coeffs`` -- a coefficient vector for a polynomial in Bernstein form
+        - ``lower`` -- the lower bound of the region over which the Bernstein basis is defined
+        - ``upper`` -- the upper bound of the region over which the Bernstein basis is defined
+        - ``lsign`` -- the sign of the polynomial at lower, if known
+        - ``usign`` -- the sign of the polynomial at upper, if known
+        - ``error`` -- the maximum error in the Bernstein coefficients
+        - ``scale_log2`` -- the log2 of the scaling factor for the Bernstein coefficients
+        - ``level`` -- the number of times we have performed degree reduction to get this polynomial
+        - ``slope_err`` -- the maximum extra error in the derivative of this polynomial from degree reduction
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = interval_bernstein_polynomial_integer(vector(ZZ, [50, -30, -10]), -3/7, 4/7, 0, -1, 17, 3, 2, RIF(10^-30))
             sage: bp
@@ -519,7 +525,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         """
         Reveal all the internals of this interval bernstein polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([-11, 22, -33], upper=1/9, error=20, lsign=1)
             sage: str(bp)
@@ -546,8 +553,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         """
         Return a short summary of this interval bernstein polynomial.
 
-        EXAMPLES:
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([-11, 22, -33], upper=1/9, error=20, lsign=1)
             sage: bp
@@ -569,7 +576,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         A private function that computes the maximum coefficient size
         of this Bernstein polynomial (in bits).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: mk_ibpi([2^12345])
             degree 0 IBP with 12346-bit coefficients
@@ -586,7 +594,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         number of sign variations; instead, we compute lower and upper
         bounds on this number.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: mk_ibpi([-1, -2, -3], error=1).variations()
             (0, 0)
@@ -686,13 +695,17 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         of this polynomial in a Bernstein basis over new regions.
 
         INPUT:
-            mid -- where to split the Bernstein basis region; 0 < mid < 1
-            msign -- default 0 (unknown); the sign of this polynomial at mid
-        OUTPUT:
-            bp1, bp2 -- the new interval Bernstein polynomials
-            ok -- a boolean; True if the sign of the original polynomial at mid is known
 
-        EXAMPLES:
+        - ``mid`` -- where to split the Bernstein basis region; 0 < mid < 1
+        - ``msign`` -- default 0 (unknown); the sign of this polynomial at mid
+
+        OUTPUT:
+
+        - ``bp1``, ``bp2`` -- the new interval Bernstein polynomials
+        - ``ok`` -- a boolean; True if the sign of the original polynomial at mid is known
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([50, 20, -90, -70, 200], error=5)
             sage: ctx = mk_context()
@@ -752,7 +765,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         (or bounds) all the polynomials this interval polynomial
         contains (or bounds).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([50, 20, -90, -70, 200], error=5)
             sage: bp.as_float()
@@ -793,7 +807,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         If the resulting polynomial would have error more than 2^17,
         then it is downscaled before returning.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([0, 100, 400, 903], error=2)
             sage: ctx = mk_context()
@@ -890,7 +905,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         in the result (on the absolute scale) would be larger than
         1 << max_scale.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([0, 100, 400, 903, 1600, 2500], error=2)
             sage: ctx = mk_context()
@@ -926,7 +942,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         polynomial contains (or bounds), but uses
         "bits" fewer bits.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([0, 100, 400, 903], error=2)
             sage: str(bp.downscale(5))
@@ -941,7 +958,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
         """
         Compute a bound on the derivative of this polynomial, over its region.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpi([0, 100, 400, 903], error=2)
             sage: bp.slope_range().str(style='brackets')
@@ -966,7 +984,8 @@ def mk_ibpi(coeffs, lower=0, upper=1, lsign=0, usign=0, error=1, scale_log2=0,
 
     For use in doctests.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: mk_ibpi([50, 20, -90, -70, 200], error=5)
         degree 4 IBP with 8-bit coefficients
@@ -998,16 +1017,19 @@ def de_casteljau_intvec(Vector_integer_dense c, int c_bitsize, Rational x, int u
     allows for identical results across machines.
 
     INPUT:
-        c -- vector of coefficients of polynomial in Bernstein form
-        c_bitsize -- approximate size of coefficients in c (in bits)
-        x -- rational splitting point; 0 < x < 1
+
+    - ``c`` -- vector of coefficients of polynomial in Bernstein form
+    - ``c_bitsize`` -- approximate size of coefficients in c (in bits)
+    - ``x`` -- rational splitting point; 0 < x < 1
 
     OUTPUT:
-        c1 -- coefficients of polynomial over range [0 .. x]
-        c2 -- coefficients of polynomial over range [x .. 1]
-        err_inc -- amount by which error intervals widened
 
-    EXAMPLES:
+    - ``c1`` -- coefficients of polynomial over range [0 .. x]
+    - ``c2`` -- coefficients of polynomial over range [x .. 1]
+    - ``err_inc`` -- amount by which error intervals widened
+
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: c = vector(ZZ, [1048576, 0, 0, 0, 0, 0])
         sage: de_casteljau_intvec(c, 20, 1/2, 1)
@@ -1249,14 +1271,22 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
     error bound E, returns a vector of floating-point numbers
     B = [b1, ..., bn], lower and upper error bounds F1 and F2, and
     a scaling factor d, such that
-       (bk + F1) * 2^d <= ak
+
+    .. math::
+
+       (bk + F1) * 2^d \le ak
+
     and
-       ak + E <= (bk + F2) * 2^d
+
+    .. math::
+
+        ak + E \le (bk + F2) * 2^d
 
     If bj is the element of B with largest absolute value, then
     0.5 <= abs(bj) < 1.0 .
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: intvec_to_doublevec(vector(ZZ, [1, 2, 3, 4, 5]), 3)
         ((0.125, 0.25, 0.375, 0.5, 0.625), -1.1275702593849246e-16, 0.37500000000000017, 3)
@@ -1320,7 +1350,8 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
     (Note that mk_ibpf is a simple helper function for creating
     elements of interval_bernstein_polynomial_float in doctests.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bp = mk_ibpf([0.1, 0.2, 0.3], pos_err=0.5); bp
         degree 2 IBP with floating-point coefficients
@@ -1338,24 +1369,31 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
 
     def __init__(self, Vector_real_double_dense coeffs, Rational lower, Rational upper, int lsign, int usign, double neg_err, double pos_err, int scale_log2, int level, RealIntervalFieldElement slope_err):
         """
-        Initialize an interval_bernstein_polynomial_integer.
+        Initialize an interval_bernstein_polynomial_float.
 
         INPUT:
-            coeffs -- a coefficient vector for a polynomial in Bernstein form
-                (all coefficients must have absolute value less than one)
-            lower -- the lower bound of the region over which the Bernstein basis is defined
-            upper -- the upper bound of the region over which the Bernstein basis is defined
-            lsign -- the sign of the polynomial at lower, if known
-            usign -- the sign of the polynomial at upper, if known
-            neg_err -- the minimum error in the Bernstein coefficients
-            pos_err -- the maximum error in the Bernstein coefficients
-               (so a Bernstein coefficient x really represents the range
-               [neg_err+x .. pos_err+x]
-            scale_log2 -- the log2 of the scaling factor for the Bernstein coefficients
-            level -- the number of times we have performed degree reduction to get this polynomial
-            slope_err -- the maximum extra error in the derivative of this polynomial from degree reduction
 
-        EXAMPLES:
+        - ``coeffs`` -- a coefficient vector for a polynomial in Bernstein form
+          (all coefficients must have absolute value less than one)
+        - ``lower`` -- the lower bound of the region over which the Bernstein basis
+          is defined
+        - ``upper`` -- the upper bound of the region over which the Bernstein basis
+          is defined
+        - ``lsign`` -- the sign of the polynomial at lower, if known
+        - ``usign`` -- the sign of the polynomial at upper, if known
+        - ``neg_err`` -- the minimum error in the Bernstein coefficients
+        - ``pos_err`` -- the maximum error in the Bernstein coefficients (so a
+          Bernstein coefficient x really represents the range [neg_err+x ..
+          pos_err+x]
+        - ``scale_log2`` -- the log2 of the scaling factor for the Bernstein
+          coefficients
+        - ``level`` -- the number of times we have performed degree reduction to
+          get this polynomial
+        - ``slope_err`` -- the maximum extra error in the derivative of this
+          polynomial from degree reduction
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = interval_bernstein_polynomial_float(vector(RDF, [0.50, -0.30, -0.10]), -3/7, 4/7, 0, -1, -0.02, 0.17, 3, 2, RIF(10^-30))
             sage: bp
@@ -1397,7 +1435,8 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         """
         Reveal all the internals of this interval bernstein polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpf([-0.11, 0.22, -0.33], upper=1/9, neg_err=-0.3, pos_err=0.1, lsign=1)
             sage: str(bp)
@@ -1424,7 +1463,8 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         """
         Return a short summary of this interval bernstein polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpf([-0.11, 0.22, -0.33], upper=1/9, neg_err=-0.1, pos_err=0.2, lsign=1)
             sage: bp
@@ -1525,13 +1565,17 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         of this polynomial in a Bernstein basis over new regions.
 
         INPUT:
-            mid -- where to split the Bernstein basis region; 0 < mid < 1
-            msign -- default 0 (unknown); the sign of this polynomial at mid
-        OUTPUT:
-            bp1, bp2 -- the new interval Bernstein polynomials
-            ok -- a boolean; True if the sign of the original polynomial at mid is known
 
-        EXAMPLES:
+        - ``mid`` -- where to split the Bernstein basis region; 0 < mid < 1
+        - ``msign`` -- default 0 (unknown); the sign of this polynomial at mid
+
+        OUTPUT:
+
+        - ``bp1``, ``bp2`` -- the new interval Bernstein polynomials
+        - ``ok`` -- a boolean; True if the sign of the original polynomial at mid is known
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: ctx = mk_context()
             sage: bp = mk_ibpf([0.5, 0.2, -0.9, -0.7, 0.99], neg_err=-0.1, pos_err=0.01)
@@ -1608,7 +1652,8 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
         """
         Compute a bound on the derivative of this polynomial, over its region.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bp = mk_ibpf([0.5, 0.2, -0.9, -0.7, 0.99], neg_err=-0.1, pos_err=0.01)
             sage: bp.slope_range().str(style='brackets')
@@ -1645,7 +1690,8 @@ def mk_ibpf(coeffs, lower=0, upper=1, lsign=0, usign=0, neg_err=0, pos_err=0,
 
     For use in doctests.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: mk_ibpf([0.5, 0.2, -0.9, -0.7, 0.99], pos_err=0.1, neg_err=-0.01)
         degree 4 IBP with floating-point coefficients
@@ -1674,15 +1720,18 @@ def de_casteljau_doublevec(Vector_real_double_dense c, Rational x):
     long as 0 < x < 1; but it has a specialized code path for x==1/2.
 
     INPUT:
-        c -- vector of coefficients of polynomial in Bernstein form
-        x -- rational splitting point; 0 < x < 1
+
+    - ``c`` -- vector of coefficients of polynomial in Bernstein form
+    - ``x`` -- rational splitting point; 0 < x < 1
 
     OUTPUT:
-        c1 -- coefficients of polynomial over range [0 .. x]
-        c2 -- coefficients of polynomial over range [x .. 1]
-        err_inc -- number of half-ulps by which error intervals widened
 
-    EXAMPLES:
+    - ``c1`` -- coefficients of polynomial over range [0 .. x]
+    - ``c2`` -- coefficients of polynomial over range [x .. 1]
+    - ``err_inc`` -- number of half-ulps by which error intervals widened
+
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: c = vector(RDF, [0.7, 0, 0, 0, 0, 0])
         sage: de_casteljau_doublevec(c, 1/2)
@@ -1754,7 +1803,8 @@ def max_abs_doublevec(Vector_real_double_dense c):
     Given a floating-point vector, return the maximum of the
     absolute values of its elements.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: max_abs_doublevec(vector(RDF, [0.1, -0.767, 0.3, 0.693]))
         0.76700000000000002
@@ -1786,16 +1836,21 @@ def wordsize_rational(a, b, wordsize):
     r is taken from the first of the following classes to have any
     members between a and b (except that if a <= 1/8, or 7/8 <= a, then
     class 2 is preferred to class 1).
-    1) dml < wordsize
-    2) bitsize(nm) <= wordsize
-    3) bitsize(nm) <= 2*wordsize
-    4) bitsize(nm) <= 3*wordsize
+
+    1. dml < wordsize
+    2. bitsize(nm) <= wordsize
+    3. bitsize(nm) <= 2*wordsize
+    4. bitsize(nm) <= 3*wordsize
+
     ...
-    k) bitsize(nm) <= (k-1)*wordsize
+
+    k. bitsize(nm) <= (k-1)*wordsize
+
     From the first class to have members between a and b, r is chosen
     as the element of the class which is closest to a.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: wordsize_rational(1/5, 1/7, 32)
         429496729/2147483648
@@ -1860,16 +1915,19 @@ def wordsize_rational(a, b, wordsize):
 def relative_bounds(a, b):
     """
     INPUT:
-        (al, ah) -- pair of rationals
-        (bl, bh) -- pair of rationals
+
+    - ``(al, ah)`` -- pair of rationals
+    - ``(bl, bh)`` -- pair of rationals
 
     OUTPUT:
-        (cl, ch) -- pair of rationals
+
+    - ``(cl, ch)`` -- pair of rationals
 
     Computes the linear transformation that maps (al, ah) to (0, 1);
     then applies this transformation to (bl, bh) and returns the result.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: relative_bounds((1/7, 1/4), (1/6, 1/5))
         (2/9, 8/15)
@@ -1884,7 +1942,8 @@ cdef int bitsize(Integer a):
     Compute the number of bits required to write a given integer
     (the sign is ignored).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bitsize_doctest(0)
         1
@@ -1910,7 +1969,8 @@ def degree_reduction_next_size(n):
     This defines the sequence of degrees followed by our degree reduction
     implementation.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: degree_reduction_next_size(1000)
         30
@@ -1943,7 +2003,8 @@ def precompute_degree_reduction_cache(n):
     Compute and cache the matrices used for degree reduction, starting
     from degree n.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: precompute_degree_reduction_cache(5)
         sage: dr_cache[5]
@@ -2000,7 +2061,8 @@ def bernstein_down(d1, d2, s):
     polynomial is a good approximation to the first polynomial over the
     region of the Bernstein basis.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bernstein_down(3, 8, 5)
         [ 612/245 -348/245   -37/49  338/245 -172/245]
@@ -2040,7 +2102,8 @@ def bernstein_up(d1, d2, s=None):
     product only gives s of the coefficients of the new Bernstein polynomial,
     selected according to subsample_vec.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bernstein_down(3, 7, 4)
         [  12/5     -4      3   -2/5]
@@ -2071,7 +2134,8 @@ cdef int subsample_vec(int a, int slen, int llen):
     Given an index 0 <= a < slen, this function computes the index
     in the original vector of length llen corresponding to a.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: [subsample_vec_doctest(a, 10, 100) for a in range(10)]
         [5, 15, 25, 35, 45, 54, 64, 74, 84, 94]
@@ -2094,7 +2158,8 @@ def maximum_root_first_lambda(p):
     "Implementations of a New Theorem for Computing Bounds for Positive
     Roots of Polynomials", by Akritas, Strzebo\'nski, and Vigklas.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: maximum_root_first_lambda((x-1)*(x-2)*(x-3))
@@ -2110,7 +2175,7 @@ def maximum_root_first_lambda(p):
     return cl_maximum_root_first_lambda(cl)
 
 def cl_maximum_root_first_lambda(cl):
-    """
+    r"""
     Given a polynomial represented by a list of its coefficients
     (as RealIntervalFieldElements), compute an upper bound on its
     largest real root.
@@ -2119,7 +2184,8 @@ def cl_maximum_root_first_lambda(cl):
     for Computing Bounds for Positive Roots of Polynomials",
     by Akritas, Strzebo\'nski, and Vigklas.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: cl_maximum_root_first_lambda([RIF(-1), RIF(0), RIF(1)])
         1.00000000000000
@@ -2163,13 +2229,14 @@ def cl_maximum_root_first_lambda(cl):
     return max_ub_log.upper().exp()
 
 def maximum_root_local_max(p):
-    """
+    r"""
     Given a polynomial with real coefficients, computes an upper bound
     on its largest real root, using the local-max algorithm from
     "Implementations of a New Theorem for Computing Bounds for Positive
     Roots of Polynomials", by Akritas, Strzebo\'nski, and Vigklas.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: maximum_root_local_max((x-1)*(x-2)*(x-3))
@@ -2185,7 +2252,7 @@ def maximum_root_local_max(p):
     return cl_maximum_root_local_max(cl)
 
 def cl_maximum_root_local_max(cl):
-    """
+    r"""
     Given a polynomial represented by a list of its coefficients
     (as RealIntervalFieldElements), compute an upper bound on its
     largest real root.
@@ -2194,7 +2261,8 @@ def cl_maximum_root_local_max(cl):
     for Computing Bounds for Positive Roots of Polynomials",
     by Akritas, Strzebo\'nski, and Vigklas.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: cl_maximum_root_local_max([RIF(-1), RIF(0), RIF(1)])
         1.41421356237310
@@ -2219,7 +2287,7 @@ def cl_maximum_root_local_max(cl):
     return max_ub_log.upper().exp()
 
 def cl_maximum_root(cl):
-    """
+    r"""
     Given a polynomial represented by a list of its coefficients
     (as RealIntervalFieldElements), compute an upper bound on its
     largest real root.
@@ -2227,7 +2295,8 @@ def cl_maximum_root(cl):
     Uses two algorithms of Akritas, Strzebo\'nski, and Vigklas, and
     picks the better result.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: cl_maximum_root([RIF(-1), RIF(0), RIF(1)])
         1.00000000000000
@@ -2239,12 +2308,13 @@ def cl_maximum_root(cl):
                cl_maximum_root_local_max(cl))
 
 def root_bounds(p):
-    """
+    r"""
     Given a polynomial with real coefficients, computes a lower and
     upper bound on its real roots.  Uses algorithms of
     Akritas, Strzebo\'nski, and Vigklas.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: root_bounds((x-1)*(x-2)*(x-3))
@@ -2260,7 +2330,8 @@ def root_bounds(p):
         sage: root_bounds(x^995 * (x^2 - 9999) + 1)
         (-141.414284992712, 99.9949998749938)
 
-    If we can see that the polynomial has no real roots, return None.
+    If we can see that the polynomial has no real roots, return None.::
+
         sage: root_bounds(x^2 + 1) is None
         True
     """
@@ -2309,7 +2380,8 @@ def rational_root_bounds(p):
     We try to find rationals which bound the roots somewhat tightly,
     yet are simple (have small numerators and denominators).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: rational_root_bounds((x-1)*(x-2)*(x-3))
@@ -2460,7 +2532,8 @@ class bernstein_polynomial_factory_intlist(bernstein_polynomial_factory):
         Initializes a bernstein_polynomial_factory_intlist,
         given a list of integer coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_intlist([1, 2, 3])
             degree 2 Bernstein factory with 2-bit integer coefficients
@@ -2471,7 +2544,8 @@ class bernstein_polynomial_factory_intlist(bernstein_polynomial_factory):
         """
         Return a short summary of this bernstein polynomial factory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_intlist([1, 2, 3, 4000])
             degree 3 Bernstein factory with 12-bit integer coefficients
@@ -2484,7 +2558,8 @@ class bernstein_polynomial_factory_intlist(bernstein_polynomial_factory):
         Computes the approximate log2 of the maximum of the absolute
         values of the coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_intlist([1, 2, 3, -60000]).coeffs_bitsize()
             16
@@ -2499,7 +2574,8 @@ class bernstein_polynomial_factory_intlist(bernstein_polynomial_factory):
         this polynomial, using the given scale_log2.  (Smaller scale_log2
         values give more accurate approximations.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bpf = bernstein_polynomial_factory_intlist([10, -20, 30, -40])
             sage: bpf.bernstein_polynomial(0)
@@ -2534,7 +2610,8 @@ class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
         Initializes a bernstein_polynomial_factory_intlist,
         given a list of rational coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_ratlist([1, 1/2, 1/3])
             degree 2 Bernstein factory with 0-bit rational coefficients
@@ -2545,7 +2622,8 @@ class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
         """
         Return a short summary of this bernstein polynomial factory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_ratlist([1, 2, 3, 4000/17])
             degree 3 Bernstein factory with 7-bit rational coefficients
@@ -2558,7 +2636,8 @@ class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
         Computes the approximate log2 of the maximum of the absolute
         values of the coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bernstein_polynomial_factory_ratlist([1, 2, 3, -60000]).coeffs_bitsize()
             15
@@ -2580,7 +2659,8 @@ class bernstein_polynomial_factory_ratlist(bernstein_polynomial_factory):
         this polynomial, using the given scale_log2.  (Smaller scale_log2
         values give more accurate approximations.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: bpf = bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99])
             sage: bpf.bernstein_polynomial(0)
@@ -2617,7 +2697,8 @@ class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
         If neg is True, then gives the Bernstein polynomial for
         the negative half-line; if neg is False, the positive.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: x = polygen(AA)
             sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
@@ -2643,7 +2724,8 @@ class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
         """
         Return a short summary of this Bernstein polynomial factory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: x = polygen(AA)
             sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
@@ -2658,7 +2740,8 @@ class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
         Computes the approximate log2 of the maximum of the absolute
         values of the coefficients.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: x = polygen(AA)
             sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
@@ -2673,7 +2756,8 @@ class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
         this polynomial, using the given scale_log2.  (Smaller scale_log2
         values give more accurate approximations.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: x = polygen(AA)
             sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
@@ -2736,7 +2820,8 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
     We set a size goal g, such that (u - l) <= g * (u1 - l2).
     Normally g is 256/255, but if precise is True, then g is 65536/65535.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: bp = mk_ibpi([1000000, -2000000, 3000000, -4000000, -5000000, -6000000])
         sage: ctx = mk_context()
@@ -2871,7 +2956,8 @@ cdef class ocean:
         Initialize an ocean from a context and a Bernstein polynomial
         factory.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             ocean with precision 120 and 1 island(s)
@@ -2910,7 +2996,8 @@ cdef class ocean:
         """
         Return a short summary of this root isolator.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             ocean with precision 120 and 1 island(s)
@@ -2928,7 +3015,8 @@ cdef class ocean:
         """
         Return a list of the islands in this ocean (for debugging purposes).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc._islands()
@@ -2948,7 +3036,8 @@ cdef class ocean:
         Returns an approximation to our Bernstein polynomial with the
         given scale_log2.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: str(oc.approx_bp(0))
@@ -2962,7 +3051,8 @@ cdef class ocean:
         """
         Isolate all roots in this ocean.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
@@ -2984,7 +3074,8 @@ cdef class ocean:
         Return the locations of all islands in this ocean.  (If run
         after find_roots(), this is the location of all roots in the ocean.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc.find_roots()
@@ -3007,7 +3098,8 @@ cdef class ocean:
         Refine all islands which are not done (which are not known to
         contain exactly one root).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
@@ -3026,7 +3118,8 @@ cdef class ocean:
         """
         Returns true iff all islands are known to contain exactly one root.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc.all_done()
@@ -3053,7 +3146,8 @@ cdef class ocean:
         If this is followed by a call to find_roots(), then the
         corresponding root will be refined to the specified width.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([-1, -1, 1]), lmap)
             sage: oc.find_roots()
@@ -3081,7 +3175,8 @@ cdef class ocean:
         by any islands which are not done.  (In normal use, calls to this
         function are separated by calls to self.refine_all().)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: oc = ocean(mk_context(), bernstein_polynomial_factory_ratlist([1/3, -22/7, 193/71, -140/99]), lmap)
             sage: oc
@@ -3134,34 +3229,35 @@ cdef class island:
     failures to split, the algorithm is roughly:
 
     Whole island:
+
     1. If the island definitely has exactly one root, then return.
     2. Split the island in (approximately) half.
-    3. If both halves definitely have no roots, then remove this island
-    from its doubly-linked list (merging its left and right gaps)
-    and return.
+    3. If both halves definitely have no roots, then remove this island from
+       its doubly-linked list (merging its left and right gaps) and return.
     4. If either half definitely has no roots, then discard that half
-    and call the whole-island algorithm with the other half, then return.
+       and call the whole-island algorithm with the other half, then return.
     5. If both halves may have roots, then call the left-segment algorithm
-    on the left half.
+       on the left half.
     6. We now know that there is a gap immediately to the left of the
-    right half, so call the whole-island algorithm on the right half,
-    then return.
+       right half, so call the whole-island algorithm on the right half,
+       then return.
 
     Left segment:
+
     1. Split the left segment in (approximately) half.
     2. If both halves definitely have no roots, then extend the left gap
-    over the segment and return.
+       over the segment and return.
     3. If the left half definitely has no roots, then extend the left gap
-    over this half and call the left-segment algorithm on the right half,
-    then return.
+       over this half and call the left-segment algorithm on the right half,
+       then return.
     4. If the right half definitely has no roots, then split the island
-    in two, creating a new gap.  Call the whole-island algorithm on the
-    left half, then return.
+       in two, creating a new gap.  Call the whole-island algorithm on the
+       left half, then return.
     5. Both halves may have roots.  Call the left-segment algorithm on
-    the left half.
+       the left half.
     6. We now know that there is a gap immediately to the left of the
-    right half, so call the left-segment algorithm on the right half,
-    then return.
+       right half, so call the left-segment algorithm on the right half,
+       then return.
 
     Degree reduction complicates this picture only slightly.  Basically,
     we use heuristics to decide when degree reduction might be likely
@@ -3747,7 +3843,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     The precision of the results can be improved (at the expense of time,
     of course) by specifying the max_diameter parameter.  If specified,
     this sets the maximum diameter() of the intervals returned.
-    (SAGE defines diameter() to be the relative diameter for intervals
+    (Sage defines diameter() to be the relative diameter for intervals
     that do not contain 0, and the absolute diameter for intervals
     containing 0.)  This directly affects the results in rational or
     interval return mode; in algebraic_real mode, it increases the
@@ -3763,7 +3859,8 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     then use de Casteljau's algorithm and Descartes' rule of signs
     (using interval arithmetic) to locate the roots.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: real_roots(x^3 - x^2 - x - 1)
@@ -3818,18 +3915,23 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         True
 
     If the polynomial has no real roots, we get an empty list.
+
+    ::
+
         sage: (x^2 + 1).real_root_intervals()
         []
 
     We can compute Conway's constant
     (see http://mathworld.wolfram.com/ConwaysConstant.html) to arbitrary
-    precision.
+    precision.::
+
         sage: p = x^71 - x^69 - 2*x^68 - x^67 + 2*x^66 + 2*x^65 + x^64 - x^63 - x^62 - x^61 - x^60 - x^59 + 2*x^58 + 5*x^57 + 3*x^56 - 2*x^55 - 10*x^54 - 3*x^53 - 2*x^52 + 6*x^51 + 6*x^50 + x^49 + 9*x^48 - 3*x^47 - 7*x^46 - 8*x^45 - 8*x^44 + 10*x^43 + 6*x^42 + 8*x^41 - 5*x^40 - 12*x^39 + 7*x^38 - 7*x^37 + 7*x^36 + x^35 - 3*x^34 + 10*x^33 + x^32 - 6*x^31 - 2*x^30 - 10*x^29 - 3*x^28 + 2*x^27 + 9*x^26 - 3*x^25 + 14*x^24 - 8*x^23 - 7*x^21 + 9*x^20 + 3*x^19 - 4*x^18 - 10*x^17 - 7*x^16 + 12*x^15 + 7*x^14 + 2*x^13 - 12*x^12 - 4*x^11 - 2*x^10 + 5*x^9 + x^7 - 7*x^6 + 7*x^5 - 4*x^4 + 12*x^3 - 6*x^2 + 3*x - 6
         sage: cc = real_roots(p, retval='algebraic_real')[2][0] # long time
         sage: RealField(180)(cc)                                # long time
         1.3035772690342963912570991121525518907307025046594049
 
-    Now we play with algebraic real coefficients.
+    Now we play with algebraic real coefficients.::
+
         sage: x = polygen(AA)
         sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)
         sage: real_roots(p)
@@ -4048,7 +4150,8 @@ def scale_intvec_var(Vector_integer_dense c, k):
 
     Modifies the input vector; has no return value.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: v = vector(ZZ, [1, 1, 1, 1])
         sage: scale_intvec_var(v, 3/4)
@@ -4078,7 +4181,8 @@ def taylor_shift1_intvec(Vector_integer_dense c):
 
     Modifies the input vector; has no return value.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: p = (x-1)*(x-2)*(x-3)
@@ -4103,7 +4207,8 @@ def reverse_intvec(Vector_integer_dense c):
 
     Modifies the input vector; has no return value.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: v = vector(ZZ, [1, 2, 3, 4]); v
         (1, 2, 3, 4)
@@ -4123,7 +4228,8 @@ def get_realfield_rndu(n):
     A simple cache for RealField fields (with rounding set to
     round-to-positive-infinity).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: get_realfield_rndu(20)
         Real Field with 20 bits of precision and rounding RNDU
@@ -4164,7 +4270,8 @@ cdef class context:
         """
         Return a short summary of this context.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.real_roots import *
             sage: mk_context()
             root isolation context: seed=0
@@ -4206,7 +4313,8 @@ def mk_context(do_logging=False, seed=0, wordsize=32):
 
     For use in doctests.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: mk_context(do_logging=True, seed=3, wordsize=64)
         root isolation context: seed=3; do_logging=True; wordsize=64
@@ -4225,7 +4333,8 @@ def to_bernstein(p, low=0, high=1, degree=None):
     polynomial as p*scale.  (If you only care about the roots of
     the polynomial, then of course scale can be ignored.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: to_bernstein(x)
@@ -4267,7 +4376,8 @@ def to_bernstein_warp(p):
     Given a polynomial p with rational coefficients, compute the
     exact rational Bernstein coefficients of p(x/(x+1)).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: x = polygen(ZZ)
         sage: to_bernstein_warp(1 + x + x^2 + x^3 + x^4 + x^5)
@@ -4296,7 +4406,8 @@ def bernstein_expand(Vector_integer_dense c, int d2):
     error E.  (So if an element of the returned polynomial is a, and the
     true value of that coefficient is b, then a <= b < a + E.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: c = vector(ZZ, [1000, 2000, -3000])
         sage: bernstein_expand(c, 3)
@@ -4353,7 +4464,8 @@ cdef int max_bitsize_intvec(Vector_integer_dense b):
     Given an integer vector, find the approximate log2 of the maximum
     of the absolute values of the elements.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: max_bitsize_intvec_doctest(vector(ZZ, [1, 2, 3, 1024]))
         11
@@ -4379,7 +4491,8 @@ def dprod_imatrow_vec(Matrix_integer_dense m, Vector_integer_dense v, int k):
     If v has more elements than m has columns, then elements of v are
     selected using subsample_vec.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: m = matrix(3, range(9))
         sage: dprod_imatrow_vec(m, vector(ZZ, [1, 0, 0, 0]), 1)
@@ -4423,7 +4536,8 @@ def min_max_delta_intvec(Vector_integer_dense a, Vector_integer_dense b):
     Given two integer vectors a and b (of equal, nonzero length), return
     a pair of the minimum and maximum values taken on by a[i] - b[i].
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: a = vector(ZZ, [10, -30])
         sage: b = vector(ZZ, [15, -60])
@@ -4457,7 +4571,8 @@ def min_max_diff_intvec(Vector_integer_dense b):
     Given an integer vector b = (b0, ..., bn), compute the
     minimum and maximum values of b_{j+1} - b_j.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: min_max_diff_intvec(vector(ZZ, [1, 7, -2]))
         (-9, 6)
@@ -4486,7 +4601,8 @@ def min_max_diff_doublevec(Vector_real_double_dense c):
     Given a floating-point vector b = (b0, ..., bn), compute the
     minimum and maximum values of b_{j+1} - b_j.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.real_roots import *
         sage: min_max_diff_doublevec(vector(RDF, [1, 7, -2]))
         (-9.0, 6.0)

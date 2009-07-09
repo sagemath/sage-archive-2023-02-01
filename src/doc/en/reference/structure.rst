@@ -5,6 +5,7 @@ Basic Structures
    :maxdepth: 2
 
    sage/structure/sage_object
+   sage/structure/category_object
    sage/structure/parent_gens
    sage/structure/formal_sum
    sage/structure/factorization

@@ -2,7 +2,8 @@
 Isolate Complex Roots of Polynomials
 
 AUTHOR:
-    -- Carl Witty (2007-11-18): initial version
+
+- Carl Witty (2007-11-18): initial version
 
 This is an implementation of complex root isolation.  That is, given a
 polynomial with exact complex coefficients, we compute isolating
@@ -16,7 +17,8 @@ Then, we find the roots numerically, using numpy (at low precision) or
 Pari (at high precision).  Then, we verify the roots using interval
 arithmetic.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: x = polygen(ZZ)
     sage: (x^5 - x - 1).roots(ring=CIF)
     [(1.167303978261419?, 1), (-0.764884433600585? - 0.352471546031727?*I, 1), (-0.764884433600585? + 0.352471546031727?*I, 1), (0.181232444469876? - 1.083954101317711?*I, 1), (0.181232444469876? + 1.083954101317711?*I, 1)]
@@ -41,7 +43,8 @@ def refine_root(ip, ipd, irt, fld):
     If we succeed, we return the isolated root; if we fail, we return
     None.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.complex_roots import *
         sage: x = polygen(ZZ)
         sage: p = x^9 - 1
@@ -154,7 +157,8 @@ def interval_roots(p, rts, prec):
     If we succeed, we return a list of intervals bounding the roots; if we
     fail, we return None.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: x = polygen(ZZ)
         sage: p = x^3 - 1
         sage: rts = [CC.zeta(3)^i for i in range(0, 3)]
@@ -186,7 +190,8 @@ def intervals_disjoint(intvs):
     Given a list of complex intervals, check whether they are pairwise
     disjoint.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.complex_roots import intervals_disjoint
         sage: a = CIF(RIF(0, 3), 0)
         sage: b = CIF(0, RIF(1, 3))
@@ -263,7 +268,8 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     get elements of QQbar, or retval='algebraic_real' to get only
     the real roots, and to get them as elements of AA.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.complex_roots import complex_roots
         sage: x = polygen(ZZ)
         sage: complex_roots(x^5 - x - 1)
@@ -273,7 +279,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     Unfortunately due to numerical noise there can be a small imaginary part to each
     root depending on CPU, compiler, etc, and that affects the printing order. So we
     verify the real part of each root and check that the imaginary part is small in
-    both cases:
+    both cases::
 
         sage: v # random
         [(-14.61803398874990?..., 1), (-12.3819660112501...? + 0.?e-27*I, 1)]
@@ -290,7 +296,8 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: p = (x-1)*(x-1-eps)*(x-1+eps)*(x-1-eps*im)*(x-1+eps*im)
 
     This polynomial actually has all-real coefficients, and is very, very
-    close to (x-1)^5:
+    close to (x-1)^5::
+
         sage: [RR(QQ(a)) for a in list(p - (x-1)^5)]
         [3.87259191484932e-121, -3.87259191484932e-121]
         sage: rts = complex_roots(p)
@@ -298,6 +305,9 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         [-7.8887?e-31, 0, 7.8887?e-31, -7.8887?e-31*I, 7.8887?e-31*I]
 
     We can get roots either as intervals, or as elements of QQbar or AA.
+
+    ::
+
         sage: p = (x^2 + x - 1)
         sage: p = p * p(x*im)
         sage: p
@@ -308,6 +318,9 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     inaccurately, and the exact values returned are very sensitive to
     the (non-portable) results of numpy.  So we post-process the roots
     for printing, to get predictable doctest results.
+
+    ::
+
         sage: def tiny(x):
         ...       return x.contains_zero() and x.absolute_diameter() <  1e-14
         sage: def smash(x):

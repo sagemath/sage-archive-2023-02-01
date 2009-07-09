@@ -2,10 +2,12 @@
 Polynomial Interfaces to Singular
 
 AUTHORS:
-     -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
-     -- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
 
-TESTS:
+- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
+- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
+
+TESTS::
+
     sage: R = PolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
     sage: R == loads(dumps(R))
     True
@@ -59,18 +61,17 @@ class PolynomialRing_singular_repr:
     rings.
     """
     def _singular_(self, singular=singular_default):
-        """
-        Returns a singular ring for this polynomial ring over a field.
-        Currently QQ, GF(p), GF(p^n), CC, RR, ZZ and ZZ/nZZ are
-        supported.
+        r"""
+        Returns a singular ring for this polynomial ring.
+        Currently `\QQ`, `{\rm GF}(p), {\rm GF}(p^n)`, `\CC`, `\RR`, `\ZZ` and
+        `\ZZ/n\ZZ` are supported.
 
-        INPUT:
-            singular -- Singular instance
+        :param singular: Singular instance
 
-        OUTPUT:
-            singular ring matching this ring
+        :return: Singular ring matching this ring
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = PolynomialRing(CC,'x',2)
             sage: singular(R)
             //   characteristic : 0 (complex:15 digits, additional 0 digits)
@@ -166,14 +167,13 @@ class PolynomialRing_singular_repr:
             //                  : names    x y
             //        block   2 : ordering C
 
-        WARNING:
-           If the base ring is a finite extension field or a number field
-           the ring will not only be returned but also be set as the current
-           ring in Singular.
+        .. warning::
 
-        NOTE:
-            Singular represents precision of floating point numbers base 10
-            while SAGE represents floating point precision base 2.
+            - If the base ring is a finite extension field or a number field
+              the ring will not only be returned but also be set as the current
+              ring in Singular.
+            - Singular represents precision of floating point numbers base 10
+              while SAGE represents floating point precision base 2.
         """
         try:
             R = self.__singular
@@ -292,10 +292,11 @@ def can_convert_to_singular(R):
     least one generator.  If this is True then this polynomial
     ring can be represented in Singular.
 
-    The following base rings are supported: $GF(p)$, $GF(p^n)$,
-    rationals, number fields, and real and complex fields.
+    The following base rings are supported: finite fields, rationals, number
+    fields, and real and complex fields.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         sage: can_convert_to_singular(PolynomialRing(QQ, names=['x']))
         True
@@ -345,18 +346,14 @@ def _singular_func(self, singular=singular_default, have_ring=False):
     """
     Return Singular polynomial matching this polynomial.
 
-    INPUT:
-        singular -- Singular instance to use
+    :param singular: Singular instance to use.
+    :param have_ring: if True we will not attempt to set this element's ring as
+    the current Singular ring. This is useful to speed up a batch of
+    ``f._singular_()`` calls. However, it's dangerous as it might lead to wrong
+    results if another ring is ``singular.current_ring()``. (Default: False)
 
-        have_ring -- if True we will not attempt to set this
-                     element's ring as the current Singular
-                     ring. This is useful to speed up a batch of
-                     f._singular_() calls. However, it's dangerous
-                     as it might lead to wrong results if another
-                     ring is singluar.current_ring().  (default:
-                     False)
+    EXAMPLES::
 
-    EXAMPLES:
         sage: P.<a,b> = PolynomialRing(GF(7), 2)
         sage: f = (a^3 + 2*b^2*a)^7; f
         a^21 + 2*a^7*b^14
@@ -395,7 +392,7 @@ def _singular_init_func(self, singular=singular_default, have_ring=False):
     Return corresponding Singular polynomial but enforce that a new
     instance is created in the Singular interpreter.
 
-    Use self._singular_() instead.
+    Use ``self._singular_()`` instead.
     """
     if not have_ring:
         self.parent()._singular_(singular).set_ring() #this is expensive
@@ -408,17 +405,16 @@ def lcm_func(self, right, have_ring=False):
     """
     Returns the least common multiple of this element and the right element.
 
-    INPUT:
-        right -- multivariate polynomial
-        have_ring -- see self._singular_() (default:False)
+    :param right: multivariate polynomial
+    :param have_ring: see ``self._singular_()``. (Default:False)
 
-    OUTPUT:
-        multivariate polynomial representing the least common
-        multiple of self and right
+    :return:    multivariate polynomial representing the least common multiple of
+                self and right
 
     ALGORITHM: Singular
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: r.<x,y> = PolynomialRing(GF(2**8,'a'),2)
         sage: a = r.base_ring().0
         sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
@@ -432,7 +428,8 @@ def lcm_func(self, right, have_ring=False):
         sage: f.lcm(x^4)
         (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
 
-    TESTS:
+    TESTS::
+
         sage: R.<X>=QQ[]
         sage: a=R(1)
         sage: b=X
@@ -457,11 +454,12 @@ def resultant_func(self, other, variable=None):
     If a second argument is not provide the first variable of
     self.parent() is chosen.
 
-    INPUT:
-        other -- polynomial in self.parent()
-        variable -- optional variable (of type polynomial) in self.parent() (default: None)
+    :param other:       polynomial in ``self.parent()``
+    :param variable:    optional variable (of type polynomial) in
+                        ``self.parent()``. (Default: None)
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: P.<x,y> = PolynomialRing(QQ,2)
         sage: a = x+y
         sage: b = x^3-y^3
@@ -470,7 +468,8 @@ def resultant_func(self, other, variable=None):
         sage: d = a.resultant(b,y); d
         2*x^3
 
-    TESTS:
+    TESTS::
+
         sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
         sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ,2,order='degrevlex')
         sage: a = x+y

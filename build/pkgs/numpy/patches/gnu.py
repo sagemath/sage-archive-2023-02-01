@@ -252,7 +252,7 @@ class Gnu95FCompiler(GnuFCompiler):
         """Return true is the compiler support the -arch flag for the given
         architecture."""
         newcmd = cmd[:]
-        newcmd.extend(["-arch", arch, "-v"])
+        #newcmd.extend(["-arch", arch, "-v"])
         st, out = exec_command(" ".join(newcmd))
         if st == 0:
             for line in out.splitlines():

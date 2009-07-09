@@ -23,6 +23,11 @@ else
     CCFLAGS=""
 fi
 
+if [ `uname` = "Darwin" -a "$SAGE64" != "" ]; then
+    echo "Building with extra 64-bit flags for OS X"
+    CCFLAGS="-m64 $CCFLAGS"
+fi
+
 export CCFLAGS1
 export CCFLAGS2
 export CCFLAGS3
@@ -31,7 +36,7 @@ export CCFLAGS
 make
 
 if [ $? -ne 0 ]; then
-    if [ `uname` -ne "Darwin" ]; then
+    if [ `uname` != "Darwin" ]; then
         echo "Build failed. Trying without SSE2 instructions."
         CCFLAGS1="$CCFLAGS_NO_SSE"; export CCFLAGS1
         make

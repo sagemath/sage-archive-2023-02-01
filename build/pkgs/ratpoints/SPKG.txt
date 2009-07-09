@@ -26,6 +26,11 @@ Michael Stoll's program which searches for rational points on hyperelliptic curv
 
 == Changelog ==
 
+=== ratpoints-2.1.2.p1 (William Stein, 8 July 2009) ===
+ * add hgignore
+ * fix mistake in spkg-install (!= versus -ne)
+ * make work on 64-bit OS X
+
 === ratpoints-2.1.2 (Robert Miller, 22 April 2009) ===
  * Initial spkg
  * Work around SSE2 build issues by disabling on fail

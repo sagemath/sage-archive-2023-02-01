@@ -211,6 +211,109 @@ cdef class SageObject:
 ##     def _set_category(self, C):
 ##         self.__category = C
 
+    #############################################################################
+    # Test framework
+    #############################################################################
+
+
+    def _test_not_implemented_methods(self, **options):
+        """
+        Checks that all required methods for this object are implemented
+
+        TESTS::
+
+            sage: class Abstract(SageObject):
+            ...       @abstract_method
+            ...       def bla(self):
+            ...           "returns bla"
+            ...
+            sage: class Concrete(Abstract):
+            ...       def bla(self):
+            ...           return 1
+            ...
+            sage: class IncompleteConcrete(Abstract):
+            ...       pass
+            sage: Concrete()._test_not_implemented_methods()
+            sage: IncompleteConcrete()._test_not_implemented_methods()
+            Traceback (most recent call last):
+            ...
+            AssertionError: Not implemented method: bla
+
+        """
+        from sage.misc.abstract_method import AbstractMethod
+        tester = self._tester(**options)
+        for name in dir(self):
+            # This tries to reduce the occasions to trigger the
+            # calculation of a lazy attribute
+            # This won't work for classes using the getattr trick
+            # to pseudo inherit from category
+            if hasattr(self.__class__, name):
+                f = getattr(self.__class__, name)
+                if not isinstance(f, AbstractMethod):
+                    continue
+            try:
+                # self.name may have been set explicitly in self.__dict__
+                getattr(self, name)
+            except AttributeError:
+                pass
+            except NotImplementedError:
+                tester.fail("Not implemented method: %s"%name)
+
+    def _test_pickling(self, **options):
+        """
+        Checks that this object can be pickled and unpickled properly.
+
+        SEE ALSO: :func:`dumps` :func:`loads`
+
+        TODO: for a stronger test, this could send the object to a
+        remote Sage session, and get it back.
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        tester.assertEqual(loads(dumps(self)), self)
+
+    def _tester(self, tester = None, **options):
+        """
+        Returns a gadget attached to ``self`` providing testing utilities
+
+        This is used by :class:`sage.misc.sage_unittest.TestSuite` and the _test_* methods.
+
+        EXAMPLES::
+
+            sage: tester = ZZ._tester()
+
+            sage: tester.assert_(1 == 1)
+            sage: tester.assert_(1 == 0)
+            Traceback (most recent call last):
+            ...
+            AssertionError
+            sage: tester.assert_(1 == 0, "this is expected to fail")
+            Traceback (most recent call last):
+            ...
+            AssertionError: this is expected to fail
+
+            sage: tester.assertEquals(1, 1)
+            sage: tester.assertEquals(1, 0)
+            Traceback (most recent call last):
+            ...
+            AssertionError: 1 != 0
+
+        The available assertion testing facilities are the same as in
+        :class:`unittest.TestCase`, which see (actually, by a slight
+        abuse, tester is currently an instance of this class).
+
+        TESTS:
+
+            sage: ZZ._tester(tester = tester) is tester
+            True
+        """
+        if tester is None:
+            from sage.misc.sage_unittest import InstanceTester
+            return InstanceTester(self, **options)
+        else:
+            assert len(options) == 0
+            assert tester._instance is self
+            return tester
 
     #############################################################################
     # Coercions to interface objects

@@ -8,3 +8,95 @@
 {% block extrahead %}
     <link rel="icon" href="{{ pathto('_static/sageicon.png', 1) }}" type="image/x-icon" />
 {% endblock %}
+
+{%- block footer %}
+    {{ super() }}
+    <script type="text/javascript">
+    // Sphinx sidebar toggle.  Putting this code at the end of the
+    // body enables the toggle for the live, static, and offline docs.
+    // Note: sage.misc.html.math_parse() eats jQuery's dollar-sign
+    // shortcut.
+    var jq = jQuery;
+    jq(document).ready(function() {
+	var bod = jq('div.bodywrapper');
+	var bar = jq('div.sphinxsidebar');
+	var tog = jq('<div class="sphinxsidebartoggle"></div>');
+
+	// Delayed resize helper.  Not perfect but good enough.
+	var resize = function () {
+	    setTimeout(function () {
+		tog.height(bod.height());
+	    }, 100);
+	}
+	jq(window).resize(function () { resize(); });
+
+	// Setup and add the toggle. See Sphinx v0.5.1 default.css.
+	var fg = jq('div.sphinxsidebar p a').css('color')
+	    || 'rgb(152, 219, 204)';
+	var bg = jq('div.document').css('background-color')
+	    || 'rgb(28, 78, 99)';
+	var wid_old = '230px';
+	var wid_new = '5px';
+	tog.css('background-color', bg)
+	    .css('border-width', '0px')
+	    .css('border-right', wid_new + ' ridge ' + bg)
+	    .css('cursor', 'pointer')
+	    .css('position', 'absolute')
+	    .css('left', '-' + wid_new)
+	    .css('top', '0px')
+	    .css('width', wid_new);
+	bod.css('position', 'relative');
+	bod.prepend(tog);
+	resize();
+
+	// Cookie helpers.
+	var key = 'sphinxsidebar=';
+	var set_state = function (s) {
+	    // Expiry in 7 days.
+	    var date = new Date();
+	    date.setTime(date.getTime() + (7 * 24 * 3600 * 1000));
+	    document.cookie = key + escape(s) + '; expires='
+		+ date.toUTCString() + '; path=/';
+	}
+	var get_state = function () {
+	    var crumbs = document.cookie.split(';');
+	    for (var i = 0; i < crumbs.length; i++) {
+		var c = crumbs[i].replace(/^\s+/, '');
+		if (c.indexOf(key) === 0) {
+		    return unescape(c.substring(key.length, c.length));
+		}
+	    }
+	    return null;
+	}
+
+	// Event handlers.
+	tog.mouseover(function (ev) {
+	    tog.css('border-right-color', fg);
+	}).mouseout(function (ev) {
+	    tog.css('border-right-color', bg);
+	}).click(function (ev) {
+	    if (bod.hasClass('wide')) {
+		bod.removeClass('wide');
+		bod.css('margin-left', wid_old);
+		bar.css('width', wid_old);
+		bar.show();
+		set_state('visible');
+	    } else {
+		set_state('hidden');
+		bar.hide();
+		bar.css('width', '0px');
+		bod.css('margin-left', wid_new);
+		bod.addClass('wide');
+	    }
+	    resize();
+	});
+
+	// Hide the normally visible sidebar?
+	if (get_state() === 'hidden') {
+	    tog.trigger('click');
+	} else {
+	    set_state('visible');
+	}
+    });
+    </script>
+{%- endblock %}

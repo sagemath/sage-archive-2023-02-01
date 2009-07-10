@@ -959,7 +959,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 sage: numpy.array([1.000000000000000000000000000000000000]).dtype
                 dtype('object')
             """
-            if (<RealField>self._parent).__prec <= 77: # max size of repr(float)
+            if (<RealField>self._parent).__prec <= 57: # max size of repr(float)
                 return numpy_double_interface
             else:
                 return numpy_object_interface
@@ -4302,6 +4302,13 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         1.2000000000000000000000000000000000000000000000000000000000
         sage: (1.2).parent() is RR
         True
+
+    TESTS::
+
+        sage: RealNumber('.000000000000000000000000000000001').prec()
+        53
+        sage: RealNumber('-.000000000000000000000000000000001').prec()
+        53
     """
     if not isinstance(s, str):
         s = str(s)
@@ -4315,31 +4322,24 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
             #Figure out the exponent
             index = max( s.find('e'), s.find('E') )
             exponent = int(s[index+1:])
-            rest = s[:index]
-
-            #Find the first nonzero entry in rest
-            sigfigs = 0
-            for i in range(len(rest)):
-                if rest[i] != '.' and rest[i] != '0':
-                    sigfigs = len(rest) - i
-                    break
-
-            if base == 10:
-                bits = int(3.32192*sigfigs)+1
-            else:
-                bits = int(math.log(base,2)*sigfigs)+1
+            mantissa = s[:index]
         else:
-            #Find the first nonzero entry in s
-            sigfigs = 0
-            for i in range(len(s)):
-                if s[i] != '.' and s[i] != '0':
-                    sigfigs = len(s) - i
-                    break
+            mantissa = s
 
-            if base == 10:
-                bits = int(3.32192*sigfigs)+1
-            else:
-                bits = int(math.log(base,2)*sigfigs)+1
+        #Find the first nonzero entry in rest
+        sigfigs = 0
+        for i in range(len(mantissa)):
+            if mantissa[i] != '.' and mantissa[i] != '0' and mantissa[i] != '-':
+                sigfigs = len(mantissa) - i
+                break
+
+        if '.' in mantissa and mantissa[:2] != '0.':
+            sigfigs -= 1
+
+        if base == 10:
+            bits = int(3.32192*sigfigs)+1
+        else:
+            bits = int(math.log(base,2)*sigfigs)+1
 
         R = RealField_constructor(prec=max(bits+pad, min_prec), rnd=rnd)
 

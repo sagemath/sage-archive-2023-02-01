@@ -36,6 +36,9 @@ from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
 include "../ext/stdsage.pxi"
 
+cdef object numpy_complex_interface = {'typestr': '=c16'}
+cdef object numpy_object_interface = {'typestr': '|O'}
+
 cdef mp_rnd_t rnd
 rnd = GMP_RNDN
 
@@ -91,9 +94,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         sage: loads(b.dumps()) == b
         True
     """
-
-    # Enable when __complex__ is used by NumPy rather than expecting a float.
-    # __array_interface__ = {'typestr': '=c16'}
 
     cdef ComplexNumber _new(self):
         """
@@ -178,6 +178,24 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         return self.str(truncate=False)
+
+    property __array_interface__:
+        def __get__(self):
+            """
+            Used for NumPy conversion.
+
+            EXAMPLES::
+
+                sage: import numpy
+                sage: numpy.array([1.0, 2.5j]).dtype
+                dtype('complex128')
+                sage: numpy.array([1.000000000000000000000000000000000000j]).dtype
+                dtype('object')
+            """
+            if self._prec <= 57: # max size of repr(float)
+                return numpy_complex_interface
+            else:
+                return numpy_object_interface
 
     def _sage_input_(self, sib, coerced):
         r"""

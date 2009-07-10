@@ -76,6 +76,11 @@ import  sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
 
+cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
+cdef object numpy_int64_interface = {'typestr': '=i8'}
+cdef object numpy_object_interface = {'typestr': '|O'}
+cdef object numpy_double_interface = {'typestr': '=f8'}
+
 cdef extern from "convert.h":
     ctypedef long* GEN
     void QQ_to_t_FRAC (GEN *g, mpq_t value)
@@ -650,6 +655,37 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not self.is_integral():
             s += '/' + self.denominator()._magma_init_(magma)
         return s
+
+    property __array_interface__:
+        def __get__(self):
+            """
+            Used for NumPy conversion. If self is integral, it converts the
+            same as an Integer. Otherwise it converts to a double floating
+            point value.
+
+            EXAMPLES::
+
+                sage: import numpy
+                sage: numpy.array([1, 2, 3/1])
+                array([1, 2, 3])
+
+                sage: numpy.array(QQ(2**40)).dtype
+                dtype('int64')
+                sage: numpy.array(QQ(2**400)).dtype
+                dtype('object')
+
+                sage: numpy.array([1, 1/2, 3/4])
+                array([ 1.  ,  0.5 ,  0.75])
+            """
+            if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
+                if mpz_fits_slong_p(mpq_numref(self.value)):
+                    return numpy_long_interface
+                elif sizeof(long) == 4 and mpz_sizeinbase(mpq_numref(self.value), 2) <= 63:
+                    return numpy_int64_interface
+                else:
+                    return numpy_object_interface
+            else:
+                return numpy_double_interface
 
     def _mathml_(self):
         """

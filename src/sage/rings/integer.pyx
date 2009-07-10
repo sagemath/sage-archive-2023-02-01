@@ -102,25 +102,6 @@ floating real field R.
     sage: RR = RealField(200)
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
-
-TESTS::
-
-Converts to NumPy::
-
-    sage: import numpy
-    sage: numpy.array([1, 2, 3]).dtype
-    dtype('int64')
-    sage: numpy.array([1,2,3,0.1]).dtype
-    dtype('float64')
-
-Explicitly use dtype=object for values larger than 64 bits::
-
-    sage: numpy.array([2^100])
-    Traceback (most recent call last):
-    ...
-    ValueError: setting an array element with a sequence.
-    sage: numpy.array([2^100], dtype=object)
-    array([1267650600228229401496703205376], dtype=object)
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -174,6 +155,10 @@ from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 import sage.rings.infinity
 import sage.libs.pari.all
+
+cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
+cdef object numpy_int64_interface = {'typestr': '=i8'}
+cdef object numpy_object_interface = {'typestr': '|O'}
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -406,8 +391,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer('012')
         10
     """
-
-    __array_interface__ = {'typestr': '=i8'}
 
     # todo: It would be really nice if we could avoid the __new__ call.
     # It has python calling conventions, and our timing tests indicate the
@@ -4082,6 +4065,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             '9390823'
         """
         return str(self)
+
+    property __array_interface__:
+        def __get__(self):
+            """
+            Used for NumPy conversion.
+
+            EXAMPLES::
+
+                sage: import numpy
+                sage: numpy.array([1, 2, 3])
+                array([1, 2, 3])
+                sage: numpy.array([1, 2, 3]).dtype
+                dtype('int32')                         # 32-bit
+                dtype('int64')                         # 64-bit
+
+                sage: numpy.array(2**40).dtype
+                dtype('int64')
+                sage: numpy.array(2**400).dtype
+                dtype('object')
+
+                sage: numpy.array([1,2,3,0.1]).dtype
+                dtype('float64')
+            """
+            if mpz_fits_slong_p(self.value):
+                return numpy_long_interface
+            elif sizeof(long) == 4 and mpz_sizeinbase(self.value, 2) <= 63:
+                return numpy_int64_interface
+            else:
+                return numpy_object_interface
 
     def _magma_init_(self, magma):
         """

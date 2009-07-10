@@ -513,6 +513,19 @@ class AbelianGroup_class(group.AbelianGroup):
                 return False
         return True
 
+    def __nonzero__(self):
+        """
+        Returns True if this group is nontrivial.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0,82])
+            sage: T = E.torsion_subgroup()
+            sage: bool(T) # indirect doctest
+            False
+        """
+        return len(self.invariants()) != 0
+
     def dual_group(self):
         """
         Returns the dual group.

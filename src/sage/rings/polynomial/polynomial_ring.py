@@ -707,7 +707,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def cyclotomic_polynomial(self, n):
         """
         Return the nth cyclotomic polynomial as a polynomial in this
-        polynomial ring.
+        polynomial ring. For details of the implementation, see the
+        documentation for
+        :func:`sage.rings.polynomial.cyclotomic.cyclotomic_coeffs`.
 
         EXAMPLES::
 

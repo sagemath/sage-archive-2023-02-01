@@ -1,15 +1,10 @@
 r"""
-Multivariate Polynomials
+Multivariate Polynomials via libSINGULAR
 
-Sage implements multivariate polynomial rings through several
-backends. The most generic implementation used the classes
-:class:`PolyDict` and :class:`ETuple` to construct a dictionary with
-exponent tuples as keys and coefficients as values.
-
-Additionally, specialized and optimized implementations over many
-coefficient rings are implemented via a shared library interface to
-SINGULAR. In particular, the following coefficient rings are supported
-by this impelementation:
+This module implements specialized and optimized implementations for
+multivariate polynomials over many coefficient rings, via a shared library
+interface to SINGULAR. In particular, the following coefficient rings are
+supported by this impelementation:
 
 - the rational numbers `\QQ`,
 
@@ -17,17 +12,9 @@ by this impelementation:
 
 - `\ZZ/n\ZZ` for any integer `n`,
 
-- finite fields `\GF{p^n}` for `p` prime and `n > 0`
+- finite fields `\GF{p^n}` for `p` prime and `n > 0`,
 
 - and absolute number fields `\QQ(a)`.
-
-Polynomials in the boolean polynomial ring
-
-.. math::
-
-    \GF{2}[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
-
-are implemented using the PolyBoRi library (cf. :mod:`sage.rings.polynomial.pbori`).
 
 AUTHORS:
 
@@ -42,22 +29,6 @@ The libSINGULAR interface was implemented by
 - Simon King (2009-04): improved coercion
 
 - Martin Albrecht (2009-05): added `\ZZ/n\ZZ` support, refactoring
-
-The generic implementation was provided by
-
-- David Joyner and William Stein
-
-- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of Singular
-  features
-
-- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular
-  rep
-
-- Martin Albrecht (2007-04-20): reorganized class hierarchy to support
-  Pyrex implementations
-
-- Robert Bradshaw (2007-08-15): Coercions from rings in a subset of
-  the variables.
 
 TODO:
 

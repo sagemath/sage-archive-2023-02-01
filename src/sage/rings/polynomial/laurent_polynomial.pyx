@@ -1,3 +1,6 @@
+r"""
+Elements of Laurent polynomial rings
+"""
 include "../../ext/stdsage.pxi"
 
 import re
@@ -14,7 +17,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         Currently, one can only create LaurentPolynomials out of dictionaries
         and elements of the base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: f = L({(-1,-1):1}); f
             w^-1*z^-1
@@ -53,9 +57,9 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns a new Laurent polynomial
 
-        EXAMPLES:
-          This will be a (very) indirect doctest.
-            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ) # indirect doctest
             sage: x*y
             x*y
         """
@@ -69,9 +73,11 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         Removes the common monomaials from self._poly and stores them in self._mon
 
         INPUT:
-            i -- an integer
 
-        EXAMPLES:
+        - ``i`` -- an integer
+
+        EXAMPLES::
+
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x*y + 2*y*x^2 + y
             sage: f.factor() #Notice the y has been factored out.
@@ -101,7 +107,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def _dict(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
@@ -125,7 +132,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def _compute_polydict(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: a = w^2*z^-1+3
             sage: a._compute_polydict()
@@ -134,7 +142,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x^2 + x*y/2 + 2*y^-1
             sage: f.__repr__()
@@ -150,7 +159,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
@@ -168,7 +178,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def __pow__(LaurentPolynomial_mpair self, n, m):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x + y
             sage: f^2
@@ -205,16 +216,21 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         and neither x*m(x,y) nor y*m(x,y) divides f(x,y).
 
         INPUT:
-            mon -- a monomial
+
+        - ``mon`` -- a monomial
 
         OUTPUT:
-            element of the parent of self
 
-        EXAMPLES:
+        element of the parent of self
+
+        EXAMPLES::
+
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
 
         The coefficient returned is an element of the parent of self; in
         this case, P.
+
+        ::
 
             sage: f = 2 * x * y
             sage: c = f.coefficient(x*y); c
@@ -250,9 +266,10 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Return the nonzero coefficients of this polynomial in a list.
         The returned list is decreasingly ordered by the term ordering
-        of self.parent().
+        of ``self.parent()``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ,order='degrevlex')
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.coefficients()
@@ -269,9 +286,11 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         Return a list of all variables occuring in self.
 
         INPUT:
-            sort -- specifies whether the indices shall be sorted
 
-        EXAMPLES:
+        - ``sort`` -- specifies whether the indices shall be sorted
+
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.variables()
@@ -294,7 +313,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def dict(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: list(sorted(f.dict().iteritems()))
@@ -308,7 +328,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns the Laurent polynomial self + right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: g = y + z
@@ -332,7 +353,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns the Laurent polynomial self - right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: g = y + z + x
@@ -358,7 +380,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns -self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: -f
@@ -374,7 +397,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns self * right where right is in self's base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: f*(1/2)
@@ -390,7 +414,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns left*self where left is in self's base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: (1/2)*f
@@ -406,7 +431,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Return self*right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: g = y + z
@@ -420,7 +446,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     cdef int _cmp_c_impl(self, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + y^-1
             sage: g = y + z
@@ -441,7 +468,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns a list of the exponents of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
@@ -456,7 +484,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns the degree of x in self
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.degree(x)
@@ -485,13 +514,16 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
     def has_inverse_of(self, i):
         """
         INPUT:
-            i -- The index of a generator of self.parent()
+
+        - ``i`` -- The index of a generator of ``self.parent()``
 
         OUTPUT:
-            Returns True if self contains a monomial including the inverse of self.parent().gen(i),
-            False otherwise.
 
-        EXAMPLES:
+        Returns True if self contains a monomial including the inverse of
+        ``self.parent().gen(i)``, False otherwise.
+
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.has_inverse_of(0)
@@ -514,7 +546,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns True if self contains any monomials with a negative exponent, False otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.has_any_inverse()
@@ -531,7 +564,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
     def __call__(self, *x, **kwds):
         """
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + 2*y + 3*z
             sage: f(1,1,1)
@@ -542,7 +576,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             ...
             ZeroDivisionError
 
-        TESTS:
+        TESTS::
+
             sage: f = x + 2*y + 3*z
             sage: f(2)
             Traceback (most recent call last):
@@ -590,7 +625,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Note that this is a very unsophisticated implementation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = x + 2*y + 3*z
             sage: f.subs(x=1)
@@ -614,7 +650,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f.substitute(x=1,y=1,z=1)
             6
 
-        TESTS:
+        TESTS::
+
             sage: f = x + 2*y + 3*z
             sage: f(q=10)
             x + 2*y + 3*z
@@ -656,7 +693,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         Returns a Laurent monomial (the unit part of the factorization) and a factored multi-polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.factor()

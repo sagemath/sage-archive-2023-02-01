@@ -1,3 +1,7 @@
+r"""
+Base class for multivariate polynomial rings
+"""
+
 include '../../ext/stdsage.pxi'
 
 
@@ -20,7 +24,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Create a polynomial ring in several variables over a commutative ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = ZZ['x,y']; R
             Multivariate Polynomial Ring in x, y over Integer Ring
             sage: class CR(Ring):
@@ -46,7 +51,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def is_integral_domain(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ['x,y'].is_integral_domain()
             True
             sage: Integers(8)['x,y'].is_integral_domain()
@@ -56,7 +62,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def is_noetherian(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ZZ['x,y'].is_noetherian()
             True
             sage: Integers(8)['x,y'].is_noetherian()
@@ -68,7 +75,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Returns a functor F and basering R such that F(R) == self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S = ZZ['x,y']
             sage: F, R = S.construction(); R
             Integer Ring
@@ -103,17 +111,19 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         polynomial ring, if one is defined, or raise a TypeError.
 
         The rings that canonically coerce to this polynomial ring are:
-            * this ring itself
-            * polynomial rings in the same variables over any base ring that
-              canonically coerces to the base ring of this ring
-            * polynomial rings in a subset of the variables over any base ring that
-              canonically coerces to the base ring of this ring
-            * any ring that canonically coerces to the base ring of this
-              polynomial ring.
+
+        - this ring itself
+        - polynomial rings in the same variables over any base ring that
+          canonically coerces to the base ring of this ring
+        - polynomial rings in a subset of the variables over any base ring that
+          canonically coerces to the base ring of this ring
+        - any ring that canonically coerces to the base ring of this polynomial
+          ring.
 
         TESTS:
         This fairly complicated code (from Michel Vandenbergh) ends up
-        imlicitly calling _coerce_c_impl:
+        imlicitly calling ``_coerce_c_impl``::
+
             sage: z = polygen(QQ, 'z')
             sage: W.<s>=NumberField(z^2+1)
             sage: Q.<u,v,w> = W[]
@@ -147,9 +157,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _extract_polydict(self, x):
         """
-        Assuming other_vars is a subset of self.variable_names(),
+        Assuming other_vars is a subset of ``self.variable_names()``,
         convert the dict of ETuples with respect to other_vars to
-        a dict with respect to self.variable_names()
+        a dict with respect to ``self.variable_names()``.
         """
         # This is probably horribly innefficient
         from polydict import ETuple
@@ -187,7 +197,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Return string representation of this object.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: PolynomialRing(QQ, names=[])
             Multivariate Polynomial Ring in no variables over Rational Field
 
@@ -204,7 +215,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Return structured string representation of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
             sage: print P.repr_long()
             Polynomial Ring
@@ -254,7 +266,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Used in converting this ring to the corresponding ring in Magma.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: R._magma_init_(magma)                      # optional - magma
             'SageCreateWithNames(PolynomialRing(_sage_ref...,10,"grevlex"),["a","b","c","d","e","f","g","h","i","j"])'
@@ -264,7 +277,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Graded Reverse Lexicographical Order
             Variables: y, z, w
 
-        A complicated nested example:
+        A complicated nested example::
+
             sage: R.<a,b,c> = PolynomialRing(GF(9,'a')); S.<T,W> = R[]; S
             Multivariate Polynomial Ring in T, W over Multivariate Polynomial Ring in a, b, c over Finite Field in a of size 3^2
             sage: magma(S)                                   # optional - magma
@@ -314,7 +328,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         Return the characteristic of this polynomial ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = PolynomialRing(QQ, 'x', 3)
             sage: R.characteristic()
             0
@@ -337,7 +352,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         Returns the list of variable names of this and its baserings, as if
         it were a single multi-variate polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = QQ['x,y']['z,w']
             sage: R.variable_names_recursive()
             ('x', 'y', 'z', 'w')
@@ -362,7 +378,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def _mpoly_base_ring(self, vars=None):
         """
         Returns the basering if this is viewed as a polynomial ring over vars.
-        See also MPolynomial._mpoly_dict_recursive
+        See also MPolynomial._mpoly_dict_recursive.
         """
         if vars is None:
             vars = self.variable_names_recursive()
@@ -412,10 +428,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         sum of these cardinalities.
 
         INPUT:
-            n -- number of variables
-            d -- degree
 
-        EXAMPLE:
+        - ``n`` -- number of variables
+        - ``d`` -- degree
+
+        EXAMPLE::
+
             sage: P.<x,y> = PolynomialRing(ZZ)
             sage: C,t = P._precomp_counts(10,2)
             sage: C[0]
@@ -427,7 +445,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: t
             66
 
-        TESTS:
+        TESTS::
+
             sage: P.<x,y> = PolynomialRing(ZZ)
             sage: C,t = P._precomp_counts(1,2)
             sage: C[0]
@@ -453,21 +472,25 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         the i-th monomial of degree d in n variables.
 
         INPUT:
-            i -- index: 0 <= i < binom(n+d-1,n-1)
-            n -- number of variables
-            d -- degree
 
-        EXAMPLE:
-        sage: P.<x,y> = PolynomialRing(QQ)
-        sage: P._to_monomial(0,10,2)
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
-        sage: P._to_monomial(8,10,2)
-        (0, 0, 0, 0, 0, 0, 1, 1, 0, 0)
-        sage: P._to_monomial(54,10,2)
-        (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        - ``i`` -- index: 0 <= i < binom(n+d-1,n-1)
+        - ``n`` -- number of variables
+        - ``d`` -- degree
 
-        NOTE: We do not check if the provided index/rank is within the
-        allowed range. If it is not an infinite loop will occure.
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQ)
+            sage: P._to_monomial(0,10,2)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+            sage: P._to_monomial(8,10,2)
+            (0, 0, 0, 0, 0, 0, 1, 1, 0, 0)
+            sage: P._to_monomial(54,10,2)
+            (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+        .. note::
+
+            We do not check if the provided index/rank is within the allowed
+            range. If it is not an infinite loop will occur.
         """
         from sage.combinat import choose_nk
         comb = choose_nk.from_rank(i, n+d-1, n-1)
@@ -483,17 +506,19 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _random_monomial_upto_degree_class(self,n, degree, counts=None, total=None):
         """
-        Choose a random exponent tuple for $n$ variables with a random
-        degree $d$, i.e. choose the degree uniformly at random first
+        Choose a random exponent tuple for `n` variables with a random
+        degree `d`, i.e. choose the degree uniformly at random first
         before choosing a random monomial.
 
         INPUT:
-            n -- number of variables
-            degree -- degree of monomials
-            counts -- ignored
-            total -- ignored
 
-        EXAMPLES:
+        - ``n`` -- number of variables
+        - ``degree`` -- degree of monomials
+        - ``counts`` -- ignored
+        - ``total`` -- ignored
+
+        EXAMPLES::
+
             sage: K.<x,y,z,w> = QQ[]
             sage: K._random_monomial_upto_degree_class(5, 7)
             (0, 0, 0, 3, 0)
@@ -511,19 +536,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _random_monomial_upto_degree_uniform(self,n, degree, counts=None, total=None):
         """
-        Choose a random exponent tuple for $n$ variables with a random
-        degree up to $d$, i.e. choose a random monomial uniformly random
-        from all monomials up to degree $d$. This discriminates against
+        Choose a random exponent tuple for `n` variables with a random
+        degree up to `d`, i.e. choose a random monomial uniformly random
+        from all monomials up to degree `d`. This discriminates against
         smaller degrees because there are more monomials of bigger
         degrees.
 
         INPUT:
-            n -- number of variables
-            degree -- degree of monomials
-            counts -- ignored
-            total -- ignored
 
-        EXAMPLES:
+        - ``n`` -- number of variables
+        - ``degree`` -- degree of monomials
+        - ``counts`` -- ignored
+        - ``total`` -- ignored
+
+        EXAMPLES::
+
             sage: K.<x,y,z,w> = QQ[]
             sage: K._random_monomial_upto_degree_uniform(4, 3)
             (1, 0, 0, 1)
@@ -543,28 +570,30 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def random_element(self, degree=2, terms=None, choose_degree=False,*args, **kwargs):
         """
-        Return a random polynomial of at most degree $d$ and at most $t$
+        Return a random polynomial of at most degree `d` and at most `t`
         terms.
 
         First monomials are chosen uniformly random from the set of all
-        possible monomials of degree up to $d$ (inclusive). This means
-        that it is more likely that a monomial of degree $d$ appears than
-        a monomial of degree $d-1$ because the former class is bigger.
+        possible monomials of degree up to `d` (inclusive). This means
+        that it is more likely that a monomial of degree `d` appears than
+        a monomial of degree `d-1` because the former class is bigger.
 
-        Exactly $t$ \emph{distinct} monomials are chosen this way and each
-        one gets a random coefficient (possibly zero) from the base ring
-        assigned.
+        Exactly `t` *distinct* monomials are chosen this way and each one gets
+        a random coefficient (possibly zero) from the base ring assigned.
 
         The returned polynomial is the sum of this list of terms.
 
         INPUT:
-            degree -- maximal degree (likely to be reached) (default: 2)
-            terms -- number of terms requested (default: 5)
-            choose_degree -- choose degrees of monomials randomly first rather
-                             than monomials uniformly random.
-            **kwargs -- passed to the random element generator of the base ring
 
-        EXAMPLES:
+        - ``degree`` -- maximal degree (likely to be reached) (default: 2)
+        - ``terms`` -- number of terms requested (default: 5)
+        - ``choose_degree`` -- choose degrees of monomials randomly first
+          rather than monomials uniformly random.
+        - ``**kwargs`` -- passed to the random element generator of the base
+          ring
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: P.random_element(2, 5)
             -6/5*x^2 + 2/3*z^2 - 1
@@ -572,7 +601,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P.random_element(2, 5, choose_degree=True)
             -1/4*x*y - 1/5*x*z - 1/14*y*z - z^2
 
-        stacked rings:
+        Stacked rings::
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
@@ -581,8 +610,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: S.random_element(degree=2, terms=1)
             (-1/2*x^2 - x*y - 2/7*y^2 + 3/2*x - y)*t*u
 
-        default values apply if no degree and/or number of terms is
-        provided:
+        Default values apply if no degree and/or number of terms is
+        provided::
 
             sage: random_matrix(QQ['x,y,z'], 2, 2)
             [        2*y^2 - 2/27*y*z - z^2 + 2*z        1/2*x*y - 1/2*y^2 + 2*x - 2*y]
@@ -681,11 +710,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         'order' or names given by the parameter 'names'.
 
         INPUT:
-            base_ring -- a base ring
-            names -- variable names
-            order -- a term order
 
-        EXAMPLE:
+        - ``base_ring`` -- a base ring
+        - ``names`` -- variable names
+        - ``order`` -- a term order
+
+        EXAMPLE::
+
             sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='lex')
             sage: x > y^2
             True

@@ -1,17 +1,30 @@
 """
-PolyDict functionality -- an implementation of the underlying
-arithmetic for multi-variate polynomial rings using Python dicts.
+PolyDict engine for generic multivariate polynomial rings
+
+This module provides an implementation of the underlying arithmetic for
+multi-variate polynomial rings using Python dicts.
 
 This class is not meant for end users, but instead for implementing
 multivariate polynomial rings over a completely general base.  It does
-not do strong type checking or have parents, etc.  For more special
-bases, etc., one would implement something similar in Pyrex for speed.
+not do strong type checking or have parents, etc. For speed, it has been
+implemented in Cython.
+
+The functions in this file use the 'dictionary representation' of multivariate
+polynomials
+
+``{(e1,...,er):c1,...} <-> c1*x1^e1*...*xr^er+...``,
+
+which we call a polydict. The exponent tuple ``(e1,...,er)`` in this
+representation is an instance of the class :class:`ETuple`. This class behaves
+like a normal Python tuple but also offers advanced access methods for sparse
+monomials like positions of non-zero exponents etc.
 
 AUTHORS:
-    -- William Stein
-    -- David Joyner
-    -- Martin Albrecht (ETuple)
-    -- Joel B. Mohler (2008-03-17) -- ETuple rewrite as sparse C array
+
+- William Stein
+- David Joyner
+- Martin Albrecht (ETuple)
+- Joel B. Mohler (2008-03-17) -- ETuple rewrite as sparse C array
 """
 
 #*****************************************************************************
@@ -37,44 +50,27 @@ from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 
-"""
-SUMMARY:
-    The functions in this file use the 'dictionary representation'
-    of multivariate polynomials
-
-        {(e1,...,er):c1,...} <-> c1*x1^e1*...*xr^er+...,
-
-    which we call a polydict. The exponent tuple (e1,...,er) in this
-    representation is an instance of the class ETuple. This class
-    behaves like a normal Python tuple but also offers advanced access
-    methods for sparse monomials like positions of non-zero exponents
-    etc.
-
-    This file implements arithmetic functionality for polydicts.
-
-
-
-AUTHORS:  William Stein and Martin Albrecht (ETuples)
-"""
-
 import sage.rings.ring_element as ring_element
 
 cdef class PolyDict:
     def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
         """
         INPUT:
-            pdict -- list, which represents a multi-variable polynomial
-                     with the distribute representation (a copy is not made)
 
-            zero --  (optional) zero in the base ring
+        - ``pdict`` -- list, which represents a multi-variable polynomial with
+          the distribute representation (a copy is not made)
 
-            force_int_exponents -- bool (optional) arithmetic with int exponents is much
-                      faster than some of the alternatives, so this is True by default.
+        - ``zero`` --  (optional) zero in the base ring
 
-            force_etuples -- bool (optional) enforce that the exponent tuples are instances
-                             of ETuple class
+        - ``force_int_exponents`` -- bool (optional) arithmetic with int
+          exponents is much faster than some of the alternatives, so this is
+          True by default.
 
-        EXAMPLES:
+        - ``force_etuples`` -- bool (optional) enforce that the exponent tuples
+          are instances of ETuple class
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: PolyDict({(2,3):2, (1,2):3, (2,1):4})
             PolyDict with representation {(1, 2): 3, (2, 3): 2, (2, 1): 4}
@@ -156,7 +152,8 @@ cdef class PolyDict:
         """
         Return a list that defines self. It is safe to change this.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.list()
@@ -172,7 +169,8 @@ cdef class PolyDict:
         Return a copy of the dict that defines self.  It is
         safe to change this.  For a reference, use dictref.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
@@ -184,7 +182,8 @@ cdef class PolyDict:
         """
         Return the coefficients of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.coefficients()
@@ -196,7 +195,8 @@ cdef class PolyDict:
         """
         Return the exponents of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.exponents()
@@ -208,7 +208,8 @@ cdef class PolyDict:
         """
         Return the number of terms of the polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: len(f)
@@ -220,7 +221,8 @@ cdef class PolyDict:
         """
         Return a coefficient of the polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f[1,2]
@@ -291,7 +293,8 @@ cdef class PolyDict:
 
     def monomial_coefficient(PolyDict self, mon):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.monomial_coefficient(PolyDict({(2,1):1}).dict())
@@ -308,10 +311,12 @@ cdef class PolyDict:
         polynomial viewed as a tower of polynomial extensions.
 
         INPUT:
-            degrees -- a list of degree restrictions
-                        list elements are None if the variable in that position should be unrestricted
 
-        EXAMPLES:
+        - ``degrees`` -- a list of degree restrictions; list elements are None
+          if the variable in that position should be unrestricted
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.polynomial_coefficient([2,None])
@@ -390,18 +395,21 @@ cdef class PolyDict:
         the vars are substituted in.
 
         INPUT:
-            vars -- list
-            atomic_exponents -- bool (default: True)
-            atomic_coefficients -- bool (default: True)
 
-        EXAMPLES:
+        - ``vars`` -- list
+        - ``atomic_exponents`` -- bool (default: True)
+        - ``atomic_coefficients`` -- bool (default: True)
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.latex(['a','WW'])
             '2 a^{2}WW^{3} + 4 a^{2}WW + 3 aWW^{2}'
 
-        When atomic_exponents is False, the exponents are surrounded
-        in parenthesis, since ^ has such high precedence.
+        When ``atomic_exponents`` is False, the exponents are surrounded in
+        parenthesis, since ^ has such high precedence::
+
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: f.latex(['a','b','c'], atomic_exponents=False)
@@ -467,25 +475,28 @@ cdef class PolyDict:
         the vars are substituted in.
 
         INPUT:
-            vars -- list
-            atomic_exponents -- bool (default: True)
-            atomic_coefficients -- bool (default: True)
 
-        EXAMPLES:
+        - ``vars`` -- list
+        - ``atomic_exponents`` -- bool (default: True)
+        - ``atomic_coefficients`` -- bool (default: True)
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.poly_repr(['a','WW'])
             '2*a^2*WW^3 + 4*a^2*WW + 3*a*WW^2'
 
         When atomic_exponents is False, the exponents are surrounded
-        in parenthesis, since ^ has such high precedence.
+        in parenthesis, since ^ has such high precedence.::
+
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: f.poly_repr(['a','b','c'], atomic_exponents=False)
             #'4*a^(2)*b*c + 3*a*b^(2)*c + 2*a^(2/3)*b^(3)*c^(5)'
 
         We check to make sure that when we are in characteristic two, we
-        don't put negative signs on the generators.
+        don't put negative signs on the generators.::
 
             sage: Integers(2)['x,y'].gens()
             (x, y)
@@ -557,14 +568,16 @@ cdef class PolyDict:
         Add two PolyDict's in the same number of variables.
 
         EXAMPLES:
-        We add two polynomials in 2 variables:
+        We add two polynomials in 2 variables::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f+g
             PolyDict with representation {(1, 2): 3, (2, 1): 4, (1, 1): 3, (1, 5): -3}
 
-        Next we add two polynomials with fractional exponents in 3 variables:
+        Next we add two polynomials with fractional exponents in 3 variables::
+
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
@@ -588,21 +601,24 @@ cdef class PolyDict:
         Multiply two PolyDict's in the same number of variables.
 
         EXAMPLES:
-        We multiply two polynomials in 2 variables:
+        We multiply two polynomials in 2 variables::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f*g
             PolyDict with representation {(2, 3): 9, (3, 2): 12, (2, 7): -9, (3, 5): -6, (4, 6): -4, (3, 4): 6, (3, 6): -12, (4, 4): -8, (3, 8): -6}
 
-        Next we multiply two polynomials with fractional exponents in 3 variables:
+        Next we multiply two polynomials with fractional exponents in 3 variables::
+
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
             #sage: f*g
             #PolyDict with representation {(8/3, 4, 6): 12, (5/3, 5, 6): 9, (4/3, 6, 10): 6}
 
-        Finally we print the result in a nice format.
+        Finally we print the result in a nice format.::
+
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)
             #'12*a^(8/3)*b^(4)*c^(6) + 9*a^(5/3)*b^(5)*c^(6) + 6*a^(4/3)*b^(6)*c^(10)'
@@ -627,7 +643,8 @@ cdef class PolyDict:
         """
         Right Scalar Multiplication
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: x,y=FreeMonoid(2,'x,y').gens()  # a strange object to live in a polydict, but non-commutative!
             sage: f = PolyDict({(2,3):x})
@@ -648,7 +665,8 @@ cdef class PolyDict:
         """
         Left Scalar Multiplication
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: x,y=FreeMonoid(2,'x,y').gens()  # a strange object to live in a polydict, but non-commutative!
             sage: f = PolyDict({(2,3):x})
@@ -669,7 +687,8 @@ cdef class PolyDict:
         """
         Subtract two PolyDict's.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(2,3):2, (1,1):-10})
@@ -694,7 +713,8 @@ cdef class PolyDict:
         """
         Return the n-th nonnegative power of this PolyDict.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f**2
@@ -714,7 +734,8 @@ cdef class PolyDict:
         compare function on the provided term order T.
 
         INPUT:
-            greater_etuple -- a term order
+
+        - ``greater_etuple`` -- a term order
         """
         try:
             return ETuple(reduce(greater_etuple,self.__repn.keys()))
@@ -724,7 +745,8 @@ cdef class PolyDict:
     def __reduce__(PolyDict self):
         """
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: loads(dumps(f)) == f
@@ -740,7 +762,8 @@ cdef class PolyDict:
         The nvars parameter is necessary because a PolyDict doesn't know it
         from the data it has (and an empty PolyDict offers no clues).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.min_exp()
@@ -765,7 +788,8 @@ cdef class PolyDict:
         The nvars parameter is necessary because a PolyDict doesn't know it
         from the data it has (and an empty PolyDict offers no clues).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.max_exp()
@@ -807,7 +831,7 @@ cdef inline bint dual_etuple_iter(ETuple self, ETuple other, size_t *ind1, size_
     the ETuple class.
 
     This is a rather fragile function.  Perhaps some cython guru could make
-    it appear a little less stilted -- a principle difficulty is passing
+    it appear a little less stilted -- a principal difficulty is passing
     C types by reference.  In any case, the complicated features of looping
     through two ETuple _data members is all packaged up right here and
     shouldn't be allowed to spread.
@@ -875,12 +899,13 @@ cdef class ETuple:
 
     def __init__(ETuple self, data=None, length=None):
         """
-        ETuple() -> an empty ETuple
-        ETuple(sequence) -> ETuple initialized from sequence's items
+        - ``ETuple()`` -> an empty ETuple
+        - ``ETuple(sequence)`` -> ETuple initialized from sequence's items
 
         If the argument is an ETuple, the return value is the same object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,1,0])
             (1, 1, 0)
@@ -937,7 +962,8 @@ cdef class ETuple:
 
         concatenates two ETuples
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,1,0]) + ETuple({int(1):int(2)},int(3))
             (1, 1, 0, 0, 2, 0)
@@ -959,7 +985,8 @@ cdef class ETuple:
         """
         x.__mul__(n) <==> x*n
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,2,3])*2
             (1, 2, 3, 1, 2, 3)
@@ -985,7 +1012,8 @@ cdef class ETuple:
         """
         x.__getitem__(i) <==> x[i]
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: m=ETuple([1,2,0,3])
             sage: m[2]
@@ -1006,7 +1034,8 @@ cdef class ETuple:
         """
         x.__getslice(i,j) <==> x[i:j]
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e=ETuple([1,2,3])
             sage: e[1:]
@@ -1046,7 +1075,8 @@ cdef class ETuple:
         """
         x.__len__() <==> len(x)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e=ETuple([1,0,2,0,3])
             sage: len(e)
@@ -1059,7 +1089,8 @@ cdef class ETuple:
         x.__contains__(n) <==> n in x
 
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple({int(1):int(2)},int(3)); e
             (0, 2, 0)
@@ -1079,7 +1110,8 @@ cdef class ETuple:
 
     def __richcmp__(ETuple self, ETuple other, op):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,1,0])<ETuple([1,1,0])
             False
@@ -1176,7 +1208,8 @@ cdef class ETuple:
 
     def __reduce__(ETuple self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,1,0])
             sage: bool(e == loads(dumps(e)))
@@ -1194,7 +1227,8 @@ cdef class ETuple:
         """
         Vector addition of self with other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,1,1])
@@ -1226,7 +1260,8 @@ cdef class ETuple:
         """
         Adds other to self at position pos.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: e.eadd_p(5, 1)
@@ -1275,7 +1310,8 @@ cdef class ETuple:
         """
         Vector subtraction of self with other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,1,1])
@@ -1307,7 +1343,8 @@ cdef class ETuple:
         """
         Scalar Vector multiplication of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: e.emul(2)
@@ -1330,7 +1367,8 @@ cdef class ETuple:
         """
         Vector subtraction of self with other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,1,1])
@@ -1376,7 +1414,8 @@ cdef class ETuple:
         """
         Vector subtraction of self with other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,1,1])
@@ -1417,10 +1456,12 @@ cdef class ETuple:
         Returns the positions of non-zero exponents in the tuple.
 
         INPUT:
-            sort -- if True a sorted list is returned. If False a an
-                    unsorted list is returned. (default: False)
 
-        EXAMPLES:
+        - ``sort`` -- if True a sorted list is returned. If False a an unsorted
+          list is returned. (default: False)
+
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: e.nonzero_positions()
@@ -1435,7 +1476,8 @@ cdef class ETuple:
         in self or other, i.e. the only positions that need to be
         considered for any vector operation.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,0,1])
@@ -1456,10 +1498,12 @@ cdef class ETuple:
         Returns the non-zero values of the tuple.
 
         INPUT:
-            sort -- if True the values are sorted by their indices. Otherwise a
-                    the values are returned unsorted. (default: True)
 
-        EXAMPLE:
+        - ``sort`` -- if True the values are sorted by their indices. Otherwise
+          a the values are returned unsorted. (default: True)
+
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([2,0,1])
             sage: e.nonzero_values()
@@ -1475,7 +1519,8 @@ cdef class ETuple:
         """
         Returns the reversed ETuple of self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,2,3])
             sage: e.reversed()
@@ -1492,11 +1537,11 @@ cdef class ETuple:
 
     def sparse_iter(ETuple self):
         """
-        Iterator over the elements of self where the elements are
-        returned as $(i,e)$ where $i$ is the position of $e$ in the
-        tuple.
+        Iterator over the elements of self where the elements are returned as
+        ``(i,e)`` where ``i`` is the position of ``e`` in the tuple.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2,0,3])
             sage: list(e.sparse_iter())
@@ -1510,7 +1555,8 @@ cdef class ETuple:
         """
         Given a pair of ETuples (self, other), returns a triple of ETuples (a, b, c) so that self = a + b,other = a + c and b and c have all positive entries.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([-2,1,-5, 3, 1,0])
             sage: f = ETuple([1,-3,-3,4,0,2])

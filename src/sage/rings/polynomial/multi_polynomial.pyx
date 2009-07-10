@@ -1,3 +1,7 @@
+r"""
+Base class for elements of multivariate polynomial rings
+"""
+
 import sage.misc.misc as misc
 
 include "sage/ext/stdsage.pxi"
@@ -18,7 +22,8 @@ cdef class MPolynomial(CommutativeRingElement):
     ####################
     def __int__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: type(RR['x,y'])
             <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
             sage: type(RR['x, y'](0))
@@ -40,7 +45,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def __long__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: long(RR['x,y'](0)) # indirect doctest
             0L
         """
@@ -51,7 +57,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def __float__(self):
         """
-        TESTS:
+        TESTS::
+
             sage: float(RR['x,y'](0)) # indirect doctest
             0.0
         """
@@ -62,7 +69,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _mpfr_(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: RR(RR['x,y'](0)) # indirect doctest
             0.000000000000000
         """
@@ -73,7 +81,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _complex_mpfr_field_(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: CC(RR['x,y'](0)) # indirect doctest
             0
         """
@@ -84,7 +93,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _complex_double_(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: CDF(RR['x,y'](0)) # indirect doctest
             0
         """
@@ -95,7 +105,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _real_double_(self, R):
         """
-        TESTS:
+        TESTS::
+
             sage: RR(RR['x,y'](0)) # indirect doctest
             0.000000000000000
         """
@@ -106,7 +117,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _rational_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: QQ(RR['x,y'](0)) # indirect doctest
             0
             sage: QQ(RR['x,y'](0.5)) # indirect doctest
@@ -122,7 +134,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _integer_(self, ZZ=None):
         """
-        TESTS:
+        TESTS::
+
             sage: ZZ(RR['x,y'](0)) # indirect doctest
             0
             sage: ZZ(RR['x,y'](0.0))
@@ -167,10 +180,11 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         Return the nonzero coefficients of this polynomial in a list.
         The returned list is decreasingly ordered by the term ordering
-        of self.parent(), i.e. the list of coefficients matches the list
-        of monomials returned by self.monomials().
+        of ``self.parent()``, i.e. the list of coefficients matches the list
+        of monomials returned by :meth:`.monomials`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y,z> = PolynomialRing(QQ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
@@ -180,7 +194,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.coefficients()
             [6, 23, 1]
 
-            # Test the same stuff with ZZ -- different implementation
+        Test the same stuff with base ring `\ZZ` -- different implementation::
+
             sage: R.<x,y,z> = PolynomialRing(ZZ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
@@ -191,7 +206,8 @@ cdef class MPolynomial(CommutativeRingElement):
             [6, 23, 1]
 
         AUTHOR:
-            -- didier deshommes
+
+        - Didier Deshommes
         """
         degs = self.exponents()
         d = self.dict()
@@ -218,7 +234,8 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         Returns a quickly-evaluating function on floats.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: K.<x,y,z> = QQ[]
             sage: f = (x+2*y+3*z^2)^2 + 42
             sage: f(1, 10, 100)
@@ -239,11 +256,13 @@ cdef class MPolynomial(CommutativeRingElement):
 
         Currently, we use a fairly unoptimized method that evaluates one
         monomial at a time, with no sharing of repeated computations and
-        with useless additions of 0 and multiplications by 1:
+        with useless additions of 0 and multiplications by 1::
+
             sage: list(ff)
             ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
 
-        TESTS:
+        TESTS::
+
             sage: from sage.ext.fast_eval import fast_float
             sage: list(fast_float(K(0), old=True))
             ['push 0.0']
@@ -273,7 +292,8 @@ cdef class MPolynomial(CommutativeRingElement):
         Given an ExpressionTreeBuilder, return an Expression representing
         this value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=['x','y','z'])
             sage: K.<x,y,z> = QQ[]
@@ -282,7 +302,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: v._fast_callable_(etb)
             add(add(add(0, mul(-6/5, mul(mul(ipow(v_0, 1), ipow(v_1, 1)), ipow(v_2, 1)))), mul(2, mul(ipow(v_1, 1), ipow(v_2, 2)))), mul(-1, ipow(v_0, 1)))
 
-        TESTS:
+        TESTS::
+
             sage: v = K(0)
             sage: vf = fast_callable(v)
             sage: type(v(0r, 0r, 0r))
@@ -317,12 +338,12 @@ cdef class MPolynomial(CommutativeRingElement):
         Multiple variables and iteration counts may be supplied; see
         documentation for the global derivative() function for more details.
 
-        SEE ALSO:
-            self._derivative()
+        .. seealso:: :meth:`._derivative`
 
         EXAMPLES:
 
-        Polynomials implemented via Singular:
+        Polynomials implemented via Singular::
+
             sage: R.<x, y> = PolynomialRing(FiniteField(5))
             sage: f = x^3*y^5 + x^7*y
             sage: type(f)
@@ -332,7 +353,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.derivative(y)
             x^7
 
-        Generic multivariate polynomials:
+        Generic multivariate polynomials::
+
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: S.<x, y> = PolynomialRing(R)
             sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
@@ -353,7 +375,8 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: must specify which variable to differentiate with respect to
 
-        Polynomials over the symbolic ring (just for fun....):
+        Polynomials over the symbolic ring (just for fun....)::
+
             sage: x = var("x")
             sage: S.<u, v> = PolynomialRing(SR)
             sage: f = u*v*x
@@ -371,7 +394,8 @@ cdef class MPolynomial(CommutativeRingElement):
         returns self viewed as a unvariate polynomial in var over the
         polynomial ring generated by all the other variables of the parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,w,z> = QQ[]
             sage: f = x^3 + 3*w*x + w^5 + (17*w^3)*x + z^5
             sage: f.polynomial(x)
@@ -438,14 +462,16 @@ cdef class MPolynomial(CommutativeRingElement):
         Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
         with the given variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(10)['x,y,z']['t,s']
             sage: t,s = R.gens()
             sage: x,y,z = R.base_ring().gens()
             sage: (x+y+2*z*s+3*t)._mpoly_dict_recursive(['z','t','s'])
             {(1, 0, 1): 2, (0, 1, 0): 3, (0, 0, 0): x + y}
 
-        TESTS:
+        TESTS::
+
             sage: R = Qp(7)['x,y,z,t,p']; S = ZZ['x,z,t']['p']
             sage: R(S.0)
             p
@@ -461,7 +487,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R(S.0)
             p
 
-        See trac 2601:
+        See trac 2601::
+
             sage: R.<a,b,c> = PolynomialRing(QQ, 3)
             sage: a._mpoly_dict_recursive(['c', 'b', 'a'])
             {(0, 0, 1): 1}
@@ -527,7 +554,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
         The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: T.<y>=QQ[]
             sage: R.<x>=ZZ[]
             sage: S.<x,y>=ZZ[]
@@ -576,10 +604,11 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def args(self):
         r"""
-        Returns the named of the arguments of \code{self}, in the
+        Returns the named of the arguments of self, in the
         order they are accepted from call.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = ZZ[]
             sage: x.args()
             (x, y)
@@ -588,23 +617,25 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def homogenize(self, var='h'):
         r"""
-        Return \code{self} if \code{self} is homogeneous.  Otherwise
-        return a homogenized polynomial for \code{self}. If a string
-        is given, return a polynomial in one more variable named after
-        the strig such that setting that variable equal to 1 yields
-        self. This variable is added to the end of the variables. If a
-        variable in \code{self.parent()} is given, this variable is
-        used to homogenize the polynomial. If an integer is given, the
+        Return self if self is homogeneous.  Otherwise return a homogenized
+        polynomial for self. If a string is given, return a polynomial in one
+        more variable named after the strig such that setting that variable
+        equal to 1 yields self. This variable is added to the end of the
+        variables. If a variable in ``self.parent()`` is given, this variable
+        is used to homogenize the polynomial. If an integer is given, the
         variable with this index is used for homogenization.
 
         INPUT:
-            var -- either a variable name, variable index or a
-                   variable (default: 'h').
+
+        - ``var`` -- either a variable name, variable index or a variable
+          (default: 'h').
 
         OUTPUT:
-            a multivariate polynomial
 
-        EXAMPLES:
+        a multivariate polynomial
+
+        EXAMPLES::
+
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: f = x^2 + y + 1 + 5*x*y^10
             sage: g = f.homogenize('z'); g
@@ -634,7 +665,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: (x + x^2).homogenize(y).parent()
             Multivariate Polynomial Ring in x, y over Finite Field of size 3
 
-        TESTS:
+        TESTS::
+
             sage: R = PolynomialRing(QQ, 'x', 5)
             sage: p = R.random_element()
             sage: q1 = p.homogenize()
@@ -676,9 +708,10 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def is_homogeneous(self):
         r"""
-        Return \code{True} if self is a homogeneous polynomial.
+        Return ``True`` if self is a homogeneous polynomial.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.multi_polynomial import MPolynomial
             sage: P.<x, y> = PolynomialRing(QQ, 2)
             sage: MPolynomial.is_homogeneous(x+y)
@@ -694,8 +727,10 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: MPolynomial.is_homogeneous(x^2*y + y^2*x)
             True
 
-        NOTE: This is a generic implementation which is likely
-        overridden by subclasses.
+        .. note::
+
+            This is a generic implementation which is likely overridden by
+            subclasses.
         """
         M = self.monomials()
         d = M.pop().degree()
@@ -707,7 +742,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def __mod__(self, other):
         """
-        EXAMPLE:
+        EXAMPLE::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = (x^2*y + 2*x - 3)
             sage: g = (x + 1)*f
@@ -731,9 +767,11 @@ cdef class MPolynomial(CommutativeRingElement):
         if at all possible.
 
         INPUT:
-            R -- a ring
 
-        EXAMPLE:
+        - ``R`` -- a ring
+
+        EXAMPLE::
+
             sage: R.<x,y> = QQ[]
             sage: f = x^3 + 3/5*y + 1
             sage: f.change_ring(GF(7))
@@ -752,7 +790,8 @@ cdef class MPolynomial(CommutativeRingElement):
         Returns a Magma string representation of self valid in the
         given magma session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<b> = GF(25); R.<x,y> = k[]
             sage: f = y*x^2*b + x*(b+1) + 1
             sage: magma = Magma()                       # so var names same below
@@ -761,7 +800,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f._magma_init_(magma)                 # optional - magma
             '_sage_[...]!((_sage_[...]!(_sage_[...]))*_sage_[...]^2*_sage_[...]+(_sage_[...]!(_sage_[...] + 1))*_sage_[...]+(_sage_[...]!(1))*1)'
 
-        A more complicated nested example:
+        A more complicated nested example::
+
             sage: R.<x,y> = QQ[]; S.<z,w> = R[]; f = (2/3)*x^3*z + w^2 + 5
             sage: f._magma_init_(magma)               # optional - magma
             '_sage_[...]!((_sage_[...]!((1)*1))*_sage_[...]^2+(_sage_[...]!((2/3)*_sage_[...]^3))*_sage_[...]+(_sage_[...]!((5)*1))*1)'
@@ -785,9 +825,10 @@ cdef class MPolynomial(CommutativeRingElement):
     def gradient(self):
         r"""
         Return a list of partial derivatives of this polynomial,
-        ordered by the variables of \code{self.parent()}.
+        ordered by the variables of ``self.parent()``.
 
-        EXAMPLE:
+        EXAMPLE::
+
            sage: P.<x,y,z> = PolynomialRing(ZZ,3)
            sage: f = x*y + 1
            sage: f.gradient()
@@ -799,7 +840,8 @@ cdef class MPolynomial(CommutativeRingElement):
         r"""
         Return the Jacobian ideal of the polynomial self.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: R.<x,y,z> = QQ[]
             sage: f = x^3 + y^3 + z^3
             sage: f.jacobian_ideal()
@@ -813,7 +855,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
         You should have the optional polymake package installed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y> = QQ[]
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
@@ -822,7 +865,8 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: P.is_simple()
             True
 
-        TESTS:
+        TESTS::
+
             sage: R.<x,y> = QQ[]
             sage: R(0).newton_polytope()
             A Polyhedron.
@@ -838,13 +882,16 @@ cdef class MPolynomial(CommutativeRingElement):
     def __iter__(self):
         """
         Facilitates iterating over the monomials of self,
-        returning tuples of the form (coeff, mon) for each
+        returning tuples of the form ``(coeff, mon)`` for each
         non-zero monomial.
 
-        NOTE: This function creates the entire list upfront because
-              Cython doesn't (yet) support iterators.
+        .. note::
 
-        EXAMPLES:
+            This function creates the entire list upfront because Cython
+            doesn't (yet) support iterators.
+
+        EXAMPLES::
+
             sage: P.<x,y,z> = PolynomialRing(QQ,3)
             sage: f = 3*x^3*y + 16*x + 7
             sage: [(c,m) for c,m in f]
@@ -861,7 +908,8 @@ cdef class MPolynomial(CommutativeRingElement):
         Returns the content of this polynomial.  Here, we define content as
         the gcd of the coefficients in the base ring.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y>=ZZ[]
             sage: f=4*x+6*y
             sage: f.content()
@@ -876,10 +924,11 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def is_generator(self):
         r"""
-        Returns \code{True} if this polynomial is a generator of it's
+        Returns ``True`` if this polynomial is a generator of its
         parent.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x,y>=ZZ[]
             sage: x.is_generator()
             True
@@ -899,10 +948,11 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def map_coefficients(self, f):
         """
-        Returns a new element of self.parent() obtained by applying
+        Returns a new element of ``self.parent()`` obtained by applying
         the function f to all of the coefficients of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(9); R.<x,y> = k[];  f = x*a + 2*x^3*y*a + a
             sage: f.map_coefficients(lambda a : a + 1)
             (-a + 1)*x^3*y + (a + 1)*x + (a + 1)
@@ -915,14 +965,15 @@ cdef class MPolynomial(CommutativeRingElement):
     def _norm_over_nonprime_finite_field(self):
         """
         Given a multivariate polynomial over a nonprime finite field
-        GF(p**e), compute the norm of the polynomial down to GF(p),
-        which is the product of the conjugates by the Frobenius action
-        on coefficients, where Frobenius acts by p-th power.
+        `\GF{p**e}`, compute the norm of the polynomial down to `\GF{p}`, which
+        is the product of the conjugates by the Frobenius action on
+        coefficients, where Frobenius acts by p-th power.
 
-        This is (currently) an internal function used in factoring
-        over finite fields.
+        This is (currently) an internal function used in factoring over finite
+        fields.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(9)
             sage: R.<x,y> = PolynomialRing(k)
             sage: f = (x-a)*(y-a)
@@ -945,7 +996,8 @@ cdef class MPolynomial(CommutativeRingElement):
         reducing to the case of a prime field and gcd's over the
         non-prime field.  Note that proof=False for this function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(9)
             sage: R.<x,y> = PolynomialRing(k)
             sage: f = (x-a)*(y-a)

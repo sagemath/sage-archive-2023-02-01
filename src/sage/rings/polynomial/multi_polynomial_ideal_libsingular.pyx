@@ -2,9 +2,11 @@
 Direct low-level access to SINGULAR's Groebner basis engine via libSINGULAR.
 
 AUTHOR:
-    -- Martin Albrecht 2007-08-08 initial version
 
-EXAMPLES:
+- Martin Albrecht (2007-08-08): initial version
+
+EXAMPLES::
+
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: I.groebner_basis('libsingular:std')
@@ -12,7 +14,7 @@ EXAMPLES:
     x^2*y^3 - y^4 + x^2*z^2 - z^3 - x^2 + 1, x^3 + y^3 + z^2 - 1]
 
 We compute a Groebner basis for cyclic 6, which is a standard
-benchmark and test ideal.
+benchmark and test ideal::
 
     sage: R.<x,y,z,t,u,v> = QQ['x,y,z,t,u,v']
     sage: I = sage.rings.ideal.Cyclic(R,6)
@@ -20,13 +22,16 @@ benchmark and test ideal.
     sage: len(B)
     45
 
-Two examples from the Mathematica documentation (done in SAGE):
-    We compute a Groebner basis:
+Two examples from the Mathematica documentation (done in Sage):
+
+- We compute a Groebner basis::
+
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis('libsingular:slimgb')
         [x - 2/3*y^3, y^4 - 9/2]
 
-    We show that three polynomials have no common root:
+- We show that three polynomials have no common root::
+
         sage: R.<x,y> = QQ[]
         sage: ideal(x+y, x^2 - 1, y^2 - 2*x).groebner_basis('libsingular:slimgb')
         [1]
@@ -34,7 +39,7 @@ Two examples from the Mathematica documentation (done in SAGE):
 
 #*****************************************************************************
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
@@ -65,13 +70,14 @@ from sage.structure.sequence import Sequence
 
 cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     """
-    convert a SINGULAR ideal to a SAGE Sequence (the format SAGE
+    convert a SINGULAR ideal to a Sage Sequence (the format Sage
     stores a Groebner basis in)
 
     INPUT:
-        i -- a SINGULAR ideal
-        r -- a SINGULAR ring
-        parent -- a SAGE ring matching r
+
+    - ``i`` -- a SINGULAR ideal
+    - ``r`` -- a SINGULAR ring
+    - ``parent`` -- a Sage ring matching r
     """
     cdef int j
     cdef MPolynomial_libsingular p
@@ -86,10 +92,12 @@ cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
 
 cdef ideal *sage_ideal_to_singular_ideal(I):
     """
-    convert a SAGE Ideal to a SINGULAR ideal
+    convert a Sage ideal to a SINGULAR ideal
 
     INPUT:
-        I -- a SAGE ideal in a ring of MPolynomialRing_libsingular
+
+    - ``I`` -- a Sage ideal in a ring of type
+      :class:`~sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular`
     """
     R = I.ring()
     gens = I.gens()
@@ -115,19 +123,22 @@ cdef ideal *sage_ideal_to_singular_ideal(I):
 
 def kbase_libsingular(I):
     """
-    Singular's kbase() algorithm.
+    SINGULAR's ``kbase()`` algorithm.
 
     INPUT:
-    I -- a groebner basis of an ideal
+
+    - ``I`` -- a groebner basis of an ideal
 
     OUTPUT:
+
     Computes a vector space basis (consisting of monomials) of the quotient
     ring by the ideal, resp. of a free module by the module, in case it is
     finite dimensional and if the input is a standard basis with respect to
     the ring ordering. If the input is not a standard basis, the leading terms
     of the input are used and the result may have no meaning.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: I = R.ideal(x^2-2*y^2, x*y-3)
         sage: I.normal_basis()
@@ -156,10 +167,11 @@ def kbase_libsingular(I):
 
 def std_libsingular(I):
     """
-    SINGULAR's std() algorithm.
+    SINGULAR's ``std()`` algorithm.
 
     INPUT:
-        I -- a SAGE ideal
+
+    - ``I`` -- a Sage ideal
     """
     global singular_options
 
@@ -187,10 +199,11 @@ def std_libsingular(I):
 
 def slimgb_libsingular(I):
     """
-    SINGULAR's slimgb() algorithm.
+    SINGULAR's ``slimgb()`` algorithm.
 
     INPUT:
-        I -- a SAGE ideal
+
+    - ``I`` -- a Sage ideal
     """
     global singular_options
 
@@ -225,10 +238,11 @@ def slimgb_libsingular(I):
 
 def interred_libsingular(I):
     """
-    SINGULAR's interred() command.
+    SINGULAR's ``interred()`` command.
 
     INPUT:
-        I -- a SAGE ideal
+
+    - ``I`` -- a Sage ideal
 
     EXAMPLE::
 

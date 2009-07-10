@@ -1,3 +1,14 @@
+r"""
+Fast calculation of cyclotomic polynomials
+
+This module provides a function :func:`cyclotomic_coeffs`, which calculates the
+coefficients of cyclotomic polynomials. This is not intended to be invoked
+directly by the user, but it is called by the method
+:meth:`~sage.rings.polynomial.polynomial_ring.PolynomialRing_general.cyclotomic_polynomial`
+method of univariate polynomial ring objects and the top-level
+:func:`~sage.misc.functional.cyclotomic_polynomial` function.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -26,23 +37,26 @@ from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets
 
 def cyclotomic_coeffs(nn, sparse=None):
-    """
+    u"""
     This calculates the coefficients of the n-th cyclotomic polynomial
     by using the formula
 
-        $$ \Phi_n(x) = \prod_{d|n} (1-x^{n/d})^\mu(d)$$
+    .. math::
 
-    Where $\mu(d)$ is the M\"obius function that is 1 if d has an even
+        \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
+
+    where `\\mu(d)` is the Moebius function that is 1 if d has an even
     number of distinct prime divisors, -1 if it has an odd number of
     distinct prime divisors, and 0 if d is not squarefree.
 
     Multiplications and divisions by polynomials of the
-    form $1-x^n$ can be done very quickly in a single pass.
+    form `1-x^n` can be done very quickly in a single pass.
 
     If sparse is True, the result is returned as a dictionary of the non-zero
     entries, otherwise the result is returned as a list of python ints.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.rings.polynomial.cyclotomic import cyclotomic_coeffs
         sage: cyclotomic_coeffs(30)
         [1, 1, 0, -1, -1, -1, 0, 1, 1]
@@ -52,23 +66,27 @@ def cyclotomic_coeffs(nn, sparse=None):
         sage: R(cyclotomic_coeffs(30))
         x^8 + x^7 - x^5 - x^4 - x^3 + x + 1
 
-    Check that it has the right degree:
+    Check that it has the right degree::
+
         sage: euler_phi(30)
         8
         sage: R(cyclotomic_coeffs(14)).factor()
         x^6 - x^5 + x^4 - x^3 + x^2 - x + 1
 
-    The coefficients are not always +/-1
+    The coefficients are not always +/-1::
+
         sage: cyclotomic_coeffs(105)
         [1, 1, 1, 0, 0, -1, -1, -2, -1, -1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, -1, -1, -2, -1, -1, 0, 0, 1, 1, 1]
 
     In fact the height is not bounded by any polynomial in n (Erdos),
-    although takes a while just to exceed linear:
+    although takes a while just to exceed linear::
+
         sage: v = cyclotomic_coeffs(1181895)
         sage: max(v)
         14102773
 
-    The polynomial is a palindrome for any n:
+    The polynomial is a palindrome for any n::
+
         sage: n = ZZ.random_element(50000)
         sage: factor(n)
         3 * 10009
@@ -77,8 +95,9 @@ def cyclotomic_coeffs(nn, sparse=None):
         True
 
     AUTHORS:
-        -- Robert Bradshaw 2007-10-27: initial version
-               (Inspired by work of Andrew Arnold and Michael Monagan)
+
+    - Robert Bradshaw (2007-10-27): initial version (inspired by work of Andrew
+      Arnold and Michael Monagan)
     """
     factors = factor(nn)
     if any([e != 1 for p, e in factors]):

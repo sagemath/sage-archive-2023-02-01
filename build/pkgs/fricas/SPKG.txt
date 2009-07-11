@@ -38,6 +38,9 @@ http://groups.google.com/group/fricas-devel/
 
 == Changelog ==
 
+=== fricas-1.0.7 (Adam Webb) ===
+ * update to FriCAS-1.0.7 release
+
 === fricas-1.0.6 (Adam Webb) ===
  * update to FriCAS-1.0.6 release, switch to ecl
 

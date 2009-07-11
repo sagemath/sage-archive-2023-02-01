@@ -8,15 +8,13 @@ check_error() {
         exit 1
     fi
 }
-# out-of-source build
+
 FRICAS_CLISP=ecl
 mkdir build-dir
 cd build-dir
 ../src/configure --prefix=$SAGE_LOCAL --with-lisp="$FRICAS_CLISP"
-check_error "Failed to configure Axiom."
+check_error "Failed to configure FriCAS."
 make
-check_error "Failed to make Axiom."
-# also install asq
-#cp target/*/bin/asq $SAGE_LOCAL/bin && make install
+check_error "Failed to make FriCAS."
 make install
-check_error "Failed to install Axiom."
+check_error "Failed to install FriCAS."

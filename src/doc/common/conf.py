@@ -17,7 +17,7 @@ if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
 else:
     extensions.append('sphinx.ext.pngmath')
-jsmath_path = '/javascript_local/jsmath/easy/load.js'
+jsmath_path = 'jsmath/easy/load.js'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [SAGE_DOC + '/common/templates', 'templates']

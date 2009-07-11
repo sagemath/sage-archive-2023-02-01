@@ -1,6 +1,5 @@
 r"""
-Calculate Wigner 3j, 6j, 9j, Clebsch-Gordan, Racah and Gaunt
-coefficients
+Wigner, Clebsch-Gordan, Racah, and Gaunt coefficients
 
 Collection of functions for calculating Wigner 3j, 6j, 9j,
 Clebsch-Gordan, Racah as well as Gaunt coefficients exactly, all
@@ -10,19 +9,17 @@ number [Rasch03].
 Please see the description of the individual functions for further
 details and examples.
 
-
 REFERENCES:
 
-- [Rasch03] 'Efficient Storage Scheme for Pre-calculated Wigner 3j, 6j
-  and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
+- [Rasch03] J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
+  Pre-calculated Wigner 3j, 6j and Gaunt Coefficients', SIAM
   J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
-
 
 AUTHORS:
 
 - Jens Rasch (2009-03-24): initial version for Sage
-- Jens Rasch (2009-05-31): updated to sage-4.0
 
+- Jens Rasch (2009-05-31): updated to sage-4.0
 """
 
 #***********************************************************************
@@ -49,62 +46,104 @@ def _calc_factlist(nn):
 
     INPUT:
 
-     - nn Highest factorial to be computed
+    -  ``nn`` -  integer, highest factorial to be computed
 
     OUTPUT:
 
-    integer list of factorials
-
+    list of integers -- the list of precomputed factorials
 
     EXAMPLES:
 
-    Calculate list of factorials:
+    Calculate list of factorials::
 
         sage: from sage.functions.wigner import _calc_factlist
         sage: _calc_factlist(10)
         [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800]
     """
-    if nn>=len(_Factlist):
-        for ii in range(len(_Factlist),nn+1):
-            _Factlist.append(_Factlist[ii-1]*ii)
-            #_Factlist.append(factorial(ii))
-    return _Factlist[:Integer(nn)+1]
+    if nn >= len(_Factlist):
+        for ii in range(len(_Factlist), nn + 1):
+            _Factlist.append(_Factlist[ii - 1] * ii)
+    return _Factlist[:Integer(nn) + 1]
 
 
-
-
-def Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
+def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     r"""
-    Calculate the Wigner 3j symbol Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
+    Calculate the Wigner 3j symbol `Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)`.
 
+    INPUT:
+
+    -  ``j_1``, ``j_2``, ``j_3``, ``m_1``, ``m_2``, ``m_3`` - integer or half integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES::
+
+        sage: wigner_3j(2, 6, 4, 0, 0, 0)
+        sqrt(5/143)
+
+        sage: wigner_3j(2, 6, 4, 0, 0, 1)
+        0
+
+        sage: wigner_3j(0.5, 0.5, 1, 0.5, -0.5, 0)
+        sqrt(1/6)
+
+        sage: wigner_3j(40, 100, 60, -10, 60, -50)
+        95608/18702538494885*sqrt(21082735836735314343364163310/220491455010479533763)
+
+        sage: wigner_3j(2500, 2500, 5000, 2488, 2400, -4888, prec=64)
+        7.60424456883448589e-12
+
+    It is an error to have arguments that are not integer or half
+    integer values::
+
+        sage: wigner_3j(2.1, 6, 4, 0, 0, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: j values must be integer or half integer
+
+        sage: wigner_3j(2, 6, 4, 1, 0, -1.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: m values must be integer or half integer
 
     NOTES:
 
     The Wigner 3j symbol obeys the following symmetry rules:
 
     - invariant under any permutation of the columns (with the
-      exception of a sign change where $J:=j_1+j_2+j_3$):
-      Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
+      exception of a sign change where `J:=j_1+j_2+j_3`):
+
+      .. math::
+
+         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
           =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2)
           =Wigner3j(j_2,j_3,j_1,m_2,m_3,m_1)
-          =(-)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1)
-          =(-)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
-          =(-)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
+          =(-1)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1)
+          =(-1)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
+          =(-1)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i. e.
-      Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-         =(-)^J Wigner3j(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+
+      .. math::
+
+         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
+         =(-1)^J Wigner3j(j_1,j_2,j_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 additional symmetries based on
       the work by [Regge58]
 
-    - zero for $j_1$, $j_2$, $j_3$ not fulfilling triangle relation
+    - zero for `j_1`, `j_2`, `j_3` not fulfilling triangle relation
 
-    - zero for $m_1+m_2+m_3!= 0$
+    - zero for `m_1+m_2+m_3\neq 0`
 
     - zero for violating any one of the conditions
-      $j_1\ge|m_1|$,  $j_2\ge|m_2|$,  $j_3\ge|m_3|$
-
+      `j_1\ge|m_1|`,  `j_2\ge|m_2|`,  `j_3\ge|m_3|`
 
     ALGORITHM:
 
@@ -113,61 +152,6 @@ def Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
     algebra system [Rasch03].
-
-
-
-    INPUT:
-
-    j_1 - integer or half integer
-    j_2 - integer or half integer
-    j_3 - integer or half integer
-    m_1 - integer or half integer
-    m_2 - integer or half integer
-    m_3 - integer or half integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-    A couple of examples:
-
-        sage: Wigner3j(2,6,4,0,0,0)
-        sqrt(5/143)
-
-        sage: Wigner3j(2,6,4,0,0,1)
-        0
-
-        sage: Wigner3j(0.5,0.5,1,0.5,-0.5,0)
-        sqrt(1/6)
-
-        sage: Wigner3j(40,100,60,-10,60,-50)
-        95608/18702538494885*sqrt(21082735836735314343364163310/220491455010479533763)
-
-        sage: Wigner3j(2500,2500,5000,2488,2400,-4888 ,prec=64)
-        7.60424456883448589e-12
-
-
-    It is an error to have arguments that are not integer or half
-    integer values:
-
-        sage: Wigner3j(2.1,6,4,0,0,0)
-        Traceback (most recent call last):
-        ...
-        ValueError: j values must be integer or half integer
-
-        sage: Wigner3j(2,6,4,1,0,-1.1)
-        Traceback (most recent call last):
-        ...
-        ValueError: m values must be integer or half integer
-
-
 
     REFERENCES:
 
@@ -181,116 +165,108 @@ def Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
-
     AUTHORS:
 
     - Jens Rasch (2009-03-24): initial version
-
     """
-
-    if int(j_1*2)!=j_1*2 or int(j_2*2)!=j_2*2 or int(j_3*2)!=j_3*2:
+    if int(j_1 * 2) != j_1 * 2 or int(j_2 * 2) != j_2 * 2 or \
+            int(j_3 * 2) != j_3 * 2:
         raise ValueError("j values must be integer or half integer")
-        #return 0
-    if int(m_1*2)!=m_1*2 or int(m_2*2)!=m_2*2 or int(m_3*2)!=m_3*2:
+    if int(m_1 * 2) != m_1 * 2 or int(m_2 * 2) != m_2 * 2 or \
+            int(m_3 * 2) != m_3 * 2:
         raise ValueError("m values must be integer or half integer")
-        #return 0
-    if (m_1+m_2+m_3<>0):
+    if (m_1 + m_2 + m_3 <> 0):
         return 0
-    prefid=Integer((-1)**(int(j_1-j_2-m_3)))
-    m_3=-m_3
-    a1=j_1+j_2-j_3
-    if (a1<0):
+    prefid = Integer((-1) ** (int(j_1 - j_2 - m_3)))
+    m_3 = -m_3
+    a1 = j_1 + j_2 - j_3
+    if (a1 < 0):
         return 0
-    a2=j_1-j_2+j_3
-    if (a2<0):
+    a2 = j_1 - j_2 + j_3
+    if (a2 < 0):
         return 0
-    a3=-j_1+j_2+j_3
-    if (a3<0):
+    a3 = -j_1 + j_2 + j_3
+    if (a3 < 0):
         return 0
-    if (abs(m_1)>j_1) or (abs(m_2)>j_2) or (abs(m_3)>j_3):
+    if (abs(m_1) > j_1) or (abs(m_2) > j_2) or (abs(m_3) > j_3):
         return 0
 
-    maxfact=max(j_1+j_2+j_3+1,j_1+abs(m_1),j_2+abs(m_2),j_3+abs(m_3))
+    maxfact = max(j_1 + j_2 + j_3 + 1, j_1 + abs(m_1), j_2 + abs(m_2), \
+                      j_3 + abs(m_3))
     _calc_factlist(maxfact)
 
-    #try:
-    argsqrt=Integer(_Factlist[int(j_1+j_2-j_3)]\
-                     *_Factlist[int(j_1-j_2+j_3)]\
-             *_Factlist[int(-j_1+j_2+j_3)]\
-             *_Factlist[int(j_1-m_1)]*_Factlist[int(j_1+m_1)]\
-             *_Factlist[int(j_2-m_2)]*_Factlist[int(j_2+m_2)]\
-             *_Factlist[int(j_3-m_3)]*_Factlist[j_3+m_3])\
-             /_Factlist[int(j_1+j_2+j_3+1)]\
-    #except:
-    #    return 0
+    argsqrt = Integer(_Factlist[int(j_1 + j_2 - j_3)] * \
+                          _Factlist[int(j_1 - j_2 + j_3)] * \
+                          _Factlist[int(-j_1 + j_2 + j_3)] * \
+                          _Factlist[int(j_1 - m_1)] * \
+                          _Factlist[int(j_1 + m_1)] * \
+                          _Factlist[int(j_2 - m_2)] * \
+                          _Factlist[int(j_2 + m_2)] * \
+                          _Factlist[int(j_3 - m_3)] * \
+                          _Factlist[int(j_3 + m_3)]) / \
+                          _Factlist[int(j_1 + j_2 + j_3 + 1)]
 
-    ressqrt=argsqrt.sqrt(prec)
+    ressqrt = argsqrt.sqrt(prec)
     if type(ressqrt) is ComplexNumber:
-        ressqrt=ressqrt.real()
+        ressqrt = ressqrt.real()
 
-    imin=max(-j_3+j_1+m_2,-j_3+j_2-m_1,0)
-    imax=min(j_2+m_2,j_1-m_1,j_1+j_2-j_3)
-    sumres=0
-    for ii in range(imin,imax+1):
-        den=_Factlist[ii]*_Factlist[int(ii+j_3-j_1-m_2)]\
-             *_Factlist[int(j_2+m_2-ii)]*_Factlist[int(j_1-ii-m_1)]\
-             *_Factlist[int(ii+j_3-j_2+m_1)]\
-             *_Factlist[int(j_1+j_2-j_3-ii)]
-        sumres=sumres+Integer((-1)**ii)/den
+    imin = max(-j_3 + j_1 + m_2, -j_3 + j_2 - m_1, 0)
+    imax = min(j_2 + m_2, j_1 - m_1, j_1 + j_2 - j_3)
+    sumres = 0
+    for ii in range(imin, imax + 1):
+        den = _Factlist[ii] * \
+            _Factlist[int(ii + j_3 - j_1 - m_2)] * \
+            _Factlist[int(j_2 + m_2 - ii)] * \
+            _Factlist[int(j_1 - ii - m_1)] * \
+            _Factlist[int(ii + j_3 - j_2 + m_1)] * \
+            _Factlist[int(j_1 + j_2 - j_3 - ii)]
+        sumres = sumres + Integer((-1) ** ii) / den
 
-    res=ressqrt*sumres*prefid
+    res = ressqrt * sumres * prefid
     return res
 
 
-def ClebschGordan(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
+def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     r"""
     Calculates the Clebsch-Gordan coefficient
+    `< j_1 m_1 \; j_2 m_2 | j_3 m_3 >`.
 
-    $< j_1 m_1 \; j_2 m_2 | j_3 m_3 >$
+    INPUT:
 
+    -  ``j_1``, ``j_2``, ``j_3``, ``m_1``, ``m_2``, ``m_3`` - integer or half integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES::
+
+        sage: simplify(clebsch_gordan(3/2,1/2,2, 3/2,1/2,2))
+        1
+
+        sage: clebsch_gordan(1.5,0.5,1, 1.5,-0.5,1)
+        1/2*sqrt(3)
+
+        sage: clebsch_gordan(3/2,1/2,1, -1/2,1/2,0)
+        -sqrt(1/6)*sqrt(3)
 
     NOTES:
 
     The Clebsch-Gordan coefficient will be evaluated via its relation
     to Wigner 3j symbols:
-    < j_1 m_1 \; j_2 m_2 | j_3 m_3 >
-        =(-1)^(j_1-j_2+m_3) \sqrt(2j_3+1) Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3)
+
+    .. math::
+
+        < j_1 m_1 \; j_2 m_2 | j_3 m_3 >
+        =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1} \;
+        Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3)
 
     See also the documentation on Wigner 3j symbols which exhibit much
-    higher symmetry relations that the Clebsch-Gordan coefficient.
-
-
-    INPUT:
-
-    j_1 - integer or half integer
-    j_2 - integer or half integer
-    j_3 - integer or half integer
-    m_1 - integer or half integer
-    m_2 - integer or half integer
-    m_3 - integer or half integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-    A couple of examples:
-
-        sage: simplify(ClebschGordan(3/2,1/2,2, 3/2,1/2,2))
-        1
-
-        sage: ClebschGordan(1.5,0.5,1, 1.5,-0.5,1)
-        1/2*sqrt(3)
-
-        sage: ClebschGordan(3/2,1/2,1, -1/2,1/2,0)
-        -sqrt(1/6)*sqrt(3)
-
+    higher symmetry relations than the Clebsch-Gordan coefficient.
 
     REFERENCES:
 
@@ -301,22 +277,16 @@ def ClebschGordan(j_1,j_2,j_3,m_1,m_2,m_3,prec=None):
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
-
     AUTHORS:
 
     - Jens Rasch (2009-03-24): initial version
-
     """
-
-    res=(-1)**(int(j_1-j_2+m_3))*(2*j_3+1).sqrt(prec)\
-         *Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3,prec)
+    res = (-1) ** (int(j_1 - j_2 + m_3)) * (2 * j_3 + 1).sqrt(prec) * \
+        wigner_3j(j_1, j_2, j_3, m_1, m_2, -m_3, prec)
     return res
 
 
-
-
-
-def _bigDeltacoeff(aa,bb,cc,prec=None):
+def _big_delta_coeff(aa, bb, cc, prec=None):
     r"""
     Calculates the Delta coefficient of the 3 angular momenta for
     Racah symbols. Also checks that the differences are of integer
@@ -324,74 +294,85 @@ def _bigDeltacoeff(aa,bb,cc,prec=None):
 
     INPUT:
 
-     - aa - first angular momentum, integer or half integer
-     - bb - second angular momentum, integer or half integer
-     - cc - third angular momentum, integer or half integer
-     - prec - precision of the sqrt() calculation
+    -  ``aa`` - first angular momentum, integer or half integer
+
+    -  ``bb`` - second angular momentum, integer or half integer
+
+    -  ``cc`` - third angular momentum, integer or half integer
+
+    -  ``prec`` - precision of the sqrt() calculation
 
     OUTPUT:
 
     double - Value of the Delta coefficient
 
+    EXAMPLES::
 
-    EXAMPLES:
-
-    Simple examples:
-
-        sage: from sage.functions.wigner import _bigDeltacoeff
-        sage: _bigDeltacoeff(1,1,1)
+        sage: from sage.functions.wigner import _big_delta_coeff
+        sage: _big_delta_coeff(1,1,1)
         1/2*sqrt(1/6)
-
     """
-
-    if(int(aa+bb-cc)!=(aa+bb-cc)):
+    if (int(aa + bb - cc) != (aa + bb - cc)):
         raise ValueError("j values must be integer or half integer and fulfil the triangle relation")
-        #return 0
-    if(int(aa+cc-bb)!=(aa+cc-bb)):
+    if (int(aa + cc - bb) != (aa + cc - bb)):
         raise ValueError("j values must be integer or half integer and fulfil the triangle relation")
-        #return 0
-    if(int(bb+cc-aa)!=(bb+cc-aa)):
+    if (int(bb + cc - aa) != (bb + cc - aa)):
         raise ValueError("j values must be integer or half integer and fulfil the triangle relation")
-        #return 0
-    if(aa+bb-cc)<0:
+    if (aa + bb - cc) < 0:
         return 0
-    if(aa+cc-bb)<0:
+    if (aa + cc - bb) < 0:
         return 0
-    if(bb+cc-aa)<0:
+    if (bb + cc - aa) < 0:
         return 0
 
-    maxfact=max(aa+bb-cc,aa+cc-bb,bb+cc-aa,aa+bb+cc+1)
+    maxfact = max(aa + bb - cc, aa + cc - bb, bb + cc - aa, aa + bb + cc + 1)
     _calc_factlist(maxfact)
 
-    argsqrt=Integer(_Factlist[int(aa+bb-cc)]*_Factlist[int(aa+cc-bb)]\
-                    *_Factlist[int(bb+cc-aa)])\
-                    /Integer(_Factlist[int(aa+bb+cc+1)])
+    argsqrt = Integer(_Factlist[int(aa + bb - cc)] * \
+                          _Factlist[int(aa + cc - bb)] * \
+                          _Factlist[int(bb + cc - aa)]) / \
+                          Integer(_Factlist[int(aa + bb + cc + 1)])
 
-    ressqrt=argsqrt.sqrt(prec)
+    ressqrt = argsqrt.sqrt(prec)
     if type(ressqrt) is ComplexNumber:
-        res=ressqrt.real()
+        res = ressqrt.real()
     else:
-        res=ressqrt
+        res = ressqrt
     return res
 
 
-
-
-def Racah(aa,bb,cc,dd,ee,ff,prec=None):
+def racah(aa, bb, cc, dd, ee, ff, prec=None):
     r"""
-    Calculate the Racah symbol
+    Calculate the Racah symbol `W(a,b,c,d;e,f)`.
 
-    W(a,b,c,d;e,f)
+    INPUT:
+
+    -  ``a``, ..., ``f`` - integer or half integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES::
+
+        sage: racah(3,3,3,3,3,3)
+        -1/14
 
     NOTES:
 
     The Racah symbol is related to the Wigner 6j symbol:
-    Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-        =(-1)^(j_1+j_2+j_4+j_5) W(j_1,j_2,j_5,j_4,j_3,j_6)
+
+    .. math::
+
+       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+       =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     Please see the 6j symbol for its much richer symmetries and for
     additional properties.
-
 
     ALGORITHM:
 
@@ -401,33 +382,6 @@ def Racah(aa,bb,cc,dd,ee,ff,prec=None):
     for finite precision arithmetic and only useful for a computer
     algebra system [Rasch03].
 
-
-    INPUT:
-
-    a - integer or half integer
-    b - integer or half integer
-    c - integer or half integer
-    d - integer or half integer
-    e - integer or half integer
-    f - integer or half integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-    A couple of examples and test cases:
-
-        sage: Racah(3,3,3,3,3,3)
-        -1/14
-
-
     REFERENCES:
 
     - [Edmonds74] 'Angular Momentum in Quantum Mechanics',
@@ -437,56 +391,108 @@ def Racah(aa,bb,cc,dd,ee,ff,prec=None):
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
-
     AUTHORS:
 
     - Jens Rasch (2009-03-24): initial version
-
     """
-
-    prefac=_bigDeltacoeff(aa,bb,ee,prec)*_bigDeltacoeff(cc,dd,ee,prec)\
-            *_bigDeltacoeff(aa,cc,ff,prec)*_bigDeltacoeff(bb,dd,ff,prec)
-    if prefac==0:
+    prefac = _big_delta_coeff(aa, bb, ee, prec) * \
+        _big_delta_coeff(cc, dd, ee, prec) * \
+        _big_delta_coeff(aa, cc, ff, prec) * \
+        _big_delta_coeff(bb, dd, ff, prec)
+    if prefac == 0:
         return 0
-    imin=max(aa+bb+ee,cc+dd+ee,aa+cc+ff,bb+dd+ff)
-    imax=min(aa+bb+cc+dd,aa+dd+ee+ff,bb+cc+ee+ff)
+    imin = max(aa + bb + ee, cc + dd + ee, aa + cc + ff, bb + dd + ff)
+    imax = min(aa + bb + cc + dd, aa + dd + ee + ff, bb + cc + ee + ff)
 
-    maxfact=max(imax+1,aa+bb+cc+dd,aa+dd+ee+ff,bb+cc+ee+ff)
+    maxfact = max(imax + 1, aa + bb + cc + dd, aa + dd + ee + ff, \
+                      bb + cc + ee + ff)
     _calc_factlist(maxfact)
 
-    sumres=0
-    for kk in range(imin,imax+1):
-        den=_Factlist[int(kk-aa-bb-ee)]*_Factlist[int(kk-cc-dd-ee)]\
-            *_Factlist[int(kk-aa-cc-ff)]\
-            *_Factlist[int(kk-bb-dd-ff)]*_Factlist[int(aa+bb+cc+dd-kk)]\
-            *_Factlist[int(aa+dd+ee+ff-kk)]\
-            *_Factlist[int(bb+cc+ee+ff-kk)]
-        sumres=sumres+Integer((-1)**kk*_Factlist[kk+1])/den
+    sumres = 0
+    for kk in range(imin, imax + 1):
+        den = _Factlist[int(kk - aa - bb - ee)] * \
+            _Factlist[int(kk - cc - dd - ee)] * \
+            _Factlist[int(kk - aa - cc - ff)] * \
+            _Factlist[int(kk - bb - dd - ff)] * \
+            _Factlist[int(aa + bb + cc + dd - kk)] * \
+            _Factlist[int(aa + dd + ee + ff - kk)] * \
+            _Factlist[int(bb + cc + ee + ff - kk)]
+        sumres = sumres + Integer((-1) ** kk * _Factlist[kk + 1]) / den
 
-    res=prefac*sumres*(-1)**(int(aa+bb+cc+dd))
+    res = prefac * sumres * (-1) ** (int(aa + bb + cc + dd))
     return res
 
 
-
-
-
-def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
+def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     r"""
-    Calculate the Wigner 6j symbol Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+    Calculate the Wigner 6j symbol `Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)`.
 
+    INPUT:
+
+    -  ``j_1``, ..., ``j_6`` - integer or half integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES::
+
+        sage: wigner_6j(3,3,3,3,3,3)
+        -1/14
+
+        sage: wigner_6j(5,5,5,5,5,5)
+        1/52
+
+        sage: wigner_6j(6,6,6,6,6,6)
+        309/10868
+
+        sage: wigner_6j(8,8,8,8,8,8)
+        -12219/965770
+
+        sage: wigner_6j(30,30,30,30,30,30)
+        36082186869033479581/87954851694828981714124
+
+        sage: wigner_6j(0.5,0.5,1,0.5,0.5,1)
+        1/6
+
+        sage: wigner_6j(200,200,200,200,200,200, prec=1000)*1.0
+        0.000155903212413242
+
+    It is an error to have arguments that are not integer or half
+    integer values or do not fulfil the triangle relation::
+
+        sage: wigner_6j(2.5,2.5,2.5,2.5,2.5,2.5)
+        Traceback (most recent call last):
+        ...
+        ValueError: j values must be integer or half integer and fulfil the triangle relation
+
+        sage: wigner_6j(0.5,0.5,1.1,0.5,0.5,1.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: j values must be integer or half integer and fulfil the triangle relation
 
     NOTES:
 
     The Wigner 6j symbol is related to the Racah symbol but exhibits
     more symmetries as detailed below.
-    Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-        =(-1)^(j_1+j_2+j_4+j_5) W(j_1,j_2,j_5,j_4,j_3,j_6)
+
+    .. math::
+
+       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
 
     The Wigner 6j symbol obeys the following symmetry rules:
 
     - Wigner $6j$ symbols are left invariant under any permutation of
       the columns:
-      Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+
+      .. math::
+
+         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
           =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5)
           =Wigner6j(j_2,j_3,j_1,j_5,j_6,j_4)
           =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4)
@@ -495,7 +501,10 @@ def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
 
     - They are invariant under the exchange of the upper and lower
       arguments in each of any two columns, i. e.
-      Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
+
+      .. math::
+
+         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
           =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3)
           =Wigner6j(j_4,j_2,j_6,j_1,j_5,j_3)
           =Wigner6j(j_4,j_5,j_3,j_1,j_2,j_6)
@@ -503,8 +512,7 @@ def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
     - additional 6 symmetries [Regge59] giving rise to 144 symmetries
       in total
 
-    - only non-zero if any triple of $j$'s fulfil a triangle relation
-
+    - only non-zero if any triple of `j`'s fulfil a triangle relation
 
     ALGORITHM:
 
@@ -513,65 +521,6 @@ def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
     algebra system [Rasch03].
-
-
-    INPUT:
-
-    j_1 - integer or half integer
-    j_2 - integer or half integer
-    j_3 - integer or half integer
-    j_4 - integer or half integer
-    j_5 - integer or half integer
-    j_6 - integer or half integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-    A couple of examples and test cases:
-
-        sage: Wigner6j(3,3,3,3,3,3)
-        -1/14
-
-        sage: Wigner6j(5,5,5,5,5,5)
-        1/52
-
-        sage: Wigner6j(6,6,6,6,6,6)
-        309/10868
-
-        sage: Wigner6j(8,8,8,8,8,8)
-        -12219/965770
-
-        sage: Wigner6j(30,30,30,30,30,30)
-        36082186869033479581/87954851694828981714124
-
-        sage: Wigner6j(0.5,0.5,1,0.5,0.5,1)
-        1/6
-
-        sage: Wigner6j(200,200,200,200,200,200, prec=1000)*1.0
-        0.000155903212413242
-
-
-    It is an error to have arguments that are not integer or half
-    integer values or do not fulfil the triangle relation:
-
-        sage: Wigner6j(2.5,2.5,2.5,2.5,2.5,2.5)
-        Traceback (most recent call last):
-        ...
-        ValueError: j values must be integer or half integer and fulfil the triangle relation
-
-        sage: Wigner6j(0.5,0.5,1.1,0.5,0.5,1.1)
-        Traceback (most recent call last):
-        ...
-        ValueError: j values must be integer or half integer and fulfil the triangle relation
-
 
     REFERENCES:
 
@@ -584,20 +533,82 @@ def Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6,prec=None):
     - [Rasch03] 'Efficient Storage Scheme for Pre-calculated Wigner 3j,
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
-
     """
-
-    res=(-1)**(int(j_1+j_2+j_4+j_5))*Racah(j_1,j_2,j_5,j_4,j_3,j_6,prec)
+    res = (-1) ** (int(j_1 + j_2 + j_4 + j_5)) * \
+        racah(j_1, j_2, j_5, j_4, j_3, j_6, prec)
     return res
 
 
-
-
-def Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9,prec=None):
+def wigner_9j(j_1, j_2, j_3, j_4, j_5, j_6, j_7, j_8, j_9, prec=None):
     r"""
     Calculate the Wigner 9j symbol
-    Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9)
+    `Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9)`.
 
+    INPUT:
+
+    -  ``j_1``, ..., ``j_9`` - integer or half integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES:
+
+    A couple of examples and test cases, note that for speed reasons a
+    precision is given::
+
+        sage: wigner_9j(1,1,1, 1,1,1, 1,1,0 ,prec=64) # ==1/18
+        0.0555555555555555555
+
+        sage: wigner_9j(1,1,1, 1,1,1, 1,1,1)
+        0
+
+        sage: wigner_9j(1,1,1, 1,1,1, 1,1,2 ,prec=64) # ==1/18
+        0.0555555555555555556
+
+        sage: wigner_9j(1,2,1, 2,2,2, 1,2,1 ,prec=64) # ==-1/150
+        -0.00666666666666666667
+
+        sage: wigner_9j(3,3,2, 2,2,2, 3,3,2 ,prec=64) # ==157/14700
+        0.0106802721088435374
+
+        sage: wigner_9j(3,3,2, 3,3,2, 3,3,2 ,prec=64) # ==3221*sqrt(70)/(246960*sqrt(105)) - 365/(3528*sqrt(70)*sqrt(105))
+        0.00944247746651111739
+
+        sage: wigner_9j(3,3,1, 3.5,3.5,2, 3.5,3.5,1 ,prec=64) # ==3221*sqrt(70)/(246960*sqrt(105)) - 365/(3528*sqrt(70)*sqrt(105))
+        0.0110216678544351364
+
+        sage: wigner_9j(100,80,50, 50,100,70, 60,50,100 ,prec=1000)*1.0
+        1.05597798065761e-7
+
+        sage: wigner_9j(30,30,10, 30.5,30.5,20, 30.5,30.5,10 ,prec=1000)*1.0 # ==(80944680186359968990/95103769817469)*sqrt(1/682288158959699477295)
+        0.0000325841699408828
+
+        sage: wigner_9j(64,62.5,114.5, 61.5,61,112.5, 113.5,110.5,60, prec=1000)*1.0
+        -3.41407910055520e-39
+
+        sage: wigner_9j(15,15,15, 15,3,15, 15,18,10, prec=1000)*1.0
+        -0.0000778324615309539
+
+        sage: wigner_9j(1.5,1,1.5, 1,1,1, 1.5,1,1.5)
+        0
+
+    It is an error to have arguments that are not integer or half
+    integer values or do not fulfil the triangle relation::
+
+        sage: wigner_9j(0.5,0.5,0.5, 0.5,0.5,0.5, 0.5,0.5,0.5,prec=64)
+        Traceback (most recent call last):
+        ...
+        ValueError: j values must be integer or half integer and fulfil the triangle relation
+
+        sage: wigner_9j(1,1,1, 0.5,1,1.5, 0.5,1,2.5,prec=64)
+        Traceback (most recent call last):
+        ...
+        ValueError: j values must be integer or half integer and fulfil the triangle relation
 
     ALGORITHM:
 
@@ -607,84 +618,6 @@ def Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9,prec=None):
     for finite precision arithmetic and only useful for a computer
     algebra system [Rasch03].
 
-
-    INPUT:
-
-    j_1 - integer or half integer
-    j_2 - integer or half integer
-    j_3 - integer or half integer
-    j_4 - integer or half integer
-    j_5 - integer or half integer
-    j_6 - integer or half integer
-    j_7 - integer or half integer
-    j_8 - integer or half integer
-    j_9 - integer or half integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-    A couple of examples and test cases, note that for speed reasons a
-    precision is given:
-
-        sage: Wigner9j(1,1,1, 1,1,1, 1,1,0 ,prec=64) # ==1/18
-        0.0555555555555555555
-
-        sage: Wigner9j(1,1,1, 1,1,1, 1,1,1)
-        0
-
-        sage: Wigner9j(1,1,1, 1,1,1, 1,1,2 ,prec=64) # ==1/18
-        0.0555555555555555556
-
-        sage: Wigner9j(1,2,1, 2,2,2, 1,2,1 ,prec=64) # ==-1/150
-        -0.00666666666666666667
-
-        sage: Wigner9j(3,3,2, 2,2,2, 3,3,2 ,prec=64) # ==157/14700
-        0.0106802721088435374
-
-        sage: Wigner9j(3,3,2, 3,3,2, 3,3,2 ,prec=64) # ==3221*sqrt(70)/(246960*sqrt(105)) - 365/(3528*sqrt(70)*sqrt(105))
-        0.00944247746651111739
-
-        sage: Wigner9j(3,3,1, 3.5,3.5,2, 3.5,3.5,1 ,prec=64) # ==3221*sqrt(70)/(246960*sqrt(105)) - 365/(3528*sqrt(70)*sqrt(105))
-        0.0110216678544351364
-
-        sage: Wigner9j(100,80,50, 50,100,70, 60,50,100 ,prec=1000)*1.0
-        1.05597798065761e-7
-
-        sage: Wigner9j(30,30,10, 30.5,30.5,20, 30.5,30.5,10 ,prec=1000)*1.0 # ==(80944680186359968990/95103769817469)*sqrt(1/682288158959699477295)
-        0.0000325841699408828
-
-        sage: Wigner9j(64,62.5,114.5, 61.5,61,112.5, 113.5,110.5,60, prec=1000)*1.0
-        -3.41407910055520e-39
-
-        sage: Wigner9j(15,15,15, 15,3,15, 15,18,10, prec=1000)*1.0
-        -0.0000778324615309539
-
-        sage: Wigner9j(1.5,1,1.5, 1,1,1, 1.5,1,1.5)
-        0
-
-
-    It is an error to have arguments that are not integer or half
-    integer values or do not fulfil the triangle relation:
-
-        sage: Wigner9j(0.5,0.5,0.5, 0.5,0.5,0.5, 0.5,0.5,0.5,prec=64)
-        Traceback (most recent call last):
-        ...
-        ValueError: j values must be integer or half integer and fulfil the triangle relation
-
-        sage: Wigner9j(1,1,1, 0.5,1,1.5, 0.5,1,2.5,prec=64)
-        Traceback (most recent call last):
-        ...
-        ValueError: j values must be integer or half integer and fulfil the triangle relation
-
-
     REFERENCES:
 
     - [Edmonds74] 'Angular Momentum in Quantum Mechanics',
@@ -693,40 +626,89 @@ def Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9,prec=None):
     - [Rasch03] 'Efficient Storage Scheme for Pre-calculated Wigner 3j,
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
-
     """
+    imin = 0
+    imax = min(j_1 + j_9, j_2 + j_6, j_4 + j_8)
 
-    imin=0
-    imax=min(j_1+j_9,j_2+j_6,j_4+j_8)
-
-    sumres=0
-    for kk in range(imin,imax+1):
-        sumres=sumres+(2*kk+1)*Racah(j_1,j_2,j_9,j_6,j_3,kk,prec)\
-                *Racah(j_4,j_6,j_8,j_2,j_5,kk,prec)\
-                *Racah(j_1,j_4,j_9,j_8,j_7,kk,prec)
+    sumres = 0
+    for kk in range(imin, imax + 1):
+        sumres = sumres + (2 * kk + 1) * \
+            racah(j_1, j_2, j_9, j_6, j_3, kk, prec) * \
+            racah(j_4, j_6, j_8, j_2, j_5, kk, prec) * \
+            racah(j_1, j_4, j_9, j_8, j_7, kk, prec)
     return sumres
 
 
-
-
-def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
+def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
     r"""
-    Calculate the Gaunt coefficient which is defined as the integral
-    over three spherical harmonics:
+    Calculate the Gaunt coefficient.
 
-    Y(j_1,j_2,j_3,m_1,m_2,m_3)
+    The Gaunt coefficient is defined as the integral over three
+    spherical harmonics:
+
+    .. math::
+
+        Y(j_1,j_2,j_3,m_1,m_2,m_3)
         =\int Y_{l_1,m_1}(\Omega)
          Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega
-        =\sqrt((2l_1+1)(2l_2+1)(2l_3+1)/(4\pi))
-         Y(j_1,j_2,j_3,0,0,0) Y(j_1,j_2,j_3,m_1,m_2,m_3)
+        =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)}
+         \; Y(j_1,j_2,j_3,0,0,0) \; Y(j_1,j_2,j_3,m_1,m_2,m_3)
 
+    INPUT:
+
+    -  ``l_1``, ``l_2``, ``l_3``, ``m_1``, ``m_2``, ``m_3`` - integer
+
+    -  ``prec`` - precision, default: None. Providing a precision can
+       drastically speed up the calculation.
+
+    OUTPUT:
+
+    rational number times the square root of a rational number (if prec=None), or
+    real number if a precision is given
+
+    EXAMPLES::
+
+        sage: gaunt(1,0,1,1,0,-1)
+        -1/2/sqrt(pi)
+
+        sage: gaunt(1,0,1,1,0,0)
+        0
+
+        sage: gaunt(29,29,34,10,-5,-5)
+        1821867940156/215552371055153321*sqrt(22134)/sqrt(pi)
+
+        sage: gaunt(20,20,40,1,-1,0)
+        28384503878959800/74029560764440771/sqrt(pi)
+
+        sage: gaunt(12,15,5,2,3,-5)
+        91/124062*sqrt(36890)/sqrt(pi)
+
+        sage: gaunt(10,10,12,9,3,-12)
+        -98/62031*sqrt(6279)/sqrt(pi)
+
+        sage: gaunt(1000,1000,1200,9,3,-12).n(64)
+        0.00689500421922113448
+
+    It is an error to use non-integer values for `l` and `m`::
+
+        sage: gaunt(1.2,0,1.2,0,0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: l values must be integer
+
+        sage: gaunt(1,0,1,1.1,0,-1.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: m values must be integer
 
     NOTES:
 
     The Gaunt coefficient obeys the following symmetry rules:
 
     - invariant under any permutation of the columns
-      Y(j_1,j_2,j_3,m_1,m_2,m_3)
+
+      .. math::
+          Y(j_1,j_2,j_3,m_1,m_2,m_3)
           =Y(j_3,j_1,j_2,m_3,m_1,m_2)
           =Y(j_2,j_3,j_1,m_2,m_3,m_1)
           =Y(j_3,j_2,j_1,m_3,m_2,m_1)
@@ -734,20 +716,21 @@ def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
           =Y(j_2,j_1,j_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i.e.
-      Y(j_1,j_2,j_3,m_1,m_2,m_3)
-         =Y(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+
+      .. math::
+          Y(j_1,j_2,j_3,m_1,m_2,m_3)
+          =Y(j_1,j_2,j_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 Regge symmetries as inherited
-      for the $3j$ symbols [Regge58]
+      for the `3j` symbols [Regge58]
 
-    - zero for $l_1$, $l_2$, $l_3$ not fulfilling triangle relation
+    - zero for `l_1`, `l_2`, `l_3` not fulfilling triangle relation
 
-    - zero for violating any one of the conditions: $l_1\ge|m_1|$,
-      $l_2\ge|m_2|$, $l_3\ge|m_3|
+    - zero for violating any one of the conditions: `l_1\ge|m_1|`,
+      `l_2\ge|m_2|`, `l_3\ge|m_3|`
 
-    - non-zero only for an even sum of the $l_i$, i. e.
-      $J=l_1+l_2+l_3=2n$ for $n$ in $\mathbf{N}$
-
+    - non-zero only for an even sum of the `l_i`, i. e.
+      `J=l_1+l_2+l_3=2n` for `n` in `\Bold{N}`
 
     ALGORITHM:
 
@@ -756,63 +739,6 @@ def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
     the formula contains alternating sums over large factorials and is
     therefore unsuitable for finite precision arithmetic and only
     useful for a computer algebra system [Rasch03].
-
-
-    INPUT:
-
-    j_1 - integer
-    j_2 - integer
-    j_3 - integer
-    m_1 - integer
-    m_2 - integer
-    m_3 - integer
-    prec - precision, default: None. Providing a precision can
-           drastically speed up the calculation.
-
-
-    OUTPUT:
-
-    The result will be a rational number times the square root of a
-    rational number, unless a precision is given.
-
-
-    EXAMPLES:
-
-        sage: Gaunt(1,0,1,1,0,-1)
-        -1/2/sqrt(pi)
-
-        sage: Gaunt(1,0,1,1,0,0)
-        0
-
-        sage: Gaunt(29,29,34,10,-5,-5)
-        1821867940156/215552371055153321*sqrt(22134)/sqrt(pi)
-
-        sage: Gaunt(20,20,40,1,-1,0)
-        28384503878959800/74029560764440771/sqrt(pi)
-
-        sage: Gaunt(12,15,5,2,3,-5)
-        91/124062*sqrt(36890)/sqrt(pi)
-
-        sage: Gaunt(10,10,12,9,3,-12)
-        -98/62031*sqrt(6279)/sqrt(pi)
-
-        sage: Gaunt(1000,1000,1200,9,3,-12).n(64)
-        0.00689500421922113448
-
-
-    It is an error to use non-integer values for $l$ and $m$:
-
-        sage: Gaunt(1.2,0,1.2,0,0,0)
-        Traceback (most recent call last):
-        ...
-        ValueError: l values must be integer
-
-        sage: Gaunt(1,0,1,1.1,0,-1.1)
-        Traceback (most recent call last):
-        ...
-        ValueError: m values must be integer
-
-
 
     REFERENCES:
 
@@ -827,63 +753,58 @@ def Gaunt(l_1,l_2,l_3,m_1,m_2,m_3,prec=None):
       6j and Gaunt Coefficients', J. Rasch and A. C. H. Yu, SIAM
       J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
-
     AUTHORS:
 
     - Jens Rasch (2009-03-24): initial version for Sage
-
     """
-
-    if int(l_1)!=l_1 or int(l_2)!=l_2 or int(l_3)!=l_3:
+    if int(l_1) != l_1 or int(l_2) != l_2 or int(l_3) != l_3:
         raise ValueError("l values must be integer")
-        #return 0
-    if int(m_1)!=m_1 or int(m_2)!=m_2 or int(m_3)!=m_3:
+    if int(m_1) != m_1 or int(m_2) != m_2 or int(m_3) != m_3:
         raise ValueError("m values must be integer")
 
-    bigL=(l_1+l_2+l_3)/2
-    a1=l_1+l_2-l_3
-    if (a1<0):
+    bigL = (l_1 + l_2 + l_3) / 2
+    a1 = l_1 + l_2 - l_3
+    if (a1 < 0):
         return 0
-    a2=l_1-l_2+l_3
-    if (a2<0):
+    a2 = l_1 - l_2 + l_3
+    if (a2 < 0):
         return 0
-    a3=-l_1+l_2+l_3
-    if (a3<0):
+    a3 = -l_1 + l_2 + l_3
+    if (a3 < 0):
         return 0
-    if Mod(2*bigL,2)<>0:
-#     if int(int(2*bigL)/2)<>int(bigL):
+    if Mod(2 * bigL, 2) <> 0:
         return 0
-    if (m_1+m_2+m_3)<>0:
+    if (m_1 + m_2 + m_3) <> 0:
         return 0
-    if (abs(m_1)>l_1) or (abs(m_2)>l_2) or (abs(m_3)>l_3):
+    if (abs(m_1) > l_1) or (abs(m_2) > l_2) or (abs(m_3) > l_3):
         return 0
 
-    imin=max(-l_3+l_1+m_2,-l_3+l_2-m_1,0)
-    imax=min(l_2+m_2,l_1-m_1,l_1+l_2-l_3)
+    imin = max(-l_3 + l_1 + m_2, -l_3 + l_2 - m_1, 0)
+    imax = min(l_2 + m_2, l_1 - m_1, l_1 + l_2 - l_3)
 
-    maxfact=max(l_1+l_2+l_3+1,imax+1)
+    maxfact = max(l_1 + l_2 + l_3 + 1, imax + 1)
     _calc_factlist(maxfact)
 
-    argsqrt=(2*l_1+1)*(2*l_2+1)*(2*l_3+1)*_Factlist[l_1-m_1]\
-             *_Factlist[l_1+m_1]*_Factlist[l_2-m_2]*_Factlist[l_2+m_2]\
-             *_Factlist[l_3-m_3]*_Factlist[l_3+m_3]/(4*pi)
-    ressqrt=argsqrt.sqrt()          # sqrt(argsqrt,prec)
-    #if type(ressqrt) is ComplexNumber:
-    #    ressqrt=ressqrt.real()
-    prefac=Integer(_Factlist[bigL]*_Factlist[l_2-l_1+l_3]\
-        *_Factlist[l_1-l_2+l_3]\
-        *_Factlist[l_1+l_2-l_3])/_Factlist[2*bigL+1]\
-        /(_Factlist[bigL-l_1]*_Factlist[bigL-l_2]*_Factlist[bigL-l_3])
+    argsqrt = (2 * l_1 + 1) * (2 * l_2 + 1) * (2 * l_3 + 1) * \
+        _Factlist[l_1 - m_1] * _Factlist[l_1 + m_1] * _Factlist[l_2 - m_2] * \
+        _Factlist[l_2 + m_2] * _Factlist[l_3 - m_3] * _Factlist[l_3 + m_3] / \
+        (4*pi)
+    ressqrt = argsqrt.sqrt()
 
-    sumres=0
-    for ii in range(imin,imax+1):
-        den=_Factlist[ii]*_Factlist[ii+l_3-l_1-m_2]\
-             *_Factlist[l_2+m_2-ii]*_Factlist[l_1-ii-m_1]\
-             *_Factlist[ii+l_3-l_2+m_1]*_Factlist[l_1+l_2-l_3-ii]
-        sumres=sumres+Integer((-1)**ii)/den
+    prefac = Integer(_Factlist[bigL] * _Factlist[l_2 - l_1 + l_3] * \
+                         _Factlist[l_1 - l_2 + l_3] * _Factlist[l_1 + l_2 - l_3])/ \
+                         _Factlist[2 * bigL+1]/ \
+                         (_Factlist[bigL - l_1] * _Factlist[bigL - l_2] * _Factlist[bigL - l_3])
 
-    res=ressqrt*prefac*sumres*(-1)**(bigL+l_3+m_1-m_2)
-    if prec!=None:
-        res=res.n(prec)
+    sumres = 0
+    for ii in range(imin, imax + 1):
+        den = _Factlist[ii] * _Factlist[ii + l_3 - l_1 - m_2] * \
+            _Factlist[l_2 + m_2 - ii] * _Factlist[l_1 - ii - m_1] * \
+            _Factlist[ii + l_3 - l_2 + m_1] * _Factlist[l_1 + l_2 - l_3 - ii]
+        sumres = sumres + Integer((-1) ** ii) / den
+
+    res = ressqrt * prefac * sumres * (-1) ** (bigL + l_3 + m_1 - m_2)
+    if prec != None:
+        res = res.n(prec)
     return res
 

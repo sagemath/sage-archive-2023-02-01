@@ -10,4 +10,5 @@ Functions
    sage/functions/piecewise
    sage/functions/orthogonal_polys
    sage/functions/special
+   sage/functions/wigner
    sage/functions/generalized

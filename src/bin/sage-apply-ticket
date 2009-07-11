@@ -766,8 +766,8 @@ if __name__ == '__main__':
         # we don't need the return value from merge_and_run here
         merge_and_run(num, overwrite=overwrite, directory=directory,
                       behavior=behavior,verbose=verbose)
-        sys.exit(0)
     except:
         exc, msg, traceback = sys.exc_info()
         print "Building failed with %s: %s"%(exc.__name__, msg)
         sys.exit(1)
+    sys.exit(0)

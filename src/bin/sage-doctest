@@ -386,9 +386,9 @@ def extract_doc(file_name, library_code=False):
 def warning_function(f):
     import warnings
 
-    def doctest_showwarning(message, category, filename, lineno, file=f):
+    def doctest_showwarning(message, category, filename, lineno, file=f, line=None):
         try:
-            file.write(warnings.formatwarning(message, category, 'doctest', lineno))
+            file.write(warnings.formatwarning(message, category, 'doctest', lineno, line))
         except IOError:
             pass # the file (probably stdout) is invalid
     return doctest_showwarning

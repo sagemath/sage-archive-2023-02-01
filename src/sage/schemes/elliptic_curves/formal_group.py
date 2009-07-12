@@ -566,6 +566,9 @@ class EllipticCurveFormalGroup(SageObject):
         - David Harvey (2007-03): faster algorithm for char 0 field
           case
 
+        - Hamish Ivey-Law (2009-06): double-and-add algorithm for
+          non char 0 field case.
+
         EXAMPLES::
 
             sage: e = EllipticCurve([1, 2, 3, 4, 6])
@@ -589,6 +592,16 @@ class EllipticCurveFormalGroup(SageObject):
             sage: E = EllipticCurve("37a"); F = E.formal_group()
             sage: F.mult_by_n(100, 20)
             100*t - 49999950*t^4 + 3999999960*t^5 + 14285614285800*t^7 - 2999989920000150*t^8 + 133333325333333400*t^9 - 3571378571674999800*t^10 + 1402585362624965454000*t^11 - 146666057066712847999500*t^12 + 5336978000014213190385000*t^13 - 519472790950932256570002000*t^14 + 93851927683683567270392002800*t^15 - 6673787211563812368630730325175*t^16 + 320129060335050875009191524993000*t^17 - 45670288869783478472872833214986000*t^18 + 5302464956134111125466184947310391600*t^19 + O(t^20)
+
+        TESTS::
+
+            sage: F = EllipticCurve(GF(17), [1, 1]).formal_group()
+            sage: F.mult_by_n(10, 50)
+            10*t + 5*t^5 + 7*t^7 + 13*t^9 + t^11 + 16*t^13 + 13*t^15 + 9*t^17 + 16*t^19 + 15*t^23 + 15*t^25 + 2*t^27 + 10*t^29 + 8*t^31 + 15*t^33 + 6*t^35 + 7*t^37 + 9*t^39 + 10*t^41 + 5*t^43 + 4*t^45 + 6*t^47 + 13*t^49 + O(t^50)
+
+            sage: F = EllipticCurve(GF(101), [1, 1]).formal_group()
+            sage: F.mult_by_n(100, 20)
+            100*t + O(t^20)
         """
         if self.curve().base_ring().is_field() and self.curve().base_ring().characteristic() == 0 and n != 0:
             # The following algorithm only works over a field of
@@ -634,9 +647,21 @@ class EllipticCurveFormalGroup(SageObject):
             return R(F.add_bigoh(orig_prec))
         F = self.group_law(prec)
         g = F.parent().base_ring().gen()
-        for m in range(2,n+1):
-            g = F(g)
-        return R(g.add_bigoh(orig_prec))
+
+        # Double and add is faster than the naive method when n >= 4.
+        if n < 4:
+            for m in range(2,n+1):
+                g = F(g)
+            return R(g.add_bigoh(orig_prec))
+
+        result = F.parent().base_ring()(0)
+        while n > 0:
+            if n & 1:
+                result = F(result, g)
+            g = F(g, g)
+            n = n >> 1
+
+        return R(result.add_bigoh(orig_prec))
 
     def sigma(self, prec=10):
         """

@@ -726,11 +726,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             2.0000000000000000000000000000
             sage: x.parent()
             Real Field with 100 bits of precision
+            sage: z.real_part()
+            2.0000000000000000000000000000
         """
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
         mpfr_set(<mpfr_t> x.value, self.__re, rnd)
         return x
+
+    real_part = real
 
     def imag(self):
         """
@@ -744,11 +748,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             3.0000000000000000000000000000
             sage: x.parent()
             Real Field with 100 bits of precision
+            sage: z.imag_part()
+            3.0000000000000000000000000000
         """
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
         mpfr_set(<mpfr_t> x.value, self.__im, rnd)
         return x
+
+    imag_part = imag
 
     def __neg__(self):
         r"""

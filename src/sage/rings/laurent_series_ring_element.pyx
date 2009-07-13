@@ -940,7 +940,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return self.__u.prec() + self.__n
 
-    def copy(self):
+    def __copy__(self):
         return LaurentSeries(self._parent, self.__u.copy(), self.__n)
 
 

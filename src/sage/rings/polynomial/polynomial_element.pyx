@@ -2502,7 +2502,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 f = pari(v).Polrev()
                 Rpari = R.pari_nf()
                 if (Rpari.variable() != "a"):
-                    Rpari = Rpari.copy()
+                    Rpari = copy.copy(Rpari)
                     Rpari[0] = Rpari[0]("a")
                     Rpari[6] = [ x("a") for x in Rpari[6] ]
                 G = list(Rpari.nffactor(f))

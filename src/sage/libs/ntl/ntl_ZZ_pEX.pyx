@@ -181,7 +181,7 @@ cdef class ntl_ZZ_pEX:
         sage: f = ntl.ZZ_pEX([a, b, b])
         sage: f
         [[3 2] [1 2] [1 2]]
-        sage: y = f.copy()
+        sage: y = copy(f)
         sage: y == f
         True
         sage: y is f
@@ -193,27 +193,6 @@ cdef class ntl_ZZ_pEX:
         #self.c.restore_c() ## _new() restores
         r.x = self.x
         return r
-
-    def copy(self):
-        """
-        Return a copy of self.
-
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
-        sage: y = f.copy()
-        sage: y == f
-        True
-        sage: y is f
-        False
-        sage: f[0] = 0; y
-        [[3 2] [1 2] [1 2]]
-        """
-        return self.__copy__()
 
     def get_modulus_context(self):
         """

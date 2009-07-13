@@ -149,28 +149,13 @@ cdef class ntl_ZZX:
         cpp_delete_array(val)
         return result
 
-    def copy(self):
-        """
-        Return a copy of self.
-
-        EXAMPLES:
-            sage: x = ntl.ZZX([1,32])
-            sage: y = x.copy()
-            sage: y == x
-            True
-            sage: y is x
-            False
-        """
-        _sig_on
-        return self.__copy__()
-
     def __copy__(self):
         """
         Return a copy of self.
 
         EXAMPLES:
             sage: x = ntl.ZZX([1,32])
-            sage: y = x.copy()
+            sage: y = copy(x)
             sage: y == x
             True
             sage: y is x
@@ -424,7 +409,8 @@ cdef class ntl_ZZX:
         if n < 0:
             raise NotImplementedError
         import sage.groups.generic as generic
-        return generic.power(self, n, one_ZZX.copy())
+        from copy import copy
+        return generic.power(self, n, copy(one_ZZX))
 
     def __cmp__(ntl_ZZX self, ntl_ZZX other):
         """
@@ -822,7 +808,8 @@ cdef class ntl_ZZX:
             []
         """
         if m <= 0:
-            return zero_ZZX.copy()
+            from copy import copy
+            return copy(zero_ZZX)
         _sig_on
         return make_ZZX(ZZX_truncate(&self.x, m))
 
@@ -839,7 +826,8 @@ cdef class ntl_ZZX:
             [10 20]
         """
         if m <= 0:
-            return zero_ZZX.copy()
+            from copy import copy
+            return copy(zero_ZZX)
         return make_ZZX(ZZX_multiply_and_truncate(&self.x, &other.x, m))
 
     def square_and_truncate(self, long m):
@@ -854,7 +842,8 @@ cdef class ntl_ZZX:
             [1 4 10 20]
         """
         if m < 0:
-            return zero_ZZX.copy()
+            from copy import copy
+            return copy(zero_ZZX)
         return make_ZZX(ZZX_square_and_truncate(&self.x, m))
 
     def invert_and_truncate(self, long m):

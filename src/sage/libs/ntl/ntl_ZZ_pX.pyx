@@ -173,7 +173,7 @@ cdef class ntl_ZZ_pX:
 
         EXAMPLES:
             sage: x = ntl.ZZ_pX([0,5,-3],11)
-            sage: y = x.copy()
+            sage: y = copy(x)
             sage: x == y
             True
             sage: x is y
@@ -185,22 +185,6 @@ cdef class ntl_ZZ_pX:
         #self.c.restore_c() # restored in _new()
         r.x = self.x
         return r
-
-    def copy(self):
-        """
-        Return a copy of self.
-
-        EXAMPLES:
-            sage: x = ntl.ZZ_pX([0,5,-3],11)
-            sage: y = x.copy()
-            sage: x == y
-            True
-            sage: x is y
-            False
-            sage: x[0] = 4; y
-            [0 5 8]
-        """
-        return self.__copy__()
 
     def get_modulus_context(self):
         """

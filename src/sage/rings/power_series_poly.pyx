@@ -186,7 +186,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def _unsafe_mutate(self, i, value):
         """
-        SAGE assumes throughout that commutative ring elements are immutable.
+        Sage assumes throughout that commutative ring elements are immutable.
         This is relevant for caching, etc.  But sometimes you need to change
         a power series and you really know what you're doing.  That's
         when this function is for you.
@@ -311,7 +311,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def __iter__(self):
         """
-        Return an interator over the coefficients of this power series.
+        Return an iterator over the coefficients of this power series.
 
         EXAMPLES:
             sage: R.<t> = QQ[[]]
@@ -571,22 +571,6 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, self.__f.truncate(prec),
                                 min(self._prec, prec), check=False)
-
-    def copy(self):
-        """
-        Return a copy of self.
-
-        EXAMPLES:
-            sage: R.<t> = ZZ[[]]
-            sage: f = t + t^3
-            sage: f.copy()
-            t + t^3
-            sage: f.copy() == f
-            True
-            sage: f.copy() is f
-            False
-        """
-        return PowerSeries_poly(self._parent, self.__f, self._prec, check=False)
 
     def list(self):
         """

@@ -176,14 +176,14 @@ cdef class FractionFieldElement(FieldElement):
         except NotImplementedError, s:
             raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
 
-    def copy(self):
+    def __copy__(self):
         """
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: f = x/y+1; f
             (x + y)/y
-            sage: f.copy()
+            sage: copy(f)
             (x + y)/y
         """
         return self.__class__(self._parent, self.__numerator,

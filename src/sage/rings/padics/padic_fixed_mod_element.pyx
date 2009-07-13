@@ -658,13 +658,13 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_mod(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(mpz_get_ui((<Integer>absprec).value))[0])
         return ans
 
-    def copy(self):
+    def __copy__(self):
         """
         Returns a copy of self.
 
         EXAMPLES::
 
-            sage: a = ZpFM(5,6)(17); b = a.copy()
+            sage: a = ZpFM(5,6)(17); b = copy(a)
             sage: a == b
             True
             sage: a is b

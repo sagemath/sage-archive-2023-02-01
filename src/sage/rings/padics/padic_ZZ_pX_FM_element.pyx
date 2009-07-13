@@ -837,7 +837,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_MulMod_pre(ans.value, self.value, ans.value, self.prime_pow.get_top_modulus()[0])
         return ans
 
-    def copy(self):
+    def __copy__(self):
         """
         Returns a copy of ``self``.
 
@@ -849,7 +849,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: b = W(45); b
             4*w^5 + 3*w^7 + w^9 + w^10 + 2*w^11 + w^12 + w^13 + 3*w^14 + w^16 + 2*w^17 + w^19 + 4*w^20 + w^21 + 3*w^22 + 3*w^23 + 4*w^24 + O(w^25)
-            sage: c = b.copy(); c
+            sage: c = copy(b); c
             4*w^5 + 3*w^7 + w^9 + w^10 + 2*w^11 + w^12 + w^13 + 3*w^14 + w^16 + 2*w^17 + w^19 + 4*w^20 + w^21 + 3*w^22 + 3*w^23 + 4*w^24 + O(w^25)
             sage: c is b
             False

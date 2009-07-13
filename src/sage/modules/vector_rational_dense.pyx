@@ -145,7 +145,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
 
     def __setitem__(self, Py_ssize_t i, x):
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         cdef Rational z
         if i < 0 or i >= self._degree:
             raise IndexError

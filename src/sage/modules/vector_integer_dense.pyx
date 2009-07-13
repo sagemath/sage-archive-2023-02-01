@@ -144,7 +144,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
 
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         cdef Integer z
         if i < 0 or i >= self._degree:
             raise IndexError

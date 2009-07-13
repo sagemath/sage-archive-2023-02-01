@@ -510,7 +510,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def _hash(self):
         return hash(tuple(list(self)))
 
-    def copy(self):
+    def __copy__(self):
         """
         Make a copy of this vector.
 
@@ -518,7 +518,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v = vector([1..5]); v
             (1, 2, 3, 4, 5)
-            sage: w = v.copy()
+            sage: w = copy(v)
             sage: v == w
             True
             sage: v is w
@@ -528,12 +528,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v = vector([1..5], sparse=True); v
             (1, 2, 3, 4, 5)
-            sage: v.copy()
+            sage: copy(v)
             (1, 2, 3, 4, 5)
         """
-        return self.__copy__()
-
-    def __copy__(self):
         if self.is_sparse():
             return self.parent()(self.dict())
         else:
@@ -552,7 +549,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v[1] = 10
             Traceback (most recent call last):
             ...
-            ValueError: vector is immutable; please change a copy instead (use self.copy())
+            ValueError: vector is immutable; please change a copy instead (use copy())
         """
         self._is_mutable = 0
 
@@ -893,10 +890,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v[1:2] = [3,5]
             Traceback (most recent call last):
             ...
-            ValueError: vector is immutable; please change a copy instead (use self.copy())
+            ValueError: vector is immutable; please change a copy instead (use copy())
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         cdef Py_ssize_t k, d, n
         d = self.degree()
         R = self.base_ring()
@@ -1533,7 +1530,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         if self._degree == 0:
             if sparse == self.is_sparse():
-                return self.copy()
+                from copy import copy
+                return copy(self)
             elif sparse:
                 return self.sparse_vector()
             else:
@@ -1591,7 +1589,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         # We would just use apply_map, except that Cython doesn't
         # allow lambda functions
         if self._degree == 0:
-            return self.copy()
+            from copy import copy
+            return copy(self)
 
         if self.is_sparse():
             v = dict([(i,z.derivative(var)) for i,z in self.dict().items()])
@@ -1843,7 +1842,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         Set entry i of self to value.
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"
@@ -1869,7 +1868,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             (5, 3)
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         cdef Py_ssize_t k, n, d
         d = self.degree()
         R = self.base_ring()
@@ -2198,7 +2197,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         Like __setitem__ but with no type or bounds checking.
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         i = int(i)
         if x == 0:
             if self._entries.has_key(i):
@@ -2225,7 +2224,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             TypeError: unable to convert x (=sqrt(2)) to an integer
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
+            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"

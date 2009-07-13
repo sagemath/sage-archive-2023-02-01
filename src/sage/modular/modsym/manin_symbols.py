@@ -1664,7 +1664,7 @@ class ManinSymbol(SageObject):
         """
         raise NotImplementedError
 
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of this ManinSymbol.
 
@@ -1673,7 +1673,7 @@ class ManinSymbol(SageObject):
             sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
             sage: m = ManinSymbolList_gamma0(5,8)
             sage: s = ManinSymbol(m,(2,2,3))
-            sage: s2=s.copy()
+            sage: s2 = copy(s)
             sage: s2
             [X^2*Y^4,(2,3)]
 

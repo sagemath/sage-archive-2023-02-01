@@ -131,7 +131,6 @@ TESTS::
 #*****************************************************************************
 
 import sets
-import copy
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -318,21 +317,21 @@ class LatinSquare:
 
         return self.square == Q.square
 
-    def copy(self):
+    def __copy__(self):
         """
         To copy a latin square we must copy the underlying matrix.
 
         EXAMPLES::
 
             sage: A = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
-            sage: B = A.copy()
-            sage: A
+            sage: B = copy(A)
+            sage: B
             [0 1]
             [2 3]
         """
-
         C = LatinSquare(self.square.nrows(), self.square.ncols())
-        C.square = self.square.copy()
+        from copy import copy
+        C.square = copy(self.square)
         return C
 
     def clear_cells(self):
@@ -908,7 +907,8 @@ class LatinSquare:
 
         n = self.nrows()
 
-        G = self.copy()
+        from copy import copy
+        G = copy(self)
 
         for r in range(n-1, -1, -1):
             for c in range(n-1, -1, -1):
@@ -1117,7 +1117,8 @@ class LatinSquare:
         for x in DLXCPP(dlx_rows):
             nr_found += 1
 
-            Q = copy.deepcopy(self)
+            from copy import deepcopy
+            Q = deepcopy(self)
 
             for y in x:
                 if len(dlx_rows[y]) == 1: continue # dummy row
@@ -1987,7 +1988,8 @@ def LatinSquare_generator(L_start, check_assertions = False):
     r1 = r2 = c1 = c2 = x = y = z = -1
     proper = True
 
-    L = L_start.copy()
+    from copy import copy
+    L = copy(L_start)
 
     L_rce = L
     L_cer = LatinSquare(n, n)
@@ -2642,7 +2644,8 @@ def dlxcpp_find_completions(P, nr_to_find = None):
     for i in SOLUTIONS.keys():
         soln = list(i)
 
-        Q = copy.deepcopy(P)
+        from copy import deepcopy
+        Q = deepcopy(P)
 
         for x in soln:
             (r, c, e) = cmap[tuple(dlx_rows[x])]
@@ -2689,8 +2692,9 @@ def bitrade(T1, T2):
 
     n = T1.nrows()
 
-    Q1 = T1.copy()
-    Q2 = T2.copy()
+    from copy import copy
+    Q1 = copy(T1)
+    Q2 = copy(T2)
 
     for r in range(n):
         for c in range(n):

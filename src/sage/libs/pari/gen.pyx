@@ -1048,7 +1048,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         return gcmp_sage(left.g, (<gen>right).g)
 
-    def copy(gen self):
+    def __copy__(gen self):
         _sig_on
         return P.new_gen(gcopy(self.g))
 

@@ -723,8 +723,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
-    def copy(self):
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.copy(), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
+    def __copy__(self):
+        return Polynomial_padic_capped_relative_dense(self.parent(), (copy.copy(self._poly), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
 
     def degree(self):
         """

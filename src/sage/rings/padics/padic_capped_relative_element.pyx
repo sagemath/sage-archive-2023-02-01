@@ -1450,13 +1450,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans._normalized = self._normalized
         return ans
 
-    def copy(self):
+    def __copy__(self):
         """
         Returns a copy of self.
 
         EXAMPLES::
 
-            sage: a = Zp(5,6)(17); b = a.copy()
+            sage: a = Zp(5,6)(17); b = copy(a)
             sage: a == b
             True
             sage: a is b

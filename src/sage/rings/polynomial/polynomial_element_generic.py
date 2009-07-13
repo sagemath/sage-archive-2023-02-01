@@ -610,7 +610,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
-                self.__poly = x.__poly.copy()
+                from copy import copy
+                self.__poly = copy(x.__poly)
                 return
             else:
                 x = [QQ(a) for a in x.list()]
@@ -868,7 +869,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         Return a copy of this polynomial.
         """
         f = Polynomial_rational_dense(self.parent())
-        f.__poly = self.__poly.copy()
+        from copy import copy
+        f.__poly = copy(self.__poly)
         return f
 
     def degree(self, gen=None):

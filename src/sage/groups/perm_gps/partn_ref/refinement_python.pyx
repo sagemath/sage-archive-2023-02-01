@@ -142,14 +142,14 @@ cdef class PythonPartitionStack:
         """
         PS_move_min_to_front(self.c_ps, start, end)
 
-    def copy(self):
+    def __copy__(self):
         """
 
         EXAMPLE::
 
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonPartitionStack
             sage: P = PythonPartitionStack(7)
-            sage: Q = P.copy()
+            sage: Q = copy(P)
             sage: P.display()
             (0 1 2 3 4 5 6)
             sage: Q.display()

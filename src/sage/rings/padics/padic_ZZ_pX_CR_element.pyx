@@ -2190,7 +2190,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # for now, a simple implementation
         return self * (~right)
 
-    def copy(self):
+    def __copy__(self):
         """
         Returns a copy of ``self``.
 
@@ -2202,7 +2202,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: b = W(45, 17); b
             4*w^5 + 3*w^7 + w^9 + w^10 + 2*w^11 + w^12 + w^13 + 3*w^14 + w^16 + O(w^17)
-            sage: c = b.copy(); c
+            sage: c = copy(b); c
             4*w^5 + 3*w^7 + w^9 + w^10 + 2*w^11 + w^12 + w^13 + 3*w^14 + w^16 + O(w^17)
             sage: c is b
             False

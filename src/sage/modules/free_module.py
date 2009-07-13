@@ -116,7 +116,7 @@ Basis vectors are immutable::
     sage: A.0[0] = 5
     Traceback (most recent call last):
     ...
-    ValueError: vector is immutable; please change a copy instead (use self.copy())
+    ValueError: vector is immutable; please change a copy instead (use copy())
 
 We can save and load submodules and elements::
 
@@ -5984,7 +5984,7 @@ def basis_seq(V, vecs):
         sage: v[0] = 0 # immutable
         Traceback (most recent call last):
         ...
-        ValueError: vector is immutable; please change a copy instead (use self.copy())
+        ValueError: vector is immutable; please change a copy instead (use copy())
         sage: sage.modules.free_module.basis_seq(V, V.gens())
         [
         (1, 0),

@@ -53,9 +53,6 @@ mathml_table = {list: list_function,
                float:str}
 
 class MathML(str):
-    def __init__(self, x):
-        str.__init__(self, x)
-
     def __repr__(self):
         return str(self)
 

@@ -8,7 +8,7 @@ Sage peut produire des graphiques en deux ou trois dimensions.
 Graphiques en deux dimensions
 -----------------------------
 
-En deux dimensions, Sage est capable de tracer des cercles, des lignes,
+En deux dimensions, Sage est capable de tracer des cercles, des droites,
 des polygones, des graphes de fonctions en coordonnées cartésiennes, des
 graphes en coordonnées polaires, des lignes de niveau et des
 représentations de champs de vecteurs. Nous présentons quelques exemples
@@ -16,7 +16,7 @@ de ces objets ici. Pour plus d'exemples de graphiques avec Sage, on
 consultera :ref:`section-systems`, :ref:`section-maxima` et aussi la
 documentation "Sage Constructions".
 
-La commande suivante produit un cercle jaune de rayon 1 centrée à l'origine :
+La commande suivante produit un cercle jaune de rayon 1 centré à l'origine :
 
 ::
 
@@ -28,7 +28,7 @@ Il est également possible de produire un disque plein :
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0), fill=True)
 
-Il est aussi possible de créer un cercle en l'affectant à un variable ;
+Il est aussi possible de créer un cercle en l'affectant à une variable ;
 ceci ne provoque pas son affichage.
 
 ::
@@ -95,7 +95,7 @@ par ces points. Par example, voici un deltoïde vert :
     ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: polygon(L, rgbcolor=(1/8,3/4,1/2))
 
-Pour visualisez le graphique en masquand les axes, tapez ``show(p,
+Pour visualiser le graphique en masquant les axes, tapez ``show(p,
 axes=false)``.
 
 On peut ajouter un texte à un graphique :
@@ -109,8 +109,7 @@ On peut ajouter un texte à un graphique :
     sage: show(p+t)
 
 En cours d'analyse, les professeurs font souvent le dessin suivant
-au tableau : non seulement une branche de arcsin mais plusieurs
-d'entre elles, autrement dit, le graphe d'équation :math:`y=\sin(x)`
+au tableau : non pas une mais plusieurs branches de la fonction arcsin, autrement dit, le graphe d'équation :math:`y=\sin(x)`
 pour  :math:`x` entre :math:`-2\pi` et :math:`2\pi`, renversé par
 symétrie par rapport à la première bissectrice des axes. La commande
 Sage suivante réalise cela :
@@ -173,7 +172,7 @@ http://www.mathcurve.com/surfaces/bonnetcroise/bonnetcroise.shtml) :
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ...   frame=False, color="red")
 
-Un tore tordu??? :
+Un tore tordu :
 
 ::
 

@@ -226,7 +226,7 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
             sage: m = B.encoding("THECATINTHEHAT")
             sage: c = e(m)
             sage: c.decoding()
-            '\xac\xfa\xfd\xc6\xa7\xe5\x16\x8f\xa2Q\xb8\xb7\xbe\xab'
+            "t\xb6\xc1'\x83\x17\xae\xc9ZO\x84V\x7fX"
             sage: e(e(m)) == m
             True
             sage: m.decoding()
@@ -242,7 +242,7 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
         IS_1 = e1.initial_state()
         g2 = e2.connection_polynomial()
         n2 = g2.degree()
-        IS_2 = e1.initial_state()
+        IS_2 = e2.initial_state()
         k = 0
         N = len(M)
         n = max(n1,n2)
@@ -258,7 +258,7 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
                  if k == N:
                      break
             IS_1 = KStream[r-n-1:r-n+n1]
-            IS_2 = KStream[r-n-1:r-n+n2]
+            IS_2 = DStream[r-n-1:r-n+n2]
         return B(CStream)
 
 

@@ -4,10 +4,10 @@ Symbolic Calculus
 .. toctree::
    :maxdepth: 2
 
-   sage/symbolic/ring
    sage/symbolic/expression
    sage/symbolic/relation
    sage/calculus/calculus
+   sage/symbolic/ring
    sage/calculus/functional
    sage/calculus/test_sympy
    sage/calculus/tests

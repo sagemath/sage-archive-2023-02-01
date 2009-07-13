@@ -3874,7 +3874,7 @@ def partitions(n):
     EXAMPLES::
 
         sage: partitions(3)
-        <generator object at 0x...>
+        <generator object partitions at 0x...>
         sage: list(partitions(3))
         [(1, 1, 1), (1, 2), (3,)]
 

@@ -41,7 +41,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         circular -- if True, test for circular planarity
 
     EXAMPLE:
-        sage: G = Graph(graphs.DodecahedralGraph(), implementation='networkx')
+        sage: G = graphs.DodecahedralGraph()
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
         True
@@ -106,7 +106,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
                 j = theGraph.G[j].link[1]
             if len(linked_list) > 0:
                 g_dict[to[i]] = linked_list
-        G = Graph(g_dict, implementation='networkx')
+        G = Graph(g_dict)
         gp_Free(&theGraph)
         if kuratowski:
             return (False, G)

@@ -133,7 +133,7 @@ class UniqueRepresentation:
         sage: MyClass(value = [1,2,3])
         Traceback (most recent call last):
         ...
-        TypeError: list objects are unhashable
+        TypeError: unhashable type: 'list'
 
     .. rubric:: Argument preprocessing
 

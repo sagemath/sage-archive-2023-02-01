@@ -87,22 +87,20 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             else:
                 G = DenseGraph(n)
             if G_in.is_directed():
-                for i from 0 <= i < n:
-                    for _,j,_ in G_in.outgoing_edge_iterator(i):
-                        G.add_arc(i,j)
+                for i,j in G_in.edge_iterator(labels=False):
+                    G.add_arc(i,j)
             else:
-                for i from 0 <= i < n:
-                    for _,j,_ in G_in.edge_iterator(i):
-                        if j <= i:
-                            G.add_arc(i,j)
-                            G.add_arc(j,i)
+                for i,j in G_in.edge_iterator(labels=False):
+                    G.add_arc(i,j)
+                    G.add_arc(j,i)
         elif isinstance(G_in, CGraph):
             G = <CGraph> G_in
             if n == -1:
                 n = G.num_verts
             elif n != G.num_verts:
                 return False
-            to = range(n)
+            to = {}
+            for a in G.verts(): to[a]=a
             frm = to
         else:
             raise TypeError("G must be a Sage graph.")
@@ -163,7 +161,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
         return output_py
 
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
-                    verbosity=0, use_indicator_function=True, sparse=False,
+                    verbosity=0, use_indicator_function=True, sparse=True,
                     base=False, order=False):
     """
     Compute canonical labels and automorphism groups of graphs.
@@ -268,8 +266,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
         sage: ade,bde = st(GD, Pi)
-        sage: bsg = Graph(implementation='networkx')
-        sage: bdg = Graph(implementation='networkx')
+        sage: bsg = Graph()
+        sage: bdg = Graph()
         sage: for i in range(20):
         ...    for j in range(20):
         ...        if bsp.has_arc(i,j):
@@ -319,7 +317,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: HS = graphs.HoffmanSingletonGraph()
         sage: clqs = (HS.complement()).cliques()
         sage: alqs = [Set(c) for c in clqs if len(c) == 15]
-        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0], implementation='networkx')
+        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
         sage: Y0,Y1 = Y.connected_components_subgraphs()
         sage: st(Y0, [Y0.vertices()])[1] == st(Y1, [Y1.vertices()])[1]
         True
@@ -345,7 +343,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         True
 
         sage: from sage.graphs.graph import graph_isom_equivalent_non_multi_graph
-        sage: G = Graph(multiedges=True, implementation='networkx')
+        sage: G = Graph(multiedges=True, sparse=True)
         sage: G.add_edge(('a', 'b'))
         sage: G.add_edge(('a', 'b'))
         sage: G.add_edge(('a', 'b'))
@@ -381,19 +379,17 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         else:
             G = DenseGraph(n)
         if G_in.is_directed():
-            for i from 0 <= i < n:
-                for _,j,_ in G_in.outgoing_edge_iterator(i):
-                    G.add_arc(i,j)
+            for i,j in G_in.edge_iterator(labels=False):
+                G.add_arc(i,j)
         else:
-            for i from 0 <= i < n:
-                for _,j,_ in G_in.edge_iterator(i):
-                    if j <= i:
-                        G.add_arc(i,j)
-                        G.add_arc(j,i)
+            for i,j in G_in.edge_iterator(labels=False):
+                G.add_arc(i,j)
+                G.add_arc(j,i)
     elif isinstance(G_in, CGraph):
         G = <CGraph> G_in
         n = G.num_verts
-        to = dict(enumerate(range(n)))
+        to = {}
+        for a in G.verts(): to[a]=a
         frm = to
     else:
         raise TypeError("G must be a Sage graph.")
@@ -486,7 +482,8 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
     S -- a graph struct object, which contains scratch space, the graph in
         question, and some flags.
     cells_to_refine_by -- a list of pointers to cells to check degrees against
-        in refining the other cells (updated in place)
+        in refining the other cells (updated in place). Must be allocated to
+        length at least the degree of PS, since the array may grow
     ctrb_len -- how many cells in cells_to_refine_by
 
     OUTPUT:
@@ -739,7 +736,8 @@ def all_labeled_graphs(n):
     classifying isomorphism types (naive approach), and more importantly
     in benchmarking the search algorithm.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
         sage: Glist = {}
@@ -873,5 +871,207 @@ def random_tests(t=10.0, n_max=60, perms_per_graph=10):
         num_tests += 4*perms_per_graph
         num_graphs += 2
     print "All passed: %d random tests on %d graphs."%(num_tests, num_graphs)
+
+def orbit_partition(gamma, list_perm=False):
+    r"""
+    Assuming that G is a graph on vertices 0,1,...,n-1, and gamma is an
+    element of SymmetricGroup(n), returns the partition of the vertex
+    set determined by the orbits of gamma, considered as action on the
+    set 1,2,...,n where we take 0 = n. In other words, returns the
+    partition determined by a cyclic representation of gamma.
+
+    INPUT:
+
+
+    -  ``list_perm`` - if True, assumes
+       ``gamma`` is a list representing the map
+       `i \mapsto ``gamma``[i]`.
+
+
+    EXAMPLES::
+
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import orbit_partition
+        sage: G = graphs.PetersenGraph()
+        sage: S = SymmetricGroup(10)
+        sage: gamma = S('(10,1,2,3,4)(5,6,7)(8,9)')
+        sage: orbit_partition(gamma)
+        [[1, 2, 3, 4, 0], [5, 6, 7], [8, 9]]
+        sage: gamma = S('(10,5)(1,6)(2,7)(3,8)(4,9)')
+        sage: orbit_partition(gamma)
+        [[1, 6], [2, 7], [3, 8], [4, 9], [5, 0]]
+    """
+    if list_perm:
+        n = len(gamma)
+        seen = [1] + [0]*(n-1)
+        i = 0
+        p = 0
+        partition = [[0]]
+        while sum(seen) < n:
+            if gamma[i] != partition[p][0]:
+                partition[p].append(gamma[i])
+                i = gamma[i]
+                seen[i] = 1
+            else:
+                for j in range(n):
+                    if seen[j]==0:
+                        i = j
+                        break
+                partition.append([i])
+                p += 1
+                seen[i] = 1
+        return partition
+    else:
+        n = len(gamma.list())
+        l = []
+        for i in range(1,n+1):
+            orb = gamma.orbit(i)
+            if orb not in l: l.append(orb)
+        for i in l:
+            for j in range(len(i)):
+                if i[j] == n:
+                    i[j] = 0
+        return l
+
+def perm_group_elt(lperm):
+    """
+    Given a list permutation of the set 0, 1, ..., n-1, returns the
+    corresponding PermutationGroupElement where we take 0 = n.
+
+    EXAMPLE::
+
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import perm_group_elt
+        sage: perm_group_elt([0,2,1])
+        (1,2)
+        sage: perm_group_elt([1,2,0])
+        (1,2,3)
+    """
+    from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+    n = len(lperm)
+    S = SymmetricGroup(n)
+    Part = orbit_partition(lperm, list_perm=True)
+    gens = []
+    for z in Part:
+        if len(z) > 1:
+            if 0 in z:
+                zed = z.index(0)
+                generator = z[:zed] + [n] + z[zed+1:]
+                gens.append(tuple(generator))
+            else:
+                gens.append(tuple(z))
+    E = S(gens)
+    return E
+
+def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
+    """
+    Returns the coarsest equitable refinement of ``partition`` for ``G``.
+
+    This is a helper function for the graph function of the same name.
+
+    DOCTEST (More thorough testing in ``sage/graphs/graph.py``)::
+
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import coarsest_equitable_refinement
+        sage: from sage.graphs.base.sparse_graph import SparseGraph
+        sage: coarsest_equitable_refinement(SparseGraph(7), [[0], [1,2,3,4], [5,6]], 0)
+        [[0], [1, 2, 3, 4], [5, 6]]
+
+    """
+    cdef int i, j = 0, k = 0, n = G.num_verts
+
+    # set up partition stack and graph struct
+    cdef PartitionStack *nu = PS_new(n, 0)
+    for cell in partition:
+        for i in cell:
+            nu.entries[j] = i
+            nu.levels[j] = n
+            j += 1
+        nu.levels[j-1] = 0
+        PS_move_min_to_front(nu, k, j-1)
+        k = j
+
+    cdef GraphStruct GS = GraphStruct()
+    GS.G = G
+    GS.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+    if GS.scratch is NULL:
+        PS_clear(nu)
+        raise MemoryError
+    GS.directed = directed
+    GS.use_indicator = 0
+
+    # set up cells to refine by
+    cdef int num_cells = len(partition)
+    cdef int *alpha = <int *>sage_malloc(n * sizeof(int))
+    if alpha is NULL:
+        PS_clear(nu)
+        sage_free(GS.scratch)
+        raise MemoryError
+    j = 0
+    for i from 0 <= i < num_cells:
+        alpha[i] = j
+        j += len(partition[i])
+
+    # refine, and get the result
+    refine_by_degree(nu, GS, alpha, num_cells)
+
+    eq_part = []
+    cell = []
+    for i from 0 <= i < n:
+        cell.append(nu.entries[i])
+        if nu.levels[i] <= 0:
+            eq_part.append(cell)
+            cell = []
+
+    PS_clear(nu)
+    sage_free(GS.scratch)
+    sage_free(alpha)
+
+    return eq_part
+
+
+def get_orbits(list gens, int n):
+    """
+    Compute orbits given a list of generators of a permutation group, in list
+    format.
+
+    This is a helper function for automorphism groups of graphs.
+
+    DOCTEST (More thorough testing in ``sage/graphs/graph.py``)::
+
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
+        sage: get_orbits([[1,2,3,0,4,5], [0,1,2,3,5,4]], 6)
+        [[0, 1, 2, 3], [4, 5]]
+
+    """
+    cdef int i, j
+    if len(gens) == 0:
+        return [[i] for i from 0 <= i < n]
+
+    cdef OrbitPartition *OP = OP_new(n)
+    cdef int *perm_ints = <int *> sage_malloc(n * sizeof(int))
+    if perm_ints is NULL:
+        OP_dealloc(OP)
+        raise MemoryError
+
+    for gen in gens:
+        for i from 0 <= i < n:
+            perm_ints[i] = gen[i]
+        OP_merge_list_perm(OP, perm_ints)
+
+    orbit_dict = {}
+    for i from 0 <= i < n:
+        j = OP_find(OP, i)
+        if orbit_dict.has_key(j):
+            orbit_dict[j].append(i)
+        else:
+            orbit_dict[j] = [i]
+
+    OP_dealloc(OP)
+    sage_free(perm_ints)
+
+    return orbit_dict.values()
+
+
+
+
+
 
 

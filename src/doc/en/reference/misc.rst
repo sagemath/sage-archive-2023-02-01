@@ -6,6 +6,7 @@ Miscellaneous
 .. toctree::
    :maxdepth: 2
 
+   sage/misc/abstract_method
    sage/misc/misc
    sage/misc/package
    sage/misc/explain_pickle
@@ -22,4 +23,5 @@ Miscellaneous
    sage/misc/func_persist
    sage/misc/sage_eval
    sage/misc/random_testing
+   sage/misc/sagedoc
    sage/rings/arith

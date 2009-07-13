@@ -8,12 +8,12 @@ AUTHOR:
 """
 from sage.structure.sage_object import SageObject
 
-from sage.plot.misc import Color
+from sage.plot.colors import Color
 
 
 uniq_c = 0
 
-from sage.plot.misc import colors
+from sage.plot.colors import colors
 
 def is_Texture(x):
     return isinstance(x, Texture_class)

@@ -849,6 +849,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E=EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
             sage: E.conductor()
             Fractional ideal (1)
+
+        An example which used to fail (see trac #5307)::
+
+            sage: K.<w>=NumberField(x^2+x+6)
+            sage: E=EllipticCurve([w,-1,0,-w-6,0])
+            sage: E.conductor()
+            Fractional ideal (86304, w + 5898)
         """
         try:
             return self._conductor

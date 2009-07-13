@@ -11,6 +11,8 @@ Cryptography
    sage/crypto/classical
    sage/crypto/classical_cipher
 
+   sage/crypto/block_cipher/miniaes
+
    sage/crypto/stream
    sage/crypto/stream_cipher
 

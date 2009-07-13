@@ -3575,7 +3575,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             Abelian subvariety of dimension 1 of J0(33)
             sage: A.lattice()
             Free module of degree 6 and rank 2 over Integer Ring
-            Echelon basis matrix:
+            User basis matrix:
             [ 1  0  0 -1  0  0]
             [ 0  0  1  0  1 -1]
             sage: type(A)

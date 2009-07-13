@@ -154,6 +154,8 @@ from cachefunc import CachedFunction, cached_function, cached_method, cached_in_
 
 from lazy_attribute import lazy_attribute
 
+from abstract_method import abstract_method
+
 from sagex_ds import BinaryTree
 
 from randstate import seed, set_random_seed, initial_seed, current_randstate

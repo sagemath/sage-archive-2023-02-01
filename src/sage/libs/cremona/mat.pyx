@@ -1,9 +1,9 @@
 from sage.matrix.all import MatrixSpace
-from sage.rings.all import QQ
+from sage.rings.all import ZZ
 
-from sage.matrix.matrix_rational_sparse cimport Matrix_rational_sparse
-from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
-from sage.rings.rational cimport Rational
+from sage.matrix.matrix_integer_sparse cimport Matrix_integer_sparse
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
+from sage.rings.integer cimport Integer
 
 
 cdef class Matrix:
@@ -58,7 +58,7 @@ cdef class Matrix:
             sage: t.str()
             '[14  0  0  0  0]\n[-4 12  0  8  4]\n[ 0 -6  4 -6  0]\n[ 4  2  0  6 -4]\n[ 0  0  0  0 14]'
         """
-        return self.sage_matrix_over_QQ(sparse=False).str()
+        return self.sage_matrix_over_ZZ(sparse=False).str()
 
     cdef set(self, mat*  M):
         if self.M:
@@ -68,6 +68,36 @@ cdef class Matrix:
     def __dealloc__(self):
         if self.M:
             delete_mat(self.M)
+
+    def __getitem__(self, ij):
+        """
+        Return the (i,j) entry of this matrix.
+
+        Here, ij is a 2-tuple (i,j) and the row and column indices start
+        at 1 and not 0.
+
+        EXAMPLES::
+
+            sage: M = CremonaModularSymbols(19, sign=1)
+            sage: t = M.hecke_matrix(13); t
+            2 x 2 Cremona matrix over Rational Field
+            sage: t.sage_matrix_over_ZZ()
+            [ 28   0]
+            [-12  -8]
+            sage: [[t.__getitem__((i,j)) for j in [1,2]] for i in [1,2]]
+            [[28, 0], [-12, -8]]
+            sage: t.__getitem__((0,0))
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix indices out of range
+            """
+        cdef long i, j
+        if self.M:
+            i, j = ij
+            if 0<i and i<=nrows(self.M[0]) and 0<j and j<=ncols(self.M[0]):
+                return self.M.sub(i,j)
+            raise IndexError, "matrix indices out of range"
+        raise IndexError, "cannot index into an undefined matrix"
 
     def nrows(self):
         """
@@ -136,12 +166,11 @@ cdef class Matrix:
     def charpoly(self, var='x'):
         """
         Return the characteristic polynomial of this matrix, viewed as
-        as a matrix over the rational numbers.
+        as a matrix over the integers.
 
         ALGORITHM: Note that currently, this function converts this
-        matrix into a dense matrix over the rational numbers, then
-        calls the charpoly algorithm on that, which I think is
-        Linbox's.
+        matrix into a dense matrix over the integers, then calls the
+        charpoly algorithm on that, which I think is Linbox's.
 
         EXAMPLES:
             sage: M = CremonaModularSymbols(33, cuspidal=True, sign=1)
@@ -151,11 +180,11 @@ cdef class Matrix:
             sage: t.charpoly().factor()
             (x - 1) * (x + 2)^2
         """
-        return self.sage_matrix_over_QQ(sparse=False).charpoly(var)
+        return self.sage_matrix_over_ZZ(sparse=False).charpoly(var)
 
-    def sage_matrix_over_QQ(self, sparse=True):
+    def sage_matrix_over_ZZ(self, sparse=True):
         """
-        Return corresponding Sage matrix over the rational numbers.
+        Return corresponding Sage matrix over the integers.
 
         INPUTS:
             sparse -- (default: True) whether the return matrix has a
@@ -164,41 +193,41 @@ cdef class Matrix:
         EXAMPLES:
             sage: M = CremonaModularSymbols(23, cuspidal=True, sign=1)
             sage: t = M.hecke_matrix(2)
-            sage: s = t.sage_matrix_over_QQ(); s
+            sage: s = t.sage_matrix_over_ZZ(); s
             [ 0  1]
             [ 1 -1]
             sage: type(s)
-            <type 'sage.matrix.matrix_rational_sparse.Matrix_rational_sparse'>
-            sage: s = t.sage_matrix_over_QQ(sparse=False); s
+            <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+            sage: s = t.sage_matrix_over_ZZ(sparse=False); s
             [ 0  1]
             [ 1 -1]
             sage: type(s)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         """
         cdef long n = self.nrows()
         cdef long i, j, k
         cdef scalar* v = <scalar*> self.M.get_entries()   # coercion needed to deal with const
 
-        cdef Matrix_rational_sparse T
-        cdef Matrix_rational_dense Td
+        cdef Matrix_integer_dense Td
+        cdef Matrix_integer_sparse Ts
 
         # Ugly code...
         if sparse:
-            T = MatrixSpace(QQ, n, sparse=sparse).zero_matrix()
+            Ts = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix()
             k = 0
             for i from 0 <= i < n:
                 for j from 0 <= j < n:
                     if v[k]:
-                        T.set_unsafe(i, j, Rational(v[k]))
+                        Ts.set_unsafe(i, j, Integer(v[k]))
                     k += 1
-            return T
+            return Ts
         else:
-            Td = MatrixSpace(QQ, n, sparse=sparse).zero_matrix()
+            Td = MatrixSpace(ZZ, n, sparse=sparse).zero_matrix()
             k = 0
             for i from 0 <= i < n:
                 for j from 0 <= j < n:
                     if v[k]:
-                        Td.set_unsafe(i, j, Rational(v[k]))
+                        Td.set_unsafe(i, j, Integer(v[k]))
                     k += 1
             return Td
 

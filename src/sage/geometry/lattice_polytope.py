@@ -105,7 +105,7 @@ from sage.plot.plot import hue
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.plot.tachyon import Tachyon
+from sage.plot.plot3d.tachyon import Tachyon
 from sage.rings.all import Integer, ZZ, QQ, gcd
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
@@ -113,6 +113,7 @@ from sage.structure.sage_object import SageObject, load, loads
 
 import copy_reg
 import os
+import subprocess
 import pickle
 import sage.misc.prandom as random
 import StringIO
@@ -597,7 +598,12 @@ class LatticePolytopeClass(SageObject):
         if self.dim() == 0:
             raise ValueError, ("Cannot run \"%s\" for the zero-dimensional "
                 + "polytope!\nPolytope: %s") % (command, self)
-        stdin, stdout, stderr = os.popen3(command)
+        p = subprocess.Popen(command, shell=True, bufsize=2048,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+        stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
         write_palp_matrix(self._vertices, stdin)
         stdin.close()
         err = stderr.read()
@@ -610,6 +616,7 @@ class LatticePolytopeClass(SageObject):
             raise ValueError, ("Error executing \"%s\" for the given polytope!"
                 + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                 self, self.vertices(), result)
+        p.terminate()
         return result
 
     def _read_equations(self, data):
@@ -2479,13 +2486,19 @@ def _palp(command, polytopes):
         write_palp_matrix(p._vertices, input_file)
     input_file.close()
     output_file_name = tmp_filename()
-    stdin, stdout, stderr = os.popen3("%s <%s >%s" % (command, input_file_name,
-                                                             output_file_name))
+    c = "%s <%s >%s" % (command, input_file_name, output_file_name)
+    p = subprocess.Popen(c, shell=True, bufsize=2048,
+                     stdin=subprocess.PIPE,
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE,
+                     close_fds=True)
+    stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
     err = stderr.read()
     if len(err) > 0:
         raise RuntimeError, ("Error executing \"%s\" for a polytope sequence!"
             + "\nOutput:\n%s") % (command, err)
     os.remove(input_file_name)
+    p.terminate()
     return output_file_name
 
 def _read_nef_x_partitions(data):

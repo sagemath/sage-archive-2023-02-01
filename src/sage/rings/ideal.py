@@ -104,6 +104,21 @@ def Ideal(*args, **kwds):
         sage: Ideal(2, 4, 6)
         Principal ideal (2) of Integer Ring
 
+    You have to provide enough information that Sage can figure out
+    which ring to put the ideal in.
+
+    ::
+
+        sage: I = Ideal([])
+        Traceback (most recent call last):
+        ...
+        ValueError: unable to determine which ring to embed the ideal in
+
+        sage: I = Ideal()
+        Traceback (most recent call last):
+        ...
+        ValueError: need at least one argument
+
     TESTS::
 
         sage: R, x = PolynomialRing(ZZ, 'x').objgen()
@@ -125,6 +140,8 @@ def Ideal(*args, **kwds):
     """
     if len(args) == 0:
         raise ValueError, "need at least one argument"
+    if len(args) == 1 and args[0] == []:
+        raise ValueError, "unable to determine which ring to embed the ideal in"
 
     if kwds.has_key('coerce'):
         coerce = kwds['coerce']

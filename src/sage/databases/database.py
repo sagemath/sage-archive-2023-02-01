@@ -399,7 +399,7 @@ class GenericSQLQuery(SageObject):
         In order to generate representatives for the classes, we will import a
         function which generates all labeled graphs (noting that this is not the
         optimal way):
-            sage: from sage.graphs.graph_isom import all_labeled_graphs
+            sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
 
         We will need a table in the database in which to store the graphs, and we
         specify its structure with a Python dictionary, each of whose keys is the
@@ -833,7 +833,7 @@ class SQLQuery(GenericSQLQuery):
         In order to generate representatives for the classes, we will import a
         function which generates all labeled graphs (noting that this is not the
         optimal way):
-            sage: from sage.graphs.graph_isom import all_labeled_graphs
+            sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
 
         We will need a table in the database in which to store the graphs, and we
         specify its structure with a Python dictionary, each of whose keys is the
@@ -1390,7 +1390,7 @@ class GenericSQLDatabase(SageObject):
         In order to generate representatives for the classes, we will import a
         function which generates all labeled graphs (noting that this is not the
         optimal way):
-            sage: from sage.graphs.graph_isom import all_labeled_graphs
+            sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
 
         We will need a table in the database in which to store the graphs, and we
         specify its structure with a Python dictionary, each of whose keys is the
@@ -1817,7 +1817,7 @@ class SQLDatabase(GenericSQLDatabase):
         In order to generate representatives for the classes, we will import a
         function which generates all labeled graphs (noting that this is not the
         optimal way):
-            sage: from sage.graphs.graph_isom import all_labeled_graphs
+            sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
 
         We will need a table in the database in which to store the graphs, and we
         specify its structure with a Python dictionary, each of whose keys is the

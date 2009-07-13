@@ -19,7 +19,7 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = [(1.0, f, f.number_of_arguments()) for f in sage.symbolic.pynac.symbol_table['functions'].values() if f.number_of_arguments() > 0 and 'elliptic' not in str(f) and 'dickman_rho' not in str(f)]
-full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime, merten, brun]]
+full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime, mertens, brun]]
 full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1), (0.2, full_functions)]
 
 def normalize_prob_list(pl, extra=()):
@@ -202,12 +202,11 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        sinh(sinh(-coth(v2)/csch(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^arcsech(-cosh(-arcsinh((0.0574954975369 - 0.917809644424*I)*(v2^2 - 0.723896589334 - 0.799038508886*I)*v1))/(-(1.04308121136 - 1.20890075541*I)*v2 - (1.45598591076 + 0.129560576376*I)*e))
+        arctanh(sinh(-arcsech(v2)/floor(-(0.615863165633 + 0.879368031485*I)*v1^2*v3) - gamma(pi) + floor(-(0.708874026302 - 0.954135400334*I)*v3)))^arcsech(-cosh(-polylog((v2 + 0.913564344312 + 0.0898040160336*I)^(-(0.723896589334 - 0.799038508886*I)*v2),-v1 - v3))/sin(-(0.0263902659909 + 0.153261789843*I)*arctan2(pi, e^pi)))
         sage: random_expr(5, verbose=True)
-        About to apply exp to [pi]
-        About to apply <built-in function mul> to [e^pi, 1]
-        About to apply cosh to [e^pi]
-        cosh(e^pi)
+        About to apply <built-in function add> to [v1, v1]
+        About to apply <built-in function div> to [-1/3, 2*v1]
+        -1/6/v1
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

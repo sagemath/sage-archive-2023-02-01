@@ -5464,7 +5464,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.plot()
 
         Here we make a random matrix over RR and use cmap='hsv' to color
-        the matrix elements different RGB colors::
+        the matrix elements different RGB colors (see documentation for
+        ``matrix_plot`` for more information on cmaps)::
 
             sage: A = random_matrix(RDF, 50)
             sage: plot(A, cmap='hsv')

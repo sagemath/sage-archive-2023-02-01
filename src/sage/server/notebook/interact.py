@@ -144,7 +144,7 @@ import types
 
 # Sage libraries
 from sage.misc.all import srange, sage_eval
-from sage.plot.misc import Color
+from sage.plot.colors import Color
 from sage.structure.element import is_Matrix
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to

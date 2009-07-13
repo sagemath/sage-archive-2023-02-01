@@ -41,13 +41,13 @@ Sage fournit toutes les opérations mathématiques de base :
     sage: 3^2*4 + 2%5
     38
 
-Le calcul d'un expression telle que ``3^2*4 + 2%5``  dépend de l'ordre
-dans lequel les opérations sont effectuées ; ceci est expliqué dans
+Le calcul d'une expression telle que ``3^2*4 + 2%5``  dépend de l'ordre
+dans lequel les opérations sont effectuées ; ceci est expliqué dans
 l'annexe *Priorité des opérateurs arithmétiques binaires*
 :ref:`section-precedence`.
 
 Sage fournit également un grand nombre de fonctions mathématiques
-usuelles ; en voici quelques exemples choisis :
+usuelles ; en voici quelques exemples choisis :
 
 ::
 
@@ -65,7 +65,7 @@ utilise au choix la fonction ``n`` ou la méthode ``n`` (chacun de ces
 noms possède le nom plus long ``numerical_approx``, la fonction ``N``
 est identique à ``n``). Celles-ci acceptent, en argument optionnel,
 ``prec``, qui indique le nombre de bits de précisions requis, et
-``digits``, qui indique le nombre de décimales demandées ; par défaut,
+``digits``, qui indique le nombre de décimales demandées ; par défaut,
 il y a 53 bits de précision.
 
 ::
@@ -91,22 +91,22 @@ sein d'une même portée :
 
 ::
 
-    sage: a = 5   # a is an integer
+    sage: a = 5   # a est un entier
     sage: type(a)
     <type 'sage.rings.integer.Integer'>
-    sage: a = 5/3  # now a is a rational number
+    sage: a = 5/3  # a est maintenant un rationnel...
     sage: type(a)
     <type 'sage.rings.rational.Rational'>
-    sage: a = 'hello'  # now a is a string
+    sage: a = 'hello'  # ...et maintenant une chaîne
     sage: type(a)
     <type 'str'>
 
 Le langage de programmation C, qui est statiquement typé, est bien
-différent : une fois déclarée de type int, une variable ne peut contenir
+différent : une fois déclarée de type int, une variable ne peut contenir
 que des int au sein de sa portée.
 
 Un entier Python dont l'écriture commence par un zéro peut susciter des
-confusions : il est considéré comme un nombre octal, c'est-à-dire un
+confusions : il est considéré comme un nombre octal, c'est-à-dire un
 nombre en base huit.
 
 ::
@@ -116,7 +116,7 @@ nombre en base huit.
     sage: 8 + 1
     9
     sage: n = 011
-    sage: n.str(8)   # string representation of n in base 8
+    sage: n.str(8)   # écriture en base 8 de n, sous forme de chaîne
     '11'
 
 Ceci est cohérent avec le langage de programmation C.

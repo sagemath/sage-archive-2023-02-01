@@ -37,7 +37,7 @@ class PosetElement(Element):
 
             sage: from sage.combinat.posets.elements import PosetElement
             sage: P = Poset([[1,2],[4],[3],[4],[]])
-            sage: e = PosetElement(P, "elm", 0)
+            sage: e = P(0)
             sage: e.parent() is P
             True
             sage: e == loads(dumps(e))
@@ -78,6 +78,24 @@ class PosetElement(Element):
                 and self.element == other.element \
                 and self.vertex == other.vertex
 
+    def __ne__(self,other):
+        r"""
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P(0).__ne__(P(4))
+            True
+            sage: from sage.combinat.posets.elements import PosetElement
+            sage: PosetElement(P,0,3) != PosetElement(P,0,3)
+            False
+            sage: PosetElement(P,1,3) != PosetElement(P,0,3)
+            True
+            sage: PosetElement(P,0,2) != PosetElement(P,0,3)
+            True
+
+        """
+        return not (self.__eq__(other))
+
     def _cmp(self,other):
         """
         TESTS::
@@ -89,13 +107,60 @@ class PosetElement(Element):
             1
             sage: P(0)._cmp(P(0))
             0
+            sage: P(1)._cmp(P(2))
+
         """
-        if self.parent() != other.parent():
-            raise ValueError, "The elements are not in the same poset."
-        if self == other: return 0
-        if self.parent().is_less_than(self,other): return -1
-        if self.parent().is_less_than(other,self): return  1
-        return None
+        return self.parent().compare_elements(self,other)
+
+    def __cmp__(self, other):
+        r"""
+        A default comparison of ``self`` with ``other``.
+
+        .. note::
+
+           The rich comparison methods have been implemented for poset
+           elements, so when a user asks for ``x < y``, for example, rich
+           comparison is used (that is, ``x.__lt__(y)`` is returned). This
+           method is implemented because ``PosetElement`` inherits from
+           ``Element``, which requires ``__cmp__`` to enable sorting by the
+           ``cmp`` method.
+
+           If both ``self`` and ``other`` have the same parent poset,
+           then the comparison is done in the poset. If the elements
+           are incomparable in the poset, then 0 is returned. Note that,
+           in particular, ``cmp(a,b) == cmp(b,a)`` if ``a`` and ``b`` are
+           equal or incomparable in the poset.
+
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P(0).__cmp__(P(4))
+            -1
+            sage: P(4).__cmp__(P(0))
+            1
+            sage: P(0).__cmp__(P(0))
+            0
+            sage: P(1).__cmp__(P(2))
+            0
+            sage: cmp(P(0),P(4))
+            -1
+            sage: cmp(P(4),P(0))
+            1
+            sage: cmp(P(0),P(0))
+            0
+            sage: cmp(P(1),P(2))
+            0
+            sage: cmp(P(2),P(1))
+            0
+        """
+        if isinstance(other, type(self)):
+            r = self.parent().compare_elements(self,other)
+            if r is None:
+                return 0
+            else:
+                return r
+        else:
+            return cmp(type(other), type(self))
 
     def __lt__(self,other):
         """

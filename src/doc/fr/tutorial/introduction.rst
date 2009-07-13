@@ -62,7 +62,7 @@ Si Sage n'est pas installé sur votre ordinateur, vous pouvez essayer
 quelques commandes en ligne à l'adresse http://www.sagenb.org.
 
 Des instructions pour installer Sage sur votre ordinateur sont
-disponibles dans le guide d'installation (*Installationn Guide*), dans
+disponibles dans le guide d'installation (*Installation Guide*), dans
 la section documentation de la page web principale de Sage [Sage]_.
 Nous nous limiterons ici à deux remarques.
 
@@ -88,7 +88,7 @@ Les différentes manières d'utiliser Sage
 
 Il y a plusieurs façons d'utiliser Sage.
 
--  **Interface graphique (« *notebook* ») :** voir la section sur le
+-  **Interface graphique (« notebook ») :** voir la section sur le
    *Notebook* du manuel de référence, et :ref:`section-notebook`
    ci-dessous ;
 

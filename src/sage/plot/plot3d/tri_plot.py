@@ -20,7 +20,7 @@ TODO:
 
 """
 
-from plot import hue
+from sage.plot.colors import hue
 from math import sqrt
 from random import random
 
@@ -370,4 +370,3 @@ class PlotBlock:
        self.right_c = right_c
        self.bottom = bottom
        self.bottom_c = bottom_c
-

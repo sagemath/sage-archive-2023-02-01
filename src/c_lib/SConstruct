@@ -83,7 +83,7 @@ if os.environ.has_key('SAGE_DEBIAN'):
 # The SCons convenience function Split is the only strange thing
 # to python programmers. It just makes a list by splitting on
 # whitespace without the syntax clutter of lists of strings.
-includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.5/',
+includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.6/',
             '$SAGE_LOCAL/include/NTL/', 'include']
 cFiles = Split( "convert.c  interrupt.c  mpn_pylong.c  mpz_pylong.c") + \
          Split( "mpz_longlong.c stdsage.c  gmp_globals.c" )

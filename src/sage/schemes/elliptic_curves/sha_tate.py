@@ -530,8 +530,6 @@ class Sha(SageObject):
         EXAMPLES::
 
             sage: e = EllipticCurve('11a3')
-            sage: e.sha().p_primary_bound(5)
-            0
             sage: e.sha().p_primary_bound(7)
             0
             sage: e.sha().p_primary_bound(11)
@@ -552,17 +550,29 @@ class Sha(SageObject):
             sage: e = EllipticCurve('858k2')
             sage: e.sha().p_primary_bound(3)           # long time
             0
-            sage: e.sha().p_primary_bound(7)           # long time
-            2
+
+            # checks for trac 6406
+            sage: e.sha().p_primary_bound(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
+
+            sage: e = EllipticCurve('11a3')
+            sage: e.sha().p_primary_bound(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
+
         """
 
         if self.E.is_ordinary(p) or self.E.is_good(p):
+            su, _ = self.E.is_surjective(p)
+            if not su :
+                raise ValueError, "The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound."
             shan = self.an_padic(p,prec = 0,use_twists=True)
             if shan == 0:
                 raise RuntimeError, "There is a bug in an_padic."
             S = shan.valuation()
-            if not self.E.is_surjective(p) and not self.E.is_reducible(p):
-                raise ValueError, "The mod-p Galois representation is neither surjective nor contained in a Borel group. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound."
         else:
             raise ValueError, "The curve has to have semi-stable reduction at p."
 

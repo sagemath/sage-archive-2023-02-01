@@ -350,14 +350,14 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
                  [1,9,13,12,4],
                  [2,5,11,10,6],
                  [3,7,15,14,8]]
-    face_list = top_faces + [reversed([19-p for p in f]) for f in top_faces]
+    face_list = top_faces + [[19-p for p in reversed(f)] for f in top_faces]
 
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1,1,1]
     return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
 #    if style == 'vertices' or style == 'edges':
-#        from sage.plot.plot import rainbow
+#        from sage.plot.colors import rainbow
 #        colors = rainbow(len(vs), 'rgbtuple')
 #        #vertex_spheres = [Box(.05, .05, .05, color=color).translate(p) for p in vs]
 #        vertex_spheres = [Box(.05, .05, .05, color=c).translate(p) for p,c in zip(vs,colors)]

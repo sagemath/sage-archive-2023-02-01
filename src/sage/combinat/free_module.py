@@ -308,7 +308,7 @@ class CombinatorialFreeModuleElement(ModuleElement):
             sage: a._coefficient_fast([2,1])
             Traceback (most recent call last):
             ...
-            TypeError: list objects are unhashable
+            TypeError: unhashable type: 'list'
 
         ::
 

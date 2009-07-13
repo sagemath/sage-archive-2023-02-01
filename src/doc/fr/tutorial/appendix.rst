@@ -15,7 +15,7 @@ données par priorités croissantes.
 
 
 ==========================  =================
-Operateurs                  Description
+Opérateur                   Description
 ==========================  =================
 or                          ou booléen
 and  	     		    et booléen

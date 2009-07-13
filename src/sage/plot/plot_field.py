@@ -18,7 +18,8 @@ Plotting fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword, to_mpl_color
+from sage.plot.misc import options, rename_keyword
+from sage.plot.colors import to_mpl_color
 from sage.misc.misc import xsrange
 
 # Below is the base class that is used to make 'field plots'.
@@ -133,7 +134,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
     and plots vector arrows of the function over the specified ranges, with
     xrange being of xvar between xmin and xmax, and yrange similarly (see below).
 
-    plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
+    ``plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))``
 
     EXAMPLES:
 
@@ -181,7 +182,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     representative points `(x_i,y_i)` between xmin, xmax, and ymin, ymax
     respectively, plots a line with slope `f(x_i,y_i)` (see below).
 
-    plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))
+    ``plot_slope_field(f, (xvar, xmin, xmax), (yvar, ymin, ymax))``
 
     EXAMPLES:
 

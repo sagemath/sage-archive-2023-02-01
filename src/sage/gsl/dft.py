@@ -16,19 +16,19 @@ item  dft  -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
            * a sequence (as above) indexed by a finite AbelianGroup
-           * a sequnce (as above) indexed by a complete set of representatives of
+           * a sequence (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite permutation group
-           * a sequnce (as above) indexed by a complete set of representatives of
+           * a sequence (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite matrix group
 \item  idft -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
 \item dct, dst  (for discrete Fourier/Cosine/Sine transform)
 \item convolution (in convolution and convolution_periodic)
-\item  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
+\item  fft, ifft - (fast Fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
          using William Stein's FastFourierTransform class
 \item  dwt, idwt - (fast wavelet transforms) wrapping GSL's gsl_dwt_forward, gsl_dwt_backward
-         using Joshua Kantor's WaveletTransform class. Allows for waveltes of
+         using Joshua Kantor's WaveletTransform class. Allows for wavelets of
          type: "haar", "daubechies", "daubechies_centered",
           "haar_centered", "bspline", "bspline_centered".
 \end{itemize}
@@ -53,7 +53,7 @@ AUTHORS:
 ##########################################################################
 
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.plot.all import polygon, line
+from sage.plot.all import polygon, line, text
 from sage.plot.plot import Graphics
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -157,10 +157,12 @@ class IndexedSequence(SageObject):
         """
         return "Indexed sequence: "+str(self.list())+"\n    indexed by "+str(self.index_object())
 
-    def plot_histogram(self):
+    def plot_histogram(self, clr=(0,0,1),eps = 0.4):
         """
         Plots the histogram plot of the sequence, which is assumed to be real
         or from a finite field, with a real indexing set I coercible into RR.
+        Options are clr, which is an rgb value, and eps, which is the spacig between the
+        bars.
 
         EXAMPLES:
             sage: J = range(3)
@@ -170,12 +172,14 @@ class IndexedSequence(SageObject):
 
         Now type show(P) to view this in a browser.
         """
+        #from sage.plot.misc import text
         F = self.base_ring()   ## elements must be coercible into RR
         I = self.index_object()
         N = len(I)
         S = self.list()
-        P = [polygon([[RR(I[i]),0],[RR(I[i]),RR(S[i])],[RR(I[i+1]),RR(S[i])],[RR(I[i+1]),0],[RR(I[i]),0]], rgbcolor=(1,0,0)) for i in range(N-1)]
-        return sum(P)
+        P = [polygon([[RR(I[i])-eps,0],[RR(I[i])-eps,RR(S[i])],[RR(I[i])+eps,RR(S[i])],[RR(I[i])+eps,0],[RR(I[i]),0]], rgbcolor=clr) for i in range(N)]
+        T = [text(str(I[i]),(RR(I[i]),-0.8),fontsize=15,rgbcolor=(1,0,0)) for i in range(N)]
+        return sum(P)+sum(T)
 
     def plot(self):
         """
@@ -569,7 +573,7 @@ class IndexedSequence(SageObject):
     def dwt(self,other="haar",wavelet_k=2):
         """
         Wraps the gsl WaveletTransform.forward in dwt.pyx (written
-        by Johua Kantor). Assumes the length of the sample is a power of 2.
+        by Joshua Kantor). Assumes the length of the sample is a power of 2.
         Uses the GSL function gsl_wavelet_transform_forward.
 
         other -- the wavelet_type:   the name of the type of wavelet,

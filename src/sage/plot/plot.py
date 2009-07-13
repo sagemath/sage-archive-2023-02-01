@@ -31,29 +31,29 @@ The following plotting functions are supported:
 
 -  :func:`parametric_plot`
 
--  :func:`implicit_plot`
+-  :func:`implicit_plot() <sage.plot.contour_plot.implicit_plot>`
 
 -  :func:`polar_plot`
 
--  :func:`region_plot`
+-  :func:`region_plot <sage.plot.contour_plot.region_plot>`
 
 -  :func:`list_plot`
 
--  :func:`scatter_plot`
+-  :func:`scatter_plot <sage.plot.scatter_plot.scatter_plot>`
 
--  :func:`bar_chart`
+-  :func:`bar_chart <sage.plot.bar_chart.bar_chart>`
 
--  :func:`contour_plot`
+-  :func:`contour_plot <sage.plot.contour_plot.contour_plot>`
 
--  :func:`density_plot`
+-  :func:`density_plot <sage.plot.density_plot.density_plot>`
 
--  :func:`plot_vector_field`
+-  :func:`plot_vector_field <sage.plot.plot_field.plot_vector_field>`
 
--  :func:`plot_slope_field`
+-  :func:`plot_slope_field <sage.plot.plot_field.plot_slope_field>`
 
--  :func:`matrix_plot`
+-  :func:`matrix_plot <sage.plot.matrix_plot.matrix_plot>`
 
--  :func:`complex_plot`
+-  :func:`complex_plot <sage.plot.complex_plot.complex_plot>`
 
 -  :func:`graphics_array`
 
@@ -328,15 +328,16 @@ do_verify = True
 
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
 import os #for viewing and writing images
-from colorsys import hsv_to_rgb #for the hue function
-from math import sin, cos, modf, pi #for hue and polar_plot
+from math import sin, cos, pi #for polar_plot
 from sage.structure.sage_object import SageObject
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 from sage.misc.html import html
 
-from misc import rgbcolor, Color, options, rename_keyword, to_mpl_color
+from misc import options, rename_keyword
+
+from colors import hue, rainbow, rgbcolor, Color, to_mpl_color
 
 import operator
 
@@ -2350,6 +2351,14 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: y_coords = [sin(t)^3 for t in srange(0, 2*pi, 0.02)]
         sage: list_plot(zip(x_coords, y_coords))
 
+    If instead you try to pass the two lists as separate arguments,
+    you will get an error message::
+
+        sage: list_plot(x_coords, y_coords)
+        Traceback (most recent call last):
+        ...
+        TypeError: The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'.
+
     TESTS:
     We check to see that the x/y min/max data are set correctly.
 
@@ -2364,6 +2373,8 @@ def list_plot(data, plotjoined=False, **kwargs):
     from sage.plot.all import line, point
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
+    if isinstance(plotjoined, (list, tuple)):
+        raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
     if plotjoined:
         P = line(data, **kwargs)
     else:
@@ -2383,51 +2394,6 @@ def to_float_list(v):
         [1.0, 0.5, 3.0]
     """
     return [float(x) for x in v]
-
-
-def hue(h, s=1, v=1):
-    """
-    hue(h,s=1,v=1) where 'h' stands for hue, 's' stands for saturation,
-    'v' stands for value. hue returns a tuple of rgb intensities (r, g,
-    b) All values are in the range 0 to 1.
-
-    INPUT:
-
-
-    -  ``h, s, v`` - real numbers between 0 and 1. Note
-       that if any are not in this range they are automatically normalized
-       to be in this range by reducing them modulo 1.
-
-
-    OUTPUT: A valid RGB tuple.
-
-    EXAMPLES::
-
-        sage: hue(0.6)
-        (0.0, 0.40000000000000036, 1.0)
-
-    hue is an easy way of getting a broader range of colors for
-    graphics
-
-    ::
-
-        sage: plot(sin, -2, 2, rgbcolor=hue(0.6))
-    """
-    h = float(h); s = float(s); v = float(v)
-    if h != 1:
-        h = modf(h)[0]
-        if h < 0:
-            h += 1
-    if s != 1:
-        s = modf(s)[0]
-        if s < 0:
-            s += 1
-    if v != 1:
-        v = modf(v)[0]
-        if v < 0:
-            v += 1
-    c = hsv_to_rgb(h, s, v)
-    return (float(c[0]), float(c[1]), float(c[2]))
 
 class GraphicsArray(SageObject):
     """
@@ -2643,89 +2609,6 @@ def graphics_array(array, n=None, m=None):
         m = int(m)
         array = reshape(array, n, m)
     return GraphicsArray(array)
-
-def float_to_html(r,g,b):
-    """
-    This is a function to present tuples of RGB floats as HTML-happy
-    hex for matplotlib. This may not seem necessary, but there are some
-    odd cases where matplotlib is just plain schizophrenic -- for an
-    example, do
-
-    EXAMPLES::
-
-        sage: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
-        sage: graphs.DodecahedralGraph().show(vertex_colors=vertex_colors)
-
-    Notice how the colors don't respect the partition at all.....
-    """ # TODO: figure out WTF
-    from sage.rings.integer import Integer
-    from math import floor
-    rr = Integer(int(floor(r*255))).str(base=16)
-    gg = Integer(int(floor(g*255))).str(base=16)
-    bb = Integer(int(floor(b*255))).str(base=16)
-    rr = '0'*(2-len(rr)) + rr
-    gg = '0'*(2-len(gg)) + gg
-    bb = '0'*(2-len(bb)) + bb
-    return '#' + rr\
-               + gg\
-               + bb
-
-def rainbow(n, format='hex'):
-    """
-    Given an integer `n`, returns a list of colors, represented
-    in HTML hex, that changes smoothly in hue from one end of the
-    spectrum to the other. Written in order to easily represent vertex
-    partitions on graphs.
-
-    AUTHORS:
-
-    - Robert L. Miller
-
-    EXAMPLE::
-
-        sage: from sage.plot.plot import rainbow
-        sage: rainbow(7)
-        ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
-        sage: rainbow(7, 'rgbtuple')
-        [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.28571428571428581, 1.0, 0.0), (0.0, 1.0, 0.57142857142857162), (0.0, 0.57142857142857162, 1.0), (0.28571428571428559, 0.0, 1.0), (1.0, 0.0, 0.85714285714285676)]
-    """
-    from math import floor
-    R = []
-    if format == 'hex':
-        for i in range(n):
-            r = 6*float(i)/n
-            h = floor(r)
-            r = float(r - h)
-            if h == 0:#RED
-                R.append(float_to_html(1.,r,0.))
-            elif h == 1:
-                R.append(float_to_html(1. - r,1.,0.))
-            elif h == 2:#GREEN
-                R.append(float_to_html(0.,1.,r))
-            elif h == 3:
-                R.append(float_to_html(0.,1. - r,1.))
-            elif h == 4:#BLUE
-                R.append(float_to_html(r,0.,1.))
-            elif h == 5:
-                R.append(float_to_html(1.,0.,1. - r))
-    elif format == 'rgbtuple':
-        for i in range(n):
-            r = 6*float(i)/n
-            h = floor(r)
-            r = float(r - h)
-            if h == 0:#RED
-                R.append((1.,r,0.))
-            elif h == 1:
-                R.append((1. - r,1.,0.))
-            elif h == 2:#GREEN
-                R.append((0.,1.,r))
-            elif h == 3:
-                R.append((0.,1. - r,1.))
-            elif h == 4:#BLUE
-                R.append((r,0.,1.))
-            elif h == 5:
-                R.append((1.,0.,1. - r))
-    return R
 
 def var_and_list_of_values(v, plot_points):
     """

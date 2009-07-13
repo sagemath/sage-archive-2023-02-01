@@ -74,7 +74,7 @@ else:
 ### Commonly used include directories
 #########################################################
 
-numpy_include_dirs = [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include']
+numpy_include_dirs = [SAGE_ROOT+'/local/lib/python/site-packages/numpy/core/include']
 
 #############################################################
 ### List of modules
@@ -212,6 +212,16 @@ ext_modules = [
     Extension('sage.functions.prime_pi',
         sources = ['sage/functions/prime_pi.pyx']),
 
+     ################################
+     ##
+     ## sage.games
+     ##
+     ################################
+
+     Extension('sage.games.sudoku_backtrack',
+               sources = ['sage/games/sudoku_backtrack.pyx']),
+
+
     ################################
     ##
     ## sage.graphs
@@ -225,9 +235,6 @@ ext_modules = [
     Extension('sage.graphs.graph_fast',
               sources = ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']),
-
-    Extension('sage.graphs.graph_isom',
-              sources = ['sage/graphs/graph_isom.pyx']),
 
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx',
@@ -402,6 +409,11 @@ ext_modules = [
               sources = ["sage/libs/pari/gen.pyx"],
               libraries = ['pari', 'gmp']),
 
+    Extension('sage.libs.ratpoints',
+              sources = ["sage/libs/ratpoints.pyx"],
+              #depends = [SAGE_ROOT + 'local/include/ratpoints.h'],
+              libraries = ["ratpoints", "gmp"]),
+
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
@@ -414,6 +426,10 @@ ext_modules = [
               include_dirs = ['/usr/include/malloc/'],
               libraries = ["symmetrica"],
               depends = [SAGE_ROOT + "/local/include/symmetrica/def.h"]),
+
+    Extension('sage.libs.mpmath.utils',
+              sources = ["sage/libs/mpmath/utils.pyx"],
+              libraries = ['mpfr', 'gmp']),
 
         ###################################
         ##
@@ -740,7 +756,6 @@ ext_modules = [
 
     Extension('sage.misc.session',
               sources = ['sage/misc/session.pyx']),
-
 
     ################################
     ##
@@ -1298,4 +1313,16 @@ ext_modules = [
 
 
     ]
+
+
+# Only include darwin_utilities on OS_X >= 10.5
+UNAME = os.uname()
+if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
+    ext_modules.append(
+        Extension('sage.misc.darwin_utilities',
+            sources = ['sage/misc/darwin_memory_usage.c',
+                       'sage/misc/darwin_utilities.pyx'],
+            depends = ['sage/misc/darwin_memory_usage.h'])
+        )
+
 

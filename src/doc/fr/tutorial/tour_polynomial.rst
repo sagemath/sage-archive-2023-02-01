@@ -84,7 +84,7 @@ récupère l'indéterminée comme le :math:`0`-ième générateur :
 
 Notez que les nombres complexes peuvent être construits de façon
 similaire : les nombres complexes peuvent être vus comme engendrés sur
-les réels par le symbole ``i``. Aussi, on a dispose de :
+les réels par le symbole ``i``. Aussi, on dispose de :
 
 ::
 
@@ -151,7 +151,7 @@ fractions, que Sage crée automatiquement.
     Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
 En utilisant des séries de Laurent, on peut calculer des développements
-en série dans le corps des factions de ``QQ[x]``:
+en série dans le corps des fractions de ``QQ[x]``:
 
 ::
 
@@ -321,7 +321,7 @@ base de Gröbner).
     ...
     ValueError: object is immutable; please change a copy instead.
 
-Un peu (comprenez : pas assez à notre goût) d'algèbre commutative est
+Un peu (comprenez : pas assez à notre goût) d'algèbre commutative est
 disponible en Sage. Ces routines font appel à Singular. Par exemple, il
 est possible de calculer la décomposition en facteurs premiers et les
 idéaux premiers associés de :math:`I`:

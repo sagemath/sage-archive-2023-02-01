@@ -56,11 +56,14 @@ in a notebook cell, or
     sage: R = PolynomialRing(QQ,"x")
     sage: x = R.gen()
     sage: p = x^2 + 1
-    sage: view(p.derivative()) #optional
-    sage: view(p.integral()) #optional
+    sage: p.derivative()
+    2*x
+    sage: p.integral()
+    1/3*x^3 + x
 
-on the command line.
-
+on the command line.  At this point you can also type
+``view(p.derivative())`` or ``view(p.integral())`` to open a new
+window with output typeset by LaTeX.
 
 .. index::
    pair: calculus; critical points

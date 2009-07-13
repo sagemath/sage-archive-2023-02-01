@@ -3,8 +3,8 @@ Anneaux de base
 ***************
 
 Nous illustrons la prise en main de quelques anneaux de base avec Sage.
-Par exemple, ``RationalField()`` ou ``QQ`` feront référence dans ce qui
-suit au corps des nombres rationnels :
+Par exemple, ``RationalField()`` ou ``QQ`` désigneront dans ce qui
+suit au corps des nombres rationnels :
 
 ::
 
@@ -17,7 +17,7 @@ suit au corps des nombres rationnels :
 
 Le nombre décimal ``1.2`` est considéré comme un élément de ``QQ``,
 puisqu'il existe une application de coercition entre les réels et les
-rationnels :
+rationnels :
 
 ::
 
@@ -25,16 +25,16 @@ rationnels :
     True
 
 Néanmoins, il n'y a pas d'application de coercition entre le corps fini
-à 3 éléments et les rationnels :
+à 3 éléments et les rationnels :
 
 ::
 
-    sage: c = GF(3)(1)   # c is the element 1 of the field GF(3)
+    sage: c = GF(3)(1)   # c est l'élément 1 du corps fini à 3 éléments
     sage: c in QQ
     False
 
-De même, bien entendu, la constante symbolique :math:`\pi` n'appartient
-pas aux rationnels :
+De même, bien entendu, la constante symbolique :math:`\pi` n'appartient
+pas aux rationnels :
 
 ::
 
@@ -42,21 +42,21 @@ pas aux rationnels :
     False
 
 Le symbole ``I`` représente la racine carrée de :math:`-1`; ``i`` est
-synonyme de ``I``. Bien entendu, ``I`` n'appartient pas aux rationnels :
+synonyme de ``I``. Bien entendu, ``I`` n'appartient pas aux rationnels :
 
 ::
 
-    sage: i  # square root of -1
+    sage: i  # i^2 = -1
     I
     sage: i in QQ
     False
 
-À ce propos, d'autres anneaux sont prédéfinis en Sage : l'anneau des
+À ce propos, d'autres anneaux sont prédéfinis en Sage : l'anneau des
 entiers relatifs ``ZZ``, celui des nombres réels ``RR`` et celui des
 nombres complexes ``CC``. Les anneaux de polynômes sont décrits dans
 :ref:`section-poly`.
 
-Voyons maintenant quelques éléments d'arithmétique.
+Passons maintenant à quelques éléments d'arithmétique.
 
 ::
 
@@ -76,9 +76,8 @@ Voyons maintenant quelques éléments d'arithmétique.
 
 Il y a une subtilité dans la définition des nombres complexes. Comme
 mentionné ci-dessus, le symbole  ``i`` représente une racine carrée de
-:math:`-1`, mais il s'agit d'une racine carrée *formelle* de
-:math:`-1`, qui n'appartient pas aux nombres complexes. L'appel ``CC(i)``
-renvoie la racine carrée complexe de :math:`-1`.
+:math:`-1`, mais il s'agit d'une racine carrée *formelle* de :math:`-1`.
+L'appel ``CC(i)`` renvoie la racine carrée complexe de :math:`-1`.
 
 .. link
 

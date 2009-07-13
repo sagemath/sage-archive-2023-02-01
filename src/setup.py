@@ -415,7 +415,7 @@ class sage_build_ext(build_ext):
 ###### Dependency checking
 #############################################
 
-CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python2.5/site-packages/Cython/Includes/' ]
+CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' ]
 
 # matches any dependency
 import re
@@ -620,7 +620,7 @@ def compile_command(p):
             outfile += ".c"
 
         # call cython, abort if it failed
-        cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r
@@ -750,6 +750,7 @@ code = setup(name = 'sage',
                      'sage.combinat.words',
 
                      'sage.crypto',
+                     'sage.crypto.block_cipher',
                      'sage.crypto.mq',
 
                      'sage.databases',
@@ -792,6 +793,7 @@ code = setup(name = 'sage',
                      'sage.libs.singular',
                      'sage.libs.symmetrica',
                      'sage.libs.cremona',
+                     'sage.libs.mpmath',
 
                      'sage.logic',
 
@@ -800,6 +802,7 @@ code = setup(name = 'sage',
                      'sage.misc',
 
                      'sage.modules',
+                     'sage.modules.fg_pid',
 
                      'sage.modular',
                      'sage.modular.arithgroup',

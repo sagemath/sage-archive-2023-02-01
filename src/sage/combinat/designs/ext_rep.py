@@ -1,27 +1,36 @@
 """
+External Representations of Block Designs
+
 The "ext_rep" module is an API to the abstract tree represented by
 an XML document containing the External Representation of a list of
 block designs. The module also provides the related I/O operations for
 reading/writing ext-rep files or data. The parsing is based on expat.
 
-This software is released under the terms of the GNU General Public
-License, version 2 or above (your choice). For details on licencing,
-see the accompanying documentation.
-
 This is a modified form of the module ext_rep.py (version 0.8)
-written by Peter Dobcsanyi peter@designtheory.org.
+written by Peter Dobcsanyi [D2009]_ peter@designtheory.org.
 
-Copyright 2004 by Peter Dobcsanyi peter@designtheory.org, and copyright
-2009 Carlo Hamalainen carlo.hamalainen@gmail.com
+REFERENCES:
 
-REFERENCES
-- http://designtheory.org/database/
+.. [D2009] P. Dobcsanyi et al. DesignTheory.org
+   http://designtheory.org/database/
 
 TODO: The XML data from the designtheory.org database contains a wealth
 of information about things like automorphism groups, transitivity,
 cycle type representatives, etc, but none of this data is made
 available through the current implementation.
 """
+
+###########################################################################
+# This software is released under the terms of the GNU General Public
+# License, version 2 or above (your choice). For details on licensing,
+# see the accompanying documentation.
+#
+# This is a modified form of the module ext_rep.py (version 0.8)
+# written by Peter Dobcsanyi peter@designtheory.org.
+#
+# Copyright 2004 by Peter Dobcsanyi peter@designtheory.org, and copyright
+# 2009 Carlo Hamalainen carlo.hamalainen@gmail.com
+###########################################################################
 
 import sys
 import xml.parsers.expat
@@ -460,7 +469,8 @@ def dump_to_tmpfile(s):
     """
     Utility function to dump a string to a temporary file.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile("boo")
         sage: os.remove(file_loc)
@@ -478,7 +488,8 @@ def check_dtrs_protocols(input_name, input_pv):
     handle version 2.0. For more information see
     http://designtheory.org/library/extrep/
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs import ext_rep
         sage: ext_rep.check_dtrs_protocols('source', '2.0')
         sage: ext_rep.check_dtrs_protocols('source', '3.0')
@@ -499,7 +510,8 @@ def open_extrep_file(fname):
     Try to guess the compression type from extension
     and open the extrep file.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile(ext_rep.v2_b2_k2_icgsa)
         sage: proc = ext_rep.XTreeProcessor()
@@ -528,7 +540,8 @@ def open_extrep_url(url):
     (unlike open_extrep_file) returns the uncompressed text contained in
     the file.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile(ext_rep.v2_b2_k2_icgsa)
         sage: proc = ext_rep.XTreeProcessor()
@@ -560,7 +573,8 @@ def _encode_attribute(string):
     Convert numbers in attributes into binary format.
     Currently integer and floating point conversions are implemented.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs.ext_rep import _encode_attribute
         sage: _encode_attribute('1')
         1
@@ -592,16 +606,16 @@ class XTree(object):
 
         (name, {dictionary of attributes}, [list of children])
 
-    Methods and services of an XTree object 't':
+    Methods and services of an XTree object ``t``:
 
-    t.attribute         attribute named
-    t.child             first child named
-    t[i]                i-th child
-    for child in t:     iterate over t's children
-    len(t)              number of t's children
+    - ``t.attribute`` -- attribute named
+    - ``t.child`` -- first child named
+    - ``t[i]`` -- i-th child
+    - ``for child in t:`` -- iterate over ``t``'s children
+    - ``len(t)`` -- number of ``t``'s children
 
-    If child is not an empty subtree return the subtree as an XTree object.
-    If child is an empty subtree return _name of the subtree.
+    If child is not an empty subtree, return the subtree as an ``XTree``
+    object. If child is an empty subtree, return ``_name`` of the subtree.
     Otherwise return the child itself.
 
     The lazy tree idea originated from a utility class of the
@@ -612,7 +626,8 @@ class XTree(object):
         """
         Initialisation method given a node in an XML document.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: xt = XTree(('blocks', {'ordered': 'true'}, [('block', {}, [[0, 1, 2]]), ('block', {}, [[0, 3, 4]]), ('block', {}, [[0, 5, 6]]), ('block', {}, [[0, 7, 8]]), ('block', {}, [[0, 9, 10]]), ('block', {}, [[0, 11, 12]]), ('block', {}, [[1, 3, 5]]), ('block', {}, [[1, 4, 6]]), ('block', {}, [[1, 7, 9]]), ('block', {}, [[1, 8, 11]]), ('block', {}, [[1, 10, 12]]), ('block', {}, [[2, 3, 7]]), ('block', {}, [[2, 4, 8]]), ('block', {}, [[2, 5, 10]]), ('block', {}, [[2, 6, 12]]), ('block', {}, [[2, 9, 11]]), ('block', {}, [[3, 6, 9]]), ('block', {}, [[3, 8, 12]]), ('block', {}, [[3, 10, 11]]), ('block', {}, [[4, 5, 11]]), ('block', {}, [[4, 7, 10]]), ('block', {}, [[4, 9, 12]]), ('block', {}, [[5, 7, 12]]), ('block', {}, [[5, 8, 9]]), ('block', {}, [[6, 7, 11]]), ('block', {}, [[6, 8, 10]])]))
             sage: xt.xt_children
@@ -657,7 +672,8 @@ class XTree(object):
         """
         String representation of an XTree object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: xt = XTree(('blocks', {'ordered': 'true'}, [('block', {}, [[0, 1, 2]]), ('block', {}, [[0, 3, 4]]), ('block', {}, [[0, 5, 6]]), ('block', {}, [[0, 7, 8]]), ('block', {}, [[0, 9, 10]]), ('block', {}, [[0, 11, 12]]), ('block', {}, [[1, 3, 5]]), ('block', {}, [[1, 4, 6]]), ('block', {}, [[1, 7, 9]]), ('block', {}, [[1, 8, 11]]), ('block', {}, [[1, 10, 12]]), ('block', {}, [[2, 3, 7]]), ('block', {}, [[2, 4, 8]]), ('block', {}, [[2, 5, 10]]), ('block', {}, [[2, 6, 12]]), ('block', {}, [[2, 9, 11]]), ('block', {}, [[3, 6, 9]]), ('block', {}, [[3, 8, 12]]), ('block', {}, [[3, 10, 11]]), ('block', {}, [[4, 5, 11]]), ('block', {}, [[4, 7, 10]]), ('block', {}, [[4, 9, 12]]), ('block', {}, [[5, 7, 12]]), ('block', {}, [[5, 8, 9]]), ('block', {}, [[6, 7, 11]]), ('block', {}, [[6, 8, 10]])]))
             sage: xt.__repr__()
@@ -670,7 +686,8 @@ class XTree(object):
         """
         Returns the data for the first attribute with name attr.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: xt = XTree(('blocks', {'ordered': 'true'}, [('block', {}, [[0, 1, 2]]), ('block', {}, [[0, 3, 4]]), ('block', {}, [[0, 5, 6]]), ('block', {}, [[0, 7, 8]]), ('block', {}, [[0, 9, 10]]), ('block', {}, [[0, 11, 12]]), ('block', {}, [[1, 3, 5]]), ('block', {}, [[1, 4, 6]]), ('block', {}, [[1, 7, 9]]), ('block', {}, [[1, 8, 11]]), ('block', {}, [[1, 10, 12]]), ('block', {}, [[2, 3, 7]]), ('block', {}, [[2, 4, 8]]), ('block', {}, [[2, 5, 10]]), ('block', {}, [[2, 6, 12]]), ('block', {}, [[2, 9, 11]]), ('block', {}, [[3, 6, 9]]), ('block', {}, [[3, 8, 12]]), ('block', {}, [[3, 10, 11]]), ('block', {}, [[4, 5, 11]]), ('block', {}, [[4, 7, 10]]), ('block', {}, [[4, 9, 12]]), ('block', {}, [[5, 7, 12]]), ('block', {}, [[5, 8, 9]]), ('block', {}, [[6, 7, 11]]), ('block', {}, [[6, 8, 10]])]))
             sage: xt.__getattr__('block')
@@ -704,9 +721,10 @@ class XTree(object):
 
     def __getitem__(self, i):
         """
-        Get the i-th item in the current node.
+        Get the ``i``-th item in the current node.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: xt = XTree(('blocks', {'ordered': 'true'}, [('block', {}, [[0, 1, 2]]), ('block', {}, [[0, 3, 4]]), ('block', {}, [[0, 5, 6]]), ('block', {}, [[0, 7, 8]]), ('block', {}, [[0, 9, 10]]), ('block', {}, [[0, 11, 12]]), ('block', {}, [[1, 3, 5]]), ('block', {}, [[1, 4, 6]]), ('block', {}, [[1, 7, 9]]), ('block', {}, [[1, 8, 11]]), ('block', {}, [[1, 10, 12]]), ('block', {}, [[2, 3, 7]]), ('block', {}, [[2, 4, 8]]), ('block', {}, [[2, 5, 10]]), ('block', {}, [[2, 6, 12]]), ('block', {}, [[2, 9, 11]]), ('block', {}, [[3, 6, 9]]), ('block', {}, [[3, 8, 12]]), ('block', {}, [[3, 10, 11]]), ('block', {}, [[4, 5, 11]]), ('block', {}, [[4, 7, 10]]), ('block', {}, [[4, 9, 12]]), ('block', {}, [[5, 7, 12]]), ('block', {}, [[5, 8, 9]]), ('block', {}, [[6, 7, 11]]), ('block', {}, [[6, 8, 10]])]))
             sage: xt.__getitem__(0)
@@ -739,7 +757,8 @@ class XTree(object):
         """
         Returns the length of the current node.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: xt = XTree(('blocks', {'ordered': 'true'}, [('block', {}, [[0, 1, 2]]), ('block', {}, [[0, 3, 4]]), ('block', {}, [[0, 5, 6]]), ('block', {}, [[0, 7, 8]]), ('block', {}, [[0, 9, 10]]), ('block', {}, [[0, 11, 12]]), ('block', {}, [[1, 3, 5]]), ('block', {}, [[1, 4, 6]]), ('block', {}, [[1, 7, 9]]), ('block', {}, [[1, 8, 11]]), ('block', {}, [[1, 10, 12]]), ('block', {}, [[2, 3, 7]]), ('block', {}, [[2, 4, 8]]), ('block', {}, [[2, 5, 10]]), ('block', {}, [[2, 6, 12]]), ('block', {}, [[2, 9, 11]]), ('block', {}, [[3, 6, 9]]), ('block', {}, [[3, 8, 12]]), ('block', {}, [[3, 10, 11]]), ('block', {}, [[4, 5, 11]]), ('block', {}, [[4, 7, 10]]), ('block', {}, [[4, 9, 12]]), ('block', {}, [[5, 7, 12]]), ('block', {}, [[5, 8, 9]]), ('block', {}, [[6, 7, 11]]), ('block', {}, [[6, 8, 10]])]))
             sage: xt.__len__()
@@ -752,21 +771,28 @@ class XTreeProcessor(object):
     '''
     An incremental event-driven parser for ext-rep documents.
     The processing stages:
-        - <list_of_designs ...> opening element.
-          call-back: list_of_designs_proc
-        - <list_definition> subtree.
-          call-back: list_definition_proc
-        - <info> subtree.
-          call-back: info_proc
-        - iterating over <designs> processing each <block_design> separately.
-          call-back: block_design_proc
-        - finishing with closing </designs> and </list_of_designs>.
+
+    - ``<list_of_designs ...>`` opening element.
+      call-back: ``list_of_designs_proc``
+
+    - ``<list_definition>`` subtree.
+      call-back: ``list_definition_proc``
+
+    - ``<info>`` subtree.
+      call-back: ``info_proc``
+
+    - iterating over ``<designs>`` processing each ``<block_design>``
+      separately.
+      call-back: ``block_design_proc``
+
+    - finishing with closing ``</designs>`` and ``</list_of_designs>``.
     '''
     def _init(self):
         """
         Internal initialisation for the processor of XTrees.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs import ext_rep
             sage: proc = ext_rep.XTreeProcessor()
             sage: proc._init()
@@ -782,7 +808,8 @@ class XTreeProcessor(object):
         """
         Internal initialisation for the processor of XTrees.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: proc = XTreeProcessor()
             sage: proc.current_node
@@ -812,7 +839,8 @@ class XTreeProcessor(object):
         Process the start of an element with certain name and
         attributes.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: name = "block_design"
             sage: attrs = {'b': '26', 'id': 't2-v13-b26-r6-k3-L1-0', 'v': '13'}
@@ -845,7 +873,8 @@ class XTreeProcessor(object):
         """
         Finish processing the element name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: name = "block_design"
             sage: attrs = {'b': '26', 'id': 't2-v13-b26-r6-k3-L1-0', 'v': '13'}
@@ -905,7 +934,8 @@ class XTreeProcessor(object):
         """
         Internal function to tidy up character data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs.ext_rep import *
             sage: name = "block_design"
             sage: attrs = {'b': '26', 'id': 't2-v13-b26-r6-k3-L1-0', 'v': '13'}
@@ -934,7 +964,8 @@ class XTreeProcessor(object):
         The main parsing function. Given an XML source (either a file
         handle or a string), parse the entire XML source.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.combinat.designs import ext_rep
             sage: file_loc = ext_rep.dump_to_tmpfile(ext_rep.v2_b2_k2_icgsa)
             sage: proc = ext_rep.XTreeProcessor()
@@ -964,7 +995,8 @@ def designs_from_XML(fname):
     contains tuples of the form (v, bs) where v is the number of points of
     the design and bs is the list of blocks.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile(ext_rep.v2_b2_k2_icgsa)
         sage: ext_rep.designs_from_XML(file_loc)[0]
@@ -992,11 +1024,12 @@ def designs_from_XML(fname):
 
 def designs_from_XML_url(url):
     """
-    Returns a list of designs contained in an XML file named by an url.
+    Returns a list of designs contained in an XML file named by a URL.
     The list contains tuples of the form (v, bs) where v is the number
     of points of the design and bs is the list of blocks.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile(ext_rep.v2_b2_k2_icgsa)
         sage: ext_rep.designs_from_XML_url("file://" + file_loc)[0]

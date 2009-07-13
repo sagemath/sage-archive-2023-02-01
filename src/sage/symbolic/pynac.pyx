@@ -361,9 +361,9 @@ def py_latex_function_pystring(id, args, fname_paren=False):
         sage: get_sfunction_from_serial(i) == foo
         True
         sage: py_latex_function_pystring(i, (x,y^z))
-        '\\mbox{foo}\\left(x, y^{z}\\right)'
+        '{\\rm foo}\\left(x, y^{z}\\right)'
         sage: py_latex_function_pystring(i, (x,y^z), True)
-         '\\left(\\mbox{foo}\\right)\\left(x, y^{z}\\right)'
+         '\\left({\\rm foo}\\right)\\left(x, y^{z}\\right)'
 
     Test latex_name::
 
@@ -412,8 +412,10 @@ def py_latex_function_pystring(id, args, fname_paren=False):
     if func._latex_name:
         name = func._latex_name
     else:
-        # if latex_name is not defined, use default name
-        name = ''.join([r'\mbox{', func._name, '}'])
+        # if latex_name is not defined, then call
+        # latex_variable_name with "is_fname=True" flag
+        from sage.misc.latex import latex_variable_name
+        name = latex_variable_name(func._name, is_fname=True)
     if fname_paren:
         olist = [r'\left(', name, r'\right)']
     else:
@@ -513,7 +515,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: get_sfunction_from_serial(i) == foo
         True
         sage: py_latex_fderivative(i, (0, 1, 0, 1), (x, y^z))
-        D[0, 1, 0, 1]\left(\mbox{foo}\right)\left(x, y^{z}\right)
+        D[0, 1, 0, 1]\left({\rm foo}\right)\left(x, y^{z}\right)
 
     Test latex_name::
 

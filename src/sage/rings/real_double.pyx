@@ -658,11 +658,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: ZZ(RDF(0.0/0.0))
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert non-integral float to integer
+            ValueError: cannot convert float NaN to integer
             sage: ZZ(RDF(1.0/0.0))
             Traceback (most recent call last):
             ...
-            OverflowError: cannot convert float infinity to long
+            OverflowError: cannot convert float infinity to integer
             sage: ZZ(RDF(-123456789.0))
             -123456789
             sage: ZZ(RDF((2.0))^290)

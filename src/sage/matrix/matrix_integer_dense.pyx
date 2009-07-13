@@ -1475,9 +1475,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.echelon_form()
             [1 0]
             [0 2]
-
-        ::
-
             sage: A = MatrixSpace(ZZ,5)(range(25))
             sage: A.echelon_form()
             [  5   0  -5 -10 -15]
@@ -1485,6 +1482,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0]
             [  0   0   0   0   0]
             [  0   0   0   0   0]
+
+        Getting a transformation matrix in the nonsquare case::
+
+            sage: A = matrix(ZZ,5,3,[1..15])
+            sage: H, U = A.hermite_form(transformation=True, include_zero_rows=False)
+            sage: H
+            [1 2 3]
+            [0 3 6]
+            sage: U
+            [  0   0   0   4  -3]
+            [  0   0   0  13 -10]
+            sage: U*A == H
+            True
 
         TESTS: Make sure the zero matrices are handled correctly::
 
@@ -1575,6 +1585,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 return self, self
             return self
 
+        key = 'hnf-%s-%s'%(include_zero_rows,transformation)
+        ans = self.fetch(key)
+        if ans is not None: return ans
+
         cdef Py_ssize_t nr, nc, n, i, j
         nr = self._nrows
         nc = self._ncols
@@ -1599,9 +1613,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if algorithm == "padic":
             import matrix_integer_dense_hnf
             if transformation:
-                if not include_zero_rows:
-                    raise ValueError, "if you get the transformation matrix you must include zero rows"
                 H_m, U, pivots = matrix_integer_dense_hnf.hnf_with_transformation(self, proof=proof)
+                if not include_zero_rows:
+                    r = H_m.rank()
+                    H_m = H_m[:r]
+                    U = U[:r]
             else:
                 H_m, pivots = matrix_integer_dense_hnf.hnf(self,
                                    include_zero_rows=include_zero_rows, proof=proof)
@@ -1682,10 +1698,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         H_m.cache('in_echelon_form', True)
 
+
         if transformation:
-            return H_m, U
+            U.set_immutable()
+            ans = H_m, U
         else:
-            return H_m
+            ans = H_m
+        self.cache(key, ans)
+        return ans
 
     def saturation(self, p=0, proof=None, max_dets=5):
         r"""

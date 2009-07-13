@@ -693,7 +693,7 @@ class FreeModule_generic(module.Module):
 
             sage: V = VectorSpace(QQ,2)
             sage: V._an_element_impl()
-            (2, 3)
+            (1, 0)
             sage: U = V.submodule([[1,0]])
             sage: U._an_element_impl()
             (1, 0)
@@ -702,17 +702,9 @@ class FreeModule_generic(module.Module):
             (0, 0)
         """
         try:
-            return self([k+2 for k in range(self.__rank)])
-        except TypeError:
-            pass
-
-        try:
             return self.gen(0)
         except ValueError:
-            #No generators
-            pass
-
-        return self(0)
+            return self(0)
 
     def element_class(self):
         """
@@ -773,7 +765,7 @@ class FreeModule_generic(module.Module):
             sage: N((0,0,0,1))
             Traceback (most recent call last):
             ...
-            ValueError: element (= (0, 0, 0, 1)) is not in free module
+            TypeError: element (= (0, 0, 0, 1)) is not in free module
 
         Beware that using check=False can create invalid results::
 
@@ -811,9 +803,13 @@ class FreeModule_generic(module.Module):
             if isinstance(self, FreeModule_ambient):
                 return self._element_class(self, x, coerce, copy)
             try:
-                self.coordinates(x)
+                c = self.coordinates(x)
+                R = self.base_ring()
+                for d in c:
+                    if d not in R:
+                        raise ArithmeticError
             except ArithmeticError:
-                raise ValueError, "element (= %s) is not in free module"%(x,)
+                raise TypeError, "element (= %s) is not in free module"%(x,)
         return self._element_class(self, x, coerce, copy)
 
     def is_submodule(self, other):
@@ -1311,7 +1307,7 @@ class FreeModule_generic(module.Module):
             sage: W = (ZZ^3).span([[1/2,4,2]])
             sage: V.coordinate_module(W)
             Free module of degree 2 and rank 1 over Integer Ring
-            Echelon basis matrix:
+            User basis matrix:
             [1 4]
             sage: V.0 + 4*V.1
             (1/2, 4, 2)
@@ -1324,7 +1320,7 @@ class FreeModule_generic(module.Module):
             sage: W = (ZZ^3).span([[1/4,2,1]])
             sage: V.coordinate_module(W)
             Free module of degree 2 and rank 1 over Integer Ring
-            Echelon basis matrix:
+            User basis matrix:
             [1/2   2]
 
         The following more elaborate example illustrates using this
@@ -1345,7 +1341,7 @@ class FreeModule_generic(module.Module):
             [ 0  0  3  0 -3  2 -1  2 -1 -4  2 -1 -2  1  2  0  0 -1  1]
             sage: K.coordinate_module(L)
             Free module of degree 8 and rank 2 over Integer Ring
-            Echelon basis matrix:
+            User basis matrix:
             [ 1  1  1 -1  1 -1  0  0]
             [ 0  3  2 -1  2 -1 -1 -2]
             sage: K.coordinate_module(L).basis_matrix() * K.basis_matrix()
@@ -1354,15 +1350,12 @@ class FreeModule_generic(module.Module):
         """
         if not is_FreeModule(V):
             raise ValueError, "V must be a free module"
-        #if self.base_ring() != V.base_ring():
-        #    raise ValueError, "self and V must have the same base ring"
         A = self.basis_matrix()
         A = A.matrix_from_columns(A.pivots()).transpose()
         B = V.basis_matrix()
         B = B.matrix_from_columns(self.basis_matrix().pivots()).transpose()
         S = A.solve_right(B).transpose()
-        return S.row_module(self.base_ring())
-
+        return (self.base_ring()**S.ncols()).span_of_basis(S.rows())
 
     def degree(self):
         """
@@ -1702,12 +1695,9 @@ class FreeModule_generic(module.Module):
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
-        v = self(0)
         prob = float(prob)
-        for i in range(self.rank()):
-            if rand() <= prob:
-                v += self.gen(i) * R.random_element(**kwds)
-        return v
+        c = [0 if rand() > prob else R.random_element(**kwds) for _ in range(self.rank())]
+        return self.linear_combination_of_basis(c)
 
     def rank(self):
         """
@@ -1858,9 +1848,9 @@ class FreeModule_generic(module.Module):
         K = magma(self.base_ring())
         if not self._inner_product_is_dot_product():
             M = magma(self.inner_product_matrix())
-            return "RSpace(%s,%s,%s)"%(K.name(), self.__rank, M._ref())
+            return "RSpace(%s,%s,%s)"%(K.name(), self.rank(), M._ref())
         else:
-            return "RSpace(%s,%s)"%(K.name(), self.__rank)
+            return "RSpace(%s,%s)"%(K.name(), self.rank())
 
     def _macaulay2_(self, macaulay2=None):
         r"""
@@ -2754,6 +2744,55 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         return FreeModule_submodule_with_basis_field(self.ambient_vector_space(), basis, check=check)
 
+    def quotient(self, sub, check=True):
+        """
+        Return the quotient of self by the given submodule sub.
+
+        INPUT:
+
+        -  ``sub`` - a submodule of self, or something that can
+           be turned into one via self.submodule(sub).
+
+        -  ``check`` - (default: True) whether or not to check
+           that sub is a submodule.
+
+
+        EXAMPLES::
+
+            sage: A = ZZ^3; V = A.span([[1,2,3], [4,5,6]])
+            sage: Q = V.quotient( [V.0 + V.1] ); Q
+            Finitely generated module V/W over Integer Ring with invariants (0)
+        """
+        # Calling is_subspace may be way too slow and repeat work done below.
+        # It will be very desirable to somehow do this step better.
+        if check and (not is_FreeModule(sub) or not sub.is_submodule(self)):
+            try:
+                sub = self.submodule(sub)
+            except (TypeError, ArithmeticError):
+                raise ArithmeticError, "sub must be a subspace of self"
+        if self.base_ring() == sage.rings.integer_ring.ZZ:
+            from fg_pid.fgp_module import FGP_Module
+            return FGP_Module(self, sub, check=False)
+        else:
+            raise NotImplementedError, "quotients of modules over rings other than fields or ZZ is not fully implemented"
+
+    def __div__(self, sub, check=True):
+        """
+        Return the quotient of self by the given submodule sub.
+
+        This just calls self.quotient(sub, check).
+
+        EXAMPLES::
+
+            sage: V1 = ZZ^2; W1 = V1.span([[1,2],[3,4]])
+            sage: V1/W1
+            Finitely generated module V/W over Integer Ring with invariants (2)
+            sage: V2 = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W2 = V2.span([2*V2.0+4*V2.1, 9*V2.0+12*V2.1, 4*V2.2])
+            sage: V2/W2
+            Finitely generated module V/W over Integer Ring with invariants (4, 12)
+        """
+        return self.quotient(sub, check)
+
 class FreeModule_generic_field(FreeModule_generic_pid):
     """
     Base class for all free modules over fields.
@@ -3343,7 +3382,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule([], check=False, already_echelonized=True)
 
-    # This has to wait until we have non-abstract quotients.
     def __div__(self, sub, check=True):
         """
         Return the quotient of self by the given subspace sub.
@@ -3399,9 +3437,18 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [1 1 1]
             sage: Q(V.0 + V.1)
             (0)
+
+        We illustrate the the base rings must be the same::
+
+            sage: (QQ^2)/(ZZ^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base rings must be the same
         """
-        # Calling is_subspace may be way too slow and repeat work done below.
+        # Calling is_submodule may be way too slow and repeat work done below.
         # It will be very desirable to somehow do this step better.
+        if is_FreeModule(sub) and self.base_ring() != sub.base_ring():
+            raise ValueError, "base rings must be the same"
         if check and (not is_FreeModule(sub) or not sub.is_subspace(self)):
             try:
                 sub = self.subspace(sub)
@@ -4490,6 +4537,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
                           coerce=False, copy=True) for x in basis]
         except TypeError:
             C = element_class(R.fraction_field(), self.is_sparse())
+            self._element_class = C
             w = [C(self, x.list(),
                           coerce=False, copy=True) for x in basis]
         self.__basis = basis_seq(self, w)
@@ -5333,7 +5381,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V.linear_combination_of_basis([1,1])
             (1, 5, 9)
         """
-        return self(self.basis_matrix().linear_combination_of_rows(v))
+        return self(self.basis_matrix().linear_combination_of_rows(v),
+                    check=False, copy=False, coerce=False)
 
 
 class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):

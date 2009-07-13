@@ -12,5 +12,4 @@
    sage/plot/plot3d/platonic
    sage/plot/plot3d/shapes2
    sage/plot/plot3d/base
-
-   sage/plot/tachyon
+   sage/plot/plot3d/tachyon

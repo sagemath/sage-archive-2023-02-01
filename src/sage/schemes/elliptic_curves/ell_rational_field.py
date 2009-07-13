@@ -2803,10 +2803,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-
         -  ``embedding`` - ignored (for compatibility with the
            period_lattice function for elliptic_curve_number_field)
 
+        OUTPUT:
+
+        (period lattice) The PeriodLattice_ell object associated to
+        this elliptic curve (with respect to the natural embedding of
+        `\QQ` into `\RR`).
 
         EXAMPLES::
 
@@ -2816,6 +2820,79 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self)
+
+    def elliptic_exponential(self, z, embedding=None):
+        r"""
+        Computes the elliptic exponential of a complex number with respect to the elliptic curve.
+
+        INPUT:
+
+        - ``z`` (complex) -- a complex number
+
+        -  ``embedding`` - ignored (for compatibility with the
+           period_lattice function for elliptic_curve_number_field)
+
+        OUTPUT:
+
+        The image of `z` modulo `L` under the Weierstrass parametrization
+        `\CC/L \to E(\CC)`.
+
+        .. note::
+
+           The precision is that of the input ``z``, or the default
+           precision of 53 bits if ``z`` is exact.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,1,1,-8,6])
+            sage: P = E([0,2])
+            sage: z = P.elliptic_logarithm() # default precision is 100 here
+            sage: E.elliptic_exponential(z)
+            (-1.6171648557030742010940435588e-29 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            sage: z = E([0,2]).elliptic_logarithm(precision=200)
+            sage: E.elliptic_exponential(z)
+            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+
+        ::
+
+            sage: E = EllipticCurve('389a')
+            sage: Q=E([3,5])
+            sage: E.elliptic_exponential(Q.elliptic_logarithm())
+            (3.0000000000000000000000000000 : 5.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            sage: P = E([-1,1])
+            sage: P.elliptic_logarithm()
+            0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
+            sage: E.elliptic_exponential(P.elliptic_logarithm())
+            (-1.0000000000000000000000000000 : 1.0000000000000000000000000000 : 1.0000000000000000000000000000)
+
+        Some torsion examples::
+
+            sage: w1,w2 = E.period_lattice().basis()
+            sage: E.two_division_polynomial().roots(CC,multiplicities=False)
+            [-2.0403022002854..., 0.13540924022175..., 0.90489296006371...]
+            sage: [E.elliptic_exponential((a*w1+b*w2)/2)[0] for a,b in [(0,1),(1,1),(1,0)]]
+            [-2.04030220028546, 0.135409240221753, 0.904892960063711]
+
+            sage: E.division_polynomial(3).roots(CC,multiplicities=False)
+            [-2.88288879135334,
+            1.39292799513138,
+            0.078313731444316... - 0.492840991709879*I,
+            0.078313731444316... + 0.492840991709879*I]
+            sage: [E.elliptic_exponential((a*w1+b*w2)/3)[0] for a,b in [(0,1),(1,0),(1,1),(2,1)]]
+            [-2.88288879135335,
+            1.39292799513138,
+            0.0783137314443165 - 0.492840991709879*I,
+            0.0783137314443168 + 0.492840991709879*I]
+
+        Observe that this is a group homomorphism (modulo rounding error)::
+
+            sage: z = CC.random_element()
+            sage: 2 * E.elliptic_exponential(z)
+            (2.04119347066305 - 1.10251372205166*I : 2.23105000976838 - 2.69795281735238*I : 1.00000000000000)
+            sage: E.elliptic_exponential(2 * z)
+            (2.04119347066305 - 1.10251372205167*I : 2.23105000976839 - 2.69795281735236*I : 1.00000000000000)
+        """
+        return self.period_lattice().elliptic_exponential(z)
 
     def lseries(self):
         """
@@ -4477,7 +4554,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def eval_modular_form(self, points, prec):
         """
-        Evaluate the L-series of this elliptic curve at points in CC
+        Evaluate the modular form of this elliptic curve at points in CC
 
         INPUT:
 
@@ -5423,42 +5500,66 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         new_points = [sum([U[j,i]*points[j] for j in range(r)]) for i in range(r)]
         return new_points, U
 
-    def antilogarithm(self, z, prec=None):
-        """
+    def antilogarithm(self, z, max_denominator=None):
+        r"""
         Returns the rational point (if any) associated to this complex
         number; the inverse of the elliptic logarithm function.
 
         INPUT:
 
+        -  ``z`` -- a complex number representing an element of
+           `\CC/L` where `L` is the period lattice of the elliptic curve
 
-        -  ``z`` - a complex number representing an element of
-           CC/L where L is the period lattice of the elliptic curve
+        - ``max_denominator`` (int or None) -- parameter controlling
+          the attempted conversion of real numbers to rationals.  If
+          None, ``simplest_rational()`` will be used; otherwise,
+          ``nearby_rational()`` will be used with this value of
+          ``max_denominator``.
 
-        -  ``precision`` - an integer specifying the precision
-           (in bits) which will be used for the computation (default real
-           precision if None)
+        OUTPUT:
 
+        (point, or None) The rational point which is the image of `z`
+        under the Weierstrass parametrization, if it exists and can be
+        determined from `z` and the given value of max_denominator (if
+        any); else None.
 
-        OUTPUT: The rational point which is the image of z under the
-        Weierstrass parametrization, if it exists and can be determined
-        from z with default precision.
+        EXAMPLES::
 
-        .. note::
+            sage: E = EllipticCurve('389a')
+            sage: P,Q = E.gens()
+            sage: P,Q
+            ((-1 : 1 : 1), (0 : -1 : 1))
+            sage: E = EllipticCurve('389a')
+            sage: P = E(-1,1)
+            sage: z = P.elliptic_logarithm()
+            sage: E.antilogarithm(z)
+            (-1 : 1 : 1)
+            sage: Q = E(0,-1)
+            sage: z = Q.elliptic_logarithm()
+            sage: E.antilogarithm(z) # no output
+            sage: E.antilogarithm(z, max_denominator=10)
+            (0 : -1 : 1)
 
-           This uses the function ellztopoint from the pari library
-
-        TODO: Extend the wrapping of ellztopoint() to allow passing of the
-        precision parameter.
+            sage: E = EllipticCurve('11a1')
+            sage: w1,w2 = E.period_lattice().basis()
+            sage: [E.antilogarithm(a*w1/5,1) for a in range(5)]
+            [(0 : 1 : 0), (16 : -61 : 1), (5 : -6 : 1), (5 : 5 : 1), (16 : 60 : 1)]
         """
-
-        E_pari = self.pari_curve(prec)
+        if z.is_zero():
+            return self(0)
+        expZ = self.elliptic_exponential(z)
+        xy = [t.real() for t in expZ[:2]]
+        if max_denominator is None:
+            xy = [t.simplest_rational() for t in xy]
+        else:
+            xy = [t.nearby_rational(max_denominator=max_denominator) for t in xy]
+        if any([abs(t.imag()) > 2*abs(t.real()-s) for s,t in zip(xy, expZ)]):
+            # non-trivial imaginary part
+            return None
         try:
-            coords = E_pari.ellztopoint(z)
-            if len(coords) == 1:
-                return self(0)
-            return self([CC(xy).real().simplest_rational() for xy in coords])
+            return self(xy)
         except TypeError:
-            raise ValueError, "No rational point computable from z"
+            return None
 
     def integral_x_coords_in_interval(self,xmin,xmax):
         r"""

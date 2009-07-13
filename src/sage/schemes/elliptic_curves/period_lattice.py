@@ -79,12 +79,13 @@ AUTHORS:
 """
 
 from sage.modules.free_module import FreeModule_generic_pid
-from sage.rings.all import ZZ, QQ, RealField, ComplexField, is_RealField, PolynomialRing, QQbar, AA
+from sage.rings.all import ZZ, QQ, RealField, ComplexField, is_RealField, is_ComplexField, PolynomialRing, QQbar, AA
 from sage.rings.real_mpfr import RealNumber as RealNumber
 from sage.rings.complex_number import ComplexNumber as ComplexNumber
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.functions.other import imag
+from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
 class PeriodLattice(FreeModule_generic_pid):
     """
@@ -279,7 +280,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def __call__(self, P, prec=None):
         r"""
-        Return The elliptic logarithm of a point `P`.
+        Return the elliptic logarithm of a point `P`.
 
         INPUT:
 
@@ -315,6 +316,11 @@ class PeriodLattice_ell(PeriodLattice):
             True
             sage: L(Q, prec=96)
             1.931128271542559442488585220
+
+        Note that this is actually the inverse of the Weierstrass isomorphism::
+
+            sage: L.elliptic_exponential(L(Q))
+            (3.00000000000000 : 5.00000000000000 : 1.00000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1067,6 +1073,96 @@ class PeriodLattice_ell(PeriodLattice):
                 z += w2/2
         return ComplexField(prec)(z)
 
+    def elliptic_exponential(self, z, to_curve=True):
+        r"""
+        Return the elliptic exponential of a complex number.
+
+        INPUT:
+
+        - ``z`` (complex) -- A complex number (viewed modulo this periodlattice).
+
+        - ``to_curve`` (bool, default True):  see below.
+
+        OUTPUT:
+
+        (Either an elliptic curve points, or a 2-tuple of real or
+        complex numbers) The elliptic exponential of `z` modulo this
+        period lattice.  If ``to_curve`` is False this is the pair
+        `(x,y) = (\wp(z),\wp'(z))` where $\wp$ denotes the Weierstrass
+        function with respect to this lattice.  If ``to_curve`` is
+        True it is the the point with coordinates
+        `(x-b_2/12,y-(a_1(x-b_2/12)-a_3)/2)` as a point in `E(\CC)`.
+
+        If the lattice is real and `z` is also real then the output is
+        a pair of real numbers (respectively, a point in `E(\RR)`.
+
+        .. note::
+
+           The precision is taken from that of the input ``z``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,1,1,-8,6])
+            sage: P = E(0,2)
+            sage: L = E.period_lattice()
+            sage: z = L(P); z
+            2.65289807021917
+            sage: L.elliptic_exponential(z)
+            (1.83186799063151e-15 : 2.00000000000000 : 1.00000000000000)
+            sage: _.curve()
+            Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
+            sage: L.elliptic_exponential(z,False)
+            (0.416666666666668, 2.50000000000000)
+            sage: z = L(P,prec=200); z
+            2.6528980702191653584337189314791830484705213985544997536510
+            sage: L.elliptic_exponential(z)
+            (-1.6490990486332025523931769742517329237564168247111092902718e-59 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+        """
+        C = z.parent()
+        z_is_real = False
+        if is_RealField(C):
+            z_is_real = True
+            C = ComplexField(C.precision())
+            z = C(z)
+        else:
+            if is_ComplexField(C):
+                z_is_real = z.is_real()
+            else:
+                try:
+                    C = ComplexField()
+                    z = C(z)
+                    z_is_real = z.is_real()
+                except TypeError:
+                    raise TypeError, "%s is not a complex number"%s
+        prec = C.precision()
+
+        from sage.libs.all import pari
+        pxy = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
+
+        # NB converting the pari values to Sage values might land up
+        # in real/complex fields of spuriously higher precision than
+        # the input, since pari's precision is in word-size chunks.
+        # So we force the results back into the real/complex fields of
+        # the same precision as the input.
+
+        x,y = [C(t.real().python(),t.imag().python()) for t in pxy]
+
+        if to_curve:
+            a1 = self.embedding(self.E.a1())
+            a3 = self.embedding(self.E.a3())
+            b2 = self.embedding(self.E.b2())
+            x -= b2/12
+            y -= (a1*x+a3)/2
+            if self.real_flag and z_is_real:
+                x = x.real()
+                y = y.real()
+            K = x.parent()
+            return self.E.change_ring(K).point((x,y,K(1)), check=False)
+
+        if self.real_flag and z_is_real:
+            x = x.real()
+            y = y.real()
+        return (x,y)
 
 def reduce_tau(tau):
     r"""

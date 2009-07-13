@@ -50,9 +50,11 @@ def from_whatever(data):
             if isinstance(d, str):
                 nn = d.rfind('\n')
                 if nn == -1:
-                    l.append(Graph(d))
+                    sparse = bool(d[0] == ':')
+                    l.append(Graph(d, sparse=sparse))
                 elif len(d) == nn + 1:
-                    l.append(Graph(d[:nn]))
+                    sparse = bool(d[0] == ':')
+                    l.append(Graph(d[:nn], sparse=sparse))
                 else:
                     l.append(from_whatever(d))
             else:
@@ -63,7 +65,8 @@ def from_whatever(data):
         l = []
         for d in data:
             if not d == '':
-                l.append(Graph(d))
+                sparse = bool(d[0] == ':')
+                l.append(Graph(d, sparse=sparse))
         return l
 
 def from_graph6(data):

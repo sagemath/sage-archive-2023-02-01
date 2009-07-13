@@ -2653,7 +2653,9 @@ exponent %s: the length of the word (%s) times the exponent \
         -  ``thickness`` - (default: 1) thickness of the
            contour
 
-        -  ``cmap`` - (default: 'hsv') color map
+        -  ``cmap`` - (default: 'hsv') color map; type:
+           ``import matplotlib.cm; matplotlib.cm.datad.keys()``
+           for available colormap names.
 
 
         OUTPUT: Graphics

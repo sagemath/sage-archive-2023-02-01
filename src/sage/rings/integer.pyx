@@ -482,11 +482,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(float(1.0/0.0))
             Traceback (most recent call last):
             ...
-            OverflowError: cannot convert float infinity to long
+            OverflowError: cannot convert float infinity to integer
             sage: ZZ(float(0.0/0.0))
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert non-integral float to integer
+            ValueError: cannot convert float NaN to integer
         """
 
         # TODO: All the code below should somehow be in an external
@@ -1379,20 +1379,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    cdef _floordiv(Integer self, Integer other):
-        cdef Integer x
-        x = PY_NEW(Integer)
-
-        _sig_on
-        mpz_fdiv_q(x.value, self.value, other.value)
-        _sig_off
-
-        return x
-
-
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of `\frac{self}{other}`.
+        Computes the whole part of `\frac{x}{y}`.
 
         EXAMPLES::
 
@@ -1410,13 +1399,51 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z // 0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: other must be nonzero
+            ZeroDivisionError: Integer division by zero
+            sage: 101 // int(5)
+            20
+            sage: 100 // int(-3)
+            -34
+
+        TESTS::
+
+            sage: signs = [(11,5), (11,-5), (-11,5), (-11,-5)]
+            sage: control = [int(a) // int(b) for a, b in signs]
+            sage: [a // b for a,b in signs] == control
+            True
+            sage: [a // int(b) for a,b in signs] == control
+            True
+            sage: [int(a) // b for a,b in signs] == control
+            True
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        cdef Integer z = <Integer>PY_NEW(Integer)
+        cdef long yy, res
+        if PY_TYPE(x) is PY_TYPE(y):
             if not mpz_sgn((<Integer>y).value):
-                raise ZeroDivisionError, "other must be nonzero"
-            return (<Integer>x)._floordiv(y)
-        return bin_op(x, y, operator.floordiv)
+                raise ZeroDivisionError, "Integer division by zero"
+            if mpz_size((<Integer>x).value) > 100000:
+                _sig_on
+                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
+                _sig_off
+            else:
+                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
+            return z
+
+        elif PyInt_CheckExact(y):
+            yy = PyInt_AS_LONG(y)
+            if yy > 0:
+                mpz_fdiv_q_ui(z.value, (<Integer>x).value, yy)
+            elif yy == 0:
+                raise ZeroDivisionError, "Integer division by zero"
+            else:
+                res = mpz_fdiv_q_ui(z.value, (<Integer>x).value, -yy)
+                mpz_neg(z.value, z.value)
+                if res:
+                    mpz_sub_ui(z.value, z.value, 1)
+            return z
+
+        else:
+            return bin_op(x, y, operator.floordiv)
 
 
     def __pow__(self, n, modulus):
@@ -2322,9 +2349,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_abs(x.value, self.value)
         return x
 
-    def __mod__(self, modulus):
+    def __mod__(x, y):
         r"""
-         Returns self modulo the modulus.
+         Returns x modulo y.
 
          EXAMPLES::
 
@@ -2341,27 +2368,67 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
              -5
              sage: 5 % -7
              -2
+
+        TESTS::
+
+            sage: signs = [(11,5), (11,-5), (-11,5), (-11,-5)]
+            sage: control = [int(a) % int(b) for a, b in signs]
+            sage: [a % b for a,b in signs] == control
+            True
+            sage: [a % int(b) for a,b in signs] == control
+            True
+            sage: [int(a) % b for a,b in signs] == control
+            True
+
+        This example caused trouble in trac #6083::
+
+            sage: a = next_prime(2**31)
+            sage: b = Integers(a)(100)
+            sage: a % b
+            59
          """
-        cdef Integer _modulus, _self
-        _modulus = integer(modulus)
-        if not _modulus:
-            raise ZeroDivisionError, "Integer modulo by zero"
-        _self = integer(self)
+        cdef Integer z = <Integer>PY_NEW(Integer)
+        cdef long yy, res
 
-        cdef Integer x
-        x = PY_NEW(Integer)
+        # first case: Integer % Integer
+        if PY_TYPE(x) is PY_TYPE(y):
+            if not mpz_sgn((<Integer>y).value):
+                raise ZeroDivisionError, "Integer modulo by zero"
+            if mpz_size((<Integer>x).value) > 100000:
+                _sig_on
+                mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
+                _sig_off
+            else:
+                mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
+            return z
 
-        _sig_on
-        mpz_mod(x.value, _self.value, _modulus.value)
-        # GMP always returns a non-negative integer, so we
-        # subtract if we got something positive.
-        if mpz_sgn(_modulus.value) == -1 and mpz_sgn(x.value):
-            mpz_add(x.value, x.value, _modulus.value)
-        _sig_off
+        # next: Integer % python int
+        elif PyInt_CheckExact(y):
+            yy = PyInt_AS_LONG(y)
+            if yy > 0:
+                mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
+            elif yy == 0:
+                raise ZeroDivisionError, "Integer modulo by zero"
+            else:
+                res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -yy)
+                if res:
+                    mpz_sub_ui(z.value, z.value, -yy)
+            return z
 
-        return x
+        # all other cases
+        else:
+            try:
+                # we explicitly try coercing both to ZZ here to
+                # avoid infinite loops in some cases (such as
+                # Integers and Integers(n)), see trac #6083
+                x = integer(x)
+                y = integer(y)
+                return x % y
+            except ValueError:
+                return bin_op(x, y, operator.mod)
 
-    def quo_rem(self, other):
+
+    def quo_rem(Integer self, other):
         """
         Returns the quotient and the remainder of self divided by other.
         Note that the remainder returned is always either zero or of the
@@ -2391,21 +2458,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.quo_rem(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: other (=0) must be nonzero
+            ZeroDivisionError: Integer division by zero
+
+            sage: a = ZZ.random_element(10**50)
+            sage: b = ZZ.random_element(10**15)
+            sage: q, r = a.quo_rem(b)
+            sage: q*b + r == a
+            True
         """
-        cdef Integer _other, _self
-        _other = integer(other)
-        if not _other:
-            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
-        _self = integer(self)
+        cdef Integer q = PY_NEW(Integer)
+        cdef Integer r = PY_NEW(Integer)
+        cdef long d, res
 
-        cdef Integer q, r
-        q = PY_NEW(Integer)
-        r = PY_NEW(Integer)
+        if PyInt_CheckExact(other):
+            d = PyInt_AS_LONG(other)
+            if d > 0:
+                mpz_fdiv_qr_ui(q.value, r.value, self.value, d)
+            elif d == 0:
+                raise ZeroDivisionError, "Integer division by zero"
+            else:
+                res = mpz_fdiv_qr_ui(q.value, r.value, self.value, -d)
+                mpz_neg(q.value, q.value)
+                if res:
+                    mpz_sub_ui(q.value, q.value, 1)
+                    mpz_sub_ui(r.value, r.value, -d)
 
-        _sig_on
-        mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
-        _sig_off
+        else:
+            if not PY_TYPE_CHECK_EXACT(other, Integer):
+                other = Integer(other)
+            if mpz_sgn((<Integer>other).value) == 0:
+                raise ZeroDivisionError, "Integer division by zero"
+            if mpz_size((<Integer>x).value) > 100000:
+                _sig_on
+                mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
+                _sig_off
+            else:
+                mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
 
         return q, r
 

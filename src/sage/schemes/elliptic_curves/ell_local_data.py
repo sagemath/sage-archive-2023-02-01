@@ -490,12 +490,25 @@ class EllipticCurveLocalData(SageObject):
         t = verbose("Running Tate's algorithm with P = %s"%P, level=1)
         F = OK.residue_field(P)
         p = F.characteristic()
-        if P.is_principal():
+
+        # In case P is not principal we mostly use a uniformiser which
+        # is globally integral (with positive valuation at some other
+        # primes); for this to work, it is essential that we can
+        # reduce (mod P) elements of K which are not integral (but are
+        # P-integral).  However, if the model is non-minimal and we
+        # end up dividing a_i by pi^i then at that point we use a
+        # uniformiser pi which has non-positive valuation at all other
+        # primes, so that we can divide by it without losing
+        # integrality at other primes.
+
+        principal_flag = P.is_principal()
+        if principal_flag:
             pi = P.gens_reduced()[0]
             verbose("P is principal, generator pi = %s"%pi, t, 1)
         else:
-            pi = K.uniformizer(P, 'negative')
+            pi = K.uniformizer(P, 'positive')
             verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
+        pi2 = pi*pi; pi3 = pi*pi2; pi4 = pi*pi3
         prime = pi if K is QQ else P
 
         pval = lambda x: x.valuation(prime)
@@ -630,24 +643,25 @@ class EllipticCurveLocalData(SageObject):
                 break #return
             if pval(b6) < 3:
                 ## Type IV
-                if _pquadroots(1, a3 / pi, -a6/(pi*pi)):
-                    cp = 3
-                else:
-                    cp = 1
+                cp = 1
+                a3t = preduce(a3/pi)
+                a6t = preduce(a6/pi2)
+                if _pquadroots(1, a3t, -a6t): cp = 3
                 KS = KodairaSymbol("IV")
                 fp = val_disc - 2
                 break #return
 
-            # If our curve is none of these types, we change types so that p | a1, a2 and p^2 | a3, a4 and p^3 | a6
+            # If our curve is none of these types, we change coords so that
+            # p | a1, a2;  p^2 | a3, a4;  p^3 | a6
             if p == 2:
-                s = proot(a2, 2)
-                t = pi*proot(a6/(pi*pi), 2)
+                s = proot(a2, 2)        # so s^2=a2 (mod pi)
+                t = pi*proot(a6/pi2, 2) # so t^2=a6 (mod pi^3)
             elif p == 3:
-                s = a1
-                t = a3
+                s = a1       # so a1'=2s+a1=3a1=0 (mod pi)
+                t = a3       # so a3'=2t+a3=3a3=0 (mod pi^2)
             else:
-                s = -a1*halfmodp
-                t = -a3*halfmodp
+                s = -a1*halfmodp   # so a1'=2s+a1=0 (mod pi)
+                t = -a3*halfmodp   # so a3'=2t+a3=0 (mod pi^2)
             C = C.rst_transform(0, s, t)
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()
@@ -665,10 +679,11 @@ class EllipticCurveLocalData(SageObject):
             if min(pval(a1), pval(a2), pval(a3), pval(a4), pval(a6)) < 0:
                 raise RuntimeError, "Non-integral model after second transform!"
 
-            # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0, where b = a2/p, c = a4/p^2, d = a6/p^3
-            b = a2/pi
-            c = a4/(pi*pi)
-            d = a6/(pi**3)
+            # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0 mod P, where
+            # b = a2/p, c = a4/p^2, d = a6/p^3
+            b = preduce(a2/pi)
+            c = preduce(a4/pi2)
+            d = preduce(a6/pi3)
             bb = b*b
             cc = c*c
             bc = b*c
@@ -703,12 +718,14 @@ class EllipticCurveLocalData(SageObject):
                 C = C.rst_transform(r, 0, 0)
                 (a1, a2, a3, a4, a6) = C.a_invariants()
                 (b2, b4, b6, b8) = C.b_invariants()
-                ix = 3; iy = 3; mx = pi*pi; my = pi*pi
+                # The rest of this branch is just to compute cp, fp, KS.
+                # We use pi to keep transforms integral.
+                ix = 3; iy = 3; mx = pi2; my = mx
                 while True:
-                    a2t = a2 / pi
-                    a3t = a3 / my
-                    a4t = a4 / (pi*mx)
-                    a6t = a6 / (mx*my)
+                    a2t = preduce(a2 / pi)
+                    a3t = preduce(a3 / my)
+                    a4t = preduce(a4 / (pi*mx))
+                    a6t = preduce(a6 / (mx*my))
                     if pdiv(a3t*a3t + 4*a6t):
                         if p == 2:
                             t = my*proot(a6t, 2)
@@ -717,12 +734,12 @@ class EllipticCurveLocalData(SageObject):
                         C = C.rst_transform(0, 0, t)
                         (a1, a2, a3, a4, a6) = C.a_invariants()
                         (b2, b4, b6, b8) = C.b_invariants()
-                        my = my*pi
+                        my *= pi
                         iy += 1
-                        a2t = a2/pi
-                        a3t = a3/my
-                        a4t = a4/(pi*mx)
-                        a6t = a6/(mx*my)
+                        a2t = preduce(a2 / pi)
+                        a3t = preduce(a3/my)
+                        a4t = preduce(a4/(pi*mx))
+                        a6t = preduce(a6/(mx*my))
                         if pdiv(a4t*a4t - 4*a6t*a2t):
                             if p == 2:
                                 r = mx*proot(a6t*pinv(a2t), 2)
@@ -731,7 +748,7 @@ class EllipticCurveLocalData(SageObject):
                             C = C.rst_transform(r, 0, 0)
                             (a1, a2, a3, a4, a6) = C.a_invariants()
                             (b2, b4, b6, b8) = C.b_invariants()
-                            mx = mx*pi
+                            mx *= pi
                             ix += 1 # and stay in loop
                         else:
                             if _pquadroots(a2t, a4t, a6t):
@@ -767,8 +784,8 @@ class EllipticCurveLocalData(SageObject):
                     raise RuntimeError, "Non-integral model after third transform!"
                 if pval(a2) < 2 or pval(a4) < 3 or pval(a6) < 4:
                     raise RuntimeError, "Cubic after transform does not have a triple root at 0"
-                a3t = a3/(pi*pi)
-                a6t = a6/(pi**4)
+                a3t = preduce(a3/pi2)
+                a6t = preduce(a6/pi4)
                 # We test for Type IV*
                 if not pdiv(a3t*a3t + 4*a6t):
                     cp = 3 if _pquadroots(1, a3t, -a6t) else 1
@@ -776,8 +793,10 @@ class EllipticCurveLocalData(SageObject):
                     fp = val_disc - 6
                     break #return
                 # Now change coordinates so that p^3|a3, p^5|a6
-                t =        -pi*pi*proot(a6t, 2) if p==2 \
-                      else  pi*pi*preduce(-a3t*halfmodp)
+                if p==2:
+                    t = -pi2*proot(a6t, 2)
+                else:
+                    t = pi2*preduce(-a3t*halfmodp)
                 C = C.rst_transform(0, 0, t)
                 (a1, a2, a3, a4, a6) = C.a_invariants()
                 (b2, b4, b6, b8) = C.b_invariants()
@@ -794,11 +813,19 @@ class EllipticCurveLocalData(SageObject):
                     fp = val_disc - 8
                     cp = 1
                     break #return
-                a1 /= pi
-                a2 /= pi**2
-                a3 /= pi**3
-                a4 /= pi**4
-                a6 /= pi**6
+                if not principal_flag:
+                    pi = K.uniformizer(P, 'negative')
+                pie = pi
+                a1 /= pie
+                pie *= pi # now pie=pi^2
+                a2 /= pie
+                pie *= pi # now pie=pi^3
+                a3 /= pie
+                pie *= pi # now pie=pi^4
+                a4 /= pie
+                pie *= pi # now pie=pi^5
+                pie *= pi # now pie=pi^6
+                a6 /= pie
                 verbose("Non-minimal equation, dividing out...\nNew model is %s"%([a1, a2, a3, a4, a6]), t, 1)
         C = C._tidy_model()
         return (C, p, val_disc, fp, KS, cp, split)

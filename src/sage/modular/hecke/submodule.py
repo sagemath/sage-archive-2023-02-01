@@ -22,6 +22,7 @@ Submodules of Hecke modules
 import sage.structure.factorization
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+from sage.misc.cachefunc import cached_method
 
 import sage.modules.all
 
@@ -98,7 +99,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
                 raise TypeError, "dual_free_module must be a free module"
             if dual_free_module.rank () != submodule.rank():
                 raise ArithmeticError, "dual_free_module must have the same rank as submodule"
-            self.__dual_free_module = dual_free_module
+            self.dual_free_module.set_cache(dual_free_module)
 
 
     def _repr_(self):
@@ -278,7 +279,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             raise ArithmeticError, "The degree of V must equal the rank of the ambient space."
         if V.rank() != self.rank():
             raise ArithmeticError, "The rank of V must equal the rank of self."
-        self.__dual_free_module = V
+        self.dual_free_module.set_cache(V)
 
 
     ################################
@@ -307,6 +308,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         """
         return self.__ambient
 
+    @cached_method
     def complement(self, bound=None):
         """
         Return the largest Hecke-stable complement of this space.
@@ -321,10 +323,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: ME.complement()
             Modular Symbols subspace of dimension 17 of Modular Symbols space of dimension 18 for Gamma_0(128) of weight 2 with sign 1 over Rational Field
         """
-        try:
-            return self.__complement
-        except AttributeError:
-            pass
+
+        if self.dual_free_module.is_in_cache():
+            D = self.dual_free_module()
+            V = D.basis_matrix().right_kernel()
+            return self.submodule(V, check=False)
 
         if self.is_ambient():
             return self.ambient_hecke_module().zero_submodule()
@@ -362,7 +365,6 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         if V.rank() + self.rank() == A.rank():
             C = A.submodule(V, check=False)
-            self.__complement = C
             return C
 
         # first attempt to compute the complement failed, we now try
@@ -376,7 +378,6 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if self.intersection(X).dimension() == 0:
                 C = C + X
         if C.rank() + self.rank() == A.rank():
-            self.__complement = C
             return C
 
         # failed miserably
@@ -432,17 +433,18 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return d.restrict_domain(self)
 
 
+    @cached_method
     def dual_free_module(self, bound=None, anemic=True, use_star=True):
         r"""
-        Compute embedded dual free module if possible. In general this
-        won't be possible, e.g., if this space is not Hecke equivariant,
-        possibly if it is not cuspidal, or if the characteristic is not 0.
-        In all these cases we raise a RuntimeError exception.
+        Compute embedded dual free module if possible. In general this won't be
+        possible, e.g., if this space is not Hecke equivariant, possibly if it
+        is not cuspidal, or if the characteristic is not 0. In all these cases
+        we raise a RuntimeError exception.
 
-        If use_star is True (which is the default), we also use the
-        +/- eigenspaces for the star operator to find the dual free
-        module of self. If the self does not have a star involution,
-        use_star will automatically be set to True.
+        If use_star is True (which is the default), we also use the +/-
+        eigenspaces for the star operator to find the dual free module of self.
+        If self does not have a star involution, use_star will automatically be
+        set to False.
 
         EXAMPLES::
 
@@ -486,26 +488,33 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.dual_free_module(use_star=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Computation of embedded dual vector space failed (cut down to rank 6, but should have cut down to rank 3).
+            RuntimeError: Computation of complementary space failed (cut down to rank 7, but should have cut down to rank 4).
             sage: S.dual_free_module().dimension() == S.dimension()
             True
-        """
-        try:
-            return self.__dual_free_module
-        except AttributeError:
-            pass
 
-        misc.verbose("computing")
+        We test that #5080 is fixed::
+
+            sage: EllipticCurve('128a').congruence_number()
+            32
+
+        """
+
+        # if we know the complement we can read off the dual module
+        if self.complement.is_in_cache():
+            misc.verbose('This module knows its complement already -- cheating in dual_free_module')
+            C = self.complement()
+            V = C.basis_matrix().right_kernel()
+            return V
+
+        misc.verbose("computing dual")
 
         A = self.ambient_hecke_module()
 
         if self.dimension() == 0:
-            self.__dual_free_module = A.zero_submodule()
-            return self.__dual_free_module
+            return A.zero_submodule()
 
         if A.dimension() == self.dimension():
-            self.__dual_free_module = A.free_module()
-            return self.__dual_free_module
+            return A.free_module()
 
         # ALGORITHM: Compute the char poly of each Hecke operator on
         # the submodule, then use it to cut out a submodule of the
@@ -558,11 +567,15 @@ class HeckeSubmodule(module.HeckeModule_free_module):
                 break
 
         if V.rank() == self.rank():
-            self.__dual_free_module = V
             return V
         else:
             # Failed to reduce V to the appropriate dimension
-            raise RuntimeError, "Computation of embedded dual vector space failed " + \
+            W = self.complement()
+            V2 = W.basis_matrix().right_kernel()
+            if V2.rank() == self.rank():
+                return V2
+            else:
+                raise RuntimeError, "Computation of embedded dual vector space failed " + \
                   "(cut down to rank %s, but should have cut down to rank %s)."%(V.rank(), self.rank())
 
 

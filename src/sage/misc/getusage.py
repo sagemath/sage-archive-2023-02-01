@@ -57,7 +57,7 @@ def get_memory_usage(t=None):
 
     - ``Linux`` - Returns float number (in megabytes)
 
-    - ``OS X`` - returns string (VSIZE column of top)
+    - ``OS X`` - Returns float number (in megabytes) that matches VSIZE column of top
 
     - ``other`` - not implemented for any other operating systems
 
@@ -74,7 +74,12 @@ def get_memory_usage(t=None):
     if U == 'linux':
         m = linux_memory_usage()
     elif U == 'darwin':
-        m = float(top().split()[-1].strip('M+'))
+        try:
+            from sage.misc.darwin_utilities import darwin_memory_usage
+            m = float(darwin_memory_usage()) / (1024 * 1024)
+        except ImportError:
+            # darwin_utilities is not supported on some vesions of OS X.
+            m = float(top().split()[-1].strip('M+'))
     elif U == 'sunos':
         # An evil and ugly workaround some Solaris race condition.
         while True:

@@ -131,6 +131,8 @@ import operator
 from sage.libs.pari.gen import PariInstance, gen
 from sage.libs.pari.gen cimport PariInstance, gen
 
+from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+
 from integer import Integer
 from integer cimport Integer
 from rational import Rational
@@ -1261,8 +1263,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return the real part of self.
 
         (Since self is a real number, this simply returns self.)
+
+        EXAMPLES::
+
+            sage: RR(2).real()
+            2.00000000000000
+            sage: RealField(200)(-4.5).real()
+            -4.5000000000000000000000000000000000000000000000000000000000
         """
         return self
+
+    def imag(self):
+        """
+        Return the imaginary part of self.
+
+        (Since self is a real number, this simply returns exactly 0.)
+
+        EXAMPLES::
+
+            sage: RR.pi().imag()
+            0
+            sage: RealField(100)(2).imag()
+            0
+        """
+        return ZZ(0)
 
     def parent(self):
         """
@@ -2268,6 +2292,24 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpz_clear(mantissa)
 
         return gen
+
+    def _mpmath_(self, prec=None, rounding=None):
+        """
+        Returns an mpmath version of this RealNumber.
+
+        .. note::
+
+           Currently the rounding mode is ignored.
+
+        EXAMPLES::
+
+            sage: RR(-1.5)._mpmath_()
+            mpf('-1.5')
+        """
+        if prec is not None:
+            return self.n(prec=prec)._mpmath_()
+        from sage.libs.mpmath.all import make_mpf
+        return make_mpf(mpfr_to_mpfval(self.value))
 
     def exact_rational(self):
         """

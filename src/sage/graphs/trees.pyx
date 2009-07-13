@@ -136,31 +136,31 @@ cdef class TreeIterator:
         cdef int vertex2
         cdef object G
 
-        from networkx import XGraph
-        G = Graph(self.vertices, implementation='networkx')
-        cdef object XG = G._backend._nxg
-
-        for i from 2 <= i <= self.vertices:
-            vertex1 = i - 1
-            vertex2 = self.current_level_sequence[i - 1] - 1
-            XG.add_edge(vertex1, vertex2)
-
-        return G
+#        from networkx import XGraph
+#        G = Graph(self.vertices)
+#        cdef object XG = G._backend._nxg
+#
+#        for i from 2 <= i <= self.vertices:
+#            vertex1 = i - 1
+#            vertex2 = self.current_level_sequence[i - 1] - 1
+#            XG.add_edge(vertex1, vertex2)
+#
+#        return G
 
         # Currently, c_graph does not have all the same functionality as networkx.
         # Until it does, we can't generate graphs using the c_graph backend even
         # though it is twice as fast (for our purposes) as networkx.
 
-        # G = Graph(self.vertices, implementation='c_graph')
-        # cdef SparseGraph SG = <SparseGraph> G._backend._cg
-        #
-        # for i from 2 <= i <= self.vertices:
-        #     vertex1 = i - 1
-        #     vertex2 = self.current_level_sequence[i - 1] - 1
-        #     SG.add_arc_unsafe(vertex1, vertex2)
-        #     SG.add_arc_unsafe(vertex2, vertex1)
-        #
-        # return G
+        G = Graph(self.vertices, implementation='c_graph', sparse=True)
+        cdef SparseGraph SG = <SparseGraph> G._backend._cg
+
+        for i from 2 <= i <= self.vertices:
+            vertex1 = i - 1
+            vertex2 = self.current_level_sequence[i - 1] - 1
+            SG.add_arc_unsafe(vertex1, vertex2)
+            SG.add_arc_unsafe(vertex2, vertex1)
+
+        return G
 
     cdef int generate_first_level_sequence(self):
         r"""

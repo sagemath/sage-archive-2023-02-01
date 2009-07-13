@@ -47,7 +47,7 @@ TODO:
 
 from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
-from colorsys import hsv_to_rgb
+from sage.plot.colors import hue
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -988,49 +988,3 @@ class ParametricPlot:
 def tostr(s):
     if isinstance(s, str):
         return s
-    return ' %s %s %s '%(float(s[0]), float(s[1]), float(s[2]))
-
-def hue(h, s=1, v=1):
-    """
-    hue(h,s=1,v=1) where 'h' stands for hue, 's' stands for saturation,
-    'v' stands for value. hue returns a list of rgb intensities (r, g,
-    b) All values are in the range 0 to 1.
-
-    INPUT:
-
-
-    -  ``h, s, v`` - real numbers between 0 and 1. Note
-       that if any are not in this range they are automatically normalized
-       to be in this range by reducing them modulo 1.
-
-
-    OUTPUT: A valid RGB tuple.
-
-    EXAMPLES::
-
-        sage: hue(0.6)
-        (0.0, 0.40000000000000036, 1.0)
-
-    hue is an easy way of getting a broader range of colors for
-    graphics
-
-    ::
-
-        sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
-    """
-    h = float(h); s = float(s); v = float(v)
-    if h != 1:
-        h = modf(h)[0]
-        if h < 0:
-            h += 1
-    if s != 1:
-        s = modf(s)[0]
-        if s < 0:
-            s += 1
-    if v != 1:
-        v = modf(v)[0]
-        if v < 0:
-            v += 1
-    c = hsv_to_rgb(h, s, v)
-    return (float(c[0]), float(c[1]), float(c[2]))
-

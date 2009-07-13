@@ -28,14 +28,17 @@ First load the database:
 List the degree and discriminant of all fields in the database that
 have ramification at most at 2:
 
+.. link
+
 ::
 
     sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])] # requires optional database
-    [(1, 1), (2, 8), (2, -4), (2, -8), (4, 2048), (4, -1024), (4, 512),
-     (4, -2048), (4, 256), (4, 2048), (4, 2048)]
+    [(4, -2048), (2, 8), (4, -1024), (1, 1), (4, 256), (2, -4), (4, 2048), (4, 512), (4, 2048), (2, -8), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified
 outside 2:
+
+.. link
 
 ::
 
@@ -44,6 +47,8 @@ outside 2:
 
 List the discriminants of cubic field in the database ramified
 exactly at 3 and 5:
+
+.. link
 
 ::
 
@@ -57,6 +62,8 @@ exactly at 3 and 5:
     3^3 * 5
 
 List all fields in the database ramified at 101:
+
+.. link
 
 ::
 

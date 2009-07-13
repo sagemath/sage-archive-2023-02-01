@@ -1,5 +1,4 @@
-r"""nodoctest
-
+r"""
 Inspect Python, Sage, and Cython objects.
 
 This module extends parts of Python's inspect module to Cython objects.

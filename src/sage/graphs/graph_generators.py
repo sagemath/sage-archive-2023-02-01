@@ -778,7 +778,7 @@ class GraphGenerators():
                 pos_dict[i,j] = [x,y]
         import networkx
         G = networkx.grid_2d_graph(n1,n2)
-        return graph.Graph(G, pos=pos_dict, name="2D Grid Graph", implementation='networkx')
+        return graph.Graph(G, pos=pos_dict, name="2D Grid Graph")
 
     def GridGraph(self, dim_list):
         """
@@ -810,7 +810,7 @@ class GraphGenerators():
         import networkx
         dim = [int(a) for a in dim_list]
         G = networkx.grid_graph(dim)
-        return graph.Graph(G, name="Grid Graph for %s"%dim, implementation='networkx')
+        return graph.Graph(G, name="Grid Graph for %s"%dim)
 
     def HouseGraph(self):
         """
@@ -1720,7 +1720,7 @@ class GraphGenerators():
             pos_dict[i] = [x,y]
         import networkx
         G = networkx.heawood_graph()
-        return graph.Graph(G, pos=pos_dict, name="Heawood graph", implementation='networkx')
+        return graph.Graph(G, pos=pos_dict, name="Heawood graph")
 
     def HoffmanSingletonGraph(self):
         r"""
@@ -1768,7 +1768,7 @@ class GraphGenerators():
         'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
         'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
         'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
-        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']}, implementation='networkx' )
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']})
         for j in range(5):
             for i in range(5):
                 for k in range(5):
@@ -2150,7 +2150,7 @@ class GraphGenerators():
             pos_dict[i] = [x,y]
         import networkx
         G = networkx.complete_graph(n)
-        return graph.Graph(G, pos=pos_dict, name="Complete graph", implementation='networkx')
+        return graph.Graph(G, pos=pos_dict, name="Complete graph")
 
     def CompleteBipartiteGraph(self, n1, n2):
         """
@@ -2344,7 +2344,7 @@ class GraphGenerators():
                 y += int(vertex[i])*ll[i][1]
             pos[vertex] = [x,y]
 
-        return graph.Graph(data=d, pos=pos, name="%d-Cube"%n, implementation='networkx')
+        return graph.Graph(data=d, pos=pos, name="%d-Cube"%n)
 
     def BalancedTree(self, r, h):
         r"""
@@ -3047,7 +3047,7 @@ class GraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
         import networkx
-        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True, implementation='networkx')
+        return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True, sparse=True)
 
     def DegreeSequenceTree(self, deg_sequence):
         """
@@ -3113,7 +3113,7 @@ class GraphGenerators():
 ################################################################################
 
     def __call__(self, vertices, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, loops=False, implementation='networkx',
+        size=None, deg_seq=None, loops=False, implementation='c_graph',
         sparse=True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -3500,7 +3500,7 @@ class DiGraphGenerators():
                     butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
         else:
             raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
-        return graph.DiGraph(butterfly, implementation='networkx')
+        return graph.DiGraph(butterfly)
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """
@@ -3650,7 +3650,7 @@ class DiGraphGenerators():
 #   DiGraph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None, implementation='networkx', sparse=True):
+    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None, implementation='c_graph', sparse=True):
         """
         Accesses the generator of isomorphism class representatives.
         Iterates over distinct, exhaustive representatives.
@@ -3748,7 +3748,7 @@ class DiGraphGenerators():
         else:
             raise NotImplementedError()
 
-def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='networkx', sparse=True):
+def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free (di)graphs satisfying a
@@ -3943,7 +3943,7 @@ def check_aut(aut_gens, cut_vert, n):
                 if new_perm[cut_vert] == n:
                     yield new_perm
 
-def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implementation='networkx', sparse=True):
+def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implementation='c_graph', sparse=True):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free graphs satisfying a

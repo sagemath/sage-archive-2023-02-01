@@ -25,7 +25,7 @@ special method ``_latex_(self)`` that returns a string.
 
 EMBEDDED_MODE = False
 
-COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\\usepackage[utf8]{inputenc}\n'
 
 LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
 
@@ -265,18 +265,6 @@ class LatexExpr(str):
         sage: LatexExpr("abc")
         abc
     """
-    def __init__(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.latex import LatexExpr
-            sage: LatexExpr(3.14)
-            3.14000000000000
-            sage: LatexExpr("abc")
-            abc
-        """
-        str.__init__(self, x)
-
     def __repr__(self):
         """
         EXAMPLES::
@@ -704,7 +692,7 @@ class Latex:
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        O.write(x)
+        O.write(x.encode('utf-8'))
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
@@ -1157,9 +1145,9 @@ def _latex_file_(objects, title='SAGE', debug=False, \
 
         sage: from sage.misc.latex import _latex_file_
         sage: _latex_file_(3, title="The number three")
-        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
+        '\\documentclass{article}...\\begin{document}\n\\begin{center}{\\Large\\bf The number three}\\end{center}\n\\vspace{40mm}\\[3\\]\n\\end{document}'
         sage: _latex_file_([7, 8, 9], title="Why was six afraid of seven?", sep='\\vfill\\hrule\\vfill')
-        '\\documentclass{article}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n\n\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\text{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\I \\R}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\RQDF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n\n\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
+        '\\documentclass{article}...\\begin{document}\n\\begin{center}{\\Large\\bf Why was six afraid of seven?}\\end{center}\n\\vspace{40mm}\\[7\\]\n\n\\vfill\\hrule\\vfill\n\n\\[8\\]\n\n\\vfill\\hrule\\vfill\n\n\\[9\\]\n\\end{document}'
     """
     MACROS = latex_extra_preamble()
 
@@ -1812,12 +1800,12 @@ common_varnames = ['alpha',
                    'omega',
                    'Omega']
 
-def latex_varify(a):
+def latex_varify(a, is_fname=False):
     r"""
     Convert a string ``a`` to a LaTeX string: if it's an element of
     ``common_varnames``, then prepend a backslash.  If ``a`` consists
     of a single letter, then return it.  Otherwise, return
-    "\\mbox{a}".
+    either "{\\rm a}" or "\\mbox{a}" if "is_fname" flag is True or False.
 
     INPUT:
 
@@ -1832,6 +1820,8 @@ def latex_varify(a):
         'w'
         sage: latex_varify('aleph')
         '\\mbox{aleph}'
+        sage: latex_varify('aleph', is_fname=True)
+        '{\\rm aleph}'
         sage: latex_varify('alpha')
         '\\alpha'
     """
@@ -1839,10 +1829,12 @@ def latex_varify(a):
         return "\\" + a
     elif len(a) == 1:
         return a
+    elif is_fname is True:
+        return '{\\rm %s}'%a
     else:
         return '\\mbox{%s}'%a
 
-def latex_variable_name(x):
+def latex_variable_name(x, is_fname=False):
     r"""
     Return latex version of a variable name.
 
@@ -1885,8 +1877,12 @@ def latex_variable_name(x):
         '\\sigma_{\\alpha}'
         sage: latex_variable_name('nothing1')
         '\\mbox{nothing}_{1}'
+        sage: latex_variable_name('nothing1', is_fname=True)
+        '{\\rm nothing}_{1}'
         sage: latex_variable_name('nothing_abc')
         '\\mbox{nothing}_{\\mbox{abc}}'
+        sage: latex_variable_name('nothing_abc', is_fname=True)
+        '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')
         '\\alpha_{\\beta_{\\gamma_{12}}}'
 
@@ -1914,10 +1910,10 @@ def latex_variable_name(x):
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)
         if suffix.strip("1234567890")!="":
-            suffix = latex_variable_name(suffix) # recurse to deal with recursive subscripts
-        return '%s_{%s}'%(latex_varify(prefix), suffix)
+            suffix = latex_variable_name(suffix, is_fname) # recurse to deal with recursive subscripts
+        return '%s_{%s}'%(latex_varify(prefix, is_fname), suffix)
     else:
-        return latex_varify(prefix)
+        return latex_varify(prefix, is_fname)
 
 class LatexExamples():
     r"""

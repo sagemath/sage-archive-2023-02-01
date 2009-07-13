@@ -23,8 +23,8 @@ Maxima, Mathematica, Maple, Octave, and Singular::
     khinchin
     sage: twinprime
     twinprime
-    sage: merten
-    merten
+    sage: mertens
+    mertens
     sage: brun
     brun
 
@@ -179,8 +179,8 @@ TESTS:
 Coercing the sum of a bunch of the constants to many different
 floating point rings::
 
-    sage: a = pi + e + golden_ratio + log2 + euler_gamma + catalan + khinchin + twinprime + merten; a
-    pi + euler_gamma + catalan + golden_ratio + log2 + khinchin + twinprime + merten + e
+    sage: a = pi + e + golden_ratio + log2 + euler_gamma + catalan + khinchin + twinprime + mertens; a
+    pi + euler_gamma + catalan + golden_ratio + log2 + khinchin + twinprime + mertens + e
     sage: parent(a)
     Symbolic Ring
     sage: RR(a)
@@ -1070,8 +1070,8 @@ class Catalan(Constant):
 
     EXAMPLES::
 
-        sage: catalan^2 + merten
-        merten + catalan^2
+        sage: catalan^2 + mertens
+        mertens + catalan^2
     """
     def __init__(self, name='catalan'):
         """
@@ -1133,6 +1133,173 @@ class Catalan(Constant):
 
 catalan = Catalan().expression()
 
+class Khinchin(Constant):
+    """
+    The geometric mean of the continued fraction expansion of any
+    (almost any) real number.
+
+    EXAMPLES::
+
+        sage: float(khinchin)
+        2.6854520010653062
+        sage: khinchin.n(digits=60)
+        2.68545200106530644530971483548179569382038229399446295305115
+        sage: m = mathematica(khinchin); m             # optional
+        Khinchin
+        sage: m.N(200)                                 # optional
+        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
+        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
+    """
+    def __init__(self, name='khinchin'):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(khinchin))
+            khinchin
+        """
+        conversions = dict(maxima='khinchin', mathematica='Khinchin',
+            pynac='Khinchin')
+        Constant.__init__(self, name, conversions=conversions,
+                          domain='positive')
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES::
+
+            sage: khinchin._mpfr_(RealField(100))
+            2.6854520010653064453097148355
+            sage: RealField(100)(khinchin)
+            2.6854520010653064453097148355
+
+        """
+        import sage.libs.mpmath.all as a
+        return a.eval_constant('khinchin', R)
+
+khinchin = Khinchin().expression()
+
+class TwinPrime(Constant):
+    r"""
+    The Twin Primes constant is defined as
+    `\prod 1 - 1/(p-1)^2` for primes `p > 2`.
+
+    EXAMPLES::
+
+        sage: float(twinprime)
+        0.66016181584686962
+        sage: twinprime.n(digits=60)
+        0.660161815846869573927812110014555778432623360284733413319448
+
+    """
+    def __init__(self, name='twinprime'):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(twinprime))
+            twinprime
+        """
+        conversions = dict(maxima='twinprime', pynac='TwinPrime')
+        Constant.__init__(self, name, conversions=conversions,
+                          domain='positive')
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES::
+
+            sage: twinprime._mpfr_(RealField(100))
+            0.66016181584686957392781211001
+            sage: RealField(100)(twinprime)
+            0.66016181584686957392781211001
+        """
+        import sage.libs.mpmath.all as a
+        return a.eval_constant('twinprime', R)
+
+
+twinprime = TwinPrime().expression()
+
+class Mertens(Constant):
+    """
+    The Mertens constant is related to the Twin Primes constant and
+    appears in Mertens' second theorem.
+
+    EXAMPLES::
+
+        sage: float(mertens)
+        0.26149721284764277
+        sage: mertens.n(digits=60)
+        0.261497212847642783755426838608695859051566648261199206192064
+
+    """
+    def __init__(self, name='mertens'):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(mertens))
+            mertens
+        """
+        conversions = dict(maxima='mertens', pynac='Mertens')
+        Constant.__init__(self, name, conversions=conversions,
+                          domain='positive')
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES::
+
+            sage: mertens._mpfr_(RealField(100))
+            0.26149721284764278375542683861
+            sage: RealField(100)(mertens)
+            0.26149721284764278375542683861
+
+        """
+        import sage.libs.mpmath.all as a
+        return a.eval_constant('mertens', R)
+
+merten = mertens = Mertens().expression()
+
+class Glaisher(Constant):
+    r"""
+    The Glaisher-Kinkelin constant `A = \exp(\frac{1}{12}-\zeta'(-1))`.
+
+    EXAMPLES::
+
+        sage: float(glaisher)
+        1.2824271291006226
+        sage: glaisher.n(digits=60)
+        1.28242712910062263687534256886979172776768892732500119206374
+        sage: a = glaisher + 2
+        sage: a
+        glaisher + 2
+        sage: parent(a)
+        Symbolic Ring
+
+    """
+    def __init__(self, name='glaisher'):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(glaisher))
+            glaisher
+        """
+        conversions = dict(maxima='glaisher', pynac='Glaisher',
+            mathematica='Glaisher')
+        Constant.__init__(self, name, conversions=conversions,
+                          domain='positive')
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES::
+
+            sage: glaisher._mpfr_(RealField(100))
+            1.2824271291006226368753425689
+            sage: RealField(100)(glaisher)
+            1.2824271291006226368753425689
+
+        """
+        import sage.libs.mpmath.all as a
+        return a.eval_constant('glaisher', R)
+
+glaisher = Glaisher().expression()
+
+
 ###############################
 # Limited precision constants #
 ###############################
@@ -1167,12 +1334,12 @@ class LimitedPrecisionConstant(Constant):
         """
         EXAMPLES::
 
-            sage: RealField(100)(khinchin)
-            2.6854520010653064453097148355
-            sage: RealField(20000)(khinchin)
+            sage: RealField(41)(brun)
+            1.90216058310
+            sage: RealField(20000)(brun)
             Traceback (most recent call last):
             ...
-            NotImplementedError: khinchin is only available up to 3005 bits
+            NotImplementedError: brun is only available up to 41 bits
         """
         if R.precision() <= self._bits:
             return R(self._value)
@@ -1182,8 +1349,10 @@ class LimitedPrecisionConstant(Constant):
         """
         EXAMPLES::
 
-            sage: RDF(khinchin)
-            2.68545200107
+            sage: from sage.symbolic.constants import LimitedPrecisionConstant
+            sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression()
+            sage: RDF(a)
+            1.23456789101
         """
         return R(self._value)
 
@@ -1191,107 +1360,13 @@ class LimitedPrecisionConstant(Constant):
         """
         EXAMPLES::
 
-            sage: float(khinchin)
-            2.6854520010653062
+            sage: from sage.symbolic.constants import LimitedPrecisionConstant
+            sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression()
+            sage: float(a)
+            1.2345678910111213
+
         """
         return float(self._value)
-
-class Khinchin(LimitedPrecisionConstant):
-    """
-    The geometric mean of the continued fraction expansion of any
-    (almost any) real number.
-
-    EXAMPLES::
-
-        sage: float(khinchin)
-        2.6854520010653062
-        sage: m = mathematica(khinchin); m             # optional
-        Khinchin
-        sage: m.N(200)                                 # optional
-        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
-        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
-    """
-    def __init__(self, name='khinchin'):
-        """
-        EXAMPLES::
-
-            sage: loads(dumps(khinchin))
-            khinchin
-        """
-        conversions = dict(maxima='khinchin', mathematica='Khinchin')
-        # digits come from http://pi.lacim.uqam.ca/piDATA/khintchine.txt
-        value = "2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289308477880620360737053501033672633577289049904270702723451702625237023545810686318501032374655803775026442524852869468234189949157306618987207994137235500057935736698933950879021244642075289741459147693018449050601793499385225470404203377985639831015709022233910000220772509651332460444439191691460859682348212832462282927101269069741823484776754573489862542033926623518620867781366509696583146995271837448054012195366666049648269890827548115254721177330319675947383719393578106059230401890711349624673706841221794681074060891827669566711716683740590473936880953450489997047176390451343232377151032196515038246988883248709353994696082647818120566349467125784366645797409778483662049777748682765697087163192938512899314199518611673792654620563505951385713761697126872299805327673278710513763"
-
-        LimitedPrecisionConstant.__init__(self, name, value,
-                                          conversions=conversions,
-                                          domain='positive')
-
-khinchin = Khinchin().expression()
-
-class TwinPrime(LimitedPrecisionConstant):
-    r"""
-    The Twin Primes constant is defined as
-    `\prod 1 - 1/(p-1)^2` for primes `p > 2`.
-
-    EXAMPLES::
-
-        sage: float(twinprime)
-        0.66016181584686962
-        sage: R=RealField(200);R
-        Real Field with 200 bits of precision
-        sage: R(twinprime)
-        0.66016181584686957392781211001455577843262336028473341331945
-    """
-    def __init__(self, name='twinprime'):
-        """
-        EXAMPLES::
-
-            sage: loads(dumps(twinprime))
-            twinprime
-        """
-        conversions = dict(maxima='twinprime')
-        #digits come from http://www.gn-50uma.de/alula/essays/Moree/Moree-details.en.shtml
-
-        value = "0.660161815846869573927812110014555778432623360284733413319448423335405642304495277143760031413839867911779005226693304002965847755123366227747165713213986968741097620630214153735434853131596097803669932135255299767199302474590593101082978291553834469297505205916657133653611991532464281301172462306379341060056466676584434063501649322723528968010934966475600478812357962789459842433655749375581854814173628678098705969498703841243363386589311969079150040573717814371081810615401233104810577794415613125444598860988997585328984038108718035525261719887112136382808782349722374224097142697441764455225265548994829771790977784043757891956590649994567062907828608828395990394287082529070521554595671723599449769037800675978761690802426600295711092099633708272559284672129858001148697941855401824639887493941711828528382365997050328725708087980662201068630474305201992394282014311102297265141514194258422242375342296879836738796224286600285358098482833679152235700192585875285961205994728621007171131607980572"
-
-        LimitedPrecisionConstant.__init__(self, name, value,
-                                          conversions=conversions,
-                                          domain='positive')
-
-twinprime = TwinPrime().expression()
-
-
-class Merten(LimitedPrecisionConstant):
-    """
-    The Merten constant is related to the Twin Primes constant and
-    appears in Merten's second theorem.
-
-    EXAMPLES::
-
-        sage: float(merten)
-        0.26149721284764277
-        sage: R=RealField(200);R
-        Real Field with 200 bits of precision
-        sage: R(merten)
-        0.26149721284764278375542683860869585905156664826119920619206
-    """
-    def __init__(self, name='merten'):
-        """
-        EXAMPLES::
-
-            sage: loads(dumps(merten))
-            merten
-        """
-        conversions = dict(maxima='merten')
-
-        # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=77761&fmt=0
-        value = "0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434246651051617"
-
-        LimitedPrecisionConstant.__init__(self, name, value,
-                                          conversions=conversions,
-                                          domain='positive')
-
-merten = Merten().expression()
 
 class Brun(LimitedPrecisionConstant):
     """

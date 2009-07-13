@@ -2231,9 +2231,9 @@ class LinearCode(module.Module):
             from sage.misc.misc import tmp_filename
             output = tmp_filename()
             import os
-            status = os.system(guava_bin_dir + "leon/wtdist " + input + "::code > " + output)
+            status = os.system(guava_bin_dir + "wtdist " + input + "::code > " + output)
             if status != 0:
-                raise RuntimeError("Problem calling Leon's wtdist program.")
+                raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
             f = open(output); lines = f.readlines(); f.close()
             wts = [0]*(n+1)
             s = 0

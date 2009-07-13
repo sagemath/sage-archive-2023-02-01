@@ -21,7 +21,6 @@ cdef class Integer(EuclideanDomainElement):
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
     cdef _xor(Integer self, Integer other)
-    cdef _floordiv(Integer self, Integer other)
 
     cpdef size_t _exact_log_log2_iter(self,Integer m)
     cpdef size_t _exact_log_mpfi_log(self,m)

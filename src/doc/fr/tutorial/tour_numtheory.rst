@@ -1,7 +1,7 @@
 Théorie des nombres
 ===================
 
-Sage possède des fonctionnalités de théorie des nombres étendues.
+Sage possède des fonctionnalités étendues de théorie des nombres.
 Par exemple, on peut faire de l'arithmétique dans
 :math:`\ZZ/N\ZZ` comme suit :
 
@@ -21,7 +21,7 @@ Par exemple, on peut faire de l'arithmétique dans
     sage: b.is_square()
     True
 
-Sage contient les fonctions standard de théorie des nombres. Par exemple,
+Sage contient les fonctions standards de théorie des nombres. Par exemple,
 
 ::
 
@@ -130,7 +130,7 @@ possible d'en changer la précision.
 
 Beaucoup de travail a été accompli afin d'implémenter l'anneau des
 entiers dans des corps :math:`p`-adiques ou des corps de nombres
-distincts de QQ???. Le lecteur intéressé est invité à poser ses
+distincts de :math:`\QQ`. Le lecteur intéressé est invité à poser ses
 questions aux experts sur le groupe Google ``sage-support`` pour plus de
 détails.
 

@@ -162,7 +162,7 @@ def pyx_preparse(s):
         'csage'],
         ['.../local/include/csage/',
         '.../local/include/',
-        '.../local/include/python2.5/',
+        '.../local/include/python2.6/',
         '.../devel/sage/sage/ext/',
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/'],
@@ -189,7 +189,7 @@ def pyx_preparse(s):
         ['bar',
         '.../local/include/csage/',
         '.../local/include/',
-        '.../local/include/python2.5/',
+        '.../local/include/python2.6/',
         '.../devel/sage/sage/ext/',
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/']

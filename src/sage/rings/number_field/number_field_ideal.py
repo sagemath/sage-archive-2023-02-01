@@ -1006,6 +1006,53 @@ class NumberFieldIdeal(Ideal_generic):
         """
         return self.ramification_group(0)
 
+    def random_element(self, *args, **kwds):
+        """
+        Return a random element of this order.
+
+        INPUT:
+
+        - ``args``, ``kwds`` -- parameters passed to the random
+          integer function.  See the documentation for
+          ``ZZ.random_element()`` for details.
+
+        OUTPUT:
+
+        A random element of this fractional ideal, computed as a
+        random `\ZZ`-linear combination of the basis.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: I = K.ideal(1-a)
+            sage: I.random_element() # random output
+            -a^2 - a - 19
+            sage: I.random_element(distribution="uniform") # random output
+            a^2 - 2*a - 8
+            sage: I.random_element(-30,30) # random output
+            -7*a^2 - 17*a - 75
+            sage: I.random_element(-100, 200).is_integral()
+            True
+            sage: I.random_element(-30,30).parent() is K
+            True
+
+        A relative example::
+
+            sage: K.<a, b> = NumberField([x^2 + 2, x^2 + 1000*x + 1])
+            sage: I = K.ideal(1-a)
+            sage: I.random_element() # random output
+            17/500002*a^3 + 737253/250001*a^2 - 1494505893/500002*a + 752473260/250001
+            sage: I.random_element().is_integral()
+            True
+            sage: I.random_element(-100, 200).parent() is K
+            True
+        """
+        if self.number_field().is_absolute():
+            basis = self.basis()
+        else:
+            basis = self.absolute_ideal().basis()
+        return self.number_field()(sum([ZZ.random_element(*args, **kwds)*a for a in basis]))
+
     def artin_symbol(self):
         r"""
         Return the Artin symbol `( K / \QQ, P)`, where `K` is the

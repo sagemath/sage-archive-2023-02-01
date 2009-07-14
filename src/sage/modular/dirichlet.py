@@ -58,20 +58,22 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import sage.misc.prandom as random
 import weakref
 
-import sage.rings.arith as arith
-import sage.misc.misc as misc
-import sage.rings.all as rings
-from   sage.rings.arith import binomial, bernoulli
-import sage.modules.free_module as free_module
-import sage.modules.free_module_element
-import sage.structure.parent_gens as parent_gens
+import sage.categories.all                  as cat
+import sage.misc.misc                       as misc
+import sage.misc.prandom                    as random
+import sage.modules.free_module             as free_module
+import sage.modules.free_module_element     as free_module_element
+import sage.rings.all                       as rings
+import sage.rings.arith                     as arith
 import sage.rings.number_field.number_field as number_field
-from   sage.structure.element import MultiplicativeGroupElement
-from   sage.structure.sequence import Sequence
-import sage.categories.all
+import sage.structure.parent_gens           as parent_gens
+
+from sage.misc.cachefunc                    import cached_method
+from sage.rings.arith                       import binomial, bernoulli
+from sage.structure.element                 import MultiplicativeGroupElement
+from sage.structure.sequence                import Sequence
 
 def trivial_character(N, base_ring=rings.RationalField()):
     r"""
@@ -215,18 +217,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 raise ValueError, \
                       "wrong number of values(=%s) on unit gens (want %s)"%( \
                        x,len(parent.unit_gens()))
-            if sage.modules.free_module_element.is_FreeModuleElement(x):
+            if free_module_element.is_FreeModuleElement(x):
                 self.__element = parent._module(x)
             else:
                 R = parent.base_ring()
                 self.__values_on_gens = tuple([R(z) for z in x])
         else:
-            if sage.modules.free_module_element.is_FreeModuleElement(x):
+            if free_module_element.is_FreeModuleElement(x):
                 self.__element = x
             else:
                 self.__values_on_gens = x
 
 
+    @cached_method
     def __eval_at_minus_one(self):
         r"""
         Efficiently evalute the character at -1 using knowledge of its
@@ -245,19 +248,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi = DirichletGroup(20).0; chi._DirichletCharacter__eval_at_minus_one()
             -1
         """
-        try:
-            return self.__value_at_minus_one
-        except AttributeError:
-            D = self.decomposition()
-            val = self.base_ring()(1)
-            for e in D:
-                if e.modulus() % 2 == 0:
-                    if e.modulus() % 4 == 0:
-                        val *= e.values_on_gens()[0] # first gen is -1 for 2-power modulus
-                elif (arith.euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
-                    val *= -1
-            self.__value_at_minus_one = val
-        return self.__value_at_minus_one
+        D = self.decomposition()
+        val = self.base_ring()(1)
+        for e in D:
+            if e.modulus() % 2 == 0:
+                if e.modulus() % 4 == 0:
+                    val *= e.values_on_gens()[0] # first gen is -1 for 2-power modulus
+            elif (arith.euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
+                val *= -1
+        return val
 
     def __call__(self, m):
         """
@@ -605,6 +604,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             self.__bernoulli[k] = ber
         return ber
 
+    @cached_method
     def conductor(self):
         """
         Computes and returns the conductor of this character.
@@ -619,17 +619,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: (a*b).conductor()
             20
         """
-        try:
-            return self.__conductor
-        except AttributeError:
-            pass
         if self.modulus() == 1 or self.is_trivial():
-            self.__conductor = 1
-            return self.__conductor
+            return 1
         F = arith.factor(self.modulus())
         if len(F) > 1:
-            self.__conductor = misc.mul([d.conductor() for d in self.decomposition()])
-            return self.__conductor
+            return misc.mul([d.conductor() for d in self.decomposition()])
         p = F[0][0]
         # When p is odd, and x =/= 1, the conductor is the smallest p**r such that
         #   Order(x) divides EulerPhi(p**r) = p**(r-1)*(p-1).
@@ -637,11 +631,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # depends only on the factor of p**(r-1) on the right hand side.
         # Since p-1 is coprime to p, this smallest r such that the
         # divisibility holds equals Valuation(Order(x),p)+1.
-        self.__conductor = p**(arith.valuation(self.order(),p) + 1)
+        cond = p**(arith.valuation(self.order(),p) + 1)
         if p == 2 and F[0][1] > 2 and self.values_on_gens()[1].multiplicative_order() != 1:
-            self.__conductor *= 2;
-        return self.__conductor
+            cond *= 2;
+        return cond
 
+    @cached_method
     def decomposition(self):
         """
         Return the decomposition of self as a product of Dirichlet
@@ -684,10 +679,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: (DirichletGroup(72).0).decomposition()
             [[-1, 1], [1]]
         """
-        try:
-            return self.__decomp
-        except AttributeError:
-            pass
         D = self.parent().decomposition()
         vals = [[z] for z in self.values_on_gens()]
         R = self.base_ring()
@@ -696,8 +687,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             del vals[1]
         elif self.modulus() % 4 == 2: # 0 factors at 2.
             vals = [1] + vals
-        self.__decomp = [D[i](vals[i]) for i in range(len(D))]
-        return self.__decomp
+        return [D[i](vals[i]) for i in range(len(D))]
 
     def extend(self, M):
         """
@@ -909,9 +899,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = D.0
             sage: f = D[-2]
             sage: e.jacobi_sum(f)
-            3*zeta156^26 + 2*zeta156^13 - 3
+            3*zeta12^2 + 2*zeta12 - 3
             sage: f.jacobi_sum(e)
-            3*zeta156^26 + 2*zeta156^13 - 3
+            3*zeta12^2 + 2*zeta12 - 3
             sage: p = 7
             sage: DP = DirichletGroup(p)
             sage: f = DP.0
@@ -930,21 +920,21 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ([1], [-1], -1)
             ([1], [-zeta6], -1)
             ([1], [-zeta6 + 1], -1)
-            ([zeta6], [zeta6], -zeta42^7 + 3)
-            ([zeta6], [zeta6 - 1], 2*zeta42^7 + 1)
-            ([zeta6], [-1], -2*zeta42^7 - 1)
-            ([zeta6], [-zeta6], zeta42^7 - 3)
+            ([zeta6], [zeta6], -zeta6 + 3)
+            ([zeta6], [zeta6 - 1], 2*zeta6 + 1)
+            ([zeta6], [-1], -2*zeta6 - 1)
+            ([zeta6], [-zeta6], zeta6 - 3)
             ([zeta6], [-zeta6 + 1], 1)
-            ([zeta6 - 1], [zeta6 - 1], -3*zeta42^7 + 2)
-            ([zeta6 - 1], [-1], 2*zeta42^7 + 1)
+            ([zeta6 - 1], [zeta6 - 1], -3*zeta6 + 2)
+            ([zeta6 - 1], [-1], 2*zeta6 + 1)
             ([zeta6 - 1], [-zeta6], -1)
-            ([zeta6 - 1], [-zeta6 + 1], -zeta42^7 - 2)
+            ([zeta6 - 1], [-zeta6 + 1], -zeta6 - 2)
             ([-1], [-1], 1)
-            ([-1], [-zeta6], -2*zeta42^7 + 3)
-            ([-1], [-zeta6 + 1], 2*zeta42^7 - 3)
-            ([-zeta6], [-zeta6], 3*zeta42^7 - 1)
-            ([-zeta6], [-zeta6 + 1], -2*zeta42^7 + 3)
-            ([-zeta6 + 1], [-zeta6 + 1], zeta42^7 + 2)
+            ([-1], [-zeta6], -2*zeta6 + 3)
+            ([-1], [-zeta6 + 1], 2*zeta6 - 3)
+            ([-zeta6], [-zeta6], 3*zeta6 - 1)
+            ([-zeta6], [-zeta6 + 1], -2*zeta6 + 3)
+            ([-zeta6 + 1], [-zeta6 + 1], zeta6 + 2)
 
         Let's check that trivial sums are being calculated correctly::
 
@@ -956,58 +946,49 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             11
 
-        Now let's take a look at a non-prime modulus. One reason we don't
-        like non-prime moduli is that certain identities that are used in
-        the code are not valid for non-prime moduli::
+        And sums where exactly one character is nontrivial (see trac #6393)::
+
+            sage: G=DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: Y.jacobi_sum(Z)
+            -1
+            sage: Z.jacobi_sum(Y)
+            -1
+
+        Now let's take a look at a non-prime modulus::
 
             sage: N = 9
             sage: D = DirichletGroup(N)
             sage: g = D(1)
             sage: g.jacobi_sum(g)
-            Traceback (most recent call last):
-            ...
-            ValueError: Characters must have prime moduli at this time -- use check=False to allow non-prime moduli
-            sage: g.jacobi_sum(g, check=False)
-            5
-            sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             3
 
-        TODO: Implement Jacobi sums for characters with output in finite
-        fields GF(q) for q non-prime.
+        We consider a sum with values in a finite field::
+
+            sage: g = DirichletGroup(17, GF(9,'a')).0
+            sage: g.jacobi_sum(g**2)
+            2*a
         """
         if check:
             if self.parent() != char.parent():
                 raise NotImplementedError, "Characters must be from the same Dirichlet Group."
-            if not self.parent().modulus().is_prime():
-                raise ValueError, "Characters must have prime moduli at this time -- use check=False to allow non-prime moduli"
-        # If they are both trivial, return p
-        if self.is_trivial() and char.is_trivial():
-            return (self.parent()).order() - 1
-        # If they are inverses of each other, return -self(-1)
-        prod = self*char
-        if prod.is_trivial():
-            return -self(-1)
-        # If both are nontrivial, apply mult. formula:
-        elif not self.is_trivial() and not char.is_trivial():
-            return self.gauss_sum()*char.gauss_sum()/prod.gauss_sum()
-        # If exactly one is trivial, return -1
-        else:
-            return -1
+
+        return sum([self(x) * char(1-x) for x in rings.IntegerModRing(self.modulus())])
 
     def kloosterman_sum(self, a=1,b=0):
         r"""
         Return the "twisted" Kloosterman sum associated to this Dirichlet character.
         This includes Gauss sums, classical Kloosterman sums, Salie sums, etc.
 
-        The Kloosterman sum associated to $\chi$ and the integers a,b is
-        $$
-        K(a,b,\chi) = \sum_{r \in (\Z/m\Z)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
-        $$
-        where $m$ is the modulus of $\chi$ and $\zeta$ is a primitive
-        $m$th root of unity, i.e., $\zeta$ is
-        \code{self.parent().zeta()}. This reduces to to the Gauss sum if b=0.
+        The Kloosterman sum associated to `\chi` and the integers a,b is
 
-        CACHING: Computed Kloosterman sums are \emph{not} cached with this
+        .. math::
+
+            K(a,b,\chi) = \sum_{r \in (\ZZ/m\ZZ)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
+
+        where `m` is the modulus of `\chi` and `\zeta` is a primitive
+        `m`th root of unity. This reduces to to the Gauss sum if `b=0`.
+
+        CACHING: Computed Kloosterman sums are *not* cached with this
         character.
 
         EXAMPLES::
@@ -1084,6 +1065,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 g += phi(self.__call__(c))*z
         return g
 
+    @cached_method
     def is_even(self):
         r"""
         Return ``True`` if and only if `\varepsilon(-1) = 1`.
@@ -1108,14 +1090,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        try:
-            return self.__is_even
-        except AttributeError:
-            pass
-        self.__is_even = (self(-1) == self.base_ring()(1))
-        return self.__is_even
+        return (self(-1) == self.base_ring()(1))
 
-
+    @cached_method
     def is_odd(self):
         r"""
         Return ``True`` if and only if
@@ -1139,13 +1116,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        try:
-            return self.__is_odd
-        except AttributeError:
-            pass
-        self.__is_odd = (self(-1) == self.base_ring()(-1))
-        return self.__is_odd
+        return (self(-1) == self.base_ring()(-1))
 
+    @cached_method
     def is_primitive(self):
         """
         Return ``True`` if and only if this character is
@@ -1161,13 +1134,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: (a*b).is_primitive()
             True
         """
-        try:
-            return self.__is_primitive
-        except AttributeError:
-            pass
-        self.__is_primitive = (self.conductor() == self.modulus())
-        return self.__is_primitive
+        return (self.conductor() == self.modulus())
 
+    @cached_method
     def is_trivial(self):
         r"""
         Returns ``True`` if this is the trivial character,
@@ -1181,15 +1150,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: (a^2).is_trivial()
             True
         """
-        try:
-            self.__is_trivial
-        except AttributeError:
-            pass
-        self.__is_trivial = True
-        R = self.base_ring()
-        z = self.element() == 0
-        self.__is_trivial = z
-        return z
+        return (self.element() == 0)
 
     def kernel(self):
         r"""
@@ -1320,6 +1281,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return self.modulus()
 
+    @cached_method
     def multiplicative_order(self):
         """
         The order of this character.
@@ -1335,13 +1297,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.multiplicative_order()
             2
         """
-        try:
-            return self.__order
-        except AttributeError:
-            pass
-        o = self.element().additive_order()
-        self.__order = o
-        return o
+        return self.element().additive_order()
 
     def primitive_character(self):
         """
@@ -2006,6 +1962,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 #        """
 #        return self._zeta.parent()
 
+    @cached_method
     def decomposition(self):
         r"""
         Returns the Dirichlet groups of prime power modulus corresponding
@@ -2027,16 +1984,11 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             Group of Dirichlet characters of modulus 5 over Finite Field of size 5
             ]
         """
-        try:
-            return self._decomp
-        except AttributeError:
-            pass
         R = self.base_ring()
-        self._decomp = Sequence([DirichletGroup(p**r,R) for p, r \
+        return Sequence([DirichletGroup(p**r,R) for p, r \
                            in arith.factor(self.modulus())],
                                 cr=True,
-                                universe = sage.categories.all.Objects())
-        return self._decomp
+                                universe = cat.Objects())
 
     def exponent(self):
         """
@@ -2055,6 +2007,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         """
         return self._zeta_order
 
+    @cached_method
     def _automorphisms(self):
         """
         Compute the automorphisms of self. These are always given by raising to
@@ -2077,10 +2030,6 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             ...
             NotImplementedError: Automorphisms for finite non-field base rings not implemented
         """
-        try:
-            return self.__automorphisms
-        except AttributeError:
-            pass
         n = self.zeta_order()
         R = self.base_ring()
         p = R.characteristic()
@@ -2095,7 +2044,6 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             # where p^r = 1 (mod n), so r is the mult order of p modulo n.
             r = rings.IntegerModRing(n)(p).multiplicative_order()
             Auts = [p**m for m in xrange(0,r)]
-        self.__automorphisms = Auts
         return Auts
 
     def galois_orbits(self, v=None, reps_only=False, sort=True, check=True):
@@ -2267,6 +2215,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         """
         return len(self.gens())
 
+    @cached_method
     def order(self):
         """
         Return the number of elements of self. This is the same as
@@ -2279,14 +2228,10 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: DirichletGroup(37).order()
             36
         """
-        try:
-            return self._order
-        except AttributeError:
-            pass
-        self._order = rings.Integer(1)
+        ord = rings.Integer(1)
         for g in self.gens():
-            self._order *= int(g.order())
-        return self._order
+            ord *= int(g.order())
+        return ord
 
     def random_element(self):
         """

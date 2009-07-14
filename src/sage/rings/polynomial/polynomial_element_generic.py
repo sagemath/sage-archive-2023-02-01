@@ -864,7 +864,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
         return real_roots(self)
 
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of this polynomial.
         """

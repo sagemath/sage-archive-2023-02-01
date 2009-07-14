@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, subprocess, shutil, glob, optparse
+import glob, logging, optparse, os, shutil, subprocess, sys, textwrap
 
 #We remove the current directory from sys.path right away
 #so that we import sage from the proper spot
@@ -26,7 +26,7 @@ else:
     PAPEROPTS = ""
 
 #Note that this needs to have the doctrees dir
-ALLSPHINXOPTS   = SPHINXOPTS + " " + PAPEROPTS + " . "
+ALLSPHINXOPTS   = SPHINXOPTS + " " + PAPEROPTS + " "
 
 
 ##########################################
@@ -84,15 +84,15 @@ def copytree(src, dst, symlinks=False, ignore_errors=False):
             else:
                 shutil.copy2(srcname, dstname)
             # XXX What about devices, sockets etc.?
-        except (IOError, os.error), why:
+        except (IOError, os.error) as why:
             errors.append((srcname, dstname, str(why)))
         # catch the Error from the recursive copytree so that we can
         # continue with other files
-        except shutil.Error, err:
+        except shutil.Error as err:
             errors.extend(err.args[0])
     try:
         shutil.copystat(src, dst)
-    except OSError, why:
+    except OSError as why:
         errors.extend((src, dst, str(why)))
     if errors and not ignore_errors:
         raise shutil.Error, errors
@@ -112,12 +112,13 @@ def builder_helper(type):
         os.chdir(self.dir)
 
         build_command = 'sphinx-build'
-        build_command += ' -b %s -d %s %s %s'%(type, self._doctrees_dir(),
-                                               ALLSPHINXOPTS, output_dir)
-        print build_command
+        build_command += ' -b %s -d %s %s %s %s'%(type, self._doctrees_dir(),
+                                                  ALLSPHINXOPTS, self.dir,
+                                                  output_dir)
+        logger.warning(build_command)
         subprocess.call(build_command, shell=True)
 
-        print "Build finished.  The built documents can be found in %s"%output_dir
+        logger.warning("Build finished.  The built documents can be found in %s", output_dir)
 
     f.is_output_format = True
     return f
@@ -215,7 +216,7 @@ class DocBuilder(object):
         for pdf_file in glob.glob('*.pdf'):
             shutil.move(pdf_file, os.path.join(pdf_dir, pdf_file))
 
-        print "Build finished.  The built documents can be found in %s"%pdf_dir
+        logger.warning("Build finished.  The built documents can be found in %s", pdf_dir)
 
     def clean(self, *args):
         """
@@ -340,17 +341,26 @@ class ReferenceBuilder(DocBuilder):
         This is the wrapper around the builder_helper methods that
         goes through and makes sure things are up to date.
         """
-        #Write the .rst files for newly included modules
-        for module_name in self.get_newly_included_modules(save=True):
-            self.write_auto_rest_file(module_name)
+        # After "sage -clone", refresh the .rst file mtimes in
+        # environment.pickle.
+        if update_mtimes:
+            logger.info("Checking for .rst file mtimes to update...")
+            self.update_mtimes()
 
         #Update the .rst files for modified Python modules
+        logger.info("Updating .rst files with modified modules...")
         for module_name in self.get_modified_modules():
             self.write_auto_rest_file(module_name.replace(os.path.sep, '.'))
+
+        #Write the .rst files for newly included modules
+        logger.info("Writing .rst files for newly-included modules...")
+        for module_name in self.get_newly_included_modules(save=True):
+            self.write_auto_rest_file(module_name)
 
         #Copy over the custom .rst files from _sage
         _sage = os.path.join(self.dir, '_sage')
         if os.path.exists(_sage):
+            logger.info("Copying over custom .rst files from %s ...", _sage)
             copytree(_sage, os.path.join(self.dir, 'sage'))
 
         getattr(DocBuilder, build_type)(self, *args, **kwds)
@@ -358,35 +368,35 @@ class ReferenceBuilder(DocBuilder):
     def cache_filename(self):
         """
         Returns the filename where the pickle of the dictionary of
-        already generated .rst files is stored.
+        already generated ReST files is stored.
         """
         return os.path.join(self._doctrees_dir(), 'reference.pickle')
 
     @cached_method
     def get_cache(self):
         """
-        Retreive the cache of already generated .rst files.  If it
+        Retreive the cache of already generated ReST files.  If it
         doesn't exist, then we just return an empty dictionary.
         """
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-
         import cPickle
         file = open(self.cache_filename(), 'rb')
         cache = cPickle.load(file)
         file.close()
+        logger.debug("Loaded .rst file cache: %s", filename)
         return cache
-
 
     def save_cache(self):
         """
-        Save the cache of already generated .rst files.
+        Save the cache of already generated ReST files.
         """
         import cPickle
         file = open(self.cache_filename(), 'wb')
         cPickle.dump(self.get_cache(), file)
         file.close()
+        logger.debug("Saved .rst file cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
         """
@@ -400,9 +410,30 @@ class ReferenceBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            return BuildEnvironment.frompickle(config, env_pickle)
-        except IOError:
+            env = BuildEnvironment.frompickle(config, env_pickle)
+            logger.debug("Opened Sphinx environment: %s", env_pickle)
+            return env
+        except IOError as err:
+            logger.debug("Failed to open Sphinx environment: %s", err)
             pass
+
+    def update_mtimes(self):
+        """
+        Updates the modification times for ReST files in the Sphinx
+        environment for this project.
+        """
+        env = self.get_sphinx_environment()
+        if env is not None:
+            import time
+            for doc in env.all_docs:
+                env.all_docs[doc] = time.time()
+            logger.info("Updated %d .rst file mtimes", len(env.all_docs))
+            # This is the only place we need to save (as opposed to
+            # load) Sphinx's pickle, so we do it right here.
+            env_pickle = os.path.join(self._doctrees_dir(),
+                                      'environment.pickle')
+            env.topickle(env_pickle)
+            logger.debug("Saved Sphinx environment: %s", env_pickle)
 
     def get_modified_modules(self):
         """
@@ -411,8 +442,15 @@ class ReferenceBuilder(DocBuilder):
         """
         env = self.get_sphinx_environment()
         if env is None:
+            logger.debug("Stopped check for modified modules.")
             return
-        added, changed, removed = env.get_outdated_files(False)
+        try:
+            added, changed, removed = env.get_outdated_files(False)
+            logger.info("Sphinx found %d modified modules", len(changed))
+        except OSError as err:
+            logger.debug("Sphinx failed to determine modified modules: %s", err)
+            self.clean_auto()
+            return
         for name in changed:
             if name.startswith('sage'):
                 yield name
@@ -453,11 +491,13 @@ class ReferenceBuilder(DocBuilder):
         toctrees that don't appear in the cache.
         """
         cache = self.get_cache()
-        new_modules = []
+        new_modules = 0
         for module in self.get_all_included_modules():
             if module not in cache:
                 cache[module] = True
+                new_modules += 1
                 yield module
+        logger.info("Found %d newly included modules", new_modules)
         if save:
             self.save_cache()
 
@@ -471,8 +511,8 @@ class ReferenceBuilder(DocBuilder):
 
     def get_modules(self, filename):
         """
-        Given a filename for a .rst file, return an iterator for
-        all of the autogenerated rst files that it includes.
+        Given a filename for a ReST file, return an iterator for
+        all of the autogenerated ReST files that it includes.
         """
         #Create the regular expression used to detect an autogenerated file
         import re
@@ -496,9 +536,8 @@ class ReferenceBuilder(DocBuilder):
         try:
             import sage.all
             __import__(module_name)
-        except ImportError, err:
-            print "Warning: could not import %s"%module_name
-            print err
+        except ImportError as err:
+            logger.error("Warning: Could not import %s %s", module_name, err)
             return "UNABLE TO IMPORT MODULE"
         module = sys.modules[module_name]
 
@@ -516,7 +555,7 @@ class ReferenceBuilder(DocBuilder):
 
     def write_auto_rest_file(self, module_name):
         """
-        Writes the autogenerated .rst file for module_name.
+        Writes the autogenerated ReST file for module_name.
         """
         if not module_name.startswith('sage'):
             return
@@ -528,7 +567,7 @@ class ReferenceBuilder(DocBuilder):
         title = self.get_module_docstring_title(module_name)
 
         if title == '':
-            print "WARNING: Missing title for", module_name
+            logger.error("Warning: Missing title for %s", module_name)
             title = "MISSING TITLE"
 
         outfile.write(title + '\n')
@@ -546,9 +585,15 @@ class ReferenceBuilder(DocBuilder):
         """
         if os.path.exists(self.cache_filename()):
             os.unlink(self.cache_filename())
+            logger.debug("Deleted .rst cache file: %s", self.cache_filename())
 
         import shutil
-        shutil.rmtree(self.dir + '/sage')
+        try:
+            shutil.rmtree(os.path.join(self.dir, 'sage'))
+            logger.debug("Deleted auto-generated .rst files in: %s",
+                         os.path.join(self.dir, 'sage'))
+        except OSError:
+            pass
 
     def get_unincluded_modules(self):
         """
@@ -598,7 +643,6 @@ class ReferenceBuilder(DocBuilder):
             print module_name
 
 
-
 def get_builder(name):
     """
     Returns a either a AllBuilder or DocBuilder object depending
@@ -615,53 +659,345 @@ def get_builder(name):
         return DocBuilder(name)
 
 
-def help_message():
+def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     """
-    Returns the help message.
+    Utility function that formats a list as a simple table and returns
+    a Unicode string representation.  The number of columns is
+    computed from the other options, unless it's passed as a keyword
+    argument.  For help on Python's string formatter, see
+
+    http://docs.python.org/library/string.html#format-string-syntax
+    """
+    # Can we generalize this (efficiently) to other / multiple inputs
+    # and generators?
+    size = max(map(len, lst)) + pad
+    if cols is None:
+        import math
+        cols = math.trunc((width - indent) / size)
+    s = " " * indent
+    for i in xrange(len(lst)):
+        if i != 0 and i % cols == 0:
+            s += "\n" + " " * indent
+        s += "{0:{1}{2}}".format(lst[i], align, size)
+    s += "\n"
+    return unicode(s)
+
+def help_usage(s=u"", compact=False):
+    """
+    Appends and returns a brief usage message for the Sage
+    documentation builder.  If 'compact' is False, the function adds a
+    final newline character.
+    """
+    s += "sage -docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)"
+    if not compact:
+        s += "\n"
+    return s
+
+def help_description(s=u"", compact=False):
+    """
+    Appends and returns a brief description of the Sage documentation
+    builder.  If 'compact' is False, the function adds a final newline
+    character.
+    """
+    s += "Build or return information about Sage documentation.\n"
+    s += "    DOCUMENT    name of the document to build\n"
+    s += "    FORMAT      document output format\n"
+    s += "    COMMAND     document-specific command\n"
+    s += "A DOCUMENT and either a FORMAT or a COMMAND are required,\n"
+    s += "unless a list of one or more of these is requested."
+    if not compact:
+        s += "\n"
+    return s
+
+def help_examples(s=u""):
+    """
+    Appends and returns some usage examples for the Sage documentation
+    builder.
+    """
+    s += "Examples:\n"
+    s += "    sage -docbuild -FDC all\n"
+    s += "    sage -docbuild constructions pdf\n"
+    s += "    sage -docbuild reference html -jv3\n"
+    s += "    sage -docbuild --jsmath tutorial html\n"
+    s += "    sage -docbuild reference print_unincluded_modules\n"
+    s += "    sage -docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
+    return s
+
+def get_documents():
+    """
+    Returns a list of document names the Sage documentation builder
+    will accept as command-line arguments.
     """
     all_b = AllBuilder()
     docs = all_b.get_all_documents()
     docs = [(d[3:] if d[0:3] == 'en/' else d) for d in docs]
+    return docs
+
+def help_documents(s=u""):
+    """
+    Appends and returns a tabular list of documents, including a
+    shortcut 'all' for all documents, available to the Sage
+    documentation builder.
+    """
+    s += "DOCUMENTs:\n"
+    s += format_columns(get_documents() + ['all  (!)'])
+    s += "(!) Builds everything.\n"
+    return s
+
+def get_formats():
+    """
+    Returns a list of output formats the Sage documentation builder
+    will accept on the command-line.
+    """
     tut_b = DocBuilder('en/tutorial')
     formats = tut_b._output_formats()
     formats.remove('html')
-    help = "Usage: sage -docbuild {document} {format}\n"
-    help += "Where {document} is one of:\n    "
-    help += "\n    ".join(docs)
-    help += "\nor 'all' for all documents, and {format} is one of:\n    "
-    help += 'html, pdf, ' + ', '.join(formats)
-    help += "\n"
-    help += "When building the reference manual, there are several additional\n"
-    help += "values for {format}:\n"
-    help += "    print_modified_modules: list modules modified since the documentation\n"
-    help += "         was last built\n"
-    help += "    print_newly_included_modules: list modules added to the\n"
-    help += "         documentation since it was last built\n"
-    help += "    print_unincluded_modules: list modules not included in the documentation\n"
-    help += "    print_included_modules: list modules included in the documentation\n"
-    print help
+    return ['html', 'pdf'] + formats
+
+def help_formats(s=u""):
+    """
+    Appends and returns a tabular list of output formats available to
+    the Sage documentation builder.
+    """
+    s += "FORMATs:\n"
+    s += format_columns(get_formats())
+    return s
+
+def help_commands(name='all', s=u""):
+    """
+    Appends and returns a tabular list of commands, if any, the Sage
+    documentation builder can run on the indicated document.  The
+    default is to list all commands for all documents.
+    """
+    # To do: Generate the lists dynamically, using class attributes,
+    # as with the Builders above.
+    command_dict = { 'reference' : [
+        'print_included_modules',   'print_modified_modules       (*)',
+        'print_unincluded_modules', 'print_newly_included_modules (*)',
+        ] }
+    for doc in command_dict:
+        if name == 'all' or doc == name:
+            s += "COMMANDs for the DOCUMENT '" + doc + "':\n"
+            s += format_columns(command_dict[doc])
+            s += "(*) Since the last build.\n"
+    return s
+
+def help_message_long(option, opt_str, value, parser):
+    """
+    Prints an extended help message for the Sage documentation builder
+    and exits.
+    """
+    help_funcs = [ help_usage, help_description, help_documents,
+                   help_formats, help_commands, parser.format_option_help,
+                   help_examples ]
+    for f in help_funcs:
+        print f()
+    sys.exit(0)
+
+def help_message_short(option=None, opt_str=None, value=None, parser=None,
+                       error=False):
+    """
+    Prints a help message for the Sage documentation builder.  The
+    message includes command-line usage and a list of options.  The
+    message is printed only on the first call.  If error is True
+    during this call, the message is printed only if the user hasn't
+    requested a list (e.g., documents, formats, commands).
+    """
+    if not hasattr(parser.values, 'printed_help'):
+        if error == True:
+            if not hasattr(parser.values, 'printed_list'):
+                parser.print_help()
+        else:
+            parser.print_help()
+        setattr(parser.values, 'printed_help', 1)
+
+def help_wrapper(option, opt_str, value, parser):
+    """
+    A helper wrapper for command-line options to the Sage
+    documentation builder that print lists, such as document names,
+    formats, and document-specific commands.
+    """
+    if option.dest == 'commands':
+        print help_commands(value),
+    if option.dest == 'documents':
+        print help_documents(),
+    if option.dest == 'formats':
+        print help_formats(),
+    setattr(parser.values, 'printed_list', 1)
 
 
-parser = optparse.OptionParser(usage="usage: sage -docbuild [options] name type")
-parser.add_option("--jsmath", action="store_true",
-                  help="render math using jsMath")
-parser.print_help = help_message
+class IndentedHelpFormatter2(optparse.IndentedHelpFormatter, object):
+    """
+    Custom help formatter class for optparse's OptionParser.
+    """
+    def format_description(self, description):
+        """
+        Returns a formatted description, preserving any original
+        explicit new line characters.
+        """
+        if description:
+            lines_in = description.split('\n')
+            lines_out = [self._format_text(line) for line in lines_in]
+            return "\n".join(lines_out) + "\n"
+        else:
+            return ""
+
+    def format_heading(self, heading):
+        """
+        Returns a formatted heading using the superclass' formatter.
+        If the heading is 'options', up to case, the function converts
+        it to ALL CAPS.  This allows us to match the heading 'OPTIONS' with
+        the same token in the builder's usage message.
+        """
+        if heading.lower() == 'options':
+            heading = "OPTIONS"
+        return super(IndentedHelpFormatter2, self).format_heading(heading)
+
+def setup_parser():
+    """
+    Sets up and returns a command-line OptionParser instance for the
+    Sage documentation builder.
+    """
+    # Documentation: http://docs.python.org/library/optparse.html
+    parser = optparse.OptionParser(add_help_option=False,
+                                   usage=help_usage(compact=True),
+                                   formatter=IndentedHelpFormatter2(),
+                                   description=help_description(compact=True))
+
+    # Standard options. Note: We use explicit option.dest names
+    # to avoid ambiguity.
+    standard = optparse.OptionGroup(parser, "Standard")
+    standard.add_option("-h", "--help",
+                        action="callback", callback=help_message_short,
+                        help="show a help message and exit")
+    standard.add_option("-H", "--help-all",
+                        action="callback", callback=help_message_long,
+                        help="show an extended help message and exit")
+    standard.add_option("-D", "--documents", dest="documents",
+                        action="callback", callback=help_wrapper,
+                        help="list all available DOCUMENTs")
+    standard.add_option("-F", "--formats", dest="formats",
+                        action="callback", callback=help_wrapper,
+                        help="list all output FORMATs")
+    standard.add_option("-C", "--commands", dest="commands",
+                        type="string", metavar="DOC",
+                        action="callback", callback=help_wrapper,
+                        help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
+    standard.add_option("-j", "--jsmath", dest="jsmath",
+                        action="store_true",
+                        help="render math using jsMath; FORMATs: html, json, pickle, web")
+
+    standard.add_option("-N", "--no-colors", dest="color", default=True,
+                        action="store_false",
+                        help="do not color output; does not affect children")
+    standard.add_option("-q", "--quiet", dest="verbose",
+                        action="store_const", const=0,
+                        help="work quietly; same as --verbose=0")
+    standard.add_option("-v", "--verbose", dest="verbose",
+                        type="int", default=1, metavar="LEVEL",
+                        action="store",
+                        help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
+    parser.add_option_group(standard)
+
+    # Advanced options.
+    advanced = optparse.OptionGroup(parser, "Advanced",
+                                    "Use these options with care.")
+    advanced.add_option("-S", "--sphinx-opts", dest="sphinx_opts",
+                        type="string", metavar="OPTS",
+                        action="store",
+                        help="pass comma-separated OPTS to sphinx-build")
+    advanced.add_option("-U", "--update-mtimes", dest="update_mtimes",
+                        action="store_true",
+                        help="before building reference manual, update modification times for auto-generated ReST files")
+    parser.add_option_group(advanced)
+
+    return parser
+
+def setup_logger(verbose=1, color=True):
+    """
+    Sets up and returns a Python Logger instance for the Sage
+    documentation builder.  The optional argument sets logger's level
+    and message format.
+    """
+    # Set up colors. Adapted from sphinx.cmdline.
+    import sphinx.util.console as c
+    if not color or not sys.stdout.isatty() or not c.color_terminal():
+        c.nocolor()
+
+    # Available colors: black, darkgray, (dark)red, dark(green),
+    # brown, yellow, (dark)blue, purple, fuchsia, turquoise, teal,
+    # lightgray, white.  Available styles: reset, bold, faint,
+    # standout, underline, blink.
+
+    # Set up log record formats.
+    format_std = "%(message)s"
+    formatter = logging.Formatter(format_std)
+
+    # format_debug = "%(module)s #%(lineno)s %(funcName)s() %(message)s"
+    fields = ['%(module)s', '#%(lineno)s', '%(funcName)s()', '%(message)s']
+    colors = ['darkblue', 'darkred', 'brown', 'reset']
+    styles = ['reset', 'reset', 'reset', 'reset']
+    format_debug = ""
+    for i in xrange(len(fields)):
+        format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
+        if i != len(fields):
+            format_debug += " "
+
+    # Documentation:  http://docs.python.org/library/logging.html
+    logger = logging.getLogger('doc.common.builder')
+
+    # Note: There's also Handler.setLevel().  The argument is the
+    # lowest severity message that the respective logger or handler
+    # will pass on.  The default levels are DEBUG, INFO, WARNING,
+    # ERROR, and CRITICAL.  We use "WARNING" for normal verbosity and
+    # "ERROR" for quiet operation.  It's possible to define custom
+    # levels.  See the documentation for details.
+    if verbose == 0:
+        logger.setLevel(logging.ERROR)
+    if verbose == 1:
+        logger.setLevel(logging.WARNING)
+    if verbose == 2:
+        logger.setLevel(logging.INFO)
+    if verbose == 3:
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(format_debug)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
+
 
 if __name__ == '__main__':
+    # Parse the command-line.
+    parser = setup_parser()
     options, args = parser.parse_args()
 
-    if options.jsmath:
-        os.environ['SAGE_DOC_JSMATH'] = "True"
-
-    #Get the name of the document we are trying to build
+    # Get the name and type (target format) of the document we are
+    # trying to build.
     try:
         name, type = args
     except ValueError:
-        print "You must specify the document name and the output format"
-        sys.exit(0)
+        help_message_short(parser=parser, error=True)
+        sys.exit(1)
 
-    #Make sure common/static exists
+    # Set up module-wide logging.
+    logger = setup_logger(options.verbose, options.color)
+
+    # Process selected options.
+    if options.jsmath:
+        os.environ['SAGE_DOC_JSMATH'] = "True"
+
+    if options.sphinx_opts:
+        ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
+
+    if options.update_mtimes:
+        update_mtimes = True
+    else:
+        update_mtimes = False
+
+    # Make sure common/static exists.
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))
 
-    #Get the builder and build
+    # Get the builder and build.
     getattr(get_builder(name), type)()

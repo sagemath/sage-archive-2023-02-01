@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, shutil
+import os, sys, shutil, subprocess
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
 
@@ -65,15 +65,23 @@ def copy_dtree(src_dir, dest_dir):
             os.link(root+'/'+f,nroot+'/'+f)
             os.utime(nroot+'/'+f, None)
 
-print "Copying over build directory."
+print "Copying over build directory..."
 copy_dtree('sage/build', branch + '/build')
-# Done copying over build cache.
 
-#Copying over documentation output
-print "Copying over documentation output"
+print "Copying over all auto-generated reference manual .rst files..."
+sys.path.append(os.environ['SAGE_DOC'])
+from common.builder import LANGUAGES
+for lang in LANGUAGES:
+    try:
+        shutil.copytree(os.path.join('sage/doc', lang, 'reference/sage'),
+                        os.path.join(branch, 'doc', lang, 'reference/sage'))
+    except:
+        pass
+
+print "Copying over documentation output..."
 copy_dtree('sage/doc/output', branch + '/doc/output')
 
-print "Building " + branch
+print "Building " + branch + "..."
 try:
     if os.environ["SAGE_PBUILD"] == "yes":
 	print "Pbuild is currently broken -- defaulting to serial build."
@@ -98,6 +106,35 @@ print cmd
 if os.system(cmd):
     print "Error building Sage"
 
+try:
+    index = open(os.path.join(SAGE_ROOT, "devel/sage/doc/output/html/en/reference/index.html"))
+    if index.read().find("jsmath") != -1:
+        jsmath = " --jsmath"
+    else:
+        jsmath = ""
+    print ""
+    print "After cloning, if you change any Sage library files and want to rebuild"
+    print "the html version of the reference manual, use the command"
+    print "    sage -docbuild%s reference html"%jsmath
+    print "(after running 'sage -b')."
+    print ""
+    print "Note: if *before* cloning, you have changed any Sage library files"
+    print "without rebuilding the reference manual, then after cloning, you"
+    print "will need to touch those files again if you want the changes"
+    print "to be incorporated into the reference manual."
+    print ""
+    print "Updating modification times for the documentation..."
+    cmd = 'sage -docbuild%s --update-mtimes reference html'%jsmath
+    print cmd
+    proc = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+    if proc.wait():
+        print ""
+        print "Warning: Error updating modification times. (The clone will"
+        print "work fine, but building the reference manual may take longer"
+        print "than it should.)"
+        print ""
+except IOError:
+    pass
 
 print "*** WARNING ***"
 print "If you are cloning a previous revision or have uncommitted changes to"

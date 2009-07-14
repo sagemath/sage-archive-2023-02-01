@@ -891,7 +891,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
     def jacobi_sum(self, char, check=True):
         """
         Return the Jacobi sum associated to these Dirichlet characters
-        (i.e., J(self,char)).
+        (i.e., J(self,char)). This is defined as
+
+        .. math::
+
+            J(\chi, \psi) = \sum_{a \in \ZZ / N\ZZ} \chi(a) \psi(1-a)
+
+        where `\chi` and `\psi` are both characters modulo `N`.
 
         EXAMPLES::
 
@@ -986,7 +992,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             K(a,b,\chi) = \sum_{r \in (\ZZ/m\ZZ)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
 
         where `m` is the modulus of `\chi` and `\zeta` is a primitive
-        `m`th root of unity. This reduces to to the Gauss sum if `b=0`.
+        `m` th root of unity. This reduces to to the Gauss sum if `b=0`.
+
+        This method performs an exact calculation and returns an element of a
+        suitable cyclotomic field; see also :meth:`.kloosterman_sum_numerical`,
+        which gives an inexact answer (but is generally much quicker).
 
         CACHING: Computed Kloosterman sums are *not* cached with this
         character.
@@ -1023,12 +1033,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
     def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
         r"""
         Return the Kloosterman sum associated to this Dirichlet character as
-        an approximate complex number with prec bits of precision.
+        an approximate complex number with prec bits of precision. See also
+        :meth:`.kloosterman_sum`, which calculates the sum exactly (which is
+        generally slower).
 
         INPUT:
-        -  prec -- integer (deafault: 53), *bits* of precision
-        -  a -- integer, as for kloosterman_sum
-        -  b -- integer, as for kloosterman_sum.
+
+        - ``prec`` -- integer (default: 53), *bits* of precision
+        - ``a`` -- integer, as for :meth:`.kloosterman_sum`
+        - ``b`` -- integer, as for :meth:`.kloosterman_sum`.
 
         EXAMPLES::
 

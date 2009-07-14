@@ -436,6 +436,175 @@ cdef class Matrix(matrix1.Matrix):
             pr = pr * sum(tmp)
         return pr
 
+    def elementwise_product(self, right):
+        r"""
+        Returns the elementwise product of two matrices
+        of the same size (also known as the Hadamard product).
+
+        INPUT:
+
+        - ``right`` - the right operand of the product.  A matrix
+          of the same size as ``self`` such that multiplication
+          of elements of the base rings of ``self`` and ``right``
+          is defined, once Sage's coercion model is applied.  If
+          the matrices have different sizes, or if multiplication
+          of individual entries cannot be achieved, a ``TypeError``
+          will result.
+
+        OUTPUT:
+
+        A matrix of the same size as ``self`` and ``right``.  The
+        entry in location `(i,j)` of the output is the product of
+        the two entries in location `(i,j)` of ``self`` and
+        ``right`` (in that order).
+
+        The parent of the result is determined by Sage's coercion
+        model.  If the base rings are identical, then the result
+        is dense or sparse according to this property for
+        the left operand.  If the base rings must be adjusted
+        for one, or both, matrices then the result will be sparse
+        only if both operands are sparse.  No subdivisions are
+        present in the result.
+
+        If the type of the result is not to your liking, or
+        the ring could be "tighter," adjust the operands with
+        :meth:`~sage.matrix.matrix0.Matrix.change_ring`.
+        Adjust sparse versus dense inputs with the methods
+        :meth:`~sage.matrix.matrix1.Matrix.sparse_matrix` and
+        :meth:`~sage.matrix.matrix1.Matrix.dense_matrix`.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 2, range(6))
+            sage: B = matrix(QQ, 2, [5, 1/3, 2/7, 11/2, -3/2, 8])
+            sage: C = A.elementwise_product(B)
+            sage: C
+            [   0  1/3  4/7]
+            [33/2   -6   40]
+            sage: C.parent()
+            Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+
+        Notice the base ring of the results in the next two examples.  ::
+
+            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: E = matrix(QQ,2,[1,2,3,4])
+            sage: F = D.elementwise_product(E)
+            sage: F
+            [  x^2 + 1         4]
+            [        9 -4*x + 16]
+            sage: F.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+        ::
+
+            sage: G = matrix(GF(3),2,[0,1,2,2])
+            sage: H = matrix(ZZ,2,[1,2,3,4])
+            sage: J = G.elementwise_product(H)
+            sage: J
+            [0 2]
+            [0 2]
+            sage: J.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
+
+        Non-commutative rings behave as expected.  These are the usual quaternions. ::
+
+            sage: R.<i,j,k> = QuaternionAlgebra(-1, -1)
+            sage: A = matrix(R, 2, [1,i,j,k])
+            sage: B = matrix(R, 2, [i,i,i,i])
+            sage: A.elementwise_product(B)
+            [ i -1]
+            [-k  j]
+            sage: B.elementwise_product(A)
+            [ i -1]
+            [ k -j]
+
+        Input that is not a matrix will raise an error.  ::
+
+            sage: A = random_matrix(ZZ,5,10,x=20)
+            sage: A.elementwise_product(vector(ZZ, [1,2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: operand must be a matrix, not an element of Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        Matrices of different sizes for operands will raise an error. ::
+
+            sage: A = random_matrix(ZZ,5,10,x=20)
+            sage: B = random_matrix(ZZ,10,5,x=40)
+            sage: A.elementwise_product(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: incompatible sizes for matrices from: Full MatrixSpace of 5 by 10 dense matrices over Integer Ring and Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+
+        Some pairs of rings do not have a common parent where
+        multiplication makes sense.  This will raise an error. ::
+
+            sage: A = matrix(QQ, 3, range(6))
+            sage: B = matrix(GF(3), 3, [2]*6)
+            sage: A.elementwise_product(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Finite Field of size 3'
+
+        We illustrate various combinations of sparse and dense matrices.
+        Notice how if base rings are unequal, both operands must be sparse
+        to get a sparse result.  When the base rings are equal, the left
+        operand dictates the sparse/dense property of the result. This
+        behavior is entirely a consequence of the coercion model.  ::
+
+            sage: A = matrix(ZZ, 5, range(30), sparse=False)
+            sage: B = matrix(ZZ, 5, range(30), sparse=True)
+            sage: C = matrix(QQ, 5, range(30), sparse=True)
+            sage: A.elementwise_product(C).is_dense()
+            True
+            sage: B.elementwise_product(C).is_sparse()
+            True
+            sage: A.elementwise_product(B).is_dense()
+            True
+            sage: B.elementwise_product(A).is_sparse()
+            True
+
+        TESTS:
+
+        Implementation for dense and sparse matrices are
+        different, this will provide a trivial test that
+        they are working identically. ::
+
+            sage: A = random_matrix(ZZ, 10, x=1000, sparse=False)
+            sage: B = random_matrix(ZZ, 10, x=1000, sparse=False)
+            sage: C = A.sparse_matrix()
+            sage: D = B.sparse_matrix()
+            sage: E = A.elementwise_product(B)
+            sage: F = C.elementwise_product(D)
+            sage: E.is_dense() and F.is_sparse() and (E == F)
+            True
+
+        If the ring has zero divisors, the routines for setting
+        entries of a sparse matrix should intercept zero results
+        and not create an entry. ::
+
+            sage: R = Integers(6)
+            sage: A = matrix(R, 2, [3, 2, 0, 0], sparse=True)
+            sage: B = matrix(R, 2, [2, 3, 1, 0], sparse=True)
+            sage: C = A.elementwise_product(B)
+            sage: len(C.nonzero_positions()) == 0
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2009-07-13)
+        """
+        # Optimized routines for specialized classes would likely be faster
+        # See the "pairwise_product" of vectors for some guidance on doing this
+        from sage.structure.element import canonical_coercion
+        if not PY_TYPE_CHECK(right, Matrix):
+            raise TypeError('operand must be a matrix, not an element of %s' % right.parent())
+        if (self.nrows() != right.nrows()) or (self.ncols() != right.ncols()):
+            raise TypeError('incompatible sizes for matrices from: %s and %s'%(self.parent(), right.parent()))
+        if self._parent is not (<Matrix>right)._parent:
+            self, right = canonical_coercion(self, right)
+        return self._elementwise_product(right)
+
     def permanent(self):
         r"""
         Calculate and return the permanent of this `m \times n`

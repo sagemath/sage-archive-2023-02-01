@@ -248,6 +248,48 @@ cdef class Matrix_dense(matrix.Matrix):
                              [nr - t for t in reversed(row_divs)])
         return atrans
 
+    def _elementwise_product(self, right):
+        r"""
+        Returns the elementwise product of two dense
+        matrices with identical base rings.
+
+        This routine assumes that ``self`` and ``right``
+        are both matrices, both dense, with identical
+        sizes and with identical base rings.  It is
+        "unsafe" in the sense that these conditions
+        are not checked and no sensible errors are
+        raised.
+
+        This routine is meant to be called from the
+        meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
+        method, which will ensure that this routine receives
+        proper input.  More thorough documentation is provided
+        there.
+
+        EXAMPLE::
+
+            sage: A = matrix(ZZ, 2, range(6), sparse=False)
+            sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=False)
+            sage: A._elementwise_product(B)
+            [ 0  0  4]
+            [ 0 12  0]
+
+        AUTHOR:
+
+        - Rob Beezer (2009-07-14)
+        """
+        cdef Py_ssize_t r, c
+        cdef Matrix_dense other, prod
+
+        nc, nr = self.ncols(), self.nrows()
+        other = right
+        prod = self.new_matrix(nr, nc, copy=False, coerce=False)
+        for r in range(nr):
+            for c in range(nc):
+                entry = self.get_unsafe(r,c)*other.get_unsafe(r,c)
+                prod.set_unsafe(r,c,entry)
+        return prod
+
     def apply_morphism(self, phi):
         """
         Apply the morphism phi to the coefficients of this dense matrix.

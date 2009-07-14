@@ -384,6 +384,52 @@ cdef class Matrix_sparse(matrix.Matrix):
         self.cache('charpoly', f)
         return f
 
+    def _elementwise_product(self, right):
+        r"""
+        Returns the elementwise product of two sparse
+        matrices with identical base rings.
+
+        This routine assumes that ``self`` and ``right``
+        are both matrices, both sparse, with identical
+        sizes and with identical base rings.  It is
+        "unsafe" in the sense that these conditions
+        are not checked and no sensible errors are
+        raised.
+
+        This routine is meant to be called from the
+        meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
+        method, which will ensure that this routine receives
+        proper input.  More thorough documentation is provided
+        there.
+
+        EXAMPLE::
+
+            sage: A = matrix(ZZ, 2, range(6), sparse=True)
+            sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=True)
+            sage: A._elementwise_product(B)
+            [ 0  0  4]
+            [ 0 12  0]
+
+        AUTHOR:
+
+        - Rob Beezer (2009-07-14)
+        """
+        cdef Py_ssize_t k, r, c
+        cdef Matrix_sparse other, prod
+
+        nc, nr = self.ncols(), self.nrows()
+        other = right
+        prod = self.new_matrix(nr, nc, copy=False, coerce=False)
+        nzleft = self.nonzero_positions(copy=False)
+        nzright = other.nonzero_positions(copy=False)
+        for k from 0 <= k < len(nzleft):
+            r = get_ij(nzleft, k, 0)
+            c = get_ij(nzleft, k, 1)
+            if (r,c) in nzright:
+                entry = self.get_unsafe(r,c)*other.get_unsafe(r,c)
+                prod.set_unsafe(r,c,entry)
+        return prod
+
     def apply_morphism(self, phi):
         """
         Apply the morphism phi to the coefficients of this sparse matrix.

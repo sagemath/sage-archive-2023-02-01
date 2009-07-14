@@ -470,8 +470,15 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
             sage: I = K.ideal(17*b - 3*a)
-            sage: I.integral_basis()
+            sage: x = I.integral_basis(); x # random
             [438, -b*a + 309, 219*a - 219*b, 156*a - 154*b]
+
+        The exact results are somewhat unpredictable, hence the ``# random``
+        flag, but we can test that they are indeed a basis::
+
+            sage: V, _, phi = K.absolute_vector_space()
+            sage: V.span([phi(u) for u in x], ZZ) == I.free_module()
+            True
         """
         J = self.absolute_ideal()
         iso = J.number_field().structure()[0]

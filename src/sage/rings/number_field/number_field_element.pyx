@@ -3428,8 +3428,9 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
 
             sage: E.<a,b> = NumberField([x^2 - x + 2, x^2+ 1])
             sage: OE = E.ring_of_integers()
-            sage: OE(b - a).inverse_mod(17*b)
-            (-25*b + 26)*a + 51*b - 1
+            sage: t = OE(b - a).inverse_mod(17*b)
+            sage: (t * (b-a) - 1) in E.ideal(17*b)
+            True
         """
         return _inverse_mod_generic(self, I)
 

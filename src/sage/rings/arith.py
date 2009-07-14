@@ -625,6 +625,21 @@ def eratosthenes(n):
     Return a list of the primes `\leq n`.
 
     This is extremely slow and is for educational purposes only.
+
+    INPUT:
+
+    -  ``n`` - a positive integer
+
+    OUTPUT:
+
+    - a list of primes less than or equal to n.
+
+
+    EXAMPLES::
+        sage: len(eratosthenes(100))
+        25
+        sage: eratosthenes(3)
+        [2, 3]
     """
     n = int(n)
     if n == 2:
@@ -1089,9 +1104,29 @@ class Sigma:
         229199532273029988767733858700732906511758707916800
     """
     def __repr__(self):
+        """
+        A description of this class, which computes the sum of the
+        k-th powers of the divisors of n.
+
+        EXAMPLES::
+
+            sage: Sigma().__repr__()
+            'Function that adds up (k-th powers of) the divisors of n'
+        """
         return "Function that adds up (k-th powers of) the divisors of n"
 
     def __call__(self, n, k=1):
+        """
+        Computes the sum of (the k-th powers of) the divisors of n.
+
+        EXAMPLES::
+
+            sage: q = Sigma()
+            sage: q(10)
+            18
+            sage: q(10,2)
+            130
+        """
         n = ZZ(n)
         k = ZZ(k)
         one = ZZ(1)
@@ -1127,6 +1162,12 @@ class Sigma:
            points.
 
         -  ``**kwds`` - passed on
+
+        EXAMPLES::
+
+            sage: p = Sigma().plot()
+            sage: p.ymax()
+            124.0
         """
         v = [(n,sigma(n,k)) for n in range(xmin,xmax + 1)]
         from sage.plot.all import list_plot
@@ -1228,23 +1269,25 @@ def __GCD_sequence(v, **kwargs):
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import __GCD_sequence
+        sage: from sage.structure.sequence import Sequence
         sage: l = ()
-        sage: gcd(l)
+        sage: __GCD_sequence(l)
         0
-        sage: gcd(range(10))
+        sage: __GCD_sequence(Sequence(srange(10)))
         1
         sage: X=polygen(QQ)
-        sage: gcd((2*X+4,2*X^2,2))
+        sage: __GCD_sequence(Sequence((2*X+4,2*X^2,2)))
         1
         sage: X=polygen(ZZ)
-        sage: gcd((2*X+4,2*X^2,2))
+        sage: __GCD_sequence(Sequence((2*X+4,2*X^2,2)))
         2
     """
     if len(v) == 0:
         return ZZ(0)
-    try:
+    if hasattr(v,'universe'):
         g = v.universe()(0)
-    except AttributeError:
+    else:
         g = ZZ(0)
     one = v.universe()(1)
     for vi in v:
@@ -1320,30 +1363,32 @@ def __LCM_sequence(v):
 
     EXAMPLES::
 
-        sage: l = ()
-        sage: lcm(l)
+        sage: from sage.structure.sequence import Sequence
+        sage: from sage.rings.arith import __LCM_sequence
+        sage: l = Sequence(())
+        sage: __LCM_sequence(l)
         1
 
     This is because lcm(0,x)=0 for all x (by convention)
 
     ::
 
-        sage: lcm(range(100))
+        sage: __LCM_sequence(Sequence(srange(100)))
         0
 
     So for the lcm of all integers up to 10 you must do this::
 
-        sage: lcm(range(1,100))
+        sage: __LCM_sequence(Sequence(srange(1,100)))
         69720375229712477164533808935312303556800
 
     Note that the following example did not work in QQ[] as of 2.11,
     but does in 3.1.4; the answer is different, though equivalent::
 
         sage: R.<X>=ZZ[]
-        sage: lcm((2*X+4,2*X^2,2))
+        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
         2*X^3 + 4*X^2
         sage: R.<X>=QQ[]
-        sage: lcm((2*X+4,2*X^2,2))
+        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
         4*X^3 + 8*X^2
     """
     if len(v) == 0:
@@ -1693,6 +1738,24 @@ def rational_reconstruction(a, m, algorithm='fast'):
         raise ValueError, "unknown algorithm"
 
 def _rational_reconstruction_python(a,m):
+    """
+    Internal fallback function for rational_reconstruction; see
+    documentation of that function for details.
+
+    INPUT:
+
+    - ``a`` - an integer
+
+    - ``m`` - a modulus
+
+    EXAMPLES::
+
+        sage: from sage.rings.arith import _rational_reconstruction_python
+        sage: _rational_reconstruction_python(20,31)
+        -2/3
+        sage: _rational_reconstruction_python(11323,100000)
+        119/53
+    """
     a = int(a); m = int(m)
     a %= m
     if a == 0 or m==0:
@@ -1740,6 +1803,11 @@ def mqrr_rational_reconstruction(u, m, T):
     Almost Optimal Algorithm for Rational Reconstruction (page 11)
 
     This algorithm is probabilistic.
+
+    EXAMPLES::
+
+        sage: mqrr_rational_reconstruction(21,3100,13)
+        (21, 1)
     """
     if u == 0:
         if m > T:
@@ -1824,6 +1892,12 @@ def __factor_using_trial_division(n):
 
 
     -  ``list`` - factorization of n
+
+    EXAMPLES::
+
+        sage: from sage.rings.arith import __factor_using_trial_division
+        sage: __factor_using_trial_division(100)
+        [(2, 2), (5, 2)]
     """
     if n in [-1, 0, 1]: return []
     if n < 0: n = -n
@@ -1839,6 +1913,21 @@ def __factor_using_trial_division(n):
     return F
 
 def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
+    """
+    Factors an integer using pari.
+
+    INPUT:
+
+    -  ``n`` - an integer
+
+    EXAMPLES::
+
+        sage: from sage.rings.arith import __factor_using_pari
+        sage: __factor_using_pari(100)
+        [(2, 2), (5, 2)]
+        sage: __factor_using_pari(720)
+        [(2, 4), (3, 2), (5, 1)]
+    """
     if proof is None:
         from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "arithmetic")
@@ -2184,6 +2273,12 @@ def is_squarefree(n):
     """
     Returns True if and only if n is not divisible by the square of an
     integer > 1.
+
+    EXAMPLES::
+        sage: is_squarefree(100)
+        False
+        sage: is_squarefree(101)
+        True
     """
     if n==0:
         return False
@@ -2264,9 +2359,26 @@ class Euler_Phi:
     - Alex Clemesha (2006-01-10): some examples
     """
     def __repr__(self):
+        """
+        Returns a string describing this class.
+
+        EXAMPLES::
+
+            sage: Euler_Phi().__repr__()
+            'Number of positive integers <=n but relatively prime to n'
+        """
         return "Number of positive integers <=n but relatively prime to n"
 
-    def __call__(self, n, k=1):
+    def __call__(self, n):
+        """
+        Calls the euler_phi function.
+
+        EXAMPLES:
+            sage: Euler_Phi()(10)
+            4
+            sage: Euler_Phi()(720)
+            192
+        """
         if n<=0:
             return ZZ(0)
         if n<=2:
@@ -2294,6 +2406,12 @@ class Euler_Phi:
            points.
 
         -  ``**kwds`` - passed on
+
+        EXAMPLES::
+
+            sage: p = Euler_Phi().plot()
+            sage: p.ymax()
+            46.0
         """
         v = [(n,euler_phi(n)) for n in range(xmin,xmax + 1)]
         from sage.plot.all import list_plot
@@ -2363,6 +2481,18 @@ def CRT_basis(moduli):
     INPUT:
 
     -  ``list`` - list of integers
+
+    OUTPUT:
+
+    - a list of integers
+
+    EXAMPLES::
+
+        sage: a1 = ZZ(mod(42,5))
+        sage: a2 = ZZ(mod(42,13))
+        sage: c1,c2 = CRT_basis([5,13])
+        sage: mod(a1*c1+a2*c2,5*13)
+        42
     """
     n = len(moduli)
     if n == 0:
@@ -2389,6 +2519,11 @@ def CRT_vectors(X, moduli):
 
 
     -  ``list`` - application of CRT componentwise.
+
+    EXAMPLES:
+
+        sage: CRT_vectors([[3,5,7],[3,5,11]], [2,3])
+        [3, 5, 5]
     """
     # First find the CRT basis:
     if len(X) == 0 or len(X[0]) == 0:
@@ -2703,6 +2838,33 @@ def kronecker_symbol(x,y):
 
     -  ``y`` - integer
 
+    EXAMPLES::
+
+        sage: kronecker_symbol(13,21)
+        -1
+        sage: kronecker_symbol(101,4)
+        1
+
+    IMPLEMENTATION: Using GMP.
+    """
+    x = QQ(x).numerator() * QQ(x).denominator()
+    return ZZ(x.kronecker(y))
+
+def kronecker(x,y):
+    r"""
+    Synonym for :func:`kronecker_symbol`.
+
+    The Kronecker symbol `(x|y)`.
+
+    INPUT:
+
+    -  ``x`` - integer
+
+    -  ``y`` - integer
+
+    OUTPUT:
+
+    - an integer
 
     EXAMPLES::
 
@@ -2716,15 +2878,6 @@ def kronecker_symbol(x,y):
         -1
         sage: kronecker(2/3,5)
         1
-
-    IMPLEMENTATION: Using GMP.
-    """
-    x = QQ(x).numerator() * QQ(x).denominator()
-    return ZZ(x.kronecker(y))
-
-def kronecker(x,y):
-    r"""
-    Synonym for :func:`kronecker_symbol`.
     """
     return kronecker_symbol(x,y)
 
@@ -2887,6 +3040,12 @@ class Moebius:
         -1
     """
     def __call__(self, n):
+        """
+        EXAMPLES::
+
+            sage: Moebius().__call__(7)
+            -1
+        """
         if isinstance(n, (int, long)):
             n = ZZ(n)
         elif not isinstance(n, integer.Integer):
@@ -2906,6 +3065,15 @@ class Moebius:
 
 
     def __repr__(self):
+        """
+        Returns a description of this function.
+
+        EXAMPLES::
+
+            sage: q = Moebius()
+            sage: q.__repr__()
+            'The Moebius function'
+        """
         return "The Moebius function"
 
     def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
@@ -2928,6 +3096,12 @@ class Moebius:
            (very helpful in seeing their order).
 
         -  ``**kwds`` - passed on
+
+        EXAMPLES::
+
+            sage: p = Moebius().plot()
+            sage: p.ymax()
+            1.0
         """
         values = self.range(xmin, xmax + 1)
         v = [(n,values[n-xmin]) for n in range(xmin,xmax + 1)]
@@ -2997,7 +3171,20 @@ def farey(v, lim):
     -  ``lim`` - maximum denominator.
 
 
-    OUTPUT: Results are (numerator, denominator); (1, 0) is"infinity".
+    OUTPUT: Results are (numerator, denominator); (1, 0) is "infinity".
+
+    EXAMPLES::
+
+        sage: farey(2.0, 100)
+        (2, 1)
+        sage: farey(2.0, 1000)
+        (2, 1)
+        sage: farey(2.1, 1000)
+        (21, 10)
+        sage: farey(2.1, 100000)
+        (21, 10)
+        sage: farey(pi, 100000)
+        (312689, 99532)
 
     AUTHORS:
 
@@ -3316,6 +3503,21 @@ def continuant(v, n=None):
 def number_of_divisors(n):
     """
     Return the number of divisors of the integer n.
+
+    INPUT:
+
+    - ``n`` - a nonzero integer
+
+    OUTPUT:
+
+    - an integer, the number of divisors of n
+
+    EXAMPLES::
+
+        sage: number_of_divisors(100)
+        9
+        sage: number_of_divisors(-720)
+        30
     """
     m = ZZ(n)
     if m.is_zero():
@@ -3773,6 +3975,96 @@ def two_squares(n, algorithm='gap'):
     else:
         raise RuntimeError, "unknown algorithm '%s'"%algorithm
 
+def _brute_force_four_squares(n):
+    """
+    Brute force search for decomposition into a sum of four squares,
+    for cases that the main algorithm fails to handle.
+
+    INPUT: a positive integer
+    OUTPUT: a list of four numbers whose squares sum to n
+
+    EXAMPLES::
+        sage: from sage.rings.arith import _brute_force_four_squares
+        sage: _brute_force_four_squares(567)
+        [1, 1, 6, 23]
+    """
+    from math import sqrt
+    for i in range(0,int(sqrt(n))+1):
+        for j in range(i,int(sqrt(n-i**2))+1):
+            for k in range(j, int(sqrt(n-i**2-j**2))+1):
+                rem = n-i**2-j**2-k**2
+                if rem >= 0:
+                    l = int(sqrt(rem))
+                    if rem-l**2==0:
+                        return [i,j,k,l]
+
+def four_squares(n):
+    """
+    Computes the decomposition into the sum of four squares,
+    using an algorithm described by Peter Schorn at:
+    http://www.schorn.ch/howto.html.
+
+    INPUT: an integer
+
+    OUTPUT: a list of four numbers whose squares sum to n
+
+    EXAMPLES::
+        sage: four_squares(3)
+        [0, 1, 1, 1]
+        sage: four_squares(130)
+        [0, 0, 3, 11]
+        sage: four_squares(1101011011004)
+        [2, 1049178, 2370, 15196]
+        sage: sum([i-sum([q^2 for q in four_squares(i)]) for i in range(2,10000)]) # long time
+        0
+    """
+    from sage.rings.integer_mod import mod
+    from math import sqrt
+    from sage.rings.arith import _brute_force_four_squares
+    try:
+        ts = two_squares(n)
+        return [0,0,ts[0],ts[1]]
+    except ValueError:
+        pass
+    m = n
+    v = 0
+    while mod(m,4)==0:
+        v = v +1
+        m = m/4
+    if mod(m,8) == 7:
+        d = 1
+        m = m - 1
+    else:
+        d = 0
+    if mod(m,8)==3:
+        x = int(sqrt(m))
+        if mod(x,2) == 0:
+            x = x - 1
+        p = (m-x**2)/2
+        while not is_prime(p):
+            x = x - 2
+            p = (m-x**2)/2
+            if x < 0:
+            # fall back to brute force
+                m = m + d
+                return [2**v*q for q in _brute_force_four_squares(m)]
+        y,z = two_squares(p)
+        return [2**v*q for q in [d,x,y+z,abs(y-z)]]
+    x = int(sqrt(m))
+    p = m - x**2
+    if p == 1:
+        return[2**v*q for q in [d,0,x,1]]
+    while not is_prime(p):
+        x = x - 1
+        p = m - x**2
+        if x < 0:
+            # fall back to brute force
+            m = m + d
+            return [2**v*q for q in _brute_force_four_squares(m)]
+    y,z = two_squares(p)
+    return [2**v*q for q in [d,x,y,z]]
+
+
 def subfactorial(n):
     r"""
     Subfactorial or rencontres numbers, or derangements: number of
@@ -3995,6 +4287,23 @@ def fundamental_discriminant(D):
     `K=Q(\sqrt{D})`, i.e. an integer d congruent to either 0 or
     1, mod 4, and such that, at most, the only square dividing it is
     4.
+
+    INPUT:
+    - ``D`` - an integer
+
+    OUTPUT:
+
+    - an integer, the fundamental discriminant
+
+    EXAMPLES::
+
+        sage: fundamental_discriminant(102)
+        408
+        sage: fundamental_discriminant(720)
+        5
+        sage: fundamental_discriminant(2)
+        8
+
     """
     from sage.rings.all import Integer
     D = Integer(D)

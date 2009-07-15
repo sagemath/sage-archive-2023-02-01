@@ -211,7 +211,7 @@ cdef class DenseGraph(CGraph):
         sage_free(self.edges)
         sage_free(self.in_degrees)
         sage_free(self.out_degrees)
-        bitset_clear(self.active_vertices)
+        bitset_free(self.active_vertices)
 
     def __reduce__(self):
         from sage.graphs.graph import DiGraph
@@ -279,9 +279,9 @@ cdef class DenseGraph(CGraph):
             bitset_init(bits, self.active_vertices.size)
             bitset_set_first_n(bits, total_verts)
             if not bitset_issubset(self.active_vertices, bits):
-                bitset_clear(bits)
+                bitset_free(bits)
                 return -1
-            bitset_clear(bits)
+            bitset_free(bits)
         else:
             min_verts = self.active_vertices.size
             min_longs = self.num_longs

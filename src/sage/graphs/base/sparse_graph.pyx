@@ -352,7 +352,7 @@ cdef class SparseGraph(CGraph):
         sage_free(self.vertices)
         sage_free(self.in_degrees)
         sage_free(self.out_degrees)
-        bitset_clear(self.active_vertices)
+        bitset_free(self.active_vertices)
 
     def __reduce__(self):
         from sage.graphs.graph import DiGraph
@@ -418,9 +418,9 @@ cdef class SparseGraph(CGraph):
             bitset_init(bits, self.active_vertices.size)
             bitset_set_first_n(bits, total)
             if not bitset_issubset(self.active_vertices, bits):
-                bitset_clear(bits)
+                bitset_free(bits)
                 return -1
-            bitset_clear(bits)
+            bitset_free(bits)
         self.vertices = <SparseGraphBTNode **> sage_realloc(self.vertices, total * self.hash_length * sizeof(SparseGraphBTNode *))
         self.in_degrees = <int *> sage_realloc(self.in_degrees, total * sizeof(int))
         self.out_degrees = <int *> sage_realloc(self.out_degrees, total * sizeof(int))

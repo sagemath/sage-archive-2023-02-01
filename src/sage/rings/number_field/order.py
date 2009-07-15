@@ -36,7 +36,7 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     17^45
 """
 
-from sage.rings.ring import IntegralDomain, DedekindDomain
+from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
@@ -158,7 +158,7 @@ class Order(IntegralDomain):
         """
         self._K = K
         self._is_maximal = is_maximal
-        DedekindDomain.__init__(self, ZZ, names = K.variable_names(), normalize = False)
+        IntegralDomain.__init__(self, ZZ, names = K.variable_names(), normalize = False)
 
     def fractional_ideal(self, *args, **kwds):
         """

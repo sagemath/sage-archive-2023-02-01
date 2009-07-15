@@ -16,6 +16,7 @@ GPL
  * Craig Citro
  * William Stein
  * Michael Abshoff
+ * David Kirkby
 
 == Upstream Contact ==
  * Karim Belabas, http://www.math.u-bordeaux.fr/~belabas/
@@ -41,13 +42,31 @@ Here is how to build a new version of the PARI SAGE spkg:
   4) Extract the file galdata.tgz from http://pari.math.u-bordeaux.fr/download.html
      in the directory pari-*/src/
 
-Note from David Kirby that could be relevant to building on Solaris:
+Note from David Kirkby that could be relevant to building on Solaris:
 
 Since pari is using -xarch=native, which implies -xarch=v8plusa on my box, but I set -xarch=v8plus (without the last a), this probably means there will be different types of object files and so they may not link together.  Ick.  Feel free to tell me how to modify the configure script.
 
 I got around it by setting CFLAGS -xarch=v8plus myself, so they were all the same. But it is not right. I have not looked at pari to see exactly where it says native, but I would expact a grep to find it.
 
 == Changelog ==
+
+=== pari-2.3.3.p1 (David Kirkby, June 30th, 2009)    ===
+ * Change code in spkg-install which was supposed to add -fPIC on
+   Solaris, to code that actually does add -fPIC on Solaris.
+   Prior to this, PARI built fine on a Sun Blade 2000 without
+   -fPIC, but failed on a Sun T5240 (hostname t2). I'm not
+   entirely sure whether this is actually need on Solaris x86
+   or not - GCC manual says SPARC (no mention of Solaris x86)
+   but someone on comp.unxi.solaris reckons it should be on
+   Solaris x86 too.
+
+   Hopefully this issue can be resolved by the PAPI developers and
+   so the hack removed later. I'll report it to the PAPI developers.
+
+   Thanks are due to Marc Glisse marc.glisse@gmail.com
+   whose reply to my query on comp.unix.solaris solved this.
+
+ * Corrected a mis-spelling on my name writen by someone else.
 
 === pari-2.3.3.p0 (Michael Abshoff, Feb. 18th, 2008) ===
  * apply Karim's hnf patch

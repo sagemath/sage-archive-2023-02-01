@@ -5,6 +5,12 @@
 
 TOP=`pwd`
 
+# As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it needs to be.
+if [ `uname` = "SunOS" ]; then
+  sed 's/-fomit-frame-pointer/-fomit-frame-pointer -fPIC/g' src/config/get_cc > src/config/get_cc.$$
+  mv src/config/get_cc.$$ src/config/get_cc
+fi
+
 cd src
 
 cp "$TOP"/patches/get_dlld config/
@@ -138,13 +144,6 @@ build()
         # modified version.
 	$CP -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
     fi
-
-    # PARI doesn't set PIC correctly on Solaris, so we do this.
-    if [ `uname` = "SunOS" ]; then
-       CFLAGS=$CFLAGS" -fPIC"
-       export CFLAGS
-    fi
-
 
     echo "Installing extra Galois groups data."
     make install-data

@@ -538,5 +538,5 @@ libntl.dll:
 libntl.so: DIRNAME
 	- rm -f $(OBJ) # clean, preserving tuning parameters
 	make FPICFLAG=-fPIC shobj
-	$(LINK_CXX) -fPIC -shared -Wl,-soname,lib`cat DIRNAME`.so -o lib`cat DIRNAME`.so $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+	$(LINK_CXX) -fPIC -shared -o lib`cat DIRNAME`.so $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
 	ln -s lib`cat DIRNAME`.so libntl.so

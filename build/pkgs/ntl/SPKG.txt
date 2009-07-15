@@ -28,6 +28,16 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p9 (David Kirkby, July 9 2009) ===
+ * Removed  "-Wl,-soname,lib`cat DIRNAME`.so" from a
+   makefile when a shared library is made. The code is
+   surprerous and causes problems if gcc 4.4.0 is used
+   on Solaris 10 with the Sun linker.
+
+   I've not made this patch Solaris-specific, as I do not believe
+   the code should be there on any platform. Hence it needs testing
+   on more than just Solaris.
+
 
 === ntl-5.4.2.p8 (Mike Hansen, June 20th, 2009) ===
  * Applied Peter Jeremy's FreeBSD fix at #5872.

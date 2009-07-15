@@ -18,6 +18,12 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    CFLAGS="-O3 -g -m64 -fPIC -L."; export CFLAGS
    LDFLAGS="-m64 "; export LDFLAGS
    cp patches/makemakefile.py src/makemakefile.py
+elif [ `uname` = "SunOS" -a "`ld  --version  2>&1  | grep GNU`" = ""  ]; then
+   # Change -soname to -h if the Sun linker is used.
+   sed 's/-soname/-h/g' src/makemakefile.py > /tmp/makemakefile.py.$$
+   mv /tmp/makemakefile.py.$$ src/makemakefile.py
+   CFLAGS="-fPIC -O3 -L."; export CFLAGS
+   LDFLAGS=""; export LDFLAGS
 else
    CFLAGS="-fPIC -O3 -L."; export CFLAGS
    LDFLAGS=""; export LDFLAGS

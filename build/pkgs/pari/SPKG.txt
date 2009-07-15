@@ -2,9 +2,17 @@
 
 == Description ==
 
-PARI/GP is a widely used computer algebra system designed for fast computations in number theory (factorizations, algebraic number theory, elliptic curves...), but also contains a large number of other useful functions to compute with mathematical entities such as matrices, polynomials, power series, algebraic numbers etc., and a lot of transcendental functions. PARI is also available as a C library to allow for faster computations.
+PARI/GP is a widely used computer algebra system designed for fast
+computations in number theory (factorizations, algebraic number
+theory, elliptic curves...), but also contains a large number of other
+useful functions to compute with mathematical entities such as
+matrices, polynomials, power series, algebraic numbers etc., and a lot
+of transcendental functions. PARI is also available as a C library to
+allow for faster computations.
 
-Originally developed by Henri Cohen and his co-workers (Université Bordeaux I, France), PARI is now under the GPL and maintained by Karim Belabas with the help of many volunteer contributors.
+Originally developed by Henri Cohen and his co-workers (Université
+Bordeaux I, France), PARI is now under the GPL and maintained by Karim
+Belabas with the help of many volunteer contributors.
 
 Website: http://pari.math.u-bordeaux.fr/
 
@@ -35,18 +43,26 @@ Here is how to build a new version of the PARI SAGE spkg:
               the way to go, since that's where all the bug fixes are.
         The PARI stable/devel model is complicated.)
 
-  2) Extract the above code and make it the directory src in the current directory.
+  2) Extract the above code and make it the directory src in the
+     current directory.
 
   3) Type ./spkg-dist in the above directory.
 
-  4) Extract the file galdata.tgz from http://pari.math.u-bordeaux.fr/download.html
+  4) Extract the file galdata.tgz from
+     http://pari.math.u-bordeaux.fr/download.html
      in the directory pari-*/src/
 
 Note from David Kirkby that could be relevant to building on Solaris:
 
-Since pari is using -xarch=native, which implies -xarch=v8plusa on my box, but I set -xarch=v8plus (without the last a), this probably means there will be different types of object files and so they may not link together.  Ick.  Feel free to tell me how to modify the configure script.
+Since pari is using -xarch=native, which implies -xarch=v8plusa on my
+box, but I set -xarch=v8plus (without the last a), this probably means
+there will be different types of object files and so they may not link
+together.  Ick.  Feel free to tell me how to modify the configure
+script.
 
-I got around it by setting CFLAGS -xarch=v8plus myself, so they were all the same. But it is not right. I have not looked at pari to see exactly where it says native, but I would expact a grep to find it.
+I got around it by setting CFLAGS -xarch=v8plus myself, so they were
+all the same. But it is not right. I have not looked at pari to see
+exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
@@ -66,7 +82,7 @@ I got around it by setting CFLAGS -xarch=v8plus myself, so they were all the sam
    Thanks are due to Marc Glisse marc.glisse@gmail.com
    whose reply to my query on comp.unix.solaris solved this.
 
- * Corrected a mis-spelling on my name writen by someone else.
+ * Corrected a mis-spelling on my name written by someone else.
 
 === pari-2.3.3.p0 (Michael Abshoff, Feb. 18th, 2008) ===
  * apply Karim's hnf patch

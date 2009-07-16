@@ -274,9 +274,10 @@ cdef class SageObject:
 
     def _tester(self, tester = None, **options):
         """
-        Returns a gadget attached to ``self`` providing testing utilities
+        Returns a gadget attached to ``self`` providing testing utilities.
 
-        This is used by :class:`sage.misc.sage_unittest.TestSuite` and the _test_* methods.
+        This is used by :class:`sage.misc.sage_unittest.TestSuite` and the
+        ``_test_*`` methods.
 
         EXAMPLES::
 
@@ -302,7 +303,7 @@ cdef class SageObject:
         :class:`unittest.TestCase`, which see (actually, by a slight
         abuse, tester is currently an instance of this class).
 
-        TESTS:
+        TESTS::
 
             sage: ZZ._tester(tester = tester) is tester
             True

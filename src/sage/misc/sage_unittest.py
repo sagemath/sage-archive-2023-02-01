@@ -28,7 +28,7 @@ class TestSuite(object):
         running ._test_not_implemented_methods() ... done
         running ._test_pickling() ... done
 
-    Those methods methods are typically implemented by abstract
+    Those methods are typically implemented by abstract
     super classes, in particular via categories, in order to
     enforce standard behavior and API, or provide mathematical
     sanity checks. For example if ``self`` is in the category of
@@ -53,24 +53,24 @@ class TestSuite(object):
 
     When meaningful, one can further customize on which elements
     the tests are run. Here, we use it to *prove* that the
-    multiplication is indeed associative, by runing the test on
+    multiplication is indeed associative, by running the test on
     all the elements::
 
         sage: S._test_associativity(elements = S)       # todo: not implemented (comes with the category patches)
 
     Adding a new test boils down to adding a new method in the
-    class of the object or any superclass (e.g. in a
+    class of the object or any super class (e.g. in a
     category). This method should use the utility :meth:`._tester`
     to handle standard options and report test failures. See the
     code of :meth:`._test_an_element` for an example.
 
     Eventually, every implementation of a :class:`SageObject`
-    should run a :class:`TestSuite` on one of its instances in its doctest.
-    (replacing the current ``loads(dumps(x))` tests).
+    should run a :class:`TestSuite` on one of its instances in its doctest
+    (replacing the current ``loads(dumps(x))`` tests).
 
     TODO:
      - allow for customized behavior in case of failing assertion
-       (warning, error, statistic accounting)
+       (warning, error, statistic accounting).
        This involves reimplementing the method sfail / failIf
        / ... of unittest.TestCase in InstanceTester
      - Improve integration with doctests (statistics on failing/passing tests)
@@ -81,7 +81,7 @@ class TestSuite(object):
        test method to choose appropriately the elements so as to
        prove the desired property. The test method may assume that
        a parent implements properly all the super categories. For
-       example, the test_commutative method of the category
+       example, the ``test_commutative`` method of the category
        ``CommutativeSemigroups()`` may just check that the
        provided generators commute, implicitly assuming that
        generators indeed generate the semigroup (as required by
@@ -133,6 +133,21 @@ class TestSuite(object):
                 tester.info("done")
 
 class InstanceTester(unittest.TestCase):
+    """
+    A gadget attached to an instance providing it with testing utilities.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sage_unittest import InstanceTester
+        sage: InstanceTester(instance = ZZ, verbose = True, elements = [1,2,3])
+        Testing utilities for Integer Ring
+
+    This is used by ``SageObject._tester``, which see::
+
+        sage: ZZ._tester()
+        Testing utilities for Integer Ring
+    """
+
     def __init__(self, instance, elements = None, verbose = False, **options):
         """
         A gadget attached to an instance providing it with testing utilities.
@@ -147,7 +162,6 @@ class InstanceTester(unittest.TestCase):
 
             sage: ZZ._tester()
             Testing utilities for Integer Ring
-
         """
         self._instance = instance
         self._verbose = verbose

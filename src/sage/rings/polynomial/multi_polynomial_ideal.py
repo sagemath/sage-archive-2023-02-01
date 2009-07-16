@@ -885,6 +885,16 @@ class MPolynomialIdeal_singular_repr:
             Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b + 3*a, d - a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
             Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2 + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 + b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a - a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
             Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 - 10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24, 11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 + 25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field]
+
+            sage: R.<x1,x2> = PolynomialRing(QQ, 2, order='lex')
+            sage: f1 = 1/2*((x1^2 + 2*x1 - 4)*x2^2 + 2*(x1^2 + x1)*x2 + x1^2)
+            sage: f2 = 1/2*((x1^2 + 2*x1 + 1)*x2^2 + 2*(x1^2 + x1)*x2 - 4*x1^2)
+            sage: I = Ideal(f1,f2)
+            sage: I.triangular_decomposition()
+            [Ideal (x2, x1^2) of Multivariate Polynomial Ring in x1, x2 over Rational Field,
+             Ideal (x2, x1^2) of Multivariate Polynomial Ring in x1, x2 over Rational Field,
+             Ideal (x2, x1^2) of Multivariate Polynomial Ring in x1, x2 over Rational Field,
+             Ideal (x2^4 + 4*x2^3 - 6*x2^2 - 20*x2 + 5, 8*x1 - x2^3 + x2^2 + 13*x2 - 5) of Multivariate Polynomial Ring in x1, x2 over Rational Field]
         """
         P = self.ring()
 
@@ -896,19 +906,20 @@ class MPolynomialIdeal_singular_repr:
         else:
             Q = P
 
+        # the Singular routines are quite picky about their input.
         if is_groebner:
             if Q == P:
-                I =  MPolynomialIdeal(P, self.interreduced_basis())
+                I =  MPolynomialIdeal(P, self.interreduced_basis()[::-1])
             else:
                 I = self
-                I = MPolynomialIdeal(P, I.transformed_basis('fglm')) # -> 'lex'
+                I = MPolynomialIdeal(P, I.transformed_basis('fglm')[::-1]) # -> 'lex'
                 I = I.change_ring(Q) # transform to 'lex' GB
         else:
             if Q == P:
-                I = MPolynomialIdeal(P, self.groebner_basis())
+                I = MPolynomialIdeal(P, self.groebner_basis()[::-1])
             else:
                 I = self.change_ring(Q) # transform to 'lex' GB
-                I = MPolynomialIdeal(Q, I.groebner_basis())
+                I = MPolynomialIdeal(Q, I.groebner_basis()[::-1])
 
         if I.dimension() != 0:
             raise TypeError, "dimension must be zero"
@@ -1443,12 +1454,12 @@ class MPolynomialIdeal_singular_repr:
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
             doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.
-            [x*z - z, x*y + z, y^3 + z]
+            [y^3 + z, x*y + z, x*z - z]
 
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
-            [x*z + y^3, x*y - y^3, z + y^3]
+            [z + y^3, x*y - y^3, x*z + y^3]
 
         ALGORITHM:
 
@@ -1466,7 +1477,6 @@ class MPolynomialIdeal_singular_repr:
         If this ideal is spanned by `(f_1, ..., f_n)` this method
         returns `(g_1, ..., g_s)` such that:
 
-
         - `(f_1,...,f_n) = (g_1,...,g_s)`
 
         - `LT(g_i) != LT(g_j)` for all `i != j`
@@ -1482,12 +1492,12 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.interreduced_basis()
-            [x*z - z, x*y + z, y^3 + z]
+            [y^3 + z, x*y + z, x*z - z]
 
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.interreduced_basis()
-            [x*z + y^3, x*y - y^3, z + y^3]
+            [z + y^3, x*y - y^3, x*z + y^3]
 
         ALGORITHM: Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
@@ -1513,6 +1523,7 @@ class MPolynomialIdeal_singular_repr:
             except TypeError:
                 ret = toy_buchberger.inter_reduction(self.gens())
 
+        ret = sorted(ret, reverse=True)
         ret = Sequence( ret, R, check=False, immutable=True)
         return ret
 
@@ -1649,7 +1660,7 @@ class MPolynomialIdeal_singular_repr:
             sage: S.<z,x,y> = PolynomialRing(QQ,3,order='lex')
             sage: J = Ideal(I.transformed_basis('fglm',S))
             sage: J
-            Ideal (y^4 + y^3, x*y^3 - y^3, x^2 + y^3, z^4 + y^3 - y)
+            Ideal (z^4 + y^3 - y, x^2 + y^3, x*y^3 - y^3, y^4 + y^3)
              of Multivariate Polynomial Ring in z, x, y over Rational Field
 
         ::
@@ -1657,14 +1668,14 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<z,y,x>=PolynomialRing(GF(32003),3,order='lex')
             sage: I=Ideal([y^3+x*y*z+y^2*z+x*z^3,3+x*y+x^2*y+y^2*z])
             sage: I.transformed_basis('gwalk')
-            [y^9 - y^7*x^2 - y^7*x - y^6*x^3 - y^6*x^2 - 3*y^6 - 3*y^5*x - y^3*x^7
-             - 3*y^3*x^6 - 3*y^3*x^5 - y^3*x^4 - 9*y^2*x^5 - 18*y^2*x^4 - 9*y^2*x^3
-             - 27*y*x^3 - 27*y*x^2 - 27*x,
+            [z*y^2 + y*x^2 + y*x + 3,
              z*x + 8297*y^8*x^2 + 8297*y^8*x + 3556*y^7 - 8297*y^6*x^4 + 15409*y^6*x^3 - 8297*y^6*x^2
              - 8297*y^5*x^5 + 15409*y^5*x^4 - 8297*y^5*x^3 + 3556*y^5*x^2 + 3556*y^5*x + 3556*y^4*x^3
              + 3556*y^4*x^2 - 10668*y^4 - 10668*y^3*x - 8297*y^2*x^9 - 1185*y^2*x^8 + 14224*y^2*x^7
              - 1185*y^2*x^6 - 8297*y^2*x^5 - 14223*y*x^7 - 10666*y*x^6 - 10666*y*x^5 - 14223*y*x^4
-             + x^5 + 2*x^4 + x^3, z*y^2 + y*x^2 + y*x + 3]
+             + x^5 + 2*x^4 + x^3,
+             y^9 - y^7*x^2 - y^7*x - y^6*x^3 - y^6*x^2 - 3*y^6 - 3*y^5*x - y^3*x^7 - 3*y^3*x^6
+             - 3*y^3*x^5 - y^3*x^4 - 9*y^2*x^5 - 18*y^2*x^4 - 9*y^2*x^3 - 27*y*x^3 - 27*y*x^2 - 27*x]
 
         ALGORITHM: Uses Singular
         """
@@ -1680,7 +1691,7 @@ class MPolynomialIdeal_singular_repr:
         if algorithm in ("gwalk","awalk1","awalk2","twalk","fwalk"):
             singular.LIB("grwalk")
             gb = singular("%s(%s)"%(algorithm,Is.name()))
-            return [R(f) for f in gb]
+            return sorted([R(f) for f in gb],reverse=True)
         elif algorithm == "fglm":
             Rs = self.ring()._singular_()
 
@@ -1693,7 +1704,7 @@ class MPolynomialIdeal_singular_repr:
 
             nIs = singular.fglm(Rs,Is)
 
-            return [nR(f) for f in nIs]
+            return sorted([nR(f) for f in nIs],reverse=True)
 
         else:
             raise TypeError, "Cannot convert basis with given algorithm"
@@ -2979,7 +2990,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                    x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4 over Finite Field of size 3
             sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
             sage: J.variety()
-            [{y1: 0, y4: 0, z2: 0, y2: 0, x0: 1, y0: 0, x2: 0, z4: 0, z3: 0, x4: 0, x1: 0, z1: 0, z0: 0, y3: 0, x3: 0}]
+            [{y1: 0, y4: 0, x4: 0, y2: 0, y3: 0, y0: 0, x2: 0, z4: 0, z3: 0, z2: 0, x1: 0, z1: 0, z0: 0, x0: 1, x3: 0}]
 
 
         Weil restrictions are often used to study elliptic curves over

@@ -1,6 +1,7 @@
 #include "polybori.h"
 #include "groebner_alg.h"
 #include "nf.h"
+#include "fglm.h"
 #include "interpolate.h"
 #include "ccobject.h"
 
@@ -9,7 +10,7 @@
 extern "C" {
 #endif //__cplusplus
 #define PACKED 1
-#include "M4RI/m4ri.h"
+#include "m4ri/m4ri.h"
 #ifdef __cplusplus
 }
 #endif //__cplusplus

@@ -1,10 +1,15 @@
 cdef extern from "pb_wrap.h":
+    ctypedef struct std_string "std::string":
+        char *(* c_str)()
+
+    std_string new_stdstring "std::string"(char *str)
+
     cdef enum ordercodes "COrderEnums::ordercodes":
-        lp            "CTypes::lp"
-        dlex          "CTypes::dlex"
-        dp_asc        "CTypes::dp_asc"
-        block_dlex    "CTypes::block_dlex"
-        block_dp_asc  "CTypes::block_dp_asc"
+        pblp            "CTypes::lp"
+        pbdlex          "CTypes::dlex"
+        pbdp_asc        "CTypes::dp_asc"
+        pbblock_dlex    "CTypes::block_dlex"
+        pbblock_dp_asc  "CTypes::block_dp_asc"
 
     cdef enum comparecodes "CCompareEnums::comparecodes":
         less_than               "CTypes::less_than"
@@ -20,6 +25,7 @@ cdef extern from "pb_wrap.h":
         bint (* isConstant)()
         bint (* isTerminated)()
         bint (* is_equal "operator==")(PBNavigator right)
+        int (* hash)()
 
     # non-allocating versions
     PBNavigator* PBNavigator_construct \
@@ -37,16 +43,35 @@ cdef extern from "pb_wrap.h":
     # non-allocating versions
     void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
 
+    ctypedef struct PBBlockIter "CDynamicOrderBase::block_iterator":
+        int (* value "operator*")()
+        PBBlockIter (* next "operator++")()
+        int (* hash)()
 
-    void pbenv_changeOrdering "BooleEnv::changeOrdering"(int c)
-    int  pbenv_getOrderCode "BooleEnv::getOrderCode"()
-    bint pbenv_isDegreeOrder "BooleEnv::ordering().isDegreeOrder"()
+    bint PBBlockIter_equals "operator=="(PBBlockIter lhs, PBBlockIter rhs)
+
+    ctypedef struct PBOrdering "CDynamicOrderBase":
+        int (*getOrderCode)()
+        int (*getBaseOrderCode)()
+        PBBlockIter (*blockBegin)()
+        PBBlockIter (*blockEnd)()
 
 
     ctypedef struct PBRing "BoolePolyRing":
         int (* nVariables)()
         PBDD (* variable)(int n)
         void (*activate)()
+        PBOrdering (*ordering)()
+        int (*hash)()
+        void (*setVariableName) (int idx, std_string varname)
+        std_string (*getVariableName)(int idx)
+        PBRing (*clone)()
+
+    void pbenv_changeOrdering "BooleEnv::changeOrdering"(int c)
+    int  pbenv_getOrderCode "BooleEnv::getOrderCode"()
+    bint pbenv_isDegreeOrder "BooleEnv::ordering().isDegreeOrder"()
+    void pbenv_set "BooleEnv::set"(PBRing ring)
+    PBRing pbenv_ring "BooleEnv::ring"()
 
     ctypedef struct PBMonomIter "BooleMonomial::const_iterator":
         int (* value "operator*")()
@@ -91,6 +116,9 @@ cdef extern from "pb_wrap.h":
         PBMonomVarIter (*variableBegin)()
         PBMonomVarIter (*variableEnd)()
         void (* imul "operator*=")(PBMonom right)
+        void (* idiv "operator/=")(PBMonom right)
+        PBNavigator (* navigation)()
+        PBMonom (* GCD)(PBMonom rhs)
 
     object PBMonom_to_str "_to_PyString<BooleMonomial>"(PBMonom *p)
 
@@ -129,7 +157,10 @@ cdef extern from "pb_wrap.h":
         PBSet (* subset0)(int i)
         PBSet (* subset1)(int i)
         PBSet (* unite)(PBSet rhs)
+        PBSet (* intersect)(PBSet rhs)
         PBMonom (* usedVariables)()
+        PBSet (* multiplesOf)(PBMonom rhs)
+        double (* sizeDouble)()
         PBSetIter (* begin)()
         PBSetIter (* end)()
 
@@ -160,8 +191,8 @@ cdef extern from "pb_wrap.h":
 
     ctypedef struct PBPoly "BoolePolynomial":
         int (* deg)()
-        int (* lmDeg)()
-        int (* lexLmDeg)()
+        int (* leadDeg)()
+        int (* lexLeadDeg)()
         int (* totalDeg)()
         int (* length)()
         int (* eliminationLength)()
@@ -182,7 +213,7 @@ cdef extern from "pb_wrap.h":
         PBPoly (* gradedPart)(int d)
         PBDD (* diagram)()
         PBSet (* set)()
-        PBSet (* lmDivisors)()
+        PBSet (* leadDivisors)()
         PBNavigator (* navigation)()
         PBPolyIter (* orderedBegin)()
         PBPolyIter (* orderedEnd)()
@@ -199,7 +230,11 @@ cdef extern from "pb_wrap.h":
 
     # non-allocating versions
     PBRing* PBRing_construct \
-            "Construct_pp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type> " (void *mem, int nvars, int order)
+            "Construct_ppp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type, bool> " (void *mem, int nvars, int order, bint make_active)
+
+    PBRing* PBRing_construct_pbring \
+            "Construct_p<BoolePolyRing, BoolePolyRing> " (void *mem, PBRing other)
+
     void PBRing_destruct "Destruct<BoolePolyRing>"(PBRing *mem)
 
     # non-allocating versions
@@ -241,8 +276,41 @@ cdef extern from "pb_wrap.h":
     void PBPolyVector_destruct "Destruct< std::vector<BoolePolynomial> >"\
             (PBPolyVector *mem)
 
-    ctypedef struct GBStrategy "GroebnerStrategy":
+    ctypedef struct PBPolyEntry "PolyEntry":
+        PBPoly p
+
+    ctypedef struct PBRedStrategy "ReductionStrategy":
+        PBSet leadingTerms
+        PBSet minimalLeadingTerms
+        PBSet leadingTerms11
+        PBSet leadingTerms00
+        PBSet llReductor
+        PBSet monomials
+        PBSet monomials_plus_one
+        bint optBrutalReductions
+        bint optLL
+        PBPoly (* nf)(PBPoly p)
+        bint optRedTailDegGrowth
+        bint optRedTail
+        void (* setupSetsForLastElement)()
+        bint (* canRewrite)(PBPoly p)
+        void (* addGenerator)(PBPoly p)
+        int select1(PBMonom p)
+
+        int (* select_short)(PBPoly p)
+        PBPoly (* headNormalForm)(PBPoly p)
+        PBPoly (* reducedNormalForm)(PBPoly p)
+
+        int (* size)()
+        PBPolyEntry (* get "operator[]")(int)
+
+    ctypedef struct PBFglmStrategy "FGLMStrategy":
+        PBPolyVector (* main)()
+
+    ctypedef struct PBGBStrategy "GroebnerStrategy":
         bint reduceByTailReduced
+        PBRedStrategy generators
+
         bint enabledLog
         unsigned int reductionSteps
         int normalForms
@@ -252,18 +320,22 @@ cdef extern from "pb_wrap.h":
         int easyProductCriterions
         int extendedProductCriterions
         int averageLength
-        bint optRedTail
+
+        bint optHFE
         bint optLazy
-        bint optLL
+
         bint optDelayNonMinimals
-        bint optBrutalReductions
+
         bint optExchange
         bint optAllowRecursion
-        bint optRedTailDegGrowth
+
         bint optStepBounded
         bint optLinearAlgebraInLastBlock
+        bint optModifiedLinearAlgebra
         bint optRedTailInLastBlock
-        PBSet monomials
+        bint optDrawMatrices
+        std_string matrixPrefix
+
         PBSet llReductor
         PBSet minimalLeadingTerms
         PBSet leadingTerms
@@ -285,32 +357,48 @@ cdef extern from "pb_wrap.h":
         PBPolyVector (* minimalizeAndTailReduce)()
         PBPolyVector (* faugereStepDense)(PBPolyVector v)
 
-    int (* pairs_top_sugar)(GBStrategy strat)
-    PBPolyVector (* someNextDegreeSpolys)(GBStrategy strat, int n)
-    PBPolyVector (* nextDegreeSpolys)(GBStrategy strat)
-    PBPolyVector (* small_next_degree_spolys)(GBStrategy strat, double f, int n)
-    void (* implications)(GBStrategy strat, int i)
+    int (* pairs_top_sugar)(PBGBStrategy strat)
+    PBPolyVector (* someNextDegreeSpolys)(PBGBStrategy strat, int n)
+    PBPolyVector (* nextDegreeSpolys)(PBGBStrategy strat)
+    PBPolyVector (* small_next_degree_spolys)(PBGBStrategy strat, double f, int n)
+    void (* implications)(PBGBStrategy strat, int i)
 
-    PBPoly GB_get_ith_gen "get_ith_gen" (GBStrategy strat, int i)
+    PBPoly GB_get_ith_gen "get_ith_gen" (PBGBStrategy strat, int i)
 
     # non-allocating versions
-    GBStrategy* GBStrategy_construct "Construct<GroebnerStrategy>"(void *mem)
-    GBStrategy* GBStrategy_construct_gbstrategy \
+    PBGBStrategy* PBGBStrategy_construct "Construct<GroebnerStrategy>"(void *mem)
+    PBGBStrategy* PBGBStrategy_construct_gbstrategy \
             "Construct_p<GroebnerStrategy, GroebnerStrategy>" \
-            (void *mem, GBStrategy strat)
+            (void *mem, PBGBStrategy strat)
     PBPoly* PBPoly_construct_dd \
             "Construct_p<BoolePolynomial, BoolePolyRing::dd_type>" \
             (void *mem, PBDD d)
-    void GBStrategy_destruct "Destruct<GroebnerStrategy>"(GBStrategy *mem)
+    void PBGBStrategy_destruct "Destruct<GroebnerStrategy>"(PBGBStrategy *mem)
+
+
+    PBRedStrategy* PBRedStrategy_construct "Construct<ReductionStrategy>"(void *mem)
+    PBRedStrategy* PBRedStrategy_construct_redstrategy \
+            "Construct_p<ReductionStrategy, ReductionStrategy>" \
+            (void *mem, PBRedStrategy strat)
+    void PBRedStrategy_destruct "Destruct<ReductionStrategy>"(PBRedStrategy *mem)
+
+    PBFglmStrategy* PBFglmStrategy_construct "Construct_ppp<FGLMStrategy, BoolePolyRing, BoolePolyRing, PolynomialVector>"(void *mem, PBRing from_ring, PBRing to_ring, PBPolyVector vec)
+    void PBFglmStrategy_destruct "Destruct<FGLMStrategy>"(PBFglmStrategy *mem)
+
+
+   # allocating versions
+
+    PBRedStrategy* PBRedStrategy_new "New<ReductionStrategy>"()
+    void PBRedStrategy_delete "Delete<ReductionStrategy>"(PBRedStrategy *mem)
 
     PBRing get_current_ring "BooleEnv::ring"()
 
     PBPoly pb_add_up_polynomials "add_up_polynomials" \
             (PBPolyVector v)
 
-    PBPoly pb_nf3 "nf3" (GBStrategy strat, PBPoly p, PBMonom m)
+    PBPoly pb_nf3 "nf3" (PBRedStrategy strat, PBPoly p, PBMonom m)
 
-    PBPoly pb_red_tail "red_tail" (GBStrategy strat, PBPoly p)
+    PBPoly pb_red_tail "red_tail" (PBRedStrategy strat, PBPoly p)
 
     PBPoly pb_interpolate "interpolate" (PBSet z, PBSet o)
 
@@ -324,23 +412,34 @@ cdef extern from "pb_wrap.h":
 
     PBPoly pb_mult_fast_sim "mult_fast_sim" (PBPolyVector v)
 
-    int pb_select1 "select1" (GBStrategy s, PBMonom m)
+    #int pb_select1 "select1" (GBStrategy s, PBMonom m)
 
     PBSet pb_recursively_insert "recursively_insert"(PBNavigator p,
                                                 int idx, PBSet m)
     PBPoly pb_ll_red_nf_noredsb "ll_red_nf_noredsb"(PBPoly p,
                                                 PBSet reductors)
+    PBPoly pb_ll_red_nf_noredsb_single_recursive_call "ll_red_nf_noredsb_single_recursive_call"(PBPoly p,
+                                                                                                PBSet reductors)
+
+
     PBPoly pb_ll_red_nf "ll_red_nf"(PBPoly p, PBSet reductors)
 
     PBSet pb_mod_mon_set "mod_mon_set"(PBSet as, PBSet vs)
 
     PBPolyVector pb_parallel_reduce "parallel_reduce" \
-        (PBPolyVector inp, GBStrategy strat, int average_steps, double delay_f)
+        (PBPolyVector inp, PBGBStrategy strat, int average_steps, double delay_f)
+
+    PBPolyVector pb_gauss_on_polys "gauss_on_polys" (PBPolyVector inp)
+
+    PBPoly pb_substitute_variables "substitute_variables<std::vector<BoolePolynomial>, BoolePolynomial>" (PBPolyVector vec, PBPoly poly)
 
     void pb_append_block "BooleEnv::appendBlock" (int ind)
 
     void pb_set_variable_name "BooleEnv::setVariableName" \
         (int idx, char *varname)
+
+    char * pb_get_variable_name "BooleEnv::getVariableName" \
+        (int idx)
 
     #M4RI initialization
     void m4ri_build_all_codes()

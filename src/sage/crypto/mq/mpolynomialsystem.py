@@ -1313,7 +1313,7 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
         """
         from polybori.ll import ll_encode
-        from polybori.ll import ll_red_nf
+        from polybori.ll import ll_red_nf_redsb
         from sage.rings.polynomial.pbori import set_cring, BooleanPolynomialRing
         from sage.misc.misc import get_verbose
 
@@ -1332,11 +1332,11 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
             for f in F:
                 if f.degree() == 1 and len(f) <= maxlength + 1:
-                    flm = f.lexLead()
+                    flm = f.lex_lead()
                     if skip(flm, f-flm):
                         higher.append(f)
                         continue
-                    lex_lead = map(lambda x: x.lexLead(), linear)
+                    lex_lead = map(lambda x: x.lex_lead(), linear)
                     if not flm in lex_lead:
                         linear.append(f)
                     else:
@@ -1354,12 +1354,12 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
             F = []
 
             for f in linear:
-                f = ll_red_nf(f, rb)
+                f = ll_red_nf_redsb(f, rb)
                 if f:
                     F.append(f)
 
             for f in higher:
-                f = ll_red_nf(f, rb)
+                f = ll_red_nf_redsb(f, rb)
                 if f:
                     F.append(f)
             if get_verbose() > 0:

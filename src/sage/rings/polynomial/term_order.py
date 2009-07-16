@@ -339,7 +339,7 @@ class TermOrder(SageObject):
     See ``sage.rings.polynomial.term_order`` for details
     on supported term orderings.
     """
-    def __init__(self, name='lex', n = 0, blocks=True):
+    def __init__(self, name='lex', n = 0, blocks=True, force=False):
         """
         Construct a new term ordering object.
 
@@ -354,6 +354,7 @@ class TermOrder(SageObject):
         -  ``blocks`` - controls whether a list of blocks is
            maintained (internal use only, default:True)
 
+        -  ``force`` - ignore unknown term orderings.
 
         See the ``sage.rings.polynomial.term_order`` module
         for help which names and orderings are available.
@@ -392,8 +393,14 @@ class TermOrder(SageObject):
         if isinstance(name, TermOrder):
             if n == 0 and len(name) > 0:
                 n = len(name)
+            try:
+                force = name.__force
+            except AttributeError: # pickled old TermOrders dont have this field
+                force = False
             name = name.name()
         name = name.lower()
+
+        self.__force = force
 
         #Block Orderings
         if "," in name:
@@ -419,7 +426,7 @@ class TermOrder(SageObject):
 
                 block_length = int(block_length)
 
-                blocks.append( TermOrder(block_name, block_length) )
+                blocks.append( TermOrder(block_name, block_length, force=force) )
                 name_str.append("%s(%d)"%(block_name, block_length))
                 singular_str.append("%s(%d)"%(singular_name_mapping.get(block_name, block_name), block_length))
                 macaulay2_str.append("%s => %d"%(macaulay2_name_mapping.get(block_name, block_name), block_length))
@@ -439,10 +446,11 @@ class TermOrder(SageObject):
         else:
             from sage.misc.misc import verbose
             if blocks:
+                # we allow deglex_asc here which is used by PolyBoRi
                 if name not in singular_name_mapping.keys() and \
-                        name not in singular_name_mapping.values():
+                        name not in singular_name_mapping.values() and not force:
                     verbose("Term ordering '%s' unknown."%name,level=0)
-                self.blocks = (TermOrder(name,n,blocks=False),)
+                self.blocks = (TermOrder(name,n,blocks=False, force=force),)
             else:
                 self.blocks = tuple()
             self.__length = n
@@ -1050,7 +1058,7 @@ class TermOrder(SageObject):
         """
         if not isinstance(other, TermOrder):
             if isinstance(other, str):
-                other = TermOrder(other)
+                other = TermOrder(other, force=True)
             else:
                 return cmp(type(self), type(other))
         return cmp(self.singular_str(), other.singular_str())
@@ -1078,7 +1086,7 @@ class TermOrder(SageObject):
             return self
 
         if not isinstance(other,TermOrder):
-            other = TermOrder(other)
+            other = TermOrder(other, force = self.__force)
         if len(self) == 0 or len(other) == 0:
             raise ArithmeticError, "Can only concatenate term orders with length attribute."
 
@@ -1088,7 +1096,7 @@ class TermOrder(SageObject):
             name.append("%s(%d)"%(inv_singular_name_mapping.get(nom,nom), len(block_order)))
 
         name = ",".join(name)
-        return TermOrder(name, len(self)+len(other))
+        return TermOrder(name, len(self)+len(other), force=self.__force)
 
     def __len__(self):
         """

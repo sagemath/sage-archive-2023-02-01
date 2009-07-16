@@ -1,4 +1,3 @@
-include "../../libs/polybori/decl.pxi"
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
@@ -6,6 +5,13 @@ from sage.rings.polynomial.multi_polynomial_ring_generic cimport \
                                                 MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
+
+#explicit is better than implicit
+from sage.libs.polybori.decl cimport PBPoly, PBRing, PBDD, PBNavigator, \
+    PBPolyVector, PBPolyVectorIter, PBSet, PBMonom,  PBMonomVarIter, PBMonomIter, \
+    PBPolyIter, PBSetIter, PBRedStrategy, PBGBStrategy, PBFglmStrategy, PBVar
+
+from sage.libs.polybori.decl cimport *
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _pbring
@@ -26,8 +32,8 @@ cdef class BooleSet:
 cdef class CCuddNavigator:
     cdef PBNavigator _pbnav
 
-cdef class DD:
-    cdef PBDD _pbdd
+# cdef class DD:
+#     cdef PBDD _pbdd
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _pbmonom
@@ -57,8 +63,20 @@ cdef class BooleSetIterator:
     cdef PBSetIter _end
     cdef BooleSet obj
 
+cdef class BooleanPolynomialEntry:
+    cdef public BooleanPolynomial p
+
+cdef class ReductionStrategy:
+    cdef PBRedStrategy *_strat
+    cdef BooleanPolynomialRing _parent
+
 cdef class GroebnerStrategy:
-    cdef GBStrategy _strat
+    cdef PBGBStrategy _strat
+    cdef BooleanPolynomialRing _parent
+    cdef public ReductionStrategy reduction_strategy
+
+cdef class FGLMStrategy:
+    cdef PBFglmStrategy _strat
     cdef BooleanPolynomialRing _parent
 
 cdef class BooleanPolynomialVector:
@@ -78,6 +96,6 @@ cdef class VariableBlock_base:
     cdef int offset
     cdef public object __name__
 
-cdef class BooleVariable:
-    cdef PBVar _pbvar
+#cdef class BooleVariable:
+#    cdef PBVar _pbvar
 

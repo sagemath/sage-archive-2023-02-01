@@ -76,6 +76,18 @@ else:
 
 numpy_include_dirs = [SAGE_ROOT+'/local/lib/python/site-packages/numpy/core/include']
 
+#########################################################
+### PolyBoRi defines
+#########################################################
+
+polybori_extra_compile_args = []
+for line in open(SAGE_LOCAL + "/share/polybori/flags.conf"):
+    if not line.startswith("CPPDEFINES"):
+        continue
+    polybori_extra_compile_args = ["-D"+e for e in eval(line[len("CPPDEFINES = "):])]
+    break
+
+
 #############################################################
 ### List of modules
 ###
@@ -1222,10 +1234,12 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori','pboriCudd','groebner'],
+              libraries=['m4ri', 'polybori','pboriCudd','groebner','gd'],
               include_dirs = [SAGE_ROOT+'/local/include/cudd',
                               SAGE_ROOT+'/local/include/polybori',
                               SAGE_ROOT+'/local/include/polybori/groebner'],
+              depends = [SAGE_ROOT + "/local/include/polybori/polybori.h"],
+              extra_compile_args = polybori_extra_compile_args,
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',

@@ -43,15 +43,16 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     won't be if `z` is a good approximation to an algebraic
     number of degree less than `n`.
 
-    You can specify the number of known bits or digits with
-    known_bits=k or known_digits=k; Pari is then told to compute the
-    result using .8\*k of these bits/digits. (The Pari documentation
-    recommends using a factor between .6 and .9, but internally
-    defaults to .8.) Or, you can specify the precision to use directly
-    with use_bits=k or use_digits=k. If none of these are specified,
-    then the precision is taken from the input value.
+    You can specify the number of known bits or digits with ``known_bits=k`` or
+    ``known_digits=k``; Pari is then told to compute the result using `0.8\*k`
+    of these bits/digits. (The Pari documentation recommends using a factor
+    between .6 and .9, but internally defaults to .8.) Or, you can specify the
+    precision to use directly with ``use_bits=k`` or ``use_digits=k``. If none
+    of these are specified, then the precision is taken from the input value.
 
     ALGORITHM: Uses the PARI C-library algdep command.
+
+    Note that ``algebraic_dependency`` is a synonym for ``algdep``.
 
     INPUT:
 
@@ -168,27 +169,19 @@ def bernoulli(n, algorithm='default', num_threads=1):
     INPUT:
 
     -  ``n`` - an integer
-
     -  ``algorithm``:
 
-        -  ``'default'`` - (default) use 'pari' for n <= 30000,
-           and 'bernmm' for n > 30000 (this is just a heuristic, and not
-           guaranteed to be optimal on all hardware)
-
-        -  ``'pari'`` - use the PARI C library
-
-        -  ``'gap'`` - use GAP
-
-        -  ``'gp'`` - use PARI/GP interpreter
-
-        -  ``'magma'`` - use MAGMA (optional)
-
-        -  ``'bernmm'`` - use bernmm package (a multimodular
-           algorithm)
+       -  ``'default'`` - (default) use 'pari' for n <= 30000, and 'bernmm' for
+          n > 30000 (this is just a heuristic, and not guaranteed to be optimal
+          on all hardware)
+       -  ``'pari'`` - use the PARI C library
+       -  ``'gap'`` - use GAP
+       -  ``'gp'`` - use PARI/GP interpreter
+       -  ``'magma'`` - use MAGMA (optional)
+       -  ``'bernmm'`` - use bernmm package (a multimodular algorithm)
 
     -  ``num_threads`` - positive integer, number of
        threads to use (only used for bernmm algorithm)
-
 
     EXAMPLES::
 
@@ -222,12 +215,6 @@ def bernoulli(n, algorithm='default', num_threads=1):
         sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in range(2256,5000)] #long time
         sage: union([len(union(x))==1 for x in vals]) #long time
         [True]
-
-    .. note::
-
-       If `n>50000` then algorithm = 'gp' is used instead of
-       algorithm = 'pari', since the C-library interface to PARI is
-       limited in memory for individual operations.
 
     AUTHOR:
 
@@ -268,16 +255,12 @@ def factorial(n, algorithm='gmp'):
 
     INPUT:
 
-
     -  ``n`` - an integer
-
     -  ``algorithm`` - string (default: 'gmp')
 
-        -  ``'gmp'`` - use the GMP C-library factorial
+       -  ``'gmp'`` - use the GMP C-library factorial
            function
-
-        -  ``'pari'`` - use PARI's factorial function
-
+       -  ``'pari'`` - use PARI's factorial function
 
     OUTPUT: an integer
 
@@ -360,7 +343,7 @@ def is_prime(n, flag=0):
 
        We do not consider negatives of prime numbers as prime.
 
-    EXAMPLES:::
+    EXAMPLES::
 
         sage: is_prime(389)
         True
@@ -598,7 +581,7 @@ def primes_first_n(n, leave_pari=False):
 
     OUTPUT:
 
-    - a list of the first $n$ prime numbers.
+    - a list of the first `n` prime numbers.
 
     EXAMPLES::
 
@@ -636,6 +619,7 @@ def eratosthenes(n):
 
 
     EXAMPLES::
+
         sage: len(eratosthenes(100))
         25
         sage: eratosthenes(3)
@@ -791,7 +775,7 @@ def next_prime(n, proof=None):
     function does not return n, but the next prime after n. If the
     optional argument proof is False, this function only returns a
     pseudo-prime, as defined by the PARI nextprime function. If it is
-    None, uses the global default (see sage.structure.proof)
+    None, uses the global default (see :mod:`sage.structure.proof.proof`)
 
     INPUT:
 
@@ -926,10 +910,10 @@ def random_prime(n, proof=None):
 
     -  ``n`` - an integer >= 2.
 
-    -  ``proof`` - bool or None (default: None) If False,
-       the function uses a pseudo-primality test, which is much faster for
-       really big numbers but does not provide a proof of primality. If
-       None, uses the global default (see sage.structure.proof)
+    -  ``proof`` - bool or None (default: None) If False, the function uses a
+       pseudo-primality test, which is much faster for really big numbers but
+       does not provide a proof of primality. If None, uses the global default
+       (see :mod:`sage.structure.proof.proof`)
 
 
     EXAMPLES::
@@ -1433,7 +1417,7 @@ def xlcm(m,n):
 
 def xgcd(a, b):
     """
-    Returns triple (g,s,t) such that `g = s*a+t*b = gcd(a,b)`.
+    Returns triple ``(g,s,t)`` such that `g = s\*a+t\*b = \mathop{\mathrm{gcd}}(a,b)`.
 
     INPUT:
 
@@ -1445,13 +1429,13 @@ def xgcd(a, b):
     OUTPUT:
 
 
-    -  ``g, s, t`` - such that g = s\*a + t\*b
+    -  ``g, s, t`` - such that `g = s\*a + t\*b`
 
 
     .. note::
 
        There is no guarantee that the returned cofactors (s and t) are
-       minimal. In the integer case, see Integer._xgcd() for minimal
+       minimal. In the integer case, see :meth:`sage.rings.integer.Integer._xgcd()` for minimal
        cofactors.
 
     EXAMPLES::
@@ -1788,16 +1772,16 @@ def mqrr_rational_reconstruction(u, m, T):
     r"""
     Maximal Quotient Rational Reconstruction.
 
-    FOR research purposes only - this is pure Python, so slow.
+    For research purposes only - this is pure Python, so slow.
 
     INPUT:
 
-    - ``u, m, T`` -  integers such that `m > u \ge 0,` `T > 0`.
+    - ``u, m, T`` -  integers such that `m > u \ge 0`, `T > 0`.
 
     OUTPUT:
 
-    Either integers `n,d` such that `d>0`, `gcd(n,d)=1`, `n/d=u (mod m)`, and
-    `T*d*|n|< m`, or ``None``.
+    Either integers `n,d` such that `d>0`, `\mathop{\mathrm{gcd}}(n,d)=1`, `n/d=u \bmod m`, and
+    `T \* d \* |n| < m`, or ``None``.
 
     Reference: Monagan, Maximal Quotient Rational Reconstruction: An
     Almost Optimal Algorithm for Rational Reconstruction (page 11)
@@ -2013,9 +1997,10 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     numbers.
 
     The factorization returned is an element of the class
-    Factorization; see Factorization?? for more details, and examples
-    below for usage. A Factorization contains both the unit factor (+1
-    or -1) and a sorted list of (prime, exponent) pairs.
+    :class:`~sage.structure.factorization.Factorization`; see Factorization??
+    for more details, and examples below for usage. A Factorization contains
+    both the unit factor (+1 or -1) and a sorted list of (prime, exponent)
+    pairs.
 
     The factorization displays in pretty-print format but it is easy to
     obtain access to the (prime,exponent) pairs and the unit, to
@@ -2061,7 +2046,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
     Sage calls PARI's factor, which has proof False by default. Sage
     has a global proof flag, set to True by default (see
-    sage.structure.proof, or proof.[tab]). To override the default,
+    :mod:`sage.structure.proof.proof`, or proof.[tab]). To override the default,
     call this function with proof=False.
 
     ::
@@ -2275,6 +2260,7 @@ def is_squarefree(n):
     integer > 1.
 
     EXAMPLES::
+
         sage: is_squarefree(100)
         False
         sage: is_squarefree(101)
@@ -2373,7 +2359,8 @@ class Euler_Phi:
         """
         Calls the euler_phi function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Euler_Phi()(10)
             4
             sage: Euler_Phi()(720)
@@ -2423,10 +2410,10 @@ class Euler_Phi:
 euler_phi = Euler_Phi()
 
 def crt(a,b,m,n):
-    """
-    Use the Chinese Remainder Theorem to find some integer x such that
-    x=a (mod m) and x=b (mod n). Note that x is only well-defined
-    modulo m\*n.
+    r"""
+    Use the Chinese Remainder Theorem to find some integer `x` such that
+    `x=a \bmod m` and `x=b \bmod n`. Note that `x` is only well-defined
+    modulo `m\*n`.
 
     EXAMPLES::
 
@@ -2475,8 +2462,9 @@ def CRT_list(v, moduli):
 
 def CRT_basis(moduli):
     """
-    Return a list of integers a[i] such that CRT to the given moduli of
-    numbers x[0],...,x[n-1] is a[0]\*x0 + ... + a[n-1]\*x[n-1].
+    Given a list of (pairwise coprime) moduli `m_0, \dots, m_{n-1}`, return a
+    list of integers `a_i` such that CRT of numbers `x_0,\dots,x_{n-1}` to
+    moduli `m_0, \dots, m_{n-1}` is `a_0 \* x_0 + \dots + a_{n-1} \* x_{n-1}`.
 
     INPUT:
 
@@ -2506,24 +2494,29 @@ def CRT_basis(moduli):
     return a
 
 def CRT_vectors(X, moduli):
-    """
+    r"""
+    Vector form of the Chinese Remainder Theorem: given a list of integer
+    vectors `v_i` and a list of coprime moduli `m_i`, find a vector `w` such
+    that `w = v_i \pmod m_i` for all `i`. This is more efficient than applying
+    :func:`CRT` to each entry.
+
     INPUT:
 
-
-    -  ``X`` - list of lists of the same length
-
+    -  ``X`` - list or tuple, consisting of lists/tuples/vectors/etc of
+       integers of the same length
     -  ``moduli`` - list of len(X) moduli
-
 
     OUTPUT:
 
-
     -  ``list`` - application of CRT componentwise.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: CRT_vectors([[3,5,7],[3,5,11]], [2,3])
         [3, 5, 5]
+
+        sage: CRT_vectors([vector(ZZ, [2,3,1]), Sequence([1,7,8],ZZ)], [8,9])
+        [10, 43, 17]
     """
     # First find the CRT basis:
     if len(X) == 0 or len(X[0]) == 0:
@@ -2541,21 +2534,23 @@ def binomial(x,m):
 
     .. math::
 
-                x (x-1) \cdots (x-m+1) / m!
+                \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
 
     which is defined for `m \in \ZZ` and any
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
 
-    binomial(x,m)= binomial(x,x-m)
+    .. math::
 
-    If `m<0` return `0`.
+        \binom{x}{m}= \binom{x}{x-m}
+
+    If `m < 0`, return `0`.
 
     INPUT:
 
-    -  ``x,m`` - numbers or symbolic expressions. Either m
-       or x-m must be an integer.
+    -  ``x``, ``m`` - numbers or symbolic expressions. Either ``m``
+       or ``x-m`` must be an integer.
 
     OUTPUT: number or symbolic expression (if input is symbolic)
 
@@ -3233,9 +3228,10 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
     r"""
     Returns the continued fraction of x as a list.
 
-        This may be slow since it's implemented in pure Python for real
-        input. For rational number input the PARI C library is used.
+    .. note::
 
+        This may be slow for real number input, since it's implemented in pure
+        Python. For rational number input the PARI C library is used.
 
     EXAMPLES::
 
@@ -3434,25 +3430,20 @@ def continuant(v, n=None):
     Function returns the continuant of the sequence `v` (list
     or tuple).
 
-    Definition: see Graham, Knuth and Patashnik: Concrete Mathematics:
-    6.7 Continuants:
+    Definition: see Graham, Knuth and Patashnik, *Concrete Mathematics*,
+    section 6.7: Continuants. The continuant is defined by
 
-    `K_0() = 1`
+    - `K_0() = 1`
+    - `K_1(x_1) = x_1`
+    - `K_n(x_1, \cdots, x_n) = K_{n-1}(x_n, \cdots x_{n-1})x_n + K_{n-2}(x_1,  \cdots, x_{n-2})`
 
-    `K_1(x_1) = x_1`
-
-    `K_n(x_1, \cdots, x_n) = K_{n-1}(x_n, \cdots x_{n-1})x_n + K_{n-2}(x_1,  \cdots, x_{n-2})`
-
-    If `n = None` or `n > len(v)` the default
-    `n = len(v)` is used.
+    If ``n = None`` or ``n > len(v)`` the default
+    ``n = len(v)`` is used.
 
     INPUT:
 
-
     -  ``v`` - list or tuple of elements of a ring
-
     -  ``n`` - optional integer
-
 
     OUTPUT: element of ring (integer, polynomial, etcetera).
 
@@ -3474,11 +3465,18 @@ def continuant(v, n=None):
         sage: continuant(x,2)
         x0*x1 + 1
 
-    `K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}`::
+    We verify the identity
+
+    .. math::
+
+        K_n(z,z,\cdots,z) = \sum_{k=0}^n \binom{n-k}{k} z^{n-2k}
+
+    for `n = 6` using polynomial arithmetic::
 
         sage: z = QQ['z'].0
         sage: continuant((z,z,z,z,z,z,z,z,z,z,z,z,z,z,z),6)
         z^6 + 5*z^4 + 6*z^2 + 1
+
         sage: continuant(9)
         Traceback (most recent call last):
         ...
@@ -3630,17 +3628,20 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
 def hilbert_conductor(a, b):
     """
-    This is the product of all (finite) primes where the hilbert symbol is -1.
+    This is the product of all (finite) primes where the Hilbert symbol is -1.
     What is the same, this is the (reduced) discriminant of the quaternion
-    algebra (a,b) over Q.
+    algebra `(a,b)` over `\QQ`.
 
     INPUT:
-        a, b -- integers
+
+    - ``a``, ``b`` -- integers
 
     OUTPUT:
-        squarefree positive integer
 
-    EXAMPLES:
+    - squarefree positive integer
+
+    EXAMPLES::
+
         sage: hilbert_conductor(-1, -1)
         2
         sage: hilbert_conductor(-1, -11)
@@ -3651,7 +3652,8 @@ def hilbert_conductor(a, b):
         17
 
     AUTHOR:
-        -- Gonzalo Tornaria (2009-03-02)
+
+    - Gonzalo Tornaria (2009-03-02)
     """
     a, b = ZZ(a), ZZ(b)
     d = ZZ(1)
@@ -3662,12 +3664,13 @@ def hilbert_conductor(a, b):
 
 def hilbert_conductor_inverse(d):
     """
-    Finds a pair of integers (a,b) such that hilbert_conductor(a,b) == d.
-    The quaternion algebra (a,b) over Q will have (reduced) discriminant d.
+    Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
+    The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)
+    discriminant `d`.
 
     INPUT:
 
-    - d -- square-free positive integer
+    - ``d`` -- square-free positive integer
 
     OUTPUT: pair of integers
 
@@ -3980,10 +3983,16 @@ def _brute_force_four_squares(n):
     Brute force search for decomposition into a sum of four squares,
     for cases that the main algorithm fails to handle.
 
-    INPUT: a positive integer
-    OUTPUT: a list of four numbers whose squares sum to n
+    INPUT:
+
+    - ``n`` - a positive integer
+
+    OUTPUT:
+
+    - a list of four numbers whose squares sum to n
 
     EXAMPLES::
+
         sage: from sage.rings.arith import _brute_force_four_squares
         sage: _brute_force_four_squares(567)
         [1, 1, 6, 23]
@@ -4004,11 +4013,16 @@ def four_squares(n):
     using an algorithm described by Peter Schorn at:
     http://www.schorn.ch/howto.html.
 
-    INPUT: an integer
+    INPUT:
 
-    OUTPUT: a list of four numbers whose squares sum to n
+    - ``n`` - an integer
+
+    OUTPUT:
+
+    - a list of four numbers whose squares sum to n
 
     EXAMPLES::
+
         sage: four_squares(3)
         [0, 1, 1, 1]
         sage: four_squares(130)
@@ -4289,6 +4303,7 @@ def fundamental_discriminant(D):
     4.
 
     INPUT:
+
     - ``D`` - an integer
 
     OUTPUT:

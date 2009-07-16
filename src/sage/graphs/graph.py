@@ -3530,6 +3530,21 @@ class GenericGraph(SageObject):
             sage: G.add_edge(1,2,'label')
             sage: G.networkx_graph().adj           # random output order
             {1: {2: 'label'}, 2: {1: 'label'}}
+
+        The following syntax is supported, but note you must use the
+        label keyword.
+
+        ::
+
+            sage: G = Graph()
+            sage: G.add_edge((1,2), label='label')
+            sage: G.edges()
+            [(1, 2, 'label')]
+            sage: G = Graph()
+            sage: G.add_edge((1,2), 'label')
+            sage: G.edges()
+            [((1, 2), 'label', None)]
+
         """
         if label is None:
             if v is None:
@@ -3538,6 +3553,9 @@ class GenericGraph(SageObject):
                 except:
                     u, v = u
                     label = None
+        else:
+            if v is None:
+                u, v = u
         if not self.allows_loops() and u==v:
             return
         self._backend.add_edge(u, v, label, self._directed)

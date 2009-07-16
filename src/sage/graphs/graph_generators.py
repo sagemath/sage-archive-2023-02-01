@@ -2889,9 +2889,9 @@ class GraphGenerators():
         ::
 
             sage: graphs.RandomRegular(3, 8)
-            Graph on 0 vertices
+            False
             sage: graphs.RandomRegular(3, 8)
-            Graph on 0 vertices
+            False
             sage: graphs.RandomRegular(3, 8).edges(labels=False)
             [(0, 1), (0, 4), (0, 5), (1, 6), (1, 7), (2, 3), (2, 4), (2, 7), (3, 4), (3, 5), (5, 6), (6, 7)]
 
@@ -2915,7 +2915,9 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         try:
-            return graph.Graph(networkx.random_regular_graph(d, n, seed), sparse=True)
+            N = networkx.random_regular_graph(d, n, seed)
+            if N is False: return False
+            return graph.Graph(N, sparse=True)
         except:
             return False
 

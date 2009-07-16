@@ -986,5 +986,17 @@ class ParametricPlot:
         return False
 
 def tostr(s):
+    """
+    Converts vector information to a space-seperated string.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.tachyon import tostr
+	sage: tostr((1,1,1))
+	' 1.0 1.0 1.0 '
+	sage: tostr('2 3 2')
+	'2 3 2'
+    """
     if isinstance(s, str):
         return s
+    return ' %s %s %s '%(float(s[0]), float(s[1]), float(s[2]))

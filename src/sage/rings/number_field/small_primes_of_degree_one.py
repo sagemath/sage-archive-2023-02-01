@@ -6,7 +6,9 @@ Iterator for finding several primes of absolute degree one of a number field of
 
 ------
 
-**Algorithm**: Let `P` denote the product of the some set of prime numbers.  (In practice, we
+**Algorithm**:
+
+Let `P` denote the product of some set of prime numbers. (In practice, we
 use the product of the first 10000 primes, because Pari computes this many by
 default.)
 
@@ -27,13 +29,15 @@ n)` is prime and of degree one.
 
 .. warning::
 
-    It is possible that there are no primes of `K` of absolute degree one of small
-    prime norm, and it possible that this algorithm will not find any primes of
-    small norm.
+    It is possible that there are no primes of `K` of absolute degree one of
+    small prime norm, and it is possible that this algorithm will not find
+    any primes of small norm.
 
 ------
 
-**To do**: There are situations when this will fail.  There are questions of finding
+**To do**:
+
+There are situations when this will fail.  There are questions of finding
 primes of relative degree one.  There are questions of finding primes of exact
 degree larger than one.  In short, if you can contribute, please do!
 
@@ -107,13 +111,17 @@ class Small_primes_of_degree_one_iter():
 
     INPUT:
 
-    - ``field`` -- a NumberField.
+    - ``field`` -- a ``NumberField``.
+
     - ``num_integer_primes`` (default: 10000) -- an integer.  We try to find
-      primes of absolute norm no greater than the num_integer_primes-th prime
-      number. For example, if num_integer_primes is 2, the largest norm found
-      will be 3, since the second prime is 3.
-    - ``max_iterations`` (default: 100) -- an integer. We test max_iterations
-      integers to find small primes before raising ``StopIteration``.
+      primes of absolute norm no greater than the
+      ``num_integer_primes``-th prime number. For example, if
+      ``num_integer_primes`` is 2, the largest norm found will be 3, since
+      the second prime is 3.
+
+    - ``max_iterations`` (default: 100) -- an integer. We test
+      ``max_iterations`` integers to find small primes before raising
+      ``StopIteration``.
 
     AUTHOR:
 
@@ -199,7 +207,7 @@ class Small_primes_of_degree_one_iter():
             [Fractional ideal (2*a + 1), Fractional ideal (-a + 4), Fractional ideal (3*a + 2)]
 
         We test that #6396 is fixed. Note that the doctest is flagged as random
-        since the string representation of ideals is somewhat unpredictable.::
+        since the string representation of ideals is somewhat unpredictable::
 
             sage: N.<a,b> = NumberField([x^2 + 1, x^2 - 5])
             sage: ids = N.primes_of_degree_one_list(10); a # random

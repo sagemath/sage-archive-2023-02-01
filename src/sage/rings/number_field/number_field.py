@@ -4551,8 +4551,8 @@ class NumberField_absolute(NumberField_generic):
 
     def absolute_generator(self):
         r"""
-        An alias for :meth:`.gen`. This is provided for consistency with relative
-        fields, where the element returned by :meth:`~sage.rings.number_field.number_field_rel.NumberField_relative.gen` only generates the
+        An alias for :meth:`.gen`. This is provided for consistency with
+        relative fields, where the element returned by :meth:`~sage.rings.number_field.number_field_rel.NumberField_relative.gen` only generates the
         field over its base field (not necessarily over `\QQ`).
 
         EXAMPLE::

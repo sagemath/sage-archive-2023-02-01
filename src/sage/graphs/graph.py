@@ -7790,7 +7790,7 @@ class GenericGraph(SageObject):
         INPUT:
 
 
-        -  ``translation`` - if True, then output includes a a
+        -  ``translation`` - if True, then output includes a
            dictionary translating from keys == vertices to entries == elements
            of 1,2,...,n (since permutation groups can currently only act on
            positive integers).
@@ -7906,6 +7906,9 @@ class GenericGraph(SageObject):
             sage: G = graphs.PetersenGraph()
             sage: G.automorphism_group(return_group=False, orbits=True)
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+            sage: G.automorphism_group(partition=[[0],range(1,10)], return_group=False, orbits=True)
+            [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
+
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import perm_group_elt, search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup

@@ -83,7 +83,7 @@ if [ $UNAME != "Darwin" ]; then
     echo "Deleting old FLINT"
     rm -f $SAGE_LOCAL/lib/libflint*
     echo "Installing new library file"
-    $CP -a libflint* "$SAGE_LOCAL/lib/"
+    $CP -p libflint* "$SAGE_LOCAL/lib/"
 fi
 
 # OS X

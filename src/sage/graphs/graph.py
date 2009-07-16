@@ -6258,13 +6258,17 @@ class GenericGraph(SageObject):
         EXAMPLES::
 
             sage: g=graphs.PathGraph(4)
+            sage: g.transitive_closure()
+            Transitive closure of Path Graph: Graph on 4 vertices
             sage: g.transitive_closure()==graphs.CompleteGraph(4)
             True
             sage: g=DiGraph({0:[1,2], 1:[3], 2:[4,5]})
             sage: g.transitive_closure().edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
+
         """
         G = self.copy()
+        G.name('Transitive closure of ' + self.name())
         for v in G:
             # todo optimization opportunity: we are adding edges that
             # are already in the graph and we are adding edges

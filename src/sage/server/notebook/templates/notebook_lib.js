@@ -16,7 +16,7 @@ GLOBAL INPUT:
     each global variable that significantly impacts
     the behavior of this function and how
 OUTPUT:
-    decription of output or side effects.
+    description of output or side effects.
 */
 
 ///////////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ function get_keyboard() {
     }
 
     if(b == null || o == null || warn) {
-        alert("Your browser / OS combination is not supported.  \nPlease use Firefox or Opera under linux, windows, or mac OSX, or Safari.")
+        alert("Your browser / OS combination is not supported.  \nPlease use Firefox or Opera under Linux, Windows, or Mac OS X, or Safari.")
     }
 
     async_request('/javascript/keyboard/'+b+o, get_keyboard_callback);
@@ -317,7 +317,7 @@ function set_class(id, cname) {
 
 function get_class(id) {
     /*
-    Get the clas of the DOM element with the given id.
+    Get the class of the DOM element with the given id.
 
     INPUT:
         id -- a string
@@ -511,7 +511,7 @@ function set_cursor_position(cell, n) {
         // program around a "bug" in opera where using this
         // hack to position the cursor selects the entire
         // text area (which is very painful, since then the
-        // user accidently deletes all their code).
+        // user accidentally deletes all their code).
         return;
     }
     // TODO: note for explorer:  may need to focus cell first.
@@ -1004,13 +1004,13 @@ function worksheet_list_button(action) {
     the corresponding action.
 
     INPUT:
-        action -- url that defines a message to send to the server
+        action -- URL that defines a message to send to the server
     GLOBAL INPUT:
         worksheet_filenames -- list of strings
         SEP -- separator string used when encoding tuples of data to send
                back to the server.
     OUTPUT:
-        calls the server and requests an action be performened on all the
+        calls the server and requests an action be performed on all the
         listed worksheets
     */
     // Send the list of worksheet names and requested action back to
@@ -1292,7 +1292,7 @@ function system_select(s) {
 
 function pretty_print_check(s) {
     /*
-    Send a message back to the server either turn pretting typeset printing on or off.
+    Send a message back to the server either turn pretty typeset printing on or off.
     INPUT:
         s -- true or false; true if the pretty print selection is checked.
     */
@@ -1354,7 +1354,7 @@ function delete_worksheet_callback(status, response_text) {
 function go_option(theform) {
     /*
     This is called when the user selects a menu item.  This just
-    evals the corresponding value, which results in running some
+    evaluates the corresponding value, which results in running some
     javascript code to do the action.
     */
     with(theform) {
@@ -1413,7 +1413,7 @@ function list_copy_worksheet(filename) {
     list is then refreshed.
 
     INPUT:
-        filename -- string; filename of the worsheet to share
+        filename -- string; filename of the worksheet to share
     */
     async_request('/home/' + filename + '/copy?no_load', refresh);
 }
@@ -1435,7 +1435,7 @@ function list_publish_worksheet(filename) {
     worksheet list, and popup the published worksheet.
 
     INPUT:
-        filename -- string; filename of the worsheet to share
+        filename -- string; filename of the worksheet to share
     */
     window.open('/home/' + filename + '/publish', "",
              "menubar=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
@@ -1447,7 +1447,7 @@ function list_revisions_of_worksheet(filename) {
     up the revisions browser.
 
     INPUT:
-        filename -- string; filename of the worsheet to share
+        filename -- string; filename of the worksheet to share
     */
     window.location.replace('/home/' + filename + '/revisions');
 }
@@ -1461,7 +1461,7 @@ function list_revisions_of_worksheet(filename) {
 
 function server_ping_while_alive() {
     /*
-    Ping the server every server_ping_time miliseconds to announce
+    Ping the server every server_ping_time milliseconds to announce
     that we are still viewing this page.
     */
     async_request(worksheet_command('alive'), server_ping_while_alive_callback);
@@ -1706,7 +1706,7 @@ function move_cursor_to_top_of_cell(cell) {
 function focus_delay(id, leave_cursor) {
     /*
     Set the focus on the cell with given input after a
-    10 miliseconds delay.
+    10 milliseconds delay.
 
     NOTE: I (Stein) think this sort of use of Javascript is really bad, and code
     that uses this should be rewritten to not use it.
@@ -2038,7 +2038,7 @@ function jump_to_cell(id, delta, bottom) {
          delta -- an integer (default or 0: just focus on the cell
                   with the given id).
          bottom -- if true, puts the cursor at the end of the cell
-                   rather than the beginnning
+                   rather than the beginning
      GLOBAL INPUT:
          ignore_next_jump -- if this variable
             is set globally to true, then this function immediately
@@ -2084,7 +2084,7 @@ function text_cursor_split(cell) {
     /*
     Returns a pair of substrings, the first from the start of the cell
     to the cursor position, and the second from the cursor position to
-    the end fo the cell.
+    the end of the cell.
 
     INPUT:
         cell -- an input cell (DOM textarea element)
@@ -2328,14 +2328,14 @@ function evaluate_cell(id, newcell) {
     }
 
     // append that cell id is currently having some sort of computation
-    // possibly occuring.  Note that active_cell_list is a global variable.
+    // possibly occurring.  Note that active_cell_list is a global variable.
     active_cell_list = active_cell_list.concat([id]);
 
     // Stop from sending the input again to the server when we leave focus and the
     // send_cell_input function is called.
     cell_has_changed = false;
 
-    // Clear the output text and set the css to indicate that this
+    // Clear the output text and set the CSS to indicate that this
     // is a running cell.
     cell_set_running(id);
 
@@ -2470,7 +2470,7 @@ function cell_output_set_type(id, typ, do_async) {
         do_async -- true or false; if true tell the server about the change.
     */
 
-    // We do the follwowing specifically because interact cells do not work
+    // We do the following specifically because interact cells do not work
     // at all when displayed in nowrap mode, which is VERY BAD.  So instead
     // for interacts one gets a toggle to and from hidden.
 
@@ -2498,7 +2498,7 @@ function cycle_cell_output_type(id) {
     There are three types: word wrap, no word wrap, hidden.
 
     INPUT:
-        id -- an intteger
+        id -- an integer
     */
     var cell_div = get_element('cell_div_output_' + id);
 
@@ -2583,7 +2583,7 @@ function check_for_cell_update() {
     OUTPUT:
         * if the active cell list is empty, cancel update checking.
         * makes an async request
-        * causes the titlebar compute spinner to spin
+        * causes the title bar compute spinner to spin
     */
 
     // cancel update checks if no cells are doing computations.
@@ -2592,7 +2592,7 @@ function check_for_cell_update() {
         return;
     }
 
-    // record in a global variable when the last update occured.
+    // record in a global variable when the last update occurred.
     update_time = time_now();
 
     // check on the cell currently computing to see what's up.
@@ -2738,7 +2738,7 @@ function continue_update_check() {
     If not, wait longer and try again later.
 
     GLOBAL INPUT:
-        update_time -- global variable that records when last update check occured.
+        update_time -- global variable that records when last update check occurred.
     */
     var time_elapsed = time_now() - update_time;
     if(time_elapsed < cell_output_delta) {
@@ -2804,7 +2804,7 @@ function set_output_text(id, text, wrapped_text, output_html,
         id -- an integer; the id of a cell
         text -- string
         wrapped_text -- string; word wrapped version of text
-        output_html -- string; html formated output
+        output_html -- string; html formatted output
         status -- letter (length 1 string); 'd' -- done; anything else -- working
         introspect_html -- when user is introspecting this html will go in
                            the introspection dialog box
@@ -2828,7 +2828,7 @@ function set_output_text(id, text, wrapped_text, output_html,
         var new_interact_output = wrapped_text.slice(i+16,j);
         new_interact_output = eval_script_tags(new_interact_output);
 
-        // An error occured accessing the data for this cell.  Just force reload
+        // An error occurred accessing the data for this cell.  Just force reload
         // of the cell, which will certainly define that data.
         if (new_interact_output.indexOf('__SAGE_INTERACT_RESTART__') != -1) {
             evaluate_cell(id, 0);
@@ -2946,7 +2946,7 @@ function eval_script_tags(text) {
     INPUT:
         text -- a string
     OUTPUT
-        string -- like text, but with all script tages removed.
+        string -- like text, but with all script tags removed.
     */
     var s = text; //text.replaceAll('\n','');
     var i = s.indexOf('<'+'script>');
@@ -3297,7 +3297,7 @@ function insert_new_text_cell_after(id, input) {
     Insert a new text cell after the cell with given id.
 
     This sends a message to the server requesting that a new cell be
-    inserted, then via a callback modifes the DOM.
+    inserted, then via a callback modifies the DOM.
 
     INPUT:
         id -- integer
@@ -3386,7 +3386,7 @@ function insert_new_cell_before(id, input) {
     Insert a new cell before the cell with given id.
 
     This sends a message to the server requesting that a new cell be inserted, then
-    via a callback modifes the DOM.
+    via a callback modifies the DOM.
 
     INPUT:
         id -- integer
@@ -3423,7 +3423,7 @@ function insert_new_text_cell_before(id, input) {
     Insert a new text cell before the cell with given id.
 
     This sends a message to the server requesting that a new cell be
-    inserted, then via a callback modifes the DOM.
+    inserted, then via a callback modifies the DOM.
 
     INPUT:
         id -- integer
@@ -3588,7 +3588,7 @@ function delete_all_output() {
     Things that could go wrong:
          1. Message to server to actually do the delete is not received or fails.
             Not so bad, since no data is lost; a mild inconvenience.
-         2. User accidently clicks on delete all.  There is no confirm dialog.
+         2. User accidentally clicks on delete all.  There is no confirm dialog.
             Not so bad, since we save a revision right before the delete all, so
             they can easily go back to the previous version.
     */
@@ -3634,7 +3634,7 @@ function set_all_cells_to_be_not_evaluated() {
 function restart_sage() {
     /*
     Restart the running Sage process that supports calculations in this
-    worksheeet.
+    worksheet.
 
     This function immediately changes the DOM so it looks like no cells
     are running and none have been evaluated, then it sends a message
@@ -3732,7 +3732,7 @@ function interact(id, input) {
     current_cell = id;
 
     // Delete the old images, etc., that might be sitting
-    // in the output from the previos evaluation of this cell.
+    // in the output from the previous evaluation of this cell.
     get_element('cell_output_html_' + id).innerHTML = "";
 
     var cell_number = get_element('cell_number_' + id);

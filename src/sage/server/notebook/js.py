@@ -39,7 +39,7 @@ def javascript():
     specific to the running session.
 
     Before the code is returned (as a string), it is run through a
-    JavascriptCompressor to minimze the amount of data needed to be
+    JavascriptCompressor to minimize the amount of data needed to be
     sent to the browser.
 
     .. note::

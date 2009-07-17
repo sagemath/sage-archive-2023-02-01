@@ -569,6 +569,8 @@ class EllipticCurveFormalGroup(SageObject):
         - Hamish Ivey-Law (2009-06): double-and-add algorithm for
           non char 0 field case.
 
+        - Tom Boothby (2009-06): slight improvement to double-and-add
+
         EXAMPLES::
 
             sage: e = EllipticCurve([1, 2, 3, 4, 6])
@@ -654,11 +656,16 @@ class EllipticCurveFormalGroup(SageObject):
                 g = F(g)
             return R(g.add_bigoh(orig_prec))
 
-        result = F.parent().base_ring()(0)
+        if n&1:
+            result = g
+        else:
+            result = F.parent().base_ring()(0)
+        n = n >> 1
+
         while n > 0:
+            g = F(g, g)
             if n & 1:
                 result = F(result, g)
-            g = F(g, g)
             n = n >> 1
 
         return R(result.add_bigoh(orig_prec))

@@ -51,8 +51,6 @@ from ribbon import Ribbon, StandardRibbons
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
 
 #Words
-#from word import Words, ShuffleProduct
-# sage-words replaces Words
 from words.all import *
 
 from subword import Subwords
@@ -72,7 +70,7 @@ from set_partition import SetPartitions
 from set_partition_ordered import OrderedSetPartitions
 from subset import Subsets
 from necklace import Necklaces
-from lyndon_word import LyndonWords, StandardBracketedLyndonWords
+from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord
 from sloane_functions import sloane
 

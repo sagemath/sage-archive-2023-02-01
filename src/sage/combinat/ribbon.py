@@ -222,10 +222,10 @@ class Ribbon_class(CombinatorialObject):
             sage: Ribbon([[1,2],[3,4]]).evaluation()
             [1, 1, 1, 1]
         """
-
-        return self.to_word().evaluation()
-
-
+        ed = self.to_word().evaluation_dict()
+        entries = ed.keys()
+        m = max(entries) + 1 if entries else -1
+        return [ed.get(k,0) for k in range(1,m)]
 
 def from_shape_and_word(shape, word):
     """

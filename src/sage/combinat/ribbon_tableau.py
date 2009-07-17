@@ -20,7 +20,6 @@ from combinat import CombinatorialObject, CombinatorialClass
 import skew_tableau, permutation, partition, skew_partition
 from sage.rings.all import QQ, ZZ
 import functools
-from sage.combinat.words.words import Words
 
 def RibbonTableau(rt=None, expr=None):
     """
@@ -88,10 +87,11 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
             sage: R.to_word()
             word: 2041100030
         """
+        from sage.combinat.words.word import Word
         w = []
         for row in reversed(self):
             w += row
-        return Words(alphabet="natural numbers")(w)
+        return Word(w)
 
     def evaluation(self):
         """
@@ -102,9 +102,10 @@ class RibbonTableau_class(skew_tableau.SkewTableau_class):
             sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
             [2, 1, 1, 1]
         """
-        w = [i for i in self.to_word() if i != 0]
-        word = Words(alphabet="positive integers")(w)
-        return word.evaluation()
+        ed = self.to_word().evaluation_dict()
+        entries = ed.keys()
+        m = max(entries) + 1 if entries else -1
+        return [ed.get(k,0) for k in range(1,m)]
 
 def from_expr(l):
     """

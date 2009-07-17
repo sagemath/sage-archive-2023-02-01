@@ -2,7 +2,7 @@
 Non-symmetric Macdonald Polynomials
 """
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
-from sage.combinat.words.words import Words
+from sage.combinat.words.word import Word
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
 from sage.rings.all import QQ, PolynomialRing, prod
@@ -368,7 +368,10 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a.weight()
             [1, 2, 1, 1, 2, 1]
         """
-        return self.reading_word().evaluation()
+        ed = self.reading_word().evaluation_dict()
+        entries = ed.keys()
+        m = max(entries) + 1 if entries else -1
+        return [ed.get(k,0) for k in range(1,m)]
 
     def descents(self):
         """
@@ -444,7 +447,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             word: 25465321
         """
         w = [self[i,j] for i,j in self.reading_order() if j > 0]
-        return Words(alphabet="positive integers")(w)
+        return Word(w)
 
 
     def inversions(self):

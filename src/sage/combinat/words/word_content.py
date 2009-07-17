@@ -1,6 +1,14 @@
 # coding=utf-8
 """
-Word contents
+Word contents (DEPRECATED)
+
+.. note::
+
+    This module will be deleted in a future version of Sage. Most of the
+    commands here have been already deleted; only the commands needed for
+    unpickling word objects saved with older versions of Sage (pre 4.1) have
+    been kept (for now).
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
@@ -49,6 +57,8 @@ def BuildWordContent(obj, mapping=id_f, format=None, part=slice(None)):
         sage: from sage.combinat.words.word_content import BuildWordContent
         sage: from itertools import count, imap, repeat
         sage: len(BuildWordContent(None))
+        doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
+        doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
         0
         sage: len(BuildWordContent(None, format='empty'))
         0
@@ -57,6 +67,7 @@ def BuildWordContent(obj, mapping=id_f, format=None, part=slice(None)):
         ...
         TypeError: trying to build an empty word with something other than None
         sage: len(BuildWordContent(['0', '1', '1'], int))
+        doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
         3
         sage: len(BuildWordContent(['0', '1', '1'], int, format='list'))
         3
@@ -65,12 +76,17 @@ def BuildWordContent(obj, mapping=id_f, format=None, part=slice(None)):
         ...
         TypeError: trying to build a word backed by a list with a sequence not providing the required operations
         sage: c = BuildWordContent(lambda x: x%2)
+        doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
+        doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
         sage: len(BuildWordContent(lambda x: x%3, part=slice(0,10)))
         10
         sage: c = BuildWordContent(repeat(1))
+        doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
+        doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
         sage: len(BuildWordContent(count(), part=slice(10)))
         10
         sage: len(BuildWordContent(count(), part=slice(10, 0, -2)))
+        doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
         5
     """
     if format is None:
@@ -115,7 +131,7 @@ def is_WordContent(obj):
         sage: from sage.combinat.words.word_content import BuildWordContent, is_WordContent
         sage: is_WordContent(33)
         False
-        sage: is_WordContent(BuildWordContent([0, 1, 0], sage.combinat.words.utils.id_f))
+        sage: is_WordContent(BuildWordContent([0, 1, 0], lambda x : x))
         True
     """
     return isinstance(obj, WordContent)
@@ -130,6 +146,7 @@ class WordContent(object):
         TESTS::
 
             sage: c1 = sage.combinat.words.word_content.WordContentFromList([1, 2, 1, 1])
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: c2 = sage.combinat.words.word_content.WordContentFromList([1, 2, 3])
             sage: c3 = sage.combinat.words.word_content.WordContentFromList([1, 4])
             sage: c2.__cmp__(c1) > 0
@@ -156,6 +173,7 @@ class WordContent(object):
 
             sage: from sage.combinat.words.word_content import BuildWordContent
             sage: list(BuildWordContent([1]).concatenate(BuildWordContent([2, 3, 4])))
+            doctest:...: DeprecationWarning: ConcatenateContent is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             [1, 2, 3, 4]
         """
         if not (haslen(self) and haslen(other)):
@@ -212,6 +230,7 @@ class WordContent(object):
         ::
 
             sage: f = sage.combinat.words.word_content.WordContentFromList(range(10))
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: f._check_getitem_args(slice(None, None, None))
             slice(0, 10, 1)
             sage: f._check_getitem_args(slice(None, 0, None))
@@ -315,6 +334,7 @@ class WordContent(object):
 
             sage: from itertools import count
             sage: i = sage.combinat.words.word_content.WordContentFromIterator(count())
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: i._check_getitem_args(slice(None, None, None))
             slice(0, None, 1)
             sage: i._check_getitem_args(slice(None, 0, None))
@@ -436,13 +456,12 @@ class WordContentFromList(WordContent):
         TESTS::
 
             sage: c = sage.combinat.words.word_content.WordContentFromList([0, 1, 1, 2, 1])
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: c == loads(dumps(c))
             True
         """
-        # FIXME: the line below
-        #typecode = {1:'B', 2:'I', 4:'L'}[dropwhile(lambda x: x < len(parent.alphabet())/256, [1, 2, 4]).next()]
-        #from array import array
-        #self._list = array('B', imap(trans, l))
+        from sage.misc.misc import deprecation
+        deprecation('%s is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives' % self.__class__.__name__)
         self._list = map(trans, l)
 
     def __iter__(self):
@@ -450,6 +469,7 @@ class WordContentFromList(WordContent):
         TESTS::
 
             sage: list(sage.combinat.words.word_content.WordContentFromList('012345', int)) # indirect test
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             [0, 1, 2, 3, 4, 5]
         """
         return iter(self._list)
@@ -459,6 +479,7 @@ class WordContentFromList(WordContent):
         TESTS::
 
             sage: len(sage.combinat.words.word_content.WordContentFromList([0, 1, 0, 0, 1]))
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             5
         """
         return len(self._list)
@@ -469,6 +490,7 @@ class WordContentFromList(WordContent):
 
             sage: from sage.combinat.words.word_content import WordContentFromList
             sage: w = WordContentFromList('012345', int)
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: e = WordContentFromList('', int)
             sage: w__2 = WordContentFromList('45', int)
             sage: w_2 = WordContentFromList('01', int)
@@ -547,9 +569,12 @@ class WordContentFromFunction(WordContent):
         TESTS::
 
             sage: c = sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)[:10]
+            doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: c == loads(dumps(c))
             True
         """
+        from sage.misc.misc import deprecation
+        deprecation('%s is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives' % self.__class__.__name__)
         self._func = func
         self._len = Infinity
         self._trans = trans
@@ -559,6 +584,7 @@ class WordContentFromFunction(WordContent):
         TESTS::
 
             sage: list(sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)[:6]) # indirect test
+            doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             [0, 1, 2, 3, 4, 5]
         """
         for i in xrange(self._len) if haslen(self) else count():
@@ -569,6 +595,7 @@ class WordContentFromFunction(WordContent):
         TESTS::
 
             sage: c = sage.combinat.words.word_content.WordContentFromFunction(sage.combinat.words.utils.id_f)
+            doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: len(c)
             Traceback (most recent call last):
             ...
@@ -586,7 +613,9 @@ class WordContentFromFunction(WordContent):
             sage: from sage.combinat.words.utils import id_f
             sage: from sage.combinat.words.word_content import WordContentFromFunction, WordContentFromList
             sage: w = WordContentFromFunction(id_f);
+            doctest:...: DeprecationWarning: WordContentFromFunction is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: e = WordContentFromList('', int)
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: w__2 = WordContentFromList('45', int)
             sage: w_2 = WordContentFromList('01', int)
             sage: w__1 = WordContentFromList('01234', int)
@@ -695,12 +724,15 @@ class WordContentFromIterator(WordContent):
 
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())[:10]
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
 
         ::
 
             #sage: c == loads(dumps(c)) # broken because of islice
             #True
         """
+        from sage.misc.misc import deprecation
+        deprecation('%s is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives' % self.__class__.__name__)
         self._iter = iter(it)
         self._len = Infinity
         self._trans = trans
@@ -711,6 +743,7 @@ class WordContentFromIterator(WordContent):
 
             sage: from itertools import count
             sage: list(sage.combinat.words.word_content.WordContentFromIterator(count())[:6]) # indirect test
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             [0, 1, 2, 3, 4, 5]
         """
         return imap(self._trans, self._get_it())
@@ -721,6 +754,7 @@ class WordContentFromIterator(WordContent):
 
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: it1 = c._get_it()
             sage: it2 = c._get_it()
             sage: it1.next()
@@ -743,6 +777,7 @@ class WordContentFromIterator(WordContent):
 
             sage: from itertools import count
             sage: c = sage.combinat.words.word_content.WordContentFromIterator(count())
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: len(c)
             Traceback (most recent call last):
             ...
@@ -760,7 +795,9 @@ class WordContentFromIterator(WordContent):
             sage: from itertools import count
             sage: from sage.combinat.words.word_content import WordContentFromIterator, WordContentFromList
             sage: w = WordContentFromIterator(count())
+            doctest:...: DeprecationWarning: WordContentFromIterator is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: e = WordContentFromList('', int)
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: w__2 = WordContentFromList('45', int)
             sage: w_2 = WordContentFromList('01', int)
             sage: w__1 = WordContentFromList('01234', int)
@@ -812,6 +849,7 @@ class WordContentFromIterator(WordContent):
             sage: w[::2] == w_s2
             True
             sage: w[::-2] == w_s_2
+            doctest:...: DeprecationWarning: WordContentFromList is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             True
             sage: w[::0]
             Traceback (most recent call last):
@@ -863,12 +901,15 @@ class ConcatenateContent(WordContentFromFunction):
 
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: c = ConcatenateContent((BuildWordContent([1, 2]),))
+            doctest:...: DeprecationWarning: ConcatenateContent is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: len(c)
             2
             sage: c = ConcatenateContent((BuildWordContent('1221', int), BuildWordContent('2112', int)))
             sage: len(c)
             8
         """
+        from sage.misc.misc import deprecation
+        deprecation('%s is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives' % self.__class__.__name__)
         self._list = l
         super(ConcatenateContent, self).__init__(self)
         self._len = sum(imap(len, self._list))
@@ -879,6 +920,7 @@ class ConcatenateContent(WordContentFromFunction):
 
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: list(ConcatenateContent((BuildWordContent('012', int), BuildWordContent([3, 4, 5])))) # indirect test
+            doctest:...: DeprecationWarning: ConcatenateContent is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             [0, 1, 2, 3, 4, 5]
         """
         for c in self._list:
@@ -893,6 +935,7 @@ class ConcatenateContent(WordContentFromFunction):
 
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: type(ConcatenateContent((BuildWordContent([1, 2]),))._get_list())
+            doctest:...: DeprecationWarning: ConcatenateContent is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             <type 'tuple'>
         """
         return self._list
@@ -905,6 +948,7 @@ class ConcatenateContent(WordContentFromFunction):
 
             sage: from sage.combinat.words.word_content import ConcatenateContent, BuildWordContent
             sage: c = ConcatenateContent((BuildWordContent('1221', int), BuildWordContent('2112', int)))
+            doctest:...: DeprecationWarning: ConcatenateContent is deprecated and will be deleted in a future version of Sage; see sage.combinat.words.word_datatypes for alternatives
             sage: c(0)
             1
             sage: c(7)

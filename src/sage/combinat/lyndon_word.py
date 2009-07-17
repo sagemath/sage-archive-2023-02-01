@@ -23,9 +23,13 @@ from sage.misc.misc import prod
 import __builtin__
 import necklace
 from integer_vector import IntegerVectors
-from sage.combinat.words.word import Word
 
-def LyndonWords(e, k=None):
+from sage.combinat.words.word import FiniteWord_list, FiniteWord_class
+from sage.combinat.words.words import Words_all, FiniteWords_length_k_over_OrderedAlphabet
+from sage.rings.integer_ring import ZZ
+from sage.combinat.words.alphabet import OrderedAlphabet
+
+def LyndonWords(e=None, k=None):
     """
     Returns the combinatorial class of Lyndon words.
 
@@ -37,11 +41,11 @@ def LyndonWords(e, k=None):
         sage: LW = LyndonWords(3,3); LW
         Lyndon words from an alphabet of size 3 of length 3
         sage: LW.first()
-        [1, 1, 2]
+        word: 112
         sage: LW.last()
-        [2, 3, 3]
+        word: 233
         sage: LW.random_element()
-        [1, 1, 2]
+        word: 112
         sage: LW.cardinality()
         8
 
@@ -51,13 +55,15 @@ def LyndonWords(e, k=None):
     ::
 
         sage: LyndonWords([2, 0, 1]).list()
-        [[1, 1, 3]]
+        [word: 113]
         sage: LyndonWords([2, 0, 1, 0, 1]).list()
-        [[1, 1, 3, 5], [1, 1, 5, 3], [1, 3, 1, 5]]
+        [word: 1135, word: 1153, word: 1315]
         sage: LyndonWords([2, 1, 1]).list()
-        [[1, 1, 2, 3], [1, 1, 3, 2], [1, 2, 1, 3]]
+        [word: 1123, word: 1132, word: 1213]
     """
-    if isinstance(e, (int, Integer)):
+    if e is None and k is None:
+        return LyndonWords_class()
+    elif isinstance(e, (int, Integer)):
         if e > 0:
             if not isinstance(k, (int, Integer)):
                 raise TypeError, "k must be a non-negative integer"
@@ -68,6 +74,29 @@ def LyndonWords(e, k=None):
         return LyndonWords_evaluation(e)
 
     raise TypeError, "e must be a positive integer or a composition"
+
+class LyndonWord(FiniteWord_list):
+    def __init__(self, data, check=True):
+        super(LyndonWord,self).__init__(parent=LyndonWords(),data=data)
+        if check and not self.is_lyndon():
+            raise ValueError, "Not a Lyndon word"
+
+class LyndonWords_class(Words_all):
+    def __repr__(self):
+        return "Lyndon words"
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: LW33 = LyndonWords(3,3)
+            sage: all([lw in LyndonWords() for lw in LW33])
+            True
+        """
+        try:
+            return LyndonWord(x)
+        except ValueError:
+            return False
 
 class LyndonWords_evaluation(CombinatorialClass):
     def __init__(self, e):
@@ -101,18 +130,14 @@ class LyndonWords_evaluation(CombinatorialClass):
             sage: all([ lw in LyndonWords([2,1,3,1]) for lw in LyndonWords([2,1,3,1])])
             True
         """
-        if x not in necklace.Necklaces(self.e):
+        try:
+            w = LyndonWord(x)
+        except ValueError:
             return False
-
-        #Check to make sure that x is aperiodic
-        xl = list(x)
-        n = sum(self.e)
-        cyclic_shift = xl[:]
-        for i in range(n - 1):
-            cyclic_shift = cyclic_shift[1:] + cyclic_shift[:1]
-            if cyclic_shift == xl:
+        ed = w.evaluation_dict()
+        for (i,a) in enumerate(self.e):
+            if ed[i+1] != a:
                 return False
-
         return True
 
     def cardinality(self):
@@ -147,7 +172,6 @@ class LyndonWords_evaluation(CombinatorialClass):
 
         return sum([moebius(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
 
-
     def __iter__(self):
         """
         An iterator for the Lyndon words with evaluation e.
@@ -155,35 +179,29 @@ class LyndonWords_evaluation(CombinatorialClass):
         EXAMPLES::
 
             sage: LyndonWords([1]).list()    #indirect doctest
-            [[1]]
+            [word: 1]
             sage: LyndonWords([2]).list()    #indirect doctest
             []
             sage: LyndonWords([3]).list()    #indirect doctest
             []
             sage: LyndonWords([3,1]).list()  #indirect doctest
-            [[1, 1, 1, 2]]
+            [word: 1112]
             sage: LyndonWords([2,2]).list()  #indirect doctest
-            [[1, 1, 2, 2]]
+            [word: 1122]
             sage: LyndonWords([1,3]).list()  #indirect doctest
-            [[1, 2, 2, 2]]
+            [word: 1222]
             sage: LyndonWords([3,3]).list()  #indirect doctest
-            [[1, 1, 1, 2, 2, 2], [1, 1, 2, 1, 2, 2], [1, 1, 2, 2, 1, 2]]
+            [word: 111222, word: 112122, word: 112212]
             sage: LyndonWords([4,3]).list()  #indirect doctest
-            [[1, 1, 1, 1, 2, 2, 2],
-             [1, 1, 1, 2, 1, 2, 2],
-             [1, 1, 1, 2, 2, 1, 2],
-             [1, 1, 2, 1, 1, 2, 2],
-             [1, 1, 2, 1, 2, 1, 2]]
+            [word: 1111222, word: 1112122, word: 1112212, word: 1121122, word: 1121212]
         """
         if self.e == []:
             return
 
         for z in necklace._sfc(self.e, equality=True):
-            yield [i+1 for i in z]
+            yield LyndonWord([i+1 for i in z], check=False)
 
-
-
-class LyndonWords_nk(CombinatorialClass):
+class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
     def __init__(self, n, k):
         """
         TESTS::
@@ -195,6 +213,8 @@ class LyndonWords_nk(CombinatorialClass):
         """
         self.n = Integer(n)
         self.k = Integer(k)
+        alphabet = OrderedAlphabet(range(1,self.n+1))
+        super(LyndonWords_nk,self).__init__(alphabet,self.k)
 
     def __repr__(self):
         """
@@ -213,19 +233,11 @@ class LyndonWords_nk(CombinatorialClass):
             sage: all([lw in LW33 for lw in LW33])
             True
         """
-
-        #Get the content of x and create
-        c = filter(lambda x: x!=0, Word(x).evaluation())
-
-        #Change x to the "standard form"
-        d = {}
-        for i in x:
-            d[i] = 1
-        temp = [i for i in sorted(d.keys())]
-        new_x = map( lambda i: temp.index(i)+1, x )
-
-        #Check to see if it is in the Lyndon
-        return new_x in LyndonWords_evaluation(c)
+        try:
+            w = LyndonWord(x)
+            return w.length() == self.k and len(set(w)) <= self.n
+        except ValueError:
+            return False
 
     def cardinality(self):
         """
@@ -247,14 +259,7 @@ class LyndonWords_nk(CombinatorialClass):
         TESTS::
 
             sage: LyndonWords(3,3).list() # indirect doctest
-            [[1, 1, 2],
-             [1, 1, 3],
-             [1, 2, 2],
-             [1, 2, 3],
-             [1, 3, 2],
-             [1, 3, 3],
-             [2, 2, 3],
-             [2, 3, 3]]
+            [word: 112, word: 113, word: 122, word: 123, word: 132, word: 133, word: 223, word: 233]
         """
         for c in IntegerVectors(self.k, self.n):
             cf = filter(lambda x: x != 0, c)
@@ -263,8 +268,7 @@ class LyndonWords_nk(CombinatorialClass):
                 if c[i] != 0:
                     nonzero_indices.append(i)
             for lw in LyndonWords_evaluation(cf):
-                yield map(lambda x: nonzero_indices[x-1]+1, lw)
-
+                yield LyndonWord(map(lambda x: nonzero_indices[x-1]+1, lw), check=False)
 
 def StandardBracketedLyndonWords(n, k):
     """
@@ -337,7 +341,6 @@ class StandardBracketedLyndonWords_nk(CombinatorialClass):
         for lw in LyndonWords_nk(self.n, self.k):
             yield standard_bracketing(lw)
 
-
 def standard_bracketing(lw):
     """
     Returns the standard bracketing of a Lyndon word lw.
@@ -355,13 +358,9 @@ def standard_bracketing(lw):
          [2, [2, 3]],
          [[2, 3], 3]]
     """
-    n = max(lw)
-    k = len(lw)
-
     if len(lw) == 1:
         return lw[0]
 
     for i in range(1,len(lw)):
-        if lw[i:] in LyndonWords(n,k):
+        if lw[i:] in LyndonWords():
             return [ standard_bracketing( lw[:i] ), standard_bracketing(lw[i:]) ]
-

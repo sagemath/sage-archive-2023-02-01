@@ -28,7 +28,6 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq
 from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
 import __builtin__
-from sage.combinat.words.words import Words
 
 def Tableau(t):
     """
@@ -217,10 +216,11 @@ class Tableau_class(CombinatorialObject):
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
             word: 325146
         """
+        from sage.combinat.words.word import Word
         w = []
         for row in reversed(self):
             w += row
-        return Words(alphabet="positive integers")(w)
+        return Word(w)
 
     def to_word_by_column(self):
         """
@@ -233,11 +233,12 @@ class Tableau_class(CombinatorialObject):
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
             word: 321546
         """
+        from sage.combinat.words.word import Word
         w = []
         conj = self.conjugate()
         for row in conj:
             w += list(reversed(row))
-        return Words(alphabet="positive integers")(w)
+        return Word(w)
 
     def to_word(self):
         """
@@ -399,7 +400,10 @@ class Tableau_class(CombinatorialObject):
             sage: Tableau([[1,2],[3,4]]).evaluation()
             [1, 1, 1, 1]
         """
-        return self.to_word().evaluation()
+        ed = self.to_word().evaluation_dict()
+        entries = ed.keys()
+        m = max(entries) + 1 if entries else -1
+        return [ed.get(k,0) for k in range(1,m)]
 
     weight = evaluation
 

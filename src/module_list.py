@@ -164,6 +164,12 @@ ext_modules = [
               depends = ['sage/combinat/partitions_c.h'],
               language='c++'),
 
+    Extension('sage.combinat.words.word_datatypes',
+            sources=['sage/combinat/words/word_datatypes.pyx'],
+            include_dirs = ['sage/combinat/words'],
+            libraries = ['stdc++'],
+            language='c++'),
+
     ################################
     ##
     ## sage.ext

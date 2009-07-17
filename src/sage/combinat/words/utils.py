@@ -1,5 +1,13 @@
 """
-Word utilities
+Word utilities (DEPRECATED)
+
+.. note::
+
+    This module will be deleted in a future version of Sage. Most of the
+    commands here have been already deleted; only the commands needed for
+    unpickling word objects saved with older versions of Sage (pre 4.1) have
+    been kept (for now).
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>
@@ -15,6 +23,9 @@ from copy import copy
 
 def copy_it(it):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Copy an iterator using its builtin __copy__ method if
     available, otherwise use itertools.tee(). Define __copy__ for
     your iterators. (See PEP 323)
@@ -42,6 +53,9 @@ def copy_it(it):
 
 def slice_it(it, l, key):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Slice an iterator, supporting negative step sizes by expliciting
     the elements if needed.
 
@@ -75,6 +89,9 @@ def slice_it(it, l, key):
 
 def peek_it(it):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns the first element of an iterator and returns an iterator at
     the same position as the original iterator
 
@@ -92,6 +109,9 @@ def peek_it(it):
 
 def len_it(it):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns the number of elements in it.
 
     This function will modify the iterator, so if you want to access
@@ -114,6 +134,9 @@ def len_it(it):
 
 def haslen(obj):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns true if obj has a properly defined length
 
     EXAMPLES::
@@ -141,6 +164,9 @@ def haslen(obj):
 
 def sliceable(obj):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns true if obj is completely sliceable, including negative
     step sizes
 
@@ -169,6 +195,9 @@ def sliceable(obj):
 
 def isint(obj):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns True if obj is an integer or a custom object representing
     an integer and False otherwise.
 
@@ -186,6 +215,9 @@ def isint(obj):
 
 def is_iterable(obj):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns true if the obj is iterable.
 
     EXAMPLES::
@@ -208,6 +240,9 @@ def is_iterable(obj):
 
 def slice_ok(part):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Returns true if part is a slice and doesn't have funny values.
 
     EXAMPLES::
@@ -241,6 +276,9 @@ def slice_ok(part):
 
 def slice_indices(s, l):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Implement slice.indices without bugs.
 
     TESTS::
@@ -274,9 +312,11 @@ def slice_indices(s, l):
         stop = start
     return start, stop, step
 
-
 def reverse_map(d):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Return a new dict with swapped keys and values
 
     EXAMPLES::
@@ -289,19 +329,31 @@ def reverse_map(d):
 
 def id_f(x):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Dummy identity function for when a function is required but none is
     desired.
 
+    .. note::
+
+       This function is needed required so that words saved in earlier versions
+       of Sage can be loaded; and will be deleted in a future version of Sage.
+
     TESTS::
 
+        sage: from sage.combinat.words.utils import id_f
         sage: l = [1, 2, 3]
-        sage: l is sage.combinat.words.utils.id_f(l)
+        sage: l is id_f(l)
         True
     """
     return x
 
 def clamp(x, min, max):
     r"""
+    This function is deprecated and will be deleted in a future
+    version of Sage.
+
     Clamp a value between a maximum and a minimum.
 
     EXAMPLES::
@@ -321,27 +373,5 @@ def clamp(x, min, max):
     else:
         return x
 
-class Factorization(list):
-    r"""
-    A list subclass having a nicer representation for factorization of
-    words.
+from sage.combinat.words.word import Factorization
 
-    TESTS::
-
-        sage: f = sage.combinat.words.utils.Factorization()
-        sage: f == loads(dumps(f))
-        True
-    """
-    def __repr__(self):
-        r"""
-        Returns a string representation of the object.
-
-        TESTS::
-
-            sage: sage.combinat.words.utils.Factorization()
-            ()
-            sage: sage.combinat.words.utils.Factorization([Word('ab'), Word('ba')])
-            (ab.ba)
-        """
-        from word import FiniteWord_over_OrderedAlphabet
-        return '(%s)' % '.'.join(imap(FiniteWord_over_OrderedAlphabet.string_rep, self))

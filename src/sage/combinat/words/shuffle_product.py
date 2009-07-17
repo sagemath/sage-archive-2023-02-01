@@ -1,5 +1,5 @@
-"""
-Shuffle products
+r"""
+Shuffle product of words
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -16,13 +16,11 @@ Shuffle products
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.words.word import is_Word
-from sage.combinat.words.word_content import BuildWordContent
+from sage.combinat.words.word import Word_class
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.all import binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.subset import Subsets
-import copy
 
 class ShuffleProduct_w1w2(CombinatorialClass):
     def __init__(self, w1, w2):
@@ -65,13 +63,13 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: w in S
             False
         """
-        if not is_Word(x):
+        if not isinstance(x, Word_class):
             return False
-        if len(x) != len(self._w1) + len(self._w2):
+        if x.length() !=self._w1.length() + self._w2.length():
             return False
-        w1 = list(self._w1._word_content)
-        w2 = list(self._w2._word_content)
-        wx = list(x._word_content)
+        w1 = list(self._w1)
+        w2 = list(self._w2)
+        wx = list(x)
         for _ in range(len(wx)):
             try:
                 letter = wx.pop(0)
@@ -87,19 +85,20 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 
     def cardinality(self):
         """
-         Returns the number of words in the shuffle product of w1 and w2.
+        Returns the number of words in the shuffle product
+        of w1 and w2.
 
-         It is given by binomial(len(w1)+len(w2), len(w1)).
+        It is given by binomial(len(w1)+len(w2), len(w1)).
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
-             sage: w, u = map(Words("abcd"), ["ab", "cd"])
-             sage: S = ShuffleProduct_w1w2(w,u)
-             sage: S.cardinality()
-             6
+            sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
+            sage: w, u = map(Words("abcd"), ["ab", "cd"])
+            sage: S = ShuffleProduct_w1w2(w,u)
+            sage: S.cardinality()
+            6
          """
-        return binomial(len(self._w1)+len(self._w2), len(self._w1))
+        return binomial(self._w1.length()+self._w2.length(), self._w1.length())
 
     def _proc(self, vect):
         """
@@ -127,8 +126,8 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 
     def __iter__(self):
         """
-        Returns an iterator for the words in the shuffle product of w1 and
-        w2.
+        Returns an iterator for the words in the
+        shuffle product of w1 and w2.
 
         EXAMPLES::
 
@@ -149,24 +148,25 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
         EXAMPLES::
 
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
-            sage: w, u = map(Words("abcdef"), ["ab", "cd"])
+            sage: w, u = Word([1,2]), Word([3,4])
             sage: S = ShuffleProduct_shifted(w,u)
             sage: S == loads(dumps(S))
             True
         """
-        w2c = BuildWordContent([x + len(w1) for x in w2._word_content])
-        ShuffleProduct_w1w2.__init__(self, w1, w1.parent()(w2c))
+        shift = w1.length()
+        shifted_w2 = w1.parent()([x + shift for x in w2])
+        ShuffleProduct_w1w2.__init__(self, w1, shifted_w2)
 
     def __repr__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
-            sage: w, u = map(Words("abcdef"), ["ab", "cd"])
+            sage: w, u = Word([0,1]), Word([2,3])
             sage: ShuffleProduct_shifted(w,u).__repr__()
-            'Shifted shuffle product of word: ab and word: ef'
+            'Shuffle product of word: 01 and word: 45'
         """
-        return "Shifted shuffle product of %s and %s"%(self._w1, self._w2)
+        return "Shuffle product of %s and %s"%(self._w1, self._w2)
 
 class ShuffleProduct_overlapping_r(CombinatorialClass):
     def __init__(self, w1, w2, r):
@@ -199,26 +199,26 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
-            sage: w, u = map(Words("abcdef"), ["ab", "cd"])
-            sage: ShuffleProduct_overlapping_r(w,u,1).list() #indirect doctest
-            [word: dbd, word: aed, word: ddb, word: acf, word: ceb, word: caf]
+            sage: w, u = Word([1,2]), Word([3,4])
+            sage: ShuffleProduct_overlapping_r(w,u,1).list()
+            [word: 424, word: 154, word: 442, word: 136, word: 352, word: 316]
             sage: w, u = map(Words(range(1,7)), [[1,2], [3,4]])
+            sage: W = Words(range(1,7))
+            sage: w, u = W([1,2]), W([3,4])
             sage: ShuffleProduct_overlapping_r(w, u, 1).list() #indirect doctest
             [word: 424, word: 154, word: 442, word: 136, word: 352, word: 316]
         """
         W = self._w1.parent()
-        alphabet = W.alphabet()
 
         m = len(self._w1)
         n = len(self._w2)
         r = self.r
 
-        wc1 = [i+1 for i in self._w1._word_content]
-        wc2 = [i+1 for i in self._w2._word_content]
+        wc1, wc2 = self._w1, self._w2
 
         blank = [0]*(m+n-r)
         for iv in IntegerVectors(m, m+n-r, max_part=1):
-            w = copy.copy(blank)
+            w = blank[:]
             filled_places = []
             unfilled_places = []
             #Fill in w1 into the iv slots
@@ -238,12 +238,12 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
                 #Fill in w2 into the places
                 i = 0
-                res = copy.copy(w)
+                res = w[:]
                 for j in places_to_fill:
                     res[j] += wc2[i]
                     i += 1
 
-                yield W(BuildWordContent([i-1 for i in res]))
+                yield W(res)
 
 class ShuffleProduct_overlapping(CombinatorialClass):
     def __init__(self, w1, w2):
@@ -278,21 +278,12 @@ class ShuffleProduct_overlapping(CombinatorialClass):
             sage: w, u = map(Words(range(10)), [[0,1],[2,3]])
             sage: S = ShuffleProduct_overlapping(w,u)
             sage: S.list()
-            [word: 0123, word: 0213, word: 0231, word: 2013, word: 2031, word: 2301, word: 313, word: 043, word: 331, word: 025, word: 241, word: 205, word: 35]
-
-        ::
+            [word: 0123, word: 0213, word: 0231, word: 2013, word: 2031, word: 2301, word: 213, word: 033, word: 231, word: 024, word: 231, word: 204, word: 24]
 
             sage: w, u = map(Words(range(1,10)), [[1,2],[3,4]])
             sage: S = ShuffleProduct_overlapping(w,u)
             sage: S.list()
             [word: 1234, word: 1324, word: 1342, word: 3124, word: 3142, word: 3412, word: 424, word: 154, word: 442, word: 136, word: 352, word: 316, word: 46]
-
-        ::
-
-            sage: w, u = map(Words("abcdef"), ["ab", "cd"])
-            sage: S = ShuffleProduct_overlapping(w,u)
-            sage: S.list() #indirect doctest
-            [word: abcd, word: acbd, word: acdb, word: cabd, word: cadb, word: cdab, word: dbd, word: aed, word: ddb, word: acf, word: ceb, word: caf, word: df]
         """
         m = len(self._w1)
         n = len(self._w2)

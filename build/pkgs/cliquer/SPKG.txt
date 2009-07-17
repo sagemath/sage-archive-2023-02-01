@@ -1,0 +1,14 @@
+= Cliquer =
+
+== Description ==
+Cliquer is a set of C routines for finding cliques in an arbitrary weighted graph. It uses an exact branch-and-bound algorithm recently developed by Patr Ostergard.
+Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
+
+== License ==
+Cliquer is licensed under the GNU General Public License.
+
+== SPKG Maintainers ==
+Nathann Cohen
+
+== Upstream Contact ==
+nathann.cohen@gmail.com

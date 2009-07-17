@@ -326,12 +326,12 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
 
         -  ``algorithm`` - string:
 
-        -  ``'enum'`` - straightforward enumeration
+           +  ``'enum'`` - straightforward enumeration
 
-        -  ``'bn'`` - via Singular's Brill-Noether package.
+           +  ``'bn'`` - via Singular's Brill-Noether package.
 
-        -  ``'all'`` - use all implemented algorithms and
-           verify that they give the same answer, then return it
+           +  ``'all'`` - use all implemented algorithms and
+              verify that they give the same answer, then return it
 
 
         .. note::
@@ -351,16 +351,15 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: C.rational_points()
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
 
-        The following seems to run fine on Linux but *crashes* on OS X
-        intel::
+        We compare Brill-Noether and enumeration::
 
             sage: x, y = (GF(17)['x,y']).gens()
             sage: C = Curve(x^2 + y^5 + x*y - 19)
-            sage: v = C.rational_points(algorithm='bn')      # not tested
-            sage: w = C.rational_points(algorithm='enum')    # not tested
-            sage: len(v)                                     # not tested
+            sage: v = C.rational_points(algorithm='bn')
+            sage: w = C.rational_points(algorithm='enum')
+            sage: len(v)
             20
-            sage: v == w                                     # not tested
+            sage: v == w
             True
         """
         if algorithm == "enum":

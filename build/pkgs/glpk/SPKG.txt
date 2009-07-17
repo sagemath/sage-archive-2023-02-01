@@ -20,7 +20,9 @@ The GLPK package includes the following main components:
 The GLPK package is part of the GNU project, released under the aegis of GNU.
 
 == SPKG Maintainers ==
-Nathann Cohen
+Nathann Cohen (nathann.cohen@gmail.com)
 
 == Upstream Contact ==
-nathann.cohen@gmail.com
+
+GLPK is currently being maintained by mao@gnu.org, mao@mai2.rcnet.ru
+http://www.gnu.org/software/glpk/#maintainer

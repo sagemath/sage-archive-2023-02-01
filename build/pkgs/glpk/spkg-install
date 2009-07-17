@@ -1,0 +1,24 @@
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+# The version of libtool in this glpk package requires that
+# RM/MV/CP if they are set include the -f option
+# See for example the discussion at:
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=523750
+
+: ${CP=cp}; CP="$CP -f"; export CP
+: ${MV=mv}; MV="$MV -f"; export MV
+: ${RM=rm}; RM="$RM -f"; export RM
+
+cd src
+LIBS=-ldl ./configure --prefix=$SAGE_LOCAL
+make prefix=$SAGE_LOCAL
+make install
+
+
+
+

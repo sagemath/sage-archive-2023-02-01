@@ -238,6 +238,10 @@ ext_modules = [
     Extension('sage.graphs.chrompoly',
               sources = ['sage/graphs/chrompoly.pyx']),
 
+    Extension('sage.graphs.cliquer',
+              sources = ['sage/graphs/cliquer.pyx'],
+              libraries = ['cliquer']),
+
     Extension('sage.graphs.graph_fast',
               sources = ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']),

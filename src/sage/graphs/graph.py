@@ -10065,17 +10065,21 @@ class Graph(GenericGraph):
 
     ### Cliques
 
-    def cliques(self):
+    def cliques_maximal(self):
         """
-        Returns the list of maximal cliques. Each maximal clique is
-        represented by a list of vertices.
+        Returns the list of all maximal cliques, with each clique represented
+        by a list of vertices. A clique is an induced complete subgraph, and a
+        maximal clique is one not contained in a larger one.
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+        NOTES:
 
-        Maximal cliques are the largest complete subgraphs containing a
-        given point. This function is based on Networkx's implementation of
-        the Bron and Kerbosch Algorithm, [1].
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        ALGORITHM:
+
+         - This function is based on Networkx's implementation of the Bron and
+           Kerbosch Algorithm, [1].
 
         REFERENCE:
 
@@ -10086,164 +10090,177 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: (graphs.ChvatalGraph()).cliques()
+            sage: graphs.ChvatalGraph().cliques_maximal()
             [[0, 1], [0, 4], [0, 6], [0, 9], [2, 1], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [5, 1], [5, 4], [5, 10], [5, 11], [7, 1], [7, 8], [7, 11], [8, 4], [8, 10], [10, 6], [10, 9], [11, 6], [11, 9]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
-            sage: G.cliques()
+            sage: G.cliques_maximal()
             [[0, 1, 2], [0, 1, 3]]
+            sage: C=graphs.PetersenGraph()
+            sage: C.cliques_maximal()
+            [[0, 1], [0, 4], [0, 5], [2, 1], [2, 3], [2, 7], [3, 4], [3, 8], [6, 1], [6, 8], [6, 9], [7, 5], [7, 9], [8, 5], [9, 4]]
+            sage: C = Graph('DJ{')
+            sage: C.cliques_maximal()
+            [[4, 1, 2, 3], [4, 0]]
+
         """
         import networkx.cliques
         return networkx.cliques.find_cliques(self.networkx_graph(copy=False))
 
-    def cliques_get_max_clique_graph(self, name=''):
+    def cliques(self):
         """
-        Returns a graph constructed with maximal cliques as vertices, and
-        edges between maximal cliques with common members in the original
-        graph.
+        (Deprecated) alias for ``cliques_maximal``. See that function for more
+        details.
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+        EXAMPLE::
 
-        INPUT:
+            sage: C = Graph('DJ{')
+            sage: C.cliques()
+            doctest:...: DeprecationWarning: The function 'cliques' has been deprecated. Use 'cliques_maximal' or 'cliques_maximum'.
+            [[4, 1, 2, 3], [4, 0]]
 
+        """
+        from sage.misc.misc import deprecation
+        deprecation("The function 'cliques' has been deprecated. Use " + \
+                    "'cliques_maximal' or 'cliques_maximum'.")
+        return self.cliques_maximal()
 
-        -  ``name`` - The name of the new graph.
+    def cliques_maximum(self):
+        """
+        Returns the list of all maximum cliques, with each clique represented
+        by a list of vertices. A clique is an induced complete subgraph, and a
+        maximum clique is one of maximal order.
 
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        ALGORITHM:
+
+         - This function is based on Cliquer, [1].
+
+        REFERENCE:
+
+        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
+          Version 1.0," Communications Laboratory, Helsinki University of
+          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
 
         EXAMPLES::
 
-            sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
-            Graph on 24 vertices
-            sage: ((graphs.ChvatalGraph()).cliques_get_max_clique_graph()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
+            sage: graphs.ChvatalGraph().cliques_maximum()
+            [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10], [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
-            sage: G.cliques_get_max_clique_graph()
-            Graph on 2 vertices
-            sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
-        """
-        import networkx.cliques
-        return Graph(networkx.cliques.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.xgraph.XGraph()))
+            sage: G.cliques_maximum()
+            [[0, 1, 2], [0, 1, 3]]
+            sage: C=graphs.PetersenGraph()
+            sage: C.cliques_maximum()
+            [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4], [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
+            sage: C = Graph('DJ{')
+            sage: C.cliques_maximum()
+            [[1, 2, 3, 4]]
 
-    def cliques_get_clique_bipartite(self, **kwds):
         """
-        Returns a bipartite graph constructed such that cliques are the
-        right vertices and the left vertices are retained from the given
-        graph. Right and left vertices are connected if the bottom vertex
-        belongs to the clique represented by a top vertex.
+        from sage.graphs.cliquer import all_max_clique
+        return sorted(all_max_clique(self))
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+    def clique_maximum(self):
+        """
+        Returns the vertex set of a maximal order complete subgraph.
+
+        NOTE:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        ALGORITHM:
+
+         - This function is based on Cliquer, [1].
+
+        REFERENCE:
+
+        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
+          Version 1.0," Communications Laboratory, Helsinki University of
+          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
 
         EXAMPLES::
 
-            sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
-            Bipartite graph on 36 vertices
-            sage: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
-            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: G.show(figsize=[2,2])
-            sage: G.cliques_get_clique_bipartite()
-            Bipartite graph on 6 vertices
-            sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
-        """
-        import networkx.cliques
-        from bipartite_graph import BipartiteGraph
-        return BipartiteGraph(networkx.cliques.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
+            sage: C=graphs.PetersenGraph()
+            sage: C.clique_maximum()
+            [7, 9]
+            sage: C = Graph('DJ{')
+            sage: C.clique_maximum()
+            [1, 2, 3, 4]
 
-    def clique_number(self, cliques=None):
         """
-        Returns the size of the largest clique of the graph (clique
+        from sage.graphs.cliquer import max_clique
+        return max_clique(self)
+
+    def clique_number(self, algorithm="cliquer", cliques=None):
+        """
+        Returns the order of the largest clique of the graph (the clique
         number).
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+        NOTE:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
 
         INPUT:
 
+         - ``algorithm`` - either ``cliquer`` or ``networkx``
 
-        -  ``cliques`` - list of cliques (if already
-           computed)
+           - ``cliquer`` - This wraps the C program Cliquer, [1].
 
+           - ``networkx`` - This function is based on Networkx's implementation
+                of the Bron and Kerbosch Algorithm, [2].
+
+         - ``cliques'' - an optional list of cliques that can be input if
+              already computed. Ignored unless ``algorithm=='networkx'``.
+
+        REFERENCE:
+
+        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
+          Version 1.0," Communications Laboratory, Helsinki University of
+          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
+
+        - [2] Coen Bron and Joep Kerbosch. (1973). Algorithm 457:
+          Finding All Cliques of an Undirected Graph. Commun. ACM. v
+          16. n 9.  pages 575-577. ACM Press. [Online] Available:
+          http://www.ram.org/computing/rambin/rambin.html
 
         EXAMPLES::
 
             sage: C = Graph('DJ{')
             sage: C.clique_number()
             4
-            sage: E = C.cliques()
-            sage: E
-            [[4, 1, 2, 3], [4, 0]]
-            sage: C.clique_number(cliques=E)
-            4
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.clique_number()
             3
+
         """
-        import networkx.cliques
-        return networkx.cliques.graph_clique_number(self.networkx_graph(copy=False), cliques)
-
-    def cliques_vertex_clique_number(self, vertices=None, with_labels=False, cliques=None):
-        r"""
-        Returns a list of sizes of the largest maximal cliques containing
-        each vertex. (Returns a single value if only one input vertex).
-
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
-
-        INPUT:
-
-
-        -  ``vertices`` - the vertices to inspect (default is
-           entire graph)
-
-        -  ``with_labels`` - (boolean) default False returns
-           list as above True returns a dictionary keyed by vertex labels
-
-        -  ``cliques`` - list of cliques (if already
-           computed)
-
-
-        EXAMPLES::
-
-            sage: C = Graph('DJ{')
-            sage: C.cliques_vertex_clique_number()
-            [2, 4, 4, 4, 4]
-            sage: E = C.cliques()
-            sage: E
-            [[4, 1, 2, 3], [4, 0]]
-            sage: C.cliques_vertex_clique_number(cliques=E)
-            [2, 4, 4, 4, 4]
-            sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_vertex_clique_number(with_labels=True)
-            sage: for v in sorted(X.iterkeys()):
-            ...    print v, X[v]
-            (0, 0) 2
-            (0, 1) 2
-            (0, 2) 2
-            (1, 0) 2
-            (1, 1) 2
-            (1, 2) 2
-            sage: F.cliques_vertex_clique_number(vertices=[(0, 1), (1, 2)])
-            [2, 2]
-            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: G.show(figsize=[2,2])
-            sage: G.cliques_vertex_clique_number()
-            [3, 3, 3, 3]
-        """
-        import networkx.cliques
-        return networkx.cliques.node_clique_number(self.networkx_graph(copy=False), vertices, with_labels, cliques)
+        if algorithm=="cliquer":
+            from sage.graphs.cliquer import clique_number
+            return clique_number(self)
+        elif algorithm=="networkx":
+            import networkx.cliques
+            return networkx.cliques.graph_clique_number(self.networkx_graph(copy=False),cliques)
+        else:
+            raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
     def cliques_number_of(self, vertices=None, cliques=None, with_labels=False):
         """
         Returns a list of the number of maximal cliques containing each
         vertex. (Returns a single value if only one input vertex).
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
 
         INPUT:
-
 
         -  ``vertices`` - the vertices to inspect (default is
            entire graph)
@@ -10260,7 +10277,7 @@ class Graph(GenericGraph):
             sage: C = Graph('DJ{')
             sage: C.cliques_number_of()
             [1, 1, 1, 1, 2]
-            sage: E = C.cliques()
+            sage: E = C.cliques_maximal()
             sage: E
             [[4, 1, 2, 3], [4, 0]]
             sage: C.cliques_number_of(cliques=E)
@@ -10285,16 +10302,167 @@ class Graph(GenericGraph):
         import networkx.cliques
         return networkx.cliques.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques, with_labels)
 
+    def cliques_get_max_clique_graph(self, name=''):
+        """
+        Returns a graph constructed with maximal cliques as vertices, and
+        edges between maximal cliques with common members in the original
+        graph.
+
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        INPUT:
+
+        -  ``name`` - The name of the new graph.
+
+        EXAMPLES::
+
+            sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
+            Graph on 24 vertices
+            sage: ((graphs.ChvatalGraph()).cliques_get_max_clique_graph()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
+            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage: G.show(figsize=[2,2])
+            sage: G.cliques_get_max_clique_graph()
+            Graph on 2 vertices
+            sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
+        """
+        import networkx.cliques
+        return Graph(networkx.cliques.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.xgraph.XGraph()))
+
+    def cliques_get_clique_bipartite(self, **kwds):
+        """
+        Returns a bipartite graph constructed such that maximal cliques are the
+        right vertices and the left vertices are retained from the given
+        graph. Right and left vertices are connected if the bottom vertex
+        belongs to the clique represented by a top vertex.
+
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        EXAMPLES::
+
+            sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
+            Bipartite graph on 36 vertices
+            sage: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
+            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage: G.show(figsize=[2,2])
+            sage: G.cliques_get_clique_bipartite()
+            Bipartite graph on 6 vertices
+            sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
+        """
+        import networkx.cliques
+        from bipartite_graph import BipartiteGraph
+        return BipartiteGraph(networkx.cliques.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
+
+    def independent_set(self):
+        """
+        Returns a maximal independent set, which is a set of vertices which
+        induces an empty subgraph. Uses Cliquer.
+
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        EXAMPLES::
+
+        sage: C=graphs.PetersenGraph()
+        sage: C.independent_set()
+        [0, 3, 6, 7]
+
+        """
+        from sage.graphs.cliquer import max_clique
+        return max_clique(self.complement())
+
+    def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
+                                     with_labels=False, cliques=None):
+        r"""
+        Returns a list of sizes of the largest maximal cliques containing
+        each vertex. (Returns a single value if only one input vertex).
+
+        NOTES:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
+
+        INPUT:
+
+         - ``algorithm`` - either ``cliquer`` or ``networkx``
+
+           - ``cliquer`` - This wraps the C program Cliquer, [1].
+
+           - ``networkx`` - This function is based on Networkx's implementation
+                of the Bron and Kerbosch Algorithm, [2].
+
+        -  ``vertices`` - the vertices to inspect (default is entire graph).
+           Ignored unless ``algorithm=='networkx'``.
+
+        -  ``with_labels`` - (boolean) default False returns list as above
+           True returns a dictionary keyed by vertex labels. Ignored unless
+           ``algorithm=='networkx'``.
+
+        -  ``cliques`` - list of cliques (if already computed).  Ignored unless
+           ``algorithm=='networkx'``.
+
+        EXAMPLES::
+
+            sage: C = Graph('DJ{')
+            sage: C.cliques_vertex_clique_number()
+            [2, 4, 4, 4, 4]
+            sage: E = C.cliques_maximal()
+            sage: E
+            [[4, 1, 2, 3], [4, 0]]
+            sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
+            [2, 4, 4, 4, 4]
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: X = F.cliques_vertex_clique_number(with_labels=True,algorithm="networkx")
+            sage: for v in sorted(X.iterkeys()):
+            ...    print v, X[v]
+            (0, 0) 2
+            (0, 1) 2
+            (0, 2) 2
+            (1, 0) 2
+            (1, 1) 2
+            (1, 2) 2
+            sage: F.cliques_vertex_clique_number(vertices=[(0, 1), (1, 2)])
+            [2, 2]
+            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage: G.show(figsize=[2,2])
+            sage: G.cliques_vertex_clique_number()
+            [3, 3, 3, 3]
+
+        """
+
+        if algorithm=="cliquer":
+            from sage.graphs.cliquer import clique_number
+            if vertices==None:
+                vertices=self
+            value=[]
+            for v in vertices:
+                value.append(1+clique_number(self.subgraph(self.neighbors(v))))
+                self.subgraph(self.neighbors(v)).plot()
+            return value
+        elif algorithm=="networkx":
+            import networkx.cliques
+            return networkx.cliques.node_clique_number(self.networkx_graph(copy=False), vertices, with_labels, cliques)
+        else:
+            raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
+
     def cliques_containing_vertex(self, vertices=None, cliques=None, with_labels=False):
         """
         Returns the cliques containing each vertex, represented as a list
         of lists. (Returns a single list if only one input vertex).
 
-        Currently only implemented for undirected graphs. Use
-        to_undirected to convert a digraph to an undirected graph.
+        NOTE:
+
+         - Currently only implemented for undirected graphs. Use to_undirected
+           to convert a digraph to an undirected graph.
 
         INPUT:
-
 
         -  ``vertices`` - the vertices to inspect (default is
            entire graph)
@@ -10305,13 +10473,12 @@ class Graph(GenericGraph):
         -  ``cliques`` - list of cliques (if already
            computed)
 
-
         EXAMPLES::
 
             sage: C = Graph('DJ{')
             sage: C.cliques_containing_vertex()
             [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3], [4, 0]]]
-            sage: E = C.cliques()
+            sage: E = C.cliques_maximal()
             sage: E
             [[4, 1, 2, 3], [4, 0]]
             sage: C.cliques_containing_vertex(cliques=E)
@@ -10332,6 +10499,7 @@ class Graph(GenericGraph):
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
             [[[0, 1, 2], [0, 1, 3]], [[0, 1, 2], [0, 1, 3]], [[0, 1, 2]], [[0, 1, 3]]]
+
         """
         import networkx.cliques
         return networkx.cliques.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques, with_labels)

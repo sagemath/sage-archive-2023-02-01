@@ -130,8 +130,17 @@ def isclassinstance(obj):
         True
         sage: isclassinstance(SteenrodAlgebra)
         True
+        sage: class myclass: pass
+        sage: isclassinstance(myclass)
+        False
+        sage: class mymetaclass(type): pass
+        sage: class myclass2:
+        ...       __metaclass__ = mymetaclass
+        sage: isclassinstance(myclass2)
+        False
     """
-    return (hasattr(obj, '__class__') and \
+    return (not inspect.isclass(obj) and \
+            hasattr(obj, '__class__') and \
             hasattr(obj.__class__, '__module__') and \
             obj.__class__.__module__ not in ('__builtin__', 'exceptions'))
 

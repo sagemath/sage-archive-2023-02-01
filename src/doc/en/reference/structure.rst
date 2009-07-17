@@ -11,6 +11,7 @@ Basic Structures
    sage/structure/factorization
    sage/structure/element
    sage/structure/unique_representation
+   sage/structure/dynamic_class
    sage/structure/mutability
    sage/structure/sequence
    sage/structure/element_wrapper

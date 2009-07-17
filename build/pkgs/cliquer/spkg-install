@@ -4,8 +4,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-: mkdir "$SAGE_LOCAL/include/cliquer-1.2/"
-cp src/*.h "$SAGE_LOCAL/include/cliquer-1.2/"
+: mkdir "$SAGE_LOCAL/include/cliquer/"
+cp src/*.h "$SAGE_LOCAL/include/cliquer/"
 scons && cp Build/* "$SAGE_LOCAL/lib/"
 
 

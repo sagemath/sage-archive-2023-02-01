@@ -2496,7 +2496,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x,y,z,a,b,c,d,e,f')
             (x, y, z, a, b, c, d, e, f)
             sage: w0 = SR.wild(0); w1 = SR.wild(1); w2 = SR.wild(2)
-            sage: ((x+y)^a).match((x+y)^a)
+            sage: ((x+y)^a).match((x+y)^a)  # no wildcards, so empty dict
             {}
             sage: print ((x+y)^a).match((x+y)^b)
             None
@@ -2530,6 +2530,19 @@ cdef class Expression(CommutativeRingElement):
             {$1: 2}
             sage: (x*x.arctan2(x^2)).match(w0*w0.arctan2(w0^2))
             {$0: x}
+
+        Beware that behind-the-scenes simplification can lead to
+        surprising results in matching::
+
+            sage: print (x+x).match(w0+w1)
+            None
+            sage: t = x+x; t
+            2*x
+            sage: t.operator()
+            <built-in function mul>
+
+        Since asking to match w0+w1 looks for an addition operator,
+        there is no match.
         """
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList mlst

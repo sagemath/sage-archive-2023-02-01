@@ -1,20 +1,11 @@
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-#cd src
-#rm *.o
-#for i in [!t]*.c ; do
-#    gcc -fPIC -g -c -Wall "$i"
-#done
-#gcc -shared -Wl,-soname,libcliquer.so -o libcliquer.so *.o -lc
-#mkdir "$SAGE_LOCAL/include/cliquer-1.2"
-#cp *.h "$SAGE_LOCAL/include/cliquer-1.2/"
-#cp libcliquer.so "$SAGE_LOCAL/lib/"
-
+: mkdir "$SAGE_LOCAL/include/cliquer-1.2/"
+cp src/*.h "$SAGE_LOCAL/include/cliquer-1.2/"
 scons && cp Build/* "$SAGE_LOCAL/lib/"
 
 

@@ -5596,119 +5596,223 @@ class GenericGraph(SageObject):
 
     ### Searches
 
-    def breadth_first_search(self, u, ignore_direction=False):
+    def breadth_first_search(self, start, ignore_direction=False, distance=None, neighbors=None):
         """
-        Returns an iterator over vertices in a breadth-first ordering.
+        Returns an iterator over the vertices in a breadth-first ordering.
 
         INPUT:
 
 
-        -  ``u`` - vertex at which to start search
+        - ``start`` - vertex or list of vertices from which to start
+          the traversal
 
-        -  ``ignore_direction`` - (default False) only applies
-           to directed graphs. If True, searches across edges in either
-           direction.
+        - ``ignore_direction`` - (default False) only applies to
+          directed graphs. If True, searches across edges in either
+          direction.
+
+        - ``distance`` - the maximum distance from the ``start`` nodes
+          to traverse.  The ``start`` nodes are distance zero from
+          themselves.
+
+        - ``neighbors`` - a function giving the neighbors of a vertex.
+          The function should take a vertex and return a list of
+          vertices.  For a graph, ``neighbors`` is by default the
+          :meth:`.neighbors` function of the graph.  For a digraph,
+          the ``neighbors`` function defaults to the
+          :meth:`.successors` function of the graph.
 
 
         EXAMPLES::
 
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G = Graph( { 0: [1], 1: [2], 2: [3], 3: [4], 4: [0]} )
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 2, 3]
-            sage: list(G.depth_first_search(0))
-            [0, 4, 3, 2, 1]
 
-        ::
+        By default, the edge direction of a digraph is respected, but this
+        can be overridden by the ``ignore_direction`` parameter::
 
-            sage: D = DiGraph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.breadth_first_search(0))
-            [0, 1, 2, 3, 4]
-            sage: list(D.depth_first_search(0))
-            [0, 1, 2, 3, 4]
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            sage: list(D.breadth_first_search(0, ignore_direction=True))
+            [0, 1, 2, 3, 7, 4, 5, 6]
 
-        ::
+        You can specify a maximum distance in which to search.  A
+        distance of zero returns the ``start`` vertices::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.breadth_first_search(0,distance=0))
+            [0]
+            sage: list(D.breadth_first_search(0,distance=1))
+            [0, 1, 2, 3]
+
+        Multiple starting vertices can be specified in a list::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.breadth_first_search([0]))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            sage: list(D.breadth_first_search([0,6]))
+            [0, 6, 1, 2, 3, 7, 4, 5]
+            sage: list(D.breadth_first_search([0,6],distance=0))
+            [0, 6]
+            sage: list(D.breadth_first_search([0,6],distance=1))
+            [0, 6, 1, 2, 3, 7]
+            sage: list(D.breadth_first_search(6,ignore_direction=True,distance=2))
+            [6, 3, 7, 0, 5]
+
+        More generally, you can specify a ``neighbors`` function.  For
+        example, you can traverse the graph backwards by setting
+        ``neighbors`` to be the :meth:`.predecessor` function of the graph::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.breadth_first_search(5,neighbors=D.predecessors, distance=2))
+            [5, 1, 2, 0]
+            sage: list(D.breadth_first_search(5,neighbors=D.successors, distance=2))
+            [5, 7, 0]
+            sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
+            [5, 1, 2, 7, 0, 4, 6]
+
+
+        TESTS::
 
             sage: D = DiGraph({1:[0], 2:[0]})
             sage: list(D.breadth_first_search(0))
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
-        """
-        # This function is straight from an old version of networkx
-        if not self._directed or ignore_direction:
-            neighbors=self.neighbor_iterator
-        else:
-            neighbors=self.successor_iterator
-        # nlist=[u] # list of nodes in a BFS order
-        yield u
-        seen={} # nodes seen
-        queue=[u] # FIFO queue
-        seen[u]=True
-        while queue:
-            v=queue.pop(0)  # this is expensive, should use a faster FIFO queue
-            for w in neighbors(v):
-                if w not in seen:
-                    seen[w]=True
-                    queue.append(w)
-                    # nlist.append(w)
-                    yield w
-        # return nlist
 
-    def depth_first_search(self, u, ignore_direction=False):
         """
-        Returns an iterator over vertices in a depth-first ordering.
+        if neighbors is None:
+            if not self._directed or ignore_direction:
+                neighbors=self.neighbor_iterator
+            else:
+                neighbors=self.successor_iterator
+        seen=set([])
+        if isinstance(start, list):
+            queue=[(v,0) for v in start]
+        else:
+            queue=[(start,0)]
+
+        for v,d in queue:
+            yield v
+            seen.add(v)
+
+        while len(queue)>0:
+            v,d = queue.pop(0)
+            if distance is None or d<distance:
+                for w in neighbors(v):
+                    if w not in seen:
+                        seen.add(w)
+                        queue.append((w, d+1))
+                        yield w
+
+    def depth_first_search(self, start, ignore_direction=False, distance=None, neighbors=None):
+        """
+        Returns an iterator over the vertices in a depth-first ordering.
 
         INPUT:
 
 
-        -  ``u`` - vertex at which to start search
+        - ``start`` - vertex or list of vertices from which to start
+          the traversal
 
-        -  ``ignore_direction`` - (default False) only applies
-           to directed graphs. If True, searches across edges in either
-           direction.
+        - ``ignore_direction`` - (default False) only applies to
+          directed graphs. If True, searches across edges in either
+          direction.
+
+        - ``distance`` - the maximum distance from the ``start`` nodes
+          to traverse.  The ``start`` nodes are distance zero from
+          themselves.
+
+        - ``neighbors`` - a function giving the neighbors of a vertex.
+          The function should take a vertex and return a list of
+          vertices.  For a graph, ``neighbors`` is by default the
+          :meth:`.neighbors` function of the graph.  For a digraph,
+          the ``neighbors`` function defaults to the
+          :meth:`.successors` function of the graph.
 
 
         EXAMPLES::
 
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: list(G.breadth_first_search(0))
-            [0, 1, 4, 2, 3]
+            sage: G = Graph( { 0: [1], 1: [2], 2: [3], 3: [4], 4: [0]} )
             sage: list(G.depth_first_search(0))
             [0, 4, 3, 2, 1]
 
-        ::
+        By default, the edge direction of a digraph is respected, but this
+        can be overridden by the ``ignore_direction`` parameter::
 
-            sage: D = DiGraph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
-            sage: list(D.breadth_first_search(0))
-            [0, 1, 2, 3, 4]
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.depth_first_search(0))
-            [0, 1, 2, 3, 4]
+            [0, 3, 6, 7, 2, 5, 1, 4]
+            sage: list(D.depth_first_search(0, ignore_direction=True))
+            [0, 7, 6, 3, 5, 2, 1, 4]
 
-        ::
+        You can specify a maximum distance in which to search.  A
+        distance of zero returns the ``start`` vertices::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.depth_first_search(0,distance=0))
+            [0]
+            sage: list(D.depth_first_search(0,distance=1))
+            [0, 3, 2, 1]
+
+        Multiple starting vertices can be specified in a list::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.depth_first_search([0]))
+            [0, 3, 6, 7, 2, 5, 1, 4]
+            sage: list(D.depth_first_search([0,6]))
+            [0, 3, 6, 7, 2, 5, 1, 4]
+            sage: list(D.depth_first_search([0,6],distance=0))
+            [0, 6]
+            sage: list(D.depth_first_search([0,6],distance=1))
+            [0, 3, 2, 1, 6, 7]
+            sage: list(D.depth_first_search(6,ignore_direction=True,distance=2))
+            [6, 7, 5, 0, 3]
+
+        More generally, you can specify a ``neighbors`` function.  For
+        example, you can traverse the graph backwards by setting
+        ``neighbors`` to be the :meth:`.predecessor` function of the graph::
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.depth_first_search(5,neighbors=D.predecessors, distance=2))
+            [5, 2, 0, 1]
+            sage: list(D.depth_first_search(5,neighbors=D.successors, distance=2))
+            [5, 7, 0]
+            sage: list(D.depth_first_search(5,neighbors=D.neighbors, distance=2))
+            [5, 7, 6, 0, 2, 1, 4]
+
+        TESTS::
 
             sage: D = DiGraph({1:[0], 2:[0]})
             sage: list(D.depth_first_search(0))
             [0]
             sage: list(D.depth_first_search(0, ignore_direction=True))
             [0, 2, 1]
+
         """
-        # This function is straight from an old version of networkx
-        if not self._directed or ignore_direction:
-            neighbors=self.neighbor_iterator
+        if neighbors is None:
+            if not self._directed or ignore_direction:
+                neighbors=self.neighbor_iterator
+            else:
+                neighbors=self.successor_iterator
+        seen=set([])
+        if isinstance(start, list):
+            # Reverse the list so that the initial vertices come out in the same order
+            queue=[(v,0) for v in reversed(start)]
         else:
-            neighbors=self.successor_iterator
-        # nlist=[] # list of nodes in a DFS preorder
-        seen={} # nodes seen
-        queue=[u]  # use as LIFO queue
-        seen[u]=True
-        while queue:
-            v=queue.pop()
-            # nlist.append(v)
-            yield v
-            for w in neighbors(v):
-                if w not in seen:
-                    seen[w]=True
-                    queue.append(w)
+            queue=[(start,0)]
+
+        while len(queue)>0:
+            v,d = queue.pop()
+            if v not in seen:
+                yield v
+                seen.add(v)
+                if distance is None or d<distance:
+                    for w in neighbors(v):
+                        if w not in seen:
+                            queue.append((w, d+1))
 
     ### Constructors
 

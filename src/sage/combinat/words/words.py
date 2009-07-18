@@ -601,8 +601,8 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         """
         if not isinstance(l, (int,Integer)):
             raise TypeError, "the parameter l (=%r) must be an integer"%l
-        if l == Integer(0):
-            yield self()
+        #if l == Integer(0):
+        #    yield self()
         for w in xmrange([self.size_of_alphabet()]*l):
             yield self(map(lambda x: self.alphabet().unrank(x), w))
 

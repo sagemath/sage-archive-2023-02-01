@@ -947,8 +947,6 @@ class AbelianGroup_class(group.AbelianGroup):
             [1]
         """
         invs = self.invariants()
-        if len(invs)==0:
-            yield AbelianGroupElement(self, [])
         for t in mrange(invs):
             yield AbelianGroupElement(self, t)
 
@@ -1021,15 +1019,6 @@ class AbelianGroup_class(group.AbelianGroup):
             verbose("invariants are:", [t.order() for t in G.gens()]) # G.invariants() doesn't work
             for H in divisors(x):
                 # H = the subgroup of *index* H.
-                if G.ngens() == 0:
-                    # need to handle this case separately (because
-                    # cartesian_product_iterator does the wrong thing for
-                    # the empty product!)
-                    verbose("using trivial hom from G to C_%s" % H)
-                    if H < x:
-                        subgps.append(self.subgroup([self([0] * (len(v)-1) + [H])]))
-                    else:
-                        subgps.append(self.subgroup([]))
                 its = [xrange(0, H, H/gcd(H, G.gen(i).order())) for i in xrange(len(G.gens()))]
                 for f in cartesian_product_iterator(its):
                     verbose("using hom from G to C_%s sending gens to %s" % (H,f))

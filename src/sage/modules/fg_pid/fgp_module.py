@@ -1363,6 +1363,11 @@ class FGP_Module_class(Module):
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11)]
             sage: len(z)
             24
+
+        We test that the trivial module is handled correctly (cf. trac #6561)::
+
+            sage: A = (ZZ**1)/(ZZ**1); list(A) == [A(0)]
+            True
         """
         if self.base_ring() != ZZ:
             raise NotImplementedError, "only implemented over ZZ"

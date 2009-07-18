@@ -45,6 +45,7 @@ def _xmrange_iter( iter_list, typ=list ):
     """
 
     if len(iter_list) == 0:
+        yield ()
         return
     curr_iters = [iter(i) for i in iter_list]
     curr_elt = [i.next() for i in curr_iters[:-1]] + [None]
@@ -97,16 +98,19 @@ def mrange_iter(iter_list, typ=list):
         sage: mrange_iter([[2,3,5,7],[1,2]], sum)
         [3, 4, 4, 5, 6, 7, 8, 9]
 
-    Examples that illustrate empty multi-ranges.
+    Examples that illustrate empty multi-ranges::
 
-    ::
-
-        sage: mrange_iter([])
-        []
         sage: mrange_iter([range(5),xrange(3),xrange(-2)])
         []
         sage: mrange_iter([range(5),range(3),range(0)])
         []
+
+    This example isn't empty, and shouldn't be. See trac #6561.
+
+    ::
+
+        sage: mrange_iter([])
+        [()]
 
     AUTHORS:
 
@@ -184,12 +188,17 @@ class xmrange_iter:
 
     ::
 
-        sage: list(xmrange_iter([]))
-        []
         sage: list(xmrange_iter([xrange(5),xrange(3),xrange(-2)]))
         []
         sage: list(xmrange_iter([xrange(5),xrange(3),xrange(0)]))
         []
+
+    This example isn't empty, and shouldn't be. See trac #6561.
+
+    ::
+
+        sage: list(xmrange_iter([]))
+        [()]
 
     We use a multi-range iterator to iterate through the Cartesian
     product of sets.
@@ -229,6 +238,7 @@ class xmrange_iter:
 def _xmrange(sizes, typ=list):
     n = len(sizes)
     if n == 0:
+        yield typ([])
         return
     for i in sizes:
         if i <= 0:
@@ -282,16 +292,20 @@ def mrange(sizes, typ=list):
         sage: mrange([3,2], sum)
         [0, 1, 1, 2, 2, 3]
 
-    Examples that illustrate empty multi-ranges.
+    Examples that illustrate empty multi-ranges::
 
-    ::
-
-        sage: mrange([])
-        []
         sage: mrange([5,3,-2])
         []
         sage: mrange([5,3,0])
         []
+
+    This example isn't empty, and shouldn't be. See trac #6561.
+
+    ::
+
+        sage: mrange([])
+        [[]]
+
 
     AUTHORS:
 
@@ -366,12 +380,17 @@ class xmrange:
 
     ::
 
-        sage: list(xmrange([]))
-        []
         sage: list(xmrange([5,3,-2]))
         []
         sage: list(xmrange([5,3,0]))
         []
+
+    This example isn't empty, and shouldn't be. See trac #6561.
+
+    ::
+
+        sage: list(xmrange([]))
+        [[]]
 
     We use a multi-range iterator to iterate through the Cartesian
     product of sets.
@@ -434,5 +453,7 @@ def cartesian_product_iterator(X):
 
         sage: list(cartesian_product_iterator([[1,2], ['a','b']]))
         [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
+        sage: list(cartesian_product_iterator([]))
+        [()]
     """
     return xmrange_iter(X, tuple)

@@ -375,6 +375,19 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         Number Field in a with defining polynomial y^3 + y + 3
         sage: L.defining_polynomial().parent()
         Univariate Polynomial Ring in y over Rational Field
+
+    ::
+
+        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: K.<x> = CyclotomicField(5)[]
+        sage: W.<a> = NumberField(x^2 + 1); W
+        Number Field in a with defining polynomial x^2 + 1 over its base field
+        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: W1 = NumberField(x^2+1,'a')
+        sage: K.<x> = CyclotomicField(5)[]
+        sage: W.<a> = NumberField(x^2 + 1); W
+        Number Field in a with defining polynomial x^2 + 1 over its base field
+
     """
     if name is None and names is None:
         raise TypeError, "You must specify the name of the generator."
@@ -398,7 +411,8 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
     polynomial = Q(polynomial)
 
     if cache:
-        key = (polynomial, name, embedding, embedding.parent() if embedding is not None else None)
+        key = (polynomial, polynomial.base_ring(),
+               name, embedding, embedding.parent() if embedding is not None else None)
         if _nf_cache.has_key(key):
             K = _nf_cache[key]()
             if not K is None: return K

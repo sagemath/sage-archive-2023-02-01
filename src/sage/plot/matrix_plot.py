@@ -88,8 +88,12 @@ class MatrixPlot(GraphicPrimitive):
         self.xrange = xrange
         self.yrange = yrange
         self.xy_data_array = xy_data_array
-        self.xy_array_row = len(xy_data_array)
-        self.xy_array_col = len(xy_data_array[0])
+        if hasattr(xy_data_array, 'shape'):
+            self.xy_array_row = xy_data_array.shape[0]
+            self.xy_array_col = xy_data_array.shape[1]
+        else:
+            self.xy_array_row = len(xy_data_array)
+            self.xy_array_col = len(xy_data_array[0])
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
@@ -120,7 +124,9 @@ class MatrixPlot(GraphicPrimitive):
                         a list of colors, or an instance of a
                         matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
                         for available colormap names.""",
-                'zorder':"The layer level in which to draw"}
+                'zorder':"The layer level in which to draw",
+                'marker':"The marker for sparse plots",
+                'markersize':"The marker size for sparse plots"}
 
     def _repr_(self):
         """
@@ -141,12 +147,16 @@ class MatrixPlot(GraphicPrimitive):
             sage: matrix_plot(random_matrix(RDF, 50), cmap='jet')
         """
         options = self.options()
-        cmap = get_cmap(options['cmap'])
+        cmap = get_cmap(options.pop('cmap',None))
 
-        subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
+        if hasattr(self.xy_data_array, 'tocoo'):
+            # Sparse matrix -- use spy
+            subplot.spy(self.xy_data_array, **options)
+        else:
+            subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
 
-@options(cmap='gray')
+@options(cmap='gray',marker='.')
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -195,6 +205,8 @@ def matrix_plot(mat, **options):
 
         sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
         sage: matrix_plot(sparse)
+        sage: A=random_matrix(ZZ,100000,density=.00001,sparse=True)
+        sage: matrix_plot(A,marker=',')
 
     Plotting lists of lists also works::
 
@@ -228,15 +240,32 @@ def matrix_plot(mat, **options):
         ValueError: can not convert array entries to floating point numbers
     """
     import numpy as np
+    import scipy.sparse as scipysparse
     from sage.plot.plot import Graphics
     from sage.matrix.all import is_Matrix
     from sage.rings.all import RDF
 
     if is_Matrix(mat):
-        mat = mat.change_ring(RDF).numpy()
+        sparse = mat.is_sparse()
+        if sparse:
+            entries = list(mat._dict().items())
+            data = np.asarray([d for _,d in entries])
+            positions = np.asarray([[row for (row,col),_ in entries],
+                                    [col for (row,col),_ in entries]], dtype=int)
+            mat = scipysparse.coo_matrix((data,positions), shape=(mat.nrows(), mat.ncols()))
+        else:
+            mat = mat.change_ring(RDF).numpy()
+    elif hasattr(mat, 'tocoo'):
+        sparse = True
+    else:
+        sparse = False
+
 
     try:
-        xy_data_array = np.asarray(mat, dtype = float)
+        if sparse:
+            xy_data_array = mat
+        else:
+            xy_data_array = np.asarray(mat, dtype = float)
     except TypeError:
         raise TypeError, "mat must be a Matrix or a two dimensional array"
     except ValueError:

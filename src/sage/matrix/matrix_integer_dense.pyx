@@ -1142,7 +1142,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return 0   # no error occured.
 
     def _multiply_multi_modular(left, Matrix_integer_dense right):
+        """
+        Multiply this matrix by ``left`` using a multi modular algorithm.
 
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, 3, range(5,11))
+            sage: N = Matrix(ZZ, 3, 2, range(15,21))
+            sage: M._multiply_multi_modular(N)
+            [310 328]
+            [463 490]
+            sage: M._multiply_multi_modular(-N)
+            [-310 -328]
+            [-463 -490]
+        """
         cdef Integer h
         cdef mod_int *moduli
         cdef int i, n, k
@@ -4837,6 +4850,27 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
 
 
 def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
+    """
+    TESTS::
+
+        sage: from sage.matrix.matrix_integer_dense import _lift_crt
+        sage: T1 = Matrix(Zmod(5), 4, 4, [1, 4, 4, 0, 2, 0, 1, 4, 2, 0, 4, 1, 1, 4, 0, 3])
+        sage: T2 = Matrix(Zmod(7), 4, 4, [1, 4, 6, 0, 2, 0, 1, 2, 4, 0, 6, 6, 1, 6, 0, 5])
+        sage: T3 = Matrix(Zmod(11), 4, 4, [1, 4, 10, 0, 2, 0, 1, 9, 8, 0, 10, 6, 1, 10, 0, 9])
+        sage: _lift_crt(Matrix(ZZ, 4, 4), [T1, T2, T3])
+        [ 1  4 -1  0]
+        [ 2  0  1  9]
+        [-3  0 -1  6]
+        [ 1 -1  0 -2]
+
+        sage: from sage.ext.multi_modular import MultiModularBasis
+        sage: mm = MultiModularBasis([5,7,11])
+        sage: _lift_crt(Matrix(ZZ, 4, 4), [T1, T2, T3], mm)
+        [ 1  4 -1  0]
+        [ 2  0  1  9]
+        [-3  0 -1  6]
+        [ 1 -1  0 -2]
+    """
 
     cdef size_t n, i, j, k
     cdef Py_ssize_t nr, nc

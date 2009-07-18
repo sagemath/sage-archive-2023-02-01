@@ -899,10 +899,10 @@ def previous_prime_power(n):
         n -= 1
     return n
 
-def random_prime(n, proof=None):
+def random_prime(n, proof=None, lbound=2):
     """
-    Returns a random prime p between 2 and n (i.e. 2 <= p <= n). The
-    returned prime is chosen uniformly at random from the set of prime
+    Returns a random prime p between `lbound` and n (i.e. `lbound <= p <= n`).
+    The returned prime is chosen uniformly at random from the set of prime
     numbers less than or equal to n.
 
     INPUT:
@@ -914,6 +914,9 @@ def random_prime(n, proof=None):
        pseudo-primality test, which is much faster for really big numbers but
        does not provide a proof of primality. If None, uses the global default
        (see :mod:`sage.structure.proof.proof`)
+
+    - ``lbound`` - an integer >= 2
+      lower bound for the chosen primes
 
 
     EXAMPLES::
@@ -942,8 +945,8 @@ def random_prime(n, proof=None):
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = ZZ(n)
-    if n < 2:
-        raise ValueError, "n must be >= 2."
+    if n < lbound:
+        raise ValueError, "n must be greater than lbound: %s"%(lbound)
     elif n == 2:
         return ZZ(n)
     else:
@@ -959,7 +962,7 @@ def random_prime(n, proof=None):
             # The method of choosing a random number and then returning
             # the closest prime smaller than it would typically not,
             # for example, return the first of a pair of twin primes.
-            p = randint(2,n)
+            p = randint(lbound,n)
             if prime_test(p):
                 return ZZ(p)
 

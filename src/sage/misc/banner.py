@@ -57,8 +57,7 @@ def banner_text():
         sage: print sage.misc.banner.banner_text()
         ----------------------------------------------------------------------
         | Sage Version ..., Release Date: ...                  |
-        | Type notebook() for the GUI, and license() for information.        |
-        ----------------------------------------------------------------------
+        | Type notebook() for the GUI, and license() for information...
     """
     bars = "-"*70
     s = bars
@@ -66,6 +65,14 @@ def banner_text():
     s += "| %-66s |\n"%'Type notebook() for the GUI, and license() for information.'
     #s += "| %-66s |\n"%'Distributed under the GNU General Public License V2.'
     s += bars
+    pre = version_dict()['prerelease']
+    if pre:
+        s += '\n'
+        s += bars.replace('-', '*')
+        s += "\n* %-66s *\n"%''
+        s += "* %-66s *\n"%'Warning: this is a prerelease version, and it may be unstable.'
+        s += "* %-66s *\n"%''
+        s += bars.replace('-', '*')
     return s
 
 
@@ -83,8 +90,7 @@ def banner():
         sage: banner()
         ----------------------------------------------------------------------
         | Sage Version ..., Release Date: ...                  |
-        | Type notebook() for the GUI, and license() for information.        |
-        ----------------------------------------------------------------------
+        | Type notebook() for the GUI, and license() for information...
     """
     print banner_text()
 
@@ -116,7 +122,7 @@ def version_dict():
     For example, if the Sage version is '3.2.1', then the dictionary
     is {'major': 3, 'minor': 2, 'tiny': 1, 'prerelease': False}.
     If the Sage version is '3.2.1.2', then the dictionary is
-    {'major': 3, 'minor': 2, 'tiny': 1.2, 'prerelease': False}.
+    {'major': 3, 'minor': 2, 'tiny': 1.200..., 'prerelease': False}.
     If the Sage version is '3.2.alpha0', then the dictionary is
     {'major': 3, 'minor': 2, 'tiny': 0, 'prerelease': True}.
 
@@ -127,23 +133,24 @@ def version_dict():
         sage: version_dict()['major'] == int(sage.version.version.split('.')[0])
         True
     """
-    from sage.rings.integer import Integer
     v = sage.version.version.split('.')
     dict = {}
     dict['major'] = int(v[0])
     dict['minor'] = int(v[1])
     dict['tiny'] = 0
-    dict['prerelease'] = (isinstance(v[-1], str))
-    if len(v) >= 3:
-        if isinstance(v[2], (int, Integer, long)):
-            dict['tiny'] = int(v[2])
-            if len(v) >= 4:
-                if isinstance(v[3], (int, Integer, long)):
-                    dict['tiny'] += 0.1 * v[3]
-                else:
-                    dict['alpha'] = v[3]
+    dict['prerelease'] = False
+    try:
+        dummy = int(v[-1])
+    except ValueError:  # when last entry is not an integer
+        dict['prerelease'] = True
+    if (len(v) == 3 and not dict['prerelease']) or len(v) > 3:
+        dict['tiny'] = int(v[2])
+    try:
+        teeny = int(v[3])
+        dict['tiny'] += 0.1 * teeny
+    except (ValueError, IndexError):
+        pass
     return dict
-
 
 def require_version(major, minor=0, tiny=0, prerelease=False,
                     print_message=False):

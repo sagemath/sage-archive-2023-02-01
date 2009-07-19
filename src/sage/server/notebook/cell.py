@@ -34,7 +34,7 @@ re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 
 import os, shutil
 
-from   sage.misc.misc import word_wrap
+from   sage.misc.misc import word_wrap, SAGE_DOC
 from   sage.misc.html import math_parse
 from   sage.misc.preparser import strip_string_literals
 from   sage.misc.package   import is_package_installed
@@ -46,6 +46,11 @@ if is_package_installed("tinyMCE"):
 else:
     JEDITABLE_TINYMCE = False
 
+# Introspection.  The cache directory is a module-scope variable set
+# in the first call to Cell.set_introspect_html().
+import errno, hashlib, time
+from sphinx.application import Sphinx
+_SAGE_INTROSPECT = None
 
 class Cell_generic:
     def is_interactive_cell(self):
@@ -1430,12 +1435,168 @@ class Cell(Cell_generic):
     #################
     # Introspection #
     #################
-    def set_introspect_html(self, html, completing=False):
-        if completing:
+    def set_introspect_html(self, html, completing=False, verbose=False):
+        """
+        If ``verbose`` is True, print verbose output about notebook
+        introspection to the command-line.  However, the argument
+        ``verbose`` is not easily accessible now -- if you need to
+        debug, you have to edit this file, changing its value to True,
+        and run 'sage -b'.
+        """
+        if html == "" or completing:
             self.__introspect_html = html
+        elif html.find("`") == -1 and html.find("::") == -1:
+            # html doesn't seem to be in ReST format so use docutils
+            # to process the preamble ("**File:**" etc.)  and put
+            # everything else in a <pre> block.
+            i = html.find("**Docstring:**")
+            if i != -1:
+                preamble = html[:i+14]
+                from docutils.core import publish_parts
+                preamble = publish_parts(html[:i+14], writer_name='html')['body']
+                html = html[i+14:]
+            else:
+                preamble = ""
+            self.__introspect_html = '<div class="docstring">' + preamble + '<pre>' + html + '</pre></div>'
         else:
-            html = escape(html).strip()
-            self.__introspect_html = '<pre class="introspection">'+html+'</pre>'
+            # html is in ReST format, so use Sphinx to process it
+
+            # Set the location of the introspection cache, "permanent"
+            # or temporary.  The former, DOT_SAGE/sage_notebook/doc,
+            # can pool queries from multiple worksheet processes.  The
+            # latter is exclusive to a worksheet's process.  The Sage
+            # cleaner should delete the temporary directory (or
+            # directories) after the notebook server exits.
+            global _SAGE_INTROSPECT
+
+            if _SAGE_INTROSPECT is None:
+                from sage.misc.misc import DOT_SAGE, tmp_dir
+                # It's important to use os.path.join, instead of +,
+                # because Sphinx counts on normalized paths.  It's also
+                # more portable.
+                std_doc_dir = os.path.join(DOT_SAGE, 'sage_notebook/doc')
+                try:
+                    os.makedirs(std_doc_dir)
+                    _SAGE_INTROSPECT = std_doc_dir
+                except OSError, error:
+                    if error.errno == errno.EEXIST:
+                        if os.access(std_doc_dir, os.R_OK | os.W_OK | os.X_OK):
+                            _SAGE_INTROSPECT = std_doc_dir
+                        else:
+                            _SAGE_INTROSPECT = tmp_dir()
+                    else:
+                        _SAGE_INTROSPECT = tmp_dir()
+                if verbose:
+                    print 'Introspection cache: ', _SAGE_INTROSPECT
+
+            # We get a quick checksum of the input.  MD5 admits
+            # collisions, but we're not concerned about such security
+            # issues here.  Of course, if performance permits, we can
+            # choose a more robust hash function.
+            hash = hashlib.md5(html).hexdigest()
+            base_name = os.path.join(_SAGE_INTROSPECT, hash)
+            html_name = base_name + '.html'
+
+            # Multiple processes might try to read/write the target
+            # HTML file simultaneously.  We use a file-based lock.
+            # Since we care only about the target's contents, and
+            # we've configured Sphinx accordingly, we allow multiple
+            # simultaneous instances of Sphinx, as long as their
+            # targets are different.  Systems which don't properly
+            # implement os.O_EXCL may require coarser locking.
+
+            # The Pythonic cross-platform file lock below is adapted
+            # from
+            # http://www.evanfosmark.com/2009/01/cross-platform-file-locking-support-in-python/
+            lock_name = base_name + '.lock'
+
+            # Try to acquire the lock, periodically.  If we time out,
+            # we fall back to plainly formatted documentation.
+            timeout = 0.5
+            delay = 0.05
+            start_time = time.time()
+
+            while True:
+                try:
+                    # This operation is atomic on platforms which
+                    # properly implement os.O_EXCL:
+                    fd_lock = os.open(lock_name, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                    break;
+                except OSError, err:
+                    if (err.errno != errno.EEXIST) or (time.time() - start_time >= timeout):
+                        plain_html = escape(html).strip()
+                        self.__introspect_html = '<pre class="introspection">' + plain_html + '</pre>'
+                        return
+                    time.sleep(delay)
+
+            # We've acquired the lock.  Use cached HTML or run Sphinx.
+            try:
+                open(html_name, 'r')
+                if verbose:
+                    print 'Found: %s' % html_name
+            except IOError:
+                html = html.replace('\\\\', '\\')
+                rst_name = base_name + '.rst'
+                fd_rst = open(rst_name, 'w')
+                fd_rst.write(html)
+                fd_rst.close()
+
+                # Sphinx setup.  The constructor is Sphinx(srcdir,
+                # confdir, outdir, doctreedir, buildername,
+                # confoverrides, status, warning, freshenv).
+                srcdir = os.path.normpath(_SAGE_INTROSPECT)
+
+                # Note: It's crucial that confdir* contains a
+                # customized conf.py and layout.html.  In particular,
+                # we've disabled index generation and told Sphinx to
+                # output almost exactly the HTML we display.  Sphinx
+                # also pickles its environment in doctreedir, but we
+                # force Sphinx never to load this pickle with
+                # freshenv=True.
+                confdir = os.path.join(SAGE_DOC, 'en/introspect')
+                doctreedir = os.path.normpath(base_name)
+                confoverrides = {'html_context' : {}, 'master_doc' : hash}
+
+                # To suppress output, use this:
+
+                if verbose:
+                    import sys
+                    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, 'html', confoverrides, sys.stdout, sys.stderr, True)
+                else:
+                    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, 'html', confoverrides, None, None, True)
+
+                # Run Sphinx. The first argument corresponds to
+                # sphinx-build's "write all files" -a flag, which we
+                # set to None.
+                sphinx_app.build(None, [rst_name])
+
+                # We delete .rst files, so future Sphinx runs don't
+                # keep track of them.  We also delete doctrees.
+                try:
+                    os.unlink(rst_name)
+                except OSError:
+                    pass
+                try:
+                    shutil.rmtree(doctreedir)
+                    os.unlink(doctreedir)
+                except OSError:
+                    pass
+
+                if verbose:
+                    print 'Built: %s' % html_name
+            finally:
+                # Contents should be flushed on close().
+                fd_html = open(html_name, 'r')
+                new_html = fd_html.read()
+                fd_html.close()
+
+                # We release the lock and delete the lock file.
+                os.close(fd_lock)
+                os.unlink(lock_name)
+
+                new_html = new_html.replace('<pre>', '<pre class="literal-block">')
+                self.__introspect_html = new_html
+                return
 
     def introspect_html(self):
         if not self.introspect():

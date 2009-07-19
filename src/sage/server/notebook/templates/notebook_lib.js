@@ -892,7 +892,17 @@ function update_introspection_text() {
             halt_introspection();
             return;
         }
+
         d.innerHTML = introspection_text;
+
+        if (contains_jsmath(introspection_text)) {
+            try {
+                jsMath.ProcessBeforeShowing(d);
+            } catch(e) {
+                text_cell.innerHTML = jsmath_font_msg + d.innerHTML;
+            }
+        }
+
         if(replacing)
             select_replacement_element();
     } else {
@@ -2891,6 +2901,13 @@ function set_output_text(id, text, wrapped_text, output_html,
         cell_output.innerHTML = '';
         cell_output_nowrap.innerHTML = '';
         cell_output_html.innerHTML = introspect_html;
+        if (contains_jsmath(introspect_html)) {
+            try {
+                jsMath.ProcessBeforeShowing(cell_output_html);
+            } catch(e) {
+                cell_output.innerHTML = jsmath_font_msg + cell_output_html.innerHTML;
+            }
+        }
     }
 }
 

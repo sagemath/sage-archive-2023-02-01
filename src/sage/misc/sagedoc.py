@@ -30,29 +30,38 @@ AUTHORS:
 import os, re
 from subprocess import Popen, PIPE
 
-#('\\item', '*'), \
-substitutes = [('\\_','_'),\
-               ('\\item', '* '), \
-               ('\\to', '-->'), \
-               ('<BLANKLINE>',''), \
-               ('\\leq', '<='), \
-               ('\\geq', '>='), \
-               ('\\le', '<='), \
-               ('\\ge', '>='), \
-               ('\\bf', ''),\
-               ('\\sage', 'SAGE'), \
-               ('\\SAGE', 'SAGE'), \
-               ('\\rm', ''), \
-               ('cdots', '...'), \
-               ('\\cdot', ' *'), \
-               ('$',''), ('\\',''), ('backslash','\\'), \
-               ('begin{enumerate}',''), ('end{enumerate}',''), \
-               ('begin{description}',''), ('end{description}',''), \
-               ('begin{itemize}',''), ('end{itemize}',''), \
-               ('begin{verbatim}',''), ('end{verbatim}',''), \
-               ('mapsto', ' |--> '), \
-               ('ldots', '...'), ('note{','NOTE: ')]
-
+# two kinds of substitutions: math, which should only be done on the
+# command line -- in the notebook, these should instead by taken care
+# of by jsMath -- and nonmath, which should be done always.
+math_substitutes = [('\\to', '-->'),
+                    ('\\leq', '<='),
+                    ('\\geq', '>='),
+                    ('\\le', '<='),
+                    ('\\ge', '>='),
+                    ('cdots', '...'),
+                    ('\\cdot', ' *'),
+                    (' \\times', ' x'),
+                    ('\\times', ' x'),
+                    ('backslash','\\'),
+                    ('mapsto', ' |--> '),
+                    ('ldots', '...')]
+nonmath_substitutes = [('\\_','_'),
+                       ('\\item', '* '),
+                       ('<BLANKLINE>',''),
+                       ('\\bf', ''),
+                       ('\\sage', 'SAGE'),
+                       ('\\SAGE', 'SAGE'),
+                       ('\\rm', ''),
+                       ('backslash','\\'),
+                       ('begin{enumerate}',''),
+                       ('end{enumerate}',''),
+                       ('begin{description}',''),
+                       ('end{description}',''),
+                       ('begin{itemize}',''),
+                       ('end{itemize}',''),
+                       ('begin{verbatim}',''),
+                       ('end{verbatim}',''),
+                       ('note{','NOTE: ')]
 
 def _rmcmd(s, cmd, left='', right=''):
     """
@@ -122,13 +131,20 @@ import re
 itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
 itemreplace = r"* \1 \2"
 
-def detex(s):
+def detex(s, embedded=False):
     r"""nodetex
     This strips LaTeX commands from a string; it is used by the
     ``format`` function to process docstrings for display from the
     command line interface.
 
-    INPUT: ``s``, a string.
+    INPUT:
+
+    - ``s`` - string
+    - ``embedded`` - boolean (optional, default False)
+
+    If ``embedded`` is False, then do the replacements in both
+    ``math_substitutes`` and ``nonmath_substitutes``.  If True, then
+    only do ``nonmath_substitutes``.
 
     OUTPUT: string
 
@@ -139,8 +155,10 @@ def detex(s):
         'Some math: `n >= k`.  A website: sagemath.org.'
         sage: detex(r'More math: `x \mapsto y`.  {\bf Bold face}.')
         'More math: `x  |-->  y`.  { Bold face}.'
-        sage: detex(r'$a, b, c, \ldots, z$')
-        'a, b, c, ..., z'
+        sage: detex(r'`a, b, c, \ldots, z`')
+        '`a, b, c, ..., z`'
+        sage: detex(r'`a, b, c, \ldots, z`', embedded=True)
+        '`a, b, c, \\\\ldots, z`'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
@@ -152,14 +170,22 @@ def detex(s):
     s = _rmcmd(s, 'subsubsection')
     s = _rmcmd(s, 'note', 'NOTE: ', '')
     s = _rmcmd(s, 'emph', '*', '*')
+    s = _rmcmd(s, 'textbf', '*', '*')
 
     s = re.sub(itempattern, itemreplace, s)
 
-    for a,b in substitutes:
+    if not embedded: # not in the notebook
+        for a,b in math_substitutes:  # do math substitutions
+            s = s.replace(a,b)
+        s = s.replace('\\','')        # nuke backslashes
+        s = s.replace('.. math::\n', '')  # get rid of .. math:: directives
+    else:
+        s = s.replace('\\','\\\\')    # double up backslashes for jsMath
+    for a,b in nonmath_substitutes:
         s = s.replace(a,b)
     return s
 
-def format(s):
+def format(s, embedded=False):
     r"""
     Format Sage documentation ``s`` for viewing with IPython.
 
@@ -167,9 +193,15 @@ def format(s):
     text, and if ``s`` contains a string of the form "<<<obj>>>",
     then it replaces it with the docstring for "obj".
 
-    INPUT: ``s`` - string
+    INPUT:
+
+    - ``s`` - string
+    - ``embedded`` - boolean (optional, default False)
 
     OUTPUT: string
+
+    Set ``embedded`` equal to True if formatting for use in the
+    notebook; this just gets passed as an argument to ``detex``.
 
     EXAMPLES::
 
@@ -228,7 +260,7 @@ def format(s):
         s = s[:i] + '\n' + t + s[i+6+j:]
 
     if 'nodetex' not in directives:
-        s = detex(s)
+        s = detex(s, embedded=embedded)
     else:
         # strip the 'nodetex' directive from s
         s = s.replace('nodetex', '', 1)

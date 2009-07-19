@@ -545,7 +545,7 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-from sage.misc.misc_c import prod, running_total, is_64_bit, is_32_bit
+from sage.misc.misc_c import prod, running_total, balanced_sum, is_64_bit, is_32_bit
 
 # alternative name for prod
 mul = prod

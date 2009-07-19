@@ -275,6 +275,123 @@ class NonAssociative:
         """
         return NonAssociative(self, other)
 
+from copy import copy
+
+def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff = 5):
+    """
+    Return the sum of the elements in the list x.  If optional
+    argument z is not given, start the sum with the first element of
+    the list, otherwise use z.  The empty product is the int 0 if z is
+    not specified, and is z if given.  The sum is computed
+    recursively, where the sum is split up if the list is greater than
+    recursion_cutoff.  recursion_cutoff must be at least 3.
+
+    This assumes that your addition is associative; we don't promise
+    which end of the list we start at.
+
+
+    EXAMPLES:
+        sage: balanced_sum([1,2,34])
+        37
+        sage: balanced_sum([2,3], 5)
+        10
+        sage: balanced_sum((1,2,3), 5)
+        11
+
+    Order should be preserved::
+
+        sage: balanced_sum([[i] for i in range(10)], [], recursion_cutoff=3)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    We make copies when appropriate so that we don't accidentally modify the arguments.
+
+        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        True
+        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        True
+
+    TESTS:
+        sage: balanced_sum((1..3)) # nonempty, z=None
+        6
+        sage: balanced_sum((1..-1)) # empty, z=None
+        0
+        sage: balanced_sum((1..3), 5) # nonempty, z is not None
+        11
+        sage: balanced_sum((1..-1), 5) # empty, z is not None
+        5
+
+    AUTHORS:
+        Joel B. Mohler (2007-10-03 -- Reimplemented in Cython and optimized)
+        Robert Bradshaw (2007-10-26) -- Balanced product tree, other optimizations, (lazy) generator support
+    """
+    if recursion_cutoff<3:
+        raise ValueError, "recursion_cutoff must be at least 3"
+
+    if not PyList_CheckExact(x) and not PyTuple_CheckExact(x):
+
+        if PyGen_Check(x):
+            # lazy list, do lazy product
+            try:
+                sum = copy(x.next()) if z is None else z + x.next()
+                for a in x:
+                    sum += a
+                return sum
+            except StopIteration:
+                x = []
+        else:
+            try:
+                return x.sum()
+            except AttributeError:
+                pass
+
+            x = list(x)
+
+    cdef Py_ssize_t n = len(x)
+
+    if n == 0:
+        if z is None:
+            import sage.rings.integer
+            return sage.rings.integer.Integer(0)
+        else:
+            return z
+
+    sum = balanced_list_sum(x, 0, n, recursion_cutoff)
+
+    if z is not None:
+        sum = z+sum
+
+    return sum
+
+cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff):
+    """
+    INPUT:
+        L      -- the terms (MUST be a tuple or list)
+        off    -- offset in the list from which to start
+        count  -- how many terms in the product
+        cutoff -- the minimum count to recurse on.  Must be at least 2
+
+    OUTPUT:
+        L[offset] + L[offset+1] + ... + L[offset+count-1]
+
+    NOTE: The parameter cutoff must be at least 3. However, there are
+          at least two advantages to setting it higher (and
+          consequently not recursing all the way down the
+          tree). First, one avoids the overhead of the function calls
+          at the base of the tree (which is the majority of them) and
+          second, it allows one to save on object creation if inplace
+          operations are used. The asymptotic gains should usually be
+          at the top of the tree anyway.
+    """
+    cdef Py_ssize_t k
+    if count <= cutoff:
+        sum = <object>PySequence_Fast_GET_ITEM(L, offset)+<object>PySequence_Fast_GET_ITEM(L, offset+1)
+        for k from offset+1 < k < offset+count:
+            sum += <object>PySequence_Fast_GET_ITEM(L, k)
+        return sum
+    else:
+        k = (1+count) >> 1
+        return balanced_list_sum(L, offset, k, cutoff) + balanced_list_sum(L, offset+k, count-k, cutoff)
+
 
 #############################################################################
 # Bitset Testing

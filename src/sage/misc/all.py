@@ -9,7 +9,7 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, newton_method_sizes)
 
-from misc_c import (prod, running_total)
+from misc_c import prod, running_total, balanced_sum
 
 from html import html
 

@@ -7,7 +7,8 @@ GROEBNER in [BW93]_) and an improved version of Buchberger's algorithm
 
 No attempt was made to optimize either algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
-Groebner basis in Sage efficently use the ``groebner_basis()``
+Groebner basis in Sage efficently use the
+:meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal.groebner_basis()`
 method on multivariate polynomial objects.
 
 
@@ -117,7 +118,7 @@ zero for this example::
     15 reductions to zero.
     [a + 2*b + 2*c - 1, -22*c^3 + 24*c^2 - 60*b - 62*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, -2*b^2 - 6*b*c - 6*c^2 + b + 2*c, -5*b*c - 6*c^2 - 63*b + 2*c]
 
-The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero:
+The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero::
 
     sage: buchberger_improved(I)
     (b^2 - 26*c^2 - 51*b + 51*c, b*c + 52*c^2 + 38*b + 25*c) => 11*c^3 - 12*c^2 + 30*b + 31*c
@@ -138,16 +139,40 @@ REFERENCES:
 AUTHOR:
 
 - Martin Albrecht (2007-05-24): initial version
+- Marshall Hampton (2009-07-08): some doctest additions
 """
 
 from sage.misc.misc import get_verbose
 from sage.rings.arith import LCM
 from sage.structure.sequence import Sequence
 
+#some aliases that conform to Becker and Weispfenning's notation:
 LCM = lambda f,g: f.parent().monomial_lcm(f,g)
 LM = lambda f: f.lm()
 LT = lambda f: f.lt()
-spol = lambda f,g: LCM(LM(f),LM(g)) // LT(f) * f - LCM(LM(f),LM(g)) // LT(g) * g
+
+def spol(f,g):
+    """
+    Computes the S-polynomial of f and g.
+
+    INPUT:
+
+    -  ``f,g`` - polynomials
+
+    OUTPUT:
+
+    -  The S-polynomial of f and g.
+
+    EXAMPLES::
+
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: from sage.rings.polynomial.toy_buchberger import spol
+        sage: spol(x^2 - z - 1, z^2 - y - 1)
+        x^2*y - z^3 + x^2 - z^2
+    """
+    fg_lcm = LCM(LM(f),LM(g))
+    return fg_lcm//LT(f)*f - fg_lcm//LT(g)*g
+
 
 def buchberger(F):
     """
@@ -159,6 +184,7 @@ def buchberger(F):
     - ``F`` - an ideal in a multivariate polynomial ring
 
     OUTPUT:
+
         a Groebner basis for F
 
     .. note::
@@ -166,6 +192,14 @@ def buchberger(F):
        The verbosity of this function may be controlled with a
        ``set_verbose()`` call. Any value >=1 will result in this
        function printing intermediate bases.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.toy_buchberger import buchberger
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: set_verbose(0)
+        sage: buchberger(R.ideal([x^2 - z - 1, z^2 - y - 1, x*y^2 - x - 1]))
+        [-y^3 + x*z - x + y, y^2*z + y^2 - x - z - 1, x*y^2 - x - 1, x^2 - z - 1, z^2 - y - 1]
 
     """
     G = set(F.gens())
@@ -207,6 +241,7 @@ def buchberger_improved(F):
     - ``F`` - an ideal in a multivariate polynomial ring
 
     OUTPUT:
+
         a Groebner basis for F
 
     .. note::
@@ -214,6 +249,14 @@ def buchberger_improved(F):
        The verbosity of this function may be controlled with a
        ``set_verbose()`` call. Any value ``>=1`` will result in this
        function printing intermediate Groebner bases.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.toy_buchberger import buchberger_improved
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: set_verbose(0)
+        sage: buchberger_improved(R.ideal([x^4-y-z,x*y*z-1]))
+        [x*y*z - 1, x^3 - y^2*z - y*z^2, y^3*z^2 + y^2*z^3 - x^2]
     """
     F = inter_reduction(F.gens())
 
@@ -261,8 +304,21 @@ def update(G,B,h):
     - ``h`` - a polynomial
 
     OUTPUT:
+
         a tuple of an intermediate Groebner basis and a list of
         critical pairs
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.toy_buchberger import update
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: set_verbose(0)
+        sage: update(set(),set(),x*y*z)
+        (set([x*y*z]), set([]))
+        sage: G,B = update(set(),set(),x*y*z-1)
+        sage: G,B = update(G,B,x*y^2-1)
+        sage: G,B
+        (set([x*y*z - 1, x*y^2 - 1]), set([(x*y^2 - 1, x*y*z - 1)]))
     """
     R = h.parent()
 
@@ -320,7 +376,17 @@ def select(P):
     - ``P`` - a list of critical pairs
 
     OUTPUT:
+
         an element of P
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.toy_buchberger import select
+        sage: R.<x,y,z> = PolynomialRing(QQ,3, order='lex')
+        sage: ps = [x^3 - z -1, z^3 - y - 1, x^5 - y - 2]
+        sage: pairs = [[ps[i],ps[j]] for i in range(3) for j in range(i+1,3)]
+        sage: select(pairs)
+        [x^3 - z - 1, -y + z^3 - 1]
     """
     return min(P,key = lambda (fi,fj): LCM(LM(fi),LM(fj)).total_degree())
 
@@ -340,11 +406,13 @@ def inter_reduction(Q):
 
     - ``Q`` - a set of polynomials
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_buchberger import inter_reduction
         sage: inter_reduction(set())
         set([])
+
+    ::
 
         sage: (x,y) = QQ['x,y'].gens()
         sage: reduced = inter_reduction(set([x^2-5*y^2,x^3]))

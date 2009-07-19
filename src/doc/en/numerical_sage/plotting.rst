@@ -6,7 +6,7 @@ Consider the following code::
 
     import numpy
     from scitools import easyviz
-    x = numpy.arange(-8,8,.2,dtype=float)
+    x = numpy.arange(-8,8,.2)
     xx,yy = numpy.meshgrid(x,x)
     r = numpy.sqrt(xx**2+yy**2) + 0.01
     zz = numpy.sin(r)/r
@@ -30,7 +30,7 @@ nicer coloring and some labels as follows.
     RealNumber=float
     Integer =int
     from scitools import easyviz
-    x = numpy.arange(-8,8,.2,dtype=float)
+    x = numpy.arange(-8,8,.2)
     xx,yy = numpy.meshgrid(x,x)
     r = numpy.sqrt(xx**2+yy**2) + 0.01
     zz = numpy.sin(r)/r
@@ -73,7 +73,7 @@ plot a function like we did with easyviz.
 
     import numpy
     from mayavi.tools import imv
-    x=numpy.arange(-8,8,.2,dtype=float)
+    x=numpy.arange(-8,8,.2)
     def f(x,y):
         r=numpy.sqrt(x**2+y**2)+.01
         return numpy.sin(r)/r

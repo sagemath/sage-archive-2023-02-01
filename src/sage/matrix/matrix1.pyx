@@ -426,9 +426,9 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: a = matrix(3,range(12))
             sage: a.numpy()
-            array([[0, 1, 2, 3],
-                   [4, 5, 6, 7],
-                   [8, 9, 10, 11]], dtype=object)
+            array([[ 0,  1,  2,  3],
+                   [ 4,  5,  6,  7],
+                   [ 8,  9, 10, 11]])
             sage: a.numpy('f')
             array([[  0.,   1.,   2.,   3.],
                    [  4.,   5.,   6.,   7.],

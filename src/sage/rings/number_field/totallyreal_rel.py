@@ -194,10 +194,9 @@ class tr_data_rel:
             import numpy
             for i in range(len(anm1s)):
                 Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
-                Q = str(numpy.array(Q).transpose())
-                Q = Q.replace(']\n [',';').replace('\n ', '').replace(' ', ',')
-                Q = Q[1:len(Q)-1]
-                adj = pari(Q).qflll()[self.d]
+                pari_string = '['+';'.join([','.join(["%s"%i for i in row]) for row in zip(*Q)])+']'
+                adj = pari(pari_string).qflll()[self.d]
+                # BUG --- "i" is the variable in the loop and also the variable in the list comprehension below
                 anm1s[i] += sum([m*Z_Fbasis[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
 
             self.amaxvals[m-1] = anm1s

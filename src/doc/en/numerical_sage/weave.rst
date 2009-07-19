@@ -35,7 +35,7 @@ To call this function try
 ::
 
     import numpy
-    a=numpy.array(range(60000),dtype=int)
+    a=numpy.array(range(60000))
     time my_sum(a)
     time sum(range(60000))
 

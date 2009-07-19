@@ -1,15 +1,15 @@
 NumPy
 =====
 
-NumPy is not imported into sage initially so first at your sage
-prompt (or in the notebook), import numpy.
+NumPy is not imported into sage initially.  To use NumPy, you first need to
+import it.
 
 ::
 
     sage: import numpy
 
-The basic object of computation in NumPy is arrays. Do the
-following
+The basic object of computation in NumPy is an array. It is simple to
+create an array.
 
 .. link
 
@@ -17,65 +17,61 @@ following
 
     sage: l=numpy.array([1,2,3])
     sage: l
-    array([1, 2, 3], dtype=object)
+    array([1, 2, 3])
 
-Note the dtype (data type) of object. NumPy arrays can store any
-type of python object. But this is almost never what you want. If
-you do the following
+NumPy arrays can store any type of python object. However, for speed,
+numeric types are automatically converted to native hardware types
+(i.e., ``int``, ``float``, etc.) when possible.  If the value or
+precision of a number cannot be handled by a native hardware type,
+then an array of Sage objects will be created.  You can do
+calculations on these arrays, but they may be slower than using native
+types.  When the numpy array contains Sage or python objects, then the
+data type is explicitly printed as ``object``.  If no data type is
+explicitly shown when NumPy prints the array, the type is either a
+hardware float or int.
 
 .. link
 
 ::
 
-    sage: l=numpy.array([1,2,3],dtype=float)
+    sage: l=numpy.array([2**40, 3**40, 4**40])
     sage: l
-    array([ 1.,  2.,  3.])
+    array([1099511627776, 12157665459056928801, 1208925819614629174706176], dtype=object)
+    sage: a=2.0000000000000000001
+    sage: a.prec() # higher precision than hardware floating point numbers
+    67
+    sage: numpy.array([a,2*a,3*a])
+    array([2.000000000000000000, 4.000000000000000000, 6.000000000000000000], dtype=object)
 
-Now
+
+The ``dtype`` attribute of an array tells you the type of the array.
+For fast numerical computations, you generally want this to be some
+sort of float.  If the data type is float, then the array is stored as
+an array of machine floats, which takes up much less space and which
+can be operated on much faster.
+
 
 .. link
 
 ::
 
+    sage: l=numpy.array([1.0, 2.0, 3.0])
     sage: l.dtype
     dtype('float64')
 
-should report a data-type of float. If the data type is float then
-the array is stored as an array of machine floats which takes up
-much less space and which can be operated on much faster. Usually
-you want your NumPy arrays to be arrays of floats. Another subtlety
-to watch out for is that if you do
+You can create an array of a specific type by specifying the ``dtype``
+parameter.  If you want to make sure that you are dealing with machine
+floats, it is good to specify ``dtype=float`` when creating
+an array.
 
 .. link
 
 ::
 
-    sage: l=numpy.array([1.0,2.0,3.0])
-    sage: l
-    array([1.00000000000000, 2.00000000000000, 3.00000000000000], dtype=object)
+    sage: l=numpy.array([1,2,3], dtype=float)
+    sage: l.dtype
+    dtype('float64')
 
-then l.dtype will still report a data type of object. If no data
-type is explicitly shown when NumPy prints the object it is either
-float or int, meaning machine floats or ints. If you want floats
-you need to specify dtype=float when creating your array.
-Alternatively do
-
-.. link
-
-::
-
-    sage: RealNumber=float
-
-Now
-
-.. link
-
-::
-
-    sage: l=numpy.array([1.0,2.0,3.0])
-
-will create an array of floats like you wanted without explicitly
-requiring you to specify the data type.
 
 You can access elements of a NumPy array just like any list, as
 well as take slices
@@ -101,10 +97,8 @@ You can do basic arithmetic operations
     sage: 2.5*l
     array([  0. ,   2.5,   5. ,   7.5,  10. ,  12.5,  15. ,  17.5,  20. ,  22.5])
 
-I am assuming you have set RealNumber=float, otherwise in the
-second line you would need float(2.5)\*l. Note that l\*l will
-multiply the elements of l componentwise. To get a dot product do
-numpy.dot
+ Note that ``l*l`` will multiply the elements of ``l`` componentwise. To get
+a dot product, use :meth:`numpy.dot`.
 
 .. link
 
@@ -121,12 +115,12 @@ We can also create two dimensional arrays
 
 ::
 
-    sage: m = numpy.array([[1,2],[3,4]],dtype=float)
+    sage: m = numpy.array([[1,2],[3,4]])
     sage: m
-    array([[ 1.,  2.],
-           [ 3.,  4.]])
+    array([[1, 2],
+           [3, 4]])
     sage: m[1,1]
-    4.0
+    4
 
 This is basically equivalent to the following
 
@@ -134,17 +128,17 @@ This is basically equivalent to the following
 
 ::
 
-    sage: m=numpy.matrix([[1,2],[3,4]],dtype=float)
+    sage: m=numpy.matrix([[1,2],[3,4]])
     sage: m
-    matrix([[ 1.,  2.],
-            [ 3.,  4.]])
+    matrix([[1, 2],
+            [3, 4]])
     sage: m[0,1]
-    2.0
+    2
 
-The difference is that with numpy.array, m is treated as just an
-array of data. In particular m\*m will multiply componentwise,
-however with numpy.matrix m\*m will do matrix multiplication. We
-can also do matrix vector multiplication, and matrix addition
+The difference is that with :meth:`numpy.array`, ``m`` is treated as just
+an array of data. In particular ``m*m`` will multiply componentwise,
+however with :meth:`numpy.matrix`, ``m*m`` will do matrix multiplication. We can
+also do matrix vector multiplication, and matrix addition
 
 .. link
 
@@ -159,8 +153,8 @@ can also do matrix vector multiplication, and matrix addition
     matrix([[ 2.,  4.],
             [ 6.,  8.]])
 
-If n were created with numpy.array, then to do matrix vector
-multiplication you do numpy.dot(n,v).
+If ``n`` was created with :meth:`numpy.array`, then to do matrix vector
+multiplication, you would use ``numpy.dot(n,v)``.
 
 All NumPy arrays have a shape attribute. This is a useful attribute
 to manipulate
@@ -182,7 +176,7 @@ to manipulate
            [ 15.,  16.,  17.,  18.,  19.],
            [ 20.,  21.,  22.,  23.,  24.]])
 
-This changes the 1 dimensional array, into a 5x5 array.
+This changes the one-dimensional array into a `5\times 5` array.
 
 NumPy arrays can be sliced as well
 
@@ -233,8 +227,8 @@ Some particularly useful commands are
     array([ 0. ,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7,  0.8,  0.9,  1. ,
             1.1,  1.2,  1.3,  1.4,  1.5,  1.6,  1.7,  1.8,  1.9])
 
-You can see that arange creates an array of floats increasing by .1
-from 0 to 2. There is a useful command r\_ that is best explained by example
+You can see that :meth:`numpy.arange` creates an array of floats increasing by 0.1
+from 0 to 2. There is a useful command :meth:`numpy.r_` that is best explained by example
 
 .. link
 
@@ -251,8 +245,8 @@ from 0 to 2. There is a useful command r\_ that is best explained by example
     sage: n
     array([ 0.,  1.,  2.,  3.,  4.,  0.,  0.,  0.,  0.,  0.])
 
-r\_ provides a shorthand for constructing NumPy arrays efficiently.
-Note in the above 0.0:5.0 was shorthand for 0.0,1.0,2.0,3.0,4.0.
+:meth:`numpy.r_` provides a shorthand for constructing NumPy arrays efficiently.
+Note in the above ``0.0:5.0`` was shorthand for ``0.0, 1.0, 2.0, 3.0, 4.0``.
 Suppose we want to divide the interval from 0 to 5 into 10
 intervals. We can do this as follows
 
@@ -263,8 +257,8 @@ intervals. We can do this as follows
     sage: r_[0.0:5.0:11*j]
     array([ 0. ,  0.5,  1. ,  1.5,  2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ])
 
-The notation ``0.0:5.0:11\*j`` expands to a list of 11 equally space
-points between 0 and 5 including both endpoints. Note that j is the
+The notation ``0.0:5.0:11*j`` expands to a list of 11 equally space
+points between 0 and 5 including both endpoints. Note that ``j`` is the
 NumPy imaginary number, but it has this special syntax for creating
 arrays. We can combine all of these techniques
 
@@ -277,15 +271,14 @@ arrays. We can combine all of these techniques
     array([ 0. ,  0.5,  1. ,  1.5,  2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,
             0. ,  0. ,  0. ,  0. ,  0. , -5. , -4. , -3. , -2. , -1. ])
 
-Another useful command is meshgrid, it produces meshed grids. As an
-example suppose you want to evaluate :math:`f(x,y)=x^2+y^2` on a
-an equally spaced grid with :math:`\Delta x = \Delta y = .25` for
-:math:`0\le x,y\le 1`. You can do that as follows
+Another useful command is :meth:`numpy.meshgrid`, it produces meshed grids. As an
+example suppose you want to evaluate `f(x,y)=x^2+y^2` on a
+an equally spaced grid with `\Delta x = \Delta y = .25` for
+`0\le x,y\le 1`. You can do that as follows
 
 ::
 
     sage: import numpy
-    sage: RealNumber=float
     sage: j=numpy.complex(0,1)
     sage: def f(x,y):
     ...       return x**2+y**2
@@ -312,35 +305,33 @@ an equally spaced grid with :math:`\Delta x = \Delta y = .25` for
            [ 0.5625,  0.625 ,  0.8125,  1.125 ,  1.5625],
            [ 1.    ,  1.0625,  1.25  ,  1.5625,  2.    ]])
 
-You can see that meshgrid produces a pair of matrices, here denoted
-:math:`xx` and :math:`yy`, such that
-:math:`(xx[i,j],yy[i,j])` has coordinates :math:`(x[i],y[j])`.
-This is useful because to evaluate :math:`f` over a grid, we only
-need to evaluate it on each pair of entries in :math:`xx`,
-:math:`yy`. Since NumPy automatically performs arithmetic
-operations on arrays componentwise, it is very easy to evaluate
-functions over a grid with very little code.
+You can see that :meth:`numpy.meshgrid` produces a pair of matrices, here denoted
+`xx` and `yy`, such that `(xx[i,j],yy[i,j])` has coordinates
+`(x[i],y[j])`.  This is useful because to evaluate `f` over a grid, we
+only need to evaluate it on each pair of entries in `xx`, `yy`. Since
+NumPy automatically performs arithmetic operations on arrays
+componentwise, it is very easy to evaluate functions over a grid with
+very little code.
 
-A useful module is the linalg module. If you want to solve an
-equation ax=b do
+A useful module is the :mod:`numpy.linalg` module. If you want to solve an
+equation `Ax=b` do
 
 ::
 
     sage: import numpy
     sage: from numpy import linalg
     sage: A=numpy.random.randn(5,5)
-    sage: b=numpy.array(range(1,6),dtype=float)
+    sage: b=numpy.array(range(1,6))
     sage: x=linalg.solve(A,b)
     sage: numpy.dot(A,x)
     array([ 1.,  2.,  3.,  4., 5.])
 
-This creates a random 5x5 matrix A, and solves Ax=b where
-b=[0.0,1.0,2.0,3.0,4.0]. There are many other routines in the
-linalg module that are mostly self explanatory. For example there
-are routines for doing qr, and lu decompositions named qr, and lu.
-There is also a command eigs for computing eigenvalues of a matrix.
-You can always do :math:`\langle` function
-name :math:`\rangle`? to get the documentation which is quite
+This creates a random 5x5 matrix ``A``, and solves `Ax=b` where
+``b=[0.0,1.0,2.0,3.0,4.0]``. There are many other routines in the :mod:`numpy.linalg`
+module that are mostly self-explanatory. For example there are
+``qr`` and ``lu`` routines for doing QR and LU decompositions.  There
+is also a command ``eigs`` for computing eigenvalues of a matrix.  You can
+always do ``<function name>?`` to get the documentation which is quite
 good for these routines.
 
 Hopefully this gives you a sense of what NumPy is like. You should

@@ -46,7 +46,7 @@ we could do the following.
 
 ::
 
-    sage: B = numpy.array([1.0]*5,dtype=float)
+    sage: B = numpy.array([1.0]*5)
     sage: B.shape=(5,1)
     sage: print(B)
     [[ 1.]

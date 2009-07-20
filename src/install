@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <SAGE_ROOT> [SAGE_VERSION]"
     echo "Build and install SAGE."

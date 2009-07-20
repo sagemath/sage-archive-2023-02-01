@@ -6987,7 +6987,7 @@ class ModularParameterization:
             sage: E = EllipticCurve('37a')
             sage: phi = E.modular_parametrization()
             sage: phi((sqrt(7)*I - 17)/74, 53)
-            (-3.37746093871080e-16 - 2.21824021705058e-16*I : 3.33066907387547e-16 + 2.21719344273286e-16*I : 1.00000000000000)
+            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
 
         Verify that the mapping is invariant under the action of `\Gamma_0(N)`
         on the upper half plane::

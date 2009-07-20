@@ -182,9 +182,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         - other -- a polynomial
 
-        OUTPUT:
-
-        an element of the base ring of the polynomial ring
+        OUTPUT: an element of the base ring of the polynomial ring
 
         EXAMPLES::
 
@@ -253,7 +251,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         r"""
         Returns the product of two polynomials using the zn_poly library.
 
-        See `\url{http://www.math.harvard.edu/~dmharvey/zn_poly/}` for details
+        See http://www.math.harvard.edu/~dmharvey/zn_poly/ for details
         on zn_poly.
 
         INPUT:
@@ -261,9 +259,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         - self: Polynomial
         - right: Polynomial (over same base ring as self)
 
-        OUTPUT:
-
-        (Polynomial) the product self*right.
+        OUTPUT: (Polynomial) the product self*right.
 
 
         EXAMPLE::

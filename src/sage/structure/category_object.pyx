@@ -447,7 +447,7 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: R.Hom(QQ)
             Set of Homomorphisms from Multivariate Polynomial Ring in x, y over Rational Field to Rational Field
 
-        Homspaces are defined for very general \sage objects, even elements of familiar rings.
+        Homspaces are defined for very general Sage objects, even elements of familiar rings.
 
         ::
 

@@ -488,7 +488,7 @@ cdef class PolyDict:
             '2*a^2*WW^3 + 4*a^2*WW + 3*a*WW^2'
 
         When atomic_exponents is False, the exponents are surrounded
-        in parenthesis, since ^ has such high precedence.::
+        in parenthesis, since ^ has such high precedence. ::
 
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
@@ -496,7 +496,7 @@ cdef class PolyDict:
             #'4*a^(2)*b*c + 3*a*b^(2)*c + 2*a^(2/3)*b^(3)*c^(5)'
 
         We check to make sure that when we are in characteristic two, we
-        don't put negative signs on the generators.::
+        don't put negative signs on the generators. ::
 
             sage: Integers(2)['x,y'].gens()
             (x, y)
@@ -617,7 +617,7 @@ cdef class PolyDict:
             #sage: f*g
             #PolyDict with representation {(8/3, 4, 6): 12, (5/3, 5, 6): 9, (4/3, 6, 10): 6}
 
-        Finally we print the result in a nice format.::
+        Finally we print the result in a nice format. ::
 
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)
@@ -962,7 +962,7 @@ cdef class ETuple:
 
         concatenates two ETuples
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,1,0]) + ETuple({int(1):int(2)},int(3))
@@ -985,7 +985,7 @@ cdef class ETuple:
         """
         x.__mul__(n) <==> x*n
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: ETuple([1,2,3])*2
@@ -1012,7 +1012,7 @@ cdef class ETuple:
         """
         x.__getitem__(i) <==> x[i]
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: m=ETuple([1,2,0,3])
@@ -1089,7 +1089,7 @@ cdef class ETuple:
         x.__contains__(n) <==> n in x
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple({int(1):int(2)},int(3)); e
@@ -1457,7 +1457,7 @@ cdef class ETuple:
 
         INPUT:
 
-        - ``sort`` -- if True a sorted list is returned. If False a an unsorted
+        - ``sort`` -- if True a sorted list is returned. If False an unsorted
           list is returned. (default: False)
 
         EXAMPLES::
@@ -1476,7 +1476,7 @@ cdef class ETuple:
         in self or other, i.e. the only positions that need to be
         considered for any vector operation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
@@ -1500,9 +1500,9 @@ cdef class ETuple:
         INPUT:
 
         - ``sort`` -- if True the values are sorted by their indices. Otherwise
-          a the values are returned unsorted. (default: True)
+          the values are returned unsorted. (default: True)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([2,0,1])
@@ -1519,7 +1519,7 @@ cdef class ETuple:
         """
         Returns the reversed ETuple of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,2,3])
@@ -1540,7 +1540,7 @@ cdef class ETuple:
         Iterator over the elements of self where the elements are returned as
         ``(i,e)`` where ``i`` is the position of ``e`` in the tuple.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2,0,3])

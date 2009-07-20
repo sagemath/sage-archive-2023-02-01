@@ -50,7 +50,7 @@ Groebner bases can be used to solve the ideal membership problem::
     False
 
 We compute a Groebner basis for Cyclic 6, which is a standard
-benchmark and test ideal.::
+benchmark and test ideal. ::
 
     sage: R.<x,y,z,t,u,v> = QQ['x,y,z,t,u,v']
     sage: I = sage.rings.ideal.Cyclic(R,6)
@@ -155,7 +155,7 @@ when the system has no solutions over the rationals.
     We first form a certain ideal `I` in `\ZZ[x, y, z]`, and note that
     the Groebner basis of `I` over `\QQ` contains 1, so there are no
     solutions over `\QQ` or an algebraic closure of it (this is not
-    surprising as there are 4 equations in 3 unknowns).::
+    surprising as there are 4 equations in 3 unknowns). ::
 
         sage: P.<x,y,z> = PolynomialRing(ZZ,order='lex')
         sage: I = ideal(-y^2 - 3*y + z^2 + 3, -2*y*z + z^2 + 2*z + 1, \
@@ -165,7 +165,7 @@ when the system has no solutions over the rationals.
 
     However, when we compute the Groebner basis of I (defined over
     `\ZZ``), we note that there is a certain integer in the ideal
-    which is not 1.::
+    which is not 1. ::
 
         sage: I.groebner_basis()
         [-x - y - z, -y^2 - 3*y + z^2 + 3, -y*z + 14329*y + 6653454247350,
@@ -174,7 +174,7 @@ when the system has no solutions over the rationals.
 
     Now for each prime `p` dividing this integer 164878, the Groebner
     basis of I modulo `p` will be non-trivial and will thus give a
-    solution of the original system modulo `p`.::
+    solution of the original system modulo `p`. ::
 
 
         sage: factor(164878)
@@ -187,7 +187,7 @@ when the system has no solutions over the rationals.
         sage: I.change_ring(P.change_ring( GF(11777 ))).groebner_basis()
         [x + 5633, y - 3007, z - 2626]
 
-    The Groebner basis modulo any product of the prime factors is also non-trivial.::
+    The Groebner basis modulo any product of the prime factors is also non-trivial. ::
 
         sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
         [x*y + 10, x*z + 13*y + 9, 7*x + 7*y + 7*z, y^2 + 3*y, y*z + y + 2, 2*y + 6, z^2 + 3, 2*z + 10]
@@ -289,7 +289,7 @@ class RedSBContext:
         Note that both bases are Groebner bases because they have
         pairwise prime leading monomials but that the monic version of
         the last element in ``rgb`` is smaller than the last element
-        of ``gb`` with respect to the lexicographical term ordering.::
+        of ``gb`` with respect to the lexicographical term ordering. ::
 
             sage: (7*a-420*c^3+158*c^2+8*c-7)/7 < (a+2*b+2*c-1)
             True
@@ -420,7 +420,7 @@ def is_MPolynomialIdeal(x):
 
     Sage distinguishes between a list of generators for an ideal and
     the ideal itself. This distinction is inconsistent with Singular
-    but matches Magma's behavior.::
+    but matches Magma's behavior. ::
 
         sage: is_MPolynomialIdeal(I)
         False
@@ -1073,7 +1073,7 @@ class MPolynomialIdeal_singular_repr:
         EXAMPLES:
 
         We compute a Groebner basis of 'cyclic 4' relative to
-        lexicographic ordering.::
+        lexicographic ordering. ::
 
             sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
             sage: I = sage.rings.ideal.Cyclic(R,4); I
@@ -1163,7 +1163,7 @@ class MPolynomialIdeal_singular_repr:
         EXAMPLES:
 
         We compute a Groebner basis of 'cyclic 4' relative to
-        lexicographic ordering.::
+        lexicographic ordering. ::
 
             sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
             sage: I = sage.rings.ideal.Cyclic(R,4); I
@@ -1238,7 +1238,7 @@ class MPolynomialIdeal_singular_repr:
             Ideal (x*y) of Multivariate Polynomial Ring in x, y over Rational Field
 
         The following simple example illustrates that the product need
-        not equal the intersection.::
+        not equal the intersection. ::
 
             sage: I = (x^2, y)*R
             sage: J = (y^2, x)*R
@@ -1300,7 +1300,7 @@ class MPolynomialIdeal_singular_repr:
             sage: I.radical()
             Ideal (y, x) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
-        That the radical is correct is clear from the Groebner basis.::
+        That the radical is correct is clear from the Groebner basis. ::
 
             sage: I.groebner_basis()
             [y^3, x^2]
@@ -2393,7 +2393,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        Groebner bases over `\ZZ` can be computed.::
+        Groebner bases over `\ZZ` can be computed. ::
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)

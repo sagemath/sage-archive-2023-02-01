@@ -566,7 +566,7 @@ cdef class PolynomialRealDense(Polynomial):
             1.00000000000000*x^2 + 6.00000000000000*x + 9.00000000000000
 
         Unless the division is exact (i.e. no rounding occurs) the returned gcd is
-        almost certain to be 1.::
+        almost certain to be 1. ::
 
             sage: f = (x+RR.pi())^2 * (x-1)
             sage: g = (x+RR.pi())^5

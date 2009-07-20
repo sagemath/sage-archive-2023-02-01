@@ -532,13 +532,13 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     REFERENCES:
 
     Don Coppersmith. *Finding a small root of a univariate modular equation.*
-       In Advances in Cryptology, EuroCrypt 1996, volume 1070 of Lecture
-       Notes in Computer Science, p. 155--165. Springer, 1996.
-       http://cr.yp.to/bib/2001/coppersmith.pdf
+    In Advances in Cryptology, EuroCrypt 1996, volume 1070 of Lecture
+    Notes in Computer Science, p. 155--165. Springer, 1996.
+    http://cr.yp.to/bib/2001/coppersmith.pdf
 
     Alexander May. *New RSA Vulnerabilities Using Lattice Reduction Methods.*
-       PhD thesis, University of Paderborn, 2003.
-       http://www.informatik.tu-darmstadt.de/KP/publications/03/bp.ps
+    PhD thesis, University of Paderborn, 2003.
+    http://www.informatik.tu-darmstadt.de/KP/publications/03/bp.ps
     """
     from sage.misc.misc import verbose
     from sage.matrix.constructor import Matrix
@@ -1738,9 +1738,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         - ``other`` -- a polynomial
 
-        OUTPUT:
-
-        an element of the base ring of the polynomial ring
+        OUTPUT: an element of the base ring of the polynomial ring
 
         EXAMPLES::
 

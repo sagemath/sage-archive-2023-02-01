@@ -446,12 +446,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         r"""
         Attempts to divide self by right, and return a quotient and remainder.
 
-        If right is monic, then it returns ``(q, r)`` where
-
-        .. math::
-
-                self = q * right + r
-
+        If right is monic, then it returns ``(q, r)`` where `self = q * right + r`
         and `deg(r) < deg(right)`.
 
         If right is not monic, then it returns `(q, 0)` where q = self/right if

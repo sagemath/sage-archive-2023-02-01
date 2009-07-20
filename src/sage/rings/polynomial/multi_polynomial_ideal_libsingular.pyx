@@ -244,7 +244,7 @@ def interred_libsingular(I):
 
     - ``I`` -- a Sage ideal
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = PolynomialRing(ZZ)
         sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )

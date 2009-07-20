@@ -14,7 +14,7 @@ SINGULAR; and polynomials in the boolean polynomial ring
 
 .. math::
 
-    \GF{2}[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
+    \GF{2}[x_1,...,x_n]/ \langle x_1^2+x_1,...,x_n^2+x_n \rangle.
 
 are implemented using the PolyBoRi library (cf. :mod:`sage.rings.polynomial.pbori`).
 

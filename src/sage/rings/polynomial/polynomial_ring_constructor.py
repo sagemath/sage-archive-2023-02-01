@@ -104,21 +104,21 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
         You can't just globally change the names of those variables.
         This is because objects all over SAGE could have pointers to
-        that polynomial ring.::
+        that polynomial ring. ::
 
             sage: R._assign_names(['z','w'])
             Traceback (most recent call last):
             ...
             ValueError: variable names cannot be changed after object creation.
 
-        However, you can very easily change the names within a "with" block::
+        However, you can very easily change the names within a ``with`` block::
 
             sage: with localvars(R, ['z','w']):
             ...     print f
             ...
             z^2 - 2*w^2
 
-        After the with block the names revert to what they were before.::
+        After the ``with`` block the names revert to what they were before. ::
 
             sage: print f
             x^2 - 2*y^2
@@ -187,7 +187,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
        integers, one based on NTL and one based on FLINT.  The default
        is FLINT. Note that FLINT uses a "more dense" representation for
        its polynomials than NTL, so in particular, creating a polynomial
-       like 2^1000000 * x^1000000 in FLINT may be unwise.::
+       like 2^1000000 * x^1000000 in FLINT may be unwise. ::
 
         sage: ZxNTL = PolynomialRing(ZZ, 'x', implementation='NTL'); ZxNTL
         Univariate Polynomial Ring in x over Integer Ring (using NTL)
@@ -205,13 +205,13 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         Univariate Polynomial Ring in x over Integer Ring
 
        There is a coercion between the two rings, so the values can be
-       mixed in a single expression.::
+       mixed in a single expression. ::
 
         sage: (xNTL + xFLINT^2)
         x^2 + x
 
        Unfortunately, it is unpredictable whether the result of such an
-       expression will use the NTL or FLINT implementation.::
+       expression will use the NTL or FLINT implementation. ::
 
         sage: (xNTL + xFLINT^2).parent()        # random output
         Univariate Polynomial Ring in x over Integer Ring
@@ -229,7 +229,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: T = PolynomialRing(QQ, ('a','b','c')); T
         Multivariate Polynomial Ring in a, b, c over Rational Field
 
-       All three rings are identical.::
+       All three rings are identical. ::
 
         sage: (R is S) and  (S is T)
         True
@@ -345,7 +345,7 @@ def MPolynomialRing(*args, **kwds):
     This function is deprecated and will be removed in a future version of
     Sage. Please use PolynomialRing instead.
 
-    If you have questions regarding this function and it's replacement,
+    If you have questions regarding this function and its replacement,
     please send your comments to sage-support@googlegroups.com.
     """
     from sage.misc.misc import deprecation

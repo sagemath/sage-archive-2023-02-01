@@ -234,7 +234,7 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         Returns a quickly-evaluating function on floats.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x,y,z> = QQ[]
             sage: f = (x+2*y+3*z^2)^2 + 42
@@ -742,7 +742,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def __mod__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = (x^2*y + 2*x - 3)
@@ -770,7 +770,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         - ``R`` -- a ring
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]
             sage: f = x^3 + 3/5*y + 1
@@ -827,7 +827,7 @@ cdef class MPolynomial(CommutativeRingElement):
         Return a list of partial derivatives of this polynomial,
         ordered by the variables of ``self.parent()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: P.<x,y,z> = PolynomialRing(ZZ,3)
            sage: f = x*y + 1
@@ -840,7 +840,7 @@ cdef class MPolynomial(CommutativeRingElement):
         r"""
         Return the Jacobian ideal of the polynomial self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
             sage: f = x^3 + y^3 + z^3

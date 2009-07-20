@@ -66,9 +66,11 @@ class PolynomialRing_singular_repr:
         Currently `\QQ`, `{\rm GF}(p), {\rm GF}(p^n)`, `\CC`, `\RR`, `\ZZ` and
         `\ZZ/n\ZZ` are supported.
 
-        :param singular: Singular instance
+        INPUT:
 
-        :return: Singular ring matching this ring
+        - ``singular`` - Singular instance
+
+        OUTPUT: Singular ring matching this ring
 
         EXAMPLES::
 
@@ -346,11 +348,13 @@ def _singular_func(self, singular=singular_default, have_ring=False):
     """
     Return Singular polynomial matching this polynomial.
 
-    :param singular: Singular instance to use.
-    :param have_ring: if True we will not attempt to set this element's ring as
-    the current Singular ring. This is useful to speed up a batch of
-    ``f._singular_()`` calls. However, it's dangerous as it might lead to wrong
-    results if another ring is ``singular.current_ring()``. (Default: False)
+    INPUT:
+
+    - ``singular`` - Singular instance to use.
+    - ``have_ring`` - if True we will not attempt to set this element's ring as
+      the current Singular ring. This is useful to speed up a batch of
+      ``f._singular_()`` calls. However, it's dangerous as it might lead to wrong
+      results if another ring is ``singular.current_ring()``. (Default: False)
 
     EXAMPLES::
 
@@ -405,11 +409,13 @@ def lcm_func(self, right, have_ring=False):
     """
     Returns the least common multiple of this element and the right element.
 
-    :param right: multivariate polynomial
-    :param have_ring: see ``self._singular_()``. (Default:False)
+    INPUT:
 
-    :return:    multivariate polynomial representing the least common multiple of
-                self and right
+    - ``right`` - multivariate polynomial
+    - ``have_ring`` - see ``self._singular_()``. (Default:False)
+
+    OUTPUT: multivariate polynomial representing the least common multiple of
+    self and right
 
     ALGORITHM: Singular
 
@@ -454,11 +460,13 @@ def resultant_func(self, other, variable=None):
     If a second argument is not provide the first variable of
     self.parent() is chosen.
 
-    :param other:       polynomial in ``self.parent()``
-    :param variable:    optional variable (of type polynomial) in
-                        ``self.parent()``. (Default: None)
+    INPUT:
 
-    EXAMPLE::
+    - ``other`` - polynomial in ``self.parent()``
+    - ``variable`` - optional variable (of type polynomial) in
+      ``self.parent()``. (Default: None)
+
+    EXAMPLES::
 
         sage: P.<x,y> = PolynomialRing(QQ,2)
         sage: a = x+y

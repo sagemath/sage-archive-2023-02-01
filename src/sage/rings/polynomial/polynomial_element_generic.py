@@ -731,10 +731,10 @@ class Polynomial_rational_dense(Polynomial_generic_field):
           Gap.  To get a permutation group from a PARI group P, type
           ``PermutationGroup(P)``.
 
-         - ``algorithm`` -- ``pari``, ``kash``, ``magma`` (default: ``pari``,
-           except when the degree is `\ge 12` when `kash` is tried). NOTE:
-           `magma` also does not return a proven correct result.  Please see
-           the Magma docs for how to get a proven result.
+        - ``algorithm`` -- ``'pari'``, ``'kash'``, ``'magma'`` (default: ``'pari'``,
+          except when the degree is `\ge 12` when ``'kash'`` is tried). NOTE:
+          ``'magma'`` also does not return a proven correct result.  Please see
+          the Magma docs for how to get a proven result.
 
         ALGORITHM: The Galois group is computed using PARI in C library mode,
         or possibly kash or magma.
@@ -826,7 +826,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def quo_rem(self, right):
         """
         Returns a tuple (quotient, remainder) where
-            self = quotient*right + remainder.
+        self = quotient*right + remainder.
 
         EXAMPLES::
 

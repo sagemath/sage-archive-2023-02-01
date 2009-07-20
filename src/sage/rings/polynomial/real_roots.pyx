@@ -2330,7 +2330,7 @@ def root_bounds(p):
         sage: root_bounds(x^995 * (x^2 - 9999) + 1)
         (-141.414284992712, 99.9949998749938)
 
-    If we can see that the polynomial has no real roots, return None.::
+    If we can see that the polynomial has no real roots, return None. ::
 
         sage: root_bounds(x^2 + 1) is None
         True
@@ -3923,14 +3923,14 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
     We can compute Conway's constant
     (see http://mathworld.wolfram.com/ConwaysConstant.html) to arbitrary
-    precision.::
+    precision. ::
 
         sage: p = x^71 - x^69 - 2*x^68 - x^67 + 2*x^66 + 2*x^65 + x^64 - x^63 - x^62 - x^61 - x^60 - x^59 + 2*x^58 + 5*x^57 + 3*x^56 - 2*x^55 - 10*x^54 - 3*x^53 - 2*x^52 + 6*x^51 + 6*x^50 + x^49 + 9*x^48 - 3*x^47 - 7*x^46 - 8*x^45 - 8*x^44 + 10*x^43 + 6*x^42 + 8*x^41 - 5*x^40 - 12*x^39 + 7*x^38 - 7*x^37 + 7*x^36 + x^35 - 3*x^34 + 10*x^33 + x^32 - 6*x^31 - 2*x^30 - 10*x^29 - 3*x^28 + 2*x^27 + 9*x^26 - 3*x^25 + 14*x^24 - 8*x^23 - 7*x^21 + 9*x^20 + 3*x^19 - 4*x^18 - 10*x^17 - 7*x^16 + 12*x^15 + 7*x^14 + 2*x^13 - 12*x^12 - 4*x^11 - 2*x^10 + 5*x^9 + x^7 - 7*x^6 + 7*x^5 - 4*x^4 + 12*x^3 - 6*x^2 + 3*x - 6
         sage: cc = real_roots(p, retval='algebraic_real')[2][0] # long time
         sage: RealField(180)(cc)                                # long time
         1.3035772690342963912570991121525518907307025046594049
 
-    Now we play with algebraic real coefficients.::
+    Now we play with algebraic real coefficients. ::
 
         sage: x = polygen(AA)
         sage: p = (x - 1) * (x - sqrt(AA(2))) * (x - 2)

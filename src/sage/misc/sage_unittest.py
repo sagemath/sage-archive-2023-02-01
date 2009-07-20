@@ -81,7 +81,7 @@ class TestSuite(object):
        test method to choose appropriately the elements so as to
        prove the desired property. The test method may assume that
        a parent implements properly all the super categories. For
-       example, the ``test_commutative`` method of the category
+       example, the ``_test_commutative`` method of the category
        ``CommutativeSemigroups()`` may just check that the
        provided generators commute, implicitly assuming that
        generators indeed generate the semigroup (as required by

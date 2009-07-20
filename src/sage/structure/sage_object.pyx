@@ -263,7 +263,19 @@ cdef class SageObject:
         """
         Checks that this object can be pickled and unpickled properly.
 
+        EXAMPLES::
+
+            sage: ZZ._test_pickling()
+
         SEE ALSO: :func:`dumps` :func:`loads`
+
+        TESTS::
+
+            sage: class Bla(SageObject): pass
+            sage: Bla()._test_pickling()
+            Traceback (most recent call last):
+            ...
+            PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
 
         TODO: for a stronger test, this could send the object to a
         remote Sage session, and get it back.

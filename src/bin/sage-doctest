@@ -493,18 +493,21 @@ def pythonify_rst(F):
 
     def get_next_verbatim_block(s, pos):
         while True:
-            pos = s.find('\n::', pos)
+            # regular expression search in string s[pos:] for:
+            # whitespace followed by "::" at the start of a line
+            srch = re.search('^(\s*)::', s[pos:], re.M)
 
-            #Return -1 if we can't find any verbatim
-            #blocks
-            if pos == -1:
-                return "", pos, False
+            #Return -1 if we don't find anything.
+            if srch is None:
+               return "", -1, False
+
+            pos += srch.start()
 
             prev_line = F.rfind("\n", 0, pos)
             start_of_options = F.rfind("\n", 0, prev_line if prev_line != -1 else 0)
             options = F[start_of_options:pos]
 
-            pos += 3
+            pos += (srch.end() - srch.start())
 
             #Don't return skipped blocks
             if '.. skip' in options:
@@ -514,14 +517,18 @@ def pythonify_rst(F):
             #block
             link_previous = True if '.. link' in options else False
 
-            #Find the first line that isn't
-            #indented (i.e., not in the verbatim block)
-            match = re.compile("^\S", re.M).search(s, pos)
+            #Find the first line that isn't indented as much as
+            #whatever followed the double colon.  The whitespace before
+            #the double colon is stored in srch.groups()[0]
+            lw = len(srch.groups()[0])  # length of whitespace before ::
+            #So match anything of the form
+            # beg. of line + whitespace of length at most lw + nonwhitespace
+            no_indent = re.search("^\s{,%s}\S"%lw, s[pos:], re.M)
 
-            if match is None:
+            if no_indent is None:
                 return s[pos:], None, link_previous
 
-            block, pos = s[pos:match.start()], match.start()
+            block, pos = s[pos:pos+no_indent.start()], pos+no_indent.start()
             if re.compile('^\s*sage: ', re.M).search(block) is not None:
                 return block, pos, link_previous
 

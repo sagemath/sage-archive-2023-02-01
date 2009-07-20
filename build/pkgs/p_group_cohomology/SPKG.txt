@@ -12,7 +12,8 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 Copyright (C) 2009 Simon A. King  <simon.king@uni-jena.de> and
                    David J. Green <david.green@uni-jena.de>
 
-Distributed under the terms of the GNU General Public License (GPL)
+Distributed under the terms of the GNU General Public License (GPL),
+version 2 or later (at your choice).
 
    This code is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,8 +40,8 @@ David J. Green <david.green@uni-jena.de>
 
 == Special Update/Build Instructions ==
 
-The package is very likely to neither work with OS X nor on Motorola processors
-(the latter due to endianness).
+The package is very likely to not build or at least to not work properly
+on Motorola processors (because of endianness).
 
 Note that most of the code is original. Therefore we included the files from
 src into the Mercurial repository.
@@ -54,16 +55,22 @@ is provided in the folder mtxoriginal.
 
 Our package does not provide a separate test suite for the MeatAxe C-library or
 David Green's routines for the computation of minimal projective resolutions.
-But it is of course equipped with extensive doc tests in the Cython code. The
-scripts ``spkg-check`` and ``spkg-check-details`` walk through all public
-methods of all classes in all modules of our package and performs the respective
-doc test. ``spkg-check`` runs over many doc tests at once, which is faster,
-but makes it sometimes difficult to find out which doc test actually failed.
-In contrast, ``spkg-check-details`` tells exactly which doc test failed, but
-takes much longer than ``spkg-check``. Both methods also check whether there
-is any method without a doc test.
+But it is of course equipped with extensive doc tests in the Cython code.
+
+The scripts ``spkg-check`` and ``spkg-check-quickly`` walk through all public
+methods of all classes in all modules of our package and perform the respective
+doc test. ``spkg-check-quickly`` runs over many doc tests at once, which is
+faster, but makes it sometimes difficult to find out which doc test actually
+failed. Moreover, since the same Singular sub-process is used for all tests,
+errors might occur by creating too many temporary variables in the Singular
+interface (this only occurs on some machines).
+
+Therefore, we recommend to use ``spkg-check`` for testing. It tells exactly
+which doc test failed, and it launches a clean Singular process for any
+example. Both test suites also check whether there is any method without a
+doc test.
 
 == Changelog ==
 
-  * first public version (July 2009)
-
+  * 1.0: First public version (July 2009)
+  * 1.0.1: Licensing GPL 2 or later (July 2009)

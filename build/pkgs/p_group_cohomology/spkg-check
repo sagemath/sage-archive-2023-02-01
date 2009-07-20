@@ -1,28 +1,10 @@
 #!/usr/bin/env python
 
-#*****************************************************************************
-#
-#    Test suite, based on the doc tests of this package
-#
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
-#
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or later (at your choice)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
 import sage
 import sage.all
 from sage.all import walltime
 import inspect
-from sage.misc.randstate import set_random_seed
+import sys
 
 def members_by_type(M,t):
     L = dir(M)
@@ -74,7 +56,7 @@ def docstring_list(L, T):
     for X in T[2]:
         docstring_list(L, X)
 
-def recursive_doctests(M,name = None):
+def recursive_doctests(M):
     """
     Given a module M, the function recursively tests all examples from M and its members.
 
@@ -88,105 +70,61 @@ def recursive_doctests(M,name = None):
     from sage.all import SAGE_TMP
     currdir = os.popen('pwd').read().split('\n')[0]
     os.chdir(SAGE_TMP)
-    L = package_tree(M, name=name)
+    L = package_tree(M)
     D = []
+    O = [] # Ergebnis der Doc Tests
     NO = [] # Dinge ohne Doc Test
     docstring_list(D,L)
-    print "Testing the following items:"
     for X in D:
-        print "  "+X[0]
-    print "Writing doc strings to '%s' and running 'sage -t -long -verbose'..."%(SAGE_TMP+'RecDoctest.py')
-    F = file('RecDoctest.py','w')
-    foo_counter = 0
-    for X in D:
-        foo_counter += 1
-        # If X refers to leaf in the package tree (i.e., a method!)
-        # and X has no doc string or its doc string has no tests:
-        if (X[1] is None or (not "sage: " in X[1])) and X[2]==0:
-            #print "Warning: No doc test in", X[0]
-            NO.append(X[0])
+        if (X[1] is None or (not "sage: " in X[1])):
+            if X[2]==0:
+                #print "Warning: No doc test in", X[0]
+                NO.append(X[0])
         else:
-            # put every doc string into a separate fake function
-            F.write('def foo_%d():\n    """\n%s\n    """\n    return 0\n\n'%(foo_counter, X[1]))
-    F.close()
-    #Res = os.popen('sage -t -optional -long -verbose RecDoctest.py').read()
-    os.system('sage -t -optional -long -verbose RecDoctest.py > tmp_result')
-    tmp_f = file('tmp_result','r')
-    Res = tmp_f.read()
-    tmp_f.close()
-    if Res.split('\n')[-3]=='All tests passed!':
-        print 'All tests passed!'
-        Res = ''
+            print X[0], '...',
+            sys.stdout.flush()
+            F = file('RecDoctest.py','w')
+            F.write('"""\n%s\n"""\n'%(X[1]))
+            F.close()
+            Res = os.popen('sage -t -optional -long RecDoctest.py').read()
+            if Res.split('\n')[-3]!='All tests passed!':
+                O.append((X[0],Res))
+                print '\b\b\b\b--> Error'
+            else:
+                print '\b\b\b\b--> OK'
     os.chdir(currdir)
-    return Res,NO
-
-def single_doc_string(PACKAGE):
-    print "Doc Test for",PACKAGE.__name__
-    from sage.all import tmp_filename
-    import os
-    from sage.all import SAGE_TMP
-    currdir = os.popen('pwd').read().split('\n')[0]
-    os.chdir(SAGE_TMP)
-    F = file('RecDoctest.py','w')
-    F.write('"""\n%s\n"""'%(PACKAGE.__doc__))
-    F.close()
-    Res = os.popen('sage -t -optional -long -verbose RecDoctest.py').read()
-    if Res.split('\n')[-3]=='All tests passed!':
-        print 'All tests passed!'
-        Res = ''
-    os.chdir(currdir)
-    return Res
-
-def test_submodule(PACKAGE,modname):
-    START = getattr(PACKAGE,modname,None)
-    if START is None:
-        return True
-    print "Testing", START
-    O,NO = recursive_doctests(START, name=PACKAGE.__name__+'.'+modname)
-    if O or NO:
-        RES = open('%s_test.log'%(modname),'w')
-        if O:
-            print "Some doc tests resulted in errors."
-            RES.write(O)
-            RES.write("\n-------------------------------------------------------------\n")
-
-        if NO:
-            print "Some items lack a doc test"
-            RES.write("Warning: The following items had no doc tests\n")
-            for X in NO:
-                RES.write('  '+X+'\n')
-        RES.close()
-        print "Please see the protocol in '%s_test.log'"%(modname)
-        return False
-    return True
+    return O,NO
 
 if __name__ == '__main__':
-    import pGroupCohomology as BASIS
+    import pGroupCohomology
     wt = walltime()
-    O = single_doc_string(BASIS)
-    problems = []
-    if O:
-        problems.append(BASIS.__name__)
-        RES = open('%s_test.log'%(BASIS.__name__),'w')
-        print "Some doc tests resulted in errors."
-        RES.write(O)
-        RES.write("\n-------------------------------------------------------------\n")
-        RES.close()
-        print "Please see the protocol in '%s_test.log'"%(BASIS.__name__)
-
-    print "Testing the following parts of %s:"%(BASIS.__name__)
-    MODULES = [X for X in dir(BASIS) if inspect.ismodule(getattr(BASIS,X)) and getattr(BASIS,X).__name__.startswith(BASIS.__name__)]
-    OTHERS = [X for X in dir(BASIS) if getattr(getattr(BASIS,X),'__module__','') == BASIS.__name__]
-    ITEMS = OTHERS + MODULES
-    print ITEMS
-    for X in ITEMS:
-        if not test_submodule(BASIS,X):
-            problems.append(X)
-    print "SUMMARY"
-    print "-------"
-    if not problems:
-        print "Congratulation! All tests passed!"
+    print "Testing the components of the package pGroupCohomology..."
+    O,NO = recursive_doctests(pGroupCohomology)
+    if O or NO:
+        RES = open('test.log','w')
     else:
-        print "Some doc tests failed or where missing."
-        print "Please check '*_test.log', with * in",problems
-    print "Total time: %2.2f min"%(walltime(wt)/60)
+        RES = None
+    if O:
+        print "Some doc tests resulted in errors."
+        RES.write("The following doc tests had errors:\n")
+        for X in O:
+            RES.write(X[0])
+            RES.write(' resulted in\n')
+            RES.write(X[1])
+            RES.write("\n-------------------------------------------------------------\n")
+    else:
+        print "All doc tests passed!\n-------------------------------------------------------------\n"
+        if RES is not None:
+            RES.write("All doc tests passed!\n-------------------------------------------------------------\n")
+
+    if NO:
+        print "Some items have no doc tests."
+        RES.write("Warning: The following items had no doc tests\n")
+        for X in NO:
+            RES.write('  '+X+'\n')
+
+    if RES is not None:
+        RES.close()
+        print "Please see the file 'test.log' in the current directory"
+    print "Total time: %.2f minutes\n"%(walltime(wt)/60)
+

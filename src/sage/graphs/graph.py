@@ -4406,7 +4406,7 @@ class GenericGraph(SageObject):
     ### Substructures
 
     def subgraph(self, vertices=None, edges=None, inplace=False,
-                       vertex_property=None, edge_property=None):
+                       vertex_property=None, edge_property=None, algorithm=None):
         """
         Returns the subgraph containing the given vertices and edges. If
         either vertices or edges are not specified, they are assumed to be
@@ -4438,6 +4438,13 @@ class GenericGraph(SageObject):
         -  ``edge_property`` - If specified, this is expected
            to be a function on edges, which is intersected with the edges
            specified, if any are.
+
+        - ``algorithm`` - If ``algorithm=delete`` or ``inplace=True``,
+          then the graph is constructed by deleting edges and
+          vertices.  If ``add``, then the graph is constructed by
+          building a new graph from the appropriate vertices and
+          edges.  If not specified, then the algorithm is chosen based
+          on the number of vertices in the subgraph.
 
 
         EXAMPLES::
@@ -4487,6 +4494,8 @@ class GenericGraph(SageObject):
             [(0, 1, 'a')]
             sage: J.vertices()
             [0, 1]
+            sage: G.subgraph(vertices=G.vertices())==G
+            True
 
         ::
 
@@ -4516,51 +4525,332 @@ class GenericGraph(SageObject):
             sage: S.edges()
             [('00', '01', None), ('11', '10', None)]
 
-        TESTS: We should delete unused _pos dictionary entries
+
+        The algorithm is not specified, then a reasonable choice is made for speed.
+
+            sage: g=graphs.PathGraph(1000)
+            sage: g.subgraph(range(10)) # uses the 'add' algorithm
+            Subgraph of (Path Graph): Graph on 10 vertices
+
+
+
+        TESTS: The appropriate properties are preserved.
 
         ::
 
             sage: g = graphs.PathGraph(10)
+            sage: g.is_planar(set_embedding=True)
+            True
+            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g.subgraph([3..5])
-            sage: h._pos.keys()
+            sage: h.get_pos().keys()
             [3, 4, 5]
+            sage: h.get_vertices()
+            {3: 'v3', 4: 'v4', 5: 'v5'}
         """
         if vertices is None:
-            vertices = []
+            vertices=self.vertices()
         elif vertices in self:
-            vertices = [v for v in self if v != vertices]
+            vertices=[vertices]
         else:
-            vertices = [v for v in self if v not in vertices]
+            vertices=list(vertices)
+
         if vertex_property is not None:
-            for v in self:
-                if v not in vertices and not vertex_property(v):
-                    vertices.append(v)
+            vertices = [v for v in vertices if vertex_property(v)]
+
+        if algorithm is not None and algorithm not in ("delete", "add"):
+            raise ValueError, 'algorithm should be None, "delete", or "add"'
+
+        if inplace or len(vertices)>0.05*self.order() or algorithm=="delete":
+            return self._subgraph_by_deleting(vertices=vertices, edges=edges,
+                                              inplace=inplace,
+                                              edge_property=edge_property)
+        else:
+            return self._subgraph_by_adding(vertices=vertices, edges=edges,
+                                            edge_property=edge_property)
+
+    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None):
+        """
+        Returns the subgraph containing the given vertices and edges.
+        The edges also satisfy the edge_property, if it is not None.
+        The subgraph is created by creating a new empty graph and
+        adding the necessary vertices, edges, and other properties.
+
+        INPUT:
+
+        -  ``vertices`` - Vertices is a list of vertices
+
+        - ``edges`` - Edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.). If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph. In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
+
+        -  ``edge_property`` - If specified, this is expected
+           to be a function on edges, which is intersected with the edges
+           specified, if any are.
+
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(9)
+            sage: H = G._subgraph_by_adding([0,1,2]); H
+            Subgraph of (Complete graph): Graph on 3 vertices
+            sage: G
+            Complete graph: Graph on 9 vertices
+            sage: J = G._subgraph_by_adding(vertices=G.vertices(), edges=[(0,1)])
+            sage: J.edges(labels=False)
+            [(0, 1)]
+            sage: J.vertices()==G.vertices()
+            True
+            sage: G._subgraph_by_adding(vertices=G.vertices())==G
+            True
+
+        ::
+
+            sage: D = graphs.CompleteGraph(9).to_directed()
+            sage: H = D._subgraph_by_adding([0,1,2]); H
+            Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: H = D._subgraph_by_adding(vertices=D.vertices(), edges=[(0,1), (0,2)])
+            sage: H.edges(labels=False)
+            [(0, 1), (0, 2)]
+            sage: H.vertices()==D.vertices()
+            True
+            sage: D
+            Complete graph: Digraph on 9 vertices
+            sage: D._subgraph_by_adding(D.vertices())==D
+            True
+
+        A more complicated example involving multiple edges and labels.
+
+        ::
+
+            sage: G = Graph(multiedges=True, sparse=True)
+            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: G._subgraph_by_adding(G.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
+            sage: J = G._subgraph_by_adding(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J.edges()
+            [(0, 1, 'a')]
+            sage: J.vertices()
+            [0, 1]
+            sage: G._subgraph_by_adding(vertices=G.vertices())==G
+            True
+
+        ::
+
+            sage: D = DiGraph(multiedges=True, sparse=True)
+            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: D._subgraph_by_adding(vertices=D.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
+            sage: H = D._subgraph_by_adding(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H.edges()
+            [(0, 1, 'a')]
+            sage: H.vertices()
+            [0, 1]
+
+        Using the property arguments::
+
+        ::
+
+            sage: C = graphs.CubeGraph(2)
+            sage: S = C._subgraph_by_adding(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
+            sage: C.edges()
+            [('00', '01', None), ('10', '00', None), ('11', '01', None), ('11', '10', None)]
+            sage: S.edges()
+            [('00', '01', None), ('11', '10', None)]
+
+        TESTS: Properties of the graph are preserved.
+
+        ::
+
+            sage: g = graphs.PathGraph(10)
+            sage: g.is_planar(set_embedding=True)
+            True
+            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
+            sage: h = g._subgraph_by_adding([3..5])
+            sage: h.get_pos().keys()
+            [3, 4, 5]
+            sage: h.get_vertices()
+            {3: 'v3', 4: 'v4', 5: 'v5'}
+        """
+        G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
+                           multiedges= self.allows_multiple_edges())
+        G.name("Subgraph of (%s)"%self.name())
+        G.add_vertices(vertices)
+        if edges is not None:
+            if G._directed:
+                edges_graph = (e for e in self.edge_iterator(vertices) if e[1] in vertices)
+                edges_to_keep_labeled = [e for e in edges if len(e)==3]
+                edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
+            else:
+                edges_graph = (sorted(e[0:2])+[e[2]] for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices)
+                edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
+                edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
+            edges_to_keep = [tuple(e) for e in edges_graph if e in edges_to_keep_labeled
+                             or e[0:2] in edges_to_keep_unlabeled]
+        else:
+            edges_to_keep=[e for e in self.edge_iterator(vertices) if e[0] in vertices and e[1] in vertices]
+
+        if edge_property is not None:
+            edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
+        G.add_edges(edges_to_keep)
+
+        attributes_to_update = ('_pos', '_assoc')
+        for attr in attributes_to_update:
+            if hasattr(self, attr) and getattr(self, attr) is not None:
+                value = dict([(v, getattr(self, attr).get(v, None)) for v in G])
+                setattr(G, attr,value)
+
+        G._boundary = [v for v in self._boundary if v in G]
+
+        return G
+
+    def _subgraph_by_deleting(self, vertices=None, edges=None, inplace=False,
+                              edge_property=None):
+        """
+        Returns the subgraph containing the given vertices and edges.
+        The edges also satisfy the edge_property, if it is not None.
+        The subgraph is created by creating deleting things that are
+        not needed.
+
+        INPUT:
+
+        -  ``vertices`` - Vertices is a list of vertices
+
+        - ``edges`` - Edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.). If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph. In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
+
+        -  ``edge_property`` - If specified, this is expected
+           to be a function on edges, which is intersected with the edges
+           specified, if any are.
+
+        -  ``inplace`` - Using inplace is True will simply
+           delete the extra vertices and edges from the current graph. This
+           will modify the graph.
+
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(9)
+            sage: H = G._subgraph_by_deleting([0,1,2]); H
+            Subgraph of (Complete graph): Graph on 3 vertices
+            sage: G
+            Complete graph: Graph on 9 vertices
+            sage: J = G._subgraph_by_deleting(vertices=G.vertices(), edges=[(0,1)])
+            sage: J.edges(labels=False)
+            [(0, 1)]
+            sage: J.vertices()==G.vertices()
+            True
+            sage: G._subgraph_by_deleting([0,1,2], inplace=True); G
+            Subgraph of (Complete graph): Graph on 3 vertices
+            sage: G._subgraph_by_deleting(vertices=G.vertices())==G
+            True
+
+        ::
+
+            sage: D = graphs.CompleteGraph(9).to_directed()
+            sage: H = D._subgraph_by_deleting([0,1,2]); H
+            Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: H = D._subgraph_by_deleting(vertices=D.vertices(), edges=[(0,1), (0,2)])
+            sage: H.edges(labels=False)
+            [(0, 1), (0, 2)]
+            sage: H.vertices()==D.vertices()
+            True
+            sage: D
+            Complete graph: Digraph on 9 vertices
+            sage: D._subgraph_by_deleting([0,1,2], inplace=True); D
+            Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: D._subgraph_by_deleting(D.vertices())==D
+            True
+
+        A more complicated example involving multiple edges and labels.
+
+        ::
+
+            sage: G = Graph(multiedges=True, sparse=True)
+            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: G._subgraph_by_deleting(G.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
+            sage: J = G._subgraph_by_deleting(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J.edges()
+            [(0, 1, 'a')]
+            sage: J.vertices()
+            [0, 1]
+            sage: G._subgraph_by_deleting(vertices=G.vertices())==G
+            True
+
+        ::
+
+            sage: D = DiGraph(multiedges=True, sparse=True)
+            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: D._subgraph_by_deleting(vertices=D.vertices(), edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
+            sage: H = D._subgraph_by_deleting(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H.edges()
+            [(0, 1, 'a')]
+            sage: H.vertices()
+            [0, 1]
+
+        Using the property arguments::
+
+        ::
+
+            sage: C = graphs.CubeGraph(2)
+            sage: S = C._subgraph_by_deleting(vertices=C.vertices(), edge_property=(lambda e: e[0][0] == e[1][0]))
+            sage: C.edges()
+            [('00', '01', None), ('10', '00', None), ('11', '01', None), ('11', '10', None)]
+            sage: S.edges()
+            [('00', '01', None), ('11', '10', None)]
+
+        TESTS: Properties of the graph are preserved.
+
+        ::
+
+            sage: g = graphs.PathGraph(10)
+            sage: g.is_planar(set_embedding=True)
+            True
+            sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
+            sage: h = g._subgraph_by_deleting([3..5])
+            sage: h.get_pos().keys()
+            [3, 4, 5]
+            sage: h.get_vertices()
+            {3: 'v3', 4: 'v4', 5: 'v5'}
+        """
         if inplace:
             G = self
         else:
             G = self.copy()
         G.name("Subgraph of (%s)"%self.name())
-        if edges is None and edge_property is not None:
-            G.delete_edges([e for e in self.edge_iterator() if not edge_property(e)])
-        elif edges is not None:
+
+        G.delete_vertices([v for v in G if v not in vertices])
+
+        edges_to_delete=[]
+        if edges is not None:
             if G._directed:
-                edges_graph = G.edges()
+                edges_graph = G.edge_iterator()
                 edges_to_keep_labeled = [e for e in edges if len(e)==3]
                 edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
             else:
-                edges_graph = [sorted(e[0:2])+[e[2]] for e in G.edges()]
+                edges_graph = [sorted(e[0:2])+[e[2]] for e in G.edge_iterator()]
                 edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
                 edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
-            edges_to_delete=[]
             for e in edges_graph:
                 if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
                     edges_to_delete.append(tuple(e))
-            if edge_property is not None:
-                for e in G.edge_iterator():
-                    if e not in edges_to_delete and not edge_property(e):
-                        edges_to_delete.append(e)
-            G.delete_edges(edges_to_delete)
-        G.delete_vertices(vertices)
+        if edge_property is not None:
+            for e in G.edge_iterator():
+                if not edge_property(e):
+                    # We might get duplicate edges, but this does
+                    # handle the case of multiple edges.
+                    edges_to_delete.append(e)
+
+        G.delete_edges(edges_to_delete)
         if not inplace:
             return G
 

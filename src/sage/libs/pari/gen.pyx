@@ -6247,6 +6247,11 @@ cdef class gen(sage.structure.element.RingElement):
             t1GEN(b)
             return self.new_gen(idealhnf0(self.g, t0, t1))
 
+    def idealintersection(self, x, y):
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        return self.new_gen(idealintersect(self.g, t0, t1))
+
     def ideallog(self, x, bid):
         """
         Return the discrete logarithm of the unit x in (ring of integers)/bid.

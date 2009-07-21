@@ -727,14 +727,13 @@ class NumberFieldIdeal(Ideal_generic):
             sage: A.intersection(B) == L.ideal(-1/2*a - 3/2*b - 1)
             True
         """
-        other = self.number_field().ideal(other)
-        mod = self.free_module().intersection(other.free_module())
         L = self.number_field()
-        if L.is_absolute():
-            elts = [L(x.list()) for x in mod.gens()]
-        else:
-            elts = [sum([x[i] * L.absolute_generator()**i for i in xrange(L.absolute_degree())]) for x in mod.gens()]
-        return L.ideal(elts)
+        other = L.ideal(other)
+        nf = L.pari_nf()
+        hnf = nf.idealintersection(self.pari_hnf(), other.pari_hnf())
+        I = L.ideal(self._NumberFieldIdeal__elements_from_hnf(hnf))
+        I.__pari_hnf = hnf
+        return I
 
     def is_integral(self):
         """

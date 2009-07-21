@@ -637,6 +637,117 @@ cdef class Matrix_sparse(matrix.Matrix):
         return M(v)
 
 
+    def matrix_from_rows_and_columns(self, rows, columns):
+        """
+        Return the matrix constructed from self from the given rows and
+        columns.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(Integers(8),3,3, sparse=True)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 0]
+            sage: A.matrix_from_rows_and_columns([1], [0,2])
+            [3 5]
+            sage: A.matrix_from_rows_and_columns([1,2], [1,2])
+            [4 5]
+            [7 0]
+
+        Note that row and column indices can be reordered or repeated::
+
+            sage: A.matrix_from_rows_and_columns([2,1], [2,1])
+            [0 7]
+            [5 4]
+
+        For example here we take from row 1 columns 2 then 0 twice, and do
+        this 3 times.
+
+        ::
+
+            sage: A.matrix_from_rows_and_columns([1,1,1],[2,0,0])
+            [5 3 3]
+            [5 3 3]
+            [5 3 3]
+
+        We can efficiently extract large submatrices::
+
+            sage: A=random_matrix(ZZ,100000,density=.00005,sparse=True)
+            sage: B=A[50000:,:50000]
+            sage: len(B.nonzero_positions())
+            14047              # 32-bit
+            100550             # 64-bit
+
+
+        We must pass in a list of indices::
+
+            sage: A=random_matrix(ZZ,100,density=.02,sparse=True)
+            sage: A.matrix_from_rows_and_columns(1,[2,3])
+            Traceback (most recent call last):
+            ...
+            TypeError: rows must be a list of integers
+            sage: A.matrix_from_rows_and_columns([1,2],3)
+            Traceback (most recent call last):
+            ...
+            TypeError: columns must be a list of integers
+
+
+        AUTHORS:
+
+        - Jaap Spies (2006-02-18)
+
+        - Didier Deshommes: some pyrex speedups implemented
+
+        - Jason Grout: sparse matrix optimizations
+        """
+        if not PY_TYPE_CHECK(rows, list):
+            raise TypeError, "rows must be a list of integers"
+        if not PY_TYPE_CHECK(columns, list):
+            raise TypeError, "columns must be a list of integers"
+
+        cdef Py_ssize_t nrows, ncols,k,r,i,j
+
+        r = 0
+        ncols = PyList_GET_SIZE(columns)
+        nrows = PyList_GET_SIZE(rows)
+        cdef Matrix_sparse A = self.new_matrix(nrows = nrows, ncols = ncols)
+
+        tmp = [el for el in columns if el >= 0 and el < self._ncols]
+        columns = tmp
+        if ncols != PyList_GET_SIZE(columns):
+            raise IndexError, "column index out of range"
+
+        tmp = [el for el in rows if el >= 0 and el < self._nrows]
+        rows = tmp
+        if nrows != PyList_GET_SIZE(rows):
+            raise IndexError, "row index out of range"
+
+        row_map = {}
+        for new_row, old_row in enumerate(rows):
+            if old_row in row_map:
+                row_map[old_row].append(new_row)
+            else:
+                row_map[old_row] = [new_row]
+
+        col_map = {}
+        for new_col, old_col in enumerate(columns):
+            if old_col in col_map:
+                col_map[old_col].append(new_col)
+            else:
+                col_map[old_col] = [new_col]
+
+        nz = self.nonzero_positions(copy=False)
+        for k in range(len(nz)):
+            i = get_ij(nz, k, 0)
+            j = get_ij(nz, k, 1)
+            if i in row_map and j in col_map:
+                entry = self.get_unsafe(i,j)
+                for new_row in row_map[i]:
+                    for new_col in col_map[j]:
+                        A.set_unsafe(new_row, new_col, entry)
+        return A
+
 
 ##     def _echelon_in_place_classical(self):
 ##         """

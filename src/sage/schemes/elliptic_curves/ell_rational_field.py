@@ -6932,10 +6932,12 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
 
 
 class ModularParameterization:
-    """
+    r"""
     This class represents the modular parametrization of an elliptic curve
 
-        `\phi_E: X_0(N) \rightarrow E`.
+    .. math::
+
+        \phi_E: X_0(N) \rightarrow E.
 
     Evaluation is done by passing through the lattice representation of `E`.
     """
@@ -6977,7 +6979,7 @@ class ModularParameterization:
         return "Modular parameterization from the upper half plane to %s" % self._E
 
     def __call__(self, z, prec=None):
-        """
+        r"""
         Evaluate self at a point `z \in `X_0(N) where `z` is given by a
         representative in the upper half plane. All computations done with ``prec``
         bits of precision. If ``prec`` is not given, use the precision of `z`.
@@ -7039,13 +7041,18 @@ class ModularParameterization:
 
         The curve must be a a minimal model.
 
-        OUTPUT: A list of two Laurent series [X(x),Y(x)] of degrees -2, -3
+        OUTPUT: A list of two Laurent series ``[X(x),Y(x)]`` of degrees -2, -3
         respectively, which satisfy the equation of the elliptic curve.
         There are modular functions on `\Gamma_0(N)` where `N` is the
         conductor.
 
-        X.deriv()/(2\*Y+a1\*X+a3) should equal f(q)dq/q where f is
-        self.E().q_expansion().
+        The series should satisfy the differential equation
+
+        .. math::
+
+            \frac{\mathrm{d}X}{2Y + a_1 X + a_3} = \frac{f(q)\, \mathrm{d}q}{q}
+
+        where `f` is ``self.E().q_expansion()``.
 
         EXAMPLES::
 
@@ -7063,9 +7070,7 @@ class ModularParameterization:
             sage: E.defining_polynomial()(X,Y,1) + O(q^11) == 0
             True
 
-        Note that below we have to change variable from x to q
-
-        ::
+        Note that below we have to change variable from x to q::
 
             sage: a1,_,a3,_,_=E.a_invariants()
             sage: f=E.q_expansion(17)

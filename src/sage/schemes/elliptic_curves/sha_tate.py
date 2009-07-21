@@ -35,13 +35,15 @@ from sage.rings.all import (
     Integer,
     RealField,
     RationalField,
-    RIF)
+    RIF,
+    ZZ)
 from sage.misc.functional import log
 from math import sqrt
 from sage.misc.all import verbose
 import sage.rings.arith as arith
 
 factor = arith.factor
+valuation = arith.valuation
 Q = RationalField()
 
 class Sha(SageObject):
@@ -372,6 +374,9 @@ class Sha(SageObject):
             4 + O(5)
             sage: EllipticCurve('448c5').sha().an_padic(7,prec=4)  # long time
             2 + 7 + O(7^3)
+            sage: E = EllipticCurve([-19,34]) # trac 6455
+            sage: E.sha().an_padic(5)
+            1 + O(5)
 
         """
         try:
@@ -391,14 +396,31 @@ class Sha(SageObject):
         # todo : here we should catch the rank computation
         r = self.E.rank()
 
-        if use_twists :
+        if use_twists and p > 2:
             Et, D = self.E.minimal_quadratic_twist()
-            # We cannot use a non-trivial twist of the same conductor!
-            # e.g. the minimal quadratic twist of '300b2' is '300a2'
-            # (since that comes earlier in the database)
-            if Et.conductor() == self.E.conductor():
-                Et = self.E
-                D = 1
+            # trac 6455 : we have to assure that the twist back is allowed
+            D = ZZ(D)
+            if D % p == 0:
+                D = D/p
+            for ell in D.prime_divisors():
+                if ell % 2 == 1:
+                    if Et.conductor() % ell**2 == 0:
+                        D = D/ell
+            ve = valuation(D,2)
+            de = (D/2**ve).abs()
+            if de % 4 == 3:
+                de = -de
+            Et = self.E.quadratic_twist(de)
+            # now check individually if we can twist by -1 or 2 or -2
+            Nmin = Et.conductor()
+            Dmax = de
+            for DD in [-4*de,8*de,-8*de]:
+                Et = self.E.quadratic_twist(DD)
+                if Et.conductor() < Nmin and valuation(Et.conductor(),2) <= valuation(DD,2):
+                    Nmin = Et.conductor()
+                    Dmax = DD
+            D = Dmax
+            Et = self.E.quadratic_twist(D)
             lp = Et.padic_lseries(p)
         else :
             lp = self.E.padic_lseries(p)
@@ -556,12 +578,16 @@ class Sha(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
+            sage: e.sha().an_padic(7)  # long time
+            7^2 + O(7^3)
 
             sage: e = EllipticCurve('11a3')
             sage: e.sha().p_primary_bound(5)
             Traceback (most recent call last):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
+            sage: e.sha().an_padic(5)
+            1 + O(5^2)
 
         """
         p = Integer(p)

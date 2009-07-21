@@ -266,6 +266,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         ``other`` is ``self.quadratic_twist(D)`` (up to isomorphism).
         If ``self`` and ``other`` are isomorphic, returns 1.
 
+        If the curves are defined over `\mathbb{Q}`, the output `D` is a squarefree integer.
+
         .. note::
 
            Not fully implemented in characteristic 2, or in
@@ -284,6 +286,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E2=EllipticCurve([0,0,0,0,2])
             sage: E1.is_quadratic_twist(E2)
             2
+            sage: E1.is_quadratic_twist(E1)
+            1
+            sage: type(E1.is_quadratic_twist(E1)) == type(E1.is_quadratic_twist(E2))   #trac 6574
+            True
 
         ::
 
@@ -350,6 +356,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
+            if K is rings.QQ:
+                return rings.ZZ(1)
             return K.one_element()
 
         char=K.characteristic()

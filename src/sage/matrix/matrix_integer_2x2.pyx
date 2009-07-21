@@ -105,7 +105,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     """
     ########################################################################
     # LEVEL 1 functionality
-    # x * __new__
+    # x * __cinit__
     # x * __init__
     # x * __dealloc__
     # x * set_unsafe
@@ -114,7 +114,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     # x * def _unpickle
     ########################################################################
 
-    def __new__(self, parent, entries, coerce, copy):
+    def __cinit__(self):
         mpz_init(self.a)
         mpz_init(self.b)
         mpz_init(self.c)

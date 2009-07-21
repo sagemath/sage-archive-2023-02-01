@@ -129,7 +129,7 @@ cdef class ntl_ZZX:
         """
         return unpickle_class_value, (ntl_ZZX, self.list())
 
-    def __new__(self, v=None):
+    def __cinit__(self):
         ZZX_construct(&self.x)
 
     def __dealloc__(self):

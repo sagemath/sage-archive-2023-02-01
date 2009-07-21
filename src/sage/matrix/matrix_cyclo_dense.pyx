@@ -70,7 +70,7 @@ echelon_verbose_level = 1
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
-    # x * __new__
+    # x * __cinit__
     # x * __dealloc__     (not needed)
     # x * __init__
     # x * set_unsafe
@@ -79,7 +79,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     # x * _unpickle
     ########################################################################
 
-    def __new__(self, parent, entries, coerce, copy):
+    def __cinit__(self, parent, entries, coerce, copy):
         """
         Create a new dense cyclotomic matrix.
 

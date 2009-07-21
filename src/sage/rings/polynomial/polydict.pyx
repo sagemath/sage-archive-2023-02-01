@@ -947,7 +947,7 @@ cdef class ETuple:
         else:
             raise TypeError
 
-    def __new__(ETuple self, data=None, length=None):
+    def __cinit__(ETuple self):
         self._data = <int*>0
 
     def __dealloc__(self):

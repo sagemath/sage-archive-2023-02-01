@@ -67,7 +67,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         sage: v*v
         30.0
     """
-    def __new__(self, parent, entries, coerce=True, copy=True):
+    def __cinit__(self, parent, entries, coerce=True, copy=True):
         """
         Set up a new vector
 

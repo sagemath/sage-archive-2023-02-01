@@ -109,7 +109,7 @@ cdef class ntl_mat_ZZ:
         """
         return unpickle_class_args, (ntl_mat_ZZ, (self.__nrows, self.__ncols, self.list()))
 
-    def __new__(self, nrows=0,  ncols=0, v=None):
+    def __cinit__(self):
         mat_ZZ_construct(&self.x)
 
     def __dealloc__(self):

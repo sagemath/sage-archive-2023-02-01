@@ -45,7 +45,7 @@ cdef class FP_LLL:
     NOTE: Usually you don't want to create this object yourself but
     use the LLL method of the integer matrices.
     """
-    def __new__(self, Matrix_integer_dense A):
+    def __cinit__(self, Matrix_integer_dense A):
         """
         Construct a new fpLLL wrapper for the matrix A.
 

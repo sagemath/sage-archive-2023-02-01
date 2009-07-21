@@ -110,7 +110,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         if self._entries == NULL:
             raise MemoryError
 
-    def __new__(self, parent=None, x=None, coerce=True, copy=True):
+    def __cinit__(self, parent=None, x=None, coerce=True, copy=True):
         self._entries = NULL
         self._is_mutable = 1
         if not parent is None:

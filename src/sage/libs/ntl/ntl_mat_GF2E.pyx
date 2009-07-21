@@ -102,7 +102,7 @@ cdef class ntl_mat_GF2E:
                     mat_GF2E_setitem(&self.x, i, j, &(<ntl_GF2E>elem).x)
             _sig_off
 
-    def __new__(self, modulus=None, nrows=0, ncols=0, v=None):
+    def __cinit__(self, modulus=None, nrows=0, ncols=0, v=None):
         #################### WARNING ###################
         ## Before creating a GF2E, you must create a  ##
         ## GF2EContext, and restore it.  In Python,   ##

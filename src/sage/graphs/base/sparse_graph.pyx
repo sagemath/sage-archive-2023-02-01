@@ -283,7 +283,7 @@ cdef class SparseGraph(CGraph):
 
     """
 
-    def __new__(self, int nverts, int expected_degree = 16, int extra_vertices = 10, verts=None, arcs=None):
+    def __cinit__(self, int nverts, int expected_degree = 16, int extra_vertices = 10, verts=None, arcs=None):
         """
         Allocation and initialization happen in one place.
 

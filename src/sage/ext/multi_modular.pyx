@@ -74,7 +74,7 @@ cdef class MultiModularBasis_base:
         MultiModularBasis with moduli [11, 13, 17, 19]
     """
 
-    def __new__(self, *args, **kwds):
+    def __cinit__(self):
         r"""
         Allocate the space for the moduli and precomputation lists
         and initialize the first element of that list.

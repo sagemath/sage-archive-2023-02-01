@@ -705,7 +705,7 @@ cdef class BinaryCode:
         [11111111111111111111111111111111]
 
     """
-    def __new__(self, arg1, arg2=None):
+    def __cinit__(self, arg1, arg2=None):
         cdef int nrows, i, j, size
         cdef int nwords, other_nwords, parity, combination
         cdef codeword word, glue_word
@@ -1213,7 +1213,7 @@ cdef class OrbitPartition:
     * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
 
     """
-    def __new__(self, int nrows, int ncols):
+    def __cinit__(self, int nrows, int ncols):
         cdef int col
         cdef int nwords, word
         nwords = (1 << nrows)
@@ -1514,7 +1514,7 @@ cdef class PartitionStack:
     group computation.
 
     """
-    def __new__(self, arg1, arg2=None):
+    def __cinit__(self, arg1, arg2=None):
         cdef int k, nwords, ncols, sizeof_int
         cdef PartitionStack other
         cdef int *wd_ents, *wd_lvls, *col_ents, *col_lvls
@@ -2974,7 +2974,7 @@ cdef class PartitionStack:
 
 cdef class BinaryCodeClassifier:
 
-    def __new__(self):
+    def __cinit__(self):
         self.radix = sizeof(codeword) << 3
         self.ham_wts = hamming_weights()
         self.L = 100 # memory limit for Phi and Omega- multiply by 8KB

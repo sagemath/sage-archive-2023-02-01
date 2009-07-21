@@ -46,7 +46,7 @@ cdef class Vector_real_double_dense(vector_double_dense.Vector_double_dense):
         sage: v*v
         30.0
     """
-    def __new__(self, parent, entries, coerce=True, copy=True):
+    def __cinit__(self, parent, entries, coerce=True, copy=True):
         global numpy
         if numpy is None:
             import numpy

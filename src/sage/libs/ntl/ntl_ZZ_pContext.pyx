@@ -47,7 +47,7 @@ cdef class ntl_ZZ_pContext_class:
         """
         pass
 
-    def __new__(self, ntl_ZZ v):
+    def __cinit__(self, ntl_ZZ v):
         ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
         self.p = v
         self.p_bits = self.p._integer_().nbits()

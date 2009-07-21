@@ -439,7 +439,7 @@ cdef class QuadDoubleElement(FieldElement):
         fpu_fix_end(&cw)
         pass
 
-    def __new__(self, x=None):
+    def __cinit__(self, x=None):
         # explicit cast required for C++
         self._parent = <ParentWithBase> _RQDF
         from sage.misc.misc import deprecation

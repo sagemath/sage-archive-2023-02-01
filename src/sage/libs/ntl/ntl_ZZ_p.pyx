@@ -120,7 +120,7 @@ cdef class ntl_ZZ_p:
                 ZZ_p_from_str(&self.x, v)
             _sig_off
 
-    def __new__(self, v=None, modulus=None):
+    def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a ZZ_p, you must create a  ##
         ## ZZ_pContext, and restore it.  In Python,   ##

@@ -523,7 +523,7 @@ cdef class RealDoubleElement(FieldElement):
 
     __array_interface__ = {'typestr': '=f8'}
 
-    def __new__(self, x=None):
+    def __cinit__(self):
         (<Element>self)._parent = _RDF
 
     def __init__(self, x):

@@ -161,7 +161,7 @@ cdef class ntl_GF2X:
         GF2X_from_str(&self.x, s)
         _sig_off
 
-    def __new__(self, x=[]):
+    def __cinit__(self):
         GF2X_construct(&self.x)
 
     def __dealloc__(self):

@@ -28,7 +28,7 @@ from sage.matrix.matrix import is_Matrix
 
 cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
-    def __new__(self, matrix):
+    def __cinit__(self, matrix):
         cdef int i,j
         self.degree = matrix.ncols()
         self.dimension = matrix.nrows()
@@ -378,7 +378,7 @@ cdef int ith_word_linear(BinaryCodeStruct self, int i, bitset_s *word):
 
 cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
-    def __new__(self, arg):
+    def __cinit__(self, arg):
         cdef int i,j
         if is_Matrix(arg):
             self.degree = arg.ncols()

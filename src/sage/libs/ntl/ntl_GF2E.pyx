@@ -121,7 +121,7 @@ cdef class ntl_GF2E:
             _x = ntl_GF2X(x)
             GF2E_conv_GF2X(self.x, _x.x)
 
-    def __new__(self, x=None, modulus=None):
+    def __cinit__(self, x=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a GF2E, you must create a  ##
         ## GF2EContext, and restore it.  In Python,   ##

@@ -42,7 +42,7 @@ include "../../ext/stdsage.pxi"
 cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class PowComputer_class(SageObject):
-    def __new__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
         Creates a new PowComputer_class.
 
@@ -410,7 +410,7 @@ cdef class PowComputer_class(SageObject):
             return self.pow_Integer(mpz_get_ui(_n.value))
 
 cdef class PowComputer_base(PowComputer_class):
-    def __new__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
         Initializes a PowComputer_base.
 

@@ -97,7 +97,7 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
 DWT = WaveletTransform
 
 cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
-    def __new__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
+    def __cinit__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
         self.wavelet = NULL
         self.workspace = NULL
 

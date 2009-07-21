@@ -313,7 +313,7 @@ cdef class NumberFieldElement(FieldElement):
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, i, coeff )
 
-    def __new__(self, parent = None, f = None):
+    def __cinit__(self):
         ZZX_construct(&self.__numerator)
         ZZ_construct(&self.__denominator)
 

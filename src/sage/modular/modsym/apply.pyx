@@ -22,7 +22,7 @@ from sage.rings.integer cimport Integer
 ##     return [int(z) for z in h.padded_list(j+1)]
 
 cdef class Apply:
-    def __new__(self):
+    def __cinit__(self):
         fmpz_poly_init(self.f)
         fmpz_poly_init(self.g)
         fmpz_poly_init(self.ff)

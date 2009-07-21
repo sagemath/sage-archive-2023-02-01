@@ -63,7 +63,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
     A dense polynomial over the integers, implemented via NTL.
     """
 
-    def __new__(self, parent=None, x=None, check=True, is_gen=False, construct=False):
+    def __cinit__(self):
         r"""
         This calls the underlying NTL constructor.
         """

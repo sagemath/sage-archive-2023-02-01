@@ -44,7 +44,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
-    #   * __new__
+    #   * __cinit__
     #   * __dealloc__
     #   * __init__
     #   * set_unsafe
@@ -52,7 +52,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
-    def __new__(self, parent, entries, copy, coerce):
+    def __cinit__(self, parent, entries, copy, coerce):
         self._initialized = False
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)

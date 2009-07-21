@@ -155,7 +155,7 @@ See the files ``matrix_template.pxd`` and
     For each base field it is *absolutely* essential to completely
     implement the following functionality for that base ring:
 
-       * __new__       -- should use sage_malloc from ext/stdsage.pxi (only
+       * __cinit__     -- should use sage_malloc from ext/stdsage.pxi (only
                           needed if allocate memory)
        * __init__      -- this signature: 'def __init__(self, parent, entries, copy, coerce)'
        * __dealloc__   -- use sage_free (only needed if allocate memory)

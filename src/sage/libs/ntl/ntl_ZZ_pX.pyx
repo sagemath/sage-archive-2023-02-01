@@ -102,7 +102,7 @@ cdef class ntl_ZZ_pX:
             ZZ_pX_from_str(&self.x, s)
             _sig_off
 
-    def __new__(self, v=None, modulus=None):
+    def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a ZZ_pX, you must create a ##
         ## ZZ_pContext, and restore it.  In Python,   ##
@@ -1339,7 +1339,7 @@ cdef class ntl_ZZ_pX_Modulus:
     """
     Thin holder for ZZ_pX_Moduli.
     """
-    def __new__(self, ntl_ZZ_pX poly):
+    def __cinit__(self, ntl_ZZ_pX poly):
         ZZ_pX_Modulus_construct(&self.x)
         ZZ_pX_Modulus_build(self.x, poly.x)
         self.poly = poly

@@ -29,7 +29,7 @@ from sage.matrix.constructor import Matrix
 
 cdef class MatrixStruct:
 
-    def __new__(self, matrix):
+    def __cinit__(self, matrix):
         cdef int i, j
         cdef int *num_rows
         self.degree = matrix.ncols()

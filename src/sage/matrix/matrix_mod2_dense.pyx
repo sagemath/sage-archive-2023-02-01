@@ -154,7 +154,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     ########################################################################
     # LEVEL 1 functionality
     ########################################################################
-    def __new__(self, parent, entries, copy, coerce, alloc=True):
+    def __cinit__(self, parent, entries, copy, coerce, alloc=True):
         """
         Creates a new dense matrix over GF(2).
 

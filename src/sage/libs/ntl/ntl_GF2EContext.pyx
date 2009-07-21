@@ -46,7 +46,7 @@ cdef class ntl_GF2EContext_class:
         """
         pass
 
-    def __new__(self, ntl_GF2X v):
+    def __cinit__(self, ntl_GF2X v):
         GF2EContext_construct_GF2X(&self.x, &((<ntl_GF2X>v).x))
         self.m = v
 

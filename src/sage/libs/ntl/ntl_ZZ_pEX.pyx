@@ -95,7 +95,7 @@ cdef class ntl_ZZ_pEX:
             #ZZ_pEX_from_str(&self.x, s)
             #_sig_off
 
-    def __new__(self, v=None, modulus=None):
+    def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a ZZ_pEX, you must create a##
         ## ZZ_pEContext, and restore it.  In Python,  ##

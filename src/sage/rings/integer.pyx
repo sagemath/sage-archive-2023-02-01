@@ -392,12 +392,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         10
     """
 
-    # todo: It would be really nice if we could avoid the __new__ call.
-    # It has python calling conventions, and our timing tests indicate the
-    # overhead can be significant. The difficulty is that then we can't
-    # guarantee that the initialization will be performed exactly once.
-
-    def __cinit__(self, x=None, unsigned int base=0):
+    def __cinit__(self):
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
 

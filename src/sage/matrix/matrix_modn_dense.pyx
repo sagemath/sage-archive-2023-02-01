@@ -173,14 +173,14 @@ cdef bint little_endian = (<char*>(&num))[0]
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
-    # x * __new__
+    # x * __cinit__
     # x * __dealloc__
     # x * __init__
     # x * set_unsafe
     # x * get_unsafe
     # x * __richcmp__    -- always the same
     ########################################################################
-    def __new__(self, parent, entries, copy, coerce):
+    def __cinit__(self, parent, entries, copy, coerce):
 
         matrix_dense.Matrix_dense.__init__(self, parent)
 

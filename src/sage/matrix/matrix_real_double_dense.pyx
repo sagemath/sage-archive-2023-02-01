@@ -89,7 +89,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
 
     ########################################################################
     # LEVEL 1 functionality
-    #   * __new__
+    #   * __cinit__
     #   * __dealloc__
     #   * __init__
     #   * set_unsafe
@@ -97,7 +97,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
-    def __new__(self, parent, entries, copy, coerce):
+    def __cinit__(self, parent, entries, copy, coerce):
         global numpy
         if numpy is None:
             import numpy

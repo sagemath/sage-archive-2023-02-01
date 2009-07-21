@@ -316,7 +316,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: Rational(pari('-939082/3992923'))
         -939082/3992923
     """
-    def __new__(self, x=None, int base=0):
+    def __cinit__(self):
         global the_rational_ring
         mpq_init(self.value)
         self._parent = the_rational_ring

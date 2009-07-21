@@ -53,7 +53,7 @@ cdef class ntl_GF2EX:
         GF2EX_from_str(&self.x, s)
         _sig_off
 
-    def __new__(self, modulus=None, x=[]):
+    def __cinit__(self, modulus=None, x=[]):
         #################### WARNING ###################
         ## Before creating a GF2E, you must create a  ##
         ## GF2EContext, and restore it.  In Python,   ##

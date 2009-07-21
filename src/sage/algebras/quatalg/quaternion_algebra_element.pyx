@@ -1474,7 +1474,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
 
 
 cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstract):
-    def __new__(self):
+    def __cinit__(self):
         """
         Allocate memory for this quaternion over a number field.
         """

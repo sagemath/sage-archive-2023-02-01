@@ -111,7 +111,7 @@ cdef class ntl_mat_GF2:
                     mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>elem).x)
             _sig_off
 
-    def __new__(self, modulus=None, nrows=0, ncols=0, v=None):
+    def __cinit__(self):
         mat_GF2_construct(&self.x)
 
     cdef ntl_GF2 _new_element(self):

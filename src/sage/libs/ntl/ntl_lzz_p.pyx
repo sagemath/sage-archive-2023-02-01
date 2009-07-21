@@ -118,7 +118,7 @@ cdef class ntl_zz_p:
 
         return
 
-    def __new__(self, v=None, modulus=None):
+    def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a zz_p, you must create a  ##
         ## zz_pContext, and restore it.  In Python,   ##

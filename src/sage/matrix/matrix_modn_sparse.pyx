@@ -121,14 +121,14 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
-    # x * __new__
+    # x * __cinit__
     # x * __dealloc__
     # x * __init__
     # x * set_unsafe
     # x * get_unsafe
     # x * __richcmp__    -- always the same
     ########################################################################
-    def __new__(self, parent, entries, copy, coerce):
+    def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
 
         # allocate memory

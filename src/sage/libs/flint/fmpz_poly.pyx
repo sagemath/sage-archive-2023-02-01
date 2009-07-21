@@ -31,7 +31,7 @@ from sage.rings.integer cimport Integer
 
 cdef class Fmpz_poly(SageObject):
 
-    def __new__(self, v=None):
+    def __cinit__(self):
         fmpz_poly_init(self.poly)
 
     def __init__(self, v):

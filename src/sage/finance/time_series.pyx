@@ -57,7 +57,7 @@ max_print = 10
 digits = 4
 
 cdef class TimeSeries:
-    def __new__(self, values=None):
+    def __cinit__(self):
         """
         Create new empty uninitialized time series.
 

@@ -171,7 +171,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
     ########################################################################
     # LEVEL 1 functionality
-    # x * __new__
+    # x * __cinit__
     # x * __dealloc__
     # x * __init__
     # x * set_unsafe
@@ -180,7 +180,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * def _unpickle
     ########################################################################
 
-    def __new__(self, parent, entries, coerce, copy):
+    def __cinit__(self, parent, entries, coerce, copy):
         """
         Create and allocate memory for the matrix. Does not actually
         initialize any of the memory.

@@ -46,7 +46,7 @@ cdef class ntl_zz_pContext_class:
         """
         pass
 
-    def __new__(self, long v):
+    def __cinit__(self, long v):
         if v > NTL_SP_BOUND:
             raise ValueError, "Modulus (=%s) is too big"%v
         zz_pContext_construct_long(&self.x, v)

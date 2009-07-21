@@ -73,7 +73,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     """
     ########################################################################
     # LEVEL 1 functionality
-    #   * __new__
+    #   * __cinit__
     #   * __init__
     #   * __dealloc__
     #   * set_unsafe
@@ -81,7 +81,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     #   * def _pickle
     #   * def _unpickle
     ########################################################################
-    def __new__(self, parent, entries=0, coerce=True, copy=True):
+    def __cinit__(self, parent, entries=0, coerce=True, copy=True):
         self._entries = {}  # crucial so that pickling works
 
     def __init__(self, parent, entries=0, coerce=True, copy=True):

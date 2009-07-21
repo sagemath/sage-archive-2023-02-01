@@ -45,7 +45,7 @@ cdef class ntl_ZZ_pEContext_class:
         """
         pass
 
-    def __new__(self, ntl_ZZ_pX f):
+    def __cinit__(self, ntl_ZZ_pX f):
         self.pc = f.c
         self.pc.restore_c()
         ZZ_pEContext_construct_ZZ_pX(&self.x, &f.x)

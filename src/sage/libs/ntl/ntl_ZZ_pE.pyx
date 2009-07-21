@@ -138,7 +138,7 @@ cdef class ntl_ZZ_pE:
                 ZZ_pE_from_str(&self.x, PyString_AsString(v))
             _sig_off
 
-    def __new__(ntl_ZZ_pE self, v=None, modulus=None):
+    def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################
         ## Before creating a ZZ_pE, you must create a ##
         ## ZZ_pEContext, and restore it.  In Python,  ##

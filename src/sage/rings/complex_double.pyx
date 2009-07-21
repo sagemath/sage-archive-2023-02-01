@@ -591,7 +591,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
     __array_interface__ = {'typestr': '=c16'}
 
-    def __new__(self, real=None, imag=None):
+    def __cinit__(self):
         self._parent = _CDF
 
     def __init__(self, real, imag):

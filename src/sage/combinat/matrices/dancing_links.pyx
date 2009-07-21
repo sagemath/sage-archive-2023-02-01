@@ -66,9 +66,9 @@ cdef class dancing_linksWrapper:
         """
         pass
 
-    # Note that the parameters to __new__ must be identical to __init__
-    # This is due to some Cython vagary
-    def __new__(self, rows):
+    # Note that the parameters to __cinit__, if any, must be identical to __init__
+    # This is due to the way Python constructs class instance.
+    def __cinit__(self, rows):
         self.rows = PyList_New(len(rows))
         dancing_links_construct(&self.x)
         self.add_rows(rows)

@@ -179,7 +179,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         self._one_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._one_element).x,1)
 
-    def __new__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
+    def __cinit__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
         cdef GF2X_c ntl_m
         cdef GF2_c c
         cdef GF2X_c ntl_tmp
@@ -708,7 +708,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         if parent is None:
             raise ValueError, "You must provide a parent to construct a finite field element"
 
-    def __new__(FiniteField_ntl_gf2eElement self, parent=None ):
+    def __cinit__(FiniteField_ntl_gf2eElement self, parent=None ):
         if parent is None:
             return
         if PY_TYPE_CHECK(parent, FiniteField_ntl_gf2e):

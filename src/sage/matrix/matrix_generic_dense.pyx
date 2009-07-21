@@ -48,7 +48,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     """
     ########################################################################
     # LEVEL 1 functionality
-    # 0 * __new__   (not needed)
+    # 0 * __cinit__   (not needed)
     # x * __init__
     # 0 * __dealloc__   (not needed)
     # x * set_unsafe

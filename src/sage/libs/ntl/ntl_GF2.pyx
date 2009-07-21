@@ -55,7 +55,7 @@ cdef class ntl_GF2:
             GF2_from_str(&self.x, v)
             _sig_off
 
-    def __new__(self, v=None):
+    def __cinit__(self):
         GF2_construct(&self.x)
 
     def __dealloc__(self):

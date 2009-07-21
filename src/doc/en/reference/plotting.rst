@@ -8,6 +8,7 @@
    sage/plot/animate
    sage/plot/arrow
    sage/plot/bar_chart
+   sage/plot/bezier_path
    sage/plot/circle
    sage/plot/complex_plot
    sage/plot/contour_plot

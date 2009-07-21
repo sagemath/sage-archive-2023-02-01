@@ -345,9 +345,16 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
     def module(self):
         """
-        Return the underlying free module corresponding to this space of
-        modular forms. This is a free module (viewed as a tuple space) of
-        the same dimension as this space over the same base ring.
+        Return the underlying free module corresponding to this space
+        of modular forms.
+
+        If the dimension of self can be computed reasonably quickly,
+        then this function returns a free module (viewed as a tuple
+        space) of the same dimension as self over the same base ring.
+        Otherwise, the dimension of self.module() may be smaller.  For
+        example, in the case of weight 1 forms, in some cases the
+        dimension can't easily be computed so self.module() is of
+        smaller dimension.
 
         EXAMPLES::
 
@@ -357,9 +364,13 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: ModularForms(Gamma1(13),4, GF(49,'b')).free_module()
             Vector space of dimension 27 over Finite Field in b of size 7^2
 
+        Note that in the following example the dimension can't be
+        (quickly) computed, so M.module() returns a space of different
+        dimension than M::
+
             sage: M = ModularForms(Gamma1(57), 1); M
             Modular Forms space of dimension (unknown) for Congruence ...
-            sage: M.free_module()
+            sage: M.module()
             Vector space of dimension 36 over Rational Field
             sage: M.basis()
             Traceback (most recent call last):

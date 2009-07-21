@@ -24,6 +24,15 @@ The full text of the GPL is available at:
 
                 http://www.gnu.org/licenses/
 
+The package includes a data base of cohomology rings of the groups of
+order 64 and provides access to a data base of cohomology rings of the
+groups of order 128 and 243, located at
+  http://sage.math.washington.edu/home/SimonKing/Cohomology/db/
+These data bases are distributed under the Creative Commons
+Attribution-Share Alike 3.0 License. The full text of this licence is
+available at
+  http://creativecommons.org/licenses/by-sa/3.0/
+
 == SPKG Maintainers ==
 
 Simon A. King <simon.king@uni-jena.de>

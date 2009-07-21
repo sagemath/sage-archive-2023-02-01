@@ -977,7 +977,7 @@ cdef class Parent(category_object.CategoryObject):
         elif isinstance(S, Set_PythonType_class):
             return self.coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
-            self.init_coerce()
+            self.init_coerce(False)
         cdef object ret
         try:
             return self._coerce_from_hash[S]

@@ -502,6 +502,11 @@ cdef class RingMap_lift(RingMap):
             True
             sage: f > g
             False
+
+        Verify that trac #5758 has been fixed::
+
+            sage: Zmod(8).lift() == 1
+            False
         """
         if not PY_TYPE_CHECK(other, RingMap_lift):
             return cmp(type(self), type(other))

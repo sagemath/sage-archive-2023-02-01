@@ -252,7 +252,8 @@ def polygon(points, **options):
         sage: polygon([(0,0), (1,1), (0,1)])
         sage: polygon([(0,0,1), (1,1,1), (2,0,1)])
 
-    Extra options will get passed on to show(), as long as they are valid:
+    Extra options will get passed on to show(), as long as they are valid::
+
         sage: polygon([(0,0), (1,1), (0,1)], axes=False)
         sage: polygon([(0,0), (1,1), (0,1)]).show(axes=False) # These are equivalent
     """

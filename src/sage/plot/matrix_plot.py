@@ -55,11 +55,13 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.options()
         {'cmap': 'winter'}
 
-    Extra options will get passed on to show(), as long as they are valid:
+    Extra options will get passed on to show(), as long as they are valid::
+
         sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
         sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
 
-    Extra options will get passed on to show(), as long as they are valid:
+    Extra options will get passed on to show(), as long as they are valid::
+
         sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
         sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
 

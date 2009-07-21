@@ -128,7 +128,8 @@ def bar_chart(datalist, **options):
 
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
 
-    Extra options will get passed on to show(), as long as they are valid:
+    Extra options will get passed on to show(), as long as they are valid::
+
         sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0), axes=False)
         sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0)).show(axes=False) # These are equivalent
     """

@@ -27,7 +27,8 @@ class BezierPath(GraphicPrimitive_xydata):
         """
         Returns a graphics primitive of a path of bezier curves.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.bezier_path import BezierPath
             sage: BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
             Bezier path from (0, 0) to (0, 0)
@@ -47,7 +48,8 @@ class BezierPath(GraphicPrimitive_xydata):
         """
         Returns a dict of allowed options for bezier_path.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.bezier_path import BezierPath
             sage: list(sorted(BezierPath([[[-1,2], [14,2.3], [17,4]]], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the line is.'),
@@ -69,7 +71,7 @@ class BezierPath(GraphicPrimitive_xydata):
         """
         Updates BezierPath options to those allowed by 3d implementation.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.plot.bezier_path import BezierPath
             sage: B = BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
@@ -105,7 +107,8 @@ class BezierPath(GraphicPrimitive_xydata):
         with nonzero z coordinates in the path and control points, use the constructor bezier3d
         instead of bezier_path.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: b = bezier_path([[(0,0),(0,1),(1,0)]])
             sage: b.plot3d()
             sage: bezier3d([[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]])
@@ -153,7 +156,8 @@ class BezierPath(GraphicPrimitive_xydata):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: b = bezier_path([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]])
             sage: d = b.get_minmax_data()
             sage: d['xmin']
@@ -199,26 +203,28 @@ def bezier_path(path, **options):
     straight line.
 
     INPUT:
-        path -- a list of lists of tuples (see above)
-        alpha -- default: 1
-        fill -- default: False
-        thickness -- default: 1
-        linestyle -- default: 'solid'
-        rbgcolor -- default: (0,0,0)
-        zorder -- the layer in which to draw
 
-    EXAMPLES:
+    - ``path`` -- a list of lists of tuples (see above)
+    - ``alpha`` -- default: 1
+    - ``fill`` -- default: False
+    - thickness -- default: 1
+    - ``linestyle`` -- default: 'solid'
+    - ``rbgcolor`` -- default: (0,0,0)
+    - ``zorder`` -- the layer in which to draw
+
+    EXAMPLES::
+
         sage: path = [[(0,0),(.5,.1),(.75,3),(1,0)],[(.5,1),(.5,0)],[(.2,.5)]]
         sage: b = bezier_path(path, linestyle='dashed', rgbcolor='green')
         sage: b
 
-    To construct a simple curve, create a list containing a single list:
+    To construct a simple curve, create a list containing a single list::
 
         sage: path = [[(0,0),(.5,1),(1,0)]]
         sage: curve = bezier_path(path, linestyle='dashed', rgbcolor='green')
         sage: curve
 
-    Extra options will get passed on to show(), as long as they are valid:
+    Extra options will get passed on to show(), as long as they are valid::
 
         sage: bezier_path([[(0,1),(.5,0),(1,1)]], fontsize=50)
         sage: bezier_path([[(0,1),(.5,0),(1,1)]]).show(fontsize=50) # These are equivalent

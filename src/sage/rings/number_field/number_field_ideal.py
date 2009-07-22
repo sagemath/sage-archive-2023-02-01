@@ -639,6 +639,42 @@ class NumberFieldIdeal(Ideal_generic):
                 self.__integral_split = (self*denominator, denominator)
             return self.__integral_split
 
+    def intersection(self, other):
+        r"""
+        Return the intersection of self and other.
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(-11)
+            sage: p = K.ideal((a + 1)/2); q = K.ideal((a + 3)/2)
+            sage: p.intersection(q) == q.intersection(p) == K.ideal(a-2)
+            True
+
+        An example with non-principal ideals::
+
+            sage: L.<a> = NumberField(x^3 - 7)
+            sage: p = L.ideal(a^2 + a + 1, 2)
+            sage: q = L.ideal(a+1)
+            sage: p.intersection(q) == L.ideal(8, 2*a + 2)
+            True
+
+        A relative example::
+
+            sage: L.<a,b> = NumberField([x^2 + 11, x^2 - 5])
+            sage: A = L.ideal([15, (-3/2*b + 7/2)*a - 8])
+            sage: B = L.ideal([6, (-1/2*b + 1)*a - b - 5/2])
+            sage: A.intersection(B) == L.ideal(-1/2*a - 3/2*b - 1)
+            True
+        """
+        other = self.number_field().ideal(other)
+        mod = self.free_module().intersection(other.free_module())
+        L = self.number_field()
+        if L.is_absolute():
+            elts = [L(x.list()) for x in mod.gens()]
+        else:
+            elts = [sum([x[i] * L.absolute_generator()**i for i in xrange(L.absolute_degree())]) for x in mod.gens()]
+        return L.ideal(elts)
+
     def is_integral(self):
         """
         Return True if this ideal is integral.

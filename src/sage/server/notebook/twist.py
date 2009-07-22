@@ -210,6 +210,16 @@ class WorksheetFile(resource.Resource):
 ############################
 
 DOC = os.path.abspath(SAGE_DOC + '/output/html/en/')
+DOC_PDF = os.path.abspath(SAGE_DOC + '/output/pdf')
+
+class DocPDF(resource.Resource):
+    addSlash = True
+    def render(self, ctx):
+        return static.File('%s' % DOC_PDF)
+
+    def childFactory(self, request, name):
+        gzip_handler(request)
+        return static.File('%s/%s' % (DOC_PDF, name))
 
 class DocStatic(resource.Resource):
     addSlash = True
@@ -2318,6 +2328,7 @@ class FailedToplevel(Toplevel):
 class UserToplevel(Toplevel):
     addSlash = True
 
+    child_pdf = DocPDF()
     child_images = Images()
     child_css = CSS()
     child_javascript = Javascript()

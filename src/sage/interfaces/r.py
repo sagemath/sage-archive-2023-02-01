@@ -835,6 +835,7 @@ class R(Expect):
             list -- a list of strings
 
         EXAMPLES:
+            sage: dummy = r.trait_names(use_disk_cache=False)    #clean doctest
             sage: r.completions('tes')
             ['testPlatformEquivalence', 'testVirtual']
         """

@@ -557,7 +557,7 @@ class ReductionMap:
                 raise ZeroDivisionError, "Cannot reduce rational %s modulo %s: it has negative valuation"%(x,p)
 
         dx = x.denominator()
-        if x.is_integral() or dx.gcd(p.norm()) == 1:
+        if x.is_integral() or dx.gcd(p.absolute_norm()) == 1:
             return self.__F(self.__to_vs(x) * self.__PBinv)
 
         # Now we do have to work harder...below this point we handle

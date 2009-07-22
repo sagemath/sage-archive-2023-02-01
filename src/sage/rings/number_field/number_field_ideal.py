@@ -2256,6 +2256,22 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: F2(a)
             Traceback (most recent call last):
             ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
+
+        An example with a relative number field::
+
+            sage: L.<a,b> = NumberField([x^2 + 1, x^2 - 5])
+            sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
+            sage: R = p.residue_field(); R
+            Residue field in abar of Fractional ideal ((-1/2*b - 1/2)*a + 1/2*b - 1/2)
+            sage: R.cardinality()
+            9
+            sage: R(17)
+            2
+            sage: R((a + b)/17)
+            abar
+            sage: R(1/b)
+            2*abar
+
         """
         if not self.is_prime():
             raise ValueError, "The ideal must be prime"
@@ -2430,7 +2446,7 @@ def quotient_char_p(I, p):
     # "M_I mod p" to be the reduction mod p of the elements
     # compute in step 1.
 
-    n = K.degree()
+    n = K.absolute_degree()
     k = FiniteField(p)
     M_OK_modp = k**n
     B_mod = B_I_in_terms_of_M.change_ring(k)

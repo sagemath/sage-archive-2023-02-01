@@ -463,7 +463,19 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         return Factorization(factor_list, sort=False, simplify=False)
 
     def integral_basis(self):
-        raise NotImplementedError
+        r"""
+        Return a basis for self as a `\ZZ`-module.
+
+        EXAMPLE::
+
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
+            sage: I = K.ideal(17*b - 3*a)
+            sage: I.integral_basis()
+            [438, -b*a + 309, 219*a - 219*b, 156*a - 154*b]
+        """
+        J = self.absolute_ideal()
+        iso = J.number_field().structure()[0]
+        return [iso(x) for x in J.integral_basis()]
 
     def integral_split(self):
         r"""

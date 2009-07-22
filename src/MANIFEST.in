@@ -14,7 +14,7 @@ include sage/rings/bernmm/README.txt
 include sage/rings/bernmm/bernmm-test.cpp
 include sage/rings/polynomial/padics/__init__.py
 include sage/schemes/hyperelliptic_curves/hypellfrob/README
-include sage/server/notebook/templates/*.html
+include sage/server/notebook/templates/*
 include doc/common/templates/layout.html
 include doc/en/numerical_sage/errors
 include doc/en/tutorial/Makefile

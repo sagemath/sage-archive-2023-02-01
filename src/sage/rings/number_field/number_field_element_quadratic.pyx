@@ -58,10 +58,29 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
     TEST::
 
         sage: K.<a> = NumberField(x^2-x+13)
-        sage: loads(dumps(a)) == a
+        sage: loads(dumps(a)) == a # indirect doctest
         True
     """
     return NumberFieldElement_quadratic(parent, (a, b, denom))
+
+def __make_NumberFieldElement_quadratic1(parent, cls, a, b, denom):
+    """
+    Used in unpickling elements of number fields.
+
+    TEST::
+
+        sage: K.<a> = NumberField(x^2-x+13)
+        sage: loads(dumps(a)) == a # indirect doctest
+        True
+
+    We test that #6462 is fixed::
+
+        sage: L = QuadraticField(-11,'a'); OL = L.maximal_order(); w = OL.0
+        sage: loads(dumps(w)) == w # indirect doctest
+        True
+    """
+    return cls(parent, (a, b, denom))
+
 
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
@@ -292,7 +311,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(a.value, self.a)
         mpz_set(b.value, self.b)
         mpz_set(denom.value, self.denom)
-        return __make_NumberFieldElement_quadratic0, (self._parent, a, b, denom)
+        return __make_NumberFieldElement_quadratic1, (self._parent, type(self), a, b, denom)
 
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):
         """
@@ -809,6 +828,13 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         Return hash of this number field element, which is just the
         hash of the underlying polynomial.
+
+        EXAMPLE::
+
+            sage: L.<a> = QuadraticField(-7)
+            sage: hash(a)
+            1505322287 # 32-bit
+            15360174650385711 # 64-bit
         """
         return hash(self.polynomial())
 

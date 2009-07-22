@@ -1036,6 +1036,24 @@ class AbsoluteOrder(Order):
             raise TypeError, "Not an element of the order."
         return self._element_type(self, x)
 
+    def __reduce__(self):
+        r"""
+        Used in pickling.
+
+        We test that #6462 is fixed. This used to fail because pickling the
+        order also pickled the cached results of the ``basis`` call, which
+        were elements of the order.
+
+        ::
+
+            sage: L.<a> = QuadraticField(-1)
+            sage: OL = L.maximal_order()
+            sage: _ = OL.basis()
+            sage: loads(dumps(OL)) == OL
+            True
+        """
+        return (AbsoluteOrder, (self.number_field(), self.free_module(), self._is_maximal, False))
+
     def __add__(left, right):
         """
         Add two orders.
@@ -1332,8 +1350,12 @@ class RelativeOrder(Order):
         EXAMPLE::
 
             sage: k.<a,b> = NumberFieldTower([x^2 - 3, x^2 + 1])
-            sage: k.maximal_order() # indirect doctest
+            sage: O = k.maximal_order(); O # indirect doctest
             Maximal Relative Order in Number Field in a with defining polynomial x^2 - 3 over its base field
+
+            sage: _ = O.basis()
+            sage: loads(dumps(O)) == O
+            True
         """
         Order.__init__(self, K, is_maximal=is_maximal)
         self._absolute_order = absolute_order
@@ -1437,6 +1459,20 @@ class RelativeOrder(Order):
         else:
             return self._absolute_order.change_names(names)
 
+    def __reduce__(self):
+        r"""
+        Used for pickling.
+
+        EXAMPLE::
+
+            sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
+            sage: O = L.maximal_order()
+            sage: _ = O.basis()
+            sage: O == loads(dumps(O))
+            True
+        """
+        return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
+
     def basis(self):
         """
         Return module basis for this relative order.  This is a list
@@ -1506,6 +1542,16 @@ class RelativeOrder(Order):
         """
         Intersect two relative orders or a relative and absolute order
         (which always results in an absolute order).
+
+        EXAMPLE::
+
+            sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
+            sage: O1 = L.order([a, 2*b])
+            sage: O2 = L.order([2*a, b])
+            sage: O3 = O1 & O2; O3
+            Relative Order in Number Field in a with defining polynomial x^2 + 1 over its base field
+            sage: O3.index_in(L.maximal_order())
+            32
         """
         if isinstance(left, AbsoluteOrder):
             return left & right._absolute_order

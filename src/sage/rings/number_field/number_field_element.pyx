@@ -127,6 +127,13 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         sage: k.<a> = NumberField(x^3 - 2)
         sage: loads(dumps(a+1)) == a + 1
         True
+
+    This also gets called for unpickling order elements; we check that #6462 is
+    fixed::
+
+        sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
+        sage: loads(dumps(w)) == w
+        True
     """
     return cls(parent, poly)
 
@@ -404,7 +411,7 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         return __create__NumberFieldElement_version1, \
-               (self.number_field(), type(self), self.polynomial())
+               (self.parent(), type(self), self.polynomial())
 
     def __repr__(self):
         """

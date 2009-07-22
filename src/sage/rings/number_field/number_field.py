@@ -900,7 +900,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def _element_constructor_(self, x):
         r"""
-        Make x into an element of this relative number field, possibly not canonically.
+        Make x into an element of this number field, possibly not canonically.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 17)
@@ -923,7 +923,7 @@ class NumberField_generic(number_field_base.NumberField):
                                 number_field_element.OrderElement_relative,
                                 number_field_element_quadratic.OrderElement_quadratic)):
                 L = K.number_field()
-                if L is self:
+                if L == self:
                     return self._element_class(self, x)
                 x = L(x)
             return self._coerce_from_other_number_field(x)

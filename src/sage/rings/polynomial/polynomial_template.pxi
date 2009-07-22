@@ -374,7 +374,7 @@ cdef class Polynomial_template(Polynomial):
             sage: int(x)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            ValueError: Cannot coerce polynomial with degree 1 to integer.
 
             sage: int(P(1))
             1

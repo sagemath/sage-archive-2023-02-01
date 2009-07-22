@@ -613,18 +613,21 @@ class WordMorphism(SageObject):
 
             sage: m = WordMorphism('a->ab,b->ba')
             sage: n = WordMorphism({0:1,1:0,'a':5})
-            sage: m.extend_by(n)
-            Morphism from Words over Ordered Alphabet ['a', 'b', 0, 1] to Words over Ordered Alphabet ['a', 'b', 0, 1]
-            sage: n.extend_by(m)
-            Morphism from Words over Ordered Alphabet ['a', 'b', 0, 1] to Words over Ordered Alphabet ['a', 'b', 0, 1, 5]
-            sage: m.extend_by(m)
-            Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b']
+            sage: print m.extend_by(n)
+            WordMorphism: 0->1, 1->0, a->ab, b->ba
+            sage: print n.extend_by(m)
+            WordMorphism: 0->1, 1->0, a->5, b->ba
+            sage: print m.extend_by(m)
+            WordMorphism: a->ab, b->ba
+
+        TESTS::
+
             sage: m.extend_by(WordMorphism({})) == m
             True
             sage: m.extend_by(WordMorphism('')) == m
             True
 
-        TESTS::
+        ::
 
             sage: m.extend_by(4)
             Traceback (most recent call last):

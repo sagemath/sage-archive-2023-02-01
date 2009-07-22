@@ -711,9 +711,8 @@ class Partition_class(CombinatorialObject):
 
     def conjugate(self):
         """
-        conjugate() returns the "conjugate" (also called "associated" in
-        the literature) partition of the partition p which is obtained by
-        transposing the corresponding Ferrers diagram.
+        Returns the conjugate partition of the partition ``self`. This
+        is also called the associated partition in the literature.
 
         EXAMPLES::
 
@@ -721,6 +720,10 @@ class Partition_class(CombinatorialObject):
             [2, 2]
             sage: Partition([6,3,1]).conjugate()
             [3, 2, 2, 1, 1, 1]
+
+        The conjugate partition is obtained by transposing the Ferrers
+        diagram of the partition (see :meth:`.ferrers_diagram`)::
+
             sage: print Partition([6,3,1]).ferrers_diagram()
             ******
             ***

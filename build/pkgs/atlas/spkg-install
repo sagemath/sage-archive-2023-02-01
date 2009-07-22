@@ -7,10 +7,16 @@ import os, random, sys, time
 # gcc 4.4.0 on Solaris. Implemented 16th June 2009, by David Kirkby.
 # One would expect to remove this within a couple of months,
 # once the underlying issue in ATLAS is resolved. The patch
-# forces
+# forces GuessSmallNB() in src/tune/blas/gemm/mmsearch.c
+# to return 28 as suggested by Clint Whaley.
+
+# Changed on July 19th 2009 (see trac 6558) to be more selective and only
+# apply the fix on sun4v machines which are based on the Sun T1, T2 and T2+
+# processors (codenamed Niagra). This is because there are no known problems
+# on other Sun architectures such as sun4u, or any x86 based Solaris system.
 
 import shutil
-if os.uname()[0] == 'SunOS':
+if os.uname()[0] == 'SunOS' and os.uname()[4] == 'sun4v':
    shutil.copy2('patches/mmsearch-with-temp-Solaris-fix.c','src/tune/blas/gemm/mmsearch.c')
 ##############################################
 

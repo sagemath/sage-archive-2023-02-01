@@ -32,6 +32,13 @@ Atlas devel mailing list.
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p6 (David Kirkby, July 19th 2009) ===
+ * Trac #6558
+   This is an enhancement to trac #6276, which applies a Solaris patch
+   to only those based on the sun4v architcture, rather than all Solaris
+   machines.
+ * Finished off an unfinished sentance in a comment in spkg-install
+
 === atlas-3.8.3.p5 (David Kirkby, June 24th 2009) ===
  * Made a backup of ATLAS-build/lib/Makefile to ATLAS-build/lib/Makefile.orig
  * Alter the flags in ATLAS-build/lib/Makefile with those that will work if the linker

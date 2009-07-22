@@ -430,7 +430,7 @@ You can even nicely typeset the solution in LaTeX:
 To have the above appear onscreen via xdvi, type ``view(s)``.
 
 You can also solve linear equations symbolically using the
-``solve_linear`` command:
+``solve`` command:
 
 ::
 

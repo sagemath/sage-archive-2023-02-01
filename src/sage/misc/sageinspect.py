@@ -443,8 +443,8 @@ def sage_getdoc(obj, obj_name=''):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getdoc
-        sage: sage_getdoc(identity_matrix)[5:43]
-        'Return the `n times n` identity matrix'
+        sage: sage_getdoc(identity_matrix)[5:39]
+        'Return the `n x n` identity matrix'
 
     AUTHORS:
 

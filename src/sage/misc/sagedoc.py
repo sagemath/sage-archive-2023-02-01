@@ -174,6 +174,8 @@ def detex(s, embedded=False):
 
     s = re.sub(itempattern, itemreplace, s)
 
+    for a,b in nonmath_substitutes:
+        s = s.replace(a,b)
     if not embedded: # not in the notebook
         for a,b in math_substitutes:  # do math substitutions
             s = s.replace(a,b)
@@ -181,8 +183,6 @@ def detex(s, embedded=False):
         s = s.replace('.. math::\n', '')  # get rid of .. math:: directives
     else:
         s = s.replace('\\','\\\\')    # double up backslashes for jsMath
-    for a,b in nonmath_substitutes:
-        s = s.replace(a,b)
     return s
 
 def format(s, embedded=False):

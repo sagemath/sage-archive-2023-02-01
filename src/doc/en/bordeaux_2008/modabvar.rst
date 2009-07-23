@@ -20,7 +20,7 @@ Ribet and Serre, this implies the following modularity theorem,
 which generalizes the modularity theorem that Taylor-Wiles proved
 in the course of proving Fermat's Last Theorem.
 
-One of my longterm research goals is to develop a systematic theory
+One of my long-term research goals is to develop a systematic theory
 for computing with modular abelian varieties. A good start is the
 observation using the Abel-Jacobi theorem that every modular
 abelian variety (up to isomorphism) can be specified by giving a

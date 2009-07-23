@@ -79,7 +79,7 @@ The Sage-Pari-Magma Ecosystem
 
 * *The main difference between Sage and Pari is that Sage is vastly
   larger than Pari with a much wider range of functionality, and has
-  many more datatypes and much more structured objects.* Sage in fact
+  many more data types and much more structured objects.* Sage in fact
   includes Pari, and a typical Sage install takes nearly a gigabyte of
   disk space, whereas a typical Pari install is much more nimble, using
   only a few megabytes. There are many number-theoretic algorithms that

@@ -170,7 +170,7 @@ Bernoulli Numbers
 Mathematica and Pari
 --------------------
 
-From the mathematica website:
+From the Mathematica website:
 
     "Today We Broke the Bernoulli Record: From the Analytical Engine
     to Mathematica April 29, 2008 Oleksandr Pavlyk, Kernel Technology

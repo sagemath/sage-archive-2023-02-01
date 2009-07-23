@@ -209,7 +209,7 @@ Dirichlet Characters
 
 Use the command DirichletGroup(N,R) to create the group of all
 Dirichlet characters of modulus :math:`N` taking values in the
-ring :math:`R`. If :math:`R` is omited, it defaults to a
+ring :math:`R`. If :math:`R` is omitted, it defaults to a
 cyclotomic field.
 
 ::

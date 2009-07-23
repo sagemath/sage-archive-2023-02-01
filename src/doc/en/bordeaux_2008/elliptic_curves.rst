@@ -57,7 +57,7 @@ We can use Sage's interact feature to draw a plot of an elliptic
 curve modulo :math:`p`, with a slider that one drags to change
 the prime :math:`p`. The interact feature of Sage is very helpful
 for interactively changing parameters and viewing the results. Type
-interact? for more help and examples and visit the webpage
+interact? for more help and examples and visit the web page
 http://wiki.sagemath.org/interact.
 
 In the code below we first define the elliptic curve :math:`E`
@@ -121,7 +121,7 @@ Bradshaw. The :math:`p`-adic regulator of an elliptic curve :math:`E`
 at a good ordinary prime :math:`p` is the determinant of the global
 :math:`p`-adic height pairing matrix on the Mordell-Weil group
 :math:`E(\QQ)`. (This has nothing to do with local or
-archimedean heights.) This is the analogue of the regulator in the
+Archimedean heights.) This is the analogue of the regulator in the
 Mazur-Tate-Teitelbaum :math:`p`-adic analogue of the Birch and
 Swinnerton-Dyer conjecture.
 

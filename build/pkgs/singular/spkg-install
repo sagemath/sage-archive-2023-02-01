@@ -6,7 +6,7 @@
 
 SAGE_DEBUG=0
 SRC=`pwd`/src
-SHARED=`pwd`/shared
+SHARED=`pwd`/share
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";

@@ -1,0 +1,771 @@
+# @configure_input@
+# $Id: GNUmakefile.in,v 1.64 2009/05/13 17:35:08 Singular Exp $
+
+#
+# GNUmakefile.in - used by `configure' to create `GNUmakefile', the
+#   top level makefile for Factory.
+#
+# In general, you should let `configure' guess the correct values
+# for the variables below.  But if something seriously goes wrong
+# in configuring, please inform the authors and feel free to
+# edit the marked section.
+#
+# See the `INSTALL' file for information on how to build Factory.
+#
+# Note:	Use GNU `make' (`gmake') to make with this makefile.
+#
+
+############### START OF CONFIGURABLE SECTION ###############
+
+SHELL =		/bin/sh
+
+#
+# - versions.  Do not change version here !!!
+#
+version =	@factory_version@
+distname =	factory-$(version)
+
+#
+# - paths.
+#
+prefix =	@prefix@
+exec_prefix =	@exec_prefix@
+libdir =	@libdir@
+datadir =	@datadir@
+gftabledir =	@gftabledir@
+includedir =	@includedir@
+templatedir =	@templatedir@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+
+#
+# - the name of the game.
+#
+libfactory =	@libfactory@
+
+#
+# - programs.
+#
+CC =		@CC@
+CXX =		@CXX@
+# seems configure sometimes finds non-BSD install, so we better
+# hardcode path to our install-sh
+INSTALL =	$(srcdir)/bin/install-sh -c
+INSTALL_DATA =	@INSTALL_DATA@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
+RANLIB =	@RANLIB@
+
+LN_S = 		@LN_S@
+AR =		@AR@
+BISON =		@BISON@
+MKINSTALLDIRS =	@FACTORY_MKINSTALLDIRS@
+MAKEHEADER =	@FACTORY_MAKEHEADER@
+
+#
+# - flags.
+#
+CFLAGS =	@CFLAGS@
+CPPFLAGS =	@CPPFLAGS@
+CXXFLAGS =	@CXXFLAGS@
+DEFS =		@DEFS@
+LDFLAGS =	@LDFLAGS@
+LIBS =		@LIBS@
+
+ARFLAGS =	@ARFLAGS@
+MAKEHEADERFLAGS=@MAKEHEADERFLAGS@
+
+#
+# - some other variables.
+#
+factorysrc =	@factorysrc@
+factoryincl =	@factoryincl@
+memmansrc =	@memmansrc@
+memmanincl =	@memmanincl@
+
+alltargets =	@alltargets@
+installtargets =@installtargets@
+uninstalltargets=@uninstalltargets@
+
+############### END OF CONFIGURABLE SECTION ###############
+
+#
+# - compiler flags.
+#
+WARNFLAGS =	-w
+
+# flags to translate library c files
+LIBCFLAGS =	$(WARNFLAGS) \
+		-I. -I$(srcdir) -I$(includedir) \
+		$(DEFS) $(CPPFLAGS) $(CFLAGS)
+
+# flags to translate library c++ files
+LIBCXXFLAGS =	$(WARNFLAGS) -fno-implicit-templates \
+		-I. -I$(srcdir) -I$(includedir) \
+		$(DEFS) $(CPPFLAGS) $(CXXFLAGS)
+
+LIBCGGFLAGS =	$(WARNFLAGS) -fno-implicit-templates \
+		-I. -I$(srcdir) -I$(includedir) \
+		$(DEFS) $(CPPFLAGS)
+
+# flags to translate ftmpl_inst.cc
+TMPLCXXFLAGS =	$(LIBCXXFLAGS)
+
+# flags to link test programs
+TESTCXXFLAGS =	$(LIBCXXFLAGS)
+
+# flags to link test programs
+TESTLDFLAGS = 	$(LIBS) $(LDFLAGS)
+
+# flags to create dependency lists
+DEPCXXFLAGS =	-I. -I$(srcdir) -I$(includedir) \
+		$(DEFS) $(CPPFLAGS)
+
+#
+# - source files.
+#
+
+# factory source files
+basefactorysrc := \
+		canonicalform.cc \
+		cf_algorithm.cc \
+		cf_binom.cc \
+		cf_char.cc \
+		cf_chinese.cc \
+		cf_eval.cc \
+		cf_factor.cc \
+		cf_factory.cc \
+		cf_gcd.cc \
+		cf_gcd_charp.cc \
+		cf_generator.cc \
+		cf_globals.cc \
+		cf_inline.cc \
+		cf_irred.cc \
+		cf_iter.cc \
+		cf_iter_inline.cc \
+		cf_linsys.cc \
+		cf_map.cc \
+		cf_ops.cc \
+		cf_primes.cc \
+		cf_random.cc \
+		cf_resultant.cc \
+		cf_reval.cc \
+		cf_switches.cc \
+		cf_util.cc \
+		debug.cc \
+		fac_berlekamp.cc \
+		fac_cantzass.cc \
+		fac_distrib.cc \
+		fac_ezgcd.cc \
+		fac_iterfor.cc \
+		fac_multihensel.cc \
+		fac_multivar.cc \
+		fac_sqrfree.cc \
+		fac_univar.cc \
+		fac_util.cc \
+		fieldGCD.cc \
+		ffops.cc \
+		ffreval.cc \
+		gf_tabutil.cc \
+		gfops.cc \
+		imm.cc \
+		initgmp.cc \
+		int_cf.cc \
+		int_int.cc \
+		int_intdiv.cc \
+		int_poly.cc \
+		int_pp.cc \
+		int_rat.cc \
+		sm_sparsemod.cc \
+		sm_util.cc \
+		variable.cc \
+		NTLconvert.cc \
+                abs_fac.cc \
+		bifac.cc \
+		lgs.cc
+
+singfactorysrc := \
+		singext.cc
+useiofactorysrc := \
+		parseutil.cc \
+		readcf.y
+distfactorysrc := \
+		$(basefactorysrc) \
+		$(singfactorysrc) \
+		$(useiofactorysrc)
+doxysrc :=	\
+		$(basefactorysrc) \
+		parseutil.cc
+
+# factory object files and dependencies
+factoryobj1 := $(factorysrc:%.cc=%.o)
+factoryobj  :=    $(factoryobj1:%.y=%.o)
+factorygobj :=  $(factorysrc:%.cc=%.og)
+factorypobj :=  $(factorysrc:%.cc=%.op)
+factorydep :=	$(factorysrc:%.cc=%.d)
+factorydep :=	$(factorydep:%.y=%.d)
+
+# factory header files
+basefactoryincl := \
+		assert.h \
+		canonicalform.h \
+		cf_algorithm.h \
+		cf_binom.h \
+		cf_defs.h \
+		cf_eval.h \
+		cf_factory.h \
+		cf_generator.h \
+		cf_globals.h \
+		cf_irred.h \
+		cf_iter.h \
+		cf_map.h \
+		cf_primes.h \
+		cf_primetab.h \
+		cf_random.h \
+		cf_reval.h \
+		cf_switches.h \
+		cf_util.h \
+		debug.h \
+		fac_berlekamp.h \
+		fac_cantzass.h \
+		fac_distrib.h \
+		fac_iterfor.h \
+		fac_multivar.h \
+		fac_sqrfree.h \
+		fac_univar.h \
+		fac_util.h \
+		fieldGCD.h \
+		ffops.h \
+		ffreval.h \
+		ftmpl_array.h \
+		ftmpl_factor.h \
+		ftmpl_functions.h \
+		ftmpl_list.h \
+		ftmpl_matrix.h \
+		gf_tabutil.h \
+		gfops.h \
+		gmpext.h \
+		imm.h \
+		int_cf.h \
+		int_int.h \
+		int_poly.h \
+		int_pp.h \
+		int_rat.h \
+		sm_sparsemod.h \
+		sm_util.h \
+		timing.h \
+		variable.h \
+		NTLconvert.h \
+		bifac.h \
+		bifacConfig.h \
+		lgs.h \
+		algext.h
+
+singfactoryincl := \
+		singext.h
+useiofactoryincl := \
+		parseutil.h
+distfactoryincl := \
+		$(basefactoryincl) \
+		$(singfactoryincl) \
+		$(useiofactoryincl)
+doxyincl :=	\
+		$(basefactoryincl) \
+		parseutil.h
+
+# memory manager source files
+basememmansrc := \
+		newdelete.cc
+newmemmansrc :=	\
+		mmalloc.c \
+		mmallocb.c \
+		mmallocs.c \
+		mmblock.c \
+		mmheap.c \
+		mminit.c \
+		mmspec.c \
+		mmutil.c
+oldmemmansrc :=	\
+		memutil.c
+distmemmansrc := \
+		$(basememmansrc) \
+		$(newmemmansrc) \
+		$(oldmemmansrc)
+
+# memory manager object files and dependencies
+memmanobj :=	$(memmansrc:.cc=.o)
+memmanobj :=	$(memmanobj:.c=.o)
+memmandep :=	$(memmansrc:.cc=.d)
+memmandep :=	$(memmandep:.c=.d)
+
+# memory manager header files
+newmemmanincl := \
+		mmprivate.h \
+		memman.h
+oldmemmanincl := \
+		memutil.h
+distmemmanincl := \
+		$(newmemmanincl) \
+		$(oldmemmanincl)
+
+# factory template files
+templatesrc :=	\
+		ftmpl_array.cc \
+		ftmpl_factor.cc \
+		ftmpl_functions.h \
+		ftmpl_list.cc \
+		ftmpl_matrix.cc
+templateincl :=	\
+		ftmpl_array.h \
+		ftmpl_factor.h \
+		ftmpl_list.h \
+		ftmpl_matrix.h
+
+# header templates
+hdrtemplsrc := \
+		factoryconf.template \
+		factory.template
+hdrtempldep :=	$(hdrtemplsrc:.template=.d)
+
+# FTE source files
+ftestsrc :=	\
+		ftest_io.cc \
+		ftest_util.cc \
+		ntl_util.cc
+
+# FTE header files
+ftestincl :=	\
+		ftest_io.h \
+		ftest_util.h \
+		ntl_util.h
+
+# FTE m4 source files (exported for `GNUmakefile' in `ftest/').
+# The variable `$(ftestm4develsrc)' may be already initialized
+# from the development `GNUmakefile'.
+ftestm4src :=	$(ftestm4develsrc) \
+		commonden.m4 \
+		degree.m4 \
+		deriv.m4 \
+		divides.m4 \
+		divrem.m4 \
+		extgcd.m4 \
+		factorize.m4 \
+		fbinops.m4 \
+		feval.m4 \
+		gcd.m4 \
+		gcd.ntl.m4 \
+		insert.m4 \
+		norm.m4 \
+		resultant.m4 \
+		revert.m4 \
+		sqrfree.m4 \
+		size.m4 \
+		totaldegree.m4
+export ftestm4src
+
+# other files from the FTE
+ftestdistfiles := \
+		ChangeLog \
+		GNUmakefile.in \
+		ftest_util.m4
+
+# FTE executables
+ftestexec :=	$(ftestm4src:.m4=)
+
+# all the C/C++ source files in the distribution
+distsrc :=	\
+		$(distfactorysrc) $(distmemmansrc) \
+		$(addprefix templates/,$(templatesrc)) \
+		$(addprefix ftest/,$(ftestsrc)) \
+		readcf.cc ftmpl_inst.cc \
+		gengftables.cc gengftables-conway.cc test_install.cc
+
+# all the C/C++ include files in the distribution
+distincl :=	\
+		$(distfactoryincl) $(distmemmanincl) \
+		$(addprefix templates/,$(templateincl)) \
+		$(addprefix ftest/,$(ftestincl))
+
+# all files for the Windows NT environment
+distntfiles :=	\
+		config.h nt.mak \
+		factory.h factoryconf.h \
+		INSTALL.nt
+
+# all files in the distribution
+distfiles :=	\
+		$(distsrc) $(distincl) $(hdrtemplsrc) \
+		$(addprefix ftest/,$(ftestm4src)) \
+		$(addprefix ftest/,$(ftestdistfiles)) \
+		GNUmakefile.in configure.in config.h.in configure \
+		ChangeLog README NEWS INSTALL \
+		factory.cfg gen_cf_gmp.template \
+		$(addprefix winnt/,$(distntfiles)) \
+		examples/GNUmakefile examples/application.cc \
+		examples/factorize.cc examples/gcd.cc \
+		bin/folding.el bin/fold-docu.el \
+		bin/install-sh bin/mkinstalldirs \
+		bin/makeheader bin/gen-readcf
+
+#
+# - phony targets.
+#
+.PHONY:		all cf mem dist depend \
+		clean mostlyclean distclean maintainer-clean \
+		install installcf installmem installgftables installtest \
+		uninstall uninstallcf uninstallmem uninstallgftables \
+		ftestall ftestclean ftestdistclean \
+		doxy doxyclean
+
+# we make these targets phony to make sure that they are
+# up to date when a new distribution is built
+.PHONY:		$(srcdir)/winnt/factory.h $(srcdir)/winnt/factoryconf.h
+
+#
+# - pattern rules.
+#
+
+# how to create library objets
+%.o: %.cc config.h
+	$(CXX) -c $< $(LIBCXXFLAGS) -o $@
+%.o: %.c config.h
+	$(CC) -c $< $(LIBCFLAGS) -o $@
+# the debug version:
+%.og: %.cc config.h
+	$(CXX) -g -c $< $(LIBCGGFLAGS) -o $@
+# the profiling version:
+%.op: %.cc config.h
+	$(CXX) -O -pg -c $< $(LIBCGGFLAGS) -o $@
+
+# how to create dependency files.  To avoid broken dependency files
+# (which in turn break this GNUmakefile) we first generate them in
+# a temporary file which we then move to the destination file.
+%.d: %.cc factoryconf.h config.h
+	echo $@ "\\" > $@tmp
+	$(CXX) -MM $< $(DEPCXXFLAGS) >> $@tmp
+	mv $@tmp $@
+%.d: %.c factoryconf.h config.h
+	echo $@ "\\" > $@tmp
+	$(CXX) -MM $< $(DEPCXXFLAGS) >> $@tmp
+	mv $@tmp $@
+%.d: %.template
+	echo $@ $(@:.d=.h) : "\\" > $@tmp
+	sed -n '/^\/\*MAKEHEADER/!d; n; s/^#include "//; s/"//; p;' $< | tr '\012' ' ' >> $@tmp
+	echo >> $@tmp
+	mv $@tmp $@
+
+# how to create header files from header templates
+%.h: %.template
+	$(MAKEHEADER) $(MAKEHEADERFLAGS) $< $@
+
+#
+# - building factory.
+#
+all:		$(alltargets)
+
+cf:		factoryconf.h factory.h $(libfactory) libsingcf_g.a libsingcf_p.a
+
+mem:		libcfmem.a
+
+#
+# - explicit targets.
+#
+$(libfactory):	$(factoryobj)
+		$(AR) $(ARFLAGS) $@ $^
+		$(RANLIB) $@
+
+libsingcf_g.a:	$(factorygobj)
+		$(AR) $(ARFLAGS) $@ $^
+		$(RANLIB) $@
+
+libsingcf_p.a:	$(factorypobj)
+		$(AR) $(ARFLAGS) $@ $^
+		$(RANLIB) $@
+
+libcfmem.a:	$(memmanobj)
+		$(AR) $(ARFLAGS) $@ $^
+		$(RANLIB) $@
+
+ftmpl_inst.o:	ftmpl_inst.cc factoryconf.h factory.h \
+		$(addprefix templates/,$(templatesrc)) \
+		$(addprefix templates/,$(templateincl))
+		$(CXX) -c $< $(TMPLCXXFLAGS) -o $@
+
+# note that this is a non-source file which is distributed!
+$(srcdir)/readcf.cc: readcf.y
+		@./bin/gen-readcf "${BISON}"
+
+# note that these are non-source file which are distributed!
+# We do not specify any dependencies except the most important ones.
+$(srcdir)/winnt/factory.h: factory.template
+		$(MAKEHEADER) $(MAKEHEADERFLAGS) $< $@
+$(srcdir)/winnt/factoryconf.h: factoryconf.template winnt/config.h
+		$(MAKEHEADER) -I$(srcdir)/winnt $(MAKEHEADERFLAGS) $< $@
+
+# specify dependency in case user does not 'make depend'
+factoryconf.h:	config.h cf_gmp.h
+
+TAGS:
+		etags $(addprefix $(srcdir)/, $(distsrc) $(distincl))
+
+# check configuration before building executables
+conftest:
+		@if test -z "$(filter mem,$(alltargets))" \
+		  || test -z "$(filter readcf.y,$(factorysrc))" \
+		  || test -n "$(filter singext.cc,$(factorysrc))"; then \
+		  echo "To make this target you have to configure"; \
+		  echo "\`--without-Singular --with-memman --enable-streamio'."; \
+		  exit 1; \
+		fi
+
+#
+# - doxygen.
+#
+
+# files and environment variables to export for doxygen
+doxyfiles :=	$(addprefix $(srcdir)/,$(doxysrc) $(doxyincl))
+
+export version srcdir doxyfiles
+
+# doxygen targets
+doxy:		factory.cfg $(doxysrc) $(doxyincl)
+		doxygen $<
+
+doxyclean:
+		rm -rf doxygen
+
+#
+# - Factory Test Environment.
+#
+$(ftestexec):	conftest factoryconf.h factory.h libcf.a libcfmem.a ftmpl_inst.o
+		cd ftest && $(MAKE) $@
+		@if test -r "$@"; then \
+		  :; \
+		else \
+		  echo "$(LN_S) ftest/$@ $@"; \
+		  $(LN_S) ftest/$@ $@; \
+		fi
+
+ftestall:	$(ftestexec)
+
+ftestclean:
+		-cd ftest && $(MAKE) clean
+
+ftestdistclean:
+		-cd ftest && $(MAKE) distclean
+		-rmdir ftest
+
+#
+# - GF(q) table generation.
+#
+
+# these are not all dependencies, but the most important ones
+gengftables.o:	gengftables-conway.cc conftest factory.h gf_tabutil.h
+		$(CXX) -c $< $(TESTCXXFLAGS) -o $@
+
+gengftables:	gengftables.o libcf.a libcfmem.a ftmpl_inst.o
+		$(CXX) $^ $(TESTLDFLAGS) -o $@
+
+gftables:	gengftables
+		@echo "This command will take quite a long time to execute;"
+		@echo "maybe you want to get the tables directly via ftp (see"
+		@echo "the INSTALL file)."
+		$(MKINSTALLDIRS) gftables
+		./gengftables
+
+#
+# - installation test program.
+#
+
+# compile installation test program.  do not look up
+# header files in current directory or in $(srcdir), but use
+# the header files from the directory where they should be
+# after installation.
+test_install.o: test_install.cc
+		$(CXX) -c $< $(TESTCXXFLAGS) -I- -I$(includedir) -o $@
+
+# the same we do for ftmpl_inst.o which for this reason is named
+# iftmpl_inst.o
+iftmpl_inst.o:
+		$(CXX) -c $(templatedir)/ftmpl_inst.cc $(TMPLCXXFLAGS) -I- -I$(includedir) -o $@
+
+# link installation test program
+test_install:	test_install.o iftmpl_inst.o
+		$(CXX) $^ -L$(libdir) -lcf -lcfmem $(TESTLDFLAGS) -o $@
+
+installtest:	test_install
+		@-if ./test_install; then \
+		  echo "Installation seems ok."; \
+		else \
+		  echo "Please check path of your GF(q) tables in config.h."; \
+		fi
+
+#
+# - install targets.
+#
+install:	$(installtargets)
+
+install-nolns: install
+
+installcf:	cf
+		$(MKINSTALLDIRS) $(libdir)
+		$(MKINSTALLDIRS) $(includedir)
+		$(MKINSTALLDIRS) $(templatedir)
+		$(INSTALL_DATA) $(libfactory) $(libdir)/$(libfactory)
+		-$(INSTALL_DATA) libsingcf_g.a $(libdir)/libsingcf_g.a
+		-$(INSTALL_DATA) libsingcf_p.a $(libdir)/libsingcf_p.a
+		$(INSTALL_DATA) factory.h $(includedir)/factory.h
+		$(INSTALL_DATA) cf_gmp.h $(includedir)/cf_gmp.h
+		$(INSTALL_DATA) factoryconf.h $(includedir)/factoryconf.h
+		$(INSTALL_DATA) $(srcdir)/ftmpl_inst.cc $(templatedir)/ftmpl_inst.cc
+		for file in $(templatesrc) $(templateincl); do \
+		  $(INSTALL_DATA) $(srcdir)/templates/$$file $(templatedir)/$$file; \
+		done
+# we run `ranlib' another time for SUN machines
+		$(RANLIB) $(libdir)/$(libfactory)
+
+installmem:	mem
+		$(MKINSTALLDIRS) $(libdir)
+		$(INSTALL_DATA) libcfmem.a $(libdir)/libcfmem.a
+# once again: another run for SUN
+		$(RANLIB) $(libdir)/libcfmem.a
+
+# to a pity, this cannot be done automatically ...
+installgftables:
+		@echo "Copying GF(q) tables ..."
+		@if test -d gftables; then \
+		  $(MKINSTALLDIRS) $(gftabledir); \
+		  for file in gftables/gftable.*.*; do \
+		    $(INSTALL_DATA) $$file $(gftabledir); \
+		  done \
+		elif test -d "$(srcdir)"/gftables; then \
+		  $(MKINSTALLDIRS) $(gftabledir); \
+		  for file in "$(srcdir)"/gftables/gftable.*.*; do \
+		    $(INSTALL_DATA) $$file $(gftabledir); \
+		  done \
+		else \
+		  echo "Run 'make gftables' before installing them"; \
+		  exit 1; \
+		fi
+
+#
+# - uninstall targets.
+#
+uninstall:	$(uninstalltargets)
+
+uninstallcf:
+		-for file in $(templatesrc) $(templateincl); do \
+		  rm -f $(templatedir)/$$file; \
+		done
+		-rm -f $(templatedir)/ftmpl_inst.cc
+		-rm -f $(includedir)/factoryconf.h
+		-rm -f $(includedir)/factory.h
+		-rm -f $(libdir)/$(libfactory)
+		-rm -f $(libdir)/libsingcf_g.a
+		-rm -f $(libdir)/libsingcf_p.a
+		-rmdir $(templatedir)
+		-rmdir $(includedir)
+		-rmdir $(libdir)
+
+uninstallmem:
+		-rm -f $(libdir)/libcfmem.a
+		-rmdir $(libdir)
+
+uninstallgftables:
+		-rm -f $(gftabledir)/gftable.*.*
+		-rmdir $(gftabledir)
+
+#
+# - building a distribution.
+#
+dist:		$(srcdir)/readcf.cc $(srcdir)/configure \
+		$(srcdir)/winnt/factory.h $(srcdir)/winnt/factoryconf.h
+		rm -f $(distname).tgz
+		rm -rf $(distname)
+		$(MKINSTALLDIRS) $(distname)/bin
+		$(MKINSTALLDIRS) $(distname)/examples
+		$(MKINSTALLDIRS) $(distname)/ftest
+		$(MKINSTALLDIRS) $(distname)/winnt
+		$(MKINSTALLDIRS) $(distname)/templates
+		@echo "Copying files to distribution directory ..."
+		@for file in $(distfiles); do \
+		  ln $(srcdir)/$$file $(distname)/$$file; \
+		done
+		tar cf $(distname).tar $(distname)
+		gzip $(distname).tar
+		mv $(distname).tar.gz $(distname).tgz
+
+#
+# - cleaning up.
+#
+clean:		ftestclean
+		-rm -f $(libfactory) libcfmem.a libsingcf_g.a libsingcf_p.a \
+		  $(ftestexec) gengftables test_install \
+		  factoryconf.h factory.h *.o *.og *.op *.d *.dtmp cf_gmp.h
+
+# remove gftables only if we built them
+mostlyclean:	clean doxyclean
+		-rm -f TAGS
+		-if test ! -f gftables/README; then \
+		  rm -rf gftables; \
+		fi
+
+distclean:	ftestdistclean mostlyclean
+		-rm -f $(distname).tgz GNUmakefile stamp-h \
+		  config.cache config.log config.status config.h
+		-rm -rf $(distname)
+
+maintainer-clean: distclean
+		@echo "This command is intended for maintainers to use;"
+		@echo "it deletes files that require bison to rebuild."
+		-rm -f $(srcdir)/readcf.cc
+
+#
+# - dependencies.
+#
+# Do not generate them automatically if there are not any
+# dependencies at all.  this trick saves some time when you do
+# not want to compile but do some maintenance which do not
+# require the dependencies.  say 'make depend' to create the
+# dependencies explicitly.
+#
+depend:		$(factorydep) $(memmandep) $(hdrtempldep)
+
+ifneq ($(wildcard *.d),)
+  include $(factorydep) $(memmandep) $(hdrtempldep)
+endif
+
+#
+# - configure stuff.
+#
+$(srcdir)/configure: configure.in
+		@echo "WARNING: You need to rerun autoconf. I am proceeding, for now."
+		touch configure
+
+#		-cd $(srcdir) && autoconf
+
+# seems gmake needs at least a trivial command.  otherwise all
+# files which depend on config.h will be remade even if congig.h
+# did not change.
+config.h:	stamp-h
+		@:
+
+stamp-h:	config.h.in config.status
+		CONFIG_FILES= CONFIG_HEADERS=config.h ./config.status
+		echo timestamp > stamp-h
+
+GNUmakefile:	GNUmakefile.in config.status
+		CONFIG_FILES=GNUmakefile CONFIG_HEADERS= ./config.status
+
+ftest/GNUmakefile: ftest/GNUmakefile.in config.status
+		CONFIG_FILES=ftest/GNUmakefile CONFIG_HEADERS= ./config.status
+
+config.status:	configure
+		./config.status --recheck
+
+# create cf_gmp.h
+cf_gmp.h: GNUmakefile gen_cf_gmp.template
+	echo "#!/bin/sh" >gen_cf_gmp.sh
+	echo "GMP_H_T=\"`$(CXX) $(LIBCXXFLAGS) -M gen_cf_gmp.cc|grep gmp.h` \"" >>gen_cf_gmp.sh
+	cat gen_cf_gmp.template >>gen_cf_gmp.sh
+	$(SHELL) gen_cf_gmp.sh

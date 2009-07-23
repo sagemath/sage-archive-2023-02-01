@@ -89,6 +89,9 @@ patch()
     cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
+    cp patches/factory.GNUMakefile.in src/factory/GNUMakefile.in
+    cp patches/Singular.configure src/Singular/configure
+    cp patches/Singular.configure.in src/Singular/configure.in
 }
 
 distclean()
@@ -182,8 +185,8 @@ create_singular_script()
     cd $SAGE_LOCAL/bin
     $RM -f Singular singular
 
-    if [ -f Singular-3-0-4 ]; then
-        $RM -f Singular-3-0-4   # remove previous version of Singular.
+    if [ -f Singular-1-0-2 ]; then
+        $RM -f Singular-1-0-2   # remove previous version of Singular.
     fi
 
     # The singular executable is called somewhat randomly depending
@@ -220,6 +223,8 @@ build_libsingular()
     fi
 
     make install-libsingular
+
+    cp kernel/kInline.cc $SAGE_LOCAL/include/singular/
 
     if [ $? -ne 0 ]; then
         echo "Unable to install libsingular."
@@ -309,6 +314,12 @@ build_libfac()
     fi
 }
 
+install_docs()
+{
+    cp shared/singular.hlp $SAGE_LOCAL/shared/singular/
+    cp shared/singular.idx $SAGE_LOCAL/shared/singular/
+}
+
 build()
 {
     clean_headers
@@ -328,6 +339,8 @@ build()
     build_libfac
 
     create_singular_script
+
+    install_docs
 }
 
 build

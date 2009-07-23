@@ -13,6 +13,7 @@
 #include "singular/omalloc.h"
 #include "singular/clapsing.h"
 #include "singular/fast_maps.h"
+#include "singular/kutil.h"
 #include "singular/kstd1.h"
 #include "singular/tgb.h"
 #include "singular/sparsmat.h"

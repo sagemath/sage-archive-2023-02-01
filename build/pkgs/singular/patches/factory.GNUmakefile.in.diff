@@ -1,0 +1,12 @@
+--- ../src/factory/GNUmakefile.in	2009-05-13 18:35:08.000000000 +0100
++++ factory.GNUmakefile.in	2009-07-23 10:23:28.000000000 +0100
+@@ -198,7 +198,8 @@
+ 		parseutil.cc
+ 
+ # factory object files and dependencies
+-factoryobj :=   $(factorysrc:%.cc=%.o) $(factorysrc:%.y=%.o)
++factoryobj1 := $(factorysrc:%.cc=%.o)
++factoryobj  :=    $(factoryobj1:%.y=%.o)
+ factorygobj :=  $(factorysrc:%.cc=%.og)
+ factorypobj :=  $(factorysrc:%.cc=%.op)
+ factorydep :=	$(factorysrc:%.cc=%.d)

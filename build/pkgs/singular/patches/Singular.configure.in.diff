@@ -1,0 +1,11 @@
+--- ../src/Singular/configure.in	2009-02-21 15:16:42.000000000 +0000
++++ Singular.configure.in	2009-07-23 10:26:56.000000000 +0100
+@@ -466,7 +466,7 @@
+           if test "$ac_cv_lib_dl_dlopen" = yes; then
+ 	  	LD_DYN_FLAGS="-ldl -dynamic"
+ 	  	SFLAGS="-fpic -DPIC"
+-	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                 if test "${LD+set}" != set; then
+ 		  LD=libtool
+                 fi

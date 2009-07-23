@@ -1,0 +1,1055 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(tesths.cc)
+AC_CONFIG_HEADER(mod2.h)
+AC_CONFIG_HEADER(../kernel/mod2.h)
+
+dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl determine singuname
+dnl
+
+AC_MSG_CHECKING(CPU for singular)
+ac_cv_singcpuname=`uname -m`
+AC_MSG_RESULT($ac_cv_singcpuname)
+
+AC_MSG_CHECKING(uname for singular)
+AC_CACHE_VAL(ac_cv_singuname,
+ac_cv_singuname="unknown"
+if test -r "singuname.sh"; then
+  if (/bin/sh singuname.sh >/dev/null 2>&1) then
+    ac_cv_singuname=`/bin/sh singuname.sh`
+  fi
+fi
+if test "$ac_cv_singuname" = unknown && test -r "../singuname.sh"; then
+  if (/bin/sh ../singuname.sh >/dev/null 2>&1) then
+    ac_cv_singuname=`/bin/sh ../singuname.sh`
+  fi
+fi
+)
+AC_MSG_RESULT($ac_cv_singuname)
+if test "$ac_cv_singuname" = unknown; then
+  AC_MSG_WARN(Unknown architecture: Check singuname.sh)
+  ac_cv_singuname="unknown"
+fi
+AC_DEFINE_UNQUOTED(S_UNAME, "$ac_cv_singuname")
+SINGUNAME=$ac_cv_singuname
+AC_SUBST(SINGUNAME)
+
+if test "$ac_cv_singuname" = ix86-Win; then
+  EXEC_EXT=".exe"
+  AC_DEFINE(SI_CPU_I386)
+  AC_SUBST(SI_CPU_I386)
+  AC_MSG_RESULT(SI_CPU_I386)
+fi
+AC_SUBST(EXEC_EXT)
+if test "$ac_cv_singuname" = x86_64-Linux; then
+  AC_DEFINE(SI_CPU_X86_64)
+  AC_SUBST(SI_CPU_X86_64)
+  AC_MSG_RESULT(SI_CPU_X86_64)
+fi
+if test "$ac_cv_singuname" = ix86-Linux; then
+  AC_DEFINE(SI_CPU_I386)
+  AC_SUBST(SI_CPU_I386)
+  AC_MSG_RESULT(SI_CPU_I386)
+fi
+if test "$ac_cv_singuname" = IA64-Linux; then
+  AC_DEFINE(SI_CPU_IA64)
+  AC_SUBST(SI_CPU_IA64)
+  AC_MSG_RESULT(SI_CPU_IA64)
+fi
+if test "$ac_cv_singuname" = ppc-Linux; then
+  AC_DEFINE(SI_CPU_PPC)
+  AC_SUBST(SI_CPU_PPC)
+  AC_MSG_RESULT(SI_CPU_PPC)
+fi
+if test "$ac_cv_singuname" = ppcMac-darwin; then
+  AC_DEFINE(SI_CPU_PPC)
+  AC_SUBST(SI_CPU_PPC)
+  AC_MSG_RESULT(SI_CPU_PPC)
+fi
+# test again with CPU names
+if test "$ac_cv_singcpuname" = i386; then
+  AC_DEFINE(SI_CPU_I386)
+  AC_SUBST(SI_CPU_I386)
+  AC_MSG_RESULT(SI_CPU_I386)
+fi
+if test "$ac_cv_singcpuname" = i686; then
+  AC_DEFINE(SI_CPU_I386)
+  AC_SUBST(SI_CPU_I386)
+  AC_MSG_RESULT(SI_CPU_I386)
+fi
+if test "$ac_cv_singcpuname" = x86_64; then
+  AC_DEFINE(SI_CPU_X86_64)
+  AC_SUBST(SI_CPU_X86_64)
+  AC_MSG_RESULT(SI_CPU_X86_64)
+fi
+if test "$ac_cv_singcpuname" = ia64; then
+  AC_DEFINE(SI_CPU_IA64)
+  AC_SUBST(SI_CPU_IA64)
+  AC_MSG_RESULT(SI_CPU_IA64)
+fi
+if test "$ac_cv_singcpuname" = sparc; then
+  AC_DEFINE(SI_CPU_SPARC)
+  AC_SUBST(SI_CPU_SPARC)
+  AC_MSG_RESULT(SI_CPU_SPARC)
+fi
+if test "$ac_cv_singcpuname" = ppc; then
+  AC_DEFINE(SI_CPU_PPC)
+  AC_SUBST(SI_CPU_PPC)
+  AC_MSG_RESULT(SI_CPU_PPC)
+fi
+
+SING_UNAME=`echo $SINGUNAME | tr '-' '_' `
+AC_SUBST(SING_UNAME)
+
+# stupid Win programs do not like dots in their pathnames
+VERSION_SEP="-"
+
+dnl llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl version stuff -- should be set in ../configure.in
+dnl
+dnl here are some defaults
+
+SINGULAR_MAJOR_VERSION=${SINGULAR_MAJOR_VERSION:-3}
+SINGULAR_MINOR_VERSION=${SINGULAR_MINOR_VERSION:-1}
+SINGULAR_SUB_VERSION=${SINGULAR_SUB_VERSION:-0}
+SINGULAR_VERSION="${SINGULAR_VERSION:-$SINGULAR_MAJOR_VERSION${VERSION_SEP}$SINGULAR_MINOR_VERSION${VERSION_SEP}$SINGULAR_SUB_VERSION}"
+VERSION_DATE=${VERSION_DATE:-"Mar 2009"}
+
+dnl pass them on into the Makefiles
+AC_SUBST(SINGULAR_VERSION)
+AC_SUBST(VERSION_DATE)
+AC_SUBST(SINGULAR_MAJOR_VERSION)
+AC_SUBST(SINGULAR_MINOR_VERSION)
+AC_SUBST(SINGULAR_SUB_VERSION)
+AC_DEFINE_UNQUOTED(SINGULAR_MAJOR_VERSION, ${SINGULAR_MAJOR_VERSION})
+AC_DEFINE_UNQUOTED(SINGULAR_MINOR_VERSION, ${SINGULAR_MINOR_VERSION})
+AC_DEFINE_UNQUOTED(SINGULAR_SUB_VERSION, ${SINGULAR_SUB_VERSION})
+AC_DEFINE_UNQUOTED(S_VERSION1, "${SINGULAR_MAJOR_VERSION}${VERSION_SEP}${SINGULAR_MINOR_VERSION}${VERSION_SEP}${SINGULAR_SUB_VERSION}")
+AC_DEFINE_UNQUOTED(S_VERSION2, "${VERSION_DATE}")
+AC_DEFINE_UNQUOTED(SINGULAR_SUB_VERSION, ${SINGULAR_SUB_VERSION})
+
+
+dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl compiler stuff
+dnl is needed to check for libs and headers, later on
+dnl
+dnl we do not want to have "-g -O" for CFLAGS
+if test "${CXXFLAGS+set}" != set; then
+  ac_cxxflags_set=no
+  CXXFLAGS="-O"
+fi
+if test "${CFLAGS+set}" != set; then
+  CFLAGS="-O"
+  ac_cflags_set=no
+fi
+
+# check whether CXX was set by user as env variable
+if test "${CXX+set}" != set; then
+  ac_cxx_set=no
+else
+  ac_cxx_set=yes
+fi
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_AIX
+
+# test for gcc-version: gcc2: prefer CC=gcc, CXX=gcc (if not with boost)
+#                       gcc3:        CC=gcc  CXX=g++
+#                       other:       CC=cc   CXX=c++
+AC_MSG_CHECKING(gcc version)
+AC_CACHE_VAL(ac_cv_c_cpp,
+ac_cv_c_cp="unknown"
+if test -r "gccversion.sh"; then
+  ac_cv_c_cpp=`/bin/sh gccversion.sh`
+fi
+)
+AC_MSG_RESULT($ac_cv_c_cpp)
+
+# we prefer using gcc for compiling C++ files, provided the user did
+# not overwrite it explicitely
+if test "${GXX}" = yes && test "${ac_cxx_set}" = no; then
+  if test "${ac_cv_c_cpp}" = gcc2; then
+    CXX=g++
+  elif test "${ac_cv_c_cpp}" = gcc3; then
+    CXX=g++
+  fi
+  temp_flags="${CXXFLAGS}"
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
+  # check whether gcc accepts --no-rtti
+  AC_MSG_CHECKING(whether gcc accepts --no-rtti)
+  CXXFLAGS="${CXXFLAGS} --no-rtti"
+  AC_CACHE_VAL(ac_cv_cxx_have_rtti,
+    AC_TRY_COMPILE(,,ac_cv_cxx_have_rtti=yes,ac_cv_cxx_have_rtti=no)
+  )
+  AC_MSG_RESULT(${ac_cv_cxx_have_rtti})
+  if test "${ac_cv_cxx_have_rtti}" != yes; then
+    CXXFLAGS="$temp_flags"
+  else
+    CXXFLAGS="${temp_flags} --no-rtti"
+    temp_flags="${CXXFLAGS}"
+  fi
+
+# check whether gcc accepts --no-exceptions
+  AC_MSG_CHECKING(whether gcc accepts --no-exceptions)
+  CXXFLAGS="${CXXFLAGS} --no-exceptions"
+  AC_CACHE_VAL(ac_cv_cxx_have_exceptions,
+    AC_TRY_LINK(,,ac_cv_cxx_have_exceptions=yes,ac_cv_cxx_have_exceptions=no)
+  )
+  AC_MSG_RESULT(${ac_cv_cxx_have_exceptions})
+  if test "${ac_cv_cxx_have_exceptions}" != yes; then
+    CXXFLAGS="$temp_flags"
+  else
+    CXXFLAGS="${temp_flags} --no-exceptions"
+    temp_flags="${CXXFLAGS}"
+  fi
+
+  AC_LANG_RESTORE
+  CXXFLAGS="$temp_flags"
+  #here is broking something
+  #uncommented breaks CXXFLAGS variable set
+  #only pipes would remain then in CXXFLAGS
+fi
+
+# check whether the compiler accepts -pipe
+if test x$ac_cv_c_cpp = xgcc2 -o  x$ac_cv_c_cpp = xgcc3
+then
+  AC_MSG_CHECKING(whether compiler accepts -pipe)
+  temp_cflags="${CFLAGS}"
+  CFLAGS="${CFLAGS} -pipe"
+  AC_CACHE_VAL(ac_cv_cxx_have_pipe,
+  AC_TRY_COMPILE(,,ac_cv_cxx_have_pipe=yes,ac_cv_cxx_have_pipe=no))
+  AC_MSG_RESULT(${ac_cv_cxx_have_pipe})
+  CFLAGS=${temp_cflags}
+else
+  ac_cv_cxx_have_pipe="no"
+fi
+
+if test "${ac_cv_cxx_have_pipe}" != yes; then
+  PIPE=
+else
+  PIPE="-pipe"
+fi
+AC_SUBST(PIPE)
+
+# Customize CFLAGS
+AC_MSG_CHECKING(whether _AIX is defined)
+AC_CACHE_VAL(ac_cv_is_aix,
+AC_EGREP_CPP(yes,
+[#ifdef _AIX
+    yes
+#endif
+], ac_cv_is_aix=yes, ac_cv_is_aix=no, 1))
+if test "$ac_cv_is_aix" = yes; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+# we know best when compiling with gcc
+if test "${GXX}" = yes; then
+  if test "$ac_cxxflags_set" = no; then
+    CXXFLAGS="-O3 -w -fomit-frame-pointer"
+  fi
+  temp_flags="${CXXFLAGS}"
+  if test "${ac_cv_cxx_have_rtti}" = yes; then
+    CXXFLAGS="${temp_flags} --no-rtti"
+  fi
+  temp_flags="${CXXFLAGS}"
+  CXXTEMPLFLAGS="-fno-implicit-templates"
+  if test "${ac_cv_cxx_have_exceptions}" = yes; then
+    CXXTEMPLFLAGS="${CXXTEMPLFLAGS} --no-exceptions"
+  fi
+  if test "$ac_cv_is_aix" = yes; then
+    CXXNOOPTFLAGS="-w"
+  else
+    CXXNOOPTFLAGS=$CXXFLAGS
+  fi
+  STATIC_LDFLAGS="-static"
+else
+  CXXTEMPFLAGS=""
+  CXXNOOPTFLAGS=$CXXFLAGS
+  STATIC_LDFLAGS=""
+fi
+AC_SUBST(CXXTEMPLFLAGS)
+AC_SUBST(CXXNOOPTFLAGS)
+AC_SUBST(STATIC_LDFLAGS)
+
+if test "${GCC}" = yes && test "$ac_cflags_set" = no ; then
+  CFLAGS="-O3 -w -fomit-frame-pointer"
+fi
+
+AC_PROG_MAKE_SET
+
+dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl path stuff
+dnl
+AC_PREFIX_DEFAULT(`pwd`/..)
+
+dnl set exec_prefix, bindir, libdir, includedir to some sensible values
+dnl if they are not yet already set
+
+# expand prefix
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+if test "${with_rootdir+set}" != set; then
+  AC_DEFINE_UNQUOTED(S_ROOT_DIR, "${prefix}")
+else
+  AC_DEFINE_UNQUOTED(S_ROOT_DIR, "${with_rootdir}")
+fi
+
+# expand exec_prefixad
+if test "x$exec_prefix" = xNONE; then
+ exec_prefix=${prefix}/${ac_cv_singuname}
+fi
+
+# expand bindir
+test "x$bindir" = 'x${exec_prefix}/bin' && bindir="${exec_prefix}"
+SINGULAR=${SINGULAR:-$bindir/Singular-$SINGULAR_MAJOR_VERSION${VERSION_SEP}$SINGULAR_MINOR_VERSION${VERSION_SEP}$SINGULAR_SUB_VERSION}
+AC_SUBST(SINGULAR)
+AC_DEFINE_UNQUOTED(S_BIN_DIR, "${bindir}")
+
+# expand libdir
+test "x$libdir" = 'x${exec_prefix}/lib'&& libdir="${exec_prefix}/lib"
+
+# expand includedir
+test "x$includedir" = 'x${prefix}/include' && includedir="${exec_prefix}/include"
+
+# add to -I to CPPFLAGS and and -L to LDFLAGS, just to be sure
+if test "$ac_cv_c_cpp" = gcc3 ; then
+  LDFLAGS="-L${libdir} ${LDFLAGS}"
+  CPPFLAGS="-I${includedir} ${CPPFLAGS}"
+else
+  LDFLAGS="-L${libdir} ${LDFLAGS} -L/usr/local/lib"
+  CPPFLAGS="-I${includedir} ${CPPFLAGS} -I/usr/local/include"
+fi
+
+# this is a work-around to include the right term.h
+if test "$ac_cv_singuname" = SunOS-5; then
+CPPFLAGS="-I/usr/xpg4/include ${CPPFLAGS}"
+fi
+
+
+dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl Checks for programs.
+dnl
+
+# lex
+if test "${with_lex+set}" != set; then
+  AC_MSG_CHECKING(for flex)
+  changequote(<<,>>)dnl
+  cmd="egrep [2-9]\.[5-9]"
+  changequote([,])dnl
+  AC_CACHE_VAL(ac_cv_prog_flex,
+  if (flex --version >/dev/null 2>&1)
+    then
+    if (flex --version | $cmd >/dev/null 2>&1 )
+    then
+	ac_cv_prog_flex=flex
+    fi
+  fi
+  )
+  dnl changequote([,])dnl
+  if test "${ac_cv_prog_flex+set}" = set; then
+    AC_MSG_RESULT(flex)
+    LEX=flex
+    AC_SUBST(LEX)
+  else
+    AC_MSG_WARN(can not find flex with version 2.4.5-2.5.4)
+  fi
+elif test "${with_lex}" = no; then
+  AC_MSG_WARN(building without lex -- make might fail)
+else
+  unset LEX
+  unset ac_cv_prog_LEX
+  AC_CHECK_PROGS(LEX, ${with_lex})
+  if test "x${LEX}" = x; then
+    AC_MSG_WARN(building without lex -- make might fail)
+  fi
+fi
+
+# bison
+AC_CHECK_PROGS(BISON, bison)
+if test "${BISON+set}" != set; then
+  AC_MSG_WARN(did not find bison -- make might fail)
+fi
+
+# ln -s
+AC_PROG_LN_S
+
+AC_CHECK_PROGS(PERL, perl5 perl)
+
+dnl llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl check for general libraries, header files, typedefs, etc
+dnl
+# lib checks
+# under cygwin, we should not explicitly link with -lm, except for
+# it really is the last thing to link with
+if test "$ac_cv_singuname" != ix86-Win; then
+AC_CHECK_LIB(m, atof)
+fi
+AC_CHECK_LIB(nsl)
+AC_CHECK_LIB(socket)
+SAVE_LIBS=${LIBS}
+LIBS=
+
+dnl I'm not sure what they are for
+AC_CHECK_LIB(bsd, setenv)
+dnl i386-SunOS needs nsl and socket
+AC_CHECK_LIB(socket, listen)
+AC_CHECK_LIB(nsl, gethostbyname)
+dnl AC_CHECK_LIB(ucb, index)
+MP_LIBS=${LIBS}
+# check for dl lib
+case "$ac_cv_singuname" in
+	HPUX*)
+	  AC_CHECK_LIB(dld, shl_load)
+	  if test "$ac_cv_lib_dld_shl_load" = yes; then
+         	LD_DYN_FLAGS="-ldld -Xlinker -E"
+	  	SFLAGS="-fpic -fPIC -DPIC"
+	  	SLDFLAGS="-fPIC -DPIC -shared"
+                if test "${LD+set}" != set; then
+		  LD=gcc
+                fi
+		ac_lib_dl=yes
+	  fi
+	;;
+	*Linux*)
+	  AC_CHECK_LIB(dl, dlopen)
+          if test "$ac_cv_lib_dl_dlopen" = yes; then
+	  	LD_DYN_FLAGS="-ldl -rdynamic"
+	  	SFLAGS="-fpic -DPIC"
+	  	SLDFLAGS=-shared
+                if test "${LD+set}" != set; then
+		  LD=ld
+                fi
+	        ac_lib_dl=yes
+	  fi
+	;;
+        IRIX-6)
+          LD_DYN_FLAGS="-lc"
+	  SFLAGS="-fPIC -DPIC"
+	  SLDFLAGS="-w -no_unresolved -_SYSTYPE_SVR4 -n32 -shared"
+          if test "${LD+set}" != set; then
+	    LD=ld
+          fi
+	  ac_lib_dl=yes
+        ;;
+	SunOS-5)
+	  AC_CHECK_LIB(dl, dlopen)
+          if test "$ac_cv_lib_dl_dlopen" = yes; then
+	  	LD_DYN_FLAGS="-ldl"
+	  	SFLAGS="-fpic -DPIC"
+	  	SLDFLAGS=-shared
+                if test "${LD+set}" != set; then
+                  LD=$CC
+                fi
+	        ac_lib_dl=yes
+	  fi
+	;;
+	#use export MACOSX_DEPLOYMENT_TARGET=10.3
+	ppcMac-darwin)
+	  AC_CHECK_LIB(dl, dlopen)
+          if test "$ac_cv_lib_dl_dlopen" = yes; then
+	  	LD_DYN_FLAGS="-ldl -dynamic"
+	  	SFLAGS="-fpic -DPIC"
+	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                if test "${LD+set}" != set; then
+		  LD=libtool
+                fi
+	        ac_lib_dl=yes
+	  fi
+	;;
+	ix86Mac-darwin)
+	  AC_CHECK_LIB(dl, dlopen)
+          if test "$ac_cv_lib_dl_dlopen" = yes; then
+	  	LD_DYN_FLAGS="-ldl -dynamic"
+	  	SFLAGS="-fpic -DPIC"
+	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                if test "${LD+set}" != set; then
+		  LD=libtool
+                fi
+	        ac_lib_dl=yes
+	  fi
+	;;
+	ix86-freebsd)
+	  AC_CHECK_LIB(c, dlopen)
+          if test "$ac_cv_lib_c_dlopen" = yes; then
+	  	LD_DYN_FLAGS="-Xlinker -E"
+	  	SFLAGS="-fpic -DPIC"
+	  	SLDFLAGS=-shared
+                if test "${LD+set}" != set; then
+		  LD=ld
+                fi
+	        ac_lib_dl=yes
+	  fi
+	;;
+esac
+AC_SUBST(LD_DYN_FLAGS)
+AC_SUBST(SFLAGS)
+AC_SUBST(SLDFLAGS)
+AC_SUBST(LD)
+LIBS=${SAVE_LIBS}
+
+
+# heder file checks
+AC_HEADER_STDC
+AC_CHECK_HEADERS(limits.h unistd.h,,
+  AC_MSG_ERROR(Can not compile without limits.h unistd.h))
+
+AC_CHECK_HEADERS(sys/file.h sys/ioctl.h sys/time.h sys/times.h sys/types.h \
+ sys/stat.h fcntl.h sys/param.h pwd.h asm/sigcontext.h pwd.h termcap.h \
+ termios.h term.h readline/readline.h)
+
+# typedefs, structures
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+AC_HEADER_TIME
+
+# library functions.
+AC_FUNC_ALLOCA
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MMAP
+AC_TYPE_SIGNAL
+AC_FUNC_VPRINTF
+AC_SEARCH_LIBS(setenv, bsd)
+AC_CHECK_FUNCS(gettimeofday atexit bcopy getcwd getwd vsnprintf readlink \
+ sleep usleep getpwnam popen setenv siginterrupt sysconf)
+
+
+dnl llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl Find out more about particularity of the system
+dnl
+
+# arithmetic shifts
+AC_MSG_CHECKING(whether your machine has correct arithmetic shifts)
+AC_CACHE_VAL(ac_cv_shift, AC_TRY_RUN(
+  [ int main() { if (-2 >> 1 == -1) return(0); else return(1); } ],
+   ac_cv_shift=yes,
+   ac_cv_shift=no,
+   if test "$ac_c_cross_dos" = yes; then
+     ac_cv_shift=yes;
+   else
+     AC_MSG_RESULT(no)
+     AC_MSG_ERROR(cross compilation without default value)
+   fi))
+
+if test "$ac_cv_shift" = yes; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  AC_MSG_ERROR(need  -2 >> 1 == -1)
+fi
+
+
+# check for a peculiar constructor initialization
+AC_MSG_CHECKING(whether explicit C++ constructor calls are allowed)
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+AC_CACHE_VAL(ac_cv_explicit_const,AC_TRY_COMPILE(,
+  class testclass
+  {
+  public:
+    int value;
+    testclass() : value(0) {}
+    testclass( int i ) : value(i) {}
+    ~testclass() { value = 0; }
+  };
+
+  testclass ptr;
+  ptr.testclass(1);
+, ac_cv_explicit_const=yes, ac_cv_explicit_const=no))
+AC_LANG_RESTORE
+AC_MSG_RESULT($ac_cv_explicit_const)
+if test "$ac_cv_explicit_const" = yes; then
+  AC_DEFINE(HAVE_EXPLICIT_CONSTR)
+fi
+
+# sprintf returns number of printed chars
+AC_MSG_CHECKING(whether vsprintf returns number of printed chars)
+AC_CACHE_VAL(ac_cv_returns_n_of_chars, AC_TRY_RUN(
+ [#include <stdio.h>
+ main() { char *str=(char*)malloc(20); if (((int) sprintf(str,"123456789")) == 9) exit(0); else exit(1); }],
+   ac_cv_returns_n_of_chars=yes,
+   ac_cv_returns_n_of_chars=no,
+   ac_cv_returns_n_of_chars=no))
+if test "$ac_cv_returns_n_of_chars" = yes; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  AC_DEFINE(BSD_SPRINTF)
+fi
+
+# determine ALIGN_8
+AC_CHECK_SIZEOF(char,1)
+AC_CHECK_SIZEOF(short,2)
+AC_CHECK_SIZEOF(int,4)
+AC_CHECK_SIZEOF(long,4)
+AC_CHECK_SIZEOF(void*,4)
+AC_CHECK_SIZEOF(double, 8)
+AC_C_BIGENDIAN
+if test "$ac_cv_sizeof_int" != 4; then
+  AC_MSG_ERROR(need int to be four bytes long)
+fi
+if test "$ac_cv_sizeof_long" != "$ac_cv_sizeof_voidp"; then
+  AC_MSG_ERROR(need equal sizes for long and void*)
+fi
+if test "$ac_cv_sizeof_double" != 8; then
+  AC_MSG_ERROR(need double to b 8 bytes long)
+fi
+if test "$ac_cv_sizeof_voidp" != 4 && test "$ac_cv_sizeof_voidp" != 8; then
+  AC_MSG_ERROR(need void* to be 4 or 8 bytes long)
+fi
+if test "$ac_cv_sizeof_voidp" != 4; then
+  DEFS="-UOM_NDEBUG"
+  AC_SUBST(DEFS)
+fi
+
+dnl lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl help for configure
+dnl
+AC_ARG_WITH(
+  rootdir,
+  [  --with-rootdir=DIR      use DIR ass compiled-in root directory
+                             (default is PREFIX)])
+AC_ARG_WITH(
+  lex,
+  [  --with-lex=[LEX,no]     uses LEX as lex program, default is flex])
+AC_ARG_WITH(
+  readline,
+  [  --with-readline=[dynamic,static,no]
+                          do use dynamic/static/no readline for fancy display])
+AC_ARG_WITH(
+  Boost,
+  [  --without-Boost         do not use Boost ])
+AC_ARG_WITH(
+  stdvec,
+  [  --with-stdvec           use std::vector ])
+AC_ARG_WITH(
+  MP,
+  [  --without-MP            do not use MP (no MP links)])
+AC_ARG_WITH(
+  dbm,
+  [  --without-dbm           do not use dbm (no DBM links)])
+AC_ARG_WITH(
+  factory,
+  [  --without-factory       do not use factory (no poly factorization)])
+AC_ARG_WITH(
+  libfac,
+  [  --without-libfac        do not use libfac (no primary decompositions)])
+AC_ARG_WITH(
+  namespaces,
+  [  --with-namespaces       do compile namespace support])
+AC_ARG_WITH(
+  dl,
+  [  --without-dl            do not use dynamic linking, modules, and kernel])
+AC_ARG_WITH(
+  dynamic-modules,
+  [  --with-dynamic-modules  do compile with dynamic modules support])
+AC_ARG_WITH(
+  dynamic-kernel,
+  [  --without-dynamic-kernel
+                          do not compile with dynamic kernel parts])
+AC_ARG_WITH(apint,
+  [  --with-apint=PACKAGE    use PACKAGE for arbitary integer arithmetic])
+AC_ARG_WITH(svd,
+  [  --with-svd              use libsvd])
+AC_ARG_WITH(
+  Plural,
+  [  --without-Plural        do compile without Plural support])
+AC_ARG_WITH(
+  NTL,
+  [  --with-NTL              build for use with NTL.],
+  ,
+  with_NTL=yes)
+AC_ARG_WITH(
+  RatGB,
+  [  --with-ratGB            do compile with ratGB support (experimental)])
+
+dnl llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl check for packages we need
+dnl for gmp, MP, factory and libfac, we built them in, even if the libs
+dnl and headers were not found under the condition that the respective
+dnl  --enable argument was given
+dnl
+
+
+AC_MSG_CHECKING(whether to use dynamic linking)
+if test "$with_dl" != no && test "$ac_lib_dl" = yes; then
+  AC_DEFINE(HAVE_DL)
+  ac_have_dl=yes
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_CHECK_LIB(ncurses,tgetent,,\
+ AC_CHECK_LIB(curses,tgetent,,\
+  AC_CHECK_LIB(termcap,tgetent)))
+
+# readline
+if test "$with_readline" = dynamic && test "$ac_have_dl" != yes; then
+  AC_MSG_WARN(can not build dynamic readline without dynamic linking)
+  with_readline=static
+fi
+
+
+if test "$with_readline" != dynamic && test "$with_readline" != no; then
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+   AC_CHECK_LIB(readline, rl_abort)
+   AC_CHECK_HEADERS(readline/readline.h readline/history.h)
+   if test "$ac_cv_lib_readline_rl_abort" = yes && \
+      test "$ac_cv_header_readline_readline_h" = yes; then
+     AC_MSG_CHECKING(whether readline.h is ok)
+     AC_CACHE_VAL(ac_cv_header_readline_readline_h_ok,
+     AC_TRY_LINK(
+#include<unistd.h>
+#include<stdio.h>
+#include<readline/readline.h>
+#ifdef HAVE_READLINE_HISTORY_H
+#include<readline/history.h>
+#endif
+,
+,
+ac_cv_header_readline_readline_h_ok="yes",
+ac_cv_header_readline_readline_h_ok="no",
+))
+    AC_MSG_RESULT($ac_cv_header_readline_readline_h_ok)
+    if test "$ac_cv_header_readline_readline_h_ok" != yes; then
+#not ok -- try once more with explicitly declaring everything
+      AC_MSG_CHECKING(whether or not we nevertheless can use readline)
+      AC_CACHE_VAL(ac_cv_have_readline,
+      AC_TRY_LINK(
+#include <stdio.h>
+extern "C"
+{
+extern char * rl_readline_name;
+extern char *rl_line_buffer;
+char *filename_completion_function();
+typedef char **CPPFunction ();
+extern char ** completion_matches ();
+extern CPPFunction * rl_attempted_completion_function;
+extern FILE * rl_outstream;
+char * readline ();
+void add_history ();
+int write_history ();
+int read_history();
+}
+#ifndef NULL
+#define NULL 0
+#endif
+,
+rl_readline_name=NULL;
+*rl_line_buffer=1;
+completion_matches(NULL, filename_completion_function);
+rl_attempted_completion_function = (CPPFunction *) NULL;
+rl_outstream=NULL;
+readline(NULL);
+add_history(NULL);
+read_history(NULL);
+write_history(NULL);
+,
+ac_cv_have_readline="yes"
+,
+ac_cv_have_readline="no"
+))
+      AC_MSG_RESULT($ac_cv_have_readline)
+    else
+      AC_DEFINE(READLINE_READLINE_H_OK)
+      ac_cv_have_readline="yes"
+    fi
+  fi
+  if test "$ac_cv_have_readline" = yes; then
+    AC_DEFINE(HAVE_READLINE)
+  fi
+AC_LANG_RESTORE
+fi
+
+AC_MSG_CHECKING(which readline to use)
+if test "$ac_cv_with_readline" = dynamic; then
+  AC_MSG_RESULT(dynamic)
+  AC_DEFINE(HAVE_DYN_RL)
+elif test "$ac_cv_have_readline" = yes; then
+  AC_MSG_RESULT(static)
+elif test "$ac_cv_singuname" = PowerMacintosh-darwin; then
+  AC_MSG_ERROR(building without readline impossible on PowerMacintosh-darwin)
+else
+  AC_MSG_RESULT(none)
+  AC_MSG_WARN(building without readline: disabling fancy display)
+fi
+
+NEED_LIBS=$LIBS
+
+# gmp, MP, MPT, factory, libfac
+AC_CHECK_LIB(gmp, main)
+SAVE_LIBS=$LIBS
+AC_CHECK_LIB(MP, IMP_PutGmpInt,,,$MP_LIBS)
+AC_CHECK_LIB(MPT, MPT_GetTree,,,$MP_LIBS)
+LIBS=$SAVE_LIBS
+AC_CHECK_LIB(singcf, atof)
+AC_CHECK_LIB(singfac, atof)
+AC_CHECK_LIB(omalloc, omTestAddr)
+AC_CHECK_LIB(omalloc_ndebug, main)
+AC_CHECK_LIB(ntl,main)
+
+AC_CHECK_HEADERS(gmp.h MP.h  MPT.h factory.h factor.h omalloc.h \
+ omalloc.c)
+
+AC_MSG_CHECKING(whether to use Boost)
+if test "$with_Boost" != no; then
+  AC_MSG_RESULT(yes)
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
+  AC_CHECK_HEADERS(boost/dynamic_bitset.hpp)
+  AC_LANG_RESTORE
+else
+  AC_MSG_RESULT(no)
+  AC_MSG_CHECKING(whether to use std::vector)
+  if test "$with_stdvec" != yes; then
+    AC_MSG_RESULT(no)
+  else
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(USE_STDVECBOOL)
+    USE_STDVECBOOL=1
+  fi
+fi
+AC_SUBST(USE_STDVECBOOL)
+
+if test "$ac_cv_lib_gmp_main" = yes && \
+ test "$ac_cv_header_gmp_h" = yes; then
+    ac_gmp_ok=yes
+fi
+
+if test "$ac_cv_lib_MP_IMP_PutGmpInt" = yes && \
+ test "$ac_cv_lib_MPT_MPT_GetTree" && \
+ test "$ac_cv_header_MP_h" = yes && \
+ test "$ac_cv_header_MPT_h" = yes; then
+  ac_MP_ok=yes
+fi
+
+if test "$ac_cv_lib_singcf_atof" = yes && \
+ test "$ac_cv_header_factory_h" = yes; then
+  ac_factory_ok=yes
+fi
+
+if test "$ac_cv_lib_singfac_atof" = yes && \
+ test "$ac_cv_header_factor_h" = yes; then
+  ac_libfac_ok=yes
+fi
+
+if test "$ac_cv_lib_omalloc_omTestAddr" = yes && \
+   test "$ac_cv_lib_omalloc_ndebug_main" = yes && \
+   test "$ac_cv_header_omalloc_c" = yes && \
+   test "$ac_cv_header_omalloc_h" = yes; then
+  ac_cv_omalloc_ok=yes
+fi
+
+if test "$ac_cv_lib_ntl_main" = yes; then
+  ac_cv_ntl_ok=yes
+fi
+
+SAVE_LIBS=$LIBS
+AC_CHECK_LIB(c_nonshared,__stack_chk_fail_local,GLIBC_DYN_FIX="-lc_nonshared",GLIBC_DYN_FIX="")
+LIBS=$SAVE_LIBS
+AC_SUBST(GLIBC_DYN_FIX)
+
+# evaluate results
+dnl llllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll
+dnl make sure that omalloc is there
+dnl
+if test "$ac_cv_omalloc_ok" != yes && test "$enable_omalloc" != yes; then
+  AC_MSG_ERROR(can not build without omalloc)
+fi
+
+AC_MSG_CHECKING(which apint package to use)
+if test "${with_apint}" != gmp; then
+  if test "$ac_gmp_ok" = yes || test "$enable_gmp" = yes; then
+    AC_MSG_RESULT(gmp)
+    will_have_gmp=yes
+    NEED_LIBS="-lgmp ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(none)
+    AC_MSG_ERROR(can not build without gmp)
+  fi
+else
+  if test "$ac_gmp_ok" = yes || test "$enable_gmp" = yes; then
+    AC_MSG_RESULT(gmp)
+    will_have_gmp=yes
+    NEED_LIBS="-lgmp ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(none)
+    AC_MSG_ERROR(can not build with gmp)
+  fi
+fi
+
+AC_MSG_CHECKING(whether to use libsvd)
+if test "$with_svd" = yes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_SVD)
+  NEED_LIBS="-lsvd -lmpfr ${NEED_LIBS}"
+else
+  AC_MSG_RESULT(no)
+fi
+AC_SUBST(HAVE_SVD)
+
+#
+AC_MSG_CHECKING(whether to have MP)
+if test "${with_MP}" != yes && test "${with_MP}" != no; then
+  if (test "${will_have_gmp}" = yes) && \
+     (test "$ac_MP_ok" =  yes || test "$enable_MP" = yes); then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_MPSR)
+    HAVE_MPSR=1
+    MP_LIBS="-lMPT -lMP ${MP_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+  fi
+elif  test "${with_MP}" = yes; then
+  if (test "${will_have_gmp}" = yes) && \
+     (test "$ac_MP_ok" =  yes || test "$enable_MP" = yes); then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_MPSR)
+    HAVE_MPSR=1
+    MP_LIBS="-lMPT -lMP ${MP_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(can not build with MP)
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+AC_SUBST(HAVE_MPSR)
+AC_SUBST(MP_LIBS)
+
+AC_MSG_CHECKING(whether to have NTL)
+if test "${with_NTL}" = yes ; then
+  AC_MSG_RESULT(yes)
+  NEED_LIBS="-lntl ${NEED_LIBS}"
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have factory)
+if test "${with_factory}" != yes && test "${with_factory}" != no; then
+  if test "$ac_factory_ok" =  yes || test "$enable_factory" = yes; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_FACTORY)
+    will_have_factory=yes
+    NEED_LIBS="-lsingcf ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+  fi
+elif  test "${with_factory}" = yes; then
+  if test "$ac_factory_ok" =  yes || test "$enable_factory" = yes; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_FACTORY)
+    will_have_factory=yes
+    NEED_LIBS="-lsingcf ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(can not build with factory)
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have libfac)
+if test "${with_libfac}" != yes && test "${with_libfac}" != no; then
+  if (test "${will_have_factory}" = yes) && \
+     (test "$ac_libfac_ok" =  yes || test "$enable_libfac" = yes); then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_LIBFAC_P)
+    NEED_LIBS="-lsingfac ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+  fi
+elif  test "${with_libfac}" = yes; then
+  if (test "${will_have_factory}" = yes) && \
+     (test "$ac_libfac_ok" =  yes || test "$enable_libfac" = yes); then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_LIBFAC_P)
+    NEED_LIBS="-lsingfac ${NEED_LIBS}"
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(can not build with libfac)
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+
+NEED_LIBSG="${NEED_LIBS}"
+if test "$ac_cv_sizeof_voidp" != 4; then
+  NEED_LIBS="${NEED_LIBS} -lomalloc"
+else
+  NEED_LIBS="${NEED_LIBS} -lomalloc_ndebug"
+fi
+
+
+AC_SUBST(NEED_LIBS)
+AC_SUBST(NEED_LIBSG)
+
+AC_MSG_CHECKING(whether to have dbm links)
+if test "$with_dbm" != no; then
+  AC_DEFINE(HAVE_DBM)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have namespaces)
+if test "$with_namespaces" != no; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_NS)
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have dynamic modules)
+if test "$with_dynamic_modules" = no || test "$ac_have_dl" != yes; then
+  AC_MSG_RESULT(no)
+else
+  AC_DEFINE(HAVE_DYNAMIC_LOADING)
+  AC_MSG_RESULT(yes)
+fi
+
+AC_MSG_CHECKING(whether to have dynamic kernel)
+if test "$with_dynamic_kernel" != no && test "$ac_lib_dl" = yes; then
+  DL_KERNEL=1
+  AC_SUBST(DL_KERNEL)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have Plural)
+if test "$with_Plural" != no && test "$enable_Plural" != no; then
+  AC_DEFINE(HAVE_PLURAL)
+  AC_MSG_RESULT(yes)
+  PLURAL=1
+  AC_SUBST(PLURAL)
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to have ratGB)
+if test "$with_ratGB" != yes && test "$enable_ratGB" != yes; then
+  AC_MSG_RESULT(no)
+else
+  AC_DEFINE(HAVE_RATGRING)
+  AC_MSG_RESULT(yes)
+fi
+
+
+OUTPUT_MAKEFILES="Makefile ../kernel/Makefile"
+
+if test "$ac_cv_singuname" = "ix86-Win"; then
+  OUTPUT_MAKEFILES="${OUTPUT_MAKEFILES} Singular.rc"
+fi
+
+AC_OUTPUT(${OUTPUT_MAKEFILES}, \
+ cp mod2.h ../kernel/mod2.h; \
+ if test "$CONFIG_HEADERS"; then echo timestamp > stamp-h; fi)

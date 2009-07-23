@@ -1,6 +1,14 @@
 --- ../src/Singular/libsingular.h	2009-05-22 14:16:49.000000000 +0100
-+++ Singular.libsingular.h	2009-06-11 12:42:22.000000000 +0100
-@@ -23,5 +23,9 @@
++++ Singular.libsingular.h	2009-07-23 10:28:32.000000000 +0100
+@@ -13,6 +13,7 @@
+ #include "singular/omalloc.h"
+ #include "singular/clapsing.h"
+ #include "singular/fast_maps.h"
++#include "singular/kutil.h"
+ #include "singular/kstd1.h"
+ #include "singular/tgb.h"
+ #include "singular/sparsmat.h"
+@@ -23,5 +24,9 @@
  
  int siInit(char *);
  

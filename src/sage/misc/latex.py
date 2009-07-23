@@ -1443,7 +1443,7 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     This function behaves differently depending on whether in notebook
     mode or not.
 
-    If note in notebook mode, the output is displayed in a separate
+    If not in notebook mode, the output is displayed in a separate
     viewer displaying a dvi (or pdf) file, with the following: the
     title string is printed, centered, at the top. Beneath that, each
     object in ``objects`` is typeset on its own line, with the string
@@ -1474,15 +1474,14 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     large pictures (like graphs) generated with tikz. This only works
     when using a separate viewer. Note that the object are currently
     typeset in plain math mode rather than displaymath, because the
-    later imposes a limit on the width of the picture. Technically,
-    ``tightpage`` adds
+    latter imposes a limit on the width of the picture. Technically,
+    ``tightpage`` adds ::
 
       \\usepackage[tightpage,active]{preview}
       \\PreviewEnvironment{page}
 
-    to the `\LaTeX` preamble, and replaces the ``\\[`` and ``\\]`` around
+    to the LaTeX preamble, and replaces the ``\\[`` and ``\\]`` around
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
-
 
     If in notebook mode with ``viewer`` equal to ``None``, this
     usually uses jsMath -- see the next paragraph for the exception --

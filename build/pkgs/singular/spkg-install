@@ -6,7 +6,7 @@
 
 SAGE_DEBUG=0
 SRC=`pwd`/src
-SHARED=`pwd`/share
+SHARED=`pwd`/shared
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -317,8 +317,8 @@ build_libfac()
 
 install_docs()
 {
-    cp $SHARED/singular.hlp $SAGE_LOCAL/shared/singular/
-    cp $SHARED/singular.idx $SAGE_LOCAL/shared/singular/
+    cp $SHARED/singular.hlp $SAGE_LOCAL/share/singular/
+    cp $SHARED/singular.idx $SAGE_LOCAL/share/singular/
 }
 
 build()

@@ -91,8 +91,8 @@ patch()
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
     cp patches/factory.GNUMakefile.in src/factory/GNUMakefile.in
-    cp patches/Singular.configure src/Singular/configure
-    cp patches/Singular.configure.in src/Singular/configure.in
+    #cp patches/Singular.configure src/Singular/configure
+    #cp patches/Singular.configure.in src/Singular/configure.in
 }
 
 distclean()

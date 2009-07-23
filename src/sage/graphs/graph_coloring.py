@@ -221,7 +221,7 @@ def chromatic_number(G):
     elif G.is_bipartite(): #can we do it in linear time?
         return 2
     else: #counting cliques is faster than our brute-force method...
-        m = max([len(c) for c in G.cliques()])
+        m = G.clique_number()
     if m >= o-1: #marginal improvement... if there's an o-1 clique and not an o clique, don't waste our time coloring.
         return m
     for n in range(m,o+1):

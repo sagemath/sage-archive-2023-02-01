@@ -315,8 +315,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
 
     This example is due to Chris Godsil:
         sage: HS = graphs.HoffmanSingletonGraph()
-        sage: clqs = (HS.complement()).cliques()
-        sage: alqs = [Set(c) for c in clqs if len(c) == 15]
+        sage: alqs = [Set(c) for c in (HS.complement()).cliques_maximum()]
         sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
         sage: Y0,Y1 = Y.connected_components_subgraphs()
         sage: st(Y0, [Y0.vertices()])[1] == st(Y1, [Y1.vertices()])[1]

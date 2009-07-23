@@ -703,7 +703,7 @@ def my_getdoc(obj):
             return None
     if ds is None:
         return None
-    return format(ds)
+    return ds
 
 def my_getsource(obj, is_binary):
     """

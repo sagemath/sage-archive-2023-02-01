@@ -973,6 +973,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: g = DirichletGroup(17, GF(9,'a')).0
             sage: g.jacobi_sum(g**2)
             2*a
+
+        TESTS:
+
+        This shows that ticket #6393 has been fixed::
+
+            sage: G = DirichletGroup(5); X = G.list(); Y = X[0]; Z = X[1]
+            sage: # Y is trivial and Z is quartic
+            sage: sum([Y(x)*Z(1-x) for x in IntegerModRing(5)])
+            -1
+            sage: # The value -1 above is the correct value of the Jacobi sum J(Y, Z).
+            sage: Y.jacobi_sum(Z); Z.jacobi_sum(Y)
+            -1
+            -1
         """
         if check:
             if self.parent() != char.parent():

@@ -17,6 +17,7 @@ MPFR is free. It is distributed under the GNU Lesser General Public License
 == SPKG Maintainers ==
 
  * Michael Abshoff
+ * David Kirkby
 
 == Upstream Contact ==
 
@@ -28,7 +29,40 @@ The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
 
  * GMP
 
+== IMPORTANT ==
+When building Sage binaries for widespead distribution, set the variable
+INCLUDE_MPFR_PATCH to 1, to include a patch, which can cause failures
+on sun4v machines.
+
 == Changelog ==
+
+=== mpfr-2.4.1p0 (David Kirkby, July 17th 2009) ===
+ * Sage TRAC #6453 http://sagetrac.org/sage_trac/ticket/6453
+   Implement a patch to mpn_exp.c develoed by Paul Zimmermann
+   (Paul.Zimmermann@loria.fr) to bypass what may be a Solaris or gcc bug.
+   This avoids 20 test failures on a Sun T5240 running Solaris 10 (both
+   updates 4 and 7 have been tried on this machine). Since it's only seen
+   there, the patch is very specific and is only applied on those machines, not
+   all Solaris systems by default, but can be over-ridden with an environment
+   variable INCLUDE_MPFR_PATCH (set to 1 to include patch, 0 to exclude it).
+   If INCLUDE_MPFR_PATCH is unset, the patch will be included on sun4v systems,
+   but exluded on all others. Please set it to 1 if building binaries for others.
+
+   This is as gcc bug ID 40757 - see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=40757
+
+ * Remove a comment at the bottom of spkg-install telling developers to bypass
+   check on release systems. Given failures have occured, it would be unwise to
+   bypass any checks.
+   Note, the checks were performed in Sage 4.1, so despite a coment saying
+   checks should be bypassed in 'releases' they were in fact not bypassed.
+   The tests were already executed, which is how the bug was discovered.
+
+ * Add a comment to remind people not to bypass the tests, pointing out
+   failures had occured, so it would be unwise to bypass checks.
+
+ * Update the source to use the latest patches, as strongly reccommened in the
+   INSTALL file. This brings the code to MPFR 2.4.1 patch level 5, though I'm
+   considering it mpfr-2.4.1p0 for Sage purposes.
 
 === mpfr-2.4.1 (Michael Abshoff, March 2nd, 2009) ===
  * update to the official MPFR 2.4.1 release

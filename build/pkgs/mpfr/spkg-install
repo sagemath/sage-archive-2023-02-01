@@ -24,7 +24,69 @@ build()
     fi
 
     EXTRA=""
+    # Apply a patch on Solaris, but only on the sun4v architecture
+    # by default. On other Solaris systems, it can be over-ridden
 
+    # The patch to the C code was developed by Paul Zimmermann, the patch
+    # to the spkg-install by David Kirkby. See  Ticket #6453
+
+    if [ `uname` = "SunOS" ]; then
+       # Add a patch to MPFR on Solaris if either:
+       # 1) The machine is a sun4v architecture
+       # 2) The environment variable INCLUDE_MPFR_PATCH is set to 1
+       #    This will allow creating of binaries on a machine other than
+       #    sun4v, which will run on sun4v.
+       echo "\nThis computer is running Solaris on which some problems have been observed"
+       echo "with the MPFR library running on a T2+ processor (sun4v architecture)."
+       echo "See http://sagetrac.org/sage_trac/ticket/6453 A patch can be applied"
+       echo "to bypass this problem. The problem has NEVER been seen on Solaris running x86"
+       echo "or on sun4u (UltraSPARC II etc). To determine the architecture run:"
+       echo "$ /usr/bin/arch -k\n"
+       echo "If you experience MPFR test failures, or you wish to ensure the binary will run"
+       echo "on a sun4v system, set the environment variable INCLUDE_MPFR_PATCH to 1, with:"
+       echo "$ export INCLUDE_MPFR_PATCH=1\n"
+       echo "If you specifically wish to exclude the patch, set INCLUDE_MPFR_PATCH to 0 with"
+       echo "$ export INCLUDE_MPFR_PATCH=0\n"
+       echo "By default, the patch will only be applied on sun4v systems (T1, T2 and T2+)"
+       echo "processors but this can be over-ridden on other systems. Binaries for"
+       echo "Solaris SPARC binaries should be built with INCLUDE_MPFR_PATCH set to 1"
+       echo "unless you are 100% sure they will not be used on a sun4v system.\n"
+
+       # Note, "/usr/bin/arch" will return "sun4" on any SPARC system
+       # If given the '-k' option, aditional information will be displayed
+       # to indicate if the system is sun4m (very old), sun4u or sun4v
+
+       # Set the variable PATCH_MPFR to something other than 0 or 1"
+       PATCH_MPFR="${INCLUDE_MPFR_PATCH-2}"
+       if [ $PATCH_MPFR = "1" ] ; then
+          echo "Since INCLUDE_MPFR_PATCH was set to 1, the MPFR library will be patched."
+          echo "The binaries should be safe on any Solaris system"
+          cp ../patches/mpn_exp.c mpn_exp.c
+       elif [ $PATCH_MPFR = "0" ] ; then
+          echo "Since INCLUDE_MPFR_PATCH was set to 0, the MPFR library will not"
+          echo "be patched. You would be unwise to distribute SPARC binaries"
+          echo "unless you are sure they will not be used on sun4v systems"
+       elif [  $PATCH_MPFR = "2" -a `arch -k` = "sun4v" ] ; then
+          echo "This is a sun4v system, so the MPFR library will be patched. The binaries"
+          echo "should run correctly on any SPARC system whose operating system is"
+          echo "no older than the system used to build the binaries."
+          cp ../patches/mpn_exp.c mpn_exp.c
+       elif [ $PATCH_MPFR = "2" -a `arch -k` != "sun4v" ] ; then
+          echo "Since this is not a sun4v system, the MPFR binary will not"
+          echo "be patched"
+          # Issue a warning on SPARC, but not x86 systems.
+          if [ `arch` = "sun4" ]; then
+            echo "WARNING: Problems may occur if you try to run this SPARC"
+            echo "binary on a sun4v system (T1, T2 or T2+ processors). Binaries created like"
+            echo "this should not distributed unless you know the end users system will not"
+            echo "be sun4v. Set INCLUDE_MPFR_PATCH to 1, to include the patch, if you are unsure."
+          fi
+       else
+          echo "The environment variable INCLUDE_MPFR_PATCH was set incorrectly The MPFR"
+          echo "library will be patched as a precaution."
+          cp ../patches/mpn_exp.c mpn_exp.c
+       fi
+    fi
     if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then
          EXTRA="--disable-static --enable-shared"
     fi
@@ -51,11 +113,10 @@ cd src
 build
 
 if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
-    echo "An error occured while building mpfr."
+    echo "An error occurred while building mpfr."
     exit 1
 fi
 
-#uncomment the line below to avoid running the test suite.
-#this should be done in all final releases
-#exit 0
+# Do not bypass the checks, as some MPFR failures
+# have been observed, so MPFR should be carefully tested.
 cd ..; ./spkg-check

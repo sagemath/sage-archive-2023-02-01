@@ -91,6 +91,10 @@ patch()
     cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
     cp patches/factory.GNUMakefile.in src/factory/GNUMakefile.in
+    cp patches/libfac.charset.alg_factor.cc src/libfac/charset/alg_factor.cc
+    cp patches/kernel.Makefile.in src/kernel/Makefile.in
+    cp patches/Singular.Makefile.in src/Singular/Makefile.in
+    cp patches/Singular.tesths.cc src/Singular/tesths.cc
     #cp patches/Singular.configure src/Singular/configure
     #cp patches/Singular.configure.in src/Singular/configure.in
 }
@@ -225,7 +229,7 @@ build_libsingular()
 
     make install-libsingular
 
-    cp kernel/kInline.cc $SAGE_LOCAL/include/singular/
+    #cp kernel/kInline.cc $SAGE_LOCAL/include/singular/
 
     if [ $? -ne 0 ]; then
         echo "Unable to install libsingular."

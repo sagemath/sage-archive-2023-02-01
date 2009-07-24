@@ -1,0 +1,20 @@
+--- ../src/libfac/charset/alg_factor.cc	2009-06-04 18:54:59.000000000 +0100
++++ libfac.charset.alg_factor.cc	2009-07-23 15:25:29.000000000 +0100
+@@ -10,7 +10,7 @@
+ #include <Factor.h>
+ #include <SqrFree.h>
+ #include <helpstuff.h>
+-#include <assert.h>
++//#include <assert.h>
+ // Charset - Includes
+ #include "csutil.h"
+ #include "charset.h"
+@@ -442,7 +442,7 @@
+   {
+     return alg_lc(f.LC());
+   }
+-  assert(f.inCoeffDomain());
++  //assert(f.inCoeffDomain());
+   return f;
+ }
+ 

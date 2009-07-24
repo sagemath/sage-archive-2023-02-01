@@ -21,6 +21,11 @@
 #include "singular/rmodulo2m.h"
 #include "singular/rmodulon.h"
 
+#include "singular/subexpr.h"
+#include "singular/tok.h"
+#include "singular/grammar.h"
+#include "singular/ipid.h"
+#include "singular/ipshell.h"
 
 int siInit(char *);
 

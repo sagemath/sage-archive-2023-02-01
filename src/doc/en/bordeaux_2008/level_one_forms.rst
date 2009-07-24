@@ -20,7 +20,7 @@ from the definition.
     q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 + O(q^7)
 
 There are much better ways to compute :math:`\Delta`, which
-amount to just a few polynomial multiplactions over
+amount to just a few polynomial multiplications over
 :math:`\ZZ`.
 
 ::

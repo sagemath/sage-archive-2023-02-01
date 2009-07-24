@@ -6,7 +6,7 @@ Sage has a highly optimized implementation of the Harvey-Kedlaya
 algorithm for computing the matrix of Frobenius associated to a curve
 over a finite field. This is an implementation by David Harvey, which
 is GPL'd and depends only on NTL and zn_poly (a C library in Sage for
-fast arithmetic :math:`(\ZZ/n\ZZ)[x]`).
+fast arithmetic in :math:`(\ZZ/n\ZZ)[x]`).
 
 We import the hypellfrob function and call it on a polynomial over
 :math:`\ZZ`.
@@ -22,7 +22,7 @@ We import the hypellfrob function and call it on a polynomial over
     [ 0 + O(101)  0 + O(101) 65 + O(101) 42 + O(101)]
     [ 0 + O(101)  0 + O(101) 89 + O(101) 29 + O(101)]
 
-e do the same calculation but in :math:`\ZZ/101^4\ZZ`,
+We do the same calculation but in :math:`\ZZ/101^4\ZZ`,
 which gives enough precision to recognize the exact characteristic
 polynomial in :math:`\ZZ[x]` of Frobenius as an element of the
 endomorphism ring. This computation is still very fast, taking only a

@@ -439,6 +439,10 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         For curves over number fields and finite fields, see below.
 
+        .. note::
+
+           :meth:`additive_order` is a synonym for :meth:`order`
+
         EXAMPLE::
 
             sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
@@ -448,6 +452,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             Traceback (most recent call last):
             ...
             NotImplementedError: Computation of order of a point not implemented over general fields.
+            sage: E(0).additive_order()
+            1
             sage: E(0).order() == 1
             True
 
@@ -455,6 +461,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         if self.is_zero():
             return rings.Integer(1)
         raise NotImplementedError, "Computation of order of a point not implemented over general fields."
+
+    additive_order = order
 
     def curve(self):
         """
@@ -1241,6 +1249,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         curves defined over `\QQ`, we call pari; over other
         number fields we implement the function here.
 
+        .. note::
+
+           :meth:`additive_order` is a synonym for :meth:`order`
+
         EXAMPLES::
 
             sage: E = EllipticCurve([0,0,1,-1,0])
@@ -1254,6 +1266,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
             sage: P.order()
+            2
+            sage: P.additive_order()
             2
 
         """
@@ -1296,6 +1310,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         # Finally we find the exact order using the generic code:
         self._order = generic.order_from_multiple(self,N,operation='+')
         return self._order
+
+    additive_order = order
 
     def has_finite_order(self):
         """
@@ -1997,6 +2013,10 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         order via computation of several random points and their
         orders.
 
+        .. note::
+
+           :meth:`additive_order` is a synonym for :meth:`order`
+
         AUTHOR:
 
         - John Cremona, 2008-02-10, adapted 2008-04-05 to use generic functions.
@@ -2011,6 +2031,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             3227
             sage: Q = E(0,2)
             sage: Q.order()
+            7
+            sage: Q.additive_order()
             7
 
         In the next example, the cardinality of E will be computed (using SEA) and cached::
@@ -2065,4 +2087,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         self._order = N
         return self._order
+
+    additive_order = order
+
 

@@ -1,4 +1,4 @@
-from sage.libs.singular.decl cimport ring, poly, number
+from sage.libs.singular.decl cimport ring, poly, number, intvec
 
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element
@@ -26,6 +26,8 @@ cdef object   si2sa_GFqPari(number *n, ring *_ring, object base)
 cdef object   si2sa_ZZmod(number *n, ring *_ring, object base)
 
 cdef object   si2sa_NF(number *n, ring *_ring, object base)
+
+cdef object si2sa_intvec(intvec *v)
 
 # dispatches to all the above.
 cdef object si2sa(number *n, ring *_ring, object base)

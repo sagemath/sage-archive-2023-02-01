@@ -302,7 +302,7 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except 
         sage: f^(2^60)
         Traceback (most recent call last):
         ...
-        OverflowError: Exponent overflow (1152921504606846976).
+        OverflowError: ...
     """
     cdef unsigned long v = p_GetMaxExp(p, r)
     v = v * exp

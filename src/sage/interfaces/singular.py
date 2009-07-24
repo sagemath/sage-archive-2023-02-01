@@ -358,6 +358,8 @@ class Singular(Expect):
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.
+        if not nodes:
+            generate_docstring_dictionary()
 
     def _start(self, alt_message=None):
         """
@@ -1732,9 +1734,12 @@ class SingularFunction(ExpectFunction):
         EXAMPLES::
 
             sage: singular.groebner._sage_doc_()
-            'The Sage interface to the Singular help system is not implemented.'
+            '\ngroebner...Procedure from library `standard.lib...
         """
-        return "The Sage interface to the Singular help system is not implemented."
+        try:
+            return nodes[node_names[self._name]]
+        except KeyError:
+            return ""
 
 class SingularFunctionElement(FunctionElement):
     def _sage_doc_(self):
@@ -1744,9 +1749,12 @@ class SingularFunctionElement(FunctionElement):
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
             sage: A.nrows._sage_doc_()
-            'The Sage interface to the Singular help system is not implemented.'
+            "\nnrows\n-----\n\n`*Syntax:*'\n ...
         """
-        return "The Sage interface to the Singular help system is not implemented."
+        try:
+            return nodes[node_names[self._name]]
+        except KeyError:
+            return ""
 
 def is_SingularElement(x):
     r"""
@@ -1774,6 +1782,78 @@ def reduce_load():
     """
     return SingularElement(None, None, None)
 
+
+
+nodes = {}
+node_names = {}
+
+def generate_docstring_dictionary():
+    """
+    Generate global dictionaries which hold the docstrings for
+    Singular functions.
+
+    EXAMPLE::
+
+        sage: from sage.interfaces.singular import generate_docstring_dictionary
+        sage: generate_docstring_dictionary()
+    """
+    global nodes
+    global node_names
+
+    nodes.clear()
+    node_names.clear()
+
+    singular_docdir = os.environ["SAGE_LOCAL"]+"/share/singular/"
+
+    new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
+    new_lookup = re.compile("\* ([^:]*):*([^.]*)\.")
+
+    L, in_node, curr_node = [], False, None
+
+    for line in open(singular_docdir + "singular.hlp"):
+        m = re.match(new_node,line)
+        if m:
+            # a new node starts
+            in_node = True
+            nodes[curr_node] = "".join(L)
+            L = []
+            curr_node, = m.groups()
+        elif in_node: # we are in a node
+           L.append(line)
+        else:
+           m = re.match(new_lookup, line)
+           if m:
+               a,b = m.groups()
+               node_names[a] = b.strip()
+
+        if line == "Index\n":
+            in_node = False
+
+    nodes[curr_node] = "".join(L) # last node
+
+def get_docstring(name):
+    """
+    Return the docstring for the function ``name``.
+
+    INPUT:
+
+    - ``name`` - a Singular function name
+
+    EXAMPLE::
+
+        sage: from sage.interfaces.singular import get_docstring
+        sage: 'groebner' in get_docstring('groebner')
+        True
+        sage: 'standard.lib' in get_docstring('groebner')
+        True
+
+    """
+    if not nodes:
+        generate_docstring_dictionary()
+    try:
+        return nodes[node_names[name]]
+    except KeyError:
+        return ""
 
 ##################################
 

@@ -1882,7 +1882,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: (x^2^30) * x^2^30
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (2147483648).
+            OverflowError: Exponent overflow (...).
         """
         # all currently implemented rings are commutative
         cdef poly *_p
@@ -1995,7 +1995,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: (x+y^2^30)^10
             Traceback (most recent call last):
             ....
-            OverflowError: Exponent overflow (10737418240).
+            OverflowError: Exponent overflow (...).
         """
         if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
                 PY_TYPE_CHECK_EXACT(exp, int):

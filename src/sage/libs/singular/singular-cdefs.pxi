@@ -69,12 +69,12 @@ cdef extern from "libsingular.h":
     int BTEST1(int)
     int BVERBOSE(int)
 
+
     #
     # STRUCTS
     #
 
     # rational numbers
-
     ctypedef struct number "snumber":
         mpz_t z
         mpz_t n
@@ -147,6 +147,7 @@ cdef extern from "libsingular.h":
         int pCompIndex # index of components
 
         n_Procs_s*    cf
+        int ref
 
     # available ring orders
 
@@ -207,10 +208,15 @@ cdef extern from "libsingular.h":
         int *(*ivGetVec)() # this is internal actually
         int (*rows)()
         int (*cols)()
+        int (*length)()
+        int (*get "operator[]")(int i)
 
     # omalloc bins
 
     ctypedef struct omBin "omBin_s"
+
+    ctypedef struct package "ip_package":
+        int language
 
     # pairs and polys for Groebner Strategy objects
 
@@ -255,6 +261,28 @@ cdef extern from "libsingular.h":
         void *R
         int *S_2_R
 
+    ctypedef struct data_union:
+        ring *uring
+
+    # interpreter objects
+    ctypedef struct idhdl "idrec":
+        idhdl *next
+        char *id
+        int typ
+        short lev
+        short ref
+        data_union data
+
+    ctypedef struct leftv "sleftv":
+        leftv *next
+        char  *id
+        void* data
+        #data is some union, so this is might be very dangerous, but I am lazy now
+        int   typ
+        void (* Init)()
+        void (* CleanUp)()
+        int  rtyp
+
     #
     # GLOBAL VARIABLES
     #
@@ -275,6 +303,15 @@ cdef extern from "libsingular.h":
 
     cdef long SR_INT
 
+    cdef package *basePack
+    cdef package *currPack
+
+    cdef idhdl *basePackHdl
+    cdef idhdl *currPackHdl
+    cdef idhdl *currRingHdl
+
+    cdef int errorreported
+    cdef int verbose
 
     #
     # FUNCTIONS
@@ -299,6 +336,7 @@ cdef extern from "libsingular.h":
     # typed malloc from bin
 
     void *omAllocBin(omBin *bin)
+    void omFreeBin(void* foo, void* bin)
 
     # typed calloc from bin
 
@@ -822,6 +860,71 @@ cdef extern from "libsingular.h":
     # tail reduction
     poly *redtailBba(poly *p, int index, skStrategy *strat)
 
+    cdef int CMD_M
+    cdef int INT_CMD
+    cdef int POLY_CMD
+    cdef int PROC_CMD
+    cdef int RING_CMD
+
+    cdef int STRING_CMD
+    cdef int VECTOR_CMD
+    cdef int IDEAL_CMD
+    cdef int MODUL_CMD
+    cdef int NUMBER_CMD
+    cdef int MATRIX_CMD
+    cdef int LIST_CMD
+    cdef int RING_CMD
+    cdef int INTVEC_CMD
+
+
+    cdef int V_SHOW_MEM
+    cdef int V_YACC
+    cdef int V_REDEFINE
+    cdef int V_READING
+    cdef int V_LOAD_LIB
+    cdef int V_DEBUG_LIB
+    cdef int V_LOAD_PROC
+    cdef int V_DEF_RES
+    cdef int V_DEBUG_MEM
+    cdef int V_SHOW_USE
+    cdef int V_IMAP
+    cdef int V_PROMPT
+    cdef int V_NSB
+    cdef int V_CONTENTSB
+    cdef int V_CANCELUNIT
+    cdef int V_DEG_STOP
+
+    #
+    # INTERPRETER
+    #
+
+    cdef omBin* sleftv_bin
+
+    int     IsCmd(char *n, int  tok)
+
+    idhdl* ggetid(char *n, bint local)
+
+    leftv * iiMake_proc(idhdl *pn, package *pack, leftv *sl)
+
+    bint iiExprArith1(leftv *res, leftv* a, int op)
+    bint iiExprArith2(leftv *res, leftv* a, int op, leftv *b, bint proc_call)
+    bint iiExprArith3(leftv *res, int op, leftv *a, leftv *b, leftv *c)
+    bint iiExprArithM(leftv *res, leftv* a, int op)
+
+    bint iiLibCmd(char *, bint autoexport, bint tellerror, bint force)
+
+    package *IDPACKAGE(idhdl *)
+
+    cdef idhdl *IDROOT
+
+    idhdl *enterid(char * a, int lev, int t, idhdl** root, bint init)
+
+
+    cdef int LANG_TOP
+
 cdef extern from "stairc.h":
     # Computes the monomial basis for R[x]/I
     ideal *scKBase(int deg, ideal *s, ideal *Q)
+
+
+

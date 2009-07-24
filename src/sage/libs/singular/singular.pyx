@@ -25,6 +25,7 @@ import os
 
 from sage.misc.misc_c import is_64_bit
 
+from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options
 from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
 from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
@@ -527,7 +528,8 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         sage: P(3)
         3
     """
-    cdef long _d
+    nr2mModul = d.parent().characteristic()
+    cdef int _d
     if _ring.ringtype == 1:
         _d = long(d)
         return nr2mMapZp(<number *>_d)
@@ -592,6 +594,14 @@ cdef number *sa2si(Element elem, ring * _ring):
         return sa2si_ZZmod(elem, _ring)
     else:
         raise ValueError, "cannot convert to SINGULAR number"
+
+
+cdef object si2sa_intvec(intvec *v):
+    cdef int r
+    cdef list l = list()
+    for r in range(v.length()):
+        l.append(v.get(r))
+    return tuple(l)
 
 # ==============
 # Initialisation

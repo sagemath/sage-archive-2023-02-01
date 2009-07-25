@@ -908,7 +908,35 @@ class Gap(Expect):
                                  eval(self.eval('NamesUserGVars()'))
         return self.__trait_names
 
+    def get_record_element(self, record, name):
+        r"""
+        Return the element of a GAP record identified by ``name``.
 
+        INPUT::
+
+        - ``record`` -- a GAP record
+        - ``name`` -- str
+
+        OUTPUT::
+
+        - :class:`GapElement`
+
+        EXAMPLES::
+
+            sage: rec = gap('rec( a := 1, b := "2" )')
+            sage: gap.get_record_element(rec, 'a')
+            1
+            sage: gap.get_record_element(rec, 'b')
+            2
+
+        TESTS::
+
+            sage: rec = gap('rec( a := 1, b := "2" )')
+            sage: type(gap.get_record_element(rec, 'a'))
+            <class 'sage.interfaces.gap.GapElement'>
+
+        """
+        return self('%s.%s' % (record.name(), name))
 
 ############
 

@@ -890,7 +890,10 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([2, 4, 1, 5, 3]).inverse()
             [3, 1, 5, 2, 4]
         """
-        return Permutation([self.index(i+1)+1 for i in range(len(self))])
+        w = range(len(self))
+        for i,j in enumerate(self):
+            w[j-1] = i+1
+        return Permutation(w)
 
     def _icondition(self, i):
         """

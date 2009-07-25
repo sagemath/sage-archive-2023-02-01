@@ -508,6 +508,16 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             0
             sage: max_slope
             +Infinity
+
+            sage: IV = IntegerVectors(3,10,inner=[4,1,3], min_part = 2)
+            sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
+            sage: floor(1), floor(2), floor(3)
+            (4, 2, 3)
+
+            sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part = 3)
+            sage: min_length, max_length, floor, ceiling, min_slope, max_slope = IV._parameters()
+            sage: ceiling(1), ceiling(2), ceiling(3)
+            (3, 1, 3)
         """
         constraints = self.constraints
         #n, min_length, max_length, floor, ceiling, min_slope, max_slope
@@ -528,7 +538,7 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             ceiling = constant_func(max_part)
 
         if 'inner' in self.constraints:
-            floor = list2func( map(lambda i: max(min_part, i), self.constraints['outer']), default=min_part )
+            floor = list2func( map(lambda i: max(min_part, i), self.constraints['inner']), default=min_part )
         else:
             floor = constant_func(min_part)
 

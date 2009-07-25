@@ -15,13 +15,18 @@ def functions_without_doctests(file):
     tests = []
     good  = []
     possibly_wrong = []
+    closures = []  # functions nested within others -- ignore when computing coverage
+    indentation = 0
+    cython = re.search('c[p]?def', file)  # true if it looks like a cython file
+    df = re.compile('def\s+\w')
+    ee = re.compile('\)\s*:')
     while True:
-        i = file.find('def ')
-        if i == -1:
+        i = df.search(file)
+        if i is None:
             break
+        i = i.start()
 
-        e = re.compile('\)\s*:')
-        m = e.search(file[i:])
+        m = ee.search(file[i:])
         if m is None:
             break
         j = m.end() + i
@@ -32,12 +37,12 @@ def functions_without_doctests(file):
 
             # Skip line if it is commented out.
             if prev.lstrip().startswith('#'):
-                file = file[j:]
+                file = file[:i] + file[j:]
                 continue
 
             #Skip functions which are defined in doctests
             if 'sage:' in prev or '...' in prev:
-                file = file[j:]
+                file = file[:i] + file[j:]
                 continue
 
         function_name = ' '.join(file[i:j].lstrip('def').split())
@@ -52,8 +57,25 @@ def functions_without_doctests(file):
                 file = file[j:]
                 skip_this = True
                 break
+
+        new_indentation = file[z:i].count(' ')
+        # try to determine if this is a closure (i.e., nested function).
+        # don't worry about cython files, just plain python.
+        if not cython:
+            clss = re.search("^\s*(cdef)?\s*class\s+", file[:i], re.M)
+            if not clss:  # not the first function after a class definition
+                # if indented more than current indentation level, it's a closure
+                if new_indentation > indentation:
+                    file = file[i+2:]
+                    closures.append(function_name)
+                    skip_this = True
+
         if skip_this:
             continue
+
+        # number of spaces this def is indented.  use this to check if
+        # the next def is nested.
+        indentation = new_indentation
 
         k = file[j:].find('\n')
         if k == -1:

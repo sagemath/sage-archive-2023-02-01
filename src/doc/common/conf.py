@@ -1,5 +1,6 @@
 import sys, os
-SAGE_DOC = os.environ['SAGE_ROOT'] + '/devel/sage/doc'
+SAGE_ROOT = os.environ['SAGE_ROOT']
+SAGE_DOC = os.path.join(SAGE_ROOT, 'devel/sage/doc')
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -17,10 +18,10 @@ if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
 else:
     extensions.append('sphinx.ext.pngmath')
-jsmath_path = 'jsmath/easy/load.js'
+jsmath_path = 'easy/load.js'
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = [SAGE_DOC + '/common/templates', 'templates']
+templates_path = [os.path.join(SAGE_DOC, 'common/templates'), 'templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -106,7 +107,14 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [SAGE_DOC+'/common/static', 'static']
+html_static_path = [os.path.join(SAGE_DOC, 'common/static'), 'static']
+
+# If we're using jsMath, we prepend its location to the static path
+# array.  We can override / overwrite selected files by putting them
+# in the remaining paths.
+if 'SAGE_DOC_JSMATH' in os.environ:
+    jsmath_static = os.path.join(SAGE_ROOT, 'local/notebook/javascript/jsmath')
+    html_static_path.insert(0, jsmath_static)
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

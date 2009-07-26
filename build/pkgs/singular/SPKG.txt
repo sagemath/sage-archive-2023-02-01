@@ -9,6 +9,9 @@
 
 == Releases ==
 
+=== singular-3-1-0-4-20090726 (Martin Albrecht, July 26th, 2009) ===
+ * more includes in libsingular.h
+
 === singular-3-1-0-4-20090611 (Martin Albrecht, June 11th, 2009) ===
  * new upstream release which makes some of our fixes redundant
 

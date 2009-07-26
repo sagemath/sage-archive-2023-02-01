@@ -57,6 +57,9 @@ AUTHORS:
 
 -  David Joyner (2009-2): Fixed docstring bug related to GAP.
 
+-  Stephen Hartke (2009-07-26): Fixed bug in blocks_and_cut_vertices()
+   that caused an incorrect result when the vertex 0 was a cut vertex.
+
 
 Graph Format
 ------------
@@ -2925,9 +2928,18 @@ class GenericGraph(SageObject):
             ([[0, 1, 2, 3, 4, 5, 6]], [])
             sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
             ([[9, 8], [8, 7], [0, 1, 3, 2, 5, 6, 4, 7]], [8, 7])
+            sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
+            sage: G.add_vertices(list(range(5))
+            sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
+            sage: print G.blocks_and_cut_vertices()
+            ([[2, 1, 0], [4, 3, 0]], [0])
 
-        ALGORITHM: 8.3.8 in [1]. Notice the typo - the stack must also be
-        considered as one of the blocks at termination.
+        ALGORITHM: 8.3.8 in [1]. Notice that the termination condition on
+        line (23) of the algorithm uses "p[v] == 0" which in the book
+        means that the parent is undefined; in this case, v must be the
+        root s.  Since our vertex names start with 0, we substitute instead
+        the condition "v == s".  This is the terminating condition used
+        in the general Depth First Search tree in Algorithm 8.2.1.
 
         REFERENCE:
 
@@ -2992,10 +3004,8 @@ class GenericGraph(SageObject):
                 B_k.append(s)
                 B.append(B_k)
             v = p[v]
-            if p[v] == 0 and all([edges[(v,u)] for u in G.neighbors(v)]):
+            if v == s and all([edges[(v,u)] for u in G.neighbors(v)]):
                 break
-        if len(S) != 0:
-            B.append(S)
         return B, C
 
     ### Vertex handlers

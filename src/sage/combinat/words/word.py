@@ -157,9 +157,9 @@ Word functions
 ::
 
     sage: print w.lyndon_factorization()
-    (ab.aabbb.a)
+    (ab, aabbb, a)
     sage: print w.crochemore_factorization()
-    (a.b.a.ab.bb.a)
+    (a, b, a, ab, bb, a)
 
 ::
 
@@ -3335,69 +3335,6 @@ exponent %s: the length of the word (%s) times the exponent \
                 return False
         return True
 
-    def _duval_algorithm(self):
-        r"""
-        TESTS::
-
-            sage: Word('010010010001000')._duval_algorithm()
-            (01.001.001.0001)
-            sage: Word('122113112212')._duval_algorithm()
-            (122.113.112212)
-
-        REFERENCES:
-
-        -   [1] J.-P. Duval, Factorizing words over an ordered alphabet,
-            J. Algorithms 4 (1983), no. 4, 363--381.
-        """
-        t = Factorization()
-        cm = self
-        c = iter(cm.to_integer_word())
-        cc = iter(cm.to_integer_word())
-        cc.next()
-        i = 0
-        d = 1
-        j = k = 1
-        l = len(cm)
-
-        while k < l:
-            c, c_s = tee(c)
-            c_s = c_s.next()
-            cc, cc_s = tee(cc)
-            cc_s = cc_s.next()
-            if c_s < cc_s:
-                cc.next()
-                k += 1
-                j = k
-                d = k - i
-                c = iter(cm.to_integer_word())
-            elif c_s == cc_s:
-                cc.next()
-                k += 1
-                if (k - j) == d:
-                    j = k
-                    c = iter(cm.to_integer_word())
-                else:
-                    c.next()
-            else:
-                i += d
-                while i <= j:
-                    i += d
-                    t.append(cm[:d])
-                    cm = cm[d:]
-                c = iter(cm.to_integer_word())
-                cc = iter(cm.to_integer_word())
-                cc.next()
-                i = j
-                j += 1
-                k = j
-                d = 1
-        i += d
-        while i <= j:
-            i += d
-            t.append(cm[:d])
-            cm = cm[d:]
-        return t
-
     def lyndon_factorization(self):
         r"""
         Returns the Lyndon factorization of self.
@@ -3414,37 +3351,65 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('010010010001000').lyndon_factorization()
-            (01.001.001.0001.0.0.0)
+            (01, 001, 001, 0001, 0, 0, 0)
             sage: Words('10')('010010010001000').lyndon_factorization()
-            (0.10010010001000)
+            (0, 10010010001000)
             sage: Word('abbababbaababba').lyndon_factorization()
-            (abb.ababb.aababb.a)
+            (abb, ababb, aababb, a)
             sage: Words('ba')('abbababbaababba').lyndon_factorization()
-            (a.bbababbaaba.bba)
+            (a, bbababbaaba, bba)
+            sage: Word([1,2,1,3,1,2,1]).lyndon_factorization()
+            (1213, 12, 1)
 
         TESTS::
 
+            sage: Words('01')('').lyndon_factorization()
+            ()
             sage: Word('01').lyndon_factorization()
             (01)
             sage: Words('10')('01').lyndon_factorization()
-            (0.1)
+            (0, 1)
             sage: lynfac = Word('abbababbaababba').lyndon_factorization()
             sage: [x.is_lyndon() for x in lynfac]
             [True, True, True, True]
             sage: lynfac = Words('ba')('abbababbaababba').lyndon_factorization()
             sage: [x.is_lyndon() for x in lynfac]
             [True, True, True]
+            sage: w = words.ThueMorseWord()[:1000]
+            sage: w == prod(w.lyndon_factorization())
+            True
 
         REFERENCES:
 
         -   [1] J.-P. Duval, Factorizing words over an ordered alphabet,
             J. Algorithms 4 (1983) 363--381.
+
+        -   [2] G. Melancon, Factorizing infinite words using Maple,
+            MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
+
         """
-        tab = self._duval_algorithm()
-        l = sum(len(x) for x in tab)
-        if l < self.length():
-            tab += self[l:]._duval_algorithm()
-        return tab
+        cmp = self.parent().cmp_letters
+        # We compute the indexes of the factorization.
+        n = self.length()
+        k = -1
+        F = [0]
+        while k < n-1:
+            i = k+1
+            j = k+2
+            while j < n:
+                c = cmp(self[i], self[j])
+                if c < 0:
+                    i = k+1
+                    j += 1
+                elif c == 0:
+                    i += 1
+                    j += 1
+                else:
+                    break
+            while k < i:
+                F.append(k + j - i + 1)
+                k = k + j - i
+        return Factorization([self[F[i]:F[i+1]] for i in range(len(F)-1)])
 
     def inversions(self):
         r"""
@@ -4074,17 +4039,17 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: x = Word('abababb')
             sage: x.crochemore_factorization()
-            (a.b.abab.b)
+            (a, b, abab, b)
             sage: mul(x.crochemore_factorization()) == x
             True
             sage: y = Word('abaababacabba')
             sage: y.crochemore_factorization()
-            (a.b.a.aba.ba.c.ab.ba)
+            (a, b, a, aba, ba, c, ab, ba)
             sage: mul(y.crochemore_factorization()) == y
             True
             sage: x = Word([0,1,0,1,0,1,1])
             sage: x.crochemore_factorization()
-            (0.1.0101.1)
+            (0, 1, 0101, 1)
             sage: mul(x.crochemore_factorization()) == x
             True
 
@@ -5262,7 +5227,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         The *standard factorization* of a word `w` is the unique
         factorization: `w = uv` where `v` is the longest proper suffix
-        of `w` that qualifies as a Lyndon word.
+        of `w` that is a Lyndon word.
 
         Note that if `w` is a Lyndon word with standard factorization
         `w = uv`, then `u` and `v` are also Lyndon words and `u < v`.
@@ -5276,21 +5241,25 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Words('01')('0010110011').standard_factorization()
-            (001011.0011)
+            (001011, 0011)
             sage: Words('123')('1223312').standard_factorization()
-            (12233.12)
+            (12233, 12)
+            sage: Word([3,2,1]).standard_factorization()
+            (32, 1)
+            sage: Words('123')('').standard_factorization()
+            ()
 
         ::
 
             sage: w = Word('0010110011',alphabet='01')
             sage: w.standard_factorization()
-            (001011.0011)
+            (001011, 0011)
             sage: w = Word('0010110011',alphabet='10')
             sage: w.standard_factorization()
-            (0010110011.)
+            (001011001, 1)
             sage: w = Word('1223312',alphabet='123')
             sage: w.standard_factorization()
-            (12233.12)
+            (12233, 12)
 
         REFERENCES:
 
@@ -5300,13 +5269,13 @@ exponent %s: the length of the word (%s) times the exponent \
         -   [2] J.-P. Duval, Factorizing words over an ordered alphabet,
             J. Algorithms 4 (1983) 363--381.
         """
-        suff = self[1:]
+        if self.is_empty():
+            return Factorization([])
         for l in xrange(1, self.length()):
-            pref = self[:l]
-            if pref.is_lyndon() and suff.is_lyndon():
-                return Factorization([pref, suff])
-            suff = suff[1:]
-        return Factorization([self, self.parent()()])
+            suff = self[l:]
+            if suff.is_lyndon():
+                return Factorization([self[:l], suff])
+        raise RuntimeError, 'Bug in standard factorization of words'
 
     def standard_factorization_of_lyndon_factorization(self):
         r"""
@@ -5320,7 +5289,7 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Words('123')('1221131122').standard_factorization_of_lyndon_factorization()
-            [(12.2), (1.13), (1.122)]
+            [(12, 2), (1, 13), (1, 122)]
         """
         return [x.standard_factorization() for x in self.lyndon_factorization()]
 
@@ -5710,9 +5679,9 @@ class Factorization(list):
             sage: sage.combinat.words.word.Factorization()
             ()
             sage: sage.combinat.words.word.Factorization([Word('ab'), Word('ba')])
-            (ab.ba)
+            (ab, ba)
         """
-        return '(%s)' % '.'.join(w.string_rep() for w in self)
+        return '(%s)' % ', '.join(w.string_rep() for w in self)
 
 class CallableFromListOfWords(tuple):
     r"""

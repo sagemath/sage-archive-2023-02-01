@@ -33,6 +33,10 @@ def LyndonWords(e=None, k=None):
     """
     Returns the combinatorial class of Lyndon words.
 
+    A Lyndon word `w` is a word that is lexicographically less than all of
+    its rotations.  Equivalenty, whenever `w` is split into two non-empty
+    substrings, `w` is lexicographically less than the right substring.
+
     EXAMPLES: If e is an integer, then e specifies the length of the
     alphabet; k must also be specified in this case.
 

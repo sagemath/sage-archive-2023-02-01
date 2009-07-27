@@ -243,14 +243,19 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         (23.4, 2.0, 2.0 + 7.0*I, 1.0)
         sage: v[1].parent()
         Complex Double Field
+
+    If the argument is a vector, it doesn't change the base ring. This
+    fixes trac #6643::
+
+	sage: K.<sqrt3> = QuadraticField(3)
+	sage: u = vector(K, (1/2, sqrt3/2) )
+	sage: vector(u).base_ring()
+	Number Field in sqrt3 with defining polynomial x^2 - 3
+	sage: v = vector(K, (0, 1) )
+	sage: vector(v).base_ring()
+	Number Field in sqrt3 with defining polynomial x^2 - 3
     """
     if hasattr(arg0, '_vector_'):
-        if arg1 is None:
-            try:
-                arg1 = sage.rings.integer_ring.ZZ
-                return arg0._vector_(arg1)
-            except TypeError:
-                return arg0._vector_()
         return arg0._vector_(arg1)
 
     if hasattr(arg1, '_vector_'):

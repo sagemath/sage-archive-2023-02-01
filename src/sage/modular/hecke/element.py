@@ -131,7 +131,7 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
             sage: type(v._vector_())
             <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
             sage: type(vector(v))
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
             sage: type(vector(v, GF(2)))
             <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
         """

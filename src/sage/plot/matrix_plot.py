@@ -161,12 +161,15 @@ def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
 
-    Each (`i`-th, `j`-th) matrix element is given a different
-    color value depending on its relative size compared
-    to the other elements in the matrix.
+    If the matrix is dense, each matrix element is given a different
+    color value depending on its relative size compared to the other
+    elements in the matrix.  If the matrix is sparse, colors only
+    indicate whether an element is nonzero or zero, so the plot
+    represents the sparsity pattern of the matrix.
 
-    The tick marks drawn on the frame axes denote the
-    (`i`-th, `j`-th) element of the matrix.
+    The tick marks drawn on the frame axes denote the row numbers
+    (vertical ticks) and the column numbers (horizontal ticks) of the
+    matrix.
 
     INPUT:
 

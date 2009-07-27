@@ -3316,24 +3316,53 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: W('122112').is_lyndon()
             False
 
+        TESTS:
+
+        A sanity check: ``LyndonWords`` generators Lyndon words, so we
+        filter all words of length `n<10` on the alphabet [1,2,3] for
+        Lyndon words, and compare with the ``LyndonWords`` generator::
+
+            sage: for n in range(1,10):
+            ...       lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
+            ...       lw2 = LyndonWords(3,n)
+            ...       if set(lw1) != set(lw2): print False
+
+        Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
+        words, and compare with the :class:`LyndonWords` generator after
+        mapping [a,b,c] to [2,3,1]::
+
+            sage: lw = [w for w in Words('cab', 8) if w.is_lyndon()]
+            sage: phi = WordMorphism({'a':2,'b':3,'c':1})
+            sage: set(map(phi, lw)) == set(LyndonWords(3,8))
+            True
+
         REFERENCES:
 
         -   [1] M. Lothaire, Combinatorics On Words, vol. 17 of Encyclopedia
             of Mathematics and its Applications, Addison-Wesley, Reading,
             Massachusetts, 1983.
+
         """
         if self.is_empty():
             return True
-        it = enumerate(self)
-        s = it.next()[1]
-        cmp_fcn = self._parent.cmp_letters
-        for (i, e) in it:
-            # if s < e ....
-            if cmp_fcn(s,e) < 0:
-                continue
-            if not self.lex_less(self[i:]):
+        cmp = self.parent().cmp_letters
+        n = self.length()
+        i, j = 0, 1
+        while j < n:
+            c = cmp(self[i], self[j])
+            if c == 0:
+                # increment i and j
+                i += 1
+                j += 1
+            elif c < 0:
+                # reset i, increment j
+                i = 0
+                j += 1
+            else:
+                # we found the first word in the lyndon factorization;
                 return False
-        return True
+        else:
+            return i == 0
 
     def lyndon_factorization(self):
         r"""

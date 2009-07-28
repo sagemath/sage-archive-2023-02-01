@@ -521,8 +521,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         """
         if self._degree == 0:
             return
-        shape = numpy_array.shape
-        if len(shape)!=1 or len(self._vector_numpy) != shape[0]:
+        if numpy_array.ndim != 1 or len(self._vector_numpy) != numpy_array.shape[0]:
             raise ValueError, "vector lengths are not the same"
 
         self._vector_numpy = numpy_array.astype(self._numpy_dtype)

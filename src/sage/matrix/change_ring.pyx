@@ -11,8 +11,6 @@ from sage.rings.real_double import RDF
 include "../ext/cdefs.pxi"
 include "../ext/interrupt.pxi"
 
-from numpy cimport *
-
 def integer_to_real_double_dense(Matrix_integer_dense A):
     """
     Fast conversion of a matrix over the integers to a matrix with

@@ -111,7 +111,7 @@ cdef class TimeSeries:
             else:
                 np = values
 
-            if np.nd != 1:
+            if np.ndim != 1:
                 np = np.reshape([np.size])
 
             # Make the array be the correct type and have a C array
@@ -121,7 +121,7 @@ cdef class TimeSeries:
             np = np.astype('double')
             np = cnumpy.PyArray_GETCONTIGUOUS(np)
             np_data = <double*> cnumpy.PyArray_DATA(np)
-            self._length = np.dimensions[0]
+            self._length = np.shape[0]
             self._values = <double*> sage_malloc(sizeof(double) * self._length)
             if self._values == NULL:
                 raise MemoryError

@@ -747,7 +747,7 @@ if __name__ ==  '__main__':
         library_code = True
         ext = os.path.splitext(argv[1])[1]
         if ext in ['.spyx', '.sage'] or \
-                 not (SAGE_ROOT.strip('/') + '/devel' in os.path.abspath(argv[1])):
+                not (os.path.realpath(os.path.join(SAGE_ROOT, 'devel')) in os.path.realpath(argv[1])):
             library_code = False
 
         try:

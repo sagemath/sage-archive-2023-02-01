@@ -18,10 +18,10 @@ include sage/server/notebook/templates/*
 include doc/common/templates/layout.html
 include doc/en/numerical_sage/errors
 include doc/en/tutorial/Makefile
+include doc/en/website/static/pdf.png
 include doc/en/website/templates/index.html
 include doc/en/a_tour_of_sage/eigen_plot.png
 include doc/en/a_tour_of_sage/sin_plot.png
 include doc/en/bordeaux_2008/birch.png
 include doc/en/bordeaux_2008/modpcurve.png
 recursive-include doc/common/static *
-

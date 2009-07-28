@@ -712,6 +712,15 @@ class Function_real_part(PrimitiveFunction):
 
             sage: loads(dumps(real_part))
             real_part
+
+        Check if #6401 is fixed::
+
+            sage: latex(x.real())
+            \Re \left( x \right)
+
+            sage: f(x) = function('f',x)
+            sage: latex( f(x).real())
+            \Re \left( f\left(x\right) \right)
         """
         PrimitiveFunction.__init__(self, "real_part",
                                    conversions=dict(maxima='realpart'))
@@ -769,6 +778,15 @@ class Function_imag_part(PrimitiveFunction):
             2
             sage: loads(dumps(imag_part))
             imag_part
+
+        Check if #6401 is fixed::
+
+            sage: latex(x.imag())
+            \Im \left( x \right)
+
+            sage: f(x) = function('f',x)
+            sage: latex( f(x).imag())
+            \Im \left( f\left(x\right) \right)
         """
         PrimitiveFunction.__init__(self, "imag_part",
                                    conversions=dict(maxima='imagpart'))

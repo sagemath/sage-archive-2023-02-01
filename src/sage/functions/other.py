@@ -784,13 +784,17 @@ class Function_conjugate(PrimitiveFunction):
         r"""
         TESTS::
 
+            sage: x,y = var('x,y')
             sage: x.conjugate()
             conjugate(x)
             sage: latex(conjugate(x))
-            \bar{x}
+            \overline{x}
             sage: f = function('f')
             sage: latex(f(x).conjugate())
-            \bar{f\left(x\right)}
+            \overline{f\left(x\right)}
+            sage: f = function('psi',x,y)
+            sage: latex(f.conjugate())
+            \overline{\psi\left(x, y\right)}
             sage: x.conjugate().conjugate()
             x
             sage: x.conjugate().operator()

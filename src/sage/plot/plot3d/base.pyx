@@ -656,6 +656,21 @@ end_scene""" % (
         render_params.output_archive.writestr('SCRIPT', f.getvalue())
         render_params.output_archive.close()
 
+    def json_repr(self, render_params):
+        """
+        A (possibly nested) list of strings. Each entry is formatted as JSON, so
+        that a JavaScript client could eval it and get an object. Each object
+        has fields to encapsulate the faces and vertices of self. This
+        representation is intended to be consumed by the canvas3d viewer backend.
+
+        EXAMPLES::
+
+            sage: G = sage.plot.plot3d.base.Graphics3d()
+            sage: G.json_repr(G.default_render_params())
+            []
+        """
+        return []
+
     def jmol_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
@@ -904,8 +919,16 @@ end_scene""" % (
 
 
         -  ``viewer`` - string (default: 'jmol'), how to view
-           the plot 'jmol': interactive 3d (java) 'tachyon': a static png
-           image (ray traced) 'java3d': interactive opengl based 3d
+           the plot
+
+           * 'jmol': Interactive 3D viewer using Java
+
+           * 'tachyon': Ray tracer generates a static PNG image
+
+           * 'java3d': Interactive OpenGL based 3D
+
+           * 'canvas3d': Web-based 3D viewer powered by JavaScript and
+             <canvas> (notebook only)
 
         -  ``filename`` - string (default: a temp file); file
            to save the image to
@@ -969,6 +992,11 @@ end_scene""" % (
         This looks flattened, but the plot is square and smaller::
 
             sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
+
+        We use the 'canvas3d' backend from inside the notebook to get a view of
+        the plot rendered inline using HTML canvas::
+
+            sage: p.show(viewer='canvas3d')
         """
         ek = self._extra_kwds
         if ek is not None:
@@ -1061,6 +1089,14 @@ end_scene""" % (
             f.write('set defaultdirectory "%s"\n' % archive_name)
             f.write('script SCRIPT\n')
             f.close()
+
+        if viewer == 'canvas3d':
+            T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
+            data = flatten_list(T.json_repr(T.default_render_params()))
+            f = open(filename + '.canvas3d', 'w')
+            f.write('[%s]' % ','.join(data))
+            f.close()
+            ext = 'canvas3d'
 
         if ext is None:
             raise ValueError, "Unknown 3d plot type: %s" % viewer
@@ -1172,6 +1208,19 @@ class Graphics3dGroup(Graphics3d):
         for g in self.all:
             g.set_texture(**kwds)
 
+    def json_repr(self, render_params):
+        """
+        The JSON representation of a group is simply the concatenation of the
+        representations of its objects.
+
+        EXAMPLES::
+
+            sage: G = sphere() + sphere((1, 2, 3))
+            sage: G.json_repr(G.default_render_params())
+            [[["{vertices:..."]], [["{vertices:..."]]]
+        """
+        return [g.json_repr(render_params) for g in self.all]
+
     def tachyon_repr(self, render_params):
         """
         The tachyon representation of a group is simply the concatenation of
@@ -1255,7 +1304,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sphere(color='red') + sphere(color='yellow')
             sage: G.texture_set()
-            set([Texture(texture..., yellow, ffff00), Texture(texture... red, ff0000)])
+            set([Texture(texture..., yellow, ffff00), Texture(texture..., red, ff0000)])
 
             sage: T = sage.plot.plot3d.texture.Texture('blue'); T
             Texture(texture..., blue, 0000ff)
@@ -1371,6 +1420,22 @@ class TransformGroup(Graphics3dGroup):
         s += Graphics3dGroup.x3d_str(self)
         s += "\n</Transform>"
         return s
+
+    def json_repr(self, render_params):
+        """
+        Transformations are applied at the leaf nodes.
+
+        EXAMPLES::
+
+            sage: G = cube().rotateX(0.2)
+            sage: G.json_repr(G.default_render_params())
+            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+        """
+
+        render_params.push_transform(self.get_transformation())
+        rep = [g.json_repr(render_params) for g in self.all]
+        render_params.pop_transform()
+        return rep
 
     def tachyon_repr(self, render_params):
         """

@@ -2011,6 +2011,9 @@ $("#insert_new_cell_%(id)s").shiftclick(function(e) {insert_new_text_cell_after(
                 images.append(script)
             elif F.endswith('.jmol.zip'):
                 pass # jmol data
+            elif F.endswith('.canvas3d'):
+                script = '<div><script>canvas3d.viewer("%s");</script></div>' % url
+                images.append(script)
             else:
                 link_text = str(F)
                 if len(link_text) > 40:

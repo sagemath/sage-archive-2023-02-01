@@ -140,6 +140,10 @@ cdef class ParametricSurface(IndexFaceSet):
         self.triangulate(render_params)
         return IndexFaceSet.jmol_repr(self, render_params)
 
+    def json_repr(self, render_params):
+        self.triangulate(render_params)
+        return IndexFaceSet.json_repr(self, render_params)
+
     def is_enclosed(self):
         """
         Whether or not it is necessary to render the back sides of the polygons

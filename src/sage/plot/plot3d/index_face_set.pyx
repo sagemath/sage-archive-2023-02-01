@@ -75,6 +75,14 @@ cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
                                    R.x, R.y, R.z )
     return PyString_FromStringAndSize(ss, r)
 
+cdef inline format_json_vertex(point_c P):
+    cdef char ss[100]
+    cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
+    return PyString_FromStringAndSize(ss, r)
+
+cdef inline format_json_face(face_c face):
+    return "[%s]" % ",".join([str(face.vertices[i]) for i from 0 <= i < face.n])
+
 cdef inline format_obj_vertex(point_c P):
     cdef char ss[100]
     # PyString_FromFormat doesn't do floats?
@@ -565,6 +573,34 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         return lines
 
+    def json_repr(self, render_params):
+        """
+        TESTS::
+
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
+            sage: G.json_repr(G.default_render_params())
+            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'0000ff'}"]
+        """
+
+        cdef Transformation transform = render_params.transform
+        cdef point_c res
+
+        if transform is None:
+            vertices_str = "[%s]" % ",".join([format_json_vertex(self.vs[i])
+                                              for i from 0 <= i < self.vcount])
+        else:
+            vertices_str = "["
+            for i from 0 <= i < self.vcount:
+                transform.transform_point_c(&res, self.vs[i])
+                if i > 0:
+                    vertices_str += ","
+                vertices_str += format_json_vertex(res)
+            vertices_str += "]"
+        faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
+                                       for i from 0 <= i < self.fcount])
+        color_str = "'%s'" % self.texture.hex_rgb()
+        return ["{vertices:%s,faces:%s,color:%s}" %
+                  (vertices_str, faces_str, color_str)]
 
     def obj_repr(self, render_params):
         """

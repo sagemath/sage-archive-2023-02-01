@@ -1120,6 +1120,22 @@ cdef class ImplicitSurface(IndexFaceSet):
         self.triangulate()
         return IndexFaceSet.jmol_repr(self, render_params)
 
+    def json_repr(self, render_params):
+        """
+        Return a representation of this object in JavaScript Object Notation (JSON).
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: G = ImplicitSurface(x + y + z, (-1, 1), (-1, 1), (-1, 1))
+            sage: G.json_repr(G.default_render_params())[0].startswith('{vertices:')
+            True
+        """
+        self.triangulate()
+        return IndexFaceSet.json_repr(self, render_params)
+
     def triangulate(self, force=False):
         """
         The IndexFaceSet will be empty until you call this method, which generates

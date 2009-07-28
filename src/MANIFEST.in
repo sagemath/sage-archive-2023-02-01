@@ -16,6 +16,8 @@ include sage/rings/polynomial/padics/__init__.py
 include sage/schemes/hyperelliptic_curves/hypellfrob/README
 include sage/server/notebook/templates/*
 include doc/common/templates/layout.html
+include doc/en/introspect/static/empty
+include doc/en/introspect/templates/layout.html
 include doc/en/numerical_sage/errors
 include doc/en/tutorial/Makefile
 include doc/en/website/static/pdf.png

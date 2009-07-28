@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
+
+cd src/pyparsing-1.5.2
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing pyparsing"
+    exit 1
+fi
+
+cd ../..
+
+cd src/dot2tex-2.8.?
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing dot2tex"
+    exit 1
+fi

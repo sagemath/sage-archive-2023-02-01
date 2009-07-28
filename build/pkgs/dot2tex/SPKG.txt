@@ -1,0 +1,38 @@
+= dot2tex =
+
+== Description ==
+
+dot2tex is a python module, whose purpose is to give graphs generated
+by Graphviz a more LaTeX friendly look and feel. This is accomplished
+by converting xdot output from Graphviz to a series of PSTricks or
+PGF/TikZ commands.
+
+http://www.fauskes.net/code/dot2tex/
+
+This spkg includes also the required pyparsing module:
+
+http://pyparsing.wikispaces.com/
+
+== License ==
+
+MIT
+
+== SPKG Maintainers ==
+
+Nicolas M. Thiery
+
+== Upstream Contact ==
+
+Kjell Magne Fauske, km@fauskes.net
+
+== Dependencies ==
+
+graphviz
+
+== Special Update/Build Instructions ==
+
+None
+
+== Changelog ==
+
+Provide a changelog of the spkg here.

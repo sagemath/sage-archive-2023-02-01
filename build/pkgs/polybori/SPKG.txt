@@ -34,6 +34,10 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.3-20090728 (Martin Albrecht, July 28th, 2009) ===
+ * new upstream release
+ * lots of refactoring
+
 === polybori-0.5rc.p7 (Michael Abshoff, May 15th, 2009) ===
  * Split cropped boost from the PolyBori.spkg
 

@@ -1,17 +1,8 @@
 from sage import all
 from sage.rings.polynomial.pbori import *
 
-class RingProxy:
-   def __init__(self, ring, order):
-       self.ring = ring
-       self.ordercode = order
-
-   def set(self):
-       self.ring._change_ordering(self.ordercode)
-
 def global_ring():
-    return RingProxy(get_cring(), get_order_code())
-    #return get_cring()
+    return get_cring()
 
 class PolynomialFactory:
     def lead(self, x):

@@ -27,7 +27,7 @@
 ######
 # This is from ParallelPython (the pp.py file).
 
-import os
+import os, subprocess
 
 def ncpus():
     """
@@ -46,7 +46,9 @@ def ncpus():
                 return ncpus
         else:
             #MacOS X
-            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+            #deprecated: return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+            process = subprocess.Popen("sysctl -n hw.ncpu", shell=True, stdin=subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+            return int(process.stdout.read())
     #for Windows
     if os.environ.has_key("NUMBER_OF_PROCESSORS"):
         ncpus = int(os.environ["NUMBER_OF_PROCESSORS"])

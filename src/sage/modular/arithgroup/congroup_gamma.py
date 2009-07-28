@@ -16,6 +16,7 @@ Congruence Subgroup `\Gamma(N)`
 
 from congroup_generic import CongruenceSubgroup
 from arithgroup_element import ArithmeticSubgroupElement
+from sage.misc.misc import prod
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -89,6 +90,22 @@ class Gamma_class(CongruenceSubgroup):
             return cmp(type(self), type(other))
         else:
             return cmp(self.level(), other.level())
+
+    def index(self):
+        r"""
+        Return the index of self in the full modular group. This is given by
+
+        .. math::
+
+        \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
+
+        EXAMPLE::
+            sage: [Gamma(n).index() for n in [1..19]]
+            [1, 6, 24, 48, 120, 144, 336, 384, 648, 720, 1320, 1152, 2184, 2016, 2880, 3072, 4896, 3888, 6840]
+            sage: Gamma(32041).index()
+            32893086819240
+        """
+        return prod([p**(3*e-2)*(p*p-1) for (p,e) in self.level().factor()])
 
     def __call__(self, x, check=True):
         r"""

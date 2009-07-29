@@ -2744,6 +2744,16 @@ cdef class Expression(CommutativeRingElement):
             Infinity
             sage: 1/gamma(x).subs(x=-1)
             0
+
+            # verify that this operation does not modify the passed dictionary (#6622)
+            sage: var('v t')
+            (v, t)
+            sage: f = v*t
+            sage: D = {v: 2}
+            sage: f(D, t=3)
+            6
+            sage: D
+            {v: 2}
         """
         cdef dict sdict = {}
         if in_dict is not None:
@@ -2751,7 +2761,7 @@ cdef class Expression(CommutativeRingElement):
                 return self._subs_expr(in_dict)
             if not isinstance(in_dict, dict):
                 raise TypeError, "subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression"
-            sdict = in_dict
+            sdict.update(in_dict)
 
         if kwds:
             for k, v in kwds.iteritems():

@@ -102,15 +102,6 @@ class Stream_class(SageObject):
 
     ::
 
-        sage: s = Stream()
-        sage: l = Stream([1, 0])
-        sage: y = Stream([0,1,0])
-        sage: s.set_gen(iter(l + y * s * s))
-        sage: [x for (x,i) in izip(s, range(6))]
-        [1, 1, 2, 5, 14, 42]
-
-    ::
-
         sage: r = [4, 3, 5, 2, 6, 1, 1, 1, 1, 1]
         sage: l = [4, 3, 5, 2, 6, 1]
         sage: s = Stream(l)
@@ -349,66 +340,6 @@ class Stream_class(SageObject):
 
             return self._list[i]
 
-
-    def __add__(self, s):
-        """
-        Returns the sum of two streams.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.species.stream import Stream
-            sage: s = Stream(ZZ)
-            sage: ss = s + s
-            sage: [ss[i] for i in range(10)]
-            [0, 2, -2, 4, -4, 6, -6, 8, -8, 10]
-        """
-        if not isinstance(s, Stream_class):
-            raise TypeError, "s must be a Stream"
-        return Stream((a+b for (a,b) in itertools.izip(self,s)))
-
-    def __mul__(self, s):
-        """
-        Returns the product of two streams.
-
-        EXAMPLES: We can use a stream to represent the polynomial 1+x and
-        use it to compute the coefficients of (1+x)2.
-
-        ::
-
-            sage: from sage.combinat.species.stream import Stream
-            sage: s = Stream([1,1,0])
-            sage: ss = s*s
-            sage: [ss[i] for i in range(5)]
-            [1, 2, 1, 0, 0]
-        """
-        if not isinstance(s, Stream_class):
-            raise TypeError, "s must be a Stream"
-        return Stream((self._times_naive(s, n) for n in _integers_from(0)))
-
-    def _times_naive(self, s, n):
-        """
-        Returns the nth entry in the product of self and s via the naive
-        multiplication algorithm. Note that this requires that all entries
-        for self and s in range(n+1) be computed.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.species.stream import Stream
-            sage: s = Stream([1,1,0])
-            sage: s._times_naive(s, 0)
-            1
-            sage: s._times_naive(s, 1)
-            2
-            sage: s._times_naive(s, 2)
-            1
-        """
-        t = 0
-        for k in range(n+1):
-            sk = self[k]
-            if sk == 0:
-                continue
-            t += sk * s[n-k]
-        return t
 
     def __iter__(self):
         """

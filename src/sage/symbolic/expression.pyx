@@ -4358,7 +4358,7 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('cosh(1.0)')
             1.543080634815244
             sage: SR(1.0000000000000000000000000).cosh()
-            cosh(1.0000000000000000000000000)
+            cosh(1.000000000000000000000000)
             sage: SR(1).cosh().n(90)
             1.5430806348152437784779056
             sage: SR(RIF(1)).cosh()

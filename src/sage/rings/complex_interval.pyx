@@ -1050,7 +1050,7 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         sage: ComplexIntervalFieldElement(1,2.000000000000000000000)
         1 + 2*I
         sage: ComplexIntervalFieldElement(1.234567890123456789012345, 5.4321098654321987654321)
-        1.2345678901234567890123450? + 5.4321098654321987654321000?*I
+        1.234567890123456789012350? + 5.432109865432198765432000?*I
     """
     if s_imag is None:
         s_imag = 0

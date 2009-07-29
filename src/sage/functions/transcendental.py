@@ -393,7 +393,7 @@ class DickmanRhoComputer(PrimitiveFunction):
         sage: dickman_rho(10)
         2.77017183772596e-11
         sage: dickman_rho(10.00000000000000000000000000000000000000)
-        2.770171837725958988758121200634342326343e-11
+        2.77017183772595898875812120063434232634e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
 
     AUTHORS:

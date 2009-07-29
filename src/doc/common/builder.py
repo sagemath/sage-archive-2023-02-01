@@ -892,6 +892,9 @@ def setup_parser():
     standard.add_option("-j", "--jsmath", dest="jsmath",
                         action="store_true",
                         help="render math using jsMath; FORMATs: html, json, pickle, web")
+    standard.add_option("--no-pdf-links", dest="no_pdf_links",
+                        action="store_true",
+                        help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
 
     standard.add_option("-N", "--no-colors", dest="color", default=True,
                         action="store_false",
@@ -996,6 +999,8 @@ if __name__ == '__main__':
 
     if options.sphinx_opts:
         ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
+    if options.no_pdf_links:
+        ALLSPHINXOPTS += "-A hide_pdf_links=1"
 
     if options.update_mtimes:
         update_mtimes = True

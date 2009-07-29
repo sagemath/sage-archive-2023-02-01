@@ -2,11 +2,14 @@
 
 {%- block extrahead %}
 <style type="text/css">
-  img.file {
+  img.icon {
     border: none;
   }
-  a.file {
+  a.pdf {
     margin-left: 0.5em;
+  {%- if hide_pdf_links %}
+    display: none;
+  {%- endif %}
   }
 </style>
 {% endblock %}
@@ -32,8 +35,8 @@
 	<a class="biglink" href="tutorial/index.html">
 	  Tutorial
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/tutorial/SageTutorial.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/tutorial/SageTutorial.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -48,8 +51,8 @@
 	<a class="biglink" href="constructions/index.html">
 	  Constructions
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/constructions/constructions.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/constructions/constructions.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -67,8 +70,8 @@
 	<a class="biglink" href="developer/index.html">
 	  Developers' Guide
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/developer/developer.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/developer/developer.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -85,8 +88,8 @@
 	<a class="biglink" href="reference/index.html">
 	  Reference Manual
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/reference/reference.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/reference/reference.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -118,8 +121,8 @@
 	<a class="biglink" href="a_tour_of_sage/index.html">
 	  A Tour of Sage
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/a_tour_of_sage/a_tour_of_sage.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/a_tour_of_sage/a_tour_of_sage.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -135,8 +138,8 @@
 	<a class="biglink" href="installation/index.html">
 	  Installation Guide
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/installation/installation.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/installation/installation.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -153,8 +156,8 @@
 	<a class="biglink" href="numerical_sage/index.html">
 	  Numerical Sage
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/numerical_sage/numerical_sage.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/numerical_sage/numerical_sage.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">
@@ -172,8 +175,8 @@
           Three Lectures about Explicit Methods in Number Theory Using
           Sage
 	</a>
-	<a title="Download PDF" class="file" href="../../pdf/en/bordeaux_2008/bordeaux_2008.pdf">
-	  <img class="file" src="_static/pdf.png"></img>
+	<a title="Download PDF" class="pdf" href="../../pdf/en/bordeaux_2008/bordeaux_2008.pdf">
+	  <img class="icon" src="_static/pdf.png"></img>
 	</a>
 	<br>
         <span class="linkdescr">

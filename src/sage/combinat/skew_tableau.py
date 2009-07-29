@@ -722,7 +722,7 @@ class StandardSkewTableaux_all(InfiniteAbstractCombinatorialClass):
             True
             sage: it = iter(StandardSkewTableaux())    # indirect doctest
             sage: [it.next() for i in range(10)]
-            [[], [[1]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2]], [[1], [2], [3]], [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]], [[None, 2], [None, 3], [1]]]
+            [[], [[1]], [[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]], [[None, 1, 2], [3]]]
         """
         return StandardSkewTableaux_n(n)
 
@@ -770,7 +770,21 @@ class StandardSkewTableaux_n(CombinatorialClass):
         EXAMPLES::
 
             sage: StandardSkewTableaux(2).list() #indirect doctest
-            [[[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2]]]
+            [[[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]]]
+
+            sage: StandardSkewTableaux(3).list() #indirect doctest
+            [[[1, 2, 3]],
+             [[1, 2], [3]], [[1, 3], [2]],
+             [[None, 1, 2], [3]], [[None, 1, 3], [2]],
+             [[None, 2, 3], [1]],
+             [[None, 1], [2, 3]], [[None, 2], [1, 3]],
+             [[None, None, 1], [2, 3]], [[None, None, 2], [1, 3]], [[None, None, 3], [1, 2]],
+             [[1], [2], [3]],
+             [[None, 1], [None, 2], [3]], [[None, 1], [None, 3], [2]], [[None, 2], [None, 3], [1]],
+             [[None, 1], [2], [3]], [[None, 2], [1], [3]], [[None, 3], [1], [2]],
+             [[None, None, 1], [None, 2], [3]], [[None, None, 1], [None, 3], [2]],
+             [[None, None, 2], [None, 1], [3]], [[None, None, 3], [None, 1], [2]],
+             [[None, None, 2], [None, 3], [1]], [[None, None, 3], [None, 2], [1]]]
         """
         for skp in skew_partition.SkewPartitions(self.n):
             for sst in StandardSkewTableaux_skewpartition(skp):
@@ -947,14 +961,14 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2).list() # indirect doctest
-            [[[1], [2]],
+            [[[1, 1]],
+             [[1, 2]],
+             [[2, 2]],
+             [[1], [2]],
              [[None, 1], [1]],
              [[None, 2], [1]],
              [[None, 1], [2]],
-             [[None, 2], [2]],
-             [[1, 1]],
-             [[1, 2]],
-             [[2, 2]]]
+             [[None, 2], [2]]]
         """
         for p in skew_partition.SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_p(p):
@@ -998,7 +1012,7 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
         EXAMPLES::
 
             sage: SemistandardSkewTableaux(2,[1,1]).list() # indirect doctest
-            [[[1], [2]], [[None, 2], [1]], [[None, 1], [2]], [[1, 2]]]
+            [[[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]]]
         """
         for p in skew_partition.SkewPartitions(self.n):
             for ssst in SemistandardSkewTableaux_pmu(p, self.mu):

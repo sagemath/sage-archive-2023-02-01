@@ -63,31 +63,30 @@ below are the coordinates of the inner and outer corners.
     sage: SkewPartition([[5,4,3,1],[3,3,1]]).inner_corners()
     [[0, 3], [2, 1], [3, 0]]
 
-EXAMPLES: There are 9 skew partitions of size 3.
+EXAMPLES:
 
-::
+There are 9 skew partitions of size 3, with no empty row nor empty
+column::
 
     sage: SkewPartitions(3).cardinality()
     9
     sage: SkewPartitions(3).list()
-    [[[1, 1, 1], []],
-     [[2, 2, 1], [1, 1]],
-     [[2, 1, 1], [1]],
-     [[3, 2, 1], [2, 1]],
-     [[2, 2], [1]],
-     [[3, 2], [2]],
+    [[[3], []],
      [[2, 1], []],
      [[3, 1], [1]],
-     [[3], []]]
+     [[2, 2], [1]],
+     [[3, 2], [2]],
+     [[1, 1, 1], []],
+     [[2, 2, 1], [1, 1]],
+     [[2, 1, 1], [1]],
+     [[3, 2, 1], [2, 1]]]
 
-There are 4 connected skew partitions of size 3.
-
-::
+There are 4 connected skew partitions of size 3::
 
     sage: SkewPartitions(3, overlap=1).cardinality()
     4
     sage: SkewPartitions(3, overlap=1).list()
-    [[[1, 1, 1], []], [[2, 2], [1]], [[2, 1], []], [[3], []]]
+    [[[3], []], [[2, 1], []], [[2, 2], [1]], [[1, 1, 1], []]]
 
 This is the conjugate of the skew partition [[4,3,1],[2]]
 
@@ -624,7 +623,7 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
         sage: SkewPartitions(4, overlap=2)
         Skew partitions of 4 with overlap of 2
         sage: SkewPartitions(4, overlap=2).list()
-        [[[2, 2], []], [[4], []]]
+        [[[4], []], [[2, 2], []]]
     """
     number_of_arguments = 0
     for arg in ['n', 'row_lengths']:
@@ -737,8 +736,32 @@ class SkewPartitions_all(CombinatorialClass):
         raise NotImplementedError
 
 class SkewPartitions_n(CombinatorialClass):
+    """
+    The combinatorial class of skew partitions with given size (and
+    horizontal minimal overlap).
+    """
     def __init__(self, n, overlap=0):
         """
+        INPUT:
+         - n: an non negative integer
+         - overlap: an integer
+
+        Returns the set of the skew partitions of ``n`` with overlap
+        at least ``overlap``, and no empty row.
+
+        The iteration order is not specified yet.
+
+        Caveat: this set is stable under conjugation only for overlap=
+        0 or 1. What exactly happens for negative overlaps is not yet
+        well specified, and subject to change (we may want to
+        introduce vertical overlap constraints as well). overlap would
+        also better be named min_overlap.
+
+        Todo: as is, this set is essentially the composition of
+        Compositions(n) (which give the row lengths) and
+        SkewPartition(n, row_lengths=...), and one would want to
+        "inherit" list and cardinality from this composition.
+
         TESTS::
 
             sage: S = SkewPartitions(3)
@@ -809,6 +832,8 @@ class SkewPartitions_n(CombinatorialClass):
         by 'sliding'. The composition co is the list of row lengths of the
         skew partition.
 
+        Todo: this should be a method of SkewPartition
+
         EXAMPLES::
 
             sage: s = SkewPartitions(3)
@@ -858,7 +883,7 @@ class SkewPartitions_n(CombinatorialClass):
             return 1
 
         if overlap > 0:
-            gg = sage.combinat.composition.Compositions(n, min_part = overlap)
+            gg = sage.combinat.composition.Compositions(n, min_part = max(1, overlap))
         else:
             gg = sage.combinat.composition.Compositions(n)
 
@@ -868,34 +893,36 @@ class SkewPartitions_n(CombinatorialClass):
 
         return sum_a
 
-    def list(self):
+    def __iter__(self):
         """
         Returns a list of the skew partitions of n.
 
         EXAMPLES::
 
             sage: SkewPartitions(3).list()
-            [[[1, 1, 1], []],
-             [[2, 2, 1], [1, 1]],
-             [[2, 1, 1], [1]],
-             [[3, 2, 1], [2, 1]],
-             [[2, 2], [1]],
-             [[3, 2], [2]],
-             [[2, 1], []],
-             [[3, 1], [1]],
-             [[3], []]]
+            [[[3], []],
+            [[2, 1], []],
+            [[3, 1], [1]],
+            [[2, 2], [1]],
+            [[3, 2], [2]],
+            [[1, 1, 1], []],
+            [[2, 2, 1], [1, 1]],
+            [[2, 1, 1], [1]],
+            [[3, 2, 1], [2, 1]]]
+
+
             sage: SkewPartitions(3, overlap=0).list()
-            [[[1, 1, 1], []],
-             [[2, 2, 1], [1, 1]],
-             [[2, 1, 1], [1]],
-             [[3, 2, 1], [2, 1]],
-             [[2, 2], [1]],
-             [[3, 2], [2]],
-             [[2, 1], []],
-             [[3, 1], [1]],
-             [[3], []]]
+            [[[3], []],
+            [[2, 1], []],
+            [[3, 1], [1]],
+            [[2, 2], [1]],
+            [[3, 2], [2]],
+            [[1, 1, 1], []],
+            [[2, 2, 1], [1, 1]],
+            [[2, 1, 1], [1]],
+            [[3, 2, 1], [2, 1]]]
             sage: SkewPartitions(3, overlap=1).list()
-            [[[1, 1, 1], []], [[2, 2], [1]], [[2, 1], []], [[3], []]]
+            [[[3], []], [[2, 1], []], [[2, 2], [1]], [[1, 1, 1], []]]
             sage: SkewPartitions(3, overlap=2).list()
             [[[3], []]]
             sage: SkewPartitions(3, overlap=3).list()
@@ -906,11 +933,9 @@ class SkewPartitions_n(CombinatorialClass):
         n = self.n
         overlap = self.overlap
 
-        result = []
-        for co in sage.combinat.composition.Compositions(n, min_part=overlap).list():
-            result += SkewPartitions(row_lengths=co, overlap=overlap).list()
-
-        return result
+        for co in sage.combinat.composition.Compositions(n, min_part = max(1, overlap)):
+            for sp in SkewPartitions(row_lengths=co, overlap=overlap):
+                yield sp
 
 ######################################
 # Skew Partitions (from row lengths) #

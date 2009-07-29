@@ -873,7 +873,7 @@ class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
         EXAMPLES::
 
             sage: sp = SkewPartitions(3).list()
-            sage: SemistandardMultiSkewTableaux([sp[0], sp[-1]],[2,2,2]).list()
+            sage: SemistandardMultiSkewTableaux([SkewPartition([[1, 1, 1], []]), SkewPartition([[3], []])],[2,2,2]).list()
             [[[[1], [2], [3]], [[1, 2, 3]]]]
 
         ::

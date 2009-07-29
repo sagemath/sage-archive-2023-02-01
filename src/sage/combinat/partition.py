@@ -3278,7 +3278,7 @@ class Partitions_parts_in(CombinatorialClass):
         given parts, or None if no such partition exists. This function
         is not intended to be called directly.
 
-        INPUT::
+        INPUT:
 
         - ``n``: nonnegative integer
         - ``parts``: a sorted list of positive integers.

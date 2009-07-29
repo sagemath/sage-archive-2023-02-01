@@ -316,20 +316,20 @@ class OrderedSetPartitions_sn(CombinatorialClass):
         EXAMPLES::
 
             sage: [ p for p in OrderedSetPartitions([1,2,3,4], 2) ]
-            [[{1}, {2, 3, 4}],
-             [{2}, {1, 3, 4}],
-             [{3}, {1, 2, 4}],
-             [{4}, {1, 2, 3}],
+            [[{1, 2, 3}, {4}],
+             [{1, 2, 4}, {3}],
+             [{1, 3, 4}, {2}],
+             [{2, 3, 4}, {1}],
              [{1, 2}, {3, 4}],
              [{1, 3}, {2, 4}],
              [{1, 4}, {2, 3}],
              [{2, 3}, {1, 4}],
              [{2, 4}, {1, 3}],
              [{3, 4}, {1, 2}],
-             [{1, 2, 3}, {4}],
-             [{1, 2, 4}, {3}],
-             [{1, 3, 4}, {2}],
-             [{2, 3, 4}, {1}]]
+             [{1}, {2, 3, 4}],
+             [{2}, {1, 3, 4}],
+             [{3}, {1, 2, 4}],
+             [{4}, {1, 2, 3}]]
         """
         for x in composition.Compositions(len(self.s),length=self.n):
             for z in OrderedSetPartitions_scomp(self.s,x):

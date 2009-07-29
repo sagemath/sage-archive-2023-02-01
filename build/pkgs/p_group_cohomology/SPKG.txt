@@ -1,4 +1,4 @@
-= p_group_cohomology-1.0 =
+= p_group_cohomology-1.0.2 =
 
 == Description ==
 
@@ -9,7 +9,7 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
-Copyright (C) 2009 Simon A. King  <simon.king@uni-jena.de> and
+Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.de> and
                    David J. Green <david.green@uni-jena.de>
 
 Distributed under the terms of the GNU General Public License (GPL),
@@ -35,11 +35,11 @@ available at
 
 == SPKG Maintainers ==
 
-Simon A. King <simon.king@uni-jena.de>
+Simon A. King <simon.king@nuigalway.ie>
 
 == Upstream Contact ==
 
-Simon A. King  <simon.king@uni-jena.de>
+Simon A. King  <simon.king@nuigalway.ie>
 David J. Green <david.green@uni-jena.de>
 
 == Dependencies ==
@@ -77,9 +77,14 @@ interface (this only occurs on some machines).
 Therefore, we recommend to use ``spkg-check`` for testing. It tells exactly
 which doc test failed, and it launches a clean Singular process for any
 example. Both test suites also check whether there is any method without a
-doc test.
+doc test. The test suites must be executed in a Sage shell.
+
+Note that spkg-check is executed right after installation of the package, if
+the environment variable SAGE_CHECK is 1.
 
 == Changelog ==
 
   * 1.0: First public version (July 2009)
   * 1.0.1: Licensing GPL 2 or later (July 2009)
+  * 1.0.2: Fixing a computation time regression and two minor bugs (July 2009)
+

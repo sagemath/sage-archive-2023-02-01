@@ -1037,16 +1037,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def digits(self, base=10, digits=None, padto=0):
         r"""
-        Return a list of digits for self in the given base in little endian
-        order.
+        Return a list of digits for ``self`` in the given base in little
+        endian order.
 
-        The return is unspecified if self is a negative number and the
-        digits are given.
+        The returned value is unspecified if self is a negative number
+        and the digits are given.
 
         INPUT:
 
 
-        -  ``base`` - integer (default: 2)
+        -  ``base`` - integer (default: 10)
 
         -  ``digits`` - optional indexable object as source for
            the digits
@@ -1055,8 +1055,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            sufficient number of zeros are added to make the list minimum that
            length (default: 0)
 
+        As a shorthand for ``digits(2)``, you can use meth:`.bits`.
 
-        EXAMPLE::
+        Also see meth:`ndigits`.
+
+        EXAMPLES::
 
             sage: 17.digits()
             [7, 1]

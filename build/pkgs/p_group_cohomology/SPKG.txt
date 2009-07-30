@@ -9,7 +9,7 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
-Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.de> and
+Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
                    David J. Green <david.green@uni-jena.de>
 
 Distributed under the terms of the GNU General Public License (GPL),
@@ -66,6 +66,9 @@ Our package does not provide a separate test suite for the MeatAxe C-library or
 David Green's routines for the computation of minimal projective resolutions.
 But it is of course equipped with extensive doc tests in the Cython code.
 
+Note that internet access is required for these tests, as it is attempted to
+download cohomology rings from a public data base in the web.
+
 The scripts ``spkg-check`` and ``spkg-check-quickly`` walk through all public
 methods of all classes in all modules of our package and perform the respective
 doc test. ``spkg-check-quickly`` runs over many doc tests at once, which is
@@ -76,15 +79,17 @@ interface (this only occurs on some machines).
 
 Therefore, we recommend to use ``spkg-check`` for testing. It tells exactly
 which doc test failed, and it launches a clean Singular process for any
-example. Both test suites also check whether there is any method without a
-doc test. The test suites must be executed in a Sage shell.
+example.
 
-Note that spkg-check is executed right after installation of the package, if
-the environment variable SAGE_CHECK is 1.
+Both test suites also check whether there is any method without a doc test. The
+test suites must be executed in a Sage shell. Note that spkg-check is executed
+right after installation of the package, if the environment variable SAGE_CHECK
+is 1 (do "export SAGE_CHECK=1" on the command line before installation).
 
 == Changelog ==
 
   * 1.0: First public version (July 2009)
   * 1.0.1: Licensing GPL 2 or later (July 2009)
-  * 1.0.2: Fixing a computation time regression and two minor bugs (July 2009)
+  * 1.0.2: Fixing a computation time regression and two
+    minor bugs (July 2009). Changing Simon King's email address
 

@@ -32,7 +32,7 @@ def magma_free_eval(code, strip=True, columns=0):
     import urllib
     url = "http://magma.maths.usyd.edu.au/calc/"
     code = "SetColumns(%s);\n"%columns + code
-    urldata = urllib.urlencode({'input':code})
+    urldata = urllib.urlencode({'commands':code})
     results = urllib.urlopen(url, urldata).read()
     if strip:
         i = results.find('-----\n\n') + 7

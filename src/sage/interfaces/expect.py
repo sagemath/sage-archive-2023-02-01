@@ -799,6 +799,14 @@ If this all works, you can then make calls like:
 
             sage: r._expect.before
             'abc;\r\n[1] '
+
+        Here is a doc test related with trac ticket #6661::
+
+            sage: print sage0.eval("alarm(1); singular._expect_expr('1')")
+            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
+            ...
+            KeyboardInterrupt: computation timed out because alarm was set for 1 seconds
+
         """
         if expr is None:
             expr = self._prompt_wait
@@ -817,7 +825,7 @@ If this all works, you can then make calls like:
             i = 0
             while True:
                 try:
-                    print "Control-C pressed.  Interrupting R. Please wait a few seconds..."
+                    print "Control-C pressed.  Interrupting %s. Please wait a few seconds..."%self
                     self._sendstr('quit;\n'+chr(3))
                     self._sendstr('quit;\n'+chr(3))
                     self.interrupt()

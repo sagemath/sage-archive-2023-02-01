@@ -4110,6 +4110,21 @@ cdef class Expression(CommutativeRingElement):
             sin(1)
             sage: sin(SR(RealField(150)(1)))
             0.84147098480789650665250232163029899962256306
+
+        TESTS::
+
+            sage: SR(oo).sin()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: sin_eval(): sin(infinity) encountered
+            sage: SR(-oo).sin()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: sin_eval(): sin(infinity) encountered
+            sage: SR(unsigned_infinity).sin()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: sin_eval(): sin(infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_sin(self._gobj))
 
@@ -4137,6 +4152,21 @@ cdef class Expression(CommutativeRingElement):
             0.540302305868140
             sage: SR(float(1)).cos().n()
             0.540302305868140
+
+        TESTS::
+
+            sage: SR(oo).cos()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cos_eval(): cos(infinity) encountered
+            sage: SR(-oo).cos()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cos_eval(): cos(infinity) encountered
+            sage: SR(unsigned_infinity).cos()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cos_eval(): cos(infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_cos(self._gobj))
 
@@ -4149,18 +4179,28 @@ cdef class Expression(CommutativeRingElement):
             sage: tan(x^2 + y^2)
             tan(x^2 + y^2)
             sage: tan(sage.symbolic.constants.pi/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: simple pole at 1/2*pi
+            Infinity
             sage: tan(SR(1))
             tan(1)
             sage: tan(SR(RealField(150)(1)))
             1.5574077246549022305069748074583601730872508
-         """
-        try:
-            return new_Expression_from_GEx(self._parent, g_tan(self._gobj))
-        except RuntimeError:
-            raise ValueError, "simple pole at %s"%(self)
+
+        TESTS::
+
+            sage: SR(oo).tan()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: tan_eval(): tan(infinity) encountered
+            sage: SR(-oo).tan()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: tan_eval(): tan(infinity) encountered
+            sage: SR(unsigned_infinity).tan()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: tan_eval(): tan(infinity) encountered
+        """
+        return new_Expression_from_GEx(self._parent, g_tan(self._gobj))
 
     def arcsin(self):
         """
@@ -4185,6 +4225,19 @@ cdef class Expression(CommutativeRingElement):
             -arcsin(0.999000000000000)
             sage: SR(0.999).arcsin().n()
             1.52607123962616
+
+        TESTS::
+
+            sage: SR(oo).arcsin()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arcsin_eval(): arcsin(infinity) encountered
+            sage: SR(-oo).arcsin()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arcsin_eval(): arcsin(infinity) encountered
+            sage: SR(unsigned_infinity).arcsin()
+            Infinity
         """
         return new_Expression_from_GEx(self._parent, g_asin(self._gobj))
 
@@ -4208,6 +4261,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.4).arccos().n()
             1.15927948072741
             sage: plot(lambda x: SR(x).arccos(), -1,1)
+
+        TESTS::
+
+            sage: SR(oo).arccos()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arccos_eval(): arccos(infinity) encountered
+            sage: SR(-oo).arccos()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arccos_eval(): arccos(infinity) encountered
+            sage: SR(unsigned_infinity).arccos()
+            Infinity
         """
         return new_Expression_from_GEx(self._parent, g_acos(self._gobj))
 
@@ -4232,6 +4298,17 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.5).arctan().n()
             0.463647609000806
             sage: plot(lambda x: SR(x).arctan(), -20,20)
+
+        TESTS::
+
+            sage: SR(oo).arctan()
+            1/2*pi
+            sage: SR(-oo).arctan()
+            -1/2*pi
+            sage: SR(unsigned_infinity).arctan()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan_eval(): arctan(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_atan(self._gobj))
 
@@ -4296,6 +4373,29 @@ cdef class Expression(CommutativeRingElement):
             arctan2(1.0*I, 1)
             sage: SR(1).arctan2(CDF(0,1))
             arctan2(1, 1.0*I)
+
+            sage: SR(oo).arctan2(oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(infinity, infinity) encountered
+            sage: SR(oo).arctan2(0)
+            0
+            sage: SR(-oo).arctan2(0)
+            pi
+            sage: SR(-oo).arctan2(-2)
+            -pi
+            sage: SR(unsigned_infinity).arctan2(2)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(unsigned_infinity, x) encountered
+            sage: SR(2).arctan2(oo)
+            1/2*pi
+            sage: SR(2).arctan2(-oo)
+            -1/2*pi
+            sage: SR(2).arctan2(SR(unsigned_infinity))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(x, unsigned_infinity) encountered
         """
         cdef Expression nexp = self.coerce_in(x)
         return new_Expression_from_GEx(self._parent, g_atan2(self._gobj, nexp._gobj))
@@ -4331,6 +4431,17 @@ cdef class Expression(CommutativeRingElement):
             sinh(1)
             sage: SR(RIF(1)).sinh().n()
             1.175201193643802?
+
+        TESTS::
+
+            sage: SR(oo).sinh()
+            +Infinity
+            sage: SR(-oo).sinh()
+            -Infinity
+            sage: SR(unsigned_infinity).sinh()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: sinh_eval(): sinh(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_sinh(self._gobj))
 
@@ -4365,6 +4476,17 @@ cdef class Expression(CommutativeRingElement):
             cosh(1)
             sage: SR(RIF(1)).cosh().n()
             1.543080634815244?
+
+        TESTS::
+
+            sage: SR(oo).cosh()
+            +Infinity
+            sage: SR(-oo).cosh()
+            +Infinity
+            sage: SR(unsigned_infinity).cosh()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cosh_eval(): cosh(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_cosh(self._gobj))
 
@@ -4392,6 +4514,17 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('tanh(1.0)')
             .7615941559557649
             sage: plot(lambda x: SR(x).tanh(), -1, 1)
+
+        TESTS::
+
+            sage: SR(oo).tanh()
+            1
+            sage: SR(-oo).tanh()
+            -1
+            sage: SR(unsigned_infinity).tanh()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: tanh_eval(): tanh(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_tanh(self._gobj))
 
@@ -4420,6 +4553,15 @@ cdef class Expression(CommutativeRingElement):
         Sage automatically applies certain identies::
             sage: SR(3/2).arcsinh().cosh()
             1/2*sqrt(13)
+
+        TESTS::
+
+            sage: SR(oo).arcsinh()
+            +Infinity
+            sage: SR(-oo).arcsinh()
+            -Infinity
+            sage: SR(unsigned_infinity).arcsinh()
+            Infinity
         """
         return new_Expression_from_GEx(self._parent, g_asinh(self._gobj))
 
@@ -4444,6 +4586,15 @@ cdef class Expression(CommutativeRingElement):
             1.0471975512*I
             sage: maxima('acosh(0.5)')
             1.047197551196598*%i
+
+        TESTS::
+
+            sage: SR(oo).arccosh()
+            +Infinity
+            sage: SR(-oo).arccosh()
+            +Infinity
+            sage: SR(unsigned_infinity).arccosh()
+            +Infinity
         """
         return new_Expression_from_GEx(self._parent, g_acosh(self._gobj))
 
@@ -4470,6 +4621,22 @@ cdef class Expression(CommutativeRingElement):
             0.500000000000000
             sage: maxima('atanh(0.5)')
             .5493061443340...
+
+        TESTS::
+
+            sage: SR(1).arctanh()
+            +Infinity
+            sage: SR(-1).arctanh()
+            -Infinity
+
+            sage: SR(oo).arctanh()
+            -1/2*I*pi
+            sage: SR(-oo).arctanh()
+            1/2*I*pi
+            sage: SR(unsigned_infinity).arctanh()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctanh_eval(): arctanh(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_atanh(self._gobj))
 
@@ -4500,6 +4667,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(0.5).exp().log()
             0.500000000000000
+
+        TESTS:
+
+        Test if #6377 is fixed::
+
+            sage: SR(oo).exp()
+            +Infinity
+            sage: SR(-oo).exp()
+            0
+            sage: SR(unsigned_infinity).exp()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exp_eval(): exp^(unsigned_infinity) encountered
         """
         return new_Expression_from_GEx(self._parent, g_exp(self._gobj))
 
@@ -4515,9 +4695,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^y + y^x).log()
             log(x^y + y^x)
             sage: SR(0).log()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: log_eval(): log(0)
+            -Infinity
             sage: SR(1).log()
             0
             sage: SR(1/2).log()
@@ -4534,6 +4712,15 @@ cdef class Expression(CommutativeRingElement):
             sage: math.log(0.5)
             -0.69314718055994529
             sage: plot(lambda x: SR(x).log(), 0.1,10)
+
+        TESTS::
+
+            sage: SR(oo).log()
+            +Infinity
+            sage: SR(-oo).log()
+            +Infinity
+            sage: SR(unsigned_infinity).log()
+            +Infinity
         """
         res = new_Expression_from_GEx(self._parent, g_log(self._gobj))
         if b is None:

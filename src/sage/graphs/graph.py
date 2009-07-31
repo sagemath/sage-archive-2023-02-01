@@ -5122,19 +5122,28 @@ class GenericGraph(SageObject):
         """
         Returns the core number for each vertex in an ordered list.
 
-        'K-cores in graph theory were introduced by Seidman in 1983 and by
-        Bollobas in 1984 as a method of (destructively) simplifying graph
-        topology to aid in analysis and visualization. They have been more
-        recently defined as the following by Batagelj et al: given a graph
-        G with vertices set V and edges set E, the k-core is computed by
-        pruning all the vertices (with their respective edges) with degree
-        less than k. That means that if a vertex u has degree d_u, and it
-        has n neighbors with degree less than k, then the degree of u
-        becomes d_u - n, and it will be also pruned if k d_u - n. This
-        operation can be useful to filter or to study some properties of
-        the graphs. For instance, when you compute the 2-core of graph G,
-        you are cutting all the vertices which are in a tree part of graph.
-        (A tree is a graph with no loops),' [1].
+           K-cores in graph theory were introduced by Seidman in 1983
+           and by Bollobas in 1984 as a method of (destructively)
+           simplifying graph topology to aid in analysis and
+           visualization. They have been more recently defined as the
+           following by Batagelj et al: given a graph `G` with
+           vertices set `V` and edges set `E`, the `k`-core is
+           computed by pruning all the vertices (with their respective
+           edges) with degree less than `k`. That means that if a
+           vertex `u` has degree `d_u`, and it has `n` neighbors with
+           degree less than `k`, then the degree of `u` becomes `d_u -
+           n`, and it will be also pruned if `k > d_u - n`. This
+           operation can be useful to filter or to study some
+           properties of the graphs. For instance, when you compute
+           the 2-core of graph G, you are cutting all the vertices
+           which are in a tree part of graph.  (A tree is a graph with
+           no loops). [WPkcore]_
+
+        [PSW1996]_ defines a `k`-core as the largest subgraph with minimum
+        degree at least `k`.
+
+        This implementation is based on the NetworkX implementation of
+        the algorithm described in [BZ]_.
 
         INPUT:
 
@@ -5145,14 +5154,19 @@ class GenericGraph(SageObject):
 
         REFERENCE:
 
-        - [1] K-core. Wikipedia. (2007). [Online] Available:
+        .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
           http://en.wikipedia.org/wiki/K-core
 
-        - [2] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
+        .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
           Graph. (1996). J. Combinatorial Theory. Ser B 67. pages
           111-151. [Online] Available:
           http://cs.nyu.edu/cs/faculty/spencer/papers/k-core.pdf
+
+        .. [BZ] Vladimir Batagelj and Matjaz Zaversnik. An `O(m)`
+          Algorithm for Cores Decomposition of
+          Networks. arXiv:cs/0310049v1. [Online] Available:
+          http://arxiv.org/abs/cs/0310049
 
         EXAMPLES::
 
@@ -5160,9 +5174,54 @@ class GenericGraph(SageObject):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
+            sage: a=random_matrix(ZZ,20,x=2,sparse=True, density=.1)
+            sage: b=DiGraph(20)
+            sage: b.add_edges(a.nonzero_positions())
+            sage: cores=b.cores(with_labels=True); cores
+            {0: 1, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 2, 11: 1, 12: 1, 13: 1, 14: 1, 15: 2, 16: 1, 17: 2, 18: 2, 19: 2}
+            sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
+            [2, 3, 10, 15, 17, 18, 19]
         """
-        import networkx.cores
-        return networkx.cores.find_cores(self.networkx_graph(copy=False), with_labels)
+        # compute the degrees of each vertex
+        degrees=self.degree(labels=True)
+
+        # sort verticies by degree.  Store in a list and keep track of
+        # where a specific degree starts (effectively, the list is
+        # sorted by bins).
+        verts= sorted( degrees.keys(), key=lambda x: degrees[x])
+        bin_boundaries=[0]
+        curr_degree=0
+        for i,v in enumerate(verts):
+            if degrees[v]>curr_degree:
+                bin_boundaries.extend([i]*(degrees[v]-curr_degree))
+                curr_degree=degrees[v]
+        vert_pos = dict((v,pos) for pos,v in enumerate(verts))
+        # Set up initial guesses for core and lists of neighbors.
+        core= degrees
+        nbrs=dict((v,set(self.neighbors(v))) for v in self)
+        # form vertex core building up from smallest
+        for v in verts:
+            for u in nbrs[v]:
+                if core[u] > core[v]:
+                    nbrs[u].remove(v)
+
+                    # cleverly move u to the end of the next smallest
+                    # bin (i.e., subtract one from the degree of u).
+                    # We do this by swapping u with the first vertex
+                    # in the bin that contains u, then incrementing
+                    # the bin boundary for the bin that contains u.
+                    pos=vert_pos[u]
+                    bin_start=bin_boundaries[core[u]]
+                    vert_pos[u]=bin_start
+                    vert_pos[verts[bin_start]]=pos
+                    verts[bin_start],verts[pos]=verts[pos],verts[bin_start]
+                    bin_boundaries[core[u]]+=1
+                    core[u] -= 1
+
+        if with_labels:
+            return core
+        else:
+            return core.values()
 
     ### Distance
 

@@ -987,6 +987,18 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: mutable matrices are unhashable
+
+        TESTS:
+
+        Test if hashes for fderivatives with different parameters collide.
+        #6243::
+
+            sage: f = function('f'); t = f(x,y)
+            sage: u = t.derivative(x); v = t.derivative(y)
+            sage: hash(u) == hash(v)
+            False
+            sage: d = {u: 3, v: 5}; d.values()
+            [3, 5]
         """
         return self._gobj.gethash()
 

@@ -261,4 +261,20 @@ bool fderivative::match_same_type(const basic & other) const
 	return parameter_set == o.parameter_set && inherited::match_same_type(other);
 }
 
+unsigned fderivative::calchash() const
+{
+	unsigned res = inherited::calchash();
+	unsigned t = 1;
+	for (paramset::const_iterator i = parameter_set.begin(), 
+			end = parameter_set.end(); i != end; ++i) {
+		res += t* (*i);
+		t <<=  1;
+	}
+	if (flags & status_flags::evaluated) {
+		setflag(status_flags::hash_calculated);
+		hashvalue = res;
+	}
+	return res;
+}
+
 } // namespace GiNaC

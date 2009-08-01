@@ -79,6 +79,21 @@ static ex exp_eval(const ex & x)
 		return _ex1;
 	}
 
+	// handle infinity
+	// This needs to be before the other tests below, since multiplying
+	// infinity with other values throws runtime_errors
+	// exp(oo) -> oo
+	// exp(-oo) -> 0
+	// exp(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return Infinity;
+		if (x.is_equal(NegInfinity))
+			return _ex0;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("exp_eval(): exp^(unsigned_infinity) encountered"));
+	}
+
 	// exp(n*Pi*I/2) -> {+1|+I|-1|-I}
 	const ex TwoExOverPiI=(_ex2*x)/(Pi*I);
 	if (TwoExOverPiI.info(info_flags::integer)) {
@@ -199,7 +214,8 @@ static ex log_eval(const ex & x)
 {
 	if (x.info(info_flags::numeric)) {
 		if (x.is_zero())         // log(0) -> infinity
-			throw(pole_error("log_eval(): log(0)",0));
+			//throw(pole_error("log_eval(): log(0)",0));
+			return NegInfinity;
 		if (x.info(info_flags::rational) && x.info(info_flags::negative))
 			return (log(-x)+I*Pi);
 		if (x.is_equal(_ex1))  // log(1) -> 0
@@ -224,6 +240,11 @@ static ex log_eval(const ex & x)
 			return t;
 	}
 	
+	// log(oo) -> oo
+	if (x.info(info_flags::infinity)) {
+		return Infinity;
+	}
+
 	return log(x).hold();
 }
 
@@ -360,6 +381,13 @@ static ex sin_evalf(const ex & x, int prec)
 
 static ex sin_eval(const ex & x)
 {
+	// sin(oo) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.info(info_flags::infinity)) {
+		throw (std::runtime_error("sin_eval(): sin(infinity) encountered"));
+	}
+
 	// sin(n/d*Pi) -> { all known non-nested radicals }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
@@ -463,6 +491,13 @@ static ex cos_evalf(const ex & x, int prec)
 
 static ex cos_eval(const ex & x)
 {
+	// cos(oo) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.info(info_flags::infinity)) {
+		throw (std::runtime_error("cos_eval(): cos(infinity) encountered"));
+	}
+
 	// cos(n/d*Pi) -> { all known non-nested radicals }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
@@ -566,6 +601,13 @@ static ex tan_evalf(const ex & x, int prec)
 
 static ex tan_eval(const ex & x)
 {
+	// tan(oo) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.info(info_flags::infinity)) {
+		throw (std::runtime_error("tan_eval(): tan(infinity) encountered"));
+	}
+
 	// tan(n/d*Pi) -> { all known non-nested radicals }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
@@ -593,7 +635,8 @@ static ex tan_eval(const ex & x)
 		if (z.is_equal(*_num25_p)) // tan(5/12*Pi) -> 2+sqrt(3)
 			return sign*(sqrt(_ex3)+_ex2);
 		if (z.is_equal(*_num30_p)) // tan(Pi/2)    -> infinity
-			throw (pole_error("tan_eval(): simple pole",1));
+			//throw (pole_error("tan_eval(): simple pole",1));
+			return UnsignedInfinity;
 	}
 
 	if (is_exactly_a<function>(x)) {
@@ -721,6 +764,14 @@ static ex asin_eval(const ex & x)
 			return -asin(-x);
 	}
 	
+	// asin(oo) -> error
+	// asin(UnsignedInfinity) -> UnsignedInfinity
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(UnsignedInfinity))
+			return UnsignedInfinity;
+		throw (std::runtime_error("arcsin_eval(): arcsin(infinity) encountered"));
+	}
+
 	return asin(x).hold();
 }
 
@@ -786,6 +837,13 @@ static ex acos_eval(const ex & x)
 			return Pi-acos(-x);
 	}
 	
+	// acos(oo) -> error
+	// acos(UnsignedInfinity) -> UnsignedInfinity
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(UnsignedInfinity))
+			return UnsignedInfinity;
+		throw (std::runtime_error("arccos_eval(): arccos(infinity) encountered"));
+	}
 	return acos(x).hold();
 }
 
@@ -848,6 +906,18 @@ static ex atan_eval(const ex & x)
 			return -atan(-x);
 	}
 	
+	// arctan(oo) -> Pi/2
+	// arctan(-oo) -> -Pi/2
+	// arctan(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return _ex1_2*Pi;
+		if (x.is_equal(NegInfinity))
+			return _ex_1_2*Pi;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("arctan_eval(): arctan(unsigned_infinity) encountered"));
+	}
+		
 	return atan(x).hold();
 }
 
@@ -989,6 +1059,37 @@ static ex atan2_eval(const ex & y, const ex & x)
 			return atan(y/x)-Pi;
 	}
 
+	// atan(infinity, infinity) -> error
+	// atan(oo, x) -> 0
+	// atan(-oo, x) & x negative -> -Pi
+	// atan(-oo, x) -> Pi
+	// atan(UnsignedInfinity, x) -> error
+	if (y.info(info_flags::infinity)) {
+		if (x.info(info_flags::infinity))
+			throw (std::runtime_error("arctan2_eval(): arctan2(infinity, infinity) encountered"));
+		if (y.is_equal(Infinity)) 
+			return _ex0;
+		if (y.is_equal(NegInfinity)) {
+			if (x.info(info_flags::negative))
+				return _ex_1*Pi;
+			return Pi;
+		}
+		// y is unsigned_infinity
+		throw (std::runtime_error("arctan2_eval(): arctan2(unsigned_infinity, x) encountered"));
+	}
+
+	// atan(x, oo) -> Pi/2
+	// atan(x, -oo) -> -Pi/2
+	// atan(x, UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return _ex1_2*Pi;
+		if (x.is_equal(NegInfinity))
+			return _ex_1_2*Pi;
+		// x is unsigned_infinity
+		throw (std::runtime_error("arctan2_eval(): arctan2(x, unsigned_infinity) encountered"));
+	}
+		
 	return atan2(y, x).hold();
 }    
 
@@ -1039,6 +1140,15 @@ static ex sinh_eval(const ex & x)
 		// sinh() is odd
 		if (x.info(info_flags::negative))
 			return -sinh(-x);
+	}
+
+	// sinh(oo) -> oo
+	// sinh(-oo) -> -oo
+	// sinh(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(UnsignedInfinity))
+			throw (std::runtime_error("sinh_eval(): sinh(unsigned_infinity) encountered"));
+		return x;
 	}
 	
 	if ((x/Pi).info(info_flags::numeric) &&
@@ -1121,6 +1231,15 @@ static ex cosh_eval(const ex & x)
 			return cosh(-x);
 	}
 	
+	// cosh(oo) -> oo
+	// cosh(-oo) -> oo
+	// cosh(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(UnsignedInfinity))
+			throw (std::runtime_error("cosh_eval(): cosh(unsigned_infinity) encountered"));
+		return Infinity;
+	}
+
 	if ((x/Pi).info(info_flags::numeric) &&
 		ex_to<numeric>(x/Pi).real().is_zero())  // cosh(I*x) -> cos(x)
 		return cos(x/I);
@@ -1201,6 +1320,18 @@ static ex tanh_eval(const ex & x)
 			return -tanh(-x);
 	}
 	
+	// tanh(oo) -> 1
+	// tanh(-oo) -> -1
+	// tanh(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return _ex1;
+		if (x.is_equal(NegInfinity))
+			return _ex_1;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("tanh_eval(): tanh(unsigned_infinity) encountered"));
+	}
+		
 	if ((x/Pi).info(info_flags::numeric) &&
 		ex_to<numeric>(x/Pi).real().is_zero())  // tanh(I*x) -> I*tan(x);
 		return I*tan(x/I);
@@ -1302,6 +1433,13 @@ static ex asinh_eval(const ex & x)
 			return -asinh(-x);
 	}
 	
+	// asinh(oo) -> oo
+	// asinh(-oo) -> -oo
+	// asinh(UnsignedInfinity) -> UnsignedInfinity
+	if (x.info(info_flags::infinity)) {
+		return x;
+	}
+
 	return asinh(x).hold();
 }
 
@@ -1358,6 +1496,13 @@ static ex acosh_eval(const ex & x)
 			return Pi*I-acosh(-x);
 	}
 	
+	// acosh(oo) -> oo
+	// acosh(-oo) -> oo
+	// acosh(UnsignedInfinity) -> oo
+	if (x.info(info_flags::infinity)) {
+		return Infinity;
+	}
+
 	return acosh(x).hold();
 }
 
@@ -1394,9 +1539,18 @@ static ex atanh_eval(const ex & x)
 		if (x.is_zero())
 			return _ex0;
 
+		/*
 		// atanh({+|-}1) -> throw
 		if (x.is_equal(_ex1) || x.is_equal(_ex_1))
 			throw (pole_error("atanh_eval(): logarithmic pole",0));
+		*/
+
+		// atanh(1) -> oo
+		if (x.is_equal(_ex1))
+			return Infinity;
+		// atahn(-1) -> -oo
+		if (x.is_equal(_ex_1))
+			return NegInfinity;
 
 		// atanh(float) -> float
 		/* delay numeric evaluation to evalf,
@@ -1410,6 +1564,18 @@ static ex atanh_eval(const ex & x)
 			return -atanh(-x);
 	}
 	
+	// atanh(oo) -> -i*pi/2
+	// atanh(-oo) -> i*pi/2
+	// atanh(UnsignedInfinity) -> error
+	if (x.info(info_flags::infinity)) {
+		if (x.is_equal(Infinity))
+			return _ex_1_2*Pi*I;
+		if (x.is_equal(NegInfinity))
+			return _ex1_2*Pi*I;
+		// x is UnsignedInfinity
+		throw (std::runtime_error("arctanh_eval(): arctanh(unsigned_infinity) encountered"));
+	}
+		
 	return atanh(x).hold();
 }
 

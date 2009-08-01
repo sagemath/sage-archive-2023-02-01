@@ -59,7 +59,7 @@ static ex conjugate_eval(const ex & arg)
 
 static void conjugate_print_latex(const ex & arg, const print_context & c)
 {
-	c.s << "\\bar{"; arg.print(c); c.s << "}";
+	c.s << "\\overline{"; arg.print(c); c.s << "}";
 }
 
 static ex conjugate_conjugate(const ex & arg)

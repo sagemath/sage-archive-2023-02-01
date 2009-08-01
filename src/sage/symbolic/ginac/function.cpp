@@ -115,7 +115,7 @@ function_options & function_options::set_name(std::string const & n,
 {
 	name = n;
 	if (tn==std::string())
-		TeX_name = "\\mbox{"+name+"}";
+		TeX_name = "{\\rm "+name+"}";
 	else
 		TeX_name = tn;
 	return *this;

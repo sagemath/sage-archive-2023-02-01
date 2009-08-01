@@ -104,7 +104,7 @@ static ex real_part_eval(const ex & arg)
 
 static void real_part_print_latex(const ex & arg, const print_context & c)
 {
-	c.s << "\\Re"; arg.print(c); c.s << "";
+	c.s << "\\Re \\left( "; arg.print(c); c.s << " \\right)";
 }
 
 static ex real_part_conjugate(const ex & arg)
@@ -149,7 +149,7 @@ static ex imag_part_eval(const ex & arg)
 
 static void imag_part_print_latex(const ex & arg, const print_context & c)
 {
-	c.s << "\\Im"; arg.print(c); c.s << "";
+	c.s << "\\Im \\left( "; arg.print(c); c.s << " \\right)";
 }
 
 static ex imag_part_conjugate(const ex & arg)

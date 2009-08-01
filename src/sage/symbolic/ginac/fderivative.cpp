@@ -125,6 +125,9 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 	} else {
 		sout = py_print_fderivative(serial, params, args);
 	}
+	if (!sout) { 
+		throw(std::runtime_error("fderivative::do_print(): python print function raised exception"));
+	}
 	c.s<<*sout;
 	delete sout;
 	Py_DECREF(params);

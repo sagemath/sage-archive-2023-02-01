@@ -33,6 +33,13 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.1.8.p2 (Burcin Erocal, August 1, 2009) ===
+ * Fix latex typesetting of conjugate(), real_part() and imag_part()
+ * When calculating hash of fderivative use paramset to avoid collisions
+ * Add support for infinity to functions defined in inifcns_trans.cpp
+ * Add parameter to disable application of chain rule while differentiating
+   symbolic functions.
+
 === pynac-0.1.8.p1 (Mike Hansen, June 19, 2009) ===
  * Updated build path to work with Python 2.6.
 

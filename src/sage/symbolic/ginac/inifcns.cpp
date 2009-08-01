@@ -897,11 +897,16 @@ static ex Order_imag_part(const ex & x)
 	return Order(x).hold();
 }
 
-// Differentiation is handled in function::derivative because of its special requirements
+static ex Order_derivative(const exvector &seq, const symbol& s)
+{
+		return Order(seq[0].diff(s));
+}
 
 REGISTER_FUNCTION(Order, eval_func(Order_eval).
                          series_func(Order_series).
                          latex_name("\\mathcal{O}").
+                         do_not_apply_chain_rule().
+                         derivative_func(Order_derivative).
                          conjugate_func(Order_conjugate).
                          real_part_func(Order_real_part).
                          imag_part_func(Order_imag_part));

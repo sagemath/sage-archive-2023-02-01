@@ -44,6 +44,7 @@
 #include "tostring.h"
 #include "utils.h"
 #include "remember.h"
+#include "symbol.h"
 
 extern "C" {
 	PyObject* exvector_to_PyTuple(GiNaC::exvector seq);
@@ -94,6 +95,7 @@ void function_options::initialize()
 		= power_f = series_f = 0;
 	evalf_f = 0;
 	evalf_params_first = true;
+	apply_chain_rule = true;
 	use_return_type = false;
 	eval_use_exvector_args = false;
 	evalf_use_exvector_args = false;
@@ -860,6 +862,14 @@ function_options& function_options::series_func(series_funcp_exvector s)
 	return *this;
 }
 
+function_options& function_options::derivative_func(
+		derivative_funcp_exvector_symbol d)
+{
+	derivative_use_exvector_args = true;
+	derivative_f = derivative_funcp(d);
+	return *this;
+}
+
 function_options& function_options::eval_func(PyObject* e)
 {
 	eval_f = eval_funcp(e);
@@ -913,6 +923,12 @@ function_options & function_options::set_return_type(unsigned rt, tinfo_t rtt)
 function_options & function_options::do_not_evalf_params()
 {
 	evalf_params_first = false;
+	return *this;
+}
+
+function_options & function_options::do_not_apply_chain_rule()
+{
+	apply_chain_rule = false;
 	return *this;
 }
 
@@ -1909,9 +1925,50 @@ ex function::derivative(const symbol & s) const
 {
 	ex result;
 
+	/*
 	if (serial == Order_SERIAL::serial) {
 		// Order Term function only differentiates the argument
 		return Order(seq[0].diff(s));
+		*/
+	GINAC_ASSERT(serial<registered_functions().size());
+	const function_options &opt = registered_functions()[serial];
+
+	// Check if we need to apply chain rule
+	if (!(opt.apply_chain_rule)) {
+		if (opt.derivative_f == NULL)
+			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
+
+		if (opt.python_func && 
+				PyCallable_Check((PyObject*)opt.derivative_f)) {
+			// convert seq to a PyTuple of Expressions
+			PyObject* args = exvector_to_PyTuple(seq);
+			// create a dictionary {'diff_param': s}
+			PyObject* symb = ex_to_pyExpression(s);
+			PyObject* kwds = Py_BuildValue("{s:O}","diff_param",
+					symb);
+			// call opt.derivative_f with this list
+			PyObject* pyresult = PyObject_Call(
+					(PyObject*)opt.derivative_f, 
+					args, kwds);
+			Py_DECREF(args);
+			Py_DECREF(kwds);
+			if (!pyresult) { 
+				throw(std::runtime_error("function::derivative(): python function raised exception"));
+			}
+			// convert output Expression to an ex
+			ex result = pyExpression_to_ex(pyresult);
+			Py_DECREF(pyresult);
+			if (PyErr_Occurred()) { 
+				throw(std::runtime_error("function::derivative(): python function (pyExpression_to_ex) raised exception"));
+			}
+			return result;
+		}
+		// C++ function
+		if (!opt.derivative_use_exvector_args)
+			throw(std::runtime_error("function::derivative(): cannot call C++ function without exvector args"));
+		
+		return ((derivative_funcp_exvector_symbol)(opt.derivative_f))(seq, s);
+
 	} else {
 		// Chain rule
 		ex arg_diff;

@@ -307,6 +307,9 @@ typedef ex (* series_funcp_exvector)(const exvector &, const relational &, int, 
 typedef void (* print_funcp_exvector)(const exvector &, const print_context &);
 
 
+typedef ex (* derivative_funcp_exvector_symbol)(const exvector &,
+		const symbol &);
+
 class function_options
 {
 	friend class function;
@@ -537,6 +540,8 @@ public:
 	function_options & power_func(power_funcp_exvector d);
 	function_options & series_func(series_funcp_exvector s);
 
+	function_options & derivative_func(derivative_funcp_exvector_symbol d);
+
 	template <class Ctx> function_options & print_func(print_funcp_exvector p)
 	{
 		print_use_exvector_args = true;
@@ -556,6 +561,7 @@ public:
 
 	function_options & set_return_type(unsigned rt, tinfo_t rtt=NULL);
 	function_options & do_not_evalf_params();
+	function_options & do_not_apply_chain_rule();
 	function_options & remember(unsigned size, unsigned assoc_size=0,
 	                            unsigned strategy=remember_strategies::delete_never);
 	function_options & overloaded(unsigned o);
@@ -590,6 +596,7 @@ protected:
 	std::vector<print_funcp> print_dispatch_table;
 
 	bool evalf_params_first;
+	bool apply_chain_rule;
 
 	bool use_return_type;
 	unsigned return_type;

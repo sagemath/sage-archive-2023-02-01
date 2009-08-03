@@ -288,6 +288,8 @@ cdef class LaurentSeries(AlgebraElement):
             sage: y = a*x+b*x
             sage: y._latex_()
             '\\left(a + b\\right)x'
+            sage: latex(y)
+            \left(a + b\right)x
         """
         if self.is_zero():
             if self.prec() == infinity:

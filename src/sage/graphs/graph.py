@@ -10089,12 +10089,12 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-         - This function is based on Networkx's implementation of the Bron and
-           Kerbosch Algorithm, [1].
+        This function is based on Networkx's implementation of the Bron and
+        Kerbosch Algorithm [BroKer1973]_.
 
         REFERENCE:
 
-        - [1] Coen Bron and Joep Kerbosch. (1973). Algorithm 457:
+        .. [BroKer1973] Coen Bron and Joep Kerbosch. (1973). Algorithm 457:
           Finding All Cliques of an Undirected Graph. Commun. ACM. v
           16. n 9.  pages 575-577. ACM Press. [Online] Available:
           http://www.ram.org/computing/rambin/rambin.html
@@ -10144,18 +10144,19 @@ class Graph(GenericGraph):
 
         NOTES:
 
-         - Currently only implemented for undirected graphs. Use to_undirected
-           to convert a digraph to an undirected graph.
+        - Currently only implemented for undirected graphs. Use to_undirected
+          to convert a digraph to an undirected graph.
 
         ALGORITHM:
 
-         - This function is based on Cliquer, [1].
+        This function is based on Cliquer [NisOst2003]_.
 
         REFERENCE:
 
-        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
-          Version 1.0," Communications Laboratory, Helsinki University of
-          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
+        .. [NisOst2003] Sampo Niskanen and Patric R. J. Ostergard,
+          "Cliquer User's Guide, Version 1.0," Communications Laboratory,
+          Helsinki University of Technology, Espoo, Finland,
+          Tech. Rep. T48, 2003.
 
         EXAMPLES::
 
@@ -10187,13 +10188,7 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-         - This function is based on Cliquer, [1].
-
-        REFERENCE:
-
-        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
-          Version 1.0," Communications Laboratory, Helsinki University of
-          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
+        This function is based on Cliquer [NisOst2003]_.
 
         EXAMPLES::
 
@@ -10230,16 +10225,9 @@ class Graph(GenericGraph):
          - ``cliques'' - an optional list of cliques that can be input if
               already computed. Ignored unless ``algorithm=='networkx'``.
 
-        REFERENCE:
+        ALGORITHM:
 
-        - [1] Sampo Niskanen and Patric R. J. Östergård, "Cliquer User's Guide,
-          Version 1.0," Communications Laboratory, Helsinki University of
-          Technology, Espoo, Finland, Tech. Rep. T48, 2003.
-
-        - [2] Coen Bron and Joep Kerbosch. (1973). Algorithm 457:
-          Finding All Cliques of an Undirected Graph. Commun. ACM. v
-          16. n 9.  pages 575-577. ACM Press. [Online] Available:
-          http://www.ram.org/computing/rambin/rambin.html
+        This function is based on Cliquer [NisOst2003]_ and [BroKer1973]_.
 
         EXAMPLES::
 
@@ -10372,7 +10360,7 @@ class Graph(GenericGraph):
     def independent_set(self):
         """
         Returns a maximal independent set, which is a set of vertices which
-        induces an empty subgraph. Uses Cliquer.
+        induces an empty subgraph. Uses Cliquer [NisOst2003]_.
 
         NOTES:
 
@@ -10381,10 +10369,9 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-        sage: C=graphs.PetersenGraph()
-        sage: C.independent_set()
-        [0, 3, 6, 7]
-
+            sage: C=graphs.PetersenGraph()
+            sage: C.independent_set()
+            [0, 3, 6, 7]
         """
         from sage.graphs.cliquer import max_clique
         return max_clique(self.complement())
@@ -10404,10 +10391,10 @@ class Graph(GenericGraph):
 
          - ``algorithm`` - either ``cliquer`` or ``networkx``
 
-           - ``cliquer`` - This wraps the C program Cliquer, [1].
+           - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
 
            - ``networkx`` - This function is based on Networkx's implementation
-                of the Bron and Kerbosch Algorithm, [2].
+                of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
         -  ``vertices`` - the vertices to inspect (default is entire graph).
            Ignored unless ``algorithm=='networkx'``.

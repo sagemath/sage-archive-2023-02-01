@@ -862,20 +862,29 @@ class EllipticCurveIsogeny(Morphism):
         elif ("kohel" == self.__algorithm):
             outP = self.__compute_via_kohel_numeric(xP,yP)
 
+        # the intermediate functions return the point at infinity
+        # if the input point is in the kernel
+        if (outP == self.__intermediate_codomain(0)):
+            return self.__E2(0)
+
         # if there is a post isomorphism, apply it
         if (None != self.__post_isomorphism):
             tempX = self.__posti_x_coord_ratl_map(x=outP[0], y=outP[1])
             tempY = self.__posti_y_coord_ratl_map(x=outP[0], y=outP[1])
-            outP = (tempX, tempY)
+            outP = [tempX, tempY]
 
-        if change_output_ring :
+        if change_output_ring:
             if (None == output_base_ring):
                 output_base_ring = E_P.base_ring()
-            outP = self.__E2.change_ring(output_base_ring)(outP)
+            outE2 = self.__E2.change_ring(output_base_ring)
         else:
-            outP = self.__E2(outP)
+            output_base_ring = self.__E2.base_ring()
+            outE2 = self.__E2
 
-        return outP
+        R = output_base_ring
+
+        return outE2.point([R(outP[0]), R(outP[1]), R(1)], check=False)
+
 
 
     def __hash__(self):

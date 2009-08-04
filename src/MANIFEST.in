@@ -33,3 +33,4 @@ include doc/en/bordeaux_2008/birch.png
 include doc/en/bordeaux_2008/modpcurve.png
 recursive-include doc/en/reference/media *
 recursive-include doc/common/static *
+recursive-include doc/common/themes *

@@ -1,8 +1,16 @@
-{% extends "!layout.html" %}
+{% extends "basic/layout.html" %}
 
 {% block rootrellink %}
-    <img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo">
-    {{ super() }}
+  {% if docstitle.startswith('Sage Documentation') %}
+    <a href="http://www.sagemath.org"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+  {% else %}
+    {% if pathto(master_doc).endswith('.html') %}
+      <a href="{{ '../' + pathto(master_doc) }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+    {% else %}
+      <a href="{{ '../' + pathto(master_doc) + 'index.html' }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+    {% endif %}
+  {% endif %}
+  {{ super() }}
 {% endblock %}
 
 {% block extrahead %}

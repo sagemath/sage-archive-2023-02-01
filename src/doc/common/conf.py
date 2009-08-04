@@ -18,7 +18,7 @@ if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
 else:
     extensions.append('sphinx.ext.pngmath')
-jsmath_path = 'easy/load.js'
+jsmath_path = 'jsmath_sage.js'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [os.path.join(SAGE_DOC, 'common/templates'), 'templates']
@@ -76,17 +76,36 @@ default_role = 'math'
 # output. They are ignored by default.
 #show_authors = False
 
-# The name of the Pygments (syntax highlighting) style to use.
+# The name of the Pygments (syntax highlighting) style to use.  NOTE:
+# This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
 
 
 # Options for HTML output
 # -----------------------
 
-# The style sheet to use for HTML and HTML Help pages. A file of that name
-# must exist either in Sphinx' static/ path, or in one of the custom paths
-# given in html_static_path.
-html_style = 'default.css'
+# HTML theme (e.g., 'default', 'sphinxdoc').  We use a custom Sage
+# theme to set a Pygments style, stylesheet, and insert jsMath macros.
+html_theme = 'sage'
+
+# Theme options are theme-specific and customize the look and feel of
+# a theme further.  For a list of options available for each theme,
+# see the documentation.
+html_theme_options = {}
+
+if 'SAGE_DOC_JSMATH' in os.environ:
+    from sage.misc.latex_macros import sage_jsmath_macros_easy
+    html_theme_options['jsmath_macros'] = sage_jsmath_macros_easy
+
+    from sage.misc.package import is_package_installed
+    html_theme_options['jsmath_image_fonts'] = is_package_installed('jsmath-image-fonts')
+
+# Add any paths that contain custom themes here, relative to this directory.
+html_theme_path = [os.path.join(SAGE_DOC, 'common/themes')]
+
+# HTML style sheet NOTE: This overrides a HTML theme's corresponding
+# setting.
+#html_style = 'default.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -113,7 +132,7 @@ html_static_path = [os.path.join(SAGE_DOC, 'common/static'), 'static']
 # array.  We can override / overwrite selected files by putting them
 # in the remaining paths.
 if 'SAGE_DOC_JSMATH' in os.environ:
-    jsmath_static = os.path.join(SAGE_ROOT, 'local/lib/python/site-packages/sagenb/data/javascript/jsmath/')
+    jsmath_static = os.path.join(SAGE_ROOT, 'local/lib/python/site-packages/sagenb/data/jsmath/')
     html_static_path.insert(0, jsmath_static)
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,

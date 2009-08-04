@@ -118,9 +118,9 @@ def convert_latex_macro_to_jsmath(macro):
 
         sage: from sage.misc.latex_macros import convert_latex_macro_to_jsmath
         sage: convert_latex_macro_to_jsmath('\\newcommand{\\ZZ}{\\Bold{Z}}')
-        "jsMath.Macro('ZZ','\\\\Bold{Z}')"
+        "jsMath.Macro('ZZ','\\\\Bold{Z}');"
         sage: convert_latex_macro_to_jsmath('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
-        "jsMath.Macro('GF','\\\\Bold{F}_{#1}',1)"
+        "jsMath.Macro('GF','\\\\Bold{F}_{#1}',1);"
     """
     left_bracket = macro.find('[')
     right_bracket = macro.find('[')
@@ -139,7 +139,43 @@ def convert_latex_macro_to_jsmath(macro):
         args_str = "," + str(num_args)
     else:
         args_str = ""
-    return "jsMath.Macro('" + name + "','" + defn + "'" + args_str + ")"
+    return "jsMath.Macro('" + name + "','" + defn + "'" + args_str + ");"
+
+def convert_latex_macro_to_jsmath_easy(macro):
+    r"""
+    This converts a LaTeX macro definition (\newcommand...) to a
+    definition for jsMath's easy/load.js macro array.
+
+    INPUT:
+
+    -  ``macro`` - LaTeX macro definition
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex_macros import convert_latex_macro_to_jsmath_easy
+        sage: convert_latex_macro_to_jsmath_easy('\\newcommand{\\ZZ}{\\Bold{Z}}')
+        "ZZ : '{\\\\Bold{Z}}'"
+        sage: convert_latex_macro_to_jsmath_easy('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
+        "GF : ['{\\\\Bold{F}_{#1}}', 1]"
+    """
+    left_bracket = macro.find('[')
+    right_bracket = macro.find('[')
+    if left_bracket >= 0:
+        right_bracket = macro.find(']')
+        num_args = macro[left_bracket+1:right_bracket]
+    else:
+        num_args = 0
+    start_name = macro.find('{') + 1  # add one to go past the backslash
+    end_name = macro.find('}')
+    name = macro[start_name+1:end_name]
+    start_defn = macro.find('{', end_name)
+    end_defn = macro.rfind('}')
+    defn = macro[start_defn+1: end_defn].replace('\\', '\\\\')
+    if num_args > 0:
+        args_str = "," + str(num_args)
+        return name + " : ['{" + defn + "}', " + str(num_args) + ']'
+    else:
+        return name + " : '{" + defn + "}'"
 
 # To add a new macro for use in the Sage documentation, add a list or
 # tuple to the following list.  Each list (or tuple) should have the
@@ -176,4 +212,9 @@ sage_configurable_latex_macros = ["\\newcommand{\\Bold}[1]{\\mathbf{#1}}"]
 
 sage_latex_macros += sage_configurable_latex_macros
 
+# jsMath macro definitions as JavaScript, e.g., to include in HTML
+# script elements.
 sage_jsmath_macros = [convert_latex_macro_to_jsmath(m) for m in sage_latex_macros]
+
+# jsMath macro definitions for an easy/load.js file's "macros" array.
+sage_jsmath_macros_easy = [convert_latex_macro_to_jsmath_easy(m) for m in sage_latex_macros]

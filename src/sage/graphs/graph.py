@@ -4824,7 +4824,7 @@ class GenericGraph(SageObject):
             vertices = [v for v in vertices if vertex_property(v)]
 
         if algorithm is not None and algorithm not in ("delete", "add"):
-            raise ValueError, 'algorithm should be None, "delete", or "add"'
+            raise ValueError('algorithm should be None, "delete", or "add"')
 
         if inplace or len(vertices)>0.05*self.order() or algorithm=="delete":
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
@@ -8433,7 +8433,7 @@ class GenericGraph(SageObject):
                 try:
                     hash(perm[v])
                 except TypeError:
-                    raise ValueError, "perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable"
+                    raise ValueError("perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable")
         self._backend.relabel(perm, self._directed)
 
         attributes_to_update = ('_pos', '_assoc', '_embedding')
@@ -9706,7 +9706,7 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             if multiedges is None: multiedges = False
             if not isinstance(data, str):
-                raise ValueError, 'If input format is graph6, then data must be a string.'
+                raise ValueError('If input format is graph6, then data must be a string.')
             n = data.find('\n')
             if n == -1:
                 n = len(data)
@@ -10049,9 +10049,9 @@ class Graph(GenericGraph):
         """
         n = self.order()
         if n > 262143:
-            raise ValueError, 'graph6 format supports graphs on 0 to 262143 vertices only.'
+            raise ValueError('graph6 format supports graphs on 0 to 262143 vertices only.')
         elif self.has_loops() or self.has_multiple_edges():
-            raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
+            raise ValueError('graph6 format supports only simple graphs (no loops, no multiple edges)')
         else:
             return graph_fast.N(n) + graph_fast.R(self._bit_vector())
 
@@ -10083,7 +10083,7 @@ class Graph(GenericGraph):
         if n == 0:
             return ':?'
         if n > 262143:
-            raise ValueError, 'sparse6 format supports graphs on 0 to 262143 vertices only.'
+            raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
         else:
             vertices = self.vertices()
             n = len(vertices)
@@ -10325,41 +10325,112 @@ class Graph(GenericGraph):
         from sage.graphs.chrompoly import chromatic_polynomial
         return chromatic_polynomial(self)
 
-    def chromatic_number(self):
+    def chromatic_number(self, algorithm="DLX"):
         """
         Returns the minimal number of colors needed to color the vertices
-        of the graph G.
+        of the graph `G`.
+
+        INPUT:
+
+        - ``algorithm`` -- Selects an algorithm
+
+            - If ``algorithm = "DLX"`` ( default ), the chromatic number is computed
+              through the dancing link algorithm.
+
+              Computing the chromatic number through the Dancing Link Algorithm is a
+              very slow method, as it computes ALL the possible colorings to check
+              that one exists.
+
+            - If ``algorithm = "CP"``, the chromatic number is computed
+              through the coefficients of the Chromatic Polynomial.
+
+              Computing the chromatic number through the chromatic polynomial is a
+              very slow method, which will only be useful for small graphs.
+
+            - If ``algorithm = "MILP"``, the chromatic number
+              is computed through a Mixed Integer Linear Program.
+
+              Computing the chromatic number through a Mixed Integer Linear
+              Program may require to install an optional Sage package like GLPK
+              or Coin-OR's CBC.
+
+        For more functions related to graph coloring, see
+        the ``sage.graphs.graph_coloring`` module.
 
         EXAMPLES::
 
             sage: G = Graph({0:[1,2,3],1:[2]})
-            sage: G.chromatic_number()
+            sage: G.chromatic_number(algorithm="DLX")
             3
+            sage: G.chromatic_number(algorithm="MILP") # optional - requires GLPK or CBC
+            3
+            sage: G.chromatic_number(algorithm="CP")
+            3
+
+        TESTS::
+
+            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: G.chromatic_number(algorithm="foo")
+            Traceback (most recent call last):
+            ...
+            ValueError: The `algorithm` variable must be set to either `DLX`, `MILP` or `CP`.
         """
-        f = self.chromatic_polynomial()
-        i = 0
-        while f(i) == 0:
-            i += 1
-        return i
+        if algorithm == "DLX":
+            from sage.graphs.graph_coloring import chromatic_number
+            return chromatic_number(self)
 
-    def coloring(self, hex_colors=False):
+        elif algorithm == "MILP":
+            from sage.graphs.graph_coloring import vertex_coloring
+            return vertex_coloring(self, value_only=True)
+
+        elif algorithm == "CP":
+            f = self.chromatic_polynomial()
+            i = 0
+            while f(i) == 0:
+                i += 1
+            return i
+        else:
+            raise ValueError("The `algorithm` variable must be set to either `DLX`, `MILP` or `CP`.")
+
+    def coloring(self, algorithm="DLX", hex_colors=False):
         """
-        Returns the first (optimal) coloring found.
+        Returns the first (optimal) proper vertex-coloring found.
 
-        INPUT::
+        INPUT:
 
-            hex_colors -- if True, return a dict which can
-                          easily be used for plotting
+        - If ``algorithm = "DLX"`` (default), the chromatic number is computed
+          through the dancing link algorithm.
+
+        - If ``algorithm = "MILP"``, the chromatic number
+          is computed through a Mixed Integer Linear Program.
+
+          Computing the chromatic number through a Mixed Integer Linear
+          Program may require to install an optional Sage package like GLPK
+          or Coin-OR's CBC.
+
+        - ``hex_colors`` -- if ``True``, return a dict which can
+           easily be used for plotting
+
+        For more functions related to graph coloring, see
+        the ``sage.graphs.graph_coloring`` module.
 
         EXAMPLES::
 
             sage: G = Graph("Fooba")
 
-            sage: P = G.coloring(); P
+            sage: P = G.coloring(algorithm="MILP"); P  # optional - requires GLPK or CBC
+            [[2, 1, 3], [0, 6, 5], [4]]
+            sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
 
-            sage: H = G.coloring(hex_colors=True)
+            sage: H = G.coloring(hex_colors=True,algorithm="MILP") # optional - requires GLPK or CBC
+            sage: for c in sorted(H.keys()):                       # optional - requires GLPK or CBC
+            ...    print c, H[c]                                   # optional - requires GLPK or CBC
+            #0000ff [4]
+            #00ff00 [0, 6, 5]
+            #ff0000 [2, 1, 3]
+            sage: H = G.coloring(hex_colors=True, algorithm="DLX")
             sage: for c in sorted(H.keys()):
             ...    print c, H[c]
             #0000ff [4]
@@ -10367,13 +10438,21 @@ class Graph(GenericGraph):
             #ff0000 [0, 5, 6]
             sage: G.plot(vertex_colors=H)
 
+        TESTS::
+
+            sage: G.coloring(algorithm="foo")
+            Traceback (most recent call last):
+            ...
+            ValueError: The `algorithm` variable must be set to either `DLX` or `MILP`.
         """
-        from sage.graphs.graph_coloring import all_graph_colorings
-        for C in all_graph_colorings(self, self.chromatic_number()):
-            if hex_colors:
-                return C
-            else:
-                return C.values()
+        if algorithm == "MILP":
+            from sage.graphs.graph_coloring import vertex_coloring
+            return vertex_coloring(self,hex_colors=hex_colors)
+        elif algorithm == "DLX":
+            from sage.graphs.graph_coloring import first_coloring
+            return first_coloring(self, hex_colors=hex_colors)
+        else:
+            raise ValueError("The `algorithm` variable must be set to either `DLX` or `MILP`.")
 
     ### Centrality
 
@@ -11063,7 +11142,7 @@ class Graph(GenericGraph):
 
         """
         if self.is_directed() or self.has_loops() or self.has_multiple_edges():
-            raise ValueError, "Self must be an undirected simple graph to have a clique_complex."
+            raise ValueError("Self must be an undirected simple graph to have a clique_complex.")
         import sage.homology.simplicial_complex
         C = sage.homology.simplicial_complex.SimplicialComplex(self.vertices(),self.cliques_maximal(),maximality_check=True)
         C._graph = self
@@ -11556,7 +11635,7 @@ class DiGraph(GenericGraph):
             if weighted   is None: weighted   = False
             if multiedges is None: multiedges = False
             if not isinstance(data, str):
-                raise ValueError, 'If input format is dig6, then data must be a string.'
+                raise ValueError('If input format is dig6, then data must be a string.')
             n = data.find('\n')
             if n == -1:
                 n = len(data)
@@ -11828,9 +11907,9 @@ class DiGraph(GenericGraph):
         """
         n = self.order()
         if n > 262143:
-            raise ValueError, 'dig6 format supports graphs on 0 to 262143 vertices only.'
+            raise ValueError('dig6 format supports graphs on 0 to 262143 vertices only.')
         elif self.has_multiple_edges():
-            raise ValueError, 'dig6 format does not support multiple edges.'
+            raise ValueError('dig6 format does not support multiple edges.')
         else:
             return graph_fast.N(n) + graph_fast.R(self._bit_vector())
 

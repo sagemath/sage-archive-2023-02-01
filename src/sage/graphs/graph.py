@@ -3254,6 +3254,174 @@ class GenericGraph(SageObject):
             v = pv
         return B, C
 
+    def edge_cut(self,s,t,value_only=True,use_edge_labels=False):
+        r"""
+        Returns a minimum edge cut between vertices `s` and `t`
+        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+        represented by a list of edges.
+
+
+        INPUT:
+
+        - ``s`` -- Source vertex
+
+        - ``t`` -- Sink vertex
+
+        - ``value_only`` (boolean)
+
+            - When set to ``True``, only the value of a maximal
+              flow is returned.
+
+            - When set to ``False``, a list of edges in the minimum cut is
+              also returned.
+
+        - ``use_edge_labels`` (boolean)
+            - When set to ``True``, computes a weighted minimum cut
+              where each edge has a weight defined by its label. ( if
+              an edge has no label, `1` is assumed )
+
+            - when set to ``False`` (default), each edge has weight `1`.
+
+        EXAMPLE:
+
+        A basic application in a ``PappusGraph``::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.edge_cut(1,2,value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           3.0
+
+        If the graph is a path with weighted edges, the edge cut between the two ends
+        is the edge of minimum weight ::
+
+           sage: g = graphs.PathGraph(15)
+           sage: for (u,v) in g.edge_iterator(labels=None):
+           ...      g.set_edge_label(u,v,random())
+           sage: minimum = min([l for u,v,l in g.edge_iterator()])
+           sage: minimum == g.edge_cut(0,14,use_edge_labels=True)                                # optional - requires Glpk or COIN-OR/CBC
+           True
+           sage: [value,[[u,v]]] = g.edge_cut(0,14,use_edge_labels=True, value_only=False)       # optional - requires Glpk or COIN-OR/CBC
+           sage: g.edge_label(u,v) == minimum                                                    # optional - requires Glpk or COIN-OR/CBC
+           True
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+        p=MixedIntegerLinearProgram(maximization=False)
+        b=p.new_variable(dim=2)
+        v=p.new_variable()
+
+        if use_edge_labels:
+            weight=lambda x: 1 if x==None else x
+        else:
+            weight=lambda x: 1
+
+        # Some vertices belong to part 1, others to part 0
+        p.add_constraint(v[s],min=0,max=0)
+        p.add_constraint(v[t],min=1,max=1)
+
+        if g.is_directed():
+            # we minimize the number of edges
+            p.set_objective(sum([weight(w)*b[x][y] for (x,y,w) in g.edges()]))
+
+            # Adjacent vertices can belong to different parts only if the
+            # edge that connects them is part of the cut
+            [p.add_constraint(v[x]+b[x][y]-v[y],min=0,max=0) for (x,y) in g.edges(labels=None)]
+
+
+        else:
+            # we minimize the number of edges
+            p.set_objective(sum([weight(w)*b[min(x,y)][max(x,y)] for (x,y,w) in g.edges()]))
+
+            # Adjacent vertices can belong to different parts only if the
+            # edge that connects them is part of the cut
+            for (x,y) in g.edges(labels=None):
+                p.add_constraint(v[x]+b[min(x,y)][max(x,y)]-v[y],min=0)
+                p.add_constraint(v[y]+b[min(x,y)][max(x,y)]-v[x],min=0)
+
+        p.set_binary(v)
+        p.set_binary(b)
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            obj=p.solve()
+            b=p.get_values(b)
+            if g.is_directed():
+                return [obj,[(x,y) for (x,y) in g.edges(labels=None) if b[x][y]==1]]
+            else:
+                return [obj,[(x,y) for (x,y) in g.edges(labels=None) if b[min(x,y)][max(x,y)]==1]]
+
+    def vertex_cut(self,s,t,value_only=True):
+        r"""
+        Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
+        ( cf. http://en.wikipedia.org/wiki/Cut_%28graph_theory%29 )
+        represented by a list of vertices.
+
+
+        INPUT:
+
+        - ``value_only`` : When set to ``True``, only the cardinal of the
+          minimum cut is returned
+
+        EXAMPLE:
+
+        A basic application in a ``PappusGraph``::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.vertex_cut(1,16,value_only=True) # optional - requires Glpk or COIN-OR/CBC
+           3.0
+
+        Or in a bipartite complete graph `K_{2,8}` between the first 2
+        vertices, in which case the minimum cut is the other set of 8
+        vertices ::
+
+           sage: g = graphs.CompleteBipartiteGraph(2,8)
+           sage: [value, vertices] = g.vertex_cut(0,1, value_only=False) # optional - requires Glpk or COIN-OR/CBC
+           sage: print value                                             # optional - requires Glpk or COIN-OR/CBC
+           8.0
+           sage: vertices == range(2,10)                                 # optional - requires Glpk or COIN-OR/CBC
+           True
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+        if g.has_edge(s,t):
+            raise ValueError, "There can be no vertex cut between adjacent vertices !"
+
+        p=MixedIntegerLinearProgram(maximization=False)
+        b=p.new_variable()
+        v=p.new_variable()
+
+        # Some vertices belong to part 1, some others to part 0
+        p.add_constraint(v[s],min=0,max=0)
+        p.add_constraint(v[t],min=1,max=1)
+
+        # b indicates whether the vertices belong to the cut
+        p.add_constraint(b[s],min=0,max=0)
+        p.add_constraint(b[t],min=0,max=0)
+
+        if g.is_directed():
+            p.set_objective(sum([b[x] for x in g.vertices()]))
+            # adjacent vertices belong to the same part except if one of them
+            # belongs to the cut
+            [p.add_constraint(v[x]+b[y]-v[y],min=0) for (x,y) in g.edges(labels=None)]
+
+        else:
+            p.set_objective(sum([b[x] for x in g.vertices()]))
+            # adjacent vertices belong to the same part except if one of them
+            # belongs to the cut
+            for (x,y) in g.edges(labels=None):
+                p.add_constraint(v[x]+b[y]-v[y],min=0)
+                p.add_constraint(v[y]+b[x]-v[x],min=0)
+
+        p.set_binary(b)
+        p.set_binary(v)
+
+        if value_only:
+            return p.solve(objective_only=True)
+        else:
+            obj=p.solve()
+            b=p.get_values(b)
+            return [obj,[v for v in g if b[v]==1]]
+
     def vertex_cover(self,algorithm="Cliquer",value_only=False,log=0):
         r"""
         Returns a minimum vertex cover of the graph

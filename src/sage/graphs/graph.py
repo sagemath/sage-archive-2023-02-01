@@ -3254,6 +3254,102 @@ class GenericGraph(SageObject):
             v = pv
         return B, C
 
+    def vertex_cover(self,algorithm="Cliquer",value_only=False,log=0):
+        r"""
+        Returns a minimum vertex cover of the graph
+        ( cf. http://en.wikipedia.org/wiki/Vertex_cover )
+        represented by the list of its vertices.
+
+        A minimum vertex cover of a graph is a set `S` of
+        its vertices such that each edge is incident to at least
+        one element of `S`, and such that `S` is of minimum
+        cardinality.
+
+        A vertex cover is also defined as the complement of an
+        independent set.
+
+        As an optimization problem, it can be expressed as :
+
+        .. MATH::
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``algorithm`` -- Select an algorithm
+
+            - ``"Cliquer"`` (default) will return a minimum vertex cover
+              using the algorithm Cliquer.
+
+            - ``"MILP"`` will return a minimum vertex cover through a Mixed
+              Integer Linear Program ( requires packages GLPK or CBC )
+
+        - ``value_only`` --
+            - If ``value_only = True``, only the cardinality of a
+              minimum vertex cover is returned.
+            - If ``value_only = False`` ( default ), a minimum vertex cover
+              is returned as the list of its vertices
+
+        - ``log`` ( integer ) --
+          As vertex cover is an `NP`-complete problem, its solving may take some time
+          depending on the graph. Use ``log`` to define the level of verbosity you want
+          from the linear program solver.
+
+          By default ``log=0``, meaning that there will be no message printed by the solver.
+
+          Only useful if ``algorithm="MILP"``.
+
+        EXAMPLES:
+
+        On a ``PappusGraph`` ::
+
+           sage: g=graphs.PappusGraph()
+           sage: g.vertex_cover(value_only=True)
+           9
+
+        Obviously, the two methods return the same results ::
+
+           sage: g=graphs.RandomGNP(10,.5)
+           sage: vc1 = g.vertex_cover(algorithm="MILP")     # optional requires GLPK or CBC
+           sage: vc2 = g.vertex_cover(algorithm="Cliquer")  # optional requires GLPK or CBC
+           sage: len(vc1) == len(vc2) # optional requires GLPK or CBC
+           True
+        """
+
+
+        if algorithm=="Cliquer":
+            independent = self.independent_set()
+
+            if value_only:
+                return self.order()-len(independent)
+            else:
+                return set(self.vertices()).difference(set(independent))
+
+        elif algorithm=="MILP":
+
+            from sage.numerical.mip import MixedIntegerLinearProgram
+            g=self
+            p=MixedIntegerLinearProgram(maximization=False)
+            b=p.new_variable()
+
+            # minimizes the number of vertices in the set
+            p.set_objective(sum([b[v] for v in g.vertices()]))
+
+            # an edge contains at least one vertex of the minimum vertex cover
+            [p.add_constraint(b[u]+b[v],min=1) for (u,v) in g.edges(labels=None)]
+
+            p.set_binary(b)
+
+            if value_only:
+                return p.solve(objective_only=True,log=log)
+            else:
+                p.solve()
+                b=p.get_values(b)
+                return set([v for v in g.vertices() if b[v]==1])
+        else:
+            raise ValueError("Only two algorithms are available : Cliquer and MILP.")
+
     ### Vertex handlers
 
     def add_vertex(self, name=None):

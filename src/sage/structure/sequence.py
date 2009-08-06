@@ -78,7 +78,7 @@ TESTS::
 ##########################################################################
 
 
-import sage.misc.latex as latex
+from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
 #from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
@@ -538,6 +538,19 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return '[\n' + ',\n'.join([repr(x) for x in self]) + '\n]'
         else:
             return list.__repr__(self)
+
+    def _latex_(self):
+        """
+        TESTS::
+
+            sage: t= Sequence([sqrt(x), exp(x), x^(x-1)], universe=SR); t
+            [sqrt(x), e^x, x^(x - 1)]
+            sage: t._latex_()
+            '\\left[\\sqrt{x}, e^{x}, x^{x - 1}\\right]'
+            sage: latex(t)
+            \left[\sqrt{x}, e^{x}, x^{x - 1}\right]
+        """
+        return list_latex_function(self)
 
     def __str__(self):
         """

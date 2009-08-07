@@ -211,9 +211,11 @@ class WorksheetFile(resource.Resource):
 
 DOC = os.path.abspath(SAGE_DOC + '/output/html/en/')
 DOC_PDF = os.path.abspath(SAGE_DOC + '/output/pdf')
+DOC_REF_MEDIA = os.path.abspath(SAGE_DOC + '/en/reference/media')
 
 class DocPDF(resource.Resource):
     addSlash = True
+
     def render(self, ctx):
         return static.File('%s' % DOC_PDF)
 
@@ -221,8 +223,31 @@ class DocPDF(resource.Resource):
         gzip_handler(request)
         return static.File('%s/%s' % (DOC_PDF, name))
 
+class DocRefMedia(resource.Resource):
+    addSlash = True
+
+    def render(self, ctx):
+        return static.File('%s' % DOC_REF_MEDIA)
+
+    def childFactory(self, request, name):
+        gzip_handler(request)
+        return static.File('%s/%s' % (DOC_REF_MEDIA, name))
+
+class DocReference(resource.Resource):
+    addSlash = True
+    child_media = DocRefMedia()
+
+    def render(self, ctx):
+        return static.File('%s/reference/index.html' % DOC)
+
+    def childFactory(self, request, name):
+        gzip_handler(request)
+        return static.File('%s/reference/%s' % (DOC, name))
+
 class DocStatic(resource.Resource):
     addSlash = True
+    child_reference = DocReference()
+
     def render(self, ctx):
         return static.File('%s/index.html'%DOC)
 

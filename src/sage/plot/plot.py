@@ -74,7 +74,7 @@ EXAMPLES: We construct a plot involving several graphics objects::
 
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
-    sage: P   # show it
+    sage: G + P  # show it
 
 We draw a circle and a curve::
 

@@ -1595,6 +1595,17 @@ class Cell(Cell_generic):
                 os.unlink(lock_name)
 
                 new_html = new_html.replace('<pre>', '<pre class="literal-block">')
+
+                # Translate URLs for media from something like
+                #    "../../media/...path.../blah.png"
+                # or
+                #    "/media/...path.../blah.png"
+                # to
+                #    "/doc/static/reference/media/...path.../blah.png"
+                new_html = re.sub("""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
+                                  'src="/doc/static/reference/media/\\2"',
+                                  new_html)
+
                 self.__introspect_html = new_html
                 return
 
